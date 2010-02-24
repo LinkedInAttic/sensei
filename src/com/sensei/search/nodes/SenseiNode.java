@@ -46,24 +46,19 @@ public class SenseiNode{
 
 		Cluster cluster = _bootstrap.getCluster();
 
+		boolean nodeExists = false;
 		try{
 		  logger.info("waiting to connect to cluster...");
 		 
 		  cluster.awaitConnection();
 		  Node node = cluster.getNodeWithId(_id);
-		  if (node!=null){
-			  logger.warn("existing node found, will try to overwrite.");
-			  try{
-			    cluster.removeNode(_id);
-			  }
-			  catch(Exception e){
-				logger.error("problem removing old node: "+e.getMessage(),e);
-			  }
-		  }
-		  cluster.addNode(_id, new InetSocketAddress(InetAddress.getLocalHost(),_port),_partitions);
-		  Thread.sleep(1000);
+		  nodeExists = (node!=null); 
+		  if (!nodeExists){
+			  cluster.addNode(_id, new InetSocketAddress(InetAddress.getLocalHost(),_port),_partitions);
+			  Thread.sleep(1000);
 
-		  logger.info("added node id: "+_id);
+			  logger.info("added node id: "+_id);
+		  }
         }
         catch(Exception e){
           logger.error(e.getMessage(),e);
@@ -75,12 +70,40 @@ public class SenseiNode{
 			logger.info("binding server ...");
 	    	_server.bind();
 			logger.info("started...");
+			if (nodeExists){
+			  logger.warn("existing node found, will try to overwrite.");
+			  try{
+			    cluster.removeNode(_id);
+			  }
+			  catch(Exception e){
+				logger.error("problem removing old node: "+e.getMessage(),e);
+			  }
+			  cluster.addNode(_id, new InetSocketAddress(InetAddress.getLocalHost(),_port),_partitions);
+			  Thread.sleep(1000);
+
+			  logger.info("added node id: "+_id);
+		    }
 	    } catch (NetworkingException e) {
-	      logger.error("unable to bind to port: "+_port, e);
-	      _server.shutdown();
-	      _bootstrap.shutdown();
+	    	logger.info("shutting down...");
+	    	 
+			try
+			{
+			  if (!nodeExists){
+			    cluster.removeNode(_id);
+			  }
+			}
+			catch(Exception ex){
+				logger.warn(ex.getMessage());
+			}
+			finally{
+				try{
+				  _server.shutdown();
+				}
+				finally{
+				  _bootstrap.shutdown();
+				}
+			}
 	    }
-	    
 	}
 	
 	public void shutdown() throws Exception{
