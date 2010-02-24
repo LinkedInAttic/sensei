@@ -49,7 +49,6 @@ public class SenseiNode{
 		boolean nodeExists = false;
 		try{
 		  logger.info("waiting to connect to cluster...");
-		 
 		  cluster.awaitConnection();
 		  Node node = cluster.getNodeWithId(_id);
 		  nodeExists = (node!=null); 
@@ -62,6 +61,7 @@ public class SenseiNode{
         }
         catch(Exception e){
           logger.error(e.getMessage(),e);
+          throw e;
         }
 	        
 		_server = _bootstrap.getNetworkServer();
@@ -84,7 +84,7 @@ public class SenseiNode{
 			  logger.info("added node id: "+_id);
 		    }
 	    } catch (NetworkingException e) {
-	    	logger.info("shutting down...");
+	    	logger.error(e.getMessage(),e);
 	    	 
 			try
 			{
@@ -98,11 +98,15 @@ public class SenseiNode{
 			finally{
 				try{
 				  _server.shutdown();
+				  _server = null;
+
 				}
 				finally{
 				  _bootstrap.shutdown();
+				  _bootstrap = null;
 				}
 			}
+			throw e;
 	    }
 	}
 	
@@ -118,10 +122,19 @@ public class SenseiNode{
 		}
 		finally{
 			try{
-			  _server.shutdown();
+			  if (_server!=null){
+
+				  System.out.println("srver shutdown");
+			    _server.shutdown();
+			  }
 			}
 			finally{
-			  _bootstrap.shutdown();
+			  if (_bootstrap!=null){
+				  System.out.println("bootstra shutdown");
+			    _bootstrap.shutdown();
+
+				  System.out.println("done bootstra shutdown");
+			  }
 			}
 		}
 	}
