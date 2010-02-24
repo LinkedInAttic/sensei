@@ -150,8 +150,8 @@ public class SenseiServer {
 		//SenseiServer server = new SenseiServer(port,ctx, indexLoader);
 		SenseiNodeMessageHandler msgHandler = new SenseiNodeMessageHandler(ctx);
 		final SenseiNode node = new SenseiNode(Cluster_Name,id,port,partitions,msgHandler,zookeeperURL);
-		node.startup();
 		
+		node.startup();
 		
 		Runtime.getRuntime().addShutdownHook(new Thread(){
 			public void run(){
