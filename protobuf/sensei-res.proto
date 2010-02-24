@@ -1,0 +1,36 @@
+package com.sensei.search.req.protobuf;
+
+option java_package = "com.sensei.search.req.protobuf";
+option java_outer_classname = "SenseiResultBPO";
+
+option optimize_for = SPEED;
+
+message Facet{
+  required string val = 1;
+  optional uint32 count = 2;
+}
+
+message FacetContainer{
+  required string name = 1;
+  repeated Facet facets = 2;
+}
+
+message FieldVal
+{
+  required string name = 1;
+  repeated string vals = 2;
+}
+	
+message Hit{
+  optional uint32 docid = 1;
+  optional float score = 2;
+  repeated FieldVal fieldValues = 3;
+}
+
+message Result{
+  optional uint32 numhits = 1;
+  optional uint32 totaldocs = 2;
+  repeated FacetContainer facetContainers = 3;
+  repeated Hit hits = 4;
+  optional uint64 time = 5;
+}

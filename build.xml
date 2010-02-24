@@ -1,0 +1,73 @@
+<project xmlns:ivy="antlib:org.apache.ivy.ant" name="sensei" default="dist">
+	<property name="sensei.root" location="."/>
+	<property name="src" value="src"/>
+	
+	<property name="conf.dir" location="node-conf" />
+	
+	<property name="lib.dir" location="lib"/>
+    
+	<property name="build" value="build"/>
+	
+	<property name="logs" value="logs"/>
+	
+	<property name="dist" location="dist" />
+	<property name="version" value="0.0.1"/>
+	
+	<property name="project.name" value="sensei"/>
+
+    <property name="ivy.install.version" value="2.0.0-beta1"/>
+    <property name="ivy.jar.dir" value="${basedir}/ivy"/>
+    <property name="ivy.jar.file" value="${ivy.jar.dir}/ivy.jar"/>
+    <property name="build.dir" value="build"/>
+    
+	<path id="compile.class.path">
+		<fileset dir="${lib.dir}">
+			<include name="*.jar" />
+		</fileset>
+	</path>
+	
+	<path id="java.class.path">
+		<dirset dir="${build}">
+		        <include name="**"/>
+		</dirset>
+	</path>
+	
+    <target name="resolve" description="--> retrieve dependencies with ivy" depends="install-ivy">
+        <ivy:retrieve />
+    </target>
+
+    <target name="download-ivy" unless="skip.download">
+	<mkdir dir="${ivy.jar.dir}"/>
+        <echo message="installing ivy..."/>
+        <get src="http://repo1.maven.org/maven2/org/apache/ivy/ivy/${ivy.install.version}/ivy-${ivy.install.version}.jar" dest="${ivy.jar.file}" usetimestamp="true"/>
+    </target>
+
+    <target name="install-ivy" depends="download-ivy" description="--> install ivy">
+        <path id="ivy.lib.path">
+            <fileset dir="${ivy.jar.dir}" includes="*.jar"/>
+        </path>
+        <taskdef resource="org/apache/ivy/ant/antlib.xml" uri="antlib:org.apache.ivy.ant" classpathref="ivy.lib.path"/>
+    </target>
+
+    <target name="clean">
+      <delete dir="${build}"/>
+      <delete dir="${dist}"/>
+	  <delete dir="${logs}"/>
+    </target>
+	
+    <target name="init" depends="resolve">
+        <mkdir dir="${build}"/>
+        <mkdir dir="${dist}"/>
+    </target>
+	
+    <target name="compile" depends="init">
+	<javac debug="true" destdir="${build}">
+            <src path="${src}"/>
+            <classpath refid="compile.class.path"/>
+        </javac>
+    </target>
+	
+    <target name="dist" depends="compile">
+			<jar destfile="${dist}/${project.name}-${version}.jar"  basedir="${build}" />
+    </target>
+</project>

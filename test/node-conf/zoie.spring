@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+						http://www.springframework.org/schema/beans/spring-beans.xsd">
+			
+	<!-- dummy placeholder, we are not worry about indexing for now -->			
+	<bean id="fileInterpreter" class="proj.zoie.impl.indexing.FileIndexableInterpreter" />
+	
+	<bean id="lucene-version" class="org.apache.lucene.util.Version" factory-method="valueOf">
+		<constructor-arg value="LUCENE_CURRENT" />
+	</bean>
+	
+	<bean id="analyzer" class="org.apache.lucene.analysis.standard.StandardAnalyzer">
+		<constructor-arg ref="lucene-version"/>
+	</bean>
+	
+	<bean id="similarity" class="org.apache.lucene.search.DefaultSimilarity" />
+	
+	<bean id="idxDecorator" class="com.sensei.search.nodes.SenseiIndexReaderDecorator" />
+	
+	<bean id="zoieSystem" class="proj.zoie.impl.indexing.ZoieSystem" init-method="start" destroy-method="shutdown">
+		<constructor-arg value="file:${idx.dir}"/>
+		<constructor-arg ref="fileInterpreter" />
+		<constructor-arg ref="idxDecorator" />
+		<constructor-arg ref="analyzer" />
+		<constructor-arg ref="similarity" />
+		<constructor-arg value="1000" />
+		<constructor-arg value="300000" />
+		<constructor-arg value="true" />
+	</bean>
+	
+	<bean id="zoie-system-mbean" class="proj.zoie.mbean.ZoieSystemAdmin">
+		<constructor-arg ref="zoieSystem" />
+	</bean>
+	
+	<bean id="zoie-index-stat-mbean" class="proj.zoie.mbean.ZoieIndexingStatusAdmin">
+		<constructor-arg ref="zoieSystem" />
+	</bean>
+	
+	<bean id="defaultOptScheduler" class="proj.zoie.api.indexing.DefaultOptimizeScheduler" factory-bean="zoieSystem" factory-method="getOptimizeScheduler" />
+	
+	<bean id="optimize-scheduler-mbean" class="proj.zoie.mbean.ZoieOptimizeSchedulerAdmin">
+		<constructor-arg ref="defaultOptScheduler" />
+	</bean>
+</beans>
