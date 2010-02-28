@@ -1,7 +1,5 @@
 package com.sensei.search.nodes;
 
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -39,7 +37,7 @@ public class SenseiNodeMessageHandler implements MessageHandler {
 
 	private static final Logger logger = Logger.getLogger(SenseiNodeMessageHandler.class);
 	private final QueryParser _qparser;
-	private final Int2ObjectMap<IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>> _partReaderMap;
+	private final Map<Integer,IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>> _partReaderMap;
 	private final Map<String,RuntimeFacetHandlerFactory<?>> _runtimeFacetHandlerFactoryMap;
 
 	public SenseiNodeMessageHandler(SenseiSearchContext ctx) {
@@ -48,9 +46,21 @@ public class SenseiNodeMessageHandler implements MessageHandler {
 		List<RuntimeFacetHandlerFactory<?>> runtimeFacetHandlerFactories = ctx
 				.getRuntimeFacetHandlerFactories();
 		_runtimeFacetHandlerFactoryMap = new HashMap<String,RuntimeFacetHandlerFactory<?>>();
-		for (RuntimeFacetHandlerFactory<?> factory : runtimeFacetHandlerFactories) {
+		if (runtimeFacetHandlerFactories!=null){
+		  for (RuntimeFacetHandlerFactory<?> factory : runtimeFacetHandlerFactories) {
 			_runtimeFacetHandlerFactoryMap.put(factory.getName(), factory);
+		  }
 		}
+	}
+	
+	public int[] getPartitions(){
+		Set<Integer> partSet = _partReaderMap.keySet();
+		int[] retSet = new int[partSet.size()];
+		int c = 0;
+		for (Integer part : partSet){
+			retSet[c++] = part;
+		}
+		return retSet;
 	}
 
 	public Message[] getMessages() {

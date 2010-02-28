@@ -1,7 +1,9 @@
 <ivy-module version="2.0">
     <info organisation="com.snaprojects.sensei" module="sensei"/>
     <configurations>
-       <conf name="master"/>
+       <conf name="master"  visibility="public" description="contains only the artifact published by this module itself, with no transitive dependencies"/>
+       <conf name="test"    visibility="private" description="is only available for the test compilation and execution phases."/>
+      
     </configurations>
   
     <publications>
@@ -16,6 +18,8 @@
         <dependency org="org.apache.lucene" name="lucene-core" rev="3.0.0" conf="master"/>
         <dependency org="org.springframework" name="spring" rev="2.5.5" conf="master"/>
         <dependency org="com.google.protobuf" name="protobuf-java" rev="2.3.0" conf="master"/>
+        
+        <dependency org="junit" name="junit" rev="4.5" conf="test->master"/>
         <!--
         <dependency org="org.jboss.netty" name="netty" rev="3.1.5.GA" conf="master"/>
         -->

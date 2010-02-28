@@ -24,15 +24,25 @@ public class SenseiNode{
 	private ServerBootstrap _bootstrap;
 	private NetworkServer _server;
 	private final int _port;
+	private ServerBootstrapFactory _bootstrapFactory;
 	 
 	
-	public SenseiNode(String clusterName,int id,int port,int[] partitions,SenseiNodeMessageHandler msgHandler,String zookeeperURL){
+	public SenseiNode(String clusterName,int id,int port,SenseiNodeMessageHandler msgHandler,String zookeeperURL){
 		_id = id;
 		_port = port;
-		_partitions = partitions;
 		_msgHandler = msgHandler;
 		_zookeeperURL = zookeeperURL;
 		_clusterName = clusterName;
+		_partitions = msgHandler.getPartitions();
+		_bootstrapFactory = null;
+	}
+	
+	public void setServerBootstrapFactory(ServerBootstrapFactory bootstrapFactory){
+		_bootstrapFactory = bootstrapFactory;
+	}
+	
+	public ServerBootstrapFactory getServerBootstrapFactory(){
+		return _bootstrapFactory == null ? new ServerBootstrapFactory.DefaultServerBootstrapFactory() : _bootstrapFactory;
 	}
 
 	public void startup() throws Exception{
@@ -42,7 +52,10 @@ public class SenseiNode{
 		serverConfig.setMessageHandlers(new MessageHandler[]{_msgHandler});
 		
 		serverConfig.setNodeId(_id);
-		_bootstrap = new ServerBootstrap(serverConfig);
+		
+		ServerBootstrapFactory bootstrapFactory = getServerBootstrapFactory();
+		
+		_bootstrap = bootstrapFactory.getServerBootstrap(serverConfig);
 
 		Cluster cluster = _bootstrap.getCluster();
 
@@ -53,7 +66,7 @@ public class SenseiNode{
 		  Node node = cluster.getNodeWithId(_id);
 		  nodeExists = (node!=null); 
 		  if (!nodeExists){
-			  cluster.addNode(_id, new InetSocketAddress(InetAddress.getLocalHost(),_port),_partitions);
+			  node = cluster.addNode(_id, new InetSocketAddress(InetAddress.getLocalHost(),_port),_partitions);
 			  Thread.sleep(1000);
 
 			  logger.info("added node id: "+_id);
@@ -123,17 +136,12 @@ public class SenseiNode{
 		finally{
 			try{
 			  if (_server!=null){
-
-				  System.out.println("srver shutdown");
 			    _server.shutdown();
 			  }
 			}
 			finally{
 			  if (_bootstrap!=null){
-				  System.out.println("bootstra shutdown");
 			    _bootstrap.shutdown();
-
-				  System.out.println("done bootstra shutdown");
 			  }
 			}
 		}

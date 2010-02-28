@@ -6,7 +6,7 @@
 						http://www.springframework.org/schema/beans/spring-beans.xsd">
 			
 	<!-- dummy placeholder, we are not worry about indexing for now -->			
-	<bean id="fileInterpreter" class="proj.zoie.impl.indexing.FileIndexableInterpreter" />
+	<bean id="interpreter" class="com.sensei.search.nodes.NoOpIndexableInterpreter" />
 	
 	<bean id="lucene-version" class="org.apache.lucene.util.Version" factory-method="valueOf">
 		<constructor-arg value="LUCENE_CURRENT" />
@@ -22,7 +22,7 @@
 	
 	<bean id="zoieSystem" class="proj.zoie.impl.indexing.ZoieSystem" init-method="start" destroy-method="shutdown">
 		<constructor-arg value="file:${idx.dir}"/>
-		<constructor-arg ref="fileInterpreter" />
+		<constructor-arg ref="interpreter" />
 		<constructor-arg ref="idxDecorator" />
 		<constructor-arg ref="analyzer" />
 		<constructor-arg ref="similarity" />
