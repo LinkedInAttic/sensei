@@ -9,6 +9,7 @@
 	<property name="lib.test" location="${lib.base}/test"/>
 
 	<property name="test" value="test/src"/>
+	<property name="resources" value="resources"/>
 	
 	<property name="build" value="build"/>
 	<property name="build.test" value="build-test"/>
@@ -39,6 +40,7 @@
 	  <path location="${build.test}"/>
 	  <fileset dir="${lib.test}"/>
 	  <path refid="compile.class.path"/>
+	  <fileset dir="${resources}"/>
 	</path>
 	
 	<path id="java.class.path">
@@ -76,6 +78,7 @@
         <mkdir dir="${build}"/>
         <mkdir dir="${build.test}"/>
         <mkdir dir="${dist}"/>
+        <mkdir dir="${logs}"/>
     </target>
 	
     <target name="compile" depends="init">
@@ -102,14 +105,11 @@
 	        	<mkdir dir="${test.html.dir}" />
 
 			<junit printsummary="yes" showoutput="yes">
-	                	<sysproperty key="log.home" value="${logs}" />
-	                        <sysproperty key="conf.dir" value="${conf.dir}" />
-				<sysproperty key="log4j.configuration" value="${log4j.configuration}" />
-				<sysproperty key="tests.to.run" value="${tests.to.run}" />
+				<sysproperty key="log.home" value="${logs}" />
 				<sysproperty key="idx.dir" value="data/cardata" />
-	                        <jvmarg value="-server" />
-	                        <jvmarg value="-Xms256m" />
-	                        <jvmarg value="-Xmx1g" />
+                <jvmarg value="-server" />
+                <jvmarg value="-Xms256m" />
+                <jvmarg value="-Xmx1g" />
 			    <!-- classpath must include all jar dependencies and classes -->
 				<classpath refid="test.class.path" />
 				
