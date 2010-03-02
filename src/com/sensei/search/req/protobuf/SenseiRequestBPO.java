@@ -3468,12 +3468,12 @@ public final class SenseiRequestBPO {
       return facetSpecs_.get(index);
     }
     
-    // optional string query = 6;
+    // optional bytes query = 6;
     public static final int QUERY_FIELD_NUMBER = 6;
     private boolean hasQuery;
-    private java.lang.String query_ = "";
+    private com.google.protobuf.ByteString query_ = com.google.protobuf.ByteString.EMPTY;
     public boolean hasQuery() { return hasQuery; }
-    public java.lang.String getQuery() { return query_; }
+    public com.google.protobuf.ByteString getQuery() { return query_; }
     
     // optional bytes filterIDs = 7;
     public static final int FILTERIDS_FIELD_NUMBER = 7;
@@ -3542,7 +3542,7 @@ public final class SenseiRequestBPO {
         output.writeMessage(5, element);
       }
       if (hasQuery()) {
-        output.writeString(6, getQuery());
+        output.writeBytes(6, getQuery());
       }
       if (hasFilterIDs()) {
         output.writeBytes(7, getFilterIDs());
@@ -3587,7 +3587,7 @@ public final class SenseiRequestBPO {
       }
       if (hasQuery()) {
         size += com.google.protobuf.CodedOutputStream
-          .computeStringSize(6, getQuery());
+          .computeBytesSize(6, getQuery());
       }
       if (hasFilterIDs()) {
         size += com.google.protobuf.CodedOutputStream
@@ -3873,7 +3873,7 @@ public final class SenseiRequestBPO {
               break;
             }
             case 50: {
-              setQuery(input.readString());
+              setQuery(input.readBytes());
               break;
             }
             case 58: {
@@ -4088,14 +4088,14 @@ public final class SenseiRequestBPO {
         return this;
       }
       
-      // optional string query = 6;
+      // optional bytes query = 6;
       public boolean hasQuery() {
         return result.hasQuery();
       }
-      public java.lang.String getQuery() {
+      public com.google.protobuf.ByteString getQuery() {
         return result.getQuery();
       }
-      public Builder setQuery(java.lang.String value) {
+      public Builder setQuery(com.google.protobuf.ByteString value) {
         if (value == null) {
     throw new NullPointerException();
   }
@@ -4314,7 +4314,7 @@ public final class SenseiRequestBPO {
       "\003 \001(\r\0222\n\004sort\030\004 \003(\0132$.com.sensei.search." +
       "req.protobuf.Sort\022=\n\nfacetSpecs\030\005 \003(\0132)." +
       "com.sensei.search.req.protobuf.FacetSpec" +
-      "\022\r\n\005query\030\006 \001(\t\022\021\n\tfilterIDs\030\007 \001(\014\022\031\n\021fe" +
+      "\022\r\n\005query\030\006 \001(\014\022\021\n\tfilterIDs\030\007 \001(\014\022\031\n\021fe" +
       "tchStoredFields\030\010 \001(\010\022U\n\017facetInitParams" +
       "\030\t \003(\0132<.com.sensei.search.req.protobuf." +
       "FacetHandlerInitializerParam\022\022\n\npartitio" +

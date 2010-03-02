@@ -69,7 +69,7 @@ message Request{
   optional uint32 count = 3;
   repeated Sort sort = 4;
   repeated FacetSpec facetSpecs = 5;
-  optional string query = 6;
+  optional bytes query = 6;
   optional bytes filterIDs = 7;
   optional bool fetchStoredFields = 8;
   repeated FacetHandlerInitializerParam facetInitParams = 9;

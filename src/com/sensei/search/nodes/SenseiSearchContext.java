@@ -8,7 +8,6 @@ import java.util.Set;
 import java.util.Map.Entry;
 
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
-import org.apache.lucene.queryParser.QueryParser;
 import org.apache.lucene.search.DefaultSimilarity;
 import org.apache.lucene.util.Version;
 
@@ -21,7 +20,7 @@ import com.browseengine.bobo.api.BoboIndexReader;
 import com.sensei.search.req.RuntimeFacetHandlerFactory;
 
 public class SenseiSearchContext {
-	private final QueryParser _qparser;
+	private final SenseiQueryBuilder _qbuilder;
 	private final Map<Integer,IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>> _partReaderMap;
 	private final List<RuntimeFacetHandlerFactory<?>> _runtimeFacetHandlerFactories;
 	
@@ -30,24 +29,24 @@ public class SenseiSearchContext {
 		return zoieSystem;
 	}
 	
-	public SenseiSearchContext(QueryParser qparser,Map<Integer,IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>> partReaderMap,
+	public SenseiSearchContext(SenseiQueryBuilder qbuilder,Map<Integer,IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>> partReaderMap,
 							   List<RuntimeFacetHandlerFactory<?>> runtimeFacetHandlerFactories){
-		_qparser = qparser;
+		_qbuilder = qbuilder;
 		_partReaderMap = partReaderMap;
 		
 		_runtimeFacetHandlerFactories = runtimeFacetHandlerFactories;
 	}
 	
-	public SenseiSearchContext(QueryParser qparser,Map<Integer,File> partFileMap){
-		this(qparser,new NoOpIndexableInterpreter(),partFileMap,null);
+	public SenseiSearchContext(SenseiQueryBuilder qbuilder,Map<Integer,File> partFileMap){
+		this(qbuilder,new NoOpIndexableInterpreter(),partFileMap,null);
 	}
 	
-	public SenseiSearchContext(QueryParser qparser,ZoieIndexableInterpreter<?> interpreter,Map<Integer,File> partFileMap){
-		this(qparser,interpreter,partFileMap,null);
+	public SenseiSearchContext(SenseiQueryBuilder qbuilder,ZoieIndexableInterpreter<?> interpreter,Map<Integer,File> partFileMap){
+		this(qbuilder,interpreter,partFileMap,null);
 	}
 	
-	public SenseiSearchContext(QueryParser qparser,ZoieIndexableInterpreter<?> interpreter,Map<Integer,File> partFileMap,List<RuntimeFacetHandlerFactory<?>> runtimeFacetHandlerFactories){
-		_qparser = qparser;
+	public SenseiSearchContext(SenseiQueryBuilder qbuilder,ZoieIndexableInterpreter<?> interpreter,Map<Integer,File> partFileMap,List<RuntimeFacetHandlerFactory<?>> runtimeFacetHandlerFactories){
+	    _qbuilder = qbuilder;
 		_runtimeFacetHandlerFactories = runtimeFacetHandlerFactories;
 		
 		_partReaderMap = new HashMap<Integer,IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>>();
@@ -57,8 +56,8 @@ public class SenseiSearchContext {
 		}
 	}
 
-	public QueryParser getQparser() {
-		return _qparser;
+	public SenseiQueryBuilder getQueryBuilder() {
+		return _qbuilder;
 	}
 
 	public IndexReaderFactory<ZoieIndexReader<BoboIndexReader>> getIdxReaderFactory(int partition) {

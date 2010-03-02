@@ -12,6 +12,7 @@ import org.apache.lucene.util.Version;
 import com.sensei.search.nodes.SenseiNode;
 import com.sensei.search.nodes.SenseiNodeMessageHandler;
 import com.sensei.search.nodes.SenseiSearchContext;
+import com.sensei.search.nodes.impl.SimpleQueryBuilder;
 import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.req.SenseiResult;
 import com.sensei.search.svc.impl.ClusteredSenseiServiceImpl;
@@ -44,8 +45,8 @@ public class SenseiTestCase extends TestCase {
 		map2.put(2, IdxDir);
 		map2.put(3,IdxDir);
 		
-		SenseiSearchContext srchCtx1 = new SenseiSearchContext(parser1, map1);
-		SenseiSearchContext srchCtx2 = new SenseiSearchContext(parser2, map2);
+		SenseiSearchContext srchCtx1 = new SenseiSearchContext(new SimpleQueryBuilder(parser1), map1);
+		SenseiSearchContext srchCtx2 = new SenseiSearchContext(new SimpleQueryBuilder(parser2), map2);
 		
 		SenseiNode node1 = new SenseiNode(SENSEI_TEST_CLUSTER_NAME,1,1234,new SenseiNodeMessageHandler(srchCtx1),"");
 		node1.setServerBootstrapFactory(new MockServerBootstrapFactory());

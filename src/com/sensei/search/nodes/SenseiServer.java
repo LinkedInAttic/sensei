@@ -10,14 +10,12 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 
 import org.apache.log4j.Logger;
-import org.apache.lucene.queryParser.QueryParser;
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.FileSystemXmlApplicationContext;
 
 import proj.zoie.api.IndexReaderFactory;
 import proj.zoie.api.ZoieIndexReader;
-import proj.zoie.api.indexing.ZoieIndexableInterpreter;
 
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.sensei.search.req.RuntimeFacetHandlerFactory;
@@ -132,7 +130,7 @@ public class SenseiServer {
 		
 		ApplicationContext springCtx = new FileSystemXmlApplicationContext("file:"+confFile.getAbsolutePath());
 		
-		QueryParser qparser = (QueryParser)springCtx.getBean("query-parser");
+		SenseiQueryBuilder qbuilder = (SenseiQueryBuilder)springCtx.getBean("query-builder");
 		IndexReaderFactory<ZoieIndexReader<BoboIndexReader>> idxReaderFactory = (IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>)springCtx.getBean("index-reader-factory");
 		List<RuntimeFacetHandlerFactory<?>> runtimeFacethandlerFactories = (List<RuntimeFacetHandlerFactory<?>>)springCtx.getBean("runtime-facet-handler-factories");
 		SenseiIndexLoader indexLoader = (SenseiIndexLoader)springCtx.getBean("index-loader");
@@ -144,7 +142,7 @@ public class SenseiServer {
 			readerFactoryMap.put(part, idxReaderFactory);
 		}
 		
-		SenseiSearchContext ctx = new SenseiSearchContext(qparser, readerFactoryMap, runtimeFacethandlerFactories);
+		SenseiSearchContext ctx = new SenseiSearchContext(qbuilder, readerFactoryMap, runtimeFacethandlerFactories);
 		//SenseiServer server = new SenseiServer(port,ctx, indexLoader);
 		SenseiNodeMessageHandler msgHandler = new SenseiNodeMessageHandler(ctx);
 		final SenseiNode node = new SenseiNode(Cluster_Name,id,port,msgHandler,zookeeperURL);
