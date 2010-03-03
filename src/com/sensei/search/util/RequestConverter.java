@@ -17,7 +17,7 @@ public class RequestConverter {
 		breq.setFetchStoredFields(req.isFetchStoredFields());
 		
 		// query
-		Query q = queryBuilder.buildQuery(req);
+		Query q = queryBuilder.buildQuery(req.getQuery());
 		if(q != null){
 			breq.setQuery(q);
 		}

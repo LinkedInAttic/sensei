@@ -1,6 +1,5 @@
 package com.sensei.search.req.protobuf;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -28,6 +27,7 @@ import com.google.protobuf.TextFormat;
 import com.google.protobuf.TextFormat.ParseException;
 import com.sensei.search.req.DefaultFacetHandlerInitializerParam;
 import com.sensei.search.req.FacetHandlerInitializerParam;
+import com.sensei.search.req.SenseiQuery;
 import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.req.SenseiResult;
 import com.sensei.search.req.protobuf.SenseiRequestBPO.ByteArrayParam;
@@ -245,7 +245,10 @@ public class SenseiRequestBPOConverter {
 	
 	public static SenseiRequest convert(SenseiRequestBPO.Request req) throws ParseException{
 		SenseiRequest breq = new SenseiRequest();
-		breq.setQuery((Serializable)ProtoConvertUtil.serializeIn(req.getQuery()));
+		ByteString byteString = req.getQuery();
+		if (byteString!=null){
+		  breq.setQuery(new SenseiQuery(byteString.toByteArray()));	
+		}
 		breq.setOffset(req.getOffset());
 		breq.setCount(req.getCount());
 		
@@ -368,10 +371,14 @@ public class SenseiRequestBPOConverter {
 		SenseiRequestBPO.Request.Builder reqBuilder = SenseiRequestBPO.Request.newBuilder();
 		reqBuilder.setOffset(req.getOffset());
 		reqBuilder.setCount(req.getCount());
-		ByteString queryBytes = ProtoConvertUtil.serializeOut(req.getQuery());
-		if (queryBytes!=null){
-		  reqBuilder.setQuery(queryBytes);
+		SenseiQuery q = req.getQuery();
+
+		ByteString queryBytes = null;
+		if (q!=null){
+			queryBytes = ByteString.copyFrom(q.toBytes());
+			reqBuilder.setQuery(queryBytes);
 		}
+		
 		ByteString filterBytes = ProtoConvertUtil.serializeOut(req.getFilterIDs());
 		if (filterBytes!=null){
 	 	  reqBuilder.setFilterIDs(filterBytes);

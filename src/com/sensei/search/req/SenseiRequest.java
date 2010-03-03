@@ -20,7 +20,7 @@ public class SenseiRequest implements Serializable{
 	private HashMap<String,BrowseSelection> _selections;
 	private ArrayList<SortField> _sortSpecs;
 	private Map<String,FacetSpec> _facetSpecMap;
-	private Serializable _query;
+	private SenseiQuery _query;
 	private int _offset;
 	private int _count;
 	private boolean _fetchStoredFields;
@@ -192,7 +192,7 @@ public class SenseiRequest implements Serializable{
 	 * @param query query object
 	 * @see #getQuery()
 	 */
-	public void setQuery(Serializable query){
+	public void setQuery(SenseiQuery query){
 		_query=query;
 	}
 	
@@ -201,7 +201,7 @@ public class SenseiRequest implements Serializable{
 	 * @return query object
 	 * @see #setQuery(Object)
 	 */
-	public Serializable getQuery(){
+	public SenseiQuery getQuery(){
 		return _query;
 	}
 	
