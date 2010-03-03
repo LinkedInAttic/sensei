@@ -7,7 +7,6 @@ import com.sensei.test.mocks.norbert.MockServerBootStrap;
 
 public class MockServerBootstrapFactory implements ServerBootstrapFactory {
 
-	@Override
 	public ServerBootstrap getServerBootstrap(ServerConfig config) {
 		return new MockServerBootStrap(config);
 	}

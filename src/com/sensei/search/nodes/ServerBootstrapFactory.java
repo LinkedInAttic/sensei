@@ -8,7 +8,6 @@ public interface ServerBootstrapFactory {
 	
 	public static class DefaultServerBootstrapFactory implements ServerBootstrapFactory{
 
-		@Override
 		public ServerBootstrap getServerBootstrap(ServerConfig config) {
 			return new ServerBootstrap(config);
 		}

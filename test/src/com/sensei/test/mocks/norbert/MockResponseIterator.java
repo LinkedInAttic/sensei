@@ -18,17 +18,14 @@ public class MockResponseIterator implements ResponseIterator {
 		_current = 0;
 	}
 	
-	@Override
 	public boolean hasNext() {
 		return _current < _responses.length;
 	}
 
-	@Override
 	public Response next() {
 		return _responses[_current++];
 	}
 
-	@Override
 	public Response next(long timeOut, TimeUnit arg1) {
 		return next();
 	}
@@ -50,17 +47,14 @@ public class MockResponseIterator implements ResponseIterator {
 			this(null,throwable);
 		}
 		
-		@Override
 		public Throwable getCause() {
 			return _throwable;
 		}
 
-		@Override
 		public Message getMessage() {
 			return _msg;
 		}
 
-		@Override
 		public boolean isSuccess() {
 			return _throwable == null;
 		}

@@ -18,7 +18,6 @@ public class SimpleQueryBuilder implements SenseiQueryBuilder
     _parser = parser;
   }
   
-  @Override
   public Query buildQuery(SenseiQuery query) throws ParseException
   {
 	if (query == null) return null;

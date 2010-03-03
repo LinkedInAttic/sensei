@@ -39,27 +39,22 @@ public class MockNetworkServer implements NetworkServer {
 		return null;
 	}
 
-	@Override
 	public void bind() throws NetworkingException {
 		MockServerHome.bind(this);
 	}
 
-	@Override
 	public void bind(boolean markAvailable) throws NetworkingException {
 		
 	}
 
-	@Override
 	public Node getCurrentNode() {
 		return null;
 	}
 
-	@Override
 	public void markAvailable() {
 
 	}
 
-	@Override
 	public void shutdown() {
 		MockServerHome.unbind(this);
 	}

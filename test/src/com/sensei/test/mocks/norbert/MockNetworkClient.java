@@ -28,12 +28,10 @@ public class MockNetworkClient implements NetworkClient {
 	}
 	
 	
-	@Override
 	public void close() throws ClusterShutdownException {
 
 	}
 
-	@Override
 	public boolean isConnected() {
 		return true;
 	}
@@ -55,7 +53,6 @@ public class MockNetworkClient implements NetworkClient {
 		return nodeToPartList;
 	}
 	
-	@Override
 	public ResponseIterator sendMessage(int[] partitions, Message req)
 			throws ClusterShutdownException {
 		HashMap<Node,IntList> nodeToPartList = buildNodeToPartList(partitions);
@@ -72,7 +69,6 @@ public class MockNetworkClient implements NetworkClient {
 		return new MockResponseIterator(responseList.toArray(new Message[responseList.size()]));
 	}
 
-	@Override
 	public <A> A sendMessage(int[] partitions, Message req,
 			ScatterGatherHandler<A> sgHandler) throws ClusterShutdownException,
 			Exception {
@@ -105,7 +101,6 @@ public class MockNetworkClient implements NetworkClient {
 		return null;
 	}
 
-	@Override
 	public ResponseIterator sendMessageToNode(Node node, Message req)
 			throws ClusterShutdownException, InvalidNodeException {
 
