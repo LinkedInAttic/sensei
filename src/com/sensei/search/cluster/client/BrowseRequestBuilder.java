@@ -1,10 +1,13 @@
 package com.sensei.search.cluster.client;
 
+import java.io.UnsupportedEncodingException;
+
 import org.apache.lucene.search.SortField;
 
 import com.browseengine.bobo.api.BrowseSelection;
 import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
+import com.sensei.search.req.SenseiQuery;
 import com.sensei.search.req.SenseiRequest;
 
 public class BrowseRequestBuilder {
@@ -65,7 +68,15 @@ public class BrowseRequestBuilder {
 	}
 	
 	public void setQuery(String qString){
-		_req.setQuery(qString);
+		if (qString!=null){
+			byte[] bytes;
+			try {
+				bytes = qString.getBytes("UTF-8");
+				_req.setQuery(new SenseiQuery(bytes));
+			} catch (UnsupportedEncodingException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 	
 	public void clear(){
@@ -84,6 +95,15 @@ public class BrowseRequestBuilder {
 	}
 	
 	public String getQueryString(){
-		return (String)_req.getQuery();
+		SenseiQuery q = _req.getQuery();
+		if (q!=null){
+			try {
+				return new String(q.toBytes(),"UTF-8");
+			} catch (UnsupportedEncodingException e) {
+				e.printStackTrace();
+				return null;
+			}
+		}
+		return null;
 	}
 }

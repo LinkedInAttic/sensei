@@ -31,10 +31,6 @@ public class SenseiBroker extends ClusterListenerAdapter  {
 	private SenseiResult doBrowse(NetworkClient networkClient,SenseiRequest req,IntSet partitions) throws Exception{
 		int size = 0;
 		if (partitions!=null && (size=partitions.size())>0){
-		  if (req.getQuery() == null){
-			  req.setQuery("");
-		  }
-		  
 		  SenseiRequestBPO.Request msg = SenseiRequestBPOConverter.convert(req);
 		  int[] partToSend = req.getPartitions();
 		  if (partToSend==null){
