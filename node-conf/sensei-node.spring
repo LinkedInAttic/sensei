@@ -13,6 +13,10 @@
 	   <constructor-arg ref="analyzer" />
 	</bean>
 	
+	<bean id="query-builder" class="com.sensei.search.nodes.impl.SimpleQueryBuilder">
+	   <constructor-arg ref="query-parser"/>
+	</bean>
+	
 	<alias name="zoieSystem" alias="index-reader-factory"/>
 	
 	<bean id="runtime-facet-handler-factories" class="java.util.ArrayList">

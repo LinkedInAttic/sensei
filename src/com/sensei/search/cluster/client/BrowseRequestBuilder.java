@@ -84,6 +84,6 @@ public class BrowseRequestBuilder {
 	}
 	
 	public String getQueryString(){
-		return _req.getQuery();
+		return (String)_req.getQuery();
 	}
 }

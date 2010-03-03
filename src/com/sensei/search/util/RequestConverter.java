@@ -1,15 +1,15 @@
 package com.sensei.search.util;
 
 import org.apache.lucene.queryParser.ParseException;
-import org.apache.lucene.queryParser.QueryParser;
 import org.apache.lucene.search.Query;
 
 import com.browseengine.bobo.api.BrowseRequest;
 import com.browseengine.bobo.api.BrowseSelection;
+import com.sensei.search.nodes.SenseiQueryBuilder;
 import com.sensei.search.req.SenseiRequest;
 
 public class RequestConverter {
-	public static BrowseRequest convert(SenseiRequest req,QueryParser qparser) throws ParseException{
+	public static BrowseRequest convert(SenseiRequest req, SenseiQueryBuilder queryBuilder) throws ParseException{
 		BrowseRequest breq = new BrowseRequest();
 		breq.setOffset(req.getOffset());
 		breq.setCount(req.getCount());
@@ -17,9 +17,8 @@ public class RequestConverter {
 		breq.setFetchStoredFields(req.isFetchStoredFields());
 		
 		// query
-		String qString = req.getQuery();
-		if (qString != null && qString.length()>0){
-			Query q = qparser.parse(qString);
+		Query q = queryBuilder.buildQuery(req);
+		if(q != null){
 			breq.setQuery(q);
 		}
 		

@@ -1,18 +1,15 @@
 package com.sensei.search.nodes;
 
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-
 import java.io.File;
 import java.io.FilenameFilter;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 
 import org.apache.log4j.Logger;
-import org.apache.lucene.queryParser.QueryParser;
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.FileSystemXmlApplicationContext;
@@ -133,23 +130,22 @@ public class SenseiServer {
 		
 		ApplicationContext springCtx = new FileSystemXmlApplicationContext("file:"+confFile.getAbsolutePath());
 		
-		QueryParser qparser = (QueryParser)springCtx.getBean("query-parser");
+		SenseiQueryBuilder qbuilder = (SenseiQueryBuilder)springCtx.getBean("query-builder");
 		IndexReaderFactory<ZoieIndexReader<BoboIndexReader>> idxReaderFactory = (IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>)springCtx.getBean("index-reader-factory");
 		List<RuntimeFacetHandlerFactory<?>> runtimeFacethandlerFactories = (List<RuntimeFacetHandlerFactory<?>>)springCtx.getBean("runtime-facet-handler-factories");
 		SenseiIndexLoader indexLoader = (SenseiIndexLoader)springCtx.getBean("index-loader");
 		
-		Int2ObjectMap<IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>> readerFactoryMap = 
-				new Int2ObjectOpenHashMap<IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>>();
+		Map<Integer,IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>> readerFactoryMap = 
+				new HashMap<Integer,IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>>();
 		
-		//TODO: THIS HARDCODING NEEDS TO BE FIXED!!!
-		for (int i=0;i<100;++i){
-			readerFactoryMap.put(i, idxReaderFactory);
+		for (int part : partitions){
+			readerFactoryMap.put(part, idxReaderFactory);
 		}
 		
-		SenseiSearchContext ctx = new SenseiSearchContext(qparser, readerFactoryMap, runtimeFacethandlerFactories);
+		SenseiSearchContext ctx = new SenseiSearchContext(qbuilder, readerFactoryMap, runtimeFacethandlerFactories);
 		//SenseiServer server = new SenseiServer(port,ctx, indexLoader);
 		SenseiNodeMessageHandler msgHandler = new SenseiNodeMessageHandler(ctx);
-		final SenseiNode node = new SenseiNode(Cluster_Name,id,port,partitions,msgHandler,zookeeperURL);
+		final SenseiNode node = new SenseiNode(Cluster_Name,id,port,msgHandler,zookeeperURL);
 		
 		node.startup();
 		
