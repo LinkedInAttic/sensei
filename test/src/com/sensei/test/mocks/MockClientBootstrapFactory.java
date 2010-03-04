@@ -7,6 +7,7 @@ import com.sensei.test.mocks.norbert.MockClientBootstrap;
 
 public class MockClientBootstrapFactory implements ClientBoostrapFactory {
 
+	@Override
 	public ClientBootstrap getClientBootstrap(ClientConfig config) {
 		return new MockClientBootstrap(config);
 	}

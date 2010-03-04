@@ -35,11 +35,13 @@ public class MockCluster implements Cluster {
 		_routerFactory = routerFactory;
 	}
 	
+	@Override
 	public void addListener(ClusterListener lsnr)
 			throws ClusterShutdownException {
 		_lsnrList.add(lsnr);
 	}
 
+	@Override
 	public Node addNode(int nodeId, InetSocketAddress addr, int[] partitions)
 			throws ClusterDisconnectedException, InvalidNodeException {
 		Node node = new Node(nodeId,addr,partitions,false);
@@ -57,17 +59,20 @@ public class MockCluster implements Cluster {
 		return node;
 	}
 
+	@Override
 	public void awaitConnection() throws ClusterShutdownException,
 			InterruptedException {
 		awaitConnectionUninterruptibly();
 	}
 
+	@Override
 	public boolean awaitConnection(long time, TimeUnit timeUnit)
 			throws ClusterShutdownException {
 		awaitConnectionUninterruptibly();
 		return true;
 	}
 
+	@Override
 	public void awaitConnectionUninterruptibly()
 			throws ClusterShutdownException {
 		for (ClusterListener lsnr : _lsnrList){
@@ -79,6 +84,7 @@ public class MockCluster implements Cluster {
 		}
 	}
 
+	@Override
 	public Node getNodeWithAddress(InetSocketAddress address)
 			throws ClusterDisconnectedException {
 		synchronized(_nodeMap){
@@ -93,12 +99,14 @@ public class MockCluster implements Cluster {
 		}
 	}
 
+	@Override
 	public Node getNodeWithId(int id) throws ClusterDisconnectedException {
 		synchronized(_nodeMap){
 			return _nodeMap.get(id);
 		}
 	}
 
+	@Override
 	public Node[] getNodes() throws ClusterShutdownException {
 		synchronized(_nodeMap){
 			Collection<Node> valueSet = _nodeMap.values();
@@ -106,6 +114,7 @@ public class MockCluster implements Cluster {
 		}
 	}
 
+	@Override
 	public Router getRouter() throws ClusterShutdownException {
 		try {
 			return _routerFactory == null ? null : _routerFactory.newRouter(getNodes());
@@ -115,14 +124,17 @@ public class MockCluster implements Cluster {
 		}
 	}
 
+	@Override
 	public boolean isConnected() {
 		return true;
 	}
 
+	@Override
 	public boolean isShutdown() {
 		return _isShutdown;
 	}
 
+	@Override
 	public void markNodeAvailable(int nodeId) throws ClusterDisconnectedException {
 		synchronized (_nodeMap) {
 			Node node = getNodeWithId(nodeId);
@@ -140,11 +152,13 @@ public class MockCluster implements Cluster {
 		}
 	}
 
+	@Override
 	public void removeListener(ClusterListener lsnr)
 			throws ClusterShutdownException {
 		_lsnrList.remove(lsnr);
 	}
 
+	@Override
 	public void removeNode(int nodeId) throws ClusterDisconnectedException,
 			InvalidNodeException {
 		synchronized(_nodeMap){
@@ -159,6 +173,7 @@ public class MockCluster implements Cluster {
 		}
 	}
 
+	@Override
 	public void shutdown() {
 		_isShutdown = true;
 		for (ClusterListener lsnr : _lsnrList){

@@ -8,6 +8,7 @@ public interface ClientBoostrapFactory {
 	
 	public static class DefaultClientBoostrapFactory implements ClientBoostrapFactory{
 
+		@Override
 		public ClientBootstrap getClientBootstrap(ClientConfig config) {
 			return new ClientBootstrap(config);
 		}
