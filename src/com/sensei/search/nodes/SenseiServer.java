@@ -4,8 +4,8 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -140,13 +140,23 @@ public class SenseiServer {
 		Map<Integer,IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>> readerFactoryMap = 
 				new HashMap<Integer,IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>>();
 		
-		final ArrayList<SenseiIndexLoader> loaderList = new ArrayList<SenseiIndexLoader>();
+        final HashSet<ZoieSystem<BoboIndexReader,?>> zoieSystems = new HashSet<ZoieSystem<BoboIndexReader,?>>();
+        final HashSet<SenseiIndexLoader> indexLoaders = new HashSet<SenseiIndexLoader>();
 		
 		for (int part : partitions){
 		  ZoieSystem<BoboIndexReader,?> zoieSystem = zoieSystemFactory.getZoieSystem(part);
-		  SenseiIndexLoader loader = indexLoaderFactory.getIndexLoader(part, zoieSystem);
+		  if(!zoieSystems.contains(zoieSystem))
+		  {
+		    zoieSystem.start();
+		    zoieSystems.add(zoieSystem);
+		  }
 		  
-		  loaderList.add(loader);
+		  SenseiIndexLoader loader = indexLoaderFactory.getIndexLoader(part, zoieSystem);
+		  if(!indexLoaders.contains(loader))
+		  {
+		    loader.start();
+		    indexLoaders.add(loader);
+		  }
 		  readerFactoryMap.put(part, zoieSystem);
 		}
 		
@@ -157,12 +167,6 @@ public class SenseiServer {
 		
 		node.startup();
 		
-        // start the loaders
-        for(SenseiIndexLoader loader : loaderList)
-        {
-          loader.start();
-        }
-        
 		Runtime.getRuntime().addShutdownHook(new Thread(){
 			public void run(){
 				try {
@@ -170,11 +174,16 @@ public class SenseiServer {
 				} catch (Exception e) {
 					logger.error(e.getMessage(),e);
 				}
-		        // shutdown the loaders
-		        for(SenseiIndexLoader loader : loaderList)
-		        {
-		          loader.shutdown();
-		        }
+                // shutdown the loaders
+                for(SenseiIndexLoader loader : indexLoaders)
+                {
+                  loader.shutdown();
+                }
+                // shutdown the zoieSystems
+                for(ZoieSystem<BoboIndexReader,?> zoieSystem : zoieSystems)
+                {
+                  zoieSystem.shutdown();
+                }
 			}
 		});
 	}
