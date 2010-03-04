@@ -12,4 +12,11 @@ lib/master/log4j.jar
 lib/master/lucene-core.jar
 lib/master/protobuf-java.jar
 lib/master/spring.jar
+lib/commons-logging-1.1.jar
+lib/fastutil-5.0.5.jar
+lib/junit-4.5.jar
+lib/log4j-1.2.15.jar
+lib/lucene-core-3.0.0.jar
+lib/protobuf-java-2.3.0.jar
+lib/spring-2.5.5.jar
 

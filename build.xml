@@ -82,7 +82,7 @@
     </target>
 	
     <target name="compile" depends="init">
-	<javac debug="true" destdir="${build}">
+	<javac debug="true" destdir="${build}" compiler="javac1.6" source="1.6" target="1.6">
             <src path="${src}"/>
             <classpath refid="compile.class.path"/>
         </javac>
@@ -93,7 +93,7 @@
     </target>
 	
 	<target name="test-build" depends="dist">
-			<javac destdir="${build.test}">
+			<javac destdir="${build.test}" compiler="javac1.6" source="1.6" target="1.6">
 		            <src path="${test}"/>
 	       	            <classpath refid="java.class.path"/>
 	                </javac>
