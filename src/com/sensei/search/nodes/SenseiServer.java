@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,6 +17,7 @@ import org.springframework.context.support.FileSystemXmlApplicationContext;
 
 import proj.zoie.api.IndexReaderFactory;
 import proj.zoie.api.ZoieIndexReader;
+import proj.zoie.impl.indexing.ZoieSystem;
 
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.sensei.search.req.RuntimeFacetHandlerFactory;
@@ -131,15 +133,21 @@ public class SenseiServer {
 		ApplicationContext springCtx = new FileSystemXmlApplicationContext("file:"+confFile.getAbsolutePath());
 		
 		SenseiQueryBuilder qbuilder = (SenseiQueryBuilder)springCtx.getBean("query-builder");
-		IndexReaderFactory<ZoieIndexReader<BoboIndexReader>> idxReaderFactory = (IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>)springCtx.getBean("index-reader-factory");
+		SenseiZoieSystemFactory<?> zoieSystemFactory = (SenseiZoieSystemFactory<?>)springCtx.getBean("zoie-system-factory");
 		List<RuntimeFacetHandlerFactory<?>> runtimeFacethandlerFactories = (List<RuntimeFacetHandlerFactory<?>>)springCtx.getBean("runtime-facet-handler-factories");
-		SenseiIndexLoader indexLoader = (SenseiIndexLoader)springCtx.getBean("index-loader");
+		SenseiIndexLoaderFactory indexLoaderFactory = (SenseiIndexLoaderFactory)springCtx.getBean("index-loader-factory");
 		
 		Map<Integer,IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>> readerFactoryMap = 
 				new HashMap<Integer,IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>>();
 		
+		final ArrayList<SenseiIndexLoader> loaderList = new ArrayList<SenseiIndexLoader>();
+		
 		for (int part : partitions){
-			readerFactoryMap.put(part, idxReaderFactory);
+		  ZoieSystem<BoboIndexReader,?> zoieSystem = zoieSystemFactory.getZoieSystem(part);
+		  SenseiIndexLoader loader = indexLoaderFactory.getIndexLoader(part, zoieSystem);
+		  
+		  loaderList.add(loader);
+		  readerFactoryMap.put(part, zoieSystem);
 		}
 		
 		SenseiSearchContext ctx = new SenseiSearchContext(qbuilder, readerFactoryMap, runtimeFacethandlerFactories);
@@ -149,6 +157,12 @@ public class SenseiServer {
 		
 		node.startup();
 		
+        // start the loaders
+        for(SenseiIndexLoader loader : loaderList)
+        {
+          loader.start();
+        }
+        
 		Runtime.getRuntime().addShutdownHook(new Thread(){
 			public void run(){
 				try {
@@ -156,6 +170,11 @@ public class SenseiServer {
 				} catch (Exception e) {
 					logger.error(e.getMessage(),e);
 				}
+		        // shutdown the loaders
+		        for(SenseiIndexLoader loader : loaderList)
+		        {
+		          loader.shutdown();
+		        }
 			}
 		});
 	}
