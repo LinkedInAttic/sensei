@@ -5,8 +5,10 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/beans 
 						http://www.springframework.org/schema/beans/spring-beans.xsd">
 						
-	<import resource="zoie.spring" />
+	<import resource="sensei-cluster.spring" />
 	
+	<import resource="zoie.spring" />
+
 	<bean id="query-parser" class="org.apache.lucene.queryParser.QueryParser">
 	   <constructor-arg ref="lucene-version"/>
 	   <constructor-arg value="contents" />

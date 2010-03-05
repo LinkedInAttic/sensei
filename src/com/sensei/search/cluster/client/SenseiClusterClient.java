@@ -1,6 +1,7 @@
 package com.sensei.search.cluster.client;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
@@ -8,6 +9,8 @@ import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
 
 import org.apache.lucene.search.SortField;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.FileSystemXmlApplicationContext;
 
 import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
 import com.google.protobuf.Message;
@@ -19,7 +22,7 @@ import com.linkedin.norbert.network.javaapi.ClientConfig;
 import com.linkedin.norbert.network.javaapi.NetworkClient;
 import com.sensei.search.cluster.routing.UniformRoutingFactory;
 import com.sensei.search.nodes.SenseiBroker;
-import com.sensei.search.nodes.SenseiServer;
+import com.sensei.search.nodes.SenseiClusterConfig;
 import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.req.SenseiResult;
 import com.sensei.search.req.protobuf.SenseiResultBPO;
@@ -30,7 +33,9 @@ public class SenseiClusterClient {
 	
 	static BrowseRequestBuilder _reqBuilder = new BrowseRequestBuilder();
 	
+	private static final String DEFAULT_CONF_FILE = "sensei-cluster.spring";
 	private static final String DEFAULT_ZK_URL = "localhost:2181";
+	private static final String DEFAULT_CLUSTER_NAME = "sensei";
 	
 	private static ClientBootstrap bootstrap = null;
 	private static NetworkClient networkClient = null;
@@ -57,25 +62,31 @@ public class SenseiClusterClient {
 	 */
 	public static void main(String[] args) throws Exception{
 
-		String zookeeperURL = "localhost:2181";
-		try{
-			zookeeperURL = args[0];
-		}
-		catch(Exception e){
-			zookeeperURL = null;
-		}
-		
-		if (zookeeperURL == null){
-			System.out.println("invalid or no cluster url specified, defaulting to default: "+DEFAULT_ZK_URL);
-			zookeeperURL = DEFAULT_ZK_URL;
-		}
+	    String clusterName;
+	    String zookeeperURL;
+	    
+	    if (args.length<1){
+          System.out.println("no config specified, defaulting to default: "+DEFAULT_CLUSTER_NAME + " at " + DEFAULT_ZK_URL);
+          clusterName = DEFAULT_CLUSTER_NAME;
+          zookeeperURL = DEFAULT_ZK_URL;
+	    }
+	    else{
+	      File confDir = new File(args[0]);
+	      File confFile = new File(confDir,DEFAULT_CONF_FILE);;
+	      ApplicationContext springCtx = new FileSystemXmlApplicationContext("file:"+confFile.getAbsolutePath());
+        
+          // get config parameters
+          SenseiClusterConfig clusterConfig = (SenseiClusterConfig)springCtx.getBean("cluster-config");
+          clusterName = clusterConfig.getClusterName();
+          zookeeperURL = clusterConfig.getZooKeeperURL();
+	    }
 		
 		System.out.println("connecting to cluster at "+zookeeperURL+"... ");
 
 	    Message[] messages = { SenseiResultBPO.Result.getDefaultInstance() };
 	    
 		ClientConfig config = new ClientConfig();
-	    config.setClusterName(SenseiServer.Cluster_Name);
+	    config.setClusterName(clusterName);
 	    config.setZooKeeperUrls(zookeeperURL);
 	    config.setResponseMessages(messages);
 	 

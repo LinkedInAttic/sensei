@@ -27,8 +27,6 @@ public class SenseiServer {
 	private static final String DEFAULT_CONF_FILE = "sensei-node.spring";
 	
 
-	private static final String DEFAULT_ZK_URL = "localhost:2181";
-	
 	private ServerBootstrap _bootstrap;
 	private ExecutorService _bootstrapExecutor;
 	private boolean _started;
@@ -51,18 +49,15 @@ public class SenseiServer {
 	
 	private static String help(){
 		StringBuffer buffer = new StringBuffer();
-		buffer.append("Usage: [id] [port] [partitions] [conf.dir] <zookeeper url>\n");
+		buffer.append("Usage: [id] [port] [partitions] [conf.dir]\n");
 		buffer.append("====================================\n");
 		buffer.append("id - node id (integer), required\n");
 		buffer.append("port - server port (integer), required\n");
 		buffer.append("partitions - comma separated list of partition numbers this node can serve, required\n");
 		buffer.append("conf.dir - server configuration directory, required\n");
-		buffer.append("zookeeper url - url (form: host:port) of the zookeeper instance/cluster, optional, default: ").append(DEFAULT_ZK_URL).append("\n");
 		buffer.append("====================================\n");
 		return buffer.toString();
 	}
-	
-	public static final String Cluster_Name="sensei";
 	
 	public static void main(String[] args) throws Exception{
 		if (args.length<4){
@@ -76,7 +71,6 @@ public class SenseiServer {
 		String[] partString = null;
 		
 		File confDir = null;
-		String zookeeperURL = null;
 		File confFile = null;
 		
 		try{
@@ -86,24 +80,9 @@ public class SenseiServer {
 			confDir = new File(args[3]);
 			confFile = new File(confDir,DEFAULT_CONF_FILE);
 			
-			
-			
 			partitions = new int[partString.length];
 			for (int i=0;i<partString.length;++i){
 				partitions[i] = Integer.parseInt(partString[i]);
-			}
-			
-			
-			try{
-				zookeeperURL = args[4];
-			}
-			catch(Exception e){
-				zookeeperURL = null;
-			}
-			
-			if (zookeeperURL == null){
-				System.out.println("invalid or no cluster url specified, defaulting to default: "+DEFAULT_ZK_URL);
-				zookeeperURL = DEFAULT_ZK_URL;
 			}
 		}
 		catch(Exception e){
@@ -132,6 +111,14 @@ public class SenseiServer {
 		
 		ApplicationContext springCtx = new FileSystemXmlApplicationContext("file:"+confFile.getAbsolutePath());
 		
+		// get config parameters
+		SenseiClusterConfig clusterConfig = (SenseiClusterConfig)springCtx.getBean("cluster-config");
+        String clusterName = clusterConfig.getClusterName();
+        String zookeeperURL = clusterConfig.getZooKeeperURL();
+        
+        logger.info("ClusterName: " + clusterName);
+        logger.info("ZooKeeperURL: " + zookeeperURL);
+        
 		SenseiQueryBuilder qbuilder = (SenseiQueryBuilder)springCtx.getBean("query-builder");
 		SenseiZoieSystemFactory<?> zoieSystemFactory = (SenseiZoieSystemFactory<?>)springCtx.getBean("zoie-system-factory");
 		List<RuntimeFacetHandlerFactory<?>> runtimeFacethandlerFactories = (List<RuntimeFacetHandlerFactory<?>>)springCtx.getBean("runtime-facet-handler-factories");
@@ -163,7 +150,7 @@ public class SenseiServer {
 		SenseiSearchContext ctx = new SenseiSearchContext(qbuilder, readerFactoryMap, runtimeFacethandlerFactories);
 		//SenseiServer server = new SenseiServer(port,ctx, indexLoader);
 		SenseiNodeMessageHandler msgHandler = new SenseiNodeMessageHandler(ctx);
-		final SenseiNode node = new SenseiNode(Cluster_Name,id,port,msgHandler,zookeeperURL);
+		final SenseiNode node = new SenseiNode(clusterName,id,port,msgHandler,zookeeperURL);
 		
 		node.startup();
 		
