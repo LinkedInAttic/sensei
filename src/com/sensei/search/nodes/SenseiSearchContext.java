@@ -22,7 +22,7 @@ import com.sensei.search.req.RuntimeFacetHandlerFactory;
 public class SenseiSearchContext {
 	private final SenseiQueryBuilder _qbuilder;
 	private final Map<Integer,IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>> _partReaderMap;
-	private final List<RuntimeFacetHandlerFactory<?>> _runtimeFacetHandlerFactories;
+	private final List<RuntimeFacetHandlerFactory> _runtimeFacetHandlerFactories;
 	
 	private static <T> IndexReaderFactory<ZoieIndexReader<BoboIndexReader>> buildReaderFactory(File file,ZoieIndexableInterpreter<T> interpreter){
 		ZoieSystem<BoboIndexReader,T> zoieSystem = new ZoieSystem<BoboIndexReader,T>(file,interpreter,new SenseiIndexReaderDecorator(),new StandardAnalyzer(Version.LUCENE_CURRENT),new DefaultSimilarity(),1000,300000,true);
@@ -30,7 +30,7 @@ public class SenseiSearchContext {
 	}
 	
 	public SenseiSearchContext(SenseiQueryBuilder qbuilder,Map<Integer,IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>> partReaderMap,
-							   List<RuntimeFacetHandlerFactory<?>> runtimeFacetHandlerFactories){
+							   List<RuntimeFacetHandlerFactory> runtimeFacetHandlerFactories){
 		_qbuilder = qbuilder;
 		_partReaderMap = partReaderMap;
 		
@@ -45,7 +45,7 @@ public class SenseiSearchContext {
 		this(qbuilder,interpreter,partFileMap,null);
 	}
 	
-	public SenseiSearchContext(SenseiQueryBuilder qbuilder,ZoieIndexableInterpreter<?> interpreter,Map<Integer,File> partFileMap,List<RuntimeFacetHandlerFactory<?>> runtimeFacetHandlerFactories){
+	public SenseiSearchContext(SenseiQueryBuilder qbuilder,ZoieIndexableInterpreter<?> interpreter,Map<Integer,File> partFileMap,List<RuntimeFacetHandlerFactory> runtimeFacetHandlerFactories){
 	    _qbuilder = qbuilder;
 		_runtimeFacetHandlerFactories = runtimeFacetHandlerFactories;
 		
@@ -68,7 +68,7 @@ public class SenseiSearchContext {
 		return _partReaderMap;
 	}
 
-	public List<RuntimeFacetHandlerFactory<?>> getRuntimeFacetHandlerFactories() {
+	public List<RuntimeFacetHandlerFactory> getRuntimeFacetHandlerFactories() {
 		return _runtimeFacetHandlerFactories;
 	}
 }

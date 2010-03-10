@@ -121,7 +121,7 @@ public class SenseiServer {
         
 		SenseiQueryBuilder qbuilder = (SenseiQueryBuilder)springCtx.getBean("query-builder");
 		SenseiZoieSystemFactory<?> zoieSystemFactory = (SenseiZoieSystemFactory<?>)springCtx.getBean("zoie-system-factory");
-		List<RuntimeFacetHandlerFactory<?>> runtimeFacethandlerFactories = (List<RuntimeFacetHandlerFactory<?>>)springCtx.getBean("runtime-facet-handler-factories");
+		List<RuntimeFacetHandlerFactory> runtimeFacethandlerFactories = (List<RuntimeFacetHandlerFactory>)springCtx.getBean("runtime-facet-handler-factories");
 		SenseiIndexLoaderFactory indexLoaderFactory = (SenseiIndexLoaderFactory)springCtx.getBean("index-loader-factory");
 		
 		Map<Integer,IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>> readerFactoryMap = 

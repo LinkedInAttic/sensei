@@ -10,7 +10,6 @@ import java.util.Set;
 import java.util.Map.Entry;
 
 import org.apache.log4j.Logger;
-import org.apache.lucene.queryParser.QueryParser;
 
 import proj.zoie.api.IndexReaderFactory;
 import proj.zoie.api.ZoieIndexReader;
@@ -20,6 +19,7 @@ import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.api.BrowseRequest;
 import com.browseengine.bobo.api.BrowseResult;
 import com.browseengine.bobo.api.MultiBoboBrowser;
+import com.browseengine.bobo.facets.RuntimeFacetHandler;
 import com.google.protobuf.Message;
 import com.google.protobuf.TextFormat;
 import com.linkedin.norbert.network.javaapi.MessageHandler;
@@ -27,7 +27,6 @@ import com.sensei.search.client.ResultMerger;
 import com.sensei.search.req.FacetHandlerInitializerParam;
 import com.sensei.search.req.RuntimeFacetHandlerFactory;
 import com.sensei.search.req.SenseiRequest;
-import com.sensei.search.req.SenseiRuntimeFacetHandler;
 import com.sensei.search.req.protobuf.SenseiRequestBPO;
 import com.sensei.search.req.protobuf.SenseiRequestBPOConverter;
 import com.sensei.search.req.protobuf.SenseiResultBPO;
@@ -38,16 +37,16 @@ public class SenseiNodeMessageHandler implements MessageHandler {
 	private static final Logger logger = Logger.getLogger(SenseiNodeMessageHandler.class);
 	private final SenseiQueryBuilder _qbuilder;
 	private final Map<Integer,IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>> _partReaderMap;
-	private final Map<String,RuntimeFacetHandlerFactory<?>> _runtimeFacetHandlerFactoryMap;
+	private final Map<String,RuntimeFacetHandlerFactory> _runtimeFacetHandlerFactoryMap;
 
 	public SenseiNodeMessageHandler(SenseiSearchContext ctx) {
 		_qbuilder = ctx.getQueryBuilder();
 		_partReaderMap = ctx.getPartitionReaderMap();
-		List<RuntimeFacetHandlerFactory<?>> runtimeFacetHandlerFactories = ctx
+		List<RuntimeFacetHandlerFactory> runtimeFacetHandlerFactories = ctx
 				.getRuntimeFacetHandlerFactories();
-		_runtimeFacetHandlerFactoryMap = new HashMap<String,RuntimeFacetHandlerFactory<?>>();
+		_runtimeFacetHandlerFactoryMap = new HashMap<String,RuntimeFacetHandlerFactory>();
 		if (runtimeFacetHandlerFactories!=null){
-		  for (RuntimeFacetHandlerFactory<?> factory : runtimeFacetHandlerFactories) {
+		  for (RuntimeFacetHandlerFactory factory : runtimeFacetHandlerFactories) {
 			_runtimeFacetHandlerFactoryMap.put(factory.getName(), factory);
 		  }
 		}
@@ -76,6 +75,8 @@ public class SenseiNodeMessageHandler implements MessageHandler {
 		  List<BoboIndexReader> boboReaders = ZoieIndexReader.extractDecoratedReaders(readerList);
 
 		  MultiBoboBrowser browser = null;
+          ArrayList<RuntimeFacetHandler<?>> runtimeFacetHandlers =
+            new ArrayList<RuntimeFacetHandler<?>>(_runtimeFacetHandlerFactoryMap.size());
 
 		  try {
 			browser = new MultiBoboBrowser(BoboBrowser.createBrowsables(boboReaders));
@@ -86,13 +87,12 @@ public class SenseiNodeMessageHandler implements MessageHandler {
 				Set<Entry<String, FacetHandlerInitializerParam>> entrySet = initParamMaps
 						.entrySet();
 				for (Entry<String, FacetHandlerInitializerParam> entry : entrySet) {
-					RuntimeFacetHandlerFactory<?> facetHandlerFactory = _runtimeFacetHandlerFactoryMap
+					RuntimeFacetHandlerFactory facetHandlerFactory = _runtimeFacetHandlerFactoryMap
 							.get(entry.getKey());
 					try {
-						SenseiRuntimeFacetHandler<?> handler = facetHandlerFactory
-								.newInstance();
-						handler.init(entry.getValue());
+						RuntimeFacetHandler<?> handler = facetHandlerFactory.get(entry.getValue());
 						browser.setFacetHandler(handler);
+						runtimeFacetHandlers.add(handler);
 					} catch (Exception e1) {
 						logger.error(e1.getMessage(), e1);
 					}
@@ -106,7 +106,16 @@ public class SenseiNodeMessageHandler implements MessageHandler {
 		  catch(Exception e){
 			logger.error(e.getMessage(),e);
 			throw e;
-		  }finally {
+		  }
+		  finally {
+		    for(RuntimeFacetHandler<?> handler : runtimeFacetHandlers){
+		      try{
+		        handler.close();
+		      }
+		      catch(Exception e) {
+		        logger.error(e.getMessage(), e);
+		      }
+		    }
 			if (browser != null) {
 				try {
 					browser.close();

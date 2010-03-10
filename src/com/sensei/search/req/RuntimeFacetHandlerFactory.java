@@ -1,9 +1,9 @@
 package com.sensei.search.req;
 
-import com.browseengine.bobo.facets.FacetHandlerFactory;
+import com.browseengine.bobo.facets.RuntimeFacetHandler;
 
-
-
-public interface RuntimeFacetHandlerFactory<D> extends FacetHandlerFactory<SenseiRuntimeFacetHandler<D>>{
+public interface RuntimeFacetHandlerFactory
+{
 	String getName();
+	RuntimeFacetHandler<?> get(FacetHandlerInitializerParam params);
 }
