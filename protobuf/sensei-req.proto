@@ -74,4 +74,5 @@ message Request{
   optional bool fetchStoredFields = 8;
   repeated FacetHandlerInitializerParam facetInitParams = 9;
   optional bytes partitions = 10;
+  required int64 tid = 11 [default = -1];
 }

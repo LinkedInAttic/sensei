@@ -45,8 +45,8 @@ public class SenseiTestCase extends TestCase {
 		map2.put(2, IdxDir);
 		map2.put(3,IdxDir);
 		
-		SenseiSearchContext srchCtx1 = new SenseiSearchContext(new SimpleQueryBuilder(parser1), map1);
-		SenseiSearchContext srchCtx2 = new SenseiSearchContext(new SimpleQueryBuilder(parser2), map2);
+		SenseiSearchContext srchCtx1 = new SenseiSearchContext(map1, new SimpleQueryBuilder(parser1));
+		SenseiSearchContext srchCtx2 = new SenseiSearchContext(map2, new SimpleQueryBuilder(parser2));
 		
 		SenseiNode node1 = new SenseiNode(SENSEI_TEST_CLUSTER_NAME,1,1234,new SenseiNodeMessageHandler(srchCtx1),"");
 		node1.setServerBootstrapFactory(new MockServerBootstrapFactory());

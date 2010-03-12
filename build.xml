@@ -1,132 +1,132 @@
 <project xmlns:ivy="antlib:org.apache.ivy.ant" name="sensei" default="dist">
-	<property name="sensei.root" location="."/>
-	<property name="src" value="src"/>
-	
+	<property name="sensei.root" location="." />
+	<property name="src" value="src" />
+
 	<property name="conf.dir" location="node-conf" />
 
-	<property name="lib.base" location="lib"/>
-	<property name="lib.dir" location="${lib.base}/master"/>
-	<property name="lib.test" location="${lib.base}/test"/>
+	<property name="lib.base" location="lib" />
+	<property name="lib.dir" location="${lib.base}/master" />
+	<property name="lib.test" location="${lib.base}/test" />
 
-	<property name="test" value="test/src"/>
-	<property name="resources" value="resources"/>
-	
-	<property name="build" value="build"/>
-	<property name="build.test" value="build-test"/>
+	<property name="test" value="test/src" />
+	<property name="resources" value="resources" />
+
+	<property name="build" value="build" />
+	<property name="build.test" value="build-test" />
 	<property name="dist" location="dist" />
-		
-	<property name="test.report.dir" location="${dist}/junit-reports" />
-    <property name="test.html.dir" location="${test.report.dir}/html" />
-	
-	<property name="logs" value="logs"/>
-	
-	<property name="version" value="0.0.1"/>
-	
-	<property name="project.name" value="sensei"/>
 
-    <property name="ivy.install.version" value="2.0.0-beta1"/>
-    <property name="ivy.jar.dir" value="${basedir}/ivy"/>
-    <property name="ivy.jar.file" value="${ivy.jar.dir}/ivy.jar"/>
-    <property name="build.dir" value="build"/>
-    
+	<property name="test.report.dir" location="${dist}/junit-reports" />
+	<property name="test.html.dir" location="${test.report.dir}/html" />
+
+	<property name="logs" value="logs" />
+
+	<property name="version" value="0.0.1" />
+
+	<property name="project.name" value="sensei" />
+
+	<property name="ivy.install.version" value="2.0.0-beta1" />
+	<property name="ivy.jar.dir" value="${basedir}/ivy" />
+	<property name="ivy.jar.file" value="${ivy.jar.dir}/ivy.jar" />
+	<property name="build.dir" value="build" />
+
 	<path id="compile.class.path">
 		<fileset dir="${lib.dir}">
 			<include name="*.jar" />
 		</fileset>
 	</path>
-	
+
 	<path id="test.class.path">
-	  <path location="${build}"/>
-	  <path location="${build.test}"/>
-	  <fileset dir="${lib.test}"/>
-	  <path refid="compile.class.path"/>
-	  <fileset dir="${resources}"/>
+		<path location="${build}" />
+		<path location="${build.test}" />
+		<fileset dir="${lib.test}" />
+		<path refid="compile.class.path" />
+		<fileset dir="${resources}" />
 	</path>
-	
+
 	<path id="java.class.path">
 		<dirset dir="${build}">
-		        <include name="**"/>
+			<include name="**" />
 		</dirset>
-		<path refid="compile.class.path"/>
+		<path refid="compile.class.path" />
 	</path>
-	
-    <target name="resolve" description="--> retrieve dependencies with ivy" depends="install-ivy">
-       <ivy:retrieve pattern="${ivy.lib.dir}/[conf]/[artifact].[ext]"/>
-    </target>
 
-    <target name="download-ivy" unless="skip.download">
-	<mkdir dir="${ivy.jar.dir}"/>
-        <echo message="installing ivy..."/>
-        <get src="http://repo1.maven.org/maven2/org/apache/ivy/ivy/${ivy.install.version}/ivy-${ivy.install.version}.jar" dest="${ivy.jar.file}" usetimestamp="true"/>
-    </target>
+	<target name="resolve" description="--> retrieve dependencies with ivy" depends="install-ivy">
+		<ivy:retrieve pattern="${ivy.lib.dir}/[conf]/[artifact].[ext]" />
+	</target>
 
-    <target name="install-ivy" depends="download-ivy" description="--> install ivy">
-        <path id="ivy.lib.path">
-            <fileset dir="${ivy.jar.dir}" includes="*.jar"/>
-        </path>
-        <taskdef resource="org/apache/ivy/ant/antlib.xml" uri="antlib:org.apache.ivy.ant" classpathref="ivy.lib.path"/>
-    </target>
+	<target name="download-ivy" unless="skip.download">
+		<mkdir dir="${ivy.jar.dir}" />
+		<echo message="installing ivy..." />
+		<get src="http://repo1.maven.org/maven2/org/apache/ivy/ivy/${ivy.install.version}/ivy-${ivy.install.version}.jar" dest="${ivy.jar.file}" usetimestamp="true" />
+	</target>
 
-    <target name="clean">
-      <delete dir="${build}"/>
-      <delete dir="${build.test}"/>
-      <delete dir="${dist}"/>
-	  <delete dir="${logs}"/>
-    </target>
-	
-    <target name="init" depends="resolve">
-        <mkdir dir="${build}"/>
-        <mkdir dir="${build.test}"/>
-        <mkdir dir="${dist}"/>
-        <mkdir dir="${logs}"/>
-    </target>
-	
-    <target name="compile" depends="init">
-	<javac debug="true" destdir="${build}" compiler="javac1.6" source="1.6" target="1.6">
-            <src path="${src}"/>
-            <classpath refid="compile.class.path"/>
-        </javac>
-    </target>
-	
-    <target name="dist" depends="compile">
-			<jar destfile="${dist}/${project.name}-${version}.jar"  basedir="${build}" />
-    </target>
-	
+	<target name="install-ivy" depends="download-ivy" description="--> install ivy">
+		<path id="ivy.lib.path">
+			<fileset dir="${ivy.jar.dir}" includes="*.jar" />
+		</path>
+		<taskdef resource="org/apache/ivy/ant/antlib.xml" uri="antlib:org.apache.ivy.ant" classpathref="ivy.lib.path" />
+	</target>
+
+	<target name="clean">
+		<delete dir="${build}" />
+		<delete dir="${build.test}" />
+		<delete dir="${dist}" />
+		<delete dir="${logs}" />
+	</target>
+
+	<target name="init" depends="resolve">
+		<mkdir dir="${build}" />
+		<mkdir dir="${build.test}" />
+		<mkdir dir="${dist}" />
+		<mkdir dir="${logs}" />
+	</target>
+
+	<target name="compile" depends="init">
+		<javac debug="true" destdir="${build}" compiler="javac1.6" source="1.6" target="1.6">
+			<src path="${src}" />
+			<classpath refid="compile.class.path" />
+		</javac>
+	</target>
+
+	<target name="dist" depends="compile">
+		<jar destfile="${dist}/${project.name}-${version}.jar" basedir="${build}" />
+	</target>
+
 	<target name="test-build" depends="dist">
-			<javac destdir="${build.test}" compiler="javac1.6" source="1.6" target="1.6">
-		            <src path="${test}"/>
-	       	            <classpath refid="java.class.path"/>
-	                </javac>
-		</target>
-		
-		<target name="test" description="Runs JUnit Tests -- use -Dtests.to.run=testA,testB,... to run tests selectively" depends="test-build">
-			<echo>=== Running JUnit Tests ===</echo>
-			<mkdir dir="${test.report.dir}" />
-	        	<mkdir dir="${test.html.dir}" />
+		<javac destdir="${build.test}" compiler="javac1.6" source="1.6" target="1.6">
+			<src path="${test}" />
+			<classpath refid="java.class.path" />
+		</javac>
+	</target>
 
-			<junit printsummary="yes" showoutput="yes">
-				<sysproperty key="log.home" value="${logs}" />
-				<sysproperty key="idx.dir" value="data/cardata" />
-                <jvmarg value="-server" />
-                <jvmarg value="-Xms256m" />
-                <jvmarg value="-Xmx1g" />
-			    <!-- classpath must include all jar dependencies and classes -->
-				<classpath refid="test.class.path" />
-				
-		      		<!-- formatter to use for output -->
-	        		<formatter type="xml"/>
+	<target name="test" description="Runs JUnit Tests -- use -Dtests.to.run=testA,testB,... to run tests selectively" depends="test-build">
+		<echo>=== Running JUnit Tests ===</echo>
+		<mkdir dir="${test.report.dir}" />
+		<mkdir dir="${test.html.dir}" />
 
-		        	<batchtest fork="yes" todir="${test.report.dir}">
-	              			<fileset dir="${test}">
-	               			<include name="**/SenseiTestSuite.java" />
-	              			</fileset>
-	            		</batchtest>
-	        	</junit>
-			<junitreport todir="${test.html.dir}">
-	          		<fileset dir="${test.report.dir}">
-	            			<include name="TEST-*.xml" />
-	          		</fileset>
-	          		<report todir="${test.html.dir}" format="frames" />
-	        	</junitreport>
-		</target>
+		<junit printsummary="yes" showoutput="yes">
+			<sysproperty key="log.home" value="${logs}" />
+			<sysproperty key="idx.dir" value="data/cardata" />
+			<jvmarg value="-server" />
+			<jvmarg value="-Xms256m" />
+			<jvmarg value="-Xmx1g" />
+			<!-- classpath must include all jar dependencies and classes -->
+			<classpath refid="test.class.path" />
+
+			<!-- formatter to use for output -->
+			<formatter type="xml" />
+
+			<batchtest fork="yes" todir="${test.report.dir}">
+				<fileset dir="${test}">
+					<include name="**/SenseiTestSuite.java" />
+				</fileset>
+			</batchtest>
+		</junit>
+		<junitreport todir="${test.html.dir}">
+			<fileset dir="${test.report.dir}">
+				<include name="TEST-*.xml" />
+			</fileset>
+			<report todir="${test.html.dir}" format="frames" />
+		</junitreport>
+	</target>
 </project>

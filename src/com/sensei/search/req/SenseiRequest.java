@@ -10,6 +10,7 @@ import org.apache.lucene.search.SortField;
 
 import com.browseengine.bobo.api.BrowseSelection;
 import com.browseengine.bobo.api.FacetSpec;
+import com.browseengine.bobo.facets.FacetHandlerInitializerParam;
 
 public class SenseiRequest implements Serializable{
 	/**
@@ -17,7 +18,12 @@ public class SenseiRequest implements Serializable{
 	 */
 	private static final long serialVersionUID = 1L;
 	
-	private HashMap<String,BrowseSelection> _selections;
+  /**
+   * The transaction ID
+   */
+  private long tid = -1;
+
+  private HashMap<String,BrowseSelection> _selections;
 	private ArrayList<SortField> _sortSpecs;
 	private Map<String,FacetSpec> _facetSpecMap;
 	private SenseiQuery _query;
@@ -38,6 +44,24 @@ public class SenseiRequest implements Serializable{
 		_partitions = null;
 	}
 	
+  /**
+   * Get the transaction ID.
+   * @return the transaction ID.
+   */
+  public final long getTid()
+  {
+    return tid;
+  }
+
+  /**
+   * Set the transaction ID;
+   * @param tid
+   */
+  public final void setTid(long tid)
+  {
+    this.tid = tid;
+  }
+
 	public void setPartitions(int[] partitions){
 		_partitions = partitions;
 	}

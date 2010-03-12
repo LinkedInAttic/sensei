@@ -33,4 +33,5 @@ message Result{
   repeated FacetContainer facetContainers = 3;
   repeated Hit hits = 4;
   optional uint64 time = 5;
+  required int64 tid = 6 [default = -1];
 }

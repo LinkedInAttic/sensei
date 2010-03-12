@@ -22,11 +22,11 @@ import com.browseengine.bobo.api.FacetAccessible;
 import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.api.BrowseSelection.ValueOperation;
 import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
+import com.browseengine.bobo.facets.DefaultFacetHandlerInitializerParam;
+import com.browseengine.bobo.facets.FacetHandlerInitializerParam;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.TextFormat;
 import com.google.protobuf.TextFormat.ParseException;
-import com.sensei.search.req.DefaultFacetHandlerInitializerParam;
-import com.sensei.search.req.FacetHandlerInitializerParam;
 import com.sensei.search.req.SenseiQuery;
 import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.req.SenseiResult;
@@ -37,6 +37,12 @@ public class SenseiRequestBPOConverter {
 
 	private static Logger logger = Logger.getLogger(SenseiRequestBPOConverter.class);
 	
+	/**
+	 * Converts a list of protobuf FacetHandlerInitializerParam to Bobo's FacetHandlerInitializerParam.
+	 * @param paramList
+	 * @return
+	 * @throws ParseException
+	 */
 	public static Map<String,FacetHandlerInitializerParam> convert(List<SenseiRequestBPO.FacetHandlerInitializerParam> paramList) throws ParseException{
 		Map<String,FacetHandlerInitializerParam> retMap = new HashMap<String,FacetHandlerInitializerParam>();
 		for (SenseiRequestBPO.FacetHandlerInitializerParam param : paramList){
@@ -95,6 +101,12 @@ public class SenseiRequestBPOConverter {
 		return retMap;
 	}
 	
+	/**
+   * Converts a list of protobuf FacetHandlerInitializerParam to Bobo's FacetHandlerInitializerParam.
+	 * @param paramMap
+	 * @return
+	 * @throws ParseException
+	 */
 	public static List<SenseiRequestBPO.FacetHandlerInitializerParam> convert(Map<String,FacetHandlerInitializerParam> paramMap) throws ParseException{
 		List<SenseiRequestBPO.FacetHandlerInitializerParam> paramList = new ArrayList<SenseiRequestBPO.FacetHandlerInitializerParam>(paramMap.size());
 		Set<Entry<String,FacetHandlerInitializerParam>> entrySet = paramMap.entrySet();
@@ -225,6 +237,8 @@ public class SenseiRequestBPOConverter {
 		List<SenseiResultBPO.FacetContainer> facetList = result.getFacetContainersList();
 		List<SenseiResultBPO.Hit> hitList = result.getHitsList();
 		SenseiResult res = new SenseiResult();
+    // set transaction ID to trace transactions
+		res.setTid(result.getTid());
 		res.setTime(time);
 		res.setTotalDocs(totaldocs);
 		res.setNumHits(numhits);
@@ -245,6 +259,8 @@ public class SenseiRequestBPOConverter {
 	
 	public static SenseiRequest convert(SenseiRequestBPO.Request req) throws ParseException{
 		SenseiRequest breq = new SenseiRequest();
+		// set transaction ID to trace transactions
+		breq.setTid(req.getTid());
 		ByteString byteString = req.getQuery();
 		if (byteString!=null){
 		  breq.setQuery(new SenseiQuery(byteString.toByteArray()));	
@@ -255,7 +271,7 @@ public class SenseiRequestBPOConverter {
 		breq.setFetchStoredFields(req.getFetchStoredFields());
 		breq.setFilterIDs(ProtoConvertUtil.toIntArray(req.getFilterIDs()));
 		breq.setPartitions(ProtoConvertUtil.toIntArray(req.getPartitions()));
-	
+		// FacetHandlerInitializerParameters
 		List<SenseiRequestBPO.FacetHandlerInitializerParam> paramList = req.getFacetInitParamsList();
 		Map<String,FacetHandlerInitializerParam> params = convert(paramList);
 		breq.putAllFacetHandlerInitializerParams(params);
@@ -274,7 +290,7 @@ public class SenseiRequestBPOConverter {
 		if (sortFields.length > 0){
 		 breq.setSort(sortFields);
 		}
-		
+		// Facet Specs
 		List<SenseiRequestBPO.FacetSpec> fspecList = req.getFacetSpecsList();
 		for (SenseiRequestBPO.FacetSpec fspec : fspecList){
 			FacetSpec facetSpec = new FacetSpec();
@@ -369,6 +385,8 @@ public class SenseiRequestBPOConverter {
 	
 	public static SenseiRequestBPO.Request convert(SenseiRequest req) throws ParseException{
 		SenseiRequestBPO.Request.Builder reqBuilder = SenseiRequestBPO.Request.newBuilder();
+    // set transaction ID to trace transactions
+		reqBuilder.setTid(req.getTid());
 		reqBuilder.setOffset(req.getOffset());
 		reqBuilder.setCount(req.getCount());
 		SenseiQuery q = req.getQuery();
@@ -466,6 +484,8 @@ public class SenseiRequestBPOConverter {
 	
 	public static SenseiResultBPO.Result convert(BrowseResult res){
 		SenseiResultBPO.Result.Builder resBuilder = SenseiResultBPO.Result.newBuilder();
+    // set transaction ID to trace transactions
+		resBuilder.setTid(res.getTid());
 		resBuilder.setTime(res.getTime());
 		resBuilder.setTotaldocs(res.getTotalDocs());
 		resBuilder.setNumhits(res.getNumHits());

@@ -1562,9 +1562,17 @@ public final class SenseiResultBPO {
     public boolean hasTime() { return hasTime; }
     public long getTime() { return time_; }
     
+    // required int64 tid = 6 [default = -1];
+    public static final int TID_FIELD_NUMBER = 6;
+    private boolean hasTid;
+    private long tid_ = -1L;
+    public boolean hasTid() { return hasTid; }
+    public long getTid() { return tid_; }
+    
     private void initFields() {
     }
     public final boolean isInitialized() {
+      if (!hasTid) return false;
       for (com.sensei.search.req.protobuf.SenseiResultBPO.FacetContainer element : getFacetContainersList()) {
         if (!element.isInitialized()) return false;
       }
@@ -1591,6 +1599,9 @@ public final class SenseiResultBPO {
       }
       if (hasTime()) {
         output.writeUInt64(5, getTime());
+      }
+      if (hasTid()) {
+        output.writeInt64(6, getTid());
       }
       getUnknownFields().writeTo(output);
     }
@@ -1620,6 +1631,10 @@ public final class SenseiResultBPO {
       if (hasTime()) {
         size += com.google.protobuf.CodedOutputStream
           .computeUInt64Size(5, getTime());
+      }
+      if (hasTid()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(6, getTid());
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -1808,6 +1823,9 @@ public final class SenseiResultBPO {
         if (other.hasTime()) {
           setTime(other.getTime());
         }
+        if (other.hasTid()) {
+          setTid(other.getTid());
+        }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
       }
@@ -1855,6 +1873,10 @@ public final class SenseiResultBPO {
             }
             case 40: {
               setTime(input.readUInt64());
+              break;
+            }
+            case 48: {
+              setTid(input.readInt64());
               break;
             }
           }
@@ -2018,6 +2040,24 @@ public final class SenseiResultBPO {
         return this;
       }
       
+      // required int64 tid = 6 [default = -1];
+      public boolean hasTid() {
+        return result.hasTid();
+      }
+      public long getTid() {
+        return result.getTid();
+      }
+      public Builder setTid(long value) {
+        result.hasTid = true;
+        result.tid_ = value;
+        return this;
+      }
+      public Builder clearTid() {
+        result.hasTid = false;
+        result.tid_ = -1L;
+        return this;
+      }
+      
       // @@protoc_insertion_point(builder_scope:com.sensei.search.req.protobuf.Result)
     }
     
@@ -2071,13 +2111,14 @@ public final class SenseiResultBPO {
       "protobuf.Facet\"&\n\010FieldVal\022\014\n\004name\030\001 \002(\t" +
       "\022\014\n\004vals\030\002 \003(\t\"b\n\003Hit\022\r\n\005docid\030\001 \001(\r\022\r\n\005" +
       "score\030\002 \001(\002\022=\n\013fieldValues\030\003 \003(\0132(.com.s" +
-      "ensei.search.req.protobuf.FieldVal\"\266\001\n\006R" +
+      "ensei.search.req.protobuf.FieldVal\"\307\001\n\006R" +
       "esult\022\017\n\007numhits\030\001 \001(\r\022\021\n\ttotaldocs\030\002 \001(" +
       "\r\022G\n\017facetContainers\030\003 \003(\0132..com.sensei.",
       "search.req.protobuf.FacetContainer\0221\n\004hi" +
       "ts\030\004 \003(\0132#.com.sensei.search.req.protobu" +
-      "f.Hit\022\014\n\004time\030\005 \001(\004B3\n\036com.sensei.search" +
-      ".req.protobufB\017SenseiResultBPOH\001"
+      "f.Hit\022\014\n\004time\030\005 \001(\004\022\017\n\003tid\030\006 \002(\003:\002-1B3\n\036" +
+      "com.sensei.search.req.protobufB\017SenseiRe" +
+      "sultBPOH\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -2121,7 +2162,7 @@ public final class SenseiResultBPO {
           internal_static_com_sensei_search_req_protobuf_Result_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_com_sensei_search_req_protobuf_Result_descriptor,
-              new java.lang.String[] { "Numhits", "Totaldocs", "FacetContainers", "Hits", "Time", },
+              new java.lang.String[] { "Numhits", "Totaldocs", "FacetContainers", "Hits", "Time", "Tid", },
               com.sensei.search.req.protobuf.SenseiResultBPO.Result.class,
               com.sensei.search.req.protobuf.SenseiResultBPO.Result.Builder.class);
           return null;

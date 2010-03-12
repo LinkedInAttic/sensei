@@ -5,6 +5,7 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/beans 
 						http://www.springframework.org/schema/beans/spring-beans.xsd">
 			
+  <import resource="bobo.spring" />
 	<!-- dummy placeholder, we are not worry about indexing for now -->			
 	<bean id="interpreter" class="com.sensei.search.nodes.NoOpIndexableInterpreter" />
 	
@@ -18,7 +19,13 @@
 	
 	<bean id="similarity" class="org.apache.lucene.search.DefaultSimilarity" />
 	
-	<bean id="idxDecorator" class="com.sensei.search.nodes.SenseiIndexReaderDecorator" />
+	<bean id="idxDecorator" class="com.sensei.search.nodes.SenseiIndexReaderDecorator">
+    <constructor-arg ref="handlers" />
+    <constructor-arg>
+      <list>
+      </list>
+    </constructor-arg>
+	</bean>
 	
 	<bean id="zoie-system-factory" class="com.sensei.search.nodes.impl.DemoZoieSystemFactory">
 		<constructor-arg value="file:${idx.dir}"/>

@@ -11,6 +11,7 @@ import com.sensei.search.req.SenseiRequest;
 public class RequestConverter {
 	public static BrowseRequest convert(SenseiRequest req, SenseiQueryBuilder queryBuilder) throws ParseException{
 		BrowseRequest breq = new BrowseRequest();
+		breq.setTid(req.getTid());
 		breq.setOffset(req.getOffset());
 		breq.setCount(req.getCount());
 		breq.setSort(req.getSort());
@@ -27,6 +28,8 @@ public class RequestConverter {
 		for (BrowseSelection sel : sels){
 			req.addSelection(sel);
 		}
+		// transfer RuntimeFacetHandler init parameters
+		breq.setFacetHandlerDataMap(req.getAllFacetHandlerInitializerParams());
 		// facetspecs
 		breq.setFacetSpecs(req.getFacetSpecs());
 		// filter ids

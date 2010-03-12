@@ -6,7 +6,6 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 
@@ -20,7 +19,6 @@ import proj.zoie.api.ZoieIndexReader;
 import proj.zoie.impl.indexing.ZoieSystem;
 
 import com.browseengine.bobo.api.BoboIndexReader;
-import com.sensei.search.req.RuntimeFacetHandlerFactory;
 
 public class SenseiServer {
 	private static final Logger logger = Logger.getLogger(SenseiServer.class);
@@ -121,7 +119,6 @@ public class SenseiServer {
         
 		SenseiQueryBuilder qbuilder = (SenseiQueryBuilder)springCtx.getBean("query-builder");
 		SenseiZoieSystemFactory<?> zoieSystemFactory = (SenseiZoieSystemFactory<?>)springCtx.getBean("zoie-system-factory");
-		List<RuntimeFacetHandlerFactory> runtimeFacethandlerFactories = (List<RuntimeFacetHandlerFactory>)springCtx.getBean("runtime-facet-handler-factories");
 		SenseiIndexLoaderFactory indexLoaderFactory = (SenseiIndexLoaderFactory)springCtx.getBean("index-loader-factory");
 		
 		Map<Integer,IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>> readerFactoryMap = 
@@ -147,7 +144,7 @@ public class SenseiServer {
 		  readerFactoryMap.put(part, zoieSystem);
 		}
 		
-		SenseiSearchContext ctx = new SenseiSearchContext(qbuilder, readerFactoryMap, runtimeFacethandlerFactories);
+		SenseiSearchContext ctx = new SenseiSearchContext(qbuilder, readerFactoryMap);
 		//SenseiServer server = new SenseiServer(port,ctx, indexLoader);
 		SenseiNodeMessageHandler msgHandler = new SenseiNodeMessageHandler(ctx);
 		final SenseiNode node = new SenseiNode(clusterName,id,port,msgHandler,zookeeperURL);

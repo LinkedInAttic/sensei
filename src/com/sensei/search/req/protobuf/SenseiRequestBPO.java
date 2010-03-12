@@ -3508,9 +3508,17 @@ public final class SenseiRequestBPO {
     public boolean hasPartitions() { return hasPartitions; }
     public com.google.protobuf.ByteString getPartitions() { return partitions_; }
     
+    // required int64 tid = 11 [default = -1];
+    public static final int TID_FIELD_NUMBER = 11;
+    private boolean hasTid;
+    private long tid_ = -1L;
+    public boolean hasTid() { return hasTid; }
+    public long getTid() { return tid_; }
+    
     private void initFields() {
     }
     public final boolean isInitialized() {
+      if (!hasTid) return false;
       for (com.sensei.search.req.protobuf.SenseiRequestBPO.Selection element : getSelectionsList()) {
         if (!element.isInitialized()) return false;
       }
@@ -3555,6 +3563,9 @@ public final class SenseiRequestBPO {
       }
       if (hasPartitions()) {
         output.writeBytes(10, getPartitions());
+      }
+      if (hasTid()) {
+        output.writeInt64(11, getTid());
       }
       getUnknownFields().writeTo(output);
     }
@@ -3604,6 +3615,10 @@ public final class SenseiRequestBPO {
       if (hasPartitions()) {
         size += com.google.protobuf.CodedOutputStream
           .computeBytesSize(10, getPartitions());
+      }
+      if (hasTid()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(11, getTid());
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -3821,6 +3836,9 @@ public final class SenseiRequestBPO {
         if (other.hasPartitions()) {
           setPartitions(other.getPartitions());
         }
+        if (other.hasTid()) {
+          setTid(other.getTid());
+        }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
       }
@@ -3892,6 +3910,10 @@ public final class SenseiRequestBPO {
             }
             case 82: {
               setPartitions(input.readBytes());
+              break;
+            }
+            case 88: {
+              setTid(input.readInt64());
               break;
             }
           }
@@ -4220,6 +4242,24 @@ public final class SenseiRequestBPO {
         return this;
       }
       
+      // required int64 tid = 11 [default = -1];
+      public boolean hasTid() {
+        return result.hasTid();
+      }
+      public long getTid() {
+        return result.getTid();
+      }
+      public Builder setTid(long value) {
+        result.hasTid = true;
+        result.tid_ = value;
+        return this;
+      }
+      public Builder clearTid() {
+        result.hasTid = false;
+        result.tid_ = -1L;
+        return this;
+      }
+      
       // @@protoc_insertion_point(builder_scope:com.sensei.search.req.protobuf.Request)
     }
     
@@ -4308,7 +4348,7 @@ public final class SenseiRequestBPO {
       "(\010\022\020\n\010minCount\030\004 \001(\r\022M\n\007orderBy\030\005 \001(\01622." +
       "com.sensei.search.req.protobuf.FacetSpec" +
       ".SortSpec:\010HitsDesc\"&\n\010SortSpec\022\014\n\010Value" +
-      "Asc\020\000\022\014\n\010HitsDesc\020\001\"\202\003\n\007Request\022=\n\nselec" +
+      "Asc\020\000\022\014\n\010HitsDesc\020\001\"\223\003\n\007Request\022=\n\nselec" +
       "tions\030\001 \003(\0132).com.sensei.search.req.prot" +
       "obuf.Selection\022\016\n\006offset\030\002 \001(\r\022\r\n\005count\030",
       "\003 \001(\r\0222\n\004sort\030\004 \003(\0132$.com.sensei.search." +
@@ -4318,8 +4358,8 @@ public final class SenseiRequestBPO {
       "tchStoredFields\030\010 \001(\010\022U\n\017facetInitParams" +
       "\030\t \003(\0132<.com.sensei.search.req.protobuf." +
       "FacetHandlerInitializerParam\022\022\n\npartitio" +
-      "ns\030\n \001(\014B4\n\036com.sensei.search.req.protob" +
-      "ufB\020SenseiRequestBPOH\001"
+      "ns\030\n \001(\014\022\017\n\003tid\030\013 \002(\003:\002-1B4\n\036com.sensei." +
+      "search.req.protobufB\020SenseiRequestBPOH\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -4387,7 +4427,7 @@ public final class SenseiRequestBPO {
           internal_static_com_sensei_search_req_protobuf_Request_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_com_sensei_search_req_protobuf_Request_descriptor,
-              new java.lang.String[] { "Selections", "Offset", "Count", "Sort", "FacetSpecs", "Query", "FilterIDs", "FetchStoredFields", "FacetInitParams", "Partitions", },
+              new java.lang.String[] { "Selections", "Offset", "Count", "Sort", "FacetSpecs", "Query", "FilterIDs", "FetchStoredFields", "FacetInitParams", "Partitions", "Tid", },
               com.sensei.search.req.protobuf.SenseiRequestBPO.Request.class,
               com.sensei.search.req.protobuf.SenseiRequestBPO.Request.Builder.class);
           return null;
