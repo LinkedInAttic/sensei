@@ -114,21 +114,6 @@ public class SenseiRequest implements Serializable{
 		return _selections.size();
 	}
 	
-	/**
-	 * Set a default filter
-	 * @param filter
-	 */
-	public void setFilterIDs(int[] filterIDs){
-		_filteredIDs = filterIDs;
-	}
-	
-	/**
-	 * Gets the default filter
-	 */
-	public int[] getFilterIDs(){
-		return _filteredIDs;
-	}
-	
 	public void clearSelections(){
 		_selections.clear();
 	}

@@ -4,6 +4,7 @@ import java.io.UnsupportedEncodingException;
 
 import org.apache.lucene.queryParser.ParseException;
 import org.apache.lucene.queryParser.QueryParser;
+import org.apache.lucene.search.Filter;
 import org.apache.lucene.search.Query;
 
 import com.sensei.search.nodes.SenseiQueryBuilder;
@@ -11,31 +12,41 @@ import com.sensei.search.req.SenseiQuery;
 
 public class SimpleQueryBuilder implements SenseiQueryBuilder
 {
-  private final QueryParser _parser;
+  protected Query _query = null;
+  protected Filter _filter = null;
   
-  public SimpleQueryBuilder(QueryParser parser)
+  public SimpleQueryBuilder(SenseiQuery query, QueryParser parser) throws Exception
   {
-    _parser = parser;
+    doBuild(query, parser);
   }
   
-  @Override
-  public Query buildQuery(SenseiQuery query) throws ParseException
+  protected void doBuild(SenseiQuery query, QueryParser parser) throws Exception
   {
-	if (query == null) return null;
-	byte[] bytes = query.toBytes();
-	String qString = null;
-	
-	try {
-		qString = new String(bytes,"UTF-8");
-	} catch (UnsupportedEncodingException e) {
-		throw new ParseException(e.getMessage());
-	}
-	
-    if (qString.length()>0){
-    	return _parser.parse(qString);
+    if (query != null)
+    {
+      byte[] bytes = query.toBytes();
+      String qString = null;
+      
+      try {
+        qString = new String(bytes,"UTF-8");
+      }
+      catch (UnsupportedEncodingException e) {
+        throw new ParseException(e.getMessage());
+      }
+      
+      if (qString.length()>0){
+        _query = parser.parse(qString);
+      }
     }
-    else{
-    	return null;
-    }
+  }
+  
+  public Query buildQuery() throws ParseException
+  {
+    return _query;
+  }
+  
+  public Filter buildFilter()
+  {
+    return _filter;
   }
 }

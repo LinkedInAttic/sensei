@@ -117,7 +117,7 @@ public class SenseiServer {
         logger.info("ClusterName: " + clusterName);
         logger.info("ZooKeeperURL: " + zookeeperURL);
         
-		SenseiQueryBuilder qbuilder = (SenseiQueryBuilder)springCtx.getBean("query-builder");
+		SenseiQueryBuilderFactory builderFactory = (SenseiQueryBuilderFactory)springCtx.getBean("query-builder-factory");
 		SenseiZoieSystemFactory<?> zoieSystemFactory = (SenseiZoieSystemFactory<?>)springCtx.getBean("zoie-system-factory");
 		SenseiIndexLoaderFactory indexLoaderFactory = (SenseiIndexLoaderFactory)springCtx.getBean("index-loader-factory");
 		
@@ -144,7 +144,7 @@ public class SenseiServer {
 		  readerFactoryMap.put(part, zoieSystem);
 		}
 		
-		SenseiSearchContext ctx = new SenseiSearchContext(qbuilder, readerFactoryMap);
+		SenseiSearchContext ctx = new SenseiSearchContext(builderFactory, readerFactoryMap);
 		//SenseiServer server = new SenseiServer(port,ctx, indexLoader);
 		SenseiNodeMessageHandler msgHandler = new SenseiNodeMessageHandler(ctx);
 		final SenseiNode node = new SenseiNode(clusterName,id,port,msgHandler,zookeeperURL);

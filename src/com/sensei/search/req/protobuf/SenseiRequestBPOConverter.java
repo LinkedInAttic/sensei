@@ -269,7 +269,6 @@ public class SenseiRequestBPOConverter {
 		breq.setCount(req.getCount());
 		
 		breq.setFetchStoredFields(req.getFetchStoredFields());
-		breq.setFilterIDs(ProtoConvertUtil.toIntArray(req.getFilterIDs()));
 		breq.setPartitions(ProtoConvertUtil.toIntArray(req.getPartitions()));
 		// FacetHandlerInitializerParameters
 		List<SenseiRequestBPO.FacetHandlerInitializerParam> paramList = req.getFacetInitParamsList();
@@ -397,10 +396,6 @@ public class SenseiRequestBPOConverter {
 			reqBuilder.setQuery(queryBytes);
 		}
 		
-		ByteString filterBytes = ProtoConvertUtil.serializeOut(req.getFilterIDs());
-		if (filterBytes!=null){
-	 	  reqBuilder.setFilterIDs(filterBytes);
-		}
 		ByteString partitionBytes=ProtoConvertUtil.serializeOut(req.getPartitions()); 
 		if (partitionBytes!=null){
 	 	  reqBuilder.setPartitions(partitionBytes);

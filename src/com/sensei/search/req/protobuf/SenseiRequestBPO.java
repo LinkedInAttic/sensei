@@ -3475,22 +3475,15 @@ public final class SenseiRequestBPO {
     public boolean hasQuery() { return hasQuery; }
     public com.google.protobuf.ByteString getQuery() { return query_; }
     
-    // optional bytes filterIDs = 7;
-    public static final int FILTERIDS_FIELD_NUMBER = 7;
-    private boolean hasFilterIDs;
-    private com.google.protobuf.ByteString filterIDs_ = com.google.protobuf.ByteString.EMPTY;
-    public boolean hasFilterIDs() { return hasFilterIDs; }
-    public com.google.protobuf.ByteString getFilterIDs() { return filterIDs_; }
-    
-    // optional bool fetchStoredFields = 8;
-    public static final int FETCHSTOREDFIELDS_FIELD_NUMBER = 8;
+    // optional bool fetchStoredFields = 7;
+    public static final int FETCHSTOREDFIELDS_FIELD_NUMBER = 7;
     private boolean hasFetchStoredFields;
     private boolean fetchStoredFields_ = false;
     public boolean hasFetchStoredFields() { return hasFetchStoredFields; }
     public boolean getFetchStoredFields() { return fetchStoredFields_; }
     
-    // repeated .com.sensei.search.req.protobuf.FacetHandlerInitializerParam facetInitParams = 9;
-    public static final int FACETINITPARAMS_FIELD_NUMBER = 9;
+    // repeated .com.sensei.search.req.protobuf.FacetHandlerInitializerParam facetInitParams = 8;
+    public static final int FACETINITPARAMS_FIELD_NUMBER = 8;
     private java.util.List<com.sensei.search.req.protobuf.SenseiRequestBPO.FacetHandlerInitializerParam> facetInitParams_ =
       java.util.Collections.emptyList();
     public java.util.List<com.sensei.search.req.protobuf.SenseiRequestBPO.FacetHandlerInitializerParam> getFacetInitParamsList() {
@@ -3501,15 +3494,15 @@ public final class SenseiRequestBPO {
       return facetInitParams_.get(index);
     }
     
-    // optional bytes partitions = 10;
-    public static final int PARTITIONS_FIELD_NUMBER = 10;
+    // optional bytes partitions = 9;
+    public static final int PARTITIONS_FIELD_NUMBER = 9;
     private boolean hasPartitions;
     private com.google.protobuf.ByteString partitions_ = com.google.protobuf.ByteString.EMPTY;
     public boolean hasPartitions() { return hasPartitions; }
     public com.google.protobuf.ByteString getPartitions() { return partitions_; }
     
-    // required int64 tid = 11 [default = -1];
-    public static final int TID_FIELD_NUMBER = 11;
+    // required int64 tid = 10 [default = -1];
+    public static final int TID_FIELD_NUMBER = 10;
     private boolean hasTid;
     private long tid_ = -1L;
     public boolean hasTid() { return hasTid; }
@@ -3552,20 +3545,17 @@ public final class SenseiRequestBPO {
       if (hasQuery()) {
         output.writeBytes(6, getQuery());
       }
-      if (hasFilterIDs()) {
-        output.writeBytes(7, getFilterIDs());
-      }
       if (hasFetchStoredFields()) {
-        output.writeBool(8, getFetchStoredFields());
+        output.writeBool(7, getFetchStoredFields());
       }
       for (com.sensei.search.req.protobuf.SenseiRequestBPO.FacetHandlerInitializerParam element : getFacetInitParamsList()) {
-        output.writeMessage(9, element);
+        output.writeMessage(8, element);
       }
       if (hasPartitions()) {
-        output.writeBytes(10, getPartitions());
+        output.writeBytes(9, getPartitions());
       }
       if (hasTid()) {
-        output.writeInt64(11, getTid());
+        output.writeInt64(10, getTid());
       }
       getUnknownFields().writeTo(output);
     }
@@ -3600,25 +3590,21 @@ public final class SenseiRequestBPO {
         size += com.google.protobuf.CodedOutputStream
           .computeBytesSize(6, getQuery());
       }
-      if (hasFilterIDs()) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(7, getFilterIDs());
-      }
       if (hasFetchStoredFields()) {
         size += com.google.protobuf.CodedOutputStream
-          .computeBoolSize(8, getFetchStoredFields());
+          .computeBoolSize(7, getFetchStoredFields());
       }
       for (com.sensei.search.req.protobuf.SenseiRequestBPO.FacetHandlerInitializerParam element : getFacetInitParamsList()) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(9, element);
+          .computeMessageSize(8, element);
       }
       if (hasPartitions()) {
         size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(10, getPartitions());
+          .computeBytesSize(9, getPartitions());
       }
       if (hasTid()) {
         size += com.google.protobuf.CodedOutputStream
-          .computeInt64Size(11, getTid());
+          .computeInt64Size(10, getTid());
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -3821,9 +3807,6 @@ public final class SenseiRequestBPO {
         if (other.hasQuery()) {
           setQuery(other.getQuery());
         }
-        if (other.hasFilterIDs()) {
-          setFilterIDs(other.getFilterIDs());
-        }
         if (other.hasFetchStoredFields()) {
           setFetchStoredFields(other.getFetchStoredFields());
         }
@@ -3894,25 +3877,21 @@ public final class SenseiRequestBPO {
               setQuery(input.readBytes());
               break;
             }
-            case 58: {
-              setFilterIDs(input.readBytes());
-              break;
-            }
-            case 64: {
+            case 56: {
               setFetchStoredFields(input.readBool());
               break;
             }
-            case 74: {
+            case 66: {
               com.sensei.search.req.protobuf.SenseiRequestBPO.FacetHandlerInitializerParam.Builder subBuilder = com.sensei.search.req.protobuf.SenseiRequestBPO.FacetHandlerInitializerParam.newBuilder();
               input.readMessage(subBuilder, extensionRegistry);
               addFacetInitParams(subBuilder.buildPartial());
               break;
             }
-            case 82: {
+            case 74: {
               setPartitions(input.readBytes());
               break;
             }
-            case 88: {
+            case 80: {
               setTid(input.readInt64());
               break;
             }
@@ -4131,28 +4110,7 @@ public final class SenseiRequestBPO {
         return this;
       }
       
-      // optional bytes filterIDs = 7;
-      public boolean hasFilterIDs() {
-        return result.hasFilterIDs();
-      }
-      public com.google.protobuf.ByteString getFilterIDs() {
-        return result.getFilterIDs();
-      }
-      public Builder setFilterIDs(com.google.protobuf.ByteString value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  result.hasFilterIDs = true;
-        result.filterIDs_ = value;
-        return this;
-      }
-      public Builder clearFilterIDs() {
-        result.hasFilterIDs = false;
-        result.filterIDs_ = getDefaultInstance().getFilterIDs();
-        return this;
-      }
-      
-      // optional bool fetchStoredFields = 8;
+      // optional bool fetchStoredFields = 7;
       public boolean hasFetchStoredFields() {
         return result.hasFetchStoredFields();
       }
@@ -4170,7 +4128,7 @@ public final class SenseiRequestBPO {
         return this;
       }
       
-      // repeated .com.sensei.search.req.protobuf.FacetHandlerInitializerParam facetInitParams = 9;
+      // repeated .com.sensei.search.req.protobuf.FacetHandlerInitializerParam facetInitParams = 8;
       public java.util.List<com.sensei.search.req.protobuf.SenseiRequestBPO.FacetHandlerInitializerParam> getFacetInitParamsList() {
         return java.util.Collections.unmodifiableList(result.facetInitParams_);
       }
@@ -4221,7 +4179,7 @@ public final class SenseiRequestBPO {
         return this;
       }
       
-      // optional bytes partitions = 10;
+      // optional bytes partitions = 9;
       public boolean hasPartitions() {
         return result.hasPartitions();
       }
@@ -4242,7 +4200,7 @@ public final class SenseiRequestBPO {
         return this;
       }
       
-      // required int64 tid = 11 [default = -1];
+      // required int64 tid = 10 [default = -1];
       public boolean hasTid() {
         return result.hasTid();
       }
@@ -4348,18 +4306,18 @@ public final class SenseiRequestBPO {
       "(\010\022\020\n\010minCount\030\004 \001(\r\022M\n\007orderBy\030\005 \001(\01622." +
       "com.sensei.search.req.protobuf.FacetSpec" +
       ".SortSpec:\010HitsDesc\"&\n\010SortSpec\022\014\n\010Value" +
-      "Asc\020\000\022\014\n\010HitsDesc\020\001\"\223\003\n\007Request\022=\n\nselec" +
+      "Asc\020\000\022\014\n\010HitsDesc\020\001\"\200\003\n\007Request\022=\n\nselec" +
       "tions\030\001 \003(\0132).com.sensei.search.req.prot" +
       "obuf.Selection\022\016\n\006offset\030\002 \001(\r\022\r\n\005count\030",
       "\003 \001(\r\0222\n\004sort\030\004 \003(\0132$.com.sensei.search." +
       "req.protobuf.Sort\022=\n\nfacetSpecs\030\005 \003(\0132)." +
       "com.sensei.search.req.protobuf.FacetSpec" +
-      "\022\r\n\005query\030\006 \001(\014\022\021\n\tfilterIDs\030\007 \001(\014\022\031\n\021fe" +
-      "tchStoredFields\030\010 \001(\010\022U\n\017facetInitParams" +
-      "\030\t \003(\0132<.com.sensei.search.req.protobuf." +
-      "FacetHandlerInitializerParam\022\022\n\npartitio" +
-      "ns\030\n \001(\014\022\017\n\003tid\030\013 \002(\003:\002-1B4\n\036com.sensei." +
-      "search.req.protobufB\020SenseiRequestBPOH\001"
+      "\022\r\n\005query\030\006 \001(\014\022\031\n\021fetchStoredFields\030\007 \001" +
+      "(\010\022U\n\017facetInitParams\030\010 \003(\0132<.com.sensei" +
+      ".search.req.protobuf.FacetHandlerInitial" +
+      "izerParam\022\022\n\npartitions\030\t \001(\014\022\017\n\003tid\030\n \002" +
+      "(\003:\002-1B4\n\036com.sensei.search.req.protobuf" +
+      "B\020SenseiRequestBPOH\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -4427,7 +4385,7 @@ public final class SenseiRequestBPO {
           internal_static_com_sensei_search_req_protobuf_Request_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_com_sensei_search_req_protobuf_Request_descriptor,
-              new java.lang.String[] { "Selections", "Offset", "Count", "Sort", "FacetSpecs", "Query", "FilterIDs", "FetchStoredFields", "FacetInitParams", "Partitions", "Tid", },
+              new java.lang.String[] { "Selections", "Offset", "Count", "Sort", "FacetSpecs", "Query", "FetchStoredFields", "FacetInitParams", "Partitions", "Tid", },
               com.sensei.search.req.protobuf.SenseiRequestBPO.Request.class,
               com.sensei.search.req.protobuf.SenseiRequestBPO.Request.Builder.class);
           return null;

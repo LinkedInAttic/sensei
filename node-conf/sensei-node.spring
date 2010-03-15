@@ -15,7 +15,7 @@
 	   <constructor-arg ref="analyzer" />
 	</bean>
 	
-	<bean id="query-builder" class="com.sensei.search.nodes.impl.SimpleQueryBuilder">
+	<bean id="query-builder-factory" class="com.sensei.search.nodes.impl.SimpleQueryBuilderFactory">
 	   <constructor-arg ref="query-parser"/>
 	</bean>
 	

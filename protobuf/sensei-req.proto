@@ -70,9 +70,8 @@ message Request{
   repeated Sort sort = 4;
   repeated FacetSpec facetSpecs = 5;
   optional bytes query = 6;
-  optional bytes filterIDs = 7;
-  optional bool fetchStoredFields = 8;
-  repeated FacetHandlerInitializerParam facetInitParams = 9;
-  optional bytes partitions = 10;
-  required int64 tid = 11 [default = -1];
+  optional bool fetchStoredFields = 7;
+  repeated FacetHandlerInitializerParam facetInitParams = 8;
+  optional bytes partitions = 9;
+  required int64 tid = 10 [default = -1];
 }

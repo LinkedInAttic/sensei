@@ -2,7 +2,6 @@ package com.sensei.search.nodes;
 
 import java.io.File;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
@@ -19,7 +18,7 @@ import proj.zoie.impl.indexing.ZoieSystem;
 import com.browseengine.bobo.api.BoboIndexReader;
 
 public class SenseiSearchContext {
-	private final SenseiQueryBuilder _qbuilder;
+	private final SenseiQueryBuilderFactory _builderFactory;
 	private final Map<Integer,IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>> _partReaderMap;
 
 	private static <T> IndexReaderFactory<ZoieIndexReader<BoboIndexReader>> buildReaderFactory(File file,ZoieIndexableInterpreter<T> interpreter){
@@ -27,17 +26,17 @@ public class SenseiSearchContext {
 		return zoieSystem;
 	}
 
-	public SenseiSearchContext(SenseiQueryBuilder qbuilder,Map<Integer,IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>> partReaderMap){
-		_qbuilder = qbuilder;
+	public SenseiSearchContext(SenseiQueryBuilderFactory builderFactory,Map<Integer,IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>> partReaderMap){
+		_builderFactory = builderFactory;
 		_partReaderMap = partReaderMap;
 	}
 
-	public SenseiSearchContext(Map<Integer,File> partFileMap, SenseiQueryBuilder qbuilder){
-		this(qbuilder,new NoOpIndexableInterpreter(),partFileMap);
+	public SenseiSearchContext(Map<Integer,File> partFileMap, SenseiQueryBuilderFactory builderFactory){
+		this(builderFactory,new NoOpIndexableInterpreter(),partFileMap);
 	}
 
-	public SenseiSearchContext(SenseiQueryBuilder qbuilder,ZoieIndexableInterpreter<?> interpreter,Map<Integer,File> partFileMap){
-	  _qbuilder = qbuilder;
+	public SenseiSearchContext(SenseiQueryBuilderFactory builderFactory,ZoieIndexableInterpreter<?> interpreter,Map<Integer,File> partFileMap){
+	  _builderFactory = builderFactory;
 		
 		_partReaderMap = new HashMap<Integer,IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>>();
 		Set<Entry<Integer,File>> entrySet = partFileMap.entrySet();
@@ -46,8 +45,8 @@ public class SenseiSearchContext {
 		}
 	}
 
-	public SenseiQueryBuilder getQueryBuilder() {
-		return _qbuilder;
+	public SenseiQueryBuilderFactory getQueryBuilderFactory() {
+		return _builderFactory;
 	}
 
 	public IndexReaderFactory<ZoieIndexReader<BoboIndexReader>> getIdxReaderFactory(int partition) {

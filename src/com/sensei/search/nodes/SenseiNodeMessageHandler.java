@@ -30,11 +30,11 @@ import com.sensei.search.util.RequestConverter;
 public class SenseiNodeMessageHandler implements MessageHandler {
 
 	private static final Logger logger = Logger.getLogger(SenseiNodeMessageHandler.class);
-	private final SenseiQueryBuilder _qbuilder;
+	private final SenseiQueryBuilderFactory _builderFactory;
 	private final Map<Integer,IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>> _partReaderMap;
 
 	public SenseiNodeMessageHandler(SenseiSearchContext ctx) {
-		_qbuilder = ctx.getQueryBuilder();
+		_builderFactory = ctx.getQueryBuilderFactory();
 		_partReaderMap = ctx.getPartitionReaderMap();
 	}
 	
@@ -64,7 +64,8 @@ public class SenseiNodeMessageHandler implements MessageHandler {
 
 		  try {
 		    browser = new MultiBoboBrowser(BoboBrowser.createBrowsables(boboReaders));
-		    BrowseRequest breq = RequestConverter.convert(senseiReq, _qbuilder);
+		    
+		    BrowseRequest breq = RequestConverter.convert(senseiReq, _builderFactory);
 		    BrowseResult res = browser.browse(breq);
 		    return res;
 		  } 

@@ -1,15 +1,16 @@
 package com.sensei.search.util;
 
-import org.apache.lucene.queryParser.ParseException;
+import org.apache.lucene.search.Filter;
 import org.apache.lucene.search.Query;
 
 import com.browseengine.bobo.api.BrowseRequest;
 import com.browseengine.bobo.api.BrowseSelection;
 import com.sensei.search.nodes.SenseiQueryBuilder;
+import com.sensei.search.nodes.SenseiQueryBuilderFactory;
 import com.sensei.search.req.SenseiRequest;
 
 public class RequestConverter {
-	public static BrowseRequest convert(SenseiRequest req, SenseiQueryBuilder queryBuilder) throws ParseException{
+	public static BrowseRequest convert(SenseiRequest req, SenseiQueryBuilderFactory queryBuilderFactory) throws Exception{
 		BrowseRequest breq = new BrowseRequest();
 		breq.setTid(req.getTid());
 		breq.setOffset(req.getOffset());
@@ -17,12 +18,20 @@ public class RequestConverter {
 		breq.setSort(req.getSort());
 		breq.setFetchStoredFields(req.isFetchStoredFields());
 		
-		// query
-		Query q = queryBuilder.buildQuery(req.getQuery());
-		if(q != null){
-			breq.setQuery(q);
-		}
-		
+		SenseiQueryBuilder queryBuilder = queryBuilderFactory.getQueryBuilder(req.getQuery());
+       
+        // query
+        Query q = queryBuilder.buildQuery();
+        if(q != null){
+            breq.setQuery(q);
+        }
+        
+        // filter
+        Filter f = queryBuilder.buildFilter();
+        if(f != null){
+            breq.setFilter(f);
+        }
+        
 		// selections
 		BrowseSelection[] sels = req.getSelections();
 		for (BrowseSelection sel : sels){
