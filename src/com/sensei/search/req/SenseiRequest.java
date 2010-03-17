@@ -294,4 +294,9 @@ public class SenseiRequest implements Serializable, Cloneable
       buf.append("fetch stored fields: ").append(_fetchStoredFields);
       return buf.toString();
 	}
+	
+	public Object clone() throws CloneNotSupportedException
+	{
+	  return super.clone();
+	}
 }
