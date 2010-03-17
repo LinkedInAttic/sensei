@@ -8,4 +8,9 @@ public class SenseiResult extends BrowseResult{
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
+	
+	public SenseiHit[] getSenseiHits()
+	{
+	  return (SenseiHit[])getHits();
+	}
 }

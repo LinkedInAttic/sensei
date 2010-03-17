@@ -7,7 +7,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
 
-import com.browseengine.bobo.api.BrowseResult;
 import com.google.protobuf.Message;
 import com.google.protobuf.TextFormat.ParseException;
 import com.linkedin.norbert.cluster.Node;
@@ -62,7 +61,7 @@ public class SenseiScatterGatherHandler implements ScatterGatherHandler<SenseiRe
 		  int oldOffset = senseiReq.getOffset();
 		  int oldCount = senseiReq.getCount();
 		  
-		  List<BrowseResult> boboBrowseList = new ArrayList<BrowseResult>();
+		  List<SenseiResult> boboBrowseList = new ArrayList<SenseiResult>();
 		  while(iter.hasNext()){
 			Response resp = iter.next(TIMEOUT_MILLIS,TimeUnit.MILLISECONDS);
 			if (resp==null){

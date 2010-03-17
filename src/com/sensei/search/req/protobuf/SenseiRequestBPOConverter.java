@@ -15,8 +15,6 @@ import org.apache.log4j.Logger;
 import org.apache.lucene.search.SortField;
 
 import com.browseengine.bobo.api.BrowseFacet;
-import com.browseengine.bobo.api.BrowseHit;
-import com.browseengine.bobo.api.BrowseResult;
 import com.browseengine.bobo.api.BrowseSelection;
 import com.browseengine.bobo.api.FacetAccessible;
 import com.browseengine.bobo.api.FacetSpec;
@@ -27,6 +25,7 @@ import com.browseengine.bobo.facets.FacetHandlerInitializerParam;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.TextFormat;
 import com.google.protobuf.TextFormat.ParseException;
+import com.sensei.search.req.SenseiHit;
 import com.sensei.search.req.SenseiQuery;
 import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.req.SenseiResult;
@@ -216,9 +215,10 @@ public class SenseiRequestBPOConverter {
 		}
 	}
 	
-	public static BrowseHit convert(SenseiResultBPO.Hit hit){
-		BrowseHit bhit = new BrowseHit();
-		bhit.setDocid(hit.getDocid());
+	public static SenseiHit convert(SenseiResultBPO.Hit hit){
+		SenseiHit bhit = new SenseiHit();
+        bhit.setUID(hit.getUid());
+        bhit.setDocid(hit.getDocid());
 		bhit.setScore(hit.getScore());
 		List<SenseiResultBPO.FieldVal> fieldValueList = hit.getFieldValuesList();
 		Map<String,String[]> fielddata = new HashMap<String,String[]>();
@@ -247,13 +247,13 @@ public class SenseiRequestBPOConverter {
 			res.addFacets(facetContainer.getName(), new FacetContainerAccessible(facetContainer));
 		}
 		
-		BrowseHit[] browseHits = new BrowseHit[hitList==null ? 0 : hitList.size()];
+		SenseiHit[] senseiHits = new SenseiHit[hitList==null ? 0 : hitList.size()];
 		int i=0;
 		for (SenseiResultBPO.Hit hit : hitList)
 		{
-			browseHits[i++] = convert(hit);
+			senseiHits[i++] = convert(hit);
 		}
-		res.setHits(browseHits);
+		res.setHits(senseiHits);
 		return res;
 	}
 	
@@ -452,9 +452,9 @@ public class SenseiRequestBPOConverter {
 		return reqBuilder.build();
 	}
 	
-	public static SenseiResultBPO.Hit convert(BrowseHit hit){
+	public static SenseiResultBPO.Hit convert(SenseiHit hit){
 		SenseiResultBPO.Hit.Builder hitBuilder = SenseiResultBPO.Hit.newBuilder();
-		hitBuilder.setDocid(hit.getDocid());
+        hitBuilder.setDocid(hit.getDocid());
 		hitBuilder.setScore(hit.getScore());
 		Map<String,String[]> fieldMap = hit.getFieldValues();
 		Iterator<Entry<String,String[]>> iter = fieldMap.entrySet().iterator();
@@ -463,6 +463,7 @@ public class SenseiRequestBPOConverter {
 			SenseiResultBPO.FieldVal fieldVal = SenseiResultBPO.FieldVal.newBuilder().setName(entry.getKey()).addAllVals(Arrays.asList(entry.getValue())).build();
 			hitBuilder.addFieldValues(fieldVal);
 		}
+        hitBuilder.setUid(hit.getUID());
 		return hitBuilder.build();
 	}
 	
@@ -477,7 +478,7 @@ public class SenseiRequestBPOConverter {
 		return facetBuilder.build();
 	}
 	
-	public static SenseiResultBPO.Result convert(BrowseResult res){
+	public static SenseiResultBPO.Result convert(SenseiResult res){
 		SenseiResultBPO.Result.Builder resBuilder = SenseiResultBPO.Result.newBuilder();
     // set transaction ID to trace transactions
 		resBuilder.setTid(res.getTid());
@@ -486,8 +487,8 @@ public class SenseiRequestBPOConverter {
 		resBuilder.setNumhits(res.getNumHits());
 		
 		// hits
-		BrowseHit[] hits = res.getHits();
-		for (BrowseHit hit : hits){
+		SenseiHit[] hits = res.getSenseiHits();
+		for (SenseiHit hit : hits){
 			SenseiResultBPO.Hit converted = convert(hit);
 			resBuilder.addHits(converted);
 		}

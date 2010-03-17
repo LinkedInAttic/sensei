@@ -13,11 +13,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import com.browseengine.bobo.api.BrowseFacet;
-import com.browseengine.bobo.api.BrowseHit;
-import com.browseengine.bobo.api.BrowseResult;
 import com.browseengine.bobo.api.FacetAccessible;
 import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.util.ListMerger;
+import com.sensei.search.req.SenseiHit;
 import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.req.SenseiResult;
 
@@ -116,17 +115,17 @@ public class ResultMerger {
 	}
 
 	
-	public static SenseiResult merge(SenseiRequest req,Collection<BrowseResult> results){
+	public static SenseiResult merge(SenseiRequest req,Collection<SenseiResult> results){
 		List<Map<String,FacetAccessible>> facetList=new ArrayList<Map<String,FacetAccessible>>(results.size());
         
-        ArrayList<Iterator<BrowseHit>> iteratorList = new ArrayList<Iterator<BrowseHit>>(results.size());
+        ArrayList<Iterator<SenseiHit>> iteratorList = new ArrayList<Iterator<SenseiHit>>(results.size());
         int numHits = 0;
         int totalDocs = 0;
         
-        for (BrowseResult res : results){
-        	BrowseHit[] hits = res.getHits();
+        for (SenseiResult res : results){
+        	SenseiHit[] hits = res.getSenseiHits();
         	if (hits!=null){
-        		for (BrowseHit hit : hits){
+        		for (SenseiHit hit : hits){
         			hit.setDocid(hit.getDocid() + totalDocs);
         		}
         	}
@@ -136,13 +135,13 @@ public class ResultMerger {
         	if (facetMap != null){
         		facetList.add(facetMap);
         	}
-        	iteratorList.add(Arrays.asList(res.getHits()).iterator());
+        	iteratorList.add(Arrays.asList(res.getSenseiHits()).iterator());
         }
         
         Map<String,FacetAccessible> mergedFacetMap = mergeFacetContainer(facetList,req);
-        Comparator<BrowseHit> comparator = new Comparator<BrowseHit>(){
+        Comparator<SenseiHit> comparator = new Comparator<SenseiHit>(){
 
-			public int compare(BrowseHit o1, BrowseHit o2) {
+			public int compare(SenseiHit o1, SenseiHit o2) {
 				Comparable c1=o1.getComparable();
 				Comparable c2=o2.getComparable();
 				if (c1==null || c2==null){
@@ -153,8 +152,8 @@ public class ResultMerger {
 	    	
 	    };
 	    
-        ArrayList<BrowseHit> mergedList = ListMerger.mergeLists(req.getOffset(), req.getCount(), iteratorList.toArray(new Iterator[iteratorList.size()]), comparator);
-        BrowseHit[] hits = mergedList.toArray(new BrowseHit[mergedList.size()]);
+        ArrayList<SenseiHit> mergedList = ListMerger.mergeLists(req.getOffset(), req.getCount(), iteratorList.toArray(new Iterator[iteratorList.size()]), comparator);
+        SenseiHit[] hits = mergedList.toArray(new SenseiHit[mergedList.size()]);
         
         SenseiResult merged = new SenseiResult();
         merged.setHits(hits);
