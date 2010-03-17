@@ -12,7 +12,8 @@ import com.browseengine.bobo.api.BrowseSelection;
 import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.facets.FacetHandlerInitializerParam;
 
-public class SenseiRequest implements Serializable{
+public class SenseiRequest implements Serializable, Cloneable
+{
 	/**
 	 * 
 	 */
@@ -30,8 +31,7 @@ public class SenseiRequest implements Serializable{
 	private int _offset;
 	private int _count;
 	private boolean _fetchStoredFields;
-	private int[] _filteredIDs;
-	private final Map<String,FacetHandlerInitializerParam> _facetInitParamMap;
+	private Map<String,FacetHandlerInitializerParam> _facetInitParamMap;
 	private int[] _partitions;
 	
 	public SenseiRequest(){
@@ -39,7 +39,6 @@ public class SenseiRequest implements Serializable{
 		_selections=new HashMap<String,BrowseSelection>();
 		_sortSpecs=new ArrayList<SortField>();
 		_facetSpecMap=new HashMap<String,FacetSpec>();
-		_filteredIDs = null;
 		_fetchStoredFields = false;
 		_partitions = null;
 	}
@@ -74,6 +73,10 @@ public class SenseiRequest implements Serializable{
 		return _facetInitParamMap;
 	}
 	
+	public void setFacetHandlerInitParamMap(Map<String,FacetHandlerInitializerParam> paramMap){
+	  _facetInitParamMap = paramMap;
+	}
+
 	public void putAllFacetHandlerInitializerParams(Map<String,FacetHandlerInitializerParam> params){
 		_facetInitParamMap.putAll(params);
 	}
