@@ -3,6 +3,7 @@ package com.sensei.search.nodes;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -11,17 +12,25 @@ import org.apache.log4j.Logger;
 
 import proj.zoie.api.IndexReaderFactory;
 import proj.zoie.api.ZoieIndexReader;
+import proj.zoie.api.ZoieIndexReader.SubReaderAccessor;
+import proj.zoie.api.ZoieIndexReader.SubReaderInfo;
 
 import com.browseengine.bobo.api.BoboBrowser;
 import com.browseengine.bobo.api.BoboIndexReader;
+import com.browseengine.bobo.api.BrowseException;
+import com.browseengine.bobo.api.BrowseHit;
 import com.browseengine.bobo.api.BrowseRequest;
 import com.browseengine.bobo.api.BrowseResult;
+import com.browseengine.bobo.api.FacetAccessible;
 import com.browseengine.bobo.api.MultiBoboBrowser;
+import com.browseengine.bobo.sort.SortCollector;
 import com.google.protobuf.Message;
 import com.google.protobuf.TextFormat;
 import com.linkedin.norbert.network.javaapi.MessageHandler;
 import com.sensei.search.client.ResultMerger;
+import com.sensei.search.req.SenseiHit;
 import com.sensei.search.req.SenseiRequest;
+import com.sensei.search.req.SenseiResult;
 import com.sensei.search.req.protobuf.SenseiRequestBPO;
 import com.sensei.search.req.protobuf.SenseiRequestBPOConverter;
 import com.sensei.search.req.protobuf.SenseiResultBPO;
@@ -52,13 +61,14 @@ public class SenseiNodeMessageHandler implements MessageHandler {
 		return new Message[] { SenseiRequestBPO.Request.getDefaultInstance() };
 	}
 	
-	private BrowseResult handleMessage(SenseiRequest senseiReq,IndexReaderFactory<ZoieIndexReader<BoboIndexReader>> readerFactory) throws Exception{
+	private SenseiResult handleMessage(SenseiRequest senseiReq,IndexReaderFactory<ZoieIndexReader<BoboIndexReader>> readerFactory) throws Exception{
 		List<ZoieIndexReader<BoboIndexReader>> readerList = null;
 		
 		try{
 		  readerList = readerFactory.getIndexReaders();
 		  
 		  List<BoboIndexReader> boboReaders = ZoieIndexReader.extractDecoratedReaders(readerList);
+	      SubReaderAccessor<BoboIndexReader> subReaderAccessor = ZoieIndexReader.getSubReaderAccessor(boboReaders);
 
 		  MultiBoboBrowser browser = null;
 
@@ -66,7 +76,7 @@ public class SenseiNodeMessageHandler implements MessageHandler {
 		    browser = new MultiBoboBrowser(BoboBrowser.createBrowsables(boboReaders));
 		    
 		    BrowseRequest breq = RequestConverter.convert(senseiReq, _builderFactory);
-		    BrowseResult res = browser.browse(breq);
+		    SenseiResult res = browse(browser, breq, subReaderAccessor);
 		    return res;
 		  } 
 		  catch(Exception e){
@@ -89,7 +99,59 @@ public class SenseiNodeMessageHandler implements MessageHandler {
 			}
 		}
 	}
+	
+	private SenseiResult browse(MultiBoboBrowser browser, BrowseRequest req, SubReaderAccessor<BoboIndexReader> subReaderAccessor) throws BrowseException
+	{
+	  final SenseiResult result = new SenseiResult();
 
+	  long start = System.currentTimeMillis();
+	  int offset = req.getOffset();
+	  int count = req.getCount();
+	  
+	  if (offset<0 || count<0){
+	    throw new IllegalArgumentException("both offset and count must be > 0: "+offset+"/"+count);
+	  }
+	  SortCollector collector = browser.getSortCollector(req.getSort(),req.getQuery(), offset, count, req.isFetchStoredFields(),false);
+	  
+	  Map<String, FacetAccessible> facetCollectors = new HashMap<String, FacetAccessible>();
+	  browser.browse(req, collector, facetCollectors);
+	  BrowseHit[] hits = null;
+	  try{
+	    hits = collector.topDocs();
+	  }
+	  catch (IOException e){
+	    logger.error(e.getMessage(), e);
+	    hits = new BrowseHit[0];
+	  }
+	  SenseiHit[] senseiHits = new SenseiHit[hits.length];
+	  for(int i = 0; i < hits.length; i++)
+	  {
+	    BrowseHit hit = hits[i];
+	    SenseiHit senseiHit = new SenseiHit();
+	    
+        int docid = hit.getDocid();
+        SubReaderInfo<BoboIndexReader> readerInfo = subReaderAccessor.getSubReaderInfo(docid);
+        int uid = (int)((ZoieIndexReader<BoboIndexReader>)readerInfo.subreader.getInnerReader()).getUID(readerInfo.subdocid);
+        senseiHit.setUID(uid);
+        senseiHit.setDocid(docid);
+        senseiHit.setScore(hit.getScore());
+        senseiHit.setComparable(hit.getComparable());
+        senseiHit.setFieldValues(hit.getFieldValues());
+        senseiHit.setStoredFields(hit.getStoredFields());
+        
+	    senseiHits[i] = senseiHit;
+	  }
+	  result.setHits(senseiHits);
+	  result.setNumHits(collector.getTotalHits());
+	  result.setTotalDocs(browser.numDocs());
+	  result.addAll(facetCollectors);
+	  long end = System.currentTimeMillis();
+	  result.setTime(end - start);
+	  // set the transaction ID to trace transactions
+	  result.setTid(req.getTid());
+	  return result;
+	}
+	  
 	public Message handleMessage(Message msg) throws Exception {
 		SenseiRequestBPO.Request req = (SenseiRequestBPO.Request) msg;
 		String reqString = TextFormat.printToString(req);
@@ -98,25 +160,25 @@ public class SenseiNodeMessageHandler implements MessageHandler {
 
 		SenseiRequest senseiReq = SenseiRequestBPOConverter.convert(req);
 		
-		BrowseResult finalResult=null;
+		SenseiResult finalResult=null;
 		int[] partitions = senseiReq.getPartitions();
 		logger.info("serving partitions: "+Arrays.toString(partitions));
 		if (partitions!=null && partitions.length>0){
-			ArrayList<BrowseResult> resultList = new ArrayList<BrowseResult>(partitions.length);
+			ArrayList<SenseiResult> resultList = new ArrayList<SenseiResult>(partitions.length);
 			for (int partition : partitions){
 			  try{
 			    IndexReaderFactory<ZoieIndexReader<BoboIndexReader>> readerFactory=_partReaderMap.get(partition);
-			    BrowseResult res = handleMessage(senseiReq, readerFactory);
+			    SenseiResult res = handleMessage(senseiReq, readerFactory);
 			    resultList.add(res);
-				finalResult = ResultMerger.merge(senseiReq, resultList);
 			  }
 			  catch(Exception e){
 				  logger.error(e.getMessage(),e);
 			  }
 			}
+            finalResult = ResultMerger.merge(senseiReq, resultList);
 		}
 		else{
-			finalResult = new BrowseResult();
+			finalResult = new SenseiResult();
 		}
 		SenseiResultBPO.Result resultMsg = SenseiRequestBPOConverter.convert(finalResult);
 		return resultMsg;

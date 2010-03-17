@@ -1131,9 +1131,17 @@ public final class SenseiResultBPO {
       return fieldValues_.get(index);
     }
     
+    // required int64 uid = 4;
+    public static final int UID_FIELD_NUMBER = 4;
+    private boolean hasUid;
+    private long uid_ = 0L;
+    public boolean hasUid() { return hasUid; }
+    public long getUid() { return uid_; }
+    
     private void initFields() {
     }
     public final boolean isInitialized() {
+      if (!hasUid) return false;
       for (com.sensei.search.req.protobuf.SenseiResultBPO.FieldVal element : getFieldValuesList()) {
         if (!element.isInitialized()) return false;
       }
@@ -1151,6 +1159,9 @@ public final class SenseiResultBPO {
       }
       for (com.sensei.search.req.protobuf.SenseiResultBPO.FieldVal element : getFieldValuesList()) {
         output.writeMessage(3, element);
+      }
+      if (hasUid()) {
+        output.writeInt64(4, getUid());
       }
       getUnknownFields().writeTo(output);
     }
@@ -1172,6 +1183,10 @@ public final class SenseiResultBPO {
       for (com.sensei.search.req.protobuf.SenseiResultBPO.FieldVal element : getFieldValuesList()) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(3, element);
+      }
+      if (hasUid()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(4, getUid());
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -1347,6 +1362,9 @@ public final class SenseiResultBPO {
           }
           result.fieldValues_.addAll(other.fieldValues_);
         }
+        if (other.hasUid()) {
+          setUid(other.getUid());
+        }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
       }
@@ -1384,6 +1402,10 @@ public final class SenseiResultBPO {
               com.sensei.search.req.protobuf.SenseiResultBPO.FieldVal.Builder subBuilder = com.sensei.search.req.protobuf.SenseiResultBPO.FieldVal.newBuilder();
               input.readMessage(subBuilder, extensionRegistry);
               addFieldValues(subBuilder.buildPartial());
+              break;
+            }
+            case 32: {
+              setUid(input.readInt64());
               break;
             }
           }
@@ -1475,6 +1497,24 @@ public final class SenseiResultBPO {
       }
       public Builder clearFieldValues() {
         result.fieldValues_ = java.util.Collections.emptyList();
+        return this;
+      }
+      
+      // required int64 uid = 4;
+      public boolean hasUid() {
+        return result.hasUid();
+      }
+      public long getUid() {
+        return result.getUid();
+      }
+      public Builder setUid(long value) {
+        result.hasUid = true;
+        result.uid_ = value;
+        return this;
+      }
+      public Builder clearUid() {
+        result.hasUid = false;
+        result.uid_ = 0L;
         return this;
       }
       
@@ -2109,16 +2149,16 @@ public final class SenseiResultBPO {
       "t\030\002 \001(\r\"U\n\016FacetContainer\022\014\n\004name\030\001 \002(\t\022" +
       "5\n\006facets\030\002 \003(\0132%.com.sensei.search.req." +
       "protobuf.Facet\"&\n\010FieldVal\022\014\n\004name\030\001 \002(\t" +
-      "\022\014\n\004vals\030\002 \003(\t\"b\n\003Hit\022\r\n\005docid\030\001 \001(\r\022\r\n\005" +
+      "\022\014\n\004vals\030\002 \003(\t\"o\n\003Hit\022\r\n\005docid\030\001 \001(\r\022\r\n\005" +
       "score\030\002 \001(\002\022=\n\013fieldValues\030\003 \003(\0132(.com.s" +
-      "ensei.search.req.protobuf.FieldVal\"\307\001\n\006R" +
-      "esult\022\017\n\007numhits\030\001 \001(\r\022\021\n\ttotaldocs\030\002 \001(" +
-      "\r\022G\n\017facetContainers\030\003 \003(\0132..com.sensei.",
-      "search.req.protobuf.FacetContainer\0221\n\004hi" +
-      "ts\030\004 \003(\0132#.com.sensei.search.req.protobu" +
-      "f.Hit\022\014\n\004time\030\005 \001(\004\022\017\n\003tid\030\006 \002(\003:\002-1B3\n\036" +
-      "com.sensei.search.req.protobufB\017SenseiRe" +
-      "sultBPOH\001"
+      "ensei.search.req.protobuf.FieldVal\022\013\n\003ui" +
+      "d\030\004 \002(\003\"\307\001\n\006Result\022\017\n\007numhits\030\001 \001(\r\022\021\n\tt" +
+      "otaldocs\030\002 \001(\r\022G\n\017facetContainers\030\003 \003(\0132",
+      "..com.sensei.search.req.protobuf.FacetCo" +
+      "ntainer\0221\n\004hits\030\004 \003(\0132#.com.sensei.searc" +
+      "h.req.protobuf.Hit\022\014\n\004time\030\005 \001(\004\022\017\n\003tid\030" +
+      "\006 \002(\003:\002-1B3\n\036com.sensei.search.req.proto" +
+      "bufB\017SenseiResultBPOH\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -2154,7 +2194,7 @@ public final class SenseiResultBPO {
           internal_static_com_sensei_search_req_protobuf_Hit_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_com_sensei_search_req_protobuf_Hit_descriptor,
-              new java.lang.String[] { "Docid", "Score", "FieldValues", },
+              new java.lang.String[] { "Docid", "Score", "FieldValues", "Uid", },
               com.sensei.search.req.protobuf.SenseiResultBPO.Hit.class,
               com.sensei.search.req.protobuf.SenseiResultBPO.Hit.Builder.class);
           internal_static_com_sensei_search_req_protobuf_Result_descriptor =

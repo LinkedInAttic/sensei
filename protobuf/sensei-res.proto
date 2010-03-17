@@ -25,6 +25,7 @@ message Hit{
   optional uint32 docid = 1;
   optional float score = 2;
   repeated FieldVal fieldValues = 3;
+  required int64 uid = 4;
 }
 
 message Result{
