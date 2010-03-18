@@ -52,7 +52,7 @@ public class SenseiScatterGatherHandler implements ScatterGatherHandler<SenseiRe
 		}
 		catch(ParseException pe){
 		  throw new RuntimeException(pe.getMessage(),pe);
-		}
+		} 
 	}
 
 	public SenseiResult gatherResponses(Message message, ResponseIterator iter) {

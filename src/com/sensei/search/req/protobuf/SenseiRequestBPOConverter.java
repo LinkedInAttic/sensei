@@ -36,7 +36,7 @@ public class SenseiRequestBPOConverter {
 
 	private static Logger logger = Logger.getLogger(SenseiRequestBPOConverter.class);
 	
-	public static Map<String,FacetHandlerInitializerParam> convert(List<SenseiRequestBPO.FacetHandlerInitializerParam> paramList) throws ParseException{
+	public static Map<String,FacetHandlerInitializerParam> convert(List<SenseiRequestBPO.FacetHandlerInitializerParam> paramList) throws ParseException {
 		Map<String,FacetHandlerInitializerParam> retMap = new HashMap<String,FacetHandlerInitializerParam>();
 		for (SenseiRequestBPO.FacetHandlerInitializerParam param : paramList){
 			String name = param.getName();
@@ -109,7 +109,8 @@ public class SenseiRequestBPOConverter {
 		  for (String paramName : paramNames){
 			ByteArrayParam.Builder paramBuilder = ByteArrayParam.newBuilder();
 			paramBuilder.setName(paramName);
-			paramBuilder.setVal(ProtoConvertUtil.serializeOut(param.getBooleanParam(paramName)));
+//			paramBuilder.setVal(ProtoConvertUtil.serializeOut(param.getBooleanParam(paramName)));
+			paramBuilder.setVal(ProtoConvertUtil.serializeData(param.getBooleanParam(paramName)));
 			boolparamList.add(paramBuilder.build());
 		  }
 		  subBuilder.addAllBoolParams(boolparamList);
@@ -120,7 +121,8 @@ public class SenseiRequestBPOConverter {
 		  for (String paramName : paramNames){
 			ByteArrayParam.Builder paramBuilder = ByteArrayParam.newBuilder();
 			paramBuilder.setName(paramName);
-			paramBuilder.setVal(ProtoConvertUtil.serializeOut(param.getIntParam(paramName)));
+//			paramBuilder.setVal(ProtoConvertUtil.serializeOut(param.getIntParam(paramName)));
+			paramBuilder.setVal(ProtoConvertUtil.serializeData(param.getIntParam(paramName)));
 			intparamList.add(paramBuilder.build());
 		  }
 		  subBuilder.addAllIntParams(intparamList);
@@ -131,7 +133,8 @@ public class SenseiRequestBPOConverter {
 		  for (String paramName : paramNames){
 			ByteArrayParam.Builder paramBuilder = ByteArrayParam.newBuilder();
 			paramBuilder.setName(paramName);
-			paramBuilder.setVal(ProtoConvertUtil.serializeOut(param.getLongParam(paramName)));
+//			paramBuilder.setVal(ProtoConvertUtil.serializeOut(param.getLongParam(paramName)));
+			paramBuilder.setVal(ProtoConvertUtil.serializeData(param.getLongParam(paramName)));
 			longparamList.add(paramBuilder.build());
 		  }
 		  subBuilder.addAllLongParams(longparamList);
@@ -142,7 +145,8 @@ public class SenseiRequestBPOConverter {
 		  for (String paramName : paramNames){
 			ByteArrayParam.Builder paramBuilder = ByteArrayParam.newBuilder();
 			paramBuilder.setName(paramName);
-			paramBuilder.setVal(ProtoConvertUtil.serializeOut(param.getDoubleParam(paramName)));
+//			paramBuilder.setVal(ProtoConvertUtil.serializeOut(param.getDoubleParam(paramName)));
+			paramBuilder.setVal(ProtoConvertUtil.serializeData(param.getDoubleParam(paramName)));
 			doubleparamList.add(paramBuilder.build());
 		  }
 		  subBuilder.addAllDoubleParams(doubleparamList);
@@ -368,11 +372,13 @@ public class SenseiRequestBPOConverter {
 		reqBuilder.setOffset(req.getOffset());
 		reqBuilder.setCount(req.getCount());
 		reqBuilder.setQuery(req.getQuery());
-		ByteString filterBytes = ProtoConvertUtil.serializeOut(req.getFilterIDs());
+//		ByteString filterBytes = ProtoConvertUtil.serializeOut(req.getFilterIDs());
+		ByteString filterBytes = ProtoConvertUtil.serializeData(req.getFilterIDs());
 		if (filterBytes!=null){
 	 	  reqBuilder.setFilterIDs(filterBytes);
 		}
-		ByteString partitionBytes=ProtoConvertUtil.serializeOut(req.getPartitions()); 
+//		ByteString partitionBytes=ProtoConvertUtil.serializeOut(req.getPartitions()); 
+		ByteString partitionBytes=ProtoConvertUtil.serializeData(req.getPartitions()); 
 		if (partitionBytes!=null){
 	 	  reqBuilder.setPartitions(partitionBytes);
 		}
