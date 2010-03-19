@@ -2,7 +2,6 @@ package com.sensei.search.req.protobuf;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
@@ -245,7 +244,6 @@ public class ProtoConvertUtil {
 			if( (d1 | d2 | d3 | d4) < 0 )
 				throw new ParseException("Stream has invalid data");
 			dataLength = ( (d1 << 24) + (d2 << 16) + (d3 << 8) + (d4 << 0));
-			System.out.println("Deserializing length : " + dataLength);
 			
 			// allocate the integer array
 			int[] data = new int[dataLength];
@@ -257,7 +255,6 @@ public class ProtoConvertUtil {
 				d4 = (0x000000FF & (int)bytes[bytesIndex++]);
 //				unsignedInt = ((long) (d1 << 24 | d2 << 16 | d3 << 8 | d4)) & 0xFFFFFFFFL;
 				data[dataIndex++] = ( (d1 << 24) + (d2 << 16) + (d3 << 8) + (d4 << 0) );
-				System.out.println("Deserializing : " + data[dataIndex-1]);
 			}
 			return data;
 		}

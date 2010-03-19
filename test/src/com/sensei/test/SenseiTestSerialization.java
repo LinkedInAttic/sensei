@@ -34,6 +34,7 @@ public class SenseiTestSerialization extends TestCase{
 			}
 		} catch (ParseException e) {
 			e.printStackTrace();
+			fail(e.getMessage());
 		}		
 	}
 	
@@ -53,6 +54,7 @@ public class SenseiTestSerialization extends TestCase{
 			}
 		}catch(ParseException pe) {
 			pe.printStackTrace();
+			fail(pe.getMessage());
 		}		
 	}
 
@@ -71,6 +73,7 @@ public class SenseiTestSerialization extends TestCase{
 			}
 		}catch (ParseException e) {
 			e.printStackTrace();
+			fail(e.getMessage());
 		}		
 	}
 
@@ -88,6 +91,7 @@ public class SenseiTestSerialization extends TestCase{
 			}
 		} catch (ParseException e) {
 			e.printStackTrace();
+			fail(e.getMessage());
 		}		
 	}
 
@@ -106,6 +110,7 @@ public class SenseiTestSerialization extends TestCase{
 			}
 		} catch (ParseException e) {
 			e.printStackTrace();
+			fail(e.getMessage());
 		}		
 	}
 }

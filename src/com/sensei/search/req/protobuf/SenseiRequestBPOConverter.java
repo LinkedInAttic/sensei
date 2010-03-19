@@ -43,6 +43,7 @@ public class SenseiRequestBPOConverter {
 	 * @throws ParseException
 	 */
 	public static Map<String,FacetHandlerInitializerParam> convert(List<SenseiRequestBPO.FacetHandlerInitializerParam> paramList) throws ParseException {
+
 		Map<String,FacetHandlerInitializerParam> retMap = new HashMap<String,FacetHandlerInitializerParam>();
 		for (SenseiRequestBPO.FacetHandlerInitializerParam param : paramList){
 			String name = param.getName();
@@ -404,6 +405,7 @@ public class SenseiRequestBPOConverter {
 		if (partitionBytes!=null){
 	 	  reqBuilder.setPartitions(partitionBytes);
 		}
+
 		reqBuilder.setFetchStoredFields(req.isFetchStoredFields());
 		Map<String,FacetHandlerInitializerParam> initParamMap = req.getAllFacetHandlerInitializerParams();
 		if (initParamMap!=null){
