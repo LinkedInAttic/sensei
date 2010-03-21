@@ -10,6 +10,7 @@ import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.queryParser.QueryParser;
 import org.apache.lucene.util.Version;
 
+import com.linkedin.norbert.network.javaapi.MessageHandler;
 import com.sensei.search.nodes.NoOpIndexableInterpreter;
 import com.sensei.search.nodes.SenseiNode;
 import com.sensei.search.nodes.SenseiNodeMessageHandler;
@@ -58,9 +59,11 @@ public class SenseiTestCase extends TestCase {
 		SenseiSearchContext srchCtx1 = new SenseiSearchContext(qmap1, new NoOpIndexableInterpreter(), map1);
 		SenseiSearchContext srchCtx2 = new SenseiSearchContext(qmap2, new NoOpIndexableInterpreter(), map2);
 		
-		SenseiNode node1 = new SenseiNode(SENSEI_TEST_CLUSTER_NAME,1,1234,new SenseiNodeMessageHandler(srchCtx1),"");
+		SenseiNode node1 = new SenseiNode(SENSEI_TEST_CLUSTER_NAME,1,1234,new MessageHandler[] {new SenseiNodeMessageHandler(srchCtx1)},"",
+				new int[] {1,2});
 		node1.setServerBootstrapFactory(new MockServerBootstrapFactory());
-		SenseiNode node2 = new SenseiNode(SENSEI_TEST_CLUSTER_NAME,2,1232,new SenseiNodeMessageHandler(srchCtx2),"");
+		SenseiNode node2 = new SenseiNode(SENSEI_TEST_CLUSTER_NAME,2,1232,new MessageHandler[] {new SenseiNodeMessageHandler(srchCtx2)},"",
+				new int[] {2,3});
 		node2.setServerBootstrapFactory(new MockServerBootstrapFactory());
 		
 		node1.startup();

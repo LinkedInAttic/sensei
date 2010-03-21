@@ -19,6 +19,7 @@ import proj.zoie.api.ZoieIndexReader;
 import proj.zoie.impl.indexing.ZoieSystem;
 
 import com.browseengine.bobo.api.BoboIndexReader;
+import com.linkedin.norbert.network.javaapi.MessageHandler;
 
 public class SenseiServer {
 	private static final Logger logger = Logger.getLogger(SenseiServer.class);
@@ -150,7 +151,7 @@ public class SenseiServer {
 		SenseiSearchContext ctx = new SenseiSearchContext(builderFactoryMap, readerFactoryMap);
 		//SenseiServer server = new SenseiServer(port,ctx, indexLoader);
 		SenseiNodeMessageHandler msgHandler = new SenseiNodeMessageHandler(ctx);
-		final SenseiNode node = new SenseiNode(clusterName,id,port,msgHandler,zookeeperURL);
+		final SenseiNode node = new SenseiNode(clusterName,id,port,new MessageHandler[] {msgHandler},zookeeperURL,partitions);
 		
 		node.startup();
 		
