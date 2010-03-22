@@ -18,7 +18,7 @@ public class SenseiNode{
 	
 	private final String _zookeeperURL;
 	private final int _id;
-	private final SenseiNodeMessageHandler _msgHandler;
+	private final MessageHandler[] _msgHandlers;
 	private final int[] _partitions;
 	private final String _clusterName;
 	private ServerBootstrap _bootstrap;
@@ -27,13 +27,13 @@ public class SenseiNode{
 	private ServerBootstrapFactory _bootstrapFactory;
 	 
 	
-	public SenseiNode(String clusterName,int id,int port,SenseiNodeMessageHandler msgHandler,String zookeeperURL){
+	public SenseiNode(String clusterName,int id,int port,MessageHandler[] msgHandlers,String zookeeperURL,int[] partitions){
 		_id = id;
 		_port = port;
-		_msgHandler = msgHandler;
+		_msgHandlers = msgHandlers;
 		_zookeeperURL = zookeeperURL;
 		_clusterName = clusterName;
-		_partitions = msgHandler.getPartitions();
+		_partitions = partitions;
 		_bootstrapFactory = null;
 	}
 	
@@ -49,7 +49,7 @@ public class SenseiNode{
 		ServerConfig serverConfig = new ServerConfig();
 		serverConfig.setClusterName(_clusterName);
 		serverConfig.setZooKeeperUrls(_zookeeperURL);
-		serverConfig.setMessageHandlers(new MessageHandler[]{_msgHandler});
+		serverConfig.setMessageHandlers(_msgHandlers);
 		
 		serverConfig.setNodeId(_id);
 		
