@@ -66,8 +66,8 @@ public class SenseiTestCase extends TestCase {
 				new int[] {2,3});
 		node2.setServerBootstrapFactory(new MockServerBootstrapFactory());
 		
-		node1.startup();
-		node2.startup();
+		node1.startup(true);
+		node2.startup(true);
 		
 		ClusteredSenseiServiceImpl clientSvc = new ClusteredSenseiServiceImpl(SENSEI_TEST_CLUSTER_NAME, "");
 		clientSvc.setClientBootstrapFactory(new MockClientBootstrapFactory());

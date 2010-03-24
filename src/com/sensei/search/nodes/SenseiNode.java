@@ -48,7 +48,7 @@ public class SenseiNode{
 		return _bootstrapFactory == null ? new ServerBootstrapFactory.DefaultServerBootstrapFactory() : _bootstrapFactory;
 	}
 
-	public void startup(boolean available) throws Exception{
+	public void startup(boolean markAvailable) throws Exception{
 		ServerConfig serverConfig = new ServerConfig();
 		serverConfig.setClusterName(_clusterName);
 		serverConfig.setZooKeeperUrls(_zookeeperURL);
@@ -83,9 +83,9 @@ public class SenseiNode{
 	    
 	    try {
 			logger.info("binding server ...");
-	    	_server.bind(available);
-	        _available = available;
-			logger.info("started [available=" + available + "] ...");
+	    	_server.bind(markAvailable);
+	        _available = markAvailable;
+			logger.info("started [markAvailable=" + markAvailable + "] ...");
 			if (nodeExists){
 			  logger.warn("existing node found, will try to overwrite.");
 			  try{
