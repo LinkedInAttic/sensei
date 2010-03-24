@@ -7,43 +7,26 @@ import java.net.URLClassLoader;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
+
+import javax.management.MBeanServer;
+import javax.management.ObjectName;
+import javax.management.StandardMBean;
 
 import org.apache.log4j.Logger;
-import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.FileSystemXmlApplicationContext;
 
 import proj.zoie.api.IndexReaderFactory;
 import proj.zoie.api.ZoieIndexReader;
 import proj.zoie.impl.indexing.ZoieSystem;
+import proj.zoie.mbean.ZoieSystemAdminMBean;
 
 import com.browseengine.bobo.api.BoboIndexReader;
+import com.linkedin.norbert.network.javaapi.MessageHandler;
 
 public class SenseiServer {
 	private static final Logger logger = Logger.getLogger(SenseiServer.class);
 	private static final String DEFAULT_CONF_FILE = "sensei-node.spring";
-	
-
-	private ServerBootstrap _bootstrap;
-	private ExecutorService _bootstrapExecutor;
-	private boolean _started;
-	
-	private final int _port;
-	
-	private final SenseiSearchContext _ctx;
-	private final SenseiIndexLoader _indexLoader;
-	
-	SenseiServer(int port,SenseiSearchContext ctx, SenseiIndexLoader indexLoader){
-		_port = port;
-		_started = false;
-		_ctx = ctx;
-		_indexLoader = indexLoader;
-	}
-	
-	public int getPort(){
-		return _port;
-	}
 	
 	private static String help(){
 		StringBuffer buffer = new StringBuffer();
@@ -117,18 +100,28 @@ public class SenseiServer {
         logger.info("ClusterName: " + clusterName);
         logger.info("ZooKeeperURL: " + zookeeperURL);
         
-		SenseiQueryBuilderFactory builderFactory = (SenseiQueryBuilderFactory)springCtx.getBean("query-builder-factory");
+        Map<Integer,SenseiQueryBuilderFactory> builderFactoryMap = new HashMap<Integer, SenseiQueryBuilderFactory>();
 		SenseiZoieSystemFactory<?> zoieSystemFactory = (SenseiZoieSystemFactory<?>)springCtx.getBean("zoie-system-factory");
 		SenseiIndexLoaderFactory indexLoaderFactory = (SenseiIndexLoaderFactory)springCtx.getBean("index-loader-factory");
-		
+        
 		Map<Integer,IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>> readerFactoryMap = 
 				new HashMap<Integer,IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>>();
 		
         final HashSet<ZoieSystem<BoboIndexReader,?>> zoieSystems = new HashSet<ZoieSystem<BoboIndexReader,?>>();
         final HashSet<SenseiIndexLoader> indexLoaders = new HashSet<SenseiIndexLoader>();
 		
+        MBeanServer mbeanServer = java.lang.management.ManagementFactory.getPlatformMBeanServer();
+        
 		for (int part : partitions){
+		  //in simple case query builder is the same for each partition
+		  builderFactoryMap.put(part, (SenseiQueryBuilderFactory)springCtx.getBean("query-builder-factory"));
+			
 		  ZoieSystem<BoboIndexReader,?> zoieSystem = zoieSystemFactory.getZoieSystem(part);
+		  
+		  // register ZoieSystemAdminMBean
+		  mbeanServer.registerMBean(new StandardMBean(zoieSystem.getAdminMBean(), ZoieSystemAdminMBean.class),
+		                            new ObjectName(clusterName, "name", "zoie-system-" + part));
+		  
 		  if(!zoieSystems.contains(zoieSystem))
 		  {
 		    zoieSystem.start();
@@ -144,10 +137,9 @@ public class SenseiServer {
 		  readerFactoryMap.put(part, zoieSystem);
 		}
 		
-		SenseiSearchContext ctx = new SenseiSearchContext(builderFactory, readerFactoryMap);
-		//SenseiServer server = new SenseiServer(port,ctx, indexLoader);
+		SenseiSearchContext ctx = new SenseiSearchContext(builderFactoryMap, readerFactoryMap);
 		SenseiNodeMessageHandler msgHandler = new SenseiNodeMessageHandler(ctx);
-		final SenseiNode node = new SenseiNode(clusterName,id,port,msgHandler,zookeeperURL);
+		final SenseiNode node = new SenseiNode(clusterName,id,port,new MessageHandler[] {msgHandler},zookeeperURL,partitions);
 		
 		node.startup();
 		

@@ -20,7 +20,6 @@ import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.api.BrowseException;
 import com.browseengine.bobo.api.BrowseHit;
 import com.browseengine.bobo.api.BrowseRequest;
-import com.browseengine.bobo.api.BrowseResult;
 import com.browseengine.bobo.api.FacetAccessible;
 import com.browseengine.bobo.api.MultiBoboBrowser;
 import com.browseengine.bobo.sort.SortCollector;
@@ -39,11 +38,11 @@ import com.sensei.search.util.RequestConverter;
 public class SenseiNodeMessageHandler implements MessageHandler {
 
 	private static final Logger logger = Logger.getLogger(SenseiNodeMessageHandler.class);
-	private final SenseiQueryBuilderFactory _builderFactory;
+	private final Map<Integer,SenseiQueryBuilderFactory> _builderFactoryMap;
 	private final Map<Integer,IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>> _partReaderMap;
 
 	public SenseiNodeMessageHandler(SenseiSearchContext ctx) {
-		_builderFactory = ctx.getQueryBuilderFactory();
+		_builderFactoryMap = ctx.getQueryBuilderFactoryMap();
 		_partReaderMap = ctx.getPartitionReaderMap();
 	}
 	
@@ -61,7 +60,7 @@ public class SenseiNodeMessageHandler implements MessageHandler {
 		return new Message[] { SenseiRequestBPO.Request.getDefaultInstance() };
 	}
 	
-	private SenseiResult handleMessage(SenseiRequest senseiReq,IndexReaderFactory<ZoieIndexReader<BoboIndexReader>> readerFactory) throws Exception{
+	private SenseiResult handleMessage(SenseiRequest senseiReq,IndexReaderFactory<ZoieIndexReader<BoboIndexReader>> readerFactory, int partition) throws Exception{
 		List<ZoieIndexReader<BoboIndexReader>> readerList = null;
 		
 		try{
@@ -75,7 +74,7 @@ public class SenseiNodeMessageHandler implements MessageHandler {
 		  try {
 		    browser = new MultiBoboBrowser(BoboBrowser.createBrowsables(boboReaders));
 		    
-		    BrowseRequest breq = RequestConverter.convert(senseiReq, _builderFactory);
+		    BrowseRequest breq = RequestConverter.convert(senseiReq, _builderFactoryMap.get(partition));
 		    SenseiResult res = browse(browser, breq, subReaderAccessor);
 		    return res;
 		  } 
@@ -168,7 +167,7 @@ public class SenseiNodeMessageHandler implements MessageHandler {
 			for (int partition : partitions){
 			  try{
 			    IndexReaderFactory<ZoieIndexReader<BoboIndexReader>> readerFactory=_partReaderMap.get(partition);
-			    SenseiResult res = handleMessage(senseiReq, readerFactory);
+			    SenseiResult res = handleMessage(senseiReq, readerFactory, partition);
 			    resultList.add(res);
 			  }
 			  catch(Exception e){

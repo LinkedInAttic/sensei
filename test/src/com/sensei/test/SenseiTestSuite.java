@@ -8,6 +8,7 @@ public class SenseiTestSuite extends TestSuite{
   public static Test suite(){
      TestSuite suite=new TestSuite();
      suite.addTestSuite(SenseiTestCase.class);
+     suite.addTestSuite(SenseiTestSerialization.class);
      return suite;
   }
  
