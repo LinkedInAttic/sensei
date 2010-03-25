@@ -32,6 +32,29 @@ public class SenseiServer {
     private static final String AVAILABLE = "available";
     private static final String UNAVAILABLE = "unavailable";	
 	
+    private int _id;
+    private int _port;
+    private int[] _partitions;
+    private String _partitionString;
+    private File _confDir;
+    private SenseiNode _node;
+    
+    private SenseiServer(int id, int port, int[] partitions, File confDir)
+    {
+      _id = id;
+      _port = port;
+      _partitions = partitions;
+      StringBuffer sb = new StringBuffer();
+      if(partitions.length > 0) sb.append(String.valueOf(partitions[0]));
+      for(int i = 1; i < partitions.length; i++)
+      {
+        sb.append(',');
+        sb.append(String.valueOf(partitions[i]));
+      }
+      _partitionString = sb.toString();
+      _confDir = confDir;
+    }
+    
 	private static String help(){
 		StringBuffer buffer = new StringBuffer();
 		buffer.append("Usage: [id] [port] [partitions] [conf.dir] [availability]\n");
@@ -45,59 +68,18 @@ public class SenseiServer {
 		return buffer.toString();
 	}
 	
-	public static void main(String[] args) throws Exception{
-		if (args.length<4){
-			System.out.println(help());
-			System.exit(1);
-		}
-		
-		int id = 0;
-		int port = 0;
-		int[] partitions = null;
-		String[] partString = null;
-		
-		File confDir = null;
-		File confFile = null;
-		
-		try{
-			id = Integer.parseInt(args[0]);
-			port = Integer.parseInt(args[1]);
-			partString = args[2].split(",");
-			confDir = new File(args[3]);
-			confFile = new File(confDir,DEFAULT_CONF_FILE);
-			
-			partitions = new int[partString.length];
-			for (int i=0;i<partString.length;++i){
-				partitions[i] = Integer.parseInt(partString[i]);
-			}
-		}
-		catch(Exception e){
-			System.out.println(help());
-			System.exit(0);
-		}
-		boolean available = true;
-		for(int i = 4; i < args.length; i++)
-		{
-		  if(args[i] != null)
-		  {
-            if(AVAILABLE.equalsIgnoreCase(args[i]))
-            {
-              available = true;
-            }
-            if(UNAVAILABLE.equalsIgnoreCase(args[i]))
-            {
-              available = false;
-            }
-          }
-		}
-		
-		File extDir = new File(confDir,"ext");
+	private void start(boolean available) throws Exception
+	{
+	    File confFile = new File(_confDir,DEFAULT_CONF_FILE);
+		File extDir = new File(_confDir,"ext");
 		File[] jarfiles = extDir.listFiles(new FilenameFilter(){
 
 			public boolean accept(File dir, String name) {
 				return name.endsWith(".jar");
 			}
 		});
+		
+
 		
 		if (jarfiles!=null && jarfiles.length > 0){
 		  URL[] jarURLs = new URL[jarfiles.length];
@@ -131,7 +113,7 @@ public class SenseiServer {
 		
         MBeanServer mbeanServer = java.lang.management.ManagementFactory.getPlatformMBeanServer();
         
-		for (int part : partitions){
+		for (int part : _partitions){
 		  //in simple case query builder is the same for each partition
 		  builderFactoryMap.put(part, (SenseiQueryBuilderFactory)springCtx.getBean("query-builder-factory"));
 			
@@ -162,21 +144,11 @@ public class SenseiServer {
 		
 		SenseiSearchContext ctx = new SenseiSearchContext(builderFactoryMap, readerFactoryMap);
 		SenseiNodeMessageHandler msgHandler = new SenseiNodeMessageHandler(ctx);
-		final SenseiNode node = new SenseiNode(clusterName,id,port,new MessageHandler[] {msgHandler},zookeeperURL,partitions);
+		_node = new SenseiNode(clusterName,_id,_port,new MessageHandler[] {msgHandler},zookeeperURL,_partitions);
 		
-		node.startup(available);
+		_node.startup(available);
 		
-		SenseiServerAdminMBean mbean = new SenseiServerAdminMBean()
-		{
-		  public boolean isAvailable()
-		  {
-		    return node.isAvailable();
-		  }
-		  public void setAvailable(boolean available)
-		  {
-		    node.setAvailable(available);
-		  }
-		};
+		SenseiServerAdminMBean mbean = getAdminMBean();
 		
 		mbeanServer.registerMBean(new StandardMBean(mbean, SenseiServerAdminMBean.class),
                                   new ObjectName(clusterName, "name", "sensei-server"));
@@ -184,7 +156,7 @@ public class SenseiServer {
 		Runtime.getRuntime().addShutdownHook(new Thread(){
 			public void run(){
 				try {
-					node.shutdown();
+					_node.shutdown();
 				} catch (Exception e) {
 					logger.error(e.getMessage(),e);
 				}
@@ -200,5 +172,79 @@ public class SenseiServer {
                 }
 			}
 		});
+	}
+	
+	private SenseiServerAdminMBean getAdminMBean()
+	{
+	  return new SenseiServerAdminMBean()
+      {
+	    public int getId()
+	    {
+	      return _id;
+	    }
+	    public int getPort()
+	    {
+	      return _port;
+	    }
+	    public String getPartitions()
+	    {
+	      return _partitionString;
+	    }
+        public boolean isAvailable()
+        {
+          return _node.isAvailable();
+        }
+        public void setAvailable(boolean available)
+        {
+          _node.setAvailable(available);
+        }
+      };
+	}
+	
+	public static void main(String[] args) throws Exception{
+	  if (args.length<4){
+	    System.out.println(help());
+	    System.exit(1);
+	  }
+	  
+	  int id = 0;
+	  int port = 0;
+	  int[] partitions = null;
+	  String[] partString = null;
+	        
+	  File confDir = null;
+	  
+	  try{
+	    id = Integer.parseInt(args[0]);
+	    port = Integer.parseInt(args[1]);
+	    partString = args[2].split(",");
+	    confDir = new File(args[3]);
+	    
+	    partitions = new int[partString.length];
+	    for (int i=0;i<partString.length;++i){
+	      partitions[i] = Integer.parseInt(partString[i]);
+	    }
+	  }
+	  catch(Exception e){
+	    System.out.println(help());
+	    System.exit(0);
+	  }
+	  boolean available = true;
+	  for(int i = 4; i < args.length; i++)
+	  {
+	    if(args[i] != null)
+	    {
+	      if(AVAILABLE.equalsIgnoreCase(args[i]))
+	      {
+	        available = true;
+	      }
+	      if(UNAVAILABLE.equalsIgnoreCase(args[i]))
+	      {
+	        available = false;
+	      }
+	    }
+	  }
+	  SenseiServer server = new SenseiServer(id, port, partitions, confDir);
+	  server.start(available);
 	}
 }
