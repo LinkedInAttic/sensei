@@ -19,6 +19,8 @@ import org.springframework.context.support.FileSystemXmlApplicationContext;
 import proj.zoie.api.IndexReaderFactory;
 import proj.zoie.api.ZoieIndexReader;
 import proj.zoie.impl.indexing.ZoieSystem;
+import proj.zoie.mbean.ZoieIndexingStatusAdmin;
+import proj.zoie.mbean.ZoieIndexingStatusAdminMBean;
 import proj.zoie.mbean.ZoieSystemAdminMBean;
 
 import com.browseengine.bobo.api.BoboIndexReader;
@@ -27,15 +29,18 @@ import com.linkedin.norbert.network.javaapi.MessageHandler;
 public class SenseiServer {
 	private static final Logger logger = Logger.getLogger(SenseiServer.class);
 	private static final String DEFAULT_CONF_FILE = "sensei-node.spring";
+    private static final String AVAILABLE = "available";
+    private static final String UNAVAILABLE = "unavailable";	
 	
 	private static String help(){
 		StringBuffer buffer = new StringBuffer();
-		buffer.append("Usage: [id] [port] [partitions] [conf.dir]\n");
+		buffer.append("Usage: [id] [port] [partitions] [conf.dir] [availability]\n");
 		buffer.append("====================================\n");
 		buffer.append("id - node id (integer), required\n");
 		buffer.append("port - server port (integer), required\n");
 		buffer.append("partitions - comma separated list of partition numbers this node can serve, required\n");
-		buffer.append("conf.dir - server configuration directory, required\n");
+        buffer.append("conf.dir - server configuration directory, required\n");
+        buffer.append("availability - \"available\" or \"unavailable\", optional default is \"available\"\n");
 		buffer.append("====================================\n");
 		return buffer.toString();
 	}
@@ -70,7 +75,21 @@ public class SenseiServer {
 			System.out.println(help());
 			System.exit(0);
 		}
-		
+		boolean available = true;
+		for(int i = 4; i < args.length; i++)
+		{
+		  if(args[i] != null)
+		  {
+            if(AVAILABLE.equalsIgnoreCase(args[i]))
+            {
+              available = true;
+            }
+            if(UNAVAILABLE.equalsIgnoreCase(args[i]))
+            {
+              available = false;
+            }
+          }
+		}
 		
 		File extDir = new File(confDir,"ext");
 		File[] jarfiles = extDir.listFiles(new FilenameFilter(){
@@ -121,6 +140,10 @@ public class SenseiServer {
 		  // register ZoieSystemAdminMBean
 		  mbeanServer.registerMBean(new StandardMBean(zoieSystem.getAdminMBean(), ZoieSystemAdminMBean.class),
 		                            new ObjectName(clusterName, "name", "zoie-system-" + part));
+		  // register ZoieIndexingStatusAdminMBean
+		  mbeanServer.registerMBean(new StandardMBean(new ZoieIndexingStatusAdmin(zoieSystem), ZoieIndexingStatusAdminMBean.class),
+		                            new ObjectName(clusterName, "name", "zoie-indexing-status-" + part));
+	          	  
 		  
 		  if(!zoieSystems.contains(zoieSystem))
 		  {
@@ -141,7 +164,22 @@ public class SenseiServer {
 		SenseiNodeMessageHandler msgHandler = new SenseiNodeMessageHandler(ctx);
 		final SenseiNode node = new SenseiNode(clusterName,id,port,new MessageHandler[] {msgHandler},zookeeperURL,partitions);
 		
-		node.startup();
+		node.startup(available);
+		
+		SenseiServerAdminMBean mbean = new SenseiServerAdminMBean()
+		{
+		  public boolean isAvailable()
+		  {
+		    return node.isAvailable();
+		  }
+		  public void setAvailable(boolean available)
+		  {
+		    node.setAvailable(available);
+		  }
+		};
+		
+		mbeanServer.registerMBean(new StandardMBean(mbean, SenseiServerAdminMBean.class),
+                                  new ObjectName(clusterName, "name", "sensei-server"));
 		
 		Runtime.getRuntime().addShutdownHook(new Thread(){
 			public void run(){
