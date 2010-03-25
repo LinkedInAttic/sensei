@@ -109,7 +109,7 @@
 	</target>
 
 	<target name="test-build" depends="dist">
-		<javac destdir="${build.test}" compiler="javac1.6" source="1.6" target="1.6">
+		<javac debug="true" destdir="${build.test}" compiler="javac1.6" source="1.6" target="1.6">
 			<src path="${test}" />
 			<classpath refid="java.class.path" />
 		</javac>
@@ -126,6 +126,13 @@
 			<jvmarg value="-server" />
 			<jvmarg value="-Xms256m" />
 			<jvmarg value="-Xmx1g" />
+			<!-- debug 
+			<jvmarg value="-Djava.compiler=NONE" />
+			<jvmarg value="-Xdebug" />
+			<jvmarg value="-Xnoagent" />
+			<jvmarg value="-Xrunjdwp:transport=dt_socket,address=7777,server=y,suspend=y" />
+			-->
+
 			<!-- classpath must include all jar dependencies and classes -->
 			<classpath refid="test.class.path" />
 
