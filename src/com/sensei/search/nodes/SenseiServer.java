@@ -25,6 +25,7 @@ import proj.zoie.mbean.ZoieSystemAdminMBean;
 
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.linkedin.norbert.network.javaapi.MessageHandler;
+import com.sensei.search.svc.api.SenseiException;
 
 public class SenseiServer {
 	private static final Logger logger = Logger.getLogger(SenseiServer.class);
@@ -163,7 +164,12 @@ public class SenseiServer {
                 // shutdown the loaders
                 for(SenseiIndexLoader loader : indexLoaders)
                 {
-                  loader.shutdown();
+                  try{
+                    loader.shutdown();
+                  }
+                  catch(SenseiException se){
+                	  logger.error(se.getMessage(),se);
+                  }
                 }
                 // shutdown the zoieSystems
                 for(ZoieSystem<BoboIndexReader,?> zoieSystem : zoieSystems)
