@@ -12,6 +12,11 @@ import java.util.Set;
 import java.util.Map.Entry;
 
 import org.apache.log4j.Logger;
+import org.apache.lucene.document.Document;
+import org.apache.lucene.document.Field.Index;
+import org.apache.lucene.document.Field.Store;
+import org.apache.lucene.document.Field;
+import org.apache.lucene.document.Fieldable;
 import org.apache.lucene.search.SortField;
 
 import com.browseengine.bobo.api.BrowseFacet;
@@ -232,6 +237,13 @@ public class SenseiRequestBPOConverter {
 			fielddata.put(fieldVal.getName(), valList.toArray(new String[valList.size()]));
 		}
 		bhit.setFieldValues(fielddata);
+		Document document = new Document();
+		for ( SenseiResultBPO.StoredField storedField : hit.getStoredFieldsList() ) {
+			for ( String value : storedField.getValsList() ) {
+				document.add( new Field( storedField.getName(), value, Field.Store.YES, Field.Index.NOT_ANALYZED ) );
+			}
+		}
+		bhit.setStoredFields( document );
 		return bhit;
 	}
 	
@@ -468,6 +480,16 @@ public class SenseiRequestBPOConverter {
 			Entry<String,String[]> entry = iter.next();
 			SenseiResultBPO.FieldVal fieldVal = SenseiResultBPO.FieldVal.newBuilder().setName(entry.getKey()).addAllVals(Arrays.asList(entry.getValue())).build();
 			hitBuilder.addFieldValues(fieldVal);
+		}
+		if ( null != hit.getStoredFields() ) {
+			for( Fieldable field : hit.getStoredFields().getFields() ) {
+				SenseiResultBPO.StoredField storedField = (
+					SenseiResultBPO.StoredField.newBuilder().setName(
+						field.name()
+					)
+				).addAllVals( Arrays.asList( field.stringValue() ) ).build();
+				hitBuilder.addStoredFields( storedField );
+			}
 		}
         hitBuilder.setUid(hit.getUID());
 		return hitBuilder.build();
