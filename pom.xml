@@ -50,7 +50,6 @@
 			<scope>test</scope>
 		</dependency>
 
-		<!-- seems like spring-test should pull these dumb things in! -->
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-beans</artifactId>
@@ -85,12 +84,6 @@
 		</dependency>
 		
 		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-log4j12</artifactId>
-			<version>1.4.2</version>
-		</dependency>
-
-		<dependency>
 			<groupId>org.apache.lucene</groupId>
 			<artifactId>lucene-core</artifactId>
 			<version>${lucene.version}</version>
@@ -102,35 +95,8 @@
 		</dependency>
 
 		<dependency>
-			<groupId>org.apache.lucene</groupId>
-			<artifactId>lucene-spellchecker</artifactId>
-			<version>${lucene.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.apache.lucene</groupId>
-			<artifactId>lucene-similarity</artifactId>
-			<version>2.2.0</version>
-		</dependency>
-
-		<dependency>
 			<groupId>com.snaprojects</groupId>
 			<artifactId>bobo-browse</artifactId>
-			<version>${bobo.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.snaprojects</groupId>
-			<artifactId>bobo-gwt</artifactId>
-			<version>${bobo.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.snaprojects</groupId>
-			<artifactId>bobo-solr</artifactId>
-			<version>${bobo.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.snaprojects</groupId>
-			<artifactId>bobo-zoie</artifactId>
 			<version>${bobo.version}</version>
 		</dependency>
 
@@ -199,13 +165,11 @@
 					<systemPropertyVariables>
 						<log.home>target/logs</log.home>
 						<idx.dir>data/cardata</idx.dir>
-						<property> <name>log.home</name> <value>target/logs</value> </property>
-						<property> <name>idx.dir</name>  <value>data/cardata</value> </property>
 					</systemPropertyVariables>
 				</configuration>
 			</plugin>
 		</plugins>
 		<sourceDirectory>src/com</sourceDirectory>
-		<testSourceDirectory>test/**/*TestCase.java</testSourceDirectory>
+		<testSourceDirectory>test</testSourceDirectory>
 	</build>
 </project>
