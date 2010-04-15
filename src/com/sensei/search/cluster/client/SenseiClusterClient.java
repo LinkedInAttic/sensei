@@ -3,7 +3,6 @@ package com.sensei.search.cluster.client;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
-import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
@@ -13,19 +12,19 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.FileSystemXmlApplicationContext;
 
 import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
-import com.google.protobuf.Message;
 import com.linkedin.norbert.NorbertException;
 import com.linkedin.norbert.cluster.Node;
-import com.linkedin.norbert.cluster.javaapi.Cluster;
-import com.linkedin.norbert.network.javaapi.ClientBootstrap;
-import com.linkedin.norbert.network.javaapi.ClientConfig;
-import com.linkedin.norbert.network.javaapi.NetworkClient;
-import com.sensei.search.cluster.routing.UniformRoutingFactory;
+import com.linkedin.norbert.cluster.javaapi.ClusterClient;
+import com.linkedin.norbert.network.javaapi.PartitionedLoadBalancerFactory;
+import com.linkedin.norbert.network.javaapi.PartitionedNetworkClient;
+import com.sensei.search.cluster.routing.UniformPartitionedRoutingFactory;
 import com.sensei.search.nodes.SenseiBroker;
 import com.sensei.search.nodes.SenseiClusterConfig;
 import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.req.SenseiResult;
+import com.sensei.search.req.protobuf.SenseiRequestBPO;
 import com.sensei.search.req.protobuf.SenseiResultBPO;
+import com.sensei.search.util.SenseiDefaults;
 
 public class SenseiClusterClient {
 
@@ -33,30 +32,33 @@ public class SenseiClusterClient {
 	
 	static BrowseRequestBuilder _reqBuilder = new BrowseRequestBuilder();
 	
-	private static final String DEFAULT_CONF_FILE = "sensei-cluster.spring";
+	private static final String DEFAULT_CONF_FILE = SenseiDefaults.SENSEI_CLUSTER_CONF_FILE;
 	private static final String DEFAULT_ZK_URL = "localhost:2181";
+	private static final int DEFAULT_ZK_TIMEOUT = 30000;
 	private static final String DEFAULT_CLUSTER_NAME = "sensei";
 	
-	private static ClientBootstrap bootstrap = null;
-	private static NetworkClient networkClient = null;
+	private static PartitionedNetworkClient<Integer> _networkClient = null;
   
+	private static ClusterClient _cluster = null;
+	
 	private static void shutdown() throws NorbertException{
 		try{
 		   System.out.println("shutting down client...");
 		  _broker.shutdown();
 		}
 		finally{
-          System.out.println("shutting down bootstrap...");
+          System.out.println("shutting down cluster...");
 
           try{
-        	  networkClient.close();
+        	  _cluster.shutdown();
           }
           finally{
-        	  bootstrap.shutdown();
+//        	  bootstrap.shutdown();
           }
           
 		}
 	}
+	
 	/**
 	 * @param args
 	 */
@@ -64,37 +66,41 @@ public class SenseiClusterClient {
 
 	    String clusterName;
 	    String zookeeperURL;
-	    
-	    if (args.length<1){
+	    SenseiClusterConfig clusterConfig;
+	    File confFile = null;
+	    if (args.length < 1){
           System.out.println("no config specified, defaulting to default: "+DEFAULT_CLUSTER_NAME + " at " + DEFAULT_ZK_URL);
           clusterName = DEFAULT_CLUSTER_NAME;
           zookeeperURL = DEFAULT_ZK_URL;
 	    }
 	    else{
 	      File confDir = new File(args[0]);
-	      File confFile = new File(confDir,DEFAULT_CONF_FILE);;
+	      confFile = new File(confDir,DEFAULT_CONF_FILE);;
 	      ApplicationContext springCtx = new FileSystemXmlApplicationContext("file:"+confFile.getAbsolutePath());
         
           // get config parameters
-          SenseiClusterConfig clusterConfig = (SenseiClusterConfig)springCtx.getBean("cluster-config");
+          clusterConfig = (SenseiClusterConfig)springCtx.getBean("cluster-config");
           clusterName = clusterConfig.getClusterName();
           zookeeperURL = clusterConfig.getZooKeeperURL();
 	    }
 		
-		System.out.println("connecting to cluster at "+zookeeperURL+"... ");
-
-	    Message[] messages = { SenseiResultBPO.Result.getDefaultInstance() };
+		// create the zookeeper cluster client
+		SenseiClusterClientImpl senseiClusterClient = new SenseiClusterClientImpl(confFile, false);
+		_cluster = senseiClusterClient.getClusterClient();
+		
+        System.out.println("connecting to cluster at "+ zookeeperURL + "... ");
 	    
-		ClientConfig config = new ClientConfig();
-	    config.setClusterName(clusterName);
-	    config.setZooKeeperUrls(zookeeperURL);
-	    config.setResponseMessages(messages);
-	 
-	    config.setRouterFactory(new UniformRoutingFactory());
-	    bootstrap = new ClientBootstrap(config);
-	    networkClient = bootstrap.getNetworkClient();
-	    Cluster cluster = bootstrap.getCluster();
-		_broker = new SenseiBroker(cluster,networkClient,null);
+	    PartitionedLoadBalancerFactory<Integer> routingFactory = new UniformPartitionedRoutingFactory();
+	    
+	    // create the network client
+	    SenseiNetworkClient senseiNetworkClient = new SenseiNetworkClient(confFile, _cluster, routingFactory);
+	    _networkClient = senseiNetworkClient.getNetworkClient();
+
+	    // register the request-response messages
+        _networkClient.registerRequest(SenseiRequestBPO.Request.getDefaultInstance(), SenseiResultBPO.Result.getDefaultInstance());
+        
+        // create the broker
+		_broker = new SenseiBroker(_cluster, _networkClient, null, routingFactory);
 		
 		Runtime.getRuntime().addShutdownHook(new Thread(){
 			public void run(){
@@ -109,13 +115,13 @@ public class SenseiClusterClient {
 		BufferedReader cmdLineReader = new BufferedReader(new InputStreamReader(System.in));
 		while(true){
 			try{ 
-				cluster.awaitConnection();
+				_cluster.awaitConnectionUninterruptibly();
 				System.out.println("connected to cluster...");
 				System.out.print("> ");
 				String line = cmdLineReader.readLine();
 				while(true){
 					try{
-					  processCommand(line, cluster);
+					  processCommand(line, _cluster);
 					}
 					catch(NorbertException ne){
 						ne.printStackTrace();
@@ -131,7 +137,7 @@ public class SenseiClusterClient {
 		}
 	}
 	
-	static void processCommand(String line,Cluster cluster) throws NorbertException, InterruptedException, ExecutionException{
+	static void processCommand(String line, ClusterClient cluster) throws NorbertException, InterruptedException, ExecutionException{
 		if (line == null || line.length() == 0) return;
 		String[] parsed = line.split(" ");
 		if (parsed.length == 0) return;
@@ -166,9 +172,9 @@ public class SenseiClusterClient {
 		else if ("nodes".equalsIgnoreCase(cmd)){
 			Node[] nodes = cluster.getNodes();
 			for (Node node : nodes){
-				InetSocketAddress addr = node.getAddress();
+			    String url = node.getUrl();
 				System.out.println("id: "+node.id());
-				System.out.println("addr: "+ addr);
+				System.out.println("addr: "+ url);
 				System.out.println("partitions: "+Arrays.toString(node.partitions()));
 				System.out.println("availlable :"+node.isAvailable());
 				System.out.println("=========================");
@@ -305,7 +311,10 @@ public class SenseiClusterClient {
 		}
 		else if ("showReq".equalsIgnoreCase(cmd)){
 			SenseiRequest req = _reqBuilder.getRequest();
-			System.out.println(req.toString());
+			if(req.toString() != null)
+			  System.out.println(req.toString());
+			else
+              System.out.println("No query request yet..");
 		}
 		else if ("sort".equalsIgnoreCase(cmd)){
 			if (parsed.length == 2){
