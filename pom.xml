@@ -1,0 +1,211 @@
+<project 
+	xmlns="http://maven.apache.org/POM/4.0.0" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd"
+>
+
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>com.sensei</groupId>
+	<artifactId>sensei</artifactId>
+	<packaging>jar</packaging>
+	<version>0.0.1</version>
+	<name>Sensei Search</name>
+	
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+		<lucene.version>3.0.1</lucene.version>
+		<spring.version>3.0.0.RELEASE</spring.version>
+		<norbert.version>1.0-SNAPSHOT</norbert.version>
+		<zookeeper.version>3.3.0</zookeeper.version>
+		<protobuf.version>2.3.0</protobuf.version>
+		<bobo.version>2.5.0-rc1</bobo.version>
+		<netty.version>3.1.5.GA</netty.version>
+		<scala.version>1.0</scala.version>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.7</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>com.snaprojects</groupId>
+			<artifactId>zoie</artifactId>
+			<version>2.0.0-rc3</version>
+		</dependency>
+		<dependency>
+			<groupId>fastutil</groupId>
+			<artifactId>fastutil</artifactId>
+			<version>5.0.9</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-test</artifactId>
+			<version>${spring.version}</version>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- seems like spring-test should pull these dumb things in! -->
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-beans</artifactId>
+			<version>${spring.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-core</artifactId>
+			<version>${spring.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-context</artifactId>
+			<version>${spring.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-context-support</artifactId>
+			<version>${spring.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>1.4.2</version>
+		</dependency>
+
+		<dependency>
+			<groupId>commons-lang</groupId>
+			<artifactId>commons-lang</artifactId>
+			<version>2.5</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+			<version>1.4.2</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.lucene</groupId>
+			<artifactId>lucene-core</artifactId>
+			<version>${lucene.version}</version>
+		</dependency> 
+		<dependency>
+			<groupId>org.apache.lucene</groupId>
+			<artifactId>lucene-snowball</artifactId>
+			<version>${lucene.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.lucene</groupId>
+			<artifactId>lucene-spellchecker</artifactId>
+			<version>${lucene.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.lucene</groupId>
+			<artifactId>lucene-similarity</artifactId>
+			<version>2.2.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.snaprojects</groupId>
+			<artifactId>bobo-browse</artifactId>
+			<version>${bobo.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.snaprojects</groupId>
+			<artifactId>bobo-gwt</artifactId>
+			<version>${bobo.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.snaprojects</groupId>
+			<artifactId>bobo-solr</artifactId>
+			<version>${bobo.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.snaprojects</groupId>
+			<artifactId>bobo-zoie</artifactId>
+			<version>${bobo.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.linkedin</groupId>
+			<artifactId>norbert-java-cluster</artifactId>
+			<version>${norbert.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.linkedin</groupId>
+			<artifactId>norbert-java-network</artifactId>
+			<version>${norbert.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.linkedin</groupId>
+			<artifactId>norbert-network</artifactId>
+			<version>${norbert.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.linkedin</groupId>
+			<artifactId>norbert-cluster</artifactId>
+			<version>${norbert.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache</groupId>
+			<artifactId>zookeeper</artifactId>
+			<version>${zookeeper.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.jboss.netty</groupId>
+			<artifactId>netty</artifactId>
+			<version>${netty.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.scala</groupId>
+			<artifactId>scala-library</artifactId>
+			<version>${scala.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.google.protobuf</groupId>
+			<artifactId>protobuf-java</artifactId>
+			<version>${protobuf.version}</version>
+		</dependency>
+
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>1.5</source>
+					<target>1.5</target>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>2.5</version>
+				<configuration>
+					<systemPropertyVariables>
+						<log.home>target/logs</log.home>
+						<idx.dir>data/cardata</idx.dir>
+						<property> <name>log.home</name> <value>target/logs</value> </property>
+						<property> <name>idx.dir</name>  <value>data/cardata</value> </property>
+					</systemPropertyVariables>
+				</configuration>
+			</plugin>
+		</plugins>
+		<sourceDirectory>src/com</sourceDirectory>
+		<testSourceDirectory>test/**/*TestCase.java</testSourceDirectory>
+	</build>
+</project>
