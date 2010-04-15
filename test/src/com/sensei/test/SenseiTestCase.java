@@ -10,7 +10,7 @@ import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.queryParser.QueryParser;
 import org.apache.lucene.util.Version;
 
-import com.linkedin.norbert.network.javaapi.MessageHandler;
+import com.sensei.search.cluster.client.SenseiClusterClientImpl;
 import com.sensei.search.nodes.NoOpIndexableInterpreter;
 import com.sensei.search.nodes.SenseiNode;
 import com.sensei.search.nodes.SenseiNodeMessageHandler;
@@ -20,8 +20,6 @@ import com.sensei.search.nodes.impl.SimpleQueryBuilderFactory;
 import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.req.SenseiResult;
 import com.sensei.search.svc.impl.ClusteredSenseiServiceImpl;
-import com.sensei.test.mocks.MockClientBootstrapFactory;
-import com.sensei.test.mocks.MockServerBootstrapFactory;
 
 public class SenseiTestCase extends TestCase {
 	static File IdxDir = new File(System.getProperty("idx.dir"));
@@ -59,22 +57,23 @@ public class SenseiTestCase extends TestCase {
 		SenseiSearchContext srchCtx1 = new SenseiSearchContext(qmap1, new NoOpIndexableInterpreter(), map1);
 		SenseiSearchContext srchCtx2 = new SenseiSearchContext(qmap2, new NoOpIndexableInterpreter(), map2);
 		
-		SenseiNode node1 = new SenseiNode(SENSEI_TEST_CLUSTER_NAME,1,1234,new MessageHandler[] {new SenseiNodeMessageHandler(srchCtx1)},"",
-				new int[] {1,2});
-		node1.setServerBootstrapFactory(new MockServerBootstrapFactory());
-		SenseiNode node2 = new SenseiNode(SENSEI_TEST_CLUSTER_NAME,2,1232,new MessageHandler[] {new SenseiNodeMessageHandler(srchCtx2)},"",
-				new int[] {2,3});
-		node2.setServerBootstrapFactory(new MockServerBootstrapFactory());
-		
+		SenseiClusterClientImpl senseiClusterClient = new SenseiClusterClientImpl(SENSEI_TEST_CLUSTER_NAME, true);
+		SenseiNode node1 = new SenseiNode(SENSEI_TEST_CLUSTER_NAME, 1, 1234, new SenseiNodeMessageHandler(srchCtx1), "",
+				new int[] {1,2}, 30000);
+		node1.setClusterClient(senseiClusterClient);
+		SenseiNode node2 = new SenseiNode(SENSEI_TEST_CLUSTER_NAME, 2, 1232, new SenseiNodeMessageHandler(srchCtx2), "",
+				new int[] {2,3}, 30000);
+        node2.setClusterClient(senseiClusterClient);
+        
 		node1.startup(true);
 		node2.startup(true);
 		
-		ClusteredSenseiServiceImpl clientSvc = new ClusteredSenseiServiceImpl(SENSEI_TEST_CLUSTER_NAME, "");
-		clientSvc.setClientBootstrapFactory(new MockClientBootstrapFactory());
+		ClusteredSenseiServiceImpl clientSvc = new ClusteredSenseiServiceImpl(SENSEI_TEST_CLUSTER_NAME, "", 30000, true);
+		clientSvc.setClusterClient(senseiClusterClient.getClusterClient());
 		clientSvc.startup();
 		
 		SenseiRequest req = new SenseiRequest();
-		clientSvc.doQuery(req);
+//		clientSvc.doQuery(req);
 		SenseiResult res = clientSvc.doQuery(req);
 		
 		assertEquals(45000, res.getNumHits());
