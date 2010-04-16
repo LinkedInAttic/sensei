@@ -35,8 +35,7 @@ import com.sensei.search.svc.api.SenseiException;
  * Sensei node's lifecyle can be more sensibly managed by the
  * container rather than as a standalone application.
  *
- * TODO: provide context files that configures the whole thing
- * TODO: create shell script ala bin/start-sensei-node.sh
+ * See node-conf/sensei-embed.spring for an example
  *
  * @author Brian Hammond
  *
@@ -138,8 +137,9 @@ public class EmbeddedSenseiServer {
 			new StandardMBean(mbean, SenseiServerAdminMBean.class)
 			, new ObjectName(clusterName, "name", "sensei-server")
 		);
-		
-		//Runtime.getRuntime().addShutdownHook( new Thread( new ShutdownHook( this ) ) );
+	
+		//Runtime.getRuntime().addShutdownHook( new ShutdownHook( this ) );
+		logger.info( "started" );
 	}
 
 	public void shutdown() {
@@ -162,9 +162,10 @@ public class EmbeddedSenseiServer {
 		for(ZoieSystem<BoboIndexReader,?> zoieSystem : zoieSystems) {
 			zoieSystem.shutdown();
 		}
+		System.out.println( "bye..." );
 	}
 
-	public class ShutdownHook implements Runnable {
+	public class ShutdownHook extends Thread {
 		EmbeddedSenseiServer embeddedSenseiServer;
 		public ShutdownHook( EmbeddedSenseiServer embeddedSenseiServer ) {
 			this.embeddedSenseiServer = embeddedSenseiServer;
