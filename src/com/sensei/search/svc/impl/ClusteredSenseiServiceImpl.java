@@ -144,8 +144,9 @@ public class ClusteredSenseiServiceImpl implements SenseiService {
 
       File confFile = new File(confDir, SenseiDefaults.SENSEI_CLUSTER_CONF_FILE);
             
-      SenseiNetworkClient senseiNetworkClient = new SenseiNetworkClient(confFile, _cluster, _routerFactory);
-	  _networkClient = senseiNetworkClient.getNetworkClient();
+//      SenseiNetworkClient senseiNetworkClient = new SenseiNetworkClient(confFile, _cluster, _routerFactory);
+//	  _networkClient = senseiNetworkClient.getNetworkClient();
+      _networkClient = new SenseiNetworkClient(confFile, _cluster, _routerFactory);
 	  
 	  try{
 	    _broker = new SenseiBroker(_cluster, _networkClient, _reqRewriter, _routerFactory);

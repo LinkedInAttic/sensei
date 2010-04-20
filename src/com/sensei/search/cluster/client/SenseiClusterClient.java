@@ -93,8 +93,10 @@ public class SenseiClusterClient {
 	    PartitionedLoadBalancerFactory<Integer> routingFactory = new UniformPartitionedRoutingFactory();
 	    
 	    // create the network client
-	    SenseiNetworkClient senseiNetworkClient = new SenseiNetworkClient(confFile, _cluster, routingFactory);
-	    _networkClient = senseiNetworkClient.getNetworkClient();
+//	    SenseiNetworkClient senseiNetworkClient = new SenseiNetworkClient(confFile, _cluster, routingFactory);
+//	    _networkClient = senseiNetworkClient.getNetworkClient();
+        _networkClient = new SenseiNetworkClient(confFile, _cluster, routingFactory);
+//	    _networkClient = senseiNetworkClient;
 
 	    // register the request-response messages
         _networkClient.registerRequest(SenseiRequestBPO.Request.getDefaultInstance(), SenseiResultBPO.Result.getDefaultInstance());
@@ -349,8 +351,12 @@ public class SenseiClusterClient {
 			  String queryString = _reqBuilder.getQueryString();
 			
 			  SenseiResult res = _broker.browse(req);
-			  String output = BrowseResultFormatter.formatResults(res);
-			  System.out.println(output);
+			  if(res == null)
+			    System.out.println("No results found !");
+			  else {
+			    String output = BrowseResultFormatter.formatResults(res);
+			    System.out.println(output);
+			  }
 			}
 			catch(Exception e){
 			  e.printStackTrace();

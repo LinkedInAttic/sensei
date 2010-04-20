@@ -4,6 +4,7 @@
 package com.sensei.search.cluster.client;
 
 import java.io.File;
+import java.util.List;
 import java.util.concurrent.Future;
 
 import org.springframework.context.ApplicationContext;
@@ -30,7 +31,7 @@ import com.sensei.search.util.SenseiDefaults;
  * @author nnarkhed
  *
  */
-public class SenseiNetworkClient
+public class SenseiNetworkClient implements PartitionedNetworkClient<Integer>
 {
   private PartitionedNetworkClient<Integer> _networkClient;
 
@@ -85,50 +86,52 @@ public class SenseiNetworkClient
     }
   }
   
-  public PartitionedNetworkClient<Integer> getNetworkClient()
-  {
-    return _networkClient;
-  }
+//  public PartitionedNetworkClient<Integer> getNetworkClient()
+//  {
+//    return _networkClient;
+//  }
   
-//  public Future<Message> sendMessage(Integer id, Message message) throws InvalidClusterException,
-//      NoNodesAvailableException,
-//      ClusterDisconnectedException
-//  {
-//    return _networkClient.sendMessage(id, message);
-//  }
-//
-//  public ResponseIterator sendMessage(Integer[] ids, Message message) throws InvalidClusterException,
-//      NoNodesAvailableException,
-//      ClusterDisconnectedException
-//  {
-//    return _networkClient.sendMessage(ids, message);
-//  }
-//
-//  public <T> T sendMessage(Integer[] ids,
-//                           Message message,
-//                           ScatterGatherHandler<T, Integer> scatterGather) throws Exception
-//  {
+  public Future<Message> sendMessage(Integer id, Message message) throws InvalidClusterException,
+      NoNodesAvailableException,
+      ClusterDisconnectedException
+  {
+    return _networkClient.sendMessage(id, message);
+  }
+
+  public ResponseIterator sendMessage(List<Integer> ids, Message message) throws InvalidClusterException,
+      NoNodesAvailableException,
+      ClusterDisconnectedException
+  {
+    return _networkClient.sendMessage(ids, message);
+  }
+
+  public <T> T sendMessage(List<Integer> ids,
+                           Message message,
+                           ScatterGatherHandler<T, Integer> scatterGather) throws Exception
+  {
 //    return _networkClient.sendMessage(ids, message, scatterGather);
-//  }
-//
-//  public ResponseIterator broadcastMessage(Message message) throws ClusterDisconnectedException
-//  {
-//    return _networkClient.broadcastMessage(message);
-//  }
-//
-//  public void registerRequest(Message request, Message response)
-//  {
-//    _networkClient.registerRequest(request, response);
-//  }
-//
-//  public Future<Message> sendMessageToNode(Message message, Node node) throws InvalidNodeException,
-//      ClusterDisconnectedException
-//  {
-//    return _networkClient.sendMessageToNode(message, node);
-//  }
-//
-//  public void shutdown()
-//  {
-//    _networkClient.shutdown();
-//  }
+    return null;
+  }
+
+  public ResponseIterator broadcastMessage(Message message) throws ClusterDisconnectedException
+  {
+    return _networkClient.broadcastMessage(message);
+  }
+
+  public void registerRequest(Message request, Message response)
+  {
+    _networkClient.registerRequest(request, response);
+  }
+
+  public Future<Message> sendMessageToNode(Message message, Node node) throws InvalidNodeException,
+      ClusterDisconnectedException
+  {
+    return _networkClient.sendMessageToNode(message, node);
+  }
+
+  public void shutdown()
+  {
+    _networkClient.shutdown();
+  }
+
 }
