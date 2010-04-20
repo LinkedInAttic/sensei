@@ -22,7 +22,8 @@ import com.sensei.search.req.SenseiResult;
 import com.sensei.search.svc.impl.ClusteredSenseiServiceImpl;
 
 public class SenseiTestCase extends TestCase {
-	static File IdxDir = new File(System.getProperty("idx.dir"));
+//	static File IdxDir = new File(System.getProperty("idx.dir"));
+    static File IdxDir = new File("data/cardata");
 	static final String SENSEI_TEST_CLUSTER_NAME="testCluster";
 	
 	public SenseiTestCase(){
@@ -39,7 +40,8 @@ public class SenseiTestCase extends TestCase {
 		QueryParser parser2 = new QueryParser(Version.LUCENE_CURRENT,"contents",new StandardAnalyzer(Version.LUCENE_CURRENT));
 		
 		HashMap<Integer,File> map1 = new HashMap<Integer,File>();
-		map1.put(1, IdxDir);
+		System.out.println("idx.dir = " + IdxDir.toString());
+		map1.put(1, IdxDir); 
 		map1.put(2,IdxDir);
 		
 		Map<Integer,SenseiQueryBuilderFactory> qmap1 = new HashMap<Integer, SenseiQueryBuilderFactory>();
@@ -58,7 +60,7 @@ public class SenseiTestCase extends TestCase {
 		SenseiSearchContext srchCtx2 = new SenseiSearchContext(qmap2, new NoOpIndexableInterpreter(), map2);
 		
 		SenseiClusterClientImpl senseiClusterClient = new SenseiClusterClientImpl(SENSEI_TEST_CLUSTER_NAME, true);
-		SenseiNode node1 = new SenseiNode(SENSEI_TEST_CLUSTER_NAME, 1, 1234, new SenseiNodeMessageHandler(srchCtx1), "",
+		SenseiNode node1 = new SenseiNode(SENSEI_TEST_CLUSTER_NAME, 1, 1233, new SenseiNodeMessageHandler(srchCtx1), "",
 				new int[] {1,2}, 30000);
 		node1.setClusterClient(senseiClusterClient);
 		SenseiNode node2 = new SenseiNode(SENSEI_TEST_CLUSTER_NAME, 2, 1232, new SenseiNodeMessageHandler(srchCtx2), "",
@@ -73,7 +75,6 @@ public class SenseiTestCase extends TestCase {
 		clientSvc.startup();
 		
 		SenseiRequest req = new SenseiRequest();
-//		clientSvc.doQuery(req);
 		SenseiResult res = clientSvc.doQuery(req);
 		
 		assertEquals(45000, res.getNumHits());

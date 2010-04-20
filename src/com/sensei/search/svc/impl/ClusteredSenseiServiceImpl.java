@@ -4,7 +4,6 @@ import java.io.File;
 
 import org.apache.log4j.Logger;
 
-import com.google.protobuf.Message;
 import com.linkedin.norbert.NorbertException;
 import com.linkedin.norbert.cluster.ClusterShutdownException;
 import com.linkedin.norbert.cluster.javaapi.ClusterClient;
@@ -17,6 +16,7 @@ import com.sensei.search.nodes.SenseiBroker;
 import com.sensei.search.nodes.SenseiRequestScatterRewriter;
 import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.req.SenseiResult;
+import com.sensei.search.req.protobuf.SenseiRequestBPO;
 import com.sensei.search.req.protobuf.SenseiResultBPO;
 import com.sensei.search.svc.api.SenseiException;
 import com.sensei.search.svc.api.SenseiService;
@@ -34,11 +34,6 @@ public class ClusteredSenseiServiceImpl implements SenseiService {
 	private final SenseiRequestScatterRewriter _reqRewriter;
     private static ClusterClient _cluster = null;
     private boolean _inMemory = false;
-    
-//  private ClientBootstrap bootstrap;
-//	private ClientBoostrapFactory _bootstrapFactory;
-//	
-//	private ClientBoostrapFactory _clientBootstrapFactory;
 
 	public ClusteredSenseiServiceImpl(String clusterName, String zkurl, int zkTimeout, boolean inMemory) throws SenseiException{
 		this(clusterName, zkurl, zkTimeout, new UniformPartitionedRoutingFactory(), null, inMemory);
@@ -74,57 +69,7 @@ public class ClusteredSenseiServiceImpl implements SenseiService {
 	  return _cluster;
 	}
 	
-//	public void setClientBootstrapFactory(ClientBoostrapFactory clientBoostrapFactory){
-//		_clientBootstrapFactory = clientBoostrapFactory;
-//	}
-//	
-//	public ClientBoostrapFactory getClientBoostrapFactory(){
-//		return _clientBootstrapFactory == null ? new ClientBoostrapFactory.DefaultClientBoostrapFactory() : _clientBootstrapFactory;
-//	}
-	
 	public void startup() throws SenseiException{
-	  Message messages = SenseiResultBPO.Result.getDefaultInstance();
-
-//        ClusterClient cluster = new ZooKeeperClusterClient(clusterName, zookeeperURL, zooKeeperSessionTimeoutMillis);
-//        cluster.awaitConnectionUninterruptibly();
-//        NetworkClientConfig netConfig = new NetworkClientConfig();
-//        netConfig.setServiceName(clusterName);
-//        netConfig.setZooKeeperConnectString(zookeeperURL);
-//        netConfig.setZooKeeperSessionTimeoutMillis(zooKeeperSessionTimeoutMillis);
-//        netConfig.setConnectTimeoutMillis(1000);
-//        netConfig.setWriteTimeoutMillis(150);
-//        netConfig.setMaxConnectionsPerNode(5);
-//        netConfig.setStaleRequestTimeoutMins(10);
-//        netConfig.setStaleRequestCleanupFrequencyMins(10);
-//        
-//        UniformPartitionedRoutingFactory routingFactory = new UniformPartitionedRoutingFactory();
-//        _networkClient = new NettyPartitionedNetworkClient<Integer>(netConfig, new UniformPartitionedRoutingFactory());
-//        _networkClient.registerRequest(SenseiRequestBPO.Request.getDefaultInstance(), SenseiResultBPO.Result.getDefaultInstance());
-//        
-//        _broker = new SenseiBroker(cluster, _networkClient, null, routingFactory);
-
-//	    config.setClusterName(_clusterName);
-//	    config.setZooKeeperUrls(_zkurl);
-//	    config.setResponseMessages(messages);
-	 
-//	    config.setRouterFactory(_routerFactory);
-
-//	  _cluster = new ZooKeeperClusterClient(_clusterName, _zkurl, _zkSessionTimeout);
-//	    ClientBoostrapFactory bootstrapFactory = getClientBoostrapFactory();
-//	    bootstrap = bootstrapFactory.getClientBootstrap(config);
-//	    networkClient = bootstrap.getNetworkClient();
-//	    Cluster cluster = bootstrap.getCluster();
-	  
-//	  NetworkClientConfig netConfig = new NetworkClientConfig();
-//	  netConfig.setServiceName(_clusterName);
-//	  netConfig.setZooKeeperConnectString(_zkurl);
-//	  netConfig.setZooKeeperSessionTimeoutMillis(_zkSessionTimeout);
-//	  netConfig.setConnectTimeoutMillis(1000);
-//	  netConfig.setWriteTimeoutMillis(150);
-//	  netConfig.setMaxConnectionsPerNode(5);
-//	  netConfig.setStaleRequestTimeoutMins(10);
-//	  netConfig.setStaleRequestCleanupFrequencyMins(10);
-
 	  if(_cluster == null)
 	  {
 	    SenseiClusterClientImpl senseiClusterClient = new SenseiClusterClientImpl(_clusterName, _zkurl, _zkSessionTimeout, _inMemory);
@@ -144,10 +89,11 @@ public class ClusteredSenseiServiceImpl implements SenseiService {
 
       File confFile = new File(confDir, SenseiDefaults.SENSEI_CLUSTER_CONF_FILE);
             
-//      SenseiNetworkClient senseiNetworkClient = new SenseiNetworkClient(confFile, _cluster, _routerFactory);
-//	  _networkClient = senseiNetworkClient.getNetworkClient();
       _networkClient = new SenseiNetworkClient(confFile, _cluster, _routerFactory);
-	  
+
+      // register the request-response messages
+      _networkClient.registerRequest(SenseiRequestBPO.Request.getDefaultInstance(), SenseiResultBPO.Result.getDefaultInstance());
+      
 	  try{
 	    _broker = new SenseiBroker(_cluster, _networkClient, _reqRewriter, _routerFactory);
       }
@@ -160,7 +106,6 @@ public class ClusteredSenseiServiceImpl implements SenseiService {
           log.info(e.getMessage(), e);  
         }
         finally{
-//          bootstrap.shutdown();
         }
         throw new SenseiException(ne.getMessage(), ne);
       }	
@@ -183,7 +128,6 @@ public class ClusteredSenseiServiceImpl implements SenseiService {
         	  log.error(e.getMessage(),e);
 		}
           finally{
-//        	  bootstrap.shutdown();
           }
           
 		}

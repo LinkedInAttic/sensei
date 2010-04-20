@@ -86,11 +86,6 @@ public class SenseiNetworkClient implements PartitionedNetworkClient<Integer>
     }
   }
   
-//  public PartitionedNetworkClient<Integer> getNetworkClient()
-//  {
-//    return _networkClient;
-//  }
-  
   public Future<Message> sendMessage(Integer id, Message message) throws InvalidClusterException,
       NoNodesAvailableException,
       ClusterDisconnectedException
@@ -109,8 +104,7 @@ public class SenseiNetworkClient implements PartitionedNetworkClient<Integer>
                            Message message,
                            ScatterGatherHandler<T, Integer> scatterGather) throws Exception
   {
-//    return _networkClient.sendMessage(ids, message, scatterGather);
-    return null;
+    return _networkClient.sendMessage(ids, message, scatterGather);
   }
 
   public ResponseIterator broadcastMessage(Message message) throws ClusterDisconnectedException
@@ -133,5 +127,4 @@ public class SenseiNetworkClient implements PartitionedNetworkClient<Integer>
   {
     _networkClient.shutdown();
   }
-
 }

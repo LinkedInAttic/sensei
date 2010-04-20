@@ -53,7 +53,6 @@ public class SenseiClusterClient {
         	  _cluster.shutdown();
           }
           finally{
-//        	  bootstrap.shutdown();
           }
           
 		}
@@ -93,10 +92,7 @@ public class SenseiClusterClient {
 	    PartitionedLoadBalancerFactory<Integer> routingFactory = new UniformPartitionedRoutingFactory();
 	    
 	    // create the network client
-//	    SenseiNetworkClient senseiNetworkClient = new SenseiNetworkClient(confFile, _cluster, routingFactory);
-//	    _networkClient = senseiNetworkClient.getNetworkClient();
         _networkClient = new SenseiNetworkClient(confFile, _cluster, routingFactory);
-//	    _networkClient = senseiNetworkClient;
 
 	    // register the request-response messages
         _networkClient.registerRequest(SenseiRequestBPO.Request.getDefaultInstance(), SenseiResultBPO.Result.getDefaultInstance());

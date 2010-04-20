@@ -70,7 +70,11 @@ public class SenseiNode{
 	    _node = _cluster.getNodeWithId(_id);
 	    nodeExists = (_node!=null); 
 	    if (!nodeExists){
-	      _node = _cluster.addNode(_id, (new InetSocketAddress(InetAddress.getLocalHost(),_port)).toString(), _partitions);
+	      // ideally it should be as shown below, but due to a norbert bug, have to reparse the ip address string
+//	      String ipAddr = (new InetSocketAddress(InetAddress.getLocalHost(),_port)).toString();
+	      String ipAddr = (new InetSocketAddress(InetAddress.getLocalHost().getHostAddress(), _port)).toString().replaceAll("/", "");
+	      System.out.println("Node id : " + _id + " IP address : " + ipAddr);
+	      _node = _cluster.addNode(_id, ipAddr, _partitions);
 	      Thread.sleep(1000);
 
 	      logger.info("added node id: "+_id);
@@ -81,8 +85,6 @@ public class SenseiNode{
 	    throw e;
 	  }
 
-	  //		_server = _bootstrap.getNetworkServer();
-	  //	    
 	  try {
 	    logger.info("binding server ...");
 	    _server.bind(_id);
@@ -101,7 +103,8 @@ public class SenseiNode{
 	      catch(Exception e){
 	        logger.error("problem removing old node: "+e.getMessage(),e);
 	      }
-	      _node = _cluster.addNode(_id, (new InetSocketAddress(InetAddress.getLocalHost(),_port)).toString(),_partitions);
+          String ipAddr = (new InetSocketAddress(InetAddress.getLocalHost().getHostAddress(), _port)).toString().replaceAll("/", "");
+          _node = _cluster.addNode(_id, ipAddr, _partitions);
 	      Thread.sleep(1000);
 
 	      logger.info("added node id: "+_id);
@@ -174,7 +177,6 @@ public class SenseiNode{
 	  logger.info("shutting down...");
 	  try
 	  {
-	    //		  Cluster cluster = _bootstrap.getCluster();
 	    _cluster.removeNode(_id);
 	    _node = null;
 	  }
