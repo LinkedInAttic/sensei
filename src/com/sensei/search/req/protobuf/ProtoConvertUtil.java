@@ -1,5 +1,7 @@
 package com.sensei.search.req.protobuf;
-
+/**
+ * @author nnarkhed
+ */
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
@@ -76,6 +78,39 @@ public class ProtoConvertUtil {
 			throw new ParseException(e.getMessage());
 		}
 	}
+
+    /**
+     * serialize out an Integer array
+     * @param data   input Integer array
+     * @return       serialized Integer array in the format - <len><int><int>....
+     * @throws ParseException
+     */
+    public static ByteString serializeData(Integer[] data) throws ParseException{
+        if (data == null) return null;
+        try{
+            int bytesIndex = 0;
+            // each integer is encoded as 4 bytes + 4 more bytes for the length of the array
+            byte[] bytes = new byte[data.length*4 + 4];
+            // write out the length before the data
+            bytes[bytesIndex++] = (byte) ((data.length >>> 24) & 0xFF);
+            bytes[bytesIndex++] = (byte) ((data.length >>> 16) & 0xFF);
+            bytes[bytesIndex++] = (byte) ((data.length >>> 8) & 0xFF);
+            bytes[bytesIndex++] = (byte) ((data.length >>> 0) & 0xFF);
+
+            // write out integer data one by one
+            for(int datum : data) {
+                bytes[bytesIndex++] = (byte) ((datum >>> 24) & 0xFF);
+                bytes[bytesIndex++] = (byte) ((datum >>> 16) & 0xFF);
+                bytes[bytesIndex++] = (byte) ((datum >>> 8) & 0xFF);
+                bytes[bytesIndex++] = (byte) ((datum >>> 0) & 0xFF);
+            }
+            return ByteString.copyFrom(bytes);
+        }
+        catch(Exception e){
+            logger.error(e.getMessage(),e);
+            throw new ParseException(e.getMessage());
+        }
+    }
 
 	/**
 	 * serialize out an boolean array
@@ -264,7 +299,51 @@ public class ProtoConvertUtil {
 		}
 	}
 
-	public static char[] toCharArray(ByteString byteString) throws ParseException{
+    /**
+     * This function deserializes the input byte string back into an integer array
+     * @param byteString        the byte string serialized by serializeData()
+     * @return                  the deserialized integer array
+     * @throws ParseException
+     */
+    public static Integer[] toIntegerArray(ByteString byteString) throws ParseException{
+        if (byteString==null) return null;
+        try{
+            int bytesIndex = 0;
+            byte[] bytes = byteString.toByteArray();
+            if ( (bytes.length==0) || (bytes.length < 4) ) return null;
+
+            // deserialize the count of the integer array first
+            int bytesCount = bytes.length;
+            int dataLength = 0;
+            int d1 = (0x000000FF & (int)bytes[0]);
+            int d2 = (0x000000FF & (int)bytes[1]);
+            int d3 = (0x000000FF & (int)bytes[2]);
+            int d4 = (0x000000FF & (int)bytes[3]);
+            bytesIndex += 4;
+            if( (d1 | d2 | d3 | d4) < 0 )
+                throw new ParseException("Stream has invalid data");
+            dataLength = ( (d1 << 24) + (d2 << 16) + (d3 << 8) + (d4 << 0));
+            
+            // allocate the integer array
+            Integer[] data = new Integer[dataLength];
+            int dataIndex = 0;
+            while( (bytesIndex+4) <= bytesCount) {
+                d1 = (0x000000FF & (int)bytes[bytesIndex++]);
+                d2 = (0x000000FF & (int)bytes[bytesIndex++]);
+                d3 = (0x000000FF & (int)bytes[bytesIndex++]);
+                d4 = (0x000000FF & (int)bytes[bytesIndex++]);
+//              unsignedInt = ((long) (d1 << 24 | d2 << 16 | d3 << 8 | d4)) & 0xFFFFFFFFL;
+                data[dataIndex++] = ( (d1 << 24) + (d2 << 16) + (d3 << 8) + (d4 << 0) );
+            }
+            return data;
+        }
+        catch(Exception e){
+            logger.error(e.getMessage(),e);
+            throw new ParseException(e.getMessage());
+        }
+    }
+
+    public static char[] toCharArray(ByteString byteString) throws ParseException{
 		//		return (short[])serializeIn(byteString);
 		if (byteString==null) return null;
 		try{

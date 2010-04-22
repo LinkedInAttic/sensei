@@ -286,7 +286,7 @@ public class SenseiRequestBPOConverter {
 		breq.setCount(req.getCount());
 		
 		breq.setFetchStoredFields(req.getFetchStoredFields());
-		breq.setPartitions(ProtoConvertUtil.toIntArray(req.getPartitions()));
+		breq.setPartitions(ProtoConvertUtil.toIntegerArray(req.getPartitions()));
 		// FacetHandlerInitializerParameters
 		List<SenseiRequestBPO.FacetHandlerInitializerParam> paramList = req.getFacetInitParamsList();
 		Map<String,FacetHandlerInitializerParam> params = convert(paramList);

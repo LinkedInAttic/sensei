@@ -32,7 +32,7 @@ public class SenseiRequest implements Serializable, Cloneable
 	private int _count;
 	private boolean _fetchStoredFields;
 	private Map<String,FacetHandlerInitializerParam> _facetInitParamMap;
-	private int[] _partitions;
+	private Integer[] _partitions;
 	
 	public SenseiRequest(){
 		_facetInitParamMap = new HashMap<String,FacetHandlerInitializerParam>();
@@ -61,11 +61,11 @@ public class SenseiRequest implements Serializable, Cloneable
     this.tid = tid;
   }
 
-	public void setPartitions(int[] partitions){
+	public void setPartitions(Integer[] partitions){
 		_partitions = partitions;
 	}
 	
-	public int[] getPartitions(){
+	public Integer[] getPartitions(){
 		return _partitions;
 	}
 	
@@ -286,11 +286,15 @@ public class SenseiRequest implements Serializable, Cloneable
 	@Override
 	public String toString(){
 	  StringBuilder buf=new StringBuilder();
-      buf.append("query: ").append(_query).append('\n');
+	  if(_query != null)
+	    buf.append("query: ").append(_query.toString()).append('\n');
       buf.append("page: [").append(_offset).append(',').append(_count).append("]\n");
-      buf.append("sort spec: ").append(_sortSpecs).append('\n');
-      buf.append("selections: ").append(_selections).append('\n');
-      buf.append("facet spec: ").append(_facetSpecMap).append('\n');
+      if(_sortSpecs != null)
+        buf.append("sort spec: ").append(_sortSpecs).append('\n');
+      if(_selections != null)
+        buf.append("selections: ").append(_selections).append('\n');
+      if(_facetSpecMap != null)
+        buf.append("facet spec: ").append(_facetSpecMap).append('\n');
       buf.append("fetch stored fields: ").append(_fetchStoredFields);
       return buf.toString();
 	}

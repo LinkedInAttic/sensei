@@ -7,7 +7,18 @@
 
 	<bean id="cluster-config" class="com.sensei.search.nodes.SenseiClusterConfig">
 	  <property name="clusterName" value="sensei"/>
-	  <property name="zooKeeperURL" value="localhost:2181"/> 
+	  <property name="zooKeeperURL" value="localhost:2181"/>
+          <property name="zooKeeperSessionTimeoutMillis" value="30000"/> 
 	</bean>
-	
+
+        <bean id="network-client-config" class="com.sensei.search.nodes.SenseiNetworkClientConfig">
+	  <property name="serviceName" value="sensei"/>
+	  <property name="zooKeeperURL" value="localhost:2181"/>
+	  <property name="zooKeeperSessionTimeoutMillis" value="30000"/>
+	  <property name="connectTimeoutMillis" value="1000"/>
+	  <property name="writeTimeoutMillis" value="150"/>
+	  <property name="maxConnectionsPerNode" value="5"/>
+	  <property name="staleRequestTimeoutMins" value="10"/>
+	  <property name="staleRequestCleanupFrequencyMins" value="10"/>
+        </bean>	
 </beans>
