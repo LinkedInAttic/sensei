@@ -20,12 +20,18 @@ message FieldVal
   required string name = 1;
   repeated string vals = 2;
 }
+
+message StoredField {
+  required string name = 1;
+  repeated string vals = 2;
+}
 	
 message Hit{
   optional uint32 docid = 1;
   optional float score = 2;
   repeated FieldVal fieldValues = 3;
   required int64 uid = 4;
+  repeated StoredField storedFields = 5;
 }
 
 message Result{

@@ -6,13 +6,13 @@ import proj.zoie.impl.indexing.ZoieSystem;
 
 import com.sensei.search.nodes.SenseiIndexLoader;
 
-public class NoopIndexLoader implements SenseiIndexLoader
+public class NoopIndexLoader<V> implements SenseiIndexLoader
 {
   private static final Logger logger = Logger.getLogger(NoopIndexLoader.class);
   
-  protected ZoieSystem<?,?> _zoie;
+  protected ZoieSystem<?,V> _zoie;
   
-  public NoopIndexLoader(ZoieSystem<?,?> zoie)
+  public NoopIndexLoader(ZoieSystem<?,V> zoie)
   {
     _zoie = zoie;
   }

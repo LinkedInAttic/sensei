@@ -5,10 +5,10 @@ import proj.zoie.impl.indexing.ZoieSystem;
 import com.sensei.search.nodes.SenseiIndexLoader;
 import com.sensei.search.nodes.SenseiIndexLoaderFactory;
 
-public class NoopIndexLoaderFactory implements SenseiIndexLoaderFactory
+public class NoopIndexLoaderFactory<V> implements SenseiIndexLoaderFactory<V>
 {
-  public SenseiIndexLoader getIndexLoader(int partitionId, ZoieSystem<?,?> zoieSystem)
+  public SenseiIndexLoader getIndexLoader(int partitionId, ZoieSystem<?,V> zoieSystem)
   {
-    return new NoopIndexLoader(zoieSystem);
+    return new NoopIndexLoader<V>(zoieSystem);
   }
 }
