@@ -46,7 +46,8 @@ public class MockNetworkServer implements NetworkServer {
 
 	@Override
 	public void bind(boolean markAvailable) throws NetworkingException {
-		
+	  if(!markAvailable) throw new UnsupportedOperationException("MockNetworkServer does not support bind(false)");
+      bind();
 	}
 
 	@Override

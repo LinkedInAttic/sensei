@@ -88,12 +88,28 @@
 		</javac>
 	</target>
 
-	<target name="dist" depends="compile">
-		<jar destfile="${dist}/${project.name}-${version}.jar" basedir="${build}" />
+    <target name="gitversion" description="--> create git version information">
+      <exec executable="git" outputproperty="gitversion">
+        <arg value="log"/>
+        <arg value="-1"/>
+        <arg value="--pretty=oneline"/>
+      </exec>
+    </target>
+
+	<target name="dist" depends="compile,gitversion">
+      <tstamp>
+        <format property="TODAY" pattern="yyyy-MM-dd HH:mm:ss" />
+      </tstamp>
+      <manifest file="MANIFEST.MF">
+        <attribute name="Built-By" value="${user.name}"/>
+        <attribute name="Git-Version" value="${gitversion}"/>
+        <attribute name="Built-Date" value="${TODAY}"/>
+      </manifest>
+		<jar destfile="${dist}/${project.name}-${version}.jar" manifest="MANIFEST.MF" basedir="${build}" />
 	</target>
 
 	<target name="test-build" depends="dist">
-		<javac destdir="${build.test}" compiler="javac1.6" source="1.6" target="1.6">
+		<javac debug="true" destdir="${build.test}" compiler="javac1.6" source="1.6" target="1.6">
 			<src path="${test}" />
 			<classpath refid="java.class.path" />
 		</javac>
@@ -110,6 +126,13 @@
 			<jvmarg value="-server" />
 			<jvmarg value="-Xms256m" />
 			<jvmarg value="-Xmx1g" />
+			<!-- debug 
+			<jvmarg value="-Djava.compiler=NONE" />
+			<jvmarg value="-Xdebug" />
+			<jvmarg value="-Xnoagent" />
+			<jvmarg value="-Xrunjdwp:transport=dt_socket,address=7777,server=y,suspend=y" />
+			-->
+
 			<!-- classpath must include all jar dependencies and classes -->
 			<classpath refid="test.class.path" />
 

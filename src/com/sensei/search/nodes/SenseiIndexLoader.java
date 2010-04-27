@@ -1,17 +1,11 @@
 package com.sensei.search.nodes;
 
-import java.nio.channels.ReadableByteChannel;
-import java.nio.channels.WritableByteChannel;
+import com.sensei.search.svc.api.SenseiException;
+
 
 public interface SenseiIndexLoader
 {
-  public void start();
+  public void start() throws SenseiException;
   
-  public void shutdown();
-  
-  public long getIndexVersion();
-  
-  public void importIndex(ReadableByteChannel channel);
-  
-  public void exportIndex(WritableByteChannel channel);
+  public void shutdown() throws SenseiException;
 }

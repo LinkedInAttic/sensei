@@ -1078,6 +1078,372 @@ public final class SenseiResultBPO {
     // @@protoc_insertion_point(class_scope:com.sensei.search.req.protobuf.FieldVal)
   }
   
+  public static final class StoredField extends
+      com.google.protobuf.GeneratedMessage {
+    // Use StoredField.newBuilder() to construct.
+    private StoredField() {
+      initFields();
+    }
+    private StoredField(boolean noInit) {}
+    
+    private static final StoredField defaultInstance;
+    public static StoredField getDefaultInstance() {
+      return defaultInstance;
+    }
+    
+    public StoredField getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+    
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return com.sensei.search.req.protobuf.SenseiResultBPO.internal_static_com_sensei_search_req_protobuf_StoredField_descriptor;
+    }
+    
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return com.sensei.search.req.protobuf.SenseiResultBPO.internal_static_com_sensei_search_req_protobuf_StoredField_fieldAccessorTable;
+    }
+    
+    // required string name = 1;
+    public static final int NAME_FIELD_NUMBER = 1;
+    private boolean hasName;
+    private java.lang.String name_ = "";
+    public boolean hasName() { return hasName; }
+    public java.lang.String getName() { return name_; }
+    
+    // repeated string vals = 2;
+    public static final int VALS_FIELD_NUMBER = 2;
+    private java.util.List<java.lang.String> vals_ =
+      java.util.Collections.emptyList();
+    public java.util.List<java.lang.String> getValsList() {
+      return vals_;
+    }
+    public int getValsCount() { return vals_.size(); }
+    public java.lang.String getVals(int index) {
+      return vals_.get(index);
+    }
+    
+    private void initFields() {
+    }
+    public final boolean isInitialized() {
+      if (!hasName) return false;
+      return true;
+    }
+    
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      if (hasName()) {
+        output.writeString(1, getName());
+      }
+      for (java.lang.String element : getValsList()) {
+        output.writeString(2, element);
+      }
+      getUnknownFields().writeTo(output);
+    }
+    
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+    
+      size = 0;
+      if (hasName()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeStringSize(1, getName());
+      }
+      {
+        int dataSize = 0;
+        for (java.lang.String element : getValsList()) {
+          dataSize += com.google.protobuf.CodedOutputStream
+            .computeStringSizeNoTag(element);
+        }
+        size += dataSize;
+        size += 1 * getValsList().size();
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+    
+    public static com.sensei.search.req.protobuf.SenseiResultBPO.StoredField parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data).buildParsed();
+    }
+    public static com.sensei.search.req.protobuf.SenseiResultBPO.StoredField parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data, extensionRegistry)
+               .buildParsed();
+    }
+    public static com.sensei.search.req.protobuf.SenseiResultBPO.StoredField parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data).buildParsed();
+    }
+    public static com.sensei.search.req.protobuf.SenseiResultBPO.StoredField parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data, extensionRegistry)
+               .buildParsed();
+    }
+    public static com.sensei.search.req.protobuf.SenseiResultBPO.StoredField parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input).buildParsed();
+    }
+    public static com.sensei.search.req.protobuf.SenseiResultBPO.StoredField parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input, extensionRegistry)
+               .buildParsed();
+    }
+    public static com.sensei.search.req.protobuf.SenseiResultBPO.StoredField parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      Builder builder = newBuilder();
+      if (builder.mergeDelimitedFrom(input)) {
+        return builder.buildParsed();
+      } else {
+        return null;
+      }
+    }
+    public static com.sensei.search.req.protobuf.SenseiResultBPO.StoredField parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      Builder builder = newBuilder();
+      if (builder.mergeDelimitedFrom(input, extensionRegistry)) {
+        return builder.buildParsed();
+      } else {
+        return null;
+      }
+    }
+    public static com.sensei.search.req.protobuf.SenseiResultBPO.StoredField parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input).buildParsed();
+    }
+    public static com.sensei.search.req.protobuf.SenseiResultBPO.StoredField parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input, extensionRegistry)
+               .buildParsed();
+    }
+    
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(com.sensei.search.req.protobuf.SenseiResultBPO.StoredField prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+    
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> {
+      private com.sensei.search.req.protobuf.SenseiResultBPO.StoredField result;
+      
+      // Construct using com.sensei.search.req.protobuf.SenseiResultBPO.StoredField.newBuilder()
+      private Builder() {}
+      
+      private static Builder create() {
+        Builder builder = new Builder();
+        builder.result = new com.sensei.search.req.protobuf.SenseiResultBPO.StoredField();
+        return builder;
+      }
+      
+      protected com.sensei.search.req.protobuf.SenseiResultBPO.StoredField internalGetResult() {
+        return result;
+      }
+      
+      public Builder clear() {
+        if (result == null) {
+          throw new IllegalStateException(
+            "Cannot call clear() after build().");
+        }
+        result = new com.sensei.search.req.protobuf.SenseiResultBPO.StoredField();
+        return this;
+      }
+      
+      public Builder clone() {
+        return create().mergeFrom(result);
+      }
+      
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return com.sensei.search.req.protobuf.SenseiResultBPO.StoredField.getDescriptor();
+      }
+      
+      public com.sensei.search.req.protobuf.SenseiResultBPO.StoredField getDefaultInstanceForType() {
+        return com.sensei.search.req.protobuf.SenseiResultBPO.StoredField.getDefaultInstance();
+      }
+      
+      public boolean isInitialized() {
+        return result.isInitialized();
+      }
+      public com.sensei.search.req.protobuf.SenseiResultBPO.StoredField build() {
+        if (result != null && !isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return buildPartial();
+      }
+      
+      private com.sensei.search.req.protobuf.SenseiResultBPO.StoredField buildParsed()
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        if (!isInitialized()) {
+          throw newUninitializedMessageException(
+            result).asInvalidProtocolBufferException();
+        }
+        return buildPartial();
+      }
+      
+      public com.sensei.search.req.protobuf.SenseiResultBPO.StoredField buildPartial() {
+        if (result == null) {
+          throw new IllegalStateException(
+            "build() has already been called on this Builder.");
+        }
+        if (result.vals_ != java.util.Collections.EMPTY_LIST) {
+          result.vals_ =
+            java.util.Collections.unmodifiableList(result.vals_);
+        }
+        com.sensei.search.req.protobuf.SenseiResultBPO.StoredField returnMe = result;
+        result = null;
+        return returnMe;
+      }
+      
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof com.sensei.search.req.protobuf.SenseiResultBPO.StoredField) {
+          return mergeFrom((com.sensei.search.req.protobuf.SenseiResultBPO.StoredField)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+      
+      public Builder mergeFrom(com.sensei.search.req.protobuf.SenseiResultBPO.StoredField other) {
+        if (other == com.sensei.search.req.protobuf.SenseiResultBPO.StoredField.getDefaultInstance()) return this;
+        if (other.hasName()) {
+          setName(other.getName());
+        }
+        if (!other.vals_.isEmpty()) {
+          if (result.vals_.isEmpty()) {
+            result.vals_ = new java.util.ArrayList<java.lang.String>();
+          }
+          result.vals_.addAll(other.vals_);
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+      
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder(
+            this.getUnknownFields());
+        while (true) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              this.setUnknownFields(unknownFields.build());
+              return this;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                this.setUnknownFields(unknownFields.build());
+                return this;
+              }
+              break;
+            }
+            case 10: {
+              setName(input.readString());
+              break;
+            }
+            case 18: {
+              addVals(input.readString());
+              break;
+            }
+          }
+        }
+      }
+      
+      
+      // required string name = 1;
+      public boolean hasName() {
+        return result.hasName();
+      }
+      public java.lang.String getName() {
+        return result.getName();
+      }
+      public Builder setName(java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  result.hasName = true;
+        result.name_ = value;
+        return this;
+      }
+      public Builder clearName() {
+        result.hasName = false;
+        result.name_ = getDefaultInstance().getName();
+        return this;
+      }
+      
+      // repeated string vals = 2;
+      public java.util.List<java.lang.String> getValsList() {
+        return java.util.Collections.unmodifiableList(result.vals_);
+      }
+      public int getValsCount() {
+        return result.getValsCount();
+      }
+      public java.lang.String getVals(int index) {
+        return result.getVals(index);
+      }
+      public Builder setVals(int index, java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  result.vals_.set(index, value);
+        return this;
+      }
+      public Builder addVals(java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  if (result.vals_.isEmpty()) {
+          result.vals_ = new java.util.ArrayList<java.lang.String>();
+        }
+        result.vals_.add(value);
+        return this;
+      }
+      public Builder addAllVals(
+          java.lang.Iterable<? extends java.lang.String> values) {
+        if (result.vals_.isEmpty()) {
+          result.vals_ = new java.util.ArrayList<java.lang.String>();
+        }
+        super.addAll(values, result.vals_);
+        return this;
+      }
+      public Builder clearVals() {
+        result.vals_ = java.util.Collections.emptyList();
+        return this;
+      }
+      
+      // @@protoc_insertion_point(builder_scope:com.sensei.search.req.protobuf.StoredField)
+    }
+    
+    static {
+      defaultInstance = new StoredField(true);
+      com.sensei.search.req.protobuf.SenseiResultBPO.internalForceInit();
+      defaultInstance.initFields();
+    }
+    
+    // @@protoc_insertion_point(class_scope:com.sensei.search.req.protobuf.StoredField)
+  }
+  
   public static final class Hit extends
       com.google.protobuf.GeneratedMessage {
     // Use Hit.newBuilder() to construct.
@@ -1138,11 +1504,26 @@ public final class SenseiResultBPO {
     public boolean hasUid() { return hasUid; }
     public long getUid() { return uid_; }
     
+    // repeated .com.sensei.search.req.protobuf.StoredField storedFields = 5;
+    public static final int STOREDFIELDS_FIELD_NUMBER = 5;
+    private java.util.List<com.sensei.search.req.protobuf.SenseiResultBPO.StoredField> storedFields_ =
+      java.util.Collections.emptyList();
+    public java.util.List<com.sensei.search.req.protobuf.SenseiResultBPO.StoredField> getStoredFieldsList() {
+      return storedFields_;
+    }
+    public int getStoredFieldsCount() { return storedFields_.size(); }
+    public com.sensei.search.req.protobuf.SenseiResultBPO.StoredField getStoredFields(int index) {
+      return storedFields_.get(index);
+    }
+    
     private void initFields() {
     }
     public final boolean isInitialized() {
       if (!hasUid) return false;
       for (com.sensei.search.req.protobuf.SenseiResultBPO.FieldVal element : getFieldValuesList()) {
+        if (!element.isInitialized()) return false;
+      }
+      for (com.sensei.search.req.protobuf.SenseiResultBPO.StoredField element : getStoredFieldsList()) {
         if (!element.isInitialized()) return false;
       }
       return true;
@@ -1162,6 +1543,9 @@ public final class SenseiResultBPO {
       }
       if (hasUid()) {
         output.writeInt64(4, getUid());
+      }
+      for (com.sensei.search.req.protobuf.SenseiResultBPO.StoredField element : getStoredFieldsList()) {
+        output.writeMessage(5, element);
       }
       getUnknownFields().writeTo(output);
     }
@@ -1187,6 +1571,10 @@ public final class SenseiResultBPO {
       if (hasUid()) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(4, getUid());
+      }
+      for (com.sensei.search.req.protobuf.SenseiResultBPO.StoredField element : getStoredFieldsList()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(5, element);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -1334,6 +1722,10 @@ public final class SenseiResultBPO {
           result.fieldValues_ =
             java.util.Collections.unmodifiableList(result.fieldValues_);
         }
+        if (result.storedFields_ != java.util.Collections.EMPTY_LIST) {
+          result.storedFields_ =
+            java.util.Collections.unmodifiableList(result.storedFields_);
+        }
         com.sensei.search.req.protobuf.SenseiResultBPO.Hit returnMe = result;
         result = null;
         return returnMe;
@@ -1364,6 +1756,12 @@ public final class SenseiResultBPO {
         }
         if (other.hasUid()) {
           setUid(other.getUid());
+        }
+        if (!other.storedFields_.isEmpty()) {
+          if (result.storedFields_.isEmpty()) {
+            result.storedFields_ = new java.util.ArrayList<com.sensei.search.req.protobuf.SenseiResultBPO.StoredField>();
+          }
+          result.storedFields_.addAll(other.storedFields_);
         }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
@@ -1406,6 +1804,12 @@ public final class SenseiResultBPO {
             }
             case 32: {
               setUid(input.readInt64());
+              break;
+            }
+            case 42: {
+              com.sensei.search.req.protobuf.SenseiResultBPO.StoredField.Builder subBuilder = com.sensei.search.req.protobuf.SenseiResultBPO.StoredField.newBuilder();
+              input.readMessage(subBuilder, extensionRegistry);
+              addStoredFields(subBuilder.buildPartial());
               break;
             }
           }
@@ -1515,6 +1919,57 @@ public final class SenseiResultBPO {
       public Builder clearUid() {
         result.hasUid = false;
         result.uid_ = 0L;
+        return this;
+      }
+      
+      // repeated .com.sensei.search.req.protobuf.StoredField storedFields = 5;
+      public java.util.List<com.sensei.search.req.protobuf.SenseiResultBPO.StoredField> getStoredFieldsList() {
+        return java.util.Collections.unmodifiableList(result.storedFields_);
+      }
+      public int getStoredFieldsCount() {
+        return result.getStoredFieldsCount();
+      }
+      public com.sensei.search.req.protobuf.SenseiResultBPO.StoredField getStoredFields(int index) {
+        return result.getStoredFields(index);
+      }
+      public Builder setStoredFields(int index, com.sensei.search.req.protobuf.SenseiResultBPO.StoredField value) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        result.storedFields_.set(index, value);
+        return this;
+      }
+      public Builder setStoredFields(int index, com.sensei.search.req.protobuf.SenseiResultBPO.StoredField.Builder builderForValue) {
+        result.storedFields_.set(index, builderForValue.build());
+        return this;
+      }
+      public Builder addStoredFields(com.sensei.search.req.protobuf.SenseiResultBPO.StoredField value) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        if (result.storedFields_.isEmpty()) {
+          result.storedFields_ = new java.util.ArrayList<com.sensei.search.req.protobuf.SenseiResultBPO.StoredField>();
+        }
+        result.storedFields_.add(value);
+        return this;
+      }
+      public Builder addStoredFields(com.sensei.search.req.protobuf.SenseiResultBPO.StoredField.Builder builderForValue) {
+        if (result.storedFields_.isEmpty()) {
+          result.storedFields_ = new java.util.ArrayList<com.sensei.search.req.protobuf.SenseiResultBPO.StoredField>();
+        }
+        result.storedFields_.add(builderForValue.build());
+        return this;
+      }
+      public Builder addAllStoredFields(
+          java.lang.Iterable<? extends com.sensei.search.req.protobuf.SenseiResultBPO.StoredField> values) {
+        if (result.storedFields_.isEmpty()) {
+          result.storedFields_ = new java.util.ArrayList<com.sensei.search.req.protobuf.SenseiResultBPO.StoredField>();
+        }
+        super.addAll(values, result.storedFields_);
+        return this;
+      }
+      public Builder clearStoredFields() {
+        result.storedFields_ = java.util.Collections.emptyList();
         return this;
       }
       
@@ -2126,6 +2581,11 @@ public final class SenseiResultBPO {
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_com_sensei_search_req_protobuf_FieldVal_fieldAccessorTable;
   private static com.google.protobuf.Descriptors.Descriptor
+    internal_static_com_sensei_search_req_protobuf_StoredField_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_com_sensei_search_req_protobuf_StoredField_fieldAccessorTable;
+  private static com.google.protobuf.Descriptors.Descriptor
     internal_static_com_sensei_search_req_protobuf_Hit_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
@@ -2149,16 +2609,19 @@ public final class SenseiResultBPO {
       "t\030\002 \001(\r\"U\n\016FacetContainer\022\014\n\004name\030\001 \002(\t\022" +
       "5\n\006facets\030\002 \003(\0132%.com.sensei.search.req." +
       "protobuf.Facet\"&\n\010FieldVal\022\014\n\004name\030\001 \002(\t" +
-      "\022\014\n\004vals\030\002 \003(\t\"o\n\003Hit\022\r\n\005docid\030\001 \001(\r\022\r\n\005" +
-      "score\030\002 \001(\002\022=\n\013fieldValues\030\003 \003(\0132(.com.s" +
-      "ensei.search.req.protobuf.FieldVal\022\013\n\003ui" +
-      "d\030\004 \002(\003\"\307\001\n\006Result\022\017\n\007numhits\030\001 \001(\r\022\021\n\tt" +
-      "otaldocs\030\002 \001(\r\022G\n\017facetContainers\030\003 \003(\0132",
-      "..com.sensei.search.req.protobuf.FacetCo" +
-      "ntainer\0221\n\004hits\030\004 \003(\0132#.com.sensei.searc" +
-      "h.req.protobuf.Hit\022\014\n\004time\030\005 \001(\004\022\017\n\003tid\030" +
-      "\006 \002(\003:\002-1B3\n\036com.sensei.search.req.proto" +
-      "bufB\017SenseiResultBPOH\001"
+      "\022\014\n\004vals\030\002 \003(\t\")\n\013StoredField\022\014\n\004name\030\001 " +
+      "\002(\t\022\014\n\004vals\030\002 \003(\t\"\262\001\n\003Hit\022\r\n\005docid\030\001 \001(\r" +
+      "\022\r\n\005score\030\002 \001(\002\022=\n\013fieldValues\030\003 \003(\0132(.c" +
+      "om.sensei.search.req.protobuf.FieldVal\022\013" +
+      "\n\003uid\030\004 \002(\003\022A\n\014storedFields\030\005 \003(\0132+.com.",
+      "sensei.search.req.protobuf.StoredField\"\307" +
+      "\001\n\006Result\022\017\n\007numhits\030\001 \001(\r\022\021\n\ttotaldocs\030" +
+      "\002 \001(\r\022G\n\017facetContainers\030\003 \003(\0132..com.sen" +
+      "sei.search.req.protobuf.FacetContainer\0221" +
+      "\n\004hits\030\004 \003(\0132#.com.sensei.search.req.pro" +
+      "tobuf.Hit\022\014\n\004time\030\005 \001(\004\022\017\n\003tid\030\006 \002(\003:\002-1" +
+      "B3\n\036com.sensei.search.req.protobufB\017Sens" +
+      "eiResultBPOH\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -2189,16 +2652,24 @@ public final class SenseiResultBPO {
               new java.lang.String[] { "Name", "Vals", },
               com.sensei.search.req.protobuf.SenseiResultBPO.FieldVal.class,
               com.sensei.search.req.protobuf.SenseiResultBPO.FieldVal.Builder.class);
-          internal_static_com_sensei_search_req_protobuf_Hit_descriptor =
+          internal_static_com_sensei_search_req_protobuf_StoredField_descriptor =
             getDescriptor().getMessageTypes().get(3);
+          internal_static_com_sensei_search_req_protobuf_StoredField_fieldAccessorTable = new
+            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+              internal_static_com_sensei_search_req_protobuf_StoredField_descriptor,
+              new java.lang.String[] { "Name", "Vals", },
+              com.sensei.search.req.protobuf.SenseiResultBPO.StoredField.class,
+              com.sensei.search.req.protobuf.SenseiResultBPO.StoredField.Builder.class);
+          internal_static_com_sensei_search_req_protobuf_Hit_descriptor =
+            getDescriptor().getMessageTypes().get(4);
           internal_static_com_sensei_search_req_protobuf_Hit_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_com_sensei_search_req_protobuf_Hit_descriptor,
-              new java.lang.String[] { "Docid", "Score", "FieldValues", "Uid", },
+              new java.lang.String[] { "Docid", "Score", "FieldValues", "Uid", "StoredFields", },
               com.sensei.search.req.protobuf.SenseiResultBPO.Hit.class,
               com.sensei.search.req.protobuf.SenseiResultBPO.Hit.Builder.class);
           internal_static_com_sensei_search_req_protobuf_Result_descriptor =
-            getDescriptor().getMessageTypes().get(4);
+            getDescriptor().getMessageTypes().get(5);
           internal_static_com_sensei_search_req_protobuf_Result_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_com_sensei_search_req_protobuf_Result_descriptor,

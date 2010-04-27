@@ -18,7 +18,7 @@ import proj.zoie.impl.indexing.ZoieSystem;
 import com.browseengine.bobo.api.BoboIndexReader;
 
 public class SenseiSearchContext {
-	private final SenseiQueryBuilderFactory _builderFactory;
+	private final Map<Integer,SenseiQueryBuilderFactory> _builderFactoryMap;
 	private final Map<Integer,IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>> _partReaderMap;
 
 	private static <T> IndexReaderFactory<ZoieIndexReader<BoboIndexReader>> buildReaderFactory(File file,ZoieIndexableInterpreter<T> interpreter){
@@ -26,17 +26,13 @@ public class SenseiSearchContext {
 		return zoieSystem;
 	}
 
-	public SenseiSearchContext(SenseiQueryBuilderFactory builderFactory,Map<Integer,IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>> partReaderMap){
-		_builderFactory = builderFactory;
+	public SenseiSearchContext(Map<Integer,SenseiQueryBuilderFactory> builderFactoryMap,Map<Integer,IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>> partReaderMap){
+		_builderFactoryMap = builderFactoryMap;
 		_partReaderMap = partReaderMap;
 	}
 
-	public SenseiSearchContext(Map<Integer,File> partFileMap, SenseiQueryBuilderFactory builderFactory){
-		this(builderFactory,new NoOpIndexableInterpreter(),partFileMap);
-	}
-
-	public SenseiSearchContext(SenseiQueryBuilderFactory builderFactory,ZoieIndexableInterpreter<?> interpreter,Map<Integer,File> partFileMap){
-	  _builderFactory = builderFactory;
+	public SenseiSearchContext(Map<Integer,SenseiQueryBuilderFactory> builderFactoryMap,ZoieIndexableInterpreter<?> interpreter,Map<Integer,File> partFileMap){
+	  _builderFactoryMap = builderFactoryMap;
 		
 		_partReaderMap = new HashMap<Integer,IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>>();
 		Set<Entry<Integer,File>> entrySet = partFileMap.entrySet();
@@ -45,8 +41,8 @@ public class SenseiSearchContext {
 		}
 	}
 
-	public SenseiQueryBuilderFactory getQueryBuilderFactory() {
-		return _builderFactory;
+	public Map<Integer,SenseiQueryBuilderFactory> getQueryBuilderFactoryMap() {
+		return _builderFactoryMap;
 	}
 
 	public IndexReaderFactory<ZoieIndexReader<BoboIndexReader>> getIdxReaderFactory(int partition) {
