@@ -24,7 +24,7 @@ import proj.zoie.mbean.ZoieIndexingStatusAdminMBean;
 import proj.zoie.mbean.ZoieSystemAdminMBean;
 
 import com.browseengine.bobo.api.BoboIndexReader;
-import com.linkedin.norbert.network.javaapi.MessageHandler;
+import com.sensei.search.cluster.client.SenseiClusterClientImpl;
 import com.sensei.search.svc.api.SenseiException;
 
 public class SenseiServer {
@@ -98,9 +98,11 @@ public class SenseiServer {
 		SenseiClusterConfig clusterConfig = (SenseiClusterConfig)springCtx.getBean("cluster-config");
         String clusterName = clusterConfig.getClusterName();
         String zookeeperURL = clusterConfig.getZooKeeperURL();
+        int zookeeperTimeout = clusterConfig.getZooKeeperSessionTimeoutMillis();
         
         logger.info("ClusterName: " + clusterName);
         logger.info("ZooKeeperURL: " + zookeeperURL);
+        logger.info("Zookeeper timeout: " + zookeeperTimeout);
         
         Map<Integer,SenseiQueryBuilderFactory> builderFactoryMap = new HashMap<Integer, SenseiQueryBuilderFactory>();
 		SenseiZoieSystemFactory<?> zoieSystemFactory = (SenseiZoieSystemFactory<?>)springCtx.getBean("zoie-system-factory");
@@ -145,7 +147,14 @@ public class SenseiServer {
 		
 		SenseiSearchContext ctx = new SenseiSearchContext(builderFactoryMap, readerFactoryMap);
 		SenseiNodeMessageHandler msgHandler = new SenseiNodeMessageHandler(ctx);
-		_node = new SenseiNode(clusterName,_id,_port,new MessageHandler[] {msgHandler},zookeeperURL,_partitions);
+	
+		// create the zookeeper cluster client
+		SenseiClusterClientImpl senseiClusterClient = new SenseiClusterClientImpl(clusterName, zookeeperURL, zookeeperTimeout, false);
+
+		_node = new SenseiNode(clusterName, _id, _port, msgHandler, zookeeperURL, _partitions, 
+		                       zookeeperTimeout);
+		
+		_node.setClusterClient(senseiClusterClient);
 		
 		_node.startup(available);
 		

@@ -9,4 +9,10 @@ public final class SenseiQuery {
   public byte[] toBytes(){
 	  return _bytes;
   }
+  
+  @Override
+  public String toString()
+  {
+    return new String(_bytes);
+  }
 }

@@ -160,7 +160,7 @@ public class SenseiNodeMessageHandler implements MessageHandler {
 		SenseiRequest senseiReq = SenseiRequestBPOConverter.convert(req);
 		
 		SenseiResult finalResult=null;
-		int[] partitions = senseiReq.getPartitions();
+		Integer[] partitions = senseiReq.getPartitions();
 		logger.info("serving partitions: "+Arrays.toString(partitions));
 		if (partitions!=null && partitions.length>0){
 			ArrayList<SenseiResult> resultList = new ArrayList<SenseiResult>(partitions.length);
