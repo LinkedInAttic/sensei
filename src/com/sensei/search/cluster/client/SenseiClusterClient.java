@@ -4,7 +4,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 import org.apache.lucene.search.SortField;
@@ -13,8 +13,8 @@ import org.springframework.context.support.FileSystemXmlApplicationContext;
 
 import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
 import com.linkedin.norbert.NorbertException;
-import com.linkedin.norbert.cluster.Node;
 import com.linkedin.norbert.cluster.javaapi.ClusterClient;
+import com.linkedin.norbert.cluster.javaapi.Node;
 import com.linkedin.norbert.network.javaapi.PartitionedLoadBalancerFactory;
 import com.linkedin.norbert.network.javaapi.PartitionedNetworkClient;
 import com.sensei.search.cluster.routing.UniformPartitionedRoutingFactory;
@@ -168,12 +168,12 @@ public class SenseiClusterClient {
 			System.out.println("browse - executes a search");
 		}
 		else if ("nodes".equalsIgnoreCase(cmd)){
-			Node[] nodes = cluster.getNodes();
+			Set<Node> nodes = cluster.getNodes();
 			for (Node node : nodes){
 			    String url = node.getUrl();
-				System.out.println("id: "+node.id());
+				System.out.println("id: "+node.getId());
 				System.out.println("addr: "+ url);
-				System.out.println("partitions: "+Arrays.toString(node.partitions()));
+				System.out.println("partitions: "+ node.getPartitions().toString());
 				System.out.println("availlable :"+node.isAvailable());
 				System.out.println("=========================");
 			}

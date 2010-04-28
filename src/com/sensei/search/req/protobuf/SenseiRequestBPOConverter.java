@@ -13,8 +13,6 @@ import java.util.Map.Entry;
 
 import org.apache.log4j.Logger;
 import org.apache.lucene.document.Document;
-import org.apache.lucene.document.Field.Index;
-import org.apache.lucene.document.Field.Store;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.Fieldable;
 import org.apache.lucene.search.SortField;
@@ -127,7 +125,6 @@ public class SenseiRequestBPOConverter {
 		  for (String paramName : paramNames){
 			ByteArrayParam.Builder paramBuilder = ByteArrayParam.newBuilder();
 			paramBuilder.setName(paramName);
-//			paramBuilder.setVal(ProtoConvertUtil.serializeOut(param.getBooleanParam(paramName)));
 			paramBuilder.setVal(ProtoConvertUtil.serializeData(param.getBooleanParam(paramName)));
 			boolparamList.add(paramBuilder.build());
 		  }
@@ -139,7 +136,6 @@ public class SenseiRequestBPOConverter {
 		  for (String paramName : paramNames){
 			ByteArrayParam.Builder paramBuilder = ByteArrayParam.newBuilder();
 			paramBuilder.setName(paramName);
-//			paramBuilder.setVal(ProtoConvertUtil.serializeOut(param.getIntParam(paramName)));
 			paramBuilder.setVal(ProtoConvertUtil.serializeData(param.getIntParam(paramName)));
 			intparamList.add(paramBuilder.build());
 		  }
@@ -151,7 +147,6 @@ public class SenseiRequestBPOConverter {
 		  for (String paramName : paramNames){
 			ByteArrayParam.Builder paramBuilder = ByteArrayParam.newBuilder();
 			paramBuilder.setName(paramName);
-//			paramBuilder.setVal(ProtoConvertUtil.serializeOut(param.getLongParam(paramName)));
 			paramBuilder.setVal(ProtoConvertUtil.serializeData(param.getLongParam(paramName)));
 			longparamList.add(paramBuilder.build());
 		  }
@@ -163,7 +158,6 @@ public class SenseiRequestBPOConverter {
 		  for (String paramName : paramNames){
 			ByteArrayParam.Builder paramBuilder = ByteArrayParam.newBuilder();
 			paramBuilder.setName(paramName);
-//			paramBuilder.setVal(ProtoConvertUtil.serializeOut(param.getDoubleParam(paramName)));
 			paramBuilder.setVal(ProtoConvertUtil.serializeData(param.getDoubleParam(paramName)));
 			doubleparamList.add(paramBuilder.build());
 		  }
@@ -286,7 +280,7 @@ public class SenseiRequestBPOConverter {
 		breq.setCount(req.getCount());
 		
 		breq.setFetchStoredFields(req.getFetchStoredFields());
-		breq.setPartitions(ProtoConvertUtil.toIntegerArray(req.getPartitions()));
+		breq.setPartitions(ProtoConvertUtil.toIntegerSet(req.getPartitions()));
 		// FacetHandlerInitializerParameters
 		List<SenseiRequestBPO.FacetHandlerInitializerParam> paramList = req.getFacetInitParamsList();
 		Map<String,FacetHandlerInitializerParam> params = convert(paramList);
@@ -413,7 +407,16 @@ public class SenseiRequestBPOConverter {
 			reqBuilder.setQuery(queryBytes);
 		}
 		
-		ByteString partitionBytes=ProtoConvertUtil.serializeData(req.getPartitions()); 
+		Set<Integer> partitionSet = req.getPartitions();
+		Integer[] partitions = null;
+		if(partitionSet != null) {
+		  partitions = new Integer[partitionSet.size()];
+		  int index = 0;
+		  for(Integer partition : partitionSet) {
+		    partitions[index++] = partition;
+		  }
+		}
+		ByteString partitionBytes=ProtoConvertUtil.serializeData(partitions); 
 		if (partitionBytes!=null){
 	 	  reqBuilder.setPartitions(partitionBytes);
 		}
