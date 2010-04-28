@@ -1,15 +1,15 @@
 package com.sensei.search.nodes;
 
-import java.util.Arrays;
-
 import it.unimi.dsi.fastutil.ints.IntSet;
+
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 
 import com.linkedin.norbert.NorbertException;
-import com.linkedin.norbert.cluster.Node;
 import com.linkedin.norbert.cluster.javaapi.ClusterClient;
 import com.linkedin.norbert.cluster.javaapi.ClusterListener;
+import com.linkedin.norbert.cluster.javaapi.Node;
 import com.linkedin.norbert.network.javaapi.PartitionedLoadBalancerFactory;
 import com.linkedin.norbert.network.javaapi.PartitionedNetworkClient;
 import com.sensei.search.cluster.routing.UniformPartitionedLoadBalancer;
@@ -54,21 +54,13 @@ public class SenseiBroker implements ClusterListener  {
   private SenseiResult doBrowse(PartitionedNetworkClient<Integer> networkClient,SenseiRequest req,IntSet partitions) throws Exception{
     if (partitions!=null && (partitions.size())>0){
       SenseiRequestBPO.Request msg = SenseiRequestBPOConverter.convert(req);
-      Integer[] partToSend = req.getPartitions();
-      if (partToSend==null){
-        partToSend = partitions.toArray(new Integer[partitions.size()]);
+      Set<Integer> partToSend = req.getPartitions();
+      if (partToSend == null){
+        partToSend = partitions;
       }
       SenseiResult res;
-      if (partToSend.length>0){
-        //		    res = networkClient.sendMessage(partitions.toIntArray(), msg, _scatterGatherHandler);
-        Integer[] partitionIds = new Integer[partitions.size()];
-        int[] partitionInts = partitions.toIntArray();
-        for(int index = 0; index < partitions.size(); index++)
-        {
-          partitionIds[index] = partitionInts[index];
-        }
-//       res = networkClient.sendMessage(partitionIds, msg, _scatterGatherHandler);
-        res = networkClient.sendMessage(Arrays.asList(partitionIds), msg, _scatterGatherHandler);
+      if (partToSend.size() > 0){
+        res = networkClient.sendMessage(partitions, msg, _scatterGatherHandler);
       }
       else{
         res = new SenseiResult();  
@@ -87,10 +79,11 @@ public class SenseiBroker implements ClusterListener  {
   /* (non-Javadoc)
    * @see com.linkedin.norbert.cluster.javaapi.ClusterListener#handleClusterConnected(com.linkedin.norbert.cluster.Node[])
    */
-  public void handleClusterConnected(Node[] nodes)
+  public void handleClusterConnected(Set<Node> nodes)
   {
     UniformPartitionedLoadBalancer router = (UniformPartitionedLoadBalancer) _routerFactory.newLoadBalancer(nodes);
     _parts = router.getPartitions();
+    System.out.println("handleClusterConnected(): Received the list of partitions from router " + _parts.toString());
   }
 
   /* (non-Javadoc)
@@ -104,10 +97,11 @@ public class SenseiBroker implements ClusterListener  {
   /* (non-Javadoc)
    * @see com.linkedin.norbert.cluster.javaapi.ClusterListener#handleClusterNodesChanged(com.linkedin.norbert.cluster.Node[])
    */
-  public void handleClusterNodesChanged(Node[] nodes)
+  public void handleClusterNodesChanged(Set<Node> nodes)
   {
     UniformPartitionedLoadBalancer router = (UniformPartitionedLoadBalancer) _routerFactory.newLoadBalancer(nodes);
     _parts = router.getPartitions();
+    System.out.println("handleClusterNodesChanged(): Received the list of partitions from router " + _parts.toString());
   }
 
   /* (non-Javadoc)

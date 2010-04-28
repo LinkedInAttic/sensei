@@ -4,7 +4,7 @@
 package com.sensei.search.cluster.client;
 
 import java.io.File;
-import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Future;
 
 import org.springframework.context.ApplicationContext;
@@ -14,8 +14,8 @@ import com.google.protobuf.Message;
 import com.linkedin.norbert.cluster.ClusterDisconnectedException;
 import com.linkedin.norbert.cluster.InvalidClusterException;
 import com.linkedin.norbert.cluster.InvalidNodeException;
-import com.linkedin.norbert.cluster.Node;
 import com.linkedin.norbert.cluster.javaapi.ClusterClient;
+import com.linkedin.norbert.cluster.javaapi.Node;
 import com.linkedin.norbert.network.NoNodesAvailableException;
 import com.linkedin.norbert.network.ResponseIterator;
 import com.linkedin.norbert.network.javaapi.NettyPartitionedNetworkClient;
@@ -93,14 +93,14 @@ public class SenseiNetworkClient implements PartitionedNetworkClient<Integer>
     return _networkClient.sendMessage(id, message);
   }
 
-  public ResponseIterator sendMessage(List<Integer> ids, Message message) throws InvalidClusterException,
+  public ResponseIterator sendMessage(Set<Integer> ids, Message message) throws InvalidClusterException,
       NoNodesAvailableException,
       ClusterDisconnectedException
   {
     return _networkClient.sendMessage(ids, message);
   }
 
-  public <T> T sendMessage(List<Integer> ids,
+  public <T> T sendMessage(Set<Integer> ids,
                            Message message,
                            ScatterGatherHandler<T, Integer> scatterGather) throws Exception
   {
@@ -127,4 +127,5 @@ public class SenseiNetworkClient implements PartitionedNetworkClient<Integer>
   {
     _networkClient.shutdown();
   }
+
 }

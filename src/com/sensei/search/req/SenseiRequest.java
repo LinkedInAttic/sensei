@@ -32,7 +32,7 @@ public class SenseiRequest implements Serializable, Cloneable
 	private int _count;
 	private boolean _fetchStoredFields;
 	private Map<String,FacetHandlerInitializerParam> _facetInitParamMap;
-	private Integer[] _partitions;
+	private Set<Integer> _partitions;
 	
 	public SenseiRequest(){
 		_facetInitParamMap = new HashMap<String,FacetHandlerInitializerParam>();
@@ -61,11 +61,11 @@ public class SenseiRequest implements Serializable, Cloneable
     this.tid = tid;
   }
 
-	public void setPartitions(Integer[] partitions){
+	public void setPartitions(Set<Integer> partitions){
 		_partitions = partitions;
 	}
 	
-	public Integer[] getPartitions(){
+	public Set<Integer> getPartitions(){
 		return _partitions;
 	}
 	

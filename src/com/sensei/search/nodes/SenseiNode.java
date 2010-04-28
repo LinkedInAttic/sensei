@@ -2,11 +2,13 @@ package com.sensei.search.nodes;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 
-import com.linkedin.norbert.cluster.Node;
 import com.linkedin.norbert.cluster.javaapi.ClusterClient;
+import com.linkedin.norbert.cluster.javaapi.Node;
 import com.linkedin.norbert.network.NetworkingException;
 import com.linkedin.norbert.network.javaapi.MessageHandler;
 import com.linkedin.norbert.network.javaapi.NetworkServer;
@@ -21,7 +23,7 @@ public class SenseiNode{
 	private final String _zookeeperURL;
 	private final int _id;
 	private final MessageHandler _msgHandler;
-	private final int[] _partitions;
+	private final Set<Integer> _partitions;
 	private final String _clusterName;
 	private ClusterClient _cluster;
 	private NetworkServer _server;
@@ -39,7 +41,10 @@ public class SenseiNode{
 		_zookeeperURL = zookeeperURL;
 		_clusterName = clusterName;
 		_zooKeeperSessionTimeoutMillis = zooKeeperSessionTimeoutMillis;
-		_partitions = partitions;
+        _partitions = new HashSet<Integer>();
+		for(int partition : partitions) {
+		  _partitions.add(partition);
+		}
 		_senseiClusterClient = null;
 	}
 	
@@ -70,8 +75,6 @@ public class SenseiNode{
 	    _node = _cluster.getNodeWithId(_id);
 	    nodeExists = (_node!=null); 
 	    if (!nodeExists){
-	      // ideally it should be as shown below, but due to a norbert bug, have to reparse the ip address string
-//	      String ipAddr = (new InetSocketAddress(InetAddress.getLocalHost(),_port)).toString();
 	      String ipAddr = (new InetSocketAddress(InetAddress.getLocalHost().getHostAddress(), _port)).toString().replaceAll("/", "");
 	      System.out.println("Node id : " + _id + " IP address : " + ipAddr);
 	      _node = _cluster.addNode(_id, ipAddr, _partitions);
@@ -168,7 +171,7 @@ public class SenseiNode{
 	  {
 	    logger.error(e.getMessage(), e);
 	  }
-	  _available = (_node != null ? _node.available() : false);
+	  _available = (_node != null ? _node.isAvailable() : false);
 
 	  return _available;
 	}
