@@ -83,8 +83,8 @@ public class SenseiBroker implements ClusterListener  {
   {
     UniformPartitionedLoadBalancer router = (UniformPartitionedLoadBalancer) _routerFactory.newLoadBalancer(nodes);
     _parts = router.getPartitions();
-    System.out.println("handleClusterConnected(): Received the list of nodes from norbert " + nodes.toString());
-    System.out.println("handleClusterConnected(): Received the list of partitions from router " + _parts.toString());
+    logger.info("handleClusterConnected(): Received the list of nodes from norbert " + nodes.toString());
+    logger.info("handleClusterConnected(): Received the list of partitions from router " + _parts.toString());
   }
 
   /* (non-Javadoc)
@@ -92,7 +92,7 @@ public class SenseiBroker implements ClusterListener  {
    */
   public void handleClusterDisconnected()
   {
-    System.out.println("handleClusterDisconnected() called");
+    logger.info("handleClusterDisconnected() called");
   }
 
   /* (non-Javadoc)
@@ -102,8 +102,8 @@ public class SenseiBroker implements ClusterListener  {
   {
     UniformPartitionedLoadBalancer router = (UniformPartitionedLoadBalancer) _routerFactory.newLoadBalancer(nodes);
     _parts = router.getPartitions();
-    System.out.println("handleClusterNodesChanged(): Received the list of nodes from norbert " + nodes.toString());
-    System.out.println("handleClusterNodesChanged(): Received the list of partitions from router " + _parts.toString());
+    logger.info("handleClusterNodesChanged(): Received the list of nodes from norbert " + nodes.toString());
+    logger.info("handleClusterNodesChanged(): Received the list of partitions from router " + _parts.toString());
   }
 
   /* (non-Javadoc)
@@ -111,7 +111,7 @@ public class SenseiBroker implements ClusterListener  {
    */
   public void handleClusterShutdown()
   {
-    System.out.println("handleClusterShutdown() called");
+    logger.info("handleClusterShutdown() called");
 
   }
 }

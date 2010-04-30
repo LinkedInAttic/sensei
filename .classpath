@@ -6,7 +6,6 @@
 	<classpathentry exported="true" kind="lib" path="lib/master/bobo-browse-2.5.0-rc1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/master/commons-logging.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/master/fastutil.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/master/junit.jar" sourcepath="/Users/nnarkhed/.m2/repository/junit/junit/4.5/junit-4.5-sources.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/master/kamikaze-2.0.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/master/log4j.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/master/lucene-core.jar"/>
