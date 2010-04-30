@@ -76,11 +76,15 @@ public class SenseiNode{
 	    nodeExists = (_node!=null); 
 	    if (!nodeExists){
 	      String ipAddr = (new InetSocketAddress(InetAddress.getLocalHost().getHostAddress(), _port)).toString().replaceAll("/", "");
+	      
 	      System.out.println("Node id : " + _id + " IP address : " + ipAddr);
+	      
 	      _node = _cluster.addNode(_id, ipAddr, _partitions);
-	      Thread.sleep(1000);
 
 	      logger.info("added node id: "+_id);
+	    }else {
+	      // node exists 
+	      
 	    }
 	  }
 	  catch(Exception e){
@@ -90,16 +94,21 @@ public class SenseiNode{
 
 	  try {
 	    logger.info("binding server ...");
-	    _server.bind(_id);
-	    if(markAvailable)
-	      _cluster.markNodeAvailable(_id);
-	    else
-	      _cluster.markNodeUnavailable(_id);
+	    _server.bind(_id, markAvailable);
+//	    if(markAvailable)
+//	      _cluster.markNodeAvailable(_id);
+//	    else
+//	      _cluster.markNodeUnavailable(_id);
+
+	    // exponential backoff
+	    Thread.sleep(1000);
+
 	    _available = markAvailable;
 	    logger.info("started [markAvailable=" + markAvailable + "] ...");
 	    if (nodeExists){
 	      logger.warn("existing node found, will try to overwrite.");
 	      try{
+	        // remove node above 
 	        _cluster.removeNode(_id);
 	        _node = null;
 	      }

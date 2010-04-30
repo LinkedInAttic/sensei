@@ -40,7 +40,9 @@
 		<path location="${build.test}" />
 		<fileset dir="${lib.test}" />
 		<path refid="compile.class.path" />
-		<fileset dir="${resources}" />
+		<fileset dir="${resources}">
+                    <include name="log4j.*" />
+                </fileset>
 	</path>
 
 	<path id="java.class.path">
@@ -123,6 +125,8 @@
 		<junit printsummary="yes" showoutput="yes">
 			<sysproperty key="log.home" value="${logs}" />
 			<sysproperty key="idx.dir" value="data/cardata" />
+                        <sysproperty key="log4j.configuration" value="resources/log4j.properties" />
+
 			<jvmarg value="-server" />
 			<jvmarg value="-Xms256m" />
 			<jvmarg value="-Xmx1g" />

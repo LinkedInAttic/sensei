@@ -6,6 +6,7 @@ import java.util.Map;
 
 import junit.framework.TestCase;
 
+import org.apache.log4j.Logger;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.queryParser.QueryParser;
 import org.apache.lucene.util.Version;
@@ -16,6 +17,7 @@ import com.sensei.search.nodes.SenseiNode;
 import com.sensei.search.nodes.SenseiNodeMessageHandler;
 import com.sensei.search.nodes.SenseiQueryBuilderFactory;
 import com.sensei.search.nodes.SenseiSearchContext;
+import com.sensei.search.nodes.SenseiServer;
 import com.sensei.search.nodes.impl.SimpleQueryBuilderFactory;
 import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.req.SenseiResult;
@@ -25,7 +27,8 @@ public class SenseiTestCase extends TestCase {
 //	static File IdxDir = new File(System.getProperty("idx.dir"));
     static File IdxDir = new File("data/cardata");
 	static final String SENSEI_TEST_CLUSTER_NAME="testCluster";
-	
+    private static final Logger logger = Logger.getLogger(SenseiTestCase.class);
+    
 	public SenseiTestCase(){
 		super();
 	}
@@ -59,28 +62,40 @@ public class SenseiTestCase extends TestCase {
 		SenseiSearchContext srchCtx1 = new SenseiSearchContext(qmap1, new NoOpIndexableInterpreter(), map1);
 		SenseiSearchContext srchCtx2 = new SenseiSearchContext(qmap2, new NoOpIndexableInterpreter(), map2);
 		
+		// turn this into a factory class
 		SenseiClusterClientImpl senseiClusterClient = new SenseiClusterClientImpl(SENSEI_TEST_CLUSTER_NAME, true);
+
+        ClusteredSenseiServiceImpl clientSvc = new ClusteredSenseiServiceImpl(SENSEI_TEST_CLUSTER_NAME, "", 30000, true);
+        clientSvc.setClusterClient(senseiClusterClient.getClusterClient());
+        clientSvc.startup();
+        logger.info("Cluster client started");
+		
 		SenseiNode node1 = new SenseiNode(SENSEI_TEST_CLUSTER_NAME, 1, 1233, new SenseiNodeMessageHandler(srchCtx1), "",
 				new int[] {1,2}, 30000);
+		// let the sensei nodes take in the norbert cluster client instead
 		node1.setClusterClient(senseiClusterClient);
+		logger.info("Node 1 created with id : " + 1);
 		SenseiNode node2 = new SenseiNode(SENSEI_TEST_CLUSTER_NAME, 2, 1232, new SenseiNodeMessageHandler(srchCtx2), "",
 				new int[] {2,3}, 30000);
         node2.setClusterClient(senseiClusterClient);
+        logger.info("Node 2 created with id : " + 2);
         
 		node1.startup(true);
+        logger.info("Node 1 started");
 		node2.startup(true);
-		
-		ClusteredSenseiServiceImpl clientSvc = new ClusteredSenseiServiceImpl(SENSEI_TEST_CLUSTER_NAME, "", 30000, true);
-		clientSvc.setClusterClient(senseiClusterClient.getClusterClient());
-		clientSvc.startup();
-		
+        logger.info("Node 2 started");
+				
 		SenseiRequest req = new SenseiRequest();
 		SenseiResult res = clientSvc.doQuery(req);
+        logger.info("Query results received with numhits = " + res.getNumHits());
 		
 		assertEquals(45000, res.getNumHits());
 		clientSvc.shutdown();
+		logger.info("cluster client shutdown");
 		node1.shutdown();
+        logger.info("Node 1 shutdown");
 		node2.shutdown();
+        logger.info("Node 2 shutdown");
 	}
 	
 	public void testExt(){
