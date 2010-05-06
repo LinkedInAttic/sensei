@@ -5,10 +5,8 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/beans 
 						http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<bean id="zookeeper-cluster-client" class="com.linkedin.norbert.cluster.javaapi.ZooKeeperClusterClient">
-	  <constructor-arg value="sensei" />
-	  <constructor-arg value="localhost:2181" />
-	  <constructor-arg value="30000" />
+	<bean id="in-memory-cluster-client" class="com.linkedin.norbert.cluster.javaapi.InMemoryClusterClient">
+	  <constructor-arg value="testCluster" />
 	</bean>
 
 </beans>

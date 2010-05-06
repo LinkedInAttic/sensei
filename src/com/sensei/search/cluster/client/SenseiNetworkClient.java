@@ -35,46 +35,27 @@ public class SenseiNetworkClient implements PartitionedNetworkClient<Integer>
 {
   private PartitionedNetworkClient<Integer> _networkClient;
 
-  public SenseiNetworkClient(ClusterClient clusterClient, PartitionedLoadBalancerFactory<Integer> routerFactory)
+  public SenseiNetworkClient(NetworkClientConfig netConfig, PartitionedLoadBalancerFactory<Integer> routerFactory)
   {
-    String confDirName=System.getProperty("conf.dir");
-    File confDir = null;
-    if (confDirName == null)
-    {
-      confDir = new File("node-conf");
-    }
-    else
-    {
-      confDir = new File(confDirName);
-    }
+//    String confDirName=System.getProperty("conf.dir");
+//    File confDir = null;
+//    if (confDirName == null)
+//    {
+//      confDir = new File("node-conf");
+//    }
+//    else
+//    {
+//      confDir = new File(confDirName);
+//    }
+//
+//    File confFile = new File(confDir, SenseiDefaults.SENSEI_CLUSTER_CONF_FILE);
+//    
+//    ApplicationContext springCtx = new FileSystemXmlApplicationContext("file:"+confFile.getAbsolutePath());
+//    SenseiNetworkClientConfig config = (SenseiNetworkClientConfig)springCtx.getBean("network-client-config");
+//    
+//    NetworkClientConfig netConfig = config.getNetworkConfigObject();
+//    netConfig.setClusterClient(clusterClient);
 
-    File confFile = new File(confDir, SenseiDefaults.SENSEI_CLUSTER_CONF_FILE);
-    
-    ApplicationContext springCtx = new FileSystemXmlApplicationContext("file:"+confFile.getAbsolutePath());
-    SenseiNetworkClientConfig config = (SenseiNetworkClientConfig)springCtx.getBean("network-client-config");
-    
-    NetworkClientConfig netConfig = config.getNetworkConfigObject();
-    netConfig.setClusterClient(clusterClient);
-
-    if(routerFactory != null)
-    {
-      _networkClient = new NettyPartitionedNetworkClient<Integer>(netConfig, routerFactory);
-    }
-    else
-    {
-      _networkClient = new NettyPartitionedNetworkClient<Integer>(netConfig, 
-          new UniformPartitionedRoutingFactory());
-    }
-  }
-
-  public SenseiNetworkClient(File confFile, ClusterClient clusterClient, PartitionedLoadBalancerFactory<Integer> routerFactory)
-  {
-    ApplicationContext springCtx = new FileSystemXmlApplicationContext("file:"+confFile.getAbsolutePath());
-    SenseiNetworkClientConfig config = (SenseiNetworkClientConfig)springCtx.getBean("network-client-config");
-    
-    NetworkClientConfig netConfig = config.getNetworkConfigObject();
-    netConfig.setClusterClient(clusterClient);
-    
     if(routerFactory != null)
     {
       _networkClient = new NettyPartitionedNetworkClient<Integer>(netConfig, routerFactory);

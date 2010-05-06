@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+						http://www.springframework.org/schema/beans/spring-beans.xsd">
+						
+	<import resource="sensei-cluster.spring" />
+	
+	<import resource="zoie.spring" />
+
+	<bean id="query-parser" class="org.apache.lucene.queryParser.QueryParser">
+	   <constructor-arg ref="lucene-version"/>
+	   <constructor-arg value="contents" />
+	   <constructor-arg ref="analyzer" />
+	</bean>
+	
+	<bean id="query-builder-factory" class="com.sensei.search.nodes.impl.SimpleQueryBuilderFactory">
+	   <constructor-arg ref="query-parser"/>
+	</bean>
+	
+	<bean id="runtime-facet-handler-factories" class="java.util.ArrayList">
+       <constructor-arg>
+         <list>
+         </list>
+       </constructor-arg>
+    </bean>
+    
+    <bean id="index-loader-factory" class="com.sensei.search.nodes.impl.NoopIndexLoaderFactory"/>
+    
+</beans>

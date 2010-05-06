@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<bean id="color" class="com.browseengine.bobo.facets.impl.SimpleFacetHandler">
+		<constructor-arg value="color" />
+	</bean>
+	
+	<bean id="category" class="com.browseengine.bobo.facets.impl.SimpleFacetHandler">
+		<constructor-arg value="category" />
+	</bean>
+	
+	<bean id="city" class="com.browseengine.bobo.facets.impl.PathFacetHandler">
+		<constructor-arg value="city" />
+		<property name="separator" value="/" />
+	</bean>
+	
+	<bean id="makemodel" class="com.browseengine.bobo.facets.impl.PathFacetHandler">
+		<constructor-arg value="makemodel" />
+		<property name="separator" value="/" />
+	</bean>
+	
+	<bean id="year" class="com.browseengine.bobo.facets.impl.RangeFacetHandler">
+		<constructor-arg value="year" />
+		<constructor-arg value="true" />
+	</bean>
+	
+	<bean id="price" class="com.browseengine.bobo.facets.impl.RangeFacetHandler">
+		<constructor-arg value="price" />
+		<constructor-arg>
+			<bean class="com.browseengine.bobo.facets.data.PredefinedTermListFactory">
+				<constructor-arg value="java.lang.Float" />
+				<constructor-arg value="00000000000000000000" />
+			</bean>
+		</constructor-arg>
+		<constructor-arg value="true" />
+	</bean>
+	
+	<bean id="mileage" class="com.browseengine.bobo.facets.impl.RangeFacetHandler">
+		<constructor-arg value="mileage" />
+		<constructor-arg>
+			<bean class="com.browseengine.bobo.facets.data.PredefinedTermListFactory">
+				<constructor-arg value="java.lang.Integer"/>
+				<constructor-arg value="00000000000000000000" />
+			</bean>
+		</constructor-arg>
+		<constructor-arg>
+		     <list>
+		        <value>[* TO 12500]</value>
+		        <value>[12501 TO 15000]</value>
+		        <value>[15001 TO 17500]</value>
+		        <value>[17501 TO *]</value>
+		     </list>
+		</constructor-arg>
+	</bean>
+
+	<bean id="tags" class="com.browseengine.bobo.facets.impl.MultiValueFacetHandler">
+		<constructor-arg value="tags" />
+	</bean>
+	
+	<bean id="handlers" class="java.util.ArrayList">
+		<constructor-arg>
+			<list>
+				<ref bean="color" />
+				<ref bean="category" />
+				<ref bean="city" />
+				<ref bean="makemodel" />
+				<ref bean="year" />
+				<ref bean="price" />
+				<ref bean="mileage" />
+				<ref bean="tags" />
+			</list>
+		</constructor-arg>
+	</bean>
+</beans>

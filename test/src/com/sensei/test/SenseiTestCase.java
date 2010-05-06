@@ -4,16 +4,17 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
-import junit.framework.TestCase;
-
 import org.apache.log4j.Logger;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.queryParser.QueryParser;
 import org.apache.lucene.util.Version;
+import org.junit.Before;
 
-import com.linkedin.norbert.cluster.javaapi.ClusterClient;
-import com.sensei.search.cluster.client.ClusterClientFactory;
+import com.linkedin.norbert.NorbertException;
+import com.linkedin.norbert.cluster.ClusterShutdownException;
+import com.sensei.search.cluster.routing.UniformPartitionedRoutingFactory;
 import com.sensei.search.nodes.NoOpIndexableInterpreter;
+import com.sensei.search.nodes.SenseiBroker;
 import com.sensei.search.nodes.SenseiNode;
 import com.sensei.search.nodes.SenseiNodeMessageHandler;
 import com.sensei.search.nodes.SenseiQueryBuilderFactory;
@@ -21,9 +22,9 @@ import com.sensei.search.nodes.SenseiSearchContext;
 import com.sensei.search.nodes.impl.SimpleQueryBuilderFactory;
 import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.req.SenseiResult;
-import com.sensei.search.svc.impl.ClusteredSenseiServiceImpl;
+import com.sensei.search.svc.api.SenseiException;
 
-public class SenseiTestCase extends TestCase {
+public class SenseiTestCase extends AbstractSenseiTestCase {
 //	static File IdxDir = new File(System.getProperty("idx.dir"));
     static File IdxDir = new File("data/cardata");
 	static final String SENSEI_TEST_CLUSTER_NAME="testCluster";
@@ -36,6 +37,11 @@ public class SenseiTestCase extends TestCase {
 	public SenseiTestCase(String testName){
 		super(testName);
 		
+	}
+	
+	@Before
+	public void setUp() {
+	  super.setUp();
 	}
 	
 	public void testHappyPath() throws Exception{
@@ -62,13 +68,25 @@ public class SenseiTestCase extends TestCase {
 		SenseiSearchContext srchCtx1 = new SenseiSearchContext(qmap1, new NoOpIndexableInterpreter(), map1);
 		SenseiSearchContext srchCtx2 = new SenseiSearchContext(qmap2, new NoOpIndexableInterpreter(), map2);
 		
-		// turn this into a factory class
-		ClusterClient clusterClient = ClusterClientFactory.newInstance().newInMemoryClient(SENSEI_TEST_CLUSTER_NAME);
-		
-        ClusteredSenseiServiceImpl clientSvc = new ClusteredSenseiServiceImpl(SENSEI_TEST_CLUSTER_NAME, "", 30000, true);
-        
-        clientSvc.setClusterClient(clusterClient);
-        clientSvc.startup();
+	      // register the request-response messages
+		SenseiBroker broker= null;
+	      try{
+	        broker = new SenseiBroker(networkClient, null, new UniformPartitionedRoutingFactory());
+	        clusterClient.addListener(broker);
+	      }
+	      catch(NorbertException ne){
+	        logger.info("shutting down cluster...");
+	        try{
+	          clusterClient.shutdown();
+	        } 
+	        catch (ClusterShutdownException e) {
+	          logger.info(e.getMessage(), e);  
+	        }
+	        finally{
+	        }
+	        throw new SenseiException(ne.getMessage(), ne);
+	      } 
+
         logger.info("Cluster client started");
 		
 		SenseiNode node1 = new SenseiNode(clusterClient, 1, 1233, new SenseiNodeMessageHandler(srchCtx1), new int[] {1,2});
@@ -82,11 +100,22 @@ public class SenseiTestCase extends TestCase {
         logger.info("Node 2 started");
 				
 		SenseiRequest req = new SenseiRequest();
-		SenseiResult res = clientSvc.doQuery(req);
+		SenseiResult res = broker.browse(req);
         logger.info("Query results received with numhits = " + res.getNumHits());
 		
 		assertEquals(45000, res.getNumHits());
-		clientSvc.shutdown();
+		try{
+		  logger.info("shutting down client...");
+		  broker.shutdown();
+		}
+		finally{
+		  logger.info("shutting down cluster...");
+		  try{
+		    clusterClient.shutdown();
+		  } catch (ClusterShutdownException e) {
+		    logger.error(e.getMessage(),e);
+		  } 
+		}
 		logger.info("cluster client shutdown");
 		node1.shutdown();
         logger.info("Node 1 shutdown");

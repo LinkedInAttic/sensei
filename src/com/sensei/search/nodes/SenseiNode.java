@@ -12,7 +12,6 @@ import com.linkedin.norbert.cluster.javaapi.Node;
 import com.linkedin.norbert.network.NetworkingException;
 import com.linkedin.norbert.network.javaapi.MessageHandler;
 import com.linkedin.norbert.network.javaapi.NetworkServer;
-import com.sensei.search.cluster.client.SenseiClusterClientImpl;
 import com.sensei.search.req.protobuf.SenseiRequestBPO;
 import com.sensei.search.req.protobuf.SenseiResultBPO;
 import com.sensei.search.server.SenseiNetworkServer;

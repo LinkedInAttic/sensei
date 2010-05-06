@@ -3,6 +3,7 @@
 	<property name="src" value="src" />
 
 	<property name="conf.dir" location="node-conf" />
+        <property name="test.conf.dir" location="test/conf"/>
 
 	<property name="lib.base" location="lib" />
 	<property name="lib.dir" location="${lib.base}/master" />

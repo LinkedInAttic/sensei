@@ -2,6 +2,7 @@ package com.sensei.search.nodes;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.HashMap;
@@ -25,9 +26,9 @@ import proj.zoie.mbean.ZoieSystemAdminMBean;
 
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.linkedin.norbert.cluster.javaapi.ClusterClient;
-import com.sensei.search.cluster.client.ClusterClientFactory;
-import com.sensei.search.cluster.client.SenseiClusterClientImpl;
+import com.linkedin.norbert.cluster.javaapi.ZooKeeperClusterClient;
 import com.sensei.search.svc.api.SenseiException;
+import com.sensei.search.util.SenseiDefaults;
 
 public class SenseiServer {
 	private static final Logger logger = Logger.getLogger(SenseiServer.class);
@@ -39,11 +40,20 @@ public class SenseiServer {
     private int _port;
     private int[] _partitions;
     private String _partitionString;
-    private File _confDir;
+    private ClusterClient _cluster;
+    private SenseiZoieSystemFactory<?> _zoieSystemFactory;
+    private SenseiIndexLoaderFactory _indexLoaderFactory;
+    private SenseiQueryBuilderFactory _queryBuilderFactory;
     private SenseiNode _node;
     
-    private SenseiServer(int id, int port, int[] partitions, File confDir)
+    public SenseiServer(int id, int port, int[] partitions,
+                        File extDir,
+                        ClusterClient cluster,
+                        SenseiZoieSystemFactory<?> zoieSystemFactory,
+                        SenseiIndexLoaderFactory indexLoaderFactory,
+                        SenseiQueryBuilderFactory queryBuilderFactory) throws MalformedURLException
     {
+      loadJars(extDir);
       _id = id;
       _port = port;
       _partitions = partitions;
@@ -55,7 +65,10 @@ public class SenseiServer {
         sb.append(String.valueOf(partitions[i]));
       }
       _partitionString = sb.toString();
-      _confDir = confDir;
+      _cluster = cluster;
+      _zoieSystemFactory = zoieSystemFactory;
+      _indexLoaderFactory = indexLoaderFactory;
+      _queryBuilderFactory = queryBuilderFactory;
     }
     
 	private static String help(){
@@ -71,45 +84,28 @@ public class SenseiServer {
 		return buffer.toString();
 	}
 	
-	private void start(boolean available) throws Exception
+	private static void loadJars(File extDir) throws MalformedURLException
 	{
-	    File confFile = new File(_confDir,DEFAULT_CONF_FILE);
-		File extDir = new File(_confDir,"ext");
-		File[] jarfiles = extDir.listFiles(new FilenameFilter(){
-
-			public boolean accept(File dir, String name) {
-				return name.endsWith(".jar");
-			}
-		});
-		
-
-		
-		if (jarfiles!=null && jarfiles.length > 0){
-		  URL[] jarURLs = new URL[jarfiles.length];
-		  ClassLoader parentLoader = Thread.currentThread().getContextClassLoader();
-		  for (int i=0;i<jarfiles.length;++i){
-			jarURLs[i] = new URL("jar:file://" + jarfiles[i].getAbsolutePath() + "!/");  
-		  }
-		  URLClassLoader classloader = new URLClassLoader(jarURLs,parentLoader);
-		  Thread.currentThread().setContextClassLoader(classloader);
-		}
-		
-		ApplicationContext springCtx = new FileSystemXmlApplicationContext("file:"+confFile.getAbsolutePath());
-		
-		// get config parameters
-//		SenseiClusterConfig clusterConfig = (SenseiClusterConfig)springCtx.getBean("cluster-config");
-		ClusterClient clusterClient = ClusterClientFactory.newInstance().newZookeeperClient();
-        String clusterName = clusterClient.getServiceName();
-//        String zookeeperURL = clusterConfig.getZooKeeperURL();
-//        int zookeeperTimeout = clusterConfig.getZooKeeperSessionTimeoutMillis();
-        
-        logger.info("ClusterName: " + clusterName);
-        logger.info("Cluster info: " + clusterClient.toString());
-//        logger.info("Zookeeper timeout: " + zookeeperTimeout);
-        
+	  File[] jarfiles = extDir.listFiles(new FilenameFilter(){
+        public boolean accept(File dir, String name) {
+            return name.endsWith(".jar");
+        }
+	  });
+      
+	  if (jarfiles!=null && jarfiles.length > 0){
+	    URL[] jarURLs = new URL[jarfiles.length];
+        ClassLoader parentLoader = Thread.currentThread().getContextClassLoader();
+        for (int i=0;i<jarfiles.length;++i){
+          jarURLs[i] = new URL("jar:file://" + jarfiles[i].getAbsolutePath() + "!/");  
+        }
+        URLClassLoader classloader = new URLClassLoader(jarURLs,parentLoader);
+        Thread.currentThread().setContextClassLoader(classloader);
+	  }
+	}
+	
+	public void start(boolean available) throws Exception
+	{        
         Map<Integer,SenseiQueryBuilderFactory> builderFactoryMap = new HashMap<Integer, SenseiQueryBuilderFactory>();
-		SenseiZoieSystemFactory<?> zoieSystemFactory = (SenseiZoieSystemFactory<?>)springCtx.getBean("zoie-system-factory");
-		SenseiIndexLoaderFactory indexLoaderFactory = (SenseiIndexLoaderFactory)springCtx.getBean("index-loader-factory");
         
 		Map<Integer,IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>> readerFactoryMap = 
 				new HashMap<Integer,IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>>();
@@ -118,12 +114,18 @@ public class SenseiServer {
         final HashSet<SenseiIndexLoader> indexLoaders = new HashSet<SenseiIndexLoader>();
 		
         MBeanServer mbeanServer = java.lang.management.ManagementFactory.getPlatformMBeanServer();
+
+//        ClusterClient clusterClient = ClusterClientFactory.newInstance().newZookeeperClient();
+        String clusterName = _cluster.getServiceName();
         
+        logger.info("ClusterName: " + clusterName);
+        logger.info("Cluster info: " + _cluster.toString());
+
 		for (int part : _partitions){
 		  //in simple case query builder is the same for each partition
-		  builderFactoryMap.put(part, (SenseiQueryBuilderFactory)springCtx.getBean("query-builder-factory"));
+		  builderFactoryMap.put(part, _queryBuilderFactory);
 			
-		  ZoieSystem<BoboIndexReader,?> zoieSystem = zoieSystemFactory.getZoieSystem(part);
+		  ZoieSystem<BoboIndexReader,?> zoieSystem = _zoieSystemFactory.getZoieSystem(part);
 		  
 		  // register ZoieSystemAdminMBean
 		  mbeanServer.registerMBean(new StandardMBean(zoieSystem.getAdminMBean(), ZoieSystemAdminMBean.class),
@@ -139,7 +141,7 @@ public class SenseiServer {
 		    zoieSystems.add(zoieSystem);
 		  }
 		  
-		  SenseiIndexLoader loader = indexLoaderFactory.getIndexLoader(part, zoieSystem);
+		  SenseiIndexLoader loader = _indexLoaderFactory.getIndexLoader(part, zoieSystem);
 		  if(!indexLoaders.contains(loader))
 		  {
 		    loader.start();
@@ -154,7 +156,7 @@ public class SenseiServer {
 		// create the zookeeper cluster client
 //		SenseiClusterClientImpl senseiClusterClient = new SenseiClusterClientImpl(clusterName, zookeeperURL, zookeeperTimeout, false);
 		
-		_node = new SenseiNode(clusterClient, _id, _port, msgHandler, _partitions);
+		_node = new SenseiNode(_cluster, _id, _port, msgHandler, _partitions);
 		_node.startup(available);
 		
 		SenseiServerAdminMBean mbean = getAdminMBean();
@@ -258,7 +260,25 @@ public class SenseiServer {
 	      }
 	    }
 	  }
-	  SenseiServer server = new SenseiServer(id, port, partitions, confDir);
+	  
+	  File confFile = new File(confDir,DEFAULT_CONF_FILE);
+	  File extDir = new File(confDir,"ext");
+	  
+	  ApplicationContext springCtx = new FileSystemXmlApplicationContext("file:"+confFile.getAbsolutePath());
+	  ApplicationContext clusterSpringCtx = new FileSystemXmlApplicationContext("file:" + (new File(confDir, SenseiDefaults.SENSEI_CLUSTER_CONF_FILE)).getAbsolutePath());
+	  // get config parameters
+	  ClusterClient cluster = (ZooKeeperClusterClient)clusterSpringCtx.getBean("zookeeper-cluster-client");
+      SenseiZoieSystemFactory<?> zoieSystemFactory = (SenseiZoieSystemFactory<?>)springCtx.getBean("zoie-system-factory");
+      SenseiIndexLoaderFactory<?> indexLoaderFactory = (SenseiIndexLoaderFactory)springCtx.getBean("index-loader-factory");
+      SenseiQueryBuilderFactory queryBuilderFactory = (SenseiQueryBuilderFactory)springCtx.getBean("query-builder-factory");
+      // get sensei node bean
+      
+	  SenseiServer server = new SenseiServer(id, port, partitions,
+	                                         extDir,
+	                                         cluster,
+	                                         zoieSystemFactory,
+	                                         indexLoaderFactory,
+	                                         queryBuilderFactory);
 	  server.start(available);
 	}
 }

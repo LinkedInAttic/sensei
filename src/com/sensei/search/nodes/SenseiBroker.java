@@ -21,8 +21,6 @@ import com.sensei.search.svc.api.SenseiException;
 
 public class SenseiBroker implements ClusterListener  {
   private final static Logger logger = Logger.getLogger(SenseiBroker.class);
-  private final ClusterClient _cluster;
-
   private final PartitionedNetworkClient<Integer> _networkClient;
 
   private volatile PartitionedLoadBalancerFactory<Integer> _routerFactory = null;
@@ -31,10 +29,8 @@ public class SenseiBroker implements ClusterListener  {
   private final SenseiRequestScatterRewriter _reqRewriter;
   private final SenseiScatterGatherHandler _scatterGatherHandler;
 
-  public SenseiBroker(ClusterClient cluster, PartitionedNetworkClient<Integer> networkClient,SenseiRequestScatterRewriter reqRewriter,
+  public SenseiBroker(PartitionedNetworkClient<Integer> networkClient,SenseiRequestScatterRewriter reqRewriter,
                       PartitionedLoadBalancerFactory<Integer> routerFactory) throws NorbertException{
-    _cluster = cluster;
-    _cluster.addListener(this);
     _routerFactory = routerFactory;
     _networkClient = networkClient;
     _reqRewriter = reqRewriter;

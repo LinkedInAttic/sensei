@@ -21,8 +21,6 @@ import proj.zoie.mbean.ZoieSystemAdminMBean;
 
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.linkedin.norbert.cluster.javaapi.ClusterClient;
-import com.linkedin.norbert.cluster.javaapi.ZooKeeperClusterClient;
-import com.sensei.search.cluster.client.ClusterClientFactory;
 import com.sensei.search.svc.api.SenseiException;
 
 /**
@@ -79,10 +77,6 @@ public class EmbeddedSenseiServer {
 	}
 
 	private void start(boolean available) throws Exception {
-		// get config parameters
-//		String clusterName = clusterConfig.getClusterName();
-//		String zookeeperURL = clusterConfig.getZooKeeperURL();
-//		int zooKeeperSessionTimeout = clusterConfig.getZooKeeperSessionTimeoutMillis();
 		String clusterName = clusterClient.getServiceName();
 		
 		logger.info("ClusterName: " + clusterName);
@@ -130,10 +124,8 @@ public class EmbeddedSenseiServer {
 
 		SenseiSearchContext ctx = new SenseiSearchContext(builderFactoryMap, readerFactoryMap);
 		SenseiNodeMessageHandler msgHandler = new SenseiNodeMessageHandler(ctx);
-		
-		ClusterClient client = ClusterClientFactory.newInstance().newZookeeperClient();
-		
-		_node = new SenseiNode(client, _id, _port, msgHandler, _partitions);
+
+		_node = new SenseiNode(clusterClient, _id, _port, msgHandler, _partitions);
 
 		_node.startup( available );
 

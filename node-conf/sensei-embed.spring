@@ -8,7 +8,8 @@
 	"
 >
 	<import resource="sensei-node.spring"/>
-
+	<import resource="sensei-cluster.spring"/>
+	
 	<bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer"/>
 
 	<bean id="embeddedSenseiServer" class="com.sensei.search.nodes.EmbeddedSenseiServer" init-method="start" destroy-method="shutdown">
@@ -16,7 +17,7 @@
 		<property name="id"         value="${node.id}"/>
 
 		<property name="partitions" value="1"/>
-		<property name="clusterConfig" ref="cluster-config"/>
+		<property name="clusterClient" ref="zookeeper-cluster-client"/>
 		<property name="zoieSystemMap">
 			<map>
 				<entry key="1" value-ref="zoieSystem"/>

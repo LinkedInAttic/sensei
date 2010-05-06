@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+						http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+      <import resource="sensei-test-cluster.spring" />
+
+      <bean id="network-client-config" class="com.linkedin.norbert.network.javaapi.NetworkClientConfig">
+		  <property name="serviceName" value="sensei"/>
+		  <property name="zooKeeperConnectString" value="localhost:2181"/>
+		  <property name="zooKeeperSessionTimeoutMillis" value="30000"/>
+		  <property name="connectTimeoutMillis" value="1000"/>
+		  <property name="writeTimeoutMillis" value="150"/>
+		  <property name="maxConnectionsPerNode" value="5"/>
+		  <property name="staleRequestTimeoutMins" value="10"/>
+		  <property name="staleRequestCleanupFrequencyMins" value="10"/>
+		  <property name="clusterClient" ref="in-memory-cluster-client" />
+      </bean>	
+      
+      <bean id="router-factory" class="com.sensei.search.cluster.routing.UniformPartitionedRoutingFactory">
+      </bean>
+      
+      <bean id="network-client" class="com.sensei.search.cluster.client.SenseiNetworkClient">
+         <constructor-arg ref="network-client-config" />
+         <constructor-arg ref="router-factory" />
+      </bean>
+</beans>
