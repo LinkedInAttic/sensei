@@ -81,7 +81,8 @@ public class EmbeddedSenseiServer {
 		// get config parameters
 		String clusterName = clusterConfig.getClusterName();
 		String zookeeperURL = clusterConfig.getZooKeeperURL();
-
+		int zooKeeperSessionTimeout = clusterConfig.getZooKeeperSessionTimeoutMillis();
+		
 		logger.info("ClusterName: " + clusterName);
 		logger.info("ZooKeeperURL: " + zookeeperURL);
 
@@ -127,7 +128,7 @@ public class EmbeddedSenseiServer {
 
 		SenseiSearchContext ctx = new SenseiSearchContext(builderFactoryMap, readerFactoryMap);
 		SenseiNodeMessageHandler msgHandler = new SenseiNodeMessageHandler(ctx);
-		_node = new SenseiNode(clusterName,_id,_port,new MessageHandler[] {msgHandler},zookeeperURL,_partitions);
+		_node = new SenseiNode(clusterName,_id,_port, msgHandler,zookeeperURL,_partitions, zooKeeperSessionTimeout);
 
 		_node.startup( available );
 
