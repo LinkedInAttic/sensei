@@ -32,10 +32,7 @@ public class SenseiClusterClient {
 	
 	static BrowseRequestBuilder _reqBuilder = new BrowseRequestBuilder();
 	
-	private static final String DEFAULT_CONF_FILE = SenseiDefaults.SENSEI_CLUSTER_CONF_FILE;
 	private static final String DEFAULT_ZK_URL = "localhost:2181";
-	private static final int DEFAULT_ZK_TIMEOUT = 30000;
-	private static final String DEFAULT_CLUSTER_NAME = "sensei";
 	
 	private static PartitionedNetworkClient<Integer> _networkClient = null;
   
@@ -63,36 +60,37 @@ public class SenseiClusterClient {
 	 */
 	public static void main(String[] args) throws Exception{
 
-	    String clusterName;
-	    String zookeeperURL;
-	    SenseiClusterConfig clusterConfig;
-	    File confFile = null;
-	    if (args.length < 1){
-          System.out.println("no config specified, defaulting to default: "+DEFAULT_CLUSTER_NAME + " at " + DEFAULT_ZK_URL);
-          clusterName = DEFAULT_CLUSTER_NAME;
-          zookeeperURL = DEFAULT_ZK_URL;
-	    }
-	    else{
-	      File confDir = new File(args[0]);
-	      confFile = new File(confDir,DEFAULT_CONF_FILE);;
-	      ApplicationContext springCtx = new FileSystemXmlApplicationContext("file:"+confFile.getAbsolutePath());
-        
-          // get config parameters
-          clusterConfig = (SenseiClusterConfig)springCtx.getBean("cluster-config");
-          clusterName = clusterConfig.getClusterName();
-          zookeeperURL = clusterConfig.getZooKeeperURL();
-	    }
+//	    String clusterName;
+//	    String zookeeperURL;
+//	    SenseiClusterConfig clusterConfig;
+//	    File confFile = null;
+//	    if (args.length < 1){
+//          System.out.println("no config specified, defaulting to default: "+DEFAULT_CLUSTER_NAME + " at " + DEFAULT_ZK_URL);
+//          clusterName = DEFAULT_CLUSTER_NAME;
+//          zookeeperURL = DEFAULT_ZK_URL;
+//	    }
+//	    else{
+//	      File confDir = new File(args[0]);
+//	      confFile = new File(confDir,DEFAULT_CONF_FILE);;
+//	      ApplicationContext springCtx = new FileSystemXmlApplicationContext("file:"+confFile.getAbsolutePath());
+//        
+//          // get config parameters
+//          clusterConfig = (SenseiClusterConfig)springCtx.getBean("cluster-config");
+//          clusterName = clusterConfig.getClusterName();
+//          zookeeperURL = clusterConfig.getZooKeeperURL();
+//	    }
+//		
+//		// create the zookeeper cluster client
+//		SenseiClusterClientImpl senseiClusterClient = new SenseiClusterClientImpl(confFile, false);
+//		_cluster = senseiClusterClient.getClusterClient();
+		_cluster = ClusterClientFactory.newInstance().newZookeeperClient();
 		
-		// create the zookeeper cluster client
-		SenseiClusterClientImpl senseiClusterClient = new SenseiClusterClientImpl(confFile, false);
-		_cluster = senseiClusterClient.getClusterClient();
-		
-        System.out.println("connecting to cluster at "+ zookeeperURL + "... ");
+	    System.out.println("connecting to cluster at "+ DEFAULT_ZK_URL + "... ");
 	    
 	    PartitionedLoadBalancerFactory<Integer> routingFactory = new UniformPartitionedRoutingFactory();
 	    
 	    // create the network client
-        _networkClient = new SenseiNetworkClient(confFile, _cluster, routingFactory);
+        _networkClient = new SenseiNetworkClient(new File(new File(args[0]), SenseiDefaults.SENSEI_CLUSTER_CONF_FILE), _cluster, routingFactory);
 
 	    // register the request-response messages
         _networkClient.registerRequest(SenseiRequestBPO.Request.getDefaultInstance(), SenseiResultBPO.Result.getDefaultInstance());

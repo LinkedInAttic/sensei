@@ -20,52 +20,35 @@ import com.sensei.search.server.SenseiNetworkServer;
 public class SenseiNode{
 	private static Logger logger = Logger.getLogger(SenseiNode.class);
 	
-	private final String _zookeeperURL;
 	private final int _id;
 	private final MessageHandler _msgHandler;
 	private final Set<Integer> _partitions;
-	private final String _clusterName;
 	private ClusterClient _cluster;
 	private NetworkServer _server;
 	private volatile Node _node;
 	private volatile boolean _available = false;
 	private final int _port;
-    private int _zooKeeperSessionTimeoutMillis; 
-    private SenseiClusterClientImpl _senseiClusterClient;
 	
-	public SenseiNode(String clusterName,int id,int port,MessageHandler msgHandler,String zookeeperURL,int[] partitions,
-	                  int zooKeeperSessionTimeoutMillis){
+	public SenseiNode(ClusterClient client, int id, int port, MessageHandler msgHandler, int[] partitions){
 		_id = id;
 		_port = port;
 		_msgHandler = msgHandler;
-		_zookeeperURL = zookeeperURL;
-		_clusterName = clusterName;
-		_zooKeeperSessionTimeoutMillis = zooKeeperSessionTimeoutMillis;
         _partitions = new HashSet<Integer>();
 		for(int partition : partitions) {
 		  _partitions.add(partition);
 		}
-		_senseiClusterClient = null;
+		_cluster = client;
+		if(_cluster == null)
+		  throw new IllegalArgumentException("Valid cluster client should be specified ");
 	}
 	
-	public ClusterClient getClusterClient() 
-	{
-	  if(_senseiClusterClient == null)
-	    _senseiClusterClient = new SenseiClusterClientImpl(_clusterName, true);
-
-	  _cluster = _senseiClusterClient.getClusterClient();
-	  return _cluster;
-	}
-
-	public void setClusterClient(SenseiClusterClientImpl senseiClusterClient)
-	{
-	  _senseiClusterClient = senseiClusterClient;
+	public void setClusterClient(ClusterClient senseiClusterClient) {
+	  _cluster = senseiClusterClient;
 	}
 	
-	public void startup(boolean markAvailable) throws Exception{
-      _cluster = this.getClusterClient();
-      
+	public void startup(boolean markAvailable) throws Exception{      
 	  _server = new SenseiNetworkServer(_cluster);
+	  
 	  _server.registerHandler(SenseiRequestBPO.Request.getDefaultInstance(), SenseiResultBPO.Result.getDefaultInstance(), _msgHandler);
 
 	  boolean nodeExists = false;
@@ -95,10 +78,6 @@ public class SenseiNode{
 	  try {
 	    logger.info("binding server ...");
 	    _server.bind(_id, markAvailable);
-//	    if(markAvailable)
-//	      _cluster.markNodeAvailable(_id);
-//	    else
-//	      _cluster.markNodeUnavailable(_id);
 
 	    // exponential backoff
 	    Thread.sleep(1000);

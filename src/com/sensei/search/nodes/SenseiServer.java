@@ -24,6 +24,8 @@ import proj.zoie.mbean.ZoieIndexingStatusAdminMBean;
 import proj.zoie.mbean.ZoieSystemAdminMBean;
 
 import com.browseengine.bobo.api.BoboIndexReader;
+import com.linkedin.norbert.cluster.javaapi.ClusterClient;
+import com.sensei.search.cluster.client.ClusterClientFactory;
 import com.sensei.search.cluster.client.SenseiClusterClientImpl;
 import com.sensei.search.svc.api.SenseiException;
 
@@ -95,14 +97,15 @@ public class SenseiServer {
 		ApplicationContext springCtx = new FileSystemXmlApplicationContext("file:"+confFile.getAbsolutePath());
 		
 		// get config parameters
-		SenseiClusterConfig clusterConfig = (SenseiClusterConfig)springCtx.getBean("cluster-config");
-        String clusterName = clusterConfig.getClusterName();
-        String zookeeperURL = clusterConfig.getZooKeeperURL();
-        int zookeeperTimeout = clusterConfig.getZooKeeperSessionTimeoutMillis();
+//		SenseiClusterConfig clusterConfig = (SenseiClusterConfig)springCtx.getBean("cluster-config");
+		ClusterClient clusterClient = ClusterClientFactory.newInstance().newZookeeperClient();
+        String clusterName = clusterClient.getServiceName();
+//        String zookeeperURL = clusterConfig.getZooKeeperURL();
+//        int zookeeperTimeout = clusterConfig.getZooKeeperSessionTimeoutMillis();
         
         logger.info("ClusterName: " + clusterName);
-        logger.info("ZooKeeperURL: " + zookeeperURL);
-        logger.info("Zookeeper timeout: " + zookeeperTimeout);
+        logger.info("Cluster info: " + clusterClient.toString());
+//        logger.info("Zookeeper timeout: " + zookeeperTimeout);
         
         Map<Integer,SenseiQueryBuilderFactory> builderFactoryMap = new HashMap<Integer, SenseiQueryBuilderFactory>();
 		SenseiZoieSystemFactory<?> zoieSystemFactory = (SenseiZoieSystemFactory<?>)springCtx.getBean("zoie-system-factory");
@@ -149,13 +152,9 @@ public class SenseiServer {
 		SenseiNodeMessageHandler msgHandler = new SenseiNodeMessageHandler(ctx);
 	
 		// create the zookeeper cluster client
-		SenseiClusterClientImpl senseiClusterClient = new SenseiClusterClientImpl(clusterName, zookeeperURL, zookeeperTimeout, false);
-
-		_node = new SenseiNode(clusterName, _id, _port, msgHandler, zookeeperURL, _partitions, 
-		                       zookeeperTimeout);
+//		SenseiClusterClientImpl senseiClusterClient = new SenseiClusterClientImpl(clusterName, zookeeperURL, zookeeperTimeout, false);
 		
-		_node.setClusterClient(senseiClusterClient);
-		
+		_node = new SenseiNode(clusterClient, _id, _port, msgHandler, _partitions);
 		_node.startup(available);
 		
 		SenseiServerAdminMBean mbean = getAdminMBean();
