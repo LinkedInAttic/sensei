@@ -2,15 +2,15 @@ package com.sensei.search.nodes;
 
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
 
 import com.google.protobuf.Message;
 import com.google.protobuf.TextFormat.ParseException;
-import com.linkedin.norbert.cluster.Node;
+import com.linkedin.norbert.cluster.javaapi.Node;
 import com.linkedin.norbert.network.javaapi.ScatterGatherHandler;
 import com.sensei.search.client.ResultMerger;
 import com.sensei.search.req.SenseiRequest;
@@ -33,7 +33,7 @@ public class SenseiScatterGatherHandler implements ScatterGatherHandler<SenseiRe
     _reqRewriter = reqRewriter;
   }
 
-  public Message customizeMessage(Message msg, Node node, List<Integer> partitionList) throws Exception
+  public Message customizeMessage(Message msg, Node node, Set<Integer> partitions) throws Exception
   {
     SenseiRequestBPO.Request req = (SenseiRequestBPO.Request)msg;
     try{
@@ -42,11 +42,6 @@ public class SenseiScatterGatherHandler implements ScatterGatherHandler<SenseiRe
       
       int oldOffset = senseiReq.getOffset();
       int oldCount = senseiReq.getCount();
-      Integer[] partitions = new Integer[partitionList.size()];
-      for(int i = 0;i < partitionList.size();i ++)
-      {
-        partitions[i] = partitionList.get(i);
-      }
       if (_reqRewriter!=null){
           senseiReq = _reqRewriter.rewrite(senseiReq, node, partitions);
       }
@@ -55,7 +50,7 @@ public class SenseiScatterGatherHandler implements ScatterGatherHandler<SenseiRe
       senseiReq.setCount(oldOffset+oldCount);
       senseiReq.setPartitions(partitions);
 
-      logger.info("scattering to partitions: "+ Arrays.toString(partitions));
+      logger.info("scattering to partitions: "+ partitions.toString());
       return SenseiRequestBPOConverter.convert(senseiReq);
     }
     catch(ParseException pe){
@@ -103,4 +98,5 @@ public class SenseiScatterGatherHandler implements ScatterGatherHandler<SenseiRe
       throw new RuntimeException(pe.getMessage(),pe);
     }
   }
+
 }

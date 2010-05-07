@@ -160,10 +160,10 @@ public class SenseiNodeMessageHandler implements MessageHandler {
 		SenseiRequest senseiReq = SenseiRequestBPOConverter.convert(req);
 		
 		SenseiResult finalResult=null;
-		Integer[] partitions = senseiReq.getPartitions();
-		logger.info("serving partitions: "+Arrays.toString(partitions));
-		if (partitions!=null && partitions.length>0){
-			ArrayList<SenseiResult> resultList = new ArrayList<SenseiResult>(partitions.length);
+		Set<Integer> partitions = senseiReq.getPartitions();
+		logger.info("serving partitions: "+ partitions.toString());
+		if (partitions!=null && partitions.size() > 0){
+			ArrayList<SenseiResult> resultList = new ArrayList<SenseiResult>(partitions.size());
 			for (int partition : partitions){
 			  try{
 			    IndexReaderFactory<ZoieIndexReader<BoboIndexReader>> readerFactory=_partReaderMap.get(partition);

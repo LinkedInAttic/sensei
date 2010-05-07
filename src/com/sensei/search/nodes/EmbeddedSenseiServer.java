@@ -1,11 +1,10 @@
 package com.sensei.search.nodes;
 
+import java.lang.management.ManagementFactory;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-
-import java.lang.management.ManagementFactory;
 
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
@@ -21,7 +20,7 @@ import proj.zoie.mbean.ZoieIndexingStatusAdminMBean;
 import proj.zoie.mbean.ZoieSystemAdminMBean;
 
 import com.browseengine.bobo.api.BoboIndexReader;
-import com.linkedin.norbert.network.javaapi.MessageHandler;
+import com.linkedin.norbert.cluster.javaapi.ClusterClient;
 import com.sensei.search.svc.api.SenseiException;
 
 /**
@@ -53,7 +52,7 @@ public class EmbeddedSenseiServer {
 	private int _id;
 	private int _port;
 	private int[] _partitions;
-	private SenseiClusterConfig clusterConfig;
+	private ClusterClient clusterClient;
 	private SenseiZoieSystemFactory<?> zoieSystemFactory;
 	private SenseiIndexLoaderFactory indexLoaderFactory;
 	private Map<Integer,SenseiQueryBuilderFactory> builderFactoryMap;
@@ -78,13 +77,10 @@ public class EmbeddedSenseiServer {
 	}
 
 	private void start(boolean available) throws Exception {
-		// get config parameters
-		String clusterName = clusterConfig.getClusterName();
-		String zookeeperURL = clusterConfig.getZooKeeperURL();
-		int zooKeeperSessionTimeout = clusterConfig.getZooKeeperSessionTimeoutMillis();
+		String clusterName = clusterClient.getServiceName();
 		
 		logger.info("ClusterName: " + clusterName);
-		logger.info("ZooKeeperURL: " + zookeeperURL);
+		logger.info("ZooKeeperURL: " + clusterClient.toString());
 
 		Map<Integer,IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>> readerFactoryMap = (
 			new HashMap<Integer,IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>>()
@@ -128,7 +124,8 @@ public class EmbeddedSenseiServer {
 
 		SenseiSearchContext ctx = new SenseiSearchContext(builderFactoryMap, readerFactoryMap);
 		SenseiNodeMessageHandler msgHandler = new SenseiNodeMessageHandler(ctx);
-		_node = new SenseiNode(clusterName,_id,_port, msgHandler,zookeeperURL,_partitions, zooKeeperSessionTimeout);
+
+		_node = new SenseiNode(clusterClient, _id, _port, msgHandler, _partitions);
 
 		_node.startup( available );
 
@@ -256,14 +253,6 @@ public class EmbeddedSenseiServer {
 
 	public void setZoieSystemMap( Map< Integer, ZoieSystem<BoboIndexReader,?> > zoieSystemMap ) {
 		this.zoieSystemMap = zoieSystemMap;
-	}
-
-	public SenseiClusterConfig getClusterConfig() {
-		return this.clusterConfig;
-	}
-
-	public void setClusterConfig( SenseiClusterConfig clusterConfig ) {
-		this.clusterConfig = clusterConfig;
 	}
 
 	public SenseiZoieSystemFactory<?> getZoieSystemFactory() {

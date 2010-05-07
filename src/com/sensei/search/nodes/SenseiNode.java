@@ -2,15 +2,16 @@ package com.sensei.search.nodes;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 
-import com.linkedin.norbert.cluster.Node;
 import com.linkedin.norbert.cluster.javaapi.ClusterClient;
+import com.linkedin.norbert.cluster.javaapi.Node;
 import com.linkedin.norbert.network.NetworkingException;
 import com.linkedin.norbert.network.javaapi.MessageHandler;
 import com.linkedin.norbert.network.javaapi.NetworkServer;
-import com.sensei.search.cluster.client.SenseiClusterClientImpl;
 import com.sensei.search.req.protobuf.SenseiRequestBPO;
 import com.sensei.search.req.protobuf.SenseiResultBPO;
 import com.sensei.search.server.SenseiNetworkServer;
@@ -18,49 +19,35 @@ import com.sensei.search.server.SenseiNetworkServer;
 public class SenseiNode{
 	private static Logger logger = Logger.getLogger(SenseiNode.class);
 	
-	private final String _zookeeperURL;
 	private final int _id;
 	private final MessageHandler _msgHandler;
-	private final int[] _partitions;
-	private final String _clusterName;
+	private final Set<Integer> _partitions;
 	private ClusterClient _cluster;
 	private NetworkServer _server;
 	private volatile Node _node;
 	private volatile boolean _available = false;
 	private final int _port;
-    private int _zooKeeperSessionTimeoutMillis; 
-    private SenseiClusterClientImpl _senseiClusterClient;
 	
-	public SenseiNode(String clusterName,int id,int port,MessageHandler msgHandler,String zookeeperURL,int[] partitions,
-	                  int zooKeeperSessionTimeoutMillis){
+	public SenseiNode(ClusterClient client, int id, int port, MessageHandler msgHandler, int[] partitions){
 		_id = id;
 		_port = port;
 		_msgHandler = msgHandler;
-		_zookeeperURL = zookeeperURL;
-		_clusterName = clusterName;
-		_zooKeeperSessionTimeoutMillis = zooKeeperSessionTimeoutMillis;
-		_partitions = partitions;
-		_senseiClusterClient = null;
+        _partitions = new HashSet<Integer>();
+		for(int partition : partitions) {
+		  _partitions.add(partition);
+		}
+		_cluster = client;
+		if(_cluster == null)
+		  throw new IllegalArgumentException("Valid cluster client should be specified ");
 	}
 	
-	public ClusterClient getClusterClient() 
-	{
-	  if(_senseiClusterClient == null)
-	    _senseiClusterClient = new SenseiClusterClientImpl(_clusterName, true);
-
-	  _cluster = _senseiClusterClient.getClusterClient();
-	  return _cluster;
-	}
-
-	public void setClusterClient(SenseiClusterClientImpl senseiClusterClient)
-	{
-	  _senseiClusterClient = senseiClusterClient;
+	public void setClusterClient(ClusterClient senseiClusterClient) {
+	  _cluster = senseiClusterClient;
 	}
 	
-	public void startup(boolean markAvailable) throws Exception{
-      _cluster = this.getClusterClient();
-      
+	public void startup(boolean markAvailable) throws Exception{      
 	  _server = new SenseiNetworkServer(_cluster);
+	  
 	  _server.registerHandler(SenseiRequestBPO.Request.getDefaultInstance(), SenseiResultBPO.Result.getDefaultInstance(), _msgHandler);
 
 	  boolean nodeExists = false;
@@ -70,14 +57,16 @@ public class SenseiNode{
 	    _node = _cluster.getNodeWithId(_id);
 	    nodeExists = (_node!=null); 
 	    if (!nodeExists){
-	      // ideally it should be as shown below, but due to a norbert bug, have to reparse the ip address string
-//	      String ipAddr = (new InetSocketAddress(InetAddress.getLocalHost(),_port)).toString();
 	      String ipAddr = (new InetSocketAddress(InetAddress.getLocalHost().getHostAddress(), _port)).toString().replaceAll("/", "");
+	      
 	      System.out.println("Node id : " + _id + " IP address : " + ipAddr);
+	      
 	      _node = _cluster.addNode(_id, ipAddr, _partitions);
-	      Thread.sleep(1000);
 
 	      logger.info("added node id: "+_id);
+	    }else {
+	      // node exists 
+	      
 	    }
 	  }
 	  catch(Exception e){
@@ -87,16 +76,17 @@ public class SenseiNode{
 
 	  try {
 	    logger.info("binding server ...");
-	    _server.bind(_id);
-	    if(markAvailable)
-	      _cluster.markNodeAvailable(_id);
-	    else
-	      _cluster.markNodeUnavailable(_id);
+	    _server.bind(_id, markAvailable);
+
+	    // exponential backoff
+	    Thread.sleep(1000);
+
 	    _available = markAvailable;
 	    logger.info("started [markAvailable=" + markAvailable + "] ...");
 	    if (nodeExists){
 	      logger.warn("existing node found, will try to overwrite.");
 	      try{
+	        // remove node above 
 	        _cluster.removeNode(_id);
 	        _node = null;
 	      }
@@ -168,7 +158,7 @@ public class SenseiNode{
 	  {
 	    logger.error(e.getMessage(), e);
 	  }
-	  _available = (_node != null ? _node.available() : false);
+	  _available = (_node != null ? _node.isAvailable() : false);
 
 	  return _available;
 	}

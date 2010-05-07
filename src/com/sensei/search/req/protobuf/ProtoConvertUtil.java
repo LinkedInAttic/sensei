@@ -6,6 +6,8 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 
@@ -305,7 +307,7 @@ public class ProtoConvertUtil {
      * @return                  the deserialized integer array
      * @throws ParseException
      */
-    public static Integer[] toIntegerArray(ByteString byteString) throws ParseException{
+    public static Set<Integer> toIntegerSet(ByteString byteString) throws ParseException{
         if (byteString==null) return null;
         try{
             int bytesIndex = 0;
@@ -325,15 +327,13 @@ public class ProtoConvertUtil {
             dataLength = ( (d1 << 24) + (d2 << 16) + (d3 << 8) + (d4 << 0));
             
             // allocate the integer array
-            Integer[] data = new Integer[dataLength];
-            int dataIndex = 0;
+            Set<Integer> data = new HashSet<Integer>(dataLength);
             while( (bytesIndex+4) <= bytesCount) {
                 d1 = (0x000000FF & (int)bytes[bytesIndex++]);
                 d2 = (0x000000FF & (int)bytes[bytesIndex++]);
                 d3 = (0x000000FF & (int)bytes[bytesIndex++]);
                 d4 = (0x000000FF & (int)bytes[bytesIndex++]);
-//              unsignedInt = ((long) (d1 << 24 | d2 << 16 | d3 << 8 | d4)) & 0xFFFFFFFFL;
-                data[dataIndex++] = ( (d1 << 24) + (d2 << 16) + (d3 << 8) + (d4 << 0) );
+                data.add( (d1 << 24) + (d2 << 16) + (d3 << 8) + (d4 << 0) );
             }
             return data;
         }

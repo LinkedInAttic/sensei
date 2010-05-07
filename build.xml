@@ -3,6 +3,7 @@
 	<property name="src" value="src" />
 
 	<property name="conf.dir" location="node-conf" />
+        <property name="test.conf.dir" location="test/conf"/>
 
 	<property name="lib.base" location="lib" />
 	<property name="lib.dir" location="${lib.base}/master" />
@@ -40,7 +41,9 @@
 		<path location="${build.test}" />
 		<fileset dir="${lib.test}" />
 		<path refid="compile.class.path" />
-		<fileset dir="${resources}" />
+		<fileset dir="${resources}">
+                    <include name="log4j.*" />
+                </fileset>
 	</path>
 
 	<path id="java.class.path">
@@ -123,6 +126,8 @@
 		<junit printsummary="yes" showoutput="yes">
 			<sysproperty key="log.home" value="${logs}" />
 			<sysproperty key="idx.dir" value="data/cardata" />
+                        <sysproperty key="log4j.configuration" value="resources/log4j.properties" />
+
 			<jvmarg value="-server" />
 			<jvmarg value="-Xms256m" />
 			<jvmarg value="-Xmx1g" />
