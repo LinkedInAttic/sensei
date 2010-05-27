@@ -165,7 +165,7 @@ public class SenseiNode{
 	}
 
 	public void shutdown() throws Exception{
-	  logger.info("shutting down...");
+	  logger.info("shutting down node...");
 	  try
 	  {
 	    _cluster.removeNode(_id);
@@ -175,15 +175,8 @@ public class SenseiNode{
 	    logger.warn(e.getMessage());
 	  }
 	  finally{
-	    try{
-	      if (_server!=null){
-	        _server.shutdown();
-	      }
-	    }
-	    finally{
-	      if (_cluster!=null){
-	        _cluster.shutdown();
-	      }
+	    if (_server!=null){
+	      _server.shutdown();
 	    }
 	  }
 	}

@@ -12,7 +12,6 @@ import org.junit.Before;
 
 import com.linkedin.norbert.NorbertException;
 import com.linkedin.norbert.cluster.ClusterShutdownException;
-import com.sensei.search.cluster.routing.UniformPartitionedRoutingFactory;
 import com.sensei.search.nodes.NoOpIndexableInterpreter;
 import com.sensei.search.nodes.SenseiBroker;
 import com.sensei.search.nodes.SenseiNode;
@@ -71,8 +70,7 @@ public class SenseiTestCase extends AbstractSenseiTestCase {
 	      // register the request-response messages
 		SenseiBroker broker= null;
 	      try{
-	        broker = new SenseiBroker(networkClient, null, new UniformPartitionedRoutingFactory());
-	        clusterClient.addListener(broker);
+	        broker = new SenseiBroker(networkClient, clusterClient, requestRewriter, routerFactory);
 	      }
 	      catch(NorbertException ne){
 	        logger.info("shutting down cluster...");
@@ -104,23 +102,24 @@ public class SenseiTestCase extends AbstractSenseiTestCase {
         logger.info("Query results received with numhits = " + res.getNumHits());
 		
 		assertEquals(45000, res.getNumHits());
-		try{
-		  logger.info("shutting down client...");
-		  broker.shutdown();
-		}
-		finally{
-		  logger.info("shutting down cluster...");
-		  try{
-		    clusterClient.shutdown();
-		  } catch (ClusterShutdownException e) {
-		    logger.error(e.getMessage(),e);
-		  } 
-		}
-		logger.info("cluster client shutdown");
+		
+		broker.shutdown();
+        logger.info("Broker shutdown");
+
 		node1.shutdown();
         logger.info("Node 1 shutdown");
-		node2.shutdown();
+
+        node2.shutdown();
         logger.info("Node 2 shutdown");
+        
+        logger.info("shutting down cluster...");
+        try{
+          clusterClient.shutdown();
+          logger.info("Cluster shutdown");
+        }
+        catch (ClusterShutdownException e) {
+          logger.error(e.getMessage(),e);
+        }
 	}
 	
 	public void testExt(){

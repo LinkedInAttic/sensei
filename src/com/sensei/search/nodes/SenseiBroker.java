@@ -12,16 +12,18 @@ import com.linkedin.norbert.cluster.javaapi.ClusterListener;
 import com.linkedin.norbert.cluster.javaapi.Node;
 import com.linkedin.norbert.network.javaapi.PartitionedLoadBalancerFactory;
 import com.linkedin.norbert.network.javaapi.PartitionedNetworkClient;
+import com.sensei.search.cluster.client.SenseiNetworkClient;
 import com.sensei.search.cluster.routing.UniformPartitionedLoadBalancer;
 import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.req.SenseiResult;
 import com.sensei.search.req.protobuf.SenseiRequestBPO;
 import com.sensei.search.req.protobuf.SenseiRequestBPOConverter;
+import com.sensei.search.req.protobuf.SenseiResultBPO;
 import com.sensei.search.svc.api.SenseiException;
 
 public class SenseiBroker implements ClusterListener  {
   private final static Logger logger = Logger.getLogger(SenseiBroker.class);
-  private final PartitionedNetworkClient<Integer> _networkClient;
+  private final SenseiNetworkClient _networkClient;
 
   private volatile PartitionedLoadBalancerFactory<Integer> _routerFactory = null;
 
@@ -29,12 +31,19 @@ public class SenseiBroker implements ClusterListener  {
   private final SenseiRequestScatterRewriter _reqRewriter;
   private final SenseiScatterGatherHandler _scatterGatherHandler;
 
-  public SenseiBroker(PartitionedNetworkClient<Integer> networkClient,SenseiRequestScatterRewriter reqRewriter,
+  public SenseiBroker(SenseiNetworkClient networkClient,
+                      ClusterClient clusterClient,
+                      SenseiRequestScatterRewriter reqRewriter,
                       PartitionedLoadBalancerFactory<Integer> routerFactory) throws NorbertException{
     _routerFactory = routerFactory;
     _networkClient = networkClient;
     _reqRewriter = reqRewriter;
     _scatterGatherHandler = new SenseiScatterGatherHandler(_reqRewriter);
+    
+    // register the request-response messages
+    _networkClient.registerRequest(SenseiRequestBPO.Request.getDefaultInstance(), SenseiResultBPO.Result.getDefaultInstance());
+
+    clusterClient.addListener(this);
   }
 
   public SenseiResult browse(SenseiRequest req) throws SenseiException{
@@ -70,6 +79,7 @@ public class SenseiBroker implements ClusterListener  {
   }
 
   public void shutdown(){
+    logger.info("shutting down broker...");
   }
 
   /* (non-Javadoc)

@@ -16,9 +16,11 @@ import com.linkedin.norbert.NorbertException;
 import com.linkedin.norbert.cluster.javaapi.ClusterClient;
 import com.linkedin.norbert.cluster.javaapi.Node;
 import com.linkedin.norbert.cluster.javaapi.ZooKeeperClusterClient;
+import com.linkedin.norbert.network.javaapi.PartitionedLoadBalancerFactory;
 import com.linkedin.norbert.network.javaapi.PartitionedNetworkClient;
 import com.sensei.search.cluster.routing.UniformPartitionedRoutingFactory;
 import com.sensei.search.nodes.SenseiBroker;
+import com.sensei.search.nodes.SenseiRequestScatterRewriter;
 import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.req.SenseiResult;
 import com.sensei.search.req.protobuf.SenseiRequestBPO;
@@ -31,10 +33,7 @@ public class SenseiClusterClient {
 	
 	static BrowseRequestBuilder _reqBuilder = new BrowseRequestBuilder();
 	
-	private static final String DEFAULT_CLUSTER_NAME = "sensei";
-	private static final String DEFAULT_ZK_URL = "localhost:2181";
-	
-	private static PartitionedNetworkClient<Integer> _networkClient = null;
+	private static SenseiNetworkClient _networkClient = null;
   
 	private static ClusterClient _clusterClient = null;
 	
@@ -63,26 +62,22 @@ public class SenseiClusterClient {
 	    File confFile = null;
 	    ApplicationContext springCtx = null;
 	    if (args.length < 1){
-          System.out.println("no config specified, defaulting to default: " + DEFAULT_CLUSTER_NAME + " at " + DEFAULT_ZK_URL);
+          System.out.println("no config specified. specify the config dir");
+          return;
 	    }
-	    else{
-	      File confDir = new File(args[0]);
-	      confFile = new File(confDir , SenseiDefaults.SENSEI_CLIENT_CONF_FILE);
-	      springCtx = new FileSystemXmlApplicationContext("file:"+confFile.getAbsolutePath());
-	    }
+
+	    File confDir = new File(args[0]);
+	    confFile = new File(confDir , SenseiDefaults.SENSEI_CLIENT_CONF_FILE);
+	    springCtx = new FileSystemXmlApplicationContext("file:"+confFile.getAbsolutePath());
 
 	    // create the network client
 	    _networkClient = (SenseiNetworkClient)springCtx.getBean("network-client");
-        _clusterClient = (ZooKeeperClusterClient)springCtx.getBean("cluster-client");
-        
-	     System.out.println("connecting to cluster at "+ DEFAULT_ZK_URL + "... ");
-
-	    // register the request-response messages
-        _networkClient.registerRequest(SenseiRequestBPO.Request.getDefaultInstance(), SenseiResultBPO.Result.getDefaultInstance());
+        _clusterClient = (ClusterClient)springCtx.getBean("cluster-client");
+        PartitionedLoadBalancerFactory<Integer> balancerFactory = (PartitionedLoadBalancerFactory<Integer>)springCtx.getBean("router-factory");
+        SenseiRequestScatterRewriter requestRewriter = (SenseiRequestScatterRewriter)springCtx.getBean("request-rewriter");;
         
         // create the broker
-		_broker = new SenseiBroker(_networkClient, null, new UniformPartitionedRoutingFactory());
-	    _clusterClient.addListener(_broker);
+		_broker = new SenseiBroker(_networkClient, _clusterClient, requestRewriter, balancerFactory);
 
 		Runtime.getRuntime().addShutdownHook(new Thread(){
 			public void run(){

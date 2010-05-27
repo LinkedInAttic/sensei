@@ -56,8 +56,9 @@
        <property name="clusterClient" ref="cluster-client" />
     </bean>	
     
-    <bean id="router-factory" class="com.sensei.search.cluster.routing.UniformPartitionedRoutingFactory">
-    </bean>
+    <bean id="request-rewriter" class="com.sensei.search.nodes.impl.NoopRequestScatterRewriter" />
+    
+    <bean id="router-factory" class="com.sensei.search.cluster.routing.UniformPartitionedRoutingFactory" />
     
     <bean id="network-client" class="com.sensei.search.cluster.client.SenseiNetworkClient">
         <constructor-arg ref="network-client-config" />
