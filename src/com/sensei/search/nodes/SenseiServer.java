@@ -269,14 +269,12 @@ public class SenseiServer {
 	  File extDir = new File(confDir,"ext");
 	  
 	  ApplicationContext springCtx = new FileSystemXmlApplicationContext("file:"+confFile.getAbsolutePath());
-	  ApplicationContext clusterSpringCtx = new FileSystemXmlApplicationContext("file:" + (new File(confDir, SenseiDefaults.SENSEI_NODE_CONF_FILE)).getAbsolutePath());
-	  // get config parameters
-	  NetworkServer networkServer = (NetworkServer)clusterSpringCtx.getBean("network-server");
-      ClusterClient clusterClient = (ZooKeeperClusterClient)clusterSpringCtx.getBean("cluster-client");
+	  
+	  NetworkServer networkServer = (NetworkServer)springCtx.getBean("network-server");
+      ClusterClient clusterClient = (ZooKeeperClusterClient)springCtx.getBean("cluster-client");
       SenseiZoieSystemFactory<?> zoieSystemFactory = (SenseiZoieSystemFactory<?>)springCtx.getBean("zoie-system-factory");
       SenseiIndexLoaderFactory<?> indexLoaderFactory = (SenseiIndexLoaderFactory)springCtx.getBean("index-loader-factory");
       SenseiQueryBuilderFactory queryBuilderFactory = (SenseiQueryBuilderFactory)springCtx.getBean("query-builder-factory");
-      // get sensei node bean
       
 	  SenseiServer server = new SenseiServer(id, port, partitions,
 	                                         extDir,
