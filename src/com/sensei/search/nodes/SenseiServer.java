@@ -27,6 +27,7 @@ import proj.zoie.mbean.ZoieSystemAdminMBean;
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.linkedin.norbert.cluster.javaapi.ClusterClient;
 import com.linkedin.norbert.cluster.javaapi.ZooKeeperClusterClient;
+import com.linkedin.norbert.network.javaapi.NetworkServer;
 import com.sensei.search.svc.api.SenseiException;
 import com.sensei.search.util.SenseiDefaults;
 
@@ -40,7 +41,8 @@ public class SenseiServer {
     private int _port;
     private int[] _partitions;
     private String _partitionString;
-    private ClusterClient _cluster;
+    private NetworkServer _networkServer;
+    private ClusterClient _clusterClient;
     private SenseiZoieSystemFactory<?> _zoieSystemFactory;
     private SenseiIndexLoaderFactory _indexLoaderFactory;
     private SenseiQueryBuilderFactory _queryBuilderFactory;
@@ -48,7 +50,8 @@ public class SenseiServer {
     
     public SenseiServer(int id, int port, int[] partitions,
                         File extDir,
-                        ClusterClient cluster,
+                        NetworkServer networkServer,
+                        ClusterClient clusterClient,
                         SenseiZoieSystemFactory<?> zoieSystemFactory,
                         SenseiIndexLoaderFactory indexLoaderFactory,
                         SenseiQueryBuilderFactory queryBuilderFactory) throws MalformedURLException
@@ -65,7 +68,8 @@ public class SenseiServer {
         sb.append(String.valueOf(partitions[i]));
       }
       _partitionString = sb.toString();
-      _cluster = cluster;
+      _networkServer = networkServer;
+      _clusterClient = clusterClient;
       _zoieSystemFactory = zoieSystemFactory;
       _indexLoaderFactory = indexLoaderFactory;
       _queryBuilderFactory = queryBuilderFactory;
@@ -116,10 +120,10 @@ public class SenseiServer {
         MBeanServer mbeanServer = java.lang.management.ManagementFactory.getPlatformMBeanServer();
 
 //        ClusterClient clusterClient = ClusterClientFactory.newInstance().newZookeeperClient();
-        String clusterName = _cluster.getServiceName();
+        String clusterName = _clusterClient.getServiceName();
         
         logger.info("ClusterName: " + clusterName);
-        logger.info("Cluster info: " + _cluster.toString());
+        logger.info("Cluster info: " + _clusterClient.toString());
 
 		for (int part : _partitions){
 		  //in simple case query builder is the same for each partition
@@ -156,7 +160,7 @@ public class SenseiServer {
 		// create the zookeeper cluster client
 //		SenseiClusterClientImpl senseiClusterClient = new SenseiClusterClientImpl(clusterName, zookeeperURL, zookeeperTimeout, false);
 		
-		_node = new SenseiNode(_cluster, _id, _port, msgHandler, _partitions);
+		_node = new SenseiNode(_networkServer, _clusterClient, _id, _port, msgHandler, _partitions);
 		_node.startup(available);
 		
 		SenseiServerAdminMBean mbean = getAdminMBean();
@@ -265,9 +269,10 @@ public class SenseiServer {
 	  File extDir = new File(confDir,"ext");
 	  
 	  ApplicationContext springCtx = new FileSystemXmlApplicationContext("file:"+confFile.getAbsolutePath());
-	  ApplicationContext clusterSpringCtx = new FileSystemXmlApplicationContext("file:" + (new File(confDir, SenseiDefaults.SENSEI_CLUSTER_CONF_FILE)).getAbsolutePath());
+	  ApplicationContext clusterSpringCtx = new FileSystemXmlApplicationContext("file:" + (new File(confDir, SenseiDefaults.SENSEI_NODE_CONF_FILE)).getAbsolutePath());
 	  // get config parameters
-	  ClusterClient cluster = (ZooKeeperClusterClient)clusterSpringCtx.getBean("zookeeper-cluster-client");
+	  NetworkServer networkServer = (NetworkServer)clusterSpringCtx.getBean("network-server");
+      ClusterClient clusterClient = (ZooKeeperClusterClient)clusterSpringCtx.getBean("cluster-client");
       SenseiZoieSystemFactory<?> zoieSystemFactory = (SenseiZoieSystemFactory<?>)springCtx.getBean("zoie-system-factory");
       SenseiIndexLoaderFactory<?> indexLoaderFactory = (SenseiIndexLoaderFactory)springCtx.getBean("index-loader-factory");
       SenseiQueryBuilderFactory queryBuilderFactory = (SenseiQueryBuilderFactory)springCtx.getBean("query-builder-factory");
@@ -275,7 +280,8 @@ public class SenseiServer {
       
 	  SenseiServer server = new SenseiServer(id, port, partitions,
 	                                         extDir,
-	                                         cluster,
+	                                         networkServer,
+	                                         clusterClient,
 	                                         zoieSystemFactory,
 	                                         indexLoaderFactory,
 	                                         queryBuilderFactory);

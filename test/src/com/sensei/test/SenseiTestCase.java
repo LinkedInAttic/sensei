@@ -89,9 +89,9 @@ public class SenseiTestCase extends AbstractSenseiTestCase {
 
         logger.info("Cluster client started");
 		
-		SenseiNode node1 = new SenseiNode(clusterClient, 1, 1233, new SenseiNodeMessageHandler(srchCtx1), new int[] {1,2});
+		SenseiNode node1 = new SenseiNode(networkServer1, clusterClient, 1, 1233, new SenseiNodeMessageHandler(srchCtx1), new int[] {1,2});
 		logger.info("Node 1 created with id : " + 1);
-		SenseiNode node2 = new SenseiNode(clusterClient, 2, 1232, new SenseiNodeMessageHandler(srchCtx2), new int[] {2,3});
+		SenseiNode node2 = new SenseiNode(networkServer2, clusterClient, 2, 1232, new SenseiNodeMessageHandler(srchCtx2), new int[] {2,3});
         logger.info("Node 2 created with id : " + 2);
         
 		node1.startup(true);

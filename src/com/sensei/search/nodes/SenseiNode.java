@@ -14,7 +14,6 @@ import com.linkedin.norbert.network.javaapi.MessageHandler;
 import com.linkedin.norbert.network.javaapi.NetworkServer;
 import com.sensei.search.req.protobuf.SenseiRequestBPO;
 import com.sensei.search.req.protobuf.SenseiResultBPO;
-import com.sensei.search.server.SenseiNetworkServer;
 
 public class SenseiNode{
 	private static Logger logger = Logger.getLogger(SenseiNode.class);
@@ -28,7 +27,7 @@ public class SenseiNode{
 	private volatile boolean _available = false;
 	private final int _port;
 	
-	public SenseiNode(ClusterClient client, int id, int port, MessageHandler msgHandler, int[] partitions){
+	public SenseiNode(NetworkServer server, ClusterClient client, int id, int port, MessageHandler msgHandler, int[] partitions){
 		_id = id;
 		_port = port;
 		_msgHandler = msgHandler;
@@ -36,9 +35,12 @@ public class SenseiNode{
 		for(int partition : partitions) {
 		  _partitions.add(partition);
 		}
-		_cluster = client;
-		if(_cluster == null)
-		  throw new IllegalArgumentException("Valid cluster client should be specified ");
+        _cluster = client;
+        if(_cluster == null)
+          throw new IllegalArgumentException("Valid cluster client should be specified ");
+        _server = server;
+        if(_server == null)
+          throw new IllegalArgumentException("Valid network server should be specified ");
 	}
 	
 	public void setClusterClient(ClusterClient senseiClusterClient) {
@@ -46,7 +48,6 @@ public class SenseiNode{
 	}
 	
 	public void startup(boolean markAvailable) throws Exception{      
-	  _server = new SenseiNetworkServer(_cluster);
 	  
 	  _server.registerHandler(SenseiRequestBPO.Request.getDefaultInstance(), SenseiResultBPO.Result.getDefaultInstance(), _msgHandler);
 

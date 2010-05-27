@@ -17,7 +17,8 @@
 		<property name="id"         value="${node.id}"/>
 
 		<property name="partitions" value="1"/>
-		<property name="clusterClient" ref="zookeeper-cluster-client"/>
+		<property name="networkServer" ref="network-server"/>
+		<property name="clusterClient" ref="cluster-client"/>
 		<property name="zoieSystemMap">
 			<map>
 				<entry key="1" value-ref="zoieSystem"/>

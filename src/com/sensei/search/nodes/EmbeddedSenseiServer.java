@@ -21,6 +21,7 @@ import proj.zoie.mbean.ZoieSystemAdminMBean;
 
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.linkedin.norbert.cluster.javaapi.ClusterClient;
+import com.linkedin.norbert.network.javaapi.NetworkServer;
 import com.sensei.search.svc.api.SenseiException;
 
 /**
@@ -52,6 +53,7 @@ public class EmbeddedSenseiServer {
 	private int _id;
 	private int _port;
 	private int[] _partitions;
+	private NetworkServer networkServer;
 	private ClusterClient clusterClient;
 	private SenseiZoieSystemFactory<?> zoieSystemFactory;
 	private SenseiIndexLoaderFactory indexLoaderFactory;
@@ -72,6 +74,16 @@ public class EmbeddedSenseiServer {
 
 	////
 
+    public void setClusterClient(ClusterClient clusterClient)
+    {
+      this.clusterClient = clusterClient; 
+    }
+    
+    public void setNetworkServer(NetworkServer networkServer)
+    {
+      this.networkServer = networkServer; 
+    }
+    
 	public void start() throws Exception {
 		this.start( this.getAvailable() );
 	}
@@ -125,7 +137,7 @@ public class EmbeddedSenseiServer {
 		SenseiSearchContext ctx = new SenseiSearchContext(builderFactoryMap, readerFactoryMap);
 		SenseiNodeMessageHandler msgHandler = new SenseiNodeMessageHandler(ctx);
 
-		_node = new SenseiNode(clusterClient, _id, _port, msgHandler, _partitions);
+		_node = new SenseiNode(networkServer, clusterClient, _id, _port, msgHandler, _partitions);
 
 		_node.startup( available );
 

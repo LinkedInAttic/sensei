@@ -36,18 +36,18 @@ public class SenseiClusterClient {
 	
 	private static PartitionedNetworkClient<Integer> _networkClient = null;
   
-	private static ClusterClient _cluster = null;
+	private static ClusterClient _clusterClient = null;
 	
 	private static void shutdown() throws NorbertException{
 		try{
-		   System.out.println("shutting down client...");
+		   System.out.println("shutting down broker...");
 		  _broker.shutdown();
 		}
 		finally{
-          System.out.println("shutting down cluster...");
+          System.out.println("shutting down cluster client...");
 
           try{
-        	  _cluster.shutdown();
+        	  _clusterClient.shutdown();
           }
           finally{
           }
@@ -67,13 +67,13 @@ public class SenseiClusterClient {
 	    }
 	    else{
 	      File confDir = new File(args[0]);
-	      confFile = new File(confDir , SenseiDefaults.SENSEI_NETWORK_CONF_FILE);
+	      confFile = new File(confDir , SenseiDefaults.SENSEI_CLIENT_CONF_FILE);
 	      springCtx = new FileSystemXmlApplicationContext("file:"+confFile.getAbsolutePath());
 	    }
 
 	    // create the network client
 	    _networkClient = (SenseiNetworkClient)springCtx.getBean("network-client");
-        _cluster = (ZooKeeperClusterClient)springCtx.getBean("zookeeper-cluster-client");
+        _clusterClient = (ZooKeeperClusterClient)springCtx.getBean("cluster-client");
         
 	     System.out.println("connecting to cluster at "+ DEFAULT_ZK_URL + "... ");
 
@@ -82,7 +82,7 @@ public class SenseiClusterClient {
         
         // create the broker
 		_broker = new SenseiBroker(_networkClient, null, new UniformPartitionedRoutingFactory());
-	    _cluster.addListener(_broker);
+	    _clusterClient.addListener(_broker);
 
 		Runtime.getRuntime().addShutdownHook(new Thread(){
 			public void run(){
@@ -97,13 +97,13 @@ public class SenseiClusterClient {
 		BufferedReader cmdLineReader = new BufferedReader(new InputStreamReader(System.in));
 		while(true){
 			try{ 
-				_cluster.awaitConnectionUninterruptibly();
+				_clusterClient.awaitConnectionUninterruptibly();
 				System.out.println("connected to cluster...");
 				System.out.print("> ");
 				String line = cmdLineReader.readLine();
 				while(true){
 					try{
-					  processCommand(line, _cluster);
+					  processCommand(line, _clusterClient);
 					}
 					catch(NorbertException ne){
 						ne.printStackTrace();

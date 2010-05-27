@@ -16,7 +16,7 @@
 		  <property name="maxConnectionsPerNode" value="5"/>
 		  <property name="staleRequestTimeoutMins" value="10"/>
 		  <property name="staleRequestCleanupFrequencyMins" value="10"/>
-		  <property name="clusterClient" ref="zookeeper-cluster-client" />
+		  <property name="clusterClient" ref="cluster-client" />
       </bean>	
       
       <bean id="router-factory" class="com.sensei.search.cluster.routing.UniformPartitionedRoutingFactory">
