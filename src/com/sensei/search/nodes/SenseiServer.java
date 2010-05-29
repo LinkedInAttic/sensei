@@ -29,7 +29,6 @@ import com.linkedin.norbert.cluster.javaapi.ClusterClient;
 import com.linkedin.norbert.cluster.javaapi.ZooKeeperClusterClient;
 import com.linkedin.norbert.network.javaapi.NetworkServer;
 import com.sensei.search.svc.api.SenseiException;
-import com.sensei.search.util.SenseiDefaults;
 
 public class SenseiServer {
 	private static final Logger logger = Logger.getLogger(SenseiServer.class);
@@ -49,14 +48,25 @@ public class SenseiServer {
     private SenseiNode _node;
     
     public SenseiServer(int id, int port, int[] partitions,
+            NetworkServer networkServer,
+            ClusterClient clusterClient,
+            SenseiZoieSystemFactory<?> zoieSystemFactory,
+            SenseiIndexLoaderFactory indexLoaderFactory,
+            SenseiQueryBuilderFactory queryBuilderFactory){
+    	this(id,port,partitions,null,networkServer,clusterClient,zoieSystemFactory,indexLoaderFactory,queryBuilderFactory);
+    }
+    
+    public SenseiServer(int id, int port, int[] partitions,
                         File extDir,
                         NetworkServer networkServer,
                         ClusterClient clusterClient,
                         SenseiZoieSystemFactory<?> zoieSystemFactory,
                         SenseiIndexLoaderFactory indexLoaderFactory,
-                        SenseiQueryBuilderFactory queryBuilderFactory) throws MalformedURLException
+                        SenseiQueryBuilderFactory queryBuilderFactory)
     {
-      loadJars(extDir);
+      if (extDir!=null){
+        loadJars(extDir);
+      }
       _id = id;
       _port = port;
       _partitions = partitions;
@@ -88,7 +98,7 @@ public class SenseiServer {
 		return buffer.toString();
 	}
 	
-	private static void loadJars(File extDir) throws MalformedURLException
+	private static void loadJars(File extDir)
 	{
 	  File[] jarfiles = extDir.listFiles(new FilenameFilter(){
         public boolean accept(File dir, String name) {
@@ -97,13 +107,18 @@ public class SenseiServer {
 	  });
       
 	  if (jarfiles!=null && jarfiles.length > 0){
-	    URL[] jarURLs = new URL[jarfiles.length];
-        ClassLoader parentLoader = Thread.currentThread().getContextClassLoader();
-        for (int i=0;i<jarfiles.length;++i){
-          jarURLs[i] = new URL("jar:file://" + jarfiles[i].getAbsolutePath() + "!/");  
-        }
-        URLClassLoader classloader = new URLClassLoader(jarURLs,parentLoader);
-        Thread.currentThread().setContextClassLoader(classloader);
+		try{
+	      URL[] jarURLs = new URL[jarfiles.length];
+          ClassLoader parentLoader = Thread.currentThread().getContextClassLoader();
+          for (int i=0;i<jarfiles.length;++i){
+            jarURLs[i] = new URL("jar:file://" + jarfiles[i].getAbsolutePath() + "!/");  
+          }
+          URLClassLoader classloader = new URLClassLoader(jarURLs,parentLoader);
+          Thread.currentThread().setContextClassLoader(classloader);
+		}
+		catch(MalformedURLException e){
+			logger.error("problem loading extension: "+e.getMessage(),e);
+		}
 	  }
 	}
 	
