@@ -46,6 +46,9 @@ public class SenseiServer {
     private SenseiIndexLoaderFactory _indexLoaderFactory;
     private SenseiQueryBuilderFactory _queryBuilderFactory;
     private SenseiNode _node;
+    private final HashSet<ZoieSystem<BoboIndexReader,?>> zoieSystems = new HashSet<ZoieSystem<BoboIndexReader,?>>();
+    private final HashSet<SenseiIndexLoader> indexLoaders = new HashSet<SenseiIndexLoader>();
+	
     
     public SenseiServer(int id, int port, int[] partitions,
             NetworkServer networkServer,
@@ -122,6 +125,31 @@ public class SenseiServer {
 	  }
 	}
 	
+	public void shutdown(){
+		try {
+			_node.shutdown();
+		} catch (Exception e) {
+			logger.error(e.getMessage(),e);
+		}
+        // shutdown the loaders
+        for(SenseiIndexLoader loader : indexLoaders)
+        {
+          try{
+            loader.shutdown();
+          }
+          catch(SenseiException se){
+        	  logger.error(se.getMessage(),se);
+          }
+        }
+        indexLoaders.clear();
+        // shutdown the zoieSystems
+        for(ZoieSystem<BoboIndexReader,?> zoieSystem : zoieSystems)
+        {
+          zoieSystem.shutdown();
+        }
+        zoieSystems.clear();
+	}
+	
 	public void start(boolean available) throws Exception
 	{        
         Map<Integer,SenseiQueryBuilderFactory> builderFactoryMap = new HashMap<Integer, SenseiQueryBuilderFactory>();
@@ -129,11 +157,8 @@ public class SenseiServer {
 		Map<Integer,IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>> readerFactoryMap = 
 				new HashMap<Integer,IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>>();
 		
-        final HashSet<ZoieSystem<BoboIndexReader,?>> zoieSystems = new HashSet<ZoieSystem<BoboIndexReader,?>>();
-        final HashSet<SenseiIndexLoader> indexLoaders = new HashSet<SenseiIndexLoader>();
-		
         MBeanServer mbeanServer = java.lang.management.ManagementFactory.getPlatformMBeanServer();
-
+        
 //        ClusterClient clusterClient = ClusterClientFactory.newInstance().newZookeeperClient();
         String clusterName = _clusterClient.getServiceName();
         
@@ -185,26 +210,7 @@ public class SenseiServer {
 		
 		Runtime.getRuntime().addShutdownHook(new Thread(){
 			public void run(){
-				try {
-					_node.shutdown();
-				} catch (Exception e) {
-					logger.error(e.getMessage(),e);
-				}
-                // shutdown the loaders
-                for(SenseiIndexLoader loader : indexLoaders)
-                {
-                  try{
-                    loader.shutdown();
-                  }
-                  catch(SenseiException se){
-                	  logger.error(se.getMessage(),se);
-                  }
-                }
-                // shutdown the zoieSystems
-                for(ZoieSystem<BoboIndexReader,?> zoieSystem : zoieSystems)
-                {
-                  zoieSystem.shutdown();
-                }
+				shutdown();
 			}
 		});
 	}
