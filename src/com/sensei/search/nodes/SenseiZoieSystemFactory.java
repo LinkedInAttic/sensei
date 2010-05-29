@@ -3,37 +3,28 @@ package com.sensei.search.nodes;
 import java.io.File;
 import java.io.FileNotFoundException;
 
-import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.search.Similarity;
-
-import com.browseengine.bobo.api.BoboIndexReader;
-
 import proj.zoie.api.indexing.IndexReaderDecorator;
 import proj.zoie.api.indexing.ZoieIndexableInterpreter;
+import proj.zoie.impl.indexing.ZoieConfig;
 import proj.zoie.impl.indexing.ZoieSystem;
+
+import com.browseengine.bobo.api.BoboIndexReader;
 
 public class SenseiZoieSystemFactory<V>
 {
   protected File _idxDir;
   protected ZoieIndexableInterpreter<V> _interpreter;
   protected IndexReaderDecorator<BoboIndexReader> _indexReaderDecorator;
-  protected Analyzer _analyzer;
-  protected Similarity _similarity;
-  protected int _batchSize;
-  protected long _batchDelay;
-  protected boolean _rtIndexing;
+  
+  protected final ZoieConfig _zoieConfig;
   
   public SenseiZoieSystemFactory(File idxDir, ZoieIndexableInterpreter<V> interpreter, IndexReaderDecorator<BoboIndexReader> indexReaderDecorator,
-                                 Analyzer analyzer, Similarity similarity, int batchSize, long batchDelay, boolean rtIndexing)
+                                 ZoieConfig zoieConfig)
   {
     _idxDir = idxDir;
     _interpreter = interpreter;
     _indexReaderDecorator = indexReaderDecorator;
-    _analyzer = analyzer;
-    _similarity = similarity;
-    _batchSize = batchSize;
-    _batchDelay = batchDelay;
-    _rtIndexing = rtIndexing;
+    _zoieConfig = zoieConfig;
   }
   
   public ZoieSystem<BoboIndexReader,V> getZoieSystem(int partitionId) throws FileNotFoundException
@@ -43,7 +34,7 @@ public class SenseiZoieSystemFactory<V>
     {
       throw new FileNotFoundException("partition=" + partitionId + " does not exist");
     }
-    return new ZoieSystem<BoboIndexReader,V>(getPath(partitionId), _interpreter, _indexReaderDecorator, _analyzer, _similarity, _batchSize, _batchDelay, _rtIndexing);
+    return new ZoieSystem<BoboIndexReader,V>(getPath(partitionId), _interpreter, _indexReaderDecorator, _zoieConfig);
   }
   
   // TODO: change to getDirectoryManager

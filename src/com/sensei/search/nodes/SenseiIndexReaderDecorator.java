@@ -16,7 +16,7 @@ import com.browseengine.bobo.facets.RuntimeFacetHandlerFactory;
 public class SenseiIndexReaderDecorator extends AbstractIndexReaderDecorator<BoboIndexReader> {
 	private final List<FacetHandler<?>> _facetHandlers;
 	private static final Logger logger = Logger.getLogger(SenseiIndexReaderDecorator.class);
-  private final List<RuntimeFacetHandlerFactory<?,?>> _facetHandlerFactories;
+    private final List<RuntimeFacetHandlerFactory<?,?>> _facetHandlerFactories;
 
 	public SenseiIndexReaderDecorator(List<FacetHandler<?>> facetHandlers, List<RuntimeFacetHandlerFactory<?,?>> facetHandlerFactories)
 	{
@@ -38,10 +38,10 @@ public class SenseiIndexReaderDecorator extends AbstractIndexReaderDecorator<Bob
 	}
 	
 	@Override
-    public BoboIndexReader redecorate(BoboIndexReader reader, ZoieIndexReader<BoboIndexReader> newReader)
+    public BoboIndexReader redecorate(BoboIndexReader reader, ZoieIndexReader<BoboIndexReader> newReader,boolean withDeletes)
                           throws IOException {
-                  reader.rewrap(newReader);
-                  return reader;
+          reader.rewrap(newReader);
+          return reader;
     }
 }
 

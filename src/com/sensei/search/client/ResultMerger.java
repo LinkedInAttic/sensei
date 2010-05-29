@@ -14,6 +14,7 @@ import java.util.Map.Entry;
 
 import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.FacetAccessible;
+import com.browseengine.bobo.api.FacetIterator;
 import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.util.ListMerger;
 import com.sensei.search.req.SenseiHit;
@@ -111,6 +112,17 @@ public class ResultMerger {
         public List<BrowseFacet> getFacets() {
                 return Arrays.asList(_facets);
         }
+
+		@Override
+		public void close() {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public FacetIterator iterator() {
+			throw new IllegalStateException("FacetIterator should not be obtained at merge time");
+		}
 
 	}
 

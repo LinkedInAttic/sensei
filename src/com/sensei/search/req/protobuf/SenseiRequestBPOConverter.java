@@ -20,6 +20,7 @@ import org.apache.lucene.search.SortField;
 import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.BrowseSelection;
 import com.browseengine.bobo.api.FacetAccessible;
+import com.browseengine.bobo.api.FacetIterator;
 import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.api.BrowseSelection.ValueOperation;
 import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
@@ -216,6 +217,16 @@ public class SenseiRequestBPOConverter {
 			ArrayList<BrowseFacet> list = new ArrayList<BrowseFacet>(set.size());
 			list.addAll(set);
 			return list;
+		}
+		
+		@Override
+		public void close() {
+			
+		}
+		
+		@Override
+		public FacetIterator iterator() {
+			throw new IllegalStateException("FacetIterator should not be obtained by FacetContainer");
 		}
 	}
 	

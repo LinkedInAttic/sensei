@@ -3,11 +3,9 @@ package com.sensei.search.nodes.impl;
 import java.io.File;
 import java.io.FileNotFoundException;
 
-import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.search.Similarity;
-
 import proj.zoie.api.indexing.IndexReaderDecorator;
 import proj.zoie.api.indexing.ZoieIndexableInterpreter;
+import proj.zoie.impl.indexing.ZoieConfig;
 import proj.zoie.impl.indexing.ZoieSystem;
 
 import com.browseengine.bobo.api.BoboIndexReader;
@@ -18,9 +16,9 @@ public class DemoZoieSystemFactory<V> extends SenseiZoieSystemFactory<V>
   private ZoieSystem<BoboIndexReader,V> _zoieSystem = null;
   
   public DemoZoieSystemFactory(File idxDir, ZoieIndexableInterpreter<V> interpreter, IndexReaderDecorator<BoboIndexReader> indexReaderDecorator,
-                               Analyzer analyzer, Similarity similarity, int batchSize, long batchDelay, boolean rtIndexing)
+                               ZoieConfig zoieConfig)
   {
-    super(idxDir, interpreter, indexReaderDecorator, analyzer, similarity, batchSize, batchDelay, rtIndexing);
+    super(idxDir, interpreter, indexReaderDecorator, zoieConfig);
   }
   
   @Override
