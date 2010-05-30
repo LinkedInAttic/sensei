@@ -12,7 +12,6 @@ import com.linkedin.norbert.cluster.javaapi.ClusterListener;
 import com.linkedin.norbert.cluster.javaapi.Node;
 import com.linkedin.norbert.network.javaapi.PartitionedLoadBalancerFactory;
 import com.linkedin.norbert.network.javaapi.PartitionedNetworkClient;
-import com.sensei.search.cluster.client.SenseiNetworkClient;
 import com.sensei.search.cluster.routing.UniformPartitionedLoadBalancer;
 import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.req.SenseiResult;
@@ -23,7 +22,7 @@ import com.sensei.search.svc.api.SenseiException;
 
 public class SenseiBroker implements ClusterListener  {
   private final static Logger logger = Logger.getLogger(SenseiBroker.class);
-  private final SenseiNetworkClient _networkClient;
+  private final PartitionedNetworkClient<Integer> _networkClient;
 
   private volatile PartitionedLoadBalancerFactory<Integer> _routerFactory = null;
 
@@ -31,7 +30,7 @@ public class SenseiBroker implements ClusterListener  {
   private final SenseiRequestScatterRewriter _reqRewriter;
   private final SenseiScatterGatherHandler _scatterGatherHandler;
 
-  public SenseiBroker(SenseiNetworkClient networkClient,
+  public SenseiBroker(PartitionedNetworkClient<Integer> networkClient,
                       ClusterClient clusterClient,
                       SenseiRequestScatterRewriter reqRewriter,
                       PartitionedLoadBalancerFactory<Integer> routerFactory) throws NorbertException{

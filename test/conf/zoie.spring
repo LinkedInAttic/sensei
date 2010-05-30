@@ -27,14 +27,12 @@
     </constructor-arg>
 	</bean>
 	
+	<bean id="zoieConfig" class="proj.zoie.impl.indexing.ZoieConfig" />
+	
 	<bean id="zoie-system-factory" class="com.sensei.search.nodes.impl.DemoZoieSystemFactory">
 		<constructor-arg value="file:${idx.dir}"/>
 		<constructor-arg ref="interpreter" />
 		<constructor-arg ref="idxDecorator" />
-		<constructor-arg ref="analyzer" />
-		<constructor-arg ref="similarity" />
-		<constructor-arg value="1000" />
-		<constructor-arg value="300000" />
-		<constructor-arg value="true" />
+		<constructor-arg ref="zoieConfig" />
 	</bean>
 </beans>
