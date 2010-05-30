@@ -419,11 +419,11 @@ public class SenseiRequestBPOConverter {
 		}
 		
 		Set<Integer> partitionSet = req.getPartitions();
-		Integer[] partitions = null;
+		int[] partitions = null;
 		if(partitionSet != null) {
-		  partitions = new Integer[partitionSet.size()];
+		  partitions = new int[partitionSet.size()];
 		  int index = 0;
-		  for(Integer partition : partitionSet) {
+		  for(int partition : partitionSet) {
 		    partitions[index++] = partition;
 		  }
 		}
