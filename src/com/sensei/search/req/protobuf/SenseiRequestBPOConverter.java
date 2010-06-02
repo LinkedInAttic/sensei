@@ -496,7 +496,8 @@ public class SenseiRequestBPOConverter {
 			hitBuilder.addFieldValues(fieldVal);
 		}
 		if ( null != hit.getStoredFields() ) {
-			for( Fieldable field : hit.getStoredFields().getFields() ) {
+			for( Object fieldObj : hit.getStoredFields().getFields() ) {
+				Field field = (Field)fieldObj;
 				SenseiResultBPO.StoredField storedField = (
 					SenseiResultBPO.StoredField.newBuilder().setName(
 						field.name()
