@@ -172,11 +172,22 @@ public class SenseiServer {
 		  ZoieSystem<BoboIndexReader,?> zoieSystem = _zoieSystemFactory.getZoieSystem(part);
 		  
 		  // register ZoieSystemAdminMBean
-		  mbeanServer.registerMBean(new StandardMBean(zoieSystem.getAdminMBean(), ZoieSystemAdminMBean.class),
+		  try{
+		    mbeanServer.registerMBean(new StandardMBean(zoieSystem.getAdminMBean(), ZoieSystemAdminMBean.class),
 		                            new ObjectName(clusterName, "name", "zoie-system-" + part));
+		  }
+		  catch(Exception e){
+			  logger.error(e.getMessage(),e);
+		  }
+		  
 		  // register ZoieIndexingStatusAdminMBean
-		  mbeanServer.registerMBean(new StandardMBean(new ZoieIndexingStatusAdmin(zoieSystem), ZoieIndexingStatusAdminMBean.class),
+		  try{
+		    mbeanServer.registerMBean(new StandardMBean(new ZoieIndexingStatusAdmin(zoieSystem), ZoieIndexingStatusAdminMBean.class),
 		                            new ObjectName(clusterName, "name", "zoie-indexing-status-" + part));
+		  }
+		  catch(Exception e){
+			  logger.error(e.getMessage(),e);
+		  }
 	          	  
 		  
 		  if(!zoieSystems.contains(zoieSystem))
@@ -203,16 +214,15 @@ public class SenseiServer {
 		_node = new SenseiNode(_networkServer, _clusterClient, _id, _port, msgHandler, _partitions);
 		_node.startup(available);
 		
-		SenseiServerAdminMBean mbean = getAdminMBean();
+		try{
+		  SenseiServerAdminMBean mbean = getAdminMBean();
 		
-		mbeanServer.registerMBean(new StandardMBean(mbean, SenseiServerAdminMBean.class),
+		  mbeanServer.registerMBean(new StandardMBean(mbean, SenseiServerAdminMBean.class),
                                   new ObjectName(clusterName, "name", "sensei-server"));
-		
-		Runtime.getRuntime().addShutdownHook(new Thread(){
-			public void run(){
-				shutdown();
-			}
-		});
+		}
+		catch(Exception e){
+			logger.error(e.getMessage(),e);
+		}
 	}
 	
 	private SenseiServerAdminMBean getAdminMBean()
@@ -297,13 +307,20 @@ public class SenseiServer {
       SenseiIndexLoaderFactory<?> indexLoaderFactory = (SenseiIndexLoaderFactory)springCtx.getBean("index-loader-factory");
       SenseiQueryBuilderFactory queryBuilderFactory = (SenseiQueryBuilderFactory)springCtx.getBean("query-builder-factory");
       
-	  SenseiServer server = new SenseiServer(id, port, partitions,
+	  final SenseiServer server = new SenseiServer(id, port, partitions,
 	                                         extDir,
 	                                         networkServer,
 	                                         clusterClient,
 	                                         zoieSystemFactory,
 	                                         indexLoaderFactory,
 	                                         queryBuilderFactory);
+	  
+	  Runtime.getRuntime().addShutdownHook(new Thread(){
+			public void run(){
+				server.shutdown();
+			}
+		});
+	  
 	  server.start(available);
 	}
 }
