@@ -115,8 +115,12 @@ public class SenseiRequestBPOConverter {
 		List<SenseiRequestBPO.FacetHandlerInitializerParam> paramList = new ArrayList<SenseiRequestBPO.FacetHandlerInitializerParam>(paramMap.size());
 		Set<Entry<String,FacetHandlerInitializerParam>> entrySet = paramMap.entrySet();
 		for (Entry<String,FacetHandlerInitializerParam> entry : entrySet){
+			
 		  String name = entry.getKey();
 		  FacetHandlerInitializerParam param = entry.getValue();
+		  
+		  if (param==null) continue;
+		  
 		  SenseiRequestBPO.FacetHandlerInitializerParam.Builder subBuilder = SenseiRequestBPO.FacetHandlerInitializerParam.newBuilder();
 		  subBuilder.setName(name);
 		  
