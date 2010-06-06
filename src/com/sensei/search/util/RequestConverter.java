@@ -21,7 +21,12 @@ public class RequestConverter {
 		SenseiQueryBuilder queryBuilder = queryBuilderFactory.getQueryBuilder(req.getQuery());
        
         // query
-        Query q = queryBuilder.buildQuery();
+        Query q = null;
+        
+        if (queryBuilder!=null){
+        	q = queryBuilder.buildQuery();
+        }
+        
         if(q != null){
             breq.setQuery(q);
         }
