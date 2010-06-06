@@ -30,6 +30,10 @@ public class SenseiZoieSystemFactory<V>
     _zoieConfig = zoieConfig;
   }
   
+  public static File getPath(File idxDir,int partitionId){
+	  return new File(idxDir, "shard"+partitionId); 
+  }
+  
   public ZoieSystem<BoboIndexReader,V> getZoieSystem(int partitionId) throws FileNotFoundException
   {
     File partDir = getPath(partitionId);
@@ -44,6 +48,6 @@ public class SenseiZoieSystemFactory<V>
   // TODO: change to getDirectoryManager
   protected File getPath(int partitionId)
   {
-    return new File(_idxDir, "shard"+partitionId);
+    return getPath(_idxDir,partitionId);
   }
 }
