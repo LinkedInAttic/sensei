@@ -11,8 +11,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import javax.management.InstanceAlreadyExistsException;
 import javax.management.MBeanServer;
-import javax.management.ObjectInstance;
 import javax.management.ObjectName;
 import javax.management.StandardMBean;
 
@@ -189,23 +189,30 @@ public class SenseiServer {
 		  ZoieSystem<BoboIndexReader,?> zoieSystem = _zoieSystemFactory.getZoieSystem(part);
 		  
 		  // register ZoieSystemAdminMBean
+
+		  ObjectName name = new ObjectName(clusterName, "name", "zoie-system-" + part);
 		  try{
-			ObjectName name = new ObjectName(clusterName, "name", "zoie-system-" + part);
 		    mbeanServer.registerMBean(new StandardMBean(zoieSystem.getAdminMBean(), ZoieSystemAdminMBean.class),name);
 		    _registeredMBeans.add(name);
 		  }
 		  catch(Exception e){
 			  logger.error(e.getMessage(),e);
+			  if (e instanceof InstanceAlreadyExistsException){
+				  _registeredMBeans.add(name);
+			  }
 		  }
 		  
 		  // register ZoieIndexingStatusAdminMBean
+		  name = new ObjectName(clusterName, "name", "zoie-indexing-status-" + part);
 		  try{
-			ObjectName name = new ObjectName(clusterName, "name", "zoie-indexing-status-" + part);
 		    mbeanServer.registerMBean(new StandardMBean(new ZoieIndexingStatusAdmin(zoieSystem), ZoieIndexingStatusAdminMBean.class),name);
 		    _registeredMBeans.add(name);
 		  }
 		  catch(Exception e){
 			  logger.error(e.getMessage(),e);
+			  if (e instanceof InstanceAlreadyExistsException){
+				  _registeredMBeans.add(name);
+			  }
 		  }
 	          	  
 		  
@@ -232,15 +239,18 @@ public class SenseiServer {
 		
 		_node = new SenseiNode(_networkServer, _clusterClient, _id, _port, msgHandler, _partitions);
 		_node.startup(available);
-		
+
+		ObjectName name = new ObjectName(clusterName, "name", "sensei-server");
 		try{
 		  SenseiServerAdminMBean mbean = getAdminMBean();
-		  ObjectName name = new ObjectName(clusterName, "name", "sensei-server");
 		  mbeanServer.registerMBean(new StandardMBean(mbean, SenseiServerAdminMBean.class),name);
 		  _registeredMBeans.add(name);
 		}
 		catch(Exception e){
 			logger.error(e.getMessage(),e);
+			if (e instanceof InstanceAlreadyExistsException){
+			  _registeredMBeans.add(name);
+		    }
 		}
 	}
 	
