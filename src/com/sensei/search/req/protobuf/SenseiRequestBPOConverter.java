@@ -14,7 +14,6 @@ import java.util.Map.Entry;
 import org.apache.log4j.Logger;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
-import org.apache.lucene.document.Fieldable;
 import org.apache.lucene.search.SortField;
 
 import com.browseengine.bobo.api.BrowseFacet;
@@ -206,7 +205,7 @@ public class SenseiRequestBPOConverter {
 						BrowseFacet bfacet = new BrowseFacet();
 						String val = facet.getVal();
 						bfacet.setValue(val);
-						bfacet.setHitCount(facet.getCount());
+						bfacet.setFacetValueHitCount(facet.getCount());
 						_data.put(val,bfacet);
 					}
 				}
@@ -496,8 +495,15 @@ public class SenseiRequestBPOConverter {
 		Iterator<Entry<String,String[]>> iter = fieldMap.entrySet().iterator();
 		while(iter.hasNext()){
 			Entry<String,String[]> entry = iter.next();
-			SenseiResultBPO.FieldVal fieldVal = SenseiResultBPO.FieldVal.newBuilder().setName(entry.getKey()).addAllVals(Arrays.asList(entry.getValue())).build();
-			hitBuilder.addFieldValues(fieldVal);
+			String name = entry.getKey();
+			String[] vals = entry.getValue();
+			if (vals!=null){
+			  SenseiResultBPO.FieldVal fieldVal = SenseiResultBPO.FieldVal.newBuilder().setName(name).addAllVals(Arrays.asList(vals)).build();
+			  hitBuilder.addFieldValues(fieldVal);
+			}
+			else{
+			  logger.error("null values for: "+name+", not added");
+			}
 		}
 		if ( null != hit.getStoredFields() ) {
 			for( Object fieldObj : hit.getStoredFields().getFields() ) {
@@ -519,7 +525,7 @@ public class SenseiRequestBPOConverter {
 		facetBuilder.setName(name);
 		List<BrowseFacet> list = facetAccessible.getFacets();
 		for (BrowseFacet facet : list){
-			SenseiResultBPO.Facet f = SenseiResultBPO.Facet.newBuilder().setVal(facet.getValue()).setCount(facet.getHitCount()).build();
+			SenseiResultBPO.Facet f = SenseiResultBPO.Facet.newBuilder().setVal(facet.getValue()).setCount(facet.getFacetValueHitCount()).build();
 			facetBuilder.addFacets(f);
 		}
 		return facetBuilder.build();
