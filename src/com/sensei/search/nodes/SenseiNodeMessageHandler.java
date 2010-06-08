@@ -137,6 +137,7 @@ public class SenseiNodeMessageHandler implements MessageHandler {
         senseiHit.setComparable(hit.getComparable());
         senseiHit.setFieldValues(hit.getFieldValues());
         senseiHit.setStoredFields(hit.getStoredFields());
+        senseiHit.setExplanation(hit.getExplanation());
         
 	    senseiHits[i] = senseiHit;
 	  }

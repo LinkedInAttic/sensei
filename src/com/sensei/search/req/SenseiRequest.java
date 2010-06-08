@@ -33,6 +33,7 @@ public class SenseiRequest implements Serializable, Cloneable
 	private boolean _fetchStoredFields;
 	private Map<String,FacetHandlerInitializerParam> _facetInitParamMap;
 	private Set<Integer> _partitions;
+	private boolean _showExplanation;
 	
 	public SenseiRequest(){
 		_facetInitParamMap = new HashMap<String,FacetHandlerInitializerParam>();
@@ -41,6 +42,7 @@ public class SenseiRequest implements Serializable, Cloneable
 		_facetSpecMap=new HashMap<String,FacetSpec>();
 		_fetchStoredFields = false;
 		_partitions = null;
+		_showExplanation = false;
 	}
 	
   /**
@@ -60,6 +62,15 @@ public class SenseiRequest implements Serializable, Cloneable
   {
     this.tid = tid;
   }
+  
+  
+	public boolean isShowExplanation() {
+	  return _showExplanation;
+    }
+
+    public void setShowExplanation(boolean showExplanation) {
+	  _showExplanation = showExplanation;
+    }
 
 	public void setPartitions(Set<Integer> partitions){
 		_partitions = partitions;

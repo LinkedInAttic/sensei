@@ -25,6 +25,12 @@ message StoredField {
   required string name = 1;
   repeated string vals = 2;
 }
+
+message Explanation{
+  optional float value = 1;
+  optional string description = 2;
+  repeated Explanation details = 3;
+}
 	
 message Hit{
   optional uint32 docid = 1;
@@ -32,6 +38,7 @@ message Hit{
   repeated FieldVal fieldValues = 3;
   required int64 uid = 4;
   repeated StoredField storedFields = 5;
+  optional Explanation explanation = 6;
 }
 
 message Result{
