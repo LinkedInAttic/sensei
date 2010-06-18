@@ -1,7 +1,6 @@
 package com.sensei.search.nodes.impl;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 
 import proj.zoie.api.indexing.IndexReaderDecorator;
 import proj.zoie.api.indexing.ZoieIndexableInterpreter;
@@ -22,7 +21,7 @@ public class DemoZoieSystemFactory<V> extends SenseiZoieSystemFactory<V>
   }
   
   @Override
-  public ZoieSystem<BoboIndexReader,V> getZoieSystem(int partitionId) throws FileNotFoundException
+  public ZoieSystem<BoboIndexReader,V> getZoieSystem(int partitionId)
   {
     if(_zoieSystem == null)
     {

@@ -1,7 +1,6 @@
 package com.sensei.search.nodes;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 
 import org.apache.log4j.Logger;
 
@@ -34,7 +33,7 @@ public class SenseiZoieSystemFactory<V>
 	  return new File(idxDir, "shard"+partitionId); 
   }
   
-  public ZoieSystem<BoboIndexReader,V> getZoieSystem(int partitionId) throws FileNotFoundException
+  public ZoieSystem<BoboIndexReader,V> getZoieSystem(int partitionId)
   {
     File partDir = getPath(partitionId);
     if(!partDir.exists())
