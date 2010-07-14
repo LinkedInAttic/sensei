@@ -1,5 +1,6 @@
 package com.sensei.search.req;
 
+import com.browseengine.bobo.api.BrowseHit;
 import com.browseengine.bobo.api.BrowseResult;
 
 public class SenseiResult extends BrowseResult{
@@ -11,6 +12,10 @@ public class SenseiResult extends BrowseResult{
 	
 	public SenseiHit[] getSenseiHits()
 	{
-	  return (SenseiHit[])getHits();
+	  BrowseHit[] hits = getHits();
+	  if (hits==null || hits.length == 0){
+		  return new SenseiHit[0];
+	  }
+	  return (SenseiHit[])hits;
 	}
 }
