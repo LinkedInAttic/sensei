@@ -66,6 +66,11 @@ public class SenseiNodeMessageHandler implements MessageHandler {
 		try{
 		  readerList = readerFactory.getIndexReaders();
 		  
+		  if (readerList == null || readerList.size() == 0){
+			logger.warn("no readers were obtained from zoie, returning no hits.");
+			return new SenseiResult();
+		  }
+		  
 		  List<BoboIndexReader> boboReaders = ZoieIndexReader.extractDecoratedReaders(readerList);
 	      SubReaderAccessor<BoboIndexReader> subReaderAccessor = ZoieIndexReader.getSubReaderAccessor(boboReaders);
 
