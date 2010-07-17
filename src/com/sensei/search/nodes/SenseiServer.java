@@ -190,7 +190,7 @@ public class SenseiServer {
 		  
 		  // register ZoieSystemAdminMBean
 
-		  ObjectName name = new ObjectName(clusterName, "name", "zoie-system-" + part);
+		  ObjectName name = new ObjectName(clusterName, "name", "zoie-system-" + _id+"-"+part);
 		  try{
 		    mbeanServer.registerMBean(new StandardMBean(zoieSystem.getAdminMBean(), ZoieSystemAdminMBean.class),name);
 		    _registeredMBeans.add(name);
@@ -203,7 +203,7 @@ public class SenseiServer {
 		  }
 		  
 		  // register ZoieIndexingStatusAdminMBean
-		  name = new ObjectName(clusterName, "name", "zoie-indexing-status-" + part);
+		  name = new ObjectName(clusterName, "name", "zoie-indexing-status-" + _id+"-"+ part);
 		  try{
 		    mbeanServer.registerMBean(new StandardMBean(new ZoieIndexingStatusAdmin(zoieSystem), ZoieIndexingStatusAdminMBean.class),name);
 		    _registeredMBeans.add(name);
@@ -240,7 +240,7 @@ public class SenseiServer {
 		_node = new SenseiNode(_networkServer, _clusterClient, _id, _port, msgHandler, _partitions);
 		_node.startup(available);
 
-		ObjectName name = new ObjectName(clusterName, "name", "sensei-server");
+		ObjectName name = new ObjectName(clusterName, "name", "sensei-server-"+_id);
 		try{
 		  SenseiServerAdminMBean mbean = getAdminMBean();
 		  mbeanServer.registerMBean(new StandardMBean(mbean, SenseiServerAdminMBean.class),name);
