@@ -24,13 +24,23 @@ public class SenseiScatterGatherHandler implements ScatterGatherHandler<SenseiRe
 
   private final static Logger logger = Logger.getLogger(SenseiScatterGatherHandler.class);
   
-  private final static long TIMEOUT_MILLIS = 8000;
+  private final static long TIMEOUT_MILLIS = 8000L;
 
   private final SenseiRequestScatterRewriter _reqRewriter;
+  
+  private long _timeoutMillis = TIMEOUT_MILLIS;
 
   public SenseiScatterGatherHandler(SenseiRequestScatterRewriter reqRewriter)
   {
     _reqRewriter = reqRewriter;
+  }
+  
+  public void setTimeoutMillis(long timeoutMillis){
+	  _timeoutMillis = timeoutMillis;
+  }
+  
+  public long getTimeoutMillis(){
+	  return _timeoutMillis;
   }
 
   public Message customizeMessage(Message msg, Node node, Set<Integer> partitions) throws Exception
@@ -74,9 +84,7 @@ public class SenseiScatterGatherHandler implements ScatterGatherHandler<SenseiRe
       
       List<SenseiResult> boboBrowseList = new ArrayList<SenseiResult>();
       while(iter.hasNext()){
-        logger.info("Trying to fetch the next Message from iterator");
-        Message boboMsg = iter.next(TIMEOUT_MILLIS,TimeUnit.MILLISECONDS);
-        logger.info("Fetched the next message");
+        Message boboMsg = iter.next(_timeoutMillis>0 ? _timeoutMillis : Long.MAX_VALUE,TimeUnit.MILLISECONDS);
 
         if (boboMsg==null){
           logger.error("Request Timed Out");

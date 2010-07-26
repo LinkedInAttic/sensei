@@ -44,6 +44,14 @@ public class SenseiBroker implements ClusterListener  {
 
     clusterClient.addListener(this);
   }
+  
+  public void setTimeoutMillis(long timeoutMillis){
+    _scatterGatherHandler.setTimeoutMillis(timeoutMillis);
+  }
+  
+  public long getTimeoutMillis(){
+    return _scatterGatherHandler.getTimeoutMillis();
+  }
 
   public SenseiResult browse(SenseiRequest req) throws SenseiException{
     if(_parts == null)

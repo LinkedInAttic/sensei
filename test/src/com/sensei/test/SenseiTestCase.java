@@ -4,11 +4,16 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.management.MBeanServer;
+import javax.management.ObjectName;
+
 import org.apache.log4j.Logger;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.queryParser.QueryParser;
 import org.apache.lucene.util.Version;
 import org.junit.Before;
+
+import proj.zoie.mbean.ZoieSystemAdminMBean;
 
 import com.linkedin.norbert.NorbertException;
 import com.linkedin.norbert.cluster.ClusterShutdownException;
@@ -28,6 +33,9 @@ public class SenseiTestCase extends AbstractSenseiTestCase {
     static File IdxDir = new File("data/cardata");
 	static final String SENSEI_TEST_CLUSTER_NAME="testCluster";
     private static final Logger logger = Logger.getLogger(SenseiTestCase.class);
+    
+    private final MBeanServer mbeanServer = java.lang.management.ManagementFactory.getPlatformMBeanServer();
+    
     
 	public SenseiTestCase(){
 		super();
@@ -71,6 +79,7 @@ public class SenseiTestCase extends AbstractSenseiTestCase {
 		SenseiBroker broker= null;
 	      try{
 	        broker = new SenseiBroker(networkClient, clusterClient, requestRewriter, routerFactory);
+	        broker.setTimeoutMillis(0);
 	      }
 	      catch(NorbertException ne){
 	        logger.info("shutting down cluster...");
