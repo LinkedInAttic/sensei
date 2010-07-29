@@ -186,7 +186,7 @@ public class SenseiServer {
 		  //in simple case query builder is the same for each partition
 		  builderFactoryMap.put(part, _queryBuilderFactory);
 			
-		  ZoieSystem<BoboIndexReader,?> zoieSystem = _zoieSystemFactory.getZoieSystem(part);
+		  ZoieSystem<BoboIndexReader,?> zoieSystem = _zoieSystemFactory.getZoieSystem(_id,part);
 		  
 		  // register ZoieSystemAdminMBean
 

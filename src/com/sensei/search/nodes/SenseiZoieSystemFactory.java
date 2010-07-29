@@ -29,24 +29,25 @@ public class SenseiZoieSystemFactory<V>
     _zoieConfig = zoieConfig;
   }
   
-  public static File getPath(File idxDir,int partitionId){
-	  return new File(idxDir, "shard"+partitionId); 
+  public static File getPath(File idxDir,int nodeId,int partitionId){
+	  File nodeLevelFile = new File(idxDir, "node"+nodeId);  
+	  return new File(nodeLevelFile, "shard"+partitionId); 
   }
   
-  public ZoieSystem<BoboIndexReader,V> getZoieSystem(int partitionId)
+  public ZoieSystem<BoboIndexReader,V> getZoieSystem(int nodeId,int partitionId)
   {
-    File partDir = getPath(partitionId);
+    File partDir = getPath(nodeId,partitionId);
     if(!partDir.exists())
     {
       partDir.mkdirs();
-      log.info("partition=" + partitionId + " does not exist, directory created.");
+      log.info("nodeId="+nodeId+", partition=" + partitionId + " does not exist, directory created.");
     }
     return new ZoieSystem<BoboIndexReader,V>(partDir, _interpreter, _indexReaderDecorator, _zoieConfig);
   }
   
   // TODO: change to getDirectoryManager
-  protected File getPath(int partitionId)
+  protected File getPath(int nodeId,int partitionId)
   {
-    return getPath(_idxDir,partitionId);
+    return getPath(_idxDir,nodeId,partitionId);
   }
 }
