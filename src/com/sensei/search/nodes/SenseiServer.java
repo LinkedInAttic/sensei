@@ -5,6 +5,7 @@ import java.io.FilenameFilter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -106,6 +107,10 @@ public class SenseiServer {
         buffer.append("availability - \"available\" or \"unavailable\", optional default is \"available\"\n");
 		buffer.append("====================================\n");
 		return buffer.toString();
+	}
+	
+	public Collection<ZoieSystem<BoboIndexReader,?>> getZoieSystems(){
+		return zoieSystems;
 	}
 	
 	private static void loadJars(File extDir)
