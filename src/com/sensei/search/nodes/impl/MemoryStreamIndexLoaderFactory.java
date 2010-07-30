@@ -23,7 +23,12 @@ public class MemoryStreamIndexLoaderFactory<V> implements
 		final MemoryStreamDataProvider<V> memoryDataProvider = _memoryDataProviderMap
 				.get(partition);
 		if (memoryDataProvider != null) {
-			memoryDataProvider.setDataConsumer(zoie);
+			CompositeDataConsumer<V> consumer = (CompositeDataConsumer<V>)memoryDataProvider.getDataConsumer();
+			if (consumer==null){
+				consumer = new CompositeDataConsumer<V>();
+				memoryDataProvider.setDataConsumer(consumer);
+			}
+			consumer.addDataConsumer(zoie);
 			return new SenseiIndexLoader() {
 
 				@Override
@@ -42,5 +47,4 @@ public class MemoryStreamIndexLoaderFactory<V> implements
 			return null;
 		}
 	}
-
 }
