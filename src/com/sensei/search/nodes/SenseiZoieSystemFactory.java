@@ -4,6 +4,7 @@ import java.io.File;
 
 import org.apache.log4j.Logger;
 
+import proj.zoie.api.ZoieVersion;
 import proj.zoie.api.indexing.IndexReaderDecorator;
 import proj.zoie.api.indexing.ZoieIndexableInterpreter;
 import proj.zoie.impl.indexing.ZoieConfig;
@@ -11,16 +12,16 @@ import proj.zoie.impl.indexing.ZoieSystem;
 
 import com.browseengine.bobo.api.BoboIndexReader;
 
-public class SenseiZoieSystemFactory<V>
+public class SenseiZoieSystemFactory<T,V extends ZoieVersion>
 {
   private static Logger log = Logger.getLogger(SenseiZoieSystemFactory.class);
   protected File _idxDir;
-  protected ZoieIndexableInterpreter<V> _interpreter;
+  protected ZoieIndexableInterpreter<T> _interpreter;
   protected IndexReaderDecorator<BoboIndexReader> _indexReaderDecorator;
   
   protected final ZoieConfig _zoieConfig;
   
-  public SenseiZoieSystemFactory(File idxDir, ZoieIndexableInterpreter<V> interpreter, IndexReaderDecorator<BoboIndexReader> indexReaderDecorator,
+  public SenseiZoieSystemFactory(File idxDir, ZoieIndexableInterpreter<T> interpreter, IndexReaderDecorator<BoboIndexReader> indexReaderDecorator,
                                  ZoieConfig zoieConfig)
   {
     _idxDir = idxDir;
@@ -34,7 +35,7 @@ public class SenseiZoieSystemFactory<V>
 	  return new File(nodeLevelFile, "shard"+partitionId); 
   }
   
-  public ZoieSystem<BoboIndexReader,V> getZoieSystem(int nodeId,int partitionId)
+  public ZoieSystem<BoboIndexReader,T,V> getZoieSystem(int nodeId,int partitionId)
   {
     File partDir = getPath(nodeId,partitionId);
     if(!partDir.exists())
@@ -42,7 +43,7 @@ public class SenseiZoieSystemFactory<V>
       partDir.mkdirs();
       log.info("nodeId="+nodeId+", partition=" + partitionId + " does not exist, directory created.");
     }
-    return new ZoieSystem<BoboIndexReader,V>(partDir, _interpreter, _indexReaderDecorator, _zoieConfig);
+    return new ZoieSystem<BoboIndexReader,T,V>(partDir, _interpreter, _indexReaderDecorator, _zoieConfig);
   }
   
   // TODO: change to getDirectoryManager

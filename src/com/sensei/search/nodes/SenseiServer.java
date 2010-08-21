@@ -46,11 +46,11 @@ public class SenseiServer {
     private String _partitionString;
     private NetworkServer _networkServer;
     private ClusterClient _clusterClient;
-    private SenseiZoieSystemFactory<?> _zoieSystemFactory;
+    private SenseiZoieSystemFactory<?,?> _zoieSystemFactory;
     private SenseiIndexLoaderFactory _indexLoaderFactory;
     private SenseiQueryBuilderFactory _queryBuilderFactory;
     private SenseiNode _node;
-    private final HashSet<ZoieSystem<BoboIndexReader,?>> zoieSystems = new HashSet<ZoieSystem<BoboIndexReader,?>>();
+    private final HashSet<ZoieSystem<BoboIndexReader,?,?>> zoieSystems = new HashSet<ZoieSystem<BoboIndexReader,?,?>>();
     private final HashSet<SenseiIndexLoader> indexLoaders = new HashSet<SenseiIndexLoader>();
     private final MBeanServer mbeanServer = java.lang.management.ManagementFactory.getPlatformMBeanServer();
     
@@ -60,7 +60,7 @@ public class SenseiServer {
     public SenseiServer(int id, int port, int[] partitions,
             NetworkServer networkServer,
             ClusterClient clusterClient,
-            SenseiZoieSystemFactory<?> zoieSystemFactory,
+            SenseiZoieSystemFactory<?,?> zoieSystemFactory,
             SenseiIndexLoaderFactory indexLoaderFactory,
             SenseiQueryBuilderFactory queryBuilderFactory){
     	this(id,port,partitions,null,networkServer,clusterClient,zoieSystemFactory,indexLoaderFactory,queryBuilderFactory);
@@ -70,7 +70,7 @@ public class SenseiServer {
                         File extDir,
                         NetworkServer networkServer,
                         ClusterClient clusterClient,
-                        SenseiZoieSystemFactory<?> zoieSystemFactory,
+                        SenseiZoieSystemFactory<?,?> zoieSystemFactory,
                         SenseiIndexLoaderFactory indexLoaderFactory,
                         SenseiQueryBuilderFactory queryBuilderFactory)
     {
@@ -109,7 +109,7 @@ public class SenseiServer {
 		return buffer.toString();
 	}
 	
-	public Collection<ZoieSystem<BoboIndexReader,?>> getZoieSystems(){
+	public Collection<ZoieSystem<BoboIndexReader,?,?>> getZoieSystems(){
 		return zoieSystems;
 	}
 	
@@ -167,7 +167,7 @@ public class SenseiServer {
         }
         indexLoaders.clear();
         // shutdown the zoieSystems
-        for(ZoieSystem<BoboIndexReader,?> zoieSystem : zoieSystems)
+        for(ZoieSystem<BoboIndexReader,?,?> zoieSystem : zoieSystems)
         {
           zoieSystem.shutdown();
         }
@@ -191,7 +191,7 @@ public class SenseiServer {
 		  //in simple case query builder is the same for each partition
 		  builderFactoryMap.put(part, _queryBuilderFactory);
 			
-		  ZoieSystem<BoboIndexReader,?> zoieSystem = _zoieSystemFactory.getZoieSystem(_id,part);
+		  ZoieSystem<BoboIndexReader,?,?> zoieSystem = _zoieSystemFactory.getZoieSystem(_id,part);
 		  
 		  // register ZoieSystemAdminMBean
 
@@ -337,8 +337,8 @@ public class SenseiServer {
 	  
 	  NetworkServer networkServer = (NetworkServer)springCtx.getBean("network-server");
       ClusterClient clusterClient = (ZooKeeperClusterClient)springCtx.getBean("cluster-client");
-      SenseiZoieSystemFactory<?> zoieSystemFactory = (SenseiZoieSystemFactory<?>)springCtx.getBean("zoie-system-factory");
-      SenseiIndexLoaderFactory<?> indexLoaderFactory = (SenseiIndexLoaderFactory)springCtx.getBean("index-loader-factory");
+      SenseiZoieSystemFactory<?,?> zoieSystemFactory = (SenseiZoieSystemFactory<?,?>)springCtx.getBean("zoie-system-factory");
+      SenseiIndexLoaderFactory<?,?> indexLoaderFactory = (SenseiIndexLoaderFactory)springCtx.getBean("index-loader-factory");
       SenseiQueryBuilderFactory queryBuilderFactory = (SenseiQueryBuilderFactory)springCtx.getBean("query-builder-factory");
       
 	  final SenseiServer server = new SenseiServer(id, port, partitions,

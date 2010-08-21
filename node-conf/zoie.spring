@@ -26,7 +26,10 @@
     </constructor-arg>
 	</bean>
 	
+	<bean id="zversionFactory" class="proj.zoie.api.DefaultZoieVersion$DefaultZoieVersionFactory" />
+	
 	<bean id="zoie-config" class="proj.zoie.impl.indexing.ZoieConfig">
+	  <constructor-arg ref="zversionFactory" />
 	  <property name="analyzer" ref="analyzer" />
 	</bean>
 	

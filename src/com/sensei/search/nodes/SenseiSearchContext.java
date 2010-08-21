@@ -10,8 +10,12 @@ import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.search.DefaultSimilarity;
 import org.apache.lucene.util.Version;
 
+import proj.zoie.api.DefaultZoieVersion;
 import proj.zoie.api.IndexReaderFactory;
 import proj.zoie.api.ZoieIndexReader;
+import proj.zoie.api.ZoieVersion;
+import proj.zoie.api.ZoieVersionFactory;
+import proj.zoie.api.impl.DefaultZoieVersionFactory;
 import proj.zoie.api.indexing.ZoieIndexableInterpreter;
 import proj.zoie.impl.indexing.ZoieSystem;
 
@@ -21,8 +25,13 @@ public class SenseiSearchContext {
 	private final Map<Integer,SenseiQueryBuilderFactory> _builderFactoryMap;
 	private final Map<Integer,IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>> _partReaderMap;
 
+	private static <T,V extends ZoieVersion> IndexReaderFactory<ZoieIndexReader<BoboIndexReader>> buildReaderFactory(File file,ZoieIndexableInterpreter<T> interpreter,ZoieVersionFactory<V> versionFactory){
+		ZoieSystem<BoboIndexReader,T,V> zoieSystem = new ZoieSystem<BoboIndexReader,T,V>(file,interpreter,new SenseiIndexReaderDecorator(),new StandardAnalyzer(Version.LUCENE_CURRENT),new DefaultSimilarity(),1000,300000,true,versionFactory);
+		return zoieSystem;
+	}
+
 	private static <T> IndexReaderFactory<ZoieIndexReader<BoboIndexReader>> buildReaderFactory(File file,ZoieIndexableInterpreter<T> interpreter){
-		ZoieSystem<BoboIndexReader,T> zoieSystem = new ZoieSystem<BoboIndexReader,T>(file,interpreter,new SenseiIndexReaderDecorator(),new StandardAnalyzer(Version.LUCENE_CURRENT),new DefaultSimilarity(),1000,300000,true);
+		ZoieSystem<BoboIndexReader,T,DefaultZoieVersion> zoieSystem = new ZoieSystem<BoboIndexReader,T,DefaultZoieVersion>(file,interpreter,new SenseiIndexReaderDecorator(),new StandardAnalyzer(Version.LUCENE_CURRENT),new DefaultSimilarity(),1000,300000,true,new DefaultZoieVersionFactory());
 		return zoieSystem;
 	}
 

@@ -6,40 +6,38 @@ import java.util.List;
 
 import proj.zoie.api.DataConsumer;
 import proj.zoie.api.ZoieException;
+import proj.zoie.api.ZoieVersion;
 
-public class CompositeDataConsumer<V> implements DataConsumer<V> {
+public class CompositeDataConsumer<T,V extends ZoieVersion> implements DataConsumer<T,V> {
 
-	private List<DataConsumer<V>> _consumerList;
+	private List<DataConsumer<T,V>> _consumerList;
 	public CompositeDataConsumer(){
-		_consumerList = new LinkedList<DataConsumer<V>>();
+		_consumerList = new LinkedList<DataConsumer<T,V>>();
 	}
 	
-	public void addDataConsumer(DataConsumer<V> dataConsumer){
+	public void addDataConsumer(DataConsumer<T,V> dataConsumer){
 		_consumerList.add(dataConsumer);
 	}
 	
 	@Override
-	public void consume(Collection<proj.zoie.api.DataConsumer.DataEvent<V>> events)
+	public void consume(Collection<DataEvent<T,V>> events)
 			throws ZoieException {
-		for (DataConsumer<V> consumer : _consumerList){
+		for (DataConsumer<T,V> consumer : _consumerList){
 			consumer.consume(events);
 		}
 	}
 
 	@Override
-	public long getVersion() {
-		long version = Long.MAX_VALUE;
-		if (_consumerList==null || _consumerList.size() == 0){
-			return 0L;
-		}
-		
-		for (DataConsumer<V> consumer : _consumerList){
-			long ver = consumer.getVersion();
-			if (ver < version){
+	public V getVersion() {
+		V version = null;
+		if (_consumerList!=null){
+		  for (DataConsumer<T,V> consumer : _consumerList){
+			V ver = consumer.getVersion();
+			if (ver.compareTo(version)<0){
 				version = ver;
 			}
+		  }
 		}
-		
 		return version;
 	}
 

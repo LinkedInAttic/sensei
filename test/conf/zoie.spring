@@ -27,7 +27,12 @@
     </constructor-arg>
 	</bean>
 	
-	<bean id="zoieConfig" class="proj.zoie.impl.indexing.ZoieConfig" />
+	
+	<bean id="zversionFactory" class="proj.zoie.api.DefaultZoieVersion$DefaultZoieVersionFactory" />
+	
+	<bean id="zoieConfig" class="proj.zoie.impl.indexing.ZoieConfig">
+	   <constructor-arg ref="zversionFactory" />
+	</bean>
 	
 	<bean id="zoie-system-factory" class="com.sensei.search.nodes.impl.DemoZoieSystemFactory">
 		<constructor-arg value="file:${idx.dir}"/>

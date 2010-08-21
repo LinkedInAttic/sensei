@@ -2,6 +2,7 @@ package com.sensei.search.nodes.impl;
 
 import java.util.Map;
 
+import proj.zoie.api.ZoieVersion;
 import proj.zoie.impl.indexing.MemoryStreamDataProvider;
 import proj.zoie.impl.indexing.ZoieSystem;
 
@@ -9,23 +10,23 @@ import com.sensei.search.nodes.SenseiIndexLoader;
 import com.sensei.search.nodes.SenseiIndexLoaderFactory;
 import com.sensei.search.svc.api.SenseiException;
 
-public class MemoryStreamIndexLoaderFactory<V> implements
-		SenseiIndexLoaderFactory<V> {
+public class MemoryStreamIndexLoaderFactory<T,V extends ZoieVersion> implements
+		SenseiIndexLoaderFactory<T,V> {
 
-	private Map<Integer, MemoryStreamDataProvider<V>> _memoryDataProviderMap;
+	private Map<Integer, MemoryStreamDataProvider<T,V>> _memoryDataProviderMap;
 
 	public MemoryStreamIndexLoaderFactory(
-			Map<Integer, MemoryStreamDataProvider<V>> memoryDataProviderMap) {
+			Map<Integer, MemoryStreamDataProvider<T,V>> memoryDataProviderMap) {
 		_memoryDataProviderMap = memoryDataProviderMap;
 	}
 
-	public SenseiIndexLoader getIndexLoader(int partition, ZoieSystem<?, V> zoie) {
-		final MemoryStreamDataProvider<V> memoryDataProvider = _memoryDataProviderMap
+	public SenseiIndexLoader getIndexLoader(int partition, ZoieSystem<?, T,V> zoie) {
+		final MemoryStreamDataProvider<T,V> memoryDataProvider = _memoryDataProviderMap
 				.get(partition);
 		if (memoryDataProvider != null) {
-			CompositeDataConsumer<V> consumer = (CompositeDataConsumer<V>)memoryDataProvider.getDataConsumer();
+			CompositeDataConsumer<T,V> consumer = (CompositeDataConsumer<T,V>)memoryDataProvider.getDataConsumer();
 			if (consumer==null){
-				consumer = new CompositeDataConsumer<V>();
+				consumer = new CompositeDataConsumer<T,V>();
 				memoryDataProvider.setDataConsumer(consumer);
 			}
 			consumer.addDataConsumer(zoie);
