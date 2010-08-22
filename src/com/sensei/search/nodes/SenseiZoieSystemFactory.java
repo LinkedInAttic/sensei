@@ -19,10 +19,10 @@ public class SenseiZoieSystemFactory<T,V extends ZoieVersion>
   protected ZoieIndexableInterpreter<T> _interpreter;
   protected IndexReaderDecorator<BoboIndexReader> _indexReaderDecorator;
   
-  protected final ZoieConfig _zoieConfig;
+  protected final ZoieConfig<V> _zoieConfig;
   
   public SenseiZoieSystemFactory(File idxDir, ZoieIndexableInterpreter<T> interpreter, IndexReaderDecorator<BoboIndexReader> indexReaderDecorator,
-                                 ZoieConfig zoieConfig)
+                                 ZoieConfig<V> zoieConfig)
   {
     _idxDir = idxDir;
     _interpreter = interpreter;
