@@ -167,14 +167,17 @@ public class SenseiNodeMessageHandler implements MessageHandler {
 		
 		SenseiResult finalResult=null;
 		Set<Integer> partitions = senseiReq.getPartitions();
-		logger.info("serving partitions: "+ partitions.toString());
 		if (partitions!=null && partitions.size() > 0){
+			logger.info("serving partitions: "+ partitions.toString());
 			ArrayList<SenseiResult> resultList = new ArrayList<SenseiResult>(partitions.size());
 			for (int partition : partitions){
 			  try{
+				long start = System.currentTimeMillis();
 			    IndexReaderFactory<ZoieIndexReader<BoboIndexReader>> readerFactory=_partReaderMap.get(partition);
 			    SenseiResult res = handleMessage(senseiReq, readerFactory, partition);
 			    resultList.add(res);
+			    long end = System.currentTimeMillis();
+			    logger.info("searching partition: "+partition+" took: "+(end-start));
 			  }
 			  catch(Exception e){
 				  logger.error(e.getMessage(),e);
@@ -183,6 +186,7 @@ public class SenseiNodeMessageHandler implements MessageHandler {
             finalResult = ResultMerger.merge(senseiReq, resultList);
 		}
 		else{
+			logger.info("no partitions specified");
 			finalResult = new SenseiResult();
 		}
 		SenseiResultBPO.Result resultMsg = SenseiRequestBPOConverter.convert(finalResult);

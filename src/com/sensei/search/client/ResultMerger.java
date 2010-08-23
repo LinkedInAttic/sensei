@@ -35,12 +35,14 @@ public class ResultMerger {
             count = new HashMap<String, Integer>();
             counts.put(entry.getKey(), count);
           }
-          for(BrowseFacet facet : entry.getValue().getFacets())
+          FacetAccessible facetAccessible =entry.getValue();
+          for(BrowseFacet facet : facetAccessible.getFacets())
           {
             String val = facet.getValue();
             int oldValue = count.containsKey(val) ? count.get(val) : 0;
-            count.put(val, oldValue + facet.getHitCount());
+            count.put(val, oldValue + facet.getFacetValueHitCount());
           }
+          facetAccessible.close();
         }
       }
 
@@ -57,8 +59,8 @@ public class ResultMerger {
         {
           public int compare(BrowseFacet f1, BrowseFacet f2)
           {
-            int h1 = f1.getHitCount();
-            int h2 = f2.getHitCount();
+            int h1 = f1.getFacetValueHitCount();
+            int h2 = f2.getFacetValueHitCount();
 
             int val = h2 - h1;
 
