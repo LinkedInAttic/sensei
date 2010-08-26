@@ -18,8 +18,8 @@ import proj.zoie.api.Zoie;
 import proj.zoie.api.ZoieIndexReader;
 
 import com.browseengine.bobo.api.BoboIndexReader;
-import com.linkedin.norbert.cluster.javaapi.ClusterClient;
-import com.linkedin.norbert.network.javaapi.NetworkServer;
+import com.linkedin.norbert.javacompat.cluster.ClusterClient;
+import com.linkedin.norbert.javacompat.network.NetworkServer;
 import com.sensei.search.svc.api.SenseiException;
 
 /**
@@ -280,4 +280,4 @@ public class EmbeddedSenseiServer {
 	public void setBuilderFactoryMap( Map<Integer,SenseiQueryBuilderFactory> builderFactoryMap ) {
 		this.builderFactoryMap = builderFactoryMap;
 	}
-};
+}

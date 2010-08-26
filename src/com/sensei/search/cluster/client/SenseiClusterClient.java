@@ -13,18 +13,13 @@ import org.springframework.context.support.FileSystemXmlApplicationContext;
 
 import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
 import com.linkedin.norbert.NorbertException;
-import com.linkedin.norbert.cluster.javaapi.ClusterClient;
-import com.linkedin.norbert.cluster.javaapi.Node;
-import com.linkedin.norbert.cluster.javaapi.ZooKeeperClusterClient;
-import com.linkedin.norbert.network.javaapi.PartitionedLoadBalancerFactory;
-import com.linkedin.norbert.network.javaapi.PartitionedNetworkClient;
-import com.sensei.search.cluster.routing.UniformPartitionedRoutingFactory;
+import com.linkedin.norbert.javacompat.cluster.ClusterClient;
+import com.linkedin.norbert.javacompat.cluster.Node;
+import com.linkedin.norbert.javacompat.network.PartitionedLoadBalancerFactory;
 import com.sensei.search.nodes.SenseiBroker;
 import com.sensei.search.nodes.SenseiRequestScatterRewriter;
 import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.req.SenseiResult;
-import com.sensei.search.req.protobuf.SenseiRequestBPO;
-import com.sensei.search.req.protobuf.SenseiResultBPO;
 import com.sensei.search.util.SenseiDefaults;
 
 public class SenseiClusterClient {
@@ -152,7 +147,7 @@ public class SenseiClusterClient {
 			    String url = node.getUrl();
 				System.out.println("id: "+node.getId());
 				System.out.println("addr: "+ url);
-				System.out.println("partitions: "+ node.getPartitions().toString());
+				System.out.println("partitions: "+ node.getPartitionIds().toString());
 				System.out.println("availlable :"+node.isAvailable());
 				System.out.println("=========================");
 			}

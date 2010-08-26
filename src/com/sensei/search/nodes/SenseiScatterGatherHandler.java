@@ -10,8 +10,8 @@ import org.apache.log4j.Logger;
 
 import com.google.protobuf.Message;
 import com.google.protobuf.TextFormat.ParseException;
-import com.linkedin.norbert.cluster.javaapi.Node;
-import com.linkedin.norbert.network.javaapi.ScatterGatherHandler;
+import com.linkedin.norbert.javacompat.cluster.Node;
+import com.linkedin.norbert.javacompat.network.ScatterGatherHandler;
 import com.sensei.search.client.ResultMerger;
 import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.req.SenseiResult;

@@ -6,8 +6,8 @@ import it.unimi.dsi.fastutil.ints.IntSet;
 import java.util.ArrayList;
 import java.util.Random;
 
-import com.linkedin.norbert.cluster.javaapi.Node;
-import com.linkedin.norbert.network.javaapi.PartitionedLoadBalancer;
+import com.linkedin.norbert.javacompat.cluster.Node;
+import com.linkedin.norbert.javacompat.network.PartitionedLoadBalancer;
 
 public class UniformPartitionedLoadBalancer implements PartitionedLoadBalancer<Integer> {
   

@@ -2,7 +2,6 @@ package com.sensei.search.nodes;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,7 +24,7 @@ import com.browseengine.bobo.api.MultiBoboBrowser;
 import com.browseengine.bobo.sort.SortCollector;
 import com.google.protobuf.Message;
 import com.google.protobuf.TextFormat;
-import com.linkedin.norbert.network.javaapi.MessageHandler;
+import com.linkedin.norbert.javacompat.network.MessageHandler;
 import com.sensei.search.client.ResultMerger;
 import com.sensei.search.req.SenseiHit;
 import com.sensei.search.req.SenseiRequest;

@@ -7,7 +7,7 @@
 	
 	<import resource="zoie.spring" />
 
-	<bean id="cluster-client" class="com.linkedin.norbert.cluster.javaapi.InMemoryClusterClient">
+	<bean id="cluster-client" class="com.linkedin.norbert.javacompat.cluster.InMemoryClusterClient">
 	  <constructor-arg value="testCluster" />
 	</bean>
 
@@ -30,7 +30,7 @@
     
     <bean id="index-loader-factory" class="com.sensei.search.nodes.impl.NoopIndexLoaderFactory"/>
     
-    <bean id="network-server-config" class="com.linkedin.norbert.network.javaapi.NetworkServerConfig">
+    <bean id="network-server-config" class="com.linkedin.norbert.javacompat.network.NetworkServerConfig">
         <property name="serviceName" value="sensei"/>
         <property name="requestThreadCorePoolSize" value="5"/>
         <property name="requestThreadMaxPoolSize" value="10"/>
@@ -38,15 +38,15 @@
         <property name="clusterClient" ref="cluster-client"/>
     </bean>
      
-    <bean id="network-server-1" class="com.linkedin.norbert.network.javaapi.NettyNetworkServer">
+    <bean id="network-server-1" class="com.linkedin.norbert.javacompat.network.NettyNetworkServer">
         <constructor-arg ref="network-server-config"/>
     </bean>
     
-    <bean id="network-server-2" class="com.linkedin.norbert.network.javaapi.NettyNetworkServer">
+    <bean id="network-server-2" class="com.linkedin.norbert.javacompat.network.NettyNetworkServer">
         <constructor-arg ref="network-server-config"/>
     </bean>
 
-	<bean id="network-client-config" class="com.linkedin.norbert.network.javaapi.NetworkClientConfig">
+	<bean id="network-client-config" class="com.linkedin.norbert.javacompat.network.NetworkClientConfig">
        <property name="serviceName" value="sensei"/>
        <property name="connectTimeoutMillis" value="1000"/>
        <property name="writeTimeoutMillis" value="150"/>

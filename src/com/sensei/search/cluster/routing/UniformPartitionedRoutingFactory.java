@@ -10,9 +10,9 @@ import java.util.Random;
 import java.util.Set;
 
 import com.linkedin.norbert.cluster.InvalidClusterException;
-import com.linkedin.norbert.cluster.javaapi.Node;
-import com.linkedin.norbert.network.javaapi.PartitionedLoadBalancer;
-import com.linkedin.norbert.network.javaapi.PartitionedLoadBalancerFactory;
+import com.linkedin.norbert.javacompat.cluster.Node;
+import com.linkedin.norbert.javacompat.network.PartitionedLoadBalancer;
+import com.linkedin.norbert.javacompat.network.PartitionedLoadBalancerFactory;
 
 public class UniformPartitionedRoutingFactory implements PartitionedLoadBalancerFactory<Integer> {
 	private final Random _rand = new Random(System.nanoTime());
@@ -25,7 +25,7 @@ public class UniformPartitionedRoutingFactory implements PartitionedLoadBalancer
     final Int2ObjectMap<ArrayList<Node>> nodeMap = new Int2ObjectOpenHashMap<ArrayList<Node>>();
     IntSet parts = new IntOpenHashSet();
     for (Node node : nodes){
-        Set<Integer> partitions = node.getPartitions();
+        Set<Integer> partitions = node.getPartitionIds();
         for (Integer partition : partitions){
             parts.add(partition);
             ArrayList<Node> nodeList = nodeMap.get(partition);
