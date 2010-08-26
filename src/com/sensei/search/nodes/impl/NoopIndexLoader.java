@@ -2,17 +2,18 @@ package com.sensei.search.nodes.impl;
 
 import org.apache.log4j.Logger;
 
-import proj.zoie.impl.indexing.ZoieSystem;
+import proj.zoie.api.Zoie;
 
+import com.browseengine.bobo.api.BoboIndexReader;
 import com.sensei.search.nodes.SenseiIndexLoader;
 
 public class NoopIndexLoader<V> implements SenseiIndexLoader
 {
   private static final Logger logger = Logger.getLogger(NoopIndexLoader.class);
   
-  protected ZoieSystem<?,V> _zoie;
+  protected Zoie<BoboIndexReader,V> _zoie;
   
-  public NoopIndexLoader(ZoieSystem<?,V> zoie)
+  public NoopIndexLoader(Zoie<BoboIndexReader,V> zoie)
   {
     _zoie = zoie;
   }

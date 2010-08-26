@@ -2,9 +2,10 @@ package com.sensei.search.nodes.impl;
 
 import java.util.Map;
 
+import proj.zoie.api.Zoie;
 import proj.zoie.impl.indexing.MemoryStreamDataProvider;
-import proj.zoie.impl.indexing.ZoieSystem;
 
+import com.browseengine.bobo.api.BoboIndexReader;
 import com.sensei.search.nodes.SenseiIndexLoader;
 import com.sensei.search.nodes.SenseiIndexLoaderFactory;
 import com.sensei.search.svc.api.SenseiException;
@@ -19,7 +20,7 @@ public class MemoryStreamIndexLoaderFactory<V> implements
 		_memoryDataProviderMap = memoryDataProviderMap;
 	}
 
-	public SenseiIndexLoader getIndexLoader(int partition, ZoieSystem<?, V> zoie) {
+	public SenseiIndexLoader getIndexLoader(int partition, Zoie<BoboIndexReader, V> zoie) {
 		final MemoryStreamDataProvider<V> memoryDataProvider = _memoryDataProviderMap
 				.get(partition);
 		if (memoryDataProvider != null) {
