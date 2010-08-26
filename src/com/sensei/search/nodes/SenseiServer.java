@@ -22,11 +22,8 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.FileSystemXmlApplicationContext;
 
 import proj.zoie.api.IndexReaderFactory;
+import proj.zoie.api.Zoie;
 import proj.zoie.api.ZoieIndexReader;
-import proj.zoie.impl.indexing.ZoieSystem;
-import proj.zoie.mbean.ZoieIndexingStatusAdmin;
-import proj.zoie.mbean.ZoieIndexingStatusAdminMBean;
-import proj.zoie.mbean.ZoieSystemAdminMBean;
 
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.linkedin.norbert.cluster.javaapi.ClusterClient;
@@ -50,7 +47,7 @@ public class SenseiServer {
     private SenseiIndexLoaderFactory _indexLoaderFactory;
     private SenseiQueryBuilderFactory _queryBuilderFactory;
     private SenseiNode _node;
-    private final HashSet<ZoieSystem<BoboIndexReader,?,?>> zoieSystems = new HashSet<ZoieSystem<BoboIndexReader,?,?>>();
+    private final HashSet<Zoie<BoboIndexReader,?,?>> zoieSystems = new HashSet<Zoie<BoboIndexReader,?,?>>();
     private final HashSet<SenseiIndexLoader> indexLoaders = new HashSet<SenseiIndexLoader>();
     private final MBeanServer mbeanServer = java.lang.management.ManagementFactory.getPlatformMBeanServer();
     
@@ -109,7 +106,7 @@ public class SenseiServer {
 		return buffer.toString();
 	}
 	
-	public Collection<ZoieSystem<BoboIndexReader,?,?>> getZoieSystems(){
+	public Collection<Zoie<BoboIndexReader,?,?>> getZoieSystems(){
 		return zoieSystems;
 	}
 	
@@ -167,7 +164,7 @@ public class SenseiServer {
         }
         indexLoaders.clear();
         // shutdown the zoieSystems
-        for(ZoieSystem<BoboIndexReader,?,?> zoieSystem : zoieSystems)
+        for(Zoie<BoboIndexReader,?,?> zoieSystem : zoieSystems)
         {
           zoieSystem.shutdown();
         }
@@ -191,36 +188,27 @@ public class SenseiServer {
 		  //in simple case query builder is the same for each partition
 		  builderFactoryMap.put(part, _queryBuilderFactory);
 			
-		  ZoieSystem<BoboIndexReader,?,?> zoieSystem = _zoieSystemFactory.getZoieSystem(_id,part);
+		  Zoie<BoboIndexReader,?,?> zoieSystem = _zoieSystemFactory.getZoieSystem(_id,part);
 		  
 		  // register ZoieSystemAdminMBean
 
-		  ObjectName name = new ObjectName(clusterName, "name", "zoie-system-" + _id+"-"+part);
-		  try{
-		    mbeanServer.registerMBean(new StandardMBean(zoieSystem.getAdminMBean(), ZoieSystemAdminMBean.class),name);
-		    _registeredMBeans.add(name);
-		  }
-		  catch(Exception e){
-			  logger.error(e.getMessage(),e);
-			  if (e instanceof InstanceAlreadyExistsException){
-				  _registeredMBeans.add(name);
-			  }
-		  }
-		  
-		  // register ZoieIndexingStatusAdminMBean
-		  name = new ObjectName(clusterName, "name", "zoie-indexing-status-" + _id+"-"+ part);
-		  try{
-		    mbeanServer.registerMBean(new StandardMBean(new ZoieIndexingStatusAdmin(zoieSystem), ZoieIndexingStatusAdminMBean.class),name);
-		    _registeredMBeans.add(name);
-		  }
-		  catch(Exception e){
-			  logger.error(e.getMessage(),e);
-			  if (e instanceof InstanceAlreadyExistsException){
-				  _registeredMBeans.add(name);
-			  }
-		  }
-	          	  
-		  
+      String[] mbeannames = zoieSystem.getStandardMBeanNames();
+      for(String name : mbeannames)
+      {
+        ObjectName oname = new ObjectName(clusterName, "name", name + "-" + part);
+        try
+        {
+          mbeanServer.registerMBean(zoieSystem.getStandardMBean(name), oname);
+        } catch(Exception e)
+        {
+          logger.error(e.getMessage(),e);
+          if (e instanceof InstanceAlreadyExistsException)
+          {
+            _registeredMBeans.add(oname);
+          }
+        }        
+      }
+		  		  
 		  if(!zoieSystems.contains(zoieSystem))
 		  {
 		    zoieSystem.start();

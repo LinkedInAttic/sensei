@@ -20,3 +20,4 @@ lib/lucene-core-3.0.0.jar
 lib/protobuf-java-2.3.0.jar
 lib/spring-2.5.5.jar
 MANIFEST.MF
+.settings

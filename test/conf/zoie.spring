@@ -9,8 +9,8 @@
 	<!-- dummy placeholder, we are not worry about indexing for now -->			
 	<bean id="interpreter" class="com.sensei.search.nodes.NoOpIndexableInterpreter" />
 	
-	<bean id="lucene-version" class="org.apache.lucene.util.Version" factory-method="valueOf">
-		<constructor-arg value="LUCENE_CURRENT" />
+	<bean id="lucene-version" class="org.springframework.beans.factory.config.FieldRetrievingFactoryBean">
+		<property name="staticField" value="org.apache.lucene.util.Version.LUCENE_CURRENT"/>
 	</bean>
 	
 	<bean id="analyzer" class="org.apache.lucene.analysis.standard.StandardAnalyzer">
