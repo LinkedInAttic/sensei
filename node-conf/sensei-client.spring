@@ -7,7 +7,7 @@
 
       <import resource="sensei-cluster.spring" />
 
-      <bean id="network-client-config" class="com.linkedin.norbert.network.javaapi.NetworkClientConfig">
+      <bean id="network-client-config" class="com.linkedin.norbert.javacompat.network.NetworkClientConfig">
 		  <property name="serviceName" value="sensei"/>
 		  <property name="zooKeeperConnectString" value="localhost:2181"/>
 		  <property name="zooKeeperSessionTimeoutMillis" value="30000"/>

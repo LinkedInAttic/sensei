@@ -3,8 +3,7 @@
  */
 package com.sensei.search.nodes;
 
-import com.linkedin.norbert.cluster.javaapi.ClusterClient;
-import com.linkedin.norbert.network.javaapi.NetworkClientConfig;
+import com.linkedin.norbert.javacompat.network.NetworkClientConfig;
 
 /**
  * @author nnarkhed

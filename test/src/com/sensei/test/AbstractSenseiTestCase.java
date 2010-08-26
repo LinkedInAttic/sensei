@@ -11,9 +11,9 @@ import org.junit.Before;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.FileSystemXmlApplicationContext;
 
-import com.linkedin.norbert.cluster.javaapi.ClusterClient;
-import com.linkedin.norbert.network.javaapi.NetworkServer;
-import com.linkedin.norbert.network.javaapi.PartitionedLoadBalancerFactory;
+import com.linkedin.norbert.javacompat.cluster.ClusterClient;
+import com.linkedin.norbert.javacompat.network.NetworkServer;
+import com.linkedin.norbert.javacompat.network.PartitionedLoadBalancerFactory;
 import com.sensei.search.cluster.client.SenseiNetworkClient;
 import com.sensei.search.nodes.SenseiRequestScatterRewriter;
 import com.sensei.search.req.protobuf.SenseiRequestBPO;

@@ -29,9 +29,9 @@ import proj.zoie.mbean.ZoieIndexingStatusAdminMBean;
 import proj.zoie.mbean.ZoieSystemAdminMBean;
 
 import com.browseengine.bobo.api.BoboIndexReader;
-import com.linkedin.norbert.cluster.javaapi.ClusterClient;
-import com.linkedin.norbert.cluster.javaapi.ZooKeeperClusterClient;
-import com.linkedin.norbert.network.javaapi.NetworkServer;
+import com.linkedin.norbert.javacompat.cluster.ClusterClient;
+import com.linkedin.norbert.javacompat.cluster.ZooKeeperClusterClient;
+import com.linkedin.norbert.javacompat.network.NetworkServer;
 import com.sensei.search.svc.api.SenseiException;
 
 public class SenseiServer {

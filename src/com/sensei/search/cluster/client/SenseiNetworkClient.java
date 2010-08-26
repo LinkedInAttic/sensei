@@ -10,14 +10,14 @@ import com.google.protobuf.Message;
 import com.linkedin.norbert.cluster.ClusterDisconnectedException;
 import com.linkedin.norbert.cluster.InvalidClusterException;
 import com.linkedin.norbert.cluster.InvalidNodeException;
-import com.linkedin.norbert.cluster.javaapi.Node;
+import com.linkedin.norbert.javacompat.cluster.Node;
+import com.linkedin.norbert.javacompat.network.NettyPartitionedNetworkClient;
+import com.linkedin.norbert.javacompat.network.NetworkClientConfig;
+import com.linkedin.norbert.javacompat.network.PartitionedLoadBalancerFactory;
+import com.linkedin.norbert.javacompat.network.PartitionedNetworkClient;
+import com.linkedin.norbert.javacompat.network.ScatterGatherHandler;
 import com.linkedin.norbert.network.NoNodesAvailableException;
 import com.linkedin.norbert.network.ResponseIterator;
-import com.linkedin.norbert.network.javaapi.NettyPartitionedNetworkClient;
-import com.linkedin.norbert.network.javaapi.NetworkClientConfig;
-import com.linkedin.norbert.network.javaapi.PartitionedLoadBalancerFactory;
-import com.linkedin.norbert.network.javaapi.PartitionedNetworkClient;
-import com.linkedin.norbert.network.javaapi.ScatterGatherHandler;
 import com.sensei.search.cluster.routing.UniformPartitionedRoutingFactory;
 
 /**

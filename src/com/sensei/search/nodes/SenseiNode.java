@@ -7,11 +7,11 @@ import java.util.Set;
 
 import org.apache.log4j.Logger;
 
-import com.linkedin.norbert.cluster.javaapi.ClusterClient;
-import com.linkedin.norbert.cluster.javaapi.Node;
+import com.linkedin.norbert.javacompat.cluster.ClusterClient;
+import com.linkedin.norbert.javacompat.cluster.Node;
+import com.linkedin.norbert.javacompat.network.MessageHandler;
+import com.linkedin.norbert.javacompat.network.NetworkServer;
 import com.linkedin.norbert.network.NetworkingException;
-import com.linkedin.norbert.network.javaapi.MessageHandler;
-import com.linkedin.norbert.network.javaapi.NetworkServer;
 import com.sensei.search.req.protobuf.SenseiRequestBPO;
 import com.sensei.search.req.protobuf.SenseiResultBPO;
 

@@ -2,7 +2,7 @@ package com.sensei.search.nodes;
 
 import java.util.Set;
 
-import com.linkedin.norbert.cluster.javaapi.Node;
+import com.linkedin.norbert.javacompat.cluster.Node;
 import com.sensei.search.req.SenseiRequest;
 
 public interface SenseiRequestScatterRewriter {

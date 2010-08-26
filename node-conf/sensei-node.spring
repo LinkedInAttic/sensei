@@ -28,14 +28,14 @@
     
     <bean id="index-loader-factory" class="com.sensei.search.nodes.impl.NoopIndexLoaderFactory"/>
     
-    <bean id="network-server-config" class="com.linkedin.norbert.network.javaapi.NetworkServerConfig">
+    <bean id="network-server-config" class="com.linkedin.norbert.javacompat.network.NetworkServerConfig">
         <property name="requestThreadCorePoolSize" value="5"/>
         <property name="requestThreadMaxPoolSize" value="10"/>
         <property name="requestThreadKeepAliveTimeSecs" value="300"/>
         <property name="clusterClient" ref="cluster-client"/>
     </bean>
      
-    <bean id="network-server" class="com.linkedin.norbert.network.javaapi.NettyNetworkServer">
+    <bean id="network-server" class="com.linkedin.norbert.javacompat.network.NettyNetworkServer">
         <constructor-arg ref="network-server-config"/>
     </bean>
     
