@@ -37,8 +37,8 @@ public class SenseiHourglassFactory<V>
    * @param schedule format: "ss mm hh" meaning at hh:mm:ss time of the day that we roll forward for DAILY rolling;
    * if it is hourly rolling, it means at mm:ss time of the hour that we roll forward;
    * if it is MINUTELY, it means at ss seond of the minute that we roll forward.
-   * @param trimThreshold
-   * @param frequency
+   * @param trimThreshold the number of units of rolling periods to keep (for DAILY rolling, we keep trimThreshold number of days of data)
+   * @param frequency rolling frequency
    */
   public SenseiHourglassFactory(File idxDir, ZoieIndexableInterpreter<V> interpreter, IndexReaderDecorator<BoboIndexReader> indexReaderDecorator,
                                  ZoieConfig zoieConfig,
