@@ -10,11 +10,11 @@
 	<classpathentry exported="true" kind="lib" path="lib/master/netty-3.1.5.GA.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/master/protobuf-java.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/master/spring.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/master/zoie-2.0.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/master/zookeeper-3.2.0.jar"/>
 	<classpathentry exported="true" kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.launching.macosx.MacOSXType/JVM 1.6.0 (MacOS X Default)"/>
 	<classpathentry kind="lib" path="lib/master/bobo-browse-2.5.0.jar"/>
-	<classpathentry kind="lib" path="lib/master/zoie-2.0.0-SNAPSHOT.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="lib/master/norbert-cluster_2.8.0-0.5-SNAPSHOT.jar"/>
 	<classpathentry kind="lib" path="lib/master/norbert-java-cluster_2.8.0-0.5-SNAPSHOT.jar"/>
 	<classpathentry kind="lib" path="lib/master/norbert-java-network_2.8.0-0.5-SNAPSHOT.jar"/>

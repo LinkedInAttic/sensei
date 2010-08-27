@@ -14,11 +14,8 @@ import org.apache.log4j.Logger;
 
 import proj.zoie.api.DefaultZoieVersion;
 import proj.zoie.api.IndexReaderFactory;
+import proj.zoie.api.Zoie;
 import proj.zoie.api.ZoieIndexReader;
-import proj.zoie.impl.indexing.ZoieSystem;
-import proj.zoie.mbean.ZoieIndexingStatusAdmin;
-import proj.zoie.mbean.ZoieIndexingStatusAdminMBean;
-import proj.zoie.mbean.ZoieSystemAdminMBean;
 
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.linkedin.norbert.javacompat.cluster.ClusterClient;
@@ -48,7 +45,7 @@ public class EmbeddedSenseiServer {
 
 	private SenseiNode _node;
 	
-	Set<ZoieSystem<BoboIndexReader,?,DefaultZoieVersion>> zoieSystems;
+	Set<Zoie<BoboIndexReader,?,DefaultZoieVersion>> zoieSystems;
 	Set<SenseiIndexLoader> indexLoaders;
 
 	private int _id;
@@ -59,7 +56,7 @@ public class EmbeddedSenseiServer {
 	private SenseiZoieSystemFactory<?,?> zoieSystemFactory;
 	private SenseiIndexLoaderFactory indexLoaderFactory;
 	private Map<Integer,SenseiQueryBuilderFactory> builderFactoryMap;
-	private Map< Integer, ZoieSystem<BoboIndexReader,?,DefaultZoieVersion> > zoieSystemMap;
+	private Map< Integer, Zoie<BoboIndexReader,?,DefaultZoieVersion> > zoieSystemMap;
 	private boolean available_ = true;
 
 	////
@@ -99,28 +96,20 @@ public class EmbeddedSenseiServer {
 			new HashMap<Integer,IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>>()
 		);
 
-		this.zoieSystems = new HashSet<ZoieSystem<BoboIndexReader,?,DefaultZoieVersion>>();
+		this.zoieSystems = new HashSet<Zoie<BoboIndexReader,?,DefaultZoieVersion>>();
 		this.indexLoaders = new HashSet<SenseiIndexLoader>();
 
 		MBeanServer mbeanServer = ManagementFactory.getPlatformMBeanServer();
 
 		// TODO: configure more of this with spring
 		for ( int part : _partitions ){
-			ZoieSystem<BoboIndexReader,?,DefaultZoieVersion> zoieSystem = zoieSystemMap.get( part );
+			Zoie<BoboIndexReader,?,DefaultZoieVersion> zoieSystem = zoieSystemMap.get( part );
 
-			// register ZoieSystemAdminMBean
-			mbeanServer.registerMBean(
-				new StandardMBean(zoieSystem.getAdminMBean(), ZoieSystemAdminMBean.class)
-				, new ObjectName(clusterName, "name", "zoie-system-" + part)
-			);
-
-			// register ZoieIndexingStatusAdminMBean
-			mbeanServer.registerMBean(
-					new StandardMBean(
-						new ZoieIndexingStatusAdmin(zoieSystem), ZoieIndexingStatusAdminMBean.class
-						)
-					, new ObjectName(clusterName, "name", "zoie-indexing-status-" + part )
-					);
+			String[] mbeannames = zoieSystem.getStandardMBeanNames();
+			for(String name : mbeannames)
+			{
+			  mbeanServer.registerMBean(zoieSystem.getStandardMBean(name), new ObjectName(clusterName, "name", name + "-" + part));
+			}
 
 
 			// beans for zoieSystem should use "start" as their init-methods:
@@ -170,7 +159,7 @@ public class EmbeddedSenseiServer {
 		}
 
 		// shutdown the zoieSystems
-		for(ZoieSystem<BoboIndexReader,?,DefaultZoieVersion> zoieSystem : zoieSystems) {
+		for(Zoie<BoboIndexReader,?,DefaultZoieVersion> zoieSystem : zoieSystems) {
 			zoieSystem.shutdown();
 		}
 		System.out.println( "bye..." );
@@ -260,11 +249,11 @@ public class EmbeddedSenseiServer {
 		this.available_ = available;
 	}
 
-	public Map< Integer, ZoieSystem<BoboIndexReader,?,DefaultZoieVersion> > getZoieSystemMap() {
+	public Map< Integer, Zoie<BoboIndexReader,?,DefaultZoieVersion> > getZoieSystemMap() {
 		return this.zoieSystemMap;
 	}
 
-	public void setZoieSystemMap( Map< Integer, ZoieSystem<BoboIndexReader,?,DefaultZoieVersion> > zoieSystemMap ) {
+	public void setZoieSystemMap( Map< Integer, Zoie<BoboIndexReader,?,DefaultZoieVersion> > zoieSystemMap ) {
 		this.zoieSystemMap = zoieSystemMap;
 	}
 
@@ -291,4 +280,4 @@ public class EmbeddedSenseiServer {
 	public void setBuilderFactoryMap( Map<Integer,SenseiQueryBuilderFactory> builderFactoryMap ) {
 		this.builderFactoryMap = builderFactoryMap;
 	}
-};
+}
