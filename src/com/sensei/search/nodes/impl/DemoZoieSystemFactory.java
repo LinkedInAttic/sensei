@@ -21,17 +21,17 @@ public class DemoZoieSystemFactory<V> extends SenseiZoieSystemFactory<V>
   }
   
   @Override
-  public ZoieSystem<BoboIndexReader,V> getZoieSystem(int nodeId,int partitionId)
+  public ZoieSystem<BoboIndexReader,V> getZoieInstance(int nodeId,int partitionId)
   {
     if(_zoieSystem == null)
     {
-      _zoieSystem = super.getZoieSystem(nodeId,partitionId);
+      _zoieSystem = super.getZoieInstance(nodeId,partitionId);
     }
     return _zoieSystem;
   }
   
   @Override
-  protected File getPath(int nodeId,int partitionId)
+  public File getPath(int nodeId,int partitionId)
   {
     return _idxDir;
   }

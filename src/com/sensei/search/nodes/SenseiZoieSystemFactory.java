@@ -4,6 +4,7 @@ import java.io.File;
 
 import org.apache.log4j.Logger;
 
+import proj.zoie.api.Zoie;
 import proj.zoie.api.indexing.IndexReaderDecorator;
 import proj.zoie.api.indexing.ZoieIndexableInterpreter;
 import proj.zoie.impl.indexing.ZoieConfig;
@@ -11,7 +12,7 @@ import proj.zoie.impl.indexing.ZoieSystem;
 
 import com.browseengine.bobo.api.BoboIndexReader;
 
-public class SenseiZoieSystemFactory<V>
+public class SenseiZoieSystemFactory<V> extends SenseiZoieFactory<V>
 {
   private static Logger log = Logger.getLogger(SenseiZoieSystemFactory.class);
   protected File _idxDir;
@@ -29,12 +30,8 @@ public class SenseiZoieSystemFactory<V>
     _zoieConfig = zoieConfig;
   }
   
-  public static File getPath(File idxDir,int nodeId,int partitionId){
-	  File nodeLevelFile = new File(idxDir, "node"+nodeId);  
-	  return new File(nodeLevelFile, "shard"+partitionId); 
-  }
-  
-  public ZoieSystem<BoboIndexReader,V> getZoieSystem(int nodeId,int partitionId)
+  @Override
+  public ZoieSystem<BoboIndexReader,V> getZoieInstance(int nodeId,int partitionId)
   {
     File partDir = getPath(nodeId,partitionId);
     if(!partDir.exists())
@@ -46,7 +43,7 @@ public class SenseiZoieSystemFactory<V>
   }
   
   // TODO: change to getDirectoryManager
-  protected File getPath(int nodeId,int partitionId)
+  public File getPath(int nodeId,int partitionId)
   {
     return getPath(_idxDir,nodeId,partitionId);
   }
