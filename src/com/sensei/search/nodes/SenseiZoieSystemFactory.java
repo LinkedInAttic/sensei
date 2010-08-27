@@ -12,7 +12,7 @@ import proj.zoie.impl.indexing.ZoieSystem;
 
 import com.browseengine.bobo.api.BoboIndexReader;
 
-public class SenseiZoieSystemFactory<T,V extends ZoieVersion>
+public class SenseiZoieSystemFactory<T, V extends ZoieVersion> extends SenseiZoieFactory<T, V>
 {
   private static Logger log = Logger.getLogger(SenseiZoieSystemFactory.class);
   protected File _idxDir;
@@ -30,12 +30,8 @@ public class SenseiZoieSystemFactory<T,V extends ZoieVersion>
     _zoieConfig = zoieConfig;
   }
   
-  public static File getPath(File idxDir,int nodeId,int partitionId){
-	  File nodeLevelFile = new File(idxDir, "node"+nodeId);  
-	  return new File(nodeLevelFile, "shard"+partitionId); 
-  }
-  
-  public ZoieSystem<BoboIndexReader,T,V> getZoieSystem(int nodeId,int partitionId)
+  @Override
+  public ZoieSystem<BoboIndexReader,T,V> getZoieInstance(int nodeId,int partitionId)
   {
     File partDir = getPath(nodeId,partitionId);
     if(!partDir.exists())
@@ -47,7 +43,7 @@ public class SenseiZoieSystemFactory<T,V extends ZoieVersion>
   }
   
   // TODO: change to getDirectoryManager
-  protected File getPath(int nodeId,int partitionId)
+  public File getPath(int nodeId,int partitionId)
   {
     return getPath(_idxDir,nodeId,partitionId);
   }

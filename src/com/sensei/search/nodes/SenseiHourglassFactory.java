@@ -15,7 +15,7 @@ import proj.zoie.impl.indexing.ZoieConfig;
 
 import com.browseengine.bobo.api.BoboIndexReader;
 
-public class SenseiHourglassFactory<T,V extends ZoieVersion>
+public class SenseiHourglassFactory<T,V extends ZoieVersion> extends SenseiZoieFactory<T,V>
 {
   private static Logger log = Logger.getLogger(SenseiHourglassFactory.class);
   protected File _idxDir;
@@ -58,13 +58,8 @@ public class SenseiHourglassFactory<T,V extends ZoieVersion>
         + " frequency: " + frequency
         + " trimThreshold: " + trimThreshold);
   }
-  
-  public static File getPath(File idxDir,int nodeId,int partitionId){
-    File nodeLevelFile = new File(idxDir, "node"+nodeId);  
-    return new File(nodeLevelFile, "shard"+partitionId); 
-  }
-  
-  public Hourglass<BoboIndexReader,T,V> getHourglass(int nodeId,int partitionId)
+  @Override
+  public Hourglass<BoboIndexReader,T,V> getZoieInstance(int nodeId,int partitionId)
   {
     File partDir = getPath(nodeId,partitionId);
     if(!partDir.exists())
@@ -82,7 +77,7 @@ public class SenseiHourglassFactory<T,V extends ZoieVersion>
   }
   
   // TODO: change to getDirectoryManager
-  protected File getPath(int nodeId,int partitionId)
+  public File getPath(int nodeId,int partitionId)
   {
     return getPath(_idxDir,nodeId,partitionId);
   }

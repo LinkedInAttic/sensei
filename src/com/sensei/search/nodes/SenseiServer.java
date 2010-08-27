@@ -43,7 +43,7 @@ public class SenseiServer {
     private String _partitionString;
     private NetworkServer _networkServer;
     private ClusterClient _clusterClient;
-    private SenseiZoieSystemFactory<?,?> _zoieSystemFactory;
+    private SenseiZoieFactory<?,?> _zoieFactory;
     private SenseiIndexLoaderFactory _indexLoaderFactory;
     private SenseiQueryBuilderFactory _queryBuilderFactory;
     private SenseiNode _node;
@@ -57,7 +57,7 @@ public class SenseiServer {
     public SenseiServer(int id, int port, int[] partitions,
             NetworkServer networkServer,
             ClusterClient clusterClient,
-            SenseiZoieSystemFactory<?,?> zoieSystemFactory,
+            SenseiZoieFactory<?,?> zoieSystemFactory,
             SenseiIndexLoaderFactory indexLoaderFactory,
             SenseiQueryBuilderFactory queryBuilderFactory){
     	this(id,port,partitions,null,networkServer,clusterClient,zoieSystemFactory,indexLoaderFactory,queryBuilderFactory);
@@ -67,7 +67,7 @@ public class SenseiServer {
                         File extDir,
                         NetworkServer networkServer,
                         ClusterClient clusterClient,
-                        SenseiZoieSystemFactory<?,?> zoieSystemFactory,
+                        SenseiZoieFactory<?,?> zoieSystemFactory,
                         SenseiIndexLoaderFactory indexLoaderFactory,
                         SenseiQueryBuilderFactory queryBuilderFactory)
     {
@@ -88,7 +88,7 @@ public class SenseiServer {
       _partitionString = sb.toString();
       _networkServer = networkServer;
       _clusterClient = clusterClient;
-      _zoieSystemFactory = zoieSystemFactory;
+      _zoieFactory = zoieSystemFactory;
       _indexLoaderFactory = indexLoaderFactory;
       _queryBuilderFactory = queryBuilderFactory;
     }
@@ -188,7 +188,7 @@ public class SenseiServer {
 		  //in simple case query builder is the same for each partition
 		  builderFactoryMap.put(part, _queryBuilderFactory);
 			
-		  Zoie<BoboIndexReader,?,?> zoieSystem = _zoieSystemFactory.getZoieSystem(_id,part);
+		  Zoie<BoboIndexReader,?,?> zoieSystem = _zoieFactory.getZoieInstance(_id,part);
 		  
 		  // register ZoieSystemAdminMBean
 
