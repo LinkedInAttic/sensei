@@ -56,8 +56,11 @@ public class SenseiScatterGatherHandler implements ScatterGatherHandler<SenseiRe
           senseiReq = _reqRewriter.rewrite(senseiReq, node, partitions);
       }
       
-      senseiReq.setOffset(0);
-      senseiReq.setCount(oldOffset+oldCount);
+      // customize only if user wants hits
+      if (oldCount > 0){
+    	senseiReq.setOffset(0);  
+        senseiReq.setCount(oldOffset+oldCount); 
+      }
       senseiReq.setPartitions(partitions);
 
       logger.info("scattering to partitions: "+ partitions.toString());
