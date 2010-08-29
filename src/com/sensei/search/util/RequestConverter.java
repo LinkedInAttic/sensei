@@ -41,7 +41,7 @@ public class RequestConverter {
 		// selections
 		BrowseSelection[] sels = req.getSelections();
 		for (BrowseSelection sel : sels){
-			req.addSelection(sel);
+			breq.addSelection(sel);
 		}
 		// transfer RuntimeFacetHandler init parameters
 		breq.setFacetHandlerDataMap(req.getAllFacetHandlerInitializerParams());
