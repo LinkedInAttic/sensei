@@ -197,10 +197,12 @@ public class SenseiRequestBPOConverter {
 	
 	private static class FacetContainerAccessible implements FacetAccessible{
 		private Map<String,BrowseFacet> _data;
+		private List<BrowseFacet> _datalist;
 		FacetContainerAccessible(SenseiResultBPO.FacetContainer facetContainer){
 			_data = new HashMap<String,BrowseFacet>();
 			if (facetContainer!=null){
 				List<SenseiResultBPO.Facet> facetList = facetContainer.getFacetsList();
+	      _datalist = new ArrayList<BrowseFacet>(facetList.size());
 				if (facetList!=null){
 					for (SenseiResultBPO.Facet facet : facetList){
 						BrowseFacet bfacet = new BrowseFacet();
@@ -208,6 +210,7 @@ public class SenseiRequestBPOConverter {
 						bfacet.setValue(val);
 						bfacet.setFacetValueHitCount(facet.getCount());
 						_data.put(val,bfacet);
+						_datalist.add(bfacet);
 					}
 				}
 			}
@@ -217,10 +220,7 @@ public class SenseiRequestBPOConverter {
 		}
 
 		public List<BrowseFacet> getFacets() {
-			Collection<BrowseFacet> set = _data.values();
-			ArrayList<BrowseFacet> list = new ArrayList<BrowseFacet>(set.size());
-			list.addAll(set);
-			return list;
+			return _datalist;
 		}
 		
 		@Override
