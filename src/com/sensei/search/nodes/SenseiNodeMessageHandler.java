@@ -160,7 +160,6 @@ public class SenseiNodeMessageHandler implements MessageHandler {
 		SenseiRequestBPO.Request req = (SenseiRequestBPO.Request) msg;
 		String reqString = TextFormat.printToString(req);
 		reqString = reqString.replace('\r', ' ').replace('\n', ' ');
-		logger.info("received req: \n" + reqString);
 
 		SenseiRequest senseiReq = SenseiRequestBPOConverter.convert(req);
 		
@@ -182,7 +181,7 @@ public class SenseiNodeMessageHandler implements MessageHandler {
 				  logger.error(e.getMessage(),e);
 			  }
 			}
-            finalResult = ResultMerger.merge(senseiReq, resultList);
+			finalResult = ResultMerger.merge(senseiReq, resultList, true);
 		}
 		else{
 			logger.info("no partitions specified");
