@@ -4,10 +4,13 @@
 package com.sensei.test;
 
 import java.io.File;
+import java.util.Properties;
+
+import javax.management.InstanceAlreadyExistsException;
 
 import junit.framework.TestCase;
 
-import org.junit.Before;
+import org.apache.log4j.Logger;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.FileSystemXmlApplicationContext;
 
@@ -24,13 +27,13 @@ import com.sensei.search.req.protobuf.SenseiResultBPO;
  *
  */
 public class AbstractSenseiTestCase extends TestCase {
-
-  protected SenseiNetworkClient networkClient;
-  protected ClusterClient clusterClient;
-  protected SenseiRequestScatterRewriter requestRewriter;
-  protected PartitionedLoadBalancerFactory<Integer> routerFactory;
-  protected NetworkServer networkServer1;
-  protected NetworkServer networkServer2;
+  private static final Logger logger = Logger.getLogger(AbstractSenseiTestCase.class);
+  protected static SenseiNetworkClient networkClient;
+  protected static ClusterClient clusterClient;
+  protected static SenseiRequestScatterRewriter requestRewriter;
+  protected static PartitionedLoadBalancerFactory<Integer> routerFactory;
+  protected static NetworkServer networkServer1;
+  protected static NetworkServer networkServer2;
   protected static final String SENSEI_TEST_CONF_FILE="sensei-test.spring";
   
   public AbstractSenseiTestCase(){
@@ -40,9 +43,15 @@ public class AbstractSenseiTestCase extends TestCase {
   public AbstractSenseiTestCase(String name) {
     super(name);
   }
-
-  @Before
-  public void setUp() {
+  static
+  {
+    try
+    {
+      org.apache.log4j.PropertyConfigurator.configure("resources/log4j.properties");
+    } catch (Exception e)
+    {
+      org.apache.log4j.PropertyConfigurator.configure((Properties) null);
+    }
     // load the spring application context
     String confDirName=System.getProperty("test.conf.dir");
     File confDir = null;
@@ -51,7 +60,15 @@ public class AbstractSenseiTestCase extends TestCase {
     else
       confDir = new File(confDirName);
 
-    ApplicationContext testSpringCtx = new FileSystemXmlApplicationContext("file:" + new File(confDir, SENSEI_TEST_CONF_FILE).getAbsolutePath());
+    ApplicationContext testSpringCtx = null;
+    try
+    {
+      testSpringCtx = new FileSystemXmlApplicationContext("file:" + new File(confDir, SENSEI_TEST_CONF_FILE).getAbsolutePath());
+    } catch(Throwable e)
+    {
+      if (e instanceof InstanceAlreadyExistsException) logger.warn("norbert JMX InstanceAlreadyExistsException");
+      else logger.error("Unexpected Exception", e.getCause());
+    }
     networkClient = (SenseiNetworkClient)testSpringCtx.getBean("network-client");
     networkClient.registerRequest(SenseiRequestBPO.Request.getDefaultInstance(), SenseiResultBPO.Result.getDefaultInstance());
     clusterClient = (ClusterClient)testSpringCtx.getBean("cluster-client");
@@ -60,5 +77,4 @@ public class AbstractSenseiTestCase extends TestCase {
     networkServer1 = (NetworkServer)testSpringCtx.getBean("network-server-1");
     networkServer2 = (NetworkServer)testSpringCtx.getBean("network-server-2");
   }
-  
 }

@@ -60,7 +60,7 @@ public class SenseiNode{
 	    if (!nodeExists){
 	      String ipAddr = (new InetSocketAddress(InetAddress.getLocalHost().getHostAddress(), _port)).toString().replaceAll("/", "");
 	      
-	      System.out.println("Node id : " + _id + " IP address : " + ipAddr);
+	      logger.info("Node id : " + _id + " IP address : " + ipAddr);
 	      
 	      _node = _cluster.addNode(_id, ipAddr, _partitions);
 

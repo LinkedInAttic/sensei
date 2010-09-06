@@ -41,9 +41,7 @@
 		<path location="${build.test}" />
 		<fileset dir="${lib.test}" />
 		<path refid="compile.class.path" />
-		<fileset dir="${resources}">
-                    <include name="log4j.*" />
-                </fileset>
+		<path location="${resources}" />
 	</path>
 
 	<path id="java.class.path">

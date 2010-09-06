@@ -173,7 +173,7 @@ public class EmbeddedSenseiServer {
 		for(Zoie<BoboIndexReader,?> zoieSystem : zoieSystems) {
 			zoieSystem.shutdown();
 		}
-		System.out.println( "bye..." );
+		logger.info( "bye..." );
 	}
 
 	public class ShutdownHook extends Thread {

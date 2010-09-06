@@ -199,6 +199,7 @@ public class SenseiServer {
         try
         {
           mbeanServer.registerMBean(zoieSystem.getStandardMBean(name), oname);
+          logger.info("registered mbean " + oname);
         } catch(Exception e)
         {
           logger.error(e.getMessage(),e);

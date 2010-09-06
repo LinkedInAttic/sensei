@@ -2,7 +2,6 @@ package com.sensei.search.nodes;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -161,13 +160,11 @@ public class SenseiNodeMessageHandler implements MessageHandler {
 		SenseiRequestBPO.Request req = (SenseiRequestBPO.Request) msg;
 		String reqString = TextFormat.printToString(req);
 		reqString = reqString.replace('\r', ' ').replace('\n', ' ');
-		logger.info("received req: \n" + reqString);
 
 		SenseiRequest senseiReq = SenseiRequestBPOConverter.convert(req);
 		
 		SenseiResult finalResult=null;
 		Set<Integer> partitions = senseiReq.getPartitions();
-		logger.info("serving partitions: "+ partitions.toString());
 		if (partitions!=null && partitions.size() > 0){
 			ArrayList<SenseiResult> resultList = new ArrayList<SenseiResult>(partitions.size());
 			for (int partition : partitions){
@@ -180,7 +177,7 @@ public class SenseiNodeMessageHandler implements MessageHandler {
 				  logger.error(e.getMessage(),e);
 			  }
 			}
-            finalResult = ResultMerger.merge(senseiReq, resultList);
+			finalResult = ResultMerger.merge(senseiReq, resultList, true);
 		}
 		else{
 			finalResult = new SenseiResult();
