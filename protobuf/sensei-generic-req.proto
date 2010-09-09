@@ -1,0 +1,11 @@
+package com.sensei.search.req.protobuf;
+
+option java_package = "com.sensei.search.req.protobuf";
+option java_outer_classname = "SenseiGenericRequestBPO";
+
+option optimize_for = SPEED;
+
+message GenericRequest{
+  required string classname = 1;
+  required bytes val = 2; 
+}
