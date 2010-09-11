@@ -182,7 +182,15 @@ public class SenseiNodeMessageHandler implements MessageHandler {
 				  logger.error(e.getMessage(),e);
 			  }
 			}
-            finalResult = ResultMerger.merge(senseiReq, resultList);
+			if (resultList.size()==1){
+			  finalResult = resultList.get(0);
+			}
+			else if (resultList.size()==0){
+			  finalResult = new SenseiResult();
+			} 
+			else{
+              finalResult = ResultMerger.merge(senseiReq, resultList);
+			}
 		}
 		else{
 			logger.info("no partitions specified");
