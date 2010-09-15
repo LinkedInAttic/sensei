@@ -48,7 +48,11 @@ public class RequestConverter {
 		// facetspecs
 		breq.setFacetSpecs(req.getFacetSpecs());
 		// filter ids
-		// TODO: needs to some how hook this up
+		long[] filterIds = req.getFilterUids();
+		if (filterIds!=null){
+			boolean isFilterOut = req.isFilterOutIds();
+			//breq.setFilter(new UID)
+		}
 		return breq;
 	}
 }

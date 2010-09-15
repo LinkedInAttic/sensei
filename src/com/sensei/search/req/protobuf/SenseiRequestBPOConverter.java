@@ -339,6 +339,15 @@ public class SenseiRequestBPOConverter {
 		breq.setCount(req.getCount());
 		breq.setShowExplanation(req.getShowExplanation());
 		
+		ByteString filterBytes = req.getFilterUids();
+		
+		if (filterBytes!=null){
+			long[] filterIds = ProtoConvertUtil.toLongArray(filterBytes);
+			boolean filterOutIds = req.getFilterOutIds();
+			breq.setFilterUids(filterIds, filterOutIds);
+		}
+		
+		
 		breq.setFetchStoredFields(req.getFetchStoredFields());
 		breq.setPartitions(ProtoConvertUtil.toIntegerSet(req.getPartitions()));
 		// FacetHandlerInitializerParameters
@@ -460,6 +469,17 @@ public class SenseiRequestBPOConverter {
 		reqBuilder.setOffset(req.getOffset());
 		reqBuilder.setCount(req.getCount());
 		SenseiQuery q = req.getQuery();
+		
+		// filterIds
+		long[] filterIds = req.getFilterUids();
+		boolean isFilterOut = req.isFilterOutIds();
+		
+		reqBuilder.setFilterOutIds(isFilterOut);
+		if (filterIds!=null){
+			ByteString idBytes = ProtoConvertUtil.serializeData(filterIds);
+			reqBuilder.setFilterUids(idBytes);
+		}
+		
 
 		ByteString queryBytes = null;
 		if (q!=null){

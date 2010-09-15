@@ -75,4 +75,6 @@ message Request{
   optional bytes partitions = 9;
   required int64 tid = 10 [default = -1];
   optional bool showExplanation = 11;
+  optional bool filterOutIds = 12;
+  optional bytes filterUids = 13;
 }
