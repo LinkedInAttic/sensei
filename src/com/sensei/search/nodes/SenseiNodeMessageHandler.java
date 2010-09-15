@@ -188,7 +188,7 @@ public class SenseiNodeMessageHandler implements MessageHandler {
 			  finalResult = new SenseiResult();
 			} 
 			else{
-              finalResult = ResultMerger.merge(senseiReq, resultList);
+              finalResult = ResultMerger.merge(senseiReq, resultList,true);
 			}
 		}
 		else{
