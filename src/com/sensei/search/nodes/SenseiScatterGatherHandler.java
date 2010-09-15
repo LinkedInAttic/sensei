@@ -48,7 +48,6 @@ public class SenseiScatterGatherHandler implements ScatterGatherHandler<SenseiRe
     SenseiRequestBPO.Request req = (SenseiRequestBPO.Request)msg;
     try{
       SenseiRequest senseiReq = SenseiRequestBPOConverter.convert(req);
-      logger.info("Converted Message to SenseiReqeust method");
       
       int oldOffset = senseiReq.getOffset();
       int oldCount = senseiReq.getCount();
@@ -63,7 +62,10 @@ public class SenseiScatterGatherHandler implements ScatterGatherHandler<SenseiRe
       }
       senseiReq.setPartitions(partitions);
 
-      logger.info("scattering to partitions: "+ partitions.toString());
+      if (logger.isDebugEnabled())
+      {
+        logger.debug("scattering to partitions: "+ partitions.toString());
+      }
       return SenseiRequestBPOConverter.convert(senseiReq);
     }
     catch(ParseException pe){
@@ -78,10 +80,16 @@ public class SenseiScatterGatherHandler implements ScatterGatherHandler<SenseiRe
                                       com.linkedin.norbert.network.ResponseIterator iter) throws Exception
   {
     SenseiRequestBPO.Request req = (SenseiRequestBPO.Request)message;
-    logger.info("Converted the input Message to SenseiRequestBPO.Request");
+    if (logger.isDebugEnabled())
+    {
+      logger.debug("Converted the input Message to SenseiRequestBPO.Request");
+    }
     try{
       SenseiRequest senseiReq = SenseiRequestBPOConverter.convert(req);
-      logger.info("Converted the SenseiRequestBPO.Request to SenseiRequest");
+      if (logger.isDebugEnabled())
+      {
+        logger.debug("Converted the SenseiRequestBPO.Request to SenseiRequest");
+      }
       int oldOffset = senseiReq.getOffset();
       int oldCount = senseiReq.getCount();
       
@@ -94,15 +102,23 @@ public class SenseiScatterGatherHandler implements ScatterGatherHandler<SenseiRe
         }
         else {
             SenseiResult res = SenseiRequestBPOConverter.convert((SenseiResultBPO.Result)boboMsg);
-            logger.info("Converting the SenseiResultBPO.Result from the iterator to SenseiResult");
+            if (logger.isDebugEnabled())
+            {
+              logger.debug("Converting the SenseiResultBPO.Result from the iterator to SenseiResult");
+              logger.debug("premerge results: " + res);
+            }
             boboBrowseList.add(res);
         }
       }
           
       senseiReq.setOffset(oldOffset);
       senseiReq.setCount(oldCount);
-      SenseiResult res = ResultMerger.merge(senseiReq, boboBrowseList);
-      logger.info("Mergin the sensei Results for the input senseiRequest");
+      SenseiResult res = ResultMerger.merge(senseiReq, boboBrowseList, false);
+      if (logger.isDebugEnabled())
+      {
+        logger.debug("merged results: " + res);
+        logger.debug("Merging the sensei Results for the input senseiRequest");
+      }
       return res;
     }
     catch(ParseException pe){

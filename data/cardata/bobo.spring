@@ -21,22 +21,43 @@
 		<property name="separator" value="/" />
 	</bean>
 	
-	<bean id="year" class="com.browseengine.bobo.facets.impl.RangeFacetHandler">
-		<constructor-arg value="year" />
-		<constructor-arg value="true" />
-	</bean>
+        <bean id="year" class="com.browseengine.bobo.facets.impl.RangeFacetHandler">
+                <constructor-arg value="year" />
+                <constructor-arg>
+                        <bean class="com.browseengine.bobo.facets.data.PredefinedTermListFactory">
+                                <constructor-arg value="java.lang.Integer"/>
+                                <constructor-arg value="00000000000000000000" />
+                        </bean>
+                </constructor-arg>
+                <constructor-arg>
+                     <list>
+                        <value>[1993 TO 1994]</value>
+                        <value>[1995 TO 1996]</value>
+                        <value>[1997 TO 1998]</value>
+                        <value>[1999 TO 2000]</value>
+                        <value>[2001 TO 2002]</value>
+                     </list>
+                </constructor-arg>
+        </bean>
 	
-	<bean id="price" class="com.browseengine.bobo.facets.impl.RangeFacetHandler">
-		<constructor-arg value="price" />
-		<constructor-arg>
-			<bean class="com.browseengine.bobo.facets.data.PredefinedTermListFactory">
-				<constructor-arg value="java.lang.Float" />
-				<constructor-arg value="00000000000000000000" />
-			</bean>
-		</constructor-arg>
-		<constructor-arg value="true" />
-	</bean>
-	
+        <bean id="price" class="com.browseengine.bobo.facets.impl.RangeFacetHandler">
+                <constructor-arg value="price" />
+                <constructor-arg>
+                        <bean class="com.browseengine.bobo.facets.data.PredefinedTermListFactory">
+                                <constructor-arg value="java.lang.Float" />
+                                <constructor-arg value="00000000000000000000" />
+                        </bean>
+                </constructor-arg>
+                <constructor-arg>
+                     <list>
+                        <value>[2001 TO 6700]</value>
+                        <value>[6800 TO 9900]</value>
+                        <value>[10000 TO 13100]</value>
+                        <value>[13200 TO 17300]</value>
+                        <value>[17400 TO 19500]</value>
+                     </list>
+                </constructor-arg>
+        </bean>
 	<bean id="mileage" class="com.browseengine.bobo.facets.impl.RangeFacetHandler">
 		<constructor-arg value="mileage" />
 		<constructor-arg>
