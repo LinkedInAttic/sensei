@@ -158,8 +158,11 @@ public class SenseiNodeMessageHandler implements MessageHandler {
 	  
 	public Message handleMessage(Message msg) throws Exception {
 		SenseiRequestBPO.Request req = (SenseiRequestBPO.Request) msg;
-		String reqString = TextFormat.printToString(req);
-		reqString = reqString.replace('\r', ' ').replace('\n', ' ');
+		
+		if (logger.isDebugEnabled()){
+		  String reqString = TextFormat.printToString(req);
+		  reqString = reqString.replace('\r', ' ').replace('\n', ' ');
+		}
 
 		SenseiRequest senseiReq = SenseiRequestBPOConverter.convert(req);
 		
@@ -188,8 +191,7 @@ public class SenseiNodeMessageHandler implements MessageHandler {
 			logger.info("no partitions specified");
 			finalResult = new SenseiResult();
 		}
-		SenseiResultBPO.Result resultMsg = SenseiRequestBPOConverter.convert(finalResult);
-		return resultMsg;
+		return SenseiRequestBPOConverter.convert(finalResult);
 	}
 
 }
