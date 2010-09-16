@@ -34,8 +34,6 @@ public class SenseiRequest implements Serializable, Cloneable
 	private Map<String,FacetHandlerInitializerParam> _facetInitParamMap;
 	private Set<Integer> _partitions;
 	private boolean _showExplanation;
-	private boolean _filterOutIds;
-	private long[] _filterUids;
 	
 	public SenseiRequest(){
 		_facetInitParamMap = new HashMap<String,FacetHandlerInitializerParam>();
@@ -45,21 +43,6 @@ public class SenseiRequest implements Serializable, Cloneable
 		_fetchStoredFields = false;
 		_partitions = null;
 		_showExplanation = false;
-		_filterUids = null;
-		_filterOutIds = false;
-	}
-	
-	public void setFilterUids(long[] filterUIDs,boolean filterOutIds){
-		_filterUids = filterUIDs;
-		_filterOutIds = filterOutIds;
-	}
-	
-	public long[] getFilterUids(){
-		return _filterUids;
-	}
-	
-	public boolean isFilterOutIds(){
-		return _filterOutIds;
 	}
 	
   /**
