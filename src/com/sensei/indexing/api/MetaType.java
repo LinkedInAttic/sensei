@@ -9,5 +9,6 @@ public enum MetaType {
 	Double,
 	Date,
 	Char,
-	Boolean
+	Boolean,
+	Auto
 }

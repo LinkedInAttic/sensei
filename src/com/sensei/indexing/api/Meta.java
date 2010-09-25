@@ -9,6 +9,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Meta {
 	String name() default "";
-	MetaType type() default MetaType.String;
+	MetaType type() default MetaType.Auto;
 	String format() default "";
 }

@@ -5,9 +5,8 @@ import java.lang.reflect.Method;
 import java.text.DecimalFormat;
 import java.text.Format;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -26,6 +25,8 @@ public class DefaultSenseiInterpreter<V> extends
 	
 
 	private static final Map<MetaType,String> DEFAULT_FORMAT_STRING_MAP = new HashMap<MetaType,String>();
+	private static final Map<Class,MetaType>  CLASS_METATYPE_MAP = new HashMap<Class,MetaType>();
+	
 	static{
 		DEFAULT_FORMAT_STRING_MAP.put(MetaType.Integer, "00000000000000000000");
 		DEFAULT_FORMAT_STRING_MAP.put(MetaType.Short, "00000");
@@ -33,7 +34,27 @@ public class DefaultSenseiInterpreter<V> extends
 		DEFAULT_FORMAT_STRING_MAP.put(MetaType.Date, "yyyyMMdd-kk:mm");
 		DEFAULT_FORMAT_STRING_MAP.put(MetaType.Float, "00000000000000000000.00");
 		DEFAULT_FORMAT_STRING_MAP.put(MetaType.Double, "0000000000000000000000000000000000000000.00");
+		
+		CLASS_METATYPE_MAP.put(String.class, MetaType.String);
+		CLASS_METATYPE_MAP.put(int.class, MetaType.Integer);
+		CLASS_METATYPE_MAP.put(Integer.class, MetaType.Integer);
+		CLASS_METATYPE_MAP.put(short.class, MetaType.Short);
+		CLASS_METATYPE_MAP.put(Short.class, MetaType.Short);
+		CLASS_METATYPE_MAP.put(long.class, MetaType.Long);
+		CLASS_METATYPE_MAP.put(Long.class, MetaType.Long);
+		CLASS_METATYPE_MAP.put(float.class, MetaType.Float);
+		CLASS_METATYPE_MAP.put(Float.class, MetaType.Float);
+		CLASS_METATYPE_MAP.put(double.class, MetaType.Double);
+		CLASS_METATYPE_MAP.put(Double.class, MetaType.Double);
+		CLASS_METATYPE_MAP.put(char.class, MetaType.Char);
+		CLASS_METATYPE_MAP.put(Character.class, MetaType.Char);
+		CLASS_METATYPE_MAP.put(boolean.class, MetaType.Boolean);
+		CLASS_METATYPE_MAP.put(Boolean.class, MetaType.Boolean);
+		CLASS_METATYPE_MAP.put(Date.class, MetaType.Date);
+		
 	}
+	
+	
 	
 	static class IndexSpec{
 	  Store store;
@@ -106,6 +127,13 @@ public class DefaultSenseiInterpreter<V> extends
 			  name = f.getName();
 		    }
 		    MetaType metaType = metaAnnotation.type();
+		    if (MetaType.Auto.equals(metaType)){
+		    	Class typeClass = f.getDeclaringClass();
+		    	metaType = CLASS_METATYPE_MAP.get(typeClass);
+		    	if (metaType==null){
+		    		metaType = MetaType.String;
+		    	}
+		    }
 		    String defaultFormatString = DEFAULT_FORMAT_STRING_MAP.get(metaType);
 		    String formatString = metaAnnotation.format();
 		    if ("".equals(formatString)){
@@ -198,42 +226,6 @@ public class DefaultSenseiInterpreter<V> extends
 	@Override
 	public ZoieIndexable convertAndInterpret(V obj) {
 		return new DefaultSenseiZoieIndexable(obj,_cls,this);
-	}
-
-	static class TestObj{
-		@Uid
-		private long uid;
-		
-		@Text(name="text")
-		private String content;
-		
-		@Meta
-		private int age;
-		
-		@Meta(name="birthday",type=MetaType.Date)
-		private String bday;
-		
-
-		@Meta(format="yyyyMMdd",type=MetaType.Date)
-		private String today;
-		
-		@Meta(type=MetaType.String)
-		private short shortVal;
-		
-		@DeleteChecker
-		private boolean isDeleted(){
-			return uid==-1;
-		}
-		
-		@SkipChecker
-		private boolean isSkip(){
-			return uid==-2;
-		}
-	}
-	
-	public static void main(String[] args) {
-		DefaultSenseiInterpreter<TestObj> nodeInterpreter = new DefaultSenseiInterpreter(TestObj.class);
-		System.out.println(nodeInterpreter);
 	}
 	
 }
