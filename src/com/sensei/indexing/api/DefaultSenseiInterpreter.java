@@ -24,8 +24,8 @@ public class DefaultSenseiInterpreter<V> extends
 	private static Logger logger = Logger.getLogger(DefaultSenseiInterpreter.class);
 	
 
-	private static final Map<MetaType,String> DEFAULT_FORMAT_STRING_MAP = new HashMap<MetaType,String>();
-	private static final Map<Class,MetaType>  CLASS_METATYPE_MAP = new HashMap<Class,MetaType>();
+	public static final Map<MetaType,String> DEFAULT_FORMAT_STRING_MAP = new HashMap<MetaType,String>();
+	public static final Map<Class,MetaType>  CLASS_METATYPE_MAP = new HashMap<Class,MetaType>();
 	
 	static{
 		DEFAULT_FORMAT_STRING_MAP.put(MetaType.Integer, "00000000000000000000");
@@ -128,7 +128,7 @@ public class DefaultSenseiInterpreter<V> extends
 		    }
 		    MetaType metaType = metaAnnotation.type();
 		    if (MetaType.Auto.equals(metaType)){
-		    	Class typeClass = f.getDeclaringClass();
+		    	Class typeClass = f.getType();
 		    	metaType = CLASS_METATYPE_MAP.get(typeClass);
 		    	if (metaType==null){
 		    		metaType = MetaType.String;
@@ -158,6 +158,7 @@ public class DefaultSenseiInterpreter<V> extends
 	  for (Method method : methods){
 		  if (method.isAnnotationPresent(DeleteChecker.class)){
 			if (_deleteChecker==null){
+				method.setAccessible(true);
 				_deleteChecker = method;
 			}
 			else{
@@ -166,6 +167,7 @@ public class DefaultSenseiInterpreter<V> extends
 		  }
 		  else if (method.isAnnotationPresent(SkipChecker.class)){
 			if (_skipChecker==null){
+				method.setAccessible(true);
 				_skipChecker = method;
 			}
 			else{

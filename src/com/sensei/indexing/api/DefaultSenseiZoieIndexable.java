@@ -80,7 +80,7 @@ public class DefaultSenseiZoieIndexable<V> implements ZoieIndexable {
 		boolean retVal = false;
 		if (m!=null){
 			try {
-				Object retObj = m.invoke(_obj, null);
+				Object retObj = m.invoke(_obj, new Object[0]);
 				retVal = ((Boolean)retObj).booleanValue();
 			} catch (Exception e) {
 				throw new RuntimeException(e.getMessage(),e);
