@@ -227,7 +227,7 @@ public class DefaultSenseiInterpreter<V> extends
 	
 	@Override
 	public ZoieIndexable convertAndInterpret(V obj) {
-		return new DefaultSenseiZoieIndexable(obj,_cls,this);
+		return new DefaultSenseiZoieIndexable<V>(obj,this);
 	}
 	
 }

@@ -22,12 +22,10 @@ public class DefaultSenseiZoieIndexable<V> implements ZoieIndexable {
 	
 	private final V _obj;
 	private final DefaultSenseiInterpreter<V> _interpreter;
-	private final Class<V> _cls;
 	
-	DefaultSenseiZoieIndexable(V obj,Class<V> cls,DefaultSenseiInterpreter<V> interpreter){
+	DefaultSenseiZoieIndexable(V obj,DefaultSenseiInterpreter<V> interpreter){
 		_obj = obj;
 		_interpreter = interpreter;
-		_cls = cls;
 	}
 	
 	@Override
