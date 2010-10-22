@@ -134,7 +134,7 @@ public class SenseiNodeMessageHandler implements MessageHandler {
 	    
         int docid = hit.getDocid();
         SubReaderInfo<BoboIndexReader> readerInfo = subReaderAccessor.getSubReaderInfo(docid);
-        int uid = (int)((ZoieIndexReader<BoboIndexReader>)readerInfo.subreader.getInnerReader()).getUID(readerInfo.subdocid);
+        long uid = (long)((ZoieIndexReader<BoboIndexReader>)readerInfo.subreader.getInnerReader()).getUID(readerInfo.subdocid);
         senseiHit.setUID(uid);
         senseiHit.setDocid(docid);
         senseiHit.setScore(hit.getScore());
