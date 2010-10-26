@@ -18,10 +18,19 @@ logs=${bin}/../logs
 
 idx=$bin/../data/cardata
 
-CLASSPATH=$resources:$lib/fastutil.jar:$lib/log4j.jar:$lib/lucene-core.jar:\
-$lib/protobuf-java.jar:$lib/bobo-browse-2.5.0.jar:$lib/kamikaze-2.0.0.jar:$lib/commons-logging.jar:\
-$lib/netty-3.1.5.GA.jar:$lib/spring.jar:$lib/scala-library-2.8.0.jar:$lib/zoie-2.0.0-SNAPSHOT.jar:\
-$lib/norbert-java-cluster_2.8.0-0.5-SNAPSHOT.jar:$lib/norbert-java-network_2.8.0-0.5-SNAPSHOT.jar:$lib/norbert-cluster_2.8.0-0.5-SNAPSHOT.jar:$lib/norbert-network_2.8.0-0.5-SNAPSHOT.jar:$lib/zookeeper-3.2.0.jar:$dist/sensei-0.0.1.jar
+# HEAP_OPTS="-Xmx4096m -Xms2048m -XX:NewSize=1024m" # -d64 for 64-bit awesomeness
+HEAP_OPTS="-Xmx1g -Xms1g -XX:NewSize=256m"
+# HEAP_OPTS="-Xmx1024m -Xms512m -XX:NewSize=128m"
+# HEAP_OPTS="-Xmx512m -Xms256m -XX:NewSize=64m"
+# GC_OPTS="-verbosegc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps -XX:+UseConcMarkSweepGC -XX:+UseParNewGC"
+#JAVA_DEBUG="-Xdebug -Xrunjdwp:transport=dt_socket,address=1044,server=y,suspend=y"
+#GC_OPTS="-XX:+UseConcMarkSweepGC -XX:+UseParNewGC"
+JAVA_OPTS="-server -d64"
+MAIN_CLASS="com.sensei.search.nodes.SenseiServer"
 
 
-java -classpath $CLASSPATH -Didx.dir=$idx -Dlog.home=$logs com.sensei.search.nodes.SenseiServer $1 $2 $3 $4
+
+CLASSPATH=$resources/:$lib/*:$dist/*
+
+
+java $JAVA_OPTS $HEAP_OPTS $GC_OPTS -classpath $CLASSPATH  -Dlog.home=$logs -Didx.dir=$idx $MAIN_CLASS $1 $2 $3 $4
