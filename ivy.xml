@@ -18,7 +18,7 @@
         <dependency org="org.apache.lucene" name="lucene-core" rev="3.0.2" conf="master"/>
         <dependency org="org.springframework" name="spring" rev="2.5.5" conf="master"/>
         <dependency org="com.google.protobuf" name="protobuf-java" rev="2.3.0" conf="master"/>
-        
+        <dependency org="org.apache.zookeeper" name="zookeeper" rev="3.3.1" conf="master"/>
         <dependency org="junit" name="junit" rev="4.5" conf="test->master"/>
         <!--
         <dependency org="org.jboss.netty" name="netty" rev="3.1.5.GA" conf="master"/>

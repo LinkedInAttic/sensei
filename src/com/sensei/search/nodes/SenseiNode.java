@@ -7,6 +7,8 @@ import java.util.Set;
 
 import org.apache.log4j.Logger;
 
+import scala.actors.threadpool.Arrays;
+
 import com.linkedin.norbert.javacompat.cluster.ClusterClient;
 import com.linkedin.norbert.javacompat.cluster.Node;
 import com.linkedin.norbert.javacompat.network.MessageHandler;
@@ -132,7 +134,7 @@ public class SenseiNode{
 	{
 	  if(available)
 	  {
-	    logger.info("making node available");
+	    logger.info("making available node " + _id + " @port:"+_port + " for partitions: " + Arrays.toString(_partitions.toArray(new Integer[0])));
 	    _server.markAvailable();
 	    try
 	    {
@@ -141,6 +143,10 @@ public class SenseiNode{
 	    catch (InterruptedException e)
 	    {
 	    }
+	  } else
+	  {
+      logger.info("making unavailable node " + _id + " @port:"+_port + " for partitions: " + Arrays.toString(_partitions.toArray(new Integer[0])));
+	    _server.markUnavailable();
 	  }
 	  _available = available;
 	}
