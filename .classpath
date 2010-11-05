@@ -20,5 +20,10 @@
 	<classpathentry kind="lib" path="lib/master/norbert-network_2.8.0-0.5-SNAPSHOT.jar"/>
 	<classpathentry kind="lib" path="lib/master/scala-library-2.8.0.jar"/>
 	<classpathentry kind="lib" path="lib/master/zookeeper.jar"/>
+	<classpathentry kind="lib" path="/Users/hyan/workspace/sensei/lib/master/fastutil.jar"/>
+	<classpathentry kind="lib" path="/Users/hyan/workspace/sensei/lib/master/junit.jar"/>
+	<classpathentry kind="lib" path="/Users/hyan/workspace/sensei/lib/master/kamikaze-2.0.0.jar"/>
+	<classpathentry kind="lib" path="/Users/hyan/workspace/sensei/lib/master/log4j.jar"/>
+	<classpathentry kind="lib" path="/Users/hyan/workspace/sensei/lib/master/lucene-core.jar"/>
 	<classpathentry kind="output" path="output"/>
 </classpath>
