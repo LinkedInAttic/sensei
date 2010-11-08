@@ -554,12 +554,21 @@ public class SenseiRequestBPOConverter {
 		if ( null != hit.getStoredFields() ) {
 			for( Object fieldObj : hit.getStoredFields().getFields() ) {
 				Field field = (Field)fieldObj;
-				SenseiResultBPO.StoredField storedField = (
-					SenseiResultBPO.StoredField.newBuilder().setName(
-						field.name()
-					)
-				).addAllVals( Arrays.asList( field.stringValue() ) ).build();
-				hitBuilder.addStoredFields( storedField );
+				String name = field.name();
+				String fieldVal = field.stringValue();
+				SenseiResultBPO.StoredField storedField = null;
+				if (fieldVal!=null){
+				    storedField = (SenseiResultBPO.StoredField.newBuilder().setName(name)).addAllVals( Arrays.asList( field.stringValue() ) ).build();
+				}
+				else{
+				   byte[] bytes = field.getBinaryValue();
+				   if (bytes!=null){
+					 // storedField = (SenseiResultBPO.StoredField.newBuilder().setName(name)).addAllVals( Arrays.asList( field.stringValue() ) ).build();
+				   }
+				}
+				if (storedField!=null){
+				  hitBuilder.addStoredFields( storedField );
+				}
 			}
 		}
         hitBuilder.setUid(hit.getUID());

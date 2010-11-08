@@ -24,6 +24,7 @@ message FieldVal
 message StoredField {
   required string name = 1;
   repeated string vals = 2;
+  optional bytes byteVal = 3; 
 }
 
 message Explanation{
