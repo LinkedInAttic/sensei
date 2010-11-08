@@ -14,6 +14,7 @@ import java.util.Map.Entry;
 import org.apache.log4j.Logger;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
+import org.apache.lucene.document.Field.Store;
 import org.apache.lucene.search.Explanation;
 import org.apache.lucene.search.SortField;
 
@@ -291,8 +292,19 @@ public class SenseiRequestBPOConverter {
 		bhit.setFieldValues(fielddata);
 		Document document = new Document();
 		for ( SenseiResultBPO.StoredField storedField : hit.getStoredFieldsList() ) {
-			for ( String value : storedField.getValsList() ) {
-				document.add( new Field( storedField.getName(), value, Field.Store.YES, Field.Index.NOT_ANALYZED ) );
+			List<String> vals = storedField.getValsList();
+			String name = storedField.getName();
+			if (vals!=null){
+			  for ( String value : storedField.getValsList() ) {
+				document.add( new Field(name , value, Field.Store.YES, Field.Index.NOT_ANALYZED ) );
+			  }
+			}
+			else{
+			  ByteString bytes = storedField.getByteVal();
+			  if (bytes!=null){
+				  byte[] byteArray = bytes.toByteArray();
+				  document.add(new Field(name,byteArray,Store.YES));
+			  }
 			}
 		}
 		bhit.setStoredFields( document );
@@ -563,7 +575,7 @@ public class SenseiRequestBPOConverter {
 				else{
 				   byte[] bytes = field.getBinaryValue();
 				   if (bytes!=null){
-					 // storedField = (SenseiResultBPO.StoredField.newBuilder().setName(name)).addAllVals( Arrays.asList( field.stringValue() ) ).build();
+					 storedField = (SenseiResultBPO.StoredField.newBuilder().setName(name)).setByteVal(ByteString.copyFrom(bytes)).build();
 				   }
 				}
 				if (storedField!=null){
