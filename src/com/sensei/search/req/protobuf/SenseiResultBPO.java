@@ -1124,6 +1124,13 @@ public final class SenseiResultBPO {
       return vals_.get(index);
     }
     
+    // optional bytes byteVal = 3;
+    public static final int BYTEVAL_FIELD_NUMBER = 3;
+    private boolean hasByteVal;
+    private com.google.protobuf.ByteString byteVal_ = com.google.protobuf.ByteString.EMPTY;
+    public boolean hasByteVal() { return hasByteVal; }
+    public com.google.protobuf.ByteString getByteVal() { return byteVal_; }
+    
     private void initFields() {
     }
     public final boolean isInitialized() {
@@ -1139,6 +1146,9 @@ public final class SenseiResultBPO {
       }
       for (java.lang.String element : getValsList()) {
         output.writeString(2, element);
+      }
+      if (hasByteVal()) {
+        output.writeBytes(3, getByteVal());
       }
       getUnknownFields().writeTo(output);
     }
@@ -1161,6 +1171,10 @@ public final class SenseiResultBPO {
         }
         size += dataSize;
         size += 1 * getValsList().size();
+      }
+      if (hasByteVal()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBytesSize(3, getByteVal());
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -1333,6 +1347,9 @@ public final class SenseiResultBPO {
           }
           result.vals_.addAll(other.vals_);
         }
+        if (other.hasByteVal()) {
+          setByteVal(other.getByteVal());
+        }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
       }
@@ -1364,6 +1381,10 @@ public final class SenseiResultBPO {
             }
             case 18: {
               addVals(input.readString());
+              break;
+            }
+            case 26: {
+              setByteVal(input.readBytes());
               break;
             }
           }
@@ -1429,6 +1450,27 @@ public final class SenseiResultBPO {
       }
       public Builder clearVals() {
         result.vals_ = java.util.Collections.emptyList();
+        return this;
+      }
+      
+      // optional bytes byteVal = 3;
+      public boolean hasByteVal() {
+        return result.hasByteVal();
+      }
+      public com.google.protobuf.ByteString getByteVal() {
+        return result.getByteVal();
+      }
+      public Builder setByteVal(com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  result.hasByteVal = true;
+        result.byteVal_ = value;
+        return this;
+      }
+      public Builder clearByteVal() {
+        result.hasByteVal = false;
+        result.byteVal_ = getDefaultInstance().getByteVal();
         return this;
       }
       
@@ -3090,24 +3132,24 @@ public final class SenseiResultBPO {
       "\t\022\r\n\005count\030\002 \001(\r\"U\n\016FacetContainer\022\014\n\004na" +
       "me\030\001 \002(\t\0225\n\006facets\030\002 \003(\0132%.com.sensei.se" +
       "arch.req.protobuf.Facet\"&\n\010FieldVal\022\014\n\004n" +
-      "ame\030\001 \002(\t\022\014\n\004vals\030\002 \003(\t\")\n\013StoredField\022\014" +
-      "\n\004name\030\001 \002(\t\022\014\n\004vals\030\002 \003(\t\"o\n\013Explanatio" +
-      "n\022\r\n\005value\030\001 \001(\002\022\023\n\013description\030\002 \001(\t\022<\n" +
-      "\007details\030\003 \003(\0132+.com.sensei.search.req.p" +
-      "rotobuf.Explanation\"\364\001\n\003Hit\022\r\n\005docid\030\001 \001",
-      "(\r\022\r\n\005score\030\002 \001(\002\022=\n\013fieldValues\030\003 \003(\0132(" +
-      ".com.sensei.search.req.protobuf.FieldVal" +
-      "\022\013\n\003uid\030\004 \002(\003\022A\n\014storedFields\030\005 \003(\0132+.co" +
-      "m.sensei.search.req.protobuf.StoredField" +
-      "\022@\n\013explanation\030\006 \001(\0132+.com.sensei.searc" +
-      "h.req.protobuf.Explanation\"\307\001\n\006Result\022\017\n" +
-      "\007numhits\030\001 \001(\r\022\021\n\ttotaldocs\030\002 \001(\r\022G\n\017fac" +
-      "etContainers\030\003 \003(\0132..com.sensei.search.r" +
-      "eq.protobuf.FacetContainer\0221\n\004hits\030\004 \003(\013" +
-      "2#.com.sensei.search.req.protobuf.Hit\022\014\n",
-      "\004time\030\005 \001(\004\022\017\n\003tid\030\006 \002(\003:\002-1B3\n\036com.sens" +
-      "ei.search.req.protobufB\017SenseiResultBPOH" +
-      "\001"
+      "ame\030\001 \002(\t\022\014\n\004vals\030\002 \003(\t\":\n\013StoredField\022\014" +
+      "\n\004name\030\001 \002(\t\022\014\n\004vals\030\002 \003(\t\022\017\n\007byteVal\030\003 " +
+      "\001(\014\"o\n\013Explanation\022\r\n\005value\030\001 \001(\002\022\023\n\013des" +
+      "cription\030\002 \001(\t\022<\n\007details\030\003 \003(\0132+.com.se" +
+      "nsei.search.req.protobuf.Explanation\"\364\001\n",
+      "\003Hit\022\r\n\005docid\030\001 \001(\r\022\r\n\005score\030\002 \001(\002\022=\n\013fi" +
+      "eldValues\030\003 \003(\0132(.com.sensei.search.req." +
+      "protobuf.FieldVal\022\013\n\003uid\030\004 \002(\003\022A\n\014stored" +
+      "Fields\030\005 \003(\0132+.com.sensei.search.req.pro" +
+      "tobuf.StoredField\022@\n\013explanation\030\006 \001(\0132+" +
+      ".com.sensei.search.req.protobuf.Explanat" +
+      "ion\"\307\001\n\006Result\022\017\n\007numhits\030\001 \001(\r\022\021\n\ttotal" +
+      "docs\030\002 \001(\r\022G\n\017facetContainers\030\003 \003(\0132..co" +
+      "m.sensei.search.req.protobuf.FacetContai" +
+      "ner\0221\n\004hits\030\004 \003(\0132#.com.sensei.search.re",
+      "q.protobuf.Hit\022\014\n\004time\030\005 \001(\004\022\017\n\003tid\030\006 \002(" +
+      "\003:\002-1B3\n\036com.sensei.search.req.protobufB" +
+      "\017SenseiResultBPOH\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -3143,7 +3185,7 @@ public final class SenseiResultBPO {
           internal_static_com_sensei_search_req_protobuf_StoredField_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_com_sensei_search_req_protobuf_StoredField_descriptor,
-              new java.lang.String[] { "Name", "Vals", },
+              new java.lang.String[] { "Name", "Vals", "ByteVal", },
               com.sensei.search.req.protobuf.SenseiResultBPO.StoredField.class,
               com.sensei.search.req.protobuf.SenseiResultBPO.StoredField.Builder.class);
           internal_static_com_sensei_search_req_protobuf_Explanation_descriptor =
