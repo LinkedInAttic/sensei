@@ -1,6 +1,5 @@
 package com.sensei.search.facet;
 
-import it.unimi.dsi.fastutil.ints.IntRBTreeSet;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongSet;
 
@@ -33,22 +32,6 @@ public class UIDFacetHandler extends FacetHandler<long[]> {
     super(name);
   }
   
-  static boolean binarySearchForTarget(int[] vals, int start, int end, int target)
-  {
-    int mid;
-    while(start <= end)
-    {
-      mid = (start+end)/2;
-      if(vals[mid]<target)
-        start = mid+1;
-      else if(vals[mid]==target)
-        return true;
-      else
-        end = mid-1;
-    }
-    return false;
-  }
-  
   private RandomAccessFilter buildRandomAccessFilter(final long val) throws IOException {
     return new RandomAccessFilter() {
       
@@ -73,6 +56,7 @@ public class UIDFacetHandler extends FacetHandler<long[]> {
             return new DocIdSetIterator() {
               protected int _doc = -1;
               private int _len = uidArray.length; 
+              
               private int _idxInDelDocs = 0;
               private int _lenDelDocs = delDocs.length;
               
@@ -82,7 +66,7 @@ public class UIDFacetHandler extends FacetHandler<long[]> {
                       _doc = id - 1;
                     }
                   
-                while(_doc < _len) // not yet reached end
+                while(++_doc < _len) // not yet reached end
                 {
                   // check if the docId was deleted
                   while(_idxInDelDocs<_lenDelDocs && delDocs[_idxInDelDocs] < _doc)
@@ -92,11 +76,10 @@ public class UIDFacetHandler extends FacetHandler<long[]> {
                   if(_idxInDelDocs < _lenDelDocs && delDocs[_idxInDelDocs] == _doc)
                   {
                     ++_idxInDelDocs;
-                    ++_doc;
                     continue;
                   }
                   
-                  if (uidArray[++_doc] == val){
+                  if (uidArray[_doc] == val){
                     return _doc;
                   }
                 }
@@ -110,7 +93,7 @@ public class UIDFacetHandler extends FacetHandler<long[]> {
 
               @Override
               public int nextDoc() throws IOException {
-                while(_doc < _len) // not yet reached end
+                while(++_doc < _len) // not yet reached end
                 {
                     // check if the docId was deleted
                     while(_idxInDelDocs<_lenDelDocs && delDocs[_idxInDelDocs] < _doc)
@@ -120,11 +103,10 @@ public class UIDFacetHandler extends FacetHandler<long[]> {
                     if(_idxInDelDocs < _lenDelDocs && delDocs[_idxInDelDocs] == _doc)
                     {
                       ++_idxInDelDocs;
-                      ++_doc;
                       continue;
                     }
                     
-                    if (uidArray[++_doc] == val){
+                    if (uidArray[_doc] == val){
                     return _doc;
                   }
                 }
@@ -135,7 +117,7 @@ public class UIDFacetHandler extends FacetHandler<long[]> {
           
           @Override
           public boolean get(int docId) {
-            return !binarySearchForTarget(delDocs, 0, delDocs.length-1, docId) && val == uidArray[docId];
+            return (Arrays.binarySearch(delDocs, docId)<0) && val == uidArray[docId];
           }
         };
       }
@@ -154,13 +136,9 @@ public class UIDFacetHandler extends FacetHandler<long[]> {
       public RandomAccessDocIdSet getRandomAccessDocIdSet(BoboIndexReader reader)
           throws IOException {
         final long[] uidArray = UIDFacetHandler.this.getFacetData(reader);
+        
         final int[] delDocs = ((ZoieIndexReader<?>)(reader.getInnerReader())).getDelDocIds();
         Arrays.sort(delDocs);
-        final IntRBTreeSet delIdSet = new IntRBTreeSet(); 
-        for(int delDocId : delDocs)
-        {
-          delIdSet.add(delDocId);
-        }
         
         return new RandomAccessDocIdSet() {
           
@@ -178,7 +156,7 @@ public class UIDFacetHandler extends FacetHandler<long[]> {
                       _doc = id - 1;
                     }
                 
-                while(_doc < _len) // not yet reached end
+                while(++_doc < _len) // not yet reached end
                 {
                   // check if the docId was deleted
                   while(_idxInDelDocs<_lenDelDocs && delDocs[_idxInDelDocs] < _doc)
@@ -188,11 +166,10 @@ public class UIDFacetHandler extends FacetHandler<long[]> {
                   if(_idxInDelDocs < _lenDelDocs && delDocs[_idxInDelDocs] == _doc)
                   {
                     ++_idxInDelDocs;
-                    ++_doc;
                     continue;
                   }
                   
-                  if (valSet.contains(uidArray[++_doc])){
+                  if (valSet.contains(uidArray[_doc])){
                     return _doc;
                   }
                 }
@@ -206,7 +183,7 @@ public class UIDFacetHandler extends FacetHandler<long[]> {
 
               @Override
               public int nextDoc() throws IOException {
-                while(_doc < _len) // not yet reached end
+                while(++_doc < _len) // not yet reached end
                 {
                // check if the docId was deleted
                   while(_idxInDelDocs<_lenDelDocs && delDocs[_idxInDelDocs] < _doc)
@@ -216,11 +193,10 @@ public class UIDFacetHandler extends FacetHandler<long[]> {
                   if(_idxInDelDocs < _lenDelDocs && delDocs[_idxInDelDocs] == _doc)
                   {
                     ++_idxInDelDocs;
-                    ++_doc;
                     continue;
                   }
                   
-                  if (valSet.contains(uidArray[++_doc])){
+                  if (valSet.contains(uidArray[_doc])){
                     return _doc;
                   }
                 }
@@ -232,7 +208,7 @@ public class UIDFacetHandler extends FacetHandler<long[]> {
           
           @Override
           public boolean get(int docId) {
-            return !binarySearchForTarget(delDocs, 0, delDocs.length-1, docId) && valSet.contains(uidArray[docId]);
+            return (Arrays.binarySearch(delDocs, docId)<0) && valSet.contains(uidArray[docId]);
           }
         };
       }
