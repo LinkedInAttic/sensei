@@ -3,7 +3,11 @@ package com.sensei.test;
 import java.text.DecimalFormat;
 import java.text.Format;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import junit.framework.TestCase;
 
@@ -48,6 +52,12 @@ public class SenseiIndexingAPITest extends TestCase {
 		
 		@Meta(name="shortie",type=MetaType.String)
 		private short shortVal;
+		
+		@Meta
+		private List<String> tags;
+		
+		@Meta(name="numbers",type=MetaType.Integer)
+		private Set<Integer> numSet;
 		
 		@DeleteChecker
 		private boolean isDeleted(){
@@ -134,6 +144,13 @@ public class SenseiIndexingAPITest extends TestCase {
 		testObj.age = 11;
 		testObj.shortVal=3;
 		testObj.today = new Date(now);
+		testObj.tags = new ArrayList<String>();
+		testObj.tags.add("t1");
+		testObj.tags.add("t2");
+		testObj.numSet = new HashSet<Integer>();
+		testObj.numSet.add(13);
+		testObj.numSet.add(6);
+		testObj.numSet.add(7);
 		
 		ZoieIndexable indexable = nodeInterpreter.convertAndInterpret(testObj);
 		IndexingReq[] reqs = indexable.buildIndexingReqs();
@@ -160,6 +177,18 @@ public class SenseiIndexingAPITest extends TestCase {
 		formatString = "yyyyMMdd";
 		formatter = new SimpleDateFormat(formatString);
 		assertEquals(todayString,formatter.format(testObj.today));
+		
+		Field[] fields = doc.getFields("tags");
+		assertEquals(2, fields.length);
+		for (Field f : fields){
+		  assertTrue(testObj.tags.contains(f.stringValue()));
+		}
+		
+		fields = doc.getFields("numbers");
+		assertEquals(3, fields.length);
+		for (Field f : fields){
+		  assertTrue(testObj.numSet.contains(Integer.parseInt(f.stringValue())));
+		}
 	}
 	
 	public static void main(String[] args) {

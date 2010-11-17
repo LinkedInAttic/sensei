@@ -2,6 +2,8 @@ package com.sensei.indexing.api;
 
 import java.lang.reflect.Method;
 import java.text.Format;
+import java.util.Collection;
+import java.util.LinkedList;
 import java.util.Set;
 import java.util.Map.Entry;
 
@@ -52,11 +54,22 @@ public class DefaultSenseiZoieIndexable<V> implements ZoieIndexable {
 		    Format formatter = formatSpec.formatter;
 		    
 		    Object valObj = formatSpec.fld.get(_obj);
-		    String val = formatter==null ? String.valueOf(valObj) : formatter.format(valObj);
+		    Collection valueCollection = null;
+		    if (valObj instanceof Collection){
+		    	valueCollection = (Collection)valObj;
+		    }
+		    else{
+		    	valueCollection = new LinkedList();
+		    	valueCollection.add(valObj);
+		    }
 		    
-		    org.apache.lucene.document.Field fld = new org.apache.lucene.document.Field(name,val,Store.NO,Index.NOT_ANALYZED_NO_NORMS,TermVector.NO);
-		    fld.setOmitTermFreqAndPositions(true);
-		    doc.add(fld);
+		    for (Object obj : valueCollection){
+		      String val = formatter==null ? String.valueOf(obj) : formatter.format(obj);
+		    
+		      org.apache.lucene.document.Field fld = new org.apache.lucene.document.Field(name,val,Store.NO,Index.NOT_ANALYZED_NO_NORMS,TermVector.NO);
+		      fld.setOmitTermFreqAndPositions(true);
+		      doc.add(fld);
+		    }
 		  }
 		  catch(Exception e){
 			logger.error(e.getMessage(),e);

@@ -5,6 +5,7 @@ import java.lang.reflect.Method;
 import java.text.DecimalFormat;
 import java.text.Format;
 import java.text.SimpleDateFormat;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -129,9 +130,14 @@ public class DefaultSenseiInterpreter<V> extends
 		    MetaType metaType = metaAnnotation.type();
 		    if (MetaType.Auto.equals(metaType)){
 		    	Class typeClass = f.getType();
-		    	metaType = CLASS_METATYPE_MAP.get(typeClass);
-		    	if (metaType==null){
+		    	if (Collection.class.isAssignableFrom(typeClass)){
 		    		metaType = MetaType.String;
+		    	}
+		    	else{
+		    	  metaType = CLASS_METATYPE_MAP.get(typeClass);
+		    	  if (metaType==null){
+		    		metaType = MetaType.String;
+		    	  }
 		    	}
 		    }
 		    String defaultFormatString = DEFAULT_FORMAT_STRING_MAP.get(metaType);
