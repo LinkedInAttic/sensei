@@ -56,6 +56,10 @@ public class SenseiIndexingAPITest extends TestCase {
 		@Meta
 		private List<String> tags;
 		
+		@Meta(name="nulls",type=MetaType.Long)
+		private List<Long> nulls;
+		
+		
 		@Meta(name="numbers",type=MetaType.Integer)
 		private Set<Integer> numSet;
 		
@@ -151,6 +155,8 @@ public class SenseiIndexingAPITest extends TestCase {
 		testObj.numSet.add(13);
 		testObj.numSet.add(6);
 		testObj.numSet.add(7);
+		
+		testObj.nulls = null;
 		
 		ZoieIndexable indexable = nodeInterpreter.convertAndInterpret(testObj);
 		IndexingReq[] reqs = indexable.buildIndexingReqs();

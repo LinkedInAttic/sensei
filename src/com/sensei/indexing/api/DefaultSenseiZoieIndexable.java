@@ -47,13 +47,16 @@ public class DefaultSenseiZoieIndexable<V> implements ZoieIndexable {
 		}
 		Set<Entry<String,MetaFormatSpec>> metaEntries = _interpreter._metaFormatSpecMap.entrySet();
 		for (Entry<String,MetaFormatSpec> entry : metaEntries){
-		  try{
+
 		    String name = entry.getKey();
-		    MetaFormatSpec formatSpec = entry.getValue();
-		    
+		  try{
+
+			MetaFormatSpec formatSpec = entry.getValue();
+			    
+			Object valObj = formatSpec.fld.get(_obj);
+			if (valObj == null) continue;
 		    Format formatter = formatSpec.formatter;
 		    
-		    Object valObj = formatSpec.fld.get(_obj);
 		    Collection valueCollection = null;
 		    if (valObj instanceof Collection){
 		    	valueCollection = (Collection)valObj;
@@ -72,7 +75,7 @@ public class DefaultSenseiZoieIndexable<V> implements ZoieIndexable {
 		    }
 		  }
 		  catch(Exception e){
-			logger.error(e.getMessage(),e);
+			logger.error("error constructing indexable for field: "+name+" ==> "+e.getMessage(),e);
 		  }
 		}
 		return new IndexingReq[]{new IndexingReq(doc)};
