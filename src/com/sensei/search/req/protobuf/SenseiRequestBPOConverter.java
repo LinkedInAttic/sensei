@@ -292,19 +292,25 @@ public class SenseiRequestBPOConverter {
 		bhit.setFieldValues(fielddata);
 		Document document = new Document();
 		for ( SenseiResultBPO.StoredField storedField : hit.getStoredFieldsList() ) {
-			List<String> vals = storedField.getValsList();
 			String name = storedField.getName();
-			if (vals!=null){
-			  for ( String value : storedField.getValsList() ) {
-				document.add( new Field(name , value, Field.Store.YES, Field.Index.NOT_ANALYZED ) );
-			  }
-			}
-			else{
-			  ByteString bytes = storedField.getByteVal();
-			  if (bytes!=null){
+			
+			boolean isByteVal = storedField.hasByteVal();
+			
+			if (isByteVal){
+				ByteString bytes = storedField.getByteVal();
+				if (bytes!=null){
 				  byte[] byteArray = bytes.toByteArray();
 				  document.add(new Field(name,byteArray,Store.YES));
-			  }
+				}
+			}
+			else{
+				List<String> vals = storedField.getValsList();
+				
+				if (vals!=null){
+				  for ( String value : storedField.getValsList() ) {
+					document.add( new Field(name , value, Field.Store.YES, Field.Index.NOT_ANALYZED ) );
+				  }
+				}
 			}
 		}
 		bhit.setStoredFields( document );
