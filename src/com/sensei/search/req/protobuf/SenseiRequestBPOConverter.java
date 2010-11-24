@@ -258,7 +258,7 @@ public class SenseiRequestBPOConverter {
 	
 
 	private static  Explanation convert(com.sensei.search.req.protobuf.SenseiResultBPO.Explanation explain){
-		if (explain!=null){
+		if (explain!=null && explain.hasValue()){
 		    Explanation expl = new Explanation();
 		    expl.setDescription(explain.getDescription());
 		    expl.setValue(explain.getValue());
@@ -290,6 +290,7 @@ public class SenseiRequestBPOConverter {
 			fielddata.put(fieldVal.getName(), valList.toArray(new String[valList.size()]));
 		}
 		bhit.setFieldValues(fielddata);
+	
 		Document document = new Document();
 		for ( SenseiResultBPO.StoredField storedField : hit.getStoredFieldsList() ) {
 			String name = storedField.getName();

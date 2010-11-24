@@ -94,7 +94,7 @@ public abstract class AbstractSenseiClientServlet extends HttpServlet {
 			resp.setContentType("text/plain");
 			resp.setCharacterEncoding("UTF-8");
 			OutputStream ostream = resp.getOutputStream();
-			convertResult(res,ostream);
+			convertResult(senseiReq,res,ostream);
 			ostream.flush();
 		} catch (Exception e) {
 			throw new ServletException(e.getMessage(),e);
@@ -102,7 +102,7 @@ public abstract class AbstractSenseiClientServlet extends HttpServlet {
 		
 	}
 	
-	protected abstract void convertResult(SenseiResult res,OutputStream ostream) throws Exception;
+	protected abstract void convertResult(SenseiRequest req,SenseiResult res,OutputStream ostream) throws Exception;
 
 	@Override
 	public void destroy() {

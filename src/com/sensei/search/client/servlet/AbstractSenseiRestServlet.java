@@ -25,12 +25,12 @@ public abstract class AbstractSenseiRestServlet extends AbstractSenseiClientServ
 		return buildSenseiRequest(params);
 	}
 	
-	abstract protected String buildResultString(SenseiResult res) throws Exception;
+	abstract protected String buildResultString(SenseiRequest req,SenseiResult res) throws Exception;
 
 	@Override
-	protected void convertResult(SenseiResult res, OutputStream ostream)
+	protected void convertResult(SenseiRequest req,SenseiResult res, OutputStream ostream)
 			throws Exception {
-		String outString = buildResultString(res);
+		String outString = buildResultString(req,res);
 		ostream.write(outString.getBytes("UTF-8"));
 	}
 }
