@@ -1,10 +1,10 @@
 package com.sensei.search.client.servlet;
 
 public interface SenseiSearchServletParams {
-	 public static final String PARAM_OFFSET = "offset";
-	  public static final String PARAM_COUNT = "count";
+	 public static final String PARAM_OFFSET = "start";
+	  public static final String PARAM_COUNT = "rows";
 	  public static final String PARAM_QUERY = "q";
-	  public static final String PARAM_USERIDS = "userids";
+	  public static final String PARAM_SORT = "sort";
 	  public static final String PARAM_FETCH_STORED = "fetchstored";
 	  public static final String PARAM_SHOW_EXPLAIN = "showexplain";
 	  

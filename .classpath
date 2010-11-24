@@ -24,5 +24,6 @@
 	<classpathentry kind="lib" path="lib/master/zookeeper.jar"/>
 	<classpathentry kind="lib" path="lib/master/commons-codec.jar"/>
 	<classpathentry kind="lib" path="lib/master/commons-lang.jar"/>
+	<classpathentry kind="lib" path="lib/master/json.jar"/>
 	<classpathentry kind="output" path="output"/>
 </classpath>
