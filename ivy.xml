@@ -12,6 +12,10 @@
 
     <dependencies>
         <dependency org="commons-logging" name="commons-logging" rev="1.1" conf="master"/>
+        <dependency org="commons-configuration" name="commons-configuration" rev="1.6" conf="master"/>
+		<dependency org="commons-codec" name="commons-codec" rev="1.4" conf="master"/>
+		<dependency org="commons-lang" name="commons-lang" rev="2.5" conf="master"/>
+        <dependency org="javax.servlet" name="servlet-api" rev="2.5" conf="master"/>
         <dependency org="fastutil" name="fastutil" rev="5.0.5" conf="master"/>
         <dependency org="junit" name="junit" rev="4.5" conf="master"/>
         <dependency org="log4j" name="log4j" rev="1.2.15" conf="master"/>

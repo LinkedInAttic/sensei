@@ -19,5 +19,10 @@
 	<classpathentry kind="lib" path="lib/master/norbert-java-network_2.8.0-0.5-SNAPSHOT.jar"/>
 	<classpathentry kind="lib" path="lib/master/norbert-network_2.8.0-0.5-SNAPSHOT.jar"/>
 	<classpathentry kind="lib" path="lib/master/scala-library-2.8.0.jar"/>
+	<classpathentry kind="lib" path="lib/master/commons-configuration.jar"/>
+	<classpathentry kind="lib" path="lib/master/servlet-api.jar"/>
+	<classpathentry kind="lib" path="lib/master/zookeeper.jar"/>
+	<classpathentry kind="lib" path="lib/master/commons-codec.jar"/>
+	<classpathentry kind="lib" path="lib/master/commons-lang.jar"/>
 	<classpathentry kind="output" path="output"/>
 </classpath>
