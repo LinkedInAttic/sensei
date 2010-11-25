@@ -7,6 +7,7 @@ import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_Z
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -99,7 +100,6 @@ public abstract class AbstractSenseiClientServlet extends HttpServlet {
 		} catch (Exception e) {
 			throw new ServletException(e.getMessage(),e);
 		}
-		
 	}
 	
 	protected abstract void convertResult(SenseiRequest req,SenseiResult res,OutputStream ostream) throws Exception;

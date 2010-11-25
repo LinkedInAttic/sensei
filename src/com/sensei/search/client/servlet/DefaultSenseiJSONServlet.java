@@ -2,6 +2,12 @@ package com.sensei.search.client.servlet;
 
 import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_COUNT;
 import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_FACET;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_FACET_EXPAND;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_FACET_MAX;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_FACET_MINHIT;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_FACET_ORDER;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_FACET_ORDER_HITS;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_FACET_ORDER_VAL;
 import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_FETCH_STORED;
 import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_OFFSET;
 import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_QUERY;
@@ -14,12 +20,22 @@ import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_R
 import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_RESULT_TIME;
 import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_RESULT_TOTALDOCS;
 import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_SELECT;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_SELECT_NOT;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_SELECT_OP;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_SELECT_OP_AND;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_SELECT_OP_OR;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_SELECT_PROP;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_SELECT_VAL;
 import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_SHOW_EXPLAIN;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_SORT;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_SORT_DESC;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_SORT_SCORE;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -32,6 +48,7 @@ import org.apache.log4j.Logger;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Fieldable;
 import org.apache.lucene.search.Explanation;
+import org.apache.lucene.search.SortField;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -40,6 +57,7 @@ import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.BrowseSelection;
 import com.browseengine.bobo.api.FacetAccessible;
 import com.browseengine.bobo.api.FacetSpec;
+import com.browseengine.bobo.api.BrowseSelection.ValueOperation;
 import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
 import com.sensei.search.req.SenseiHit;
 import com.sensei.search.req.SenseiQuery;
@@ -258,19 +276,110 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet {
 		senseiReq.setShowExplanation(params.getBoolean(PARAM_SHOW_EXPLAIN, false));
 		senseiReq.setFetchStoredFields(params.getBoolean(PARAM_FETCH_STORED,false));
 		
+		String[] sortStrings = params.getStringArray(PARAM_SORT);
+		
+		if (sortStrings!=null && sortStrings.length>0){
+			ArrayList<SortField> sortFieldList = new ArrayList<SortField>(sortStrings.length);
+			for (String sortString : sortStrings){
+				SortField sf;
+				String[] parts = sortString.split(":");
+ 				if (parts.length==2){
+ 					boolean reverse = PARAM_SORT_DESC.equals(parts[1]);
+ 					sf = new SortField(parts[0],SortField.CUSTOM,reverse);
+ 				}
+ 				else if (parts.length==1){
+ 					if (PARAM_SORT_SCORE.equals(parts[0])){
+ 						sf = SortField.FIELD_SCORE;
+ 					}
+ 					else{
+ 						sf = new SortField(parts[0],SortField.CUSTOM,false);
+ 					}
+ 				}
+ 				else{
+ 					throw new IllegalArgumentException("invalid sort string: "+sortString);
+ 				}
+ 				sortFieldList.add(sf);
+			}
+			
+			senseiReq.setSort(sortFieldList.toArray(new SortField[sortFieldList.size()]));
+		}
+		
 
 	 	Map<String,Configuration> selectParamMap = RequestConverter.parseParamConf(params, PARAM_SELECT);
+	 	Set<Entry<String,Configuration>> entries = selectParamMap.entrySet();
+	 	for (Entry<String,Configuration> entry : entries){
+	 		String name = entry.getKey();
+	 		Configuration conf = entry.getValue();
+	 		
+	 		BrowseSelection sel = new BrowseSelection(name);
+	 		senseiReq.addSelection(sel);
+	 		
+	 		String[] vals = conf.getStringArray(PARAM_SELECT_VAL);
+	 		if (vals!=null && vals.length > 0){
+	 			sel.setValues(vals);
+	 		}
+	 		
+	 		vals = conf.getStringArray(PARAM_SELECT_NOT);
+	 		if (vals!=null && vals.length > 0){
+	 			sel.setNotValues(vals);
+	 		}
+	 		
+	 		String op = conf.getString(PARAM_SELECT_OP, PARAM_SELECT_OP_OR);
+	 		
+	 		ValueOperation valOp;
+	 		if (PARAM_SELECT_OP_OR.equals(op)){ 
+	 			valOp = ValueOperation.ValueOperationOr;
+	 		}
+	 		else if (PARAM_SELECT_OP_AND.equals(op)){ 
+
+	 			valOp = ValueOperation.ValueOperationAnd;
+	 		}
+	 		else{
+	 			throw new IllegalArgumentException("invalid selection operation: "+op);
+	 		}
+	 		sel.setSelectionOperation(valOp);
+	 		
+	 		String[] selectPropStrings = conf.getStringArray(PARAM_SELECT_PROP);
+	 		if (selectPropStrings!=null && selectPropStrings.length>0){
+	 			Map<String,String> prop = new HashMap<String,String>();
+	 			sel.setSelectionProperties(prop);
+	 			for (String selProp : selectPropStrings){
+	 				String[] parts = selProp.split(":");
+	 				if (parts.length==2){
+	 					prop.put(parts[0], parts[1]);
+	 				}
+	 				else{
+	 					throw new IllegalArgumentException("invalid prop string: "+selProp);
+	 				}
+	 			}
+	 		}
+	 	}
 		
 		Map<String,Configuration> facetParamMap = RequestConverter.parseParamConf(params, PARAM_FACET);
+		entries = facetParamMap.entrySet();
+	 	for (Entry<String,Configuration> entry : entries){
+	 		String name =entry.getKey();
+	 		Configuration conf = entry.getValue();
+	 		FacetSpec fspec = new FacetSpec();
+	 		
+	 		fspec.setExpandSelection(conf.getBoolean(PARAM_FACET_EXPAND,false));
+	 		fspec.setMaxCount(conf.getInt(PARAM_FACET_MAX,10));
+	 		fspec.setMinHitCount(conf.getInt(PARAM_FACET_MINHIT,1));
+	 		
+	 		FacetSpec.FacetSortSpec orderBy;
+	 		String orderString = conf.getString(PARAM_FACET_ORDER, PARAM_FACET_ORDER_HITS);
+	 		if (PARAM_FACET_ORDER_HITS.equals(orderString)){
+	 			orderBy = FacetSpec.FacetSortSpec.OrderHitsDesc;
+	 		}
+	 		else if (PARAM_FACET_ORDER_VAL.equals(orderString)){
+	 			orderBy = FacetSpec.FacetSortSpec.OrderValueAsc;
+	 		}
+	 		else{
+	 			throw new IllegalArgumentException("invalid order string: "+orderString);
+	 		}
+	 		fspec.setOrderBy(orderBy);
+	 		senseiReq.setFacetSpec(name, fspec);
+	 	}
 		return senseiReq;
 	}
-	
-	public static void main(String[] args) {
-		String s = "a.b.c.d";
-		String s2 = "a";
-		String s4 = "";
-		
-		System.out.println(Arrays.toString(s4.split("\\.")));
-	}
-
 }

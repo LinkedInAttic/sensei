@@ -25,7 +25,6 @@
 	<classpathentry kind="lib" path="lib/master/commons-codec.jar"/>
 	<classpathentry kind="lib" path="lib/master/commons-lang.jar"/>
 	<classpathentry kind="lib" path="lib/master/json.jar"/>
-	<classpathentry kind="lib" path="lib/master/google-collections.jar"/>
 	<classpathentry kind="lib" path="lib/master/commons-collections.jar"/>
 	<classpathentry kind="output" path="output"/>
 </classpath>
