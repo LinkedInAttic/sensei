@@ -10,6 +10,7 @@ public class SenseiTestSuite extends TestSuite{
      suite.addTestSuite(SenseiTestCase.class);
      suite.addTestSuite(SenseiTestSerialization.class);
      suite.addTestSuite(SenseiIndexingAPITest.class);
+     suite.addTestSuite(SenseiRestServerTest.class);
      return suite;
   }
  

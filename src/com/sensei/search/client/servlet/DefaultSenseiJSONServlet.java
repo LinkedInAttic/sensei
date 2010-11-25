@@ -1,6 +1,7 @@
 package com.sensei.search.client.servlet;
 
 import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_COUNT;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_FACET;
 import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_FETCH_STORED;
 import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_OFFSET;
 import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_QUERY;
@@ -12,6 +13,7 @@ import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_R
 import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_RESULT_NUMHITS;
 import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_RESULT_TIME;
 import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_RESULT_TOTALDOCS;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_SELECT;
 import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_SHOW_EXPLAIN;
 
 import java.util.ArrayList;
@@ -24,6 +26,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
 
+import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.DataConfiguration;
 import org.apache.log4j.Logger;
 import org.apache.lucene.document.Document;
@@ -43,6 +46,7 @@ import com.sensei.search.req.SenseiQuery;
 import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.req.SenseiResult;
 import com.sensei.search.req.StringQuery;
+import com.sensei.search.util.RequestConverter;
 
 
 public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet {
@@ -254,8 +258,19 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet {
 		senseiReq.setShowExplanation(params.getBoolean(PARAM_SHOW_EXPLAIN, false));
 		senseiReq.setFetchStoredFields(params.getBoolean(PARAM_FETCH_STORED,false));
 		
+
+	 	Map<String,Configuration> selectParamMap = RequestConverter.parseParamConf(params, PARAM_SELECT);
 		
+		Map<String,Configuration> facetParamMap = RequestConverter.parseParamConf(params, PARAM_FACET);
 		return senseiReq;
+	}
+	
+	public static void main(String[] args) {
+		String s = "a.b.c.d";
+		String s2 = "a";
+		String s4 = "";
+		
+		System.out.println(Arrays.toString(s4.split("\\.")));
 	}
 
 }

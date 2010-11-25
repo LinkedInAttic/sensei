@@ -7,6 +7,10 @@ public interface SenseiSearchServletParams {
 	  public static final String PARAM_SORT = "sort";
 	  public static final String PARAM_FETCH_STORED = "fetchstored";
 	  public static final String PARAM_SHOW_EXPLAIN = "showexplain";
+	  public static final String PARAM_SELECT = "select";
+	  public static final String PARAM_SELECT_PREFIX = PARAM_SELECT+".";
+	  public static final String PARAM_FACET = "facet";
+	  public static final String PARAM_FACET_PREFIX = PARAM_FACET+".";
 
 	  public static final String PARAM_RESULT_HIT_EXPLANATION = "explanation";
 	  public static final String PARAM_RESULT_FACETS = "facets";
