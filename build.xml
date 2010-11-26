@@ -118,6 +118,7 @@
                 <include name="*.jar"/>
               </lib>
               <classes dir="${resources}" excludes="web.xml" />
+              <fileset dir="client-app/" />
       </war>
     </target>
     

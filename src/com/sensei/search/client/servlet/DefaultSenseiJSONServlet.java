@@ -312,17 +312,12 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet {
 	 		Configuration conf = entry.getValue();
 	 		
 	 		BrowseSelection sel = new BrowseSelection(name);
-	 		senseiReq.addSelection(sel);
 	 		
 	 		String[] vals = conf.getStringArray(PARAM_SELECT_VAL);
-	 		if (vals!=null && vals.length > 0){
-	 			sel.setValues(vals);
-	 		}
+	 		sel.setValues(vals);
 	 		
 	 		vals = conf.getStringArray(PARAM_SELECT_NOT);
-	 		if (vals!=null && vals.length > 0){
-	 			sel.setNotValues(vals);
-	 		}
+	 		sel.setNotValues(vals);
 	 		
 	 		String op = conf.getString(PARAM_SELECT_OP, PARAM_SELECT_OP_OR);
 	 		
@@ -353,6 +348,8 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet {
 	 				}
 	 			}
 	 		}
+	 		senseiReq.addSelection(sel);
+	 		
 	 	}
 		
 		Map<String,Configuration> facetParamMap = RequestConverter.parseParamConf(params, PARAM_FACET);

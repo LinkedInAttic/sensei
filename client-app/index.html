@@ -1,0 +1,36 @@
+<html>
+<head>
+	<title>Sensei Client App</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+	<script type="text/javascript" src="js/sensei-client.js" ></script>
+	<script type="text/javascript" src="http://jsbeautifier.org/beautify.js" ></script>
+	<script src="http://code.jquery.com/jquery-1.4.4.js"></script>
+</head>
+<body>
+	query: <input id="query" type="text" /><br/>
+	start: <input id="start" type="text" value="0" /><br/>
+	rows: <input id="rows" type="text" value="10" /> <br/>
+	return explanation: <input id="explain" type="checkbox" > <br/>
+	fetch stored fields: <input id="fetchstore" type="checkbox" > <br/>
+	<hr/>
+	selections: <input type="button" id="addsel" value="add selection" onclick="addSelection()"/> 
+	<input type="button" id="clearSel" value="clear" onclick="clearSelections()" />
+	<br/>
+	<div id="selections">
+	  
+	</div>
+	<hr/>
+	facets: <input type="button" id="addfacet" value="add facet" onclick="addFacet()" /> 
+	<input type="button" id="clearFacets" value="clear" onclick="clearFacets()"/>
+	<div id="facets">
+	</div>
+	<hr/>
+	<input type="button" id="buildReqButton" value="build request string" onclick="buildreqString()"/><br/>
+	<input type="text" id="reqtext" size="200"/><br/>
+	<input type="button" id="runquery" value="run query" onclick="runQuery()"/><br/>
+	
+	result: <br/>
+	<textarea rows="50" cols="100" name="content" id="content"></textarea>
+	
+</body>
+</html>

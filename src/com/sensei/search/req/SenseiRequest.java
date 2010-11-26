@@ -234,12 +234,6 @@ public class SenseiRequest implements Serializable, Cloneable
 	 * @see #getSelections()
 	 */
 	public void addSelection(BrowseSelection sel){
-		String[] vals = sel.getValues();
-		if (vals==null || vals.length == 0)
-		{
-			String[] notVals = sel.getNotValues();
-			if (notVals==null || notVals.length == 0) return;		// skip adding useless selections
-		}
 		_selections.put(sel.getFieldName(),sel);
 	}
 	

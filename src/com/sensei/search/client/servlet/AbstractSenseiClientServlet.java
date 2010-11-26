@@ -92,7 +92,7 @@ public abstract class AbstractSenseiClientServlet extends HttpServlet {
 		try {
 			SenseiRequest senseiReq = buildSenseiRequest(req);
 			SenseiResult res = _senseiBroker.browse(senseiReq);
-			resp.setContentType("text/plain");
+			resp.setContentType("text/plain; charset=utf-8");
 			resp.setCharacterEncoding("UTF-8");
 			OutputStream ostream = resp.getOutputStream();
 			convertResult(senseiReq,res,ostream);

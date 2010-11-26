@@ -296,12 +296,14 @@ public class ResultMerger
 
   public static SenseiResult merge(SenseiRequest req, Collection<SenseiResult> results, boolean onSearchNode)
   {
+	long start = System.currentTimeMillis();
     List<Map<String, FacetAccessible>> facetList = new ArrayList<Map<String, FacetAccessible>>(results.size());
 
     ArrayList<Iterator<SenseiHit>> iteratorList = new ArrayList<Iterator<SenseiHit>>(results.size());
     int numHits = 0;
     int totalDocs = 0;
 
+    long time = 0L;
     for (SenseiResult res : results)
     {
       SenseiHit[] hits = res.getSenseiHits();
@@ -314,6 +316,7 @@ public class ResultMerger
       }
       numHits += res.getNumHits();
       totalDocs += res.getTotalDocs();
+      time = Math.max(time,res.getTime());
       Map<String, FacetAccessible> facetMap = res.getFacetMap();
       if (facetMap != null)
       {
@@ -341,6 +344,11 @@ public class ResultMerger
     merged.setNumHits(numHits);
     merged.setTotalDocs(totalDocs);
     merged.addAll(mergedFacetMap);
+    
+    long end = System.currentTimeMillis();
+    
+    time += (end-start);
+    merged.setTime(time);
     return merged;
   }
 }
