@@ -17,6 +17,7 @@ import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_R
 import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_RESULT_HIT_SCORE;
 import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_RESULT_HIT_UID;
 import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_RESULT_NUMHITS;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_RESULT_PARSEDQUERY;
 import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_RESULT_TIME;
 import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_RESULT_TOTALDOCS;
 import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_SELECT;
@@ -206,6 +207,7 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet {
 		int numHits = res.getNumHits();
 		jsonObj.put(PARAM_RESULT_TOTALDOCS, totalDocs);
 		jsonObj.put(PARAM_RESULT_NUMHITS, numHits);
+		jsonObj.put(PARAM_RESULT_PARSEDQUERY,res.getParsedQuery());
 		SenseiHit[] hits = res.getSenseiHits();
 		JSONArray hitArray = new JSONArray();
 		jsonObj.put(PARAM_RESULT_HITS, hitArray);

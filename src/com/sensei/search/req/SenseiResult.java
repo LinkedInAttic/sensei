@@ -10,6 +10,8 @@ public class SenseiResult extends BrowseResult{
 	 */
 	private static final long serialVersionUID = 1L;
 	
+	private String _parsedQuery = null;
+	
 	public SenseiHit[] getSenseiHits()
 	{
 	  BrowseHit[] hits = getHits();
@@ -17,5 +19,13 @@ public class SenseiResult extends BrowseResult{
 		  return new SenseiHit[0];
 	  }
 	  return (SenseiHit[])hits;
+	}
+	
+	public void setParsedQuery(String query){
+		_parsedQuery = query;
+	}
+	
+	public String getParsedQuery(){
+		return _parsedQuery;
 	}
 }

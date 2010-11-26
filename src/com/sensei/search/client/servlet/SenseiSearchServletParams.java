@@ -26,6 +26,8 @@ public interface SenseiSearchServletParams {
 	  public static final String PARAM_FACET_ORDER_HITS = "hits";
 	  public static final String PARAM_FACET_ORDER_VAL = "val";
 
+
+	  public static final String PARAM_RESULT_PARSEDQUERY = "parsedquery";
 	  public static final String PARAM_RESULT_HIT_EXPLANATION = "explanation";
 	  public static final String PARAM_RESULT_FACETS = "facets";
 	  

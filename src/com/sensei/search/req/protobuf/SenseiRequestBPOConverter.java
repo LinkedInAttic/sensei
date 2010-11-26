@@ -342,6 +342,7 @@ public class SenseiRequestBPOConverter {
 		{
 			senseiHits[i++] = convert(hit);
 		}
+		res.setParsedQuery(result.getParsedQuery());
 		res.setHits(senseiHits);
 		return res;
 	}
@@ -620,6 +621,8 @@ public class SenseiRequestBPOConverter {
 		resBuilder.setTime(res.getTime());
 		resBuilder.setTotaldocs(res.getTotalDocs());
 		resBuilder.setNumhits(res.getNumHits());
+		
+		resBuilder.setParsedQuery(res.getParsedQuery());
 		
 		// hits
 		SenseiHit[] hits = res.getSenseiHits();

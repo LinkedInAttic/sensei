@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
-import org.apache.lucene.search.Explanation;
+import org.apache.lucene.search.Query;
 
 import proj.zoie.api.IndexReaderFactory;
 import proj.zoie.api.ZoieIndexReader;
@@ -146,6 +146,14 @@ public class SenseiNodeMessageHandler implements MessageHandler {
 	  result.setTime(end - start);
 	  // set the transaction ID to trace transactions
 	  result.setTid(req.getTid());
+	  
+	  Query parsedQ = req.getQuery();
+	  if (parsedQ!=null){
+		  result.setParsedQuery(parsedQ.toString());
+	  }
+	  else{
+		  result.setParsedQuery("*:*");
+	  }
 	  return result;
 	}
 	  
@@ -183,6 +191,7 @@ public class SenseiNodeMessageHandler implements MessageHandler {
 			logger.info("no partitions specified");
 			finalResult = new SenseiResult();
 		}
+		
 		return SenseiRequestBPOConverter.convert(finalResult);
 	}
 

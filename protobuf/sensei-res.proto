@@ -49,4 +49,5 @@ message Result{
   repeated Hit hits = 4;
   optional uint64 time = 5;
   required int64 tid = 6 [default = -1];
+  optional string parsedQuery = 7;
 }

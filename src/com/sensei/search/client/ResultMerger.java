@@ -304,8 +304,11 @@ public class ResultMerger
     int totalDocs = 0;
 
     long time = 0L;
+    
+    String parsedQuery = null;
     for (SenseiResult res : results)
     {
+      parsedQuery = res.getParsedQuery();
       SenseiHit[] hits = res.getSenseiHits();
       if (hits != null)
       {
@@ -345,10 +348,15 @@ public class ResultMerger
     merged.setTotalDocs(totalDocs);
     merged.addAll(mergedFacetMap);
     
+    if (parsedQuery == null){
+    	parsedQuery = "";
+    }
+    
     long end = System.currentTimeMillis();
     
     time += (end-start);
     merged.setTime(time);
+    merged.setParsedQuery(parsedQuery);
     return merged;
   }
 }
