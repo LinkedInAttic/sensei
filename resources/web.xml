@@ -9,7 +9,7 @@
 	<description></description>
     
 	<servlet>
-        <servlet-name>SearchServlet</servlet-name>
+        <servlet-name>SenseiSearchServlet</servlet-name>
         <servlet-class>com.sensei.search.client.servlet.DefaultSenseiJSONServlet</servlet-class>
 		<init-param>
 		  <param-name>config.file</param-name>
@@ -19,7 +19,7 @@
     </servlet>
 
 	<servlet-mapping>
-        <servlet-name>SearchServlet</servlet-name>
+        <servlet-name>SenseiSearchServlet</servlet-name>
         <url-pattern>/sensei/*</url-pattern>
     </servlet-mapping>
 </web-app>
