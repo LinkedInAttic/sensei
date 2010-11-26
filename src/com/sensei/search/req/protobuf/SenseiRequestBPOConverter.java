@@ -478,6 +478,7 @@ public class SenseiRequestBPOConverter {
 		reqBuilder.setTid(req.getTid());
 		reqBuilder.setOffset(req.getOffset());
 		reqBuilder.setCount(req.getCount());
+		reqBuilder.setShowExplanation(req.isShowExplanation());
 		SenseiQuery q = req.getQuery();
 
 		ByteString queryBytes = null;

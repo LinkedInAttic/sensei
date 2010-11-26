@@ -2,12 +2,12 @@ package com.sensei.search.nodes;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
+import org.apache.lucene.search.Explanation;
 
 import proj.zoie.api.IndexReaderFactory;
 import proj.zoie.api.ZoieIndexReader;
@@ -19,9 +19,8 @@ import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.api.BrowseException;
 import com.browseengine.bobo.api.BrowseHit;
 import com.browseengine.bobo.api.BrowseRequest;
-import com.browseengine.bobo.api.FacetAccessible;
+import com.browseengine.bobo.api.BrowseResult;
 import com.browseengine.bobo.api.MultiBoboBrowser;
-import com.browseengine.bobo.sort.SortCollector;
 import com.google.protobuf.Message;
 import com.google.protobuf.TextFormat;
 import com.linkedin.norbert.javacompat.network.MessageHandler;
@@ -31,7 +30,6 @@ import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.req.SenseiResult;
 import com.sensei.search.req.protobuf.SenseiRequestBPO;
 import com.sensei.search.req.protobuf.SenseiRequestBPOConverter;
-import com.sensei.search.req.protobuf.SenseiResultBPO;
 import com.sensei.search.util.RequestConverter;
 
 public class SenseiNodeMessageHandler implements MessageHandler {
@@ -114,18 +112,13 @@ public class SenseiNodeMessageHandler implements MessageHandler {
 	  if (offset<0 || count<0){
 	    throw new IllegalArgumentException("both offset and count must be > 0: "+offset+"/"+count);
 	  }
-	  SortCollector collector = browser.getSortCollector(req.getSort(),req.getQuery(), offset, count, req.isFetchStoredFields(),false);
+	 // SortCollector collector = browser.getSortCollector(req.getSort(),req.getQuery(), offset, count, req.isFetchStoredFields(),false);
 	  
-	  Map<String, FacetAccessible> facetCollectors = new HashMap<String, FacetAccessible>();
-	  browser.browse(req, collector, facetCollectors);
-	  BrowseHit[] hits = null;
-	  try{
-	    hits = collector.topDocs();
-	  }
-	  catch (IOException e){
-	    logger.error(e.getMessage(), e);
-	    hits = new BrowseHit[0];
-	  }
+	  //Map<String, FacetAccessible> facetCollectors = new HashMap<String, FacetAccessible>();
+	  //browser.browse(req, collector, facetCollectors);
+	  BrowseResult res = browser.browse(req);
+	  BrowseHit[] hits = res.getHits();
+	  
 	  SenseiHit[] senseiHits = new SenseiHit[hits.length];
 	  for(int i = 0; i < hits.length; i++)
 	  {
@@ -146,9 +139,9 @@ public class SenseiNodeMessageHandler implements MessageHandler {
 	    senseiHits[i] = senseiHit;
 	  }
 	  result.setHits(senseiHits);
-	  result.setNumHits(collector.getTotalHits());
+	  result.setNumHits(res.getNumHits());
 	  result.setTotalDocs(browser.numDocs());
-	  result.addAll(facetCollectors);
+	  result.addAll(res.getFacetMap());
 	  long end = System.currentTimeMillis();
 	  result.setTime(end - start);
 	  // set the transaction ID to trace transactions
@@ -165,7 +158,6 @@ public class SenseiNodeMessageHandler implements MessageHandler {
 		}
 
 		SenseiRequest senseiReq = SenseiRequestBPOConverter.convert(req);
-		
 		SenseiResult finalResult=null;
 		Set<Integer> partitions = senseiReq.getPartitions();
 		if (partitions!=null && partitions.size() > 0){
