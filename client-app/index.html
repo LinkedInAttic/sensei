@@ -14,11 +14,16 @@
 	return explanation: <input id="explain" type="checkbox" > <br/>
 	fetch stored fields: <input id="fetchstore" type="checkbox" > <br/>
 	<hr/>
+	sort: <input type="button" id="addsort" value="add sort" onclick="addSort()"/> 
+	<input type="button" id="clearSort" value="clear" onclick="clearSorts()" />
+	<br/>
+	<div id="sorts">
+	</div>
+	<hr/>
 	selections: <input type="button" id="addsel" value="add selection" onclick="addSelection()"/> 
 	<input type="button" id="clearSel" value="clear" onclick="clearSelections()" />
 	<br/>
 	<div id="selections">
-	  
 	</div>
 	<hr/>
 	facets: <input type="button" id="addfacet" value="add facet" onclick="addFacet()" /> 

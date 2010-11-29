@@ -7,6 +7,11 @@ function removeAllChildren(elem){
 	}
 }
 
+function removeSort(sortNode){
+	var sortElement = document.getElementById("sorts");
+	sortElement.removeChild(sortNode);
+}
+
 function removeSelection(selectionNode){
 	var selElement = document.getElementById("selections");
 	selElement.removeChild(selectionNode);
@@ -71,7 +76,6 @@ function addFacet(){
 	removeButton.setAttribute('onclick','removeFacet(this.parentNode)');
 	divNode.appendChild(removeButton);
 }
-
 
 function buildSelectionReqString(selectionNode,prefix,paramNames){
 	var reqString = "";
@@ -158,6 +162,88 @@ function addSelection(){
 	divNode.appendChild(removeButton);
 }
 
+function buildSortString(){
+	var reqString = "sort=";
+	var firsttime=true;
+	var sortNodes = document.getElementsByName('sort');
+	if (sortNodes!=null){
+	  for (var i=0;i<sortNodes.length;++i){
+		
+		var reqSubString = null;
+		var field = null;
+		var dir = null;
+		
+		for(var k=0; k<sortNodes[i].childNodes.length; k++){
+			var node = sortNodes[i].childNodes[k];
+			var nodeName = node.name;
+			if (nodeName == null ) continue;
+			
+			if ("field" == nodeName){
+				field = node.value;
+			}
+			else if ("dir"==nodeName){
+				dir = node.value;
+			}
+		}
+		
+		if (field!=null){
+			if ("relevance" == field){
+				reqSubString=field;
+			}
+			else{
+				reqSubString=field+":"+dir;
+			}
+		}
+		
+		if (reqSubString!=null){
+			if (!firsttime){
+				reqString+=",";
+			}
+			else{
+				firsttime=false;
+			}
+			reqString+=reqSubString;
+		}
+	  }
+    }
+	return reqString;
+}
+
+function addSort(){
+	var sortElement = document.getElementById("sorts");
+	var divNode = document.createElement('div');
+	divNode.setAttribute('name','sort');
+	sortElement.appendChild(divNode);
+	
+	divNode.appendChild(document.createTextNode('sort: '));
+	var fieldTextNode = document.createElement('input');
+	fieldTextNode.setAttribute('type','text');
+	fieldTextNode.setAttribute('name','field');
+	divNode.appendChild(fieldTextNode);
+	
+	var dropDownSelNode = document.createElement('select');
+	dropDownSelNode.setAttribute('name','dir');
+	var opt1 =  document.createElement('option');
+	opt1.innerHTML = 'desc';
+	dropDownSelNode.appendChild(opt1);
+	var opt2 =  document.createElement('option');
+	opt2.innerHTML = 'asc';
+	dropDownSelNode.appendChild(opt2);
+	divNode.appendChild(dropDownSelNode);
+	divNode.appendChild(document.createElement('br'));
+	
+	var removeButton = document.createElement('input');
+	removeButton.setAttribute('type','button');
+	removeButton.setAttribute('value','remove sort');
+	removeButton.setAttribute('onclick','removeSort(this.parentNode)');
+	divNode.appendChild(removeButton);
+}
+
+function clearSorts(){
+	var sortElement = document.getElementById("sorts");
+	removeAllChildren(sortElement);
+}
+
 function clearSelections(){
 	var selElement = document.getElementById("selections");
 	removeAllChildren(selElement);
@@ -202,6 +288,8 @@ function buildreqString(){
 	for (var i=0;i<facetNodes.length;++i){
 		reqString+="&"+buildSelectionReqString(facetNodes[i],"facet",facetparams);	
 	}
+	
+	reqString += "&"+buildSortString();
 	
 	document.getElementById('reqtext').value=reqString;
 	document.getElementById('buildReqButton').disable=false;
