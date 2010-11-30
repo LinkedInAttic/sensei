@@ -31,10 +31,6 @@ public interface SenseiSearchServletParams {
 	  public static final String PARAM_RESULT_HIT_EXPLANATION = "explanation";
 	  public static final String PARAM_RESULT_FACETS = "facets";
 	  
-	  public static final String PARAM_CLUSTER_NAME = "cluster.name";
-	  public static final String PARAM_ZOOKEEPER_URL = "cluster.zookeeper.url";
-	  public static final String PARAM_ZOOKEEPER_TIMEOUT = "cluster.zookeeper.conn.timeout";
-	  
 	  public static final String PARAM_RESULT_TOTALDOCS = "totaldocs";
 	  public static final String PARAM_RESULT_NUMHITS = "numhits";
 	  public static final String PARAM_RESULT_HITS = "hits";

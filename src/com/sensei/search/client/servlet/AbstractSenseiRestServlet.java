@@ -18,6 +18,7 @@ public abstract class AbstractSenseiRestServlet extends AbstractSenseiClientServ
 	private static final long serialVersionUID = 1L;
 
 	abstract protected SenseiRequest buildSenseiRequest(DataConfiguration params) throws Exception;
+	
 	@Override
 	protected SenseiRequest buildSenseiRequest(HttpServletRequest req)
 			throws Exception {

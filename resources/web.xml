@@ -8,6 +8,15 @@
 	<display-name>Sensei Search Client</display-name>
 	<description></description>
     
+    <context-param>
+	   <param-name>config.file</param-name>
+	   <param-value>server-conf/sensei-client.conf</param-value>
+	</context-param>
+	
+	<listener>
+	    <listener-class>com.sensei.search.client.servlet.SenseiConfigServletContextListener</listener-class>
+	</listener>
+	
 	<servlet>
         <servlet-name>SenseiSearchServlet</servlet-name>
         <servlet-class>com.sensei.search.client.servlet.DefaultSenseiJSONServlet</servlet-class>

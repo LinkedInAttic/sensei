@@ -1,22 +1,15 @@
 package com.sensei.search.client.servlet;
 
-import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_CLUSTER_NAME;
-import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_ZOOKEEPER_TIMEOUT;
-import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_ZOOKEEPER_URL;
-
-import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.charset.Charset;
 
 import javax.servlet.ServletConfig;
+import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.log4j.Logger;
 
 import com.linkedin.norbert.javacompat.cluster.ClusterClient;
@@ -49,38 +42,33 @@ public abstract class AbstractSenseiClientServlet extends HttpServlet {
 	@Override
 	public void init(ServletConfig config) throws ServletException {
 		super.init(config);
-		String confFileName = config.getInitParameter("config.file");
-		File confFile = new File(confFileName);
-		try {
-			PropertiesConfiguration conf = new PropertiesConfiguration(confFile);
+		
+		ServletContext ctx = config.getServletContext();
 			
-			String zkurl = conf.getString(PARAM_ZOOKEEPER_URL);
-			String clusterName = conf.getString(PARAM_CLUSTER_NAME);
-			int zkTimeout = conf.getInt(PARAM_ZOOKEEPER_TIMEOUT, 3000);
-			
-			_networkClientConfig.setServiceName(clusterName);
-		    _networkClientConfig.setZooKeeperConnectString(zkurl);
-		    _networkClientConfig.setZooKeeperSessionTimeoutMillis(zkTimeout);
-		    _networkClientConfig.setConnectTimeoutMillis(1000);
-		    _networkClientConfig.setWriteTimeoutMillis(150);
-		    _networkClientConfig.setMaxConnectionsPerNode(5);
-		    _networkClientConfig.setStaleRequestTimeoutMins(10);
-		    _networkClientConfig.setStaleRequestCleanupFrequencyMins(10);
-		    
-		    _clusterClient = new ZooKeeperClusterClient(clusterName,zkurl,zkTimeout);
-			
-		    _networkClientConfig.setClusterClient(_clusterClient);
-			
-			_networkClient = new SenseiNetworkClient(_networkClientConfig,_routerFactory);
-			_senseiBroker = new SenseiBroker(_networkClient, _clusterClient, _reqRewriter, _routerFactory);
-			
-			logger.info("Connecting to cluster: "+clusterName+" ...");
-			_clusterClient.awaitConnectionUninterruptibly();
+		String zkurl = (String)ctx.getAttribute(SenseiConfigServletContextListener.SENSEI_CONF_ZKURL);
+		String clusterName = (String)ctx.getAttribute(SenseiConfigServletContextListener.SENSEI_CONF_CLUSTER_NAME);
+		int zkTimeout = (Integer)(ctx.getAttribute(SenseiConfigServletContextListener.SENSEI_CONF_ZKTIMEOUT));
+		
+		_networkClientConfig.setServiceName(clusterName);
+	    _networkClientConfig.setZooKeeperConnectString(zkurl);
+	    _networkClientConfig.setZooKeeperSessionTimeoutMillis(zkTimeout);
+	    _networkClientConfig.setConnectTimeoutMillis(1000);
+	    _networkClientConfig.setWriteTimeoutMillis(150);
+	    _networkClientConfig.setMaxConnectionsPerNode(5);
+	    _networkClientConfig.setStaleRequestTimeoutMins(10);
+	    _networkClientConfig.setStaleRequestCleanupFrequencyMins(10);
+	    
+	    _clusterClient = new ZooKeeperClusterClient(clusterName,zkurl,zkTimeout);
+		
+	    _networkClientConfig.setClusterClient(_clusterClient);
+		
+		_networkClient = new SenseiNetworkClient(_networkClientConfig,_routerFactory);
+		_senseiBroker = new SenseiBroker(_networkClient, _clusterClient, _reqRewriter, _routerFactory);
+		
+		logger.info("Connecting to cluster: "+clusterName+" ...");
+		_clusterClient.awaitConnectionUninterruptibly();
 
-			logger.info("Cluster: "+clusterName+" successfully connected ");
-		} catch (ConfigurationException e) {
-			throw new ServletException(e.getMessage(),e);
-		}
+		logger.info("Cluster: "+clusterName+" successfully connected ");
 	}
 	
 	protected abstract SenseiRequest buildSenseiRequest(HttpServletRequest req) throws Exception;
