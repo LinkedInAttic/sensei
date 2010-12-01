@@ -30,6 +30,7 @@ import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.req.SenseiResult;
 import com.sensei.search.req.protobuf.SenseiRequestBPO;
 import com.sensei.search.req.protobuf.SenseiRequestBPOConverter;
+import com.sensei.search.req.protobuf.SenseiResultBPO.Result;
 import com.sensei.search.util.RequestConverter;
 
 public class SenseiNodeMessageHandler implements MessageHandler {
@@ -178,7 +179,8 @@ public class SenseiNodeMessageHandler implements MessageHandler {
 			    SenseiResult res = handleMessage(senseiReq, readerFactory, partition);
 			    resultList.add(res);
 			    long end = System.currentTimeMillis();
-			    logger.info("searching partition: "+partition+" took: "+(end-start));
+			    res.setTime(end-start);
+			    logger.info("searching partition: " + partition + " browse took: "+res.getTime());
 			  }
 			  catch(Exception e){
 				  logger.error(e.getMessage(),e);
@@ -191,8 +193,9 @@ public class SenseiNodeMessageHandler implements MessageHandler {
 			logger.info("no partitions specified");
 			finalResult = new SenseiResult();
 		}
-		
-		return SenseiRequestBPOConverter.convert(finalResult);
+		Result returnvalue = SenseiRequestBPOConverter.convert(finalResult);;
+    logger.info("searching partitions  " + partitions.toString() + " took: " + finalResult.getTime());
+		return returnvalue;
 	}
 
 }
