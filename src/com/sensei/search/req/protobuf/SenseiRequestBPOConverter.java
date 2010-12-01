@@ -374,8 +374,26 @@ public class SenseiRequestBPOConverter {
 			if (fieldname!=null && fieldname.length() == 0){
 				fieldname=null;
 			}
-			SortField sf = new SortField(fieldname,s.getType(),s.getReverse());
-			sortFields[i++] = sf;
+			
+			int type = s.getType();
+			
+			SortField sf = null;
+			
+			
+			if (SortField.SCORE == type){
+				sf = SortField.FIELD_SCORE;
+			}
+			else if (SortField.DOC == type){
+				sf = SortField.FIELD_DOC;
+			}
+			else{
+				if (fieldname!=null){
+			      sf = new SortField(fieldname,s.getType(),s.getReverse());
+				}
+			}
+			if (sf!=null){
+			  sortFields[i++] = sf;
+			}
 		}
 		if (sortFields.length > 0){
 		 breq.setSort(sortFields);
@@ -517,13 +535,15 @@ public class SenseiRequestBPOConverter {
 		// sort
 		SortField[] sortfields = req.getSort();
 		for (SortField sortfield : sortfields){
-			String fn = sortfield.getField();
-			SenseiRequestBPO.Sort.Builder sortBuilder = SenseiRequestBPO.Sort.newBuilder();
-			if (fn!=null){
+			if (sortfield!=null){
+			  String fn = sortfield.getField();
+			  SenseiRequestBPO.Sort.Builder sortBuilder = SenseiRequestBPO.Sort.newBuilder();
+			  if (fn!=null){
 				sortBuilder.setField(fn);
+			  }
+			  SenseiRequestBPO.Sort sort = sortBuilder.setReverse(sortfield.getReverse()).setType(sortfield.getType()).build();
+			  reqBuilder.addSort(sort);
 			}
-			SenseiRequestBPO.Sort sort = sortBuilder.setReverse(sortfield.getReverse()).setType(sortfield.getType()).build();
-			reqBuilder.addSort(sort);
 		}
 		
 		// facetspec
