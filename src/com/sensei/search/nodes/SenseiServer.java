@@ -40,7 +40,6 @@ public class SenseiServer {
     private int _id;
     private int _port;
     private int[] _partitions;
-    private String _partitionString;
     private NetworkServer _networkServer;
     private ClusterClient _clusterClient;
     private SenseiZoieFactory<?,?> _zoieFactory;
@@ -78,14 +77,7 @@ public class SenseiServer {
       _id = id;
       _port = port;
       _partitions = partitions;
-      StringBuffer sb = new StringBuffer();
-      if(partitions.length > 0) sb.append(String.valueOf(partitions[0]));
-      for(int i = 1; i < partitions.length; i++)
-      {
-        sb.append(',');
-        sb.append(String.valueOf(partitions[i]));
-      }
-      _partitionString = sb.toString();
+     
       _networkServer = networkServer;
       _clusterClient = clusterClient;
       _zoieFactory = zoieSystemFactory;
@@ -263,7 +255,14 @@ public class SenseiServer {
 	    }
 	    public String getPartitions()
 	    {
-	      return _partitionString;
+	      StringBuffer sb = new StringBuffer();
+	      if(_partitions.length > 0) sb.append(String.valueOf(_partitions[0]));
+	       for(int i = 1; i < _partitions.length; i++)
+	       {
+	           sb.append(',');
+	           sb.append(String.valueOf(_partitions[i]));
+	       }
+	      return sb.toString();
 	    }
         public boolean isAvailable()
         {
