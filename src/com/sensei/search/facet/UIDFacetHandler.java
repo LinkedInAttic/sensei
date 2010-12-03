@@ -46,8 +46,16 @@ public class UIDFacetHandler extends FacetHandler<long[]> {
        
         final long[] uidArray = UIDFacetHandler.this.getFacetData(reader);
         
-        final int[] delDocs = ((ZoieIndexReader<?>)(reader.getInnerReader())).getDelDocIds();
-        Arrays.sort(delDocs);
+        int[] delDocArray = ((ZoieIndexReader<?>)(reader.getInnerReader())).getDelDocIds();
+        
+		if (delDocArray!=null){
+          Arrays.sort(delDocArray);
+        }
+        else{
+          delDocArray = new int[0];
+        }
+        
+        final int[] delDocs = delDocArray;
         
         return new RandomAccessDocIdSet() {
           
@@ -137,8 +145,15 @@ public class UIDFacetHandler extends FacetHandler<long[]> {
           throws IOException {
         final long[] uidArray = UIDFacetHandler.this.getFacetData(reader);
         
-        final int[] delDocs = ((ZoieIndexReader<?>)(reader.getInnerReader())).getDelDocIds();
-        Arrays.sort(delDocs);
+        int[] delDocArray = ((ZoieIndexReader<?>)(reader.getInnerReader())).getDelDocIds();
+        if (delDocArray!=null){
+          Arrays.sort(delDocArray);
+        }
+        else{
+        	delDocArray = new int[0];
+        }
+        
+        final int[] delDocs = delDocArray;
         
         return new RandomAccessDocIdSet() {
           
