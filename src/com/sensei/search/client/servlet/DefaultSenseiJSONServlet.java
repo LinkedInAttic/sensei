@@ -258,22 +258,27 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet {
 		jsonObj.put(PARAM_RESULT_FACETS, convert(res.getFacetMap(),req));
 		return jsonObj.toString();
 	}
+	
+	protected SenseiQuery buildSenseiQuery(DataConfiguration params){
+		SenseiQuery sq = null;
+		String query = params.getString(PARAM_QUERY,null);
+		if (query!=null && query.length()>0){
+			sq = new StringQuery(query);
+		}
+		return sq;
+	}
 
 	@Override
 	protected SenseiRequest buildSenseiRequest(DataConfiguration params)
 			throws Exception {
 		int offset = params.getInt(PARAM_OFFSET, 0);
 		int count = params.getInt(PARAM_COUNT,10);
-		String query = params.getString(PARAM_QUERY,null);
+		
 		
 		SenseiRequest senseiReq = new SenseiRequest();
 		senseiReq.setOffset(offset);
 		senseiReq.setCount(count);
-		
-		if (query!=null && query.length()>0){
-			SenseiQuery sq = new StringQuery(query);
-			senseiReq.setQuery(sq);
-		}
+		senseiReq.setQuery(buildSenseiQuery(params));
 		
 		senseiReq.setShowExplanation(params.getBoolean(PARAM_SHOW_EXPLAIN, false));
 		senseiReq.setFetchStoredFields(params.getBoolean(PARAM_FETCH_STORED,false));
