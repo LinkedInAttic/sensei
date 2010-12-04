@@ -2,6 +2,7 @@
 	<property name="sensei.root" location="." />
 	<property name="src" value="src" />
 
+    <property name="avro.schema.dir" value="avro-schemas" />
 	<property name="conf.dir" location="node-conf" />
         <property name="test.conf.dir" location="test/conf"/>
 
@@ -80,6 +81,18 @@
 		<mkdir dir="${build.test}" />
 		<mkdir dir="${dist}" />
 		<mkdir dir="${logs}" />
+	</target>
+	
+	<target name="generate" depends="init">
+	    <taskdef name="schema" classname="org.apache.avro.specific.SchemaTask">
+	      <classpath refid="compile.class.path" />
+	    </taskdef>
+
+	    <schema destdir="${src}">
+	      <fileset dir="${avro.schema.dir}">
+	        <include name="**/*.avsc" />
+	      </fileset>
+	    </schema>
 	</target>
 
 	<target name="compile" depends="init">

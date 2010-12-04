@@ -26,6 +26,9 @@
         <dependency org="org.apache.zookeeper" name="zookeeper" rev="3.3.1" conf="master"/>
         <dependency org="junit" name="junit" rev="4.5" conf="test->master"/>
         <dependency org="org.json" name="json" rev="20080701" conf="master"/>
+		<dependency org="org.apache.avro" name="avro" rev="1.4.0" conf="master"/>
+		<dependency org="org.codehaus.jackson" name="jackson-mapper-asl" rev="1.6.1" conf="master"/>
+		<dependency org="org.codehaus.jackson" name="jackson-core-asl" rev="1.6.2" conf="master"/>
         <!--
         <dependency org="org.jboss.netty" name="netty" rev="3.1.5.GA" conf="master"/>
         -->

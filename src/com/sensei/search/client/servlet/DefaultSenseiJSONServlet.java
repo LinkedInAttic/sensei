@@ -43,6 +43,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
 
+import org.apache.avro.util.Utf8;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.DataConfiguration;
 import org.apache.log4j.Logger;
@@ -60,6 +61,7 @@ import com.browseengine.bobo.api.FacetAccessible;
 import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.api.BrowseSelection.ValueOperation;
 import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
+import com.sensei.avro.SenseiAvroQuery;
 import com.sensei.search.req.SenseiHit;
 import com.sensei.search.req.SenseiQuery;
 import com.sensei.search.req.SenseiRequest;
@@ -263,6 +265,9 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet {
 		SenseiQuery sq = null;
 		String query = params.getString(PARAM_QUERY,null);
 		if (query!=null && query.length()>0){
+			SenseiAvroQuery q = new SenseiAvroQuery();
+			q.query = new Utf8(query);
+			q.paramMap = new HashMap<CharSequence,CharSequence>();
 			sq = new StringQuery(query);
 		}
 		return sq;
