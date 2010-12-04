@@ -1,7 +1,5 @@
 package com.sensei.search.nodes.impl;
 
-import org.apache.lucene.queryParser.QueryParser;
-
 import com.sensei.search.nodes.SenseiQueryBuilder;
 import com.sensei.search.nodes.SenseiQueryBuilderFactory;
 import com.sensei.search.req.SenseiQuery;
@@ -11,14 +9,8 @@ public abstract class AbstractAvroQueryBuilderFactory<V> implements
 		SenseiQueryBuilderFactory {
 
 	private final Class<V> _cls;
-	private final QueryParser _qparser;
-	public AbstractAvroQueryBuilderFactory(QueryParser qparser,Class<V> cls){
+	public AbstractAvroQueryBuilderFactory(Class<V> cls){
 		_cls = cls;
-		_qparser = qparser;
-	}
-	
-	public QueryParser getQueryParser(){
-		return _qparser;
 	}
 	
 	@Override

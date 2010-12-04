@@ -1,0 +1,8 @@
+{
+  "type" : "record",
+  "name" : "com.sensei.avro.SenseiAvroQuery",
+  "fields" : [
+     {"name" : "query" , "type" : "string"},
+     {"name" : "paramMap", "type" : {"type" : "map", "values" : "string"}}
+  ]
+}

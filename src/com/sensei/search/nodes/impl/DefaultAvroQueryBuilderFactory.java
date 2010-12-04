@@ -12,8 +12,10 @@ import com.sensei.search.nodes.SenseiQueryBuilder;
 public class DefaultAvroQueryBuilderFactory extends
 		AbstractAvroQueryBuilderFactory<SenseiAvroQuery> {
 
+	private final QueryParser _qparser;
 	public DefaultAvroQueryBuilderFactory(QueryParser qparser) {
-		super(qparser, SenseiAvroQuery.class);
+		super(SenseiAvroQuery.class);
+		_qparser = qparser;
 	}
 
 	@Override
@@ -27,8 +29,6 @@ public class DefaultAvroQueryBuilderFactory extends
 			queryString = null;
 		}
 		
-		final QueryParser qparser = getQueryParser();
-		
 		return new SenseiQueryBuilder(){
 
 			@Override
@@ -39,7 +39,7 @@ public class DefaultAvroQueryBuilderFactory extends
 			@Override
 			public Query buildQuery() throws ParseException {
 				if (queryString!=null){
-					return qparser.parse(queryString);
+					return _qparser.parse(queryString);
 				}
 				else{
 					return new MatchAllDocsQuery();
