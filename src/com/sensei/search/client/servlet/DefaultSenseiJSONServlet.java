@@ -62,11 +62,11 @@ import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.api.BrowseSelection.ValueOperation;
 import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
 import com.sensei.avro.SenseiAvroQuery;
+import com.sensei.search.req.AvroQuery;
 import com.sensei.search.req.SenseiHit;
 import com.sensei.search.req.SenseiQuery;
 import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.req.SenseiResult;
-import com.sensei.search.req.StringQuery;
 import com.sensei.search.util.RequestConverter;
 
 
@@ -265,10 +265,15 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet {
 		SenseiQuery sq = null;
 		String query = params.getString(PARAM_QUERY,null);
 		if (query!=null && query.length()>0){
-			SenseiAvroQuery q = new SenseiAvroQuery();
-			q.query = new Utf8(query);
-			q.paramMap = new HashMap<CharSequence,CharSequence>();
-			sq = new StringQuery(query);
+			try{
+			  SenseiAvroQuery q = new SenseiAvroQuery();
+			  q.query = new Utf8(query);
+			  q.paramMap = new HashMap<CharSequence,CharSequence>();
+			  sq = new AvroQuery<SenseiAvroQuery>(q,SenseiAvroQuery.class);
+			}
+			catch(Exception e){
+				logger.error(e.getMessage(),e);
+			}
 		}
 		return sq;
 	}
