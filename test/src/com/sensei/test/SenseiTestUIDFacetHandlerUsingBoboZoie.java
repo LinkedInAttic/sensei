@@ -82,9 +82,8 @@ public class SenseiTestUIDFacetHandlerUsingBoboZoie extends TestCase
       BrowseResult res=browser.browse(br);
       BrowseHit[] hits = res.getHits();
       String[] vals = hits[0].getFields("uid");
-      assert 4 == hits[0].getDocid() : "docId " + hits[0].getDocid() + " does not match the expected docId 4 ";
-      assert "104".equals(vals[0]) : "UID " + vals[0] + " does not match the expected UID 104";
-      
+      assertEquals(4, hits[0].getDocid());
+      assertEquals("104", vals[0]);
     }
     catch(Exception e)
     {

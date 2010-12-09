@@ -15,16 +15,11 @@ import com.browseengine.bobo.api.BrowseHit;
 import com.browseengine.bobo.api.BrowseSelection;
 import com.linkedin.norbert.NorbertException;
 import com.linkedin.norbert.cluster.ClusterShutdownException;
-import com.linkedin.norbert.javacompat.cluster.ClusterClient;
-import com.linkedin.norbert.javacompat.network.NetworkServer;
-import com.linkedin.norbert.javacompat.network.PartitionedLoadBalancerFactory;
-import com.sensei.search.cluster.client.SenseiNetworkClient;
 import com.sensei.search.nodes.NoOpIndexableInterpreter;
 import com.sensei.search.nodes.SenseiBroker;
 import com.sensei.search.nodes.SenseiNode;
 import com.sensei.search.nodes.SenseiNodeMessageHandler;
 import com.sensei.search.nodes.SenseiQueryBuilderFactory;
-import com.sensei.search.nodes.SenseiRequestScatterRewriter;
 import com.sensei.search.nodes.SenseiSearchContext;
 import com.sensei.search.nodes.impl.SimpleQueryBuilderFactory;
 import com.sensei.search.req.SenseiRequest;
@@ -126,7 +121,6 @@ public class SenseiTestUIDFacetHandler extends AbstractSenseiTestCase
     logger.info("Node 2 started");
   }
 
-  
   public void testUIDFacetHandler() throws Exception
   {
     logger.info("executing test case testUIDFacetHandler");
@@ -149,9 +143,10 @@ public class SenseiTestUIDFacetHandler extends AbstractSenseiTestCase
       for(int i = 0; i<hits.length; ++i)
       {
         String[] vals = hits[i].getFields("uid");
-        assert "104".equals(vals[0]) : "UID" + vals[0] + " does not match the expected value 104";
+        
+        assertEquals("104", vals[0]);
         int did = hits[i].getDocid();
-        assert (did!=4 && did != 14 && did != 24) : ("docID " + did + " does not match the expected value 4");
+        assertEquals(true, (did==4 || did==14 || did == 24));
       }
     }
     catch(Exception e)

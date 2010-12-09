@@ -34,7 +34,6 @@ public class UIDFacetHandler extends FacetHandler<long[]> {
   }
   
   private RandomAccessFilter buildRandomAccessFilter(final long val) throws IOException {
-    System.out.println("buildRandomAccessFilter " + val);
     return new RandomAccessFilter() {
       
       /**
@@ -45,14 +44,12 @@ public class UIDFacetHandler extends FacetHandler<long[]> {
       @Override
       public RandomAccessDocIdSet getRandomAccessDocIdSet(BoboIndexReader reader)
           throws IOException {
-        System.out.println(" getRandomAccessDocIdSet");
         final long[] uidArray = UIDFacetHandler.this.getFacetData(reader);
         
         final int[] delDocs = ((ZoieIndexReader<?>)(reader.getInnerReader())).getDelDocIds();
         if(delDocs != null) Arrays.sort(delDocs);
         
         return new RandomAccessDocIdSet() {
-          
           
           @Override
           public DocIdSetIterator iterator() throws IOException {
@@ -278,7 +275,6 @@ public class UIDFacetHandler extends FacetHandler<long[]> {
       Properties selectionProperty) throws IOException {
     try{
       long val = Long.parseLong(value);
-      System.out.println("buld filer for uid" + val);
       return buildRandomAccessFilter(val);
     }
     catch(Exception e){
