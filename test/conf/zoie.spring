@@ -32,6 +32,7 @@
 	
 	<bean id="zoieConfig" class="proj.zoie.impl.indexing.ZoieConfig">
 	   <constructor-arg ref="zversionFactory" />
+           <property name="freshness" value="50" />
 	</bean>
 	
 	<bean id="zoie-system-factory" class="com.sensei.search.nodes.impl.DemoZoieSystemFactory">

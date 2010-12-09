@@ -122,6 +122,13 @@ public class SenseiTestCase extends AbstractSenseiTestCase
       e.printStackTrace();
     }
     logger.info("Node 2 started");
+    try
+    {
+      Thread.sleep(1000);
+    } catch (InterruptedException e)
+    {
+      e.printStackTrace();
+    }
   }
   
 

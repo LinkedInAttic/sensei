@@ -27,11 +27,15 @@ public class SenseiSearchContext {
 
 	private static <T,V extends ZoieVersion> IndexReaderFactory<ZoieIndexReader<BoboIndexReader>> buildReaderFactory(File file,ZoieIndexableInterpreter<T> interpreter,ZoieVersionFactory<V> versionFactory){
 		ZoieSystem<BoboIndexReader,T,V> zoieSystem = new ZoieSystem<BoboIndexReader,T,V>(file,interpreter,new SenseiIndexReaderDecorator(),new StandardAnalyzer(Version.LUCENE_CURRENT),new DefaultSimilarity(),1000,300000,true,versionFactory);
+		zoieSystem.getAdminMBean().setFreshness(50);
+		zoieSystem.start();
 		return zoieSystem;
 	}
 
 	private static <T> IndexReaderFactory<ZoieIndexReader<BoboIndexReader>> buildReaderFactory(File file,ZoieIndexableInterpreter<T> interpreter){
 		ZoieSystem<BoboIndexReader,T,DefaultZoieVersion> zoieSystem = new ZoieSystem<BoboIndexReader,T,DefaultZoieVersion>(file,interpreter,new SenseiIndexReaderDecorator(),new StandardAnalyzer(Version.LUCENE_CURRENT),new DefaultSimilarity(),1000,300000,true,new DefaultZoieVersionFactory());
+    zoieSystem.getAdminMBean().setFreshness(50);
+    zoieSystem.start();
 		return zoieSystem;
 	}
 
