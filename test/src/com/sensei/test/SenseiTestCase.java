@@ -123,6 +123,7 @@ public class SenseiTestCase extends AbstractSenseiTestCase
     }
     logger.info("Node 2 started");
   }
+  
 
   private void setspec(SenseiRequest req, FacetSpec spec)
   {

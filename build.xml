@@ -182,6 +182,7 @@
 		<junit printsummary="yes" showoutput="yes">
 			<sysproperty key="log.home" value="${logs}" />
 			<sysproperty key="idx.dir" value="data/cardata" />
+			<sysproperty key="uididx.dir" value="data/uiddata" />
                         <sysproperty key="log4j.configuration" value="resources/log4j.properties" />
 
 			<jvmarg value="-server" />
