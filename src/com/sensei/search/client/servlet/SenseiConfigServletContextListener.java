@@ -20,6 +20,7 @@ public class SenseiConfigServletContextListener implements
 	public static final String SENSEI_CONF_ZKURL = "sensei.search.cluster.zookeeper.url";
 	public static final String SENSEI_CONF_CLUSTER_NAME = "sensei.search.cluster.name";
 	public static final String SENSEI_CONF_ZKTIMEOUT = "sensei.search.cluster.zookeeper.conn.timeout";
+	public static final String SENSEI_CONF_OBJ = "sensei.search.configuration";
 	
 	@Override
 	public void contextDestroyed(ServletContextEvent ctx) {
@@ -39,6 +40,8 @@ public class SenseiConfigServletContextListener implements
 
 			ctx.setAttribute(SENSEI_CONF_CLUSTER_NAME, conf.getString(SENSEI_CONF_CLUSTER_NAME));
 			ctx.setAttribute(SENSEI_CONF_ZKTIMEOUT, conf.getInt(SENSEI_CONF_ZKTIMEOUT,10000));
+			
+			ctx.setAttribute(SENSEI_CONF_OBJ, conf);
 		} 
 		catch (ConfigurationException e) {
 		    logger.error(e.getMessage(),e);
