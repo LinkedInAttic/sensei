@@ -1,3 +1,6 @@
+// String trim function.
+String.prototype.trim = function() { return this.replace(/^\s+|\s+$/g, ''); };
+
 // SenseiFacet(name, expand=false, minHits=1, maxCounts=10, orderBy=HITS)
 var SenseiFacet = function () {
 	if (arguments.length == 0) return null;
@@ -5,7 +8,7 @@ var SenseiFacet = function () {
 	this.expand = false;
 	this.minHits = 1;
 	this.maxCounts = 10;
-	this.orderBy = this.OrderBy.hits;
+	this.orderBy = this.OrderBy.HITS;
 
 	this.name = arguments[0];
 	if (arguments.length > 1)
@@ -67,7 +70,7 @@ SenseiSort.prototype = {
 	}
 };
 
-// SenseiClient(query, offset=0, length=10, explain=false, fetch=false)
+// SenseiClient(query="", offset=0, length=10, explain=false, fetch=false)
 var SenseiClient = function () {
 	this._facets = [];
 	this._selections = [];
@@ -80,15 +83,15 @@ var SenseiClient = function () {
 	this.fetch = false;
 
 	if (arguments.length > 0)
-		this.query = query;
+		this.query = arguments[0];
 	if (arguments.length > 1)
-		this.offset = offset;
+		this.offset = arguments[1];
 	if (arguments.length > 2)
-		this.length = length;
+		this.length = arguments[2];
 	if (arguments.length > 3)
-		this.explain = explain;
+		this.explain = arguments[3];
 	if (arguments.length > 4)
-		this.fetch = fetch;
+		this.fetch = arguments[4];
 };
 
 SenseiClient.prototype = {
