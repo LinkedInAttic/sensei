@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.configuration.Configuration;
 import org.apache.log4j.Logger;
 
 import com.linkedin.norbert.javacompat.cluster.ClusterClient;
@@ -44,10 +45,12 @@ public abstract class AbstractSenseiClientServlet extends HttpServlet {
 		super.init(config);
 		
 		ServletContext ctx = config.getServletContext();
+		
+		Configuration senseConf = (Configuration)ctx.getAttribute(SenseiConfigServletContextListener.SENSEI_CONF_OBJ);
 			
-		String zkurl = (String)ctx.getAttribute(SenseiConfigServletContextListener.SENSEI_CONF_ZKURL);
-		String clusterName = (String)ctx.getAttribute(SenseiConfigServletContextListener.SENSEI_CONF_CLUSTER_NAME);
-		int zkTimeout = (Integer)(ctx.getAttribute(SenseiConfigServletContextListener.SENSEI_CONF_ZKTIMEOUT));
+		String zkurl = senseConf.getString(SenseiConfigServletContextListener.SENSEI_CONF_ZKURL);
+		String clusterName = senseConf.getString(SenseiConfigServletContextListener.SENSEI_CONF_CLUSTER_NAME);
+		int zkTimeout = senseConf.getInt(SenseiConfigServletContextListener.SENSEI_CONF_ZKTIMEOUT,10000);
 		
 		_networkClientConfig.setServiceName(clusterName);
 	    _networkClientConfig.setZooKeeperConnectString(zkurl);

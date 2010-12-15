@@ -35,12 +35,6 @@ public class SenseiConfigServletContextListener implements
 		File confFile = new File(confFileName);
 		try {
 			PropertiesConfiguration conf = new PropertiesConfiguration(confFile);
-			
-			ctx.setAttribute(SENSEI_CONF_ZKURL, conf.getString(SENSEI_CONF_ZKURL));
-
-			ctx.setAttribute(SENSEI_CONF_CLUSTER_NAME, conf.getString(SENSEI_CONF_CLUSTER_NAME));
-			ctx.setAttribute(SENSEI_CONF_ZKTIMEOUT, conf.getInt(SENSEI_CONF_ZKTIMEOUT,10000));
-			
 			ctx.setAttribute(SENSEI_CONF_OBJ, conf);
 		} 
 		catch (ConfigurationException e) {
