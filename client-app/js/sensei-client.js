@@ -1,11 +1,16 @@
+// Is a variable is defined.
+function isDefined(object, variable){
+	return (typeof(eval(object)[variable]) == 'undefined')? false : true;
+};
+
 // String trim function.
 String.prototype.trim = function() { return this.replace(/^\s+|\s+$/g, ''); };
 
-// SenseiFacet(name, expand=false, minHits=1, maxCounts=10, orderBy=HITS)
+// SenseiFacet(name, expand=true, minHits=1, maxCounts=10, orderBy=HITS)
 var SenseiFacet = function () {
 	if (arguments.length == 0) return null;
 
-	this.expand = false;
+	this.expand = true;
 	this.minHits = 1;
 	this.maxCounts = 10;
 	this.orderBy = this.OrderBy.HITS;
