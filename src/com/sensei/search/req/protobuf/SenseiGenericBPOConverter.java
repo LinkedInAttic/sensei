@@ -99,7 +99,7 @@ public class SenseiGenericBPOConverter
     return SenseiGenericResultBPO.GenericResult.getDefaultInstance();
   }
 
-  private static byte[] decompress(byte[] output) throws IOException
+  public static byte[] decompress(byte[] output) throws IOException
   {
     ByteArrayInputStream bais = new ByteArrayInputStream(output);
     GZIPInputStream gzis = new GZIPInputStream(bais);
@@ -126,7 +126,7 @@ public class SenseiGenericBPOConverter
     return whole;
   }
 
-  private static byte[] compress(byte[] b) throws IOException
+  public static byte[] compress(byte[] b) throws IOException
   {
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     GZIPOutputStream gzos = new GZIPOutputStream(baos);

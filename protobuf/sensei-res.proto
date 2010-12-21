@@ -5,49 +5,6 @@ option java_outer_classname = "SenseiResultBPO";
 
 option optimize_for = SPEED;
 
-message Facet{
-  required string val = 1;
-  optional uint32 count = 2;
-}
-
-message FacetContainer{
-  required string name = 1;
-  repeated Facet facets = 2;
-}
-
-message FieldVal
-{
-  required string name = 1;
-  repeated string vals = 2;
-}
-
-message StoredField {
-  required string name = 1;
-  repeated string vals = 2;
-  optional bytes byteVal = 3; 
-}
-
-message Explanation{
-  optional float value = 1;
-  optional string description = 2;
-  repeated Explanation details = 3;
-}
-	
-message Hit{
-  optional uint32 docid = 1;
-  optional float score = 2;
-  repeated FieldVal fieldValues = 3;
-  required int64 uid = 4;
-  repeated StoredField storedFields = 5;
-  optional Explanation explanation = 6;
-}
-
 message Result{
-  optional uint32 numhits = 1;
-  optional uint32 totaldocs = 2;
-  repeated FacetContainer facetContainers = 3;
-  repeated Hit hits = 4;
-  optional uint64 time = 5;
-  required int64 tid = 6 [default = -1];
-  optional string parsedQuery = 7;
+  required bytes val = 1;
 }

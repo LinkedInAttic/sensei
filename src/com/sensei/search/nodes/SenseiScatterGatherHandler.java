@@ -45,85 +45,78 @@ public class SenseiScatterGatherHandler implements ScatterGatherHandler<SenseiRe
 
   public Message customizeMessage(Message msg, Node node, Set<Integer> partitions) throws Exception
   {
-    SenseiRequestBPO.Request req = (SenseiRequestBPO.Request)msg;
-    try{
-      SenseiRequest senseiReq = SenseiRequestBPOConverter.convert(req);
-      
-      int oldOffset = senseiReq.getOffset();
-      int oldCount = senseiReq.getCount();
-      if (_reqRewriter!=null){
-          senseiReq = _reqRewriter.rewrite(senseiReq, node, partitions);
-      }
-      
-      // customize only if user wants hits
-      if (oldCount > 0){
-    	senseiReq.setOffset(0);  
-        senseiReq.setCount(oldOffset+oldCount); 
-      }
-      senseiReq.setPartitions(partitions);
+    SenseiRequestBPO.Request req = (SenseiRequestBPO.Request) msg;
+    SenseiRequest senseiReq = SenseiRequestBPOConverter.convert(req);
 
-      if (logger.isDebugEnabled())
-      {
-        logger.debug("scattering to partitions: "+ partitions.toString());
-      }
-      return SenseiRequestBPOConverter.convert(senseiReq);
+    int oldOffset = senseiReq.getOffset();
+    int oldCount = senseiReq.getCount();
+    if (_reqRewriter != null)
+    {
+      senseiReq = _reqRewriter.rewrite(senseiReq, node, partitions);
     }
-    catch(ParseException pe){
-      throw new RuntimeException(pe.getMessage(),pe);
-    } 
+
+    // customize only if user wants hits
+    if (oldCount > 0)
+    {
+      senseiReq.setOffset(0);
+      senseiReq.setCount(oldOffset + oldCount);
+    }
+    senseiReq.setPartitions(partitions);
+
+    if (logger.isDebugEnabled())
+    {
+      logger.debug("scattering to partitions: " + partitions.toString());
+    }
+    return SenseiRequestBPOConverter.convert(senseiReq);
   }
   
   /* (non-Javadoc)
    * @see com.linkedin.norbert.network.javaapi.ScatterGatherHandler#gatherResponses(com.google.protobuf.Message, com.linkedin.norbert.network.ResponseIterator)
    */
-  public SenseiResult gatherResponses(Message message,
-                                      com.linkedin.norbert.network.ResponseIterator iter) throws Exception
+  public SenseiResult gatherResponses(Message message, com.linkedin.norbert.network.ResponseIterator iter) throws Exception
   {
-    SenseiRequestBPO.Request req = (SenseiRequestBPO.Request)message;
+    SenseiRequestBPO.Request req = (SenseiRequestBPO.Request) message;
     if (logger.isDebugEnabled())
     {
       logger.debug("Converted the input Message to SenseiRequestBPO.Request");
     }
-    try{
-      SenseiRequest senseiReq = SenseiRequestBPOConverter.convert(req);
-      if (logger.isDebugEnabled())
-      {
-        logger.debug("Converted the SenseiRequestBPO.Request to SenseiRequest");
-      }
-      int oldOffset = senseiReq.getOffset();
-      int oldCount = senseiReq.getCount();
-      
-      List<SenseiResult> boboBrowseList = new ArrayList<SenseiResult>();
-      while(iter.hasNext()){
-        Message boboMsg = iter.next(_timeoutMillis>0 ? _timeoutMillis : Long.MAX_VALUE,TimeUnit.MILLISECONDS);
+    SenseiRequest senseiReq = SenseiRequestBPOConverter.convert(req);
+    if (logger.isDebugEnabled())
+    {
+      logger.debug("Converted the SenseiRequestBPO.Request to SenseiRequest");
+    }
+    int oldOffset = senseiReq.getOffset();
+    int oldCount = senseiReq.getCount();
 
-        if (boboMsg==null){
-          logger.error("Request Timed Out");
-        }
-        else {
-            SenseiResult res = SenseiRequestBPOConverter.convert((SenseiResultBPO.Result)boboMsg);
-            if (logger.isDebugEnabled())
-            {
-              logger.debug("Converting the SenseiResultBPO.Result from the iterator to SenseiResult");
-              logger.debug("premerge results: " + res);
-            }
-            boboBrowseList.add(res);
-        }
-      }
-          
-      senseiReq.setOffset(oldOffset);
-      senseiReq.setCount(oldCount);
-      SenseiResult res = ResultMerger.merge(senseiReq, boboBrowseList, false);
-      if (logger.isDebugEnabled())
+    List<SenseiResult> boboBrowseList = new ArrayList<SenseiResult>();
+    while (iter.hasNext())
+    {
+      Message boboMsg = iter.next(_timeoutMillis > 0 ? _timeoutMillis : Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+
+      if (boboMsg == null)
       {
-        logger.debug("merged results: " + res);
-        logger.debug("Merging the sensei Results for the input senseiRequest");
+        logger.error("Request Timed Out");
+      } else
+      {
+        SenseiResult res = SenseiRequestBPOConverter.convert((SenseiResultBPO.Result) boboMsg);
+        if (logger.isDebugEnabled())
+        {
+          logger.debug("Converting the SenseiResultBPO.Result from the iterator to SenseiResult");
+          logger.debug("premerge results: " + res);
+        }
+        boboBrowseList.add(res);
       }
-      return res;
     }
-    catch(ParseException pe){
-      throw new RuntimeException(pe.getMessage(),pe);
+
+    senseiReq.setOffset(oldOffset);
+    senseiReq.setCount(oldCount);
+    SenseiResult res = ResultMerger.merge(senseiReq, boboBrowseList, false);
+    if (logger.isDebugEnabled())
+    {
+      logger.debug("merged results: " + res);
+      logger.debug("Merging the sensei Results for the input senseiRequest");
     }
+    return res;
   }
 
 }
