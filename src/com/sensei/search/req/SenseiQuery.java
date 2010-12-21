@@ -1,8 +1,14 @@
 package com.sensei.search.req;
 
+import java.io.Serializable;
 import java.nio.charset.Charset;
 
-public class SenseiQuery {
+public class SenseiQuery implements Serializable
+{
+  /**
+   * 
+   */
+  private static final long serialVersionUID = 1L;
   private byte[] _bytes;
   static Charset utf8Charset = Charset.forName("UTF-8");
 	
