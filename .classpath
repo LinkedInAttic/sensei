@@ -7,19 +7,18 @@
 	<classpathentry exported="true" kind="lib" path="lib/master/kamikaze-2.0.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/master/log4j.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/master/lucene-core.jar"/>
-	<classpathentry kind="lib" path="/Users/xgu/opensource/sensei/lib/master/netty-3.2.3.Final.jar"/>
+	<classpathentry kind="lib" path="lib/master/netty-3.2.3.Final.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/master/protobuf-java.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/master/spring.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/master/zoie-2.0.0.jar" sourcepath="/Users/hyan/workspace/zoie/java"/>
+	<classpathentry exported="true" kind="lib" path="lib/master/zoie-2.0.0.jar"/>
 	<classpathentry exported="true" kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
-	<classpathentry kind="lib" path="lib/master/bobo-browse-2.5.0.jar" sourcepath="/Users/hyan/workspace/bobo/bobo-browse/src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="/Users/xgu/opensource/sensei/lib/master/norbert-cluster-2.8.0-0.5.1.jar"/>
-	<classpathentry kind="lib" path="/Users/xgu/opensource/sensei/lib/master/norbert-java-cluster-2.8.0-0.5.1.jar"/>
-	<classpathentry kind="lib" path="/Users/xgu/opensource/sensei/lib/master/norbert-java-network-2.8.0-0.5.1.jar"/>
-	<classpathentry kind="lib" path="/Users/xgu/opensource/sensei/lib/master/norbert-network-2.8.0-0.5.1.jar"/>
+	<classpathentry kind="lib" path="lib/master/norbert-cluster-2.8.0-0.5.1.jar"/>
+	<classpathentry kind="lib" path="lib/master/norbert-java-cluster-2.8.0-0.5.1.jar"/>
+	<classpathentry kind="lib" path="lib/master/norbert-java-network-2.8.0-0.5.1.jar"/>
+	<classpathentry kind="lib" path="lib/master/norbert-network-2.8.0-0.5.1.jar"/>
 	<classpathentry kind="lib" path="lib/master/scala-library-2.8.0.jar"/>
-	<classpathentry kind="lib" path="lib/master/commons-configuration.jar" sourcepath="/Users/jwang/opensource/commons-configuration-trunk/src/java"/>
+	<classpathentry kind="lib" path="lib/master/commons-configuration.jar"/>
 	<classpathentry kind="lib" path="lib/master/servlet-api.jar"/>
 	<classpathentry kind="lib" path="lib/master/zookeeper.jar"/>
 	<classpathentry kind="lib" path="lib/master/commons-codec.jar"/>
@@ -28,5 +27,6 @@
 	<classpathentry kind="lib" path="lib/master/commons-collections.jar"/>
 	<classpathentry kind="lib" path="lib/master/avro.jar"/>
 	<classpathentry kind="lib" path="lib/master/kafka-0.05.jar"/>
+	<classpathentry kind="lib" path="lib/master/bobo-browse-2.5.0.jar"/>
 	<classpathentry kind="output" path="output"/>
 </classpath>
