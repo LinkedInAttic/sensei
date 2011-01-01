@@ -298,6 +298,8 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet {
 		if (sortStrings!=null && sortStrings.length>0){
 			ArrayList<SortField> sortFieldList = new ArrayList<SortField>(sortStrings.length);
 			for (String sortString : sortStrings){
+				sortString = sortString.trim();
+				if (sortString.length() == 0) continue;
 				SortField sf;
 				String[] parts = sortString.split(":");
  				if (parts.length==2){
@@ -315,6 +317,7 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet {
  				else{
  					throw new IllegalArgumentException("invalid sort string: "+sortString);
  				}
+                logger.info("added sort: "+sf);
  				sortFieldList.add(sf);
 			}
 			

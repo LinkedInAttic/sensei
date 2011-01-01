@@ -16,7 +16,11 @@ public abstract class AbstractAvroQueryBuilderFactory<V> implements
 	@Override
 	public SenseiQueryBuilder getQueryBuilder(SenseiQuery query)
 			throws Exception {
-		byte[] bytes = query.toBytes();
+		byte[] bytes = null;
+		
+		if (query!=null){
+			bytes = query.toBytes();
+		}
 		
 		V avroQuery = null;
 		
