@@ -1,3 +1,231 @@
+// Is a variable is defined.
+function isDefined(object, variable){
+	return (typeof(eval(object)[variable]) == 'undefined')? false : true;
+};
+
+// String trim function.
+String.prototype.trim = function() { return this.replace(/^\s+|\s+$/g, ''); };
+
+// SenseiFacet(name, expand=true, minHits=1, maxCounts=10, orderBy=HITS)
+var SenseiFacet = function () {
+	if (arguments.length == 0) return null;
+
+	this.expand = true;
+	this.minHits = 1;
+	this.maxCounts = 10;
+	this.orderBy = this.OrderBy.HITS;
+
+	this.name = arguments[0];
+	if (arguments.length > 1)
+		this.expand = arguments[1];
+	if (arguments.length > 2)
+		this.minHits = arguments[2];
+	if (arguments.length > 3)
+		this.maxCounts = arguments[3];
+	if (arguments.length > 4)
+		this.orderBy = arguments[4];
+};
+
+SenseiFacet.prototype = {
+	OrderBy: {
+		HITS: "hits",
+		VALUE: "val"
+	}
+};
+
+// SenseiSelection(name, values="", excludes="", operation=OR)
+var SenseiSelection = function () {
+	if (arguments.length == 0) return null;
+
+	this.values = "";
+	this.excludes = "";
+	this.operation = this.Operation.OR;
+
+	this.name = arguments[0];
+	if (arguments.length > 1)
+		this.values = arguments[1];
+	if (arguments.length > 2)
+		this.excludes = arguments[2];
+	if (arguments.length > 3)
+		this.operation = arguments[3];
+};
+
+SenseiSelection.prototype = {
+	Operation: {
+		OR: "or",
+		AND: "and"
+	}
+};
+
+// SenseiSort(field, dir=DESC)
+var SenseiSort = function () {
+	if (arguments.length == 0) return null;
+
+	this.dir = this.DIR.DESC;
+
+	this.field = arguments[0];
+	if (arguments.length > 1)
+		this.dir = arguments[1];
+};
+
+SenseiSort.prototype = {
+	DIR: {
+		ASC: "asc",
+		DESC: "desc"
+	}
+};
+
+// SenseiClient(query="", offset=0, length=10, explain=false, fetch=false)
+var SenseiClient = function () {
+	this._facets = [];
+	this._selections = [];
+	this._sorts = [];
+
+	this.query = "";
+	this.offset = 0;
+	this.length = 10;
+	this.explain = false;
+	this.fetch = false;
+
+	if (arguments.length > 0)
+		this.query = arguments[0];
+	if (arguments.length > 1)
+		this.offset = arguments[1];
+	if (arguments.length > 2)
+		this.length = arguments[2];
+	if (arguments.length > 3)
+		this.explain = arguments[3];
+	if (arguments.length > 4)
+		this.fetch = arguments[4];
+};
+
+SenseiClient.prototype = {
+	addFacet: function (facet) {
+		if (!facet) return false;
+
+		for (var i=0; i<this._facets.length; ++i) {
+			if (facet.name == this._facets[i].name) {
+				this._facets.splice(i, 1, facet);
+				return true;
+			}
+		}
+		this._facets.push(facet);
+
+		return true;
+	},
+
+	removeFacet: function (name) {
+		for (var i=0; i<this._facets.length; ++i) {
+			if (name == this._facets[i].name) {
+				this._facets.splice(i, 1);
+				return true;
+			}
+		}
+		return false;
+	},
+
+	clearFacets: function () {
+		this._facets = [];
+	},
+
+	addSelection: function (sel) {
+		if (!sel) return false;
+
+		for (var i=0; i<this._selections.length; ++i) {
+			if (sel == this._selections[i]) {
+				return true;
+			}
+		}
+		this._selections.push(sel);
+		return true;
+	},
+
+	removeSelection: function (sel) {
+		for (var i=0; i<this._selections.length; ++i) {
+			if (sel == this._selections[i]) {
+				this._selections.splice(i, 1);
+				return true;
+			}
+		}
+		return false;
+	},
+
+	clearSelections: function () {
+		this._selections = [];
+	},
+
+	addSort: function (sort) {
+		if (!sort) return false;
+
+		for (var i=0; i<this._sorts.length; ++i) {
+			if (sort.field == this._sorts[i].field) {
+				this._sorts.splice(i, 1, sort);
+				return true;
+			}
+		}
+		this._sorts.push(sort);
+
+		return true;
+	},
+
+	removeSort: function (field) {
+		for (var i=0; i<this._sorts.length; ++i) {
+			if (field == this._sorts[i].field) {
+				this._sorts.splice(i, 1);
+				return true;
+			}
+		}
+		return false;
+	},
+
+	clearSorts: function () {
+		this._sorts = [];
+	},
+
+	buildQuery: function () {
+		var qs = {
+			q: this.query,
+			start: this.offset,
+			rows: this.length,
+		};
+		if (this.explain)
+			qs['showexplain'] = true;
+		if (this.fetch)
+			qs['fetchstored'] = true;
+
+		for (var i=0; i<this._facets.length; ++i) {
+			var facet = this._facets[i];
+			qs["facet."+facet.name+".expand"] = facet.expand;
+			qs["facet."+facet.name+".minhit"] = facet.minHits;
+			qs["facet."+facet.name+".max"] = facet.maxCounts;
+			qs["facet."+facet.name+".order"] = facet.orderBy;
+		}
+		for (var i=0; i<this._selections.length; ++i) {
+			var sel = this._selections[i];
+			qs["select."+sel.name+".val"] = sel.values;
+			qs["select."+sel.name+".not"] = sel.excludes;
+			qs["select."+sel.name+".op"] = sel.operation;
+		}
+		var sl = [];
+		for (var i=0; i<this._sorts.length; ++i) {
+			var sort = this._sorts[i];
+			if (sort.field == "relevance") {
+				sl.push(sort.field);
+			}
+			else {
+				sl.push(sort.field+":"+sort.dir);
+			}
+		}
+		qs["sort"] = sl.join(',');
+
+		return qs;
+	},
+
+	request: function (callback) {
+		$.getJSON("sensei", this.buildQuery(), callback);
+	}
+};
+
 function removeAllChildren(elem){
 	if ( elem.hasChildNodes() ){
 	    while (elem.childNodes.length >= 1 )
@@ -327,3 +555,4 @@ function runQuery(){
 	$.get("sensei?"+reqString,renderResult);
 	document.getElementById('runquery').disable=false;
 }
+
