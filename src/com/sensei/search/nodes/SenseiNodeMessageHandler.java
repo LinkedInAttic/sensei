@@ -78,6 +78,7 @@ public class SenseiNodeMessageHandler implements MessageHandler {
 		    browser = new MultiBoboBrowser(BoboBrowser.createBrowsables(boboReaders));
 		    
 		    BrowseRequest breq = RequestConverter.convert(senseiReq, _builderFactoryMap.get(partition));
+		
 		    SenseiResult res = browse(browser, breq, subReaderAccessor);
 		    return res;
 		  } 

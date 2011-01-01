@@ -57,6 +57,7 @@ public class ResultMerger
         FacetAccessible facetAccessible = entry.getValue();
         for(BrowseFacet facet : facetAccessible.getFacets())
         {
+	      if (facet == null) continue;
           String val = facet.getValue();
           int oldValue = count.containsKey(val) ? count.get(val) : 0;
           count.put(val, oldValue + facet.getFacetValueHitCount());
@@ -213,6 +214,15 @@ public class ResultMerger
   {
     public int compare(BrowseFacet f1, BrowseFacet f2)
     {
+		if (f1==null && f2==null){
+		    return 0;	
+		  }
+		  if (f1==null){
+		    return -1;	
+		  }
+		  if (f2==null){
+		    return 1;	
+		  }
       return f1.getValue().compareTo(f2.getValue());
     }
   }
@@ -221,6 +231,15 @@ public class ResultMerger
   {
     public int compare(BrowseFacet f1, BrowseFacet f2)
     {
+	  if (f1==null && f2==null){
+	    return 0;	
+	  }
+	  if (f1==null){
+	    return -1;	
+	  }
+	  if (f2==null){
+	    return 1;	
+	  }
       int h1 = f1.getFacetValueHitCount();
       int h2 = f2.getFacetValueHitCount();
 
@@ -264,7 +283,9 @@ public class ResultMerger
       _facetMap = new HashMap<String, BrowseFacet>();
       for (BrowseFacet facet : facets)
       {
-        _facetMap.put(facet.getValue(), facet);
+	    if (facet!=null){
+          _facetMap.put(facet.getValue(), facet);
+        }
       }
       _facets = facets;
     }

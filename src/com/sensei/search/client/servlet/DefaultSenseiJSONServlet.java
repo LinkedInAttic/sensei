@@ -334,10 +334,18 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet {
 	 		BrowseSelection sel = new BrowseSelection(name);
 	 		
 	 		String[] vals = conf.getStringArray(PARAM_SELECT_VAL);
-	 		sel.setValues(vals);
+		    for (String val:vals){
+			  if (val.trim().length()>0){
+				sel.addValue(val);
+			  }   
+	 	    }
 	 		
 	 		vals = conf.getStringArray(PARAM_SELECT_NOT);
-	 		sel.setNotValues(vals);
+	        for (String val : vals){
+		      if (val.trim().length()>0){
+			    sel.addNotValue(val);
+			  }
+	        }
 	 		
 	 		String op = conf.getString(PARAM_SELECT_OP, PARAM_SELECT_OP_OR);
 	 		
