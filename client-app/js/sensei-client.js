@@ -33,6 +33,11 @@ SenseiFacet.prototype = {
 	}
 };
 
+var SenseiProperty = function (key, val) {
+	this.key = key;
+	this.val = val;
+};
+
 // SenseiSelection(name, values="", excludes="", operation=OR)
 var SenseiSelection = function () {
 	if (arguments.length == 0) return null;
@@ -40,6 +45,7 @@ var SenseiSelection = function () {
 	this.values = "";
 	this.excludes = "";
 	this.operation = this.Operation.OR;
+	this.properties = [];
 
 	this.name = arguments[0];
 	if (arguments.length > 1)
@@ -54,7 +60,28 @@ SenseiSelection.prototype = {
 	Operation: {
 		OR: "or",
 		AND: "and"
-	}
+	},
+
+	addProperty: function (key, val) {
+		for (var i=0; i<this.properties.length; ++i) {
+			if (this.properties[i].key == key) {
+				this.properties[i].val = val;
+				return true;
+			}
+		}
+		this.properties.push(new SenseiProperty(key, val));
+		return true;
+	},
+
+	removeProperty: function (key) {
+		for (var i=0; i<this.properties.length; ++i) {
+			if (this.properties[i].key == key) {
+				this.properties.splice(i, 1);
+				return true;
+			}
+		}
+		return false;
+	},
 };
 
 // SenseiSort(field, dir=DESC)
@@ -205,6 +232,13 @@ SenseiClient.prototype = {
 			qs["select."+sel.name+".val"] = sel.values;
 			qs["select."+sel.name+".not"] = sel.excludes;
 			qs["select."+sel.name+".op"] = sel.operation;
+			var props = [];
+			for (var j=0; j<sel.properties.length; j++) {
+				props.push(""+sel.properties[j].key+":"+sel.properties[j].val);
+			}
+			props = props.join(',');
+			if (props != '')
+				qs["select."+sel.name+".prop"] = props;
 		}
 		var sl = [];
 		for (var i=0; i<this._sorts.length; ++i) {

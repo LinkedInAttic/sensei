@@ -19,45 +19,80 @@
 
 	var renderPath = function (field, objs) {
 		if (!objs) return;
-		var headContainer = $('#'+field+' .ROWHEAD span');
+		var headContainer = $('#'+field+' .ROWHEAD span').empty();
 
 		var div = $('#'+field).get(0);
-
-		var container = $('#'+field+' table table tr').empty();
-		for (var i=0; i<objs.length; ++i) {
-			var obj = objs[i];
-			container.append('<td />').find('td:last')
-				.append('<a />').find('a:last')
-				.text(obj.value+' ('+obj.count+')')
+		var vals = [];
+		if (div.sensei_selections.length != 0) {
+			var val = div.sensei_selections[0].values;
+			var _vals = val.split('/');
+			for (var i=0; i<_vals.length; ++i) {
+				if (_vals[i] != '') {
+					vals.push([_vals[i]]);
+					var v = [];
+					for (var j=0; j<vals.length; ++j) {
+						v.push(vals[j][0]);
+					}
+					vals[vals.length-1].push(v.join('/'));
+				}
+			}
+		}
+		vals = [['All', '']].concat(vals);
+		for (var i=0; i<vals.length; ++i) {
+			headContainer.append('<a />').find('a:last')
+				.text(vals[i][0])
 				.click(function (e) {
 					if (div.sensei_selections.length == 0) {
 						div.sensei_selections.push(new SenseiSelection(field, this.value));
 						senseiClient.addSelection(div.sensei_selections[0]);
 					}
 					else {
-						div.sensei_selections[0].values += this.value;
+						div.sensei_selections[0].values = this.value;
 					}
+					var depth = 0;
+					var vs = this.value.split('/');
+					for (var j=0; j<vs.length; j++) {
+						if (vs[j] != '')
+							++depth;
+					}
+					if (depth > 0)
+						div.sensei_selections[0].addProperty('depth', depth);
 					refreshPage();
-				}).get(0).value = obj.value;
+				}).get(0).value = vals[i][1];
+			headContainer.append('/');
 		}
-	};
 
-	var renderCity = function (cities) {
-		if (!cities) return;
-		var headTD = $('#city .ROWHEAD');
+		var container = $('#'+field+' table table tr').empty();
+		for (var i=0; i<objs.length; ++i) {
+			var obj = objs[i];
+			if (obj.selected)
+				continue;
 
-		var container = $('#city table table tr').empty();
-		for (var i=0; i<cities.length; ++i) {
-			var city = cities[i];
+			var _v = obj.value.split('/');
+			var v = _v.pop();
+			while (v=='' && _v.length)
+				v = _v.pop();
 			container.append('<td />').find('td:last')
 				.append('<a />').find('a:last')
-				.text(city.value+' ('+city.count+')')
+				.text(v+' ('+obj.count+')')
 				.click(function (e) {
-					var div = $('#city').get(0);
-					div.sensei_selections.push(new SenseiSelection('city', this.value));
-					senseiClient.addSelection(div.sensei_selections[div.sensei_selections.length-1]);
+					if (div.sensei_selections.length == 0) {
+						div.sensei_selections.push(new SenseiSelection(field, this.value));
+						senseiClient.addSelection(div.sensei_selections[0]);
+					}
+					else {
+						div.sensei_selections[0].values = this.value;
+					}
+					var depth = 0;
+					var vs = this.value.split('/');
+					for (var j=0; j<vs.length; j++) {
+						if (vs[j] != '')
+							++depth;
+					}
+					if (depth > 0)
+						div.sensei_selections[0].addProperty('depth', depth);
 					refreshPage();
-				}).get(0).value = city.value;
+				}).get(0).value = obj.value;
 		}
 	};
 
@@ -156,8 +191,8 @@
 		renderSimple('color', facets.color);
 		renderSimple('category', facets.category);
 		renderSimple('year', facets.year);
-		renderSimple('price', facets.year);
-		renderSimple('mileage', facets.year);
+		renderSimple('price', facets.price);
+		renderSimple('mileage', facets.mileage);
 	};
 
 	var renderHits = function (hits) {
