@@ -9,6 +9,7 @@ import com.sensei.search.cluster.client.SenseiNetworkClient;
 import com.sensei.search.cluster.routing.UniformPartitionedRoutingFactory;
 import com.sensei.search.nodes.SenseiBroker;
 import com.sensei.search.nodes.impl.NoopRequestScatterRewriter;
+import com.sensei.search.req.SenseiSystemInfo;
 import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.req.SenseiResult;
 import com.sensei.search.svc.api.SenseiException;
@@ -56,6 +57,14 @@ public class ClusteredSenseiServiceImpl implements SenseiService {
 		return _senseiBroker.browse(req);
 	}
 	
+	
+    // TODO: implement this
+	@Override
+	public SenseiSystemInfo getSystemInfo() throws SenseiException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 	public void shutdown(){
 		try{
 		    if (_senseiBroker!=null){
