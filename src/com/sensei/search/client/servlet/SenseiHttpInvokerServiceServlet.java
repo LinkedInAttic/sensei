@@ -31,6 +31,7 @@ public class SenseiHttpInvokerServiceServlet extends
 		target = new HttpInvokerServiceExporter();
 		target.setService(innerSvc);
 		target.setServiceInterface(SenseiService.class);
+		target.afterPropertiesSet();
 	}
 	
 	protected void service(HttpServletRequest request, HttpServletResponse response)
