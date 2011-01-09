@@ -4,13 +4,10 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 import javax.servlet.ServletConfig;
-import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.configuration.Configuration;
 import org.apache.log4j.Logger;
 
 import com.linkedin.norbert.javacompat.cluster.ClusterClient;
@@ -23,7 +20,7 @@ import com.sensei.search.nodes.impl.NoopRequestScatterRewriter;
 import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.req.SenseiResult;
 
-public abstract class AbstractSenseiClientServlet extends HttpServlet {
+public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableServlet {
 
 	private static final long serialVersionUID = 1L;
 	
@@ -43,15 +40,6 @@ public abstract class AbstractSenseiClientServlet extends HttpServlet {
 	@Override
 	public void init(ServletConfig config) throws ServletException {
 		super.init(config);
-		
-		ServletContext ctx = config.getServletContext();
-		
-		Configuration senseConf = (Configuration)ctx.getAttribute(SenseiConfigServletContextListener.SENSEI_CONF_OBJ);
-			
-		String zkurl = senseConf.getString(SenseiConfigServletContextListener.SENSEI_CONF_ZKURL);
-		String clusterName = senseConf.getString(SenseiConfigServletContextListener.SENSEI_CONF_CLUSTER_NAME);
-		int zkTimeout = senseConf.getInt(SenseiConfigServletContextListener.SENSEI_CONF_ZKTIMEOUT,10000);
-		
 		_networkClientConfig.setServiceName(clusterName);
 	    _networkClientConfig.setZooKeeperConnectString(zkurl);
 	    _networkClientConfig.setZooKeeperSessionTimeoutMillis(zkTimeout);
