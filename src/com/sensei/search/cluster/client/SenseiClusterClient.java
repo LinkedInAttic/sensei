@@ -8,9 +8,10 @@ import java.util.HashMap;
 import java.util.concurrent.ExecutionException;
 
 import org.apache.avro.util.Utf8;
+import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.lucene.search.SortField;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.FileSystemXmlApplicationContext;
+import org.springframework.remoting.httpinvoker.HttpInvokerProxyFactoryBean;
 
 import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
 import com.linkedin.norbert.NorbertException;
@@ -38,7 +39,6 @@ public class SenseiClusterClient {
 	public static void main(String[] args) throws Exception{
 
 	    File confFile = null;
-	    ApplicationContext springCtx = null;
 	    if (args.length < 1){
           System.out.println("no config specified. specify the config dir");
           return;
@@ -46,10 +46,15 @@ public class SenseiClusterClient {
 
 	    File confDir = new File(args[0]);
 	    confFile = new File(confDir , SenseiDefaults.SENSEI_CLIENT_CONF_FILE);
-	    springCtx = new FileSystemXmlApplicationContext("file:"+confFile.getAbsolutePath());
+	    
+	    Configuration conf = new PropertiesConfiguration(confFile);
 
 	    // create the network client
-	    svc = (SenseiService)springCtx.getBean("senseiSvc");
+	    HttpInvokerProxyFactoryBean springInvokerBean = new HttpInvokerProxyFactoryBean();
+	    springInvokerBean.setServiceUrl(conf.getString(SenseiDefaults.SENSEI_CLIENT_SVC_URL_PROP));
+	    springInvokerBean.setServiceInterface(SenseiService.class);
+	    springInvokerBean.afterPropertiesSet();
+	    svc = (SenseiService)(springInvokerBean.getObject());
        
 		Runtime.getRuntime().addShutdownHook(new Thread(){
 			public void run(){
@@ -61,6 +66,8 @@ public class SenseiClusterClient {
 			}
 		});
 		
+
+		System.out.print("> ");
 		BufferedReader cmdLineReader = new BufferedReader(new InputStreamReader(System.in));
 		try{
 			String line = cmdLineReader.readLine();
