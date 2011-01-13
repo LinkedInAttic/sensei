@@ -11,11 +11,11 @@ import org.apache.lucene.search.DefaultSimilarity;
 import org.apache.lucene.util.Version;
 
 import proj.zoie.api.DefaultZoieVersion;
+import proj.zoie.api.DefaultZoieVersion.DefaultZoieVersionFactory;
 import proj.zoie.api.IndexReaderFactory;
 import proj.zoie.api.ZoieIndexReader;
 import proj.zoie.api.ZoieVersion;
 import proj.zoie.api.ZoieVersionFactory;
-import proj.zoie.api.impl.DefaultZoieVersionFactory;
 import proj.zoie.api.indexing.ZoieIndexableInterpreter;
 import proj.zoie.impl.indexing.ZoieSystem;
 
