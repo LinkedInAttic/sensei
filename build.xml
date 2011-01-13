@@ -188,4 +188,19 @@
 			<report todir="${test.html.dir}" format="frames" />
 		</junitreport>
 	</target>
+
+   	<target name="protobuf" description="Generate source files from .proto files">
+ 		<pathconvert property="proto.sources" pathsep=" ">
+      			<path id="proto-files">
+				<fileset dir="${protobuf.schema.dir}" />
+      			</path>
+    		</pathconvert>
+
+    		<property name="proto.path" location="${protobuf.schema.dir}"/>
+   		<exec executable="protoc" failonerror="true">
+      			<arg value="--proto_path=${proto.path}"/>
+      			<arg value="--java_out=${src.dir}"/>
+     	 		<arg line="${proto.sources}"/>
+    		</exec>
+ 	</target>
 </project>
