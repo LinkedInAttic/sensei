@@ -14,92 +14,145 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-		<lucene.version>2.9.1</lucene.version>
-		<spring.version>3.0.0.RELEASE</spring.version>
-		<norbert.version>1.0-SNAPSHOT</norbert.version>
-		<zookeeper.version>3.3.0</zookeeper.version>
+
+		<!-- Remote artifacts -->
+		<commons-logging.version>1.1</commons-logging.version>
+		<commons-configuration.version>1.6</commons-configuration.version>
+		<commons-codec.version>1.4</commons-codec.version>
+                <commons-lang.version>2.5</commons-lang.version>
+		<commons-collections.version>3.2.1</commons-collections.version>
+		<javax.servlet.version>2.5</javax.servlet.version>
+                <fastutils.version>5.0.5</fastutils.version>
+		<junit.version>4.5</junit.version>
+		<log4j.version>1.2.16</log4j.version>
+                <lucene.version>3.0.2</lucene.version>
+		<spring.version>2.5.5</spring.version>
 		<protobuf.version>2.3.0</protobuf.version>
+		<zookeeper.version>3.3.1</zookeeper.version>
+		<json.version>20080701</json.version>
+		<avro.version>1.4.0</avro.version>
+		<jackson-mapper-asl.version>1.6.1</jackson-mapper-asl.version>
+		<jackson-core-asl.version>1.6.2</jackson-core-asl.version>
+
+		<!-- Local artifacts -->
+		<kafka.version>0.05</kafka.version>
+		<kamikaze.version>2.0.0</kamikaze.version>	
+		<norbert.version>2.8.0-0.5.1</norbert.version>
 		<bobo.version>2.5.0</bobo.version>
-		<netty.version>3.1.5.GA</netty.version>
-		<scala.version>1.0</scala.version>
+		<netty.version>3.2.3.Final</netty.version>
+		<scala.version>2.8.0</scala.version>
+                <zoie.version>2.0.0</zoie.version>
 	</properties>
 
 	<dependencies>
 		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>4.7</version>
-			<scope>test</scope>
+			<groupId>commons-logging</groupId>
+			<artifactId>commons-logging</artifactId>
+			<version>${commons-logging.version}</version>
 		</dependency>
-
 		<dependency>
-			<groupId>com.snaprojects</groupId>
-			<artifactId>zoie</artifactId>
-			<version>2.0.0</version>
+			<groupId>commons-configuration</groupId>
+			<artifactId>commons-configuration</artifactId>
+			<version>${commons-configuration.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-codec</groupId>
+			<artifactId>commons-codec</artifactId>
+			<version>${commons-codec.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-lang</groupId>
+			<artifactId>commons-lang</artifactId>
+			<version>${commons-lang.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-collections</groupId>
+			<artifactId>commons-collections</artifactId>
+			<version>${commons-collections.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>servlet-api</artifactId>
+			<version>${javax.servlet.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>fastutil</groupId>
 			<artifactId>fastutil</artifactId>
-			<version>5.0.9</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-test</artifactId>
-			<version>${spring.version}</version>
-			<scope>test</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-beans</artifactId>
-			<version>${spring.version}</version>
+			<version>${fastutils.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-core</artifactId>
-			<version>${spring.version}</version>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>${junit.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-context</artifactId>
-			<version>${spring.version}</version>
+			<groupId>log4j</groupId>
+			<artifactId>log4j</artifactId>
+			<version>${log4j.version}</version>
 		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-context-support</artifactId>
-			<version>${spring.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-api</artifactId>
-			<version>1.4.2</version>
-		</dependency>
-
-		<dependency>
-			<groupId>commons-lang</groupId>
-			<artifactId>commons-lang</artifactId>
-			<version>2.5</version>
-		</dependency>
-		
 		<dependency>
 			<groupId>org.apache.lucene</groupId>
 			<artifactId>lucene-core</artifactId>
 			<version>${lucene.version}</version>
 		</dependency> 
 		<dependency>
-			<groupId>org.apache.lucene</groupId>
-			<artifactId>lucene-snowball</artifactId>
-			<version>${lucene.version}</version>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring</artifactId>
+			<version>${spring.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.protobuf</groupId>
+			<artifactId>protobuf-java</artifactId>
+			<version>${protobuf.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.zookeeper</groupId>
+			<artifactId>zookeeper</artifactId>
+			<version>${zookeeper.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.json</groupId>
+			<artifactId>json</artifactId>
+			<version>${json.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.avro</groupId>
+			<artifactId>avro</artifactId>
+			<version>${avro.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.codehaus.jackson</groupId>
+			<artifactId>jackson-mapper-asl</artifactId>
+			<version>${jackson-mapper-asl.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.codehaus.jackson</groupId>
+			<artifactId>jackson-core-asl</artifactId>
+			<version>${jackson-core-asl.version}</version>
 		</dependency>
 
+
+
+		<dependency>
+			<groupId>com.linkedin</groupId>
+			<artifactId>kamikaze</artifactId>
+			<version>${kamikaze.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.linkedin</groupId>
+			<artifactId>kafka</artifactId>
+			<version>${kafka.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.snaprojects</groupId>
+			<artifactId>zoie</artifactId>
+			<version>${zoie.version}</version>
+		</dependency>
 		<dependency>
 			<groupId>com.snaprojects</groupId>
 			<artifactId>bobo-browse</artifactId>
 			<version>${bobo.version}</version>
 		</dependency>
-
 		<dependency>
 			<groupId>com.linkedin</groupId>
 			<artifactId>norbert-java-cluster</artifactId>
@@ -120,31 +173,16 @@
 			<artifactId>norbert-cluster</artifactId>
 			<version>${norbert.version}</version>
 		</dependency>
-
-		<dependency>
-			<groupId>org.apache</groupId>
-			<artifactId>zookeeper</artifactId>
-			<version>${zookeeper.version}</version>
-		</dependency>
-
 		<dependency>
 			<groupId>org.jboss.netty</groupId>
 			<artifactId>netty</artifactId>
 			<version>${netty.version}</version>
 		</dependency>
-
 		<dependency>
 			<groupId>org.scala</groupId>
 			<artifactId>scala-library</artifactId>
 			<version>${scala.version}</version>
 		</dependency>
-
-		<dependency>
-			<groupId>com.google.protobuf</groupId>
-			<artifactId>protobuf-java</artifactId>
-			<version>${protobuf.version}</version>
-		</dependency>
-
 	</dependencies>
 
 	<build>
@@ -153,8 +191,8 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<configuration>
-					<source>1.5</source>
-					<target>1.5</target>
+					<source>1.6</source>
+					<target>1.6</target>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -169,7 +207,7 @@
 				</configuration>
 			</plugin>
 		</plugins>
-		<sourceDirectory>src/com</sourceDirectory>
-		<testSourceDirectory>test</testSourceDirectory>
+		<sourceDirectory>src</sourceDirectory>
+		<testSourceDirectory>test/src</testSourceDirectory>
 	</build>
 </project>
