@@ -219,12 +219,11 @@ public class SenseiServer {
 		}
 		
 		SenseiSearchContext ctx = new SenseiSearchContext(builderFactoryMap, readerFactoryMap);
-		SenseiNodeMessageHandler msgHandler = new SenseiNodeMessageHandler(ctx);
 	
 		// create the zookeeper cluster client
 //		SenseiClusterClientImpl senseiClusterClient = new SenseiClusterClientImpl(clusterName, zookeeperURL, zookeeperTimeout, false);
 		
-		_node = new SenseiNode(_networkServer, _clusterClient, _id, _port, msgHandler, _partitions);
+		_node = new SenseiNode(_networkServer, _clusterClient, _id, _port, ctx, _partitions);
 		_node.startup(available);
 
 		ObjectName name = new ObjectName(clusterName, "name", "sensei-server-"+_id);

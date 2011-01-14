@@ -15,6 +15,7 @@ import com.linkedin.norbert.javacompat.network.PartitionedNetworkClient;
 import com.sensei.search.cluster.routing.UniformPartitionedLoadBalancer;
 import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.req.SenseiResult;
+import com.sensei.search.req.SenseiSystemInfo;
 import com.sensei.search.req.protobuf.SenseiRequestBPO;
 import com.sensei.search.req.protobuf.SenseiRequestBPOConverter;
 import com.sensei.search.req.protobuf.SenseiResultBPO;
@@ -83,6 +84,10 @@ public class SenseiBroker implements ClusterListener  {
       logger.warn("no server exist to handle request.");
       return new SenseiResult();
     }
+  }
+
+  public SenseiSystemInfo getSystemInfo() throws SenseiException {
+  	return null;
   }
 
   public void shutdown(){

@@ -125,9 +125,8 @@ public class EmbeddedSenseiServer {
 		}
 
 		SenseiSearchContext ctx = new SenseiSearchContext(builderFactoryMap, readerFactoryMap);
-		SenseiNodeMessageHandler msgHandler = new SenseiNodeMessageHandler(ctx);
 
-		_node = new SenseiNode(networkServer, clusterClient, _id, _port, msgHandler, _partitions);
+		_node = new SenseiNode(networkServer, clusterClient, _id, _port, ctx, _partitions);
 
 		_node.startup( available );
 

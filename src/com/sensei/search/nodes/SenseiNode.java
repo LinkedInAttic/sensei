@@ -11,17 +11,18 @@ import scala.actors.threadpool.Arrays;
 
 import com.linkedin.norbert.javacompat.cluster.ClusterClient;
 import com.linkedin.norbert.javacompat.cluster.Node;
-import com.linkedin.norbert.javacompat.network.MessageHandler;
 import com.linkedin.norbert.javacompat.network.NetworkServer;
 import com.linkedin.norbert.network.NetworkingException;
 import com.sensei.search.req.protobuf.SenseiRequestBPO;
 import com.sensei.search.req.protobuf.SenseiResultBPO;
+import com.sensei.search.req.protobuf.SenseiSysRequestBPO;
+import com.sensei.search.req.protobuf.SenseiSysResultBPO;
 
 public class SenseiNode{
 	private static Logger logger = Logger.getLogger(SenseiNode.class);
 	
 	private final int _id;
-	private final MessageHandler _msgHandler;
+	private final SenseiSearchContext _context;
 	private final Set<Integer> _partitions;
 	private ClusterClient _cluster;
 	private NetworkServer _server;
@@ -29,161 +30,163 @@ public class SenseiNode{
 	private volatile boolean _available = false;
 	private final int _port;
 	
-	public SenseiNode(NetworkServer server, ClusterClient client, int id, int port, MessageHandler msgHandler, int[] partitions){
+	public SenseiNode(NetworkServer server, ClusterClient client, int id, int port, SenseiSearchContext context, int[] partitions){
 		_id = id;
 		_port = port;
-		_msgHandler = msgHandler;
-        _partitions = new HashSet<Integer>();
+		_context = context;
+				_partitions = new HashSet<Integer>();
 		for(int partition : partitions) {
-		  _partitions.add(partition);
+			_partitions.add(partition);
 		}
-        _cluster = client;
-        if(_cluster == null)
-          throw new IllegalArgumentException("Valid cluster client should be specified ");
-        _server = server;
-        if(_server == null)
-          throw new IllegalArgumentException("Valid network server should be specified ");
+				_cluster = client;
+				if(_cluster == null)
+					throw new IllegalArgumentException("Valid cluster client should be specified ");
+				_server = server;
+				if(_server == null)
+					throw new IllegalArgumentException("Valid network server should be specified ");
 	}
 	
 	public void setClusterClient(ClusterClient senseiClusterClient) {
-	  _cluster = senseiClusterClient;
+		_cluster = senseiClusterClient;
 	}
 	
-	public void startup(boolean markAvailable) throws Exception{      
-	  
-	  _server.registerHandler(SenseiRequestBPO.Request.getDefaultInstance(), SenseiResultBPO.Result.getDefaultInstance(), _msgHandler);
+	public void startup(boolean markAvailable) throws Exception {
+		SenseiNodeMessageHandler msgHandler = new SenseiNodeMessageHandler(_context);
+		_server.registerHandler(SenseiRequestBPO.Request.getDefaultInstance(), SenseiResultBPO.Result.getDefaultInstance(), msgHandler);
+		SenseiNodeSysMessageHandler sysMsgHandler = new SenseiNodeSysMessageHandler(_context);
+		_server.registerHandler(SenseiSysRequestBPO.Request.getDefaultInstance(), SenseiSysResultBPO.Result.getDefaultInstance(), sysMsgHandler);
 
-	  boolean nodeExists = false;
-	  try{
-	    logger.info("waiting to connect to cluster...");
-	    _cluster.awaitConnectionUninterruptibly();
-	    _node = _cluster.getNodeWithId(_id);
-	    nodeExists = (_node!=null); 
-	    if (!nodeExists){
-	      String ipAddr = (new InetSocketAddress(InetAddress.getLocalHost().getHostAddress(), _port)).toString().replaceAll("/", "");
-	      
-	      logger.info("Node id : " + _id + " IP address : " + ipAddr);
-	      
-	      _node = _cluster.addNode(_id, ipAddr, _partitions);
+		boolean nodeExists = false;
+		try{
+			logger.info("waiting to connect to cluster...");
+			_cluster.awaitConnectionUninterruptibly();
+			_node = _cluster.getNodeWithId(_id);
+			nodeExists = (_node!=null); 
+			if (!nodeExists){
+				String ipAddr = (new InetSocketAddress(InetAddress.getLocalHost().getHostAddress(), _port)).toString().replaceAll("/", "");
+				
+				logger.info("Node id : " + _id + " IP address : " + ipAddr);
+				
+				_node = _cluster.addNode(_id, ipAddr, _partitions);
 
-	      logger.info("added node id: "+_id);
-	    }else {
-	      // node exists 
-	      
-	    }
-	  }
-	  catch(Exception e){
-	    logger.error(e.getMessage(),e);
-	    throw e;
-	  }
+				logger.info("added node id: "+_id);
+			}else {
+				// node exists 
+				
+			}
+		}
+		catch(Exception e){
+			logger.error(e.getMessage(),e);
+			throw e;
+		}
 
-	  try {
-	    logger.info("binding server ...");
-	    _server.bind(_id, markAvailable);
+		try {
+			logger.info("binding server ...");
+			_server.bind(_id, markAvailable);
 
-	    // exponential backoff
-	    Thread.sleep(1000);
+			// exponential backoff
+			Thread.sleep(1000);
 
-	    _available = markAvailable;
-	    logger.info("started [markAvailable=" + markAvailable + "] ...");
-	    if (nodeExists){
-	      logger.warn("existing node found, will try to overwrite.");
-	      try{
-	        // remove node above 
-	        _cluster.removeNode(_id);
-	        _node = null;
-	      }
-	      catch(Exception e){
-	        logger.error("problem removing old node: "+e.getMessage(),e);
-	      }
-          String ipAddr = (new InetSocketAddress(InetAddress.getLocalHost().getHostAddress(), _port)).toString().replaceAll("/", "");
-          _node = _cluster.addNode(_id, ipAddr, _partitions);
-	      Thread.sleep(1000);
+			_available = markAvailable;
+			logger.info("started [markAvailable=" + markAvailable + "] ...");
+			if (nodeExists){
+				logger.warn("existing node found, will try to overwrite.");
+				try{
+					// remove node above 
+					_cluster.removeNode(_id);
+					_node = null;
+				}
+				catch(Exception e){
+					logger.error("problem removing old node: "+e.getMessage(),e);
+				}
+					String ipAddr = (new InetSocketAddress(InetAddress.getLocalHost().getHostAddress(), _port)).toString().replaceAll("/", "");
+					_node = _cluster.addNode(_id, ipAddr, _partitions);
+				Thread.sleep(1000);
 
-	      logger.info("added node id: "+_id);
-	    }
-	  } catch (NetworkingException e) {
-	    logger.error(e.getMessage(),e);
+				logger.info("added node id: "+_id);
+			}
+		} catch (NetworkingException e) {
+			logger.error(e.getMessage(),e);
 
-	    try
-	    {
-	      if (!nodeExists){
-	        _cluster.removeNode(_id);
-	        _node = null;
-	      }
-	    }
-	    catch(Exception ex){
-	      logger.warn(ex.getMessage());
-	    }
-	    finally{
-	      try{
-	        _server.shutdown();
-	        _server = null;
+			try
+			{
+				if (!nodeExists){
+					_cluster.removeNode(_id);
+					_node = null;
+				}
+			}
+			catch(Exception ex){
+				logger.warn(ex.getMessage());
+			}
+			finally{
+				try{
+					_server.shutdown();
+					_server = null;
 
-	      }
-	      finally{
-	        _cluster.shutdown();
-	        _cluster = null;
-	      }
-	    }
-	    throw e;
-	  }
+				}
+				finally{
+					_cluster.shutdown();
+					_cluster = null;
+				}
+			}
+			throw e;
+		}
 	}
 
 	public void setAvailable(boolean available)
 	{
-	  if(available)
-	  {
-	    logger.info("making available node " + _id + " @port:"+_port + " for partitions: " + Arrays.toString(_partitions.toArray(new Integer[0])));
-	    _server.markAvailable();
-	    try
-	    {
-	      Thread.sleep(1000);
-	    }
-	    catch (InterruptedException e)
-	    {
-	    }
-	  } else
-	  {
-      logger.info("making unavailable node " + _id + " @port:"+_port + " for partitions: " + Arrays.toString(_partitions.toArray(new Integer[0])));
-	    _server.markUnavailable();
-	  }
-	  _available = available;
+		if(available)
+		{
+			logger.info("making available node " + _id + " @port:"+_port + " for partitions: " + Arrays.toString(_partitions.toArray(new Integer[0])));
+			_server.markAvailable();
+			try
+			{
+				Thread.sleep(1000);
+			}
+			catch (InterruptedException e)
+			{
+			}
+		} else
+		{
+			logger.info("making unavailable node " + _id + " @port:"+_port + " for partitions: " + Arrays.toString(_partitions.toArray(new Integer[0])));
+			_server.markUnavailable();
+		}
+		_available = available;
 	}
 
 	public boolean isAvailable()
 	{
-	  if(_node != null && _node.isAvailable() == _available) return _available;
+		if(_node != null && _node.isAvailable() == _available) return _available;
 
-	  try
-	  {
-	    Thread.sleep(1000);
-	    _node = _cluster.getNodeWithId(_id);
-	    if(_node != null && _node.isAvailable() == _available) return _available;
-	  }
-	  catch (Exception e)
-	  {
-	    logger.error(e.getMessage(), e);
-	  }
-	  _available = (_node != null ? _node.isAvailable() : false);
+		try
+		{
+			Thread.sleep(1000);
+			_node = _cluster.getNodeWithId(_id);
+			if(_node != null && _node.isAvailable() == _available) return _available;
+		}
+		catch (Exception e)
+		{
+			logger.error(e.getMessage(), e);
+		}
+		_available = (_node != null ? _node.isAvailable() : false);
 
-	  return _available;
+		return _available;
 	}
 
 	public void shutdown() throws Exception{
-	  logger.info("shutting down node...");
-	  try
-	  {
-	    _cluster.removeNode(_id);
-	    _node = null;
-	  }
-	  catch(Exception e){
-	    logger.warn(e.getMessage());
-	  }
-	  finally{
-	    if (_server!=null){
-	      _server.shutdown();
-	    }
-	  }
+		logger.info("shutting down node...");
+		try
+		{
+			_cluster.removeNode(_id);
+			_node = null;
+		}
+		catch(Exception e){
+			logger.warn(e.getMessage());
+		}
+		finally{
+			if (_server!=null){
+				_server.shutdown();
+			}
+		}
 	}
 }
