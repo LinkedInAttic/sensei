@@ -63,7 +63,6 @@ public class SenseiNodeSysMessageHandler implements MessageHandler {
 		Set<Integer> partitions = _partReaderMap.keySet();
 		if (partitions!=null && partitions.size() > 0){
 			logger.info("serving partitions: "+ partitions.toString());
-			int numDocs = 0;
 			Date lastModified = new Date(0L);
 			DefaultZoieVersion version = (new DefaultZoieVersion.DefaultZoieVersionFactory()).getZoieVersion("0");
 			for (int partition : partitions){
@@ -80,9 +79,32 @@ public class SenseiNodeSysMessageHandler implements MessageHandler {
 					
 					try{
 						readerList = zoieSystem.getIndexReaders();
-						if (readerList != null) {
-							for (ZoieIndexReader<BoboIndexReader> reader:readerList) {
-								numDocs += reader.numDocs();
+						
+						if (readerList == null || readerList.size() == 0){
+							logger.warn("no readers were obtained from zoie, returning no info.");
+							return SenseiSysRequestBPOConverter.convert(result);
+						}
+
+						List<BoboIndexReader> boboReaders = ZoieIndexReader.extractDecoratedReaders(readerList);
+						SubReaderAccessor<BoboIndexReader> subReaderAccessor = ZoieIndexReader.getSubReaderAccessor(boboReaders);
+
+						MultiBoboBrowser browser = null;
+
+						try {
+							browser = new MultiBoboBrowser(BoboBrowser.createBrowsables(boboReaders));
+							result.setNumDocs(browser.numDocs());
+						} 
+						catch(Exception e){
+							logger.error(e.getMessage(),e);
+							throw e;
+						}
+						finally {
+							if (browser != null) {
+								try {
+									browser.close();
+								} catch (IOException ioe) {
+									logger.error(ioe.getMessage(), ioe);
+								}
 							}
 						}
 					}
@@ -96,7 +118,6 @@ public class SenseiNodeSysMessageHandler implements MessageHandler {
 					logger.error(e.getMessage(),e);
 				}
 			}
-			result.setNumDocs(numDocs);
 			result.setLastModified(lastModified.getTime());
 			result.setVersion(version.toString());
 		}
