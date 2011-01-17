@@ -5,7 +5,7 @@ option java_outer_classname = "SenseiSysRequestBPO";
 
 option optimize_for = SPEED;
 
-message Request{
+message SysRequest{
   required bytes val = 1;
 }
 

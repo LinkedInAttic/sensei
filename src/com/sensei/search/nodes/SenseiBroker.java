@@ -21,6 +21,7 @@ import com.sensei.search.req.protobuf.SenseiRequestBPOConverter;
 import com.sensei.search.req.protobuf.SenseiResultBPO;
 import com.sensei.search.req.protobuf.SenseiSysRequestBPO;
 import com.sensei.search.req.protobuf.SenseiSysRequestBPOConverter;
+import com.sensei.search.req.protobuf.SenseiSysResultBPO;
 import com.sensei.search.svc.api.SenseiException;
 
 public class SenseiBroker implements ClusterListener  {
@@ -45,6 +46,7 @@ public class SenseiBroker implements ClusterListener  {
     _sysScatterGatherHandler = new SenseiSysScatterGatherHandler();
     
     // register the request-response messages
+    _networkClient.registerRequest(SenseiSysRequestBPO.SysRequest.getDefaultInstance(), SenseiSysResultBPO.SysResult.getDefaultInstance());
     _networkClient.registerRequest(SenseiRequestBPO.Request.getDefaultInstance(), SenseiResultBPO.Result.getDefaultInstance());
 
     clusterClient.addListener(this);
@@ -102,7 +104,7 @@ public class SenseiBroker implements ClusterListener  {
 
   private SenseiSystemInfo doGetSystemInfo(PartitionedNetworkClient<Integer> networkClient, IntSet partitions) throws Exception {
     if (partitions!=null && (partitions.size())>0){
-      SenseiSysRequestBPO.Request msg = SenseiSysRequestBPOConverter.convert(new Object());
+      SenseiSysRequestBPO.SysRequest msg = SenseiSysRequestBPOConverter.convert(new SenseiRequest());
       SenseiSystemInfo res = networkClient.sendMessage(partitions, msg, _sysScatterGatherHandler);
       return res;
     }

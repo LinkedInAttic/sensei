@@ -52,7 +52,7 @@ public class SenseiSysScatterGatherHandler implements ScatterGatherHandler<Sense
         logger.error("Request Timed Out");
       } else
       {
-        SenseiSystemInfo res = SenseiSysRequestBPOConverter.convert((SenseiSysResultBPO.Result) boboMsg);
+        SenseiSystemInfo res = SenseiSysRequestBPOConverter.convert((SenseiSysResultBPO.SysResult) boboMsg);
         result.setNumDocs(result.getNumDocs() + res.getNumDocs());
         if (result.getLastModified() < res.getLastModified())
           result.setLastModified(res.getLastModified());

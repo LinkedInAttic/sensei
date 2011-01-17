@@ -5,7 +5,7 @@ option java_outer_classname = "SenseiSysResultBPO";
 
 option optimize_for = SPEED;
 
-message Result{
+message SysResult{
   required bytes val = 1;
 }
 

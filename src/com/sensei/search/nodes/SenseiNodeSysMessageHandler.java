@@ -33,7 +33,7 @@ import com.sensei.search.req.SenseiHit;
 import com.sensei.search.req.SenseiSystemInfo;
 import com.sensei.search.req.protobuf.SenseiSysRequestBPO;
 import com.sensei.search.req.protobuf.SenseiSysRequestBPOConverter;
-import com.sensei.search.req.protobuf.SenseiSysResultBPO.Result;
+import com.sensei.search.req.protobuf.SenseiSysResultBPO.SysResult;
 import com.sensei.search.util.RequestConverter;
 
 public class SenseiNodeSysMessageHandler implements MessageHandler {
@@ -48,11 +48,11 @@ public class SenseiNodeSysMessageHandler implements MessageHandler {
 	}
 	
 	public Message[] getMessages() {
-		return new Message[] { SenseiSysRequestBPO.Request.getDefaultInstance() };
+		return new Message[] { SenseiSysRequestBPO.SysRequest.getDefaultInstance() };
 	}
 
 	public Message handleMessage(Message msg) throws Exception {
-		SenseiSysRequestBPO.Request req = (SenseiSysRequestBPO.Request) msg;
+		SenseiSysRequestBPO.SysRequest req = (SenseiSysRequestBPO.SysRequest) msg;
 		
 		if (logger.isDebugEnabled()){
 			String reqString = TextFormat.printToString(req);
@@ -124,7 +124,7 @@ public class SenseiNodeSysMessageHandler implements MessageHandler {
 		else{
 			logger.info("no partitions specified");
 		}
-		Result returnvalue = SenseiSysRequestBPOConverter.convert(result);
+		SysResult returnvalue = SenseiSysRequestBPOConverter.convert(result);
 		logger.info("searching partitions	" + partitions.toString());
 		return returnvalue;
 	}

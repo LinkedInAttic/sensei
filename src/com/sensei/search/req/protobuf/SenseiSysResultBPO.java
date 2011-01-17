@@ -8,31 +8,31 @@ public final class SenseiSysResultBPO {
   public static void registerAllExtensions(
       com.google.protobuf.ExtensionRegistry registry) {
   }
-  public static final class Result extends
+  public static final class SysResult extends
       com.google.protobuf.GeneratedMessage {
-    // Use Result.newBuilder() to construct.
-    private Result() {
+    // Use SysResult.newBuilder() to construct.
+    private SysResult() {
       initFields();
     }
-    private Result(boolean noInit) {}
+    private SysResult(boolean noInit) {}
     
-    private static final Result defaultInstance;
-    public static Result getDefaultInstance() {
+    private static final SysResult defaultInstance;
+    public static SysResult getDefaultInstance() {
       return defaultInstance;
     }
     
-    public Result getDefaultInstanceForType() {
+    public SysResult getDefaultInstanceForType() {
       return defaultInstance;
     }
     
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return com.sensei.search.req.protobuf.SenseiSysResultBPO.internal_static_com_sensei_search_req_protobuf_Result_descriptor;
+      return com.sensei.search.req.protobuf.SenseiSysResultBPO.internal_static_com_sensei_search_req_protobuf_SysResult_descriptor;
     }
     
     protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return com.sensei.search.req.protobuf.SenseiSysResultBPO.internal_static_com_sensei_search_req_protobuf_Result_fieldAccessorTable;
+      return com.sensei.search.req.protobuf.SenseiSysResultBPO.internal_static_com_sensei_search_req_protobuf_SysResult_fieldAccessorTable;
     }
     
     // required bytes val = 1;
@@ -73,41 +73,41 @@ public final class SenseiSysResultBPO {
       return size;
     }
     
-    public static com.sensei.search.req.protobuf.SenseiSysResultBPO.Result parseFrom(
+    public static com.sensei.search.req.protobuf.SenseiSysResultBPO.SysResult parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return newBuilder().mergeFrom(data).buildParsed();
     }
-    public static com.sensei.search.req.protobuf.SenseiSysResultBPO.Result parseFrom(
+    public static com.sensei.search.req.protobuf.SenseiSysResultBPO.SysResult parseFrom(
         com.google.protobuf.ByteString data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return newBuilder().mergeFrom(data, extensionRegistry)
                .buildParsed();
     }
-    public static com.sensei.search.req.protobuf.SenseiSysResultBPO.Result parseFrom(byte[] data)
+    public static com.sensei.search.req.protobuf.SenseiSysResultBPO.SysResult parseFrom(byte[] data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return newBuilder().mergeFrom(data).buildParsed();
     }
-    public static com.sensei.search.req.protobuf.SenseiSysResultBPO.Result parseFrom(
+    public static com.sensei.search.req.protobuf.SenseiSysResultBPO.SysResult parseFrom(
         byte[] data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return newBuilder().mergeFrom(data, extensionRegistry)
                .buildParsed();
     }
-    public static com.sensei.search.req.protobuf.SenseiSysResultBPO.Result parseFrom(java.io.InputStream input)
+    public static com.sensei.search.req.protobuf.SenseiSysResultBPO.SysResult parseFrom(java.io.InputStream input)
         throws java.io.IOException {
       return newBuilder().mergeFrom(input).buildParsed();
     }
-    public static com.sensei.search.req.protobuf.SenseiSysResultBPO.Result parseFrom(
+    public static com.sensei.search.req.protobuf.SenseiSysResultBPO.SysResult parseFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
       return newBuilder().mergeFrom(input, extensionRegistry)
                .buildParsed();
     }
-    public static com.sensei.search.req.protobuf.SenseiSysResultBPO.Result parseDelimitedFrom(java.io.InputStream input)
+    public static com.sensei.search.req.protobuf.SenseiSysResultBPO.SysResult parseDelimitedFrom(java.io.InputStream input)
         throws java.io.IOException {
       Builder builder = newBuilder();
       if (builder.mergeDelimitedFrom(input)) {
@@ -116,7 +116,7 @@ public final class SenseiSysResultBPO {
         return null;
       }
     }
-    public static com.sensei.search.req.protobuf.SenseiSysResultBPO.Result parseDelimitedFrom(
+    public static com.sensei.search.req.protobuf.SenseiSysResultBPO.SysResult parseDelimitedFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
@@ -127,12 +127,12 @@ public final class SenseiSysResultBPO {
         return null;
       }
     }
-    public static com.sensei.search.req.protobuf.SenseiSysResultBPO.Result parseFrom(
+    public static com.sensei.search.req.protobuf.SenseiSysResultBPO.SysResult parseFrom(
         com.google.protobuf.CodedInputStream input)
         throws java.io.IOException {
       return newBuilder().mergeFrom(input).buildParsed();
     }
-    public static com.sensei.search.req.protobuf.SenseiSysResultBPO.Result parseFrom(
+    public static com.sensei.search.req.protobuf.SenseiSysResultBPO.SysResult parseFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
@@ -142,25 +142,25 @@ public final class SenseiSysResultBPO {
     
     public static Builder newBuilder() { return Builder.create(); }
     public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder(com.sensei.search.req.protobuf.SenseiSysResultBPO.Result prototype) {
+    public static Builder newBuilder(com.sensei.search.req.protobuf.SenseiSysResultBPO.SysResult prototype) {
       return newBuilder().mergeFrom(prototype);
     }
     public Builder toBuilder() { return newBuilder(this); }
     
     public static final class Builder extends
         com.google.protobuf.GeneratedMessage.Builder<Builder> {
-      private com.sensei.search.req.protobuf.SenseiSysResultBPO.Result result;
+      private com.sensei.search.req.protobuf.SenseiSysResultBPO.SysResult result;
       
-      // Construct using com.sensei.search.req.protobuf.SenseiSysResultBPO.Result.newBuilder()
+      // Construct using com.sensei.search.req.protobuf.SenseiSysResultBPO.SysResult.newBuilder()
       private Builder() {}
       
       private static Builder create() {
         Builder builder = new Builder();
-        builder.result = new com.sensei.search.req.protobuf.SenseiSysResultBPO.Result();
+        builder.result = new com.sensei.search.req.protobuf.SenseiSysResultBPO.SysResult();
         return builder;
       }
       
-      protected com.sensei.search.req.protobuf.SenseiSysResultBPO.Result internalGetResult() {
+      protected com.sensei.search.req.protobuf.SenseiSysResultBPO.SysResult internalGetResult() {
         return result;
       }
       
@@ -169,7 +169,7 @@ public final class SenseiSysResultBPO {
           throw new IllegalStateException(
             "Cannot call clear() after build().");
         }
-        result = new com.sensei.search.req.protobuf.SenseiSysResultBPO.Result();
+        result = new com.sensei.search.req.protobuf.SenseiSysResultBPO.SysResult();
         return this;
       }
       
@@ -179,24 +179,24 @@ public final class SenseiSysResultBPO {
       
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
-        return com.sensei.search.req.protobuf.SenseiSysResultBPO.Result.getDescriptor();
+        return com.sensei.search.req.protobuf.SenseiSysResultBPO.SysResult.getDescriptor();
       }
       
-      public com.sensei.search.req.protobuf.SenseiSysResultBPO.Result getDefaultInstanceForType() {
-        return com.sensei.search.req.protobuf.SenseiSysResultBPO.Result.getDefaultInstance();
+      public com.sensei.search.req.protobuf.SenseiSysResultBPO.SysResult getDefaultInstanceForType() {
+        return com.sensei.search.req.protobuf.SenseiSysResultBPO.SysResult.getDefaultInstance();
       }
       
       public boolean isInitialized() {
         return result.isInitialized();
       }
-      public com.sensei.search.req.protobuf.SenseiSysResultBPO.Result build() {
+      public com.sensei.search.req.protobuf.SenseiSysResultBPO.SysResult build() {
         if (result != null && !isInitialized()) {
           throw newUninitializedMessageException(result);
         }
         return buildPartial();
       }
       
-      private com.sensei.search.req.protobuf.SenseiSysResultBPO.Result buildParsed()
+      private com.sensei.search.req.protobuf.SenseiSysResultBPO.SysResult buildParsed()
           throws com.google.protobuf.InvalidProtocolBufferException {
         if (!isInitialized()) {
           throw newUninitializedMessageException(
@@ -205,27 +205,27 @@ public final class SenseiSysResultBPO {
         return buildPartial();
       }
       
-      public com.sensei.search.req.protobuf.SenseiSysResultBPO.Result buildPartial() {
+      public com.sensei.search.req.protobuf.SenseiSysResultBPO.SysResult buildPartial() {
         if (result == null) {
           throw new IllegalStateException(
             "build() has already been called on this Builder.");
         }
-        com.sensei.search.req.protobuf.SenseiSysResultBPO.Result returnMe = result;
+        com.sensei.search.req.protobuf.SenseiSysResultBPO.SysResult returnMe = result;
         result = null;
         return returnMe;
       }
       
       public Builder mergeFrom(com.google.protobuf.Message other) {
-        if (other instanceof com.sensei.search.req.protobuf.SenseiSysResultBPO.Result) {
-          return mergeFrom((com.sensei.search.req.protobuf.SenseiSysResultBPO.Result)other);
+        if (other instanceof com.sensei.search.req.protobuf.SenseiSysResultBPO.SysResult) {
+          return mergeFrom((com.sensei.search.req.protobuf.SenseiSysResultBPO.SysResult)other);
         } else {
           super.mergeFrom(other);
           return this;
         }
       }
       
-      public Builder mergeFrom(com.sensei.search.req.protobuf.SenseiSysResultBPO.Result other) {
-        if (other == com.sensei.search.req.protobuf.SenseiSysResultBPO.Result.getDefaultInstance()) return this;
+      public Builder mergeFrom(com.sensei.search.req.protobuf.SenseiSysResultBPO.SysResult other) {
+        if (other == com.sensei.search.req.protobuf.SenseiSysResultBPO.SysResult.getDefaultInstance()) return this;
         if (other.hasVal()) {
           setVal(other.getVal());
         }
@@ -284,23 +284,23 @@ public final class SenseiSysResultBPO {
         return this;
       }
       
-      // @@protoc_insertion_point(builder_scope:com.sensei.search.req.protobuf.Result)
+      // @@protoc_insertion_point(builder_scope:com.sensei.search.req.protobuf.SysResult)
     }
     
     static {
-      defaultInstance = new Result(true);
+      defaultInstance = new SysResult(true);
       com.sensei.search.req.protobuf.SenseiSysResultBPO.internalForceInit();
       defaultInstance.initFields();
     }
     
-    // @@protoc_insertion_point(class_scope:com.sensei.search.req.protobuf.Result)
+    // @@protoc_insertion_point(class_scope:com.sensei.search.req.protobuf.SysResult)
   }
   
   private static com.google.protobuf.Descriptors.Descriptor
-    internal_static_com_sensei_search_req_protobuf_Result_descriptor;
+    internal_static_com_sensei_search_req_protobuf_SysResult_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
-      internal_static_com_sensei_search_req_protobuf_Result_fieldAccessorTable;
+      internal_static_com_sensei_search_req_protobuf_SysResult_fieldAccessorTable;
   
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
@@ -311,23 +311,23 @@ public final class SenseiSysResultBPO {
   static {
     java.lang.String[] descriptorData = {
       "\n\024sensei-sys-res.proto\022\036com.sensei.searc" +
-      "h.req.protobuf\"\025\n\006Result\022\013\n\003val\030\001 \002(\014B6\n" +
-      "\036com.sensei.search.req.protobufB\022SenseiS" +
-      "ysResultBPOH\001"
+      "h.req.protobuf\"\030\n\tSysResult\022\013\n\003val\030\001 \002(\014" +
+      "B6\n\036com.sensei.search.req.protobufB\022Sens" +
+      "eiSysResultBPOH\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
         public com.google.protobuf.ExtensionRegistry assignDescriptors(
             com.google.protobuf.Descriptors.FileDescriptor root) {
           descriptor = root;
-          internal_static_com_sensei_search_req_protobuf_Result_descriptor =
+          internal_static_com_sensei_search_req_protobuf_SysResult_descriptor =
             getDescriptor().getMessageTypes().get(0);
-          internal_static_com_sensei_search_req_protobuf_Result_fieldAccessorTable = new
+          internal_static_com_sensei_search_req_protobuf_SysResult_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-              internal_static_com_sensei_search_req_protobuf_Result_descriptor,
+              internal_static_com_sensei_search_req_protobuf_SysResult_descriptor,
               new java.lang.String[] { "Val", },
-              com.sensei.search.req.protobuf.SenseiSysResultBPO.Result.class,
-              com.sensei.search.req.protobuf.SenseiSysResultBPO.Result.Builder.class);
+              com.sensei.search.req.protobuf.SenseiSysResultBPO.SysResult.class,
+              com.sensei.search.req.protobuf.SenseiSysResultBPO.SysResult.Builder.class);
           return null;
         }
       };

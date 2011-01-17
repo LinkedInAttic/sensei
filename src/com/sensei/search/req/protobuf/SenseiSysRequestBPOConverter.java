@@ -8,13 +8,14 @@ import java.io.ObjectOutputStream;
 
 import org.apache.log4j.Logger;
 import com.google.protobuf.ByteString;
+import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.req.SenseiSystemInfo;
 
 public class SenseiSysRequestBPOConverter {
 
 	private static Logger logger = Logger.getLogger(SenseiSysRequestBPOConverter.class);
 	
-	public static Object convert(SenseiSysRequestBPO.Request req)
+	public static SenseiRequest convert(SenseiSysRequestBPO.SysRequest req)
 	{
 		try
 		{
@@ -22,7 +23,7 @@ public class SenseiSysRequestBPOConverter {
 			byte[] raw = value.toByteArray();
 			ByteArrayInputStream bais = new ByteArrayInputStream(raw);
 			ObjectInputStream ois = new ObjectInputStream(bais);
-			Object ret = (Object) ois.readObject();
+			SenseiRequest ret = (SenseiRequest) ois.readObject();
 			return ret;
 		} catch (Exception e)
 		{
@@ -30,9 +31,9 @@ public class SenseiSysRequestBPOConverter {
 		}
 		return null;
 	}
-	public static SenseiSysRequestBPO.Request convert(Object req)
+	public static SenseiSysRequestBPO.SysRequest convert(SenseiRequest req)
 	{
-		SenseiSysRequestBPO.Request.Builder builder = SenseiSysRequestBPO.Request.newBuilder();
+		SenseiSysRequestBPO.SysRequest.Builder builder = SenseiSysRequestBPO.SysRequest.newBuilder();
 		try
 		{
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -47,9 +48,9 @@ public class SenseiSysRequestBPOConverter {
 		{
 			logger.error("deserialize request", e);
 		}
-		return SenseiSysRequestBPO.Request.getDefaultInstance();
+		return SenseiSysRequestBPO.SysRequest.getDefaultInstance();
 	}
-	public static SenseiSystemInfo convert(SenseiSysResultBPO.Result res)
+	public static SenseiSystemInfo convert(SenseiSysResultBPO.SysResult res)
 	{
 		try
 		{
@@ -65,9 +66,9 @@ public class SenseiSysRequestBPOConverter {
 		}
 		return null;
 	}
-	public static SenseiSysResultBPO.Result convert(SenseiSystemInfo res)
+	public static SenseiSysResultBPO.SysResult convert(SenseiSystemInfo res)
 	{
-		SenseiSysResultBPO.Result.Builder builder = SenseiSysResultBPO.Result.newBuilder();
+		SenseiSysResultBPO.SysResult.Builder builder = SenseiSysResultBPO.SysResult.newBuilder();
 		try
 		{
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -82,7 +83,7 @@ public class SenseiSysRequestBPOConverter {
 		{
 			logger.error("deserialize result", e);
 		}
-		return SenseiSysResultBPO.Result.getDefaultInstance();
+		return SenseiSysResultBPO.SysResult.getDefaultInstance();
 	}
 }
 

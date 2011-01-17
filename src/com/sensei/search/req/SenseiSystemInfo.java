@@ -42,6 +42,14 @@ public class SenseiSystemInfo implements Serializable {
     private Set<SenseiFacetInfo> _facetInfos;
     private Map<Integer,List<Integer>> _clusterInfo;
     
+  public SenseiSystemInfo(){
+    _numDocs = 0;
+    _lastModified =0L;
+    _version = "0";
+    _facetInfos = null;
+    _clusterInfo = null;
+  }
+
 	public int getNumDocs() {
 		return _numDocs;
 	}
