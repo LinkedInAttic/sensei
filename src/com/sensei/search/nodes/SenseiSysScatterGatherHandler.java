@@ -58,6 +58,14 @@ public class SenseiSysScatterGatherHandler implements ScatterGatherHandler<Sense
           result.setLastModified(res.getLastModified());
         if (Long.valueOf(result.getVersion()) < Long.valueOf(res.getVersion()))
           result.setVersion(res.getVersion());
+        if (res.getFacetInfos() != null)
+          result.setFacetInfos(res.getFacetInfos());
+        if (res.getClusterInfo() != null) {
+          if (result.getClusterInfo() != null)
+            result.getClusterInfo().putAll(res.getClusterInfo());
+          else
+            result.setClusterInfo(res.getClusterInfo());
+        }
       }
     }
 

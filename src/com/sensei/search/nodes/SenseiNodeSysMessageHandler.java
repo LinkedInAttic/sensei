@@ -3,6 +3,8 @@ package com.sensei.search.nodes;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -42,7 +44,10 @@ public class SenseiNodeSysMessageHandler implements MessageHandler {
 	private final Map<Integer,SenseiQueryBuilderFactory> _builderFactoryMap;
 	private final Map<Integer,IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>> _partReaderMap;
 
-	public SenseiNodeSysMessageHandler(SenseiSearchContext ctx) {
+	private final int _nodeId;
+
+	public SenseiNodeSysMessageHandler(int nodeId, SenseiSearchContext ctx) {
+		_nodeId = nodeId;
 		_builderFactoryMap = ctx.getQueryBuilderFactoryMap();
 		_partReaderMap = ctx.getPartitionReaderMap();
 	}
@@ -63,9 +68,15 @@ public class SenseiNodeSysMessageHandler implements MessageHandler {
 		Set<Integer> partitions = _partReaderMap.keySet();
 		if (partitions!=null && partitions.size() > 0){
 			logger.info("serving partitions: "+ partitions.toString());
+
+			Map<Integer, List<Integer>> clusterInfo = new HashMap<Integer, List<Integer>>();
+			List<Integer> partitionList = new ArrayList<Integer>(partitions.size());
+
 			Date lastModified = new Date(0L);
 			DefaultZoieVersion version = (new DefaultZoieVersion.DefaultZoieVersionFactory()).getZoieVersion("0");
 			for (int partition : partitions){
+				partitionList.add(partition);
+
 				try{
 					ZoieSystem<BoboIndexReader,?,DefaultZoieVersion> zoieSystem = (ZoieSystem<BoboIndexReader,?,DefaultZoieVersion>)_partReaderMap.get(partition);
 
@@ -93,6 +104,13 @@ public class SenseiNodeSysMessageHandler implements MessageHandler {
 						try {
 							browser = new MultiBoboBrowser(BoboBrowser.createBrowsables(boboReaders));
 							result.setNumDocs(browser.numDocs());
+
+							Set<SenseiSystemInfo.SenseiFacetInfo> facetInfos = new HashSet<SenseiSystemInfo.SenseiFacetInfo>();
+
+							for (String name : browser.getFacetNames()) {
+								facetInfos.add(new SenseiSystemInfo.SenseiFacetInfo(name));
+							}
+							result.setFacetInfos(facetInfos);
 						} 
 						catch(Exception e){
 							logger.error(e.getMessage(),e);
@@ -118,8 +136,12 @@ public class SenseiNodeSysMessageHandler implements MessageHandler {
 					logger.error(e.getMessage(),e);
 				}
 			}
+
 			result.setLastModified(lastModified.getTime());
 			result.setVersion(version.toString());
+
+			clusterInfo.put(_nodeId, partitionList);
+			result.setClusterInfo(clusterInfo);
 		}
 		else{
 			logger.info("no partitions specified");

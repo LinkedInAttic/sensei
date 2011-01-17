@@ -13,6 +13,12 @@ public class SenseiSystemInfo implements Serializable {
 		private String _name;
 		private boolean _runTime;
 		private Map<String,String> _props;
+
+		public SenseiFacetInfo(String name) {
+			_name = name;
+			_runTime = false;
+			_props = null;
+		}
 		
 		public String getName() {
 			return _name;
@@ -39,16 +45,16 @@ public class SenseiSystemInfo implements Serializable {
 	private int _numDocs;
 	private long _lastModified;
 	private String _version;
-    private Set<SenseiFacetInfo> _facetInfos;
-    private Map<Integer,List<Integer>> _clusterInfo;
-    
-  public SenseiSystemInfo(){
-    _numDocs = 0;
-    _lastModified =0L;
-    _version = "0";
-    _facetInfos = null;
-    _clusterInfo = null;
-  }
+		private Set<SenseiFacetInfo> _facetInfos;
+		private Map<Integer,List<Integer>> _clusterInfo;
+		
+	public SenseiSystemInfo(){
+		_numDocs = 0;
+		_lastModified =0L;
+		_version = "0";
+		_facetInfos = null;
+		_clusterInfo = null;
+	}
 
 	public int getNumDocs() {
 		return _numDocs;

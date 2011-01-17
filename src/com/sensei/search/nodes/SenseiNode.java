@@ -51,7 +51,7 @@ public class SenseiNode{
 	}
 	
 	public void startup(boolean markAvailable) throws Exception {
-		SenseiNodeSysMessageHandler sysMsgHandler = new SenseiNodeSysMessageHandler(_context);
+		SenseiNodeSysMessageHandler sysMsgHandler = new SenseiNodeSysMessageHandler(_id, _context);
 		_server.registerHandler(SenseiSysRequestBPO.SysRequest.getDefaultInstance(), SenseiSysResultBPO.SysResult.getDefaultInstance(), sysMsgHandler);
 		SenseiNodeMessageHandler msgHandler = new SenseiNodeMessageHandler(_context);
 		_server.registerHandler(SenseiRequestBPO.Request.getDefaultInstance(), SenseiResultBPO.Result.getDefaultInstance(), msgHandler);
