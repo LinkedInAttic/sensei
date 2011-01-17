@@ -4,49 +4,33 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Set;
+import java.util.HashMap;
 import java.util.concurrent.ExecutionException;
 
+import org.apache.avro.util.Utf8;
+import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.lucene.search.SortField;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.FileSystemXmlApplicationContext;
+import org.springframework.remoting.httpinvoker.HttpInvokerProxyFactoryBean;
 
 import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
 import com.linkedin.norbert.NorbertException;
-import com.linkedin.norbert.javacompat.cluster.ClusterClient;
-import com.linkedin.norbert.javacompat.cluster.Node;
-import com.linkedin.norbert.javacompat.network.PartitionedLoadBalancerFactory;
-import com.sensei.search.nodes.SenseiBroker;
-import com.sensei.search.nodes.SenseiRequestScatterRewriter;
+import com.sensei.avro.SenseiAvroQuery;
+import com.sensei.search.req.AvroQuery;
 import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.req.SenseiResult;
+import com.sensei.search.req.SenseiSystemInfo;
+import com.sensei.search.svc.api.SenseiService;
 import com.sensei.search.util.SenseiDefaults;
 
 public class SenseiClusterClient {
 
-	static SenseiBroker _broker = null;
+	static SenseiService svc = null;
 	
 	static BrowseRequestBuilder _reqBuilder = new BrowseRequestBuilder();
 	
-	private static SenseiNetworkClient _networkClient = null;
-  
-	private static ClusterClient _clusterClient = null;
 	
-	private static void shutdown() throws NorbertException{
-		try{
-		   System.out.println("shutting down broker...");
-		  _broker.shutdown();
-		}
-		finally{
-          System.out.println("shutting down cluster client...");
-
-          try{
-        	  _clusterClient.shutdown();
-          }
-          finally{
-          }
-          
-		}
+	private static void shutdown(){
 	}
 	
 	/**
@@ -55,7 +39,6 @@ public class SenseiClusterClient {
 	public static void main(String[] args) throws Exception{
 
 	    File confFile = null;
-	    ApplicationContext springCtx = null;
 	    if (args.length < 1){
           System.out.println("no config specified. specify the config dir");
           return;
@@ -63,17 +46,16 @@ public class SenseiClusterClient {
 
 	    File confDir = new File(args[0]);
 	    confFile = new File(confDir , SenseiDefaults.SENSEI_CLIENT_CONF_FILE);
-	    springCtx = new FileSystemXmlApplicationContext("file:"+confFile.getAbsolutePath());
+	    
+	    Configuration conf = new PropertiesConfiguration(confFile);
 
 	    // create the network client
-	    _networkClient = (SenseiNetworkClient)springCtx.getBean("network-client");
-        _clusterClient = (ClusterClient)springCtx.getBean("cluster-client");
-        PartitionedLoadBalancerFactory<Integer> balancerFactory = (PartitionedLoadBalancerFactory<Integer>)springCtx.getBean("router-factory");
-        SenseiRequestScatterRewriter requestRewriter = (SenseiRequestScatterRewriter)springCtx.getBean("request-rewriter");;
-        
-        // create the broker
-		_broker = new SenseiBroker(_networkClient, _clusterClient, requestRewriter, balancerFactory);
-
+	    HttpInvokerProxyFactoryBean springInvokerBean = new HttpInvokerProxyFactoryBean();
+	    springInvokerBean.setServiceUrl(conf.getString(SenseiDefaults.SENSEI_CLIENT_SVC_URL_PROP));
+	    springInvokerBean.setServiceInterface(SenseiService.class);
+	    springInvokerBean.afterPropertiesSet();
+	    svc = (SenseiService)(springInvokerBean.getObject());
+       
 		Runtime.getRuntime().addShutdownHook(new Thread(){
 			public void run(){
 				try {
@@ -84,32 +66,29 @@ public class SenseiClusterClient {
 			}
 		});
 		
+
+		System.out.print("> ");
 		BufferedReader cmdLineReader = new BufferedReader(new InputStreamReader(System.in));
-		while(true){
-			try{ 
-				_clusterClient.awaitConnectionUninterruptibly();
-				System.out.println("connected to cluster...");
-				System.out.print("> ");
-				String line = cmdLineReader.readLine();
-				while(true){
-					try{
-					  processCommand(line, _clusterClient);
-					}
-					catch(NorbertException ne){
-						ne.printStackTrace();
-					}
-					System.out.print("> ");
-					line = cmdLineReader.readLine();
+		try{
+			String line = cmdLineReader.readLine();
+			while(true){
+				try{
+				  processCommand(line);
 				}
-				
+				catch(NorbertException ne){
+					ne.printStackTrace();
+				}
+				System.out.print("> ");
+				line = cmdLineReader.readLine();
 			}
-			catch(InterruptedException ie){
-				throw new Exception(ie.getMessage(),ie);
-			}
+			
+		}
+		catch(InterruptedException ie){
+			throw new Exception(ie.getMessage(),ie);
 		}
 	}
 	
-	static void processCommand(String line, ClusterClient cluster) throws NorbertException, InterruptedException, ExecutionException{
+	static void processCommand(String line) throws NorbertException, InterruptedException, ExecutionException{
 		if (line == null || line.length() == 0) return;
 		String[] parsed = line.split(" ");
 		if (parsed.length == 0) return;
@@ -141,15 +120,13 @@ public class SenseiClusterClient {
 			System.out.println("clearFacetSpec <name>: clears specified facetspec");
 			System.out.println("browse - executes a search");
 		}
-		else if ("nodes".equalsIgnoreCase(cmd)){
-			Set<Node> nodes = cluster.getNodes();
-			for (Node node : nodes){
-			    String url = node.getUrl();
-				System.out.println("id: "+node.getId());
-				System.out.println("addr: "+ url);
-				System.out.println("partitions: "+ node.getPartitionIds().toString());
-				System.out.println("availlable :"+node.isAvailable());
-				System.out.println("=========================");
+		else if ("info".equalsIgnoreCase(cmd)){
+			try{
+			  SenseiSystemInfo systemInfo = svc.getSystemInfo();
+			  System.out.println("not yet supported...");
+			}
+			catch(Exception e){
+				e.printStackTrace();
 			}
 		}
 		else if ("query".equalsIgnoreCase(cmd)){
@@ -320,7 +297,19 @@ public class SenseiClusterClient {
 			  SenseiRequest req = _reqBuilder.getRequest();
 			  String queryString = _reqBuilder.getQueryString();
 			
-			  SenseiResult res = _broker.browse(req);
+			  if (queryString!=null && queryString.length()>0){
+				try{
+				  SenseiAvroQuery q = new SenseiAvroQuery();
+				  q.query = new Utf8(queryString);
+				  q.paramMap = new HashMap<CharSequence,CharSequence>();
+				  req.setQuery(new AvroQuery<SenseiAvroQuery>(q,SenseiAvroQuery.class));
+				}
+				catch(Exception e){
+				  e.printStackTrace();
+			    }
+			  }
+			  
+			  SenseiResult res = svc.doQuery(req);
 			  if(res == null)
 			    System.out.println("No results found !");
 			  else {

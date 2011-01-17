@@ -125,7 +125,7 @@
 	</target>
 	
 	 <target name="war" depends="dist">
-      <war destfile="${dist}/${project.name}.war" webxml="${resources}/web.xml">
+        <war destfile="${dist}/${project.name}.war" webxml="${resources}/web.xml">
               <lib dir="${dist}">
                 <include name="*.jar"/>
               </lib>
@@ -134,7 +134,7 @@
               </lib>
               <classes dir="${resources}" excludes="web.xml" />
               <fileset dir="client-app/" />
-      </war>
+        </war>
     </target>
     
     <target name="run-server" depends="war" description="--> run server">

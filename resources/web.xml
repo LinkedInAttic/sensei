@@ -20,12 +20,19 @@
 	<servlet>
         <servlet-name>SenseiSearchServlet</servlet-name>
         <servlet-class>com.sensei.search.client.servlet.DefaultSenseiJSONServlet</servlet-class>
-		<init-param>
-		  <param-name>config.file</param-name>
-		  <param-value>server-conf/sensei-client.conf</param-value>
-        </init-param>
         <load-on-startup>1</load-on-startup>
     </servlet>
+    
+    <servlet>
+      <servlet-name>senseiSpringRPCExporter</servlet-name>
+      <servlet-class>com.sensei.search.client.servlet.SenseiHttpInvokerServiceServlet</servlet-class>
+      <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <servlet-mapping>
+      <servlet-name>senseiSpringRPCExporter</servlet-name>
+      <url-pattern>/sensei-rpc/SenseiSpringRPCService</url-pattern>
+    </servlet-mapping>
 
 	<servlet-mapping>
         <servlet-name>SenseiSearchServlet</servlet-name>
