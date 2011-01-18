@@ -106,7 +106,7 @@ public class SenseiClusterClient {
 		else if ("help".equalsIgnoreCase(cmd)){
 			System.out.println("help - prints this message");
 			System.out.println("exit - quits");
-			System.out.println("nodes - prints a list of node information");
+			System.out.println("info - prints system information");
 			System.out.println("query <query string> - sets query text");
 			System.out.println("facetspec <name>:<minHitCount>:<maxCount>:<sort> - add facet spec");
 			System.out.println("page <offset>:<count> - set paging parameters");
@@ -123,7 +123,8 @@ public class SenseiClusterClient {
 		else if ("info".equalsIgnoreCase(cmd)){
 			try{
 			  SenseiSystemInfo systemInfo = svc.getSystemInfo();
-			  System.out.println("not yet supported...");
+			  System.out.println("System info:");
+			  System.out.println(systemInfo);
 			}
 			catch(Exception e){
 				e.printStackTrace();
