@@ -58,11 +58,9 @@ public class ClusteredSenseiServiceImpl implements SenseiService {
 	}
 	
 	
-    // TODO: implement this
 	@Override
 	public SenseiSystemInfo getSystemInfo() throws SenseiException {
-		// TODO Auto-generated method stub
-		return null;
+		return _senseiBroker.getSystemInfo();
 	}
 
 	public void shutdown(){

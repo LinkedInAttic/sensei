@@ -1,0 +1,11 @@
+package com.sensei.search.req.protobuf;
+
+option java_package = "com.sensei.search.req.protobuf";
+option java_outer_classname = "SenseiSysResultBPO";
+
+option optimize_for = SPEED;
+
+message SysResult{
+  required bytes val = 1;
+}
+

@@ -15,9 +15,13 @@ import com.linkedin.norbert.javacompat.network.PartitionedNetworkClient;
 import com.sensei.search.cluster.routing.UniformPartitionedLoadBalancer;
 import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.req.SenseiResult;
+import com.sensei.search.req.SenseiSystemInfo;
 import com.sensei.search.req.protobuf.SenseiRequestBPO;
 import com.sensei.search.req.protobuf.SenseiRequestBPOConverter;
 import com.sensei.search.req.protobuf.SenseiResultBPO;
+import com.sensei.search.req.protobuf.SenseiSysRequestBPO;
+import com.sensei.search.req.protobuf.SenseiSysRequestBPOConverter;
+import com.sensei.search.req.protobuf.SenseiSysResultBPO;
 import com.sensei.search.svc.api.SenseiException;
 
 public class SenseiBroker implements ClusterListener  {
@@ -29,6 +33,7 @@ public class SenseiBroker implements ClusterListener  {
   private IntSet _parts = null;
   private final SenseiRequestScatterRewriter _reqRewriter;
   private final SenseiScatterGatherHandler _scatterGatherHandler;
+  private final SenseiSysScatterGatherHandler _sysScatterGatherHandler;
 
   public SenseiBroker(PartitionedNetworkClient<Integer> networkClient,
                       ClusterClient clusterClient,
@@ -38,8 +43,10 @@ public class SenseiBroker implements ClusterListener  {
     _networkClient = networkClient;
     _reqRewriter = reqRewriter;
     _scatterGatherHandler = new SenseiScatterGatherHandler(_reqRewriter);
+    _sysScatterGatherHandler = new SenseiSysScatterGatherHandler();
     
     // register the request-response messages
+    _networkClient.registerRequest(SenseiSysRequestBPO.SysRequest.getDefaultInstance(), SenseiSysResultBPO.SysResult.getDefaultInstance());
     _networkClient.registerRequest(SenseiRequestBPO.Request.getDefaultInstance(), SenseiResultBPO.Result.getDefaultInstance());
 
     clusterClient.addListener(this);
@@ -82,6 +89,28 @@ public class SenseiBroker implements ClusterListener  {
     else{
       logger.warn("no server exist to handle request.");
       return new SenseiResult();
+    }
+  }
+
+  public SenseiSystemInfo getSystemInfo() throws SenseiException {
+    if(_parts == null)
+      throw new SenseiException("getSystemInfo called before cluster is connected!");
+    try {
+      return doGetSystemInfo(_networkClient, _parts);
+    } catch (Exception e) {
+      throw new SenseiException(e.getMessage(),e);
+    }
+  }
+
+  private SenseiSystemInfo doGetSystemInfo(PartitionedNetworkClient<Integer> networkClient, IntSet partitions) throws Exception {
+    if (partitions!=null && (partitions.size())>0){
+      SenseiSysRequestBPO.SysRequest msg = SenseiSysRequestBPOConverter.convert(new SenseiRequest());
+      SenseiSystemInfo res = networkClient.sendMessage(partitions, msg, _sysScatterGatherHandler);
+      return res;
+    }
+    else{
+      logger.warn("no server exist to handle request.");
+      return new SenseiSystemInfo();
     }
   }
 

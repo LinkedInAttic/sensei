@@ -22,7 +22,6 @@ import com.linkedin.norbert.cluster.ClusterShutdownException;
 import com.sensei.search.nodes.NoOpIndexableInterpreter;
 import com.sensei.search.nodes.SenseiBroker;
 import com.sensei.search.nodes.SenseiNode;
-import com.sensei.search.nodes.SenseiNodeMessageHandler;
 import com.sensei.search.nodes.SenseiQueryBuilderFactory;
 import com.sensei.search.nodes.SenseiSearchContext;
 import com.sensei.search.nodes.impl.SimpleQueryBuilderFactory;
@@ -99,9 +98,9 @@ public class SenseiTestCase extends AbstractSenseiTestCase
 
     logger.info("Cluster client started");
 
-    node1 = new SenseiNode(networkServer1, clusterClient, 1, 1233, new SenseiNodeMessageHandler(srchCtx1), new int[] { 1, 2 });
+    node1 = new SenseiNode(networkServer1, clusterClient, 1, 1233, srchCtx1, new int[] { 1, 2 });
     logger.info("Node 1 created with id : " + 1);
-    node2 = new SenseiNode(networkServer2, clusterClient, 2, 1232, new SenseiNodeMessageHandler(srchCtx2), new int[] { 2, 3 });
+    node2 = new SenseiNode(networkServer2, clusterClient, 2, 1232, srchCtx2, new int[] { 2, 3 });
     logger.info("Node 2 created with id : " + 2);
 
     try

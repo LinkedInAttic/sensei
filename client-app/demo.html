@@ -49,14 +49,6 @@
 					else {
 						div.sensei_selections[0].values = this.value;
 					}
-					var depth = 0;
-					var vs = this.value.split('/');
-					for (var j=0; j<vs.length; j++) {
-						if (vs[j] != '')
-							++depth;
-					}
-					if (depth > 0)
-						div.sensei_selections[0].addProperty('depth', depth);
 					refreshPage();
 				}).get(0).value = vals[i][1];
 			headContainer.append('/');
@@ -83,14 +75,6 @@
 					else {
 						div.sensei_selections[0].values = this.value;
 					}
-					var depth = 0;
-					var vs = this.value.split('/');
-					for (var j=0; j<vs.length; j++) {
-						if (vs[j] != '')
-							++depth;
-					}
-					if (depth > 0)
-						div.sensei_selections[0].addProperty('depth', depth);
 					refreshPage();
 				}).get(0).value = obj.value;
 		}
@@ -116,8 +100,10 @@
 							if (a[j] != this.value) b.push(a[j]);
 						}
 						div.sensei_selections[0].values = b.join(',');
-						if (div.sensei_selections[0].values == '')
+						if (div.sensei_selections[0].values == '') {
 							senseiClient.removeSelection(div.sensei_selections[0]);
+							div.sensei_selections.splice(0, div.sensei_selections.length);
+						}
 						refreshPage();
 					}).get(0).value = obj.value;
 			}
@@ -317,7 +303,7 @@
 
 			senseiClient.addFacet(new SenseiFacet('city'));
 			senseiClient.addFacet(new SenseiFacet('makemodel'));
-			senseiClient.addFacet(new SenseiFacet('tags'));
+			senseiClient.addFacet(new SenseiFacet('tags', false));
 			senseiClient.addFacet(new SenseiFacet('color'));
 			senseiClient.addFacet(new SenseiFacet('category'));
 			senseiClient.addFacet(new SenseiFacet('year'));
@@ -381,7 +367,7 @@
 			<div id="makemodel">
 				<table width="100%">
 					<tr>
-						<td align="left" class="ROWHEAD">makemodel: <span><a>All</a>/<a>asian</a>/<a></a></span></td>
+						<td align="left" class="ROWHEAD">makemodel: <span><a>All</a></span></td>
 					</tr>
 					<tr>
 						<td>

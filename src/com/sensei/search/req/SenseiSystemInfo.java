@@ -13,6 +13,12 @@ public class SenseiSystemInfo implements Serializable {
 		private String _name;
 		private boolean _runTime;
 		private Map<String,String> _props;
+
+		public SenseiFacetInfo(String name) {
+			_name = name;
+			_runTime = false;
+			_props = null;
+		}
 		
 		public String getName() {
 			return _name;
@@ -32,6 +38,15 @@ public class SenseiSystemInfo implements Serializable {
 		public void setProps(Map<String, String> props) {
 			_props = props;
 		}
+		
+		@Override
+		public String toString(){
+			StringBuffer buf = new StringBuffer();
+			buf.append("name: ").append(_name);
+			buf.append("\nisRuntime: ").append(_runTime);
+			buf.append("\nprops: ").append(_props);
+			return buf.toString();
+		}
 	}
 	
 	private static final long serialVersionUID = 1L;
@@ -40,8 +55,16 @@ public class SenseiSystemInfo implements Serializable {
 	private long _lastModified;
 	private String _version;
     private Set<SenseiFacetInfo> _facetInfos;
-    private Map<Integer,List<Integer>> _clusterInfo;
-    
+	private Map<Integer,List<Integer>> _clusterInfo;
+		
+	public SenseiSystemInfo(){
+		_numDocs = 0;
+		_lastModified =0L;
+		_version = "0";
+		_facetInfos = null;
+		_clusterInfo = null;
+	}
+
 	public int getNumDocs() {
 		return _numDocs;
 	}
@@ -81,4 +104,16 @@ public class SenseiSystemInfo implements Serializable {
 	public void setClusterInfo(Map<Integer, List<Integer>> clusterInfo) {
 		_clusterInfo = clusterInfo;
 	}
+	
+	@Override
+	public String toString(){
+		StringBuffer buf = new StringBuffer();
+		buf.append("numDocs: ").append(_numDocs);
+		buf.append("\nlastModified: ").append(_lastModified);
+		buf.append("\nversion: ").append(_version);
+		buf.append("\nfacetInfos: ").append(_facetInfos);
+		buf.append("\nclusterInfo: ").append(_clusterInfo);
+		return buf.toString();
+	}
+	
 }

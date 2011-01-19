@@ -10,7 +10,7 @@
 	<classpathentry kind="lib" path="lib/master/netty-3.2.3.Final.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/master/protobuf-java.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/master/spring.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/master/zoie-2.0.0.jar"/>
+	<classpathentry kind="lib" path="/Users/xgu/opensrc/sensei/lib/master/zoie-2.5.0.jar"/>
 	<classpathentry exported="true" kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="lib/master/norbert-cluster-2.8.0-0.5.1.jar"/>
