@@ -19,6 +19,7 @@ import com.sensei.search.nodes.SenseiBroker;
 import com.sensei.search.nodes.impl.NoopRequestScatterRewriter;
 import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.req.SenseiResult;
+import com.sensei.search.req.SenseiSystemInfo;
 
 public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableServlet {
 
@@ -63,11 +64,9 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
 	}
 	
 	protected abstract SenseiRequest buildSenseiRequest(HttpServletRequest req) throws Exception;
-	
-	@Override
-	protected void doGet(HttpServletRequest req, HttpServletResponse resp)
-			throws ServletException, IOException {
-		
+
+  private void handleSenseiRequest(HttpServletRequest req, HttpServletResponse resp)
+    throws ServletException, IOException {
 		try {
 			SenseiRequest senseiReq = buildSenseiRequest(req);
 			SenseiResult res = _senseiBroker.browse(senseiReq);
@@ -79,8 +78,36 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
 		} catch (Exception e) {
 			throw new ServletException(e.getMessage(),e);
 		}
+  }
+	
+  private void handleSystemInfoRequest(HttpServletRequest req, HttpServletResponse resp)
+    throws ServletException, IOException {
+		try {
+			SenseiSystemInfo res = _senseiBroker.getSystemInfo();
+			resp.setContentType("text/plain; charset=utf-8");
+			resp.setCharacterEncoding("UTF-8");
+			OutputStream ostream = resp.getOutputStream();
+			convertResult(res, ostream);
+			ostream.flush();
+		} catch (Exception e) {
+			throw new ServletException(e.getMessage(),e);
+		}
+  }
+	
+	@Override
+	protected void doGet(HttpServletRequest req, HttpServletResponse resp)
+			throws ServletException, IOException {
+
+    if ("/sysinfo".equalsIgnoreCase(req.getPathInfo())) {
+      handleSystemInfoRequest(req, resp);
+    }
+    else {
+      handleSenseiRequest(req, resp);
+    }
 	}
 	
+	protected abstract void convertResult(SenseiSystemInfo info, OutputStream ostream) throws Exception;
+
 	protected abstract void convertResult(SenseiRequest req,SenseiResult res,OutputStream ostream) throws Exception;
 
 	@Override

@@ -9,6 +9,7 @@ import org.apache.commons.configuration.web.ServletRequestConfiguration;
 
 import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.req.SenseiResult;
+import com.sensei.search.req.SenseiSystemInfo;
 
 public abstract class AbstractSenseiRestServlet extends AbstractSenseiClientServlet {
 
@@ -27,6 +28,15 @@ public abstract class AbstractSenseiRestServlet extends AbstractSenseiClientServ
 	}
 	
 	abstract protected String buildResultString(SenseiRequest req,SenseiResult res) throws Exception;
+
+	abstract protected String buildResultString(SenseiSystemInfo info) throws Exception;
+
+	@Override
+	protected void convertResult(SenseiSystemInfo info, OutputStream ostream)
+			throws Exception {
+		String outString = buildResultString(info);
+		ostream.write(outString.getBytes("UTF-8"));
+	}
 
 	@Override
 	protected void convertResult(SenseiRequest req,SenseiResult res, OutputStream ostream)

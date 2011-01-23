@@ -37,4 +37,13 @@ public interface SenseiSearchServletParams {
 	  public static final String PARAM_RESULT_HIT_UID = "uid";
 	  public static final String PARAM_RESULT_HIT_SCORE = "score";
 	  public static final String PARAM_RESULT_TIME = "time";
+
+	  public static final String PARAM_SYSINFO_NUMDOCS = "numdocs";
+	  public static final String PARAM_SYSINFO_LASTMODIFIED = "lastmodified";
+	  public static final String PARAM_SYSINFO_VERSION = "version";
+	  public static final String PARAM_SYSINFO_FACETS = "facets";
+	  public static final String PARAM_SYSINFO_FACETS_NAME = "name";
+	  public static final String PARAM_SYSINFO_FACETS_RUNTIME = "runtime";
+	  public static final String PARAM_SYSINFO_FACETS_PROPS = "props";
+	  public static final String PARAM_SYSINFO_CLUSTERINFO = "clusterinfo";
 }

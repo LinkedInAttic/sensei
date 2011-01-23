@@ -31,6 +31,14 @@ import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_S
 import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_SORT;
 import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_SORT_DESC;
 import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_SORT_SCORE;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_SYSINFO_NUMDOCS;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_SYSINFO_LASTMODIFIED;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_SYSINFO_VERSION;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_SYSINFO_FACETS;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_SYSINFO_FACETS_NAME;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_SYSINFO_FACETS_RUNTIME;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_SYSINFO_FACETS_PROPS;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_SYSINFO_CLUSTERINFO;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -67,6 +75,7 @@ import com.sensei.search.req.SenseiHit;
 import com.sensei.search.req.SenseiQuery;
 import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.req.SenseiResult;
+import com.sensei.search.req.SenseiSystemInfo;
 import com.sensei.search.util.RequestConverter;
 
 
@@ -407,4 +416,29 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet {
 	 	}
 		return senseiReq;
 	}
+
+	@Override
+	protected String buildResultString(SenseiSystemInfo info) throws Exception {
+    JSONObject jsonObj = new JSONObject();
+    jsonObj.put(PARAM_SYSINFO_NUMDOCS, info.getNumDocs());
+    jsonObj.put(PARAM_SYSINFO_LASTMODIFIED, info.getLastModified());
+    jsonObj.put(PARAM_SYSINFO_VERSION, info.getVersion());
+
+    JSONArray jsonArray = new JSONArray();
+    jsonObj.put(PARAM_SYSINFO_FACETS, jsonArray);
+    Set<SenseiSystemInfo.SenseiFacetInfo> facets = info.getFacetInfos();
+    if (facets != null) {
+      for (SenseiSystemInfo.SenseiFacetInfo facet : facets) {
+        JSONObject facetObj = new JSONObject();
+        facetObj.put(PARAM_SYSINFO_FACETS_NAME, facet.getName());
+        facetObj.put(PARAM_SYSINFO_FACETS_RUNTIME, facet.isRunTime());
+        facetObj.put(PARAM_SYSINFO_FACETS_PROPS, facet.getProps());
+        jsonArray.put(facetObj);
+      }
+    }
+
+    jsonObj.put(PARAM_SYSINFO_CLUSTERINFO, info.getClusterInfo());
+
+    return jsonObj.toString();
+  }
 }
