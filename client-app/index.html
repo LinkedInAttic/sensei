@@ -2,9 +2,45 @@
 <head>
 	<title>Sensei Client App</title>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+	<script src="http://code.jquery.com/jquery-1.4.4.js"></script>
 	<script type="text/javascript" src="js/sensei-client.js" ></script>
 	<script type="text/javascript" src="http://jsbeautifier.org/beautify.js" ></script>
-	<script src="http://code.jquery.com/jquery-1.4.4.js"></script>
+	<script type="text/javascript">
+	// <![CDATA[
+	var r = null;
+	$(function (e) {
+		var senseiClient = new SenseiClient();
+		senseiClient.getSysInfo(function (info) {
+			r = info;
+			if (!info) return;
+
+			$('#numDocs').text(info.numdocs);
+			$('#lastModified').text(new Date(info.lastmodified).toLocaleString());
+			$('#version').text(info.version);
+			$('#clusterInfo').text($.toJSON(info.clusterinfo));
+
+			var initFacets = function (select, facets) {
+				if (select && facets) {
+					for (var i=0; i<facets.length; ++i) {
+						select.append('<option value="'+facets[i].name+'">'+facets[i].name+'</option>');
+					}
+				}
+			};
+
+			if (info.facets) {
+				info.facets.sort(function(a,b){
+					if (a.name < b.name) return -1;
+					if (a.name > b.name) return 1;
+					return 0;
+				});
+				initFacets($('#sortFacets'), info.facets);
+				initFacets($('#selFacets'), info.facets);
+				initFacets($('#facetsFacets'), info.facets);
+			}
+		});
+	});
+	// ]]>
+	</script>
 </head>
 <body>
 	<table border="0" width="100%" bgcolor="black">
@@ -14,6 +50,7 @@
 	   </td>
 	   <td align="center">
 		<h1><span style="color:white">Sensei Search Client Application</span></h1>
+		<div style="color: white; text-align: right; float: right;">Docs: <span id="numDocs"></span>; Last Modified: <span id="lastModified"></span>; Version: <span id="version"></span>; Cluster Info: <span id="clusterInfo"></span></div>
 	   </td>
 	</tr>
 	</table>
@@ -24,19 +61,19 @@
 	return explanation: <input id="explain" type="checkbox" > <br/>
 	fetch stored fields: <input id="fetchstore" type="checkbox" > <br/>
 	<hr/>
-	sort: <input type="button" id="addsort" value="add sort" onclick="addSort()"/> 
+	sort: <select id="sortFacets"></select> <input type="button" id="addsort" value="add sort" onclick="addSort()"/> 
 	<input type="button" id="clearSort" value="clear" onclick="clearSorts()" />
 	<br/>
 	<div id="sorts">
 	</div>
 	<hr/>
-	selections: <input type="button" id="addsel" value="add selection" onclick="addSelection()"/> 
+	selections: <select id="selFacets"></select> <input type="button" id="addsel" value="add selection" onclick="addSelection()"/> 
 	<input type="button" id="clearSel" value="clear" onclick="clearSelections()" />
 	<br/>
 	<div id="selections">
 	</div>
 	<hr/>
-	facets: <input type="button" id="addfacet" value="add facet" onclick="addFacet()" /> 
+	facets: <select id="facetsFacets"></select> <input type="button" id="addfacet" value="add facet" onclick="addFacet()" /> 
 	<input type="button" id="clearFacets" value="clear" onclick="clearFacets()"/>
 	<div id="facets">
 	</div>
