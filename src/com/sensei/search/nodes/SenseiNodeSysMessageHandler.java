@@ -103,7 +103,7 @@ public class SenseiNodeSysMessageHandler implements MessageHandler {
 
 						try {
 							browser = new MultiBoboBrowser(BoboBrowser.createBrowsables(boboReaders));
-							result.setNumDocs(browser.numDocs());
+							result.setNumDocs(partition, browser.numDocs());
 
 							Set<SenseiSystemInfo.SenseiFacetInfo> facetInfos = new HashSet<SenseiSystemInfo.SenseiFacetInfo>();
 

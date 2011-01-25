@@ -1,6 +1,7 @@
 package com.sensei.search.req;
 
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -51,14 +52,15 @@ public class SenseiSystemInfo implements Serializable {
 	
 	private static final long serialVersionUID = 1L;
 	
-	private int _numDocs;
+	private Map<Integer, Integer> _numDocs;
 	private long _lastModified;
 	private String _version;
     private Set<SenseiFacetInfo> _facetInfos;
 	private Map<Integer,List<Integer>> _clusterInfo;
 		
 	public SenseiSystemInfo(){
-		_numDocs = 0;
+		_numDocs = new HashMap<Integer, Integer>();
+    _numDocs.put(0, 0);
 		_lastModified =0L;
 		_version = "0";
 		_facetInfos = null;
@@ -66,12 +68,25 @@ public class SenseiSystemInfo implements Serializable {
 	}
 
 	public int getNumDocs() {
-		return _numDocs;
+    Integer numDocs = 0;
+    for (Integer i : _numDocs.values()) {
+      numDocs += i;
+    }
+		return numDocs;
 	}
 	
-	public void setNumDocs(int numDocs) {
-		_numDocs = numDocs;
+	public void setNumDocs(Integer partition, Integer numDocs) {
+    _numDocs.put(partition, numDocs);
 	}
+	
+	public void setNumDocs(Integer numDocs) {
+		_numDocs.clear();
+    _numDocs.put(0, numDocs);
+	}
+
+  public Map getRawNumDocs() {
+    return _numDocs;
+  }
 	
 	public long getLastModified() {
 		return _lastModified;

@@ -53,7 +53,7 @@ public class SenseiSysScatterGatherHandler implements ScatterGatherHandler<Sense
       } else
       {
         SenseiSystemInfo res = SenseiSysRequestBPOConverter.convert((SenseiSysResultBPO.SysResult) boboMsg);
-        result.setNumDocs(result.getNumDocs() + res.getNumDocs());
+        result.getRawNumDocs().putAll(res.getRawNumDocs());
         if (result.getLastModified() < res.getLastModified())
           result.setLastModified(res.getLastModified());
         if (Long.valueOf(result.getVersion()) < Long.valueOf(res.getVersion()))
