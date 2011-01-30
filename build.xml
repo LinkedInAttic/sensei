@@ -124,6 +124,13 @@
 		</jar>
 	</target>
 	
+	<target name="deploy" depends="dist" description="--> deploy .jar to oss repo">
+		<exec executable="mvn">
+			<arg line="deploy:deploy-file -Durl=https://oss.sonatype.org/content/repositories/snapshots -DrepositoryId=sonatype-nexus-snapshots -Dfile=${dist}/${project.name}-${version}.jar -DpomFile=pom.xml"/>
+		</exec>
+	</target>
+	
+	
 	 <target name="war" depends="dist">
         <war destfile="${dist}/${project.name}.war" webxml="${resources}/web.xml">
               <lib dir="${dist}">
