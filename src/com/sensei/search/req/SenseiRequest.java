@@ -1,6 +1,5 @@
 package com.sensei.search.req;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -12,7 +11,7 @@ import com.browseengine.bobo.api.BrowseSelection;
 import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.facets.FacetHandlerInitializerParam;
 
-public class SenseiRequest implements Serializable, Cloneable
+public class SenseiRequest implements AbstractSenseiRequest, Cloneable
 {
 	/**
 	 * 
