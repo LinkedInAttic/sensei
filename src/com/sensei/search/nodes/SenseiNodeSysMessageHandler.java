@@ -10,33 +10,24 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
-import org.apache.lucene.search.Query;
 
 import proj.zoie.api.DefaultZoieVersion;
 import proj.zoie.api.IndexReaderFactory;
 import proj.zoie.api.ZoieIndexReader;
 import proj.zoie.api.ZoieIndexReader.SubReaderAccessor;
-import proj.zoie.api.ZoieIndexReader.SubReaderInfo;
-import proj.zoie.mbean.ZoieSystemAdminMBean;
 import proj.zoie.impl.indexing.ZoieSystem;
+import proj.zoie.mbean.ZoieSystemAdminMBean;
 
 import com.browseengine.bobo.api.BoboBrowser;
 import com.browseengine.bobo.api.BoboIndexReader;
-import com.browseengine.bobo.api.BrowseException;
-import com.browseengine.bobo.api.BrowseHit;
-import com.browseengine.bobo.api.BrowseRequest;
-import com.browseengine.bobo.api.BrowseResult;
 import com.browseengine.bobo.api.MultiBoboBrowser;
 import com.google.protobuf.Message;
 import com.google.protobuf.TextFormat;
 import com.linkedin.norbert.javacompat.network.MessageHandler;
-import com.sensei.search.client.ResultMerger;
-import com.sensei.search.req.SenseiHit;
 import com.sensei.search.req.SenseiSystemInfo;
 import com.sensei.search.req.protobuf.SenseiSysRequestBPO;
 import com.sensei.search.req.protobuf.SenseiSysRequestBPOConverter;
 import com.sensei.search.req.protobuf.SenseiSysResultBPO.SysResult;
-import com.sensei.search.util.RequestConverter;
 
 public class SenseiNodeSysMessageHandler implements MessageHandler {
 

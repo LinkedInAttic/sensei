@@ -23,9 +23,10 @@ import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.req.SenseiResult;
 import com.sensei.search.req.protobuf.SenseiRequestBPO;
 import com.sensei.search.req.protobuf.SenseiRequestBPOConverter;
+import com.sensei.search.req.protobuf.SenseiResultBPO;
 import com.sensei.search.util.RequestConverter;
 
-public class SenseiNodeMessageHandler extends AbstractSenseiNodeMessageHandler<SenseiRequest, SenseiResult>
+public class SenseiNodeMessageHandler extends AbstractSenseiNodeMessageHandler<SenseiRequest, SenseiResult, SenseiRequestBPO.Request, SenseiResultBPO.Result>
 {
 
   private static final Logger logger = Logger.getLogger(SenseiNodeMessageHandler.class);
@@ -151,13 +152,13 @@ public class SenseiNodeMessageHandler extends AbstractSenseiNodeMessageHandler<S
   }
 
   @Override
-  public SenseiRequest messageToRequest(Message msg)
+  public SenseiRequest messageToRequest(SenseiRequestBPO.Request msg)
   {
     return SenseiRequestBPOConverter.convert((SenseiRequestBPO.Request)msg);
   }
 
   @Override
-  public Message resultToMessage(SenseiResult result)
+  public SenseiResultBPO.Result resultToMessage(SenseiResult result)
   {
     return SenseiRequestBPOConverter.convert(result);
   }

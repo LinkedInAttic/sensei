@@ -15,7 +15,6 @@ import com.google.protobuf.TextFormat;
 import com.linkedin.norbert.javacompat.network.MessageHandler;
 import com.sensei.search.req.AbstractSenseiRequest;
 import com.sensei.search.req.AbstractSenseiResult;
-import com.sensei.search.req.protobuf.SenseiRequestBPO;
 
 /**
  * @author "Xiaoyang Gu<xgu@linkedin.com>"
@@ -23,7 +22,7 @@ import com.sensei.search.req.protobuf.SenseiRequestBPO;
  * @param <REQUEST>
  * @param <RESULT>
  */
-public abstract class AbstractSenseiNodeMessageHandler<REQUEST extends AbstractSenseiRequest, RESULT extends AbstractSenseiResult> implements MessageHandler
+public abstract class AbstractSenseiNodeMessageHandler<REQUEST extends AbstractSenseiRequest, RESULT extends AbstractSenseiResult, REQMSG extends Message, RESMSG extends Message> implements MessageHandler
 {
 
   private static final Logger logger = Logger.getLogger(AbstractSenseiNodeMessageHandler.class);
@@ -70,14 +69,14 @@ public abstract class AbstractSenseiNodeMessageHandler<REQUEST extends AbstractS
    * @param msg
    * @return
    */
-  public abstract REQUEST messageToRequest(Message msg);
+  public abstract REQUEST messageToRequest(REQMSG msg);
 
   /**
    * Converts a result object to a message.
    * @param result
    * @return
    */
-  public abstract Message resultToMessage(RESULT result);
+  public abstract RESMSG resultToMessage(RESULT result);
 
   /**
    * Merge results on the server side.
@@ -118,7 +117,8 @@ public abstract class AbstractSenseiNodeMessageHandler<REQUEST extends AbstractS
    */
   public Message handleMessage(Message msg) throws Exception
   {
-    SenseiRequestBPO.Request req = (SenseiRequestBPO.Request) msg;
+    @SuppressWarnings("unchecked")
+    REQMSG req = (REQMSG) msg;
 
     if (logger.isDebugEnabled())
     {
@@ -156,7 +156,7 @@ public abstract class AbstractSenseiNodeMessageHandler<REQUEST extends AbstractS
       logger.info("no partitions specified");
       finalResult = getEmptyResultInstance();
     }
-    Message returnvalue = resultToMessage(finalResult);
+    RESMSG returnvalue = resultToMessage(finalResult);
     logger.info("searching partitions  " + partitions.toString() + " took: " + finalResult.getTime());
     return returnvalue;
   }

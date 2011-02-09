@@ -8,7 +8,6 @@ import org.apache.log4j.Logger;
 
 import com.linkedin.norbert.NorbertException;
 import com.linkedin.norbert.javacompat.cluster.ClusterClient;
-import com.linkedin.norbert.javacompat.cluster.ClusterListener;
 import com.linkedin.norbert.javacompat.cluster.Node;
 import com.linkedin.norbert.javacompat.network.PartitionedLoadBalancerFactory;
 import com.linkedin.norbert.javacompat.network.PartitionedNetworkClient;
@@ -22,138 +21,140 @@ import com.sensei.search.req.protobuf.SenseiResultBPO;
 import com.sensei.search.req.protobuf.SenseiSysRequestBPO;
 import com.sensei.search.req.protobuf.SenseiSysRequestBPOConverter;
 import com.sensei.search.req.protobuf.SenseiSysResultBPO;
+import com.sensei.search.req.protobuf.SenseiRequestBPO.Request;
+import com.sensei.search.req.protobuf.SenseiResultBPO.Result;
 import com.sensei.search.svc.api.SenseiException;
 
-public class SenseiBroker implements ClusterListener  {
+/**
+ * This SenseiBroker routes search(browse) request using the routers created by
+ * the supplied router factory. It uses Norbert's scatter-gather handling
+ * mechanism to handle distributed search, which does not support request based
+ * context sensitive routing.
+ */
+public class SenseiBroker extends AbstractSenseiBroker<SenseiRequest, SenseiResult, SenseiRequestBPO.Request, SenseiResultBPO.Result>
+{
   private final static Logger logger = Logger.getLogger(SenseiBroker.class);
-  private final PartitionedNetworkClient<Integer> _networkClient;
-
-  private volatile PartitionedLoadBalancerFactory<Integer> _routerFactory = null;
-
-  private IntSet _parts = null;
-  private final SenseiRequestScatterRewriter _reqRewriter;
-  private final SenseiScatterGatherHandler _scatterGatherHandler;
+  private final PartitionedLoadBalancerFactory<Integer> _routerFactory;
+  private final AbstractSenseiScatterGatherHandler<SenseiRequest, SenseiResult, SenseiRequestBPO.Request, SenseiResultBPO.Result> _scatterGatherHandler;
   private final SenseiSysScatterGatherHandler _sysScatterGatherHandler;
 
-  public SenseiBroker(PartitionedNetworkClient<Integer> networkClient,
-                      ClusterClient clusterClient,
-                      SenseiRequestScatterRewriter reqRewriter,
-                      PartitionedLoadBalancerFactory<Integer> routerFactory) throws NorbertException{
+  public SenseiBroker(PartitionedNetworkClient<Integer> networkClient, ClusterClient clusterClient, SenseiRequestScatterRewriter reqRewriter,
+      PartitionedLoadBalancerFactory<Integer> routerFactory) throws NorbertException
+  {
+    super(networkClient, clusterClient, SenseiRequestBPO.Request.getDefaultInstance(), SenseiResultBPO.Result.getDefaultInstance());
     _routerFactory = routerFactory;
-    _networkClient = networkClient;
-    _reqRewriter = reqRewriter;
-    _scatterGatherHandler = new SenseiScatterGatherHandler(_reqRewriter);
     _sysScatterGatherHandler = new SenseiSysScatterGatherHandler();
-    
-    // register the request-response messages
     _networkClient.registerRequest(SenseiSysRequestBPO.SysRequest.getDefaultInstance(), SenseiSysResultBPO.SysResult.getDefaultInstance());
-    _networkClient.registerRequest(SenseiRequestBPO.Request.getDefaultInstance(), SenseiResultBPO.Result.getDefaultInstance());
-
-    clusterClient.addListener(this);
-  }
-  
-  public void setTimeoutMillis(long timeoutMillis){
-    _scatterGatherHandler.setTimeoutMillis(timeoutMillis);
-  }
-  
-  public long getTimeoutMillis(){
-    return _scatterGatherHandler.getTimeoutMillis();
+    _scatterGatherHandler = new SenseiScatterGatherHandler(reqRewriter);
+    logger.info("created broker instance " + networkClient + " " + clusterClient + " " + routerFactory + " " + reqRewriter);
   }
 
-  public SenseiResult browse(SenseiRequest req) throws SenseiException{
-    if(_parts == null)
-      throw new SenseiException("Browse called before cluster is connected!");
-    try {
-      return doBrowse(_networkClient,req, _parts);
-    } catch (Exception e) {
-      throw new SenseiException(e.getMessage(),e);
-    }
+  @Override
+  public SenseiResult getEmptyResultInstance()
+  {
+    return new SenseiResult();
   }
 
-  private SenseiResult doBrowse(PartitionedNetworkClient<Integer> networkClient,SenseiRequest req,IntSet partitions) throws Exception{
-    if (partitions!=null && (partitions.size())>0){
-      SenseiRequestBPO.Request msg = SenseiRequestBPOConverter.convert(req);
+  protected SenseiResult doBrowse(PartitionedNetworkClient<Integer> networkClient, SenseiRequest req, IntSet partitions) throws Exception
+  {
+    if (partitions != null && (partitions.size()) > 0)
+    {
+      SenseiRequestBPO.Request msg = requestToMessage(req);
       Set<Integer> partToSend = req.getPartitions();
-      if (partToSend == null){
+      if (partToSend == null)
+      {
         partToSend = partitions;
       }
       SenseiResult res;
-      if (partToSend.size() > 0){
+      if (partToSend.size() > 0)
+      {
         res = networkClient.sendMessage(partitions, msg, _scatterGatherHandler);
-      }
-      else{
-        res = new SenseiResult();  
+      } else
+      {
+        res = getEmptyResultInstance();
       }
       return res;
-    }
-    else{
+    } else
+    {
       logger.warn("no server exist to handle request.");
-      return new SenseiResult();
+      return getEmptyResultInstance();
     }
   }
 
-  public SenseiSystemInfo getSystemInfo() throws SenseiException {
-    if(_parts == null)
-      throw new SenseiException("getSystemInfo called before cluster is connected!");
-    try {
-      return doGetSystemInfo(_networkClient, _parts);
-    } catch (Exception e) {
-      throw new SenseiException(e.getMessage(),e);
-    }
+  @Override
+  public SenseiResult messageToResult(Result message)
+  {
+    return SenseiRequestBPOConverter.convert(message);
   }
 
-  private SenseiSystemInfo doGetSystemInfo(PartitionedNetworkClient<Integer> networkClient, IntSet partitions) throws Exception {
-    if (partitions!=null && (partitions.size())>0){
-      SenseiSysRequestBPO.SysRequest msg = SenseiSysRequestBPOConverter.convert(new SenseiRequest());
-      SenseiSystemInfo res = networkClient.sendMessage(partitions, msg, _sysScatterGatherHandler);
-      return res;
-    }
-    else{
-      logger.warn("no server exist to handle request.");
-      return new SenseiSystemInfo();
-    }
+  @Override
+  public Request requestToMessage(SenseiRequest request)
+  {
+    return SenseiRequestBPOConverter.convert(request);
   }
 
-  public void shutdown(){
-    logger.info("shutting down broker...");
+  public void setTimeoutMillis(long timeoutMillis)
+  {
+    _scatterGatherHandler.setTimeoutMillis(timeoutMillis);
   }
 
-  /* (non-Javadoc)
-   * @see com.linkedin.norbert.cluster.javaapi.ClusterListener#handleClusterConnected(com.linkedin.norbert.cluster.Node[])
-   */
+  public long getTimeoutMillis()
+  {
+    return _scatterGatherHandler.getTimeoutMillis();
+  }
+
   public void handleClusterConnected(Set<Node> nodes)
   {
     UniformPartitionedLoadBalancer router = (UniformPartitionedLoadBalancer) _routerFactory.newLoadBalancer(nodes);
-    _parts = router.getPartitions();
+    _partitions = router.getPartitions();
     logger.info("handleClusterConnected(): Received the list of nodes from norbert " + nodes.toString());
-    logger.info("handleClusterConnected(): Received the list of partitions from router " + _parts.toString());
+    logger.info("handleClusterConnected(): Received the list of partitions from router " + _partitions.toString());
   }
 
-  /* (non-Javadoc)
-   * @see com.linkedin.norbert.cluster.javaapi.ClusterListener#handleClusterDisconnected()
-   */
   public void handleClusterDisconnected()
   {
     logger.info("handleClusterDisconnected() called");
   }
 
-  /* (non-Javadoc)
-   * @see com.linkedin.norbert.cluster.javaapi.ClusterListener#handleClusterNodesChanged(com.linkedin.norbert.cluster.Node[])
-   */
   public void handleClusterNodesChanged(Set<Node> nodes)
   {
     UniformPartitionedLoadBalancer router = (UniformPartitionedLoadBalancer) _routerFactory.newLoadBalancer(nodes);
-    _parts = router.getPartitions();
+    _partitions = router.getPartitions();
     logger.info("handleClusterNodesChanged(): Received the list of nodes from norbert " + nodes.toString());
-    logger.info("handleClusterNodesChanged(): Received the list of partitions from router " + _parts.toString());
+    logger.info("handleClusterNodesChanged(): Received the list of partitions from router " + _partitions.toString());
   }
 
-  /* (non-Javadoc)
-   * @see com.linkedin.norbert.cluster.javaapi.ClusterListener#handleClusterShutdown()
-   */
+  @Override
   public void handleClusterShutdown()
   {
     logger.info("handleClusterShutdown() called");
-
   }
+
+  public SenseiSystemInfo getSystemInfo() throws SenseiException
+  {
+    if (_partitions == null)
+      throw new SenseiException("getSystemInfo called before cluster is connected!");
+    try
+    {
+      return doGetSystemInfo(_networkClient, _partitions);
+    } catch (Exception e)
+    {
+      throw new SenseiException(e.getMessage(), e);
+    }
+  }
+
+  private SenseiSystemInfo doGetSystemInfo(PartitionedNetworkClient<Integer> networkClient, IntSet partitions) throws Exception
+  {
+    if (partitions != null && (partitions.size()) > 0)
+    {
+      SenseiSysRequestBPO.SysRequest msg = SenseiSysRequestBPOConverter.convert(new SenseiRequest());
+      SenseiSystemInfo res = networkClient.sendMessage(partitions, msg, _sysScatterGatherHandler);
+      return res;
+    } else
+    {
+      logger.warn("no server exist to handle request.");
+      return new SenseiSystemInfo();
+    }
+  }
+
 }
