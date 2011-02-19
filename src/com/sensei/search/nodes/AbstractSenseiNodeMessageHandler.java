@@ -128,7 +128,7 @@ public abstract class AbstractSenseiNodeMessageHandler<REQUEST extends AbstractS
 
     REQUEST senseiReq = messageToRequest(req);
     RESULT finalResult = null;
-    Set<Integer> partitions = senseiReq.getPartitions();
+    Set<Integer> partitions = senseiReq==null ? null : senseiReq.getPartitions();
     if (partitions != null && partitions.size() > 0)
     {
       logger.info("serving partitions: " + partitions.toString());
