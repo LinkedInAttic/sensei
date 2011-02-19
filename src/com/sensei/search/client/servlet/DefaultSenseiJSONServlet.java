@@ -207,8 +207,13 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet {
 	protected String buildResultString(SenseiRequest req,SenseiResult res) throws Exception {
 		return buildJSONResultString(req, res);
 	}
+	
+	public static String buildJSONResultString(SenseiRequest req,SenseiResult res) throws Exception {
+		JSONObject jsonObj = buildJSONResult(req,res);
+		return jsonObj.toString();
+	}
 
-    public static String buildJSONResultString(SenseiRequest req,SenseiResult res) throws Exception {
+    public static JSONObject buildJSONResult(SenseiRequest req,SenseiResult res) throws Exception {
 		JSONObject jsonObj = new JSONObject();
 		int totalDocs = res.getTotalDocs();
 		int numHits = res.getNumHits();
@@ -263,7 +268,7 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet {
 		
 		jsonObj.put(PARAM_RESULT_TIME, res.getTime());
 		jsonObj.put(PARAM_RESULT_FACETS, convert(res.getFacetMap(),req));
-		return jsonObj.toString();
+		return jsonObj;
 	}
 	
 	protected SenseiQuery buildSenseiQuery(DataConfiguration params){
