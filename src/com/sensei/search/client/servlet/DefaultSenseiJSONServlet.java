@@ -229,7 +229,7 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet {
 			Map<String,String[]> fieldMap = hit.getFieldValues();
 			
 			JSONObject hitObj = new JSONObject();
-			hitObj.put(PARAM_RESULT_HIT_UID,uid);
+			hitObj.put(PARAM_RESULT_HIT_UID,String.valueOf(uid));
 			hitObj.put(PARAM_RESULT_HIT_SCORE, score);
 			if (fieldMap!=null){
 			  Set<Entry<String,String[]>> entries = fieldMap.entrySet();
