@@ -6,7 +6,7 @@
 	<classpathentry exported="true" kind="lib" path="lib/master/fastutil.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/master/kamikaze-2.0.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/master/log4j.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/master/lucene-core.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/master/lucene-core.jar" sourcepath="/Users/john/.m2/repository/org/apache/lucene/lucene-core/3.0.2/lucene-core-3.0.2-sources.jar"/>
 	<classpathentry kind="lib" path="lib/master/netty-3.2.3.Final.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/master/protobuf-java.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/master/spring.jar"/>

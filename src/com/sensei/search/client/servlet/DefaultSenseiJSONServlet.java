@@ -201,9 +201,14 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet {
 		}
 		return resMap;
 	}
+	
 
 	@Override
 	protected String buildResultString(SenseiRequest req,SenseiResult res) throws Exception {
+		return buildJSONResultString(req, res);
+	}
+
+    public static String buildJSONResultString(SenseiRequest req,SenseiResult res) throws Exception {
 		JSONObject jsonObj = new JSONObject();
 		int totalDocs = res.getTotalDocs();
 		int numHits = res.getNumHits();
