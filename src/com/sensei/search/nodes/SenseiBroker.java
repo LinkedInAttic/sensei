@@ -1,5 +1,6 @@
 package com.sensei.search.nodes;
 
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 
 import java.util.Set;
@@ -34,15 +35,13 @@ import com.sensei.search.svc.api.SenseiException;
 public class SenseiBroker extends AbstractSenseiBroker<SenseiRequest, SenseiResult, SenseiRequestBPO.Request, SenseiResultBPO.Result>
 {
   private final static Logger logger = Logger.getLogger(SenseiBroker.class);
-  private final PartitionedLoadBalancerFactory<Integer> _routerFactory;
   private final AbstractSenseiScatterGatherHandler<SenseiRequest, SenseiResult, SenseiRequestBPO.Request, SenseiResultBPO.Result> _scatterGatherHandler;
   private final SenseiSysScatterGatherHandler _sysScatterGatherHandler;
 
   public SenseiBroker(PartitionedNetworkClient<Integer> networkClient, ClusterClient clusterClient, SenseiRequestScatterRewriter reqRewriter,
       PartitionedLoadBalancerFactory<Integer> routerFactory) throws NorbertException
   {
-    super(networkClient, clusterClient, SenseiRequestBPO.Request.getDefaultInstance(), SenseiResultBPO.Result.getDefaultInstance());
-    _routerFactory = routerFactory;
+    super(networkClient, clusterClient, SenseiRequestBPO.Request.getDefaultInstance(), SenseiResultBPO.Result.getDefaultInstance(),routerFactory);
     _sysScatterGatherHandler = new SenseiSysScatterGatherHandler();
     _networkClient.registerRequest(SenseiSysRequestBPO.SysRequest.getDefaultInstance(), SenseiSysResultBPO.SysResult.getDefaultInstance());
     _scatterGatherHandler = new SenseiScatterGatherHandler(reqRewriter);
@@ -114,6 +113,7 @@ public class SenseiBroker extends AbstractSenseiBroker<SenseiRequest, SenseiResu
   public void handleClusterDisconnected()
   {
     logger.info("handleClusterDisconnected() called");
+    _partitions = new IntOpenHashSet();
   }
 
   public void handleClusterNodesChanged(Set<Node> nodes)

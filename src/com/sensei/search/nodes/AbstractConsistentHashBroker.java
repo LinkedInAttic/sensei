@@ -51,7 +51,7 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
   public AbstractConsistentHashBroker(PartitionedNetworkClient<Integer> networkClient, ClusterClient clusterClient, REQMSG defaultrequest, RESMSG defaultresult, SenseiLoadBalancer loadBalancer)
       throws NorbertException
   {
-    super(networkClient, clusterClient, defaultrequest, defaultresult);
+    super(networkClient, clusterClient, defaultrequest, defaultresult,null);
     _loadBalancer = loadBalancer;
   }
 
