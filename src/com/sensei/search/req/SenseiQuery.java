@@ -10,7 +10,7 @@ public class SenseiQuery implements Serializable
    */
   private static final long serialVersionUID = 1L;
   private byte[] _bytes;
-  static Charset utf8Charset = Charset.forName("UTF-8");
+  public static Charset utf8Charset = Charset.forName("UTF-8");
 	
   public SenseiQuery(byte[] bytes){
 	  _bytes = bytes;
