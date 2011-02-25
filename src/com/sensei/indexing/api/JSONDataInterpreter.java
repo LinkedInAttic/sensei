@@ -1,6 +1,7 @@
 package com.sensei.indexing.api;
 
 import org.apache.lucene.document.Document;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import proj.zoie.api.indexing.AbstractZoieIndexableInterpreter;
@@ -14,12 +15,22 @@ public abstract class JSONDataInterpreter extends AbstractZoieIndexableInterpret
 
 			@Override
 			public IndexingReq[] buildIndexingReqs() {
+			  try{
 				return new IndexingReq[]{new IndexingReq(buildDoc(src))};
+			  }
+			  catch(JSONException e){
+				throw new RuntimeException(e.getMessage(),e);
+			  }
 			}
 
 			@Override
 			public long getUID() {
+			  try{
 				return extractUID(src);
+			  }
+			  catch(JSONException e){
+				throw new RuntimeException(e.getMessage(),e);
+			  }
 			}
 
 			@Override
@@ -35,8 +46,8 @@ public abstract class JSONDataInterpreter extends AbstractZoieIndexableInterpret
 		};
 	}
 
-	public abstract long extractUID(JSONObject obj);
-	public abstract Document buildDoc(JSONObject obj);
+	public abstract long extractUID(JSONObject obj) throws JSONException;
+	public abstract Document buildDoc(JSONObject obj) throws JSONException;
 	
 	public boolean extractSkipFlag(JSONObject obj){
 		return false;
