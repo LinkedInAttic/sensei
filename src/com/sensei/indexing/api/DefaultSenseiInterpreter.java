@@ -16,6 +16,9 @@ import org.apache.lucene.document.Field.Index;
 import org.apache.lucene.document.Field.Store;
 import org.apache.lucene.document.Field.TermVector;
 
+import com.browseengine.bobo.facets.data.PredefinedTermListFactory;
+import com.browseengine.bobo.facets.data.TermListFactory;
+
 import proj.zoie.api.indexing.AbstractZoieIndexableInterpreter;
 import proj.zoie.api.indexing.ZoieIndexable;
 
@@ -55,6 +58,13 @@ public class DefaultSenseiInterpreter<V> extends
 		
 	}
 	
+	public static <T> TermListFactory<T> getTermListFactory(Class<T> cls){
+		MetaType metaType = CLASS_METATYPE_MAP.get(cls);
+		if (metaType == null){
+			throw new IllegalArgumentException("unsupported class: "+cls.getName());
+		}
+		return new PredefinedTermListFactory<T>(cls,DEFAULT_FORMAT_STRING_MAP.get(metaType));
+	}
 	
 	
 	static class IndexSpec{
