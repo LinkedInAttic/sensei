@@ -16,11 +16,11 @@ import org.apache.lucene.document.Field.Index;
 import org.apache.lucene.document.Field.Store;
 import org.apache.lucene.document.Field.TermVector;
 
-import com.browseengine.bobo.facets.data.PredefinedTermListFactory;
-import com.browseengine.bobo.facets.data.TermListFactory;
-
 import proj.zoie.api.indexing.AbstractZoieIndexableInterpreter;
 import proj.zoie.api.indexing.ZoieIndexable;
+
+import com.browseengine.bobo.facets.data.PredefinedTermListFactory;
+import com.browseengine.bobo.facets.data.TermListFactory;
 
 public class DefaultSenseiInterpreter<V> extends
 		AbstractZoieIndexableInterpreter<V> {
@@ -130,6 +130,20 @@ public class DefaultSenseiInterpreter<V> extends
 		  indexingSpec.fld = f;
 		  _textIndexingSpecMap.put(name, indexingSpec);
 	    }
+	    else if (f.isAnnotationPresent(com.sensei.indexing.api.Store.class)){
+		      f.setAccessible(true);
+		      com.sensei.indexing.api.Store storeAnnotation = f.getAnnotation(com.sensei.indexing.api.Store.class);
+		      String name=storeAnnotation.name();
+			  if ("".equals(name)){
+				name = f.getName();
+			  }
+			  IndexSpec indexingSpec = new IndexSpec();
+			  indexingSpec.store = Store.YES;
+			  indexingSpec.index = Index.NOT_ANALYZED_NO_NORMS;
+			  indexingSpec.tv = TermVector.NO;
+			  indexingSpec.fld = f;
+			  _textIndexingSpecMap.put(name, indexingSpec);
+		    }
 	    else if (f.isAnnotationPresent(Meta.class)){
 	      f.setAccessible(true);
 	      Meta metaAnnotation = f.getAnnotation(Meta.class);
