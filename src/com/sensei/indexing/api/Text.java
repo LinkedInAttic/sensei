@@ -15,6 +15,6 @@ import org.apache.lucene.document.Field.TermVector;
 public @interface Text {
 	String name() default "";
 	Store store() default Store.NO;
-	Index index() default Index.ANALYZED;
+	Index index() default Index.NOT_ANALYZED_NO_NORMS;
 	TermVector termVector() default TermVector.NO;
 }

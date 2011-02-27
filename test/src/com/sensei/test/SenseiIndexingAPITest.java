@@ -25,6 +25,7 @@ import com.sensei.indexing.api.DeleteChecker;
 import com.sensei.indexing.api.Meta;
 import com.sensei.indexing.api.MetaType;
 import com.sensei.indexing.api.SkipChecker;
+import com.sensei.indexing.api.StoredValue;
 import com.sensei.indexing.api.Text;
 import com.sensei.indexing.api.Uid;
 
@@ -43,6 +44,9 @@ public class SenseiIndexingAPITest extends TestCase {
 		
 		@Text(store=Store.YES,index=Index.NOT_ANALYZED,termVector=TermVector.WITH_POSITIONS_OFFSETS)
 		private String content2;
+		
+		@StoredValue(name="store")
+		private String storedVal;
 		
 		@Meta
 		private int age;
@@ -112,6 +116,21 @@ public class SenseiIndexingAPITest extends TestCase {
 		assertEquals(13,indexable.getUID());
 	}
 	
+	public void testStoredContent(){
+	   TestObj testObj = new TestObj(1);
+	   testObj.storedVal = "stored";
+	   
+	   ZoieIndexable indexable = nodeInterpreter.convertAndInterpret(testObj);
+		IndexingReq[] reqs = indexable.buildIndexingReqs();
+		Document doc = reqs[0].getDocument();
+		Field f = doc.getField("store");
+		assertEquals("stored",f.stringValue());
+		assertTrue(f.isStored());
+		assertFalse(f.isTermVectorStored());
+		assertFalse(f.isIndexed());
+		assertFalse(f.isTokenized());
+	}
+	
 	public void testTextContent(){
 		TestObj testObj = new TestObj(1);
 		testObj.content = "abc";
@@ -126,7 +145,7 @@ public class SenseiIndexingAPITest extends TestCase {
 		assertFalse(content1Field.isStored());
 		assertFalse(content1Field.isTermVectorStored());
 		assertTrue(content1Field.isIndexed());
-		assertTrue(content1Field.isTokenized());
+		assertFalse(content1Field.isTokenized());
 		
 		Field content2Field = doc.getField("content2");
 		assertNotNull(content2Field);

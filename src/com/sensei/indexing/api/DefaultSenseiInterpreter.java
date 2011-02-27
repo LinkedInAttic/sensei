@@ -130,20 +130,20 @@ public class DefaultSenseiInterpreter<V> extends
 		  indexingSpec.fld = f;
 		  _textIndexingSpecMap.put(name, indexingSpec);
 	    }
-	    else if (f.isAnnotationPresent(com.sensei.indexing.api.Store.class)){
+	    else if (f.isAnnotationPresent(StoredValue.class)){
 		      f.setAccessible(true);
-		      com.sensei.indexing.api.Store storeAnnotation = f.getAnnotation(com.sensei.indexing.api.Store.class);
+		      StoredValue storeAnnotation = f.getAnnotation(StoredValue.class);
 		      String name=storeAnnotation.name();
 			  if ("".equals(name)){
 				name = f.getName();
 			  }
 			  IndexSpec indexingSpec = new IndexSpec();
 			  indexingSpec.store = Store.YES;
-			  indexingSpec.index = Index.NOT_ANALYZED_NO_NORMS;
+			  indexingSpec.index = Index.NO;
 			  indexingSpec.tv = TermVector.NO;
 			  indexingSpec.fld = f;
 			  _textIndexingSpecMap.put(name, indexingSpec);
-		    }
+		}
 	    else if (f.isAnnotationPresent(Meta.class)){
 	      f.setAccessible(true);
 	      Meta metaAnnotation = f.getAnnotation(Meta.class);

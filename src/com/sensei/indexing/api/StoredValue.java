@@ -8,6 +8,6 @@ import java.lang.annotation.Target;
 
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Store {
+public @interface StoredValue {
 	String name() default "";
 }
