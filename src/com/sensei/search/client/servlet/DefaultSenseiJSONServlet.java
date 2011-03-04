@@ -40,10 +40,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
+import java.util.Set;
 
-import org.apache.avro.util.Utf8;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.DataConfiguration;
 import org.apache.log4j.Logger;
@@ -57,13 +56,12 @@ import org.json.JSONObject;
 
 import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.BrowseSelection;
+import com.browseengine.bobo.api.BrowseSelection.ValueOperation;
 import com.browseengine.bobo.api.FacetAccessible;
 import com.browseengine.bobo.api.FacetSpec;
-import com.browseengine.bobo.api.BrowseSelection.ValueOperation;
 import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
-import com.sensei.avro.SenseiAvroQuery;
-import com.sensei.search.req.AvroQuery;
 import com.sensei.search.req.SenseiHit;
+import com.sensei.search.req.SenseiJSONQuery;
 import com.sensei.search.req.SenseiQuery;
 import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.req.SenseiResult;
@@ -274,17 +272,17 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet {
 	protected SenseiQuery buildSenseiQuery(DataConfiguration params){
 		SenseiQuery sq = null;
 		String query = params.getString(PARAM_QUERY,null);
+
+		JSONObject qjson = new JSONObject();
 		if (query!=null && query.length()>0){
 			try{
-			  SenseiAvroQuery q = new SenseiAvroQuery();
-			  q.query = new Utf8(query);
-			  q.paramMap = new HashMap<CharSequence,CharSequence>();
-			  sq = new AvroQuery<SenseiAvroQuery>(q,SenseiAvroQuery.class);
+			  qjson.put("query",query);
 			}
 			catch(Exception e){
 				logger.error(e.getMessage(),e);
 			}
 		}
+		sq = new SenseiJSONQuery(qjson);
 		return sq;
 	}
 

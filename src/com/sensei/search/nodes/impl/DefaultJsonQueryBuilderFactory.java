@@ -5,30 +5,23 @@ import org.apache.lucene.queryParser.QueryParser;
 import org.apache.lucene.search.Filter;
 import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Query;
+import org.json.JSONObject;
 
-import com.sensei.avro.SenseiAvroQuery;
 import com.sensei.search.nodes.SenseiQueryBuilder;
 
-public class DefaultAvroQueryBuilderFactory extends
-		AbstractAvroQueryBuilderFactory<SenseiAvroQuery> {
+public class DefaultJsonQueryBuilderFactory extends
+		AbstractJsonQueryBuilderFactory {
 
 	private final QueryParser _qparser;
-	public DefaultAvroQueryBuilderFactory(QueryParser qparser) {
-		super(SenseiAvroQuery.class);
+	public DefaultJsonQueryBuilderFactory(QueryParser qparser) {
 		_qparser = qparser;
 	}
 
+	
 	@Override
-	protected SenseiQueryBuilder buildQuery(SenseiAvroQuery avroQuery) {
-		CharSequence charSeq = avroQuery == null ? null : avroQuery.query;
-		final String queryString;
-		if (charSeq!=null && charSeq.length()>0){
-			queryString = charSeq.toString();
-		}
-		else{
-			queryString = null;
-		}
-		
+	protected SenseiQueryBuilder buildQuery(JSONObject jsonQuery) {
+		final String queryString = jsonQuery == null ? null : jsonQuery.optString("query");
+	
 		return new SenseiQueryBuilder(){
 
 			@Override
@@ -38,7 +31,7 @@ public class DefaultAvroQueryBuilderFactory extends
 
 			@Override
 			public Query buildQuery() throws ParseException {
-				if (queryString!=null){
+				if (queryString!=null && queryString.length()>0){
 					return _qparser.parse(queryString);
 				}
 				else{
@@ -48,5 +41,4 @@ public class DefaultAvroQueryBuilderFactory extends
 			
 		};
 	}
-
 }

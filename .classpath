@@ -24,9 +24,9 @@
 	<classpathentry kind="lib" path="lib/master/commons-lang.jar"/>
 	<classpathentry kind="lib" path="lib/master/json.jar"/>
 	<classpathentry kind="lib" path="lib/master/commons-collections.jar"/>
-	<classpathentry kind="lib" path="lib/master/avro.jar"/>
 	<classpathentry kind="lib" path="lib/master/kafka-0.05.jar"/>
 	<classpathentry kind="lib" path="lib/master/bobo-browse-2.5.0.jar"/>
 	<classpathentry kind="lib" path="lib/master/zoie-2.5.0.jar"/>
+	<classpathentry kind="lib" path="lib/master/avro.jar"/>
 	<classpathentry kind="output" path="output"/>
 </classpath>

@@ -4,19 +4,17 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.concurrent.ExecutionException;
 
-import org.apache.avro.util.Utf8;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.lucene.search.SortField;
+import org.json.JSONObject;
 import org.springframework.remoting.httpinvoker.HttpInvokerProxyFactoryBean;
 
 import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
 import com.linkedin.norbert.NorbertException;
-import com.sensei.avro.SenseiAvroQuery;
-import com.sensei.search.req.AvroQuery;
+import com.sensei.search.req.SenseiJSONQuery;
 import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.req.SenseiResult;
 import com.sensei.search.req.SenseiSystemInfo;
@@ -297,18 +295,18 @@ public class SenseiClusterClient {
 			try{
 			  SenseiRequest req = _reqBuilder.getRequest();
 			  String queryString = _reqBuilder.getQueryString();
-			
+
+			  JSONObject qObj = new JSONObject();
 			  if (queryString!=null && queryString.length()>0){
 				try{
-				  SenseiAvroQuery q = new SenseiAvroQuery();
-				  q.query = new Utf8(queryString);
-				  q.paramMap = new HashMap<CharSequence,CharSequence>();
-				  req.setQuery(new AvroQuery<SenseiAvroQuery>(q,SenseiAvroQuery.class));
+				  qObj.put("query",queryString);
 				}
 				catch(Exception e){
 				  e.printStackTrace();
 			    }
 			  }
+
+			  req.setQuery(new SenseiJSONQuery(qObj));
 			  
 			  SenseiResult res = svc.doQuery(req);
 			  if(res == null)

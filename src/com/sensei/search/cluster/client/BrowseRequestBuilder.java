@@ -1,16 +1,14 @@
 package com.sensei.search.cluster.client;
 
 import java.io.UnsupportedEncodingException;
-import java.util.HashMap;
 
-import org.apache.avro.util.Utf8;
 import org.apache.lucene.search.SortField;
+import org.json.JSONObject;
 
 import com.browseengine.bobo.api.BrowseSelection;
 import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
-import com.sensei.avro.SenseiAvroQuery;
-import com.sensei.search.req.AvroQuery;
+import com.sensei.search.req.SenseiJSONQuery;
 import com.sensei.search.req.SenseiQuery;
 import com.sensei.search.req.SenseiRequest;
 
@@ -72,17 +70,15 @@ public class BrowseRequestBuilder {
 	}
 	
 	public void setQuery(String qString){
+		JSONObject qObj = new JSONObject();
 		if (qString!=null){
 			try {
-				SenseiAvroQuery queryData = new SenseiAvroQuery();
-				queryData.query = new Utf8(qString);
-				queryData.paramMap = new HashMap<CharSequence,CharSequence>();
-				AvroQuery<SenseiAvroQuery> q = new AvroQuery<SenseiAvroQuery>(queryData,SenseiAvroQuery.class);
-				_req.setQuery(q);
+				qObj.put("query", qString);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}
+		_req.setQuery(new SenseiJSONQuery(qObj));
 	}
 	
 	public void clear(){
