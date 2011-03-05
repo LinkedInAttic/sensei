@@ -7,12 +7,11 @@ import junit.textui.TestRunner;
 public class SenseiTestSuite extends TestSuite{
   public static Test suite(){
      TestSuite suite=new TestSuite();
-     suite.addTestSuite(SenseiTestCase.class);
-     suite.addTestSuite(SenseiTestSerialization.class);
-     suite.addTestSuite(SenseiIndexingAPITest.class);
-     suite.addTestSuite(SenseiRestServerTest.class);
-//     suite.addTestSuite(SenseiTestUIDFacetHandler.class);
-     suite.addTestSuite(SenseiTestUIDFacetHandlerUsingBoboZoie.class);
+     suite.addTestSuite(TestSensei.class);
+     suite.addTestSuite(TestSerialization.class);
+     suite.addTestSuite(TestIndexingAPI.class);
+     suite.addTestSuite(TestRestServer.class);
+     suite.addTestSuite(TestUIDFacetHandlerUsingBoboZoie.class);
      return suite;
   }
  

@@ -56,7 +56,7 @@ public class AbstractSenseiTestCase extends TestCase {
     String confDirName=System.getProperty("test.conf.dir");
     File confDir = null;
     if (confDirName == null)
-      confDir = new File("test/conf");
+      confDir = new File("src/test/conf");
     else
       confDir = new File(confDirName);
 
@@ -76,5 +76,9 @@ public class AbstractSenseiTestCase extends TestCase {
     routerFactory = (PartitionedLoadBalancerFactory<Integer>)testSpringCtx.getBean("router-factory");
     networkServer1 = (NetworkServer)testSpringCtx.getBean("network-server-1");
     networkServer2 = (NetworkServer)testSpringCtx.getBean("network-server-2");
+  }
+
+  public void testNothing(){
+	
   }
 }

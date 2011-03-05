@@ -13,9 +13,9 @@ import com.sensei.search.req.protobuf.ProtoConvertUtil;
  * @author nnarkhed
  *
  */
-public class SenseiTestSerialization extends TestCase{
+public class TestSerialization extends TestCase{
 
-	public SenseiTestSerialization(String testName) {
+	public TestSerialization(String testName) {
 		super(testName);
 	}
 	

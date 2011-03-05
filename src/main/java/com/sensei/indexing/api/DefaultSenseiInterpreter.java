@@ -31,6 +31,10 @@ public class DefaultSenseiInterpreter<V> extends
 	public static final Map<MetaType,String> DEFAULT_FORMAT_STRING_MAP = new HashMap<MetaType,String>();
 	public static final Map<Class,MetaType>  CLASS_METATYPE_MAP = new HashMap<Class,MetaType>();
 	
+	public static final Map<String,Index>  INDEX_VAL_MAP = new HashMap<String,Index>();
+	public static final Map<String,Store>  STORE_VAL_MAP = new HashMap<String,Store>();
+	public static final Map<String,TermVector>  TV_VAL_MAP = new HashMap<String,TermVector>();		
+	
 	static{
 		DEFAULT_FORMAT_STRING_MAP.put(MetaType.Integer, "00000000000000000000");
 		DEFAULT_FORMAT_STRING_MAP.put(MetaType.Short, "00000");
@@ -56,6 +60,25 @@ public class DefaultSenseiInterpreter<V> extends
 		CLASS_METATYPE_MAP.put(Boolean.class, MetaType.Boolean);
 		CLASS_METATYPE_MAP.put(Date.class, MetaType.Date);
 		
+		INDEX_VAL_MAP.put("NO",Index.NO);
+		INDEX_VAL_MAP.put("ANALYZED",Index.ANALYZED);
+		INDEX_VAL_MAP.put("TOKENIZED",Index.ANALYZED);
+		INDEX_VAL_MAP.put("NOT_ANALYZED",Index.NOT_ANALYZED);
+		INDEX_VAL_MAP.put("UN_TOKENIZED",Index.NOT_ANALYZED);
+		INDEX_VAL_MAP.put("NOT_ANALYZED_NO_NORMS",Index.NOT_ANALYZED_NO_NORMS);
+		INDEX_VAL_MAP.put("NO_NORMS",Index.NOT_ANALYZED_NO_NORMS);
+		INDEX_VAL_MAP.put("NOT_ANALYZED_NO_NORMS",Index.NOT_ANALYZED_NO_NORMS);
+		INDEX_VAL_MAP.put("ANALYZED_NO_NORMS",Index.ANALYZED_NO_NORMS);
+		
+		STORE_VAL_MAP.put("NO",Store.NO);
+		STORE_VAL_MAP.put("YES",Store.YES);
+		STORE_VAL_MAP.put("COMPRESS",Store.COMPRESS);
+		
+		TV_VAL_MAP.put("NO",TermVector.NO);
+		TV_VAL_MAP.put("YES",TermVector.YES);
+		TV_VAL_MAP.put("WITH_POSITIONS",TermVector.WITH_POSITIONS);
+		TV_VAL_MAP.put("WITH_OFFSETS",TermVector.WITH_OFFSETS);
+		TV_VAL_MAP.put("WITH_POSITIONS_OFFSETS",TermVector.WITH_POSITIONS_OFFSETS);
 	}
 	
 	public static <T> TermListFactory<T> getTermListFactory(Class<T> cls){
@@ -120,9 +143,13 @@ public class DefaultSenseiInterpreter<V> extends
 			name = f.getName();
 		  }
 		  
-		  Index idx = textAnnotation.index();
-		  Store store = textAnnotation.store();
-		  TermVector tv = textAnnotation.termVector();
+		  Index idx = INDEX_VAL_MAP.get(textAnnotation.index());
+		  Store store = STORE_VAL_MAP.get(textAnnotation.store());
+		  TermVector tv = TV_VAL_MAP.get(textAnnotation.termVector());
+		
+		  if (idx==null || store==null || tv==null){
+			throw new RuntimeException("Invalid indexing parameter specification");
+		  }
 		  IndexSpec indexingSpec = new IndexSpec();
 		  indexingSpec.store = store;
 		  indexingSpec.index = idx;

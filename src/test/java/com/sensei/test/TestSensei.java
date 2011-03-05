@@ -28,21 +28,21 @@ import com.sensei.search.nodes.impl.SimpleQueryBuilderFactory;
 import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.req.SenseiResult;
 
-public class SenseiTestCase extends AbstractSenseiTestCase
+public class TestSensei extends AbstractSenseiTestCase
 {
   // static File IdxDir = new File(System.getProperty("idx.dir"));
   static File IdxDir = new File("data/cardata");
   static final String SENSEI_TEST_CLUSTER_NAME = "testCluster";
-  private static final Logger logger = Logger.getLogger(SenseiTestCase.class);
+  private static final Logger logger = Logger.getLogger(TestSensei.class);
 
   private final MBeanServer mbeanServer = java.lang.management.ManagementFactory.getPlatformMBeanServer();
 
-  public SenseiTestCase()
+  public TestSensei()
   {
     super();
   }
 
-  public SenseiTestCase(String testName)
+  public TestSensei(String testName)
   {
     super(testName);
   }

@@ -26,19 +26,19 @@ import com.browseengine.bobo.facets.FacetHandler;
 import com.sensei.search.facet.UIDFacetHandler;
 import com.sensei.search.nodes.SenseiIndexReaderDecorator;
 
-public class SenseiTestUIDFacetHandlerUsingBoboZoie extends TestCase
+public class TestUIDFacetHandlerUsingBoboZoie extends TestCase
 {
   // the index data has 10 docs with docIds from 0 to 9 and UIDs from 100 to 109
   static File IdxDir = new File("data/uiddata");
-  private static final Logger logger = Logger.getLogger(SenseiTestUIDFacetHandlerUsingBoboZoie.class);
+  private static final Logger logger = Logger.getLogger(TestUIDFacetHandlerUsingBoboZoie.class);
   private final MBeanServer mbeanServer = java.lang.management.ManagementFactory.getPlatformMBeanServer();
 
-  public SenseiTestUIDFacetHandlerUsingBoboZoie()
+  public TestUIDFacetHandlerUsingBoboZoie()
   {
     super();
   }
 
-  public SenseiTestUIDFacetHandlerUsingBoboZoie(String testName)
+  public TestUIDFacetHandlerUsingBoboZoie(String testName)
   {
     super(testName);
   }

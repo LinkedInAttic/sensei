@@ -5,16 +5,12 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import org.apache.lucene.document.Field.Index;
-import org.apache.lucene.document.Field.Store;
-import org.apache.lucene.document.Field.TermVector;
-
 
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Text {
 	String name() default "";
-	Store store() default Store.NO;
-	Index index() default Index.NOT_ANALYZED_NO_NORMS;
-	TermVector termVector() default TermVector.NO;
+	String store() default "NO";
+	String index() default "NOT_ANALYZED_NO_NORMS";
+	String termVector() default "NO";
 }

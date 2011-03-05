@@ -29,7 +29,7 @@ import com.sensei.indexing.api.StoredValue;
 import com.sensei.indexing.api.Text;
 import com.sensei.indexing.api.Uid;
 
-public class SenseiIndexingAPITest extends TestCase {
+public class TestIndexingAPI extends TestCase {
 
 	static class TestObj{
 		@Uid
@@ -42,7 +42,7 @@ public class SenseiIndexingAPITest extends TestCase {
 		@Text(name="text")
 		private String content;
 		
-		@Text(store=Store.YES,index=Index.NOT_ANALYZED,termVector=TermVector.WITH_POSITIONS_OFFSETS)
+		@Text(store="YES",index="NOT_ANALYZED",termVector="WITH_POSITIONS_OFFSETS")
 		private String content2;
 		
 		@StoredValue(name="store")
@@ -82,10 +82,10 @@ public class SenseiIndexingAPITest extends TestCase {
 	private DefaultSenseiInterpreter<TestObj> nodeInterpreter = new DefaultSenseiInterpreter(TestObj.class);
 	
 	
-	public SenseiIndexingAPITest() {
+	public TestIndexingAPI() {
 	}
 
-	public SenseiIndexingAPITest(String name) {
+	public TestIndexingAPI(String name) {
 		super(name);
 	}
 	
