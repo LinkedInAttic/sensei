@@ -1,0 +1,461 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" >
+<head>
+	<meta content="text/html; charset=utf-8" http-equiv="Content-Type"/>
+	<link rel="stylesheet" type="text/css" href="css/main.css" />
+	<script type="text/javascript" src="js/sensei-client.js"></script>
+	<script type="text/javascript" src="http://code.jquery.com/jquery-1.4.4.js"></script>
+	<script type="text/javascript">
+	// <![CDATA[
+	var r = "";
+
+	var senseiClient = null;
+
+	var renderStatus = function (obj) {
+		if (!obj) return;
+
+		$('#hitcount').text(""+obj.numhits+" out of "+obj.totaldocs+" ("+obj.time*1.0/1000+" seconds)");
+	};
+
+	var renderPath = function (field, objs) {
+		if (!objs) return;
+		var headContainer = $('#'+field+' .ROWHEAD span').empty();
+
+		var div = $('#'+field).get(0);
+		var vals = [];
+		if (div.sensei_selections.length != 0) {
+			var val = div.sensei_selections[0].values;
+			var _vals = val.split('/');
+			for (var i=0; i<_vals.length; ++i) {
+				if (_vals[i] != '') {
+					vals.push([_vals[i]]);
+					var v = [];
+					for (var j=0; j<vals.length; ++j) {
+						v.push(vals[j][0]);
+					}
+					vals[vals.length-1].push(v.join('/'));
+				}
+			}
+		}
+		vals = [['All', '']].concat(vals);
+		for (var i=0; i<vals.length; ++i) {
+			headContainer.append('<a />').find('a:last')
+				.text(vals[i][0])
+				.click(function (e) {
+					if (div.sensei_selections.length == 0) {
+						div.sensei_selections.push(new SenseiSelection(field, this.value));
+						senseiClient.addSelection(div.sensei_selections[0]);
+					}
+					else {
+						div.sensei_selections[0].values = this.value;
+					}
+					refreshPage();
+				}).get(0).value = vals[i][1];
+			headContainer.append('/');
+		}
+
+		var container = $('#'+field+' table table tr').empty();
+		for (var i=0; i<objs.length; ++i) {
+			var obj = objs[i];
+			if (obj.selected)
+				continue;
+
+			var _v = obj.value.split('/');
+			var v = _v.pop();
+			while (v=='' && _v.length)
+				v = _v.pop();
+			container.append('<td />').find('td:last')
+				.append('<a />').find('a:last')
+				.text(v+' ('+obj.count+')')
+				.click(function (e) {
+					if (div.sensei_selections.length == 0) {
+						div.sensei_selections.push(new SenseiSelection(field, this.value));
+						senseiClient.addSelection(div.sensei_selections[0]);
+					}
+					else {
+						div.sensei_selections[0].values = this.value;
+					}
+					refreshPage();
+				}).get(0).value = obj.value;
+		}
+	};
+
+	var renderTags = function (objs) {
+		if (!objs) return;
+		var headContainer = $('#tags .ROWHEAD span').empty();
+
+		var div = $('#tags').get(0);
+
+		var container = $('#tags table td:last').empty();
+		for (var i=0; i<objs.length; ++i) {
+			var obj = objs[i];
+			if (obj.selected) {
+				if (headContainer.text()) headContainer.append(', ');
+				headContainer.append('<a />').find('a:last')
+					.text(obj.value)
+					.click(function (e) {
+						var a = div.sensei_selections[0].values.split(',');
+						var b = [];
+						for (var j=0; j<a.length; ++j) {
+							if (a[j] != this.value) b.push(a[j]);
+						}
+						div.sensei_selections[0].values = b.join(',');
+						if (div.sensei_selections[0].values == '') {
+							senseiClient.removeSelection(div.sensei_selections[0]);
+							div.sensei_selections.splice(0, div.sensei_selections.length);
+						}
+						refreshPage();
+					}).get(0).value = obj.value;
+			}
+			else {
+				if (container.text()) container.append(' ');
+				container.append('<a />').find('a:last')
+					.text(obj.value)
+					.addClass('tag'+i)
+					.click(function (e) {
+						if (div.sensei_selections.length == 0) {
+							div.sensei_selections.push(new SenseiSelection('tags', this.value,
+									'', SenseiSelection.prototype.Operation.AND));
+							senseiClient.addSelection(div.sensei_selections[0]);
+						}
+						else {
+							var a = div.sensei_selections[0].values.split(',');
+							a.push(this.value);
+							div.sensei_selections[0].values = a.join(',');
+						}
+						refreshPage();
+					}).get(0).value = obj.value;
+			}
+		}
+	};
+
+	var renderSimple = function (field, objs) {
+		if (!objs) return;
+		var headTD = $('#'+field+' .ROWHEAD');
+
+		var div = $('#'+field).get(0);
+
+		$('#'+field+' .selected').removeClass('selected');
+
+		var container = $('#'+field+' ul').empty();
+		container.append('<li />').find('li:last')
+			.append('<a />').find('a:last')
+			.text('All')
+			.each(function(index) {
+				if (div.sensei_selections.length == 0) $(this).addClass('selected');
+			})
+			.click(function (e) {
+				if ($(this).hasClass('selected'))
+					return false;
+				senseiClient.removeSelection(div.sensei_selections.pop());
+				refreshPage();
+			}).get(0).value = 'All';
+		for (var i=0; i<objs.length; ++i) {
+			var obj = objs[i];
+			container.append('<li />').find('li:last')
+				.append('<a />').find('a:last')
+				.text(obj.value+' ('+obj.count+')')
+				.each(function(index) {
+					if (obj.selected) $(this).addClass('selected');
+				})
+				.click(function (e) {
+					if ($(this).hasClass('selected'))
+						return false;
+					senseiClient.removeSelection(div.sensei_selections.pop());
+					div.sensei_selections.push(new SenseiSelection(field, this.value));
+					senseiClient.addSelection(div.sensei_selections[div.sensei_selections.length-1]);
+					refreshPage();
+				}).get(0).value = obj.value;
+		}
+		$('#'+field+' .ROWHEAD').text(field+': '+$('#'+field+' .selected').get(0).value);
+	};
+
+	var renderFacets = function (facets) {
+		renderPath('city', facets.city);
+		renderPath('makemodel', facets.makemodel);
+		renderTags(facets.tags);
+		renderSimple('color', facets.color);
+		renderSimple('category', facets.category);
+		renderSimple('year', facets.year);
+		renderSimple('price', facets.price);
+		renderSimple('mileage', facets.mileage);
+	};
+
+	var renderHits = function (hits) {
+		var hitsHead = $('#hits table thead tr').empty();
+		var cols = [['Sort by:', 'relevance'], ['color', 'color'], ['category', 'category'], ['year', 'year'], ['price', 'price'], ['mileage', 'mileage']];
+		for (var i=0; i<cols.length; ++i) {
+			if (cols[i][1] == 'relevance' && senseiClient._sorts[0].field == 'relevance') {
+				hitsHead.append('<th />').find('th:last').text(cols[i][0]);
+			}
+			else {
+				hitsHead.append('<th />').find('th:last')
+						.append('<a />').find('a:last')
+						.addClass('sortable')
+						.text(cols[i][0])
+						.click(function (e) {
+							var s = senseiClient._sorts[0];
+							if (s.field == this.value) {
+								s.dir = s.dir==SenseiSort.prototype.DIR.ASC ?
+									SenseiSort.prototype.DIR.DESC:SenseiSort.prototype.DIR.ASC;
+							}
+							else {
+								s.field = this.value;
+							}
+							senseiClient.offset = 0;
+							refreshPage();
+						}).get(0).value = cols[i][1];
+			}
+		}
+
+		var tbody = $('#hits').find('tbody').empty();
+
+		for(var i=0; i<hits.length; ++i) {
+			var hit = hits[i];
+			var container = tbody.append('<tr />').find('tr:last');
+			container.append('<td />').find('td:last').text(senseiClient.offset+i+1);
+			container.append('<td />').find('td:last').text(hit.color.join(','));
+			container.append('<td />').find('td:last').text(hit.category.join(','));
+			container.append('<td />').find('td:last').text(hit.year.join(','));
+			container.append('<td />').find('td:last').text(hit.price.join(','));
+			container.append('<td />').find('td:last').text(hit.mileage.join(','));
+		}
+	};
+
+	var renderPaging = function (obj) {
+		if (!obj) return;
+
+		var pager = $('#hits table tfoot tr td').empty();
+		if (senseiClient.offset > 0) {
+			pager.append('<a />').find('a:last')
+				.text('First')
+				.click(function (e) {
+					senseiClient.offset = 0;
+					refreshPage();
+				});
+			pager.append(' ');
+			pager.append('<a />').find('a:last')
+				.text('Prev')
+				.click(function (e) {
+					senseiClient.offset -= senseiClient.length;
+					if (senseiClient.offset < 0)
+						senseiClient.offset = 0;
+					refreshPage();
+				});
+		}
+		if (senseiClient.offset+senseiClient.length < obj.numhits) {
+			if (pager.text())
+				pager.append(' ');
+			pager.append('<a />').find('a:last')
+				.text('Next')
+				.click(function (e) {
+					senseiClient.offset += senseiClient.length;
+					if (senseiClient.offset > obj.numhits) {
+						if (obj.numhits % senseiClient.length)
+							senseiClient.offset = obj.numhits - (obj.numhits%senseiClient.length);
+						else
+							senseiClient.offset = obj.numhits - senseiClient.length;
+					}
+					refreshPage();
+				});
+			pager.append(' ');
+			pager.append('<a />').find('a:last')
+				.text('Last')
+				.click(function (e) {
+					if (obj.numhits % senseiClient.length)
+						senseiClient.offset = obj.numhits - (obj.numhits%senseiClient.length);
+					else
+						senseiClient.offset = obj.numhits - senseiClient.length;
+					if (senseiClient.offset < 0)
+						senseiClient.offset = 0;
+					refreshPage();
+				});
+		}
+	};
+
+	var senseiCallback = function (res) {
+		r = res;
+
+		renderStatus(res);
+
+		renderFacets(res.facets);
+		renderHits(res.hits);
+
+		renderPaging(res);
+	};
+
+	var refreshPage = function () {
+		senseiClient.request(senseiCallback);
+	};
+
+	$(function (e) {
+		$('#search').click(function (e) {
+			$('#city').get(0).sensei_selections = [];
+			$('#makemodel').get(0).sensei_selections = [];
+			$('#tags').get(0).sensei_selections = [];
+			$('#color').get(0).sensei_selections = [];
+			$('#category').get(0).sensei_selections = [];
+			$('#year').get(0).sensei_selections = [];
+			$('#price').get(0).sensei_selections = [];
+			$('#mileage').get(0).sensei_selections = [];
+
+			senseiClient = new SenseiClient($('#q').val().trim());
+
+			senseiClient.addFacet(new SenseiFacet('city'));
+			senseiClient.addFacet(new SenseiFacet('makemodel'));
+			senseiClient.addFacet(new SenseiFacet('tags', false));
+			senseiClient.addFacet(new SenseiFacet('color'));
+			senseiClient.addFacet(new SenseiFacet('category'));
+			senseiClient.addFacet(new SenseiFacet('year'));
+			senseiClient.addFacet(new SenseiFacet('price'));
+			senseiClient.addFacet(new SenseiFacet('mileage'));
+
+			senseiClient.addSort(new SenseiSort('relevance'));
+
+			refreshPage();
+		}).click();
+
+		$('#q').keypress(function (e) {
+			if (e.which == 13) {
+				e.preventDefault();
+				$('#search').click();
+				return false;
+			};
+		});
+
+		$('#resetAll').click(function (e) {
+			var ev = new $.Event("keypress");
+			ev.which = 13;
+			$('#q').val('').trigger(ev);
+			e.preventDefault();
+			return false;
+		});
+	});
+	// ]]>
+	</script>
+</head>
+<body>
+<table width="100%" border="0" summary="">
+	<tr>
+		<td align="left"> <span class="text">Hits: </span><span class="hitstat" id="hitcount"></span> </td>
+		<td align="right"> <span class="text"></span> <input id="q" /> <button id="search">Search</button> </td>
+	</tr>
+	<tr>
+		<td align="right" colspan="2"> <a id="resetAll">reset all</a> </td>
+	</tr>
+</table>
+<table width="100%" border="1" summary="">
+	<tr valign="top">
+		<td width="50%">
+			<div id="city">
+				<table width="100%">
+					<tr>
+						<td align="left" class="ROWHEAD">city: <span><a>All</a>/</span></td>
+					</tr>
+					<tr>
+						<td>
+							<table width="100%">
+								<tr>
+								</tr>
+							</table>
+						</td>
+					</tr>
+				</table>
+			</div>
+		</td>
+		<td width="50%">
+			<div id="makemodel">
+				<table width="100%">
+					<tr>
+						<td align="left" class="ROWHEAD">makemodel: <span><a>All</a></span></td>
+					</tr>
+					<tr>
+						<td>
+							<table width="100%">
+								<tr>
+								</tr>
+							</table>
+						</td>
+					</tr>
+				</table>
+			</div>
+		</td>
+	</tr>
+</table>
+<table width="100%" border="1" summary="">
+	<tr valign="top">
+		<td width="100%">
+			<div id="tags">
+				<table width="100%">
+					<tr>
+						<td class="ROWHEAD">tags: <span></span></td>
+					</tr>
+					<tr>
+						<td align="center"></td>
+					</tr>
+				</table>
+			</div>
+
+		</td>
+	</tr>
+</table>
+<table width="100%" border="1" summary="">
+	<tr valign="top">
+		<td width="20%">
+			<div id="color">
+				<table width="100%">
+					<tr><td align="left" class="ROWHEAD"></td></tr>
+					<tr align="left"><td class="SELECTELEM"><ul></ul></td></tr>
+				</table>
+			</div>
+		</td>
+		<td width="20%">
+			<div id="category">
+				<table width="100%">
+					<tr><td align="left" class="ROWHEAD"></td></tr>
+					<tr align="left"><td class="SELECTELEM"><ul></ul></td></tr>
+				</table>
+			</div>
+		</td>
+		<td width="20%">
+			<div id="year">
+				<table width="100%">
+					<tr><td align="left" class="ROWHEAD">year: </td></tr>
+					<tr align="left"><td class="SELECTELEM"><ul></ul></td></tr>
+				</table>
+			</div>
+		</td>
+		<td width="20%">
+			<div id="price">
+				<table width="100%">
+					<tr><td align="left" class="ROWHEAD">price: </td></tr>
+					<tr align="left"><td class="SELECTELEM"><ul></ul></td></tr>
+				</table>
+			</div>
+
+		</td>
+		<td width="20%">
+			<div id="mileage">
+				<table width="100%">
+					<tr><td align="left" class="ROWHEAD">mileage: </td></tr>
+					<tr align="left"><td class="SELECTELEM"><ul></ul></td></tr>
+				</table>
+			</div>
+		</td>
+	</tr>
+</table>
+<div id="hits">
+	<table width="100%">
+		<thead>
+		<tr><th width="10%">Sort by: </th><th width="18%" class="sortable"><a>color</a></th><th width="18%" class="sortable"><a>category</a></th><th width="18%" class="sortable"><a>year</a></th><th width="18%" class="sortable"><a>price</a></th><th width="18%" class="sortable"><a style="cursor: pointer;">mileage</a></th></tr>
+		</thead>
+		<tfoot>
+			<tr><td align="right" colspan="6" class="scroll"><a>Top </a><a>Up </a><a>Down </a><a>Bottom </a></td></tr>
+		</tfoot>
+		<tbody>
+		</tbody>
+	</table>
+</div>
+</body>
+</html>
+

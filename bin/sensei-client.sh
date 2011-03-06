@@ -3,8 +3,8 @@
 bin=`dirname "$0"`
 bin=`cd "$bin"; pwd`
 
-lib=$bin/../lib/master
-dist=$bin/../dist
+lib=$bin/../lib
+dist=$bin/../target
 resources=$bin/../resources
 
 # HEAP_OPTS="-Xmx4096m -Xms2048m -XX:NewSize=1024m" # -d64 for 64-bit awesomeness
