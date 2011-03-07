@@ -83,6 +83,20 @@
 				</executions>
 			</plugin>
 			<plugin>
+		      <artifactId>maven-dependency-plugin</artifactId>
+		      <executions>
+		         <execution>
+		         <phase>package</phase>
+		         <goals>
+		            <goal>copy-dependencies</goal>
+		         </goals>
+		         <configuration>
+		            <outputDirectory>${project.build.directory}/lib</outputDirectory>
+		         </configuration>
+		       </execution>
+		       </executions>
+		    </plugin>
+			<plugin>
 			        <groupId>org.mortbay.jetty</groupId>
 			        <artifactId>maven-jetty-plugin</artifactId>
 			        <version>6.1.26</version>

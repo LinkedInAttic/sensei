@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import kafka.api.FetchRequest;
+import kafka.api.OffsetRequest;
 import kafka.consumer.SimpleConsumer;
 import kafka.message.ByteBufferMessageSet;
 import kafka.message.Message;
@@ -49,6 +50,13 @@ public abstract class KafkaStreamDataProvider<D> extends StreamDataProvider<D, D
 	}
 	
 	private FetchRequest buildReq(){
+		if (_offset<=0){
+			long time = OffsetRequest.EARLIEST_TIME();
+			if (_offset==-1){
+				time = -OffsetRequest.LATEST_TIME();
+			}
+			_offset = _kafkaConsumer.getOffsetsBefore(_topic, 0, time, 1)[0];
+		}
 		return new FetchRequest(_topic, 0, _offset,DEFAULT_MAX_MSG_SIZE );
 	}
 	

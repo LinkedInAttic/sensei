@@ -3,7 +3,7 @@
 bin=`dirname "$0"`
 bin=`cd "$bin"; pwd`
 
-lib=$bin/../lib
+lib=$bin/../target/lib
 dist=$bin/../target
 resources=$bin/../resources
 
