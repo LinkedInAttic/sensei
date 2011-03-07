@@ -1,0 +1,39 @@
+<project name="sensei" default="dist">
+
+	<target name="clean" description="--> clean build, dist, and logs">
+		<exec executable="mvn">
+			<arg line="clean"/>
+		</exec>
+	</target>
+
+	<target name="dist" description="--> build .jar and sources into dist">
+		<exec executable="mvn">
+			<arg line="-Dmaven.test.skip=true package"/>
+		</exec>
+	</target>
+	
+	<target name="deploy">
+		<exec executable="mvn">
+		  <arg line="deploy" />
+		</exec>
+	</target>
+	
+	<target name="release">
+		<exec executable="mvn">
+		  <arg line="-DperformRelease=true deploy" />
+		</exec>
+	</target>
+	
+	<target name="test" description="Runs JUnit Tests -- use -Dtests.to.run=testA,testB,... to run tests selectively">
+		<echo>=== Running JUnit Tests ===</echo>
+		<exec executable="mvn">
+			<arg line="test"/>
+		</exec>
+	</target>
+
+    <target name="server">
+	   <exec executable="mvn">
+		  <arg line="-Dlog4j.configuration=file:./resources/log4j.properties jetty:run" />
+	   </exec>
+	</target>
+</project>
