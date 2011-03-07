@@ -9,13 +9,7 @@
 	<!-- dummy placeholder, we are not worry about indexing for now -->			
 	<bean id="interpreter" class="com.sensei.search.nodes.NoOpIndexableInterpreter" />
 	
-	<bean id="lucene-version" class="org.apache.lucene.util.Version" factory-method="valueOf">
-		<constructor-arg value="LUCENE_30" />
-	</bean>
-	
-	<bean id="analyzer" class="org.apache.lucene.analysis.standard.StandardAnalyzer">
-		<constructor-arg ref="lucene-version"/>
-	</bean>
+	<bean id="analyzer" class="org.apache.lucene.analysis.standard.StandardAnalyzer" />
 	
 	
 	<bean id="idxDecorator" class="com.sensei.search.nodes.SenseiIndexReaderDecorator">
