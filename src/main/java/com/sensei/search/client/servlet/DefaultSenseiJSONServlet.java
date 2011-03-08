@@ -40,8 +40,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
+import java.util.Map.Entry;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.DataConfiguration;
@@ -56,9 +56,9 @@ import org.json.JSONObject;
 
 import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.BrowseSelection;
-import com.browseengine.bobo.api.BrowseSelection.ValueOperation;
 import com.browseengine.bobo.api.FacetAccessible;
 import com.browseengine.bobo.api.FacetSpec;
+import com.browseengine.bobo.api.BrowseSelection.ValueOperation;
 import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
 import com.sensei.search.req.SenseiHit;
 import com.sensei.search.req.SenseiJSONQuery;
@@ -269,7 +269,7 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet {
 		return jsonObj;
 	}
 	
-	protected SenseiQuery buildSenseiQuery(DataConfiguration params){
+	public static SenseiQuery buildSenseiQuery(DataConfiguration params){
 		SenseiQuery sq = null;
 		String query = params.getString(PARAM_QUERY,null);
 
@@ -285,10 +285,15 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet {
 		sq = new SenseiJSONQuery(qjson);
 		return sq;
 	}
+	
 
 	@Override
 	protected SenseiRequest buildSenseiRequest(DataConfiguration params)
 			throws Exception {
+		return convertSenseiRequest(params);
+	}
+
+	public static SenseiRequest convertSenseiRequest(DataConfiguration params){
 		int offset = params.getInt(PARAM_OFFSET, 0);
 		int count = params.getInt(PARAM_COUNT,10);
 		
