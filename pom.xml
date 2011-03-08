@@ -5,7 +5,7 @@
 	<artifactId>sensei</artifactId>
 	<packaging>jar</packaging>
 	<name>sensei</name>
-	<version>2.5.0-SNAPSHOT</version>
+	<version>0.0.1-SNAPSHOT</version>
 	<description>sensei search</description>
 	<url>http://sna-projects.com/sensei/</url>
 
