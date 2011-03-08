@@ -11,6 +11,7 @@ import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_F
 import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_FETCH_STORED;
 import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_OFFSET;
 import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_QUERY;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_QUERY_PARAM;
 import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_RESULT_FACETS;
 import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_RESULT_HITS;
 import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_RESULT_HIT_EXPLANATION;
@@ -282,6 +283,22 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet {
 				logger.error(e.getMessage(),e);
 			}
 		}
+		
+		try{
+		  String[] qparams = params.getStringArray(PARAM_QUERY_PARAM);
+		  for (String qparam : qparams){
+			qparam = qparam.trim();
+			if (qparam.length() == 0) continue;
+			String[] parts = qparam.split(":");
+			if (parts.length==2){
+			  qjson.put(parts[0], parts[1]);
+			}
+		  }
+		}
+		catch(JSONException jse){
+			logger.error(jse.getMessage(),jse);
+		}
+
 		sq = new SenseiJSONQuery(qjson);
 		return sq;
 	}

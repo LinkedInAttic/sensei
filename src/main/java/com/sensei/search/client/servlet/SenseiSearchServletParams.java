@@ -4,6 +4,7 @@ public interface SenseiSearchServletParams {
 	  public static final String PARAM_OFFSET = "start";
 	  public static final String PARAM_COUNT = "rows";
 	  public static final String PARAM_QUERY = "q";
+	  public static final String PARAM_QUERY_PARAM = "qparam";
 	  public static final String PARAM_SORT = "sort";
 	  public static final String PARAM_SORT_ASC = "asc";
 	  public static final String PARAM_SORT_DESC = "desc";
