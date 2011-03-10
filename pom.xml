@@ -124,6 +124,28 @@
 				    </dependencies> 
 			      </plugin>
 			
+				<!-- generate protobuf classes -->
+				<plugin>
+					<groupId>org.codehaus.mojo</groupId>
+					<artifactId>exec-maven-plugin</artifactId>
+					<version>1.1</version>
+					<executions>
+						<execution>
+							<id>generate-sources</id>
+							<phase>generate-sources</phase>
+							<configuration>
+								<executable>protoc</executable>
+								<arguments>
+									<argument>--java_out=src/main/java</argument>
+									<argument>protobuf/*.proto</argument>
+								</arguments>
+							</configuration>
+							<goals>
+								<goal>exec</goal>
+							</goals>
+						</execution>
+					</executions>
+				</plugin>
 
 		</plugins>
 	</build>
