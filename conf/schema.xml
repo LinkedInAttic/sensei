@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<sensei:schema xsi:schemaLocation="http://localhost/~john/sensei-schema.xsd">
+<sensei:schema xsi:schemaLocation="http://javasoze.github.com/sensei/schema/sensei-schema.xsd">
 
   <!-- valid types:
     uid - only 1 column can be of type uid
