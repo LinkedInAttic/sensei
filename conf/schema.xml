@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<sensei:schema xsi:schemaLocation="http://javasoze.github.com/sensei/schema/sensei-schema.xsd">
+<schema 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://javasoze.github.com/sensei/schema/sensei-schema.xsd">
 
   <!-- valid types:
     uid - only 1 column can be of type uid
@@ -86,4 +88,4 @@
 	   <facet name="foobar" type="custom" dynamic="false" depends="color,city" />  
 	  -->
    </facets>
-</sensei:schema>
+</schema>
