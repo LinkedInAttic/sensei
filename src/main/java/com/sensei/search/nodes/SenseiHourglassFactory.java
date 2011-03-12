@@ -5,12 +5,11 @@ import java.io.File;
 import org.apache.log4j.Logger;
 
 import proj.zoie.api.ZoieVersion;
-import proj.zoie.api.indexing.IndexReaderDecorator;
 import proj.zoie.api.indexing.ZoieIndexableInterpreter;
 import proj.zoie.hourglass.impl.HourGlassScheduler;
+import proj.zoie.hourglass.impl.HourGlassScheduler.FREQUENCY;
 import proj.zoie.hourglass.impl.Hourglass;
 import proj.zoie.hourglass.impl.HourglassDirectoryManagerFactory;
-import proj.zoie.hourglass.impl.HourGlassScheduler.FREQUENCY;
 import proj.zoie.impl.indexing.ZoieConfig;
 
 import com.browseengine.bobo.api.BoboIndexReader;
@@ -18,17 +17,13 @@ import com.browseengine.bobo.api.BoboIndexReader;
 public class SenseiHourglassFactory<T,V extends ZoieVersion> extends SenseiZoieFactory<T,V>
 {
   private static Logger log = Logger.getLogger(SenseiHourglassFactory.class);
-  protected File _idxDir;
-  protected ZoieIndexableInterpreter<T> _interpreter;
-  protected IndexReaderDecorator<BoboIndexReader> _indexReaderDecorator;
+
   // format "ss mm hh" meaning at hh:mm:ss time of the day that we roll forward for DAILY rolling
   // if it is hourly rolling, it means at mm:ss time of the hour that we roll forward
   // if it is MINUTELY, it means at ss seond of the minute that we roll forward.
   private final String schedule;
   private final int trimThreshold;
   private final HourGlassScheduler.FREQUENCY frequency;
-  
-  protected final ZoieConfig<V> _zoieConfig;
   
   /**
    * @param idxDir the root directory for Hourglass
@@ -41,16 +36,13 @@ public class SenseiHourglassFactory<T,V extends ZoieVersion> extends SenseiZoieF
    * @param trimThreshold the number of units of rolling periods to keep (for DAILY rolling, we keep trimThreshold number of days of data)
    * @param frequency rolling frequency
    */
-  public SenseiHourglassFactory(File idxDir, ZoieIndexableInterpreter<T> interpreter, IndexReaderDecorator<BoboIndexReader> indexReaderDecorator,
+  public SenseiHourglassFactory(File idxDir, ZoieIndexableInterpreter<T> interpreter, SenseiIndexReaderDecorator indexReaderDecorator,
                                  ZoieConfig<V> zoieConfig,
                                  String schedule,
                                  int trimThreshold,
                                  FREQUENCY frequency)
   {
-    _idxDir = idxDir;
-    _interpreter = interpreter;
-    _indexReaderDecorator = indexReaderDecorator;
-    _zoieConfig = zoieConfig;
+    super(idxDir,interpreter,indexReaderDecorator,zoieConfig);
     this.schedule = schedule;
     this.trimThreshold = trimThreshold;
     this.frequency = frequency;

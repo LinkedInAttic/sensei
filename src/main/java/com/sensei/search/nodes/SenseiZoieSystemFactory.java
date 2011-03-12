@@ -5,7 +5,6 @@ import java.io.File;
 import org.apache.log4j.Logger;
 
 import proj.zoie.api.ZoieVersion;
-import proj.zoie.api.indexing.IndexReaderDecorator;
 import proj.zoie.api.indexing.ZoieIndexableInterpreter;
 import proj.zoie.impl.indexing.ZoieConfig;
 import proj.zoie.impl.indexing.ZoieSystem;
@@ -15,19 +14,11 @@ import com.browseengine.bobo.api.BoboIndexReader;
 public class SenseiZoieSystemFactory<T, V extends ZoieVersion> extends SenseiZoieFactory<T, V>
 {
   private static Logger log = Logger.getLogger(SenseiZoieSystemFactory.class);
-  protected File _idxDir;
-  protected ZoieIndexableInterpreter<T> _interpreter;
-  protected IndexReaderDecorator<BoboIndexReader> _indexReaderDecorator;
   
-  protected final ZoieConfig<V> _zoieConfig;
-  
-  public SenseiZoieSystemFactory(File idxDir, ZoieIndexableInterpreter<T> interpreter, IndexReaderDecorator<BoboIndexReader> indexReaderDecorator,
+  public SenseiZoieSystemFactory(File idxDir, ZoieIndexableInterpreter<T> interpreter, SenseiIndexReaderDecorator indexReaderDecorator,
                                  ZoieConfig<V> zoieConfig)
   {
-    _idxDir = idxDir;
-    _interpreter = interpreter;
-    _indexReaderDecorator = indexReaderDecorator;
-    _zoieConfig = zoieConfig;
+    super(idxDir,interpreter,indexReaderDecorator,zoieConfig);
   }
   
   @Override

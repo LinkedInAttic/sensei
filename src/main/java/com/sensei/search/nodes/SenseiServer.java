@@ -12,6 +12,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import javax.management.DynamicMBean;
 import javax.management.InstanceAlreadyExistsException;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
@@ -26,6 +27,8 @@ import proj.zoie.api.Zoie;
 import proj.zoie.api.ZoieIndexReader;
 
 import com.browseengine.bobo.api.BoboIndexReader;
+import com.browseengine.bobo.facets.FacetHandler;
+import com.browseengine.bobo.facets.RuntimeFacetHandlerFactory;
 import com.linkedin.norbert.javacompat.cluster.ClusterClient;
 import com.linkedin.norbert.javacompat.cluster.ZooKeeperClusterClient;
 import com.linkedin.norbert.javacompat.network.NetworkServer;
@@ -175,6 +178,28 @@ public class SenseiServer {
         
         logger.info("ClusterName: " + clusterName);
         logger.info("Cluster info: " + _clusterClient.toString());
+        
+        SenseiIndexReaderDecorator decorator = _zoieFactory.getDecorator();
+        
+        List<FacetHandler<?>> facetHandlers = decorator.getFacetHandlerList();
+        if (facetHandlers!=null){
+        	for (FacetHandler<?> facetHandler : facetHandlers){
+        		DynamicMBean facetMBean = facetHandler.getMBean();
+        		ObjectName facetMbeanName = new ObjectName("FacetHandler","name",facetHandler.getName());
+        		mbeanServer.registerMBean(facetMBean, facetMbeanName);
+        		_registeredMBeans.add(facetMbeanName);
+        	}
+        }
+        
+        List<RuntimeFacetHandlerFactory<?,?>> runtimeFacetHandlerFactories = decorator.getFacetHandlerFactories();
+        if (runtimeFacetHandlerFactories!=null){
+        	for (RuntimeFacetHandlerFactory<?,?> runtimeFacetHandlerFactory : runtimeFacetHandlerFactories){
+        		DynamicMBean facetMBean = runtimeFacetHandlerFactory.getMBean();
+        		ObjectName facetMbeanName = new ObjectName("RuntimeFacetHandlerFactory","name",runtimeFacetHandlerFactory.getName());
+        		mbeanServer.registerMBean(facetMBean, facetMbeanName);
+        		_registeredMBeans.add(facetMbeanName);
+        	}
+        }
 
 		for (int part : _partitions){
 		  //in simple case query builder is the same for each partition

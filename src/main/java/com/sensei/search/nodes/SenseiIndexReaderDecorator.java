@@ -1,7 +1,6 @@
 package com.sensei.search.nodes;
 
 import java.io.IOException;
-import java.util.Collection;
 import java.util.List;
 
 import org.apache.log4j.Logger;
@@ -27,6 +26,14 @@ public class SenseiIndexReaderDecorator extends AbstractIndexReaderDecorator<Bob
 	public SenseiIndexReaderDecorator()
 	{
 		this(null, null);
+	}
+	
+	public List<FacetHandler<?>> getFacetHandlerList(){
+		return _facetHandlers;
+	}
+	
+	public List<RuntimeFacetHandlerFactory<?,?>> getFacetHandlerFactories(){
+		return _facetHandlerFactories;
 	}
 	
 	public BoboIndexReader decorate(ZoieIndexReader<BoboIndexReader> zoieReader) throws IOException {
