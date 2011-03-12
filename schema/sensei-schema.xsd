@@ -13,7 +13,7 @@
   </xsd:annotation>
 
   <!-- top-evel tag -->
-  <xsd:element name="sensei:schema">
+  <xsd:element name="schema">
      <xsd:complexType>
         <xsd:sequence>
 
