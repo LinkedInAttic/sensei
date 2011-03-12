@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?> 
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+  <xsd:import namespace="http://www.w3.org/XML/1998/namespace"/>
+
+  <xsd:annotation> 
+	<xsd:documentation><![CDATA[
+	Sensei Schema, version 0.0.1
+	Author: John Wang
+	
+	This defines table and faceting schema for a Sensei system
+	]]></xsd:documentation> 
+  </xsd:annotation>
+
+  <!-- top-evel tag -->
+  <xsd:element name="sensei:schema">
+     <xs:complexType>
+        <xs:sequence>
+
+           <xs:element name="table" minOccurs="0" maxOccurs="1">
+	         <xs:complexType>
+	           <xs:sequence>
+	              <xs:element name="column" minOccurs="0" maxOccurs="unbounded">
+	                <xs:attribute name="name" type="xs:string" use="mandatory"/>
+		            <xs:attribute name="type" type="xs:string" use="optional"/>
+		            <xs:attribute name="multi" type="xs:boolean" use="optional"/>
+		            <xs:attribute name="delimiter" type="xs:string" use="optional"/>
+		            <xs:attribute name="index" type="xs:string" use="optional"/>
+		            <xs:attribute name="store" type="xs:string" use="optional"/>
+		            <xs:attribute name="termvector" type="xs:string" use="optional"/>
+	              </xs:element>
+	           </xs:sequence>
+	         </xs:complexType>
+           </xs:element>
+
+           <xs:element name="facets" minOccurs="0" maxOccurs="1">
+             <xs:complexType>
+	           <xs:sequence>
+	              <xs:element name="facet" minOccurs="0" maxOccurs="unbounded">
+	                <xs:attribute name="name" type="xs:string" use="mandatory"/>
+		            <xs:attribute name="type" type="xs:string" use="optional"/>
+		            <xs:attribute name="depends" type="xs:string" use="optional"/>
+		            <xs:complexType>
+			           <xs:sequence>
+			             <xs:element name="params" minOccurs="0" maxOccurs="unbounded">
+			               <xs:complexType>
+				             <xs:sequence>
+				               <xs:element name="param" minOccurs="0" maxOccurs="unbounded">
+				                  <xs:attribute name="name" type="xs:string" use="mandatory"/>
+				                  <xs:attribute name="value" type="xs:string" use="mandatory"/>
+				               </xs:element>
+				             </xs:sequence>
+				           </xs:complexType>
+			             </xs:element>
+			           </xs:sequence>
+			        </xs:complexType>
+	              </xs:element>
+	           </xs:sequence>
+	         </xs:complexType>
+           </xs:element>
+
+        </xs:sequence>
+     </xs:complexType>
+  </xsd:element>
+</xsd:schema>
