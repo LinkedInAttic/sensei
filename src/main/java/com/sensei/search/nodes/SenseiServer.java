@@ -176,7 +176,9 @@ public class SenseiServer {
 //        ClusterClient clusterClient = ClusterClientFactory.newInstance().newZookeeperClient();
         String clusterName = _clusterClient.getServiceName();
         
-        logger.info("ClusterName: " + clusterName);
+		String domainName="sensei:"+clusterName+"-"+_id;
+        logger.info("Cluster Name: " + clusterName);
+        logger.info("Domain Name: " + domainName);
         logger.info("Cluster info: " + _clusterClient.toString());
         
         SenseiIndexReaderDecorator decorator = _zoieFactory.getDecorator();
@@ -185,7 +187,7 @@ public class SenseiServer {
         if (facetHandlers!=null){
         	for (FacetHandler<?> facetHandler : facetHandlers){
         		DynamicMBean facetMBean = facetHandler.getMBean();
-        		ObjectName facetMbeanName = new ObjectName("FacetHandler","name",facetHandler.getName());
+        		ObjectName facetMbeanName = new ObjectName(domainName,"name","FacetHandler-"+facetHandler.getName());
         		mbeanServer.registerMBean(facetMBean, facetMbeanName);
         		_registeredMBeans.add(facetMbeanName);
         	}
@@ -195,7 +197,7 @@ public class SenseiServer {
         if (runtimeFacetHandlerFactories!=null){
         	for (RuntimeFacetHandlerFactory<?,?> runtimeFacetHandlerFactory : runtimeFacetHandlerFactories){
         		DynamicMBean facetMBean = runtimeFacetHandlerFactory.getMBean();
-        		ObjectName facetMbeanName = new ObjectName("RuntimeFacetHandlerFactory","name",runtimeFacetHandlerFactory.getName());
+        		ObjectName facetMbeanName = new ObjectName(domainName,"name","RuntimeFacetHandlerFactory-"+runtimeFacetHandlerFactory.getName());
         		mbeanServer.registerMBean(facetMBean, facetMbeanName);
         		_registeredMBeans.add(facetMbeanName);
         	}
@@ -212,7 +214,7 @@ public class SenseiServer {
       String[] mbeannames = zoieSystem.getStandardMBeanNames();
       for(String name : mbeannames)
       {
-        ObjectName oname = new ObjectName(clusterName, "name", name + "-" + part);
+        ObjectName oname = new ObjectName(domainName, "name", name + "-" + part);
         try
         {
           mbeanServer.registerMBean(zoieSystem.getStandardMBean(name), oname);
@@ -251,7 +253,7 @@ public class SenseiServer {
 		_node = new SenseiNode(_networkServer, _clusterClient, _id, _port, ctx, _partitions);
 		_node.startup(available);
 
-		ObjectName name = new ObjectName(clusterName, "name", "sensei-server-"+_id);
+		ObjectName name = new ObjectName(domainName, "name", "sensei-server-"+_id);
 		try{
 		  SenseiServerAdminMBean mbean = getAdminMBean();
 		  mbeanServer.registerMBean(new StandardMBean(mbean, SenseiServerAdminMBean.class),name);
