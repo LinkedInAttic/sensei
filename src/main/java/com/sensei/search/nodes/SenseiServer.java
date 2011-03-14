@@ -185,9 +185,11 @@ public class SenseiServer {
         if (facetHandlers!=null){
         	for (FacetHandler<?> facetHandler : facetHandlers){
         		DynamicMBean facetMBean = facetHandler.getMBean();
-        		ObjectName facetMbeanName = new ObjectName("FacetHandler","name",facetHandler.getName());
-        		mbeanServer.registerMBean(facetMBean, facetMbeanName);
-        		_registeredMBeans.add(facetMbeanName);
+        		if (facetMBean!=null){
+        		  ObjectName facetMbeanName = new ObjectName("FacetHandler","name",facetHandler.getName());
+        		  mbeanServer.registerMBean(facetMBean, facetMbeanName);
+        		  _registeredMBeans.add(facetMbeanName);
+        		}
         	}
         }
         
@@ -195,9 +197,11 @@ public class SenseiServer {
         if (runtimeFacetHandlerFactories!=null){
         	for (RuntimeFacetHandlerFactory<?,?> runtimeFacetHandlerFactory : runtimeFacetHandlerFactories){
         		DynamicMBean facetMBean = runtimeFacetHandlerFactory.getMBean();
-        		ObjectName facetMbeanName = new ObjectName("RuntimeFacetHandlerFactory","name",runtimeFacetHandlerFactory.getName());
-        		mbeanServer.registerMBean(facetMBean, facetMbeanName);
-        		_registeredMBeans.add(facetMbeanName);
+        		if (facetMBean!=null){
+        		  ObjectName facetMbeanName = new ObjectName("RuntimeFacetHandlerFactory","name",runtimeFacetHandlerFactory.getName());
+        		  mbeanServer.registerMBean(facetMBean, facetMbeanName);
+        		  _registeredMBeans.add(facetMbeanName);
+        		}
         	}
         }
 
