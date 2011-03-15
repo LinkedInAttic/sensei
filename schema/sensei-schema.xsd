@@ -41,6 +41,7 @@
 	                <xsd:attribute name="name" type="xsd:string" use="mandatory"/>
 		            <xsd:attribute name="type" type="xsd:string" use="optional"/>
 		            <xsd:attribute name="column" type="xsd:string" use="optional"/>
+		            <xsd:attribute name="runtime" type="xsd:boolean" use="optional"/>
 		            <xsd:attribute name="depends" type="xsd:string" use="optional"/>
 		            <xsd:complexType>
 			           <xsd:sequence>
