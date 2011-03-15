@@ -2,11 +2,15 @@ package com.sensei.conf;
 
 import java.io.File;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.FileSystemXmlApplicationContext;
+import org.w3c.dom.Document;
 
 import com.linkedin.norbert.javacompat.cluster.ClusterClient;
 import com.linkedin.norbert.javacompat.cluster.ZooKeeperClusterClient;
@@ -26,6 +30,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
   private final Configuration _senseiConf;
   private final ApplicationContext _pluginContext;
   private final ApplicationContext _customFacetContext;
+  private final Document _schemaDoc;
   
   private static ApplicationContext loadSpringContext(File confFile){
 	ApplicationContext springCtx = null;
@@ -51,7 +56,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
 	  return new NettyNetworkServer(networkConfig);
   }
   
-  public SenseiServerBuilder(File confDir) throws ConfigurationException{
+  public SenseiServerBuilder(File confDir) throws Exception{
 	  _confDir = confDir;
 	  File senseiConfFile = new File(confDir,SENSEI_PROPERTIES);
 	  if (!senseiConfFile.exists()){
@@ -60,6 +65,13 @@ public class SenseiServerBuilder implements SenseiConfParams{
 	  _senseiConf = new PropertiesConfiguration(senseiConfFile);
 	  _pluginContext = loadSpringContext(new File(confDir,PLUGINS));
 	  _customFacetContext = loadSpringContext(new File(confDir,CUSTOM_FACETS));
+	  
+	  DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+	  dbf.setValidating(true);
+	  dbf.setIgnoringComments(true);
+	  DocumentBuilder db = dbf.newDocumentBuilder();
+	  _schemaDoc = db.parse(new File(_confDir,SCHEMA_FILE));
+	  _schemaDoc.getDocumentElement().normalize();
   }
   
   public SenseiServer buildServer(){
