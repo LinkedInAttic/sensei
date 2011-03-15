@@ -8,7 +8,7 @@ public interface SenseiConfParams {
 	public static final String SERVER_REQ_THREAD_POOL_SIZE = "sensei.server.requestThreadCorePoolSize";
 	public static final String SERVER_REQ_THREAD_POOL_MAXSIZE = "sensei.server.requestThreadMaxPoolSize";
 	public static final String SERVER_REQ_THREAD_POOL_KEEPALIVE = "sensei.server.requestThreadKeepAliveTimeSecs";
-
+	
 	public static final String SENSEI_CLUSTER_NAME = "sensei.cluster.name";
 	public static final String SENSEI_CLUSTER_URL = "sensei.cluster.url";
 	public static final String SENSEI_CLUSTER_TIMEOUT = "sensei.cluster.timeout";
