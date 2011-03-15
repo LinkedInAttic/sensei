@@ -1,219 +1,42 @@
-<project xmlns:ivy="antlib:org.apache.ivy.ant" name="sensei" default="dist">
-	<property name="sensei.root" location="." />
-	<property name="src" value="src" />
-
-    <property name="avro.schema.dir" value="avro-schemas" />
-	<property name="conf.dir" location="node-conf" />
-        <property name="test.conf.dir" location="test/conf"/>
-
-	<property name="lib.base" location="lib" />
-	<property name="lib.dir" location="${lib.base}/master" />
-	<property name="lib.test" location="${lib.base}/test" />
-
-	<property name="test" value="test/src" />
-	<property name="resources" value="resources" />
-
-	<property name="build" value="build" />
-	<property name="build.test" value="build-test" />
-	<property name="dist" location="dist" />
-
-	<property name="test.report.dir" location="${dist}/junit-reports" />
-	<property name="test.html.dir" location="${test.report.dir}/html" />
-
-	<property name="logs" value="logs" />
-
-	<property name="version" value="0.0.1" />
-
-	<property name="project.name" value="sensei" />
-
-	<property name="ivy.install.version" value="2.0.0-beta1" />
-	<property name="ivy.jar.dir" value="${basedir}/ivy" />
-	<property name="ivy.jar.file" value="${ivy.jar.dir}/ivy.jar" />
-	<property name="build.dir" value="build" />
-
-	<path id="compile.class.path">
-		<fileset dir="${lib.dir}">
-			<include name="*.jar" />
-		</fileset>
-	</path>
-
-	<path id="test.class.path">
-		<path location="${build}" />
-		<path location="${build.test}" />
-		<fileset dir="${lib.test}" />
-		<path refid="compile.class.path" />
-		<path location="${resources}" />
-	</path>
-
-	<path id="java.class.path">
-		<dirset dir="${build}">
-			<include name="**" />
-		</dirset>
-		<path refid="compile.class.path" />
-	</path>
-
-	<target name="resolve" description="--> retrieve dependencies with ivy" depends="install-ivy">
-		<ivy:retrieve pattern="${ivy.lib.dir}/[conf]/[artifact].[ext]" />
+<project name="sensei" default="dist">
+	<target name="init" description="loading jars to repo">
+		<exec executable="./bin/mvn-install.sh"/>
 	</target>
 
-	<target name="download-ivy" unless="skip.download">
-		<mkdir dir="${ivy.jar.dir}" />
-		<echo message="installing ivy..." />
-		<get src="http://repo1.maven.org/maven2/org/apache/ivy/ivy/${ivy.install.version}/ivy-${ivy.install.version}.jar" dest="${ivy.jar.file}" usetimestamp="true" />
+	<target name="clean" description="--> clean build, dist, and logs">
+		<exec executable="mvn">
+			<arg line="clean"/>
+		</exec>
 	</target>
 
-	<target name="install-ivy" depends="download-ivy" description="--> install ivy">
-		<path id="ivy.lib.path">
-			<fileset dir="${ivy.jar.dir}" includes="*.jar" />
-		</path>
-		<taskdef resource="org/apache/ivy/ant/antlib.xml" uri="antlib:org.apache.ivy.ant" classpathref="ivy.lib.path" />
-	</target>
-
-	<target name="clean">
-		<delete dir="${build}" />
-		<delete dir="${build.test}" />
-		<delete dir="${dist}" />
-		<delete dir="${logs}" />
-	</target>
-
-	<target name="init" depends="resolve">
-		<mkdir dir="${build}" />
-		<mkdir dir="${build.test}" />
-		<mkdir dir="${dist}" />
-		<mkdir dir="${logs}" />
+	<target name="dist" depends="init" description="--> build .jar and sources into dist">
+		<exec executable="mvn">
+			<arg line="-Dmaven.test.skip=true package"/>
+		</exec>
 	</target>
 	
-	<target name="generate" depends="init">
-	    <taskdef name="schema" classname="org.apache.avro.specific.SchemaTask">
-	      <classpath refid="compile.class.path" />
-	    </taskdef>
-
-	    <schema destdir="${src}">
-	      <fileset dir="${avro.schema.dir}">
-	        <include name="**/*.avsc" />
-	      </fileset>
-	    </schema>
-	</target>
-
-	<target name="compile" depends="init">
-		<javac debug="true" destdir="${build}" compiler="javac1.6" source="1.6" target="1.6">
-			<src path="${src}" />
-			<classpath refid="compile.class.path" />
-		</javac>
-	</target>
-
-    <target name="gitversion" description="--> create git version information">
-      <exec executable="git" outputproperty="gitversion">
-        <arg value="log"/>
-        <arg value="-1"/>
-        <arg value="--pretty=oneline"/>
-      </exec>
-    </target>
-
-	<target name="dist" depends="compile,gitversion">
-      <tstamp>
-        <format property="TODAY" pattern="yyyy-MM-dd HH:mm:ss" />
-      </tstamp>
-		<jar destfile="${dist}/${project.name}-${version}.jar" basedir="${build}">
-                      <fileset dir="src"/>
-		      <manifest>
-		        <attribute name="Built-By" value="${user.name}"/>
-		        <attribute name="Git-Version" value="${gitversion}"/>
-		        <attribute name="Built-Date" value="${TODAY}"/>
-		      </manifest>
-		</jar>
+	<target name="deploy" depends="init" >
+		<exec executable="mvn">
+		  <arg line="deploy" />
+		</exec>
 	</target>
 	
-	 <target name="war" depends="dist">
-        <war destfile="${dist}/${project.name}.war" webxml="${resources}/web.xml">
-              <lib dir="${dist}">
-                <include name="*.jar"/>
-              </lib>
-              <lib dir="${lib.dir}" excludes="servlet-api.jar">
-                <include name="*.jar"/>
-              </lib>
-              <classes dir="${resources}" excludes="web.xml" />
-              <fileset dir="client-app/" />
-        </war>
-    </target>
-    
-    <target name="run-server" depends="war" description="--> run server">
-            <java fork="true" jar="${lib.base}/server/zoie-server.jar" failonerror="true" maxmemory="1g">
-                <sysproperty key="log.home" value="${logs}" />
-                <sysproperty key="conf.dir" value="server-conf" />
-                <!-- <jvmarg value="-d64" /> -->
-                <jvmarg value="-server" />
-                <jvmarg value="-Xms512m" />
-                <jvmarg value="-Xmx1g" />
-                <jvmarg value="-Xloggc:${logs}/gc.log" />
-                <jvmarg value="-XX:+PrintGCTimeStamps" />
-                <jvmarg value="-XX:+PrintGCDetails" />
-                <jvmarg value="-XX:+AggressiveHeap" />
-                <jvmarg value="-XX:+UseAdaptiveSizePolicy" />
-                <!--jvmarg value="-XX:+UseConcMarkSweepGC" /-->
-                <!--jvmarg value="-XX:MaxTenuringThreshold=10" /-->
-                <!--jvmarg value="-XX:+UseParallelGC" /-->
-                <jvmarg value="-XX:NewRatio=1" />
-                <jvmarg value="-XX:SurvivorRatio=2" />
-                <jvmarg value="-Dcom.sun.management.jmxremote" />
-                <jvmarg value="-Dcom.sun.management.jmxremote.port=9999" />
-                <jvmarg value="-Dcom.sun.management.jmxremote.authenticate=false" />
-                <jvmarg value="-Dcom.sun.management.jmxremote.ssl=false" />
-                <!-- uncomment to turn on debugging
-                                <jvmarg value="-Xrunjdwp:transport=dt_socket,address=8886,server=y,suspend=y" />
-                                -->
-                <!--jvmarg value="-agentpath:/Users/xgu/Downloads/YourKit_Java_Profiler_8.0.18.app/bin/mac/libyjpagent.jnilib" /-->
-                <!-- uncomment to turn on yourkit profiling
-                                <jvmarg value="-agentlib:yjpagent" />
-                                -->
-            </java>
-    </target>
-
-	<target name="test-build" depends="dist">
-		<javac debug="true" destdir="${build.test}" compiler="javac1.6" source="1.6" target="1.6">
-			<src path="${test}" />
-			<classpath refid="java.class.path" />
-		</javac>
+	<target name="release" depends="init" >
+		<exec executable="mvn">
+		  <arg line="-DperformRelease=true deploy" />
+		</exec>
 	</target>
-
-	<target name="test" description="Runs JUnit Tests -- use -Dtests.to.run=testA,testB,... to run tests selectively" depends="test-build">
+	
+	<target name="test" depends="init" description="Runs JUnit Tests -- use -Dtests.to.run=testA,testB,... to run tests selectively">
 		<echo>=== Running JUnit Tests ===</echo>
-		<mkdir dir="${test.report.dir}" />
-		<mkdir dir="${test.html.dir}" />
+		<exec executable="mvn">
+			<arg line="test"/>
+		</exec>
+	</target>
 
-		<junit printsummary="yes" showoutput="yes">
-			<sysproperty key="log.home" value="${logs}" />
-			<sysproperty key="idx.dir" value="data/cardata" />
-			<sysproperty key="uididx.dir" value="data/uiddata" />
-                        <sysproperty key="log4j.configuration" value="resources/log4j.properties" />
-
-			<jvmarg value="-server" />
-			<jvmarg value="-Xms256m" />
-			<jvmarg value="-Xmx1g" />
-			<!-- debug 
-			<jvmarg value="-Djava.compiler=NONE" />
-			<jvmarg value="-Xdebug" />
-			<jvmarg value="-Xnoagent" />
-			<jvmarg value="-Xrunjdwp:transport=dt_socket,address=7777,server=y,suspend=y" />
-			-->
-
-			<!-- classpath must include all jar dependencies and classes -->
-			<classpath refid="test.class.path" />
-
-			<!-- formatter to use for output -->
-			<formatter type="xml" />
-
-			<batchtest fork="yes" todir="${test.report.dir}">
-				<fileset dir="${test}">
-					<include name="**/SenseiTestSuite.java" />
-				</fileset>
-			</batchtest>
-		</junit>
-		<junitreport todir="${test.html.dir}">
-			<fileset dir="${test.report.dir}">
-				<include name="TEST-*.xml" />
-			</fileset>
-			<report todir="${test.html.dir}" format="frames" />
-		</junitreport>
+    <target name="server" depends="init" >
+	   <exec executable="mvn">
+		  <arg line="-Dlog4j.configuration=file:./resources/log4j.properties jetty:run" />
+	   </exec>
 	</target>
 </project>

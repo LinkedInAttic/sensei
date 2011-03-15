@@ -11,10 +11,10 @@
 bin=`dirname "$0"`
 bin=`cd "$bin"; pwd`
 
-lib=$bin/../lib/master
-dist=$bin/../dist
+lib=$bin/../target/lib
+dist=$bin/../target
 resources=$bin/../resources
-logs=${bin}/../logs
+logs=$bin/../logs
 
 idx=$bin/../data/cardata
 

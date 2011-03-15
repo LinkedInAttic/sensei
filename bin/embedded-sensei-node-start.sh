@@ -22,7 +22,7 @@ export SENSEI_DIR="$( cd $( dirname $( which ${0} ) )/.. ; pwd )"
 
 export CONTEXT="file://${SENSEI_DIR}/node-conf/sensei-embed.spring"
 
-export CLASSPATH=$( find ${SENSEI_DIR}/lib ${SENSEI_DIR}/ext -name "*.jar" 2>/dev/null | xargs | tr ' '  : )
+export CLASSPATH=$( find ${SENSEI_DIR}/lib ${SENSEI_DIR}/target/lib ${SENSEI_DIR}/ext -name "*.jar" 2>/dev/null | xargs | tr ' '  : )
 export LOGS_DIR="${SENSEI_DIR}/logs"
 export MAIN="com.sensei.search.util.SpringLoader"
 

@@ -10,12 +10,11 @@
 	<import resource="zoie.spring" />
 
 	<bean id="query-parser" class="org.apache.lucene.queryParser.QueryParser">
-	   <constructor-arg ref="lucene-version"/>
 	   <constructor-arg value="contents" />
 	   <constructor-arg ref="analyzer" />
 	</bean>
 	
-	<bean id="query-builder-factory" class="com.sensei.search.nodes.impl.DefaultAvroQueryBuilderFactory">
+	<bean id="query-builder-factory" class="com.sensei.search.nodes.impl.DefaultJsonQueryBuilderFactory">
 	   <constructor-arg ref="query-parser"/>
 	</bean>
 	
