@@ -319,7 +319,7 @@ function removeFacet(facetNode){
 }
 
 function removeInitParam(node){
-	var el = document.getElementById("initParams");
+	var el = document.getElementById("dyn");
 	el.removeChild(node);
 }
 
@@ -620,6 +620,10 @@ function clearFacets(){
 	removeAllChildren(facetElement);
 }
 
+function clearInputParams(){
+	var el = document.getElementById("dyn");
+	removeAllChildren(el);
+}
 
 function buildreqString(){
 	document.getElementById('buildReqButton').disable=true;
