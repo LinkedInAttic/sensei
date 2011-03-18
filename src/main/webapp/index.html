@@ -40,11 +40,17 @@
 	<input type="button" id="clearFacets" value="clear" onclick="clearFacets()"/>
 	<div id="facets">
 	</div>
+  <hr/>
+  init params: <input type="button" id="addinit" value="add init param" onclick="addInitParam()" />
+  <input type="button" id="clearInitParams" value="clear" onclick="clearInputParams()"/>
+  <div id="dyn">
+  </div>
 	<hr/>
 	<input type="button" id="buildReqButton" value="build request string" onclick="buildreqString()"/><br/>
 	Rest Query:<input type="text" id="reqtext" size="200"/><br/>
 	<input type="button" id="runquery" value="run query" onclick="runQuery()"/><br/>
 	
+  <hr/>
 	result: <br/>
 	<textarea rows="50" cols="100" name="content" id="content"></textarea>
 	
