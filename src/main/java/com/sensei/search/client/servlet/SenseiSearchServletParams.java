@@ -30,7 +30,6 @@ public interface SenseiSearchServletParams {
 
     public static final String PARAM_DYNAMIC_TYPE = "type";
     public static final String PARAM_DYNAMIC_VAL = "vals";
-    public static final String PARAM_DYNAMIC_VAL_DELIM = ";";
 
 	  public static final String PARAM_RESULT_PARSEDQUERY = "parsedquery";
 	  public static final String PARAM_RESULT_HIT_EXPLANATION = "explanation";

@@ -361,17 +361,17 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
       Configuration conf = entry.getValue();
 
       String type = conf.getString(PARAM_DYNAMIC_TYPE);
-      String val = conf.getString(PARAM_DYNAMIC_VAL);
+      List<String> vals = conf.getList(PARAM_DYNAMIC_VAL);
 
       try
       {
         FacetHandlerInitializerParam param;
 
-        String[] paramVals = val.split(PARAM_DYNAMIC_VAL_DELIM);
+        String[] paramVals = vals.toArray(new String[0]);
 
-        if (paramVals.length == 0)
+        if (paramVals.length == 0 || paramVals[0].length() == 0)
         {
-          logger.warn(String.format("init param has no values: name '%1' type '%2' ", name, type));
+          logger.warn(String.format("init param has no values: name '{0}' type '{1}' ", name, type));
           continue;
         }
 
@@ -390,7 +390,7 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
         }
         else if (type.equalsIgnoreCase("bytearray"))
         {
-          param = createByteArrayInitParam(name, val);
+          param = createByteArrayInitParam(name, conf.getString(PARAM_DYNAMIC_VAL));
         }
         else if (type.equalsIgnoreCase("long"))
         {
@@ -402,7 +402,7 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
         }
         else
         {
-          logger.warn(String.format("Unknown init param name '%1' type '%2' ", name, type));
+          logger.warn(String.format("Unknown init param name '{0}' type '{1}' ", name, type));
           continue;
         }
 
@@ -410,7 +410,7 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
       }
       catch (Exception e)
       {
-        logger.warn(String.format("Failed to parse init param name '%1' type '%2' ", name, type));
+        logger.warn(String.format("Failed to parse init param name '{0}' type '{1}' ", name, type));
       }
     }
   }
