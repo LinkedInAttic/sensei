@@ -34,9 +34,9 @@
 		</exec>
 	</target>
 
-    <target name="server" depends="init" >
-	   <exec executable="mvn">
-		  <arg line="-Dlog4j.configuration=file:./resources/log4j.properties jetty:run" />
-	   </exec>
-	</target>
+  <target name="server" depends="init" >
+    <exec executable="mvn">
+      <arg line="-Dlog4j.configuration=file:./resources/log4j.properties jetty:run" />
+    </exec>
+  </target>
 </project>

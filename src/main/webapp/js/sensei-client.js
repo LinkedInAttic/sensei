@@ -81,7 +81,7 @@ SenseiSelection.prototype = {
 			}
 		}
 		return false;
-	},
+	}
 };
 
 // SenseiSort(field, dir=DESC)
@@ -107,6 +107,7 @@ var SenseiClient = function () {
 	this._facets = [];
 	this._selections = [];
 	this._sorts = [];
+    this._initParams = [];
 
 	this.query = "";
 	this.offset = 0;
@@ -127,33 +128,61 @@ var SenseiClient = function () {
 };
 
 SenseiClient.prototype = {
-	addFacet: function (facet) {
-		if (!facet) return false;
+	addInitParam: function (initParam) {
+		if (!initParam) return false;
 
-		for (var i=0; i<this._facets.length; ++i) {
-			if (facet.name == this._facets[i].name) {
-				this._facets.splice(i, 1, facet);
+		for (var i=0; i<this._initParams.length; ++i) {
+			if (initParam.name == this._initParams[i].name) {
+				this._initParams.splice(i, 1, initParam);
 				return true;
 			}
 		}
-		this._facets.push(facet);
+		this._initParams.push(initParam);
 
 		return true;
 	},
 
-	removeFacet: function (name) {
-		for (var i=0; i<this._facets.length; ++i) {
-			if (name == this._facets[i].name) {
-				this._facets.splice(i, 1);
+	removeInitParam: function (name) {
+		for (var i=0; i<this._initParams.length; ++i) {
+			if (name == this._initParams[i].name) {
+				this._initParams.splice(i, 1);
 				return true;
 			}
 		}
 		return false;
 	},
 
-	clearFacets: function () {
-		this._facets = [];
+	clearInitParams: function () {
+		this._initParams = [];
 	},
+
+    addFacet: function (facet) {
+        if (!facet) return false;
+
+        for (var i=0; i<this._facets.length; ++i) {
+            if (facet.name == this._facets[i].name) {
+                this._facets.splice(i, 1, facet);
+                return true;
+            }
+        }
+        this._facets.push(facet);
+
+        return true;
+    },
+
+    removeFacet: function (name) {
+        for (var i=0; i<this._facets.length; ++i) {
+            if (name == this._facets[i].name) {
+                this._facets.splice(i, 1);
+                return true;
+            }
+        }
+        return false;
+    },
+
+    clearFacets: function () {
+        this._facets = [];
+    },
 
 	addSelection: function (sel) {
 		if (!sel) return false;
@@ -213,13 +242,18 @@ SenseiClient.prototype = {
 		var qs = {
 			q: this.query,
 			start: this.offset,
-			rows: this.length,
+			rows: this.length
 		};
 		if (this.explain)
 			qs['showexplain'] = true;
 		if (this.fetch)
 			qs['fetchstored'] = true;
 
+        for (var i = 0; i < this._initParams.length; i++) {
+            var inputParam = this._initParams[i];
+            qs["dyn."+inputParam.name+".type"] = inputParam.type;
+            qs["dyn."+inputParam.name+".val"] = inputParam.vals;
+        }
 		for (var i=0; i<this._facets.length; ++i) {
 			var facet = this._facets[i];
 			qs["facet."+facet.name+".expand"] = facet.expand;
@@ -284,6 +318,11 @@ function removeFacet(facetNode){
 	facetElement.removeChild(facetNode);
 }
 
+function removeInitParam(node){
+	var el = document.getElementById("initParams");
+	el.removeChild(node);
+}
+
 function addFacet(){
 	var facetElement = document.getElementById("facets");
 	var divNode = document.createElement('div');
@@ -336,6 +375,71 @@ function addFacet(){
 	removeButton.setAttribute('type','button');
 	removeButton.setAttribute('value','remove facet');
 	removeButton.setAttribute('onclick','removeFacet(this.parentNode)');
+	divNode.appendChild(removeButton);
+}
+
+function addInitParam(){
+	var el = document.getElementById("dyn");
+	var divNode = document.createElement('div');
+	divNode.setAttribute('name','inputParam');
+	el.appendChild(divNode);
+
+	divNode.appendChild(document.createTextNode('name: '));
+	var nameTextNode = document.createElement('input');
+	nameTextNode.setAttribute('type','text');
+	nameTextNode.setAttribute('name','name');
+	divNode.appendChild(nameTextNode);
+	divNode.appendChild(document.createElement('br'));
+
+    divNode.appendChild(document.createTextNode('type: '));
+    el = document.createElement('select');
+    el.setAttribute('name', 'type');
+
+    var option = document.createElement('option');
+    option.setAttribute('value', 'boolean');
+    option.appendChild(document.createTextNode("Boolean"));
+    el.appendChild(option);
+
+    option = document.createElement('option');
+    option.setAttribute('value', 'string');
+    option.appendChild(document.createTextNode("String"));
+    el.appendChild(option);
+
+    option = document.createElement('option');
+    option.setAttribute('value', 'int');
+    option.appendChild(document.createTextNode("Int"));
+    el.appendChild(option);
+
+    option = document.createElement('option');
+    option.setAttribute('value', 'bytearray');
+    option.appendChild(document.createTextNode("ByteArray [UTF8]"));
+    el.appendChild(option);
+
+    option = document.createElement('option');
+    option.setAttribute('value', 'long');
+    option.appendChild(document.createTextNode("Long"));
+    el.appendChild(option);
+
+    option = document.createElement('option');
+    option.setAttribute('value', 'double');
+    option.appendChild(document.createTextNode("Double"));
+    el.appendChild(option);
+
+    divNode.appendChild(el);
+    divNode.appendChild(document.createElement('br'));
+
+	divNode.appendChild(document.createTextNode('value(s): '));
+	var node = document.createElement('input');
+	node.setAttribute('type','text');
+	node.setAttribute('name','vals');
+	node.setAttribute('value','');
+	divNode.appendChild(node);
+	divNode.appendChild(document.createElement('br'));
+
+	var removeButton = document.createElement('input');
+	removeButton.setAttribute('type','button');
+	removeButton.setAttribute('value','remove init param');
+	removeButton.setAttribute('onclick','removeInitParam(this.parentNode)');
 	divNode.appendChild(removeButton);
 }
 
@@ -550,7 +654,13 @@ function buildreqString(){
 	for (var i=0;i<facetNodes.length;++i){
 		reqString+="&"+buildSelectionReqString(facetNodes[i],"facet",facetparams);	
 	}
-	
+
+    var initParams = document.getElementsByName('inputParam');
+    params = {vals:"vals", type:'type'};
+    for (var i = 0; i < initParams.length;i++) {
+        reqString += "&" + buildSelectionReqString(initParams[i], 'dyn', params);
+    }
+
 	reqString += "&"+buildSortString();
 	
 	document.getElementById('reqtext').value=reqString;

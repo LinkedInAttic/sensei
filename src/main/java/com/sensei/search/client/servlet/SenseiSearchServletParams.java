@@ -18,7 +18,8 @@ public interface SenseiSearchServletParams {
 	  public static final String PARAM_SELECT_OP_AND = "and";
 	  public static final String PARAM_SELECT_OP_OR = "or";
 	  public static final String PARAM_SELECT_PROP = "prop";
-	  public static final String PARAM_FACET = "facet";
+    public static final String PARAM_FACET = "facet";
+    public static final String PARAM_DYNAMIC_INIT = "dyn";
 
 	  public static final String PARAM_FACET_EXPAND = "expand";
 	  public static final String PARAM_FACET_MAX = "max";
@@ -27,6 +28,9 @@ public interface SenseiSearchServletParams {
 	  public static final String PARAM_FACET_ORDER_HITS = "hits";
 	  public static final String PARAM_FACET_ORDER_VAL = "val";
 
+    public static final String PARAM_DYNAMIC_TYPE = "type";
+    public static final String PARAM_DYNAMIC_VAL = "vals";
+    public static final String PARAM_DYNAMIC_VAL_DELIM = ";";
 
 	  public static final String PARAM_RESULT_PARSEDQUERY = "parsedquery";
 	  public static final String PARAM_RESULT_HIT_EXPLANATION = "explanation";
