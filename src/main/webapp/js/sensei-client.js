@@ -384,12 +384,19 @@ function addInitParam(){
 	divNode.setAttribute('name','inputParam');
 	el.appendChild(divNode);
 
-	divNode.appendChild(document.createTextNode('name: '));
+	divNode.appendChild(document.createTextNode('facet name: '));
 	var nameTextNode = document.createElement('input');
 	nameTextNode.setAttribute('type','text');
 	nameTextNode.setAttribute('name','name');
 	divNode.appendChild(nameTextNode);
 	divNode.appendChild(document.createElement('br'));
+
+    divNode.appendChild(document.createTextNode('param name: '));
+    nameTextNode = document.createElement('input');
+    nameTextNode.setAttribute('type','text');
+    nameTextNode.setAttribute('name','paramName');
+    divNode.appendChild(nameTextNode);
+    divNode.appendChild(document.createElement('br'));
 
     divNode.appendChild(document.createTextNode('type: '));
     el = document.createElement('select');
@@ -473,7 +480,7 @@ function buildSelectionReqString(selectionNode,prefix,paramNames){
 				else{
 					val = node.value;
 				}
-				reqString += prefix+"."+selName+"."+nodeName+"="+val;  	
+				reqString += prefix+"."+selName+"."+paramNames[nodeName]+"="+val;
 				firsttime=false;
 			}
 	    }
@@ -660,7 +667,7 @@ function buildreqString(){
 	}
 
     var initParams = document.getElementsByName('inputParam');
-    params = {vals:"vals", type:'type'};
+    params = {paramName:"name", vals:"vals", type:'type'};
     for (var i = 0; i < initParams.length;i++) {
         reqString += "&" + buildSelectionReqString(initParams[i], 'dyn', params);
     }

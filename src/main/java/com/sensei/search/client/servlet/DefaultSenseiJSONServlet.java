@@ -357,10 +357,11 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
 
     for (Entry<String, Configuration> entry : entries)
     {
-      String name = entry.getKey();
+      String facetName = entry.getKey();
       Configuration conf = entry.getValue();
 
       String type = conf.getString(PARAM_DYNAMIC_TYPE);
+      String paramName = conf.getString(PARAM_DYNAMIC_NAME);
       List<String> vals = conf.getList(PARAM_DYNAMIC_VAL);
 
       try
@@ -371,46 +372,46 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
 
         if (paramVals.length == 0 || paramVals[0].length() == 0)
         {
-          logger.warn(String.format("init param has no values: name '{0}' type '{1}' ", name, type));
+          logger.warn(String.format("init param has no values: facet: {0} type '{1}' ", facetName, type));
           continue;
         }
 
         // TODO: smarter dispatching, factory, generics
         if (type.equalsIgnoreCase("boolean"))
         {
-          param = createBooleanInitParam(name, paramVals);
+          param = createBooleanInitParam(paramName, paramVals);
         }
         else if (type.equalsIgnoreCase("string"))
         {
-          param = createStringInitParam(name, paramVals);
+          param = createStringInitParam(paramName, paramVals);
         }
         else if (type.equalsIgnoreCase("int"))
         {
-          param = createIntInitParam(name, paramVals);
+          param = createIntInitParam(paramName, paramVals);
         }
         else if (type.equalsIgnoreCase("bytearray"))
         {
-          param = createByteArrayInitParam(name, conf.getString(PARAM_DYNAMIC_VAL));
+          param = createByteArrayInitParam(paramName, conf.getString(PARAM_DYNAMIC_VAL));
         }
         else if (type.equalsIgnoreCase("long"))
         {
-          param = createLongInitParam(name, paramVals);
+          param = createLongInitParam(paramName, paramVals);
         }
         else if (type.equalsIgnoreCase("double"))
         {
-          param = createDoubleInitParam(name, paramVals);
+          param = createDoubleInitParam(paramName, paramVals);
         }
         else
         {
-          logger.warn(String.format("Unknown init param name '{0}' type '{1}' ", name, type));
+          logger.warn(String.format("Unknown init param name '{0}' type '{1}' for facet: {2} ", paramName, type, facetName));
           continue;
         }
 
-        senseiReq.setFacetHandlerInitializerParam(name, param);
+        senseiReq.setFacetHandlerInitializerParam(facetName, param);
       }
       catch (Exception e)
       {
-        logger.warn(String.format("Failed to parse init param name '{0}' type '{1}' ", name, type));
+        logger.warn(String.format("Failed to parse init param name '{0}' type '{1}' for facetName", paramName, type, facetName));
       }
     }
   }
