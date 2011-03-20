@@ -239,6 +239,8 @@ public class SenseiServerBuilder implements SenseiConfParams{
           String paramName = param.getAttributes().getNamedItem("name").getNodeValue();
           String paramValue = param.getAttributes().getNamedItem("value").getNodeValue();
           if (paramName.equals("range")) {
+            if (!paramValue.matches("\\[.* TO .*\\]"))
+              paramValue = "["+paramValue.replaceFirst("[-,]", " TO ")+"]";
             rangeList.add(paramValue);
           }
           else {
