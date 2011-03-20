@@ -19,6 +19,7 @@ public interface SenseiConfParams {
 	public static final String SENSEI_INDEX_BATCH_DELAY = "sensei.index.batchDelay";
 	public static final String SENSEI_INDEX_BATCH_MAXSIZE = "sensei.index.maxBatchSize";
 	public static final String SENSEI_INDEX_REALTIME = "sensei.index.realtime";
+	public static final String SENSEI_INDEX_FRESHNESS = "sensei.index.freshness";
 
 	public static final String SENSEI_INDEX_ANALYZER = "sensei.index.analyzer";
 	public static final String SENSEI_INDEX_SIMILARITY = "sensei.index.similarity";

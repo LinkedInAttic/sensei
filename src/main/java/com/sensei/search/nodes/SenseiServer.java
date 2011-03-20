@@ -32,14 +32,15 @@ import com.browseengine.bobo.facets.RuntimeFacetHandlerFactory;
 import com.linkedin.norbert.javacompat.cluster.ClusterClient;
 import com.linkedin.norbert.javacompat.cluster.ZooKeeperClusterClient;
 import com.linkedin.norbert.javacompat.network.NetworkServer;
+import com.sensei.conf.SenseiServerBuilder;
 import com.sensei.search.svc.api.SenseiException;
 
 public class SenseiServer {
-	private static final Logger logger = Logger.getLogger(SenseiServer.class);
-	private static final String DEFAULT_CONF_FILE = "sensei-node.spring";
+  private static final Logger logger = Logger.getLogger(SenseiServer.class);
+  private static final String DEFAULT_CONF_FILE = "sensei-node.spring";
     private static final String AVAILABLE = "available";
-    private static final String UNAVAILABLE = "unavailable";	
-	
+    private static final String UNAVAILABLE = "unavailable";  
+  
     private int _id;
     private int _port;
     private int[] _partitions;
@@ -54,7 +55,7 @@ public class SenseiServer {
     private final MBeanServer mbeanServer = java.lang.management.ManagementFactory.getPlatformMBeanServer();
     
     private final List<ObjectName> _registeredMBeans;
-	
+  
     
     public SenseiServer(int id, int port, int[] partitions,
             NetworkServer networkServer,
@@ -62,7 +63,7 @@ public class SenseiServer {
             SenseiZoieFactory<?,?> zoieSystemFactory,
             SenseiIndexLoaderFactory indexLoaderFactory,
             SenseiQueryBuilderFactory queryBuilderFactory){
-    	this(id,port,partitions,null,networkServer,clusterClient,zoieSystemFactory,indexLoaderFactory,queryBuilderFactory);
+      this(id,port,partitions,null,networkServer,clusterClient,zoieSystemFactory,indexLoaderFactory,queryBuilderFactory);
     }
     
     public SenseiServer(int id, int port, int[] partitions,
@@ -88,65 +89,62 @@ public class SenseiServer {
       _queryBuilderFactory = queryBuilderFactory;
     }
     
-	private static String help(){
-		StringBuffer buffer = new StringBuffer();
-		buffer.append("Usage: [id] [port] [partitions] [conf.dir] [availability]\n");
-		buffer.append("====================================\n");
-		buffer.append("id - node id (integer), required\n");
-		buffer.append("port - server port (integer), required\n");
-		buffer.append("partitions - comma separated list of partition numbers this node can serve, required\n");
-        buffer.append("conf.dir - server configuration directory, required\n");
-        buffer.append("availability - \"available\" or \"unavailable\", optional default is \"available\"\n");
-		buffer.append("====================================\n");
-		return buffer.toString();
-	}
-	
-	public Collection<Zoie<BoboIndexReader,?,?>> getZoieSystems(){
-		return zoieSystems;
-	}
-	
-	private static void loadJars(File extDir)
-	{
-	  File[] jarfiles = extDir.listFiles(new FilenameFilter(){
+  private static String help(){
+    StringBuffer buffer = new StringBuffer();
+    buffer.append("Usage: <conf.dir> [availability]\n");
+    buffer.append("====================================\n");
+    buffer.append("conf.dir - server configuration directory, required\n");
+    buffer.append("availability - \"available\" or \"unavailable\", optional default is \"available\"\n");
+    buffer.append("====================================\n");
+    return buffer.toString();
+  }
+  
+  public Collection<Zoie<BoboIndexReader,?,?>> getZoieSystems(){
+    return zoieSystems;
+  }
+  
+  private static void loadJars(File extDir)
+  {
+    File[] jarfiles = extDir.listFiles(new FilenameFilter(){
         public boolean accept(File dir, String name) {
             return name.endsWith(".jar");
         }
-	  });
+    });
       
-	  if (jarfiles!=null && jarfiles.length > 0){
-		try{
-	      URL[] jarURLs = new URL[jarfiles.length];
+    if (jarfiles!=null && jarfiles.length > 0){
+    try{
+        URL[] jarURLs = new URL[jarfiles.length];
           ClassLoader parentLoader = Thread.currentThread().getContextClassLoader();
           for (int i=0;i<jarfiles.length;++i){
             jarURLs[i] = new URL("jar:file://" + jarfiles[i].getAbsolutePath() + "!/");  
           }
           URLClassLoader classloader = new URLClassLoader(jarURLs,parentLoader);
           Thread.currentThread().setContextClassLoader(classloader);
-		}
-		catch(MalformedURLException e){
-			logger.error("problem loading extension: "+e.getMessage(),e);
-		}
-	  }
-	}
-	
-	public void shutdown(){
-		logger.info("unregistering mbeans...");
-		try{
-			if (_registeredMBeans.size()>0){
-				for (ObjectName name : _registeredMBeans){
-				  mbeanServer.unregisterMBean(name);
-				}
-				_registeredMBeans.clear();
-			}
-		}
-		catch(Exception e){
-			logger.error(e.getMessage(),e);
-		}
-		try {
-			_node.shutdown();
-		} catch (Exception e) {
-			logger.error(e.getMessage(),e);
-		}
+    }
+    catch(MalformedURLException e){
+      logger.error("problem loading extension: "+e.getMessage(),e);
+    }
+    }
+  }
+  
+  public void shutdown(){
+    logger.info("unregistering mbeans...");
+    try{
+      if (_registeredMBeans.size()>0){
+        for (ObjectName name : _registeredMBeans){
+          mbeanServer.unregisterMBean(name);
+        }
+        _registeredMBeans.clear();
+      }
+    }
+    catch(Exception e){
+      logger.error(e.getMessage(),e);
+    }
+    try {
+      _node.shutdown();
+    } catch (Exception e) {
+      logger.error(e.getMessage(),e);
+    }
         // shutdown the loaders
         for(SenseiIndexLoader loader : indexLoaders)
         {
@@ -154,7 +152,7 @@ public class SenseiServer {
             loader.shutdown();
           }
           catch(SenseiException se){
-        	  logger.error(se.getMessage(),se);
+            logger.error(se.getMessage(),se);
           }
         }
         indexLoaders.clear();
@@ -164,52 +162,52 @@ public class SenseiServer {
           zoieSystem.shutdown();
         }
         zoieSystems.clear();
-	}
-	
-	public void start(boolean available) throws Exception
-	{        
+  }
+  
+  public void start(boolean available) throws Exception
+  {        
         Map<Integer,SenseiQueryBuilderFactory> builderFactoryMap = new HashMap<Integer, SenseiQueryBuilderFactory>();
         
-		Map<Integer,IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>> readerFactoryMap = 
-				new HashMap<Integer,IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>>();
+    Map<Integer,IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>> readerFactoryMap = 
+        new HashMap<Integer,IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>>();
         
 //        ClusterClient clusterClient = ClusterClientFactory.newInstance().newZookeeperClient();
         String clusterName = _clusterClient.getServiceName();
         
-		String domainName="sensei:"+clusterName+"-"+_id;
+    String domainName="sensei-"+clusterName+"-"+_id;
         logger.info("Cluster Name: " + clusterName);
         logger.info("Domain Name: " + domainName);
         logger.info("Cluster info: " + _clusterClient.toString());
         
         SenseiIndexReaderDecorator decorator = _zoieFactory.getDecorator();
         
-        List<FacetHandler<?>> facetHandlers = decorator.getFacetHandlerList();
-        if (facetHandlers!=null){
-        	for (FacetHandler<?> facetHandler : facetHandlers){
-        		DynamicMBean facetMBean = facetHandler.getMBean();
-        		ObjectName facetMbeanName = new ObjectName(domainName,"name","FacetHandler-"+facetHandler.getName());
-        		mbeanServer.registerMBean(facetMBean, facetMbeanName);
-        		_registeredMBeans.add(facetMbeanName);
-        	}
-        }
+        //List<FacetHandler<?>> facetHandlers = decorator.getFacetHandlerList();
+        //if (facetHandlers!=null){
+          //for (FacetHandler<?> facetHandler : facetHandlers){
+            //DynamicMBean facetMBean = facetHandler.getMBean();
+            //ObjectName facetMbeanName = new ObjectName(domainName,"name","FacetHandler-"+facetHandler.getName());
+            //mbeanServer.registerMBean(facetMBean, facetMbeanName);
+            //_registeredMBeans.add(facetMbeanName);
+          //}
+        //}
         
         List<RuntimeFacetHandlerFactory<?,?>> runtimeFacetHandlerFactories = decorator.getFacetHandlerFactories();
         if (runtimeFacetHandlerFactories!=null){
-        	for (RuntimeFacetHandlerFactory<?,?> runtimeFacetHandlerFactory : runtimeFacetHandlerFactories){
-        		DynamicMBean facetMBean = runtimeFacetHandlerFactory.getMBean();
-        		ObjectName facetMbeanName = new ObjectName(domainName,"name","RuntimeFacetHandlerFactory-"+runtimeFacetHandlerFactory.getName());
-        		mbeanServer.registerMBean(facetMBean, facetMbeanName);
-        		_registeredMBeans.add(facetMbeanName);
-        	}
+          for (RuntimeFacetHandlerFactory<?,?> runtimeFacetHandlerFactory : runtimeFacetHandlerFactories){
+            DynamicMBean facetMBean = runtimeFacetHandlerFactory.getMBean();
+            ObjectName facetMbeanName = new ObjectName(domainName,"name","RuntimeFacetHandlerFactory-"+runtimeFacetHandlerFactory.getName());
+            mbeanServer.registerMBean(facetMBean, facetMbeanName);
+            _registeredMBeans.add(facetMbeanName);
+          }
         }
 
-		for (int part : _partitions){
-		  //in simple case query builder is the same for each partition
-		  builderFactoryMap.put(part, _queryBuilderFactory);
-			
-		  Zoie<BoboIndexReader,?,?> zoieSystem = _zoieFactory.getZoieInstance(_id,part);
-		  
-		  // register ZoieSystemAdminMBean
+    for (int part : _partitions){
+      //in simple case query builder is the same for each partition
+      builderFactoryMap.put(part, _queryBuilderFactory);
+      
+      Zoie<BoboIndexReader,?,?> zoieSystem = _zoieFactory.getZoieInstance(_id,part);
+      
+      // register ZoieSystemAdminMBean
 
       String[] mbeannames = zoieSystem.getStandardMBeanNames();
       for(String name : mbeannames)
@@ -229,67 +227,67 @@ public class SenseiServer {
           }
         }        
       }
-		  		  
-		  if(!zoieSystems.contains(zoieSystem))
-		  {
-		    zoieSystem.start();
-		    zoieSystems.add(zoieSystem);
-		  }
-		  
-		  SenseiIndexLoader loader = _indexLoaderFactory.getIndexLoader(part, zoieSystem);
-		  if(!indexLoaders.contains(loader))
-		  {
-		    loader.start();
-		    indexLoaders.add(loader);
-		  }
-		  readerFactoryMap.put(part, zoieSystem);
-		}
-		
-		SenseiSearchContext ctx = new SenseiSearchContext(builderFactoryMap, readerFactoryMap);
-	
-		// create the zookeeper cluster client
-//		SenseiClusterClientImpl senseiClusterClient = new SenseiClusterClientImpl(clusterName, zookeeperURL, zookeeperTimeout, false);
-		
-		_node = new SenseiNode(_networkServer, _clusterClient, _id, _port, ctx, _partitions);
-		_node.startup(available);
-
-		ObjectName name = new ObjectName(domainName, "name", "sensei-server-"+_id);
-		try{
-		  SenseiServerAdminMBean mbean = getAdminMBean();
-		  mbeanServer.registerMBean(new StandardMBean(mbean, SenseiServerAdminMBean.class),name);
-		  _registeredMBeans.add(name);
-		}
-		catch(Exception e){
-			logger.error(e.getMessage(),e);
-			if (e instanceof InstanceAlreadyExistsException){
-			  _registeredMBeans.add(name);
-		    }
-		}
-	}
-	
-	private SenseiServerAdminMBean getAdminMBean()
-	{
-	  return new SenseiServerAdminMBean()
+            
+      if(!zoieSystems.contains(zoieSystem))
       {
-	    public int getId()
-	    {
-	      return _id;
-	    }
-	    public int getPort()
-	    {
-	      return _port;
-	    }
-	    public String getPartitions()
-	    {
-	      StringBuffer sb = new StringBuffer();
-	      if(_partitions.length > 0) sb.append(String.valueOf(_partitions[0]));
-	       for(int i = 1; i < _partitions.length; i++)
-	       {
-	           sb.append(',');
-	           sb.append(String.valueOf(_partitions[i]));
-	       }
-	      return sb.toString();
-	    }
+        zoieSystem.start();
+        zoieSystems.add(zoieSystem);
+      }
+      
+      SenseiIndexLoader loader = _indexLoaderFactory.getIndexLoader(part, zoieSystem);
+      if(!indexLoaders.contains(loader))
+      {
+        loader.start();
+        indexLoaders.add(loader);
+      }
+      readerFactoryMap.put(part, zoieSystem);
+    }
+    
+    SenseiSearchContext ctx = new SenseiSearchContext(builderFactoryMap, readerFactoryMap);
+  
+    // create the zookeeper cluster client
+//    SenseiClusterClientImpl senseiClusterClient = new SenseiClusterClientImpl(clusterName, zookeeperURL, zookeeperTimeout, false);
+    
+    _node = new SenseiNode(_networkServer, _clusterClient, _id, _port, ctx, _partitions);
+    _node.startup(available);
+
+    ObjectName name = new ObjectName(domainName, "name", "sensei-server-"+_id);
+    try{
+      SenseiServerAdminMBean mbean = getAdminMBean();
+      mbeanServer.registerMBean(new StandardMBean(mbean, SenseiServerAdminMBean.class),name);
+      _registeredMBeans.add(name);
+    }
+    catch(Exception e){
+      logger.error(e.getMessage(),e);
+      if (e instanceof InstanceAlreadyExistsException){
+        _registeredMBeans.add(name);
+        }
+    }
+  }
+  
+  private SenseiServerAdminMBean getAdminMBean()
+  {
+    return new SenseiServerAdminMBean()
+      {
+      public int getId()
+      {
+        return _id;
+      }
+      public int getPort()
+      {
+        return _port;
+      }
+      public String getPartitions()
+      {
+        StringBuffer sb = new StringBuffer();
+        if(_partitions.length > 0) sb.append(String.valueOf(_partitions[0]));
+         for(int i = 1; i < _partitions.length; i++)
+         {
+             sb.append(',');
+             sb.append(String.valueOf(_partitions[i]));
+         }
+        return sb.toString();
+      }
         public boolean isAvailable()
         {
           return _node.isAvailable();
@@ -299,77 +297,50 @@ public class SenseiServer {
           _node.setAvailable(available);
         }
       };
-	}
-	
-	public static void main(String[] args) throws Exception{
-	  if (args.length<4){
-	    System.out.println(help());
-	    System.exit(1);
-	  }
-	  
-	  int id = 0;
-	  int port = 0;
-	  int[] partitions = null;
-	  String[] partString = null;
-	        
-	  File confDir = null;
-	  
-	  try{
-	    id = Integer.parseInt(args[0]);
-	    port = Integer.parseInt(args[1]);
-	    partString = args[2].split(",");
-	    confDir = new File(args[3]);
-	    
-	    partitions = new int[partString.length];
-	    for (int i=0;i<partString.length;++i){
-	      partitions[i] = Integer.parseInt(partString[i]);
-	    }
-	  }
-	  catch(Exception e){
-	    System.out.println(help());
-	    System.exit(0);
-	  }
-	  boolean available = true;
-	  for(int i = 4; i < args.length; i++)
-	  {
-	    if(args[i] != null)
-	    {
-	      if(AVAILABLE.equalsIgnoreCase(args[i]))
-	      {
-	        available = true;
-	      }
-	      if(UNAVAILABLE.equalsIgnoreCase(args[i]))
-	      {
-	        available = false;
-	      }
-	    }
-	  }
-	  
-	  File confFile = new File(confDir,DEFAULT_CONF_FILE);
-	  File extDir = new File(confDir,"ext");
-	  
-	  ApplicationContext springCtx = new FileSystemXmlApplicationContext("file:"+confFile.getAbsolutePath());
-	  
-	  NetworkServer networkServer = (NetworkServer)springCtx.getBean("network-server");
-      ClusterClient clusterClient = (ZooKeeperClusterClient)springCtx.getBean("cluster-client");
-      SenseiZoieSystemFactory<?,?> zoieSystemFactory = (SenseiZoieSystemFactory<?,?>)springCtx.getBean("zoie-system-factory");
-      SenseiIndexLoaderFactory<?,?> indexLoaderFactory = (SenseiIndexLoaderFactory)springCtx.getBean("index-loader-factory");
-      SenseiQueryBuilderFactory queryBuilderFactory = (SenseiQueryBuilderFactory)springCtx.getBean("query-builder-factory");
-      
-	  final SenseiServer server = new SenseiServer(id, port, partitions,
-	                                         extDir,
-	                                         networkServer,
-	                                         clusterClient,
-	                                         zoieSystemFactory,
-	                                         indexLoaderFactory,
-	                                         queryBuilderFactory);
-	  
-	  Runtime.getRuntime().addShutdownHook(new Thread(){
-			public void run(){
-				server.shutdown();
-			}
-		});
-	  
-	  server.start(available);
-	}
+  }
+
+  public  static void main(String[] args) throws Exception {
+    if (args.length<1){
+      System.out.println(help());
+      System.exit(1);
+    }
+    
+    File confDir = null;
+    
+    try {
+      confDir = new File(args[0]);
+    }
+    catch(Exception e) {
+      System.out.println(help());
+      System.exit(1);
+    }
+
+    boolean available = true;
+    for(int i = 1; i < args.length; i++)
+    {
+      if(args[i] != null)
+      {
+        if(AVAILABLE.equalsIgnoreCase(args[i]))
+        {
+          available = true;
+        }
+        if(UNAVAILABLE.equalsIgnoreCase(args[i]))
+        {
+          available = false;
+        }
+      }
+    }
+    
+    SenseiServerBuilder senseiServerBuilder = new SenseiServerBuilder(confDir);
+
+    final SenseiServer server = senseiServerBuilder.buildServer();
+
+    Runtime.getRuntime().addShutdownHook(new Thread(){
+      public void run(){
+        server.shutdown();
+      }
+    });
+    
+    server.start(available);
+  }
 }
