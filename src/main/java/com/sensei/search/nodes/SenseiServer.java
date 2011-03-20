@@ -12,32 +12,26 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import javax.management.DynamicMBean;
 import javax.management.InstanceAlreadyExistsException;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 import javax.management.StandardMBean;
 
 import org.apache.log4j.Logger;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.FileSystemXmlApplicationContext;
 
 import proj.zoie.api.IndexReaderFactory;
 import proj.zoie.api.Zoie;
 import proj.zoie.api.ZoieIndexReader;
 
 import com.browseengine.bobo.api.BoboIndexReader;
-import com.browseengine.bobo.facets.FacetHandler;
-import com.browseengine.bobo.facets.RuntimeFacetHandlerFactory;
 import com.linkedin.norbert.javacompat.cluster.ClusterClient;
-import com.linkedin.norbert.javacompat.cluster.ZooKeeperClusterClient;
 import com.linkedin.norbert.javacompat.network.NetworkServer;
 import com.sensei.conf.SenseiServerBuilder;
 import com.sensei.search.svc.api.SenseiException;
 
 public class SenseiServer {
   private static final Logger logger = Logger.getLogger(SenseiServer.class);
-  private static final String DEFAULT_CONF_FILE = "sensei-node.spring";
+  
     private static final String AVAILABLE = "available";
     private static final String UNAVAILABLE = "unavailable";  
   
@@ -173,34 +167,10 @@ public class SenseiServer {
         
 //        ClusterClient clusterClient = ClusterClientFactory.newInstance().newZookeeperClient();
         String clusterName = _clusterClient.getServiceName();
-        
-    String domainName="sensei-"+clusterName+"-"+_id;
+       
         logger.info("Cluster Name: " + clusterName);
-        logger.info("Domain Name: " + domainName);
         logger.info("Cluster info: " + _clusterClient.toString());
         
-        SenseiIndexReaderDecorator decorator = _zoieFactory.getDecorator();
-        
-        //List<FacetHandler<?>> facetHandlers = decorator.getFacetHandlerList();
-        //if (facetHandlers!=null){
-          //for (FacetHandler<?> facetHandler : facetHandlers){
-            //DynamicMBean facetMBean = facetHandler.getMBean();
-            //ObjectName facetMbeanName = new ObjectName(domainName,"name","FacetHandler-"+facetHandler.getName());
-            //mbeanServer.registerMBean(facetMBean, facetMbeanName);
-            //_registeredMBeans.add(facetMbeanName);
-          //}
-        //}
-        /*
-        List<RuntimeFacetHandlerFactory<?,?>> runtimeFacetHandlerFactories = decorator.getFacetHandlerFactories();
-        if (runtimeFacetHandlerFactories!=null){
-          for (RuntimeFacetHandlerFactory<?,?> runtimeFacetHandlerFactory : runtimeFacetHandlerFactories){
-            DynamicMBean facetMBean = runtimeFacetHandlerFactory.getMBean();
-            ObjectName facetMbeanName = new ObjectName(domainName,"name","RuntimeFacetHandlerFactory-"+runtimeFacetHandlerFactory.getName());
-            mbeanServer.registerMBean(facetMBean, facetMbeanName);
-            _registeredMBeans.add(facetMbeanName);
-          }
-        }
-*/
     for (int part : _partitions){
       //in simple case query builder is the same for each partition
       builderFactoryMap.put(part, _queryBuilderFactory);
@@ -212,7 +182,7 @@ public class SenseiServer {
       String[] mbeannames = zoieSystem.getStandardMBeanNames();
       for(String name : mbeannames)
       {
-        ObjectName oname = new ObjectName(domainName, "name", name + "-" + part);
+        ObjectName oname = new ObjectName(clusterName, "name", name + "-" + _id+"-"+part);
         try
         {
           mbeanServer.registerMBean(zoieSystem.getStandardMBean(name), oname);
@@ -250,26 +220,25 @@ public class SenseiServer {
     
     _node = new SenseiNode(_networkServer, _clusterClient, _id, _port, ctx, _partitions);
     _node.startup(available);
-
-    ObjectName name = new ObjectName(domainName, "name", "sensei-server-"+_id);
-    try{
-      SenseiServerAdminMBean mbean = getAdminMBean();
-      mbeanServer.registerMBean(new StandardMBean(mbean, SenseiServerAdminMBean.class),name);
-      _registeredMBeans.add(name);
-    }
-    catch(Exception e){
-      logger.error(e.getMessage(),e);
-      if (e instanceof InstanceAlreadyExistsException){
-        _registeredMBeans.add(name);
-        }
-    }
-  }
-  
-  private SenseiServerAdminMBean getAdminMBean()
-  {
-    return new SenseiServerAdminMBean()
-      {
-      public int getId()
+    
+		ObjectName name = new ObjectName(clusterName, "name", "sensei-server-"+_id);
+		try{
+		  SenseiServerAdminMBean mbean = getAdminMBean();
+		  mbeanServer.registerMBean(new StandardMBean(mbean, SenseiServerAdminMBean.class),name);
+		  _registeredMBeans.add(name);
+		}
+		catch(Exception e){
+			logger.error(e.getMessage(),e);
+			if (e instanceof InstanceAlreadyExistsException){
+			  _registeredMBeans.add(name);
+		    }
+		}
+	}
+	
+	private SenseiServerAdminMBean getAdminMBean()
+	{
+	  return new SenseiServerAdminMBean(){
+	  public int getId()
       {
         return _id;
       }
