@@ -190,7 +190,7 @@ public class SenseiServer {
             //_registeredMBeans.add(facetMbeanName);
           //}
         //}
-        
+        /*
         List<RuntimeFacetHandlerFactory<?,?>> runtimeFacetHandlerFactories = decorator.getFacetHandlerFactories();
         if (runtimeFacetHandlerFactories!=null){
           for (RuntimeFacetHandlerFactory<?,?> runtimeFacetHandlerFactory : runtimeFacetHandlerFactories){
@@ -200,7 +200,7 @@ public class SenseiServer {
             _registeredMBeans.add(facetMbeanName);
           }
         }
-
+*/
     for (int part : _partitions){
       //in simple case query builder is the same for each partition
       builderFactoryMap.put(part, _queryBuilderFactory);

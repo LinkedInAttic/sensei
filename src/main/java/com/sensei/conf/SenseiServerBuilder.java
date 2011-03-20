@@ -21,6 +21,7 @@ import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.queryParser.QueryParser;
 import org.apache.lucene.search.DefaultSimilarity;
 import org.apache.lucene.search.Similarity;
+import org.apache.lucene.util.Version;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.FileSystemXmlApplicationContext;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
@@ -333,13 +334,13 @@ public class SenseiServerBuilder implements SenseiConfParams{
     ZoieConfig zoieConfig = new ZoieConfig(new DefaultZoieVersion.DefaultZoieVersionFactory());
     zoieConfig.setAnalyzer(analyzer);
     zoieConfig.setSimilarity(similarity);
-    zoieConfig.setBatchSize(_senseiConf.getInt(SENSEI_INDEX_BATCH_SIZE, zoieConfig.getBatchSize()));
-    zoieConfig.setBatchDelay(_senseiConf.getLong(SENSEI_INDEX_BATCH_DELAY, zoieConfig.getBatchDelay()));
-    zoieConfig.setMaxBatchSize(_senseiConf.getInt(SENSEI_INDEX_BATCH_MAXSIZE, zoieConfig.getMaxBatchSize()));
-    zoieConfig.setRtIndexing(_senseiConf.getBoolean(SENSEI_INDEX_REALTIME, zoieConfig.isRtIndexing()));
-    zoieConfig.setFreshness(_senseiConf.getLong(SENSEI_INDEX_FRESHNESS, zoieConfig.getFreshness()));
+    zoieConfig.setBatchSize(_senseiConf.getInt(SENSEI_INDEX_BATCH_SIZE,ZoieConfig.DEFAULT_SETTING_BATCHSIZE));
+    zoieConfig.setBatchDelay(_senseiConf.getLong(SENSEI_INDEX_BATCH_DELAY, ZoieConfig.DEFAULT_SETTING_BATCHDELAY));
+    zoieConfig.setMaxBatchSize(_senseiConf.getInt(SENSEI_INDEX_BATCH_MAXSIZE, ZoieConfig.DEFAULT_MAX_BATCH_SIZE));
+    zoieConfig.setRtIndexing(_senseiConf.getBoolean(SENSEI_INDEX_REALTIME, ZoieConfig.DEFAULT_SETTING_REALTIME));
+    zoieConfig.setFreshness(_senseiConf.getLong(SENSEI_INDEX_FRESHNESS, 10000));
 
-    QueryParser queryParser = new QueryParser("contents", analyzer);
+    QueryParser queryParser = new QueryParser(Version.LUCENE_29,"contents", analyzer);
 
     SenseiZoieSystemFactory<?,?> zoieSystemFactory = new DemoZoieSystemFactory(
       new File(_senseiConf.getString(SENSEI_INDEX_DIR)),
