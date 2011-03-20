@@ -1,20 +1,19 @@
 package com.sensei.search.util;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-
-import org.apache.commons.configuration.BaseConfiguration;
-import org.apache.commons.configuration.Configuration;
-import org.apache.log4j.Logger;
-import org.apache.lucene.search.Filter;
-import org.apache.lucene.search.Query;
 
 import com.browseengine.bobo.api.BrowseRequest;
 import com.browseengine.bobo.api.BrowseSelection;
 import com.sensei.search.nodes.SenseiQueryBuilder;
 import com.sensei.search.nodes.SenseiQueryBuilderFactory;
 import com.sensei.search.req.SenseiRequest;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import org.apache.commons.configuration.BaseConfiguration;
+import org.apache.commons.configuration.Configuration;
+import org.apache.log4j.Logger;
+import org.apache.lucene.search.Filter;
+import org.apache.lucene.search.Query;
 
 public class RequestConverter {
 	private static Logger logger = Logger.getLogger(RequestConverter.class);
@@ -72,7 +71,7 @@ public class RequestConverter {
 			  String subString = key.substring(prefix.length()+1);
 			  
 			  String[] parts = subString.split("\\.");
-			  if (parts.length==2){
+			  if (parts.length == 2){
 				  String name = parts[0];
 				  String paramName = parts[1];
 				  Configuration conf = map.get(name);
@@ -85,8 +84,35 @@ public class RequestConverter {
 				  for (String val : values){
 				    conf.addProperty(paramName,val);
 				  }
-				  
-			  }
+			  } else if (parts.length == 3) {
+          // parse facet sub-parameters e.g. for dynamic facet init params
+          String facetName = parts[0];
+          String paramName = parts[1];
+          String paramAttrName = parts[2];
+
+          Configuration conf = map.get(facetName);
+          if (conf == null){
+            conf = new BaseConfiguration();
+            map.put(facetName, conf);
+          }
+
+          Map<String,Configuration> subParamMap;
+          if (conf.getProperty(prefix) == null) {
+            subParamMap = new HashMap<String,Configuration>();
+            conf.addProperty(prefix, subParamMap);
+          }
+          subParamMap = (Map<String,Configuration>)conf.getProperty(prefix);
+
+          Configuration props = subParamMap.get(paramName);
+          if (props == null) {
+            props = new BaseConfiguration();
+            subParamMap.put(paramName, props);
+          }
+
+          for (String val : values){
+            props.addProperty(paramAttrName,val);
+          }
+        }
 			  else{
 				  logger.error("invalid param format: "+key);
 			  }

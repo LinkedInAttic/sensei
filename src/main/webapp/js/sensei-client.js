@@ -387,14 +387,14 @@ function addInitParam(){
 	divNode.appendChild(document.createTextNode('facet name: '));
 	var nameTextNode = document.createElement('input');
 	nameTextNode.setAttribute('type','text');
-	nameTextNode.setAttribute('name','name');
+	nameTextNode.setAttribute('name','facetName');
 	divNode.appendChild(nameTextNode);
 	divNode.appendChild(document.createElement('br'));
 
     divNode.appendChild(document.createTextNode('param name: '));
     nameTextNode = document.createElement('input');
     nameTextNode.setAttribute('type','text');
-    nameTextNode.setAttribute('name','paramName');
+    nameTextNode.setAttribute('name','name');
     divNode.appendChild(nameTextNode);
     divNode.appendChild(document.createElement('br'));
 
@@ -667,9 +667,19 @@ function buildreqString(){
 	}
 
     var initParams = document.getElementsByName('inputParam');
-    params = {paramName:"name", vals:"vals", type:'type'};
+    params = {vals:"vals", type:'type'};
     for (var i = 0; i < initParams.length;i++) {
-        reqString += "&" + buildSelectionReqString(initParams[i], 'dyn', params);
+        var facetName = null;
+        for(var j=0; j<initParams[i].childNodes.length; j++){
+            var node = initParams[i].childNodes[j];
+            var nodeName = node.name;
+            if (nodeName == null ) continue;
+            if ("facetName" == nodeName){
+                facetName = node.value;
+            }
+        }
+        if (facetName == null) continue;
+        reqString += "&" + buildSelectionReqString(initParams[i], 'dyn.'+facetName, params);
     }
 
 	reqString += "&"+buildSortString();

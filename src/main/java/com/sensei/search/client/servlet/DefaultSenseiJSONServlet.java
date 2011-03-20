@@ -353,65 +353,75 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
   private static void convertInitParams(SenseiRequest senseiReq, DataConfiguration params)
   {
     Map<String, Configuration> facetParamMap = RequestConverter.parseParamConf(params, PARAM_DYNAMIC_INIT);
-    Set<Entry<String, Configuration>> entries = facetParamMap.entrySet();
+    Set<Entry<String, Configuration>> facetEntries = facetParamMap.entrySet();
 
-    for (Entry<String, Configuration> entry : entries)
+    for (Entry<String, Configuration> facetEntry : facetEntries)
     {
-      String facetName = entry.getKey();
-      Configuration conf = entry.getValue();
+      String facetName = facetEntry.getKey();
+      Configuration facetConf = facetEntry.getValue();
 
-      String type = conf.getString(PARAM_DYNAMIC_TYPE);
-      String paramName = conf.getString(PARAM_DYNAMIC_NAME);
-      List<String> vals = conf.getList(PARAM_DYNAMIC_VAL);
+      if (facetConf.getProperty(PARAM_DYNAMIC_INIT) == null) continue;
 
-      try
+      Map<String, Configuration> initParamMap = (Map<String, Configuration>)facetConf.getProperty(PARAM_DYNAMIC_INIT);
+      Set<Entry<String, Configuration>> initMapEntries = initParamMap.entrySet();
+
+      for (Entry<String, Configuration> entry : initMapEntries)
       {
-        FacetHandlerInitializerParam param;
+        String paramName = entry.getKey();
+        Configuration paramConf = entry.getValue();
 
-        String[] paramVals = vals.toArray(new String[0]);
+        String type = paramConf.getString(PARAM_DYNAMIC_TYPE);
+        List<String> vals = paramConf.getList(PARAM_DYNAMIC_VAL);
 
-        if (paramVals.length == 0 || paramVals[0].length() == 0)
+        try
         {
-          logger.warn(String.format("init param has no values: facet: {0} type '{1}' ", facetName, type));
-          continue;
-        }
+          FacetHandlerInitializerParam param;
 
-        // TODO: smarter dispatching, factory, generics
-        if (type.equalsIgnoreCase("boolean"))
-        {
-          param = createBooleanInitParam(paramName, paramVals);
-        }
-        else if (type.equalsIgnoreCase("string"))
-        {
-          param = createStringInitParam(paramName, paramVals);
-        }
-        else if (type.equalsIgnoreCase("int"))
-        {
-          param = createIntInitParam(paramName, paramVals);
-        }
-        else if (type.equalsIgnoreCase("bytearray"))
-        {
-          param = createByteArrayInitParam(paramName, conf.getString(PARAM_DYNAMIC_VAL));
-        }
-        else if (type.equalsIgnoreCase("long"))
-        {
-          param = createLongInitParam(paramName, paramVals);
-        }
-        else if (type.equalsIgnoreCase("double"))
-        {
-          param = createDoubleInitParam(paramName, paramVals);
-        }
-        else
-        {
-          logger.warn(String.format("Unknown init param name '{0}' type '{1}' for facet: {2} ", paramName, type, facetName));
-          continue;
-        }
+          String[] attrVals = vals.toArray(new String[0]);
 
-        senseiReq.setFacetHandlerInitializerParam(facetName, param);
-      }
-      catch (Exception e)
-      {
-        logger.warn(String.format("Failed to parse init param name '{0}' type '{1}' for facetName", paramName, type, facetName));
+          if (attrVals.length == 0 || attrVals[0].length() == 0)
+          {
+            logger.warn(String.format("init param has no values: facet: {0} type '{1}' ", facetName, type));
+            continue;
+          }
+
+          // TODO: smarter dispatching, factory, generics
+          if (type.equalsIgnoreCase("boolean"))
+          {
+            param = createBooleanInitParam(paramName, attrVals);
+          }
+          else if (type.equalsIgnoreCase("string"))
+          {
+            param = createStringInitParam(paramName, attrVals);
+          }
+          else if (type.equalsIgnoreCase("int"))
+          {
+            param = createIntInitParam(paramName, attrVals);
+          }
+          else if (type.equalsIgnoreCase("bytearray"))
+          {
+            param = createByteArrayInitParam(paramName, paramConf.getString(PARAM_DYNAMIC_VAL));
+          }
+          else if (type.equalsIgnoreCase("long"))
+          {
+            param = createLongInitParam(paramName, attrVals);
+          }
+          else if (type.equalsIgnoreCase("double"))
+          {
+            param = createDoubleInitParam(paramName, attrVals);
+          }
+          else
+          {
+            logger.warn(String.format("Unknown init param name '{0}' type '{1}' for facet: {2} ", paramName, type, facetName));
+            continue;
+          }
+
+          senseiReq.setFacetHandlerInitializerParam(facetName, param);
+        }
+        catch (Exception e)
+        {
+          logger.warn(String.format("Failed to parse init param name '{0}' type '{1}' for facetName", paramName, type, facetName));
+        }
       }
     }
   }
