@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -360,15 +361,12 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
       String facetName = facetEntry.getKey();
       Configuration facetConf = facetEntry.getValue();
 
-      if (facetConf.getProperty(PARAM_DYNAMIC_INIT) == null) continue;
+      Iterator paramsIter = facetConf.getKeys();
 
-      Map<String, Configuration> initParamMap = (Map<String, Configuration>)facetConf.getProperty(PARAM_DYNAMIC_INIT);
-      Set<Entry<String, Configuration>> initMapEntries = initParamMap.entrySet();
-
-      for (Entry<String, Configuration> entry : initMapEntries)
+      while (paramsIter.hasNext())
       {
-        String paramName = entry.getKey();
-        Configuration paramConf = entry.getValue();
+        String paramName = (String)paramsIter.next();
+        Configuration paramConf = (Configuration)facetConf.getProperty(paramName);
 
         String type = paramConf.getString(PARAM_DYNAMIC_TYPE);
         List<String> vals = paramConf.getList(PARAM_DYNAMIC_VAL);

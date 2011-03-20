@@ -9,6 +9,7 @@ import com.sensei.search.req.SenseiRequest;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Properties;
 import org.apache.commons.configuration.BaseConfiguration;
 import org.apache.commons.configuration.Configuration;
 import org.apache.log4j.Logger;
@@ -96,21 +97,16 @@ public class RequestConverter {
             map.put(facetName, conf);
           }
 
-          Map<String,Configuration> subParamMap;
-          if (conf.getProperty(prefix) == null) {
-            subParamMap = new HashMap<String,Configuration>();
-            conf.addProperty(prefix, subParamMap);
-          }
-          subParamMap = (Map<String,Configuration>)conf.getProperty(prefix);
-
-          Configuration props = subParamMap.get(paramName);
-          if (props == null) {
-            props = new BaseConfiguration();
-            subParamMap.put(paramName, props);
+          Configuration paramConf;
+          if (conf.getProperty(paramName) == null) {
+            paramConf = new BaseConfiguration();
+            conf.addProperty(paramName, paramConf);
+          } else {
+            paramConf = (Configuration)conf.getProperty(paramName);
           }
 
           for (String val : values){
-            props.addProperty(paramAttrName,val);
+            paramConf.addProperty(paramAttrName,val);
           }
         }
 			  else{
