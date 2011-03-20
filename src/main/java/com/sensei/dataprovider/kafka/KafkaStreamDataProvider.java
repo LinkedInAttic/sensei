@@ -86,21 +86,26 @@ public abstract class KafkaStreamDataProvider<D> extends StreamDataProvider<D, D
 		}
 		
 		if (_msgIter==null || !_msgIter.hasNext() ) {
-			logger.debug("no more data, msgIter: "+_msgIter);
+			if (logger.isDebugEnabled()){
+			  logger.debug("no more data, msgIter: "+_msgIter);
+			}
 			return null;
 		}
 		
 		Message msg = _msgIter.next();
-		logger.debug("got new message: "+msg);
+		if (logger.isDebugEnabled()){
+		  logger.debug("got new message: "+msg);
+		}
 		DefaultZoieVersion version = new DefaultZoieVersion();
 		version.setVersionId(_offset);
 		_offset += MessageSet.entrySize(msg);
 
 		D data;
 		try {
-			
 			data = convertMessage(version.getVersionId(),msg);
-			logger.debug("message converted: "+data);
+			if (logger.isDebugEnabled()){
+			  logger.debug("message converted: "+data);
+			}
 			return new DataEvent<D,DefaultZoieVersion>(data,version);
 		} catch (IOException e) {
 			logger.error(e.getMessage(),e);

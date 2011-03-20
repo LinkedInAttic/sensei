@@ -1,55 +1,61 @@
 package com.sensei.dataprovider.http;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Comparator;
+import java.util.Iterator;
 
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpStatus;
-import org.apache.commons.httpclient.SimpleHttpConnectionManager;
-import org.apache.commons.httpclient.contrib.ssl.EasySSLProtocolSocketFactory;
-import org.apache.commons.httpclient.methods.GetMethod;
-import org.apache.commons.httpclient.protocol.Protocol;
+import org.apache.commons.io.IOUtils;
+import org.apache.http.Header;
+import org.apache.http.HeaderElement;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpException;
+import org.apache.http.HttpRequest;
+import org.apache.http.HttpRequestInterceptor;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpResponseInterceptor;
+import org.apache.http.HttpVersion;
+import org.apache.http.StatusLine;
+import org.apache.http.client.entity.GzipDecompressingEntity;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.conn.ClientConnectionManager;
+import org.apache.http.conn.scheme.PlainSocketFactory;
+import org.apache.http.conn.scheme.Scheme;
+import org.apache.http.conn.scheme.SchemeRegistry;
+import org.apache.http.conn.ssl.SSLSocketFactory;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.conn.SingleClientConnManager;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpConnectionParams;
+import org.apache.http.params.HttpParams;
+import org.apache.http.params.HttpProtocolParams;
+import org.apache.http.protocol.HttpContext;
 import org.apache.log4j.Logger;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.json.JSONTokener;
 
-import proj.zoie.api.ZoieVersion;
 import proj.zoie.api.DataConsumer.DataEvent;
 import proj.zoie.impl.indexing.StreamDataProvider;
 
-import com.sensei.search.req.SenseiQuery;
-
-public class HttpStreamDataProvider<D,V extends ZoieVersion> extends StreamDataProvider<D, V> {
+public abstract class HttpStreamDataProvider<D> extends StreamDataProvider<D,StringZoieVersion> {
 
 	private static final Logger logger = Logger.getLogger(HttpStreamDataProvider.class);
 	
-	private final String _baseUrl;
+	protected final String _baseUrl;
 
-	private SimpleHttpConnectionManager _httpClientManager;
-	private HttpClient _httpClient;
+	private final ClientConnectionManager _httpClientManager;
+	private final DefaultHttpClient _httpclient;
 	  
 	public static final int DEFAULT_TIMEOUT_MS = 10000;
 	
 	public static final String DEFAULT_OFFSET_PARAM = "offset";
 	public static final String DFEAULT_DATA_PARAM = "data";
 	
-	private final int _batchSize;
-	private final String _password;
-	private String _offset;
-	private String _initialOffset;
+	protected final int _batchSize;
+	protected final String _password;
+	protected String _offset;
+	protected String _initialOffset;
 	private final boolean _disableHttps;
-	
-	private String _offsetParam;
-	private String _dataParam;
-	
-	private List<JSONObject> _currentList = null;
+	private Iterator<D> _currentDataIter;
+	private Comparator<String> _versionComparator;
 	
 	public HttpStreamDataProvider(String baseUrl,String pw,int batchSize,String startingOffset,boolean disableHttps){
 	  _baseUrl = baseUrl;
@@ -58,19 +64,68 @@ public class HttpStreamDataProvider<D,V extends ZoieVersion> extends StreamDataP
 	  _offset = startingOffset;
 	  _disableHttps = disableHttps;
 	  _initialOffset = null;
+	  _currentDataIter = null;
+
+	  Scheme http = new Scheme("http", 80, PlainSocketFactory.getSocketFactory());
+	  SchemeRegistry sr = new SchemeRegistry();
+	  sr.register(http);
+	  
 	  if (!_disableHttps){
-	    Protocol.registerProtocol("https", 
-                new Protocol("https", new EasySSLProtocolSocketFactory(), 443));
+		  Scheme https = new Scheme("https",443,SSLSocketFactory.getSocketFactory());
+		  sr.register(https);
 	  }
-	  _offsetParam = DEFAULT_OFFSET_PARAM;
-	  _dataParam = DFEAULT_DATA_PARAM;
+	  
+	  HttpParams params = new BasicHttpParams();
+	  params.setParameter(HttpProtocolParams.PROTOCOL_VERSION,
+		      HttpVersion.HTTP_1_1);
+	  params.setParameter(HttpProtocolParams.HTTP_CONTENT_CHARSET, "UTF-8");
+	  params.setIntParameter(HttpConnectionParams.CONNECTION_TIMEOUT,5000);   // 5s conn timeout
+	  params.setIntParameter(HttpConnectionParams.SO_LINGER, 0);  //  no socket linger
+	  params.setBooleanParameter(HttpConnectionParams.TCP_NODELAY, true); // tcp no delay
+	  params.setIntParameter(HttpConnectionParams.SO_TIMEOUT,5000);  // 5s sock timeout
+	  
+	  _httpClientManager = new SingleClientConnManager(sr);
+	  _httpclient = new DefaultHttpClient(_httpClientManager,params);
+	  
+	  _httpclient.addRequestInterceptor(new HttpRequestInterceptor() {
+	      public void process(final HttpRequest request, final HttpContext context)
+	        throws HttpException, IOException {
+	        if (!request.containsHeader("Accept-Encoding")) {
+	          request.addHeader("Accept-Encoding", "gzip");
+	        }
+	      }
+	    });
+
+	  _httpclient.addResponseInterceptor(new HttpResponseInterceptor() {
+	      public void process(final HttpResponse response, final HttpContext context)
+	        throws HttpException, IOException {
+	        HttpEntity entity = response.getEntity();
+	        Header ceheader = entity.getContentEncoding();
+	        if (ceheader != null) {
+	          HeaderElement[] codecs = ceheader.getElements();
+	          for (int i = 0; i < codecs.length; i++) {
+	            if (codecs[i].getName().equalsIgnoreCase("gzip")) {
+	              response.setEntity(new GzipDecompressingEntity(response
+	                .getEntity()));
+	              return;
+	            }
+	          }
+	        }
+	      }
+	    });
+	  
+	  _versionComparator = getVersionComparator();
 	}
 	
 	public void setInitialOffset(String initialOffset){
 	  _initialOffset = initialOffset;
 	}
 	
-	private String buildGetString(String offset){
+	protected abstract String buildGetString(String offset);
+	
+	protected abstract Comparator<String> getVersionComparator();
+	
+	/*private String buildGetString(String offset){
 		StringBuilder buf = new StringBuilder();
 		buf.append(_baseUrl);
 		buf.append("?password=").append(_password);
@@ -88,14 +143,16 @@ public class HttpStreamDataProvider<D,V extends ZoieVersion> extends StreamDataP
 			buf.append("&since=").append(sinceKey);
 		}
 		return buf.toString();
-	}
+	}*/
 	
-	private static class FetchedData{
+	protected static class FetchedData<D>{
 		String offset;
-		List<JSONObject> dataList;
+		Iterator<D> dataIter;
 	}
 	
-	private FetchedData parse(Reader reader) throws JSONException{
+	protected abstract FetchedData<D> parse(InputStream is) throws Exception;
+	
+	/*private FetchedData parse(Reader reader) throws JSONException{
       JSONObject json = new JSONObject(new JSONTokener(reader));
   
       String offset = json.getString(_offsetParam);
@@ -111,54 +168,72 @@ public class HttpStreamDataProvider<D,V extends ZoieVersion> extends StreamDataP
     	  arrayList.add(data.optJSONObject(i));
       }
       return fetchedData;
-    }
+    }*/
 	
-	private FetchedData fetchBatch() throws IOException{
-	  GetMethod getMethod = null; 
-	  BufferedReader reader = null;
+	private FetchedData<D> fetchBatch() throws HttpException{
+	  InputStream stream = null;
 	  try{
-	    getMethod = new GetMethod(buildGetString(_offset));
-	    int statusCode = _httpClient.executeMethod(getMethod);
-        
-        if (statusCode != HttpStatus.SC_OK){
-          throw new IOException("invalid status: "+statusCode);
+		HttpGet httpget = new HttpGet(buildGetString(_offset));
+	    HttpResponse response = _httpclient.execute(httpget);
+	    HttpEntity entity = response.getEntity();
+	    StatusLine status = response.getStatusLine();
+	    int statusCode = status.getStatusCode();
+	    
+        if (statusCode >= 400){
+          try {
+            IOUtils.closeQuietly(entity.getContent());
+          }
+          catch (Exception e) {
+        	logger.error(e.getMessage(),e);
+          }
+          throw new HttpException(status.getReasonPhrase());
         }
         
-        InputStream stream = getMethod.getResponseBodyAsStream();
-        reader = new BufferedReader(new InputStreamReader(stream,SenseiQuery.utf8Charset));
-        return parse(reader);
+        try{
+          stream = entity.getContent();
+          return parse(stream);
+        }
+        catch(Exception e){
+          logger.error(e.getMessage(),e);
+          httpget.abort();
+          throw new HttpException(e.getMessage(),e);
+        }
 	  }
-	  catch(JSONException jse){
-		throw new IOException(jse.getMessage(),jse);
+	  catch(IOException ioe){
+		throw new HttpException(ioe.getMessage(),ioe);
 	  }
 	  finally{
-		if (reader != null){
-          try{
-            reader.close();
-          }
-          catch (Exception e){
-            logger.error(e.getMessage(), e);
-          }
-        }
-        if (getMethod != null){
-          try{
-            getMethod.releaseConnection();
-          }
-          catch (Exception e){
-            logger.error(e.getMessage(), e);
-          }
+		if (stream != null){
+          IOUtils.closeQuietly(stream);
         }
 	  }
 	}
 	
 	@Override
-	public DataEvent<D, V> next() {
-	  if (_currentList==null || _currentList.size() == 0){
-		 // FetchedData data = fetchBatch();
+	public DataEvent<D,StringZoieVersion> next() {
+	  if (_currentDataIter==null || !_currentDataIter.hasNext()){
+		try {
+		  FetchedData<D> data = fetchBatch();
+		  _currentDataIter = data.dataIter;
 		  
+		  if (_currentDataIter==null || !_currentDataIter.hasNext()){
+		    if (logger.isDebugEnabled()){
+			  logger.debug("no more data");
+			  return null;
+		    }
+		  }
+		  
+		  _offset = data.offset;
+		  
+		} catch (HttpException e) {
+		  logger.error(e.getMessage(),e);
+		  return null;
+		}  
 	  }
-		// TODO Auto-generated method stub
-		return null;
+	  
+	  D data = _currentDataIter.next();
+	  return new DataEvent<D,StringZoieVersion>(data,new StringZoieVersion(_offset,_versionComparator));
+	  
 	}
 
 	@Override
@@ -169,21 +244,10 @@ public class HttpStreamDataProvider<D,V extends ZoieVersion> extends StreamDataP
 	}
 
 	@Override
-	public void start() {
-		super.start();
-		_httpClientManager = new SimpleHttpConnectionManager();
-	    _httpClientManager.getParams().setConnectionTimeout(DEFAULT_TIMEOUT_MS);
-	    _httpClientManager.getParams().setSoTimeout(DEFAULT_TIMEOUT_MS);
-	    _httpClient = new HttpClient(_httpClientManager);
-	}
-
-	@Override
 	public void stop() {
 		try{
 		  if (_httpClientManager!=null){
-			_httpClient = null;
 		    _httpClientManager.shutdown();
-		    _httpClientManager = null;
 		  }
 		}
 		finally{
