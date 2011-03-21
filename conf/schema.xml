@@ -48,8 +48,6 @@
 	 <facet name="city" type="path">
 	  <params>
 		<param name="separator" value="/" />
-		<param name="strict" value="false" />
-		<param name="depth" value="1" />
 	  </params>
 	 </facet>
 	 <facet name="makemodel" type="path" />
@@ -85,7 +83,7 @@
 	 <!-- example of a custom facet, defined in custom-facets.xml -->
 	 <!-- 
 	     a bean with name "foobar" must be defined
-	   <facet name="foobar" type="custom" dynamic="false" depends="color,city" />  
+	   <facet name="foobar" type="custom" dynamic="false"/>  
 	  -->
    </facets>
 </schema>

@@ -3,8 +3,9 @@ package com.sensei.dataprovider.http;
 import java.util.Comparator;
 
 import proj.zoie.api.ZoieVersion;
+import proj.zoie.api.ZoieVersionFactory;
 
-public class StringZoieVersion extends ZoieVersion {
+public class StringZoieVersion extends ZoieVersion{
     private final String _version;
     private final Comparator<String> _comparator;
 	public StringZoieVersion(String version,Comparator<String> comparator){
@@ -36,5 +37,4 @@ public class StringZoieVersion extends ZoieVersion {
 	public int compareTo(ZoieVersion zversion) {
 		return _comparator.compare(_version, ((StringZoieVersion)zversion)._version);
 	}
-
 }
