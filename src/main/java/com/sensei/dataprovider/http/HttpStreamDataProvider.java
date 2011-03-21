@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Comparator;
 import java.util.Iterator;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.http.Header;
@@ -54,8 +55,10 @@ public abstract class HttpStreamDataProvider<D> extends StreamDataProvider<D,Str
 	protected String _offset;
 	protected String _initialOffset;
 	private final boolean _disableHttps;
-	private Iterator<D> _currentDataIter;
-	private Comparator<String> _versionComparator;
+	private  Iterator<DataEvent<D,StringZoieVersion>> _currentDataIter;
+	protected Comparator<String> _versionComparator;
+	private final AtomicBoolean _stopped;
+	private int _retryTime;
 	
 	public HttpStreamDataProvider(String baseUrl,String pw,int batchSize,String startingOffset,boolean disableHttps){
 	  _baseUrl = baseUrl;
@@ -65,6 +68,7 @@ public abstract class HttpStreamDataProvider<D> extends StreamDataProvider<D,Str
 	  _disableHttps = disableHttps;
 	  _initialOffset = null;
 	  _currentDataIter = null;
+	  _stopped = new AtomicBoolean(true);
 
 	  Scheme http = new Scheme("http", 80, PlainSocketFactory.getSocketFactory());
 	  SchemeRegistry sr = new SchemeRegistry();
@@ -83,6 +87,8 @@ public abstract class HttpStreamDataProvider<D> extends StreamDataProvider<D,Str
 	  params.setIntParameter(HttpConnectionParams.SO_LINGER, 0);  //  no socket linger
 	  params.setBooleanParameter(HttpConnectionParams.TCP_NODELAY, true); // tcp no delay
 	  params.setIntParameter(HttpConnectionParams.SO_TIMEOUT,5000);  // 5s sock timeout
+	  params.setIntParameter(HttpConnectionParams.SOCKET_BUFFER_SIZE,1024*1024);  // 1mb socket buffer
+	  params.setBooleanParameter(HttpConnectionParams.SO_REUSEADDR,true);  // 5s sock timeout
 	  
 	  _httpClientManager = new SingleClientConnManager(sr);
 	  _httpclient = new DefaultHttpClient(_httpClientManager,params);
@@ -105,6 +111,7 @@ public abstract class HttpStreamDataProvider<D> extends StreamDataProvider<D,Str
 	          HeaderElement[] codecs = ceheader.getElements();
 	          for (int i = 0; i < codecs.length; i++) {
 	            if (codecs[i].getName().equalsIgnoreCase("gzip")) {
+	            	System.out.println("gzip response");
 	              response.setEntity(new GzipDecompressingEntity(response
 	                .getEntity()));
 	              return;
@@ -115,6 +122,15 @@ public abstract class HttpStreamDataProvider<D> extends StreamDataProvider<D,Str
 	    });
 	  
 	  _versionComparator = getVersionComparator();
+	  _retryTime = 5000;   // default retry after 5 seconds
+	}
+	
+	public void setRetryTime(int retryTime){
+		_retryTime = retryTime;
+	}
+	
+	public int getRetryTime(){
+		return _retryTime;
 	}
 	
 	public void setInitialOffset(String initialOffset){
@@ -125,52 +141,9 @@ public abstract class HttpStreamDataProvider<D> extends StreamDataProvider<D,Str
 	
 	protected abstract Comparator<String> getVersionComparator();
 	
-	/*private String buildGetString(String offset){
-		StringBuilder buf = new StringBuilder();
-		buf.append(_baseUrl);
-		buf.append("?password=").append(_password);
-		buf.append("&num=").append(_batchSize);
-		String sinceKey;
-		if (_offset != null && ! "null".equalsIgnoreCase(_offset) && ! "now".equalsIgnoreCase(_offset)){
-			sinceKey=offset;
-        }
-		else{
-			_offset=null;
-			sinceKey=null;
-		}
-		
-		if (sinceKey!=null){
-			buf.append("&since=").append(sinceKey);
-		}
-		return buf.toString();
-	}*/
-	
-	protected static class FetchedData<D>{
-		String offset;
-		Iterator<D> dataIter;
-	}
-	
-	protected abstract FetchedData<D> parse(InputStream is) throws Exception;
-	
-	/*private FetchedData parse(Reader reader) throws JSONException{
-      JSONObject json = new JSONObject(new JSONTokener(reader));
-  
-      String offset = json.getString(_offsetParam);
-      JSONArray data = json.getJSONArray(_dataParam);
-      
-      FetchedData fetchedData = new FetchedData();
-      fetchedData.offset = offset;
-      
-      ArrayList<JSONObject> arrayList = new ArrayList<JSONObject>(data.length());
-      fetchedData.dataList = arrayList;
-      
-      for (int i=0;i<data.length();++i){
-    	  arrayList.add(data.optJSONObject(i));
-      }
-      return fetchedData;
-    }*/
-	
-	private FetchedData<D> fetchBatch() throws HttpException{
+	protected abstract  Iterator<DataEvent<D,StringZoieVersion>> parse(InputStream is) throws Exception;
+
+	private Iterator<DataEvent<D,StringZoieVersion>> fetchBatch() throws HttpException{
 	  InputStream stream = null;
 	  try{
 		HttpGet httpget = new HttpGet(buildGetString(_offset));
@@ -211,28 +184,38 @@ public abstract class HttpStreamDataProvider<D> extends StreamDataProvider<D,Str
 	
 	@Override
 	public DataEvent<D,StringZoieVersion> next() {
+	  if (_stopped.get()){
+		  return null;
+	  }
 	  if (_currentDataIter==null || !_currentDataIter.hasNext()){
-		try {
-		  FetchedData<D> data = fetchBatch();
-		  _currentDataIter = data.dataIter;
+		while(true && !_stopped.get()){
+		  try{
+		    Iterator<DataEvent<D,StringZoieVersion>> data = fetchBatch();
+		    _currentDataIter = data;
 		  
-		  if (_currentDataIter==null || !_currentDataIter.hasNext()){
-		    if (logger.isDebugEnabled()){
+		    if (_currentDataIter==null || !_currentDataIter.hasNext()){
+		      if (logger.isDebugEnabled()){
 			  logger.debug("no more data");
 			  return null;
+		      }
 		    }
-		  }
-		  
-		  _offset = data.offset;
-		  
-		} catch (HttpException e) {
-		  logger.error(e.getMessage(),e);
-		  return null;
-		}  
+		    break;
+		  } catch (HttpException e) {
+		    logger.error(e.getMessage(),e);
+		    try {
+		    	logger.error("retrying in "+_retryTime+"ms");
+				Thread.sleep(_retryTime);
+				continue;
+			} catch (InterruptedException e1) {
+				return null;
+			}
+		  }  
+		}
 	  }
 	  
-	  D data = _currentDataIter.next();
-	  return new DataEvent<D,StringZoieVersion>(data,new StringZoieVersion(_offset,_versionComparator));
+	  DataEvent<D,StringZoieVersion> data = _currentDataIter.next();
+	  _offset = data.getVersion().encodeToString();
+	  return data;
 	  
 	}
 
@@ -242,10 +225,19 @@ public abstract class HttpStreamDataProvider<D> extends StreamDataProvider<D,Str
 		  _offset = _initialOffset;
 	  }
 	}
+	
+	
+
+	@Override
+	public void start() {
+		super.start();
+		_stopped.set(false);
+	}
 
 	@Override
 	public void stop() {
 		try{
+		  _stopped.set(true);
 		  if (_httpClientManager!=null){
 		    _httpClientManager.shutdown();
 		  }
