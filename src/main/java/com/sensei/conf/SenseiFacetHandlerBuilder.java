@@ -209,7 +209,7 @@ public class SenseiFacetHandlerBuilder {
 				String name = facet.getAttribute("name");
 				String type = facet.getAttribute("type");
 				String fieldName = facet.getAttribute("column");
-				if (fieldName==null){
+				if (fieldName==null || fieldName.isEmpty()){
 					fieldName = name;
 				}
 				Set<String> dependSet = new HashSet<String>();
