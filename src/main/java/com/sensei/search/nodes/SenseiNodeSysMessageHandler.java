@@ -1,52 +1,39 @@
 package com.sensei.search.nodes;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import org.apache.log4j.Logger;
 
-import proj.zoie.api.DefaultZoieVersion;
-import proj.zoie.api.IndexReaderFactory;
-import proj.zoie.api.ZoieIndexReader;
-import proj.zoie.api.ZoieIndexReader.SubReaderAccessor;
-import proj.zoie.impl.indexing.ZoieSystem;
-import proj.zoie.mbean.ZoieSystemAdminMBean;
-
-import com.browseengine.bobo.api.BoboBrowser;
-import com.browseengine.bobo.api.BoboIndexReader;
-import com.browseengine.bobo.api.MultiBoboBrowser;
 import com.google.protobuf.Message;
-import com.google.protobuf.TextFormat;
-import com.linkedin.norbert.javacompat.network.MessageHandler;
 import com.sensei.search.req.SenseiSystemInfo;
 import com.sensei.search.req.protobuf.SenseiSysRequestBPO;
 import com.sensei.search.req.protobuf.SenseiSysRequestBPOConverter;
 import com.sensei.search.req.protobuf.SenseiSysResultBPO.SysResult;
 
-public class SenseiNodeSysMessageHandler implements MessageHandler {
+public class SenseiNodeSysMessageHandler extends AbstractSenseiNodeMessageHandler {
 
 	private static final Logger logger = Logger.getLogger(SenseiNodeSysMessageHandler.class);
-	private final Map<Integer,SenseiQueryBuilderFactory> _builderFactoryMap;
-	private final Map<Integer,IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>> _partReaderMap;
-
-	private final int _nodeId;
-
-	public SenseiNodeSysMessageHandler(int nodeId, SenseiSearchContext ctx) {
-		_nodeId = nodeId;
-		_builderFactoryMap = ctx.getQueryBuilderFactoryMap();
-		_partReaderMap = ctx.getPartitionReaderMap();
+	public SenseiNodeSysMessageHandler() {
+		
 	}
 	
-	public Message[] getMessages() {
-		return new Message[] { SenseiSysRequestBPO.SysRequest.getDefaultInstance() };
+	@Override
+	public Message getRequestMessage(){
+	    return SenseiSysRequestBPO.SysRequest.getDefaultInstance();
+	}
+	  
+	@Override
+	public Message getResponseMessage(){
+	    return SysResult.getDefaultInstance();
 	}
 
+	@Override
+	public Message handleMessage(Message req) throws Exception {
+		SenseiSystemInfo info = new SenseiSystemInfo(); 	// empty for now
+		return SenseiSysRequestBPOConverter.convert(info);
+	}
+	
+	
+	
+/*
 	public Message handleMessage(Message msg) throws Exception {
 		SenseiSysRequestBPO.SysRequest req = (SenseiSysRequestBPO.SysRequest) msg;
 		
@@ -141,6 +128,6 @@ public class SenseiNodeSysMessageHandler implements MessageHandler {
 		logger.info("searching partitions	" + partitions.toString());
 		return returnvalue;
 	}
-
+*/
 }
 
