@@ -1,6 +1,7 @@
 package com.sensei.search.svc.impl;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -27,6 +28,15 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
 	
 	public final Res execute(Req senseiReq){
 		Set<Integer> partitions = senseiReq==null ? null : senseiReq.getPartitions();
+		if (partitions==null){
+			partitions = new HashSet<Integer>();
+			int[] containsPart = _core.getPartitions();
+			if (containsPart!=null){
+			  for (int part : containsPart){
+			    partitions.add(part);
+			  }
+			}
+		}
 		Res finalResult;
 	    if (partitions != null && partitions.size() > 0)
 	    {
@@ -61,7 +71,7 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
 	      finalResult = getEmptyResultInstance(null);
 	    }
 	    if (logger.isInfoEnabled()){
-	      logger.info("searching partitions  " + partitions.toString() + " took: " + finalResult.getTime());
+	      logger.info("searching partitions  " + String.valueOf(partitions) + " took: " + finalResult.getTime());
 	    }
 	    return finalResult;
 	}
@@ -70,6 +80,9 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
 		List<ZoieIndexReader<BoboIndexReader>> readerList = null;
         try{
       	  readerList = readerFactory.getIndexReaders();
+      	  if (logger.isDebugEnabled()){
+      		  logger.debug("obtained readerList of size: "+readerList==null? 0 : readerList.size());
+      	  }
       	  List<BoboIndexReader> boboReaders = ZoieIndexReader.extractDecoratedReaders(readerList);
       	  return handlePartitionedRequest(senseiReq,boboReaders,queryBuilderFactory);
         }

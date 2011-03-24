@@ -89,6 +89,10 @@ public class SenseiCore{
 	    }
 	}
 	
+	public int[] getPartitions(){
+		return _partitions;
+	}
+	
 	public void start() throws Exception{
 		if (_started) return;
 	    for (int part : _partitions){
