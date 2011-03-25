@@ -96,6 +96,7 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
 	public abstract Res handlePartitionedRequest(Req r,final List<BoboIndexReader> readerList,SenseiQueryBuilderFactory queryBuilderFactory) throws Exception;
 	public abstract Res mergePartitionedResults(Req r,List<Res> reqList);
 	public abstract Res getEmptyResultInstance(Throwable error);
+	public abstract Message getEmptyRequestInstance();
 	
 	public abstract Message resultToMessage(Res result);
 	public abstract Req reqFromMessage(Message req);

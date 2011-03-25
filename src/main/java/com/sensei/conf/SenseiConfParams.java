@@ -28,6 +28,9 @@ public interface SenseiConfParams {
 	
 	public static final String SENSEI_VERSION_COMPARATOR = "sensei.version.comparator";
 	
+
+	public static final String SENSEI_PLUGIN_SVCS = "sensei.plugin.services";
+	
 	public static final Comparator<String> DEFAULT_VERSION_STRING_COMPARATOR = new Comparator<String>(){
 		@Override
 	    public int compare(String o1, String o2) {

@@ -1,18 +1,11 @@
 package com.sensei.search.nodes;
 
 import java.io.File;
-import java.io.FilenameFilter;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 import javax.management.InstanceAlreadyExistsException;
 import javax.management.MBeanServer;
@@ -21,21 +14,19 @@ import javax.management.StandardMBean;
 
 import org.apache.log4j.Logger;
 
-import proj.zoie.api.IndexReaderFactory;
-import proj.zoie.api.Zoie;
-import proj.zoie.api.ZoieIndexReader;
 import scala.actors.threadpool.Arrays;
 
-import com.browseengine.bobo.api.BoboIndexReader;
+import com.google.protobuf.Message;
 import com.linkedin.norbert.javacompat.cluster.ClusterClient;
 import com.linkedin.norbert.javacompat.cluster.Node;
 import com.linkedin.norbert.javacompat.network.NetworkServer;
 import com.linkedin.norbert.network.NetworkingException;
 import com.sensei.conf.SenseiServerBuilder;
-import com.sensei.search.req.protobuf.SenseiRequestBPO;
-import com.sensei.search.req.protobuf.SenseiResultBPO;
-import com.sensei.search.svc.api.SenseiException;
+import com.sensei.search.req.AbstractSenseiRequest;
+import com.sensei.search.req.AbstractSenseiResult;
+import com.sensei.search.svc.impl.AbstractSenseiCoreService;
 import com.sensei.search.svc.impl.CoreSenseiServiceImpl;
+import com.sensei.search.svc.impl.SenseiCoreServiceMessageHandler;
 
 public class SenseiServer {
   private static final Logger logger = Logger.getLogger(SenseiServer.class);
@@ -53,7 +44,7 @@ public class SenseiServer {
     private final List<ObjectName> _registeredMBeans;
     protected volatile Node _serverNode;
     private final CoreSenseiServiceImpl _innerSvc;
-    private final List<AbstractSenseiNodeMessageHandler> _externalMessageHandlerList;
+    private final List<AbstractSenseiCoreService<AbstractSenseiRequest, AbstractSenseiResult>> _externalSvc;
 
     protected volatile boolean _available = false;
     
@@ -63,8 +54,8 @@ public class SenseiServer {
             SenseiZoieFactory<?,?> zoieSystemFactory,
             SenseiIndexLoaderFactory indexLoaderFactory,
             SenseiQueryBuilderFactory queryBuilderFactory,
-            List<AbstractSenseiNodeMessageHandler> externalMessageHandlerList){
-      this(id,port,partitions,null,networkServer,clusterClient,zoieSystemFactory,indexLoaderFactory,queryBuilderFactory,externalMessageHandlerList);
+            List<AbstractSenseiCoreService<AbstractSenseiRequest, AbstractSenseiResult>> externalSvc){
+      this(id,port,partitions,null,networkServer,clusterClient,zoieSystemFactory,indexLoaderFactory,queryBuilderFactory,externalSvc);
     }
     
     public SenseiServer(int id, int port, int[] partitions,
@@ -74,28 +65,28 @@ public class SenseiServer {
                         SenseiZoieFactory<?,?> zoieSystemFactory,
                         SenseiIndexLoaderFactory indexLoaderFactory,
                         SenseiQueryBuilderFactory queryBuilderFactory,
-                        List<AbstractSenseiNodeMessageHandler> externalMessageHandlerList)
+                        List<AbstractSenseiCoreService<AbstractSenseiRequest, AbstractSenseiResult>> externalSvc)
     {
-       this(id,port,partitions,networkServer,clusterClient,new SenseiCore(id, partitions, extDir,zoieSystemFactory, indexLoaderFactory, queryBuilderFactory),externalMessageHandlerList);
+       this(port,networkServer,clusterClient,new SenseiCore(id, partitions, extDir,zoieSystemFactory, indexLoaderFactory, queryBuilderFactory),externalSvc);
     }
     
-    public SenseiServer(int id, int port, int[] partitions,
+    public SenseiServer(int port,
             NetworkServer networkServer,
             ClusterClient clusterClient,
             SenseiCore senseiCore,
-            List<AbstractSenseiNodeMessageHandler> externalMessageHandlerList)
+            List<AbstractSenseiCoreService<AbstractSenseiRequest, AbstractSenseiResult>> externalSvc)
    {
     	_registeredMBeans = new LinkedList<ObjectName>();
         _core = senseiCore;
-        _id = id;
+        _id = senseiCore.getNodeId();
         _port = port;
-        _partitions = partitions;
+        _partitions = senseiCore.getPartitions();
        
         _networkServer = networkServer;
         _clusterClient = clusterClient;
         
         _innerSvc = new CoreSenseiServiceImpl(senseiCore);
-        _externalMessageHandlerList = externalMessageHandlerList;
+        _externalSvc = externalSvc;
    }
     
   private static String help(){
@@ -158,13 +149,16 @@ public class SenseiServer {
       logger.info("Cluster Name: " + clusterName);
       logger.info("Cluster info: " + _clusterClient.toString());
     
+      AbstractSenseiCoreService coreSenseiService = new CoreSenseiServiceImpl(_core);
     // create the zookeeper cluster client
 //    SenseiClusterClientImpl senseiClusterClient = new SenseiClusterClientImpl(clusterName, zookeeperURL, zookeeperTimeout, false);
-    SenseiNodeMessageHandler senseiMsgHandler =  new SenseiNodeMessageHandler(_innerSvc);
-    _networkServer.registerHandler(senseiMsgHandler.getRequestMessage(),senseiMsgHandler.getResponseMessage(),senseiMsgHandler);
-    if (_externalMessageHandlerList!=null){
-    	for (AbstractSenseiNodeMessageHandler handler : _externalMessageHandlerList){
-    		_networkServer.registerHandler(handler.getRequestMessage(),handler.getResponseMessage(), handler);
+      SenseiCoreServiceMessageHandler senseiMsgHandler =  new SenseiCoreServiceMessageHandler(coreSenseiService);
+    _networkServer.registerHandler(coreSenseiService.getEmptyRequestInstance(),coreSenseiService.resultToMessage(coreSenseiService.getEmptyResultInstance(null)),senseiMsgHandler);
+    if (_externalSvc!=null){
+    	for (AbstractSenseiCoreService svc : _externalSvc){
+    		Message req = svc.getEmptyRequestInstance();
+    		Message res = svc.resultToMessage(svc.getEmptyResultInstance(null));
+    		_networkServer.registerHandler(req,res, new SenseiCoreServiceMessageHandler(svc));
     	}
     }
     HashSet<Integer> partition = new HashSet<Integer>();

@@ -159,4 +159,9 @@ public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiReque
 	public SenseiRequest reqFromMessage(Message req) {
 		return SenseiRequestBPOConverter.convert((SenseiRequestBPO.Request)req);
 	}
+
+	@Override
+	public Message getEmptyRequestInstance() {
+		return SenseiRequestBPO.Request.getDefaultInstance(); 
+	}
 }

@@ -1,7 +1,6 @@
 package com.sensei.conf;
 
 import java.io.File;
-import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -22,7 +21,6 @@ import org.springframework.context.support.FileSystemXmlApplicationContext;
 import org.w3c.dom.Document;
 
 import proj.zoie.api.DefaultZoieVersion;
-import proj.zoie.api.ZoieVersionFactory;
 import proj.zoie.api.DefaultZoieVersion.DefaultZoieVersionFactory;
 import proj.zoie.impl.indexing.ZoieConfig;
 
@@ -33,8 +31,8 @@ import com.linkedin.norbert.javacompat.cluster.ZooKeeperClusterClient;
 import com.linkedin.norbert.javacompat.network.NettyNetworkServer;
 import com.linkedin.norbert.javacompat.network.NetworkServer;
 import com.linkedin.norbert.javacompat.network.NetworkServerConfig;
-import com.sensei.dataprovider.http.StringZoieVersion;
 import com.sensei.search.nodes.NoOpIndexableInterpreter;
+import com.sensei.search.nodes.SenseiCore;
 import com.sensei.search.nodes.SenseiIndexLoaderFactory;
 import com.sensei.search.nodes.SenseiIndexReaderDecorator;
 import com.sensei.search.nodes.SenseiQueryBuilderFactory;
@@ -43,6 +41,9 @@ import com.sensei.search.nodes.SenseiZoieSystemFactory;
 import com.sensei.search.nodes.impl.DefaultJsonQueryBuilderFactory;
 import com.sensei.search.nodes.impl.DemoZoieSystemFactory;
 import com.sensei.search.nodes.impl.NoopIndexLoaderFactory;
+import com.sensei.search.req.AbstractSenseiRequest;
+import com.sensei.search.req.AbstractSenseiResult;
+import com.sensei.search.svc.impl.AbstractSenseiCoreService;
 
 public class SenseiServerBuilder implements SenseiConfParams{
 
@@ -99,52 +100,88 @@ public class SenseiServerBuilder implements SenseiConfParams{
 	  _schemaDoc.getDocumentElement().normalize();
   }
   
-  public SenseiServer buildServer() throws ConfigurationException {
+  public SenseiCore buildCore() throws ConfigurationException{
 	  int nodeid = _senseiConf.getInt(NODE_ID);
-	  int port = _senseiConf.getInt(SERVER_PORT);
-    String[] partitionArray = _senseiConf.getStringArray(PARTITIONS);
-    int[] partitions = null;
-    try {
-      partitions = new int[partitionArray.length];
-      for (int i=0; i<partitionArray.length; ++i) {
-        partitions[i] = Integer.parseInt(partitionArray[i]);
+	  String[] partitionArray = _senseiConf.getStringArray(PARTITIONS);
+	  int[] partitions = null;
+	  try {
+	    partitions = new int[partitionArray.length];
+	    for (int i=0; i<partitionArray.length; ++i) {
+	      partitions[i] = Integer.parseInt(partitionArray[i]);
+	    }
+	  }
+	  catch (Exception e) {
+	    throw new ConfigurationException(
+	        "Error parsing '" + SENSEI_PROPERTIES + "': " + PARTITIONS + "=" + _senseiConf.getString(PARTITIONS), e);
+	  }
+	  
+	  File extDir = new File(_confDir,"ext");
+	  
+	// Analyzer from configuration:
+      Analyzer analyzer = null;
+      String analyzerName = _senseiConf.getString(SENSEI_INDEX_ANALYZER, "");
+      if (analyzerName == null || analyzerName.equals("")) {
+        analyzer = new StandardAnalyzer(Version.LUCENE_29);
       }
-    }
-    catch (Exception e) {
-      throw new ConfigurationException(
-        "Error parsing '" + SENSEI_PROPERTIES + "': " + PARTITIONS + "=" + _senseiConf.getString(PARTITIONS), e);
-    }
+      else {
+        analyzer = (Analyzer)_pluginContext.getBean(analyzerName);
+      }
+
+      // Similarity from configuration:
+      Similarity similarity = null;
+      String similarityName = _senseiConf.getString(SENSEI_INDEX_SIMILARITY, "");
+      if (similarityName == null || similarityName.equals("")) {
+        similarity = new DefaultSimilarity();
+      }
+      else {
+        similarity = (Similarity)_pluginContext.getBean(similarityName);
+      }
+      DefaultZoieVersionFactory defaultVersionFac = new DefaultZoieVersion.DefaultZoieVersionFactory();
+      
+      ZoieConfig<DefaultZoieVersion> zoieConfig = new ZoieConfig<DefaultZoieVersion>(defaultVersionFac);
+      
+      zoieConfig.setAnalyzer(analyzer);
+      zoieConfig.setSimilarity(similarity);
+      zoieConfig.setBatchSize(_senseiConf.getInt(SENSEI_INDEX_BATCH_SIZE,ZoieConfig.DEFAULT_SETTING_BATCHSIZE));
+      zoieConfig.setBatchDelay(_senseiConf.getLong(SENSEI_INDEX_BATCH_DELAY, ZoieConfig.DEFAULT_SETTING_BATCHDELAY));
+      zoieConfig.setMaxBatchSize(_senseiConf.getInt(SENSEI_INDEX_BATCH_MAXSIZE, ZoieConfig.DEFAULT_MAX_BATCH_SIZE));
+      zoieConfig.setRtIndexing(_senseiConf.getBoolean(SENSEI_INDEX_REALTIME, ZoieConfig.DEFAULT_SETTING_REALTIME));
+      zoieConfig.setFreshness(_senseiConf.getLong(SENSEI_INDEX_FRESHNESS, 10000));
+
+      QueryParser queryParser = new QueryParser(Version.LUCENE_29,"contents", analyzer);
+
+      List<FacetHandler<?>> facetHandlers = new LinkedList<FacetHandler<?>>();
+      List<RuntimeFacetHandlerFactory<?,?>> runtimeFacetHandlerFactories = new LinkedList<RuntimeFacetHandlerFactory<?,?>>();
+      
+      SenseiFacetHandlerBuilder.buildFacets(_schemaDoc, _customFacetContext, facetHandlers, runtimeFacetHandlerFactories);
+      SenseiZoieSystemFactory<?,?> zoieSystemFactory = new DemoZoieSystemFactory(
+        new File(_senseiConf.getString(SENSEI_INDEX_DIR)),
+        new NoOpIndexableInterpreter(),
+        new SenseiIndexReaderDecorator(facetHandlers,runtimeFacetHandlerFactories),
+        zoieConfig
+      );
+      
+      SenseiIndexLoaderFactory<?,?> indexLoaderFactory = new NoopIndexLoaderFactory();
+      SenseiQueryBuilderFactory queryBuilderFactory = new DefaultJsonQueryBuilderFactory(queryParser);
+      
+      return new SenseiCore(nodeid,partitions,extDir,zoieSystemFactory,indexLoaderFactory,queryBuilderFactory);
+  }
+  
+  public SenseiServer buildServer() throws ConfigurationException { 
+	int port = _senseiConf.getInt(SERVER_PORT);
 	  
 	ClusterClient clusterClient = buildClusterClient(_senseiConf);
 	NetworkServer networkServer = buildNetworkServer(_senseiConf,clusterClient);
-	File extDir = new File(_confDir,"ext");
+	
 
-    // Analyzer from configuration:
-    Analyzer analyzer = null;
-    String analyzerName = _senseiConf.getString(SENSEI_INDEX_ANALYZER, "");
-    if (analyzerName == null || analyzerName.equals("")) {
-      analyzer = new StandardAnalyzer(Version.LUCENE_29);
-    }
-    else {
-      analyzer = (Analyzer)_pluginContext.getBean(analyzerName);
-    }
-
-    // Similarity from configuration:
-    Similarity similarity = null;
-    String similarityName = _senseiConf.getString(SENSEI_INDEX_SIMILARITY, "");
-    if (similarityName == null || similarityName.equals("")) {
-      similarity = new DefaultSimilarity();
-    }
-    else {
-      similarity = (Similarity)_pluginContext.getBean(similarityName);
-    }
+    SenseiCore core = buildCore();
     
     //String versionComparatorParam = _senseiConf.getString(SenseiConfParams.SENSEI_VERSION_COMPARATOR,"");
     //Comparator<String> versionComparator;
     
    // if (versionComparatorParam.length()==0 || "long".equals(versionComparatorParam)){
     //	versionComparator = SenseiConfParams.DEFAULT_VERSION_LONG_COMPARATOR;
-    	DefaultZoieVersionFactory defaultVersionFac = new DefaultZoieVersion.DefaultZoieVersionFactory();
+    	
     //}
     /*else if ("string".equals(versionComparatorParam)){
     	versionComparator = SenseiConfParams.DEFAULT_VERSION_STRING_COMPARATOR;
@@ -155,39 +192,19 @@ public class SenseiServerBuilder implements SenseiConfParams{
     
    // final Comparator<String> zoieComparator = versionComparator;
 
-    ZoieConfig<DefaultZoieVersion> zoieConfig = new ZoieConfig<DefaultZoieVersion>(defaultVersionFac);
-    
-    zoieConfig.setAnalyzer(analyzer);
-    zoieConfig.setSimilarity(similarity);
-    zoieConfig.setBatchSize(_senseiConf.getInt(SENSEI_INDEX_BATCH_SIZE,ZoieConfig.DEFAULT_SETTING_BATCHSIZE));
-    zoieConfig.setBatchDelay(_senseiConf.getLong(SENSEI_INDEX_BATCH_DELAY, ZoieConfig.DEFAULT_SETTING_BATCHDELAY));
-    zoieConfig.setMaxBatchSize(_senseiConf.getInt(SENSEI_INDEX_BATCH_MAXSIZE, ZoieConfig.DEFAULT_MAX_BATCH_SIZE));
-    zoieConfig.setRtIndexing(_senseiConf.getBoolean(SENSEI_INDEX_REALTIME, ZoieConfig.DEFAULT_SETTING_REALTIME));
-    zoieConfig.setFreshness(_senseiConf.getLong(SENSEI_INDEX_FRESHNESS, 10000));
-
-    QueryParser queryParser = new QueryParser(Version.LUCENE_29,"contents", analyzer);
-
-    List<FacetHandler<?>> facetHandlers = new LinkedList<FacetHandler<?>>();
-    List<RuntimeFacetHandlerFactory<?,?>> runtimeFacetHandlerFactories = new LinkedList<RuntimeFacetHandlerFactory<?,?>>();
-    
-    SenseiFacetHandlerBuilder.buildFacets(_schemaDoc, _customFacetContext, facetHandlers, runtimeFacetHandlerFactories);
-    SenseiZoieSystemFactory<?,?> zoieSystemFactory = new DemoZoieSystemFactory(
-      new File(_senseiConf.getString(SENSEI_INDEX_DIR)),
-      new NoOpIndexableInterpreter(),
-      new SenseiIndexReaderDecorator(facetHandlers,runtimeFacetHandlerFactories),
-      zoieConfig
-    );
-    SenseiIndexLoaderFactory<?,?> indexLoaderFactory = new NoopIndexLoaderFactory();
-    SenseiQueryBuilderFactory queryBuilderFactory = new DefaultJsonQueryBuilderFactory(queryParser);
-
-	  return new SenseiServer(nodeid,
-                            port,
-                            partitions,
-                            extDir,
-                            networkServer,
-                            clusterClient,
-                            zoieSystemFactory,
-                            indexLoaderFactory,
-                            queryBuilderFactory,null);
+    String[] externalServicList = _senseiConf.getStringArray(SENSEI_PLUGIN_SVCS);
+    List<AbstractSenseiCoreService<AbstractSenseiRequest, AbstractSenseiResult>> svcList = new LinkedList<AbstractSenseiCoreService<AbstractSenseiRequest, AbstractSenseiResult>>();
+    if (externalServicList!=null){
+      for (String svcName : externalServicList){
+    	  try{
+    		  AbstractSenseiCoreService<AbstractSenseiRequest, AbstractSenseiResult> svc = (AbstractSenseiCoreService<AbstractSenseiRequest, AbstractSenseiResult>)_pluginContext.getBean(svcName);
+    		  svcList.add(svc);
+    	  }
+    	  catch(Exception e){
+    		  throw new ConfigurationException(e.getMessage(),e);
+    	  }
+      }
+    }
+	return new SenseiServer(port,networkServer,clusterClient,core,svcList);
   }
 }

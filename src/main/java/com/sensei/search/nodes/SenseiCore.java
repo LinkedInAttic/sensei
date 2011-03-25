@@ -65,6 +65,10 @@ public class SenseiCore{
 	      _started = false;
 	}
 	
+	public int getNodeId(){
+		return _id;
+	}
+	
 	private static void loadJars(File extDir)
 	  {
 	    File[] jarfiles = extDir.listFiles(new FilenameFilter(){
