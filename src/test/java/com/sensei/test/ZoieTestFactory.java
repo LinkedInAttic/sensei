@@ -11,9 +11,9 @@ import com.browseengine.bobo.api.BoboIndexReader;
 import com.sensei.search.nodes.SenseiIndexReaderDecorator;
 import com.sensei.search.nodes.SenseiZoieSystemFactory;
 
-public class TestZoieFactory<T> extends SenseiZoieSystemFactory<T,DefaultZoieVersion> {
+public class ZoieTestFactory<T> extends SenseiZoieSystemFactory<T,DefaultZoieVersion> {
 	  
-	  public TestZoieFactory(File idxDir, ZoieIndexableInterpreter<T> interpreter, SenseiIndexReaderDecorator indexReaderDecorator,
+	  public ZoieTestFactory(File idxDir, ZoieIndexableInterpreter<T> interpreter, SenseiIndexReaderDecorator indexReaderDecorator,
 	                               ZoieConfig<DefaultZoieVersion> zoieConfig)
 	  {
 	    super(idxDir, interpreter, indexReaderDecorator, zoieConfig);
