@@ -188,6 +188,6 @@ public class SenseiServerBuilder implements SenseiConfParams{
                             clusterClient,
                             zoieSystemFactory,
                             indexLoaderFactory,
-                            queryBuilderFactory);
+                            queryBuilderFactory,null);
   }
 }
