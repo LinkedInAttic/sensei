@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Comparator;
 import java.util.Iterator;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.http.Header;
@@ -57,7 +56,7 @@ public abstract class HttpStreamDataProvider<D> extends StreamDataProvider<D,Str
 	private final boolean _disableHttps;
 	private  Iterator<DataEvent<D,StringZoieVersion>> _currentDataIter;
 	protected Comparator<String> _versionComparator;
-	private final AtomicBoolean _stopped;
+	private volatile boolean _stopped;
 	private int _retryTime;
 	
 	public HttpStreamDataProvider(String baseUrl,String pw,int batchSize,String startingOffset,boolean disableHttps){
@@ -68,7 +67,7 @@ public abstract class HttpStreamDataProvider<D> extends StreamDataProvider<D,Str
 	  _disableHttps = disableHttps;
 	  _initialOffset = null;
 	  _currentDataIter = null;
-	  _stopped = new AtomicBoolean(true);
+	  _stopped = true;
 
 	  Scheme http = new Scheme("http", 80, PlainSocketFactory.getSocketFactory());
 	  SchemeRegistry sr = new SchemeRegistry();
@@ -184,21 +183,21 @@ public abstract class HttpStreamDataProvider<D> extends StreamDataProvider<D,Str
 	
 	@Override
 	public DataEvent<D,StringZoieVersion> next() {
-	  if (_stopped.get()){
+	  if (_stopped){
 		  return null;
 	  }
 	  if (_currentDataIter==null || !_currentDataIter.hasNext()){
-		while(true && !_stopped.get()){
+		while(true && !_stopped){
 		  try{
 		    Iterator<DataEvent<D,StringZoieVersion>> data = fetchBatch();
-		    _currentDataIter = data;
-		  
-		    if (_currentDataIter==null || !_currentDataIter.hasNext()){
+		   
+		    if (data==null || !data.hasNext()){
 		      if (logger.isDebugEnabled()){
-			  logger.debug("no more data");
-			  return null;
+			    logger.debug("no more data");
 		      }
+		      return null;
 		    }
+		    _currentDataIter = data;
 		    break;
 		  } catch (HttpException e) {
 		    logger.error(e.getMessage(),e);
@@ -231,19 +230,19 @@ public abstract class HttpStreamDataProvider<D> extends StreamDataProvider<D,Str
 	@Override
 	public void start() {
 		super.start();
-		_stopped.set(false);
+		_stopped=false;
 	}
 
 	@Override
 	public void stop() {
 		try{
-		  _stopped.set(true);
-		  if (_httpClientManager!=null){
-		    _httpClientManager.shutdown();
-		  }
+		  super.stop();
 		}
 		finally{
-		  super.stop();
+		  _stopped = true;
+		  if (_httpClientManager!=null){
+			 _httpClientManager.shutdown();
+		   }
 		}
 	}
 }
