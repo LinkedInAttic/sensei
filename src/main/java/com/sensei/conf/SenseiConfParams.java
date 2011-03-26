@@ -22,6 +22,11 @@ public interface SenseiConfParams {
 	public static final String SENSEI_INDEX_BATCH_MAXSIZE = "sensei.index.maxBatchSize";
 	public static final String SENSEI_INDEX_REALTIME = "sensei.index.realtime";
 	public static final String SENSEI_INDEX_FRESHNESS = "sensei.index.freshness";
+	
+
+	public static final String SENSEI_INDEXER_TYPE = "sensei.indexer.type";
+	public static final String SENSEI_INDEXER_TYPE_HOURGLASS = "hourglass";
+	public static final String SENSEI_INDEXER_TYPE_ZOIE = "zoie";
 
 	public static final String SENSEI_INDEX_ANALYZER = "sensei.index.analyzer";
 	public static final String SENSEI_INDEX_SIMILARITY = "sensei.index.similarity";
@@ -30,6 +35,13 @@ public interface SenseiConfParams {
 	
 
 	public static final String SENSEI_PLUGIN_SVCS = "sensei.plugin.services";
+	
+	public static final String SENSEI_HOURGLASS_SCHEDULE = "sensei.indexer.hourglass.schedule";
+	public static final String SENSEI_HOURGLASS_TIMETHRESHOLD = "sensei.indexer.hourglass.timethreshold";
+	public static final String SENSEI_HOURGLASS_FREQUENCY = "sensei.indexer.hourglass.frequency";
+	public static final String SENSEI_HOURGLASS_FREQUENCY_MIN = "minute";
+	public static final String SENSEI_HOURGLASS_FREQUENCY_HOUR = "hour";
+	public static final String SENSEI_HOURGLASS_FREQUENCY_DAY = "day";
 	
 	public static final Comparator<String> DEFAULT_VERSION_STRING_COMPARATOR = new Comparator<String>(){
 		@Override

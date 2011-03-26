@@ -22,6 +22,8 @@ import org.w3c.dom.Document;
 
 import proj.zoie.api.DefaultZoieVersion;
 import proj.zoie.api.DefaultZoieVersion.DefaultZoieVersionFactory;
+import proj.zoie.api.indexing.ZoieIndexableInterpreter;
+import proj.zoie.hourglass.impl.HourGlassScheduler.FREQUENCY;
 import proj.zoie.impl.indexing.ZoieConfig;
 
 import com.browseengine.bobo.facets.FacetHandler;
@@ -33,10 +35,12 @@ import com.linkedin.norbert.javacompat.network.NetworkServer;
 import com.linkedin.norbert.javacompat.network.NetworkServerConfig;
 import com.sensei.search.nodes.NoOpIndexableInterpreter;
 import com.sensei.search.nodes.SenseiCore;
+import com.sensei.search.nodes.SenseiHourglassFactory;
 import com.sensei.search.nodes.SenseiIndexLoaderFactory;
 import com.sensei.search.nodes.SenseiIndexReaderDecorator;
 import com.sensei.search.nodes.SenseiQueryBuilderFactory;
 import com.sensei.search.nodes.SenseiServer;
+import com.sensei.search.nodes.SenseiZoieFactory;
 import com.sensei.search.nodes.SenseiZoieSystemFactory;
 import com.sensei.search.nodes.impl.DefaultJsonQueryBuilderFactory;
 import com.sensei.search.nodes.impl.DemoZoieSystemFactory;
@@ -154,12 +158,45 @@ public class SenseiServerBuilder implements SenseiConfParams{
       List<RuntimeFacetHandlerFactory<?,?>> runtimeFacetHandlerFactories = new LinkedList<RuntimeFacetHandlerFactory<?,?>>();
       
       SenseiFacetHandlerBuilder.buildFacets(_schemaDoc, _customFacetContext, facetHandlers, runtimeFacetHandlerFactories);
-      SenseiZoieSystemFactory<?,?> zoieSystemFactory = new DemoZoieSystemFactory(
-        new File(_senseiConf.getString(SENSEI_INDEX_DIR)),
-        new NoOpIndexableInterpreter(),
-        new SenseiIndexReaderDecorator(facetHandlers,runtimeFacetHandlerFactories),
-        zoieConfig
-      );
+      
+      String indexerType = _senseiConf.getString(SENSEI_INDEXER_TYPE);
+      
+      ZoieIndexableInterpreter interpreter = new NoOpIndexableInterpreter(); 
+      
+      SenseiIndexReaderDecorator decorator = new SenseiIndexReaderDecorator(facetHandlers,runtimeFacetHandlerFactories);
+      
+      SenseiZoieFactory<?,?> zoieSystemFactory = null;
+      if (SENSEI_INDEXER_TYPE_ZOIE.equals(indexerType)){
+    	  zoieSystemFactory = new SenseiZoieSystemFactory(new File(_senseiConf.getString(SENSEI_INDEX_DIR)),interpreter,decorator,
+    		        zoieConfig);
+      }
+      else if (SENSEI_INDEXER_TYPE_HOURGLASS.equals(indexerType)){
+    	  
+    	  String schedule = _senseiConf.getString(SENSEI_HOURGLASS_SCHEDULE,"");
+    	  int trimThreshold = _senseiConf.getInt(SENSEI_HOURGLASS_TIMETHRESHOLD,14);
+    	  String frequencyString = _senseiConf.getString(SENSEI_HOURGLASS_FREQUENCY,"day");
+    	  
+    	  FREQUENCY frequency;
+    	  
+    	  if (SENSEI_HOURGLASS_FREQUENCY_MIN.equals(frequencyString)){
+    		  frequency = FREQUENCY.MINUTELY;
+    	  }
+    	  else if (SENSEI_HOURGLASS_FREQUENCY_HOUR.equals(frequencyString)){
+    		  frequency = FREQUENCY.HOURLY;
+    	  }
+    	  else if (SENSEI_HOURGLASS_FREQUENCY_DAY.equals(frequencyString)){
+    		  frequency = FREQUENCY.DAILY;
+    	  }
+    	  else{
+    		  throw new ConfigurationException("unsupported frequency setting: "+frequencyString);
+    	  }
+    	  zoieSystemFactory = new SenseiHourglassFactory(new File(_senseiConf.getString(SENSEI_INDEX_DIR)),interpreter,decorator,
+  		        zoieConfig,schedule,trimThreshold,frequency);
+      }
+      else{
+    	  zoieSystemFactory = new DemoZoieSystemFactory(new File(_senseiConf.getString(SENSEI_INDEX_DIR)),interpreter,decorator,
+    		        zoieConfig);
+      }
       
       SenseiIndexLoaderFactory<?,?> indexLoaderFactory = new NoopIndexLoaderFactory();
       SenseiQueryBuilderFactory queryBuilderFactory = new DefaultJsonQueryBuilderFactory(queryParser);
@@ -196,12 +233,14 @@ public class SenseiServerBuilder implements SenseiConfParams{
     List<AbstractSenseiCoreService<AbstractSenseiRequest, AbstractSenseiResult>> svcList = new LinkedList<AbstractSenseiCoreService<AbstractSenseiRequest, AbstractSenseiResult>>();
     if (externalServicList!=null){
       for (String svcName : externalServicList){
-    	  try{
+    	  if (svcName!=null && svcName.trim().length()>0){
+    	    try{
     		  AbstractSenseiCoreService<AbstractSenseiRequest, AbstractSenseiResult> svc = (AbstractSenseiCoreService<AbstractSenseiRequest, AbstractSenseiResult>)_pluginContext.getBean(svcName);
     		  svcList.add(svc);
-    	  }
-    	  catch(Exception e){
+    	    }
+    	    catch(Exception e){
     		  throw new ConfigurationException(e.getMessage(),e);
+    	    }
     	  }
       }
     }
