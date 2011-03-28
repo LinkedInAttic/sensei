@@ -1,8 +1,13 @@
 package com.sensei.conf;
 
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
+
 import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -10,6 +15,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
+import org.apache.log4j.Logger;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.queryParser.QueryParser;
@@ -25,6 +31,7 @@ import proj.zoie.api.DefaultZoieVersion.DefaultZoieVersionFactory;
 import proj.zoie.api.indexing.ZoieIndexableInterpreter;
 import proj.zoie.hourglass.impl.HourGlassScheduler.FREQUENCY;
 import proj.zoie.impl.indexing.ZoieConfig;
+import scala.actors.threadpool.Arrays;
 
 import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.facets.RuntimeFacetHandlerFactory;
@@ -50,6 +57,7 @@ import com.sensei.search.svc.impl.AbstractSenseiCoreService;
 
 public class SenseiServerBuilder implements SenseiConfParams{
 
+  private static Logger logger = Logger.getLogger(SenseiServerBuilder.class);
   public static final String SENSEI_PROPERTIES = "sensei.properties";
   public static final String CUSTOM_FACETS = "custom-facets.xml";
   public static final String SCHEMA_FILE = "schema.xml";
@@ -103,21 +111,47 @@ public class SenseiServerBuilder implements SenseiConfParams{
 	  _schemaDoc.getDocumentElement().normalize();
   }
   
-  public SenseiCore buildCore() throws ConfigurationException{
-	  int nodeid = _senseiConf.getInt(NODE_ID);
-	  String[] partitionArray = _senseiConf.getStringArray(PARTITIONS);
-	  int[] partitions = null;
+  static final Pattern PARTITION_PATTERN = Pattern.compile("[\\d]+||[\\d]+-[\\d]+");
+  
+  public static int[] buildPartitions(String[] partitionArray) throws ConfigurationException{
+	  IntSet partitions = new IntOpenHashSet();
 	  try {
-	    partitions = new int[partitionArray.length];
 	    for (int i=0; i<partitionArray.length; ++i) {
-	      partitions[i] = Integer.parseInt(partitionArray[i]);
+	      Matcher matcher = PARTITION_PATTERN.matcher(partitionArray[i]);
+	      if (!matcher.matches()){
+	    	  throw new ConfigurationException("Invalid partition: "+partitionArray[i]);
+	      }
+	      String[] partitionRange = partitionArray[i].split("-");
+	      int start = Integer.parseInt(partitionRange[0]);
+	      int end;
+	      if (partitionRange.length>1){
+	    	  end = Integer.parseInt(partitionRange[1]);
+		      if (end<start){
+		    	  throw new ConfigurationException("invalid partition range: "+partitionArray[i]);
+		      }
+	      }
+	      else{
+	    	  end = start;
+	      }
+	      
+	      for (int k=start;k<=end;++k){
+	    	  partitions.add(k);
+	      }
 	    }
 	  }
 	  catch (Exception e) {
 	    throw new ConfigurationException(
-	        "Error parsing '" + SENSEI_PROPERTIES + "': " + PARTITIONS + "=" + _senseiConf.getString(PARTITIONS), e);
+	        "Error parsing '" + SENSEI_PROPERTIES + "': " + PARTITIONS + "=" + Arrays.toString(partitionArray), e);
 	  }
-	  
+
+	  return partitions.toIntArray();
+  }
+  
+  public SenseiCore buildCore() throws ConfigurationException{
+	  int nodeid = _senseiConf.getInt(NODE_ID);
+	  String[] partitionArray = _senseiConf.getStringArray(PARTITIONS);
+	  int[] partitions = buildPartitions(partitionArray);
+	  logger.info("partitions to serve: "+Arrays.toString(partitions));
 	  File extDir = new File(_confDir,"ext");
 	  
 	// Analyzer from configuration:
