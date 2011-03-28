@@ -43,7 +43,6 @@ import com.sensei.search.nodes.SenseiServer;
 import com.sensei.search.nodes.SenseiZoieFactory;
 import com.sensei.search.nodes.SenseiZoieSystemFactory;
 import com.sensei.search.nodes.impl.DefaultJsonQueryBuilderFactory;
-import com.sensei.search.nodes.impl.DemoZoieSystemFactory;
 import com.sensei.search.nodes.impl.NoopIndexLoaderFactory;
 import com.sensei.search.req.AbstractSenseiRequest;
 import com.sensei.search.req.AbstractSenseiResult;
@@ -163,11 +162,15 @@ public class SenseiServerBuilder implements SenseiConfParams{
       
       ZoieIndexableInterpreter interpreter = new NoOpIndexableInterpreter(); 
       
-      SenseiIndexReaderDecorator decorator = new SenseiIndexReaderDecorator(facetHandlers,runtimeFacetHandlerFactories);
       
+      SenseiIndexReaderDecorator decorator = new SenseiIndexReaderDecorator(facetHandlers,runtimeFacetHandlerFactories);
+      File idxDir = new File(_senseiConf.getString(SENSEI_INDEX_DIR));
+
+    
       SenseiZoieFactory<?,?> zoieSystemFactory = null;
+      
       if (SENSEI_INDEXER_TYPE_ZOIE.equals(indexerType)){
-    	  zoieSystemFactory = new SenseiZoieSystemFactory(new File(_senseiConf.getString(SENSEI_INDEX_DIR)),interpreter,decorator,
+    	  zoieSystemFactory = new SenseiZoieSystemFactory(idxDir,interpreter,decorator,
     		        zoieConfig);
       }
       else if (SENSEI_INDEXER_TYPE_HOURGLASS.equals(indexerType)){
@@ -190,12 +193,17 @@ public class SenseiServerBuilder implements SenseiConfParams{
     	  else{
     		  throw new ConfigurationException("unsupported frequency setting: "+frequencyString);
     	  }
-    	  zoieSystemFactory = new SenseiHourglassFactory(new File(_senseiConf.getString(SENSEI_INDEX_DIR)),interpreter,decorator,
+    	  zoieSystemFactory = new SenseiHourglassFactory(idxDir,interpreter,decorator,
   		        zoieConfig,schedule,trimThreshold,frequency);
       }
       else{
-    	  zoieSystemFactory = new DemoZoieSystemFactory(new File(_senseiConf.getString(SENSEI_INDEX_DIR)),interpreter,decorator,
-    		        zoieConfig);
+    	  //zoieSystemFactory = new DemoZoieSystemFactory(new File(_senseiConf.getString(SENSEI_INDEX_DIR)),interpreter,decorator,
+    		//        zoieConfig);
+    	  ZoieFactoryFactory zoieFactoryFactory= (ZoieFactoryFactory)_pluginContext.getBean(indexerType);
+    	  if (zoieFactoryFactory==null){
+    		  throw new ConfigurationException(indexerType+" not defined");
+    	  }
+    	  zoieSystemFactory = zoieFactoryFactory.getZoieFactory(idxDir, interpreter, decorator, zoieConfig);
       }
       
       SenseiIndexLoaderFactory<?,?> indexLoaderFactory = new NoopIndexLoaderFactory();

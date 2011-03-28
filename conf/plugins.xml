@@ -9,4 +9,5 @@
 
   <bean id="myanalyzer" class="org.apache.lucene.analysis.standard.StandardAnalyzer" />
 
+  <bean id="demo" class="com.sensei.search.nodes.impl.DemoZoieSystemFactory$DemoZoieFactoryFactory" />
 </beans>
