@@ -45,6 +45,7 @@ public abstract class HttpStreamDataProvider<D> extends StreamDataProvider<D,Str
 	private final DefaultHttpClient _httpclient;
 	  
 	public static final int DEFAULT_TIMEOUT_MS = 10000;
+	public static final int DEFAULT_RETRYTIME_MS = 5000;
 	
 	public static final String DEFAULT_OFFSET_PARAM = "offset";
 	public static final String DFEAULT_DATA_PARAM = "data";
@@ -121,7 +122,7 @@ public abstract class HttpStreamDataProvider<D> extends StreamDataProvider<D,Str
 	    });
 	  
 	  _versionComparator = getVersionComparator();
-	  _retryTime = 5000;   // default retry after 5 seconds
+	  _retryTime = DEFAULT_RETRYTIME_MS;   // default retry after 5 seconds
 	}
 	
 	public void setRetryTime(int retryTime){
@@ -195,7 +196,13 @@ public abstract class HttpStreamDataProvider<D> extends StreamDataProvider<D,Str
 		      if (logger.isDebugEnabled()){
 			    logger.debug("no more data");
 		      }
-		      return null;
+		      try{
+                Thread.sleep(_retryTime);
+                return null;
+		      }
+		      catch (InterruptedException e1) {
+				return null;
+			  }
 		    }
 		    _currentDataIter = data;
 		    break;
