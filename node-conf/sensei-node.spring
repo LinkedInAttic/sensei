@@ -25,7 +25,7 @@
        </constructor-arg>
     </bean>
     
-    <bean id="index-loader-factory" class="com.sensei.search.nodes.impl.NoopIndexLoaderFactory"/>
+    <bean id="indexing-manager" class="com.sensei.search.nodes.impl.NoopIndexingManager"/>
     
     <bean id="network-server-config" class="com.linkedin.norbert.javacompat.network.NetworkServerConfig">
         <property name="requestThreadCorePoolSize" value="5"/>

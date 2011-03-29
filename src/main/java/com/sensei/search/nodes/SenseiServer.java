@@ -52,10 +52,10 @@ public class SenseiServer {
             NetworkServer networkServer,
             ClusterClient clusterClient,
             SenseiZoieFactory<?,?> zoieSystemFactory,
-            SenseiIndexLoaderFactory indexLoaderFactory,
+            SenseiIndexingManager indexingManager,
             SenseiQueryBuilderFactory queryBuilderFactory,
             List<AbstractSenseiCoreService<AbstractSenseiRequest, AbstractSenseiResult>> externalSvc){
-      this(id,port,partitions,null,networkServer,clusterClient,zoieSystemFactory,indexLoaderFactory,queryBuilderFactory,externalSvc);
+      this(id,port,partitions,null,networkServer,clusterClient,zoieSystemFactory,indexingManager,queryBuilderFactory,externalSvc);
     }
     
     public SenseiServer(int id, int port, int[] partitions,
@@ -63,11 +63,11 @@ public class SenseiServer {
                         NetworkServer networkServer,
                         ClusterClient clusterClient,
                         SenseiZoieFactory<?,?> zoieSystemFactory,
-                        SenseiIndexLoaderFactory indexLoaderFactory,
+                        SenseiIndexingManager indexingManager,
                         SenseiQueryBuilderFactory queryBuilderFactory,
                         List<AbstractSenseiCoreService<AbstractSenseiRequest, AbstractSenseiResult>> externalSvc)
     {
-       this(port,networkServer,clusterClient,new SenseiCore(id, partitions, extDir,zoieSystemFactory, indexLoaderFactory, queryBuilderFactory),externalSvc);
+       this(port,networkServer,clusterClient,new SenseiCore(id, partitions, extDir,zoieSystemFactory, indexingManager, queryBuilderFactory),externalSvc);
     }
     
     public SenseiServer(int port,

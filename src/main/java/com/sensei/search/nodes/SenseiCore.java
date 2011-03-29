@@ -22,9 +22,6 @@ import proj.zoie.api.Zoie;
 import proj.zoie.api.ZoieIndexReader;
 
 import com.browseengine.bobo.api.BoboIndexReader;
-import com.linkedin.norbert.javacompat.cluster.ClusterClient;
-import com.linkedin.norbert.javacompat.network.NetworkServer;
-import com.sensei.search.svc.api.SenseiException;
 
 public class SenseiCore{
 	private static final Logger logger = Logger.getLogger(SenseiServer.class);
@@ -33,25 +30,25 @@ public class SenseiCore{
 
     private final List<ObjectName> _registeredMBeans;
     private SenseiZoieFactory<?,?> _zoieFactory;
-    private SenseiIndexLoaderFactory _indexLoaderFactory;
+    private SenseiIndexingManager _indexManager;
     private SenseiQueryBuilderFactory _queryBuilderFactory;
     private final HashSet<Zoie<BoboIndexReader,?,?>> zoieSystems = new HashSet<Zoie<BoboIndexReader,?,?>>();
-    private final HashSet<SenseiIndexLoader> indexLoaders = new HashSet<SenseiIndexLoader>();
+    
     private final int[] _partitions;
     private final int _id;
     private final Map<Integer,SenseiQueryBuilderFactory> _builderFactoryMap;
-    private final Map<Integer,IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>> _readerFactoryMap;
+    private final Map<Integer,Zoie<BoboIndexReader,?,?>> _readerFactoryMap;
     private volatile boolean _started;
     
 	public SenseiCore(int id,int[] partitions,
             File extDir,
             SenseiZoieFactory<?,?> zoieSystemFactory,
-            SenseiIndexLoaderFactory indexLoaderFactory,
+            SenseiIndexingManager indexManager,
             SenseiQueryBuilderFactory queryBuilderFactory){
 
 	      _registeredMBeans = new LinkedList<ObjectName>();
 	      _zoieFactory = zoieSystemFactory;
-	      _indexLoaderFactory = indexLoaderFactory;
+	      _indexManager = indexManager;
 	      _queryBuilderFactory = queryBuilderFactory;
 	      _partitions = partitions;
 	      _id = id;
@@ -61,7 +58,7 @@ public class SenseiCore{
 	      }
 	      
 	      _builderFactoryMap = new HashMap<Integer,SenseiQueryBuilderFactory>();
-	      _readerFactoryMap = new HashMap<Integer,IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>>();
+	      _readerFactoryMap = new HashMap<Integer,Zoie<BoboIndexReader,?,?>>();
 	      _started = false;
 	}
 	
@@ -131,14 +128,15 @@ public class SenseiCore{
 	        zoieSystem.start();
 	        zoieSystems.add(zoieSystem);
 	      }
-	      
-	      SenseiIndexLoader loader = _indexLoaderFactory.getIndexLoader(part, zoieSystem);
-	      if(!indexLoaders.contains(loader))
-	      {
-	        loader.start();
-	        indexLoaders.add(loader);
-	      }
+
 	      _readerFactoryMap.put(part, zoieSystem);
+	      
+
+		  logger.info("initializing index manager...");
+	      _indexManager.initialize(_readerFactoryMap);
+	      logger.info("starting index manager...");
+	      _indexManager.start();
+	      logger.info("index manager started...");
 	    }
 	    _started = true;
 	}
@@ -158,17 +156,12 @@ public class SenseiCore{
 	      logger.error(e.getMessage(),e);
 	    }
 	   
-        // shutdown the loaders
-        for(SenseiIndexLoader loader : indexLoaders)
-        {
-          try{
-            loader.shutdown();
-          }
-          catch(SenseiException se){
-            logger.error(se.getMessage(),se);
-          }
-        }
-        indexLoaders.clear();
+        // shutdown the index manager
+
+		logger.info("shutting down index manager...");
+	    _indexManager.shutdown();
+		logger.info("index manager shutdown...");
+	    
         // shutdown the zoieSystems
         for(Zoie<BoboIndexReader,?,?> zoieSystem : zoieSystems)
         {

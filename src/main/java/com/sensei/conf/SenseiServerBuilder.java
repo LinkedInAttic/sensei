@@ -6,6 +6,7 @@ import it.unimi.dsi.fastutil.ints.IntSet;
 import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -27,12 +28,14 @@ import org.springframework.context.support.FileSystemXmlApplicationContext;
 import org.w3c.dom.Document;
 
 import proj.zoie.api.DefaultZoieVersion;
+import proj.zoie.api.Zoie;
 import proj.zoie.api.DefaultZoieVersion.DefaultZoieVersionFactory;
 import proj.zoie.api.indexing.ZoieIndexableInterpreter;
 import proj.zoie.hourglass.impl.HourGlassScheduler.FREQUENCY;
 import proj.zoie.impl.indexing.ZoieConfig;
 import scala.actors.threadpool.Arrays;
 
+import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.facets.RuntimeFacetHandlerFactory;
 import com.linkedin.norbert.javacompat.cluster.ClusterClient;
@@ -43,14 +46,13 @@ import com.linkedin.norbert.javacompat.network.NetworkServerConfig;
 import com.sensei.search.nodes.NoOpIndexableInterpreter;
 import com.sensei.search.nodes.SenseiCore;
 import com.sensei.search.nodes.SenseiHourglassFactory;
-import com.sensei.search.nodes.SenseiIndexLoaderFactory;
 import com.sensei.search.nodes.SenseiIndexReaderDecorator;
+import com.sensei.search.nodes.SenseiIndexingManager;
 import com.sensei.search.nodes.SenseiQueryBuilderFactory;
 import com.sensei.search.nodes.SenseiServer;
 import com.sensei.search.nodes.SenseiZoieFactory;
 import com.sensei.search.nodes.SenseiZoieSystemFactory;
 import com.sensei.search.nodes.impl.DefaultJsonQueryBuilderFactory;
-import com.sensei.search.nodes.impl.NoopIndexLoaderFactory;
 import com.sensei.search.req.AbstractSenseiRequest;
 import com.sensei.search.req.AbstractSenseiResult;
 import com.sensei.search.svc.impl.AbstractSenseiCoreService;
@@ -240,10 +242,28 @@ public class SenseiServerBuilder implements SenseiConfParams{
     	  zoieSystemFactory = zoieFactoryFactory.getZoieFactory(idxDir, interpreter, decorator, zoieConfig);
       }
       
-      SenseiIndexLoaderFactory<?,?> indexLoaderFactory = new NoopIndexLoaderFactory();
+      SenseiIndexingManager indexingManager = new SenseiIndexingManager(){
+
+		@Override
+		public void initialize(
+				Map<Integer, Zoie<BoboIndexReader, ?, ?>> zoieSystemMap)
+				throws Exception {	
+		}
+
+		@Override
+		public void shutdown() {
+		}
+
+		@Override
+		public void start() throws Exception {
+			
+		}
+    	  
+      };
+      
       SenseiQueryBuilderFactory queryBuilderFactory = new DefaultJsonQueryBuilderFactory(queryParser);
       
-      return new SenseiCore(nodeid,partitions,extDir,zoieSystemFactory,indexLoaderFactory,queryBuilderFactory);
+      return new SenseiCore(nodeid,partitions,extDir,zoieSystemFactory,indexingManager,queryBuilderFactory);
   }
   
   public SenseiServer buildServer() throws ConfigurationException { 

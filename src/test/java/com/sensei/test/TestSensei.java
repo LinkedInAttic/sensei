@@ -4,8 +4,8 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
+import java.util.Map.Entry;
 
 import javax.management.MBeanServer;
 
@@ -16,9 +16,9 @@ import org.apache.lucene.search.DefaultSimilarity;
 import org.apache.lucene.util.Version;
 
 import proj.zoie.api.DefaultZoieVersion;
-import proj.zoie.api.DefaultZoieVersion.DefaultZoieVersionFactory;
 import proj.zoie.api.IndexReaderFactory;
 import proj.zoie.api.ZoieIndexReader;
+import proj.zoie.api.DefaultZoieVersion.DefaultZoieVersionFactory;
 import proj.zoie.api.indexing.ZoieIndexableInterpreter;
 import proj.zoie.impl.indexing.ZoieSystem;
 
@@ -30,13 +30,11 @@ import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
 import com.linkedin.norbert.NorbertException;
 import com.linkedin.norbert.cluster.ClusterShutdownException;
-import com.sensei.search.nodes.NoOpIndexableInterpreter;
 import com.sensei.search.nodes.SenseiBroker;
 import com.sensei.search.nodes.SenseiIndexReaderDecorator;
 import com.sensei.search.nodes.SenseiQueryBuilderFactory;
-import com.sensei.search.nodes.SenseiSearchContext;
 import com.sensei.search.nodes.SenseiServer;
-import com.sensei.search.nodes.impl.NoopIndexLoaderFactory;
+import com.sensei.search.nodes.impl.NoopIndexingManager;
 import com.sensei.search.nodes.impl.SimpleQueryBuilderFactory;
 import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.req.SenseiResult;
@@ -129,9 +127,9 @@ public class TestSensei extends AbstractSenseiTestCase
 
     logger.info("Cluster client started");
 
-    node1 = new SenseiServer(1,1233,new int[] { 1, 2 },null,networkServer1, clusterClient,_zoieFactory,new NoopIndexLoaderFactory(), new SimpleQueryBuilderFactory(parser1),null);
+    node1 = new SenseiServer(1,1233,new int[] { 1, 2 },null,networkServer1, clusterClient,_zoieFactory,new NoopIndexingManager(), new SimpleQueryBuilderFactory(parser1),null);
     logger.info("Node 1 created with id : " + 1);
-    node2 = new SenseiServer(2,1332,new int[] {3},null,networkServer2, clusterClient,_zoieFactory,new NoopIndexLoaderFactory(), new SimpleQueryBuilderFactory(parser2),null);
+    node2 = new SenseiServer(2,1332,new int[] {3},null,networkServer2, clusterClient,_zoieFactory,new NoopIndexingManager(), new SimpleQueryBuilderFactory(parser2),null);
     logger.info("Node 2 created with id : " + 2);
 
     try
