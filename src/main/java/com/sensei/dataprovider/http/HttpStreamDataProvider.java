@@ -35,7 +35,7 @@ import org.apache.log4j.Logger;
 import proj.zoie.api.DataConsumer.DataEvent;
 import proj.zoie.impl.indexing.StreamDataProvider;
 
-public abstract class HttpStreamDataProvider<D> extends StreamDataProvider<D,StringZoieVersion> {
+public abstract class HttpStreamDataProvider<D> extends StreamDataProvider<D,StringZoieVersion> implements HttpDataProviderAdminMBean{
 
 	private static final Logger logger = Logger.getLogger(HttpStreamDataProvider.class);
 	
@@ -60,6 +60,10 @@ public abstract class HttpStreamDataProvider<D> extends StreamDataProvider<D,Str
 	private volatile boolean _stopped;
 	private int _retryTime;
 	
+	private volatile long _httpGetLatency;
+	private volatile long _responseParseLatency;
+	
+	
 	public HttpStreamDataProvider(String baseUrl,String pw,int batchSize,String startingOffset,boolean disableHttps){
 	  _baseUrl = baseUrl;
 	  _password = pw;
@@ -69,6 +73,9 @@ public abstract class HttpStreamDataProvider<D> extends StreamDataProvider<D,Str
 	  _initialOffset = null;
 	  _currentDataIter = null;
 	  _stopped = true;
+	  
+	  _httpGetLatency = 0L;
+	  _responseParseLatency = 0L;
 
 	  Scheme http = new Scheme("http", 80, PlainSocketFactory.getSocketFactory());
 	  SchemeRegistry sr = new SchemeRegistry();
@@ -147,7 +154,11 @@ public abstract class HttpStreamDataProvider<D> extends StreamDataProvider<D,Str
 	  InputStream stream = null;
 	  try{
 		HttpGet httpget = new HttpGet(buildGetString(_offset));
+		long getStart = System.currentTimeMillis();
 	    HttpResponse response = _httpclient.execute(httpget);
+	    long getEnd = System.currentTimeMillis();
+	    _httpGetLatency = getEnd-getStart;
+	    
 	    HttpEntity entity = response.getEntity();
 	    StatusLine status = response.getStatusLine();
 	    int statusCode = status.getStatusCode();
@@ -164,7 +175,12 @@ public abstract class HttpStreamDataProvider<D> extends StreamDataProvider<D,Str
         
         try{
           stream = entity.getContent();
-          return parse(stream);
+          
+          long parseStart = System.currentTimeMillis();
+          Iterator<DataEvent<D,StringZoieVersion>> iter =  parse(stream);
+          long parseEnd = System.currentTimeMillis();
+          _responseParseLatency = parseEnd - parseStart;
+          return iter;
         }
         catch(Exception e){
           logger.error(e.getMessage(),e);
@@ -233,6 +249,16 @@ public abstract class HttpStreamDataProvider<D> extends StreamDataProvider<D,Str
 	}
 	
 	
+
+	@Override
+	public long getHttpGetLatency() {
+		return _httpGetLatency;
+	}
+
+	@Override
+	public long getResponseParseLatency() {
+		return _responseParseLatency;
+	}
 
 	@Override
 	public void start() {
