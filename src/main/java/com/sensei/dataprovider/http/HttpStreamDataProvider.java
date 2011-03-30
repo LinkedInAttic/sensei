@@ -118,7 +118,6 @@ public abstract class HttpStreamDataProvider<D> extends StreamDataProvider<D,Str
 	          HeaderElement[] codecs = ceheader.getElements();
 	          for (int i = 0; i < codecs.length; i++) {
 	            if (codecs[i].getName().equalsIgnoreCase("gzip")) {
-	            	System.out.println("gzip response");
 	              response.setEntity(new GzipDecompressingEntity(response
 	                .getEntity()));
 	              return;
