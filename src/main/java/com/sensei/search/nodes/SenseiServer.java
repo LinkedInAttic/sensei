@@ -13,6 +13,7 @@ import javax.management.ObjectName;
 import javax.management.StandardMBean;
 
 import org.apache.log4j.Logger;
+import org.mortbay.jetty.Server;
 
 import scala.actors.threadpool.Arrays;
 
@@ -372,13 +373,23 @@ public class SenseiServer {
     SenseiServerBuilder senseiServerBuilder = new SenseiServerBuilder(confDir);
 
     final SenseiServer server = senseiServerBuilder.buildServer();
+    
+    final Server jettyServer = senseiServerBuilder.getJettyServer();
 
     Runtime.getRuntime().addShutdownHook(new Thread(){
       public void run(){
-        server.shutdown();
+    	try{
+    	  jettyServer.stop();
+    	} catch (Exception e) {
+    	  logger.error(e.getMessage(),e);
+		}
+    	finally{
+          server.shutdown();
+    	}
       }
     });
     
+    jettyServer.start();
     server.start(available);
   }
   

@@ -4,12 +4,14 @@ import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.servlet.ServletContext;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
@@ -23,13 +25,16 @@ import org.apache.lucene.queryParser.QueryParser;
 import org.apache.lucene.search.DefaultSimilarity;
 import org.apache.lucene.search.Similarity;
 import org.apache.lucene.util.Version;
+import org.mortbay.jetty.Server;
+import org.mortbay.jetty.servlet.ServletHolder;
+import org.mortbay.jetty.webapp.WebAppContext;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.FileSystemXmlApplicationContext;
 import org.w3c.dom.Document;
 
 import proj.zoie.api.DefaultZoieVersion;
-import proj.zoie.api.Zoie;
 import proj.zoie.api.DefaultZoieVersion.DefaultZoieVersionFactory;
+import proj.zoie.api.Zoie;
 import proj.zoie.api.indexing.ZoieIndexableInterpreter;
 import proj.zoie.hourglass.impl.HourGlassScheduler.FREQUENCY;
 import proj.zoie.impl.indexing.ZoieConfig;
@@ -43,6 +48,9 @@ import com.linkedin.norbert.javacompat.cluster.ZooKeeperClusterClient;
 import com.linkedin.norbert.javacompat.network.NettyNetworkServer;
 import com.linkedin.norbert.javacompat.network.NetworkServer;
 import com.linkedin.norbert.javacompat.network.NetworkServerConfig;
+import com.sensei.search.client.servlet.DefaultSenseiJSONServlet;
+import com.sensei.search.client.servlet.SenseiConfigServletContextListener;
+import com.sensei.search.client.servlet.SenseiHttpInvokerServiceServlet;
 import com.sensei.search.nodes.NoOpIndexableInterpreter;
 import com.sensei.search.nodes.SenseiCore;
 import com.sensei.search.nodes.SenseiHourglassFactory;
@@ -66,10 +74,12 @@ public class SenseiServerBuilder implements SenseiConfParams{
   public static final String PLUGINS = "plugins.xml";
   
   private final File _confDir;
+  private final File _senseiConfFile;
   private final Configuration _senseiConf;
   private final ApplicationContext _pluginContext;
   private final ApplicationContext _customFacetContext;
   private final Document _schemaDoc;
+  private final Server _jettyServer;
   
   private static ApplicationContext loadSpringContext(File confFile){
     ApplicationContext springCtx = null;
@@ -95,13 +105,48 @@ public class SenseiServerBuilder implements SenseiConfParams{
 	  return new NettyNetworkServer(networkConfig);
   }
   
+  public  Server buildHttpRestServer(){
+		int port = _senseiConf.getInt(SERVER_BROKER_PORT);
+		String webappPath = _senseiConf.getString(SERVER_BROKER_WEBAPP_PATH);
+		
+		
+		Server server = new Server(port);
+		
+		
+		
+		DefaultSenseiJSONServlet senseiServlet = new DefaultSenseiJSONServlet();
+		ServletHolder senseiServletHolder = new ServletHolder(senseiServlet);
+
+		SenseiHttpInvokerServiceServlet springServlet = new SenseiHttpInvokerServiceServlet();
+		ServletHolder springServletHolder = new ServletHolder(springServlet);
+
+		WebAppContext senseiApp = new WebAppContext();
+		
+		HashMap<String,String> initParam = new HashMap<String,String>();
+		initParam.put("config.file", _senseiConfFile.getAbsolutePath());
+		senseiApp.setInitParams(initParam);
+		senseiApp.addEventListener(new SenseiConfigServletContextListener());
+		
+		
+		senseiApp.addServlet(senseiServletHolder,"/sensei/*");
+		senseiApp.setResourceBase(webappPath);
+		senseiApp.addServlet(springServletHolder,"/sensei-rpc/SenseiSpringRPCService");
+		
+        server.setHandler(senseiApp);
+        server.setStopAtShutdown(true);	
+		
+		return server;
+	}
+  
   public SenseiServerBuilder(File confDir) throws Exception{
 	  _confDir = confDir;
-	  File senseiConfFile = new File(confDir,SENSEI_PROPERTIES);
-	  if (!senseiConfFile.exists()){
-      throw new ConfigurationException("configuration file: "+senseiConfFile.getAbsolutePath()+" does not exist.");
+	  _senseiConfFile = new File(confDir,SENSEI_PROPERTIES);
+	  if (!_senseiConfFile.exists()){
+        throw new ConfigurationException("configuration file: "+_senseiConfFile.getAbsolutePath()+" does not exist.");
 	  }
-	  _senseiConf = new PropertiesConfiguration(senseiConfFile);
+	  _senseiConf = new PropertiesConfiguration(_senseiConfFile);
+
+	  _jettyServer = buildHttpRestServer();
 	  _pluginContext = loadSpringContext(new File(confDir,PLUGINS));
 	  _customFacetContext = loadSpringContext(new File(confDir,CUSTOM_FACETS));
 	  
@@ -264,6 +309,10 @@ public class SenseiServerBuilder implements SenseiConfParams{
       SenseiQueryBuilderFactory queryBuilderFactory = new DefaultJsonQueryBuilderFactory(queryParser);
       
       return new SenseiCore(nodeid,partitions,extDir,zoieSystemFactory,indexingManager,queryBuilderFactory);
+  }
+  
+  public Server getJettyServer(){
+	  return _jettyServer;
   }
   
   public SenseiServer buildServer() throws ConfigurationException { 

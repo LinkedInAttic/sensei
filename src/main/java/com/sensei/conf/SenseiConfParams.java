@@ -43,6 +43,10 @@ public interface SenseiConfParams {
 	public static final String SENSEI_HOURGLASS_FREQUENCY_HOUR = "hour";
 	public static final String SENSEI_HOURGLASS_FREQUENCY_DAY = "day";
 	
+
+	public static final String SERVER_BROKER_PORT = "sensei.broker.port";
+	public static final String SERVER_BROKER_WEBAPP_PATH = "sensei.broker.webapp.path";
+	
 	public static final Comparator<String> DEFAULT_VERSION_STRING_COMPARATOR = new Comparator<String>(){
 		@Override
 	    public int compare(String o1, String o2) {
