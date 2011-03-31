@@ -1,13 +1,19 @@
 package com.sensei.dataprovider.file;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.util.StringTokenizer;
 
 import org.apache.log4j.Logger;
+import org.json.JSONObject;
 
-import proj.zoie.api.DefaultZoieVersion;
 import proj.zoie.api.DataConsumer.DataEvent;
+import proj.zoie.api.DefaultZoieVersion;
 import proj.zoie.impl.indexing.StreamDataProvider;
 
 public abstract class LinedFileDataProvider<D> extends StreamDataProvider<D, DefaultZoieVersion> {
@@ -97,5 +103,6 @@ public abstract class LinedFileDataProvider<D> extends StreamDataProvider<D, Def
 		}
 	}
 
+	
 	
 }
