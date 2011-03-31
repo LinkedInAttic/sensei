@@ -16,8 +16,7 @@
     text - searchable
   -->
 
-  <table>
-	<column name="id" type="uid" />
+  <table uid="id" delete-field="" skip-field="">
 	<column name="color" type="string" />
 	<column name="category" type="string" />
 	<column name="city" type="string" />
