@@ -7,7 +7,6 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -35,13 +34,11 @@ import org.w3c.dom.Document;
 
 import proj.zoie.api.DefaultZoieVersion;
 import proj.zoie.api.DefaultZoieVersion.DefaultZoieVersionFactory;
-import proj.zoie.api.Zoie;
 import proj.zoie.api.indexing.ZoieIndexableInterpreter;
 import proj.zoie.hourglass.impl.HourGlassScheduler.FREQUENCY;
 import proj.zoie.impl.indexing.ZoieConfig;
 import scala.actors.threadpool.Arrays;
 
-import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.facets.RuntimeFacetHandlerFactory;
 import com.linkedin.norbert.javacompat.cluster.ClusterClient;
@@ -49,10 +46,11 @@ import com.linkedin.norbert.javacompat.cluster.ZooKeeperClusterClient;
 import com.linkedin.norbert.javacompat.network.NettyNetworkServer;
 import com.linkedin.norbert.javacompat.network.NetworkServer;
 import com.linkedin.norbert.javacompat.network.NetworkServerConfig;
+import com.sensei.indexing.api.DefaultJsonSchemaInterpreter;
+import com.sensei.indexing.api.DefaultStreamingIndexingManager;
 import com.sensei.search.client.servlet.DefaultSenseiJSONServlet;
 import com.sensei.search.client.servlet.SenseiConfigServletContextListener;
 import com.sensei.search.client.servlet.SenseiHttpInvokerServiceServlet;
-import com.sensei.search.nodes.NoOpIndexableInterpreter;
 import com.sensei.search.nodes.SenseiCore;
 import com.sensei.search.nodes.SenseiHourglassFactory;
 import com.sensei.search.nodes.SenseiIndexReaderDecorator;
@@ -253,8 +251,15 @@ public class SenseiServerBuilder implements SenseiConfParams{
       
       String indexerType = _senseiConf.getString(SENSEI_INDEXER_TYPE);
       
-      NoOpIndexableInterpreter interpreter = new NoOpIndexableInterpreter(); 
+      String interpreterType = _senseiConf.getString(SENSEI_INDEX_INTERPRETER,"");
       
+      ZoieIndexableInterpreter interpreter;
+      if (interpreterType.length()==0){
+    	interpreter = new DefaultJsonSchemaInterpreter(_schemaDoc);
+      }
+      else{
+    	interpreter = (ZoieIndexableInterpreter)_pluginContext.getBean(interpreterType);  
+      } 
       
       SenseiIndexReaderDecorator decorator = new SenseiIndexReaderDecorator(facetHandlers,runtimeFacetHandlerFactories);
       File idxDir = new File(_senseiConf.getString(SENSEI_INDEX_DIR));
@@ -290,8 +295,6 @@ public class SenseiServerBuilder implements SenseiConfParams{
   		        zoieConfig,schedule,trimThreshold,frequency);
       }
       else{
-    	  //zoieSystemFactory = new DemoZoieSystemFactory(new File(_senseiConf.getString(SENSEI_INDEX_DIR)),interpreter,decorator,
-    		//        zoieConfig);
     	  ZoieFactoryFactory zoieFactoryFactory= (ZoieFactoryFactory)_pluginContext.getBean(indexerType);
     	  if (zoieFactoryFactory==null){
     		  throw new ConfigurationException(indexerType+" not defined");
@@ -299,24 +302,15 @@ public class SenseiServerBuilder implements SenseiConfParams{
     	  zoieSystemFactory = zoieFactoryFactory.getZoieFactory(idxDir, interpreter, decorator, zoieConfig);
       }
       
-      SenseiIndexingManager indexingManager = new SenseiIndexingManager(){
-
-		@Override
-		public void initialize(
-				Map<Integer, Zoie<BoboIndexReader, ?, ?>> zoieSystemMap)
-				throws Exception {	
-		}
-
-		@Override
-		public void shutdown() {
-		}
-
-		@Override
-		public void start() throws Exception {
-			
-		}
-    	  
-      };
+      String idxMgrType = _senseiConf.getString(SENSEI_INDEX_MANAGER,"");
+      SenseiIndexingManager indexingManager;
+      
+      if (idxMgrType.length()==0){
+    	indexingManager = new DefaultStreamingIndexingManager();
+      }
+      else{
+    	  indexingManager = (SenseiIndexingManager)_pluginContext.getBean(idxMgrType);  
+      } 
       
       SenseiQueryBuilderFactory queryBuilderFactory = new DefaultJsonQueryBuilderFactory(queryParser);
       
