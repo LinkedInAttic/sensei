@@ -18,6 +18,9 @@
         <xsd:sequence>
 
            <xsd:element name="table" minOccurs="0" maxOccurs="1">
+             <xsd:attribute name="uid" type="xsd:string" use="mandatory"/>
+             <xsd:attribute name="delete-field" type="xsd:string" use="optional"/>
+             <xsd:attribute name="skip-field" type="xsd:string" use="optional"/>
 	         <xsd:complexType>
 	           <xsd:sequence>
 	              <xsd:element name="column" minOccurs="0" maxOccurs="unbounded">
