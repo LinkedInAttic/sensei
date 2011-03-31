@@ -11,7 +11,6 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.servlet.ServletContext;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
@@ -26,8 +25,10 @@ import org.apache.lucene.search.DefaultSimilarity;
 import org.apache.lucene.search.Similarity;
 import org.apache.lucene.util.Version;
 import org.mortbay.jetty.Server;
+import org.mortbay.jetty.nio.SelectChannelConnector;
 import org.mortbay.jetty.servlet.ServletHolder;
 import org.mortbay.jetty.webapp.WebAppContext;
+import org.mortbay.thread.QueuedThreadPool;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.FileSystemXmlApplicationContext;
 import org.w3c.dom.Document;
@@ -105,14 +106,25 @@ public class SenseiServerBuilder implements SenseiConfParams{
 	  return new NettyNetworkServer(networkConfig);
   }
   
-  public  Server buildHttpRestServer(){
+  public  Server buildHttpRestServer() throws Exception{
 		int port = _senseiConf.getInt(SERVER_BROKER_PORT);
 		String webappPath = _senseiConf.getString(SERVER_BROKER_WEBAPP_PATH);
 		
 		
-		Server server = new Server(port);
+		Server server = new Server();
 		
-		
+		QueuedThreadPool threadPool = new QueuedThreadPool();
+		threadPool.setName("Sensei Broker(jetty) threads");
+		threadPool.setMinThreads(_senseiConf.getInt(SERVER_BROKER_MINTHREAD,20));
+		threadPool.setMaxThreads(_senseiConf.getInt(SERVER_BROKER_MAXTHREAD,50));
+		threadPool.setMaxIdleTimeMs(_senseiConf.getInt(SERVER_BROKER_MAXWAIT,2000));
+		//threadPool.start();
+		server.setThreadPool(threadPool);
+
+		logger.info("request threadpool started.");
+		SelectChannelConnector connector = new SelectChannelConnector();
+		connector.setPort(port);
+	    server.addConnector(connector);
 		
 		DefaultSenseiJSONServlet senseiServlet = new DefaultSenseiJSONServlet();
 		ServletHolder senseiServletHolder = new ServletHolder(senseiServlet);
@@ -241,7 +253,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
       
       String indexerType = _senseiConf.getString(SENSEI_INDEXER_TYPE);
       
-      ZoieIndexableInterpreter interpreter = new NoOpIndexableInterpreter(); 
+      NoOpIndexableInterpreter interpreter = new NoOpIndexableInterpreter(); 
       
       
       SenseiIndexReaderDecorator decorator = new SenseiIndexReaderDecorator(facetHandlers,runtimeFacetHandlerFactories);

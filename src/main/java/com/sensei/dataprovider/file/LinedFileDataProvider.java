@@ -45,6 +45,13 @@ public abstract class LinedFileDataProvider<D> extends StreamDataProvider<D, Def
 		}
 		return event;
 	}
+	
+	
+
+	@Override
+	public void setStartingOffset(DefaultZoieVersion version) {
+		_offset = version.getVersionId();
+	}
 
 	@Override
 	public void reset() {

@@ -51,8 +51,9 @@ public abstract class KafkaStreamDataProvider<D> extends StreamDataProvider<D, D
 		};
 	}
 	
-	public void setStartingOffset(long offset){
-	    _offset = offset;
+	@Override
+	public void setStartingOffset(DefaultZoieVersion version){
+	    _offset = version.getVersionId();
 	}
 	
 	private FetchRequest buildReq(){

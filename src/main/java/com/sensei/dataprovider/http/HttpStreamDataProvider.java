@@ -139,8 +139,9 @@ public abstract class HttpStreamDataProvider<D> extends StreamDataProvider<D,Str
 		return _retryTime;
 	}
 	
-	public void setInitialOffset(String initialOffset){
-	  _initialOffset = initialOffset;
+	@Override
+	public void setStartingOffset(StringZoieVersion initialOffset){
+	  _initialOffset = initialOffset.encodeToString();
 	}
 	
 	protected abstract String buildGetString(String offset);
