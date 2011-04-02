@@ -41,7 +41,6 @@ public class SenseiCore{
     private volatile boolean _started;
     
 	public SenseiCore(int id,int[] partitions,
-            File extDir,
             SenseiZoieFactory<?,?> zoieSystemFactory,
             SenseiIndexingManager indexManager,
             SenseiQueryBuilderFactory queryBuilderFactory){
@@ -53,10 +52,6 @@ public class SenseiCore{
 	      _partitions = partitions;
 	      _id = id;
 	      
-	      if (extDir!=null){
-	        loadJars(extDir);
-	      }
-	      
 	      _builderFactoryMap = new HashMap<Integer,SenseiQueryBuilderFactory>();
 	      _readerFactoryMap = new HashMap<Integer,Zoie<BoboIndexReader,?,?>>();
 	      _started = false;
@@ -64,30 +59,6 @@ public class SenseiCore{
 	
 	public int getNodeId(){
 		return _id;
-	}
-	
-	private static void loadJars(File extDir)
-	  {
-	    File[] jarfiles = extDir.listFiles(new FilenameFilter(){
-	        public boolean accept(File dir, String name) {
-	            return name.endsWith(".jar");
-	        }
-	    });
-	      
-	    if (jarfiles!=null && jarfiles.length > 0){
-	    try{
-	        URL[] jarURLs = new URL[jarfiles.length];
-	          ClassLoader parentLoader = Thread.currentThread().getContextClassLoader();
-	          for (int i=0;i<jarfiles.length;++i){
-	            jarURLs[i] = new URL("jar:file://" + jarfiles[i].getAbsolutePath() + "!/");  
-	          }
-	          URLClassLoader classloader = new URLClassLoader(jarURLs,parentLoader);
-	          Thread.currentThread().setContextClassLoader(classloader);
-	    }
-	    catch(MalformedURLException e){
-	      logger.error("problem loading extension: "+e.getMessage(),e);
-	    }
-	    }
 	}
 	
 	public int[] getPartitions(){

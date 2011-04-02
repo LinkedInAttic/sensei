@@ -1,8 +1,12 @@
 package com.sensei.search.nodes;
 
 import java.io.File;
+import java.io.FilenameFilter;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -53,17 +57,6 @@ public class SenseiServer {
     protected volatile boolean _available = false;
     
     public SenseiServer(int id, int port, int[] partitions,
-            NetworkServer networkServer,
-            ClusterClient clusterClient,
-            SenseiZoieFactory<?,?> zoieSystemFactory,
-            SenseiIndexingManager indexingManager,
-            SenseiQueryBuilderFactory queryBuilderFactory,
-            List<AbstractSenseiCoreService<AbstractSenseiRequest, AbstractSenseiResult>> externalSvc){
-      this(id,port,partitions,null,networkServer,clusterClient,zoieSystemFactory,indexingManager,queryBuilderFactory,externalSvc);
-    }
-    
-    public SenseiServer(int id, int port, int[] partitions,
-                        File extDir,
                         NetworkServer networkServer,
                         ClusterClient clusterClient,
                         SenseiZoieFactory<?,?> zoieSystemFactory,
@@ -71,7 +64,7 @@ public class SenseiServer {
                         SenseiQueryBuilderFactory queryBuilderFactory,
                         List<AbstractSenseiCoreService<AbstractSenseiRequest, AbstractSenseiResult>> externalSvc)
     {
-       this(port,networkServer,clusterClient,new SenseiCore(id, partitions, extDir,zoieSystemFactory, indexingManager, queryBuilderFactory),externalSvc);
+       this(port,networkServer,clusterClient,new SenseiCore(id, partitions,zoieSystemFactory, indexingManager, queryBuilderFactory),externalSvc);
     }
     
     public SenseiServer(int port,
@@ -340,6 +333,30 @@ public class SenseiServer {
 
     return _available;
   }
+  
+  private static void loadJars(File extDir)
+  {
+    File[] jarfiles = extDir.listFiles(new FilenameFilter(){
+        public boolean accept(File dir, String name) {
+            return name.endsWith(".jar");
+        }
+    });
+      
+    if (jarfiles!=null && jarfiles.length > 0){
+    try{
+        URL[] jarURLs = new URL[jarfiles.length];
+          ClassLoader parentLoader = Thread.currentThread().getContextClassLoader();
+          for (int i=0;i<jarfiles.length;++i){
+            jarURLs[i] = new URL("jar:file://" + jarfiles[i].getAbsolutePath() + "!/");  
+          }
+          URLClassLoader classloader = new URLClassLoader(jarURLs,parentLoader);
+          Thread.currentThread().setContextClassLoader(classloader);
+    }
+    catch(MalformedURLException e){
+      logger.error("problem loading extension: "+e.getMessage(),e);
+    }
+    }
+}
 
   public  static void main(String[] args) throws Exception {
     if (args.length<1){
@@ -372,6 +389,15 @@ public class SenseiServer {
         }
       }
     }
+    
+    File extDir = new File(confDir,"ext");
+	  
+    if (extDir.exists()){
+    	logger.info("loading extension jars...");
+        loadJars(extDir);
+    	logger.info("finished loading extension jars");
+    }
+    
     
     SenseiServerBuilder senseiServerBuilder = new SenseiServerBuilder(confDir);
 

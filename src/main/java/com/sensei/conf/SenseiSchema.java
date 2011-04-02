@@ -98,7 +98,7 @@ public class SenseiSchema {
 					fdef.isMulti = Boolean.parseBoolean(isMultiString);
 				}
 				
-				String delimString = column.getAttribute("multi");
+				String delimString = column.getAttribute("delimiter");
 				if (delimString!=null && delimString.trim().length()>0){
 					fdef.delim = delimString;
 				}

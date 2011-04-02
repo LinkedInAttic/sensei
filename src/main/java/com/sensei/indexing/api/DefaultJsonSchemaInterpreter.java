@@ -1,7 +1,6 @@
 package com.sensei.indexing.api;
 
 import java.text.SimpleDateFormat;
-import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -39,6 +38,8 @@ public class DefaultJsonSchemaInterpreter extends
 	private final String _skipField;
 	
 	private final Map<String,JsonValExtractor> _dateExtractorMap;
+	
+	private JsonFilter _jsonFilter = null;
 	
 	public DefaultJsonSchemaInterpreter(SenseiSchema schema) throws ConfigurationException{
 		 _schema = schema;
@@ -111,17 +112,31 @@ public class DefaultJsonSchemaInterpreter extends
 		
 	}
 	
+	public void setJsonFilter(JsonFilter jsonFilter){
+	  _jsonFilter = jsonFilter;
+	}
+	
 	@Override
-	public ZoieIndexable convertAndInterpret(final JSONObject src) {
+	public ZoieIndexable convertAndInterpret(JSONObject obj) {
+		if (_jsonFilter!=null){
+			try {
+				obj = _jsonFilter.filter(obj);
+			} catch (Exception e) {
+				throw new RuntimeException(e.getMessage(),e);
+			}
+		}
+		final JSONObject src = obj;
 		return new AbstractZoieIndexable(){
 
 			@Override
 			public IndexingReq[] buildIndexingReqs() {
+
 				org.apache.lucene.document.Document luceneDoc = new org.apache.lucene.document.Document(); 
 				for (Entry<String,FieldDefinition> entry : entries){
 				  String name = entry.getKey();
-				  final FieldDefinition fldDef = entry.getValue();
-				  if (fldDef.isMeta){
+				  try{
+				    final FieldDefinition fldDef = entry.getValue();
+				    if (fldDef.isMeta){
 					  JsonValExtractor extractor = ExtractorMap.get(fldDef.type);
 					  if (extractor==null){
 						  if (Date.class.equals(fldDef.type)){
@@ -135,10 +150,12 @@ public class DefaultJsonSchemaInterpreter extends
 					  List<Object> vals = new LinkedList<Object>();
 					  if (fldDef.isMulti){
 						String val = src.optString(fldDef.fromField);
+
 						if (val!=null && val.trim().length()>0){
-							StringTokenizer strtok = new StringTokenizer(fldDef.delim);
+							StringTokenizer strtok = new StringTokenizer(val,fldDef.delim);
 							while(strtok.hasMoreTokens()){
-								vals.add(extractor.extract(strtok.nextToken()));
+								String token = strtok.nextToken();
+								vals.add(extractor.extract(token));
 							}
 						}
 					  }
@@ -162,6 +179,11 @@ public class DefaultJsonSchemaInterpreter extends
 					  Field textField = new Field(name,src.optString(fldDef.fromField),
 							  fldDef.textIndexSpec.store,fldDef.textIndexSpec.index,fldDef.textIndexSpec.tv);
 					  luceneDoc.add(textField);
+				  }
+				  }
+				  catch(Exception e){
+					  logger.error("Problem extracting data for field: "+name,e);
+					  throw new RuntimeException(e);
 				  }
 				}
 				return new IndexingReq[]{new IndexingReq(luceneDoc)};

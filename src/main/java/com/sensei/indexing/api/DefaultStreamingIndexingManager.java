@@ -30,6 +30,7 @@ import proj.zoie.mbean.DataProviderAdminMBean;
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.sensei.conf.SenseiSchema;
 import com.sensei.dataprovider.file.LinedJsonFileDataProvider;
+import com.sensei.dataprovider.kafka.KafkaJsonStreamDataProvider;
 import com.sensei.search.nodes.SenseiIndexingManager;
 
 public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JSONObject,DefaultZoieVersion> {
@@ -98,25 +99,34 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 	
 	private StreamDataProvider<JSONObject, DefaultZoieVersion> buildDataProvider() throws ConfigurationException{
 		String type = _myconfig.getString(PROVIDER_TYPE);
+		StreamDataProvider<JSONObject,DefaultZoieVersion> dataProvider = null;
 		if ("file".equals(type)){
 			String path = _myconfig.getString("file.path");
 			long offset = _oldestSinceKey == null ? 0L : Long.parseLong(_oldestSinceKey.encodeToString());
-			StreamDataProvider<JSONObject,DefaultZoieVersion> dataProvider = new LinedJsonFileDataProvider(new File(path), offset);
-
-			try {
-
-			   ObjectName dataProviderMBeanName = new ObjectName("senseidb","indexing-manager","stream-data-provider");
-			   StandardMBean dataProviderMbean = new StandardMBean(new DataProviderAdmin(dataProvider), DataProviderAdminMBean.class);
-			   _mbeanServer.registerMBean(dataProviderMbean, dataProviderMBeanName);
-			   _registeredMBeans.add(dataProviderMBeanName);
-			} catch (Exception e) {
-				logger.error(e.getMessage(),e);
-			} 
-			return dataProvider;
+			dataProvider = new LinedJsonFileDataProvider(new File(path), offset);
+		}
+		else if ("kafka".equals(type)){
+			String host = _myconfig.getString("kafka.host");
+			int port = _myconfig.getInt("kafka.port");
+			String topic = _myconfig.getString("kafka.topic");
+			int timeout = _myconfig.getInt("kafka.timeout",10000);
+			int batchsize = _myconfig.getInt("kafka.batchsize");
+			long offset = _oldestSinceKey == null ? 0L : Long.parseLong(_oldestSinceKey.encodeToString());
+			dataProvider = new KafkaJsonStreamDataProvider(host,port,timeout,batchsize,topic,offset);
 		}
 		else{
 			throw new ConfigurationException("type: "+type+" is not suported");
 		}
+		
+		try {
+		   ObjectName dataProviderMBeanName = new ObjectName("senseidb","indexing-manager","stream-data-provider");
+		   StandardMBean dataProviderMbean = new StandardMBean(new DataProviderAdmin(dataProvider), DataProviderAdminMBean.class);
+		   _mbeanServer.registerMBean(dataProviderMbean, dataProviderMBeanName);
+		   _registeredMBeans.add(dataProviderMBeanName);
+		} catch (Exception e) {
+		  logger.error(e.getMessage(),e);
+		} 
+		return dataProvider;
 	}
 
 	@Override

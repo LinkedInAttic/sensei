@@ -123,19 +123,19 @@ public abstract class KafkaStreamDataProvider<D> extends StreamDataProvider<D, D
 
 	@Override
 	public void start() {
-	  super.start();
 	  _kafkaConsumer = new SimpleConsumer(_kafkaHost, _kafkaPort, _kafkaSoTimeout, DEFAULT_MAX_MSG_SIZE);
+	  super.start();
 	}
 
 	@Override
 	public void stop() {
 	  try{
-		  if (_kafkaConsumer!=null){
-		    _kafkaConsumer.close();
-		  }
+		  super.stop();
 	  }
 	  finally{
-	    super.stop();
+		  if (_kafkaConsumer!=null){
+			_kafkaConsumer.close();
+		  }
 	  }
 	}
 }

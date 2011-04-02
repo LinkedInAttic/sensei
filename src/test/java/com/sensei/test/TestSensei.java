@@ -127,9 +127,9 @@ public class TestSensei extends AbstractSenseiTestCase
 
     logger.info("Cluster client started");
 
-    node1 = new SenseiServer(1,1233,new int[] { 1, 2 },null,networkServer1, clusterClient,_zoieFactory,new NoopIndexingManager(), new SimpleQueryBuilderFactory(parser1),null);
+    node1 = new SenseiServer(1,1233,new int[] { 1, 2 },networkServer1, clusterClient,_zoieFactory,new NoopIndexingManager(), new SimpleQueryBuilderFactory(parser1),null);
     logger.info("Node 1 created with id : " + 1);
-    node2 = new SenseiServer(2,1332,new int[] {3},null,networkServer2, clusterClient,_zoieFactory,new NoopIndexingManager(), new SimpleQueryBuilderFactory(parser2),null);
+    node2 = new SenseiServer(2,1332,new int[] {3},networkServer2, clusterClient,_zoieFactory,new NoopIndexingManager(), new SimpleQueryBuilderFactory(parser2),null);
     logger.info("Node 2 created with id : " + 2);
 
     try

@@ -50,6 +50,7 @@ import com.linkedin.norbert.javacompat.network.NetworkServer;
 import com.linkedin.norbert.javacompat.network.NetworkServerConfig;
 import com.sensei.indexing.api.DefaultJsonSchemaInterpreter;
 import com.sensei.indexing.api.DefaultStreamingIndexingManager;
+import com.sensei.indexing.api.JsonFilter;
 import com.sensei.search.client.servlet.DefaultSenseiJSONServlet;
 import com.sensei.search.client.servlet.SenseiConfigServletContextListener;
 import com.sensei.search.client.servlet.SenseiHttpInvokerServiceServlet;
@@ -211,7 +212,6 @@ public class SenseiServerBuilder implements SenseiConfParams{
 	  String[] partitionArray = _senseiConf.getStringArray(PARTITIONS);
 	  int[] partitions = buildPartitions(partitionArray);
 	  logger.info("partitions to serve: "+Arrays.toString(partitions));
-	  File extDir = new File(_confDir,"ext");
 	  
 	// Analyzer from configuration:
       Analyzer analyzer = null;
@@ -244,8 +244,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
       zoieConfig.setRtIndexing(_senseiConf.getBoolean(SENSEI_INDEX_REALTIME, ZoieConfig.DEFAULT_SETTING_REALTIME));
       zoieConfig.setFreshness(_senseiConf.getLong(SENSEI_INDEX_FRESHNESS, 10000));
 
-      QueryParser queryParser = new QueryParser(Version.LUCENE_29,"contents", analyzer);
-
+      
       List<FacetHandler<?>> facetHandlers = new LinkedList<FacetHandler<?>>();
       List<RuntimeFacetHandlerFactory<?,?>> runtimeFacetHandlerFactories = new LinkedList<RuntimeFacetHandlerFactory<?,?>>();
       
@@ -259,6 +258,11 @@ public class SenseiServerBuilder implements SenseiConfParams{
       ZoieIndexableInterpreter interpreter;
       if (interpreterType.length()==0){
     	interpreter = new DefaultJsonSchemaInterpreter(senseiSchma);
+    	String jsonFilterName = _senseiConf.getString(SENSEI_INTERPRETER_JSON_FILTER,"");
+    	if (jsonFilterName.length()>0){
+    		JsonFilter jsonFilter = (JsonFilter)_pluginContext.getBean(jsonFilterName);
+    		((DefaultJsonSchemaInterpreter)interpreter).setJsonFilter(jsonFilter);
+    	}
       }
       else{
     	interpreter = (ZoieIndexableInterpreter)_pluginContext.getBean(interpreterType);  
@@ -316,9 +320,19 @@ public class SenseiServerBuilder implements SenseiConfParams{
     	indexingManager = (SenseiIndexingManager)_pluginContext.getBean(idxMgrType);  
       } 
       
-      SenseiQueryBuilderFactory queryBuilderFactory = new DefaultJsonQueryBuilderFactory(queryParser);
       
-      return new SenseiCore(nodeid,partitions,extDir,zoieSystemFactory,indexingManager,queryBuilderFactory);
+      SenseiQueryBuilderFactory queryBuilderFactory = null;
+      String qbuilderFactory = _senseiConf.getString(SENSEI_QUERY_BUILDER_FACTORY,"");
+      
+      if (qbuilderFactory.length()==0){
+        QueryParser queryParser = new QueryParser(Version.LUCENE_29,"contents", analyzer);
+        queryBuilderFactory = new DefaultJsonQueryBuilderFactory(queryParser);
+      }
+      else{
+    	queryBuilderFactory = (SenseiQueryBuilderFactory)_pluginContext.getBean(qbuilderFactory);
+      }
+      
+      return new SenseiCore(nodeid,partitions,zoieSystemFactory,indexingManager,queryBuilderFactory);
   }
   
   public Server getJettyServer(){
