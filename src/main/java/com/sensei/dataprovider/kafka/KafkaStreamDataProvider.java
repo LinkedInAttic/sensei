@@ -32,6 +32,7 @@ public abstract class KafkaStreamDataProvider<D> extends StreamDataProvider<D, D
     private final String _kafkaHost;
     private final int _kafkaPort;
     private final int _kafkaSoTimeout;
+    private volatile boolean _started = false;
 	
 	public KafkaStreamDataProvider(String kafkaHost,int kafkaPort,int soTimeout,int batchSize,String topic,long startingOffset){
 		_topic = topic;
@@ -79,6 +80,7 @@ public abstract class KafkaStreamDataProvider<D> extends StreamDataProvider<D, D
 	
 	@Override
 	public DataEvent<D, DefaultZoieVersion> next() {
+		if (!_started) return null;
 		if(_msgIter==null || !_msgIter.hasNext()){
 			if (logger.isDebugEnabled()){
 			  logger.debug("fetching new batch from offset: "+_offset);
@@ -125,10 +127,12 @@ public abstract class KafkaStreamDataProvider<D> extends StreamDataProvider<D, D
 	public void start() {
 	  _kafkaConsumer = new SimpleConsumer(_kafkaHost, _kafkaPort, _kafkaSoTimeout, DEFAULT_MAX_MSG_SIZE);
 	  super.start();
+	  _started = true;
 	}
 
 	@Override
 	public void stop() {
+	  _started = false;
 	  try{
 		  super.stop();
 	  }
