@@ -16,8 +16,6 @@ dist=$bin/../target
 resources=$bin/../resources
 logs=$bin/../logs
 
-idx=$bin/../data/cardata
-
 # HEAP_OPTS="-Xmx4096m -Xms2048m -XX:NewSize=1024m" # -d64 for 64-bit awesomeness
 HEAP_OPTS="-Xmx1g -Xms1g -XX:NewSize=256m"
 # HEAP_OPTS="-Xmx1024m -Xms512m -XX:NewSize=128m"
@@ -31,5 +29,14 @@ MAIN_CLASS="com.sensei.search.nodes.SenseiServer"
 
 CLASSPATH=$resources/:$lib/*:$dist/*
 
+PIDFILE=/tmp/sensei-search-node.pid
 
-java $JAVA_OPTS $HEAP_OPTS $GC_OPTS -classpath $CLASSPATH  -Dlog.home=$logs -Didx.dir=$idx $MAIN_CLASS $1 $2 $3 $4
+if [ -f $PIDFILE ]; then
+  echo "File $PIDFILE exists shutdown may not be proper"
+  echo "Please check PID" `cat $PIDFILE`
+  echo "Make sure the node is shutdown and the file" $PIDFILE "is removed before stating the node"
+ else
+  echo "File $PIDFILE does not exists"
+  java $JAVA_OPTS $HEAP_OPTS $GC_OPTS -classpath $CLASSPATH  -Dlog.home=$logs $MAIN_CLASS $1  > $logs/sensei-server.log > $logs/sensei-server.log &
+  echo $! > ${PIDFILE}
+ fi
