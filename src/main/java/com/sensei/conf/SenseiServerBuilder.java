@@ -95,7 +95,15 @@ public class SenseiServerBuilder implements SenseiConfParams{
 	  String clusterName = conf.getString(SENSEI_CLUSTER_NAME);
 	  String zkUrl = conf.getString(SENSEI_CLUSTER_URL);
 	  int zkTimeout = conf.getInt(SENSEI_CLUSTER_TIMEOUT, 300000);
-	  return new ZooKeeperClusterClient(clusterName, zkUrl,zkTimeout);
+	  ClusterClient clusterClient =  new ZooKeeperClusterClient(clusterName, zkUrl,zkTimeout);
+	  
+
+	  logger.info("Connecting to cluster: "+clusterName+" ...");
+	  clusterClient.awaitConnectionUninterruptibly();
+
+	  logger.info("Cluster: "+clusterName+" successfully connected ");
+		
+	  return clusterClient;
   }
   
   private static NetworkServer buildNetworkServer(Configuration conf,ClusterClient clusterClient){
@@ -136,6 +144,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
 		WebAppContext senseiApp = new WebAppContext();
 		
 		HashMap<String,String> initParam = new HashMap<String,String>();
+		logger.info("Broker Configuration file: "+_senseiConfFile.getAbsolutePath());
 		initParam.put("config.file", _senseiConfFile.getAbsolutePath());
 		senseiApp.setInitParams(initParam);
 		senseiApp.addEventListener(new SenseiConfigServletContextListener());
@@ -242,7 +251,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
       zoieConfig.setBatchDelay(_senseiConf.getLong(SENSEI_INDEX_BATCH_DELAY, ZoieConfig.DEFAULT_SETTING_BATCHDELAY));
       zoieConfig.setMaxBatchSize(_senseiConf.getInt(SENSEI_INDEX_BATCH_MAXSIZE, ZoieConfig.DEFAULT_MAX_BATCH_SIZE));
       zoieConfig.setRtIndexing(_senseiConf.getBoolean(SENSEI_INDEX_REALTIME, ZoieConfig.DEFAULT_SETTING_REALTIME));
-      zoieConfig.setFreshness(_senseiConf.getLong(SENSEI_INDEX_FRESHNESS, 10000));
+      zoieConfig.setFreshness(_senseiConf.getLong(SENSEI_INDEX_FRESHNESS, 500));
 
       
       List<FacetHandler<?>> facetHandlers = new LinkedList<FacetHandler<?>>();
@@ -343,6 +352,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
 	int port = _senseiConf.getInt(SERVER_PORT);
 	  
 	ClusterClient clusterClient = buildClusterClient(_senseiConf);
+		
 	NetworkServer networkServer = buildNetworkServer(_senseiConf,clusterClient);
 	
 
