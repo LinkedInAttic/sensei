@@ -31,6 +31,7 @@
   <classpathentry kind="var" path="M2_REPO/com/sna-projects/kamikaze/kamikaze/3.0.3/kamikaze-3.0.3.jar"/>
   <classpathentry kind="var" path="M2_REPO/log4j/log4j/1.2.15/log4j-1.2.15.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/apache/lucene/lucene-core/2.9.1/lucene-core-2.9.1.jar" sourcepath="M2_REPO/org/apache/lucene/lucene-core/2.9.1/lucene-core-2.9.1-sources.jar"/>
+  <classpathentry kind="var" path="M2_REPO/mx4j/mx4j-tools/3.0.1/mx4j-tools-3.0.1.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/jboss/netty/netty/3.2.3.Final/netty-3.2.3.Final.jar"/>
   <classpathentry kind="var" path="M2_REPO/com/sna-projects/norbert/norbert-cluster/1.0.0-SNAPSHOT/norbert-cluster-1.0.0-SNAPSHOT.jar"/>
   <classpathentry kind="var" path="M2_REPO/com/sna-projects/norbert/norbert-java-cluster/1.0.0-SNAPSHOT/norbert-java-cluster-1.0.0-SNAPSHOT.jar"/>

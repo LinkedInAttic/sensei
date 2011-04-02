@@ -54,6 +54,9 @@ public interface SenseiConfParams {
 	public static final String SERVER_BROKER_MAXTHREAD = "sensei.broker.maxThread";
 	public static final String SERVER_BROKER_MAXWAIT = "sensei.broker.maxWaittime";
 	
+
+	public static final String SENSEI_MX4J_PORT = "sensei.mx4j.port";
+	
 	public static final Comparator<String> DEFAULT_VERSION_STRING_COMPARATOR = new Comparator<String>(){
 		@Override
 	    public int compare(String o1, String o2) {

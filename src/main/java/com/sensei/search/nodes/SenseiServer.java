@@ -12,6 +12,9 @@ import javax.management.MBeanServer;
 import javax.management.ObjectName;
 import javax.management.StandardMBean;
 
+import mx4j.tools.adaptor.http.HttpAdaptor;
+import mx4j.tools.adaptor.http.XSLTProcessor;
+
 import org.apache.log4j.Logger;
 import org.mortbay.jetty.Server;
 
@@ -375,19 +378,53 @@ public class SenseiServer {
     final SenseiServer server = senseiServerBuilder.buildServer();
     
     final Server jettyServer = senseiServerBuilder.getJettyServer();
+    
+    final HttpAdaptor httpAdaptor = senseiServerBuilder.buildJMXAdaptor();
+    
+
+    final ObjectName httpAdaptorName = new ObjectName("mx4j:class=mx4j.tools.adaptor.http.HttpAdaptor,id=1"); 
+	 if (httpAdaptor!=null){
+		  try{
+			server.mbeanServer.registerMBean(httpAdaptor, httpAdaptorName);
+			server.mbeanServer.invoke(httpAdaptorName, "start", null, null);
+			httpAdaptor.setProcessor(new XSLTProcessor());
+		    logger.info("http adaptor started on port: "+httpAdaptor.getPort());
+		  }
+		  catch(Exception e){
+			logger.error(e.getMessage(),e);
+		  }
+	  }
 
     Runtime.getRuntime().addShutdownHook(new Thread(){
       public void run(){
+    	 
     	try{
     	  jettyServer.stop();
     	} catch (Exception e) {
     	  logger.error(e.getMessage(),e);
 		}
     	finally{
-          server.shutdown();
+    	  try{
+            server.shutdown();
+    	  }
+    	  finally{
+		    try{
+			   if (httpAdaptor!=null){
+				  httpAdaptor.stop();
+				  server.mbeanServer.invoke(httpAdaptorName, "stop", null, null);
+				  server.mbeanServer.unregisterMBean(httpAdaptorName);
+				  logger.info("http adaptor shutdown");
+				}
+			 }
+			 catch(Exception e){
+			  logger.error(e.getMessage(),e);
+			 }
+    	  }
     	}
       }
     });
+   
+   
     
     jettyServer.start();
     server.start(available);

@@ -13,6 +13,8 @@ import java.util.regex.Pattern;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import mx4j.tools.adaptor.http.HttpAdaptor;
+
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
@@ -253,9 +255,10 @@ public class SenseiServerBuilder implements SenseiConfParams{
       
       String interpreterType = _senseiConf.getString(SENSEI_INDEX_INTERPRETER,"");
       
+      SenseiSchema senseiSchma = SenseiSchema.build(_schemaDoc);
       ZoieIndexableInterpreter interpreter;
       if (interpreterType.length()==0){
-    	interpreter = new DefaultJsonSchemaInterpreter(_schemaDoc);
+    	interpreter = new DefaultJsonSchemaInterpreter(senseiSchma);
       }
       else{
     	interpreter = (ZoieIndexableInterpreter)_pluginContext.getBean(interpreterType);  
@@ -303,13 +306,14 @@ public class SenseiServerBuilder implements SenseiConfParams{
       }
       
       String idxMgrType = _senseiConf.getString(SENSEI_INDEX_MANAGER,"");
-      SenseiIndexingManager indexingManager;
+      SenseiIndexingManager<?,DefaultZoieVersion> indexingManager;
       
       if (idxMgrType.length()==0){
-    	indexingManager = new DefaultStreamingIndexingManager();
+    	String uidField = senseiSchma.getUidField();
+    	indexingManager = new DefaultStreamingIndexingManager(senseiSchma,_senseiConf);
       }
       else{
-    	  indexingManager = (SenseiIndexingManager)_pluginContext.getBean(idxMgrType);  
+    	indexingManager = (SenseiIndexingManager)_pluginContext.getBean(idxMgrType);  
       } 
       
       SenseiQueryBuilderFactory queryBuilderFactory = new DefaultJsonQueryBuilderFactory(queryParser);
@@ -362,5 +366,12 @@ public class SenseiServerBuilder implements SenseiConfParams{
       }
     }
 	return new SenseiServer(port,networkServer,clusterClient,core,svcList);
+  }
+  
+  public HttpAdaptor buildJMXAdaptor(){
+	 int jmxport = _senseiConf.getInt(SENSEI_MX4J_PORT,15555);
+	 HttpAdaptor httpAdaptor = new HttpAdaptor(jmxport);
+     httpAdaptor.setHost("0.0.0.0");   
+     return httpAdaptor;
   }
 }

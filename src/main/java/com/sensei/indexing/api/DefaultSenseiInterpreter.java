@@ -90,10 +90,10 @@ public class DefaultSenseiInterpreter<V> extends
 	}
 	
 	
-	static class IndexSpec{
-	  Store store;
-	  Index index;
-	  TermVector tv;
+	public static class IndexSpec{
+	  public Store store;
+	  public Index index;
+	  public TermVector tv;
 	  Field fld;
 	}
 	
