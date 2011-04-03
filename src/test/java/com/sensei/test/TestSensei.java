@@ -7,8 +7,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
 
-import javax.management.MBeanServer;
-
 import org.apache.log4j.Logger;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.queryParser.QueryParser;
@@ -45,8 +43,6 @@ public class TestSensei extends AbstractSenseiTestCase
   static File IdxDir = new File("data/cardata");
   static final String SENSEI_TEST_CLUSTER_NAME = "testCluster";
   private static final Logger logger = Logger.getLogger(TestSensei.class);
-
-  private final MBeanServer mbeanServer = java.lang.management.ManagementFactory.getPlatformMBeanServer();
 
   public TestSensei()
   {

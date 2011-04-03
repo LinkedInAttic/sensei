@@ -27,8 +27,10 @@ import org.apache.lucene.search.Similarity;
 import org.apache.lucene.util.Version;
 import org.mortbay.jetty.Server;
 import org.mortbay.jetty.nio.SelectChannelConnector;
+import org.mortbay.jetty.servlet.FilterHolder;
 import org.mortbay.jetty.servlet.ServletHolder;
 import org.mortbay.jetty.webapp.WebAppContext;
+import org.mortbay.servlet.GzipFilter;
 import org.mortbay.thread.QueuedThreadPool;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.FileSystemXmlApplicationContext;
@@ -151,6 +153,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
 		
 		
 		senseiApp.addServlet(senseiServletHolder,"/sensei/*");
+		//senseiApp.addFilter(new FilterHolder(new GzipFilter()), "/sensei/*", 1);
 		senseiApp.setResourceBase(webappPath);
 		senseiApp.addServlet(springServletHolder,"/sensei-rpc/SenseiSpringRPCService");
 		
