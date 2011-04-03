@@ -127,13 +127,15 @@ public class SenseiFacetHandlerBuilder {
 		LinkedList<String> predefinedRanges = new LinkedList<String>();
 		if (paramMap!=null){
 			List<String> rangeList = paramMap.get("range");
-			for (String range : rangeList){
+			if (rangeList!=null){
+			  for (String range : rangeList){
 				if (!range.matches("\\[.* TO .*\\]")){
 					range = "["
 							+ range.replaceFirst("[-,]", " TO ")
 							+ "]";	
 				}
 				predefinedRanges.add(range);
+			  }
 			}
 		}
 		return new RangeFacetHandler(name,fieldName,termListFactory,predefinedRanges);
