@@ -68,7 +68,7 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 	    if(_oldestSinceKey == null){
 	      _oldestSinceKey = sinceKey;
 	    }
-	    else if(sinceKey.compareTo(_oldestSinceKey) <0 ){
+	    else if(sinceKey!=null && sinceKey.compareTo(_oldestSinceKey) <0 ){
 	      _oldestSinceKey = sinceKey;
 	    }
 	}
