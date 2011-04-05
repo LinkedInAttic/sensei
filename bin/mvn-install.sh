@@ -1,4 +1,8 @@
 #!/bin/bash
+echo "installing jmxri 1.2.1"
+mvn install:install-file -Dfile=lib/jmxri-1.2.1.jar -DgroupId=com.sun.jmx -DartifactId=jmxri -Dversion=1.2.1 -Dpackaging=jar
+echo "installing jmxtools 1.2.1"
+mvn install:install-file -Dfile=lib/jmxtools-1.2.1.jar -DgroupId=com.sun.jdmk -DartifactId=jmxtools -Dversion=1.2.1 -Dpackaging=jar
 echo "installing bobo 2.5.1-SNAPSHOT"
 mvn install:install-file -Dfile=lib/bobo-browse-2.5.1-SNAPSHOT.jar -DgroupId=com.sna-projects.bobo -DartifactId=bobo-browse -Dversion=2.5.1-SNAPSHOT -Dpackaging=jar
 echo "installing zoie 2.5.1-SNAPSHOT"
