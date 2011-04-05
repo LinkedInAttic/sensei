@@ -293,21 +293,7 @@ public class SenseiClusterClient {
 		}
 		else if ("browse".equalsIgnoreCase(cmd)){
 			try{
-			  SenseiRequest req = _reqBuilder.getRequest();
-			  String queryString = _reqBuilder.getQueryString();
-
-			  JSONObject qObj = new JSONObject();
-			  if (queryString!=null && queryString.length()>0){
-				try{
-				  qObj.put("query",queryString);
-				}
-				catch(Exception e){
-				  e.printStackTrace();
-			    }
-			  }
-
-			  req.setQuery(new SenseiJSONQuery(qObj));
-			  
+			  SenseiRequest req = _reqBuilder.getRequest();			  
 			  SenseiResult res = svc.doQuery(req);
 			  if(res == null)
 			    System.out.println("No results found !");
