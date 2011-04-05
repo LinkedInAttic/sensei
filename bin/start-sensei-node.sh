@@ -16,6 +16,11 @@ dist=$bin/../target
 resources=$bin/../resources
 logs=$bin/../logs
 
+if [[ ! -d $logs ]]; then
+  echo "Log file does not exists, creating one..."
+  mkdir $logs
+fi
+
 # HEAP_OPTS="-Xmx4096m -Xms2048m -XX:NewSize=1024m" # -d64 for 64-bit awesomeness
 HEAP_OPTS="-Xmx1g -Xms1g -XX:NewSize=256m"
 # HEAP_OPTS="-Xmx1024m -Xms512m -XX:NewSize=128m"
