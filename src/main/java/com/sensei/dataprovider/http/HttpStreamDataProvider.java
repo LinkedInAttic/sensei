@@ -42,7 +42,7 @@ public abstract class HttpStreamDataProvider<D> extends StreamDataProvider<D,Str
 	protected final String _baseUrl;
 
 	private final ClientConnectionManager _httpClientManager;
-	private final DefaultHttpClient _httpclient;
+	private DefaultHttpClient _httpclient;
 	  
 	public static final int DEFAULT_TIMEOUT_MS = 10000;
 	public static final int DEFAULT_RETRYTIME_MS = 5000;
@@ -81,10 +81,7 @@ public abstract class HttpStreamDataProvider<D> extends StreamDataProvider<D,Str
 	  SchemeRegistry sr = new SchemeRegistry();
 	  sr.register(http);
 	  
-	  if (!_disableHttps){
-		  Scheme https = new Scheme("https",443,SSLSocketFactory.getSocketFactory());
-		  sr.register(https);
-	  }
+	  
 	  
 	  HttpParams params = new BasicHttpParams();
 	  params.setParameter(HttpProtocolParams.PROTOCOL_VERSION,
@@ -99,6 +96,10 @@ public abstract class HttpStreamDataProvider<D> extends StreamDataProvider<D,Str
 	  
 	  _httpClientManager = new SingleClientConnManager(sr);
 	  _httpclient = new DefaultHttpClient(_httpClientManager,params);
+	  
+	  if (!_disableHttps){
+		  _httpclient = HttpsClientDecorator.decorate(_httpclient);
+	  }
 	  
 	  _httpclient.addRequestInterceptor(new HttpRequestInterceptor() {
 	      public void process(final HttpRequest request, final HttpContext context)
