@@ -144,6 +144,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
 		ServletHolder springServletHolder = new ServletHolder(springServlet);
 
 		WebAppContext senseiApp = new WebAppContext();
+		senseiApp.addFilter(GzipFilter.class,"/sensei/*",1);
 		
 		HashMap<String,String> initParam = new HashMap<String,String>();
 		logger.info("Broker Configuration file: "+_senseiConfFile.getAbsolutePath());
