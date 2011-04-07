@@ -1,13 +1,13 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>com.sna-projects</groupId>
+	<groupId>com.senseidb</groupId>
 	<artifactId>sensei</artifactId>
 	<packaging>jar</packaging>
 	<name>sensei</name>
 	<version>0.0.1-SNAPSHOT</version>
 	<description>sensei search</description>
-	<url>http://sna-projects.com/sensei/</url>
+	<url>http://www.senseidb.com/</url>
 
 	<parent>
 		<groupId>org.sonatype.oss</groupId>
@@ -50,6 +50,7 @@
 					<encoding>UTF-8</encoding>
 				</configuration>
 			</plugin>
+			<!--
 			<plugin>
 				<artifactId>maven-resources-plugin</artifactId>
 				<version>2.2</version>
@@ -82,6 +83,7 @@
 					</execution>
 				</executions>
 			</plugin>
+			-->
 			<plugin>
 		      <artifactId>maven-dependency-plugin</artifactId>
 		      <executions>
@@ -96,35 +98,6 @@
 		       </execution>
 		       </executions>
 		    </plugin>
-			<plugin>
-			        <groupId>org.mortbay.jetty</groupId>
-			        <artifactId>maven-jetty-plugin</artifactId>
-			        <version>6.1.26</version>
-			        <configuration>
-			          <scanIntervalSeconds>0</scanIntervalSeconds>
-			          <webAppConfig>
-			            <contextPath>/</contextPath>
-			          </webAppConfig>        
-			          <scanTargetPatterns>
-			            <scanTargetPattern>
-			              <directory>src/main/webapp/WEB-INF</directory>
-			              <includes>
-			                <include>**/*.xml</include>
-			              </includes>
-			            </scanTargetPattern>
-			          </scanTargetPatterns>
-			        </configuration>       
-			        <dependencies>
-						<dependency>
-						   <groupId>log4j</groupId>
-						   <artifactId>log4j</artifactId>
-						   <version>1.2.13</version>
-						   <type>jar</type>
-						 </dependency>
-				    </dependencies> 
-			      </plugin>
-			
-
 		</plugins>
 	</build>
 
@@ -158,7 +131,7 @@
 		</dependency>
 		
 		<dependency>
-			<groupId>com.sna-projects.zoie</groupId>
+			<groupId>com.linkedin.zoie</groupId>
 			<artifactId>zoie-core</artifactId>
 			<version>2.5.1-SNAPSHOT</version>
 		</dependency>
@@ -180,7 +153,13 @@
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
-			<version>1.4.2</version>
+			<version>1.6.1</version>
+		</dependency>
+		
+		<dependency>
+		    <groupId>org.slf4j</groupId>
+		    <artifactId>slf4j-log4j12</artifactId>
+		    <version>1.6.1</version>
 		</dependency>
 
 		<dependency>
@@ -208,7 +187,7 @@
 		</dependency>
 
 		<dependency>
-			<groupId>com.sna-projects.bobo</groupId>
+			<groupId>com.browseengine.bobo</groupId>
 			<artifactId>bobo-browse</artifactId>
 			<version>2.5.1-SNAPSHOT</version>
 			<type>jar</type>
@@ -271,12 +250,6 @@
 			<artifactId>zookeeper</artifactId>
 			<version>3.3.3</version>
 		</dependency>
-		
-		<dependency>
-            <groupId>mx4j</groupId>
-            <artifactId>mx4j-tools</artifactId>
-            <version>3.0.1</version>
-        </dependency>
 
 		<dependency>
 			<groupId>junit</groupId>

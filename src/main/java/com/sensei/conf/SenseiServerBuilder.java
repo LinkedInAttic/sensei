@@ -13,8 +13,6 @@ import java.util.regex.Pattern;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
-import mx4j.tools.adaptor.http.HttpAdaptor;
-
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
@@ -27,10 +25,8 @@ import org.apache.lucene.search.Similarity;
 import org.apache.lucene.util.Version;
 import org.mortbay.jetty.Server;
 import org.mortbay.jetty.nio.SelectChannelConnector;
-import org.mortbay.jetty.servlet.FilterHolder;
 import org.mortbay.jetty.servlet.ServletHolder;
 import org.mortbay.jetty.webapp.WebAppContext;
-import org.mortbay.servlet.GzipFilter;
 import org.mortbay.thread.QueuedThreadPool;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.FileSystemXmlApplicationContext;
@@ -117,6 +113,15 @@ public class SenseiServerBuilder implements SenseiConfParams{
 	  return new NettyNetworkServer(networkConfig);
   }
   
+  static{
+	try{
+	  org.mortbay.log.Log.setLog(new org.mortbay.log.Slf4jLog());
+	}
+	catch(Exception e){
+      logger.error(e.getMessage(),e);
+	}
+  }
+  
   public  Server buildHttpRestServer() throws Exception{
 		int port = _senseiConf.getInt(SERVER_BROKER_PORT);
 		String webappPath = _senseiConf.getString(SERVER_BROKER_WEBAPP_PATH);
@@ -177,7 +182,6 @@ public class SenseiServerBuilder implements SenseiConfParams{
 	  _customFacetContext = loadSpringContext(new File(confDir,CUSTOM_FACETS));
 	  
 	  DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-	  dbf.setValidating(true);
 	  dbf.setIgnoringComments(true);
 	  DocumentBuilder db = dbf.newDocumentBuilder();
 	  _schemaDoc = db.parse(new File(_confDir,SCHEMA_FILE));
@@ -395,11 +399,12 @@ public class SenseiServerBuilder implements SenseiConfParams{
     }
 	return new SenseiServer(port,networkServer,clusterClient,core,svcList);
   }
-  
+  /*
   public HttpAdaptor buildJMXAdaptor(){
 	 int jmxport = _senseiConf.getInt(SENSEI_MX4J_PORT,15555);
 	 HttpAdaptor httpAdaptor = new HttpAdaptor(jmxport);
      httpAdaptor.setHost("0.0.0.0");   
      return httpAdaptor;
   }
+  */
 }

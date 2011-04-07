@@ -16,9 +16,6 @@ import javax.management.MBeanServer;
 import javax.management.ObjectName;
 import javax.management.StandardMBean;
 
-import mx4j.tools.adaptor.http.HttpAdaptor;
-import mx4j.tools.adaptor.http.XSLTProcessor;
-
 import org.apache.log4j.Logger;
 import org.mortbay.jetty.Server;
 
@@ -405,7 +402,7 @@ public class SenseiServer {
     
     final Server jettyServer = senseiServerBuilder.getJettyServer();
     
-    final HttpAdaptor httpAdaptor = senseiServerBuilder.buildJMXAdaptor();
+    /*final HttpAdaptor httpAdaptor = senseiServerBuilder.buildJMXAdaptor();
     
 
     final ObjectName httpAdaptorName = new ObjectName("mx4j:class=mx4j.tools.adaptor.http.HttpAdaptor,id=1"); 
@@ -420,7 +417,7 @@ public class SenseiServer {
 			logger.error(e.getMessage(),e);
 		  }
 	  }
-
+*/
     Runtime.getRuntime().addShutdownHook(new Thread(){
       public void run(){
     	 
@@ -434,7 +431,7 @@ public class SenseiServer {
             server.shutdown();
     	  }
     	  finally{
-		    try{
+		    /*try{
 			   if (httpAdaptor!=null){
 				  httpAdaptor.stop();
 				  server.mbeanServer.invoke(httpAdaptorName, "stop", null, null);
@@ -444,7 +441,7 @@ public class SenseiServer {
 			 }
 			 catch(Exception e){
 			  logger.error(e.getMessage(),e);
-			 }
+			 }*/
     	  }
     	}
       }
