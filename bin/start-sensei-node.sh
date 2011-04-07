@@ -29,6 +29,8 @@ HEAP_OPTS="-Xmx1g -Xms1g -XX:NewSize=256m"
 #JAVA_DEBUG="-Xdebug -Xrunjdwp:transport=dt_socket,address=1044,server=y,suspend=y"
 #GC_OPTS="-XX:+UseConcMarkSweepGC -XX:+UseParNewGC"
 JAVA_OPTS="-server -d64"
+JMX_OPTS="-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=18889 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false"
+
 MAIN_CLASS="com.sensei.search.nodes.SenseiServer"
 
 
@@ -42,6 +44,6 @@ if [ -f $PIDFILE ]; then
   echo "Make sure the node is shutdown and the file" $PIDFILE "is removed before stating the node"
  else
   echo "File $PIDFILE does not exists"
-  java $JAVA_OPTS $HEAP_OPTS $GC_OPTS -classpath $CLASSPATH  -Dlog.home=$logs $MAIN_CLASS $1  > $logs/sensei-server.log > $logs/sensei-server.log &
+  java $JAVA_OPTS $JMX_OPTS $HEAP_OPTS $GC_OPTS -classpath $CLASSPATH  -Dlog.home=$logs $MAIN_CLASS $1  &
   echo $! > ${PIDFILE}
  fi
