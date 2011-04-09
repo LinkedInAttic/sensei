@@ -10,8 +10,8 @@ if [ $# -le 0 ]; then
 fi
 
 
-if [[ ! -d $1.old ]]; then
-  echo "$1.old does not exist, cannot roll back"
+if [[ ! -d $bin/../$1.old ]]; then
+  echo "$bin/../$1.old does not exist, cannot roll back"
   exit 1
 fi
 
@@ -26,6 +26,7 @@ rm -rf $bin/../$1
 echo "rolling back"
 mv $bin/../$1.old $bin/../$1
 
+cd $bin/../
 
 echo "starting sensei server"
 $bin/start-sensei-node.sh $1

@@ -8,8 +8,8 @@ if [ $# -le 1 ]; then
   exit 1
 fi
 
-if [[ ! -f $1 ]]; then
-  echo "$1 does not exist, nothing to do..."
+if [[ ! -f $bin/../$1 ]]; then
+  echo "$bin/../$1 does not exist, nothing to do..."
   exit 0
 fi
 
