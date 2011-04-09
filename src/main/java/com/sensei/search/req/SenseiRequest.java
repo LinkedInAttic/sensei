@@ -98,11 +98,7 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable
 	public FacetHandlerInitializerParam getFacetHandlerInitializerParam(String name){
 		return _facetInitParamMap.get(name);
 	}
-	
-	public Map<String,FacetHandlerInitializerParam> getAllFacetHandlerInitializerParams(){
-		return _facetInitParamMap;
-	}
-	
+
 	public Set<String> getSelectionNames(){
 		return _selections.keySet();
 	}
@@ -226,7 +222,19 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable
 	public SenseiQuery getQuery(){
 		return _query;
 	}
-	
+
+  /**
+   * Adds a browse selection array
+   * @param selections selections to add
+   * @see #addSelection()
+   * @see #getSelections()
+   */
+  public void addSelections(BrowseSelection[] selections) {
+    for (BrowseSelection selection : selections) {
+      addSelection(selection);
+    }
+  }
+
 	/**
 	 * Adds a browse selection
 	 * @param sel selection

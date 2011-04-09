@@ -29,7 +29,12 @@ public interface SenseiSearchServletParams {
 	  public static final String PARAM_FACET_ORDER_VAL = "val";
 
     public static final String PARAM_DYNAMIC_TYPE = "type";
-    public static final String PARAM_DYNAMIC_NAME = "name";
+    public static final String PARAM_DYNAMIC_TYPE_STRING = "string";
+    public static final String PARAM_DYNAMIC_TYPE_BYTEARRAY = "bytearray";
+    public static final String PARAM_DYNAMIC_TYPE_BOOL = "boolean";
+    public static final String PARAM_DYNAMIC_TYPE_INT = "int";
+    public static final String PARAM_DYNAMIC_TYPE_LONG = "long";
+    public static final String PARAM_DYNAMIC_TYPE_DOUBLE = "double";
     public static final String PARAM_DYNAMIC_VAL = "vals";
 
 	  public static final String PARAM_RESULT_PARSEDQUERY = "parsedquery";

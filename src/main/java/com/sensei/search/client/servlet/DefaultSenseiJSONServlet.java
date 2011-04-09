@@ -284,7 +284,7 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
 
   public static SenseiQuery buildSenseiQuery(DataConfiguration params)
   {
-    SenseiQuery sq = null;
+    SenseiQuery sq;
     String query = params.getString(PARAM_QUERY, null);
 
     JSONObject qjson = new JSONObject();
@@ -384,27 +384,27 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
           }
 
           // TODO: smarter dispatching, factory, generics
-          if (type.equalsIgnoreCase("boolean"))
+          if (type.equalsIgnoreCase(PARAM_DYNAMIC_TYPE_BOOL))
           {
             param = createBooleanInitParam(paramName, attrVals);
           }
-          else if (type.equalsIgnoreCase("string"))
+          else if (type.equalsIgnoreCase(PARAM_DYNAMIC_TYPE_STRING))
           {
             param = createStringInitParam(paramName, attrVals);
           }
-          else if (type.equalsIgnoreCase("int"))
+          else if (type.equalsIgnoreCase(PARAM_DYNAMIC_TYPE_INT))
           {
             param = createIntInitParam(paramName, attrVals);
           }
-          else if (type.equalsIgnoreCase("bytearray"))
+          else if (type.equalsIgnoreCase(PARAM_DYNAMIC_TYPE_BYTEARRAY))
           {
             param = createByteArrayInitParam(paramName, paramConf.getString(PARAM_DYNAMIC_VAL));
           }
-          else if (type.equalsIgnoreCase("long"))
+          else if (type.equalsIgnoreCase(PARAM_DYNAMIC_TYPE_LONG))
           {
             param = createLongInitParam(paramName, attrVals);
           }
-          else if (type.equalsIgnoreCase("double"))
+          else if (type.equalsIgnoreCase(PARAM_DYNAMIC_TYPE_DOUBLE))
           {
             param = createDoubleInitParam(paramName, attrVals);
           }
@@ -620,7 +620,6 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
       }
       else if (PARAM_SELECT_OP_AND.equals(op))
       {
-
         valOp = ValueOperation.ValueOperationAnd;
       }
       else
@@ -636,6 +635,8 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
         sel.setSelectionProperties(prop);
         for (String selProp : selectPropStrings)
         {
+          if (selProp.trim().length() == 0) continue;
+
           String[] parts = selProp.split(":");
           if (parts.length == 2)
           {
