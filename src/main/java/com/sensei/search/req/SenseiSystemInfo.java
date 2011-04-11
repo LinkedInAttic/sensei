@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class SenseiSystemInfo implements Serializable {
+public class SenseiSystemInfo implements AbstractSenseiResult {
 
 	public static class SenseiFacetInfo implements Serializable{
 		private static final long serialVersionUID = 1L;
@@ -51,7 +51,9 @@ public class SenseiSystemInfo implements Serializable {
 	}
 	
 	private static final long serialVersionUID = 1L;
-	
+
+  private long _searchTimeMillis;
+
 	private Map<Integer, Integer> _numDocs;
 	private long _lastModified;
 	private String _version;
@@ -66,6 +68,14 @@ public class SenseiSystemInfo implements Serializable {
 		_facetInfos = null;
 		_clusterInfo = null;
 	}
+
+  public long getTime() {
+    return _searchTimeMillis;
+  }
+
+  public void setTime(long searchTimeMillis) {
+    _searchTimeMillis = searchTimeMillis;
+  }
 
 	public int getNumDocs() {
     Integer numDocs = 0;

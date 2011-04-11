@@ -20,7 +20,7 @@ import com.sensei.search.req.AbstractSenseiResult;
 public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiRequest,Res extends AbstractSenseiResult>{
     private final static Logger logger = Logger.getLogger(AbstractSenseiCoreService.class);
     
-	private final SenseiCore _core;
+	protected final SenseiCore _core;
 	
 	public AbstractSenseiCoreService(SenseiCore core){
 	  _core = core;
