@@ -29,7 +29,7 @@ import com.sensei.search.nodes.SenseiIndexReaderDecorator;
 public class TestUIDFacetHandlerUsingBoboZoie extends TestCase
 {
   // the index data has 10 docs with docIds from 0 to 9 and UIDs from 100 to 109
-  static File IdxDir = new File("data/uiddata");
+  static File IdxDir = new File("index/test/uiddata");
   private static final Logger logger = Logger.getLogger(TestUIDFacetHandlerUsingBoboZoie.class);
   private final MBeanServer mbeanServer = java.lang.management.ManagementFactory.getPlatformMBeanServer();
 
