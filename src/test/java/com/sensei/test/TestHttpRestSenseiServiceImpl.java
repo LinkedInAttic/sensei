@@ -12,6 +12,9 @@ import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.svc.api.SenseiException;
 import com.sensei.search.svc.impl.HttpRestSenseiServiceImpl;
 import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -22,6 +25,7 @@ import junit.framework.TestCase;
 import org.apache.commons.configuration.DataConfiguration;
 import org.apache.commons.configuration.web.ServletRequestConfiguration;
 import org.apache.http.NameValuePair;
+import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.lucene.search.SortField;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -37,6 +41,23 @@ public class TestHttpRestSenseiServiceImpl extends TestCase
   public TestHttpRestSenseiServiceImpl(String name)
   {
     super(name);
+  }
+
+  public void testURIBuilding()
+      throws JSONException, SenseiException, UnsupportedEncodingException, URISyntaxException, MalformedURLException
+  {
+    SenseiRequest aRequest = createNonRandomSenseiRequest();
+    List<NameValuePair> queryParams = HttpRestSenseiServiceImpl.convertRequestToQueryParams(aRequest);
+    HttpRestSenseiServiceImpl senseiService = createSenseiService();
+    URI requestURI = senseiService.buildRequestURI(queryParams);
+
+    assertTrue(requestURI.toURL().toString().length() > 0); // force resolving the URI to a string
+
+    List<NameValuePair> parsedParams = URLEncodedUtils.parse(requestURI, "UTF-8");
+    MockServletRequest mockServletRequest = MockServletRequest.create(parsedParams);
+    DataConfiguration params = new DataConfiguration(new ServletRequestConfiguration(mockServletRequest));
+    SenseiRequest bRequest = DefaultSenseiJSONServlet.convertSenseiRequest(params);
+    assertEquals(aRequest, bRequest);
   }
 
   public void testConvertSenseiRequest()
@@ -175,6 +196,15 @@ public class TestHttpRestSenseiServiceImpl extends TestCase
     DataConfiguration params = new DataConfiguration(new ServletRequestConfiguration(mockServletRequest));
     DefaultSenseiJSONServlet.convertSelectParam(bRequest, params);
     assertEquals(aRequest, bRequest);
+  }
+
+  private HttpRestSenseiServiceImpl createSenseiService() {
+    return new HttpRestSenseiServiceImpl(
+        "http",
+        "localhost",
+        -1,
+        "/sensei",
+        5);
   }
 
   private SenseiRequest createNonRandomSenseiRequest()

@@ -56,7 +56,12 @@ public class HttpRestSenseiServiceImpl implements SenseiService
   int _maxRetries;
   HttpRequestRetryHandler _retryHandler;
 
-  public HttpRestSenseiServiceImpl(String scheme, String host, int port, String path, final int maxRetries)
+  public HttpRestSenseiServiceImpl(
+      String scheme,
+      String host,
+      int port,
+      String path,
+      final int maxRetries)
   {
     this(scheme,
          host,
@@ -98,7 +103,7 @@ public class HttpRestSenseiServiceImpl implements SenseiService
                                    String host,
                                    int port,
                                    String path,
-                                   int maxRetries,
+                                   final int maxRetries,
                                    HttpRequestRetryHandler retryHandler)
   {
     _scheme = scheme;
