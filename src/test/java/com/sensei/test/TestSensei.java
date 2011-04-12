@@ -153,8 +153,17 @@ public class TestSensei extends AbstractSenseiTestCase
     logger.info("Node 2 started");
     try
     {
-      Thread.sleep(10000);
-    } catch (InterruptedException e)
+      SenseiRequest req = new SenseiRequest();
+      SenseiResult res = null;
+      int count = 0;
+      do
+      {
+        Thread.sleep(5000);
+        res = broker.browse(req);
+        ++count;
+      } while (count < 20 && res.getNumHits() < 15000);
+      Thread.sleep(5000);
+    } catch (Exception e)
     {
       e.printStackTrace();
     }
