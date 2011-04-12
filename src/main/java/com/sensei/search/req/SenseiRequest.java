@@ -1,7 +1,9 @@
 package com.sensei.search.req;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -217,7 +219,7 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable
 	/**
 	 * Gets the search query
 	 * @return query object
-	 * @see #setQuery(Object)
+	 * @see #setQuery(SenseiQuery)
 	 */
 	public SenseiQuery getQuery(){
 		return _query;
@@ -226,7 +228,7 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable
   /**
    * Adds a browse selection array
    * @param selections selections to add
-   * @see #addSelection()
+   * @see #addSelection(BrowseSelection)
    * @see #getSelections()
    */
   public void addSelections(BrowseSelection[] selections) {
@@ -272,6 +274,18 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable
 		_sortSpecs.add(sortSpec);
 	}
 
+  /**
+   * Add a sort spec
+   * @param sortSpecs sort spec
+   * @see #getSort()
+   * @see #setSort(SortField[])
+   */
+  public void addSortFields(SortField[] sortSpecs){
+    for (SortField field : sortSpecs) {
+      addSortField(field);
+    }
+  }
+
 	/**
 	 * Gets the sort criteria
 	 * @return sort criteria
@@ -295,6 +309,14 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable
 		}
 	}
 	
+  /** Represents sorting by document score (relevancy). */
+  public static final SortField FIELD_SCORE = new SortField (null, SortField.SCORE);
+  public static final SortField FIELD_SCORE_REVERSE = new SortField (null, SortField.SCORE, true);
+
+  /** Represents sorting by document number (index order). */
+  public static final SortField FIELD_DOC = new SortField (null, SortField.DOC);
+  public static final SortField FIELD_DOC_REVERSE = new SortField (null, SortField.DOC, true);
+
 	@Override
 	public String toString(){
 	  StringBuilder buf=new StringBuilder();
@@ -315,4 +337,123 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable
 	{
 	  return super.clone();
 	}
+
+  @Override
+  public boolean equals(Object o) {
+    if (!(o instanceof SenseiRequest)) return false;
+    SenseiRequest b = (SenseiRequest)o;
+
+    if (getCount() != b.getCount()) return false;
+    if (getOffset() != b.getOffset()) return false;
+    if (!facetSpecsAreEqual(getFacetSpecs(), b.getFacetSpecs())) return false;
+    if (!selectionsAreEqual(getSelections(), b.getSelections())) return false;
+    if (!initParamsAreEqual(getFacetHandlerInitParamMap(), b.getFacetHandlerInitParamMap())) return false;
+    if (!Arrays.equals(getSort(), b.getSort())) return false;
+    if (getQuery() == null) {
+      if (b.getQuery() != null) return false;
+    } else {
+      if (!getQuery().toString().equals(b.getQuery().toString())) return false;
+    }
+    if (getPartitions() == null) {
+      if (b.getPartitions() != null) return false;
+    } else {
+      if (!setsAreEqual(getPartitions(), b.getPartitions())) return false;
+    }
+
+    return true;
+  }
+
+  private boolean initParamsAreEqual(Map<String, FacetHandlerInitializerParam> a,
+                                     Map<String, FacetHandlerInitializerParam> b) {
+    if (a.size() != b.size()) return false;
+
+    for (String key : a.keySet()) {
+      if (!b.containsKey(key)) return false;
+      if (!areFacetHandlerInitializerParamsEqual(a.get(key), b.get(key))) return false;
+    }
+
+    return true;
+  }
+
+  private boolean areFacetHandlerInitializerParamsEqual(FacetHandlerInitializerParam a, FacetHandlerInitializerParam b) {
+    if (!setsAreEqual(a.getBooleanParamNames(), b.getBooleanParamNames())) return false;
+    if (!setsAreEqual(a.getIntParamNames(), b.getIntParamNames())) return false;
+    if (!setsAreEqual(a.getDoubleParamNames(), b.getDoubleParamNames())) return false;
+    if (!setsAreEqual(a.getLongParamNames(), b.getLongParamNames())) return false;
+    if (!setsAreEqual(a.getStringParamNames(), b.getStringParamNames())) return false;
+    if (!setsAreEqual(a.getByteArrayParamNames(), b.getByteArrayParamNames())) return false;
+
+    for (String name : a.getBooleanParamNames()) {
+      if (!Arrays.equals(a.getBooleanParam(name), b.getBooleanParam(name))) return false;
+    }
+    for (String name : a.getIntParamNames()) {
+      if (!Arrays.equals(a.getIntParam(name), b.getIntParam(name))) return false;
+    }
+    for (String name : a.getDoubleParamNames()) {
+      if (!Arrays.equals(a.getDoubleParam(name), b.getDoubleParam(name))) return false;
+    }
+    for (String name : a.getLongParamNames()) {
+      if (!Arrays.equals(a.getLongParam(name), b.getLongParam(name))) return false;
+    }
+    for (String name : a.getStringParamNames()) {
+      if (!Arrays.equals(a.getStringParam(name).toArray(new String[0]), b.getStringParam(name).toArray(new String[0]))) return false;
+    }
+/* NOT YET SUPPORTED
+    for (String name : a.getByteArrayParamNames()) {
+      assertTrue(Arrays.equals(a.getByteArrayParam(name), b.getByteArrayParam(name)));
+    }
+*/
+    return true;
+  }
+
+  private boolean facetSpecsAreEqual(Map<String, FacetSpec> a, Map<String, FacetSpec> b) {
+    if (a.size() != b.size()) return false;
+
+    for (String key : a.keySet()) {
+      if (!(b.containsKey(key))) return false;
+      if (!facetSpecsAreEqual(a.get(key), b.get(key))) return false;
+    }
+
+    return true;
+  }
+
+  private boolean facetSpecsAreEqual(FacetSpec a, FacetSpec b) {
+    return
+        (a.getMaxCount() == b.getMaxCount())
+        && (a.getMinHitCount() == b.getMinHitCount())
+        && (a.getOrderBy() == b.getOrderBy())
+        && (a.isExpandSelection() == b.isExpandSelection());
+  }
+
+  private boolean selectionsAreEqual(BrowseSelection[] a, BrowseSelection[] b) {
+    if (a.length != b.length) return false;
+
+    for (int i = 0; i < a.length; i++) {
+      if (!selectionsAreEqual(a[i], b[i])) return false;
+    }
+
+    return true;
+  }
+
+  private boolean selectionsAreEqual(BrowseSelection a, BrowseSelection b) {
+    return
+        (a.getFieldName().equals(b.getFieldName()))
+        && (Arrays.equals(a.getValues(), b.getValues()))
+        && (Arrays.equals(a.getNotValues(), b.getNotValues()))
+        && (a.getSelectionOperation().equals(b.getSelectionOperation()))
+        && (a.getSelectionProperties().equals(b.getSelectionProperties()));
+  }
+
+  private <T> boolean setsAreEqual(Set<T> a, Set<T> b) {
+    if (a.size() != b.size()) return false;
+
+    Iterator iter = a.iterator();
+    while (iter.hasNext()) {
+      T val = (T)iter.next();
+      if (!b.contains(val)) return false;
+    }
+
+    return true;
+  }
+
 }

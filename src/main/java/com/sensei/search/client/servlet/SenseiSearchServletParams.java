@@ -8,7 +8,10 @@ public interface SenseiSearchServletParams {
 	  public static final String PARAM_SORT = "sort";
 	  public static final String PARAM_SORT_ASC = "asc";
 	  public static final String PARAM_SORT_DESC = "desc";
-	  public static final String PARAM_SORT_SCORE = "relevance";
+    public static final String PARAM_SORT_SCORE = "relevance";
+    public static final String PARAM_SORT_SCORE_REVERSE = "relrev";
+    public static final String PARAM_SORT_DOC = "doc";
+    public static final String PARAM_SORT_DOC_REVERSE = "docrev";
 	  public static final String PARAM_FETCH_STORED = "fetchstored";
 	  public static final String PARAM_SHOW_EXPLAIN = "showexplain";
 	  public static final String PARAM_SELECT = "select";
@@ -20,6 +23,7 @@ public interface SenseiSearchServletParams {
 	  public static final String PARAM_SELECT_PROP = "prop";
     public static final String PARAM_FACET = "facet";
     public static final String PARAM_DYNAMIC_INIT = "dyn";
+    public static final String PARAM_PARTITIONS = "partitions";
 
 	  public static final String PARAM_FACET_EXPAND = "expand";
 	  public static final String PARAM_FACET_MAX = "max";

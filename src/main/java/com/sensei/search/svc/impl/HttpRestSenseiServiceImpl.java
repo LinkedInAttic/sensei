@@ -151,27 +151,45 @@ public class HttpRestSenseiServiceImpl implements SenseiService
   {
     List<NameValuePair> qparams = new ArrayList<NameValuePair>();
 
-    qparams.add(new BasicNameValuePair(SenseiSearchServletParams.PARAM_FETCH_STORED, Boolean.toString(req.isFetchStoredFields())));
-    qparams.add(new BasicNameValuePair(SenseiSearchServletParams.PARAM_SHOW_EXPLAIN, Boolean.toString(req.isShowExplanation())));
-    qparams.add(new BasicNameValuePair(SenseiSearchServletParams.PARAM_OFFSET, Integer.toString(req.getOffset())));
-    qparams.add(new BasicNameValuePair(SenseiSearchServletParams.PARAM_COUNT, Integer.toString(req.getCount())));
-    qparams.add(new BasicNameValuePair(SenseiSearchServletParams.PARAM_SORT, convertSortFields(req.getSort())));
-
-    qparams.addAll(convertSenseiQuery(req.getQuery()));
-    qparams.addAll(convertSelectionNames(req));
-    qparams.addAll(convertFacetSpecs(req.getFacetSpecs()));
-    qparams.addAll(convertFacetInitParams(req.getFacetHandlerInitParamMap()));
-
-//    Set<Integer> partitions = req.getPartitions();
+    convertScalarParams(qparams, req);
+    convertSortFieldParams(qparams, req.getSort());
+    convertSenseiQuery(qparams, req.getQuery());
+    convertSelectionNames(qparams, req);
+    convertFacetSpecs(qparams, req.getFacetSpecs());
+    convertFacetInitParams(qparams, req.getFacetHandlerInitParamMap());
+    convertPartitionParams(qparams, req.getPartitions());
 
     return qparams;
   }
 
-  public static List<NameValuePair> convertFacetInitParams(Map<String,FacetHandlerInitializerParam> initParams)
+  public static void convertSortFieldParams(List<NameValuePair> qparams, SortField[] sortFields) {
+    List<String> fieldList = new ArrayList<String>();
+
+    for (SortField field : sortFields) {
+      fieldList.add(convertSortField(field));
+    }
+
+    String paramList = join(fieldList, ",");
+
+    qparams.add(new BasicNameValuePair(SenseiSearchServletParams.PARAM_SORT, paramList));
+  }
+
+  public static void convertPartitionParams(List<NameValuePair> qparams, Set<Integer> partitions) {
+    if (partitions == null || partitions.size() == 0) return;
+
+    qparams.add(new BasicNameValuePair(SenseiSearchServletParams.PARAM_PARTITIONS, join(partitions, ",")));
+  }
+
+  public static void convertScalarParams(List<NameValuePair> qparams, SenseiRequest req) {
+    qparams.add(new BasicNameValuePair(SenseiSearchServletParams.PARAM_FETCH_STORED, Boolean.toString(req.isFetchStoredFields())));
+    qparams.add(new BasicNameValuePair(SenseiSearchServletParams.PARAM_SHOW_EXPLAIN, Boolean.toString(req.isShowExplanation())));
+    qparams.add(new BasicNameValuePair(SenseiSearchServletParams.PARAM_OFFSET, Integer.toString(req.getOffset())));
+    qparams.add(new BasicNameValuePair(SenseiSearchServletParams.PARAM_COUNT, Integer.toString(req.getCount())));
+  }
+
+  public static void convertFacetInitParams(List<NameValuePair> qparams, Map<String,FacetHandlerInitializerParam> initParams)
       throws UnsupportedEncodingException
   {
-    List<NameValuePair> qparams = new ArrayList<NameValuePair>();
-
     final String format = "%s.%s.%s.%s";
 
     for (String facetName : initParams.keySet()) {
@@ -232,13 +250,9 @@ public class HttpRestSenseiServiceImpl implements SenseiService
             param.getStringParam(paramName).get(0)));
       }
     }
-
-    return qparams;
   }
 
-  public static List<NameValuePair> convertFacetSpecs(Map<String,FacetSpec> facetSpecs) {
-    List<NameValuePair> qparams = new ArrayList<NameValuePair>();
-
+  public static void convertFacetSpecs(List<NameValuePair> qparams, Map<String,FacetSpec> facetSpecs) {
     final String format = "%s.%s.%s";
 
     for (String facetName : facetSpecs.keySet()) {
@@ -258,8 +272,6 @@ public class HttpRestSenseiServiceImpl implements SenseiService
           String.format(format, SenseiSearchServletParams.PARAM_FACET, facetName, SenseiSearchServletParams.PARAM_FACET_MINHIT),
           Integer.toString(spec.getMinHitCount())));
     }
-
-    return qparams;
   }
 
   public static String convertFacetSortSpec(FacetSpec.FacetSortSpec spec) {
@@ -275,21 +287,19 @@ public class HttpRestSenseiServiceImpl implements SenseiService
     }
   }
 
-  public static String convertSortFields(SortField[] sortFields) {
-    List<String> fieldList = new ArrayList<String>();
 
-    for (SortField field : sortFields) {
-      fieldList.add(convertSortField(field));
-    }
-
-    return join(fieldList, ",");
-  }
 
   public static String convertSortField(SortField field) {
     String result;
 
-    if (field == SortField.FIELD_SCORE) {
+    if (field.equals(SenseiRequest.FIELD_SCORE)) {
       result = SenseiSearchServletParams.PARAM_SORT_SCORE;
+    } else if (field.equals(SenseiRequest.FIELD_SCORE_REVERSE)) {
+      result = SenseiSearchServletParams.PARAM_SORT_SCORE_REVERSE;
+    } else if (field.equals(SenseiRequest.FIELD_DOC)) {
+      result = SenseiSearchServletParams.PARAM_SORT_DOC;
+    } else if (field.equals(SenseiRequest.FIELD_DOC_REVERSE)) {
+      result = SenseiSearchServletParams.PARAM_SORT_DOC_REVERSE;
     } else {
       result = String.format(
           "%s:%s",
@@ -302,9 +312,7 @@ public class HttpRestSenseiServiceImpl implements SenseiService
     return result;
   }
 
-  public static List<NameValuePair> convertSelectionNames(SenseiRequest req) {
-    List<NameValuePair> qparams = new ArrayList<NameValuePair>();
-
+  public static void convertSelectionNames(List<NameValuePair> qparams, SenseiRequest req) {
     Set<String> selectionNames = req.getSelectionNames();
 
     final String format = "%s.%s.%s";
@@ -327,11 +335,9 @@ public class HttpRestSenseiServiceImpl implements SenseiService
             convertSelectionProperties(selection.getSelectionProperties())));
       }
     }
-
-    return qparams;
   }
 
-  public static String convertSelectionOperation(BrowseSelection.ValueOperation operation) {
+  private static String convertSelectionOperation(BrowseSelection.ValueOperation operation) {
     switch (operation)
     {
       case ValueOperationOr:
@@ -343,7 +349,7 @@ public class HttpRestSenseiServiceImpl implements SenseiService
     }
   }
 
-  public static String convertSelectionProperties(Properties props) {
+  private static String convertSelectionProperties(Properties props) {
     List<String> propList = new ArrayList<String>(props.size());
 
     final String format = "%s:%s";
@@ -355,10 +361,10 @@ public class HttpRestSenseiServiceImpl implements SenseiService
     return join(propList, ",");
   }
 
-  public static List<NameValuePair> convertSenseiQuery(SenseiQuery query)
+  public static void convertSenseiQuery(List<NameValuePair> qparams, SenseiQuery query)
       throws SenseiException
   {
-    List<NameValuePair> qparams = new ArrayList<NameValuePair>();
+    if (query == null) return;
 
     try
     {
@@ -375,15 +381,13 @@ public class HttpRestSenseiServiceImpl implements SenseiService
           continue;
         }
 
-        qparams.add(new BasicNameValuePair(SenseiSearchServletParams.PARAM_QUERY_PARAM, String.format(format, key, (String) jsonObj.get(key))));
+        qparams.add(new BasicNameValuePair(SenseiSearchServletParams.PARAM_QUERY_PARAM, String.format(format, key, jsonObj.get(key))));
       }
     }
     catch (JSONException e)
     {
       throw new SenseiException(e);
     }
-
-    return qparams;
   }
 
   public URI buildRequestURI(List<NameValuePair> qparams)
@@ -425,7 +429,7 @@ public class HttpRestSenseiServiceImpl implements SenseiService
     StringBuilder builder = new StringBuilder();
     Iterator iter = s.iterator();
     while (iter.hasNext()) {
-       builder.append(iter.next());
+       builder.append(iter.next().toString());
        if (!iter.hasNext()) {
          break;
        }
