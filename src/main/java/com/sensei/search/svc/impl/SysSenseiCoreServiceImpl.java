@@ -3,8 +3,6 @@ package com.sensei.search.svc.impl;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -57,14 +55,6 @@ public class SysSenseiCoreServiceImpl extends AbstractSenseiCoreService<SenseiRe
       browser = new MultiBoboBrowser(BoboBrowser.createBrowsables(readerList));
       res.setNumDocs(browser.numDocs());
 
-      Set<SenseiSystemInfo.SenseiFacetInfo> facetInfos = new HashSet<SenseiSystemInfo.SenseiFacetInfo>();
-
-      for (String name : browser.getFacetNames()) {
-        facetInfos.add(new SenseiSystemInfo.SenseiFacetInfo(name));
-      }
-
-      res.setFacetInfos(facetInfos);
-
       return res;
     }
     catch (Exception e)
@@ -90,39 +80,12 @@ public class SysSenseiCoreServiceImpl extends AbstractSenseiCoreService<SenseiRe
   @Override
   public SenseiSystemInfo mergePartitionedResults(SenseiRequest r,
       List<SenseiSystemInfo> resultList) {
-    SenseiSystemInfo result = new SenseiSystemInfo();
+    SenseiSystemInfo result = _core.getSystemInfo();
+    result.setNumDocs(0);
     for (SenseiSystemInfo res : resultList)
     {
       result.setNumDocs(result.getNumDocs() + res.getNumDocs());
-      if (result.getFacetInfos() == null)
-      {
-        result.setFacetInfos(res.getFacetInfos());
-      }
     }
-
-    int[] partitions = _core.getPartitions();
-    List<Integer> partitionList = new ArrayList<Integer>(partitions.length);
-
-    Date lastModified = new Date(0L);
-    ZoieVersion version = null;
-    for (int i=0; i<partitions.length; ++i)
-    {
-      partitionList.add(partitions[i]);
-      ZoieSystem<BoboIndexReader,?,?> zoieSystem = (ZoieSystem<BoboIndexReader,?,?>)_core.getIndexReaderFactory(partitions[i]);
-
-      ZoieSystemAdminMBean zoieSystemAdminMBean = zoieSystem.getAdminMBean();
-      if (lastModified.getTime() < zoieSystemAdminMBean.getLastDiskIndexModifiedTime().getTime())
-        lastModified = zoieSystemAdminMBean.getLastDiskIndexModifiedTime();
-      if (version == null || version.compareTo(zoieSystem.getVersion()) < 0)
-        version = zoieSystem.getVersion();
-    }
-
-    result.setLastModified(lastModified.getTime());
-    result.setVersion(version.toString());
-
-    Map<Integer, List<Integer>> clusterInfo = new HashMap<Integer, List<Integer>>();
-    clusterInfo.put(_core.getNodeId(), partitionList);
-    result.setClusterInfo(clusterInfo);
 
     return result;
   }
