@@ -2,13 +2,16 @@ package com.sensei.test;
 
 
 import com.browseengine.bobo.api.BrowseSelection;
+import com.browseengine.bobo.api.FacetAccessible;
 import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.facets.DefaultFacetHandlerInitializerParam;
 import com.browseengine.bobo.facets.FacetHandlerInitializerParam;
 import com.sensei.search.client.servlet.DefaultSenseiJSONServlet;
+import com.sensei.search.req.SenseiHit;
 import com.sensei.search.req.SenseiJSONQuery;
 import com.sensei.search.req.SenseiQuery;
 import com.sensei.search.req.SenseiRequest;
+import com.sensei.search.req.SenseiResult;
 import com.sensei.search.svc.api.SenseiException;
 import com.sensei.search.svc.impl.HttpRestSenseiServiceImpl;
 import java.io.UnsupportedEncodingException;
@@ -26,6 +29,7 @@ import org.apache.commons.configuration.DataConfiguration;
 import org.apache.commons.configuration.web.ServletRequestConfiguration;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
+import org.apache.lucene.search.Explanation;
 import org.apache.lucene.search.SortField;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -41,6 +45,71 @@ public class TestHttpRestSenseiServiceImpl extends TestCase
   public TestHttpRestSenseiServiceImpl(String name)
   {
     super(name);
+  }
+
+  public void testSenseiResultParsing()
+      throws Exception
+  {
+
+    SenseiRequest aRequest = createNonRandomSenseiRequest();
+    SenseiResult aResult = createMockResultFromRequest(aRequest);
+
+    JSONObject resultJSONObj = DefaultSenseiJSONServlet.buildJSONResult(aRequest, aResult);
+
+    SenseiResult bResult = HttpRestSenseiServiceImpl.buildSenseiResult(resultJSONObj);
+
+    assertEquals(aResult, bResult);
+  }
+
+  private SenseiResult createMockResultFromRequest(SenseiRequest request) {
+    SenseiResult result = new SenseiResult();
+
+    result.setParsedQuery("This is my parsed query");
+    result.setTime(Long.MAX_VALUE);
+    result.setNumHits(Integer.MAX_VALUE);
+    result.setTid(1);
+    result.setTotalDocs(512);
+    result.setHits(createSenseiHits(10));
+    result.addAll(createFacetAccessibleMap());
+
+    return result;
+  }
+
+  private SenseiHit[] createSenseiHits(int count) {
+    List<SenseiHit> hits = new ArrayList<SenseiHit>();
+
+    for (int i = 0; i < count; i++) {
+      SenseiHit sh = new SenseiHit();
+      sh.setUID(i);
+      sh.setDocid(100 + i);
+      sh.setExplanation(createExplanation(i, i));
+      hits.add(sh);
+    }
+
+    return hits.toArray(new SenseiHit[hits.size()]);
+  }
+
+  private Explanation createExplanation(int facetIndex, int descCount) {
+    Explanation expl = new Explanation();
+
+    expl.setDescription(String.format("prefix %s is my description", facetIndex));
+    expl.setValue(facetIndex);
+
+    for (int i = 0; i < descCount; i++) {
+      expl.addDetail(createExplanation((1000 * facetIndex) + i, 0));
+    }
+
+    return expl;
+  }
+
+  private void assertEquals(SenseiResult a, SenseiResult b) {
+
+  }
+
+  private Map<String, FacetAccessible> createFacetAccessibleMap() {
+    Map<String, FacetAccessible> facetAccessibleMap = new HashMap<String, FacetAccessible>();
+
+    return facetAccessibleMap;
   }
 
   public void testURIBuilding()

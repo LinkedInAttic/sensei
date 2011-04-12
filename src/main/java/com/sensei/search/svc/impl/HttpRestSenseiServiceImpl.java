@@ -1,10 +1,14 @@
 package com.sensei.search.svc.impl;
 
 
+import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.BrowseSelection;
+import com.browseengine.bobo.api.FacetAccessible;
+import com.browseengine.bobo.api.FacetIterator;
 import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.facets.FacetHandlerInitializerParam;
 import com.sensei.search.client.servlet.SenseiSearchServletParams;
+import com.sensei.search.req.SenseiHit;
 import com.sensei.search.req.SenseiQuery;
 import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.req.SenseiResult;
@@ -15,12 +19,14 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -41,7 +47,9 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
+import org.apache.lucene.search.Explanation;
 import org.apache.lucene.search.SortField;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
@@ -474,8 +482,134 @@ public class HttpRestSenseiServiceImpl implements SenseiService
   }
 
   public static SenseiResult buildSenseiResult(JSONObject jsonObj)
+      throws JSONException
   {
     SenseiResult result = new SenseiResult();
+
+    result.setTotalDocs(jsonObj.getInt(SenseiSearchServletParams.PARAM_RESULT_TOTALDOCS));
+    result.setParsedQuery(jsonObj.getString(SenseiSearchServletParams.PARAM_RESULT_PARSEDQUERY));
+    result.setNumHits(jsonObj.getInt(SenseiSearchServletParams.PARAM_RESULT_NUMHITS));
+    result.setParsedQuery(jsonObj.getString(SenseiSearchServletParams.PARAM_RESULT_PARSEDQUERY));
+    result.setTime(jsonObj.getLong(SenseiSearchServletParams.PARAM_RESULT_TIME));
+    result.addAll(convertFacetMap(jsonObj.getJSONObject(SenseiSearchServletParams.PARAM_RESULT_FACETS)));
+    result.setHits(convertHitsArray(jsonObj.getJSONArray(SenseiSearchServletParams.PARAM_RESULT_HITS)));
+
     return result;
   }
+
+  private static Map<String, FacetAccessible> convertFacetMap(JSONObject jsonObject)
+      throws JSONException
+  {
+    Map<String, FacetAccessible> map = new HashMap <String, FacetAccessible>();
+
+    Iterator iter = jsonObject.sortedKeys();
+
+    while(iter.hasNext()) {
+      String fieldName = (String) iter.next();
+      JSONArray facetArr = (JSONArray)jsonObject.get(fieldName);
+      int length = facetArr.length();
+
+      BrowseFacet[] facets = new BrowseFacet[length];
+
+      for (int i = 0; i < length; i++) {
+        JSONObject facetObj = (JSONObject) facetArr.get(i);
+        BrowseFacet bf = new BrowseFacet();
+        bf.setFacetValueHitCount(facetObj.getInt("count"));
+        bf.setValue(facetObj.getString("value"));
+      }
+
+      FacetAccessible fa = new MappedFacetAccessible(facets);
+
+      map.put(fieldName, fa);
+    }
+
+    return map;
+  }
+
+  private static class MappedFacetAccessible implements FacetAccessible, Serializable
+  {
+    private static final long serialVersionUID = 1L;
+
+    private final HashMap<String, BrowseFacet> _facetMap;
+    private final BrowseFacet[] _facets;
+
+    public MappedFacetAccessible(BrowseFacet[] facets)
+    {
+      _facetMap = new HashMap<String, BrowseFacet>();
+      for (BrowseFacet facet : facets)
+      {
+	      if (facet != null ){
+          _facetMap.put(facet.getValue(), facet);
+        }
+      }
+      _facets = facets;
+    }
+
+    public BrowseFacet getFacet(String value)
+    {
+      return _facetMap.get(value);
+    }
+
+    public List<BrowseFacet> getFacets()
+    {
+      return Arrays.asList(_facets);
+    }
+
+    @Override
+    public void close()
+    {
+    }
+
+    @Override
+    public FacetIterator iterator()
+    {
+      throw new IllegalStateException("FacetIterator should not be obtained at merge time");
+    }
+
+  }
+
+  private static SenseiHit[] convertHitsArray(JSONArray hitsArray)
+      throws JSONException
+  {
+    int hitsArrayLength = hitsArray.length();
+
+    SenseiHit[] result = new SenseiHit[hitsArrayLength];
+
+    for (int i = 0; i < hitsArrayLength; i++) {
+      JSONObject hitObj = (JSONObject)hitsArray.get(i);
+
+      SenseiHit hit = new SenseiHit();
+      hit.setUID(hitObj.getLong(SenseiSearchServletParams.PARAM_RESULT_HIT_UID));
+      hit.setScore((float) hitObj.getDouble(SenseiSearchServletParams.PARAM_RESULT_HIT_SCORE));
+      hit.setExplanation(convertToExplanation(hitObj.getJSONObject(SenseiSearchServletParams.PARAM_RESULT_HIT_EXPLANATION)));
+
+      result[i] = hit;
+    }
+
+    return result;
+  }
+
+  public static Explanation convertToExplanation(JSONObject jsonObj)
+      throws JSONException
+  {
+    Explanation explanation = new Explanation();
+
+    float value = (float) jsonObj.getDouble("value");
+    String description = jsonObj.getString("description");
+
+    explanation.setDescription(description);
+    explanation.setValue(value);
+
+    JSONArray detailsArr = jsonObj.getJSONArray("details");
+    int detailsCnt = detailsArr.length();
+
+    for (int i = 0; i < detailsCnt; i++) {
+      JSONObject detailObj = (JSONObject) detailsArr.get(i);
+      Explanation detailExpl = convertToExplanation(detailObj);
+      explanation.addDetail(detailExpl);
+    }
+
+    return explanation;
+  }
+
 }

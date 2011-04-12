@@ -87,6 +87,7 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
     if (facetValueMap != null)
     {
       Set<Entry<String, FacetAccessible>> entrySet = facetValueMap.entrySet();
+
       for (Entry<String, FacetAccessible> entry : entrySet)
       {
         String fieldname = entry.getKey();
@@ -100,10 +101,12 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
             selectedVals.addAll(Arrays.asList(vals));
           }
         }
+
         FacetAccessible facetAccessible = entry.getValue();
         List<BrowseFacet> facetList = facetAccessible.getFacets();
 
         ArrayList<JSONObject> facets = new ArrayList<JSONObject>();
+
         for (BrowseFacet f : facetList)
         {
           String fval = f.getValue();
@@ -137,67 +140,70 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
           // we need to sort it
           FacetSpec fspec = req.getFacetSpec(fieldname);
           assert fspec != null;
-          FacetSortSpec sortSpec = fspec.getOrderBy();
-          if (FacetSortSpec.OrderHitsDesc.equals(sortSpec))
-          {
-            Collections.sort(facets, new Comparator<JSONObject>()
-            {
-
-              @Override
-              public int compare(JSONObject o1, JSONObject o2)
-              {
-                try
-                {
-                  int c1 = o1.getInt("count");
-                  int c2 = o2.getInt("count");
-                  int val = c2 - c1;
-                  if (val == 0)
-                  {
-                    String s1 = o1.getString("value");
-                    String s2 = o1.getString("value");
-                    val = s1.compareTo(s2);
-                  }
-                  return val;
-                }
-                catch (Exception e)
-                {
-                  logger.error(e.getMessage(), e);
-                  return 0;
-                }
-              }
-            });
-          }
-          else if (FacetSortSpec.OrderValueAsc.equals(sortSpec))
-          {
-            Collections.sort(facets, new Comparator<JSONObject>()
-            {
-
-              @Override
-              public int compare(JSONObject o1, JSONObject o2)
-              {
-                try
-                {
-                  String s1 = o1.getString("value");
-                  String s2 = o1.getString("value");
-                  return s1.compareTo(s2);
-                }
-                catch (Exception e)
-                {
-                  logger.error(e.getMessage(), e);
-                  return 0;
-                }
-              }
-            });
-          }
-          else
-          {
-            throw new IllegalStateException(fieldname + " sorting is not supported");
-          }
+          sortFacets(fieldname, facets, fspec);
         }
+
         resMap.put(fieldname, facets);
       }
     }
     return resMap;
+  }
+
+  private static void sortFacets(String fieldName, ArrayList<JSONObject> facets, FacetSpec fspec) {
+    FacetSortSpec sortSpec = fspec.getOrderBy();
+    if (FacetSortSpec.OrderHitsDesc.equals(sortSpec))
+    {
+      Collections.sort(facets, new Comparator<JSONObject>()
+      {
+        @Override
+        public int compare(JSONObject o1, JSONObject o2)
+        {
+          try
+          {
+            int c1 = o1.getInt("count");
+            int c2 = o2.getInt("count");
+            int val = c2 - c1;
+            if (val == 0)
+            {
+              String s1 = o1.getString("value");
+              String s2 = o1.getString("value");
+              val = s1.compareTo(s2);
+            }
+            return val;
+          }
+          catch (Exception e)
+          {
+            logger.error(e.getMessage(), e);
+            return 0;
+          }
+        }
+      });
+    }
+    else if (FacetSortSpec.OrderValueAsc.equals(sortSpec))
+    {
+      Collections.sort(facets, new Comparator<JSONObject>()
+      {
+        @Override
+        public int compare(JSONObject o1, JSONObject o2)
+        {
+          try
+          {
+            String s1 = o1.getString("value");
+            String s2 = o1.getString("value");
+            return s1.compareTo(s2);
+          }
+          catch (Exception e)
+          {
+            logger.error(e.getMessage(), e);
+            return 0;
+          }
+        }
+      });
+    }
+    else
+    {
+      throw new IllegalStateException(fieldName + " sorting is not supported");
+    }
   }
 
   @Override
@@ -223,6 +229,7 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
     jsonObj.put(PARAM_RESULT_TOTALDOCS, totalDocs);
     jsonObj.put(PARAM_RESULT_NUMHITS, numHits);
     jsonObj.put(PARAM_RESULT_PARSEDQUERY, res.getParsedQuery());
+
     SenseiHit[] hits = res.getSenseiHits();
     JSONArray hitArray = new JSONArray();
     jsonObj.put(PARAM_RESULT_HITS, hitArray);
@@ -278,6 +285,7 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
 
     jsonObj.put(PARAM_RESULT_TIME, res.getTime());
     jsonObj.put(PARAM_RESULT_FACETS, convert(res.getFacetMap(), req));
+
     return jsonObj;
   }
 
