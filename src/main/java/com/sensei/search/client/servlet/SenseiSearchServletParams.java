@@ -45,10 +45,20 @@ public interface SenseiSearchServletParams {
 	  public static final String PARAM_RESULT_HIT_EXPLANATION = "explanation";
 	  public static final String PARAM_RESULT_FACETS = "facets";
 	  
-	  public static final String PARAM_RESULT_TOTALDOCS = "totaldocs";
+    public static final String PARAM_RESULT_TID = "tid";
+    public static final String PARAM_RESULT_TOTALDOCS = "totaldocs";
 	  public static final String PARAM_RESULT_NUMHITS = "numhits";
 	  public static final String PARAM_RESULT_HITS = "hits";
-	  public static final String PARAM_RESULT_HIT_UID = "uid";
+    public static final String PARAM_RESULT_HIT_UID = "uid";
+    public static final String PARAM_RESULT_HIT_DOCID = "docid";
 	  public static final String PARAM_RESULT_HIT_SCORE = "score";
 	  public static final String PARAM_RESULT_TIME = "time";
+
+    public static final String PARAM_RESULT_HITS_EXPL_VALUE = "value";
+    public static final String PARAM_RESULT_HITS_EXPL_DESC = "description";
+    public static final String PARAM_RESULT_HITS_EXPL_DETAILS = "details";
+
+    public static final String PARAM_RESULT_FACET_INFO_VALUE = "value";
+    public static final String PARAM_RESULT_FACET_INFO_COUNT = "count";
+    public static final String PARAM_RESULT_FACET_INFO_SELECTED = "selected";
 }

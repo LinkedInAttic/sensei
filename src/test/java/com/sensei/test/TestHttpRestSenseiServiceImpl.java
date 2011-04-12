@@ -1,9 +1,11 @@
 package com.sensei.test;
 
 
+import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.BrowseSelection;
 import com.browseengine.bobo.api.FacetAccessible;
 import com.browseengine.bobo.api.FacetSpec;
+import com.browseengine.bobo.api.MappedFacetAccessible;
 import com.browseengine.bobo.facets.DefaultFacetHandlerInitializerParam;
 import com.browseengine.bobo.facets.FacetHandlerInitializerParam;
 import com.sensei.search.client.servlet.DefaultSenseiJSONServlet;
@@ -50,27 +52,23 @@ public class TestHttpRestSenseiServiceImpl extends TestCase
   public void testSenseiResultParsing()
       throws Exception
   {
-
     SenseiRequest aRequest = createNonRandomSenseiRequest();
     SenseiResult aResult = createMockResultFromRequest(aRequest);
-
     JSONObject resultJSONObj = DefaultSenseiJSONServlet.buildJSONResult(aRequest, aResult);
-
     SenseiResult bResult = HttpRestSenseiServiceImpl.buildSenseiResult(resultJSONObj);
-
     assertEquals(aResult, bResult);
   }
 
   private SenseiResult createMockResultFromRequest(SenseiRequest request) {
     SenseiResult result = new SenseiResult();
 
-    result.setParsedQuery("This is my parsed query");
-    result.setTime(Long.MAX_VALUE);
-    result.setNumHits(Integer.MAX_VALUE);
+    result.setParsedQuery("This is my parsed query value");
+    result.setTime(Long.MAX_VALUE / 2);
+    result.setNumHits(Integer.MAX_VALUE / 2);
     result.setTid(1);
     result.setTotalDocs(512);
     result.setHits(createSenseiHits(10));
-    result.addAll(createFacetAccessibleMap());
+    result.addAll(createFacetAccessibleMap(request));
 
     return result;
   }
@@ -92,7 +90,7 @@ public class TestHttpRestSenseiServiceImpl extends TestCase
   private Explanation createExplanation(int facetIndex, int descCount) {
     Explanation expl = new Explanation();
 
-    expl.setDescription(String.format("prefix %s is my description", facetIndex));
+    expl.setDescription(String.format("facetIndex = %s, and this is my description", facetIndex));
     expl.setValue(facetIndex);
 
     for (int i = 0; i < descCount; i++) {
@@ -102,12 +100,28 @@ public class TestHttpRestSenseiServiceImpl extends TestCase
     return expl;
   }
 
-  private void assertEquals(SenseiResult a, SenseiResult b) {
-
-  }
-
-  private Map<String, FacetAccessible> createFacetAccessibleMap() {
+  private Map<String, FacetAccessible> createFacetAccessibleMap(SenseiRequest request) {
     Map<String, FacetAccessible> facetAccessibleMap = new HashMap<String, FacetAccessible>();
+
+    for (int i = 10; i < 20; i++) {
+      String fieldName = "fieldName_" + i;
+
+      List<BrowseFacet> bfList = new ArrayList<BrowseFacet>();
+
+      Map<String,FacetSpec> facetSpecs = request.getFacetSpecs();
+
+      // copy the requests facets over
+      for (String facetName : facetSpecs.keySet()) {
+        BrowseFacet bf = new BrowseFacet();
+        bf.setFacetValueHitCount(i);
+        bf.setValue(String.format("fieldName %s, value = %s", fieldName, facetName));
+        bfList.add(bf);
+      }
+
+      MappedFacetAccessible mfa = new MappedFacetAccessible(bfList.toArray(new BrowseFacet[bfList.size()]));
+
+      facetAccessibleMap.put(fieldName, mfa);
+    }
 
     return facetAccessibleMap;
   }
@@ -374,6 +388,15 @@ public class TestHttpRestSenseiServiceImpl extends TestCase
     spec.setMinHitCount(10);
     spec.setOrderBy(FacetSpec.FacetSortSpec.OrderValueAsc);
     map.put("facet2", spec);
+
+    for (int i = 3; i < 10; i++) {
+      spec = new FacetSpec();
+      spec.setExpandSelection(i % 2 == 0);
+      spec.setMaxCount(i * 5);
+      spec.setMinHitCount(i);
+      spec.setOrderBy(i % 2 == 0 ? FacetSpec.FacetSortSpec.OrderValueAsc : FacetSpec.FacetSortSpec.OrderHitsDesc);
+      map.put("facet" + i, spec);
+    }
 
 /* NOT YET SUPPORTED
     spec = new FacetSpec();

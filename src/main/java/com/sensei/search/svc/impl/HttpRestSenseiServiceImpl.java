@@ -4,8 +4,8 @@ package com.sensei.search.svc.impl;
 import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.BrowseSelection;
 import com.browseengine.bobo.api.FacetAccessible;
-import com.browseengine.bobo.api.FacetIterator;
 import com.browseengine.bobo.api.FacetSpec;
+import com.browseengine.bobo.api.MappedFacetAccessible;
 import com.browseengine.bobo.facets.FacetHandlerInitializerParam;
 import com.sensei.search.client.servlet.SenseiSearchServletParams;
 import com.sensei.search.req.SenseiHit;
@@ -19,7 +19,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -486,6 +485,7 @@ public class HttpRestSenseiServiceImpl implements SenseiService
   {
     SenseiResult result = new SenseiResult();
 
+    result.setTid(jsonObj.getLong(SenseiSearchServletParams.PARAM_RESULT_TID));
     result.setTotalDocs(jsonObj.getInt(SenseiSearchServletParams.PARAM_RESULT_TOTALDOCS));
     result.setParsedQuery(jsonObj.getString(SenseiSearchServletParams.PARAM_RESULT_PARSEDQUERY));
     result.setNumHits(jsonObj.getInt(SenseiSearchServletParams.PARAM_RESULT_NUMHITS));
@@ -514,8 +514,9 @@ public class HttpRestSenseiServiceImpl implements SenseiService
       for (int i = 0; i < length; i++) {
         JSONObject facetObj = (JSONObject) facetArr.get(i);
         BrowseFacet bf = new BrowseFacet();
-        bf.setFacetValueHitCount(facetObj.getInt("count"));
-        bf.setValue(facetObj.getString("value"));
+        bf.setFacetValueHitCount(facetObj.getInt(SenseiSearchServletParams.PARAM_RESULT_FACET_INFO_COUNT));
+        bf.setValue(facetObj.getString(SenseiSearchServletParams.PARAM_RESULT_FACET_INFO_VALUE));
+        facets[i] = bf;
       }
 
       FacetAccessible fa = new MappedFacetAccessible(facets);
@@ -524,48 +525,6 @@ public class HttpRestSenseiServiceImpl implements SenseiService
     }
 
     return map;
-  }
-
-  private static class MappedFacetAccessible implements FacetAccessible, Serializable
-  {
-    private static final long serialVersionUID = 1L;
-
-    private final HashMap<String, BrowseFacet> _facetMap;
-    private final BrowseFacet[] _facets;
-
-    public MappedFacetAccessible(BrowseFacet[] facets)
-    {
-      _facetMap = new HashMap<String, BrowseFacet>();
-      for (BrowseFacet facet : facets)
-      {
-	      if (facet != null ){
-          _facetMap.put(facet.getValue(), facet);
-        }
-      }
-      _facets = facets;
-    }
-
-    public BrowseFacet getFacet(String value)
-    {
-      return _facetMap.get(value);
-    }
-
-    public List<BrowseFacet> getFacets()
-    {
-      return Arrays.asList(_facets);
-    }
-
-    @Override
-    public void close()
-    {
-    }
-
-    @Override
-    public FacetIterator iterator()
-    {
-      throw new IllegalStateException("FacetIterator should not be obtained at merge time");
-    }
-
   }
 
   private static SenseiHit[] convertHitsArray(JSONArray hitsArray)
@@ -580,7 +539,9 @@ public class HttpRestSenseiServiceImpl implements SenseiService
 
       SenseiHit hit = new SenseiHit();
       hit.setUID(hitObj.getLong(SenseiSearchServletParams.PARAM_RESULT_HIT_UID));
+      hit.setDocid(hitObj.getInt(SenseiSearchServletParams.PARAM_RESULT_HIT_DOCID));
       hit.setScore((float) hitObj.getDouble(SenseiSearchServletParams.PARAM_RESULT_HIT_SCORE));
+      // TODO: stored?
       hit.setExplanation(convertToExplanation(hitObj.getJSONObject(SenseiSearchServletParams.PARAM_RESULT_HIT_EXPLANATION)));
 
       result[i] = hit;
@@ -594,19 +555,21 @@ public class HttpRestSenseiServiceImpl implements SenseiService
   {
     Explanation explanation = new Explanation();
 
-    float value = (float) jsonObj.getDouble("value");
-    String description = jsonObj.getString("description");
+    float value = (float) jsonObj.getDouble(SenseiSearchServletParams.PARAM_RESULT_HITS_EXPL_VALUE);
+    String description = jsonObj.getString(SenseiSearchServletParams.PARAM_RESULT_HITS_EXPL_DESC);
 
     explanation.setDescription(description);
     explanation.setValue(value);
 
-    JSONArray detailsArr = jsonObj.getJSONArray("details");
-    int detailsCnt = detailsArr.length();
+    if (jsonObj.has(SenseiSearchServletParams.PARAM_RESULT_HITS_EXPL_DETAILS)) {
+      JSONArray detailsArr = jsonObj.getJSONArray(SenseiSearchServletParams.PARAM_RESULT_HITS_EXPL_DETAILS);
+      int detailsCnt = detailsArr.length();
 
-    for (int i = 0; i < detailsCnt; i++) {
-      JSONObject detailObj = (JSONObject) detailsArr.get(i);
-      Explanation detailExpl = convertToExplanation(detailObj);
-      explanation.addDetail(detailExpl);
+      for (int i = 0; i < detailsCnt; i++) {
+        JSONObject detailObj = (JSONObject) detailsArr.get(i);
+        Explanation detailExpl = convertToExplanation(detailObj);
+        explanation.addDetail(detailExpl);
+      }
     }
 
     return explanation;

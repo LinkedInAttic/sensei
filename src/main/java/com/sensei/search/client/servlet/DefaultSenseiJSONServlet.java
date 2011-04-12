@@ -57,10 +57,9 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
     if (expl != null)
     {
       jsonObject = new JSONObject();
-      float val = expl.getValue();
-      jsonObject.put("value", val);
+      jsonObject.put(PARAM_RESULT_HITS_EXPL_VALUE, expl.getValue());
       String descr = expl.getDescription();
-      jsonObject.put("description", descr == null ? "" : descr);
+      jsonObject.put(PARAM_RESULT_HITS_EXPL_DESC, descr == null ? "" : descr);
       Explanation[] details = expl.getDetails();
       if (details != null)
       {
@@ -73,7 +72,7 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
             detailArray.put(subObj);
           }
         }
-        jsonObject.put("details", detailArray);
+        jsonObject.put(PARAM_RESULT_HITS_EXPL_DETAILS, detailArray);
       }
     }
 
@@ -91,6 +90,7 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
       for (Entry<String, FacetAccessible> entry : entrySet)
       {
         String fieldname = entry.getKey();
+
         BrowseSelection sel = req.getSelection(fieldname);
         HashSet<String> selectedVals = new HashSet<String>();
         if (sel != null)
@@ -113,9 +113,9 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
           if (fval != null && fval.length() > 0)
           {
             JSONObject fv = new JSONObject();
-            fv.put("count", f.getFacetValueHitCount());
-            fv.put("value", fval);
-            fv.put("selected", selectedVals.remove(fval));
+            fv.put(PARAM_RESULT_FACET_INFO_COUNT, f.getFacetValueHitCount());
+            fv.put(PARAM_RESULT_FACET_INFO_VALUE, fval);
+            fv.put(PARAM_RESULT_FACET_INFO_SELECTED, selectedVals.remove(fval));
             facets.add(fv);
           }
         }
@@ -129,10 +129,10 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
             {
               BrowseFacet selectedFacetVal = facetAccessible.getFacet(selectedVal);
               JSONObject fv = new JSONObject();
-              fv.put("count", selectedFacetVal == null ? 0 : selectedFacetVal.getFacetValueHitCount());
+              fv.put(PARAM_RESULT_FACET_INFO_COUNT, selectedFacetVal == null ? 0 : selectedFacetVal.getFacetValueHitCount());
               String fval = selectedFacetVal == null ? selectedVal : selectedFacetVal.getValue();
-              fv.put("value", fval);
-              fv.put("selected", true);
+              fv.put(PARAM_RESULT_FACET_INFO_VALUE, fval);
+              fv.put(PARAM_RESULT_FACET_INFO_SELECTED, true);
               facets.add(fv);
             }
           }
@@ -160,13 +160,13 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
         {
           try
           {
-            int c1 = o1.getInt("count");
-            int c2 = o2.getInt("count");
+            int c1 = o1.getInt(PARAM_RESULT_FACET_INFO_COUNT);
+            int c2 = o2.getInt(PARAM_RESULT_FACET_INFO_COUNT);
             int val = c2 - c1;
             if (val == 0)
             {
-              String s1 = o1.getString("value");
-              String s2 = o1.getString("value");
+              String s1 = o1.getString(PARAM_RESULT_FACET_INFO_VALUE);
+              String s2 = o1.getString(PARAM_RESULT_FACET_INFO_VALUE);
               val = s1.compareTo(s2);
             }
             return val;
@@ -188,8 +188,8 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
         {
           try
           {
-            String s1 = o1.getString("value");
-            String s2 = o1.getString("value");
+            String s1 = o1.getString(PARAM_RESULT_FACET_INFO_VALUE);
+            String s2 = o1.getString(PARAM_RESULT_FACET_INFO_VALUE);
             return s1.compareTo(s2);
           }
           catch (Exception e)
@@ -224,10 +224,9 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
       throws Exception
   {
     JSONObject jsonObj = new JSONObject();
-    int totalDocs = res.getTotalDocs();
-    int numHits = res.getNumHits();
-    jsonObj.put(PARAM_RESULT_TOTALDOCS, totalDocs);
-    jsonObj.put(PARAM_RESULT_NUMHITS, numHits);
+    jsonObj.put(PARAM_RESULT_TID, res.getTid());
+    jsonObj.put(PARAM_RESULT_TOTALDOCS, res.getTotalDocs());
+    jsonObj.put(PARAM_RESULT_NUMHITS, res.getNumHits());
     jsonObj.put(PARAM_RESULT_PARSEDQUERY, res.getParsedQuery());
 
     SenseiHit[] hits = res.getSenseiHits();
@@ -235,13 +234,12 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
     jsonObj.put(PARAM_RESULT_HITS, hitArray);
     for (SenseiHit hit : hits)
     {
-      long uid = hit.getUID();
-      float score = hit.getScore();
       Map<String, String[]> fieldMap = hit.getFieldValues();
 
       JSONObject hitObj = new JSONObject();
-      hitObj.put(PARAM_RESULT_HIT_UID, String.valueOf(uid));
-      hitObj.put(PARAM_RESULT_HIT_SCORE, score);
+      hitObj.put(PARAM_RESULT_HIT_UID, Long.toString(hit.getUID()));
+      hitObj.put(PARAM_RESULT_HIT_DOCID, Integer.toString(hit.getDocid()));
+      hitObj.put(PARAM_RESULT_HIT_SCORE, Float.toString(hit.getScore()));
       if (fieldMap != null)
       {
         Set<Entry<String, String[]>> entries = fieldMap.entrySet();
