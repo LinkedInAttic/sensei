@@ -44,6 +44,7 @@ import org.apache.http.protocol.HttpContext;
 import org.apache.lucene.search.SortField;
 import org.json.JSONException;
 import org.json.JSONObject;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 
 public class HttpRestSenseiServiceImpl implements SenseiService
@@ -142,8 +143,7 @@ public class HttpRestSenseiServiceImpl implements SenseiService
   public SenseiSystemInfo getSystemInfo()
       throws SenseiException
   {
-    // TODO Auto-generated method stub
-    return null;
+    throw new NotImplementedException();
   }
 
   public static List<NameValuePair> convertRequestToQueryParams(SenseiRequest req)

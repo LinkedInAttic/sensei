@@ -232,7 +232,7 @@ public class TestHttpRestSenseiServiceImpl extends TestCase
 
     JSONObject obj = new JSONObject();
 
-    obj.put("query", "key words");  // 'query' in the JSONObj gets translated into 'q' in the GET request
+    obj.put("query", "key words are useful");  // 'query' in the JSONObj gets translated into 'q' in the GET request
 
     for (int i = 0; i < 10; i++) {
       obj.put("key" + i, "val" + i);
@@ -247,12 +247,13 @@ public class TestHttpRestSenseiServiceImpl extends TestCase
     List<SortField> list = new ArrayList<SortField>();
 
     list.add(new SortField(null, SortField.DOC));
+    list.add(new SortField(null, SortField.DOC, true));
+
     list.add(new SortField(null, SortField.SCORE));
     list.add(new SortField(null, SortField.SCORE, true));
 
-//    list.add(new SortField("fieldDOC", SortField.DOC));
-//    list.add(new SortField("fieldWOOT", SortField.SCORE));
     list.add(new SortField("fieldCUSTOM", SortField.CUSTOM, false));
+    list.add(new SortField("fieldCUSTOMREV", SortField.CUSTOM, true));
 
     return list.toArray(new SortField[list.size()]);
   }
