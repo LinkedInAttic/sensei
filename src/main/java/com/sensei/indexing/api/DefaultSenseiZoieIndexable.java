@@ -17,6 +17,8 @@ import proj.zoie.api.indexing.ZoieIndexable;
 
 import com.sensei.indexing.api.DefaultSenseiInterpreter.IndexSpec;
 import com.sensei.indexing.api.DefaultSenseiInterpreter.MetaFormatSpec;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+
 
 public class DefaultSenseiZoieIndexable<V> implements ZoieIndexable {
 
@@ -81,7 +83,13 @@ public class DefaultSenseiZoieIndexable<V> implements ZoieIndexable {
 		return new IndexingReq[]{new IndexingReq(doc)};
 	}
 
-	@Override
+  @Override
+  public byte[] getStoreValue()
+  {
+    throw new NotImplementedException();
+  }
+
+  @Override
 	public long getUID() {
 		try {
 			return _interpreter._uidField.getLong(_obj);

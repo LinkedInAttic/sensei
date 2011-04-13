@@ -260,16 +260,16 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
       Document doc = hit.getStoredFields();
       if (doc != null)
       {
-        JSONObject storedData = new JSONObject();
+        List<JSONObject> storedData = new ArrayList<JSONObject>();
         List<Fieldable> fields = doc.getFields();
         for (Fieldable field : fields)
         {
-          String name = field.name();
-          String val = field.stringValue();
-          storedData.put("name", name);
-          storedData.put("val", val);
+          JSONObject data = new JSONObject();
+          data.put(PARAM_RESULT_HIT_STORED_FIELDS_NAME, field.name());
+          data.put(PARAM_RESULT_HIT_STORED_FIELDS_VALUE, field.stringValue());
+          storedData.add(data);
         }
-        hitObj.put("stored", storedData);
+        hitObj.put(PARAM_RESULT_HIT_STORED_FIELDS, new JSONArray(storedData));
       }
 
       Explanation expl = hit.getExplanation();

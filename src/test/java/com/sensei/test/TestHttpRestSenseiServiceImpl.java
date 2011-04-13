@@ -31,6 +31,8 @@ import org.apache.commons.configuration.DataConfiguration;
 import org.apache.commons.configuration.web.ServletRequestConfiguration;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
+import org.apache.lucene.document.Document;
+import org.apache.lucene.document.Field;
 import org.apache.lucene.search.Explanation;
 import org.apache.lucene.search.SortField;
 import org.json.JSONException;
@@ -81,10 +83,43 @@ public class TestHttpRestSenseiServiceImpl extends TestCase
       sh.setUID(i);
       sh.setDocid(100 + i);
       sh.setExplanation(createExplanation(i, i));
+      sh.setFieldValues(i % 2 == 0 ? createFieldValues(i) : null);
+      sh.setRawFieldValues(i % 2 == 0 ? createRawFieldValues(i) : null);
+      sh.setStoredFields(createSenseiHitDocument());
       hits.add(sh);
     }
 
     return hits.toArray(new SenseiHit[hits.size()]);
+  }
+
+  private Document createSenseiHitDocument() {
+    Document doc = new Document();
+
+    for (int i = 0; i < 10; i++) {
+      doc.add(new org.apache.lucene.document.Field("name" + i, "value" + i, Field.Store.YES, Field.Index.ANALYZED));
+    }
+
+    return doc;
+  }
+
+  private Map<String,String[]> createFieldValues(int uid) {
+    Map<String,String[]> map = new HashMap<String,String[]>();
+
+    for (int i = 0; i < 10; i++) {
+      map.put(String.format("key %s %s", uid, i), new String[]{"hello" + i, "world" + i});
+    }
+
+    return map;
+  }
+
+  private Map<String,Object[]> createRawFieldValues(int uid) {
+    Map<String,Object[]> map = new HashMap<String,Object[]>();
+
+    for (int i = 0; i < 10; i++) {
+      map.put(String.format("raw key %s %s", uid, i), new String[] { "hello" + i, "world" + i} );
+    }
+
+    return map;
   }
 
   private Explanation createExplanation(int facetIndex, int descCount) {

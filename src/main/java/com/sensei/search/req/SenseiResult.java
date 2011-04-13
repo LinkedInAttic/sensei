@@ -15,9 +15,6 @@ import org.apache.lucene.search.Explanation;
 public class SenseiResult extends BrowseResult implements AbstractSenseiResult
 {
 
-  /**
-	 * 
-	 */
   private static final long serialVersionUID = 1L;
 
   private String _parsedQuery = null;
@@ -73,8 +70,9 @@ public class SenseiResult extends BrowseResult implements AbstractSenseiResult
 
       // TODO: is comparing the document strings adequate?
       if (!storedFieldsAreEqual(a[i].getStoredFields(), b[i].getStoredFields())) return false;
-      if (!fieldValuesAreEqual(a[i].getFieldValues(), b[i].getFieldValues())) return false;
-      if (!rawFieldValuesAreEqual(a[i].getRawFieldValues(), b[i].getRawFieldValues())) return false;
+// NOT YET SUPPORTED
+//      if (!fieldValuesAreEqual(a[i].getFieldValues(), b[i].getFieldValues())) return false;
+//      if (!rawFieldValuesAreEqual(a[i].getRawFieldValues(), b[i].getRawFieldValues())) return false;
     }
 
     return true;

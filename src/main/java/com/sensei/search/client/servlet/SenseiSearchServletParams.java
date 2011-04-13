@@ -42,7 +42,10 @@ public interface SenseiSearchServletParams {
     public static final String PARAM_DYNAMIC_VAL = "vals";
 
 	  public static final String PARAM_RESULT_PARSEDQUERY = "parsedquery";
-	  public static final String PARAM_RESULT_HIT_EXPLANATION = "explanation";
+    public static final String PARAM_RESULT_HIT_STORED_FIELDS = "stored";
+    public static final String PARAM_RESULT_HIT_STORED_FIELDS_NAME = "name";
+    public static final String PARAM_RESULT_HIT_STORED_FIELDS_VALUE = "val";
+    public static final String PARAM_RESULT_HIT_EXPLANATION = "explanation";
 	  public static final String PARAM_RESULT_FACETS = "facets";
 	  
     public static final String PARAM_RESULT_TID = "tid";

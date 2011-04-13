@@ -46,6 +46,8 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
+import org.apache.lucene.document.Document;
+import org.apache.lucene.document.Field;
 import org.apache.lucene.search.Explanation;
 import org.apache.lucene.search.SortField;
 import org.json.JSONArray;
@@ -541,13 +543,32 @@ public class HttpRestSenseiServiceImpl implements SenseiService
       hit.setUID(hitObj.getLong(SenseiSearchServletParams.PARAM_RESULT_HIT_UID));
       hit.setDocid(hitObj.getInt(SenseiSearchServletParams.PARAM_RESULT_HIT_DOCID));
       hit.setScore((float) hitObj.getDouble(SenseiSearchServletParams.PARAM_RESULT_HIT_SCORE));
-      // TODO: stored?
+      hit.setStoredFields(convertStoredFields(hitObj.getJSONArray(SenseiSearchServletParams.PARAM_RESULT_HIT_STORED_FIELDS)));
       hit.setExplanation(convertToExplanation(hitObj.getJSONObject(SenseiSearchServletParams.PARAM_RESULT_HIT_EXPLANATION)));
+      //hit.setFieldValues(convertFieldValues());
+      //hit.setFieldValues(convertRawFieldValues());
 
       result[i] = hit;
     }
 
     return result;
+  }
+
+  public static Document convertStoredFields(JSONArray jsonArray)
+      throws JSONException
+  {
+    int length = jsonArray.length();
+
+    Document doc = new Document();
+
+    for (int i = 0; i < length; i++) {
+      JSONObject jsonObject = (JSONObject) jsonArray.get(i);
+      String name = jsonObject.getString(SenseiSearchServletParams.PARAM_RESULT_HIT_STORED_FIELDS_NAME);
+      String value = jsonObject.getString(SenseiSearchServletParams.PARAM_RESULT_HIT_STORED_FIELDS_VALUE);
+      doc.add(new org.apache.lucene.document.Field(name, value, Field.Store.YES, Field.Index.ANALYZED));
+    }
+
+    return doc;
   }
 
   public static Explanation convertToExplanation(JSONObject jsonObj)
