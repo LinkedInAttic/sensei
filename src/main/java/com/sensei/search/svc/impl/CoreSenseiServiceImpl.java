@@ -88,10 +88,12 @@ public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiReque
 	    Map<String, FacetAccessible> facetMap = res.getFacetMap();
 	    result.addAll(res.getFacetMap());
 	    
-	    Collection<FacetAccessible> facetAccessibles = facetMap.values();
-	    for (FacetAccessible facetAccessible : facetAccessibles){
-	    	facetAccessible.close();
-	    }
+      // Defer the closing of facetAccessibles till result merging time.
+      
+	    // Collection<FacetAccessible> facetAccessibles = facetMap.values();
+	    // for (FacetAccessible facetAccessible : facetAccessibles){
+	    // 	facetAccessible.close();
+	    // }
 	    
 	    long end = System.currentTimeMillis();
 	    result.setTime(end - start);
