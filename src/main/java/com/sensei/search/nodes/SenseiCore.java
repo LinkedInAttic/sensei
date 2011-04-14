@@ -77,45 +77,43 @@ public class SenseiCore{
   public SenseiSystemInfo getSystemInfo()
   {
     if (_senseiSystemInfo == null)
-    {
       _senseiSystemInfo = new SenseiSystemInfo();
 
-      if (_senseiSystemInfo.getClusterInfo() == null)
+    if (_senseiSystemInfo.getClusterInfo() == null)
+    {
+      List<Integer> partitionList = new ArrayList<Integer>(_partitions.length);
+
+      for (int i=0; i<_partitions.length; ++i)
       {
-        List<Integer> partitionList = new ArrayList<Integer>(_partitions.length);
-
-        for (int i=0; i<_partitions.length; ++i)
-        {
-          partitionList.add(_partitions[i]);
-        }
-
-        Map<Integer, List<Integer>> clusterInfo = new HashMap<Integer, List<Integer>>();
-        clusterInfo.put(_id, partitionList);
-        _senseiSystemInfo.setClusterInfo(clusterInfo);
+        partitionList.add(_partitions[i]);
       }
 
-      if (_senseiSystemInfo.getFacetInfos() == null)
-      {
-        Set<SenseiSystemInfo.SenseiFacetInfo> facetInfos = new HashSet<SenseiSystemInfo.SenseiFacetInfo>();
-        if (_zoieFactory.getDecorator() != null && _zoieFactory.getDecorator().getFacetHandlerList() != null)
-        {
-          for (FacetHandler<?> facetHandler : _zoieFactory.getDecorator().getFacetHandlerList())
-          {
-            facetInfos.add(new SenseiSystemInfo.SenseiFacetInfo(facetHandler.getName()));
-          }
-        }
+      Map<Integer, List<Integer>> clusterInfo = new HashMap<Integer, List<Integer>>();
+      clusterInfo.put(_id, partitionList);
+      _senseiSystemInfo.setClusterInfo(clusterInfo);
+    }
 
-        if (_zoieFactory.getDecorator() != null && _zoieFactory.getDecorator().getFacetHandlerFactories() != null)
+    if (_senseiSystemInfo.getFacetInfos() == null)
+    {
+      Set<SenseiSystemInfo.SenseiFacetInfo> facetInfos = new HashSet<SenseiSystemInfo.SenseiFacetInfo>();
+      if (_zoieFactory.getDecorator() != null && _zoieFactory.getDecorator().getFacetHandlerList() != null)
+      {
+        for (FacetHandler<?> facetHandler : _zoieFactory.getDecorator().getFacetHandlerList())
         {
-          for (RuntimeFacetHandlerFactory<?,?> runtimeFacetHandlerFactory : _zoieFactory.getDecorator().getFacetHandlerFactories())
-          {
-            SenseiSystemInfo.SenseiFacetInfo facetInfo = new SenseiSystemInfo.SenseiFacetInfo(runtimeFacetHandlerFactory.getName());
-            facetInfo.setRunTime(true);
-            facetInfos.add(facetInfo);
-          }
+          facetInfos.add(new SenseiSystemInfo.SenseiFacetInfo(facetHandler.getName()));
         }
-        _senseiSystemInfo.setFacetInfos(facetInfos);
       }
+
+      if (_zoieFactory.getDecorator() != null && _zoieFactory.getDecorator().getFacetHandlerFactories() != null)
+      {
+        for (RuntimeFacetHandlerFactory<?,?> runtimeFacetHandlerFactory : _zoieFactory.getDecorator().getFacetHandlerFactories())
+        {
+          SenseiSystemInfo.SenseiFacetInfo facetInfo = new SenseiSystemInfo.SenseiFacetInfo(runtimeFacetHandlerFactory.getName());
+          facetInfo.setRunTime(true);
+          facetInfos.add(facetInfo);
+        }
+      }
+      _senseiSystemInfo.setFacetInfos(facetInfos);
     }
 
     Date lastModified = new Date(0L);
