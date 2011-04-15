@@ -4,11 +4,13 @@ import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.Map;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -65,6 +67,7 @@ import com.sensei.search.nodes.SenseiZoieSystemFactory;
 import com.sensei.search.nodes.impl.DefaultJsonQueryBuilderFactory;
 import com.sensei.search.req.AbstractSenseiRequest;
 import com.sensei.search.req.AbstractSenseiResult;
+import com.sensei.search.req.SenseiSystemInfo;
 import com.sensei.search.svc.impl.AbstractSenseiCoreService;
 
 public class SenseiServerBuilder implements SenseiConfParams{
@@ -267,7 +270,22 @@ public class SenseiServerBuilder implements SenseiConfParams{
       List<FacetHandler<?>> facetHandlers = new LinkedList<FacetHandler<?>>();
       List<RuntimeFacetHandlerFactory<?,?>> runtimeFacetHandlerFactories = new LinkedList<RuntimeFacetHandlerFactory<?,?>>();
       
-      SenseiFacetHandlerBuilder.buildFacets(_schemaDoc, _customFacetContext, facetHandlers, runtimeFacetHandlerFactories);
+      SenseiSystemInfo sysInfo = SenseiFacetHandlerBuilder.buildFacets(_schemaDoc,
+          _customFacetContext, facetHandlers, runtimeFacetHandlerFactories);
+
+      if (sysInfo != null)
+      {
+        List<Integer> partitionList = new ArrayList<Integer>(partitions.length);
+
+        for (int i=0; i<partitions.length; ++i)
+        {
+          partitionList.add(partitions[i]);
+        }
+
+        Map<Integer, List<Integer>> clusterInfo = new HashMap<Integer, List<Integer>>();
+        clusterInfo.put(nodeid, partitionList);
+        sysInfo.setClusterInfo(clusterInfo);
+      }
       
       String indexerType = _senseiConf.getString(SENSEI_INDEXER_TYPE);
       
@@ -351,7 +369,9 @@ public class SenseiServerBuilder implements SenseiConfParams{
     	queryBuilderFactory = (SenseiQueryBuilderFactory)_pluginContext.getBean(qbuilderFactory);
       }
       
-      return new SenseiCore(nodeid,partitions,zoieSystemFactory,indexingManager,queryBuilderFactory);
+      SenseiCore senseiCore = new SenseiCore(nodeid,partitions,zoieSystemFactory,indexingManager,queryBuilderFactory);
+      senseiCore.setSystemInfo(sysInfo);
+      return senseiCore;
   }
   
   public Server getJettyServer(){

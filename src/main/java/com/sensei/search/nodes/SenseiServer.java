@@ -31,6 +31,7 @@ import com.sensei.search.req.AbstractSenseiRequest;
 import com.sensei.search.req.AbstractSenseiResult;
 import com.sensei.search.svc.impl.AbstractSenseiCoreService;
 import com.sensei.search.svc.impl.CoreSenseiServiceImpl;
+import com.sensei.search.svc.impl.SysSenseiCoreServiceImpl;
 import com.sensei.search.svc.impl.SenseiCoreServiceMessageHandler;
 
 public class SenseiServer {
@@ -144,10 +145,13 @@ public class SenseiServer {
       logger.info("Cluster info: " + _clusterClient.toString());
     
       AbstractSenseiCoreService coreSenseiService = new CoreSenseiServiceImpl(_core);
+      AbstractSenseiCoreService sysSenseiCoreService = new SysSenseiCoreServiceImpl(_core);
     // create the zookeeper cluster client
 //    SenseiClusterClientImpl senseiClusterClient = new SenseiClusterClientImpl(clusterName, zookeeperURL, zookeeperTimeout, false);
       SenseiCoreServiceMessageHandler senseiMsgHandler =  new SenseiCoreServiceMessageHandler(coreSenseiService);
+      SenseiCoreServiceMessageHandler senseiSysMsgHandler =  new SenseiCoreServiceMessageHandler(sysSenseiCoreService);
     _networkServer.registerHandler(coreSenseiService.getEmptyRequestInstance(),coreSenseiService.resultToMessage(coreSenseiService.getEmptyResultInstance(null)),senseiMsgHandler);
+    _networkServer.registerHandler(sysSenseiCoreService.getEmptyRequestInstance(),sysSenseiCoreService.resultToMessage(sysSenseiCoreService.getEmptyResultInstance(null)),senseiSysMsgHandler);
     if (_externalSvc!=null){
     	for (AbstractSenseiCoreService svc : _externalSvc){
     		Message req = svc.getEmptyRequestInstance();

@@ -1,76 +1,89 @@
 package com.sensei.search.nodes;
 
-
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
 
 import com.google.protobuf.Message;
-import com.google.protobuf.TextFormat.ParseException;
 import com.linkedin.norbert.javacompat.cluster.Node;
-import com.linkedin.norbert.javacompat.network.ScatterGatherHandler;
-import com.sensei.search.client.ResultMerger;
+import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.req.SenseiSystemInfo;
 import com.sensei.search.req.protobuf.SenseiSysRequestBPO;
 import com.sensei.search.req.protobuf.SenseiSysRequestBPOConverter;
 import com.sensei.search.req.protobuf.SenseiSysResultBPO;
 
-public class SenseiSysScatterGatherHandler implements ScatterGatherHandler<SenseiSystemInfo, Integer> 
+public class SenseiSysScatterGatherHandler extends AbstractSenseiScatterGatherHandler<SenseiRequest, SenseiSystemInfo, SenseiSysRequestBPO.SysRequest, SenseiSysResultBPO.SysResult>
 {
 
   private final static Logger logger = Logger.getLogger(SenseiSysScatterGatherHandler.class);
-  
-  private final static long TIMEOUT_MILLIS = 8000L;
-
-  private long _timeoutMillis = TIMEOUT_MILLIS;
-
-  public void setTimeoutMillis(long timeoutMillis){
-	  _timeoutMillis = timeoutMillis;
-  }
-  
-  public long getTimeoutMillis(){
-	  return _timeoutMillis;
-  }
 
   public Message customizeMessage(Message msg, Node node, Set<Integer> partitions) throws Exception
   {
-  	return msg;
+    SenseiSysRequestBPO.SysRequest req = (SenseiSysRequestBPO.SysRequest) msg;
+    SenseiRequest senseiReq = SenseiSysRequestBPOConverter.convert(req);
+
+    senseiReq.setPartitions(partitions);
+
+    return SenseiSysRequestBPOConverter.convert(senseiReq);
   }
-  
-  public SenseiSystemInfo gatherResponses(Message message, com.linkedin.norbert.network.ResponseIterator iter) throws Exception
+
+  @Override
+  public SenseiSystemInfo mergeResults(SenseiRequest request, List<SenseiSystemInfo> resultList)
   {
     SenseiSystemInfo result = new SenseiSystemInfo();
-    while (iter.hasNext())
-    {
-      Message boboMsg = iter.next(_timeoutMillis > 0 ? _timeoutMillis : Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+    if (resultList == null)
+      return result;
 
-      if (boboMsg == null)
+    for (SenseiSystemInfo res : resultList)
+    {
+      result.setNumDocs(result.getNumDocs()+res.getNumDocs());
+      if (result.getLastModified() < res.getLastModified())
+        result.setLastModified(res.getLastModified());
+      try
       {
-        logger.error("Request Timed Out");
-      } else
-      {
-        SenseiSystemInfo res = SenseiSysRequestBPOConverter.convert((SenseiSysResultBPO.SysResult) boboMsg);
-        result.getRawNumDocs().putAll(res.getRawNumDocs());
-        if (result.getLastModified() < res.getLastModified())
-          result.setLastModified(res.getLastModified());
+        // TODO: we need the new zoie version comparator patten.
         if (Long.valueOf(result.getVersion()) < Long.valueOf(res.getVersion()))
           result.setVersion(res.getVersion());
-        if (res.getFacetInfos() != null)
-          result.setFacetInfos(res.getFacetInfos());
-        if (res.getClusterInfo() != null) {
-          if (result.getClusterInfo() != null)
-            result.getClusterInfo().putAll(res.getClusterInfo());
-          else
-            result.setClusterInfo(res.getClusterInfo());
-        }
+      }
+      catch (Exception e)
+      {
+      }
+      if (res.getFacetInfos() != null)
+        result.setFacetInfos(res.getFacetInfos());
+      if (res.getClusterInfo() != null) {
+        if (result.getClusterInfo() != null)
+          result.getClusterInfo().putAll(res.getClusterInfo());
+        else
+          result.setClusterInfo(res.getClusterInfo());
       }
     }
 
     return result;
   }
 
+  @Override
+  public SenseiRequest messageToRequest(SenseiSysRequestBPO.SysRequest msg)
+  {
+    return SenseiSysRequestBPOConverter.convert(msg);
+  }
+
+  @Override
+  public SenseiSystemInfo messageToResult(SenseiSysResultBPO.SysResult message)
+  {
+    return SenseiSysRequestBPOConverter.convert(message);
+  }
+
+  @Override
+  public SenseiSysRequestBPO.SysRequest requestToMessage(SenseiRequest request)
+  {
+    return SenseiSysRequestBPOConverter.convert(request);
+  }
+
+  @Override
+  public SenseiSysResultBPO.SysResult resultToMessage(SenseiSystemInfo result)
+  {
+    return SenseiSysRequestBPOConverter.convert(result);
+  }
 }
 

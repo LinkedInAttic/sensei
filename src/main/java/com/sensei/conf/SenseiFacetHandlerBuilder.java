@@ -27,6 +27,7 @@ import com.browseengine.bobo.facets.impl.PathFacetHandler;
 import com.browseengine.bobo.facets.impl.RangeFacetHandler;
 import com.browseengine.bobo.facets.impl.SimpleFacetHandler;
 import com.sensei.indexing.api.DefaultSenseiInterpreter;
+import com.sensei.search.req.SenseiSystemInfo;
 
 public class SenseiFacetHandlerBuilder {
 
@@ -187,24 +188,27 @@ public class SenseiFacetHandlerBuilder {
 		return retmap;
 	}
 
-	public static void buildFacets(Document schemaDoc,
+	public static SenseiSystemInfo buildFacets(Document schemaDoc,
 			ApplicationContext customFacetContext,List<FacetHandler<?>> facets,List<RuntimeFacetHandlerFactory<?,?>> runtimeFacets)
 			throws ConfigurationException {
+
+    SenseiSystemInfo sysInfo = new SenseiSystemInfo();
 		NodeList facetsList = schemaDoc.getElementsByTagName("facets");
 		Element facetsEle = null;
 		if (facetsList.getLength() > 0) {
 			facetsEle = (Element) facetsList.item(0);
 		} else {
-			return;
+			return sysInfo;
 		}
 		
 		NodeList facetList = facetsEle.getElementsByTagName("facet");
 
 		if (facetList.getLength() <= 0)
-			return;
+			return sysInfo;
 
 		Map<String, TermListFactory<?>> termListFactoryMap = getPredefinedTermListFactoryMap(schemaDoc);
 
+    Set<SenseiSystemInfo.SenseiFacetInfo> facetInfos = new HashSet<SenseiSystemInfo.SenseiFacetInfo>();
 		for (int i = 0; i < facetList.getLength(); ++i) {
 			try {
 				Element facet = (Element) facetList.item(i);
@@ -224,11 +228,21 @@ public class SenseiFacetHandlerBuilder {
 						}
 					}
 				}
-				
+
+        SenseiSystemInfo.SenseiFacetInfo facetInfo = new SenseiSystemInfo.SenseiFacetInfo(name);
+        Map<String, String> facetProps = new HashMap<String, String>();
+        facetProps.put("type", type);
+        facetProps.put("column", fieldName);
+        facetProps.put("depends", dependSet.toString());
 
 				NodeList paramList = facet.getElementsByTagName("param");
 				Map<String,List<String>> paramMap = parseParams(paramList);
-				
+        for (String key : paramMap.keySet()) {
+          facetProps.put(key, paramMap.get(key).toString());
+        }
+
+        facetInfo.setProps(facetProps);
+        facetInfos.add(facetInfo);
 
 				FacetHandler<?> facetHandler = null;
 				if (type.equals("simple")) {
@@ -265,5 +279,8 @@ public class SenseiFacetHandlerBuilder {
 						+ facetList.item(i), e);
 			}
 		}
+    sysInfo.setFacetInfos(facetInfos);
+
+    return sysInfo;
 	}
 }
