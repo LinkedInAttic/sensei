@@ -6,6 +6,7 @@ bin=`cd "$bin"; pwd`
 lib=$bin/../target/lib
 dist=$bin/../target
 resources=$bin/../resources
+logs=$bin/../logs
 
 # HEAP_OPTS="-Xmx4096m -Xms2048m -XX:NewSize=1024m" # -d64 for 64-bit awesomeness
 #HEAP_OPTS="-Xmx1g -Xms1g -XX:NewSize=256m"
