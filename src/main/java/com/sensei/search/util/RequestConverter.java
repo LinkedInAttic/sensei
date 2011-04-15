@@ -9,7 +9,6 @@ import com.sensei.search.req.SenseiRequest;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Properties;
 import org.apache.commons.configuration.BaseConfiguration;
 import org.apache.commons.configuration.Configuration;
 import org.apache.log4j.Logger;
@@ -52,7 +51,7 @@ public class RequestConverter {
 			breq.addSelection(sel);
 		}
 		// transfer RuntimeFacetHandler init parameters
-		breq.setFacetHandlerDataMap(req.getAllFacetHandlerInitializerParams());
+		breq.setFacetHandlerDataMap(req.getFacetHandlerInitParamMap());
 		// facetspecs
 		breq.setFacetSpecs(req.getFacetSpecs());
 		// filter ids

@@ -7,6 +7,8 @@ import org.json.JSONObject;
 import proj.zoie.api.indexing.AbstractZoieIndexable;
 import proj.zoie.api.indexing.AbstractZoieIndexableInterpreter;
 import proj.zoie.api.indexing.ZoieIndexable;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+
 
 public abstract class JSONDataInterpreter extends AbstractZoieIndexableInterpreter<JSONObject> {
 
@@ -24,7 +26,13 @@ public abstract class JSONDataInterpreter extends AbstractZoieIndexableInterpret
 			  }
 			}
 
-			@Override
+      @Override
+      public byte[] getStoreValue()
+      {
+        throw new NotImplementedException();
+      }
+
+      @Override
 			public long getUID() {
 			  try{
 				return extractUID(src);

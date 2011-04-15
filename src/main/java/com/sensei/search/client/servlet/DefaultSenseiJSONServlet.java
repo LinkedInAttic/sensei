@@ -8,7 +8,6 @@ import com.browseengine.bobo.api.FacetAccessible;
 import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
 import com.browseengine.bobo.facets.DefaultFacetHandlerInitializerParam;
-import com.browseengine.bobo.facets.FacetHandlerInitializerParam;
 import com.sensei.search.req.SenseiHit;
 import com.sensei.search.req.SenseiJSONQuery;
 import com.sensei.search.req.SenseiQuery;
@@ -59,10 +58,9 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
     if (expl != null)
     {
       jsonObject = new JSONObject();
-      float val = expl.getValue();
-      jsonObject.put("value", val);
+      jsonObject.put(PARAM_RESULT_HITS_EXPL_VALUE, expl.getValue());
       String descr = expl.getDescription();
-      jsonObject.put("description", descr == null ? "" : descr);
+      jsonObject.put(PARAM_RESULT_HITS_EXPL_DESC, descr == null ? "" : descr);
       Explanation[] details = expl.getDetails();
       if (details != null)
       {
@@ -75,7 +73,7 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
             detailArray.put(subObj);
           }
         }
-        jsonObject.put("details", detailArray);
+        jsonObject.put(PARAM_RESULT_HITS_EXPL_DETAILS, detailArray);
       }
     }
 
@@ -89,9 +87,11 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
     if (facetValueMap != null)
     {
       Set<Entry<String, FacetAccessible>> entrySet = facetValueMap.entrySet();
+
       for (Entry<String, FacetAccessible> entry : entrySet)
       {
         String fieldname = entry.getKey();
+
         BrowseSelection sel = req.getSelection(fieldname);
         HashSet<String> selectedVals = new HashSet<String>();
         if (sel != null)
@@ -102,19 +102,21 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
             selectedVals.addAll(Arrays.asList(vals));
           }
         }
+
         FacetAccessible facetAccessible = entry.getValue();
         List<BrowseFacet> facetList = facetAccessible.getFacets();
 
         ArrayList<JSONObject> facets = new ArrayList<JSONObject>();
+
         for (BrowseFacet f : facetList)
         {
           String fval = f.getValue();
           if (fval != null && fval.length() > 0)
           {
             JSONObject fv = new JSONObject();
-            fv.put("count", f.getFacetValueHitCount());
-            fv.put("value", fval);
-            fv.put("selected", selectedVals.remove(fval));
+            fv.put(PARAM_RESULT_FACET_INFO_COUNT, f.getFacetValueHitCount());
+            fv.put(PARAM_RESULT_FACET_INFO_VALUE, fval);
+            fv.put(PARAM_RESULT_FACET_INFO_SELECTED, selectedVals.remove(fval));
             facets.add(fv);
           }
         }
@@ -128,10 +130,10 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
             {
               BrowseFacet selectedFacetVal = facetAccessible.getFacet(selectedVal);
               JSONObject fv = new JSONObject();
-              fv.put("count", selectedFacetVal == null ? 0 : selectedFacetVal.getFacetValueHitCount());
+              fv.put(PARAM_RESULT_FACET_INFO_COUNT, selectedFacetVal == null ? 0 : selectedFacetVal.getFacetValueHitCount());
               String fval = selectedFacetVal == null ? selectedVal : selectedFacetVal.getValue();
-              fv.put("value", fval);
-              fv.put("selected", true);
+              fv.put(PARAM_RESULT_FACET_INFO_VALUE, fval);
+              fv.put(PARAM_RESULT_FACET_INFO_SELECTED, true);
               facets.add(fv);
             }
           }
@@ -139,67 +141,70 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
           // we need to sort it
           FacetSpec fspec = req.getFacetSpec(fieldname);
           assert fspec != null;
-          FacetSortSpec sortSpec = fspec.getOrderBy();
-          if (FacetSortSpec.OrderHitsDesc.equals(sortSpec))
-          {
-            Collections.sort(facets, new Comparator<JSONObject>()
-            {
-
-              @Override
-              public int compare(JSONObject o1, JSONObject o2)
-              {
-                try
-                {
-                  int c1 = o1.getInt("count");
-                  int c2 = o2.getInt("count");
-                  int val = c2 - c1;
-                  if (val == 0)
-                  {
-                    String s1 = o1.getString("value");
-                    String s2 = o1.getString("value");
-                    val = s1.compareTo(s2);
-                  }
-                  return val;
-                }
-                catch (Exception e)
-                {
-                  logger.error(e.getMessage(), e);
-                  return 0;
-                }
-              }
-            });
-          }
-          else if (FacetSortSpec.OrderValueAsc.equals(sortSpec))
-          {
-            Collections.sort(facets, new Comparator<JSONObject>()
-            {
-
-              @Override
-              public int compare(JSONObject o1, JSONObject o2)
-              {
-                try
-                {
-                  String s1 = o1.getString("value");
-                  String s2 = o1.getString("value");
-                  return s1.compareTo(s2);
-                }
-                catch (Exception e)
-                {
-                  logger.error(e.getMessage(), e);
-                  return 0;
-                }
-              }
-            });
-          }
-          else
-          {
-            throw new IllegalStateException(fieldname + " sorting is not supported");
-          }
+          sortFacets(fieldname, facets, fspec);
         }
+
         resMap.put(fieldname, facets);
       }
     }
     return resMap;
+  }
+
+  private static void sortFacets(String fieldName, ArrayList<JSONObject> facets, FacetSpec fspec) {
+    FacetSortSpec sortSpec = fspec.getOrderBy();
+    if (FacetSortSpec.OrderHitsDesc.equals(sortSpec))
+    {
+      Collections.sort(facets, new Comparator<JSONObject>()
+      {
+        @Override
+        public int compare(JSONObject o1, JSONObject o2)
+        {
+          try
+          {
+            int c1 = o1.getInt(PARAM_RESULT_FACET_INFO_COUNT);
+            int c2 = o2.getInt(PARAM_RESULT_FACET_INFO_COUNT);
+            int val = c2 - c1;
+            if (val == 0)
+            {
+              String s1 = o1.getString(PARAM_RESULT_FACET_INFO_VALUE);
+              String s2 = o1.getString(PARAM_RESULT_FACET_INFO_VALUE);
+              val = s1.compareTo(s2);
+            }
+            return val;
+          }
+          catch (Exception e)
+          {
+            logger.error(e.getMessage(), e);
+            return 0;
+          }
+        }
+      });
+    }
+    else if (FacetSortSpec.OrderValueAsc.equals(sortSpec))
+    {
+      Collections.sort(facets, new Comparator<JSONObject>()
+      {
+        @Override
+        public int compare(JSONObject o1, JSONObject o2)
+        {
+          try
+          {
+            String s1 = o1.getString(PARAM_RESULT_FACET_INFO_VALUE);
+            String s2 = o1.getString(PARAM_RESULT_FACET_INFO_VALUE);
+            return s1.compareTo(s2);
+          }
+          catch (Exception e)
+          {
+            logger.error(e.getMessage(), e);
+            return 0;
+          }
+        }
+      });
+    }
+    else
+    {
+      throw new IllegalStateException(fieldName + " sorting is not supported");
+    }
   }
 
   @Override
@@ -220,23 +225,22 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
       throws Exception
   {
     JSONObject jsonObj = new JSONObject();
-    int totalDocs = res.getTotalDocs();
-    int numHits = res.getNumHits();
-    jsonObj.put(PARAM_RESULT_TOTALDOCS, totalDocs);
-    jsonObj.put(PARAM_RESULT_NUMHITS, numHits);
+    jsonObj.put(PARAM_RESULT_TID, res.getTid());
+    jsonObj.put(PARAM_RESULT_TOTALDOCS, res.getTotalDocs());
+    jsonObj.put(PARAM_RESULT_NUMHITS, res.getNumHits());
     jsonObj.put(PARAM_RESULT_PARSEDQUERY, res.getParsedQuery());
+
     SenseiHit[] hits = res.getSenseiHits();
     JSONArray hitArray = new JSONArray();
     jsonObj.put(PARAM_RESULT_HITS, hitArray);
     for (SenseiHit hit : hits)
     {
-      long uid = hit.getUID();
-      float score = hit.getScore();
       Map<String, String[]> fieldMap = hit.getFieldValues();
 
       JSONObject hitObj = new JSONObject();
-      hitObj.put(PARAM_RESULT_HIT_UID, String.valueOf(uid));
-      hitObj.put(PARAM_RESULT_HIT_SCORE, score);
+      hitObj.put(PARAM_RESULT_HIT_UID, Long.toString(hit.getUID()));
+      hitObj.put(PARAM_RESULT_HIT_DOCID, Integer.toString(hit.getDocid()));
+      hitObj.put(PARAM_RESULT_HIT_SCORE, Float.toString(hit.getScore()));
       if (fieldMap != null)
       {
         Set<Entry<String, String[]>> entries = fieldMap.entrySet();
@@ -257,16 +261,16 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
       Document doc = hit.getStoredFields();
       if (doc != null)
       {
-        JSONObject storedData = new JSONObject();
+        List<JSONObject> storedData = new ArrayList<JSONObject>();
         List<Fieldable> fields = doc.getFields();
         for (Fieldable field : fields)
         {
-          String name = field.name();
-          String val = field.stringValue();
-          storedData.put("name", name);
-          storedData.put("val", val);
+          JSONObject data = new JSONObject();
+          data.put(PARAM_RESULT_HIT_STORED_FIELDS_NAME, field.name());
+          data.put(PARAM_RESULT_HIT_STORED_FIELDS_VALUE, field.stringValue());
+          storedData.add(data);
         }
-        hitObj.put("stored", storedData);
+        hitObj.put(PARAM_RESULT_HIT_STORED_FIELDS, new JSONArray(storedData));
       }
 
       Explanation expl = hit.getExplanation();
@@ -280,12 +284,13 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
 
     jsonObj.put(PARAM_RESULT_TIME, res.getTime());
     jsonObj.put(PARAM_RESULT_FACETS, convert(res.getFacetMap(), req));
+
     return jsonObj;
   }
 
-  public static SenseiQuery buildSenseiQuery(DataConfiguration params)
+  private static SenseiQuery buildSenseiQuery(DataConfiguration params)
   {
-    SenseiQuery sq = null;
+    SenseiQuery sq;
     String query = params.getString(PARAM_QUERY, null);
 
     JSONObject qjson = new JSONObject();
@@ -333,26 +338,39 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
 
   public static SenseiRequest convertSenseiRequest(DataConfiguration params)
   {
-    int offset = params.getInt(PARAM_OFFSET, 0);
-    int count = params.getInt(PARAM_COUNT, 10);
-
     SenseiRequest senseiReq = new SenseiRequest();
-    senseiReq.setOffset(offset);
-    senseiReq.setCount(count);
-    senseiReq.setQuery(buildSenseiQuery(params));
 
-    senseiReq.setShowExplanation(params.getBoolean(PARAM_SHOW_EXPLAIN, false));
-    senseiReq.setFetchStoredFields(params.getBoolean(PARAM_FETCH_STORED, false));
-
+    convertScalarParams(senseiReq, params);
+    convertSenseiQuery(senseiReq, params);
     convertSortParam(senseiReq, params);
     convertSelectParam(senseiReq, params);
     convertFacetParam(senseiReq, params);
     convertInitParams(senseiReq, params);
+    convertPartitionParams(senseiReq, params);
 
     return senseiReq;
   }
 
-  private static void convertInitParams(SenseiRequest senseiReq, DataConfiguration params)
+  public static void convertSenseiQuery(SenseiRequest senseiReq, DataConfiguration params) {
+    senseiReq.setQuery(buildSenseiQuery(params));
+  }
+
+  public static void convertScalarParams(SenseiRequest senseiReq, DataConfiguration params) {
+    senseiReq.setOffset(params.getInt(PARAM_OFFSET, 1));
+    senseiReq.setCount(params.getInt(PARAM_COUNT, 10));
+    senseiReq.setShowExplanation(params.getBoolean(PARAM_SHOW_EXPLAIN, false));
+    senseiReq.setFetchStoredFields(params.getBoolean(PARAM_FETCH_STORED, false));
+  }
+
+  public static void convertPartitionParams(SenseiRequest senseiReq, DataConfiguration params)
+  {
+    if (params.containsKey(PARAM_PARTITIONS)) {
+      List<Integer> partitions = params.getList(Integer.class, PARAM_PARTITIONS);
+      senseiReq.setPartitions(new HashSet<Integer>(partitions));
+    }
+  }
+
+  public static void convertInitParams(SenseiRequest senseiReq, DataConfiguration params)
   {
     Map<String, Configuration> facetParamMap = RequestConverter.parseParamConf(params, PARAM_DYNAMIC_INIT);
     Set<Entry<String, Configuration>> facetEntries = facetParamMap.entrySet();
@@ -361,6 +379,8 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
     {
       String facetName = facetEntry.getKey();
       Configuration facetConf = facetEntry.getValue();
+
+      DefaultFacetHandlerInitializerParam facetParams = new DefaultFacetHandlerInitializerParam();
 
       Iterator paramsIter = facetConf.getKeys();
 
@@ -374,8 +394,6 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
 
         try
         {
-          FacetHandlerInitializerParam param;
-
           String[] attrVals = vals.toArray(new String[0]);
 
           if (attrVals.length == 0 || attrVals[0].length() == 0)
@@ -385,29 +403,29 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
           }
 
           // TODO: smarter dispatching, factory, generics
-          if (type.equalsIgnoreCase("boolean"))
+          if (type.equalsIgnoreCase(PARAM_DYNAMIC_TYPE_BOOL))
           {
-            param = createBooleanInitParam(paramName, attrVals);
+            createBooleanInitParam(facetParams, paramName, attrVals);
           }
-          else if (type.equalsIgnoreCase("string"))
+          else if (type.equalsIgnoreCase(PARAM_DYNAMIC_TYPE_STRING))
           {
-            param = createStringInitParam(paramName, attrVals);
+            createStringInitParam(facetParams, paramName, attrVals);
           }
-          else if (type.equalsIgnoreCase("int"))
+          else if (type.equalsIgnoreCase(PARAM_DYNAMIC_TYPE_INT))
           {
-            param = createIntInitParam(paramName, attrVals);
+            createIntInitParam(facetParams, paramName, attrVals);
           }
-          else if (type.equalsIgnoreCase("bytearray"))
+          else if (type.equalsIgnoreCase(PARAM_DYNAMIC_TYPE_BYTEARRAY))
           {
-            param = createByteArrayInitParam(paramName, paramConf.getString(PARAM_DYNAMIC_VAL));
+            createByteArrayInitParam(facetParams, paramName, paramConf.getString(PARAM_DYNAMIC_VAL));
           }
-          else if (type.equalsIgnoreCase("long"))
+          else if (type.equalsIgnoreCase(PARAM_DYNAMIC_TYPE_LONG))
           {
-            param = createLongInitParam(paramName, attrVals);
+            createLongInitParam(facetParams, paramName, attrVals);
           }
-          else if (type.equalsIgnoreCase("double"))
+          else if (type.equalsIgnoreCase(PARAM_DYNAMIC_TYPE_DOUBLE))
           {
-            param = createDoubleInitParam(paramName, attrVals);
+            createDoubleInitParam(facetParams, paramName, attrVals);
           }
           else
           {
@@ -415,98 +433,92 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
             continue;
           }
 
-          senseiReq.setFacetHandlerInitializerParam(facetName, param);
         }
         catch (Exception e)
         {
           logger.warn(String.format("Failed to parse init param name '{0}' type '{1}' for facetName", paramName, type, facetName));
         }
       }
+
+      senseiReq.setFacetHandlerInitializerParam(facetName, facetParams);
     }
   }
 
-  private static FacetHandlerInitializerParam createBooleanInitParam(String name, String[] paramVals)
+  private static void createBooleanInitParam(
+      DefaultFacetHandlerInitializerParam facetParams,
+      String name,
+      String[] paramVals)
   {
-    DefaultFacetHandlerInitializerParam param = new DefaultFacetHandlerInitializerParam();
-
     boolean[] vals = new boolean[paramVals.length];
     int i = 0;
     for (String paramVal : paramVals ) {
       vals[i] = Boolean.parseBoolean(paramVal);
     }
 
-    param.putBooleanParam(name, vals);
-
-    return param;
+    facetParams.putBooleanParam(name, vals);
   }
 
-  private static FacetHandlerInitializerParam createStringInitParam(String name, String[] paramVals)
+  private static void createStringInitParam(
+      DefaultFacetHandlerInitializerParam facetParams,
+      String name,
+      String[] paramVals)
   {
-    DefaultFacetHandlerInitializerParam param = new DefaultFacetHandlerInitializerParam();
-
-    param.putStringParam(name, Arrays.asList(paramVals));
-
-    return param;
+    facetParams.putStringParam(name, Arrays.asList(paramVals));
   }
 
-  private static FacetHandlerInitializerParam createIntInitParam(String name, String[] paramVals)
+  private static void createIntInitParam(
+      DefaultFacetHandlerInitializerParam facetParams,
+      String name,
+      String[] paramVals)
   {
-    DefaultFacetHandlerInitializerParam param = new DefaultFacetHandlerInitializerParam();
-
     int[] vals = new int[paramVals.length];
     int i = 0;
     for (String paramVal : paramVals ) {
       vals[i] = Integer.parseInt(paramVal);
     }
 
-    param.putIntParam(name, vals);
-
-    return param;
+    facetParams.putIntParam(name, vals);
   }
 
-  private static FacetHandlerInitializerParam createByteArrayInitParam(String name, String paramVal)
+  private static void createByteArrayInitParam(
+      DefaultFacetHandlerInitializerParam facetParams,
+      String name,
+      String paramVal)
       throws UnsupportedEncodingException
   {
-    DefaultFacetHandlerInitializerParam param = new DefaultFacetHandlerInitializerParam();
-
     byte[] val = paramVal.getBytes("UTF-8");
-
-    param.putByteArrayParam(name, val);
-
-    return param;
+    facetParams.putByteArrayParam(name, val);
   }
 
-  private static FacetHandlerInitializerParam createLongInitParam(String name, String[] paramVals)
+  private static void createLongInitParam(
+      DefaultFacetHandlerInitializerParam facetParams,
+      String name,
+      String[] paramVals)
   {
-    DefaultFacetHandlerInitializerParam param = new DefaultFacetHandlerInitializerParam();
-
     long[] vals = new long[paramVals.length];
     int i = 0;
     for (String paramVal : paramVals ) {
       vals[i] = Long.parseLong(paramVal);
     }
 
-    param.putLongParam(name, vals);
-
-    return param;
+    facetParams.putLongParam(name, vals);
   }
 
-  private static FacetHandlerInitializerParam createDoubleInitParam(String name, String[] paramVals)
+  private static void createDoubleInitParam(
+      DefaultFacetHandlerInitializerParam facetParams,
+      String name,
+      String[] paramVals)
   {
-    DefaultFacetHandlerInitializerParam param = new DefaultFacetHandlerInitializerParam();
-
     double[] vals = new double[paramVals.length];
     int i = 0;
     for (String paramVal : paramVals ) {
       vals[i] = Double.parseDouble(paramVal);
     }
 
-    param.putDoubleParam(name, vals);
-
-    return param;
+    facetParams.putDoubleParam(name, vals);
   }
 
-  private static void convertSortParam(SenseiRequest senseiReq, DataConfiguration params)
+  public static void convertSortParam(SenseiRequest senseiReq, DataConfiguration params)
   {
     String[] sortStrings = params.getStringArray(PARAM_SORT);
 
@@ -529,7 +541,19 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
         {
           if (PARAM_SORT_SCORE.equals(parts[0]))
           {
-            sf = SortField.FIELD_SCORE;
+            sf = SenseiRequest.FIELD_SCORE;
+          }
+          else if (PARAM_SORT_SCORE_REVERSE.equals(parts[0]))
+          {
+            sf = SenseiRequest.FIELD_SCORE_REVERSE;
+          }
+          else if (PARAM_SORT_DOC.equals(parts[0]))
+          {
+            sf = SenseiRequest.FIELD_DOC;
+          }
+          else if (PARAM_SORT_DOC_REVERSE.equals(parts[0]))
+          {
+            sf = SenseiRequest.FIELD_DOC_REVERSE;
           }
           else
           {
@@ -548,7 +572,7 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
     }
   }
 
-  private static void convertFacetParam(SenseiRequest senseiReq, DataConfiguration params)
+  public static void convertFacetParam(SenseiRequest senseiReq, DataConfiguration params)
   {
     Map<String, Configuration> facetParamMap = RequestConverter.parseParamConf(params, PARAM_FACET);
     Set<Entry<String, Configuration>> entries = facetParamMap.entrySet();
@@ -582,7 +606,7 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
     }
   }
 
-  private static void convertSelectParam(SenseiRequest senseiReq, DataConfiguration params)
+  public static void convertSelectParam(SenseiRequest senseiReq, DataConfiguration params)
   {
     Map<String, Configuration> selectParamMap = RequestConverter.parseParamConf(params, PARAM_SELECT);
     Set<Entry<String, Configuration>> entries = selectParamMap.entrySet();
@@ -621,7 +645,6 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
       }
       else if (PARAM_SELECT_OP_AND.equals(op))
       {
-
         valOp = ValueOperation.ValueOperationAnd;
       }
       else
@@ -637,6 +660,8 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
         sel.setSelectionProperties(prop);
         for (String selProp : selectPropStrings)
         {
+          if (selProp.trim().length() == 0) continue;
+
           String[] parts = selProp.split(":");
           if (parts.length == 2)
           {
