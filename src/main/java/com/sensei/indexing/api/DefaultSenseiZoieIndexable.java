@@ -4,8 +4,8 @@ import java.lang.reflect.Method;
 import java.text.Format;
 import java.util.Collection;
 import java.util.LinkedList;
-import java.util.Set;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.apache.lucene.document.Document;
@@ -13,12 +13,13 @@ import org.apache.lucene.document.Field.Index;
 import org.apache.lucene.document.Field.Store;
 import org.apache.lucene.document.Field.TermVector;
 
-import proj.zoie.api.indexing.ZoieIndexable;
+import proj.zoie.api.indexing.AbstractZoieIndexable;
+import proj.zoie.api.indexing.ZoieIndexable.IndexingReq;
 
 import com.sensei.indexing.api.DefaultSenseiInterpreter.IndexSpec;
 import com.sensei.indexing.api.DefaultSenseiInterpreter.MetaFormatSpec;
 
-public class DefaultSenseiZoieIndexable<V> implements ZoieIndexable {
+public class DefaultSenseiZoieIndexable<V> extends AbstractZoieIndexable{
 
 	private static final Logger logger = Logger.getLogger(DefaultSenseiZoieIndexable.class);
 	

@@ -8,7 +8,9 @@ import proj.zoie.impl.indexing.ZoieConfig;
 import proj.zoie.impl.indexing.ZoieSystem;
 
 import com.browseengine.bobo.api.BoboIndexReader;
+import com.sensei.conf.ZoieFactoryFactory;
 import com.sensei.search.nodes.SenseiIndexReaderDecorator;
+import com.sensei.search.nodes.SenseiZoieFactory;
 import com.sensei.search.nodes.SenseiZoieSystemFactory;
 
 public class DemoZoieSystemFactory<T> extends SenseiZoieSystemFactory<T,DefaultZoieVersion>
@@ -35,5 +37,15 @@ public class DemoZoieSystemFactory<T> extends SenseiZoieSystemFactory<T,DefaultZ
   public File getPath(int nodeId,int partitionId)
   {
     return _idxDir;
+  }
+  
+  public static class DemoZoieFactoryFactory implements ZoieFactoryFactory{
+
+	@Override
+	public SenseiZoieFactory<?, ?> getZoieFactory(File idxDir,
+			ZoieIndexableInterpreter<?> interpreter,
+			SenseiIndexReaderDecorator decorator, ZoieConfig<?> config) {
+		return new DemoZoieSystemFactory(idxDir,interpreter,decorator,config);
+	}
   }
 }

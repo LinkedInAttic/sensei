@@ -35,8 +35,8 @@
            <property name="freshness" value="50" />
 	</bean>
 	
-	<bean id="zoie-system-factory" class="com.sensei.search.nodes.impl.DemoZoieSystemFactory">
-		<constructor-arg value="file:${idx.dir}"/>
+	<bean id="zoie-system-factory" class="com.sensei.test.ZoieTestFactory">
+		<constructor-arg value="file:data/cardata"/>
 		<constructor-arg ref="interpreter" />
 		<constructor-arg ref="idxDecorator" />
 		<constructor-arg ref="zoieConfig" />

@@ -7,8 +7,10 @@
 	
 	<import resource="zoie.spring" />
 
-	<bean id="cluster-client" class="com.linkedin.norbert.javacompat.cluster.InMemoryClusterClient">
+	<bean id="cluster-client" class="com.linkedin.norbert.javacompat.cluster.ZooKeeperClusterClient" init-method="awaitConnectionUninterruptibly">
 	  <constructor-arg value="testCluster" />
+	  <constructor-arg value="localhost:2181" />
+	  <constructor-arg value="30000" />
 	</bean>
 
 	<bean id="query-parser" class="org.apache.lucene.queryParser.QueryParser">
@@ -28,10 +30,10 @@
        </constructor-arg>
     </bean>
     
-    <bean id="index-loader-factory" class="com.sensei.search.nodes.impl.NoopIndexLoaderFactory"/>
+    <bean id="indexing-manager" class="com.sensei.search.nodes.impl.NoopIndexingManager"/>
     
     <bean id="network-server-config" class="com.linkedin.norbert.javacompat.network.NetworkServerConfig">
-        <property name="serviceName" value="sensei"/>
+        <property name="serviceName" value="testCluster"/>
         <property name="requestThreadCorePoolSize" value="5"/>
         <property name="requestThreadMaxPoolSize" value="10"/>
         <property name="requestThreadKeepAliveTimeSecs" value="300"/>

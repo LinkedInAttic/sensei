@@ -3,6 +3,15 @@
  */
 package com.sensei.test;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.util.StringTokenizer;
+
+import org.json.JSONObject;
+
 import junit.framework.TestCase;
 
 import com.google.protobuf.ByteString;
@@ -113,4 +122,67 @@ public class TestSerialization extends TestCase{
 			fail(e.getMessage());
 		}		
 	}
+	
+	// tool that converts bobo car data into json format
+	static void addContent(String field,String val,String sep,StringBuilder content){
+		StringTokenizer strtok = new StringTokenizer(val,sep);
+		while(strtok.hasMoreTokens()){
+			content.append(strtok.nextToken()).append(" ");
+		}
+	}
+	
+	public static void main(String[] args) throws Exception{
+		File inFile = new File("/Users/jwang/github/bobo/cardata/data/dataout.txt");
+		File outfile = new File("/tmp/cars.json");
+		BufferedWriter writer = new BufferedWriter(new FileWriter(outfile));
+		BufferedReader reader = new BufferedReader(new FileReader(inFile));
+		JSONObject car = new JSONObject();
+		int uid = 0;
+		while(true){
+			
+			String line = reader.readLine();
+			if (line == null) break;
+			
+			if ("<EOD>".equals(line)){
+				car.put("id", uid);
+				StringBuilder builder = new StringBuilder();
+				builder.append(car.optString("color")).append(" ");
+				builder.append(car.optString("category")).append(" ");
+				addContent("tags",car.optString("tags"),",",builder);
+				addContent("city",car.optString("city"),"/",builder);
+				addContent("makemodel",car.optString("makemodel"),"/",builder);
+				car.put("contents", builder.toString());
+				String jsonLine = car.toString();
+				writer.write(jsonLine+"\n");
+				writer.flush();
+				uid++;
+			}
+			else{
+				String[] parts = line.split(":");
+				String name = parts[0];
+				String val = parts[1];
+				if ("year".equals(name) || "price".equals(name) || "mileage".equals(name)){
+					int intVal = Integer.parseInt(val);
+					car.put(name, intVal);
+				}
+				else{
+				  car.put(name, val);
+				}
+			}
+		}
+		
+		reader.close();
+		
+		System.out.println("verifying...");
+		
+		reader = new BufferedReader(new FileReader(outfile));
+        while(true){	
+			String line = reader.readLine();
+			if (line == null) break;
+			JSONObject jsonObj = new JSONObject(line);
+			System.out.println(jsonObj);
+        }
+        reader.close();
+	}
+	
 }

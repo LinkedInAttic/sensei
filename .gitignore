@@ -16,3 +16,6 @@ lib/master/zookeeper.jar
 
 MANIFEST.MF
 .settings
+*~
+TAGS
+cscope.*

@@ -10,7 +10,7 @@ import org.apache.commons.configuration.Configuration;
 
 import com.sensei.search.util.RequestConverter;
 
-public class TestRestServer extends TestCase {
+public class TestRestServer extends TestCase{
 
 	public TestRestServer(String name){
 		super(name);

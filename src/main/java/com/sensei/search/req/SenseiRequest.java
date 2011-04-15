@@ -43,8 +43,8 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable
 		_partitions = null;
 		_showExplanation = false;
 	}
-	
-  /**
+
+/**
    * Get the transaction ID.
    * @return the transaction ID.
    */

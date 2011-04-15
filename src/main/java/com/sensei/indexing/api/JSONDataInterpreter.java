@@ -4,6 +4,7 @@ import org.apache.lucene.document.Document;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import proj.zoie.api.indexing.AbstractZoieIndexable;
 import proj.zoie.api.indexing.AbstractZoieIndexableInterpreter;
 import proj.zoie.api.indexing.ZoieIndexable;
 
@@ -11,7 +12,7 @@ public abstract class JSONDataInterpreter extends AbstractZoieIndexableInterpret
 
 	@Override
 	public ZoieIndexable convertAndInterpret(final JSONObject src) {
-		return new ZoieIndexable(){
+		return new AbstractZoieIndexable(){
 
 			@Override
 			public IndexingReq[] buildIndexingReqs() {

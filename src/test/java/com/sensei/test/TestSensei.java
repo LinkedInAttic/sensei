@@ -4,14 +4,26 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.Map.Entry;
 
-import javax.management.MBeanServer;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.apache.log4j.Logger;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.queryParser.QueryParser;
+import org.apache.lucene.search.DefaultSimilarity;
 import org.apache.lucene.util.Version;
 
+import proj.zoie.api.DefaultZoieVersion;
+import proj.zoie.api.IndexReaderFactory;
+import proj.zoie.api.ZoieIndexReader;
+import proj.zoie.api.DefaultZoieVersion.DefaultZoieVersionFactory;
+import proj.zoie.api.indexing.ZoieIndexableInterpreter;
+import proj.zoie.impl.indexing.ZoieSystem;
+
+import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.BrowseSelection;
 import com.browseengine.bobo.api.FacetAccessible;
@@ -19,23 +31,26 @@ import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
 import com.linkedin.norbert.NorbertException;
 import com.linkedin.norbert.cluster.ClusterShutdownException;
-import com.sensei.search.nodes.NoOpIndexableInterpreter;
+import com.linkedin.norbert.javacompat.cluster.ClusterClient;
+import com.linkedin.norbert.javacompat.cluster.ZooKeeperClusterClient;
+import com.linkedin.norbert.javacompat.network.NetworkClientConfig;
+import com.sensei.conf.SenseiServerBuilder;
+import com.sensei.search.cluster.client.SenseiNetworkClient;
 import com.sensei.search.nodes.SenseiBroker;
-import com.sensei.search.nodes.SenseiNode;
+import com.sensei.search.nodes.SenseiIndexReaderDecorator;
 import com.sensei.search.nodes.SenseiQueryBuilderFactory;
-import com.sensei.search.nodes.SenseiSearchContext;
+import com.sensei.search.nodes.SenseiServer;
+import com.sensei.search.nodes.impl.NoopIndexingManager;
 import com.sensei.search.nodes.impl.SimpleQueryBuilderFactory;
 import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.req.SenseiResult;
 
 public class TestSensei extends AbstractSenseiTestCase
 {
-  // static File IdxDir = new File(System.getProperty("idx.dir"));
-  static File IdxDir = new File("data/cardata");
-  static final String SENSEI_TEST_CLUSTER_NAME = "testCluster";
-  private static final Logger logger = Logger.getLogger(TestSensei.class);
+  static File ConfDir1 = new File("src/test/conf/node1");
+  static File ConfDir2 = new File("src/test/conf/node2");
 
-  private final MBeanServer mbeanServer = java.lang.management.ManagementFactory.getPlatformMBeanServer();
+  private static final Logger logger = Logger.getLogger(TestSensei.class);
 
   public TestSensei()
   {
@@ -47,34 +62,54 @@ public class TestSensei extends AbstractSenseiTestCase
     super(testName);
   }
 
+  
+  public static <T> IndexReaderFactory<ZoieIndexReader<BoboIndexReader>> buildReaderFactory(File file,ZoieIndexableInterpreter<T> interpreter){
+	ZoieSystem<BoboIndexReader,T,DefaultZoieVersion> zoieSystem = new ZoieSystem<BoboIndexReader,T,DefaultZoieVersion>(file,interpreter,new SenseiIndexReaderDecorator(),new StandardAnalyzer(Version.LUCENE_CURRENT),new DefaultSimilarity(),1000,300000,true,new DefaultZoieVersionFactory());
+    zoieSystem.getAdminMBean().setFreshness(50);
+    zoieSystem.start();
+	return zoieSystem;
+  }
+  
+  public static Map<Integer,IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>> buildZoieFactoryMap(ZoieIndexableInterpreter<?> interpreter,Map<Integer,File> partFileMap){
+	Map<Integer,IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>> partReaderMap = new HashMap<Integer,IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>>();
+	Set<Entry<Integer,File>> entrySet = partFileMap.entrySet();
+	
+	for (Entry<Integer,File> entry : entrySet){
+		partReaderMap.put(entry.getKey(), buildReaderFactory(entry.getValue(), interpreter));
+	}
+	
+	return partReaderMap;
+  }
+  
+  
+  
   static SenseiBroker broker = null;
-  static SenseiNode node1;
-  static SenseiNode node2;
+  static SenseiServer node1;
+  static SenseiServer node2;
 
   static
   {
-    QueryParser parser1 = new QueryParser(Version.LUCENE_CURRENT, "contents", new StandardAnalyzer(Version.LUCENE_CURRENT));
-    QueryParser parser2 = new QueryParser(Version.LUCENE_CURRENT, "contents", new StandardAnalyzer(Version.LUCENE_CURRENT));
+    try
+    {
+      SenseiServerBuilder senseiServerBuilder1 = new SenseiServerBuilder(ConfDir1);
+      node1 = senseiServerBuilder1.buildServer();
+      logger.info("Node 1 created.");
+    }
+    catch (Exception e)
+    {
+      e.printStackTrace();
+    }
 
-    HashMap<Integer, File> map1 = new HashMap<Integer, File>();
-    logger.info("idx.dir = " + IdxDir.toString());
-    map1.put(1, IdxDir);
-    map1.put(2, IdxDir);
-
-    Map<Integer, SenseiQueryBuilderFactory> qmap1 = new HashMap<Integer, SenseiQueryBuilderFactory>();
-    qmap1.put(1, new SimpleQueryBuilderFactory(parser1));
-    qmap1.put(2, new SimpleQueryBuilderFactory(parser1));
-
-    HashMap<Integer, File> map2 = new HashMap<Integer, File>();
-    map2.put(2, IdxDir);
-    map2.put(3, IdxDir);
-
-    Map<Integer, SenseiQueryBuilderFactory> qmap2 = new HashMap<Integer, SenseiQueryBuilderFactory>();
-    qmap2.put(2, new SimpleQueryBuilderFactory(parser2));
-    qmap2.put(3, new SimpleQueryBuilderFactory(parser2));
-
-    SenseiSearchContext srchCtx1 = new SenseiSearchContext(qmap1, new NoOpIndexableInterpreter(), map1);
-    SenseiSearchContext srchCtx2 = new SenseiSearchContext(qmap2, new NoOpIndexableInterpreter(), map2);
+    try
+    {
+      SenseiServerBuilder senseiServerBuilder2 = new SenseiServerBuilder(ConfDir2);
+      node2 = senseiServerBuilder2.buildServer();
+      logger.info("Node 2 created.");
+    }
+    catch (Exception e)
+    {
+      e.printStackTrace();
+    }
 
     // register the request-response messages
     broker = null;
@@ -98,14 +133,9 @@ public class TestSensei extends AbstractSenseiTestCase
 
     logger.info("Cluster client started");
 
-    node1 = new SenseiNode(networkServer1, clusterClient, 1, 1233, srchCtx1, new int[] { 1, 2 });
-    logger.info("Node 1 created with id : " + 1);
-    node2 = new SenseiNode(networkServer2, clusterClient, 2, 1232, srchCtx2, new int[] { 2, 3 });
-    logger.info("Node 2 created with id : " + 2);
-
     try
     {
-      node1.startup(true);
+      node1.start(true);
     } catch (Exception e)
     {
       // TODO Auto-generated catch block
@@ -114,7 +144,7 @@ public class TestSensei extends AbstractSenseiTestCase
     logger.info("Node 1 started");
     try
     {
-      node2.startup(true);
+      node2.start(true);
     } catch (Exception e)
     {
       // TODO Auto-generated catch block
@@ -123,8 +153,17 @@ public class TestSensei extends AbstractSenseiTestCase
     logger.info("Node 2 started");
     try
     {
-      Thread.sleep(1000);
-    } catch (InterruptedException e)
+      SenseiRequest req = new SenseiRequest();
+      SenseiResult res = null;
+      int count = 0;
+      do
+      {
+        Thread.sleep(5000);
+        res = broker.browse(req);
+        ++count;
+      } while (count < 20 && res.getNumHits() < 15000);
+      Thread.sleep(5000);
+    } catch (Exception e)
     {
       e.printStackTrace();
     }
@@ -148,7 +187,7 @@ public class TestSensei extends AbstractSenseiTestCase
     logger.info("executing test case testTotalCount");
     SenseiRequest req = new SenseiRequest();
     SenseiResult res = broker.browse(req);
-    assertEquals("wrong total number of hits" + req + res, 45000, res.getNumHits());
+    assertEquals("wrong total number of hits" + req + res, 15000, res.getNumHits());
     logger.info("request:" + req + "\nresult:" + res);
   }
 
@@ -168,7 +207,7 @@ public class TestSensei extends AbstractSenseiTestCase
     setspec(req, facetSpecall);
     SenseiResult res = broker.browse(req);
     logger.info("request:" + req + "\nresult:" + res);
-    verifyFacetCount(res, "year", "[1993 TO 1994]", 9270);
+    verifyFacetCount(res, "year", "[1993 TO 1994]", 3090);
   }
 
   public void testSelection() throws Exception
@@ -191,10 +230,10 @@ public class TestSensei extends AbstractSenseiTestCase
     req.addSelection(sel);
     SenseiResult res = broker.browse(req);
     logger.info("request:" + req + "\nresult:" + res);
-    assertEquals(3 * 2907, res.getNumHits());
+    assertEquals(2907, res.getNumHits());
     String selName = "year";
-    verifyFacetCount(res, selName, selVal, 3 * 2907);
-    verifyFacetCount(res, "year", "[1993 TO 1994]", 9270);
+    verifyFacetCount(res, selName, selVal, 2907);
+    verifyFacetCount(res, "year", "[1993 TO 1994]", 3090);
   }
 
   public void testSelectionNot() throws Exception
@@ -216,8 +255,8 @@ public class TestSensei extends AbstractSenseiTestCase
     req.addSelection(sel);
     SenseiResult res = broker.browse(req);
     logger.info("request:" + req + "\nresult:" + res);
-    assertEquals(res.getTotalDocs() - 3 * 2907, res.getNumHits());
-    verifyFacetCount(res, "year", "[1993 TO 1994]", 9270);
+    assertEquals(res.getTotalDocs() - 2907, res.getNumHits());
+    verifyFacetCount(res, "year", "[1993 TO 1994]", 3090);
   }
 
   /**

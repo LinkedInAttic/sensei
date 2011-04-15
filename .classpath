@@ -8,28 +8,30 @@
   <classpathentry kind="var" path="M2_REPO/asm/asm/3.2/asm-3.2.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/apache/avro/avro/1.4.0/avro-1.4.0.jar"/>
   <classpathentry kind="var" path="M2_REPO/com/sna-projects/bobo/bobo-browse/2.5.1-SNAPSHOT/bobo-browse-2.5.1-SNAPSHOT.jar"/>
-  <classpathentry kind="var" path="M2_REPO/commons-beanutils/commons-beanutils/1.7.0/commons-beanutils-1.7.0.jar" sourcepath="M2_REPO/commons-beanutils/commons-beanutils/1.7.0/commons-beanutils-1.7.0-sources.jar"/>
+  <classpathentry kind="var" path="M2_REPO/commons-beanutils/commons-beanutils/1.7.0/commons-beanutils-1.7.0.jar"/>
   <classpathentry kind="var" path="M2_REPO/commons-beanutils/commons-beanutils-core/1.8.0/commons-beanutils-core-1.8.0.jar"/>
+  <classpathentry kind="var" path="M2_REPO/commons-codec/commons-codec/1.4/commons-codec-1.4.jar"/>
   <classpathentry kind="var" path="M2_REPO/commons-collections/commons-collections/3.2.1/commons-collections-3.2.1.jar"/>
-  <classpathentry kind="var" path="M2_REPO/commons-configuration/commons-configuration/1.6/commons-configuration-1.6.jar"/>
+  <classpathentry kind="var" path="M2_REPO/commons-configuration/commons-configuration/1.6/commons-configuration-1.6.jar" sourcepath="M2_REPO/commons-configuration/commons-configuration/1.6/commons-configuration-1.6-sources.jar"/>
   <classpathentry kind="var" path="M2_REPO/commons-digester/commons-digester/1.8/commons-digester-1.8.jar"/>
+  <classpathentry kind="var" path="M2_REPO/commons-io/commons-io/2.0.1/commons-io-2.0.1.jar"/>
   <classpathentry kind="var" path="M2_REPO/commons-lang/commons-lang/2.5/commons-lang-2.5.jar"/>
   <classpathentry kind="var" path="M2_REPO/commons-logging/commons-logging/1.1.1/commons-logging-1.1.1.jar"/>
   <classpathentry kind="var" path="M2_REPO/fastutil/fastutil/5.0.5/fastutil-5.0.5.jar"/>
+  <classpathentry kind="var" path="M2_REPO/org/apache/httpcomponents/httpclient/4.1/httpclient-4.1.jar"/>
+  <classpathentry kind="var" path="M2_REPO/org/apache/httpcomponents/httpcore/4.1/httpcore-4.1.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/codehaus/jackson/jackson-core-asl/1.4.2/jackson-core-asl-1.4.2.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/codehaus/jackson/jackson-mapper-asl/1.4.2/jackson-mapper-asl-1.4.2.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/mortbay/jetty/jetty/6.1.22/jetty-6.1.22.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/mortbay/jetty/jetty-util/6.1.22/jetty-util-6.1.22.jar"/>
+  <classpathentry kind="var" path="M2_REPO/jline/jline/0.9.94/jline-0.9.94.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/json/json/20080701/json-20080701.jar"/>
-  <classpathentry kind="var" path="M2_REPO/junit/junit/4.5/junit-4.5.jar"/>
+  <classpathentry kind="var" path="M2_REPO/junit/junit/4.5/junit-4.5.jar" sourcepath="M2_REPO/junit/junit/4.5/junit-4.5-sources.jar"/>
   <classpathentry kind="var" path="M2_REPO/com/sna-projects/kafka/kafka/0.0.6-SNAPSHOT/kafka-0.0.6-SNAPSHOT.jar"/>
-  <classpathentry kind="var" path="M2_REPO/com/sna-projects/kamikaze/kamikaze/3.0.3/kamikaze-3.0.3.jar" sourcepath="M2_REPO/com/sna-projects/kamikaze/kamikaze/3.0.3/kamikaze-3.0.3-sources.jar">
-    <attributes>
-      <attribute value="jar:file:/Users/john/.m2/repository/com/sna-projects/kamikaze/kamikaze/3.0.3/kamikaze-3.0.3-javadoc.jar!/" name="javadoc_location"/>
-    </attributes>
-  </classpathentry>
+  <classpathentry kind="var" path="M2_REPO/com/sna-projects/kamikaze/kamikaze/3.0.3/kamikaze-3.0.3.jar"/>
   <classpathentry kind="var" path="M2_REPO/log4j/log4j/1.2.15/log4j-1.2.15.jar"/>
-  <classpathentry kind="var" path="M2_REPO/org/apache/lucene/lucene-core/2.9.1/lucene-core-2.9.1.jar"/>
+  <classpathentry kind="var" path="M2_REPO/org/apache/lucene/lucene-core/2.9.1/lucene-core-2.9.1.jar" sourcepath="M2_REPO/org/apache/lucene/lucene-core/2.9.1/lucene-core-2.9.1-sources.jar"/>
+  <classpathentry kind="var" path="M2_REPO/mx4j/mx4j-tools/3.0.1/mx4j-tools-3.0.1.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/jboss/netty/netty/3.2.3.Final/netty-3.2.3.Final.jar"/>
   <classpathentry kind="var" path="M2_REPO/com/sna-projects/norbert/norbert-cluster/1.0.0-SNAPSHOT/norbert-cluster-1.0.0-SNAPSHOT.jar"/>
   <classpathentry kind="var" path="M2_REPO/com/sna-projects/norbert/norbert-java-cluster/1.0.0-SNAPSHOT/norbert-java-cluster-1.0.0-SNAPSHOT.jar"/>
@@ -44,12 +46,13 @@
   <classpathentry kind="var" path="M2_REPO/org/scala-lang/scala-library/2.8.0/scala-library-2.8.0.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/mortbay/jetty/servlet-api/2.5-20081211/servlet-api-2.5-20081211.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/slf4j/slf4j-api/1.4.2/slf4j-api-1.4.2.jar"/>
-  <classpathentry kind="var" path="M2_REPO/org/springframework/spring/2.5.6/spring-2.5.6.jar"/>
+  <classpathentry kind="var" path="M2_REPO/org/springframework/spring/2.5.6/spring-2.5.6.jar" sourcepath="M2_REPO/org/springframework/spring/2.5.6/spring-2.5.6-sources.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/apache/velocity/velocity/1.6.4/velocity-1.6.4.jar"/>
   <classpathentry kind="var" path="M2_REPO/com/sna-projects/zoie/zoie-core/2.5.1-SNAPSHOT/zoie-core-2.5.1-SNAPSHOT.jar" sourcepath="M2_REPO/com/sna-projects/zoie/zoie-core/2.5.1-SNAPSHOT/zoie-core-2.5.1-SNAPSHOT-sources.jar">
     <attributes>
-      <attribute value="jar:file:/Users/john/.m2/repository/com/sna-projects/zoie/zoie-core/2.5.1-SNAPSHOT/zoie-core-2.5.1-SNAPSHOT-javadoc.jar!/" name="javadoc_location"/>
+      <attribute value="jar:file:/Users/jwang/.m2/repository/com/sna-projects/zoie/zoie-core/2.5.1-SNAPSHOT/zoie-core-2.5.1-SNAPSHOT-javadoc.jar!/" name="javadoc_location"/>
     </attributes>
   </classpathentry>
+  <classpathentry kind="var" path="M2_REPO/org/apache/zookeeper/zookeeper/3.3.3/zookeeper-3.3.3.jar"/>
   <classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 </classpath>

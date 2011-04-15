@@ -12,8 +12,12 @@ public abstract class AbstractJsonQueryBuilderFactory implements
 	@Override
 	public SenseiQueryBuilder getQueryBuilder(SenseiQuery query)
 			throws Exception {
-		byte[] bytes = query.toBytes();
-		return buildQuery(new JSONObject(new String(bytes,SenseiQuery.utf8Charset)));
+		JSONObject jsonQuery=null;
+		if (query!=null){
+			byte[] bytes = query.toBytes();
+			jsonQuery = new JSONObject(new String(bytes,SenseiQuery.utf8Charset));
+		}
+		return buildQuery(jsonQuery);
 	}
 
 	protected abstract SenseiQueryBuilder buildQuery(JSONObject jsonQuery);
