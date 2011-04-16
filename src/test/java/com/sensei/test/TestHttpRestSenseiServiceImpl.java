@@ -1,6 +1,30 @@
 package com.sensei.test;
 
 
+import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import junit.framework.TestCase;
+
+import org.apache.commons.configuration.DataConfiguration;
+import org.apache.commons.configuration.web.ServletRequestConfiguration;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.utils.URLEncodedUtils;
+import org.apache.lucene.document.Document;
+import org.apache.lucene.document.Field;
+import org.apache.lucene.search.Explanation;
+import org.apache.lucene.search.SortField;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.BrowseSelection;
 import com.browseengine.bobo.api.FacetAccessible;
@@ -16,27 +40,6 @@ import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.req.SenseiResult;
 import com.sensei.search.svc.api.SenseiException;
 import com.sensei.search.svc.impl.HttpRestSenseiServiceImpl;
-import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import junit.framework.TestCase;
-import org.apache.commons.configuration.DataConfiguration;
-import org.apache.commons.configuration.web.ServletRequestConfiguration;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.utils.URLEncodedUtils;
-import org.apache.lucene.document.Document;
-import org.apache.lucene.document.Field;
-import org.apache.lucene.search.Explanation;
-import org.apache.lucene.search.SortField;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 
 public class TestHttpRestSenseiServiceImpl extends TestCase

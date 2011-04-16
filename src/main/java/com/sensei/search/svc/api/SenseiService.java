@@ -7,4 +7,5 @@ import com.sensei.search.req.SenseiResult;
 public interface SenseiService {
 	SenseiResult doQuery(SenseiRequest req) throws SenseiException;
 	SenseiSystemInfo getSystemInfo() throws SenseiException;
+	void shutdown();
 }

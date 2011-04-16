@@ -63,6 +63,7 @@ public class ClusteredSenseiServiceImpl implements SenseiService {
 		return _senseiBroker.getSystemInfo();
 	}
 
+	@Override
 	public void shutdown(){
 		try{
 		    if (_senseiBroker!=null){

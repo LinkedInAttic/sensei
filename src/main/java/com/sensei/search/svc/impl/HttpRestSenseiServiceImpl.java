@@ -1,20 +1,6 @@
 package com.sensei.search.svc.impl;
 
 
-import com.browseengine.bobo.api.BrowseFacet;
-import com.browseengine.bobo.api.BrowseSelection;
-import com.browseengine.bobo.api.FacetAccessible;
-import com.browseengine.bobo.api.FacetSpec;
-import com.browseengine.bobo.api.MappedFacetAccessible;
-import com.browseengine.bobo.facets.FacetHandlerInitializerParam;
-import com.sensei.search.client.servlet.SenseiSearchServletParams;
-import com.sensei.search.req.SenseiHit;
-import com.sensei.search.req.SenseiQuery;
-import com.sensei.search.req.SenseiRequest;
-import com.sensei.search.req.SenseiResult;
-import com.sensei.search.req.SenseiSystemInfo;
-import com.sensei.search.svc.api.SenseiException;
-import com.sensei.search.svc.api.SenseiService;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -31,6 +17,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.zip.GZIPInputStream;
+
 import javax.net.ssl.SSLHandshakeException;
 
 import org.apache.commons.io.IOUtils;
@@ -44,6 +32,7 @@ import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URIUtils;
 import org.apache.http.client.utils.URLEncodedUtils;
+import org.apache.http.entity.HttpEntityWrapper;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.ExecutionContext;
@@ -55,11 +44,49 @@ import org.apache.lucene.search.SortField;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+
+import com.browseengine.bobo.api.BrowseFacet;
+import com.browseengine.bobo.api.BrowseSelection;
+import com.browseengine.bobo.api.FacetAccessible;
+import com.browseengine.bobo.api.FacetSpec;
+import com.browseengine.bobo.api.MappedFacetAccessible;
+import com.browseengine.bobo.facets.FacetHandlerInitializerParam;
+import com.sensei.search.client.servlet.SenseiSearchServletParams;
+import com.sensei.search.req.SenseiHit;
+import com.sensei.search.req.SenseiQuery;
+import com.sensei.search.req.SenseiRequest;
+import com.sensei.search.req.SenseiResult;
+import com.sensei.search.req.SenseiSystemInfo;
+import com.sensei.search.svc.api.SenseiException;
+import com.sensei.search.svc.api.SenseiService;
 
 
 public class HttpRestSenseiServiceImpl implements SenseiService
 {
+  private static class GzipDecompressingEntity
+    extends HttpEntityWrapper {
+
+    public GzipDecompressingEntity(final HttpEntity entity) {
+      super(entity);
+    }
+
+    @Override
+    public InputStream getContent()
+      throws IOException, IllegalStateException {
+      // the wrapped entity's getContent() decides about repeatability
+      InputStream wrappedin = wrappedEntity.getContent();
+      return new GZIPInputStream(wrappedin);
+    }
+
+    @Override
+    public long getContentLength() {
+      // length of ungzipped content is not known
+      return -1;
+    }
+
+  }
   String _scheme;
   String _host;
   int _port;
@@ -601,6 +628,12 @@ public class HttpRestSenseiServiceImpl implements SenseiService
     }
 
     return explanation;
+  }
+
+  @Override
+  public void shutdown() {
+	// TODO Auto-generated method stub
+	
   }
 
 }
