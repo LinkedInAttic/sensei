@@ -18,6 +18,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
+import org.apache.commons.configuration.MapConfiguration;
 import org.apache.log4j.Logger;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
@@ -156,10 +157,13 @@ public class SenseiServerBuilder implements SenseiConfParams{
 		WebAppContext senseiApp = new WebAppContext();
 		senseiApp.addFilter(GzipFilter.class,"/sensei/*",1);
 		
-		HashMap<String,String> initParam = new HashMap<String,String>();
-		logger.info("Broker Configuration file: "+_senseiConfFile.getAbsolutePath());
-		initParam.put("config.file", _senseiConfFile.getAbsolutePath());
-		senseiApp.setInitParams(initParam);
+		//HashMap<String, String> initParam = new HashMap<String, String>();
+    //if (_senseiConfFile != null) {
+      //logger.info("Broker Configuration file: "+_senseiConfFile.getAbsolutePath());
+      //initParam.put("config.file", _senseiConfFile.getAbsolutePath());
+    //}
+		//senseiApp.setInitParams(initParam);
+    senseiApp.setAttribute("sensei.search.configuration", _senseiConf);
 		senseiApp.addEventListener(new SenseiConfigServletContextListener());
 		
 		
@@ -174,13 +178,19 @@ public class SenseiServerBuilder implements SenseiConfParams{
 		return server;
 	}
   
-  public SenseiServerBuilder(File confDir) throws Exception{
+  public SenseiServerBuilder(File confDir, Map<String, Object> properties) throws Exception {
 	  _confDir = confDir;
-	  _senseiConfFile = new File(confDir,SENSEI_PROPERTIES);
-	  if (!_senseiConfFile.exists()){
-        throw new ConfigurationException("configuration file: "+_senseiConfFile.getAbsolutePath()+" does not exist.");
-	  }
-	  _senseiConf = new PropertiesConfiguration(_senseiConfFile);
+    if (properties != null) {
+      _senseiConfFile = null;
+      _senseiConf = new MapConfiguration(properties);
+    }
+    else {
+      _senseiConfFile = new File(confDir,SENSEI_PROPERTIES);
+      if (!_senseiConfFile.exists()){
+          throw new ConfigurationException("configuration file: "+_senseiConfFile.getAbsolutePath()+" does not exist.");
+      }
+      _senseiConf = new PropertiesConfiguration(_senseiConfFile);
+    }
 
 	  _jettyServer = buildHttpRestServer();
 	  _pluginContext = loadSpringContext(new File(confDir,PLUGINS));
@@ -191,6 +201,10 @@ public class SenseiServerBuilder implements SenseiConfParams{
 	  DocumentBuilder db = dbf.newDocumentBuilder();
 	  _schemaDoc = db.parse(new File(_confDir,SCHEMA_FILE));
 	  _schemaDoc.getDocumentElement().normalize();
+  }
+
+  public SenseiServerBuilder(File confDir) throws Exception {
+    this(confDir, null);
   }
   
   static final Pattern PARTITION_PATTERN = Pattern.compile("[\\d]+||[\\d]+-[\\d]+");

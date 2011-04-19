@@ -32,14 +32,19 @@ public class SenseiConfigServletContextListener implements
 		ServletContext ctx = ctxEvt.getServletContext();
 		String confFileName = ctx.getInitParameter(SENSEI_CONF_FILE_PARAM);
 
-		File confFile = new File(confFileName);
-		try {
-			PropertiesConfiguration conf = new PropertiesConfiguration(confFile);
-			ctx.setAttribute(SENSEI_CONF_OBJ, conf);
-		} 
-		catch (ConfigurationException e) {
-		    logger.error(e.getMessage(),e);
-		}
+    if (confFileName != null) {
+      File confFile = new File(confFileName);
+      try {
+        PropertiesConfiguration conf = new PropertiesConfiguration(confFile);
+        ctx.setAttribute(SENSEI_CONF_OBJ, conf);
+      } 
+      catch (ConfigurationException e) {
+          logger.error(e.getMessage(),e);
+      }
+    }
+    else {
+      logger.warn("\""+SENSEI_CONF_FILE_PARAM+"\" is not set.");
+    }
 	}
 
 }
