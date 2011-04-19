@@ -116,7 +116,13 @@
 		<dependency>
 			<groupId>com.sna-projects.kafka</groupId>
 			<artifactId>kafka</artifactId>
-			<version>0.0.6-SNAPSHOT</version>
+			<version>0.5-SNAPSHOT</version>
+			<exclusions>
+			  <exclusion>  <!-- declare the exclusion here -->
+			    <groupId>zkclient</groupId>
+			    <artifactId>zkclient</artifactId>
+			  </exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>com.sna-projects.kamikaze</groupId>
@@ -254,6 +260,16 @@
 			<groupId>org.apache.zookeeper</groupId>
 			<artifactId>zookeeper</artifactId>
 			<version>3.3.3</version>
+			<exclusions>
+			  <exclusion>  <!-- declare the exclusion here -->
+			    <groupId>com.sun.jdmk</groupId>
+			    <artifactId>jmxtools</artifactId>
+			  </exclusion>
+			  <exclusion>  <!-- declare the exclusion here -->
+			    <groupId>com.sun.jmx</groupId>
+			    <artifactId>jmxri</artifactId>
+			  </exclusion>
+			</exclusions>
 		</dependency>
 
 		<dependency>
