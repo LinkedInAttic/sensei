@@ -371,7 +371,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
       
       if (idxMgrType.length()==0){
       String uidField = senseiSchma.getUidField();
-        indexingManager = new DefaultStreamingIndexingManager(senseiSchma,_senseiConf, _versionComparator);
+        indexingManager = new DefaultStreamingIndexingManager(senseiSchma,_senseiConf, _pluginContext, _versionComparator);
       }
       else{
         indexingManager = (SenseiIndexingManager)_pluginContext.getBean(idxMgrType);  

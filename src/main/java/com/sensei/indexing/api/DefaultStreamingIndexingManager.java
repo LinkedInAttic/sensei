@@ -18,6 +18,7 @@ import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
+import org.springframework.context.ApplicationContext;
 
 import proj.zoie.api.DataConsumer;
 import proj.zoie.api.Zoie;
@@ -48,15 +49,17 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 	private String _oldestSinceKey;
 	private final SenseiSchema _senseiSchema;
 	private final Configuration _myconfig;
+  private final ApplicationContext _pluginContext;
 	private final List<ObjectName> _registeredMBeans;
 	private final MBeanServer _mbeanServer;
 	private Map<Integer, Zoie<BoboIndexReader, JSONObject>> _zoieSystemMap;
 	private final LinkedHashMap<Integer, Collection<DataEvent<JSONObject>>> _dataCollectorMap;
   private final Comparator<String> _versionComparator;
 	
-	public DefaultStreamingIndexingManager(SenseiSchema schema,Configuration senseiConfig, Comparator<String> versionComparator){
+	public DefaultStreamingIndexingManager(SenseiSchema schema,Configuration senseiConfig, ApplicationContext pluginContext, Comparator<String> versionComparator){
 	  _dataProvider = null;
 	  _myconfig = senseiConfig.subset(CONFIG_PREFIX);
+    _pluginContext = pluginContext;
 	  _oldestSinceKey = null;
 	  _senseiSchema = schema;
 	  _zoieSystemMap = null;
@@ -116,6 +119,10 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 			long offset = _oldestSinceKey == null ? 0L : Long.parseLong(_oldestSinceKey);
 			dataProvider = new KafkaJsonStreamDataProvider(_versionComparator, host,port,timeout,batchsize,topic,offset);
 		}
+    else if ("custom".equals(type)) {
+      String dataProviderName = _myconfig.getString("custom");
+      dataProvider = (StreamDataProvider<JSONObject>) _pluginContext.getBean(dataProviderName);
+    }
 		else{
 			throw new ConfigurationException("type: "+type+" is not suported");
 		}
