@@ -2,14 +2,15 @@ package com.sensei.dataprovider.file;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Comparator;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 public class LinedJsonFileDataProvider extends LinedFileDataProvider<JSONObject> {
 
-	public LinedJsonFileDataProvider(File file, long startingOffset) {
-		super(file, startingOffset);
+	public LinedJsonFileDataProvider(Comparator<String> versionComparator, File file, long startingOffset) {
+		super(versionComparator, file, startingOffset);
 	}
 
 	@Override

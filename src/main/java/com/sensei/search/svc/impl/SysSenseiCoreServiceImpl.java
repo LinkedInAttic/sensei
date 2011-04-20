@@ -11,7 +11,6 @@ import java.util.Set;
 import org.apache.log4j.Logger;
 import org.apache.lucene.search.Query;
 
-import proj.zoie.api.ZoieVersion;
 import proj.zoie.api.ZoieIndexReader;
 import proj.zoie.api.ZoieIndexReader.SubReaderAccessor;
 import proj.zoie.api.ZoieIndexReader.SubReaderInfo;

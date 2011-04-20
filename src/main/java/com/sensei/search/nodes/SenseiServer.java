@@ -57,7 +57,7 @@ public class SenseiServer {
     public SenseiServer(int id, int port, int[] partitions,
                         NetworkServer networkServer,
                         ClusterClient clusterClient,
-                        SenseiZoieFactory<?,?> zoieSystemFactory,
+                        SenseiZoieFactory<?> zoieSystemFactory,
                         SenseiIndexingManager indexingManager,
                         SenseiQueryBuilderFactory queryBuilderFactory,
                         List<AbstractSenseiCoreService<AbstractSenseiRequest, AbstractSenseiResult>> externalSvc)

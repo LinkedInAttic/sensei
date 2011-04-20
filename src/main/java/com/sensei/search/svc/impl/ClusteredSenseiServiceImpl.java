@@ -1,5 +1,7 @@
 package com.sensei.search.svc.impl;
 
+import java.util.Comparator;
+
 import org.apache.log4j.Logger;
 
 import com.linkedin.norbert.javacompat.cluster.ClusterClient;
@@ -27,7 +29,7 @@ public class ClusteredSenseiServiceImpl implements SenseiService {
 	private ClusterClient _clusterClient;
 	private final String _clusterName;
 	
-	public ClusteredSenseiServiceImpl(String zkurl,int zkTimeout,String clusterName){
+	public ClusteredSenseiServiceImpl(String zkurl,int zkTimeout,String clusterName, Comparator<String> versionComparator){
 		_clusterName = clusterName;
 		_networkClientConfig.setServiceName(clusterName);
 	    _networkClientConfig.setZooKeeperConnectString(zkurl);
@@ -43,7 +45,7 @@ public class ClusteredSenseiServiceImpl implements SenseiService {
 	    _networkClientConfig.setClusterClient(_clusterClient);
 		
 		_networkClient = new SenseiNetworkClient(_networkClientConfig,_routerFactory);
-		_senseiBroker = new SenseiBroker(_networkClient, _clusterClient, _reqRewriter, _routerFactory);
+		_senseiBroker = new SenseiBroker(_networkClient, _clusterClient, _reqRewriter, _routerFactory, versionComparator);
 	}
 	
 	public void start(){

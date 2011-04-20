@@ -1,5 +1,7 @@
 package com.sensei.search.client.servlet;
 
+import java.util.Comparator;
+
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
@@ -16,6 +18,7 @@ public class ZookeeperConfigurableServlet extends HttpServlet {
 	protected String zkurl;
 	protected String clusterName;
 	protected int zkTimeout;
+  protected Comparator<String> versionComparator;
 
 	@Override
 	public void init(ServletConfig config) throws ServletException {
@@ -28,5 +31,7 @@ public class ZookeeperConfigurableServlet extends HttpServlet {
 		zkurl = senseConf.getString(SenseiConfigServletContextListener.SENSEI_CONF_ZKURL);
 		clusterName = senseConf.getString(SenseiConfigServletContextListener.SENSEI_CONF_CLUSTER_NAME);
 		zkTimeout = senseConf.getInt(SenseiConfigServletContextListener.SENSEI_CONF_ZKTIMEOUT,10000);
+
+    versionComparator = (Comparator<String>)ctx.getAttribute(SenseiConfigServletContextListener.SENSEI_CONF_VERSION_COMPARATOR);
 	}
 }

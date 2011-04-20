@@ -23,7 +23,6 @@ import org.apache.log4j.Logger;
 import proj.zoie.api.IndexReaderFactory;
 import proj.zoie.api.Zoie;
 import proj.zoie.api.ZoieIndexReader;
-import proj.zoie.api.ZoieVersion;
 
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.facets.FacetHandler;
@@ -37,20 +36,20 @@ public class SenseiCore{
   private final MBeanServer mbeanServer = java.lang.management.ManagementFactory.getPlatformMBeanServer();
 
   private final List<ObjectName> _registeredMBeans;
-  private SenseiZoieFactory<?,?> _zoieFactory;
+  private SenseiZoieFactory<?> _zoieFactory;
   private SenseiIndexingManager _indexManager;
   private SenseiQueryBuilderFactory _queryBuilderFactory;
-  private final HashSet<Zoie<BoboIndexReader,?,?>> zoieSystems = new HashSet<Zoie<BoboIndexReader,?,?>>();
+  private final HashSet<Zoie<BoboIndexReader,?>> zoieSystems = new HashSet<Zoie<BoboIndexReader,?>>();
   
   private final int[] _partitions;
   private final int _id;
   private final Map<Integer,SenseiQueryBuilderFactory> _builderFactoryMap;
-  private final Map<Integer,Zoie<BoboIndexReader,?,?>> _readerFactoryMap;
+  private final Map<Integer,Zoie<BoboIndexReader,?>> _readerFactoryMap;
   private SenseiSystemInfo _senseiSystemInfo;
   private volatile boolean _started;
     
   public SenseiCore(int id,int[] partitions,
-            SenseiZoieFactory<?,?> zoieSystemFactory,
+            SenseiZoieFactory<?> zoieSystemFactory,
             SenseiIndexingManager indexManager,
             SenseiQueryBuilderFactory queryBuilderFactory){
 
@@ -62,7 +61,7 @@ public class SenseiCore{
     _id = id;
     
     _builderFactoryMap = new HashMap<Integer,SenseiQueryBuilderFactory>();
-    _readerFactoryMap = new HashMap<Integer,Zoie<BoboIndexReader,?,?>>();
+    _readerFactoryMap = new HashMap<Integer,Zoie<BoboIndexReader,?>>();
     _started = false;
   }
   
@@ -117,10 +116,10 @@ public class SenseiCore{
     }
 
     Date lastModified = new Date(0L);
-    ZoieVersion version = null;
-    for(Zoie<BoboIndexReader,?,?> zoieSystem : zoieSystems)
+    String version = null;
+    for(Zoie<BoboIndexReader,?> zoieSystem : zoieSystems)
     {
-      if (version == null || version.compareTo(zoieSystem.getVersion()) < 0)
+      if (version == null || _zoieFactory.getVersionComparator().compare(version, zoieSystem.getVersion()) < 0)
         version = zoieSystem.getVersion();
     }
 
@@ -139,7 +138,7 @@ public class SenseiCore{
     
     _senseiSystemInfo.setLastModified(lastModified.getTime());
     if (version != null)
-      _senseiSystemInfo.setVersion(version.encodeToString());
+      _senseiSystemInfo.setVersion(version);
 
     return _senseiSystemInfo;
   }
@@ -155,7 +154,7 @@ public class SenseiCore{
         //in simple case query builder is the same for each partition
         _builderFactoryMap.put(part, _queryBuilderFactory);
         
-        Zoie<BoboIndexReader,?,?> zoieSystem = _zoieFactory.getZoieInstance(_id,part);
+        Zoie<BoboIndexReader,?> zoieSystem = _zoieFactory.getZoieInstance(_id,part);
         
         // register ZoieSystemAdminMBean
 
@@ -217,7 +216,7 @@ public class SenseiCore{
     logger.info("index manager shutdown...");
       
         // shutdown the zoieSystems
-        for(Zoie<BoboIndexReader,?,?> zoieSystem : zoieSystems)
+        for(Zoie<BoboIndexReader,?> zoieSystem : zoieSystems)
         {
           zoieSystem.shutdown();
         }

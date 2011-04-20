@@ -1,44 +1,41 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans 
-						http://www.springframework.org/schema/beans/spring-beans.xsd">
-			
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.springframework.org/schema/beans 
+            http://www.springframework.org/schema/beans/spring-beans.xsd">
+      
   <import resource="bobo.spring" />
-	<!-- dummy placeholder, we are not worry about indexing for now -->			
-	<bean id="interpreter" class="com.sensei.search.nodes.NoOpIndexableInterpreter" />
-	
-	<bean id="lucene-version" class="org.springframework.beans.factory.config.FieldRetrievingFactoryBean">
-		<property name="staticField" value="org.apache.lucene.util.Version.LUCENE_CURRENT"/>
-	</bean>
-	
-	<bean id="analyzer" class="org.apache.lucene.analysis.standard.StandardAnalyzer">
-		<constructor-arg ref="lucene-version"/>
-	</bean>
-	
-	<bean id="similarity" class="org.apache.lucene.search.DefaultSimilarity" />
-	
-	<bean id="idxDecorator" class="com.sensei.search.nodes.SenseiIndexReaderDecorator">
+  <!-- dummy placeholder, we are not worry about indexing for now -->      
+  <bean id="interpreter" class="com.sensei.search.nodes.NoOpIndexableInterpreter" />
+  
+  <bean id="lucene-version" class="org.springframework.beans.factory.config.FieldRetrievingFactoryBean">
+    <property name="staticField" value="org.apache.lucene.util.Version.LUCENE_CURRENT"/>
+  </bean>
+  
+  <bean id="analyzer" class="org.apache.lucene.analysis.standard.StandardAnalyzer">
+    <constructor-arg ref="lucene-version"/>
+  </bean>
+  
+  <bean id="similarity" class="org.apache.lucene.search.DefaultSimilarity" />
+  
+  <bean id="idxDecorator" class="com.sensei.search.nodes.SenseiIndexReaderDecorator">
     <constructor-arg ref="handlers" />
     <constructor-arg>
       <list>
       </list>
     </constructor-arg>
-	</bean>
-	
-	
-	<bean id="zversionFactory" class="proj.zoie.api.DefaultZoieVersion$DefaultZoieVersionFactory" />
-	
-	<bean id="zoieConfig" class="proj.zoie.impl.indexing.ZoieConfig">
-	   <constructor-arg ref="zversionFactory" />
-           <property name="freshness" value="50" />
-	</bean>
-	
-	<bean id="zoie-system-factory" class="com.sensei.test.ZoieTestFactory">
-		<constructor-arg value="file:data/cardata"/>
-		<constructor-arg ref="interpreter" />
-		<constructor-arg ref="idxDecorator" />
-		<constructor-arg ref="zoieConfig" />
-	</bean>
+  </bean>
+  
+  
+  <bean id="zoieConfig" class="proj.zoie.impl.indexing.ZoieConfig">
+    <property name="freshness" value="50" />
+  </bean>
+  
+  <bean id="zoie-system-factory" class="com.sensei.test.ZoieTestFactory">
+    <constructor-arg value="file:data/cardata"/>
+    <constructor-arg ref="interpreter" />
+    <constructor-arg ref="idxDecorator" />
+    <constructor-arg ref="zoieConfig" />
+  </bean>
 </beans>

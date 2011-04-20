@@ -16,11 +16,10 @@ import org.apache.lucene.queryParser.QueryParser;
 import org.apache.lucene.search.DefaultSimilarity;
 import org.apache.lucene.util.Version;
 
-import proj.zoie.api.DefaultZoieVersion;
 import proj.zoie.api.IndexReaderFactory;
 import proj.zoie.api.ZoieIndexReader;
-import proj.zoie.api.DefaultZoieVersion.DefaultZoieVersionFactory;
 import proj.zoie.api.indexing.ZoieIndexableInterpreter;
+import proj.zoie.impl.indexing.ZoieConfig;
 import proj.zoie.impl.indexing.ZoieSystem;
 
 import com.browseengine.bobo.api.BoboIndexReader;
@@ -64,7 +63,7 @@ public class TestSensei extends AbstractSenseiTestCase
 
   
   public static <T> IndexReaderFactory<ZoieIndexReader<BoboIndexReader>> buildReaderFactory(File file,ZoieIndexableInterpreter<T> interpreter){
-	ZoieSystem<BoboIndexReader,T,DefaultZoieVersion> zoieSystem = new ZoieSystem<BoboIndexReader,T,DefaultZoieVersion>(file,interpreter,new SenseiIndexReaderDecorator(),new StandardAnalyzer(Version.LUCENE_CURRENT),new DefaultSimilarity(),1000,300000,true,new DefaultZoieVersionFactory());
+	ZoieSystem<BoboIndexReader,T> zoieSystem = new ZoieSystem<BoboIndexReader,T>(file,interpreter,new SenseiIndexReaderDecorator(),new StandardAnalyzer(Version.LUCENE_CURRENT),new DefaultSimilarity(),1000,300000,true,ZoieConfig.DEFAULT_VERSION_COMPARATOR);
     zoieSystem.getAdminMBean().setFreshness(50);
     zoieSystem.start();
 	return zoieSystem;
@@ -89,9 +88,11 @@ public class TestSensei extends AbstractSenseiTestCase
 
   static
   {
+    SenseiServerBuilder senseiServerBuilder1 = null;
+    SenseiServerBuilder senseiServerBuilder2 = null;
     try
     {
-      SenseiServerBuilder senseiServerBuilder1 = new SenseiServerBuilder(ConfDir1);
+      senseiServerBuilder1 = new SenseiServerBuilder(ConfDir1);
       node1 = senseiServerBuilder1.buildServer();
       logger.info("Node 1 created.");
     }
@@ -102,7 +103,7 @@ public class TestSensei extends AbstractSenseiTestCase
 
     try
     {
-      SenseiServerBuilder senseiServerBuilder2 = new SenseiServerBuilder(ConfDir2);
+      senseiServerBuilder2 = new SenseiServerBuilder(ConfDir2);
       node2 = senseiServerBuilder2.buildServer();
       logger.info("Node 2 created.");
     }
@@ -115,7 +116,7 @@ public class TestSensei extends AbstractSenseiTestCase
     broker = null;
     try
     {
-      broker = new SenseiBroker(networkClient, clusterClient, requestRewriter, routerFactory);
+      broker = new SenseiBroker(networkClient, clusterClient, requestRewriter, routerFactory, senseiServerBuilder1.getVersionComparator());
       broker.setTimeoutMillis(0);
     } catch (NorbertException ne)
     {
