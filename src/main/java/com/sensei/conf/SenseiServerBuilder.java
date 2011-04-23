@@ -123,8 +123,8 @@ public class SenseiServerBuilder implements SenseiConfParams{
   try{
     org.mortbay.log.Log.setLog(new org.mortbay.log.Slf4jLog());
   }
-  catch(Exception e){
-      logger.error(e.getMessage(),e);
+  catch(Throwable t){
+      logger.error(t.getMessage(),t);
   }
   }
   

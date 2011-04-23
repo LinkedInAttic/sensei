@@ -63,7 +63,7 @@ public class SenseiSystemInfo implements AbstractSenseiResult {
   public SenseiSystemInfo(){
     _numDocs = 0;
     _lastModified =0L;
-    _version = "0";
+    _version = null;
     _facetInfos = null;
     _clusterInfo = null;
   }
