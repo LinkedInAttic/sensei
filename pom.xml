@@ -195,7 +195,7 @@
 		<dependency>
 			<groupId>com.browseengine.bobo</groupId>
 			<artifactId>bobo-browse</artifactId>
-			<version>2.5.1-SNAPSHOT</version>
+			<version>2.5.2-SNAPSHOT</version>
 			<type>jar</type>
 		</dependency>
 
