@@ -88,7 +88,8 @@ public class SenseiSchema {
 				
 				FieldDefinition fdef = new FieldDefinition();
 				fdef.formatter = null;
-				fdef.fromField = frm == null ? frm : n;
+				fdef.fromField = frm.length() > 0 ? frm : n;
+
 				fdef.isMeta = true;
 				
 				fdef.isMulti = false;
