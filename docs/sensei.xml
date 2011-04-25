@@ -1,0 +1,762 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE book [
+<!ENTITY cpp "C&#x2060;+&#x2060;+">
+]>
+
+<book xmlns="http://docbook.org/ns/docbook"
+      xmlns:xlink="http://www.w3.org/1999/xlink"
+      version="5.0" xml:lang="en">
+  <title>Sensei</title>
+  <subtitle>A Distributed Elastic Realtime Searchable Database</subtitle>
+  <info>
+    <author>
+      <personname>Sensei Development Team</personname>
+    </author>
+    <releaseinfo>$Id: sensei.xml,v 1.2 2011/04/25 08:56:30 bcui Exp $</releaseinfo>
+    <mediaobject>
+      <imageobject>
+        <imagedata format="SVG" align="center" valign="middle" 
+                   scale="150" fileref="figures/sensei-small.svg"/>
+      </imageobject>
+    </mediaobject>
+  </info>
+
+  <chapter>
+    <title>Introduction</title>
+
+    <para>Sensei is a distributed database that is designed to handle
+    the following type of query: </para>
+
+    <programlisting><![CDATA[    SELECT f1,f2...fn FROM members
+    WHERE c1 AND c2 AND c3..
+    MATCH (fulltext query, e.g. "java engineer")
+    GROUP BY fx,fy,fz...
+    ORDER BY fa,fb...
+    LIMIT offset,count]]></programlisting>
+
+    <section>
+      <title>Design Considerations</title>
+      <itemizedlist>
+        <listitem>
+          <para><emphasis role="bold">Data</emphasis></para>
+          <itemizedlist spacing="compact">
+            <listitem>
+              <para>Fault tolerance - when one replication is down, data is still accessible
+              </para>
+            </listitem>
+            <listitem>
+              <para>Durability - N copies of data is stored
+              </para>
+            </listitem>
+            <listitem>
+              <para>Through-put - Parallelizable request-handling on different nodes/data replicas, designed to handle internet traffic
+              </para>
+            </listitem>
+            <listitem>
+              <para>Consistency - Eventally consistent
+              </para>
+            </listitem>
+            <listitem>
+              <para>Data recovery - each shared/replica is noted with a watermark for data recovery
+              </para>
+            </listitem>
+            <listitem>
+              <para>Large dataset - designed to handle 100s millions - billions of rows
+              </para>
+            </listitem>
+          </itemizedlist>
+        </listitem>
+        <listitem>
+          <para><emphasis role="bold">Horizontally Scalable</emphasis>e</para>
+          <itemizedlist spacing="compact">
+            <listitem>
+              <para>Data is partitioned - so work-load is also distributed
+              </para>
+            </listitem>
+            <listitem>
+              <para>Elasticity - Nodes can be added to accomodate data growth
+              </para>
+            </listitem>
+            <listitem>
+              <para>Online expansion - Cluster can grow while handling online requests
+              </para>
+            </listitem>
+            <listitem>
+              <para>Online cluster management - Cluster topology can change while handling online requests
+              </para>
+            </listitem>
+            <listitem>
+              <para>Low operational/maintenance costs - Push it, leave it and forget it.
+              </para>
+            </listitem>
+          </itemizedlist>
+        </listitem>
+        <listitem>
+          <para><emphasis role="bold">Performance</emphasis></para>
+          <itemizedlist spacing="compact">
+            <listitem>
+              <para>low indexing latency - real-time update
+              </para>
+            </listitem>
+            <listitem>
+              <para>low search latency - millisecond query response time
+              </para>
+            </listitem>
+            <listitem>
+              <para>low volatility - low variance in both indexing and search latency
+              </para>
+            </listitem>
+          </itemizedlist>
+        </listitem>
+        <listitem>
+          <para><emphasis role="bold">Customizability</emphasis></para>
+          <itemizedlist spacing="compact">
+            <listitem>
+              <para>plug-in framework - custom query handling logic
+              </para>
+            </listitem>
+            <listitem>
+              <para>routing factory - custom routing logic, default: round-robin
+              </para>
+            </listitem>
+            <listitem>
+              <para>index sharding strategy - different sharding strategy for different applications, e.g. time, mod etc.
+              </para>
+            </listitem>
+          </itemizedlist>
+        </listitem>
+      </itemizedlist>
+    </section>
+
+    <section>
+      <title>Comparing to Traditional RDBMS</title>
+      <para>
+        <emphasis role="bold">RDBMS</emphasis>:
+      </para>
+      <itemizedlist spacing="compact">
+        <listitem>
+          <para>vertically scaled
+          </para>
+        </listitem>
+        <listitem>
+          <para>strong ACID guarantee
+          </para>
+        </listitem>
+        <listitem>
+          <para>relational support
+          </para>
+        </listitem>
+        <listitem>
+          <para>performance cost with full-text integration
+          </para>
+        </listitem>
+        <listitem>
+          <para>high query latency with large dataset, esp. Group By
+          </para>
+        </listitem>
+        <listitem>
+          <para>indexes needs to be built for all sort possibilities offline
+          </para>
+        </listitem>
+      </itemizedlist>
+      <para>
+        <emphasis role="bold">Sensei</emphasis>:
+      </para>
+      <itemizedlist spacing="compact">
+        <listitem>
+          <para>horizontally scaled
+          </para>
+        </listitem>
+        <listitem>
+          <para>relaxed Consistency with high durability guarantees
+          </para>
+        </listitem>
+        <listitem>
+          <para>data is streamed in, so Atomicity and Isolation is to be handled by the data producer
+          </para>
+        </listitem>
+        <listitem>
+          <para>full-text support
+          </para>
+        </listitem>
+        <listitem>
+          <para>low query latency with arbitrarily large dataset
+          </para>
+        </listitem>
+        <listitem>
+          <para>dynamic sorting, index is already built for all sortable fields and their combinations
+          </para>
+        </listitem>
+      </itemizedlist>
+    </section>
+
+    <section>
+      <title>Architectural Diagram</title>
+      <mediaobject>
+        <imageobject role="fo">
+          <imagedata format="JPG" align="center" valign="middle" 
+                     scale="75" fileref="figures/sensei-overview.jpg"/>
+        </imageobject>
+        <imageobject role="html">
+          <imagedata format="JPG" align="center" valign="middle" 
+                     scale="100" fileref="figures/sensei-overview.jpg"/>
+        </imageobject>
+      </mediaobject>
+    </section>
+    
+  </chapter>                    <!-- Introduction -->
+
+  <chapter>
+    <title>Getting Started</title>
+
+    <para>(To be finished)</para>
+  </chapter>
+
+  <chapter>
+    <title>Sensei Demo</title>
+
+    <section>
+      <title>Overview</title>
+
+      <para>We feel the best way to learn a new system is through
+      examples.</para>
+
+      <para>Sensei comes with a sample application and this page aims to
+      provide an anatomy of the Sensei car demo and to help new-comers
+      in building a Sensei application.</para>
+
+      <para>File layout:</para>
+
+      <itemizedlist spacing="compact">
+        <listitem>
+          <para>configuration files: <filename>conf/*</filename></para>
+        </listitem>
+        <listitem>
+          <para>data file: <filename>data/cars.json</filename></para>
+        </listitem>
+        <listitem>
+          <para>output index: <filename>index/</filename></para>
+        </listitem>
+        <listitem>
+          <para>web-app: <filename>src/main/webapp/</filename></para>
+        </listitem>
+      </itemizedlist>
+    </section>
+
+    <section>
+      <title>Run The Demo</title>
+
+      <para><emphasis role="bold">Build:</emphasis></para>
+      <programlisting><![CDATA[    ant]]></programlisting>
+
+      <para><emphasis role="bold">Make sure zookeeper is
+      running:</emphasis></para>
+      <programlisting><![CDATA[    $ZK_home/bin/zkServer.sh start]]></programlisting>
+
+      <para><emphasis role="bold">Run:</emphasis></para>
+      <programlisting><![CDATA[    ./bin/start-sensei-node conf/]]></programlisting>
+
+    </section>
+
+    <section>
+      <title>URLs</title>
+
+      <itemizedlist>
+        <listitem>
+          <para>Sensei Web Client: <link xlink:href="http://localhost:8080/">http://localhost:8080/</link></para>
+        </listitem>
+        <listitem>
+          <para>Demo: <link xlink:href="http://localhost:8080/">http://localhost:8080/</link></para>
+        </listitem>
+        <listitem>
+          <para>Rest Endpoint: <link xlink:href="http://localhost:8080/sensei">http://localhost:8080/sensei</link></para>
+        </listitem>
+      </itemizedlist>
+    </section>
+    
+    <section>
+      <title>Screenshots</title>
+
+      <figure>
+        <title>Sensei Web Client</title>
+        <mediaobject>
+          <imageobject role="fo">
+            <imagedata format="PNG" align="center" valign="middle" 
+                       scale="25" fileref="figures/sensei-web-client.png"/>
+          </imageobject>
+          <imageobject role="html">
+            <imagedata format="PNG" align="center" valign="middle" 
+                       scale="50" fileref="figures/sensei-web-client.png"/>
+          </imageobject>
+        </mediaobject>
+      </figure>
+
+      <figure>
+        <title>Demo</title>
+        <mediaobject>
+          <imageobject role="fo">
+            <imagedata format="PNG" align="center" valign="middle" 
+                       scale="25" fileref="figures/demo.png"/>
+          </imageobject>
+          <imageobject role="html">
+            <imagedata format="PNG" align="center" valign="middle" 
+                       scale="50" fileref="figures/demo.png"/>
+          </imageobject>
+        </mediaobject>
+      </figure>
+
+      <figure>
+        <title>Reset Endpoint</title>
+        <mediaobject>
+          <imageobject role="fo">
+            <imagedata format="PNG" align="center" valign="middle" 
+                       scale="25" fileref="figures/reset-end-point.png"/>
+          </imageobject>
+          <imageobject role="html">
+            <imagedata format="PNG" align="center" valign="middle" 
+                       scale="50" fileref="figures/reset-end-point.png"/>
+          </imageobject>
+        </mediaobject>
+      </figure>
+
+    </section>
+
+    <section>
+      <title>Diagram</title>
+
+      <figure>
+        <title>The Sensei Demo System</title>
+        <mediaobject>
+          <imageobject role="fo">
+            <imagedata format="PNG" align="center" valign="middle" 
+                       scale="90" fileref="figures/sensei-demo.png"/>
+          </imageobject>
+          <imageobject role="html">
+            <imagedata format="PNG" align="center" valign="middle" 
+                       scale="100" fileref="figures/sensei-demo.png"/>
+          </imageobject>
+        </mediaobject>
+      </figure>
+
+    </section>
+
+  </chapter>
+
+  <chapter>
+    <title>Sensei Configuration</title>
+
+    <section>
+      <title>Overview</title>
+
+      <para>A Sensei node is configured by a set of files. These files
+      describe a Sensei node in terms of data models, server
+      configuration, indexing tuning parameters, customizations
+      etc.</para>
+
+      <para>This document aims to describe how parts are pieced together
+      via these configuration files.</para>
+    </section>
+
+    <section>
+      <title>Data Modeling</title>
+
+      <para>Data models are described in the
+      <filename>schema.xml</filename> file (xsd definition:
+      http://javasoze.github.com/sensei/schema/sensei-schema.xsd.)</para>
+
+      <para>The demo example can be found here:
+      https://github.com/javasoze/sensei/blob/master/conf/schema.xml
+      </para>
+
+      <para>The schema file is composed by 2 sections:</para>
+
+      <orderedlist>
+        <listitem>
+          <para>table</para>
+        </listitem>
+        <listitem>
+          <para>facets</para>
+        </listitem>
+      </orderedlist>
+
+      <section>
+        <title>Table Schema</title>
+
+        <para>A Sensei instance can be viewed as a giant table with many
+        columns and many rows. The concept of such table directly
+        correlates to that of traditional RDBMS's.</para>
+
+        <para>A table has 3 attributes:</para>
+        
+        <itemizedlist spacing="compact">
+          <listitem>
+            <para>uid (mandatory) - defines name of the primary key
+            field. This must be of type long.</para>
+          </listitem>
+          <listitem>
+            <para>delete-field (optional) - defines the field that would
+            indicate a delete event (we will get back to this
+            later)</para>
+          </listitem>
+          <listitem>
+            <para>skip-field (optional) - defines the field that would
+            indicate a skipping event (we will get back to this
+            later)</para>
+          </listitem>
+        </itemizedlist>
+
+        <para>A table is also composed of a set of columns.  Each column
+        has a name and a type.</para>
+
+        <para>These are the supported types:</para>
+
+        <itemizedlist spacing="compact">
+          <listitem>
+            <para>string - value is a string, e.g. "<code>abc</code>"</para>
+          </listitem>
+          <listitem>
+            <para>int - integer value</para>
+          </listitem>
+          <listitem>
+            <para>long - long value</para>
+          </listitem>
+          <listitem>
+            <para>short - short value</para>
+          </listitem>
+          <listitem>
+            <para>float - a floating point value</para>
+          </listitem>
+          <listitem>
+            <para>double - double value</para>
+          </listitem>
+          <listitem>
+            <para>char - a character</para>
+          </listitem>
+          <listitem>
+            <para>date - a date value, must be accompanied by a format
+            string to be used to parse a data string</para>
+          </listitem>
+          <listitem>
+            <para>text - a searchable text segment, standard Lucene
+            indexing specification can also be specified here,
+            e.g. index="ANALYZED" termvector="NO" etc.</para>
+          </listitem>
+        </itemizedlist>
+
+        <para>A column that is not of type "text" is considered a meta
+        column.</para>
+
+        <para>Any meta column can be specified to be either
+        single(default) or multi. When a column is specified to be
+        multi, e.g. multi="true", this means given a row, it can have
+        more than 1 value for this column. A delimiter string can be
+        provided to help the indexer to parse the values (default
+        delimiter is ",", for example, to specify a different delimiter
+        to be ":", we can do this by delimiter=":")</para>
+
+        <para>Example:
+        https://github.com/javasoze/sensei/blob/master/conf/schema.xml</para>
+
+        <section>
+          <title>JSON</title>
+
+          <para>By default, data objects inserted into Sensei are JSON objects.</para>
+
+          <para><emphasis role="bold">Example</emphasis>:</para>
+
+          <para>Given the following table definition:</para>
+
+          <programlisting><![CDATA[<table uid="id">
+   <column name="color" type="string" />
+   <column name="year" type="int" />
+   <column name=tag" type="string" multi="true" />
+   <column name="description" type="text" index="ANALYZED" store="NO" />
+ </table>
+]]></programlisting>
+
+          <para>The following table shows as an example how a json
+          object is mapped into the table:</para>
+
+          <para><emphasis role="bold">JSON object</emphasis></para>
+
+          <programlisting><![CDATA[ {
+   id:1
+   color:"red",
+   year:2000,
+   tag:"cool,leather",
+   description:"i love this car"
+ }]]></programlisting>
+
+          <para><emphasis role="bold">Table view</emphasis></para>
+
+          <informaltable border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+            <colgroup><col align="left" /><col align="left" /><col align="left" /><col align="left" /><col align="left" />
+            </colgroup>
+            <thead>
+              <tr><th scope="col" align="left">id</th><th scope="col" align="left">color</th><th scope="col" align="left">year</th><th scope="col" align="left">tag</th><th scope="col" align="left">description</th></tr>
+            </thead>
+            <tbody>
+              <tr><td align="left">1</td><td align="left">red</td><td align="left">2000</td><td align="left">cool, leather</td><td align="left">i love this car</td></tr>
+            </tbody>
+          </informaltable>
+
+        </section>
+
+        <section>
+          <title>Deletes</title>
+
+          <para>To deleted a row from Sensei, simply insert a data
+          object with the specified delete-field set to true.</para>
+
+          <para><emphasis role="bold">Example:</emphasis></para>
+
+          <para>Given the table schema:</para>
+
+          <programlisting><![CDATA[<table uid="id" delete-field="isDelete">...
+</table>
+]]></programlisting>
+
+          <para>The following JSON object would delete the row where
+          id=5:</para>
+          <programlisting><![CDATA[{
+  id:5,
+  isDelete:"true"
+}]]></programlisting>
+        </section>
+
+        <section>
+          <title>Skips</title>
+
+          <para>In cases where runtime logic decides whether a data
+          object should be skipped, the skip field can be useful.</para>
+
+          <para><emphasis role="bold">Example:</emphasis></para>
+
+          <para>Given the table schema:</para>
+
+          <programlisting><![CDATA[<table uid="id" skip-field="isSkip">...
+</table>]]></programlisting>
+
+          <para>The following JSON object would be skipped from
+          indexing:</para>
+
+          <programlisting><![CDATA[{
+  id:7,
+  isSkip:"true"
+}]]></programlisting>
+
+        </section>
+
+      </section>
+
+
+      <section>
+        <title>Facet Schema</title>
+
+        <para>The second section is the facet schema, which defines how
+        columns can be queried.</para>
+
+        <para>If we think of the table section defines how data is added
+        into Sensei, then the facet section describes how these data can
+        be queried.</para>
+
+        <para>The facet sections is composed of a set of facet
+        definitions.</para>
+
+        <para>A facet definition requires a name and a type.</para>
+
+        <para>Possible types:</para>
+
+        <itemizedlist spacing="compact">
+          <listitem>
+            <para><code>simple</code>: simplest facet, 1 row = 1
+            discrete value</para>
+          </listitem>
+          <listitem>
+            <para><code>path</code>: hierarchical facet, e.g. a/b/c</para>
+          </listitem>
+          <listitem>
+            <para><code>range</code>: range facet, used to support range queries</para>
+          </listitem>
+          <listitem>
+            <para><code>multi</code>: 1 row = N discrete values</para>
+          </listitem>
+          <listitem>
+            <para><code>compact-multi</code>: similar to multi, but possible values are limited to 32</para>
+          </listitem>
+          <listitem>
+            <para><code>custom</code>: any user defined facet type (We will cover this in advanced section)</para>
+          </listitem>
+        </itemizedlist>
+
+        <para>Example: <link
+        xlink:href="https://github.com/javasoze/sensei/blob/master/conf/schema.xml">https://github.com/javasoze/sensei/blob/master/conf/schema.xml</link></para>
+
+        <section>
+          <title>Optional Attributes</title>
+
+          <section>
+            <title>Column</title>
+
+            <para>The column attribute references the column names
+            defined in the table section. By default, the name is
+            used.</para>
+
+            <para>This can be useful if you want to name the facet name
+            to be different from the defined column name, or if you want
+            to have multiple facets defined on the same column.</para>
+          </section>
+
+          <section>
+            <title>Depends</title>
+
+            <para>A comma delimited string denoting a set of facet names
+            this facet is to be depended on.</para>
+
+            <para>When <code>depends</code> is specified, Sensei
+            guarantees the depending facets are loaded before this
+            facet.</para>
+
+            <para>This is also how Composite Facets are
+            constructed. (Another advanced topic)</para>
+          </section>
+
+          <section>
+            <title>Dynamic</title>
+
+            <para>Dynamic facets are useful when data layout is not
+            known until query time.</para>
+
+            <para>Some examples:</para>
+
+            <itemizedlist spacing="compact">
+              <listitem>
+                <para>searcher's social network</para>
+              </listitem>
+              <listitem>
+                <para>dynamic time ranges from when the search request
+                is issued</para>
+              </listitem>
+              <listitem>
+                <para>...</para>
+              </listitem>
+            </itemizedlist>
+
+            <para>This is another advanced topic to be discussed
+            later.</para>
+          </section>
+
+        </section>
+
+        <section>
+          <title>Parameters</title>
+
+          <para>Every facet is configured via a list of
+          parameters.</para>
+
+          <para>Some examples:</para>
+
+          <itemizedlist spacing="compact">
+            <listitem>
+              <para>For path facets, separator strings can be configured</para>
+            </listitem>
+            <listitem>
+              <para>For range facets, pre-defined ranges can be configured</para>
+            </listitem>
+            <listitem>
+              <para>...</para>
+            </listitem>
+          </itemizedlist>
+
+          <para>How parameters are interpreted is dependent on the facet
+          type.</para>
+
+        </section>
+
+        <section>
+          <title>Customized Facets</title>
+
+          <para>We understand we cannot possibly cover all use-cases,
+          and being customizable is necessary.</para>
+
+          <para>TO BE ADDED...</para>
+        </section>
+      </section>
+
+    </section>                  <!-- Data Modeling -->
+
+    <section>
+      <title>System Configuration</title>
+
+      <para>The Sensei system is configured via the
+      <filename>sensei.properties</filename> file.</para>
+
+      <para>The demo configuration can be found here: <link
+      xlink:href="https://github.com/javasoze/sensei/blob/master/conf/sensei.properties">https://github.com/javasoze/sensei/blob/master/conf/sensei.properties</link></para>
+
+      <para>Sensei configuration consists of the following
+      sections:</para>
+
+      <orderedlist spacing="compact">
+        <listitem>
+          <para>server: e.g. port to listen on, rpc paramters
+          etc.</para>
+        </listitem>
+        <listitem>
+          <para>cluster: cluster manager, sharding, request routing
+          etc.</para>
+        </listitem>
+        <listitem>
+          <para>indexing: data interpretation, tokenization, indexer
+          type etc.</para>
+        </listitem>
+        <listitem>
+          <para>broker: e.g. entry into Sensei system</para>
+        </listitem>
+        <listitem>
+          <para>plugins</para>
+        </listitem>
+      </orderedlist>
+
+      <section>
+        <title>Server</title>
+
+        <para>TO BE FINISHED</para>
+      </section>
+
+      <section>
+        <title>Cluster</title>
+
+        <para>TO BE FINISHED</para>
+      </section>
+
+      <section>
+        <title>Indexing</title>
+
+        <para>TO BE FINISHED</para>
+      </section>
+
+      <section>
+        <title>Broker</title>
+
+        <para>TO BE FINISHED</para>
+      </section>
+
+      <section>
+        <title>Plug-ins</title>
+
+        <para>TO BE FINISHED</para>
+      </section>
+
+    </section>                  <!-- System Configurations -->
+
+    <section>
+      <title>Extensions</title>
+
+      <para>TO BE FINISHED</para>
+    </section>
+
+  </chapter>
+
+
+</book>
