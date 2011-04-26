@@ -198,7 +198,6 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 	      Iterator<Integer> it = DefaultStreamingIndexingManager.this._zoieSystemMap.keySet().iterator();
 	      while(it.hasNext()){
 	        int part_num = it.next();
-	        DefaultStreamingIndexingManager.this._zoieSystemMap.get(part_num).consume(DefaultStreamingIndexingManager.this._dataCollectorMap.get(part_num));
 	        Zoie<BoboIndexReader,JSONObject> dataConsumer = DefaultStreamingIndexingManager.this._zoieSystemMap.get(part_num);
 	        if (dataConsumer!=null){
 	          Collection<DataEvent<JSONObject>> partDataSet =DefaultStreamingIndexingManager.this._dataCollectorMap.get(part_num);
