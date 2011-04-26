@@ -147,33 +147,37 @@ public class DefaultJsonSchemaInterpreter extends
 						  }
 					  }
 
-					  List<Object> vals = new LinkedList<Object>();
-					  if (fldDef.isMulti){
-						String val = src.optString(fldDef.fromField);
+            if (src.has(fldDef.fromField))
+            {
+              List<Object> vals = new LinkedList<Object>();
+              if (fldDef.isMulti){
+                String val = src.optString(fldDef.fromField);
 
-						if (val!=null && val.trim().length()>0){
-							StringTokenizer strtok = new StringTokenizer(val,fldDef.delim);
-							while(strtok.hasMoreTokens()){
-								String token = strtok.nextToken();
-								vals.add(extractor.extract(token));
-							}
-						}
-					  }
-					  else{
-					    vals.add(extractor.extract(src.optString(fldDef.fromField)));
-					  }
-					  for (Object val : vals){
-						String strVal = null;
-						if (fldDef.formatter!=null){
-							strVal = fldDef.formatter.format(val);
-						}
-						else{
-							strVal = String.valueOf(val);
-						}
-						Field metaField = new Field(name,strVal,Store.NO,Index.NOT_ANALYZED_NO_NORMS);
-						metaField.setOmitTermFreqAndPositions(true);
-						luceneDoc.add(metaField);
-					  }
+                if (val!=null && val.trim().length()>0){
+                  StringTokenizer strtok = new StringTokenizer(val,fldDef.delim);
+                  while(strtok.hasMoreTokens()){
+                    String token = strtok.nextToken();
+                    vals.add(extractor.extract(token));
+                  }
+                }
+              }
+              else{
+                vals.add(extractor.extract(src.optString(fldDef.fromField)));
+              }
+                      
+              for (Object val : vals){
+                String strVal = null;
+                if (fldDef.formatter!=null){
+                  strVal = fldDef.formatter.format(val);
+                }
+                else{
+                  strVal = String.valueOf(val);
+                }
+                Field metaField = new Field(name,strVal,Store.NO,Index.NOT_ANALYZED_NO_NORMS);
+                metaField.setOmitTermFreqAndPositions(true);
+                luceneDoc.add(metaField);
+              }
+            }
 				  }
 				  else{
 					  Field textField = new Field(name,src.optString(fldDef.fromField),
