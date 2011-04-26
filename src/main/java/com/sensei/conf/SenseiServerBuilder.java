@@ -179,7 +179,8 @@ public class SenseiServerBuilder implements SenseiConfParams{
     return server;
   }
   
-  public SenseiServerBuilder(File confDir, Map<String, Object> properties) throws Exception {
+  public SenseiServerBuilder(File confDir, Map<String, Object> properties, ApplicationContext customFacetContext,
+      ApplicationContext pluginContext) throws Exception {
     _confDir = confDir;
     if (properties != null) {
       _senseiConfFile = null;
@@ -193,7 +194,10 @@ public class SenseiServerBuilder implements SenseiConfParams{
       _senseiConf = new PropertiesConfiguration(_senseiConfFile);
     }
 
-    _pluginContext = loadSpringContext(new File(confDir,PLUGINS));
+    if (pluginContext != null)
+      _pluginContext = pluginContext;
+    else
+      _pluginContext = loadSpringContext(new File(confDir,PLUGINS));
 
     String versionComparatorName = _senseiConf.getString(SENSEI_INDEX_VERSIONCOMPARATOR, "");
     if (versionComparatorName == null || versionComparatorName.equals(""))
@@ -202,7 +206,11 @@ public class SenseiServerBuilder implements SenseiConfParams{
       _versionComparator = (Comparator<String>) _pluginContext.getBean(versionComparatorName);
 
     _jettyServer = buildHttpRestServer();
-    _customFacetContext = loadSpringContext(new File(confDir,CUSTOM_FACETS));
+
+    if (customFacetContext != null)
+      _customFacetContext = customFacetContext;
+    else
+      _customFacetContext = loadSpringContext(new File(confDir,CUSTOM_FACETS));
     
     DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
     dbf.setIgnoringComments(true);
@@ -211,10 +219,18 @@ public class SenseiServerBuilder implements SenseiConfParams{
     _schemaDoc.getDocumentElement().normalize();
   }
 
-  public SenseiServerBuilder(File confDir) throws Exception {
-    this(confDir, null);
+  public SenseiServerBuilder(File confDir, Map<String, Object> properties, ApplicationContext customFacetContext) throws Exception {
+    this(confDir, properties, customFacetContext, null);
   }
-  
+
+  public SenseiServerBuilder(File confDir, Map<String, Object> properties) throws Exception {
+    this(confDir, properties, null, null);
+  }
+
+  public SenseiServerBuilder(File confDir) throws Exception {
+    this(confDir, null, null, null);
+  }
+
   static final Pattern PARTITION_PATTERN = Pattern.compile("[\\d]+||[\\d]+-[\\d]+");
   
   public static int[] buildPartitions(String[] partitionArray) throws ConfigurationException{
