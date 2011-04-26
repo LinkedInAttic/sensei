@@ -1,6 +1,20 @@
 package com.sensei.search.svc.impl;
 
 
+import com.browseengine.bobo.api.BrowseFacet;
+import com.browseengine.bobo.api.BrowseSelection;
+import com.browseengine.bobo.api.FacetAccessible;
+import com.browseengine.bobo.api.FacetSpec;
+import com.browseengine.bobo.api.MappedFacetAccessible;
+import com.browseengine.bobo.facets.FacetHandlerInitializerParam;
+import com.sensei.search.client.servlet.SenseiSearchServletParams;
+import com.sensei.search.req.SenseiHit;
+import com.sensei.search.req.SenseiQuery;
+import com.sensei.search.req.SenseiRequest;
+import com.sensei.search.req.SenseiResult;
+import com.sensei.search.req.SenseiSystemInfo;
+import com.sensei.search.svc.api.SenseiException;
+import com.sensei.search.svc.api.SenseiService;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,24 +32,38 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.zip.GZIPInputStream;
-
 import javax.net.ssl.SSLHandshakeException;
-
 import org.apache.commons.io.IOUtils;
+import org.apache.http.Header;
+import org.apache.http.HeaderElement;
+import org.apache.http.HeaderElementIterator;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
+import org.apache.http.HttpException;
 import org.apache.http.HttpRequest;
+import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.HttpResponse;
+import org.apache.http.HttpResponseInterceptor;
 import org.apache.http.NameValuePair;
 import org.apache.http.NoHttpResponseException;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URIUtils;
 import org.apache.http.client.utils.URLEncodedUtils;
+import org.apache.http.conn.ClientConnectionManager;
+import org.apache.http.conn.scheme.PlainSocketFactory;
+import org.apache.http.conn.scheme.Scheme;
+import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.entity.HttpEntityWrapper;
+import org.apache.http.impl.client.DefaultConnectionKeepAliveStrategy;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
+import org.apache.http.message.BasicHeaderElementIterator;
 import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.ExecutionContext;
+import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
@@ -44,103 +72,56 @@ import org.apache.lucene.search.SortField;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
-
-import com.browseengine.bobo.api.BrowseFacet;
-import com.browseengine.bobo.api.BrowseSelection;
-import com.browseengine.bobo.api.FacetAccessible;
-import com.browseengine.bobo.api.FacetSpec;
-import com.browseengine.bobo.api.MappedFacetAccessible;
-import com.browseengine.bobo.facets.FacetHandlerInitializerParam;
-import com.sensei.search.client.servlet.SenseiSearchServletParams;
-import com.sensei.search.req.SenseiHit;
-import com.sensei.search.req.SenseiQuery;
-import com.sensei.search.req.SenseiRequest;
-import com.sensei.search.req.SenseiResult;
-import com.sensei.search.req.SenseiSystemInfo;
-import com.sensei.search.svc.api.SenseiException;
-import com.sensei.search.svc.api.SenseiService;
 
 
 public class HttpRestSenseiServiceImpl implements SenseiService
 {
-  private static class GzipDecompressingEntity
-    extends HttpEntityWrapper {
-
-    public GzipDecompressingEntity(final HttpEntity entity) {
-      super(entity);
-    }
-
-    @Override
-    public InputStream getContent()
-      throws IOException, IllegalStateException {
-      // the wrapped entity's getContent() decides about repeatability
-      InputStream wrappedin = wrappedEntity.getContent();
-      return new GZIPInputStream(wrappedin);
-    }
-
-    @Override
-    public long getContentLength() {
-      // length of ungzipped content is not known
-      return -1;
-    }
-
-  }
   String _scheme;
   String _host;
   int _port;
   String _path;
+  int _defaultKeepAliveDurationMS;
   int _maxRetries;
-  HttpRequestRetryHandler _retryHandler;
+  DefaultHttpClient _httpclient;
+
+  public HttpRestSenseiServiceImpl(
+      String scheme,
+      String host,
+      int port,
+      String path)
+  {
+    this(
+      scheme,
+      host,
+      port,
+      path,
+      5000,
+      5);
+  }
 
   public HttpRestSenseiServiceImpl(
       String scheme,
       String host,
       int port,
       String path,
+      int defaultKeepAliveDurationMS,
       final int maxRetries)
   {
     this(scheme,
          host,
          port,
          path,
+         defaultKeepAliveDurationMS,
          maxRetries,
-         new HttpRequestRetryHandler()
-         {
-           public boolean retryRequest(IOException exception, int executionCount, HttpContext context)
-           {
-             if (executionCount >= maxRetries)
-             {
-               // Do not retry if over max retry count
-               return false;
-             }
-             if (exception instanceof NoHttpResponseException)
-             {
-               // Retry if the server dropped connection on us
-               return true;
-             }
-             if (exception instanceof SSLHandshakeException)
-             {
-               // Do not retry on SSL handshake exception
-               return false;
-             }
-             HttpRequest request = (HttpRequest) context.getAttribute(ExecutionContext.HTTP_REQUEST);
-             boolean idempotent = !(request instanceof HttpEntityEnclosingRequest);
-             if (idempotent)
-             {
-               // Retry if the request is considered idempotent
-               return true;
-             }
-             return false;
-           }
-         });
+         null);
   }
 
   public HttpRestSenseiServiceImpl(String scheme,
                                    String host,
                                    int port,
                                    String path,
+                                   int defaultKeepAliveDurationMS,
                                    final int maxRetries,
                                    HttpRequestRetryHandler retryHandler)
   {
@@ -148,8 +129,145 @@ public class HttpRestSenseiServiceImpl implements SenseiService
     _host = host;
     _port = port;
     _path = path;
+    _defaultKeepAliveDurationMS = defaultKeepAliveDurationMS;
     _maxRetries = maxRetries;
-    _retryHandler = retryHandler;
+    _httpclient = createHttpClient(retryHandler);
+  }
+
+  private DefaultHttpClient createHttpClient(HttpRequestRetryHandler retryHandler)
+  {
+    HttpParams params = new BasicHttpParams();
+    SchemeRegistry registry = new SchemeRegistry();
+    registry.register(new Scheme("http", _port, PlainSocketFactory.getSocketFactory()));
+    ClientConnectionManager cm = new ThreadSafeClientConnManager(registry);
+    DefaultHttpClient client = new DefaultHttpClient(cm, params);
+    if (retryHandler == null)
+    {
+      retryHandler = new HttpRequestRetryHandler()
+      {
+        public boolean retryRequest(IOException exception, int executionCount, HttpContext context)
+        {
+          if (executionCount >= _maxRetries)
+          {
+            // Do not retry if over max retry count
+            return false;
+          }
+          if (exception instanceof NoHttpResponseException)
+          {
+            // Retry if the server dropped connection on us
+            return true;
+          }
+          if (exception instanceof SSLHandshakeException)
+          {
+            // Do not retry on SSL handshake exception
+            return false;
+          }
+          HttpRequest request = (HttpRequest) context.getAttribute(ExecutionContext.HTTP_REQUEST);
+          boolean idempotent = !(request instanceof HttpEntityEnclosingRequest);
+          if (idempotent)
+          {
+            // Retry if the request is considered idempotent
+            return true;
+          }
+          return false;
+        }
+      };
+    }
+    client.setHttpRequestRetryHandler(retryHandler);
+
+    client.addRequestInterceptor(new HttpRequestInterceptor()
+    {
+      public void process(final HttpRequest request, final HttpContext context)
+        throws HttpException, IOException
+      {
+        if (!request.containsHeader("Accept-Encoding"))
+        {
+          request.addHeader("Accept-Encoding", "gzip");
+        }
+      }
+    });
+
+    client.addResponseInterceptor(new HttpResponseInterceptor()
+    {
+      public void process(final HttpResponse response, final HttpContext context)
+        throws HttpException, IOException
+      {
+        HttpEntity entity = response.getEntity();
+        Header ceheader = entity.getContentEncoding();
+        if (ceheader != null)
+        {
+          HeaderElement[] codecs = ceheader.getElements();
+          for (int i = 0; i < codecs.length; i++)
+          {
+            if (codecs[i].getName().equalsIgnoreCase("gzip"))
+            {
+              response.setEntity(new GzipDecompressingEntity(response.getEntity()));
+              return;
+            }
+          }
+        }
+      }
+    });
+
+    client.setKeepAliveStrategy(new DefaultConnectionKeepAliveStrategy()
+    {
+      @Override
+      public long getKeepAliveDuration(HttpResponse response, HttpContext context)
+      {
+        // Honor 'keep-alive' header
+        HeaderElementIterator it = new BasicHeaderElementIterator(response.headerIterator(HTTP.CONN_KEEP_ALIVE));
+        while (it.hasNext())
+        {
+          HeaderElement he = it.nextElement();
+          String param = he.getName();
+          String value = he.getValue();
+          if ((value != null) && param.equalsIgnoreCase("timeout"))
+          {
+            try
+            {
+              return Long.parseLong(value) * 1000;
+            }
+            catch (NumberFormatException ignore)
+            {
+            }
+          }
+        }
+
+        long keepAlive = super.getKeepAliveDuration(response, context);
+        if (keepAlive == -1)
+        {
+          keepAlive = _defaultKeepAliveDurationMS;
+        }
+        return keepAlive;
+      }
+    });
+
+    return client;
+  }
+
+  private static class GzipDecompressingEntity extends HttpEntityWrapper
+  {
+    public GzipDecompressingEntity(final HttpEntity entity)
+    {
+      super(entity);
+    }
+
+    @Override
+    public InputStream getContent()
+      throws IOException, IllegalStateException
+    {
+      // the wrapped entity's getContent() decides about repeatability
+      InputStream wrappedin = wrappedEntity.getContent();
+      return new GZIPInputStream(wrappedin);
+    }
+
+    @Override
+    public long getContentLength()
+    {
+      // length of ungzipped content is not known
+      return -1;
+    }
+
   }
 
   @Override
@@ -158,6 +276,7 @@ public class HttpRestSenseiServiceImpl implements SenseiService
   {
     SenseiResult result;
     InputStream is = null;
+
     try
     {
       List<NameValuePair> queryParams = convertRequestToQueryParams(req);
@@ -178,9 +297,11 @@ public class HttpRestSenseiServiceImpl implements SenseiService
     {
       throw new SenseiException(e);
     }
-    finally{
-      if (is!=null){
-    	IOUtils.closeQuietly(is);
+    finally
+    {
+      if (is != null)
+      {
+    	  IOUtils.closeQuietly(is);
       }
     }
 
@@ -455,11 +576,8 @@ public class HttpRestSenseiServiceImpl implements SenseiService
   public InputStream makeRequest(URI uri)
       throws IOException
   {
-    DefaultHttpClient httpclient = new DefaultHttpClient();
-    httpclient.setHttpRequestRetryHandler(_retryHandler);
-
     HttpGet httpget = new HttpGet(uri);
-    HttpResponse response = httpclient.execute(httpget);
+    HttpResponse response = _httpclient.execute(httpget);
     HttpEntity entity = response.getEntity();
     if (entity == null)
     {
@@ -632,8 +750,9 @@ public class HttpRestSenseiServiceImpl implements SenseiService
 
   @Override
   public void shutdown() {
-	// TODO Auto-generated method stub
-	
+    if (_httpclient == null) return;
+    ((ClientConnectionManager)_httpclient).shutdown();
+    _httpclient = null;
   }
 
 }
