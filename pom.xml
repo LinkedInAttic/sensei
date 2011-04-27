@@ -147,6 +147,12 @@
 			<version>5.0.5</version>
 			<type>jar</type>
 		</dependency>
+		<dependency>
+			<groupId>com.yammer</groupId>
+			<artifactId>metrics_2.8.1</artifactId>
+			<version>2.0.0-BETA10</version>
+			<type>jar</type>
+		</dependency>
 
 		<dependency>
 			<groupId>org.springframework</groupId>
@@ -292,6 +298,10 @@
 	    <repository>
 	      <id>Scala Tools Repository</id>
 	      <url>http://nexus.scala-tools.org/content/repositories/snapshots/</url>
+	    </repository>
+	    <repository>
+	      <id>Coda Hale Repository</id>
+	      <url>http://repo.codahale.com/</url>
 	    </repository>
 	  </repositories>
 
