@@ -242,8 +242,36 @@
 
   <chapter>
     <title>Getting Started</title>
+    <section>
+	   <title>Overview</title>
+	   
+	</section>
 
-    <para>(To be finished)</para>
+    <section>
+	   <title>Prerequisites</title>
+	   <itemizedlist>
+		  
+	   </itemizedlist>
+	</section>
+	
+	<section>
+	   <title>Embedded Technologies</title>
+	   <itemizedlist>
+		  
+	   </itemizedlist>
+	</section>
+	
+	<section>
+	   <title>Details</title>
+	   <section><title>Build</title>
+	   </section>
+	   <section><title>ZooKeeper</title></section>
+	   <section><title>Starting Sensei Nodes</title></section>
+	   <section><title>Web Application and Restful end-porint</title></section>
+	   <section><title>Starting Sensei Shell</title></section>
+	   <section><title>Sensei Demo</title></section>
+	</section>
+	
   </chapter>
 
   <chapter>
