@@ -49,7 +49,9 @@
     </bean>
 
 	<bean id="network-client-config" class="com.linkedin.norbert.javacompat.network.NetworkClientConfig">
-       <property name="serviceName" value="sensei"/>
+       <property name="serviceName" value="testCluster"/>
+       <property name="zooKeeperConnectString" value="localhost:2181" />
+       <property name="zooKeeperSessionTimeoutMillis" value="30000" />
        <property name="connectTimeoutMillis" value="1000"/>
        <property name="writeTimeoutMillis" value="150"/>
        <property name="maxConnectionsPerNode" value="5"/>

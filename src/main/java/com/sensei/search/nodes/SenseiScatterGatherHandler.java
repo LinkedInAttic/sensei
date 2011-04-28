@@ -2,10 +2,12 @@ package com.sensei.search.nodes;
 
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
 
+import com.browseengine.bobo.api.FacetSpec;
 import com.google.protobuf.Message;
 import com.linkedin.norbert.javacompat.cluster.Node;
 import com.sensei.search.client.ResultMerger;
@@ -76,6 +78,15 @@ public class SenseiScatterGatherHandler extends AbstractSenseiScatterGatherHandl
   {
     SenseiRequestBPO.Request req = (SenseiRequestBPO.Request) msg;
     SenseiRequest senseiReq = SenseiRequestBPOConverter.convert(req);
+
+    // Rewrite facet max count.
+    Map<String, FacetSpec> facetSpecs = senseiReq.getFacetSpecs();
+    if (facetSpecs != null) {
+      for (Map.Entry<String, FacetSpec> entry : facetSpecs.entrySet()) {
+        FacetSpec spec = entry.getValue();
+        spec.setMaxCount(0);
+      }
+    }
 
     int oldOffset = senseiReq.getOffset();
     int oldCount = senseiReq.getCount();

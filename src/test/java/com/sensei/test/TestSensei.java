@@ -63,21 +63,21 @@ public class TestSensei extends AbstractSenseiTestCase
 
   
   public static <T> IndexReaderFactory<ZoieIndexReader<BoboIndexReader>> buildReaderFactory(File file,ZoieIndexableInterpreter<T> interpreter){
-	ZoieSystem<BoboIndexReader,T> zoieSystem = new ZoieSystem<BoboIndexReader,T>(file,interpreter,new SenseiIndexReaderDecorator(),new StandardAnalyzer(Version.LUCENE_CURRENT),new DefaultSimilarity(),1000,300000,true,ZoieConfig.DEFAULT_VERSION_COMPARATOR);
+  ZoieSystem<BoboIndexReader,T> zoieSystem = new ZoieSystem<BoboIndexReader,T>(file,interpreter,new SenseiIndexReaderDecorator(),new StandardAnalyzer(Version.LUCENE_CURRENT),new DefaultSimilarity(),1000,300000,true,ZoieConfig.DEFAULT_VERSION_COMPARATOR);
     zoieSystem.getAdminMBean().setFreshness(50);
     zoieSystem.start();
-	return zoieSystem;
+  return zoieSystem;
   }
   
   public static Map<Integer,IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>> buildZoieFactoryMap(ZoieIndexableInterpreter<?> interpreter,Map<Integer,File> partFileMap){
-	Map<Integer,IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>> partReaderMap = new HashMap<Integer,IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>>();
-	Set<Entry<Integer,File>> entrySet = partFileMap.entrySet();
-	
-	for (Entry<Integer,File> entry : entrySet){
-		partReaderMap.put(entry.getKey(), buildReaderFactory(entry.getValue(), interpreter));
-	}
-	
-	return partReaderMap;
+  Map<Integer,IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>> partReaderMap = new HashMap<Integer,IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>>();
+  Set<Entry<Integer,File>> entrySet = partFileMap.entrySet();
+  
+  for (Entry<Integer,File> entry : entrySet){
+    partReaderMap.put(entry.getKey(), buildReaderFactory(entry.getValue(), interpreter));
+  }
+  
+  return partReaderMap;
   }
   
   
@@ -134,6 +134,31 @@ public class TestSensei extends AbstractSenseiTestCase
 
     logger.info("Cluster client started");
 
+    Runtime.getRuntime().addShutdownHook(new Thread(){
+        public void run(){
+          try{
+            broker.shutdown();
+          }
+          catch(Throwable t){}
+          try{
+            node1.shutdown();
+          }
+          catch(Throwable t){}
+          try{
+            node2.shutdown();
+          }
+          catch(Throwable t){}
+          try{
+            networkClient.shutdown();
+          }
+          catch(Throwable t){}
+          try{
+            clusterClient.shutdown();
+          }
+          catch(Throwable t){}
+        }
+      });
+
     try
     {
       node1.start(true);
@@ -161,9 +186,9 @@ public class TestSensei extends AbstractSenseiTestCase
       {
         Thread.sleep(5000);
         res = broker.browse(req);
+        System.out.println(""+res.getNumHits()+" loaded...");
         ++count;
       } while (count < 20 && res.getNumHits() < 15000);
-      Thread.sleep(5000);
     } catch (Exception e)
     {
       e.printStackTrace();
@@ -256,7 +281,7 @@ public class TestSensei extends AbstractSenseiTestCase
     req.addSelection(sel);
     SenseiResult res = broker.browse(req);
     logger.info("request:" + req + "\nresult:" + res);
-    assertEquals(res.getTotalDocs() - 2907, res.getNumHits());
+    assertEquals(12093, res.getNumHits());
     verifyFacetCount(res, "year", "[1993 TO 1994]", 3090);
   }
 

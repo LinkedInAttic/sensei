@@ -565,7 +565,8 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
           throw new IllegalArgumentException("invalid sort string: " + sortString);
         }
 
-        if (sf.getField() == null || sf.getField().isEmpty())   // Empty field name.
+        if (sf.getType() != SortField.DOC && sf.getType() != SortField.SCORE &&
+            (sf.getField() == null || sf.getField().isEmpty()))   // Empty field name.
           continue;
 
         logger.info("added sort: " + sf);
