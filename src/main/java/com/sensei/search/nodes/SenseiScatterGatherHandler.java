@@ -84,7 +84,8 @@ public class SenseiScatterGatherHandler extends AbstractSenseiScatterGatherHandl
     if (facetSpecs != null) {
       for (Map.Entry<String, FacetSpec> entry : facetSpecs.entrySet()) {
         FacetSpec spec = entry.getValue();
-        spec.setMaxCount(0);
+        if (spec != null)
+          spec.setMaxCount(0);
       }
     }
 
