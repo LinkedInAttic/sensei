@@ -34,6 +34,9 @@ import com.sensei.search.svc.impl.CoreSenseiServiceImpl;
 import com.sensei.search.svc.impl.SysSenseiCoreServiceImpl;
 import com.sensei.search.svc.impl.SenseiCoreServiceMessageHandler;
 
+import proj.zoie.api.DataProvider;
+
+
 public class SenseiServer {
   private static final Logger logger = Logger.getLogger(SenseiServer.class);
   
@@ -99,6 +102,11 @@ public class SenseiServer {
     return _core.zoieSystems;
   }
   */
+
+  public DataProvider getDataProvider()
+  {
+    return _core.getDataProvider();
+  }
   
   
   public void shutdown(){

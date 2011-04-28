@@ -21,6 +21,7 @@ import org.json.JSONObject;
 import org.springframework.context.ApplicationContext;
 
 import proj.zoie.api.DataConsumer;
+import proj.zoie.api.DataProvider;
 import proj.zoie.api.Zoie;
 import proj.zoie.api.ZoieException;
 import proj.zoie.api.DataConsumer.DataEvent;
@@ -101,6 +102,12 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 	    _dataProvider = buildDataProvider();
 	    _dataProvider.setDataConsumer(consumer);
 	}
+
+  @Override
+  public DataProvider getDataProvider()
+  {
+    return _dataProvider;
+  }
 	
 	private StreamDataProvider<JSONObject> buildDataProvider() throws ConfigurationException{
 		String type = _myconfig.getString(PROVIDER_TYPE);

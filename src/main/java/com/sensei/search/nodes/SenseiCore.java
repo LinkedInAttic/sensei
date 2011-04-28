@@ -21,6 +21,7 @@ import javax.management.ObjectName;
 import org.apache.log4j.Logger;
 
 import proj.zoie.api.IndexReaderFactory;
+import proj.zoie.api.DataProvider;
 import proj.zoie.api.Zoie;
 import proj.zoie.api.ZoieIndexReader;
 
@@ -29,6 +30,7 @@ import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.facets.RuntimeFacetHandlerFactory;
 
 import com.sensei.search.req.SenseiSystemInfo;
+
 
 public class SenseiCore{
   private static final Logger logger = Logger.getLogger(SenseiServer.class);
@@ -222,6 +224,11 @@ public class SenseiCore{
         }
         zoieSystems.clear();
         _started =false;
+  }
+
+  public DataProvider getDataProvider()
+  {
+    return _indexManager.getDataProvider();
   }
   
   public IndexReaderFactory<ZoieIndexReader<BoboIndexReader>> getIndexReaderFactory(int partition){

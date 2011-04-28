@@ -2,6 +2,7 @@ package com.sensei.search.nodes.impl;
 
 import java.util.Map;
 
+import proj.zoie.api.DataProvider;
 import proj.zoie.api.Zoie;
 
 import com.browseengine.bobo.api.BoboIndexReader;
@@ -28,5 +29,11 @@ public class NoopIndexingManager<D> implements SenseiIndexingManager<D> {
 		// TODO Auto-generated method stub
 
 	}
+
+  @Override
+  public DataProvider getDataProvider()
+  {
+    return null;
+  }
 
 }
