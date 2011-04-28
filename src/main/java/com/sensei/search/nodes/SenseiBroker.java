@@ -13,6 +13,7 @@ import com.linkedin.norbert.javacompat.cluster.ClusterClient;
 import com.linkedin.norbert.javacompat.cluster.Node;
 import com.linkedin.norbert.javacompat.network.PartitionedLoadBalancerFactory;
 import com.linkedin.norbert.javacompat.network.PartitionedNetworkClient;
+import com.sensei.conf.SenseiSchema;
 import com.sensei.search.cluster.routing.UniformPartitionedLoadBalancer;
 import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.req.SenseiResult;
@@ -40,12 +41,13 @@ public class SenseiBroker extends AbstractSenseiBroker<SenseiRequest, SenseiResu
   private final SenseiSysScatterGatherHandler _sysScatterGatherHandler;
 
   public SenseiBroker(PartitionedNetworkClient<Integer> networkClient, ClusterClient clusterClient, SenseiRequestScatterRewriter reqRewriter,
-      PartitionedLoadBalancerFactory<Integer> routerFactory, Comparator<String> versionComparator) throws NorbertException
+      PartitionedLoadBalancerFactory<Integer> routerFactory, Comparator<String> versionComparator,
+      SenseiSchema senseiSchema) throws NorbertException
   {
     super(networkClient, clusterClient, SenseiRequestBPO.Request.getDefaultInstance(), SenseiResultBPO.Result.getDefaultInstance(),routerFactory);
     _sysScatterGatherHandler = new SenseiSysScatterGatherHandler(versionComparator);
     _networkClient.registerRequest(SenseiSysRequestBPO.SysRequest.getDefaultInstance(), SenseiSysResultBPO.SysResult.getDefaultInstance());
-    _scatterGatherHandler = new SenseiScatterGatherHandler(reqRewriter);
+    _scatterGatherHandler = new SenseiScatterGatherHandler(senseiSchema, reqRewriter);
     logger.info("created broker instance " + networkClient + " " + clusterClient + " " + routerFactory + " " + reqRewriter);
   }
 

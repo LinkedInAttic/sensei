@@ -86,6 +86,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
   private final ApplicationContext _pluginContext;
   private final ApplicationContext _customFacetContext;
   private final Document _schemaDoc;
+  private final SenseiSchema  _senseiSchema;
   private final Server _jettyServer;
   private final Comparator<String> _versionComparator;
   
@@ -167,6 +168,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
     //senseiApp.setInitParams(initParam);
     senseiApp.setAttribute("sensei.search.configuration", _senseiConf);
     senseiApp.setAttribute("sensei.search.version.comparator", _versionComparator);
+    senseiApp.setAttribute("sensei.search.schema", _senseiSchema);
 
     PartitionedLoadBalancerFactory<Integer> routerFactory = null;
     String routerFactoryName = _senseiConf.getString(SERVER_SEARCH_ROUTER_FACTORY, "");
@@ -217,8 +219,6 @@ public class SenseiServerBuilder implements SenseiConfParams{
     else
       _versionComparator = (Comparator<String>) _pluginContext.getBean(versionComparatorName);
 
-    _jettyServer = buildHttpRestServer();
-
     if (customFacetContext != null)
       _customFacetContext = customFacetContext;
     else
@@ -229,6 +229,9 @@ public class SenseiServerBuilder implements SenseiConfParams{
     DocumentBuilder db = dbf.newDocumentBuilder();
     _schemaDoc = db.parse(new File(_confDir,SCHEMA_FILE));
     _schemaDoc.getDocumentElement().normalize();
+    _senseiSchema = SenseiSchema.build(_schemaDoc);
+
+    _jettyServer = buildHttpRestServer();
   }
 
   public SenseiServerBuilder(File confDir, Map<String, Object> properties, ApplicationContext customFacetContext) throws Exception {
@@ -339,10 +342,9 @@ public class SenseiServerBuilder implements SenseiConfParams{
       
       String interpreterType = _senseiConf.getString(SENSEI_INDEX_INTERPRETER,"");
       
-      SenseiSchema senseiSchma = SenseiSchema.build(_schemaDoc);
       ZoieIndexableInterpreter interpreter;
       if (interpreterType.length()==0){
-      interpreter = new DefaultJsonSchemaInterpreter(senseiSchma);
+      interpreter = new DefaultJsonSchemaInterpreter(_senseiSchema);
       String jsonFilterName = _senseiConf.getString(SENSEI_INTERPRETER_JSON_FILTER,"");
       if (jsonFilterName.length()>0){
         JsonFilter jsonFilter = (JsonFilter)_pluginContext.getBean(jsonFilterName);
@@ -398,8 +400,8 @@ public class SenseiServerBuilder implements SenseiConfParams{
       SenseiIndexingManager<?> indexingManager;
       
       if (idxMgrType.length()==0){
-      String uidField = senseiSchma.getUidField();
-        indexingManager = new DefaultStreamingIndexingManager(senseiSchma,_senseiConf, _pluginContext, _versionComparator);
+      String uidField = _senseiSchema.getUidField();
+        indexingManager = new DefaultStreamingIndexingManager(_senseiSchema,_senseiConf, _pluginContext, _versionComparator);
       }
       else{
         indexingManager = (SenseiIndexingManager)_pluginContext.getBean(idxMgrType);  
