@@ -107,7 +107,11 @@ public class SenseiServer {
   {
     return _core.getDataProvider();
   }
-  
+
+  public SenseiCore getSenseiCore()
+  {
+    return _core;
+  }
   
   public void shutdown(){
     logger.info("unregistering mbeans...");
