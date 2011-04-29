@@ -1,0 +1,9 @@
+eclipse-build
+.metabuilder.properties
+build
+dist
+*~
+TAGS
+cscope.*
+index
+target
