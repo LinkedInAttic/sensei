@@ -50,12 +50,14 @@ import com.linkedin.norbert.javacompat.cluster.ZooKeeperClusterClient;
 import com.linkedin.norbert.javacompat.network.NettyNetworkServer;
 import com.linkedin.norbert.javacompat.network.NetworkServer;
 import com.linkedin.norbert.javacompat.network.NetworkServerConfig;
+import com.linkedin.norbert.javacompat.network.PartitionedLoadBalancerFactory;
 import com.sensei.indexing.api.DefaultJsonSchemaInterpreter;
 import com.sensei.indexing.api.DefaultStreamingIndexingManager;
 import com.sensei.indexing.api.JsonFilter;
 import com.sensei.search.client.servlet.DefaultSenseiJSONServlet;
 import com.sensei.search.client.servlet.SenseiConfigServletContextListener;
 import com.sensei.search.client.servlet.SenseiHttpInvokerServiceServlet;
+import com.sensei.search.cluster.routing.UniformPartitionedRoutingFactory;
 import com.sensei.search.nodes.SenseiCore;
 import com.sensei.search.nodes.SenseiHourglassFactory;
 import com.sensei.search.nodes.SenseiIndexReaderDecorator;
@@ -84,6 +86,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
   private final ApplicationContext _pluginContext;
   private final ApplicationContext _customFacetContext;
   private final Document _schemaDoc;
+  private final SenseiSchema  _senseiSchema;
   private final Server _jettyServer;
   private final Comparator<String> _versionComparator;
   
@@ -164,7 +167,18 @@ public class SenseiServerBuilder implements SenseiConfParams{
     //}
     //senseiApp.setInitParams(initParam);
     senseiApp.setAttribute("sensei.search.configuration", _senseiConf);
-    senseiApp.setAttribute("sensei.search.versioncomparator", _versionComparator);
+    senseiApp.setAttribute("sensei.search.version.comparator", _versionComparator);
+    senseiApp.setAttribute("sensei.search.schema", _senseiSchema);
+
+    PartitionedLoadBalancerFactory<Integer> routerFactory = null;
+    String routerFactoryName = _senseiConf.getString(SERVER_SEARCH_ROUTER_FACTORY, "");
+    if (routerFactoryName == null || routerFactoryName.equals(""))
+      routerFactory = new UniformPartitionedRoutingFactory();
+    else
+      routerFactory = (PartitionedLoadBalancerFactory<Integer>) _pluginContext.getBean(routerFactoryName);
+
+    senseiApp.setAttribute("sensei.search.router.factory", routerFactory);
+
     senseiApp.addEventListener(new SenseiConfigServletContextListener());
     
     
@@ -199,13 +213,11 @@ public class SenseiServerBuilder implements SenseiConfParams{
     else
       _pluginContext = loadSpringContext(new File(confDir,PLUGINS));
 
-    String versionComparatorName = _senseiConf.getString(SENSEI_INDEX_VERSIONCOMPARATOR, "");
+    String versionComparatorName = _senseiConf.getString(SENSEI_VERSION_COMPARATOR, "");
     if (versionComparatorName == null || versionComparatorName.equals(""))
       _versionComparator = ZoieConfig.DEFAULT_VERSION_COMPARATOR;
     else
       _versionComparator = (Comparator<String>) _pluginContext.getBean(versionComparatorName);
-
-    _jettyServer = buildHttpRestServer();
 
     if (customFacetContext != null)
       _customFacetContext = customFacetContext;
@@ -217,6 +229,9 @@ public class SenseiServerBuilder implements SenseiConfParams{
     DocumentBuilder db = dbf.newDocumentBuilder();
     _schemaDoc = db.parse(new File(_confDir,SCHEMA_FILE));
     _schemaDoc.getDocumentElement().normalize();
+    _senseiSchema = SenseiSchema.build(_schemaDoc);
+
+    _jettyServer = buildHttpRestServer();
   }
 
   public SenseiServerBuilder(File confDir, Map<String, Object> properties, ApplicationContext customFacetContext) throws Exception {
@@ -327,10 +342,9 @@ public class SenseiServerBuilder implements SenseiConfParams{
       
       String interpreterType = _senseiConf.getString(SENSEI_INDEX_INTERPRETER,"");
       
-      SenseiSchema senseiSchma = SenseiSchema.build(_schemaDoc);
       ZoieIndexableInterpreter interpreter;
       if (interpreterType.length()==0){
-      interpreter = new DefaultJsonSchemaInterpreter(senseiSchma);
+      interpreter = new DefaultJsonSchemaInterpreter(_senseiSchema);
       String jsonFilterName = _senseiConf.getString(SENSEI_INTERPRETER_JSON_FILTER,"");
       if (jsonFilterName.length()>0){
         JsonFilter jsonFilter = (JsonFilter)_pluginContext.getBean(jsonFilterName);
@@ -386,8 +400,8 @@ public class SenseiServerBuilder implements SenseiConfParams{
       SenseiIndexingManager<?> indexingManager;
       
       if (idxMgrType.length()==0){
-      String uidField = senseiSchma.getUidField();
-        indexingManager = new DefaultStreamingIndexingManager(senseiSchma,_senseiConf, _pluginContext, _versionComparator);
+      String uidField = _senseiSchema.getUidField();
+        indexingManager = new DefaultStreamingIndexingManager(_senseiSchema,_senseiConf, _pluginContext, _versionComparator);
       }
       else{
         indexingManager = (SenseiIndexingManager)_pluginContext.getBean(idxMgrType);  
@@ -427,22 +441,6 @@ public class SenseiServerBuilder implements SenseiConfParams{
   
 
     SenseiCore core = buildCore();
-    
-    //String versionComparatorParam = _senseiConf.getString(SenseiConfParams.SENSEI_VERSION_COMPARATOR,"");
-    //Comparator<String> versionComparator;
-    
-   // if (versionComparatorParam.length()==0 || "long".equals(versionComparatorParam)){
-    //  versionComparator = SenseiConfParams.DEFAULT_VERSION_LONG_COMPARATOR;
-      
-    //}
-    /*else if ("string".equals(versionComparatorParam)){
-      versionComparator = SenseiConfParams.DEFAULT_VERSION_STRING_COMPARATOR;
-    }
-    else{
-      versionComparator = (Comparator<String>)_pluginContext.getBean(versionComparatorParam);
-    }*/
-    
-   // final Comparator<String> zoieComparator = versionComparator;
 
     String[] externalServicList = _senseiConf.getStringArray(SENSEI_PLUGIN_SVCS);
     List<AbstractSenseiCoreService<AbstractSenseiRequest, AbstractSenseiResult>> svcList = new LinkedList<AbstractSenseiCoreService<AbstractSenseiRequest, AbstractSenseiResult>>();

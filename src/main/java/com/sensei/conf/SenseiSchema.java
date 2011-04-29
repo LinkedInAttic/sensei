@@ -21,12 +21,12 @@ import com.sensei.indexing.api.MetaType;
 import com.sensei.indexing.api.DefaultSenseiInterpreter.IndexSpec;
 
 public class SenseiSchema {
-	
 	private static Logger logger = Logger.getLogger(SenseiSchema.class);
 	
 	private String _uidField;
 	private String _deleteField;
 	private String _skipField;
+	private String _binaryField;
 	
 	public static class FieldDefinition{
 		public Format formatter;
@@ -53,7 +53,11 @@ public class SenseiSchema {
 	public String getSkipField(){
 		return _skipField;
 	}
-	
+
+	public String getBinaryField(){
+		return _binaryField;
+	}
+
 	public Map<String,FieldDefinition> getFieldDefMap(){
 		return _fieldDefMap;
 	}
@@ -77,6 +81,8 @@ public class SenseiSchema {
 		if (schema._deleteField==null) schema._deleteField="";
 		schema._skipField = tableElem.getAttribute("skip-field");
 		if (schema._skipField==null) schema._skipField="";
+		schema._binaryField = tableElem.getAttribute("binary");
+		if (schema._binaryField==null) schema._binaryField="";
 		
 		NodeList columns = tableElem.getElementsByTagName("column");
 		for (int i = 0; i < columns.getLength(); ++i) {
