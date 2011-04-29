@@ -8,7 +8,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 
 import com.linkedin.norbert.javacompat.network.PartitionedLoadBalancerFactory;
-import com.sensei.conf.SenseiSchema;
 
 import org.apache.commons.configuration.Configuration;
 
@@ -23,7 +22,6 @@ public class ZookeeperConfigurableServlet extends HttpServlet {
   protected int zkTimeout;
   protected PartitionedLoadBalancerFactory<Integer> routerFactory;
   protected Comparator<String> versionComparator;
-  protected SenseiSchema senseiSchema;
 
   @Override
   public void init(ServletConfig config) throws ServletException {
@@ -38,7 +36,6 @@ public class ZookeeperConfigurableServlet extends HttpServlet {
     zkTimeout = senseConf.getInt(SenseiConfigServletContextListener.SENSEI_CONF_ZKTIMEOUT,10000);
 
     versionComparator = (Comparator<String>)ctx.getAttribute(SenseiConfigServletContextListener.SENSEI_CONF_VERSION_COMPARATOR);
-    senseiSchema = (SenseiSchema)ctx.getAttribute(SenseiConfigServletContextListener.SENSEI_CONF_SCHEMA);
     routerFactory = (PartitionedLoadBalancerFactory<Integer>)ctx.getAttribute(
         SenseiConfigServletContextListener.SENSEI_CONF_ROUTER_FACTORY);
   }

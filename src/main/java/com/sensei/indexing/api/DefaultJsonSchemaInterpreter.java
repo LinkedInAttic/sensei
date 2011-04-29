@@ -38,7 +38,8 @@ public class DefaultJsonSchemaInterpreter extends
   private final String _uidField;
   private final String _delField;
   private final String _skipField;
-  private final String _binaryField;
+  private final String _srcDataStore;
+  private final boolean _compressSrcData;
   
   private final Map<String,JsonValExtractor> _dateExtractorMap;
   
@@ -50,7 +51,8 @@ public class DefaultJsonSchemaInterpreter extends
      _uidField = _schema.getUidField();
      _delField = _schema.getDeleteField();
      _skipField = _schema.getSkipField();
-     _binaryField = _schema.getBinaryField();
+     _srcDataStore = _schema.getSrcDataStore();
+     _compressSrcData = _schema.isCompressSrcData();
      _dateExtractorMap = new HashMap<String,JsonValExtractor>();
      for (Entry<String,FieldDefinition> entry : entries){
        final FieldDefinition def = entry.getValue();
@@ -194,25 +196,33 @@ public class DefaultJsonSchemaInterpreter extends
             throw new RuntimeException(e);
           }
         }
-        if (_binaryField != null && _binaryField.length() != 0) {
-          String data = src.optString(_binaryField);
-          try{
-            ByteArrayOutputStream bout = new ByteArrayOutputStream();
-            GZIPOutputStream gzipStream = new GZIPOutputStream(bout);
+        if (_srcDataStore != null) {
+          if ("lucene".equals(_srcDataStore)) {
+            String data = src.toString();
+            try{
+              byte[] origBytes = data.getBytes("UTF-8");
+              if (_compressSrcData) {
+                ByteArrayOutputStream bout = new ByteArrayOutputStream();
+                GZIPOutputStream gzipStream = new GZIPOutputStream(bout);
 
-            byte[] origBytes = data.getBytes("UTF-8");
-            gzipStream.write(origBytes);
-            gzipStream.flush();
-            gzipStream.close();
-            bout.flush();
+                gzipStream.write(origBytes);
+                gzipStream.flush();
+                gzipStream.close();
+                bout.flush();
 
-            byte[] compressedBytes = bout.toByteArray();
-            Field storedData = new Field(_binaryField, compressedBytes,Store.YES);
-            luceneDoc.add(storedData);
-          }
-          catch(Exception e)
-          {
-            logger.error("problem writing to store data: "+data,e);
+                byte[] compressedBytes = bout.toByteArray();
+                Field storedData = new Field(SenseiSchema.SRC_DATA_COMPRESSED_FIELD_NAME, compressedBytes,Store.YES);
+                luceneDoc.add(storedData);
+              }
+              else {
+                Field storedData = new Field(SenseiSchema.SRC_DATA_FIELD_NAME, origBytes,Store.YES);
+                luceneDoc.add(storedData);
+              }
+            }
+            catch(Exception e)
+            {
+              logger.error("problem writing to store data: "+data,e);
+            }
           }
         }
         return new IndexingReq[]{new IndexingReq(luceneDoc)};

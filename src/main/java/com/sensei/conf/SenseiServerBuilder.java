@@ -168,7 +168,6 @@ public class SenseiServerBuilder implements SenseiConfParams{
     //senseiApp.setInitParams(initParam);
     senseiApp.setAttribute("sensei.search.configuration", _senseiConf);
     senseiApp.setAttribute("sensei.search.version.comparator", _versionComparator);
-    senseiApp.setAttribute("sensei.search.schema", _senseiSchema);
 
     PartitionedLoadBalancerFactory<Integer> routerFactory = null;
     String routerFactoryName = _senseiConf.getString(SERVER_SEARCH_ROUTER_FACTORY, "");

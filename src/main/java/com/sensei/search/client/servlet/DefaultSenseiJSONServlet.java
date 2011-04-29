@@ -241,6 +241,7 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
       hitObj.put(PARAM_RESULT_HIT_UID, Long.toString(hit.getUID()));
       hitObj.put(PARAM_RESULT_HIT_DOCID, Integer.toString(hit.getDocid()));
       hitObj.put(PARAM_RESULT_HIT_SCORE, Float.toString(hit.getScore()));
+      hitObj.put(PARAM_RESULT_HIT_SRC_DATA, hit.getSrcData());
       if (fieldMap != null)
       {
         Set<Entry<String, String[]>> entries = fieldMap.entrySet();

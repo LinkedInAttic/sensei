@@ -21,12 +21,16 @@ import com.sensei.indexing.api.MetaType;
 import com.sensei.indexing.api.DefaultSenseiInterpreter.IndexSpec;
 
 public class SenseiSchema {
+  public static final String SRC_DATA_FIELD_NAME = "__SRC_DATA__";
+  public static final String SRC_DATA_COMPRESSED_FIELD_NAME = "__SRC_DATA_GZ__";
+
 	private static Logger logger = Logger.getLogger(SenseiSchema.class);
 	
 	private String _uidField;
 	private String _deleteField;
 	private String _skipField;
-	private String _binaryField;
+	private String _srcDataStore;
+  private boolean _compressSrcData;
 	
 	public static class FieldDefinition{
 		public Format formatter;
@@ -54,8 +58,12 @@ public class SenseiSchema {
 		return _skipField;
 	}
 
-	public String getBinaryField(){
-		return _binaryField;
+	public String getSrcDataStore(){
+		return _srcDataStore;
+	}
+
+	public boolean isCompressSrcData(){
+		return _compressSrcData;
 	}
 
 	public Map<String,FieldDefinition> getFieldDefMap(){
@@ -81,8 +89,12 @@ public class SenseiSchema {
 		if (schema._deleteField==null) schema._deleteField="";
 		schema._skipField = tableElem.getAttribute("skip-field");
 		if (schema._skipField==null) schema._skipField="";
-		schema._binaryField = tableElem.getAttribute("binary");
-		if (schema._binaryField==null) schema._binaryField="";
+		schema._srcDataStore = tableElem.getAttribute("src-data-store");
+		if (schema._srcDataStore==null) schema._srcDataStore="";
+    schema._compressSrcData = true;
+    String compress = tableElem.getAttribute("compress-src-data");
+    if (compress != null && "false".equals(compress))
+      schema._compressSrcData = false;
 		
 		NodeList columns = tableElem.getElementsByTagName("column");
 		for (int i = 0; i < columns.getLength(); ++i) {

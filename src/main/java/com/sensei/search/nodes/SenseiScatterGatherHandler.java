@@ -32,14 +32,12 @@ public class SenseiScatterGatherHandler extends AbstractSenseiScatterGatherHandl
   
   private final static long TIMEOUT_MILLIS = 8000L;
 
-  private final SenseiSchema _senseiSchema;
   private final SenseiRequestScatterRewriter _reqRewriter;
   
   private long _timeoutMillis = TIMEOUT_MILLIS;
 
-  public SenseiScatterGatherHandler(SenseiSchema senseiSchema, SenseiRequestScatterRewriter reqRewriter)
+  public SenseiScatterGatherHandler(SenseiRequestScatterRewriter reqRewriter)
   {
-    _senseiSchema = senseiSchema;
     _reqRewriter = reqRewriter;
   }
   
@@ -57,35 +55,38 @@ public class SenseiScatterGatherHandler extends AbstractSenseiScatterGatherHandl
     SenseiResult res = ResultMerger.merge(request, resultList, false);
 
     if (request.isFetchStoredFields()) {  // Decompress binary data.
-      String binaryFieldName = _senseiSchema.getBinaryField();
-      if (binaryFieldName != null && binaryFieldName.length() != 0) {
-        for(SenseiHit hit : res.getSenseiHits()) {
-          try
-          {
-            Document doc = hit.getStoredFields();
-            byte[] dataBytes = doc.getBinaryValue(binaryFieldName);
-            if (dataBytes!=null && dataBytes.length>0){
-              ByteArrayOutputStream bout = new ByteArrayOutputStream();
-              byte[] buf = new byte[1024];  // 1k buffer
-              ByteArrayInputStream bin = new ByteArrayInputStream(dataBytes);
-              GZIPInputStream gzipStream = new GZIPInputStream(bin);
+      for(SenseiHit hit : res.getSenseiHits()) {
+        try
+        {
+          Document doc = hit.getStoredFields();
+          byte[] dataBytes = doc.getBinaryValue(SenseiSchema.SRC_DATA_COMPRESSED_FIELD_NAME);
+          if (dataBytes!=null && dataBytes.length>0){
+            ByteArrayOutputStream bout = new ByteArrayOutputStream();
+            byte[] buf = new byte[1024];  // 1k buffer
+            ByteArrayInputStream bin = new ByteArrayInputStream(dataBytes);
+            GZIPInputStream gzipStream = new GZIPInputStream(bin);
 
-              int len;
-              while ((len = gzipStream.read(buf)) > 0) {
-                bout.write(buf, 0, len);
-              }
-              bout.flush();
+            int len;
+            while ((len = gzipStream.read(buf)) > 0) {
+              bout.write(buf, 0, len);
+            }
+            bout.flush();
 
-              byte[] uncompressed = bout.toByteArray();
-              String data = new String(uncompressed,"UTF-8");
-              doc.removeFields(binaryFieldName);
-              doc.add(new Field(binaryFieldName, data, Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS));
+            byte[] uncompressed = bout.toByteArray();
+            hit.setSrcData(new String(uncompressed,"UTF-8"));
+          }
+          else {
+            dataBytes = doc.getBinaryValue(SenseiSchema.SRC_DATA_COMPRESSED_FIELD_NAME);
+            if (dataBytes!=null && dataBytes.length>0) {
+              hit.setSrcData(new String(dataBytes,"UTF-8"));
             }
           }
-          catch(Exception e)
-          {
-            logger.error(e.getMessage(),e);
-          }
+          doc.removeFields(SenseiSchema.SRC_DATA_COMPRESSED_FIELD_NAME);
+          doc.removeFields(SenseiSchema.SRC_DATA_FIELD_NAME);
+        }
+        catch(Exception e)
+        {
+          logger.error(e.getMessage(),e);
         }
       }
     }
