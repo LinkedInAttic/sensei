@@ -292,7 +292,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
       Analyzer analyzer = null;
       String analyzerName = _senseiConf.getString(SENSEI_INDEX_ANALYZER, "");
       if (analyzerName == null || analyzerName.equals("")) {
-        analyzer = new StandardAnalyzer(Version.LUCENE_29);
+        analyzer = new StandardAnalyzer(Version.LUCENE_CURRENT);
       }
       else {
         analyzer = (Analyzer)_pluginContext.getBean(analyzerName);
@@ -412,7 +412,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
       String qbuilderFactory = _senseiConf.getString(SENSEI_QUERY_BUILDER_FACTORY,"");
       
       if (qbuilderFactory.length()==0){
-        QueryParser queryParser = new QueryParser(Version.LUCENE_29,"contents", analyzer);
+        QueryParser queryParser = new QueryParser(Version.LUCENE_CURRENT,"contents", analyzer);
         queryBuilderFactory = new DefaultJsonQueryBuilderFactory(queryParser);
       }
       else{
