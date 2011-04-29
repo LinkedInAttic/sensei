@@ -124,14 +124,18 @@ public class DefaultJsonSchemaInterpreter extends
   
   @Override
   public ZoieIndexable convertAndInterpret(JSONObject obj) {
+    final JSONObject src = obj;
+    final JSONObject filtered;
     if (_jsonFilter!=null){
       try {
-        obj = _jsonFilter.filter(obj);
+        filtered = _jsonFilter.filter(src);
       } catch (Exception e) {
         throw new RuntimeException(e.getMessage(),e);
       }
     }
-    final JSONObject src = obj;
+    else {
+      filtered = src;
+    }
     return new AbstractZoieIndexable(){
 
       @Override
@@ -153,11 +157,11 @@ public class DefaultJsonSchemaInterpreter extends
               }
             }
 
-            if (src.has(fldDef.fromField))
+            if (filtered.has(fldDef.fromField))
             {
               List<Object> vals = new LinkedList<Object>();
               if (fldDef.isMulti){
-                String val = src.optString(fldDef.fromField);
+                String val = filtered.optString(fldDef.fromField);
 
                 if (val!=null && val.trim().length()>0){
                   StringTokenizer strtok = new StringTokenizer(val,fldDef.delim);
@@ -168,7 +172,7 @@ public class DefaultJsonSchemaInterpreter extends
                 }
               }
               else{
-                vals.add(extractor.extract(src.optString(fldDef.fromField)));
+                vals.add(extractor.extract(filtered.optString(fldDef.fromField)));
               }
                       
               for (Object val : vals){
@@ -186,7 +190,7 @@ public class DefaultJsonSchemaInterpreter extends
             }
           }
           else{
-            Field textField = new Field(name,src.optString(fldDef.fromField),
+            Field textField = new Field(name,filtered.optString(fldDef.fromField),
                 fldDef.textIndexSpec.store,fldDef.textIndexSpec.index,fldDef.textIndexSpec.tv);
             luceneDoc.add(textField);
           }
@@ -231,7 +235,7 @@ public class DefaultJsonSchemaInterpreter extends
       @Override
       public long getUID() {
         try {
-          return src.getLong(_uidField);
+          return filtered.getLong(_uidField);
         } catch (JSONException e) {
           throw new IllegalStateException(e.getMessage(),e);
         }
@@ -239,12 +243,12 @@ public class DefaultJsonSchemaInterpreter extends
 
       @Override
       public boolean isDeleted() {
-        return src.optBoolean(_delField);
+        return filtered.optBoolean(_delField);
       }
 
       @Override
       public boolean isSkip() {
-        return src.optBoolean(_skipField);
+        return filtered.optBoolean(_skipField);
       }
       
     };
