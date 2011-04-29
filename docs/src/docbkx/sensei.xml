@@ -242,36 +242,186 @@
 
   <chapter>
     <title>Getting Started</title>
-    <section>
-	   <title>Overview</title>
-	   
-	</section>
 
     <section>
-	   <title>Prerequisites</title>
-	   <itemizedlist>
-		  
-	   </itemizedlist>
-	</section>
+      <title>Overview</title>
+
+      <itemizedlist spacing="compact">
+        <listitem>
+          <para>Realtime indexing/searching</para>
+        </listitem>
+        <listitem>
+          <para>Cluster management</para>
+        </listitem>
+        <listitem>
+          <para>Automatic and configuration data partitioning</para>
+        </listitem>
+        <listitem>
+          <para>Support for structured and faceted search</para>
+        </listitem>
+      </itemizedlist>
+    </section>
+
+    <section>
+      <title>Prerequisites</title>
+
+      <itemizedlist spacing="compact">
+        <listitem>
+          <para>Java 1.6 or higher</para>
+        </listitem>
+        <listitem>
+          <para>maven 2.2.1 or higher</para>
+        </listitem>
+        <listitem>
+          <para>zookeeper 3.2.0 (<link
+          xlink:href="http://hadoop.apache.org/zookeeper/">http://hadoop.apache.org/zookeeper/</link>)</para>
+        </listitem>
+        
+      </itemizedlist>
+    </section>
 	
-	<section>
-	   <title>Embedded Technologies</title>
-	   <itemizedlist>
-		  
-	   </itemizedlist>
-	</section>
-	
-	<section>
-	   <title>Details</title>
-	   <section><title>Build</title>
-	   </section>
-	   <section><title>ZooKeeper</title></section>
-	   <section><title>Starting Sensei Nodes</title></section>
-	   <section><title>Web Application and Restful end-porint</title></section>
-	   <section><title>Starting Sensei Shell</title></section>
-	   <section><title>Sensei Demo</title></section>
-	</section>
-	
+    <section>
+      <title>Embedded Technologies: </title>
+      <itemizedlist spacing="compact">
+        <listitem>
+
+          <para>bobo-browse <link xlink:href="http://sna-projects.com/bobo/">http://sna-projects.com/bobo/</link>
+          </para>
+        </listitem>
+        <listitem>
+          <para>zoie <link xlink:href="http://sna-projects.com/zoie/">http://sna-projects.com/zoie/</link>
+          </para>
+        </listitem>
+        <listitem>
+          <para>lucene <link xlink:href="http://lucene.apache.org/">http://lucene.apache.org/</link>
+          </para>
+        </listitem>
+        <listitem>
+          <para>norbert <link xlink:href="http://sna-projects.com/norbert/">http://sna-projects.com/norbert/</link>
+          </para>
+        </listitem>
+        <listitem>
+          <para>spring <link xlink:href="http://www.springsource.com/">http://www.springsource.com/</link>
+          </para>
+        </listitem>
+      </itemizedlist>
+    </section>
+
+    <section>
+      <title>Details </title>
+
+      <section>
+        <title>Build </title>
+        <orderedlist spacing="compact">
+          <listitem>
+
+            <para>Check out trunk: 
+            </para>
+            <programlisting><![CDATA[git clone git://github.com/javasoze/sensei.git sensei-trunk]]>
+            </programlisting>
+          </listitem>
+          <listitem>
+            <para>simply do:
+            </para>
+            <programlisting><![CDATA[ant]]></programlisting>
+          </listitem>
+        </orderedlist>
+      </section>
+
+      <section>
+        <title>ZooKeeper </title>
+        <para>
+          In order to run the sample of sensei-search, you have to run
+          an instance of <emphasis role="bold">ZooKeeper</emphasis>
+          first.
+        </para>
+
+        <para>
+          You may download it from <link
+          xlink:href="http://hadoop.apache.org/zookeeper/">http://hadoop.apache.org/zookeeper/</link>.
+        </para>
+
+        <para>
+          Using the sample configuration file in <code>zookeeper-3.2.0/conf</code> by copying
+          <code>zookeeper-3.2.0/conf/zoo_sample.cfg</code> to <code>zookeeper-3.2.0/conf/zoo.cfg</code> and
+          start an instance of zookeeper by running
+        </para>
+        <programlisting><![CDATA[    zookeeper-3.2.0/bin/zkServer.sh start]]></programlisting>
+        <para>
+          For details, see <link
+          xlink:href="http://hadoop.apache.org/zookeeper/docs/current/zookeeperStarted.html">http://hadoop.apache.org/zookeeper/docs/current/zookeeperStarted.html</link>
+        </para>
+      </section>
+
+      <section>
+        <title>Starting Sensei Nodes </title>
+        <para>
+          Do <code>bin/start-sensei-node.sh</code> to start a server node.  This command
+          takes 1 argument: <code>conf.dir</code>, which contains all configuration
+          information for a given Sensei node.
+        </para>
+
+        <para>
+          An example command-line that will work to fire up a single sensei node
+          with some sample data:
+        </para>
+        <programlisting><![CDATA[    bin/start-sensei-node.sh conf]]></programlisting>
+        <para>
+          Note: Do not expect to see any logs after running this command. If you
+          run it, have zookeeper up and running, a REST server (as discussed
+          below) will also be started, and you will be able to get some sample
+          search results.
+        </para>
+      </section>
+
+      <section>
+        <title>Web Application and Restful end-point: </title>
+        <para>
+          A restful end-point along with a web interactive client would be started as well:
+        </para>
+        <itemizedlist spacing="compact">
+          <listitem>
+
+            <para>restful endpoint: <link xlink:href="http://localhost:8080/sensei?q=">http://localhost:8080/sensei?q=</link>
+            </para>
+          </listitem>
+          <listitem>
+            <para>web client: <link xlink:href="http://localhost:8080">http://localhost:8080</link>
+            </para>
+          </listitem>
+        </itemizedlist>
+
+        <para>For details, please checkout: Restful JSON End-point &amp; Client Application
+        </para>
+      </section>
+
+      <section>
+        <title>Starting Client </title>
+        <para>
+          After you start at least one node, you can run <code>bin/sensei-client.sh client-conf</code> to start a client. (Edit <code>client-conf/sensei-client.conf</code>
+          to change properties)
+        </para>
+
+        <para>
+          Type help to see command list:
+        </para>
+        <programlisting><![CDATA[  help - prints this message
+  exit - quits
+  nodes - prints a list of node information
+  query <query string> - sets query text
+  facetspec <name>:<minHitCount>:<maxCount>:<sort> - add facet spec
+  page <offset>:<count> - set paging parameters
+  select <name>:<value1>,<value2>... - add selection, with ! in front of value indicates a not
+  sort <name>:<dir>,... - set sort specs
+  showReq: shows current request
+  clear: clears current request
+  clearSelections: clears all selections
+  clearSelection <name>: clear selection specified
+  clearFacetSpecs: clears all facet specs
+  clearFacetSpec <name>: clears specified facetspec
+  browse - executes a search]]></programlisting>
+      </section>
+    </section>
   </chapter>
 
   <chapter>
