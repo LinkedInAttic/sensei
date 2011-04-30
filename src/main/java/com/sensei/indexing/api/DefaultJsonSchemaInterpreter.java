@@ -126,6 +126,22 @@ public class DefaultJsonSchemaInterpreter extends
   
   @Override
   public ZoieIndexable convertAndInterpret(JSONObject obj) {
+
+    // XXX This is a quick hack to tolerate empty data in
+    // MarkerDataEvent.  Need to have a better fix in the future.
+    if (obj == null)
+    {
+      try
+      {
+        obj = new JSONObject();
+        obj.put("id", 123456L);
+      }
+      catch (Exception e)
+      {
+        // Do nothing.
+      }
+    }
+
     final JSONObject src = obj;
     final JSONObject filtered;
     if (_jsonFilter!=null){

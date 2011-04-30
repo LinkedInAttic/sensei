@@ -23,6 +23,7 @@ import org.apache.log4j.Logger;
 import proj.zoie.api.IndexReaderFactory;
 import proj.zoie.api.DataProvider;
 import proj.zoie.api.Zoie;
+import proj.zoie.api.ZoieException;
 import proj.zoie.api.ZoieIndexReader;
 
 import com.browseengine.bobo.api.BoboIndexReader;
@@ -238,4 +239,10 @@ public class SenseiCore{
   public SenseiQueryBuilderFactory getQueryBuilderFactory(int partition){
     return _builderFactoryMap.get(partition);
   }
+
+  public void syncWithVersion(long timeToWait, String version) throws ZoieException
+  {
+    _indexManager.syncWithVersion(timeToWait, version);
+  }
+
 }

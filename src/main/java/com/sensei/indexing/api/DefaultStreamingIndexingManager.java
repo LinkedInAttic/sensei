@@ -21,6 +21,7 @@ import org.json.JSONObject;
 import org.springframework.context.ApplicationContext;
 
 import proj.zoie.api.DataConsumer;
+import proj.zoie.api.DataConsumer.MarkerDataEvent;
 import proj.zoie.api.DataProvider;
 import proj.zoie.api.Zoie;
 import proj.zoie.api.ZoieException;
@@ -175,24 +176,42 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 		_dataProvider.start();
 	}
 
-	private class DataDispatcher implements DataConsumer<JSONObject>
-	  {
-	    int _maxPartitionId;  // the total number of partitions over all the nodes;
-	    private final String _uidField;
-	    private volatile String _currentVersion;
-	    
-	    public DataDispatcher(int maxPartitionId,String uidField){
-	      _maxPartitionId = maxPartitionId;
-	      _uidField = uidField;
-	      _currentVersion = null;
-	    }
-	    
-	    @Override
-	    public void consume(Collection<proj.zoie.api.DataConsumer.DataEvent<JSONObject>> data) throws ZoieException
-	    {
-	      try{
-	        for(DataEvent<JSONObject> dataEvt : data){
-	    	  JSONObject obj = dataEvt.getData();
+  @Override
+  public void syncWithVersion(long timeToWait, String version) throws ZoieException
+  {
+    Iterator<Integer> itr = _zoieSystemMap.keySet().iterator();
+    while (itr.hasNext())
+    {
+      int part_num = itr.next();
+      Zoie<BoboIndexReader,JSONObject> dataConsumer = _zoieSystemMap.get(part_num);
+      if (dataConsumer != null)
+      {
+        dataConsumer.syncWithVersion(timeToWait, version);
+      }
+    }
+  }
+
+  private class DataDispatcher implements DataConsumer<JSONObject>
+  {
+    int _maxPartitionId;  // the total number of partitions over all the nodes;
+    private final String _uidField;
+    private volatile String _currentVersion;
+      
+    public DataDispatcher(int maxPartitionId,String uidField){
+      _maxPartitionId = maxPartitionId;
+      _uidField = uidField;
+      _currentVersion = null;
+    }
+      
+    @Override
+    public void consume(Collection<proj.zoie.api.DataConsumer.DataEvent<JSONObject>> data) throws ZoieException
+    {
+      boolean hasData = (data != null && data.size() > 0);
+
+      try{
+        for(DataEvent<JSONObject> dataEvt : data){
+          JSONObject obj = dataEvt.getData();
+
           if (obj == null) // Just ignore this event.
             continue;
           JSONObject filtered = obj;
@@ -208,45 +227,50 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
               filtered.put(srcDataField, obj.toString());
             }
           }
-	    	  _currentVersion = dataEvt.getVersion();
-	    	  long uid = filtered.getLong(_uidField);
-	    	  int routeToPart = (int)(uid % _maxPartitionId);
-	          if(uid>=0 && DefaultStreamingIndexingManager.this._dataCollectorMap.containsKey(routeToPart)){
-	        	Collection<DataEvent<JSONObject>> partDataSet = DefaultStreamingIndexingManager.this._dataCollectorMap.get(routeToPart);
-	        	if (partDataSet!=null){
+
+          _currentVersion = dataEvt.getVersion();
+          long uid = filtered.getLong(_uidField);
+          int routeToPart = (int)(uid % _maxPartitionId);
+          if(uid>=0 && DefaultStreamingIndexingManager.this._dataCollectorMap.containsKey(routeToPart)){
+            Collection<DataEvent<JSONObject>> partDataSet = DefaultStreamingIndexingManager.this._dataCollectorMap.get(routeToPart);
+            if (partDataSet!=null){
               if (filtered == obj)
                 partDataSet.add(dataEvt);
               else
                 partDataSet.add(new DataEvent(filtered, dataEvt.getVersion()));
-	        	}	        	
-	          }
-	        }
-	      }
-	      catch(Exception e){
-	    	throw new ZoieException(e.getMessage(),e);
-	      }
-	      
-	      Iterator<Integer> it = DefaultStreamingIndexingManager.this._zoieSystemMap.keySet().iterator();
-	      while(it.hasNext()){
-	        int part_num = it.next();
-	        Zoie<BoboIndexReader,JSONObject> dataConsumer = DefaultStreamingIndexingManager.this._zoieSystemMap.get(part_num);
-	        if (dataConsumer!=null){
-	          Collection<DataEvent<JSONObject>> partDataSet =DefaultStreamingIndexingManager.this._dataCollectorMap.get(part_num);
-	          if (partDataSet!=null){
-	        	dataConsumer.consume(partDataSet);
-	        	
-	          }
-	        }
-	        DefaultStreamingIndexingManager.this._dataCollectorMap.put(part_num, new LinkedList<DataEvent<JSONObject>>());
-	      }
-	      
-	    }
-	    
-	    @Override
-	    public String getVersion()
-	    {
-	      return _currentVersion;
-	    }
-	  }
+            }           
+          }
+        }
+      }
+      catch(Exception e){
+        throw new ZoieException(e.getMessage(),e);
+      }
+        
+      Iterator<Integer> it = DefaultStreamingIndexingManager.this._zoieSystemMap.keySet().iterator();
+      while(it.hasNext()){
+        int part_num = it.next();
+        Zoie<BoboIndexReader,JSONObject> dataConsumer = DefaultStreamingIndexingManager.this._zoieSystemMap.get(part_num);
+        if (dataConsumer!=null){
+          Collection<DataEvent<JSONObject>> partDataSet =DefaultStreamingIndexingManager.this._dataCollectorMap.get(part_num);
+          if (partDataSet!=null){
+            if (hasData)
+            {
+              MarkerDataEvent<JSONObject> marker = MarkerDataEvent.createMarkerEvent(_currentVersion);
+              partDataSet.add(marker);
+            }
+            dataConsumer.consume(partDataSet);
+          }
+        }
+        DefaultStreamingIndexingManager.this._dataCollectorMap.put(part_num, new LinkedList<DataEvent<JSONObject>>());
+      }
+        
+    }
+      
+    @Override
+    public String getVersion()
+    {
+      return _currentVersion;
+    }
+  }
 
 }

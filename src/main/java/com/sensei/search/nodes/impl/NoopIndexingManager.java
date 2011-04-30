@@ -4,6 +4,7 @@ import java.util.Map;
 
 import proj.zoie.api.DataProvider;
 import proj.zoie.api.Zoie;
+import proj.zoie.api.ZoieException;
 
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.sensei.search.nodes.SenseiIndexingManager;
@@ -34,6 +35,11 @@ public class NoopIndexingManager<D> implements SenseiIndexingManager<D> {
   public DataProvider getDataProvider()
   {
     return null;
+  }
+
+  @Override
+  public void syncWithVersion(long timeToWait, String version) throws ZoieException
+  {
   }
 
 }
