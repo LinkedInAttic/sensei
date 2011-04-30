@@ -30,6 +30,7 @@ public class SenseiSchema {
 	private String _deleteField;
 	private String _skipField;
 	private String _srcDataStore;
+	private String _srcDataField;
   private boolean _compressSrcData;
 	
 	public static class FieldDefinition{
@@ -56,6 +57,10 @@ public class SenseiSchema {
 	
 	public String getSkipField(){
 		return _skipField;
+	}
+
+	public String getSrcDataField(){
+		return _srcDataField;
 	}
 
 	public String getSrcDataStore(){
@@ -91,6 +96,8 @@ public class SenseiSchema {
 		if (schema._skipField==null) schema._skipField="";
 		schema._srcDataStore = tableElem.getAttribute("src-data-store");
 		if (schema._srcDataStore==null) schema._srcDataStore="";
+		schema._srcDataField = tableElem.getAttribute("src-data-field");
+		if (schema._srcDataField==null || schema._srcDataField.length() == 0) schema._srcDataField="src_data";
     schema._compressSrcData = true;
     String compress = tableElem.getAttribute("compress-src-data");
     if (compress != null && "false".equals(compress))

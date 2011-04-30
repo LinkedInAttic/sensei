@@ -56,6 +56,8 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 	private Map<Integer, Zoie<BoboIndexReader, JSONObject>> _zoieSystemMap;
 	private final LinkedHashMap<Integer, Collection<DataEvent<JSONObject>>> _dataCollectorMap;
   private final Comparator<String> _versionComparator;
+
+  private JsonFilter _jsonFilter = null;
 	
 	public DefaultStreamingIndexingManager(SenseiSchema schema,Configuration senseiConfig, ApplicationContext pluginContext, Comparator<String> versionComparator){
 	  _dataProvider = null;
@@ -103,6 +105,10 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 	    _dataProvider.setDataConsumer(consumer);
 	}
 
+  public void setJsonFilter(JsonFilter jsonFilter){
+    _jsonFilter = jsonFilter;
+  }
+  
   @Override
   public DataProvider getDataProvider()
   {
@@ -187,13 +193,31 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 	      try{
 	        for(DataEvent<JSONObject> dataEvt : data){
 	    	  JSONObject obj = dataEvt.getData();
+          if (obj == null) // Just ignore this event.
+            continue;
+          JSONObject filtered = obj;
+          if (_jsonFilter != null) {
+            filtered = _jsonFilter.filter(obj);
+            if (filtered == null) // Just ignore this event.
+              continue;
+            String srcDataStore = _senseiSchema.getSrcDataStore();
+            String srcDataField = _senseiSchema.getSrcDataField();
+            if (srcDataStore != null && srcDataStore.length() != 0 && !"none".equals(srcDataStore) &&
+                srcDataField != null && srcDataField.length() != 0 && !filtered.has(srcDataField)) {
+              // no src-data set, set with original json.
+              filtered.put(srcDataField, obj.toString());
+            }
+          }
 	    	  _currentVersion = dataEvt.getVersion();
-	    	  long uid = obj.getLong(_uidField);
+	    	  long uid = filtered.getLong(_uidField);
 	    	  int routeToPart = (int)(uid % _maxPartitionId);
 	          if(uid>=0 && DefaultStreamingIndexingManager.this._dataCollectorMap.containsKey(routeToPart)){
 	        	Collection<DataEvent<JSONObject>> partDataSet = DefaultStreamingIndexingManager.this._dataCollectorMap.get(routeToPart);
 	        	if (partDataSet!=null){
-	        	  partDataSet.add(dataEvt);
+              if (filtered == obj)
+                partDataSet.add(dataEvt);
+              else
+                partDataSet.add(new DataEvent(filtered, dataEvt.getVersion()));
 	        	}	        	
 	          }
 	        }

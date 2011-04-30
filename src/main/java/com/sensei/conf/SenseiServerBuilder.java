@@ -344,11 +344,6 @@ public class SenseiServerBuilder implements SenseiConfParams{
       ZoieIndexableInterpreter interpreter;
       if (interpreterType.length()==0){
       interpreter = new DefaultJsonSchemaInterpreter(_senseiSchema);
-      String jsonFilterName = _senseiConf.getString(SENSEI_INTERPRETER_JSON_FILTER,"");
-      if (jsonFilterName.length()>0){
-        JsonFilter jsonFilter = (JsonFilter)_pluginContext.getBean(jsonFilterName);
-        ((DefaultJsonSchemaInterpreter)interpreter).setJsonFilter(jsonFilter);
-      }
       }
       else{
       interpreter = (ZoieIndexableInterpreter)_pluginContext.getBean(interpreterType);  
@@ -399,8 +394,13 @@ public class SenseiServerBuilder implements SenseiConfParams{
       SenseiIndexingManager<?> indexingManager;
       
       if (idxMgrType.length()==0){
-      String uidField = _senseiSchema.getUidField();
+        String uidField = _senseiSchema.getUidField();
         indexingManager = new DefaultStreamingIndexingManager(_senseiSchema,_senseiConf, _pluginContext, _versionComparator);
+        String jsonFilterName = _senseiConf.getString(SENSEI_INDEX_MANAGER_JSON_FILTER, "");
+        if (jsonFilterName.length()>0){
+          JsonFilter jsonFilter = (JsonFilter)_pluginContext.getBean(jsonFilterName);
+          ((DefaultStreamingIndexingManager)indexingManager).setJsonFilter(jsonFilter);
+        }
       }
       else{
         indexingManager = (SenseiIndexingManager)_pluginContext.getBean(idxMgrType);  

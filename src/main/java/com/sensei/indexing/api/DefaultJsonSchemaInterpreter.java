@@ -39,6 +39,7 @@ public class DefaultJsonSchemaInterpreter extends
   private final String _delField;
   private final String _skipField;
   private final String _srcDataStore;
+  private final String _srcDataField;
   private final boolean _compressSrcData;
   
   private final Map<String,JsonValExtractor> _dateExtractorMap;
@@ -52,6 +53,7 @@ public class DefaultJsonSchemaInterpreter extends
      _delField = _schema.getDeleteField();
      _skipField = _schema.getSkipField();
      _srcDataStore = _schema.getSrcDataStore();
+     _srcDataField = _schema.getSrcDataField();
      _compressSrcData = _schema.isCompressSrcData();
      _dateExtractorMap = new HashMap<String,JsonValExtractor>();
      for (Entry<String,FieldDefinition> entry : entries){
@@ -202,7 +204,12 @@ public class DefaultJsonSchemaInterpreter extends
         }
         if (_srcDataStore != null) {
           if ("lucene".equals(_srcDataStore)) {
-            String data = src.toString();
+            String data;
+            if (_srcDataField != null && _srcDataField.length() != 0 && src.has(_srcDataField))
+              data = src.optString(_srcDataField);
+            else
+              data = src.toString();
+
             try{
               byte[] origBytes = data.getBytes("UTF-8");
               if (_compressSrcData) {
