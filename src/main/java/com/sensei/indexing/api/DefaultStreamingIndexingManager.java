@@ -179,6 +179,10 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
   @Override
   public void syncWithVersion(long timeToWait, String version) throws ZoieException
   {
+    Collection<DataEvent<JSONObject>> markerDataSet = new LinkedList<DataEvent<JSONObject>>();
+    MarkerDataEvent<JSONObject> marker = MarkerDataEvent.createMarkerEvent(version);
+    markerDataSet.add(marker);
+
     Iterator<Integer> itr = _zoieSystemMap.keySet().iterator();
     while (itr.hasNext())
     {
@@ -186,6 +190,7 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
       Zoie<BoboIndexReader,JSONObject> dataConsumer = _zoieSystemMap.get(part_num);
       if (dataConsumer != null)
       {
+        dataConsumer.consume(markerDataSet);
         dataConsumer.syncWithVersion(timeToWait, version);
       }
     }
@@ -206,8 +211,6 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
     @Override
     public void consume(Collection<proj.zoie.api.DataConsumer.DataEvent<JSONObject>> data) throws ZoieException
     {
-      boolean hasData = (data != null && data.size() > 0);
-
       try{
         for(DataEvent<JSONObject> dataEvt : data){
           JSONObject obj = dataEvt.getData();
@@ -253,11 +256,6 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
         if (dataConsumer!=null){
           Collection<DataEvent<JSONObject>> partDataSet =DefaultStreamingIndexingManager.this._dataCollectorMap.get(part_num);
           if (partDataSet!=null){
-            if (hasData)
-            {
-              MarkerDataEvent<JSONObject> marker = MarkerDataEvent.createMarkerEvent(_currentVersion);
-              partDataSet.add(marker);
-            }
             dataConsumer.consume(partDataSet);
           }
         }
