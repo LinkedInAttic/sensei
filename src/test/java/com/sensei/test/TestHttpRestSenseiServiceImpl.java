@@ -325,7 +325,9 @@ public class TestHttpRestSenseiServiceImpl extends TestCase
         "localhost",
         -1,
         "/sensei",
-        5);
+        5000,
+        5,
+        null);
   }
 
   private SenseiRequest createNonRandomSenseiRequest()
