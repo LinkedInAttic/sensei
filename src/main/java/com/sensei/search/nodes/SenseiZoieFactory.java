@@ -1,23 +1,23 @@
 package com.sensei.search.nodes;
 
 import java.io.File;
+import java.util.Comparator;
 
 import proj.zoie.api.Zoie;
-import proj.zoie.api.ZoieVersion;
 import proj.zoie.api.indexing.ZoieIndexableInterpreter;
 import proj.zoie.impl.indexing.ZoieConfig;
 
 import com.browseengine.bobo.api.BoboIndexReader;
 
-public abstract class SenseiZoieFactory<D, V extends ZoieVersion>
+public abstract class SenseiZoieFactory<D>
 { 
 	
   protected final File _idxDir;
   protected final ZoieIndexableInterpreter<D> _interpreter;
   protected final SenseiIndexReaderDecorator _indexReaderDecorator;
-  protected final ZoieConfig<V> _zoieConfig;
+  protected final ZoieConfig _zoieConfig;
   
-  public SenseiZoieFactory(File idxDir,ZoieIndexableInterpreter<D> interpreter,SenseiIndexReaderDecorator indexReaderDecorator,ZoieConfig<V> zoieConfig){
+  public SenseiZoieFactory(File idxDir,ZoieIndexableInterpreter<D> interpreter,SenseiIndexReaderDecorator indexReaderDecorator,ZoieConfig zoieConfig){
 	  _idxDir = idxDir;
 	  _interpreter = interpreter;
 	  _indexReaderDecorator = indexReaderDecorator;
@@ -36,8 +36,12 @@ public abstract class SenseiZoieFactory<D, V extends ZoieVersion>
   public ZoieIndexableInterpreter<D> getInterpreter(){
 	  return _interpreter;
   }
+
+  public Comparator<String> getVersionComparator() {
+    return _zoieConfig.getVersionComparator();
+  }
   
-  public abstract Zoie<BoboIndexReader,D, V> getZoieInstance(int nodeId,int partitionId);
+  public abstract Zoie<BoboIndexReader,D> getZoieInstance(int nodeId,int partitionId);
 
   // TODO: change to getDirectoryManager
   public abstract File getPath(int nodeId,int partitionId);

@@ -3,6 +3,7 @@ package com.sensei.search.nodes;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 
+import java.util.Comparator;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
@@ -39,10 +40,10 @@ public class SenseiBroker extends AbstractSenseiBroker<SenseiRequest, SenseiResu
   private final SenseiSysScatterGatherHandler _sysScatterGatherHandler;
 
   public SenseiBroker(PartitionedNetworkClient<Integer> networkClient, ClusterClient clusterClient, SenseiRequestScatterRewriter reqRewriter,
-      PartitionedLoadBalancerFactory<Integer> routerFactory) throws NorbertException
+      PartitionedLoadBalancerFactory<Integer> routerFactory, Comparator<String> versionComparator) throws NorbertException
   {
     super(networkClient, clusterClient, SenseiRequestBPO.Request.getDefaultInstance(), SenseiResultBPO.Result.getDefaultInstance(),routerFactory);
-    _sysScatterGatherHandler = new SenseiSysScatterGatherHandler();
+    _sysScatterGatherHandler = new SenseiSysScatterGatherHandler(versionComparator);
     _networkClient.registerRequest(SenseiSysRequestBPO.SysRequest.getDefaultInstance(), SenseiSysResultBPO.SysResult.getDefaultInstance());
     _scatterGatherHandler = new SenseiScatterGatherHandler(reqRewriter);
     logger.info("created broker instance " + networkClient + " " + clusterClient + " " + routerFactory + " " + reqRewriter);

@@ -72,7 +72,6 @@ public class DefaultSenseiInterpreter<V> extends
 		
 		STORE_VAL_MAP.put("NO",Store.NO);
 		STORE_VAL_MAP.put("YES",Store.YES);
-		STORE_VAL_MAP.put("COMPRESS",Store.COMPRESS);
 		
 		TV_VAL_MAP.put("NO",TermVector.NO);
 		TV_VAL_MAP.put("YES",TermVector.YES);

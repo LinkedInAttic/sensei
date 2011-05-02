@@ -2,7 +2,6 @@ package com.sensei.search.nodes.impl;
 
 import java.io.File;
 
-import proj.zoie.api.DefaultZoieVersion;
 import proj.zoie.api.indexing.ZoieIndexableInterpreter;
 import proj.zoie.impl.indexing.ZoieConfig;
 import proj.zoie.impl.indexing.ZoieSystem;
@@ -13,18 +12,18 @@ import com.sensei.search.nodes.SenseiIndexReaderDecorator;
 import com.sensei.search.nodes.SenseiZoieFactory;
 import com.sensei.search.nodes.SenseiZoieSystemFactory;
 
-public class DemoZoieSystemFactory<T> extends SenseiZoieSystemFactory<T,DefaultZoieVersion>
+public class DemoZoieSystemFactory<T> extends SenseiZoieSystemFactory<T>
 {
-  private ZoieSystem<BoboIndexReader,T,DefaultZoieVersion> _zoieSystem = null;
+  private ZoieSystem<BoboIndexReader,T> _zoieSystem = null;
   
   public DemoZoieSystemFactory(File idxDir, ZoieIndexableInterpreter<T> interpreter, SenseiIndexReaderDecorator indexReaderDecorator,
-                               ZoieConfig<DefaultZoieVersion> zoieConfig)
+                               ZoieConfig zoieConfig)
   {
     super(idxDir, interpreter, indexReaderDecorator, zoieConfig);
   }
   
   @Override
-  public ZoieSystem<BoboIndexReader,T,DefaultZoieVersion> getZoieInstance(int nodeId,int partitionId)
+  public ZoieSystem<BoboIndexReader,T> getZoieInstance(int nodeId,int partitionId)
   {
     if(_zoieSystem == null)
     {
@@ -42,9 +41,9 @@ public class DemoZoieSystemFactory<T> extends SenseiZoieSystemFactory<T,DefaultZ
   public static class DemoZoieFactoryFactory implements ZoieFactoryFactory{
 
 	@Override
-	public SenseiZoieFactory<?, ?> getZoieFactory(File idxDir,
+	public SenseiZoieFactory<?> getZoieFactory(File idxDir,
 			ZoieIndexableInterpreter<?> interpreter,
-			SenseiIndexReaderDecorator decorator, ZoieConfig<?> config) {
+			SenseiIndexReaderDecorator decorator, ZoieConfig config) {
 		return new DemoZoieSystemFactory(idxDir,interpreter,decorator,config);
 	}
   }

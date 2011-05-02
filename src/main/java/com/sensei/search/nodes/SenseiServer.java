@@ -34,6 +34,9 @@ import com.sensei.search.svc.impl.CoreSenseiServiceImpl;
 import com.sensei.search.svc.impl.SysSenseiCoreServiceImpl;
 import com.sensei.search.svc.impl.SenseiCoreServiceMessageHandler;
 
+import proj.zoie.api.DataProvider;
+
+
 public class SenseiServer {
   private static final Logger logger = Logger.getLogger(SenseiServer.class);
   
@@ -57,7 +60,7 @@ public class SenseiServer {
     public SenseiServer(int id, int port, int[] partitions,
                         NetworkServer networkServer,
                         ClusterClient clusterClient,
-                        SenseiZoieFactory<?,?> zoieSystemFactory,
+                        SenseiZoieFactory<?> zoieSystemFactory,
                         SenseiIndexingManager indexingManager,
                         SenseiQueryBuilderFactory queryBuilderFactory,
                         List<AbstractSenseiCoreService<AbstractSenseiRequest, AbstractSenseiResult>> externalSvc)
@@ -99,7 +102,16 @@ public class SenseiServer {
     return _core.zoieSystems;
   }
   */
-  
+
+  public DataProvider getDataProvider()
+  {
+    return _core.getDataProvider();
+  }
+
+  public SenseiCore getSenseiCore()
+  {
+    return _core;
+  }
   
   public void shutdown(){
     logger.info("unregistering mbeans...");

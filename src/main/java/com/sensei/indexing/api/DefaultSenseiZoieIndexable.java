@@ -84,11 +84,11 @@ public class DefaultSenseiZoieIndexable<V> extends AbstractZoieIndexable{
 		return new IndexingReq[]{new IndexingReq(doc)};
 	}
 
-  @Override
-  public byte[] getStoreValue()
-  {
-    throw new NotImplementedException();
-  }
+  //@Override
+  //public byte[] getStoreValue()
+  //{
+    //throw new NotImplementedException();
+  //}
 
   @Override
 	public long getUID() {

@@ -1,6 +1,7 @@
 package com.sensei.dataprovider.kafka;
 
 import java.io.IOException;
+import java.util.Comparator;
 
 import org.apache.avro.io.BinaryDecoder;
 import org.apache.avro.io.DecoderFactory;
@@ -12,9 +13,9 @@ public class KafkaAvroStreamDataProvider<D> extends KafkaStreamDataProvider<D> {
 	private final SpecificDatumReader<D> reader;
 	private final Class<D> _cls;
 	
-	public KafkaAvroStreamDataProvider(String kafkaHost, int kafkaPort,
+	public KafkaAvroStreamDataProvider(Comparator<String> versionComparator, String kafkaHost, int kafkaPort,
 			int soTimeout, int batchSize, String topic, long startingOffset,Class<D> cls) {
-		super(kafkaHost, kafkaPort, soTimeout, batchSize, topic, startingOffset);
+		super(versionComparator, kafkaHost, kafkaPort, soTimeout, batchSize, topic, startingOffset);
 		binDecoder = null;
 		_cls = cls;
 		reader = new SpecificDatumReader<D>(_cls);

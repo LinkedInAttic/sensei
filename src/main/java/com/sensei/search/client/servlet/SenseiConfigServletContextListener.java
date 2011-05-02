@@ -20,6 +20,8 @@ public class SenseiConfigServletContextListener implements
 	public static final String SENSEI_CONF_ZKURL = "sensei.search.cluster.zookeeper.url";
 	public static final String SENSEI_CONF_CLUSTER_NAME = "sensei.search.cluster.name";
 	public static final String SENSEI_CONF_ZKTIMEOUT = "sensei.search.cluster.zookeeper.conn.timeout";
+	public static final String SENSEI_CONF_VERSION_COMPARATOR = "sensei.search.version.comparator";
+	public static final String SENSEI_CONF_ROUTER_FACTORY = "sensei.search.router.factory";
 	public static final String SENSEI_CONF_OBJ = "sensei.search.configuration";
 	
 	@Override
@@ -32,14 +34,19 @@ public class SenseiConfigServletContextListener implements
 		ServletContext ctx = ctxEvt.getServletContext();
 		String confFileName = ctx.getInitParameter(SENSEI_CONF_FILE_PARAM);
 
-		File confFile = new File(confFileName);
-		try {
-			PropertiesConfiguration conf = new PropertiesConfiguration(confFile);
-			ctx.setAttribute(SENSEI_CONF_OBJ, conf);
-		} 
-		catch (ConfigurationException e) {
-		    logger.error(e.getMessage(),e);
-		}
+    if (confFileName != null) {
+      File confFile = new File(confFileName);
+      try {
+        PropertiesConfiguration conf = new PropertiesConfiguration(confFile);
+        ctx.setAttribute(SENSEI_CONF_OBJ, conf);
+      } 
+      catch (ConfigurationException e) {
+          logger.error(e.getMessage(),e);
+      }
+    }
+    else {
+      logger.warn("\""+SENSEI_CONF_FILE_PARAM+"\" is not set.");
+    }
 	}
 
 }

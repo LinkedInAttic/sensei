@@ -32,11 +32,10 @@ public interface SenseiConfParams {
 	public static final String SENSEI_INDEX_SIMILARITY = "sensei.index.similarity";
 	public static final String SENSEI_INDEX_INTERPRETER = "sensei.index.interpreter";
 	public static final String SENSEI_QUERY_BUILDER_FACTORY = "sensei.query.builder.factory";
-	public static final String SENSEI_INTERPRETER_JSON_FILTER = "sensei.index.interpreter.default.filter";
 	public static final String SENSEI_INDEX_MANAGER = "sensei.index.manager";
+	public static final String SENSEI_INDEX_MANAGER_JSON_FILTER = "sensei.index.manager.default.filter";
 
 	public static final String SENSEI_VERSION_COMPARATOR = "sensei.version.comparator";
-	
 
 	public static final String SENSEI_PLUGIN_SVCS = "sensei.plugin.services";
 	
@@ -50,12 +49,12 @@ public interface SenseiConfParams {
 
 	public static final String SERVER_BROKER_PORT = "sensei.broker.port";
 	public static final String SERVER_BROKER_WEBAPP_PATH = "sensei.broker.webapp.path";
-	
 
 	public static final String SERVER_BROKER_MINTHREAD = "sensei.broker.minThread";
 	public static final String SERVER_BROKER_MAXTHREAD = "sensei.broker.maxThread";
 	public static final String SERVER_BROKER_MAXWAIT = "sensei.broker.maxWaittime";
 	
+	public static final String SERVER_SEARCH_ROUTER_FACTORY = "sensei.search.router.factory";
 
 	public static final String SENSEI_MX4J_PORT = "sensei.mx4j.port";
 	

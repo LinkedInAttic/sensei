@@ -3,14 +3,14 @@ package com.sensei.dataprovider.file;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.util.Comparator;
 
 import org.apache.log4j.Logger;
 
-import proj.zoie.api.DefaultZoieVersion;
 import proj.zoie.api.DataConsumer.DataEvent;
 import proj.zoie.impl.indexing.StreamDataProvider;
 
-public abstract class LinedFileDataProvider<D> extends StreamDataProvider<D, DefaultZoieVersion> {
+public abstract class LinedFileDataProvider<D> extends StreamDataProvider<D> {
 
 	private static final Logger logger = Logger.getLogger(LinedFileDataProvider.class);
 	
@@ -19,7 +19,8 @@ public abstract class LinedFileDataProvider<D> extends StreamDataProvider<D, Def
 	
 	private RandomAccessFile _rad;
 	
-	public LinedFileDataProvider(File file,long startingOffset){
+	public LinedFileDataProvider(Comparator<String> versionComparator, File file,long startingOffset){
+    super(versionComparator);
 	  _file = file;
 	  _rad = null;
 	  _offset = startingOffset;
@@ -28,17 +29,16 @@ public abstract class LinedFileDataProvider<D> extends StreamDataProvider<D, Def
 	protected abstract D convertLine(String line) throws IOException;
 	
 	@Override
-	public DataEvent<D, DefaultZoieVersion> next() {
-		DataEvent<D,DefaultZoieVersion> event = null;
+	public DataEvent<D> next() {
+		DataEvent<D> event = null;
 		if (_rad!=null){
 		  try{
 			String line = _rad.readLine();
 			if (line == null) return null;
 			D dataObj = convertLine(line);
-			DefaultZoieVersion version = new DefaultZoieVersion();
-			version.setVersionId(_offset);
+			String version = String.valueOf(_offset);
 			_offset = _rad.getFilePointer();
-			event = new DataEvent<D,DefaultZoieVersion>(dataObj,version);
+			event = new DataEvent<D>(dataObj,version);
 		  }
 		  catch(IOException ioe){
 			logger.error(ioe.getMessage(),ioe);
@@ -50,8 +50,8 @@ public abstract class LinedFileDataProvider<D> extends StreamDataProvider<D, Def
 	
 
 	@Override
-	public void setStartingOffset(DefaultZoieVersion version) {
-		_offset = version.getVersionId();
+	public void setStartingOffset(String version) {
+		_offset = Long.parseLong(version);
 	}
 
 	@Override
