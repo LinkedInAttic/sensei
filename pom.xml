@@ -125,9 +125,9 @@
 			</exclusions>
 		</dependency>
 		<dependency>
-			<groupId>com.sna-projects.kamikaze</groupId>
+			<groupId>com.linkedin.kamikaze</groupId>
 			<artifactId>kamikaze</artifactId>
-			<version>3.0.3</version>
+			<version>3.0.4</version>
 		</dependency>
 		
 		<dependency>
