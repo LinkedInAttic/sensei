@@ -130,6 +130,9 @@ public class SenseiClusterClient {
 			  System.out.println("\nSystem Information:\n");
 			  System.out.println(systemInfo+"\n");
 			}
+			catch(org.springframework.remoting.RemoteConnectFailureException conExcep){
+			  System.out.println("Connection problem. Please make sure Sensei is running.");
+			}
 			catch(Exception e){
 				e.printStackTrace();
 			}
