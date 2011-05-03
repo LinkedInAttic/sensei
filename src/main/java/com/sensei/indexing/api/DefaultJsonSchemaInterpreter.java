@@ -134,7 +134,7 @@ public class DefaultJsonSchemaInterpreter extends
       try
       {
         obj = new JSONObject();
-        obj.put("id", 123456L);
+        obj.put(_uidField, 123456L);
       }
       catch (Exception e)
       {
