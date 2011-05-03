@@ -323,7 +323,7 @@ public class TestHttpRestSenseiServiceImpl extends TestCase
     return new HttpRestSenseiServiceImpl(
         "http",
         "localhost",
-        -1,
+        80,
         "/sensei",
         2000,
         5,
