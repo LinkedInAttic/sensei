@@ -321,7 +321,7 @@
             </programlisting>
           </listitem>
           <listitem>
-            <para>simply do:
+            <para>Simply do:
             </para>
             <programlisting><![CDATA[ant]]></programlisting>
           </listitem>
@@ -591,8 +591,8 @@
     <section>
       <title>Data Modeling</title>
 
-      <para>Data models are described in the <filename>schema.xml</filename>
-      file (xsd definition:
+      <para>Data models are described in the
+      <filename>schema.xml</filename> file (XSD definition:
       http://javasoze.github.com/sensei/schema/sensei-schema.xsd.)</para>
 
       <para>The demo example can be found here:
@@ -600,7 +600,7 @@
 
       <para>The schema file is composed by 2 sections:</para>
 
-      <orderedlist>
+      <orderedlist spacing="compact">
         <listitem>
           <para>table</para>
         </listitem>
@@ -617,22 +617,37 @@
         columns and many rows. The concept of such table directly correlates
         to that of traditional RDBMS's.</para>
 
-        <para>A table has 3 attributes:</para>
+        <para>A table may have the following attributes:</para>
 
         <itemizedlist spacing="compact">
           <listitem>
-            <para>uid (mandatory) - defines name of the primary key field.
-            This must be of type long.</para>
+            <para><emphasis role="bold">uid</emphasis> (mandatory) -
+            defines the name of the primary key field.  This must be of
+            type <code>long</code>.</para>
           </listitem>
 
           <listitem>
-            <para>delete-field (optional) - defines the field that would
-            indicate a delete event (we will get back to this later)</para>
+            <para><emphasis role="bold">delete-field</emphasis>
+            (optional) - defines the field that would indicate a delete
+            event (we will get back to this later).</para>
           </listitem>
 
           <listitem>
-            <para>skip-field (optional) - defines the field that would
-            indicate a skipping event (we will get back to this later)</para>
+            <para><emphasis role="bold">skip-field</emphasis> (optional)
+            - defines the field that would indicate a skipping event (we
+            will get back to this later).</para>
+          </listitem>
+
+          <listitem>
+            <para><emphasis role="bold">src-data-store</emphasis>
+            (optional) - defines the format of how the stored field is
+            saved.</para>
+          </listitem>
+
+          <listitem>
+            <para><emphasis role="bold">compress-src-data</emphasis>
+            (optional) - defines if the stored field is
+            compressed.</para>
           </listitem>
         </itemizedlist>
 
@@ -643,57 +658,81 @@
 
         <itemizedlist spacing="compact">
           <listitem>
-            <para>string - value is a string, e.g. "<code>abc</code>"</para>
+            <para><emphasis role="bold">string</emphasis> - value is a
+            string, e.g. "<code>abc</code>"</para>
           </listitem>
 
           <listitem>
-            <para>int - integer value</para>
+            <para><emphasis role="bold">int</emphasis> - integer value</para>
           </listitem>
 
           <listitem>
-            <para>long - long value</para>
+            <para><emphasis role="bold">long</emphasis> - long value</para>
           </listitem>
 
           <listitem>
-            <para>short - short value</para>
+            <para><emphasis role="bold">short</emphasis> - short value</para>
           </listitem>
 
           <listitem>
-            <para>float - a floating point value</para>
+            <para><emphasis role="bold">float</emphasis> - a floating point value</para>
           </listitem>
 
           <listitem>
-            <para>double - double value</para>
+            <para><emphasis role="bold">double</emphasis> - double value</para>
           </listitem>
 
           <listitem>
-            <para>char - a character</para>
+            <para><emphasis role="bold">char</emphasis> - a character</para>
           </listitem>
 
           <listitem>
-            <para>date - a date value, must be accompanied by a format string
-            to be used to parse a data string</para>
+            <para><emphasis role="bold">date</emphasis> - a date value,
+            must be accompanied by a format string to be used to parse a
+            data string</para>
           </listitem>
 
           <listitem>
-            <para>text - a searchable text segment, standard Lucene indexing
+            <para><emphasis role="bold">text</emphasis> - a searchable text segment, standard Lucene indexing
             specification can also be specified here, e.g. index="ANALYZED"
             termvector="NO" etc.</para>
           </listitem>
         </itemizedlist>
 
-        <para>A column that is not of type "text" is considered a meta
-        column.</para>
+        <para>A column that is not of type "text" is considered a
+        <emphasis>meta</emphasis> column.</para>
 
-        <para>Any meta column can be specified to be either single(default) or
-        multi. When a column is specified to be multi, e.g. multi="true", this
-        means given a row, it can have more than 1 value for this column. A
-        delimiter string can be provided to help the indexer to parse the
-        values (default delimiter is ",", for example, to specify a different
-        delimiter to be ":", we can do this by delimiter=":")</para>
+        <para>Any meta column can be specified to be either
+        <code>single</code> (default) or <code>multi</code>. When a
+        column is specified to be <code>multi</code>,
+        e.g. <code>multi="true"</code>, this means given a row, it can
+        have more than 1 value for this column. A delimited string can
+        be provided to help the indexer to parse the values (default
+        delimiter is ",", for example, to specify a different delimiter
+        to be ":", we can do this by <code>delimiter=":"</code>)</para>
 
-        <para>Example:
-        https://github.com/javasoze/sensei/blob/master/conf/schema.xml</para>
+        <para>Here is an example of the table schema (see
+        https://github.com/javasoze/sensei/blob/master/conf/schema.xml):</para>
+
+        <programlisting><![CDATA[  <table uid="id" delete-field="" skip-field="">
+    <column name="color" type="string" />
+    <column name="category" type="string" />
+    <column name="city" type="string" />
+    <column name="makemodel" type="string" />
+    <column name="year" type="int" />
+    <column name="price" type="float" />
+    <column name="mileage" type="int" />
+    <!-- multi is default to be false, if set to true, delimiter
+         is used to break the values,
+         default delimiter is ",".
+    -->
+    <column name="tags" type="string" multi="true" delimiter=","/>
+    <!-- attributes: indexed,store,termvector are only used when
+         type is text.
+    -->
+    <column name="contents" type="text" index="ANALYZED"
+            store="NO" termvector="NO"/>
+  </table>]]></programlisting>
 
         <section>
           <title>JSON</title>
@@ -845,30 +884,30 @@
 
         <itemizedlist spacing="compact">
           <listitem>
-            <para><code>simple</code>: simplest facet, 1 row = 1 discrete
+            <para><emphasis role="bold">simple</emphasis>: simplest facet, 1 row = 1 discrete
             value</para>
           </listitem>
 
           <listitem>
-            <para><code>path</code>: hierarchical facet, e.g. a/b/c</para>
+            <para><emphasis role="bold">path</emphasis>: hierarchical facet, e.g. a/b/c</para>
           </listitem>
 
           <listitem>
-            <para><code>range</code>: range facet, used to support range
+            <para><emphasis role="bold">range</emphasis>: range facet, used to support range
             queries</para>
           </listitem>
 
           <listitem>
-            <para><code>multi</code>: 1 row = N discrete values</para>
+            <para><emphasis role="bold">multi</emphasis>: 1 row = N discrete values</para>
           </listitem>
 
           <listitem>
-            <para><code>compact-multi</code>: similar to multi, but possible
+            <para><emphasis role="bold">compact-multi</emphasis>: similar to multi, but possible
             values are limited to 32</para>
           </listitem>
 
           <listitem>
-            <para><code>custom</code>: any user defined facet type (We will
+            <para><emphasis role="bold">custom</emphasis>: any user defined facet type (We will
             cover this in advanced section)</para>
           </listitem>
         </itemizedlist>
@@ -882,8 +921,9 @@
           <section>
             <title>Column</title>
 
-            <para>The column attribute references the column names defined in
-            the table section. By default, the name is used.</para>
+            <para>The column attribute references the column names
+            defined in the table section. By default, the value of the
+            <code>name</code> attribute is used.</para>
 
             <para>This can be useful if you want to name the facet name to be
             different from the defined column name, or if you want to have
@@ -893,14 +933,14 @@
           <section>
             <title>Depends</title>
 
-            <para>A comma delimited string denoting a set of facet names this
-            facet is to be depended on.</para>
+            <para>This is a comma delimited string denoting a set of
+            facet names this facet is to be depended on.</para>
 
             <para>When <code>depends</code> is specified, Sensei guarantees
             the depending facets are loaded before this facet.</para>
 
-            <para>This is also how Composite Facets are constructed. (Another
-            advanced topic)</para>
+            <para>This is also how Composite Facets are constructed.
+            (Another advanced topic).</para>
           </section>
 
           <section>
@@ -920,10 +960,6 @@
                 <para>dynamic time ranges from when the search request is
                 issued</para>
               </listitem>
-
-              <listitem>
-                <para>...</para>
-              </listitem>
             </itemizedlist>
 
             <para>This is another advanced topic to be discussed later.</para>
@@ -933,9 +969,9 @@
         <section>
           <title>Parameters</title>
 
-          <para>Every facet is configured via a list of parameters.</para>
-
-          <para>Some examples:</para>
+          <para>A facet can be configured via a list of parameters.
+          Parameters are needed for a facet under some situations, for
+          examples:</para>
 
           <itemizedlist spacing="compact">
             <listitem>
@@ -944,17 +980,23 @@
             </listitem>
 
             <listitem>
-              <para>For range facets, pre-defined ranges can be
+              <para>For range facets, predefined ranges can be
               configured</para>
-            </listitem>
-
-            <listitem>
-              <para>...</para>
             </listitem>
           </itemizedlist>
 
+          <para>The parameters can be specified via element
+          <code>params</code>, which contains a list of elements called
+          <code>param</code>.  For each <code>param</code>, two
+          attributes can be specified: <code>name</code> and
+          <code>value</code>.</para>
+
           <para>How parameters are interpreted is dependent on the facet
           type.</para>
+
+          <para>Here is an example of a facet with a list of predefined
+          ranges: </para>
+
         </section>
 
         <section>
