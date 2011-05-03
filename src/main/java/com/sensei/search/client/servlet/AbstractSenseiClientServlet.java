@@ -42,11 +42,11 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
     _networkClientConfig.setServiceName(clusterName);
     _networkClientConfig.setZooKeeperConnectString(zkurl);
     _networkClientConfig.setZooKeeperSessionTimeoutMillis(zkTimeout);
-    _networkClientConfig.setConnectTimeoutMillis(1000);
-    _networkClientConfig.setWriteTimeoutMillis(150);
-    _networkClientConfig.setMaxConnectionsPerNode(5);
-    _networkClientConfig.setStaleRequestTimeoutMins(10);
-    _networkClientConfig.setStaleRequestCleanupFrequencyMins(10);
+    _networkClientConfig.setConnectTimeoutMillis(connectTimeoutMillis);
+    _networkClientConfig.setWriteTimeoutMillis(writeTimeoutMillis);
+    _networkClientConfig.setMaxConnectionsPerNode(maxConnectionsPerNode);
+    _networkClientConfig.setStaleRequestTimeoutMins(staleRequestTimeoutMins);
+    _networkClientConfig.setStaleRequestCleanupFrequencyMins(staleRequestCleanupFrequencyMins);
     
     _clusterClient = new ZooKeeperClusterClient(clusterName,zkurl,zkTimeout);
   

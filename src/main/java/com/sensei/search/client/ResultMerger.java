@@ -365,7 +365,7 @@ public class ResultMerger
     }
     Comparator<SenseiHit> comparator = new SenseiHitComparator();
 
-    ArrayList<SenseiHit> mergedList = ListMerger.mergeLists(req.getOffset(), req.getCount(), iteratorList
+    List<SenseiHit> mergedList = ListMerger.mergeLists(req.getOffset(), req.getCount(), iteratorList
         .toArray(new Iterator[iteratorList.size()]), comparator);
     SenseiHit[] hits = mergedList.toArray(new SenseiHit[mergedList.size()]);
 
