@@ -20,6 +20,11 @@ public class SenseiConfigServletContextListener implements
 	public static final String SENSEI_CONF_ZKURL = "sensei.search.cluster.zookeeper.url";
 	public static final String SENSEI_CONF_CLUSTER_NAME = "sensei.search.cluster.name";
 	public static final String SENSEI_CONF_ZKTIMEOUT = "sensei.search.cluster.zookeeper.conn.timeout";
+	public static final String SENSEI_CONF_NC_CONN_TIMEOUT = "sensei.search.cluster.network.conn.timeout";
+	public static final String SENSEI_CONF_NC_WRITE_TIMEOUT = "sensei.search.cluster.network.write.timeout";
+	public static final String SENSEI_CONF_NC_MAX_CONN_PER_NODE = "sensei.search.cluster.network.max.conn.per.node";
+	public static final String SENSEI_CONF_NC_STALE_TIMEOUT_MINS = "sensei.search.cluster.network.stale.timeout.mins";
+	public static final String SENSEI_CONF_NC_STALE_CLEANUP_FREQ_MINS = "sensei.search.cluster.network.stale.cleanup.freq.mins";
 	public static final String SENSEI_CONF_VERSION_COMPARATOR = "sensei.search.version.comparator";
 	public static final String SENSEI_CONF_ROUTER_FACTORY = "sensei.search.router.factory";
 	public static final String SENSEI_CONF_OBJ = "sensei.search.configuration";
