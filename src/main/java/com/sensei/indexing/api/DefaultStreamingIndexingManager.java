@@ -253,6 +253,7 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
               {
                 JSONObject markerObj = new JSONObject();
                 markerObj.put(DefaultStreamingIndexingManager.this._senseiSchema.getSkipField(), "true");
+                markerObj.put(_uidField, 0L); // Add a dummy uid
                 partDataSet.add(new DataEvent<JSONObject>(markerObj, _currentVersion));
               }
               else if (!partDataSet.getLast().getVersion().equals(_currentVersion))
