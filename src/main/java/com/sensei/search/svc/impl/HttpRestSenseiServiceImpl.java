@@ -1,20 +1,6 @@
 package com.sensei.search.svc.impl;
 
 
-import com.browseengine.bobo.api.BrowseFacet;
-import com.browseengine.bobo.api.BrowseSelection;
-import com.browseengine.bobo.api.FacetAccessible;
-import com.browseengine.bobo.api.FacetSpec;
-import com.browseengine.bobo.api.MappedFacetAccessible;
-import com.browseengine.bobo.facets.FacetHandlerInitializerParam;
-import com.sensei.search.client.servlet.SenseiSearchServletParams;
-import com.sensei.search.req.SenseiHit;
-import com.sensei.search.req.SenseiQuery;
-import com.sensei.search.req.SenseiRequest;
-import com.sensei.search.req.SenseiResult;
-import com.sensei.search.req.SenseiSystemInfo;
-import com.sensei.search.svc.api.SenseiException;
-import com.sensei.search.svc.api.SenseiService;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -32,7 +18,9 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.zip.GZIPInputStream;
+
 import javax.net.ssl.SSLHandshakeException;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
@@ -72,7 +60,23 @@ import org.apache.lucene.search.SortField;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+
+import com.browseengine.bobo.api.BrowseFacet;
+import com.browseengine.bobo.api.BrowseSelection;
+import com.browseengine.bobo.api.FacetAccessible;
+import com.browseengine.bobo.api.FacetSpec;
+import com.browseengine.bobo.api.MappedFacetAccessible;
+import com.browseengine.bobo.facets.FacetHandlerInitializerParam;
+import com.sensei.search.client.servlet.SenseiSearchServletParams;
+import com.sensei.search.req.SenseiHit;
+import com.sensei.search.req.SenseiQuery;
+import com.sensei.search.req.SenseiRequest;
+import com.sensei.search.req.SenseiResult;
+import com.sensei.search.req.SenseiSystemInfo;
+import com.sensei.search.svc.api.SenseiException;
+import com.sensei.search.svc.api.SenseiService;
 
 
 public class HttpRestSenseiServiceImpl implements SenseiService
@@ -576,6 +580,7 @@ public class HttpRestSenseiServiceImpl implements SenseiService
   public InputStream makeRequest(URI uri)
       throws IOException
   {
+	  System.out.println("sending: "+uri);
     HttpGet httpget = new HttpGet(uri);
     HttpResponse response = _httpclient.execute(httpget);
     HttpEntity entity = response.getEntity();
@@ -609,14 +614,14 @@ public class HttpRestSenseiServiceImpl implements SenseiService
   {
     BufferedReader reader = new BufferedReader(new InputStreamReader(is));
     StringBuilder sb = new StringBuilder();
-
-    try
+    char[] buf = new char[1024];  //1k buffer
+     try
     {
-      String line;
-
-      while ((line = reader.readLine()) != null)
-      {
-        sb.append(line + "\n");
+     
+      while(true){
+    	  int count = reader.read(buf);
+    	  if (count<0) break;
+    	  sb.append(buf, 0, count);
       }
     }
     finally
@@ -624,7 +629,9 @@ public class HttpRestSenseiServiceImpl implements SenseiService
       is.close();
     }
 
-    return sb.toString();
+    String json = sb.toString();
+    System.out.println("received: "+json);
+    return json;
   }
 
   public static JSONObject convertStreamToJSONObject(InputStream is)
@@ -692,12 +699,38 @@ public class HttpRestSenseiServiceImpl implements SenseiService
       JSONObject hitObj = (JSONObject)hitsArray.get(i);
 
       SenseiHit hit = new SenseiHit();
-      hit.setUID(hitObj.getLong(SenseiSearchServletParams.PARAM_RESULT_HIT_UID));
-      hit.setDocid(hitObj.getInt(SenseiSearchServletParams.PARAM_RESULT_HIT_DOCID));
-      hit.setScore((float) hitObj.getDouble(SenseiSearchServletParams.PARAM_RESULT_HIT_SCORE));
-      hit.setStoredFields(convertStoredFields(hitObj.getJSONArray(SenseiSearchServletParams.PARAM_RESULT_HIT_STORED_FIELDS)));
-      hit.setExplanation(convertToExplanation(hitObj.getJSONObject(SenseiSearchServletParams.PARAM_RESULT_HIT_EXPLANATION)));
-      //hit.setFieldValues(convertFieldValues());
+      Iterator keys = hitObj.keys();
+      Map<String,String[]> fieldMap = new HashMap<String,String[]>();
+      while(keys.hasNext()){
+    	  String key = (String)keys.next();
+    	  if (SenseiSearchServletParams.PARAM_RESULT_HIT_UID.equals(key)){
+    		  hit.setUID(hitObj.getLong(SenseiSearchServletParams.PARAM_RESULT_HIT_UID));
+    	  }
+    	  else if (SenseiSearchServletParams.PARAM_RESULT_HIT_DOCID.equals(key)){
+    		  hit.setDocid(hitObj.getInt(SenseiSearchServletParams.PARAM_RESULT_HIT_DOCID));
+    	  }
+    	  else if (SenseiSearchServletParams.PARAM_RESULT_HIT_SCORE.equals(key)){
+    		  hit.setScore((float) hitObj.getDouble(SenseiSearchServletParams.PARAM_RESULT_HIT_SCORE));
+    	  }
+    	  else if (SenseiSearchServletParams.PARAM_RESULT_HIT_STORED_FIELDS.equals(key)){
+    		  hit.setStoredFields(convertStoredFields(hitObj.optJSONArray(SenseiSearchServletParams.PARAM_RESULT_HIT_STORED_FIELDS)));
+    	  }
+    	  else if (SenseiSearchServletParams.PARAM_RESULT_HIT_EXPLANATION.equals(key)){
+    		  hit.setExplanation(convertToExplanation(hitObj.optJSONObject(SenseiSearchServletParams.PARAM_RESULT_HIT_EXPLANATION)));
+    	  }
+    	  else{
+    		  JSONArray array = hitObj.optJSONArray(key);
+    		  if (array!=null){
+    			  String [] arr = new String[array.length()];
+    			  for (int k=0;k<arr.length;++k){
+    				  arr[k]=array.getString(k);
+    			  }
+        		  fieldMap.put(key, arr);  
+    		  }
+    	  }
+      }
+      
+      hit.setFieldValues(fieldMap);
       //hit.setFieldValues(convertRawFieldValues());
 
       result[i] = hit;
@@ -705,6 +738,7 @@ public class HttpRestSenseiServiceImpl implements SenseiService
 
     return result;
   }
+ 
 
   public static Document convertStoredFields(JSONArray jsonArray)
       throws JSONException
@@ -726,10 +760,11 @@ public class HttpRestSenseiServiceImpl implements SenseiService
   public static Explanation convertToExplanation(JSONObject jsonObj)
       throws JSONException
   {
+	if (jsonObj == null) return null;
     Explanation explanation = new Explanation();
 
-    float value = (float) jsonObj.getDouble(SenseiSearchServletParams.PARAM_RESULT_HITS_EXPL_VALUE);
-    String description = jsonObj.getString(SenseiSearchServletParams.PARAM_RESULT_HITS_EXPL_DESC);
+    float value = (float) jsonObj.optDouble(SenseiSearchServletParams.PARAM_RESULT_HITS_EXPL_VALUE);
+    String description = jsonObj.optString(SenseiSearchServletParams.PARAM_RESULT_HITS_EXPL_DESC);
 
     explanation.setDescription(description);
     explanation.setValue(value);
@@ -751,7 +786,7 @@ public class HttpRestSenseiServiceImpl implements SenseiService
   @Override
   public void shutdown() {
     if (_httpclient == null) return;
-    ((ClientConnectionManager)_httpclient).shutdown();
+    _httpclient.getConnectionManager().shutdown();
     _httpclient = null;
   }
 
