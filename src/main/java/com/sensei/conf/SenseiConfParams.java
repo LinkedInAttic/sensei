@@ -40,7 +40,7 @@ public interface SenseiConfParams {
 	public static final String SENSEI_PLUGIN_SVCS = "sensei.plugin.services";
 	
 	public static final String SENSEI_HOURGLASS_SCHEDULE = "sensei.indexer.hourglass.schedule";
-	public static final String SENSEI_HOURGLASS_TIMETHRESHOLD = "sensei.indexer.hourglass.timethreshold";
+	public static final String SENSEI_HOURGLASS_TRIMTHRESHOLD = "sensei.indexer.hourglass.trimthreshold";
 	public static final String SENSEI_HOURGLASS_FREQUENCY = "sensei.indexer.hourglass.frequency";
 	public static final String SENSEI_HOURGLASS_FREQUENCY_MIN = "minute";
 	public static final String SENSEI_HOURGLASS_FREQUENCY_HOUR = "hour";
