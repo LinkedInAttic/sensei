@@ -64,7 +64,7 @@ public class ClusteredSenseiServiceImpl implements SenseiService {
   
   @Override
   public SenseiSystemInfo getSystemInfo() throws SenseiException {
-    return _senseiBroker.getSystemInfo();
+    return null; //TODO:wonlay: _senseiBroker.getSystemInfo();
   }
 
   @Override

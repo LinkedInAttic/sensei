@@ -81,7 +81,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
   private void handleSystemInfoRequest(HttpServletRequest req, HttpServletResponse resp)
     throws ServletException, IOException {
     try {
-      SenseiSystemInfo res = _senseiBroker.getSystemInfo();
+      SenseiSystemInfo res = null; //TODO:wonlay: _senseiBroker.getSystemInfo();
       resp.setContentType("text/plain; charset=utf-8");
       resp.setCharacterEncoding("UTF-8");
       OutputStream ostream = resp.getOutputStream();

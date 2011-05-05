@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 
 import org.apache.lucene.search.SortField;
@@ -35,6 +36,8 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable
 	private Map<String,FacetHandlerInitializerParam> _facetInitParamMap;
 	private Set<Integer> _partitions;
 	private boolean _showExplanation;
+	private Random _rand = new Random(System.nanoTime());
+	private String _routeParam;
 	
 	public SenseiRequest(){
 		_facetInitParamMap = new HashMap<String,FacetHandlerInitializerParam>();
@@ -80,6 +83,14 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable
 	public Set<Integer> getPartitions(){
 		return _partitions;
 	}
+
+  public String getRouteParam()
+  {
+    if (_routeParam != null)
+      return _routeParam;
+
+    return String.valueOf(_rand.nextInt());
+  }
 	
 	public Map<String,FacetHandlerInitializerParam> getFacetHandlerInitParamMap(){
 		return _facetInitParamMap;
