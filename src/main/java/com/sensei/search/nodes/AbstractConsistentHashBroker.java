@@ -16,6 +16,7 @@ import com.linkedin.norbert.javacompat.cluster.ClusterClient;
 import com.linkedin.norbert.javacompat.network.PartitionedNetworkClient;
 import com.sensei.search.cluster.routing.RoutingInfo;
 import com.sensei.search.cluster.routing.SenseiLoadBalancer;
+import com.sensei.search.cluster.routing.SenseiLoadBalancerFactory;
 import com.sensei.search.req.AbstractSenseiRequest;
 import com.sensei.search.req.AbstractSenseiResult;
 import com.sensei.search.svc.api.SenseiException;
@@ -33,7 +34,8 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
 {
   private final static Logger logger = Logger.getLogger(AbstractConsistentHashBroker.class);
   protected long _timeout = 8000;
-  protected final SenseiLoadBalancer _loadBalancer;
+  protected SenseiLoadBalancer _loadBalancer;
+  protected final SenseiLoadBalancerFactory _loadBalancerFactory;
 
   /**
    * @param networkClient
@@ -48,11 +50,11 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
    * @param scatterGatherHandler
    * @throws NorbertException
    */
-  public AbstractConsistentHashBroker(PartitionedNetworkClient<Integer> networkClient, ClusterClient clusterClient, REQMSG defaultrequest, RESMSG defaultresult, SenseiLoadBalancer loadBalancer)
+  public AbstractConsistentHashBroker(PartitionedNetworkClient<Integer> networkClient, ClusterClient clusterClient, REQMSG defaultrequest, RESMSG defaultresult, SenseiLoadBalancerFactory loadBalancerFactory)
       throws NorbertException
   {
     super(networkClient, clusterClient, defaultrequest, defaultresult,null);
-    _loadBalancer = loadBalancer;
+    _loadBalancerFactory = loadBalancerFactory;
   }
 
   public abstract REQMSG requestToMessage(REQUEST request);

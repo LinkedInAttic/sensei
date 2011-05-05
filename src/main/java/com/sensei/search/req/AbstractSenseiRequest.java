@@ -7,4 +7,5 @@ public interface AbstractSenseiRequest extends Serializable
 {
   public abstract void setPartitions(Set<Integer> partitions);
   public abstract Set<Integer> getPartitions();
+  public abstract String getRouteParam();
 }
