@@ -362,7 +362,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
       else if (SENSEI_INDEXER_TYPE_HOURGLASS.equals(indexerType)){
         
         String schedule = _senseiConf.getString(SENSEI_HOURGLASS_SCHEDULE,"");
-        int trimThreshold = _senseiConf.getInt(SENSEI_HOURGLASS_TIMETHRESHOLD,14);
+        int trimThreshold = _senseiConf.getInt(SENSEI_HOURGLASS_TRIMTHRESHOLD,14);
         String frequencyString = _senseiConf.getString(SENSEI_HOURGLASS_FREQUENCY,"day");
         
         FREQUENCY frequency;
