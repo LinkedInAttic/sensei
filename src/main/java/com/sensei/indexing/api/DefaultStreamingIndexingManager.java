@@ -256,7 +256,7 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
                 markerObj.put(_uidField, 0L); // Add a dummy uid
                 partDataSet.add(new DataEvent<JSONObject>(markerObj, _currentVersion));
               }
-              else if (!partDataSet.getLast().getVersion().equals(_currentVersion))
+              else if (_currentVersion != null && !_currentVersion.equals(partDataSet.getLast().getVersion()))
               {
                 DataEvent<JSONObject> last = partDataSet.pollLast();
                 partDataSet.add(new DataEvent<JSONObject>(last.getData(), _currentVersion));
