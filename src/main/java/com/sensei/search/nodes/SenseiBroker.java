@@ -7,6 +7,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.zip.GZIPInputStream;
 
@@ -14,6 +15,7 @@ import org.apache.log4j.Logger;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 
+import com.browseengine.bobo.api.FacetSpec;
 import com.linkedin.norbert.NorbertException;
 import com.linkedin.norbert.javacompat.cluster.ClusterClient;
 import com.linkedin.norbert.javacompat.cluster.Node;
@@ -122,6 +124,16 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
   @Override
   public Request requestToMessage(SenseiRequest request)
   {
+    // Rewrite facet max count.
+    Map<String, FacetSpec> facetSpecs = request.getFacetSpecs();
+    if (facetSpecs != null) {
+      for (Map.Entry<String, FacetSpec> entry : facetSpecs.entrySet()) {
+        FacetSpec spec = entry.getValue();
+        if (spec != null)
+          spec.setMaxCount(0);
+      }
+    }
+
     return SenseiRequestBPOConverter.convert(request);
   }
 
