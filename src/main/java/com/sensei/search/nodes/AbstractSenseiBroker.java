@@ -8,8 +8,8 @@ import com.google.protobuf.Message;
 import com.linkedin.norbert.NorbertException;
 import com.linkedin.norbert.javacompat.cluster.ClusterClient;
 import com.linkedin.norbert.javacompat.cluster.ClusterListener;
-import com.linkedin.norbert.javacompat.network.PartitionedLoadBalancerFactory;
 import com.linkedin.norbert.javacompat.network.PartitionedNetworkClient;
+import com.sensei.search.cluster.routing.SenseiLoadBalancerFactory;
 import com.sensei.search.req.AbstractSenseiRequest;
 import com.sensei.search.req.AbstractSenseiResult;
 import com.sensei.search.svc.api.SenseiException;
@@ -28,7 +28,7 @@ public abstract class AbstractSenseiBroker<REQUEST extends AbstractSenseiRequest
   private final static Logger logger = Logger.getLogger(AbstractSenseiBroker.class);
   protected final PartitionedNetworkClient<Integer> _networkClient;
   protected final ClusterClient _clusterClient;
-  protected final PartitionedLoadBalancerFactory<Integer> _routerFactory;
+  protected final SenseiLoadBalancerFactory _loadBalancerFactory;
   protected volatile IntSet _partitions = null;
   
 
@@ -46,10 +46,10 @@ public abstract class AbstractSenseiBroker<REQUEST extends AbstractSenseiRequest
    * @throws NorbertException
    */
   public AbstractSenseiBroker(PartitionedNetworkClient<Integer> networkClient, ClusterClient clusterClient, 
-		  	REQMSG defaultrequest, RESMSG defaultresult,PartitionedLoadBalancerFactory<Integer> routerFactory)
+		  	REQMSG defaultrequest, RESMSG defaultresult, SenseiLoadBalancerFactory loadBalancerFactory)
       throws NorbertException
   {
-	_routerFactory = routerFactory;
+	  _loadBalancerFactory = loadBalancerFactory;
     _networkClient = networkClient;
     _clusterClient = clusterClient;
     // register the request-response messages
