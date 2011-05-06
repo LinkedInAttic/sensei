@@ -41,7 +41,7 @@ public class SenseiNetworkClient implements PartitionedNetworkClient<Integer>
                             {
                               public PartitionedLoadBalancer<Integer> newLoadBalancer(Set<Node> nodes)
                               {
-                                return null;
+                                throw new UnsupportedOperationException();
                               }
                             });
     }
