@@ -16,8 +16,8 @@ import org.springframework.context.support.FileSystemXmlApplicationContext;
 
 import com.linkedin.norbert.javacompat.cluster.ClusterClient;
 import com.linkedin.norbert.javacompat.network.NetworkServer;
-import com.linkedin.norbert.javacompat.network.PartitionedLoadBalancerFactory;
 import com.sensei.search.cluster.client.SenseiNetworkClient;
+import com.sensei.search.cluster.routing.SenseiLoadBalancerFactory;
 import com.sensei.search.nodes.SenseiRequestScatterRewriter;
 import com.sensei.search.nodes.SenseiZoieFactory;
 import com.sensei.search.nodes.SenseiZoieSystemFactory;
@@ -33,7 +33,7 @@ public class AbstractSenseiTestCase extends TestCase {
   protected static SenseiNetworkClient networkClient;
   protected static ClusterClient clusterClient;
   protected static SenseiRequestScatterRewriter requestRewriter;
-  protected static PartitionedLoadBalancerFactory<Integer> routerFactory;
+  protected static SenseiLoadBalancerFactory loadBalancerFactory;
   protected static NetworkServer networkServer1;
   protected static NetworkServer networkServer2;
   protected static final String SENSEI_TEST_CONF_FILE="sensei-test.spring";
@@ -76,7 +76,7 @@ public class AbstractSenseiTestCase extends TestCase {
     networkClient.registerRequest(SenseiRequestBPO.Request.getDefaultInstance(), SenseiResultBPO.Result.getDefaultInstance());
     clusterClient = (ClusterClient)testSpringCtx.getBean("cluster-client");
     requestRewriter = (SenseiRequestScatterRewriter)testSpringCtx.getBean("request-rewriter");
-    routerFactory = (PartitionedLoadBalancerFactory<Integer>)testSpringCtx.getBean("router-factory");
+    loadBalancerFactory = (SenseiLoadBalancerFactory)testSpringCtx.getBean("router-factory");
     networkServer1 = (NetworkServer)testSpringCtx.getBean("network-server-1");
     networkServer2 = (NetworkServer)testSpringCtx.getBean("network-server-2");
     _zoieFactory = (SenseiZoieFactory<?>)testSpringCtx.getBean("zoie-system-factory");

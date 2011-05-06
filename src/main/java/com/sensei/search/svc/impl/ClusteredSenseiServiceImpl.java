@@ -7,8 +7,8 @@ import org.apache.log4j.Logger;
 import com.linkedin.norbert.javacompat.cluster.ClusterClient;
 import com.linkedin.norbert.javacompat.cluster.ZooKeeperClusterClient;
 import com.linkedin.norbert.javacompat.network.NetworkClientConfig;
-import com.linkedin.norbert.javacompat.network.PartitionedLoadBalancerFactory;
 import com.sensei.search.cluster.client.SenseiNetworkClient;
+import com.sensei.search.cluster.routing.SenseiLoadBalancerFactory;
 import com.sensei.search.nodes.SenseiBroker;
 import com.sensei.search.nodes.impl.NoopRequestScatterRewriter;
 import com.sensei.search.req.SenseiSystemInfo;
@@ -30,7 +30,7 @@ public class ClusteredSenseiServiceImpl implements SenseiService {
   
   public ClusteredSenseiServiceImpl(String zkurl,int zkTimeout,String clusterName, int connectTimeoutMillis,
       int writeTimeoutMillis, int maxConnectionsPerNode, int staleRequestTimeoutMins,
-      int staleRequestCleanupFrequencyMins, PartitionedLoadBalancerFactory<Integer> routerFactory,
+      int staleRequestCleanupFrequencyMins, SenseiLoadBalancerFactory loadBalancerFactory,
       Comparator<String> versionComparator) {
     _clusterName = clusterName;
     _networkClientConfig.setServiceName(clusterName);
@@ -46,8 +46,8 @@ public class ClusteredSenseiServiceImpl implements SenseiService {
   
     _networkClientConfig.setClusterClient(_clusterClient);
     
-    _networkClient = new SenseiNetworkClient(_networkClientConfig,routerFactory);
-    _senseiBroker = new SenseiBroker(_networkClient, _clusterClient, _reqRewriter, routerFactory, versionComparator);
+    _networkClient = new SenseiNetworkClient(_networkClientConfig,null);
+    _senseiBroker = new SenseiBroker(_networkClient, _clusterClient, _reqRewriter, loadBalancerFactory, versionComparator);
   }
   
   public void start(){

@@ -4,12 +4,12 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.IntSet;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 import com.linkedin.norbert.javacompat.cluster.Node;
-import com.linkedin.norbert.javacompat.network.PartitionedLoadBalancer;
 
-public class UniformPartitionedLoadBalancer implements PartitionedLoadBalancer<Integer> {
+public class UniformPartitionedLoadBalancer implements SenseiLoadBalancer {
   
 	private final Int2ObjectMap<ArrayList<Node>> _nodeMap;
 	private final Random _rand;
@@ -48,9 +48,6 @@ public class UniformPartitionedLoadBalancer implements PartitionedLoadBalancer<I
     }
   }
 
-  /* (non-Javadoc)
-   * @see com.linkedin.norbert.network.javaapi.PartitionedLoadBalancer#nextNode(java.lang.Object)
-   */
   public Node nextNode(Integer partition)
   {
     ArrayList<Node> nodeList = _nodeMap.get(partition);
@@ -62,5 +59,22 @@ public class UniformPartitionedLoadBalancer implements PartitionedLoadBalancer<I
     else{
         return null;
     }    
+  }
+
+  public RoutingInfo route(String routeParam)
+  {
+    List<Node>[] nodeLists = new List[getPartitions().size()];
+    int[] partitions = new int[getPartitions().size()];
+    int[] nodegroup = new int[getPartitions().size()];
+    int i = 0;
+    for(int p : getPartitions())
+    {
+      List<Node> nodeList = new ArrayList<Node>(1);
+      nodeList.add(nextNode(p));
+      nodeLists[i] = nodeList;
+      partitions[i] = p;
+      ++i;
+    }
+    return new RoutingInfo(nodeLists, partitions, nodegroup);
   }
 }

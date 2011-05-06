@@ -11,16 +11,11 @@ import java.util.Set;
 
 import com.linkedin.norbert.cluster.InvalidClusterException;
 import com.linkedin.norbert.javacompat.cluster.Node;
-import com.linkedin.norbert.javacompat.network.PartitionedLoadBalancer;
-import com.linkedin.norbert.javacompat.network.PartitionedLoadBalancerFactory;
 
-public class UniformPartitionedRoutingFactory implements PartitionedLoadBalancerFactory<Integer> {
+public class UniformPartitionedRoutingFactory implements SenseiLoadBalancerFactory {
 	private final Random _rand = new Random(System.nanoTime());
 	
-  /* (non-Javadoc)
-   * @see com.linkedin.norbert.network.javaapi.PartitionedLoadBalancerFactory#newLoadBalancer(com.linkedin.norbert.cluster.Node[])
-   */
-  public PartitionedLoadBalancer<Integer> newLoadBalancer(Set<Node> nodes) throws InvalidClusterException
+  public SenseiLoadBalancer newLoadBalancer(Set<Node> nodes) throws InvalidClusterException
   {
     final Int2ObjectMap<ArrayList<Node>> nodeMap = new Int2ObjectOpenHashMap<ArrayList<Node>>();
     IntSet parts = new IntOpenHashSet();
