@@ -84,6 +84,11 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable
 		return _partitions;
 	}
 
+  public void setRouteParam(String routeParam)
+  {
+    _routeParam = routeParam;
+  }
+
   public String getRouteParam()
   {
     if (_routeParam != null)
