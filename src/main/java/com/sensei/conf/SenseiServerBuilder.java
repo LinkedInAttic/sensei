@@ -98,10 +98,11 @@ public class SenseiServerBuilder implements SenseiConfParams{
     return springCtx;
   }
 
-  private static ClusterClient buildClusterClient(Configuration conf){
-    String clusterName = conf.getString(SENSEI_CLUSTER_NAME);
-    String zkUrl = conf.getString(SENSEI_CLUSTER_URL);
-    int zkTimeout = conf.getInt(SENSEI_CLUSTER_TIMEOUT, 300000);
+  public ClusterClient buildClusterClient()
+  {
+    String clusterName = _senseiConf.getString(SENSEI_CLUSTER_NAME);
+    String zkUrl = _senseiConf.getString(SENSEI_CLUSTER_URL);
+    int zkTimeout = _senseiConf.getInt(SENSEI_CLUSTER_TIMEOUT, 300000);
     ClusterClient clusterClient =  new ZooKeeperClusterClient(clusterName, zkUrl,zkTimeout);
     
 
@@ -434,7 +435,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
   public SenseiServer buildServer() throws ConfigurationException { 
   int port = _senseiConf.getInt(SERVER_PORT);
     
-  ClusterClient clusterClient = buildClusterClient(_senseiConf);
+  ClusterClient clusterClient = buildClusterClient();
     
   NetworkServer networkServer = buildNetworkServer(_senseiConf,clusterClient);
   
