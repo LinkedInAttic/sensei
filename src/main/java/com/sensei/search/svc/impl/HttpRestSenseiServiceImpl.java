@@ -61,7 +61,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.BrowseSelection;
@@ -316,7 +315,7 @@ public class HttpRestSenseiServiceImpl implements SenseiService
   public SenseiSystemInfo getSystemInfo()
       throws SenseiException
   {
-    throw new NotImplementedException();
+    throw new UnsupportedOperationException();
   }
 
   public static List<NameValuePair> convertRequestToQueryParams(SenseiRequest req)

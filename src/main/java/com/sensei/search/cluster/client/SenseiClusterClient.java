@@ -141,6 +141,9 @@ public class SenseiClusterClient {
 			catch(org.springframework.remoting.RemoteConnectFailureException conExcep){
 			  System.out.println("Connection problem. Please make sure Sensei is running.");
 			}
+			catch(UnsupportedOperationException e){
+			  System.out.println("Unsupportted command now.");
+			}
 			catch(Exception e){
 				e.printStackTrace();
 			}
