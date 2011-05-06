@@ -19,7 +19,6 @@ import com.browseengine.bobo.api.FacetSpec;
 import com.linkedin.norbert.NorbertException;
 import com.linkedin.norbert.javacompat.cluster.ClusterClient;
 import com.linkedin.norbert.javacompat.cluster.Node;
-import com.linkedin.norbert.javacompat.network.PartitionedLoadBalancerFactory;
 import com.linkedin.norbert.javacompat.network.PartitionedNetworkClient;
 import com.sensei.conf.SenseiSchema;
 import com.sensei.search.client.ResultMerger;
@@ -36,7 +35,6 @@ import com.sensei.search.req.protobuf.SenseiSysRequestBPOConverter;
 import com.sensei.search.req.protobuf.SenseiSysResultBPO;
 import com.sensei.search.req.protobuf.SenseiRequestBPO.Request;
 import com.sensei.search.req.protobuf.SenseiResultBPO.Result;
-import com.sensei.search.svc.api.SenseiException;
 
 /**
  * This SenseiBroker routes search(browse) request using the routers created by
@@ -51,11 +49,10 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
 
   private long _timeoutMillis = TIMEOUT_MILLIS;
 
-  public SenseiBroker(PartitionedNetworkClient<Integer> networkClient, ClusterClient clusterClient, SenseiRequestScatterRewriter reqRewriter,
-      SenseiLoadBalancerFactory loadBalancerFactory, Comparator<String> versionComparator) throws NorbertException
+  public SenseiBroker(PartitionedNetworkClient<Integer> networkClient, ClusterClient clusterClient, SenseiLoadBalancerFactory loadBalancerFactory) throws NorbertException
   {
     super(networkClient, clusterClient, SenseiRequestBPO.Request.getDefaultInstance(), SenseiResultBPO.Result.getDefaultInstance(),loadBalancerFactory);
-    logger.info("created broker instance " + networkClient + " " + clusterClient + " " + loadBalancerFactory + " " + reqRewriter);
+    logger.info("created broker instance " + networkClient + " " + clusterClient + " " + loadBalancerFactory);
   }
 
   @Override
