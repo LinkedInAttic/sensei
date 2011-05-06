@@ -4,6 +4,7 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xmlns:xs="http://www.w3.org/2001/XMLSchema"
          xmlns:ns="http://maven.apache.org/POM/4.0.0">
+		
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>com.senseidb.doc</groupId>
@@ -59,6 +60,10 @@
             <scope>runtime</scope>
           </dependency>
         </dependencies>
+
+        <configuration>
+           <targetDirectory>${basedir}/src/docbkx</targetDirectory>
+        </configuration>
 
         <executions>
           <execution>
