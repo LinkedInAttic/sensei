@@ -66,7 +66,9 @@
     
     <bean id="network-client" class="com.sensei.search.cluster.client.SenseiNetworkClient">
         <constructor-arg ref="network-client-config" />
-        <constructor-arg ref="router-factory" />
+        <constructor-arg>
+          <null />
+        </constructor-arg>
     </bean>
       
 </beans>

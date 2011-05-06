@@ -13,6 +13,7 @@ import com.linkedin.norbert.cluster.InvalidNodeException;
 import com.linkedin.norbert.javacompat.cluster.Node;
 import com.linkedin.norbert.javacompat.network.NettyPartitionedNetworkClient;
 import com.linkedin.norbert.javacompat.network.NetworkClientConfig;
+import com.linkedin.norbert.javacompat.network.PartitionedLoadBalancer;
 import com.linkedin.norbert.javacompat.network.PartitionedLoadBalancerFactory;
 import com.linkedin.norbert.javacompat.network.PartitionedNetworkClient;
 import com.linkedin.norbert.javacompat.network.ScatterGatherHandler;
@@ -36,7 +37,13 @@ public class SenseiNetworkClient implements PartitionedNetworkClient<Integer>
     }
     else
     {
-      _networkClient = new NettyPartitionedNetworkClient<Integer>(netConfig, new UniformPartitionedRoutingFactory());
+      _networkClient = new NettyPartitionedNetworkClient<Integer>(netConfig, new PartitionedLoadBalancerFactory<Integer>()
+                            {
+                              public PartitionedLoadBalancer<Integer> newLoadBalancer(Set<Node> nodes)
+                              {
+                                return null;
+                              }
+                            });
     }
   }
   
