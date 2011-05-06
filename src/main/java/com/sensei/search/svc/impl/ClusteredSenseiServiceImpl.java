@@ -10,6 +10,7 @@ import com.linkedin.norbert.javacompat.network.NetworkClientConfig;
 import com.sensei.search.cluster.client.SenseiNetworkClient;
 import com.sensei.search.cluster.routing.SenseiLoadBalancerFactory;
 import com.sensei.search.nodes.SenseiBroker;
+import com.sensei.search.nodes.SenseiSysBroker;
 import com.sensei.search.nodes.impl.NoopRequestScatterRewriter;
 import com.sensei.search.req.SenseiSystemInfo;
 import com.sensei.search.req.SenseiRequest;
@@ -20,10 +21,10 @@ import com.sensei.search.svc.api.SenseiService;
 public class ClusteredSenseiServiceImpl implements SenseiService {  
   private static final Logger logger = Logger.getLogger(ClusteredSenseiServiceImpl.class);
 
-  private final NoopRequestScatterRewriter _reqRewriter = new NoopRequestScatterRewriter();
   private final NetworkClientConfig _networkClientConfig = new NetworkClientConfig();
   
   private SenseiBroker _senseiBroker;
+  private SenseiSysBroker _senseiSysBroker;
   private SenseiNetworkClient _networkClient = null;
   private ClusterClient _clusterClient;
   private final String _clusterName;
@@ -47,7 +48,8 @@ public class ClusteredSenseiServiceImpl implements SenseiService {
     _networkClientConfig.setClusterClient(_clusterClient);
     
     _networkClient = new SenseiNetworkClient(_networkClientConfig,null);
-    _senseiBroker = new SenseiBroker(_networkClient, _clusterClient, _reqRewriter, loadBalancerFactory, versionComparator);
+    _senseiBroker = new SenseiBroker(_networkClient, _clusterClient, loadBalancerFactory);
+    _senseiSysBroker = new SenseiSysBroker(_networkClient, _clusterClient, loadBalancerFactory, versionComparator);
   }
   
   public void start(){
@@ -64,7 +66,7 @@ public class ClusteredSenseiServiceImpl implements SenseiService {
   
   @Override
   public SenseiSystemInfo getSystemInfo() throws SenseiException {
-    return null; //TODO:wonlay: _senseiBroker.getSystemInfo();
+    return _senseiSysBroker.browse(new SenseiRequest());
   }
 
   @Override
@@ -76,16 +78,26 @@ public class ClusteredSenseiServiceImpl implements SenseiService {
         }
       }
       finally{
-        try{
-          if (_networkClient!=null){
-            _networkClient.shutdown();
-            _networkClient = null;
+        try
+        {
+          if (_senseiSysBroker!=null){
+            _senseiSysBroker.shutdown();
+            _senseiSysBroker = null;
           }
         }
-        finally{
-          if (_clusterClient!=null){
-            _clusterClient.shutdown();
-            _clusterClient = null;
+        finally
+        {
+          try{
+            if (_networkClient!=null){
+              _networkClient.shutdown();
+              _networkClient = null;
+            }
+          }
+          finally{
+            if (_clusterClient!=null){
+              _clusterClient.shutdown();
+              _clusterClient = null;
+            }
           }
         }
       }
