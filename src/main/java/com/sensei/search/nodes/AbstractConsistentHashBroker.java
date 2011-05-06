@@ -35,7 +35,6 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
   private final static Logger logger = Logger.getLogger(AbstractConsistentHashBroker.class);
   protected long _timeout = 8000;
   protected SenseiLoadBalancer _loadBalancer;
-  protected final SenseiLoadBalancerFactory _loadBalancerFactory;
 
   /**
    * @param networkClient
@@ -53,8 +52,7 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
   public AbstractConsistentHashBroker(PartitionedNetworkClient<Integer> networkClient, ClusterClient clusterClient, REQMSG defaultrequest, RESMSG defaultresult, SenseiLoadBalancerFactory loadBalancerFactory)
       throws NorbertException
   {
-    super(networkClient, clusterClient, defaultrequest, defaultresult,null);
-    _loadBalancerFactory = loadBalancerFactory;
+    super(networkClient, clusterClient, defaultrequest, defaultresult, loadBalancerFactory);
   }
 
   public abstract REQMSG requestToMessage(REQUEST request);

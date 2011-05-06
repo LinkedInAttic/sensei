@@ -11,6 +11,7 @@ import com.linkedin.norbert.cluster.ClusterDisconnectedException;
 import com.linkedin.norbert.cluster.InvalidClusterException;
 import com.linkedin.norbert.cluster.InvalidNodeException;
 import com.linkedin.norbert.javacompat.cluster.Node;
+import com.linkedin.norbert.javacompat.network.IntegerConsistentHashPartitionedLoadBalancerFactory;
 import com.linkedin.norbert.javacompat.network.NettyPartitionedNetworkClient;
 import com.linkedin.norbert.javacompat.network.NetworkClientConfig;
 import com.linkedin.norbert.javacompat.network.PartitionedLoadBalancer;
@@ -19,7 +20,6 @@ import com.linkedin.norbert.javacompat.network.PartitionedNetworkClient;
 import com.linkedin.norbert.javacompat.network.ScatterGatherHandler;
 import com.linkedin.norbert.network.NoNodesAvailableException;
 import com.linkedin.norbert.network.ResponseIterator;
-import com.sensei.search.cluster.routing.UniformPartitionedRoutingFactory;
 
 /**
  * @author nnarkhed
@@ -37,13 +37,7 @@ public class SenseiNetworkClient implements PartitionedNetworkClient<Integer>
     }
     else
     {
-      _networkClient = new NettyPartitionedNetworkClient<Integer>(netConfig, new PartitionedLoadBalancerFactory<Integer>()
-                            {
-                              public PartitionedLoadBalancer<Integer> newLoadBalancer(Set<Node> nodes)
-                              {
-                                throw new UnsupportedOperationException();
-                              }
-                            });
+      _networkClient = new NettyPartitionedNetworkClient<Integer>(netConfig, new IntegerConsistentHashPartitionedLoadBalancerFactory());
     }
   }
   
