@@ -76,7 +76,7 @@ public class SenseiScatterGatherHandler extends AbstractSenseiScatterGatherHandl
             hit.setSrcData(new String(uncompressed,"UTF-8"));
           }
           else {
-            dataBytes = doc.getBinaryValue(SenseiSchema.SRC_DATA_COMPRESSED_FIELD_NAME);
+            dataBytes = doc.getBinaryValue(SenseiSchema.SRC_DATA_FIELD_NAME);
             if (dataBytes!=null && dataBytes.length>0) {
               hit.setSrcData(new String(dataBytes,"UTF-8"));
             }
