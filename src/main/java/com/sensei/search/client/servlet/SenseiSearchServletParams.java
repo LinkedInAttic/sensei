@@ -55,6 +55,7 @@ public interface SenseiSearchServletParams {
 	public static final String PARAM_RESULT_HIT_UID = "uid";
 	public static final String PARAM_RESULT_HIT_DOCID = "docid";
 	public static final String PARAM_RESULT_HIT_SCORE = "score";
+	public static final String PARAM_RESULT_HIT_SRC_DATA = "srcdata";
 	public static final String PARAM_RESULT_TIME = "time";
 
 	public static final String PARAM_SYSINFO_NUMDOCS = "numdocs";

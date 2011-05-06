@@ -25,6 +25,7 @@ import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.req.SenseiResult;
 import com.sensei.search.req.SenseiSystemInfo;
 import com.sensei.search.svc.api.SenseiService;
+import com.sensei.search.svc.impl.HttpRestSenseiServiceImpl;
 import com.sensei.search.util.SenseiDefaults;
 
 public class SenseiClusterClient {
@@ -35,6 +36,7 @@ public class SenseiClusterClient {
 	
 	
 	private static void shutdown(){
+		svc.shutdown();
 	}
 	
 	/**
@@ -54,12 +56,18 @@ public class SenseiClusterClient {
 	    Configuration conf = new PropertiesConfiguration(confFile);
 
 	    // create the network client
+	    String schema = conf.getString("sensei.service.http.schema","http");
+	    String host = conf.getString("sensei.service.http.host");
+	    int port = conf.getInt("sensei.service.http.port",8080);
+	    String path = conf.getString("sensei.service.http.path","path");
+	    svc = new HttpRestSenseiServiceImpl(schema,host,port,path); 
+	    /*
 	    HttpInvokerProxyFactoryBean springInvokerBean = new HttpInvokerProxyFactoryBean();
 	    springInvokerBean.setServiceUrl(conf.getString(SenseiDefaults.SENSEI_CLIENT_SVC_URL_PROP));
 	    springInvokerBean.setServiceInterface(SenseiService.class);
 	    springInvokerBean.afterPropertiesSet();
 	    svc = (SenseiService)(springInvokerBean.getObject());
-       
+       */
 		Runtime.getRuntime().addShutdownHook(new Thread(){
 			public void run(){
 				try {

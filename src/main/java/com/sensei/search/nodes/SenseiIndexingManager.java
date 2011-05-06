@@ -2,13 +2,16 @@ package com.sensei.search.nodes;
 
 import java.util.Map;
 
+import proj.zoie.api.DataProvider;
 import proj.zoie.api.Zoie;
-import proj.zoie.api.ZoieVersion;
+import proj.zoie.api.ZoieException;
 
 import com.browseengine.bobo.api.BoboIndexReader;
 
-public interface SenseiIndexingManager<D,V extends ZoieVersion> {
-  void initialize(Map<Integer,Zoie<BoboIndexReader,D,V>> zoieSystemMap) throws Exception;
+public interface SenseiIndexingManager<D> {
+  void initialize(Map<Integer,Zoie<BoboIndexReader,D>> zoieSystemMap) throws Exception;
   void start() throws Exception;
   void shutdown();
+  DataProvider getDataProvider();
+  void syncWithVersion(long timeToWait, String version) throws ZoieException;
 }

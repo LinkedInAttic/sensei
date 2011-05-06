@@ -40,8 +40,9 @@ public class BrowseResultFormatter{
     static StringBuffer formatHit(BrowseHit hit) {
             StringBuffer sb = new StringBuffer();
             Map<String, String[]> fields = hit.getFieldValues();
-            Set<String> keys = fields.keySet();
-            for(String key : keys) {
+            if (fields!=null){
+              Set<String> keys = fields.keySet();
+              for(String key : keys) {
                     sb.append("\t" + key + " :");
                     String[] values = fields.get(key);
                     for(String value : values)
@@ -49,6 +50,7 @@ public class BrowseResultFormatter{
                             sb.append(" " + value);
                     }
                     sb.append("\n");
+              }
             }
             return sb;
     }

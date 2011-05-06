@@ -26,11 +26,11 @@ public abstract class JSONDataInterpreter extends AbstractZoieIndexableInterpret
 			  }
 			}
 
-      @Override
-      public byte[] getStoreValue()
-      {
-        throw new NotImplementedException();
-      }
+      //@Override
+      //public byte[] getStoreValue()
+      //{
+        //throw new NotImplementedException();
+      //}
 
       @Override
 			public long getUID() {

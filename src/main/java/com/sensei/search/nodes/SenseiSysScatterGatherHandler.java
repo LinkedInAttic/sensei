@@ -1,5 +1,6 @@
 package com.sensei.search.nodes;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 
@@ -17,6 +18,13 @@ public class SenseiSysScatterGatherHandler extends AbstractSenseiScatterGatherHa
 {
 
   private final static Logger logger = Logger.getLogger(SenseiSysScatterGatherHandler.class);
+
+  private final Comparator<String> _versionComparator;
+
+  public SenseiSysScatterGatherHandler(Comparator<String> versionComparator)
+  {
+    _versionComparator = versionComparator;
+  }
 
   public Message customizeMessage(Message msg, Node node, Set<Integer> partitions) throws Exception
   {
@@ -40,15 +48,8 @@ public class SenseiSysScatterGatherHandler extends AbstractSenseiScatterGatherHa
       result.setNumDocs(result.getNumDocs()+res.getNumDocs());
       if (result.getLastModified() < res.getLastModified())
         result.setLastModified(res.getLastModified());
-      try
-      {
-        // TODO: we need the new zoie version comparator patten.
-        if (Long.valueOf(result.getVersion()) < Long.valueOf(res.getVersion()))
-          result.setVersion(res.getVersion());
-      }
-      catch (Exception e)
-      {
-      }
+      if (result.getVersion() == null || _versionComparator.compare(result.getVersion(), res.getVersion()) < 0)
+        result.setVersion(res.getVersion());
       if (res.getFacetInfos() != null)
         result.setFacetInfos(res.getFacetInfos());
       if (res.getClusterInfo() != null) {

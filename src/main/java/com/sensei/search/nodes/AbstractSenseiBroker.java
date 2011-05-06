@@ -12,8 +12,6 @@ import com.linkedin.norbert.javacompat.network.PartitionedLoadBalancerFactory;
 import com.linkedin.norbert.javacompat.network.PartitionedNetworkClient;
 import com.sensei.search.req.AbstractSenseiRequest;
 import com.sensei.search.req.AbstractSenseiResult;
-import com.sensei.search.req.protobuf.SenseiSysRequestBPO;
-import com.sensei.search.req.protobuf.SenseiSysResultBPO;
 import com.sensei.search.svc.api.SenseiException;
 
 /**
@@ -32,6 +30,7 @@ public abstract class AbstractSenseiBroker<REQUEST extends AbstractSenseiRequest
   protected final ClusterClient _clusterClient;
   protected final PartitionedLoadBalancerFactory<Integer> _routerFactory;
   protected volatile IntSet _partitions = null;
+  
 
   /**
    * @param networkClient
@@ -75,13 +74,14 @@ public abstract class AbstractSenseiBroker<REQUEST extends AbstractSenseiRequest
    * @return
    * @throws SenseiException
    */
-  public RESULT browse(REQUEST req) throws SenseiException
+  public RESULT browse(final REQUEST req) throws SenseiException
   {
     if (_partitions == null)
       throw new SenseiException("Browse called before cluster is connected!");
     try
     {
-      return doBrowse(_networkClient, req, _partitions);
+    	return doBrowse(_networkClient, req, _partitions);
+      
     } catch (Exception e)
     {
       throw new SenseiException(e.getMessage(), e);

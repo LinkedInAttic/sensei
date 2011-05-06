@@ -5,9 +5,5 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans 
                            http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-  <bean id="mysimilarity" class="org.apache.lucene.search.DefaultSimilarity" />
-
-  <bean id="myanalyzer" class="org.apache.lucene.analysis.standard.StandardAnalyzer" />
-
   <bean id="demo" class="com.sensei.search.nodes.impl.DemoZoieSystemFactory$DemoZoieFactoryFactory" />
 </beans>

@@ -35,7 +35,7 @@ import org.apache.log4j.Logger;
 import proj.zoie.api.DataConsumer.DataEvent;
 import proj.zoie.impl.indexing.StreamDataProvider;
 
-public abstract class HttpStreamDataProvider<D> extends StreamDataProvider<D,StringZoieVersion> implements HttpDataProviderAdminMBean{
+public abstract class HttpStreamDataProvider<D> extends StreamDataProvider<D> implements HttpDataProviderAdminMBean{
 
 	private static final Logger logger = Logger.getLogger(HttpStreamDataProvider.class);
 	
@@ -55,8 +55,7 @@ public abstract class HttpStreamDataProvider<D> extends StreamDataProvider<D,Str
 	protected String _offset;
 	protected String _initialOffset;
 	private final boolean _disableHttps;
-	private  Iterator<DataEvent<D,StringZoieVersion>> _currentDataIter;
-	protected Comparator<String> _versionComparator;
+	private  Iterator<DataEvent<D>> _currentDataIter;
 	private volatile boolean _stopped;
 	private int _retryTime;
 	
@@ -64,7 +63,8 @@ public abstract class HttpStreamDataProvider<D> extends StreamDataProvider<D,Str
 	private volatile long _responseParseLatency;
 	
 	
-	public HttpStreamDataProvider(String baseUrl,String pw,int batchSize,String startingOffset,boolean disableHttps){
+	public HttpStreamDataProvider(Comparator<String> versionComparator, String baseUrl,String pw,int batchSize,String startingOffset,boolean disableHttps){
+    super(versionComparator);
 	  _baseUrl = baseUrl;
 	  _password = pw;
 	  _batchSize = batchSize;
@@ -128,7 +128,6 @@ public abstract class HttpStreamDataProvider<D> extends StreamDataProvider<D,Str
 	      }
 	    });
 	  
-	  _versionComparator = getVersionComparator();
 	  _retryTime = DEFAULT_RETRYTIME_MS;   // default retry after 5 seconds
 	}
 	
@@ -141,17 +140,15 @@ public abstract class HttpStreamDataProvider<D> extends StreamDataProvider<D,Str
 	}
 	
 	@Override
-	public void setStartingOffset(StringZoieVersion initialOffset){
-	  _initialOffset = initialOffset.encodeToString();
+	public void setStartingOffset(String initialOffset){
+	  _initialOffset = initialOffset;
 	}
 	
 	protected abstract String buildGetString(String offset);
 	
-	protected abstract Comparator<String> getVersionComparator();
-	
-	protected abstract  Iterator<DataEvent<D,StringZoieVersion>> parse(InputStream is) throws Exception;
+	protected abstract  Iterator<DataEvent<D>> parse(InputStream is) throws Exception;
 
-	private Iterator<DataEvent<D,StringZoieVersion>> fetchBatch() throws HttpException{
+	private Iterator<DataEvent<D>> fetchBatch() throws HttpException{
 	  InputStream stream = null;
 	  try{
 		HttpGet httpget = new HttpGet(buildGetString(_offset));
@@ -178,7 +175,7 @@ public abstract class HttpStreamDataProvider<D> extends StreamDataProvider<D,Str
           stream = entity.getContent();
           
           long parseStart = System.currentTimeMillis();
-          Iterator<DataEvent<D,StringZoieVersion>> iter =  parse(stream);
+          Iterator<DataEvent<D>> iter =  parse(stream);
           long parseEnd = System.currentTimeMillis();
           _responseParseLatency = parseEnd - parseStart;
           return iter;
@@ -200,14 +197,14 @@ public abstract class HttpStreamDataProvider<D> extends StreamDataProvider<D,Str
 	}
 	
 	@Override
-	public DataEvent<D,StringZoieVersion> next() {
+	public DataEvent<D> next() {
 	  if (_stopped){
 		  return null;
 	  }
 	  if (_currentDataIter==null || !_currentDataIter.hasNext()){
 		while(true && !_stopped){
 		  try{
-		    Iterator<DataEvent<D,StringZoieVersion>> data = fetchBatch();
+		    Iterator<DataEvent<D>> data = fetchBatch();
 		   
 		    if (data==null || !data.hasNext()){
 		      if (logger.isDebugEnabled()){
@@ -236,8 +233,8 @@ public abstract class HttpStreamDataProvider<D> extends StreamDataProvider<D,Str
 		}
 	  }
 	  
-	  DataEvent<D,StringZoieVersion> data = _currentDataIter.next();
-	  _offset = data.getVersion().encodeToString();
+	  DataEvent<D> data = _currentDataIter.next();
+	  _offset = data.getVersion();
 	  return data;
 	  
 	}

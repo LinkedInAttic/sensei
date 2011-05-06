@@ -241,6 +241,7 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
       hitObj.put(PARAM_RESULT_HIT_UID, Long.toString(hit.getUID()));
       hitObj.put(PARAM_RESULT_HIT_DOCID, Integer.toString(hit.getDocid()));
       hitObj.put(PARAM_RESULT_HIT_SCORE, Float.toString(hit.getScore()));
+      hitObj.put(PARAM_RESULT_HIT_SRC_DATA, hit.getSrcData());
       if (fieldMap != null)
       {
         Set<Entry<String, String[]>> entries = fieldMap.entrySet();
@@ -564,6 +565,11 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
         {
           throw new IllegalArgumentException("invalid sort string: " + sortString);
         }
+
+        if (sf.getType() != SortField.DOC && sf.getType() != SortField.SCORE &&
+            (sf.getField() == null || sf.getField().isEmpty()))   // Empty field name.
+          continue;
+
         logger.info("added sort: " + sf);
         sortFieldList.add(sf);
       }
@@ -680,26 +686,26 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
 
   @Override
   protected String buildResultString(SenseiSystemInfo info) throws Exception {
-	  JSONObject jsonObj = new JSONObject();
-	  jsonObj.put(PARAM_SYSINFO_NUMDOCS, info.getNumDocs());
-	  jsonObj.put(PARAM_SYSINFO_LASTMODIFIED, info.getLastModified());
-	  jsonObj.put(PARAM_SYSINFO_VERSION, info.getVersion());
+    JSONObject jsonObj = new JSONObject();
+    jsonObj.put(PARAM_SYSINFO_NUMDOCS, info.getNumDocs());
+    jsonObj.put(PARAM_SYSINFO_LASTMODIFIED, info.getLastModified());
+    jsonObj.put(PARAM_SYSINFO_VERSION, info.getVersion());
 
-	  JSONArray jsonArray = new JSONArray();
-	  jsonObj.put(PARAM_SYSINFO_FACETS, jsonArray);
-	  Set<SenseiSystemInfo.SenseiFacetInfo> facets = info.getFacetInfos();
-	  if (facets != null) {
-	      for (SenseiSystemInfo.SenseiFacetInfo facet : facets) {
-	        JSONObject facetObj = new JSONObject();
-	        facetObj.put(PARAM_SYSINFO_FACETS_NAME, facet.getName());
-	        facetObj.put(PARAM_SYSINFO_FACETS_RUNTIME, facet.isRunTime());
-	        facetObj.put(PARAM_SYSINFO_FACETS_PROPS, facet.getProps());
-	        jsonArray.put(facetObj);
-	      }
-	  }
+    JSONArray jsonArray = new JSONArray();
+    jsonObj.put(PARAM_SYSINFO_FACETS, jsonArray);
+    Set<SenseiSystemInfo.SenseiFacetInfo> facets = info.getFacetInfos();
+    if (facets != null) {
+        for (SenseiSystemInfo.SenseiFacetInfo facet : facets) {
+          JSONObject facetObj = new JSONObject();
+          facetObj.put(PARAM_SYSINFO_FACETS_NAME, facet.getName());
+          facetObj.put(PARAM_SYSINFO_FACETS_RUNTIME, facet.isRunTime());
+          facetObj.put(PARAM_SYSINFO_FACETS_PROPS, facet.getProps());
+          jsonArray.put(facetObj);
+        }
+    }
 
-	  jsonObj.put(PARAM_SYSINFO_CLUSTERINFO, info.getClusterInfo());
+    jsonObj.put(PARAM_SYSINFO_CLUSTERINFO, info.getClusterInfo());
 
-	  return jsonObj.toString();
+    return jsonObj.toString();
   }
 }

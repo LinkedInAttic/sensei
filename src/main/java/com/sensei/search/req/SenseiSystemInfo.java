@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -68,7 +69,7 @@ public class SenseiSystemInfo implements AbstractSenseiResult {
   public SenseiSystemInfo(){
     _numDocs = 0;
     _lastModified =0L;
-    _version = "0";
+    _version = null;
     _facetInfos = null;
     _clusterInfo = null;
   }

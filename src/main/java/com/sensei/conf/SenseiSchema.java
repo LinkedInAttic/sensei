@@ -21,12 +21,17 @@ import com.sensei.indexing.api.MetaType;
 import com.sensei.indexing.api.DefaultSenseiInterpreter.IndexSpec;
 
 public class SenseiSchema {
-	
+  public static final String SRC_DATA_FIELD_NAME = "__SRC_DATA__";
+  public static final String SRC_DATA_COMPRESSED_FIELD_NAME = "__SRC_DATA_GZ__";
+
 	private static Logger logger = Logger.getLogger(SenseiSchema.class);
 	
 	private String _uidField;
 	private String _deleteField;
 	private String _skipField;
+	private String _srcDataStore;
+	private String _srcDataField;
+  private boolean _compressSrcData;
 	
 	public static class FieldDefinition{
 		public Format formatter;
@@ -53,7 +58,19 @@ public class SenseiSchema {
 	public String getSkipField(){
 		return _skipField;
 	}
-	
+
+	public String getSrcDataField(){
+		return _srcDataField;
+	}
+
+	public String getSrcDataStore(){
+		return _srcDataStore;
+	}
+
+	public boolean isCompressSrcData(){
+		return _compressSrcData;
+	}
+
 	public Map<String,FieldDefinition> getFieldDefMap(){
 		return _fieldDefMap;
 	}
@@ -77,6 +94,14 @@ public class SenseiSchema {
 		if (schema._deleteField==null) schema._deleteField="";
 		schema._skipField = tableElem.getAttribute("skip-field");
 		if (schema._skipField==null) schema._skipField="";
+		schema._srcDataStore = tableElem.getAttribute("src-data-store");
+		if (schema._srcDataStore==null) schema._srcDataStore="";
+		schema._srcDataField = tableElem.getAttribute("src-data-field");
+		if (schema._srcDataField==null || schema._srcDataField.length() == 0) schema._srcDataField="src_data";
+    schema._compressSrcData = true;
+    String compress = tableElem.getAttribute("compress-src-data");
+    if (compress != null && "false".equals(compress))
+      schema._compressSrcData = false;
 		
 		NodeList columns = tableElem.getElementsByTagName("column");
 		for (int i = 0; i < columns.getLength(); ++i) {
@@ -88,7 +113,8 @@ public class SenseiSchema {
 				
 				FieldDefinition fdef = new FieldDefinition();
 				fdef.formatter = null;
-				fdef.fromField = frm == null ? frm : n;
+				fdef.fromField = frm.length() > 0 ? frm : n;
+
 				fdef.isMeta = true;
 				
 				fdef.isMulti = false;
