@@ -52,6 +52,10 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
   public SenseiBroker(PartitionedNetworkClient<Integer> networkClient, ClusterClient clusterClient, SenseiLoadBalancerFactory loadBalancerFactory) throws NorbertException
   {
     super(networkClient, clusterClient, SenseiRequestBPO.Request.getDefaultInstance(), SenseiResultBPO.Result.getDefaultInstance(),loadBalancerFactory);
+    clusterClient.awaitConnectionUninterruptibly();
+    Set<Node> nodes = clusterClient.getNodes();
+    _partitions = getPartitions(nodes);
+    _loadBalancer = loadBalancerFactory.newLoadBalancer(nodes);
     logger.info("created broker instance " + networkClient + " " + clusterClient + " " + loadBalancerFactory);
   }
 
