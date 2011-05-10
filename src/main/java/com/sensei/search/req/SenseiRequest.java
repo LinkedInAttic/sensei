@@ -29,6 +29,7 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable
   private HashMap<String,BrowseSelection> _selections;
 	private ArrayList<SortField> _sortSpecs;
 	private Map<String,FacetSpec> _facetSpecMap;
+	private Map<String, Integer> _origFacetSpecMaxCounts;
 	private SenseiQuery _query;
 	private int _offset;
 	private int _count;
@@ -135,7 +136,37 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable
 		return _facetSpecMap;
 	}
 	
-	
+  public void saveOrigFacetMaxCounts()
+  {
+    if (_origFacetSpecMaxCounts == null && _facetSpecMap != null)
+    {
+      _origFacetSpecMaxCounts= new HashMap<String, Integer>();
+      for (Map.Entry<String, FacetSpec> entry : _facetSpecMap.entrySet())
+      {
+        FacetSpec spec = entry.getValue();
+        if (spec != null)
+        {
+          _origFacetSpecMaxCounts.put(entry.getKey(), spec.getMaxCount());
+        }
+      }
+    }
+  }
+
+	public void restoreOrigFacetMaxCounts()
+  {
+    if (_facetSpecMap != null)
+    {
+      for (Map.Entry<String, FacetSpec> entry : _facetSpecMap.entrySet())
+      {
+        FacetSpec spec = entry.getValue();
+        if (spec != null)
+        {
+          spec.setMaxCount(_origFacetSpecMaxCounts.get(entry.getKey()));
+        }
+      }
+    }
+  }
+
 	public int getSelectionCount()
 	{
 		return _selections.size();

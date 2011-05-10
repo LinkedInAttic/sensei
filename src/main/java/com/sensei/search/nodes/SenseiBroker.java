@@ -52,12 +52,17 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
   public SenseiBroker(PartitionedNetworkClient<Integer> networkClient, ClusterClient clusterClient, SenseiLoadBalancerFactory loadBalancerFactory) throws NorbertException
   {
     super(networkClient, clusterClient, SenseiRequestBPO.Request.getDefaultInstance(), SenseiResultBPO.Result.getDefaultInstance(),loadBalancerFactory);
+    clusterClient.awaitConnectionUninterruptibly();
+    Set<Node> nodes = clusterClient.getNodes();
+    _partitions = getPartitions(nodes);
+    _loadBalancer = loadBalancerFactory.newLoadBalancer(nodes);
     logger.info("created broker instance " + networkClient + " " + clusterClient + " " + loadBalancerFactory);
   }
 
   @Override
   public SenseiResult mergeResults(SenseiRequest request, List<SenseiResult> resultList)
   {
+    request.restoreOrigFacetMaxCounts();
     SenseiResult res = ResultMerger.merge(request, resultList, false);
 
     if (request.isFetchStoredFields()) {  // Decompress binary data.
@@ -121,6 +126,7 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
   @Override
   public Request requestToMessage(SenseiRequest request)
   {
+    request.saveOrigFacetMaxCounts();
     // Rewrite facet max count.
     Map<String, FacetSpec> facetSpecs = request.getFacetSpecs();
     if (facetSpecs != null) {
