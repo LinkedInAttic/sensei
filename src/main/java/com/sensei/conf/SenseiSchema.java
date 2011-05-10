@@ -22,7 +22,7 @@ import com.sensei.indexing.api.DefaultSenseiInterpreter.IndexSpec;
 
 public class SenseiSchema {
   public static final String SRC_DATA_FIELD_NAME = "__SRC_DATA__";
-  public static final String SRC_DATA_COMPRESSED_FIELD_NAME = "__SRC_DATA_GZ__";
+  public static final String SRC_DATA_COMPRESSED_FIELD_NAME = "stored";
 
 	private static Logger logger = Logger.getLogger(SenseiSchema.class);
 	
