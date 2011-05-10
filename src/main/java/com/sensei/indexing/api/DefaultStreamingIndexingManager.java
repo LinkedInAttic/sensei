@@ -58,7 +58,7 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 	private final LinkedHashMap<Integer, Collection<DataEvent<JSONObject>>> _dataCollectorMap;
   private final Comparator<String> _versionComparator;
 
-  private JsonFilter _jsonFilter = null;
+  private DataSourceFilter _dataSourceFilter = null;
 	
 	public DefaultStreamingIndexingManager(SenseiSchema schema,Configuration senseiConfig, ApplicationContext pluginContext, Comparator<String> versionComparator){
 	  _dataProvider = null;
@@ -103,11 +103,15 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 	    
 	    
 	    _dataProvider = buildDataProvider();
+      if (_dataProvider instanceof DataSourceFilterable)
+        ((DataSourceFilterable)_dataProvider).setFilter(_dataSourceFilter);
 	    _dataProvider.setDataConsumer(consumer);
 	}
 
-  public void setJsonFilter(JsonFilter jsonFilter){
-    _jsonFilter = jsonFilter;
+  public void setFilter(DataSourceFilter filter){
+    _dataSourceFilter = filter;
+    if (_dataProvider instanceof DataSourceFilterable)
+      ((DataSourceFilterable)_dataProvider).setFilter(filter);
   }
   
   @Override
@@ -212,30 +216,25 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 
           if (obj == null) // Just ignore this event.
             continue;
-          JSONObject filtered = obj;
-          if (_jsonFilter != null) {
-            filtered = _jsonFilter.filter(obj);
-            if (filtered == null) // Just ignore this event.
-              continue;
-            String srcDataStore = _senseiSchema.getSrcDataStore();
-            String srcDataField = _senseiSchema.getSrcDataField();
-            if (srcDataStore != null && srcDataStore.length() != 0 && !"none".equals(srcDataStore) &&
-                srcDataField != null && srcDataField.length() != 0 && !filtered.has(srcDataField)) {
-              // no src-data set, set with original json.
-              filtered.put(srcDataField, obj.toString());
-            }
+
+          String srcDataStore = _senseiSchema.getSrcDataStore();
+          String srcDataField = _senseiSchema.getSrcDataField();
+          if (srcDataStore != null && srcDataStore.length() != 0 && !"none".equals(srcDataStore) &&
+              srcDataField != null && srcDataField.length() != 0 && !obj.has(srcDataField)) {
+            // no src-data set, set with original json.
+            obj.put(srcDataField, obj.toString());
           }
 
           _currentVersion = dataEvt.getVersion();
-          long uid = filtered.getLong(_uidField);
-          int routeToPart = (int)(uid % _maxPartitionId);
-          if(uid>=0 && DefaultStreamingIndexingManager.this._dataCollectorMap.containsKey(routeToPart)){
+          long shardBy = obj.getLong(_senseiSchema.getShardByField());
+          int routeToPart = (int)(shardBy % _maxPartitionId);
+          if(shardBy>=0 && DefaultStreamingIndexingManager.this._dataCollectorMap.containsKey(routeToPart)){
             Collection<DataEvent<JSONObject>> partDataSet = DefaultStreamingIndexingManager.this._dataCollectorMap.get(routeToPart);
             if (partDataSet!=null){
-              if (filtered == obj)
+              if (obj == obj)
                 partDataSet.add(dataEvt);
               else
-                partDataSet.add(new DataEvent(filtered, dataEvt.getVersion()));
+                partDataSet.add(new DataEvent(obj, dataEvt.getVersion()));
             }           
           }
         }

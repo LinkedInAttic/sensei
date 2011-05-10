@@ -27,6 +27,7 @@ public class SenseiSchema {
 	private static Logger logger = Logger.getLogger(SenseiSchema.class);
 	
 	private String _uidField;
+	private String _shardByField;
 	private String _deleteField;
 	private String _skipField;
 	private String _srcDataStore;
@@ -50,7 +51,11 @@ public class SenseiSchema {
 	public String getUidField(){
 		return _uidField;
 	}
-	
+
+	public String getShardByField(){
+		return _shardByField;
+	}
+
 	public String getDeleteField(){
 		return _deleteField;
 	}
@@ -90,6 +95,9 @@ public class SenseiSchema {
 		
 		Element tableElem = (Element) tables.item(0);
 		schema._uidField = tableElem.getAttribute("uid");
+		schema._shardByField = tableElem.getAttribute("shard-by");
+    if (schema._shardByField==null || schema._shardByField.length()==0)
+      schema._shardByField = schema._uidField;
 		schema._deleteField = tableElem.getAttribute("delete-field");
 		if (schema._deleteField==null) schema._deleteField="";
 		schema._skipField = tableElem.getAttribute("skip-field");

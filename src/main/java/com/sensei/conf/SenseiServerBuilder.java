@@ -52,7 +52,7 @@ import com.linkedin.norbert.javacompat.network.NetworkServer;
 import com.linkedin.norbert.javacompat.network.NetworkServerConfig;
 import com.sensei.indexing.api.DefaultJsonSchemaInterpreter;
 import com.sensei.indexing.api.DefaultStreamingIndexingManager;
-import com.sensei.indexing.api.JsonFilter;
+import com.sensei.indexing.api.DataSourceFilter;
 import com.sensei.search.client.servlet.DefaultSenseiJSONServlet;
 import com.sensei.search.client.servlet.SenseiConfigServletContextListener;
 import com.sensei.search.client.servlet.SenseiHttpInvokerServiceServlet;
@@ -397,10 +397,10 @@ public class SenseiServerBuilder implements SenseiConfParams{
       if (idxMgrType.length()==0){
         String uidField = _senseiSchema.getUidField();
         indexingManager = new DefaultStreamingIndexingManager(_senseiSchema,_senseiConf, _pluginContext, _versionComparator);
-        String jsonFilterName = _senseiConf.getString(SENSEI_INDEX_MANAGER_JSON_FILTER, "");
-        if (jsonFilterName.length()>0){
-          JsonFilter jsonFilter = (JsonFilter)_pluginContext.getBean(jsonFilterName);
-          ((DefaultStreamingIndexingManager)indexingManager).setJsonFilter(jsonFilter);
+        String filterName = _senseiConf.getString(SENSEI_INDEX_MANAGER_FILTER, "");
+        if (filterName.length()>0){
+          DataSourceFilter filter = (DataSourceFilter)_pluginContext.getBean(filterName);
+          ((DefaultStreamingIndexingManager)indexingManager).setFilter(filter);
         }
       }
       else{
