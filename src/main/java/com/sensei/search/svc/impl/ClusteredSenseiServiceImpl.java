@@ -2,13 +2,13 @@ package com.sensei.search.svc.impl;
 
 import java.util.Comparator;
 
+import com.linkedin.norbert.javacompat.network.PartitionedLoadBalancerFactory;
 import org.apache.log4j.Logger;
 
 import com.linkedin.norbert.javacompat.cluster.ClusterClient;
 import com.linkedin.norbert.javacompat.cluster.ZooKeeperClusterClient;
 import com.linkedin.norbert.javacompat.network.NetworkClientConfig;
 import com.sensei.search.cluster.client.SenseiNetworkClient;
-import com.sensei.search.cluster.routing.SenseiLoadBalancerFactory;
 import com.sensei.search.nodes.SenseiBroker;
 import com.sensei.search.nodes.SenseiSysBroker;
 import com.sensei.search.req.SenseiSystemInfo;
@@ -30,7 +30,7 @@ public class ClusteredSenseiServiceImpl implements SenseiService {
   
   public ClusteredSenseiServiceImpl(String zkurl,int zkTimeout,String clusterName, int connectTimeoutMillis,
       int writeTimeoutMillis, int maxConnectionsPerNode, int staleRequestTimeoutMins,
-      int staleRequestCleanupFrequencyMins, SenseiLoadBalancerFactory loadBalancerFactory,
+      int staleRequestCleanupFrequencyMins, PartitionedLoadBalancerFactory<Integer> loadBalancerFactory,
       Comparator<String> versionComparator) {
     _clusterName = clusterName;
     _networkClientConfig.setServiceName(clusterName);

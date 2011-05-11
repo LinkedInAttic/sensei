@@ -8,6 +8,7 @@ import java.util.Properties;
 
 import javax.management.InstanceAlreadyExistsException;
 
+import com.linkedin.norbert.javacompat.network.PartitionedLoadBalancerFactory;
 import junit.framework.TestCase;
 
 import org.apache.log4j.Logger;
@@ -17,12 +18,7 @@ import org.springframework.context.support.FileSystemXmlApplicationContext;
 import com.linkedin.norbert.javacompat.cluster.ClusterClient;
 import com.linkedin.norbert.javacompat.network.NetworkServer;
 import com.sensei.search.cluster.client.SenseiNetworkClient;
-import com.sensei.search.cluster.routing.SenseiLoadBalancerFactory;
-import com.sensei.search.nodes.SenseiRequestScatterRewriter;
 import com.sensei.search.nodes.SenseiZoieFactory;
-import com.sensei.search.nodes.SenseiZoieSystemFactory;
-import com.sensei.search.req.protobuf.SenseiRequestBPO;
-import com.sensei.search.req.protobuf.SenseiResultBPO;
 
 /**
  * @author nnarkhed
@@ -32,8 +28,7 @@ public class AbstractSenseiTestCase extends TestCase {
   private static final Logger logger = Logger.getLogger(AbstractSenseiTestCase.class);
   protected static SenseiNetworkClient networkClient;
   protected static ClusterClient clusterClient;
-  protected static SenseiRequestScatterRewriter requestRewriter;
-  protected static SenseiLoadBalancerFactory loadBalancerFactory;
+  protected static PartitionedLoadBalancerFactory<Integer> loadBalancerFactory;
   protected static NetworkServer networkServer1;
   protected static NetworkServer networkServer2;
   protected static final String SENSEI_TEST_CONF_FILE="sensei-test.spring";
@@ -72,11 +67,11 @@ public class AbstractSenseiTestCase extends TestCase {
       if (e instanceof InstanceAlreadyExistsException) logger.warn("norbert JMX InstanceAlreadyExistsException");
       else logger.error("Unexpected Exception", e.getCause());
     }
-    networkClient = (SenseiNetworkClient)testSpringCtx.getBean("network-client");
-    networkClient.registerRequest(SenseiRequestBPO.Request.getDefaultInstance(), SenseiResultBPO.Result.getDefaultInstance());
+
+
+    loadBalancerFactory = (PartitionedLoadBalancerFactory<Integer>) testSpringCtx.getBean("router-factory");
     clusterClient = (ClusterClient)testSpringCtx.getBean("cluster-client");
-    requestRewriter = (SenseiRequestScatterRewriter)testSpringCtx.getBean("request-rewriter");
-    loadBalancerFactory = (SenseiLoadBalancerFactory)testSpringCtx.getBean("router-factory");
+    networkClient = (SenseiNetworkClient)testSpringCtx.getBean("network-client");
     networkServer1 = (NetworkServer)testSpringCtx.getBean("network-server-1");
     networkServer2 = (NetworkServer)testSpringCtx.getBean("network-server-2");
     _zoieFactory = (SenseiZoieFactory<?>)testSpringCtx.getBean("zoie-system-factory");

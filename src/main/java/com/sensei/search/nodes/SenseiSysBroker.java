@@ -1,5 +1,6 @@
 package com.sensei.search.nodes;
 
+import com.linkedin.norbert.javacompat.network.PartitionedLoadBalancerFactory;
 import com.sensei.search.req.protobuf.SenseiSysRequestSerializer;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
@@ -14,7 +15,6 @@ import com.linkedin.norbert.NorbertException;
 import com.linkedin.norbert.javacompat.cluster.ClusterClient;
 import com.linkedin.norbert.javacompat.cluster.Node;
 import com.linkedin.norbert.javacompat.network.PartitionedNetworkClient;
-import com.sensei.search.cluster.routing.SenseiLoadBalancerFactory;
 import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.req.SenseiSystemInfo;
 import com.sensei.search.req.protobuf.SenseiSysRequestBPO;
@@ -30,7 +30,7 @@ public class SenseiSysBroker extends AbstractConsistentHashBroker<SenseiRequest,
   private final Comparator<String> _versionComparator;
 
   public SenseiSysBroker(PartitionedNetworkClient<Integer> networkClient, ClusterClient clusterClient,
-      SenseiLoadBalancerFactory loadBalancerFactory, Comparator<String> versionComparator) throws NorbertException
+      PartitionedLoadBalancerFactory<Integer> loadBalancerFactory, Comparator<String> versionComparator) throws NorbertException
   {
     super(networkClient, clusterClient, loadBalancerFactory, SenseiSysRequestSerializer.getInstance());
     _versionComparator = versionComparator;

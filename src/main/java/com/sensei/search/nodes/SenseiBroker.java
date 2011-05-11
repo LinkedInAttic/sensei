@@ -11,6 +11,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.zip.GZIPInputStream;
 
+import com.linkedin.norbert.javacompat.cluster.Node;
+import com.sensei.search.req.protobuf.SenseiRequestSerializer;
 import org.apache.log4j.Logger;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
@@ -20,21 +22,13 @@ import com.linkedin.norbert.NorbertException;
 import com.linkedin.norbert.javacompat.cluster.ClusterClient;
 import com.linkedin.norbert.javacompat.cluster.Node;
 import com.linkedin.norbert.javacompat.network.PartitionedNetworkClient;
+import com.linkedin.norbert.javacompat.network.PartitionedLoadBalancerFactory;
 import com.sensei.conf.SenseiSchema;
 import com.sensei.search.client.ResultMerger;
-import com.sensei.search.cluster.routing.SenseiLoadBalancerFactory;
 import com.sensei.search.req.SenseiHit;
 import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.req.SenseiResult;
-import com.sensei.search.req.SenseiSystemInfo;
-import com.sensei.search.req.protobuf.SenseiRequestBPO;
-import com.sensei.search.req.protobuf.SenseiRequestBPOConverter;
-import com.sensei.search.req.protobuf.SenseiResultBPO;
-import com.sensei.search.req.protobuf.SenseiSysRequestBPO;
-import com.sensei.search.req.protobuf.SenseiSysRequestBPOConverter;
-import com.sensei.search.req.protobuf.SenseiSysResultBPO;
 import com.sensei.search.req.protobuf.SenseiRequestBPO.Request;
-import com.sensei.search.req.protobuf.SenseiResultBPO.Result;
 
 /**
  * This SenseiBroker routes search(browse) request using the routers created by
@@ -42,16 +36,16 @@ import com.sensei.search.req.protobuf.SenseiResultBPO.Result;
  * mechanism to handle distributed search, which does not support request based
  * context sensitive routing.
  */
-public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, SenseiResult, SenseiRequestBPO.Request, SenseiResultBPO.Result>
+public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, SenseiResult>
 {
   private final static Logger logger = Logger.getLogger(SenseiBroker.class);
   private final static long TIMEOUT_MILLIS = 8000L;
 
   private long _timeoutMillis = TIMEOUT_MILLIS;
 
-  public SenseiBroker(PartitionedNetworkClient<Integer> networkClient, ClusterClient clusterClient, SenseiLoadBalancerFactory loadBalancerFactory) throws NorbertException
+  public SenseiBroker(PartitionedNetworkClient<Integer> networkClient, ClusterClient clusterClient, PartitionedLoadBalancerFactory<Integer> loadBalancerFactory) throws NorbertException
   {
-    super(networkClient, clusterClient, SenseiRequestBPO.Request.getDefaultInstance(), SenseiResultBPO.Result.getDefaultInstance(),loadBalancerFactory);
+    super(networkClient, clusterClient, loadBalancerFactory, SenseiRequestSerializer.getInstance());
     logger.info("created broker instance " + networkClient + " " + clusterClient + " " + loadBalancerFactory);
   }
 
@@ -111,29 +105,6 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
   public SenseiResult getEmptyResultInstance()
   {
     return new SenseiResult();
-  }
-
-  @Override
-  public SenseiResult messageToResult(Result message)
-  {
-    return SenseiRequestBPOConverter.convert(message);
-  }
-
-  @Override
-  public Request requestToMessage(SenseiRequest request)
-  {
-    request.saveOrigFacetMaxCounts();
-    // Rewrite facet max count.
-    Map<String, FacetSpec> facetSpecs = request.getFacetSpecs();
-    if (facetSpecs != null) {
-      for (Map.Entry<String, FacetSpec> entry : facetSpecs.entrySet()) {
-        FacetSpec spec = entry.getValue();
-        if (spec != null)
-          spec.setMaxCount(0);
-      }
-    }
-
-    return SenseiRequestBPOConverter.convert(request);
   }
 
   @Override

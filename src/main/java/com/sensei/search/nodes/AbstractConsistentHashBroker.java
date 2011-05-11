@@ -16,9 +16,6 @@ import com.linkedin.norbert.javacompat.cluster.ClusterClient;
 import com.linkedin.norbert.javacompat.network.RequestBuilder;
 import com.linkedin.norbert.javacompat.network.PartitionedLoadBalancerFactory;
 import com.linkedin.norbert.javacompat.network.PartitionedNetworkClient;
-import com.sensei.search.cluster.routing.RoutingInfo;
-import com.sensei.search.cluster.routing.SenseiLoadBalancer;
-import com.sensei.search.cluster.routing.SenseiLoadBalancerFactory;
 import com.sensei.search.req.AbstractSenseiRequest;
 import com.sensei.search.req.AbstractSenseiResult;
 import com.sensei.search.svc.api.SenseiException;
@@ -34,7 +31,7 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
 {
   private final static Logger logger = Logger.getLogger(AbstractConsistentHashBroker.class);
   protected long _timeout = 8000;
-  protected SenseiLoadBalancer _loadBalancer;
+  protected PartitionedLoadBalancerFactory<Integer> _loadBalancer;
   private final Serializer<REQUEST,RESULT> serializer;
 
   /**

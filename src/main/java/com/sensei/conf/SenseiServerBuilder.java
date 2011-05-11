@@ -1,5 +1,6 @@
 package com.sensei.conf;
 
+import com.linkedin.norbert.javacompat.network.*;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 
@@ -47,9 +48,6 @@ import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.facets.RuntimeFacetHandlerFactory;
 import com.linkedin.norbert.javacompat.cluster.ClusterClient;
 import com.linkedin.norbert.javacompat.cluster.ZooKeeperClusterClient;
-import com.linkedin.norbert.javacompat.network.NettyNetworkServer;
-import com.linkedin.norbert.javacompat.network.NetworkServer;
-import com.linkedin.norbert.javacompat.network.NetworkServerConfig;
 import com.sensei.indexing.api.DefaultJsonSchemaInterpreter;
 import com.sensei.indexing.api.DefaultStreamingIndexingManager;
 import com.sensei.indexing.api.JsonFilter;
@@ -57,7 +55,6 @@ import com.sensei.search.client.servlet.DefaultSenseiJSONServlet;
 import com.sensei.search.client.servlet.SenseiConfigServletContextListener;
 import com.sensei.search.client.servlet.SenseiHttpInvokerServiceServlet;
 import com.sensei.search.cluster.routing.UniformPartitionedRoutingFactory;
-import com.sensei.search.cluster.routing.SenseiLoadBalancerFactory;
 import com.sensei.search.nodes.SenseiCore;
 import com.sensei.search.nodes.SenseiHourglassFactory;
 import com.sensei.search.nodes.SenseiIndexReaderDecorator;
@@ -170,14 +167,14 @@ public class SenseiServerBuilder implements SenseiConfParams{
     senseiApp.setAttribute("sensei.search.configuration", _senseiConf);
     senseiApp.setAttribute("sensei.search.version.comparator", _versionComparator);
 
-    SenseiLoadBalancerFactory routerFactory = null;
+    PartitionedLoadBalancerFactory<Integer> lbf = null;
     String routerFactoryName = _senseiConf.getString(SERVER_SEARCH_ROUTER_FACTORY, "");
     if (routerFactoryName == null || routerFactoryName.equals(""))
-      routerFactory = new UniformPartitionedRoutingFactory();
+      lbf = new UniformPartitionedRoutingFactory();
     else
-      routerFactory = (SenseiLoadBalancerFactory) _pluginContext.getBean(routerFactoryName);
+      lbf = (PartitionedLoadBalancerFactory<Integer>) _pluginContext.getBean(routerFactoryName);
 
-    senseiApp.setAttribute("sensei.search.router.factory", routerFactory);
+    senseiApp.setAttribute("sensei.search.router.factory", lbf);
 
     senseiApp.addEventListener(new SenseiConfigServletContextListener());
     

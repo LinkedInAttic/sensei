@@ -1,36 +1,23 @@
 package com.sensei.search.cluster.routing;
 
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
-import it.unimi.dsi.fastutil.ints.IntSet;
+import com.linkedin.norbert.cluster.InvalidClusterException;
+import com.linkedin.norbert.javacompat.network.Endpoint;
+import com.linkedin.norbert.javacompat.network.IntegerConsistentHashPartitionedLoadBalancerFactory;
+import com.linkedin.norbert.javacompat.network.PartitionedLoadBalancer;
+import com.linkedin.norbert.javacompat.network.PartitionedLoadBalancerFactory;
 
-import java.util.ArrayList;
-import java.util.Random;
 import java.util.Set;
 
-import com.linkedin.norbert.cluster.InvalidClusterException;
-import com.linkedin.norbert.javacompat.cluster.Node;
+public class UniformPartitionedRoutingFactory implements PartitionedLoadBalancerFactory<Integer> {
 
-public class UniformPartitionedRoutingFactory implements SenseiLoadBalancerFactory {
-	private final Random _rand = new Random(System.nanoTime());
-	
-  public SenseiLoadBalancer newLoadBalancer(Set<Node> nodes) throws InvalidClusterException
-  {
-    final Int2ObjectMap<ArrayList<Node>> nodeMap = new Int2ObjectOpenHashMap<ArrayList<Node>>();
-    IntSet parts = new IntOpenHashSet();
-    for (Node node : nodes){
-        Set<Integer> partitions = node.getPartitionIds();
-        for (Integer partition : partitions){
-            parts.add(partition);
-            ArrayList<Node> nodeList = nodeMap.get(partition);
-            if (nodeList==null){
-                nodeList=new ArrayList<Node>(nodes.size());
-                nodeMap.put(partition, nodeList);
-            }
-            nodeList.add(node);
-        }
-    }    
-    return new UniformPartitionedLoadBalancer(nodeMap,_rand);
+  @Override
+  public PartitionedLoadBalancer<Integer> newLoadBalancer(Set<Endpoint> endpoints) throws InvalidClusterException {
+    int size = 0;
+    for(Endpoint e : endpoints) {
+      size += e.getNode().getPartitionIds().size();
+    }
+
+    IntegerConsistentHashPartitionedLoadBalancerFactory factory = new IntegerConsistentHashPartitionedLoadBalancerFactory(size, true);
+    return factory.newLoadBalancer(endpoints);
   }
 }
