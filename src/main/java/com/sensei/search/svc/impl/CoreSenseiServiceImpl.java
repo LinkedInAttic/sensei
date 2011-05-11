@@ -5,6 +5,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import com.browseengine.bobo.api.*;
+import com.linkedin.norbert.network.Serializer;
+import com.sensei.search.req.protobuf.SenseiRequestSerializer;
 import org.apache.log4j.Logger;
 import org.apache.lucene.search.Query;
 
@@ -12,14 +15,6 @@ import proj.zoie.api.ZoieIndexReader;
 import proj.zoie.api.ZoieIndexReader.SubReaderAccessor;
 import proj.zoie.api.ZoieIndexReader.SubReaderInfo;
 
-import com.browseengine.bobo.api.BoboBrowser;
-import com.browseengine.bobo.api.BoboIndexReader;
-import com.browseengine.bobo.api.BrowseException;
-import com.browseengine.bobo.api.BrowseHit;
-import com.browseengine.bobo.api.BrowseRequest;
-import com.browseengine.bobo.api.BrowseResult;
-import com.browseengine.bobo.api.FacetAccessible;
-import com.browseengine.bobo.api.MultiBoboBrowser;
 import com.google.protobuf.Message;
 import com.sensei.search.client.ResultMerger;
 import com.sensei.search.nodes.SenseiCore;
@@ -28,7 +23,6 @@ import com.sensei.search.req.SenseiHit;
 import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.req.SenseiResult;
 import com.sensei.search.req.protobuf.SenseiRequestBPO;
-import com.sensei.search.req.protobuf.SenseiRequestBPOConverter;
 import com.sensei.search.util.RequestConverter;
 
 public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiRequest, SenseiResult>{
