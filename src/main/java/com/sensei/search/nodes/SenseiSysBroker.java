@@ -33,6 +33,10 @@ public class SenseiSysBroker extends AbstractConsistentHashBroker<SenseiRequest,
   {
     super(networkClient, clusterClient, SenseiSysRequestBPO.SysRequest.getDefaultInstance(), SenseiSysResultBPO.SysResult.getDefaultInstance(),loadBalancerFactory);
     _versionComparator = versionComparator;
+    clusterClient.awaitConnectionUninterruptibly();
+    Set<Node> nodes = clusterClient.getNodes();
+    _partitions = getPartitions(nodes);
+    _loadBalancer = loadBalancerFactory.newLoadBalancer(nodes);
     logger.info("created broker instance " + networkClient + " " + clusterClient + " " + loadBalancerFactory);
   }
 

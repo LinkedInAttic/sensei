@@ -3,8 +3,11 @@ package com.sensei.search.nodes;
 import it.unimi.dsi.fastutil.ints.IntSet;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
@@ -13,6 +16,7 @@ import org.apache.log4j.Logger;
 import com.google.protobuf.Message;
 import com.linkedin.norbert.NorbertException;
 import com.linkedin.norbert.javacompat.cluster.ClusterClient;
+import com.linkedin.norbert.javacompat.cluster.Node;
 import com.linkedin.norbert.javacompat.network.PartitionedNetworkClient;
 import com.sensei.search.cluster.routing.RoutingInfo;
 import com.sensei.search.cluster.routing.SenseiLoadBalancer;
@@ -102,37 +106,48 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
   {
     long time = System.currentTimeMillis();
     RoutingInfo searchNodes = _loadBalancer.route(getRouteParam(req));
-    @SuppressWarnings("unchecked")
-    Future<RESMSG>[] responseFutures = new Future[searchNodes.partitions.length];
     List<RESULT> resultlist = new ArrayList<RESULT>(searchNodes.partitions.length);
+    Map<Integer, Set<Integer>> partsMap = new HashMap<Integer, Set<Integer>>();
+    Map<Integer, Node> nodeMap = new HashMap<Integer, Node>();
+    Map<Integer, Future<RESMSG>> futureMap = new HashMap<Integer, Future<RESMSG>>();
     for(int ni = 0; ni < searchNodes.partitions.length; ni++)
     {
-      HashSet<Integer> pset = new HashSet<Integer>();
+      Node node = searchNodes.nodelist[ni].get(searchNodes.nodegroup[ni]);
+      Set<Integer> pset = partsMap.get(node.getId());
+      if (pset == null)
+      {
+        pset = new HashSet<Integer>();
+        partsMap.put(node.getId(), pset);
+      }
       pset.add(searchNodes.partitions[ni]);
-      req.setPartitions(pset);
+      nodeMap.put(node.getId(), node);
+    }
+    for (Map.Entry<Integer, Node> entry : nodeMap.entrySet())
+    {
+      req.setPartitions(partsMap.get(entry.getKey()));
       REQMSG msg = requestToMessage(req);
       if (logger.isDebugEnabled())
       {
-        logger.info("DEBUG: broker sending req part: " + searchNodes.partitions[ni] + " on node: " + searchNodes.nodelist[ni].get(searchNodes.nodegroup[ni]));
+        logger.info("DEBUG: broker sending req part: " + partsMap.get(entry.getKey()) + " on node: " + entry.getValue());
       }
-      responseFutures[ni] = (Future<RESMSG>) _networkClient.sendMessageToNode(msg, searchNodes.nodelist[ni].get(searchNodes.nodegroup[ni]));
+      futureMap.put(entry.getKey(), (Future<RESMSG>)_networkClient.sendMessageToNode(msg, entry.getValue()));
     }
-    for(int ni = 0; ni < searchNodes.partitions.length; ni++)
+    for(Map.Entry<Integer, Future<RESMSG>> entry : futureMap.entrySet())
     { 
       RESMSG resp;
       try
       {
-        resp = responseFutures[ni].get(_timeout,TimeUnit.MILLISECONDS);
+        resp = entry.getValue().get(_timeout,TimeUnit.MILLISECONDS);
         RESULT res = messageToResult(resp);
         resultlist.add(res);
         if (logger.isDebugEnabled())
         {
-          logger.info("DEBUG: broker receiving res part: " + searchNodes.partitions[ni] + " on node: " + searchNodes.nodelist[ni].get(searchNodes.nodegroup[ni])
+          logger.info("DEBUG: broker receiving res part: " + partsMap.get(entry.getKey()) + " on node: " + nodeMap.get(entry.getKey())
               + " node time: " + res.getTime() +"ms remote time: " + (System.currentTimeMillis() - time) + "ms");
         }
       } catch (Exception e)
       {
-        logger.error("DEBUG: broker receiving res part: " + searchNodes.partitions[ni] + " on node: " + searchNodes.nodelist[ni].get(searchNodes.nodegroup[ni])
+        logger.error("DEBUG: broker receiving res part: " + partsMap.get(entry.getKey()) + " on node: " + nodeMap.get(entry.getKey())
             + e +" remote time: " + (System.currentTimeMillis() - time) + "ms");
       }
     }

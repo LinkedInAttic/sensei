@@ -133,7 +133,7 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
       for (Map.Entry<String, FacetSpec> entry : facetSpecs.entrySet()) {
         FacetSpec spec = entry.getValue();
         if (spec != null)
-          spec.setMaxCount(0);
+          spec.setMaxCount(50);
       }
     }
 
