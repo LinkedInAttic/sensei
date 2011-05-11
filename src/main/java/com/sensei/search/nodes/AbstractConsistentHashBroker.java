@@ -1,17 +1,13 @@
 package com.sensei.search.nodes;
 
-import it.unimi.dsi.fastutil.ints.IntSet;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-
+import java.util.*;
+import com.linkedin.norbert.network.Serializer;
+import com.linkedin.norbert.network.common.TimeoutIterator;
+import com.sensei.search.req.SenseiRequest;
 import org.apache.log4j.Logger;
 
-import com.google.protobuf.Message;
 import com.linkedin.norbert.NorbertException;
+import com.linkedin.norbert.javacompat.cluster.Node;
 import com.linkedin.norbert.javacompat.cluster.ClusterClient;
 import com.linkedin.norbert.javacompat.network.RequestBuilder;
 import com.linkedin.norbert.javacompat.network.PartitionedLoadBalancerFactory;
@@ -65,11 +61,9 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
    */
   public RESULT browse(REQUEST req) throws SenseiException
   {
-    if (_partitions == null)
-      throw new SenseiException("Browse called before cluster is connected!");
     try
     {
-      return doBrowse(_networkClient, req, _partitions);
+      return doBrowse(_networkClient, req);
     } catch (Exception e)
     {
       throw new SenseiException(e.getMessage(), e);
@@ -87,52 +81,29 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
    * @return one single result instance that is merged from the result list.
    */
   public abstract RESULT mergeResults(REQUEST request, List<RESULT> resultList);
-  public abstract String getRouteParam(REQUEST req);
 
-  protected RESULT doBrowse(PartitionedNetworkClient<Integer> networkClient, REQUEST req, IntSet partitions)
+  protected RESULT doBrowse(PartitionedNetworkClient<Integer> networkClient, final REQUEST req)
   {
     long time = System.currentTimeMillis();
-    RoutingInfo searchNodes = _loadBalancer.route(getRouteParam(req));
-    @SuppressWarnings("unchecked")
-    Future<RESMSG>[] responseFutures = new Future[searchNodes.partitions.length];
-    List<RESULT> resultlist = new ArrayList<RESULT>(searchNodes.partitions.length);
-    for(int ni = 0; ni < searchNodes.partitions.length; ni++)
-    {
-      HashSet<Integer> pset = new HashSet<Integer>();
-      pset.add(searchNodes.partitions[ni]);
-      req.setPartitions(pset);
-      REQMSG msg = requestToMessage(req);
-      if (logger.isDebugEnabled())
-      {
-        logger.info("DEBUG: broker sending req part: " + searchNodes.partitions[ni] + " on node: " + searchNodes.nodelist[ni].get(searchNodes.nodegroup[ni]));
+
+    // TODO: Fix this
+    Iterator<RESULT> iterator = scala.collection.JavaConversions.asJavaIterator(
+    new TimeoutIterator<RESULT>(networkClient.sendRequestToOneReplica(new RequestBuilder<Integer, REQUEST>() {
+      @Override
+      public REQUEST apply(Node node, Set<Integer> partitions) {
+        return req.setPartitions(partitions);
       }
-      responseFutures[ni] = (Future<RESMSG>) _networkClient.sendMessageToNode(msg, searchNodes.nodelist[ni].get(searchNodes.nodegroup[ni]));
-    }
-    for(int ni = 0; ni < searchNodes.partitions.length; ni++)
-    { 
-      RESMSG resp;
-      try
-      {
-        resp = responseFutures[ni].get(_timeout,TimeUnit.MILLISECONDS);
-        RESULT res = messageToResult(resp);
-        resultlist.add(res);
-        if (logger.isDebugEnabled())
-        {
-          logger.info("DEBUG: broker receiving res part: " + searchNodes.partitions[ni] + " on node: " + searchNodes.nodelist[ni].get(searchNodes.nodegroup[ni])
-              + " node time: " + res.getTime() +"ms remote time: " + (System.currentTimeMillis() - time) + "ms");
-        }
-      } catch (Exception e)
-      {
-        logger.error("DEBUG: broker receiving res part: " + searchNodes.partitions[ni] + " on node: " + searchNodes.nodelist[ni].get(searchNodes.nodegroup[ni])
-            + e +" remote time: " + (System.currentTimeMillis() - time) + "ms");
-      }
-    }
-    if (resultlist.size() == 0)
+    }, serializer), _timeout));
+
+    List<RESULT> results = toList(iterator);
+
+    if(results.isEmpty())
     {
       logger.error("no result received at all return empty result");
       return getEmptyResultInstance();
     }
-    RESULT result = mergeResults(req, resultlist);
+
+    RESULT result = mergeResults(req, results);
     logger.info("remote search took " + (System.currentTimeMillis() - time) + "ms");
     return result;
   }
@@ -146,4 +117,10 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
 
   public abstract long getTimeoutMillis();
 
+  private static <A> List<A> toList(Iterator<A> iter) {
+    ArrayList<A> result = new ArrayList<A>();
+    while(iter.hasNext())
+      result.add(iter.next());
+    return result;
+  }
 }

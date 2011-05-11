@@ -3,9 +3,9 @@ package com.sensei.search.req;
 import java.io.Serializable;
 import java.util.Set;
 
-public interface AbstractSenseiRequest extends Serializable
+// Use CRTP so subclasses can polymorphically modify the request and get the type of this back
+public interface AbstractSenseiRequest<REQUEST extends AbstractSenseiRequest> extends Serializable
 {
-  public abstract void setPartitions(Set<Integer> partitions);
   public abstract Set<Integer> getPartitions();
-  public abstract String getRouteParam();
+  public REQUEST setPartitions(Set<Integer> partitions);
 }

@@ -1,14 +1,12 @@
 package com.sensei.search.nodes;
 
-import it.unimi.dsi.fastutil.ints.IntSet;
 
 import org.apache.log4j.Logger;
 
 import com.linkedin.norbert.NorbertException;
 import com.linkedin.norbert.javacompat.cluster.ClusterClient;
-import com.linkedin.norbert.javacompat.cluster.ClusterListener;
 import com.linkedin.norbert.javacompat.network.PartitionedNetworkClient;
-import com.sensei.search.cluster.routing.SenseiLoadBalancerFactory;
+import com.linkedin.norbert.javacompat.network.PartitionedLoadBalancerFactory;
 import com.sensei.search.req.AbstractSenseiRequest;
 import com.sensei.search.req.AbstractSenseiResult;
 import com.sensei.search.svc.api.SenseiException;
@@ -24,26 +22,22 @@ public abstract class AbstractSenseiBroker<REQUEST extends AbstractSenseiRequest
   private final static Logger logger = Logger.getLogger(AbstractSenseiBroker.class);
   protected final PartitionedNetworkClient<Integer> _networkClient;
   protected final ClusterClient _clusterClient;
-  protected final SenseiLoadBalancerFactory _loadBalancerFactory;
-  protected volatile IntSet _partitions = null;
-  
+  protected final PartitionedLoadBalancerFactory<Integer> _loadBalancerFactory;
+
 
   /**
    * @param networkClient
    * @param clusterClient
    * @param routerFactory
-   * @param scatterGatherHandler
    * @throws NorbertException
    */
-  public AbstractSenseiBroker(PartitionedNetworkClient<Integer> networkClient, ClusterClient clusterClient, 
-		  	REQMSG defaultrequest, RESMSG defaultresult, SenseiLoadBalancerFactory loadBalancerFactory)
+  public AbstractSenseiBroker(PartitionedNetworkClient<Integer> networkClient, ClusterClient clusterClient, PartitionedLoadBalancerFactory<Integer> loadBalancerFactory)
       throws NorbertException
   {
 	  _loadBalancerFactory = loadBalancerFactory;
     _networkClient = networkClient;
     _clusterClient = clusterClient;
     // register the request-response messages
-    clusterClient.addListener(this);
   }
 
   /**
@@ -59,21 +53,18 @@ public abstract class AbstractSenseiBroker<REQUEST extends AbstractSenseiRequest
    * @return
    * @throws SenseiException
    */
-  public RESULT browse(final REQUEST req) throws SenseiException
-  {
-    if (_partitions == null)
-      throw new SenseiException("Browse called before cluster is connected!");
+  public RESULT browse(final REQUEST req) throws SenseiException {
     try
     {
-    	return doBrowse(_networkClient, req, _partitions);
-      
+    	return doBrowse(_networkClient, req);
+
     } catch (Exception e)
     {
       throw new SenseiException(e.getMessage(), e);
     }
   }
 
-  protected abstract RESULT doBrowse(PartitionedNetworkClient<Integer> networkClient, REQUEST req, IntSet partitions) throws Exception;
+  protected abstract RESULT doBrowse(PartitionedNetworkClient<Integer> networkClient, REQUEST req) throws Exception;
 
   public void shutdown()
   {

@@ -347,7 +347,7 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
     convertSelectParam(senseiReq, params);
     convertFacetParam(senseiReq, params);
     convertInitParams(senseiReq, params);
-    convertPartitionParams(senseiReq, params);
+//    convertPartitionParams(senseiReq, params);
 
     return senseiReq;
   }
@@ -363,13 +363,13 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
     senseiReq.setFetchStoredFields(params.getBoolean(PARAM_FETCH_STORED, false));
   }
 
-  public static void convertPartitionParams(SenseiRequest senseiReq, DataConfiguration params)
-  {
-    if (params.containsKey(PARAM_PARTITIONS)) {
-      List<Integer> partitions = params.getList(Integer.class, PARAM_PARTITIONS);
-      senseiReq.setPartitions(new HashSet<Integer>(partitions));
-    }
-  }
+//  public static void convertPartitionParams(SenseiRequest senseiReq, DataConfiguration params)
+//  {
+//    if (params.containsKey(PARAM_PARTITIONS)) {
+//      List<Integer> partitions = params.getList(Integer.class, PARAM_PARTITIONS);
+//      senseiReq.setPartitions(new HashSet<Integer>(partitions));
+//    }
+//  }
 
   public static void convertInitParams(SenseiRequest senseiReq, DataConfiguration params)
   {

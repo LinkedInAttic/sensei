@@ -330,7 +330,7 @@ public class HttpRestSenseiServiceImpl implements SenseiService
     convertSelectionNames(qparams, req);
     convertFacetSpecs(qparams, req.getFacetSpecs());
     convertFacetInitParams(qparams, req.getFacetHandlerInitParamMap());
-    convertPartitionParams(qparams, req.getPartitions());
+//    convertPartitionParams(qparams);
 
     return qparams;
   }
@@ -347,11 +347,11 @@ public class HttpRestSenseiServiceImpl implements SenseiService
     qparams.add(new BasicNameValuePair(SenseiSearchServletParams.PARAM_SORT, paramList));
   }
 
-  public static void convertPartitionParams(List<NameValuePair> qparams, Set<Integer> partitions) {
-    if (partitions == null || partitions.size() == 0) return;
-
-    qparams.add(new BasicNameValuePair(SenseiSearchServletParams.PARAM_PARTITIONS, join(partitions, ",")));
-  }
+//  public static void convertPartitionParams(List<NameValuePair> qparams, Set<Integer> partitions) {
+//    if (partitions == null || partitions.size() == 0) return;
+//
+//    qparams.add(new BasicNameValuePair(SenseiSearchServletParams.PARAM_PARTITIONS, join(partitions, ",")));
+//  }
 
   public static void convertScalarParams(List<NameValuePair> qparams, SenseiRequest req) {
     qparams.add(new BasicNameValuePair(SenseiSearchServletParams.PARAM_FETCH_STORED, Boolean.toString(req.isFetchStoredFields())));

@@ -285,20 +285,20 @@ public class TestHttpRestSenseiServiceImpl extends TestCase
   {
     SenseiRequest aRequest = new SenseiRequest();
     Set<Integer> partitions = createPartitions();
-    aRequest.setPartitions(partitions);
+//    aRequest.setPartitions(partitions);
 
     SenseiRequest bRequest = new SenseiRequest();
     List<NameValuePair> list = new ArrayList<NameValuePair>();
-    HttpRestSenseiServiceImpl.convertPartitionParams(list, partitions);
+//    HttpRestSenseiServiceImpl.convertPartitionParams(list, partitions);
     MockServletRequest mockServletRequest = MockServletRequest.create(list);
     DataConfiguration params = new DataConfiguration(new ServletRequestConfiguration(mockServletRequest));
-    DefaultSenseiJSONServlet.convertPartitionParams(bRequest, params);
+//    DefaultSenseiJSONServlet.convertPartitionParams(bRequest, params);
     assertEquals(aRequest, bRequest);
   }
 
   public void testNullPartitions() {
     List<NameValuePair> list = new ArrayList<NameValuePair>();
-    HttpRestSenseiServiceImpl.convertPartitionParams(list, null);
+//    HttpRestSenseiServiceImpl.convertPartitionParams(list, null);
     assertTrue(list.size() == 0);
   }
 
@@ -342,7 +342,7 @@ public class TestHttpRestSenseiServiceImpl extends TestCase
     req.setSort(createSortFields());
     req.setQuery(createSenseiQuery());
     req.addSelections(createBrowseSelections());
-    req.setPartitions(createPartitions());
+//    req.setPartitions(createPartitions());
 
     return req;
   }

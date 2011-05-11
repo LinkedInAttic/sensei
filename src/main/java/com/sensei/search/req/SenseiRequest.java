@@ -14,7 +14,7 @@ import com.browseengine.bobo.api.BrowseSelection;
 import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.facets.FacetHandlerInitializerParam;
 
-public class SenseiRequest implements AbstractSenseiRequest, Cloneable
+public class SenseiRequest implements AbstractSenseiRequest<SenseiRequest>, Cloneable
 {
 	/**
 	 * 
@@ -36,9 +36,7 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable
 	private boolean _fetchStoredFields;
 	private Map<String,FacetHandlerInitializerParam> _facetInitParamMap;
 	private Set<Integer> _partitions;
-	private boolean _showExplanation;
-	private Random _rand = new Random(System.nanoTime());
-	private String _routeParam;
+  private boolean _showExplanation;
 	
 	public SenseiRequest(){
 		_facetInitParamMap = new HashMap<String,FacetHandlerInitializerParam>();
@@ -47,7 +45,7 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable
 		_facetSpecMap=new HashMap<String,FacetSpec>();
 		_fetchStoredFields = false;
 		_partitions = null;
-		_showExplanation = false;
+    _showExplanation = false;
 	}
 
 /**
@@ -67,38 +65,25 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable
   {
     this.tid = tid;
   }
-  
-  
-	public boolean isShowExplanation() {
-	  return _showExplanation;
-    }
 
-    public void setShowExplanation(boolean showExplanation) {
-	  _showExplanation = showExplanation;
-    }
-
-	public void setPartitions(Set<Integer> partitions){
-		_partitions = partitions;
-	}
-	
-	public Set<Integer> getPartitions(){
-		return _partitions;
-	}
-
-  public void setRouteParam(String routeParam)
-  {
-    _routeParam = routeParam;
+  public boolean isShowExplanation() {
+    return _showExplanation;
   }
 
-  public String getRouteParam()
-  {
-    if (_routeParam != null)
-      return _routeParam;
-
-    return String.valueOf(_rand.nextInt());
+  public void setShowExplanation(boolean showExplanation) {
+    _showExplanation = showExplanation;
   }
-	
-	public Map<String,FacetHandlerInitializerParam> getFacetHandlerInitParamMap(){
+
+  public SenseiRequest setPartitions(Set<Integer> partitions) {
+    _partitions = partitions;
+    return this;
+  }
+
+  public Set<Integer> getPartitions() {
+    return _partitions;
+  }
+
+  public Map<String,FacetHandlerInitializerParam> getFacetHandlerInitParamMap(){
 		return _facetInitParamMap;
 	}
 	
@@ -380,9 +365,9 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable
       return buf.toString();
 	}
 	
-	public Object clone() throws CloneNotSupportedException
+	public SenseiRequest clone() throws CloneNotSupportedException
 	{
-	  return super.clone();
+	  return (SenseiRequest) super.clone();
 	}
 
   @Override

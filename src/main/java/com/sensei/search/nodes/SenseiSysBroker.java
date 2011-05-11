@@ -65,18 +65,11 @@ public class SenseiSysBroker extends AbstractConsistentHashBroker<SenseiRequest,
   }
 
   @Override
-  public String getRouteParam(SenseiRequest req)
-  {
-    return req.getRouteParam();
-  }
-
-  @Override
   public SenseiSystemInfo getEmptyResultInstance()
   {
     return new SenseiSystemInfo();
   }
 
-  @Override
   @Override
   public void setTimeoutMillis(long timeoutMillis){
     _timeoutMillis = timeoutMillis;
@@ -85,44 +78,6 @@ public class SenseiSysBroker extends AbstractConsistentHashBroker<SenseiRequest,
   @Override
   public long getTimeoutMillis(){
     return _timeoutMillis;
-  }
-
-  private IntSet getPartitions(Set<Node> nodes)
-  {
-    IntSet partitionSet = new IntOpenHashSet();
-    for (Node n : nodes)
-    {
-      partitionSet.addAll(n.getPartitionIds());
-    }
-    return partitionSet;
-  }
-
-  public void handleClusterConnected(Set<Node> nodes)
-  {
-    _loadBalancer = _loadBalancerFactory.newLoadBalancer(nodes);
-    _partitions = getPartitions(nodes);
-    logger.info("handleClusterConnected(): Received the list of nodes from norbert " + nodes.toString());
-    logger.info("handleClusterConnected(): Received the list of partitions from router " + _partitions.toString());
-  }
-
-  public void handleClusterDisconnected()
-  {
-    logger.info("handleClusterDisconnected() called");
-    _partitions = new IntOpenHashSet();
-  }
-
-  public void handleClusterNodesChanged(Set<Node> nodes)
-  {
-    _loadBalancer = _loadBalancerFactory.newLoadBalancer(nodes);
-    _partitions = getPartitions(nodes);
-    logger.info("handleClusterNodesChanged(): Received the list of nodes from norbert " + nodes.toString());
-    logger.info("handleClusterNodesChanged(): Received the list of partitions from router " + _partitions.toString());
-  }
-
-  @Override
-  public void handleClusterShutdown()
-  {
-    logger.info("handleClusterShutdown() called");
   }
 }
 
