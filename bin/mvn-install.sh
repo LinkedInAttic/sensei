@@ -10,8 +10,4 @@
 #echo "installing kafka 0.0.6-SNAPSHOT"
 #mvn install:install-file -Dfile=lib/kafka-0.0.6-SNAPSHOT.jar -DgroupId=com.sna-projects.kafka -DartifactId=kafka -Dversion=0.0.6-SNAPSHOT -Dpackaging=jar
 echo "installing norbert 1.0.0-SNAPSHOT"
-mvn install:install-file -Dfile=lib/norbert-cluster-1.0.0-SNAPSHOT.jar -DgroupId=com.sna-projects.norbert -DartifactId=norbert-cluster -Dversion=1.0.0-SNAPSHOT -Dpackaging=jar
-mvn install:install-file -Dfile=lib/norbert-network-1.0.0-SNAPSHOT.jar -DgroupId=com.sna-projects.norbert -DartifactId=norbert-network -Dversion=1.0.0-SNAPSHOT -Dpackaging=jar
-mvn install:install-file -Dfile=lib/norbert-java-cluster-1.0.0-SNAPSHOT.jar -DgroupId=com.sna-projects.norbert -DartifactId=norbert-java-cluster -Dversion=1.0.0-SNAPSHOT -Dpackaging=jar
-mvn install:install-file -Dfile=lib/norbert-java-network-1.0.0-SNAPSHOT.jar -DgroupId=com.sna-projects.norbert -DartifactId=norbert-java-network -Dversion=1.0.0-SNAPSHOT -Dpackaging=jar
-
+mvn install:install-file -Dfile=lib/norbert-2.8.1-0.6.8.jar -DgroupId=com.linkedin.norbert -DartifactId=norbert -Dversion=2.8.1-0.6.8 -Dpackaging=jar
