@@ -15,7 +15,7 @@ OS=`uname`
 IP="" # store IP
 case $OS in
    Linux) IP=`/sbin/ifconfig  | grep 'inet addr:'| grep -v '127.0.0.1' | cut -d: -f2 | awk '{ print $1}'`;;
-   FreeBSD|OpenBSD|Darwin) IP=`ifconfig | grep -E '^en[0-9]:' -A 4 | grep -E 'inet.[0-9]' | grep -v '127.0.0.1' | awk '{ print $2}'` ;;
+   FreeBSD|OpenBSD|Darwin) IP=`ifconfig | grep -E '^en[0-9]:' -A 4 | grep -E 'inet.[0-9]' | grep -v '127.0.0.1' | awk '{ print $2}' | head -1` ;;
    SunOS) IP=`ifconfig -a | grep inet | grep -v '127.0.0.1' | awk '{ print $2} '` ;;
    *) IP="Unknown";;
 esac
@@ -54,6 +54,6 @@ if [ -f $PIDFILE ]; then
   echo "Make sure the node is shutdown and the file" $PIDFILE "is removed before stating the node"
  else
   echo "File $PIDFILE does not exists"
-  java $JAVA_OPTS $JMX_OPTS $HEAP_OPTS $GC_OPTS -classpath $CLASSPATH  -Dlog.home=$logs $MAIN_CLASS $1  &
+  echo $JAVA_OPTS $JMX_OPTS $HEAP_OPTS $GC_OPTS -classpath $CLASSPATH  -Dlog.home=$logs $MAIN_CLASS $1  &
   echo $! > ${PIDFILE}
  fi
