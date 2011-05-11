@@ -150,20 +150,10 @@ public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiReque
 	@Override
 	public SenseiResult getEmptyResultInstance(Throwable error) {
 		return new SenseiResult();
-	} 
-	  
-	@Override
-	public Message resultToMessage(SenseiResult result) {
-		return SenseiRequestBPOConverter.convert(result);
 	}
 
-	@Override
-	public SenseiRequest reqFromMessage(Message req) {
-		return SenseiRequestBPOConverter.convert((SenseiRequestBPO.Request)req);
-	}
-
-	@Override
-	public Message getEmptyRequestInstance() {
-		return SenseiRequestBPO.Request.getDefaultInstance(); 
-	}
+  @Override
+  public Serializer<SenseiRequest, SenseiResult> getSerializer() {
+    return SenseiRequestSerializer.getInstance();
+  }
 }

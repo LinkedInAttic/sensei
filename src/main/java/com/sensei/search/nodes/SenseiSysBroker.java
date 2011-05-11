@@ -1,5 +1,6 @@
 package com.sensei.search.nodes;
 
+import com.sensei.search.req.protobuf.SenseiSysRequestSerializer;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 
@@ -20,7 +21,7 @@ import com.sensei.search.req.protobuf.SenseiSysRequestBPO;
 import com.sensei.search.req.protobuf.SenseiSysRequestBPOConverter;
 import com.sensei.search.req.protobuf.SenseiSysResultBPO;
 
-public class SenseiSysBroker extends AbstractConsistentHashBroker<SenseiRequest, SenseiSystemInfo, SenseiSysRequestBPO.SysRequest, SenseiSysResultBPO.SysResult>
+public class SenseiSysBroker extends AbstractConsistentHashBroker<SenseiRequest, SenseiSystemInfo>
 {
   private final static Logger logger = Logger.getLogger(SenseiSysBroker.class);
   private final static long TIMEOUT_MILLIS = 8000L;
@@ -31,7 +32,7 @@ public class SenseiSysBroker extends AbstractConsistentHashBroker<SenseiRequest,
   public SenseiSysBroker(PartitionedNetworkClient<Integer> networkClient, ClusterClient clusterClient,
       SenseiLoadBalancerFactory loadBalancerFactory, Comparator<String> versionComparator) throws NorbertException
   {
-    super(networkClient, clusterClient, SenseiSysRequestBPO.SysRequest.getDefaultInstance(), SenseiSysResultBPO.SysResult.getDefaultInstance(),loadBalancerFactory);
+    super(networkClient, clusterClient, loadBalancerFactory, SenseiSysRequestSerializer.getInstance());
     _versionComparator = versionComparator;
     logger.info("created broker instance " + networkClient + " " + clusterClient + " " + loadBalancerFactory);
   }
@@ -76,17 +77,6 @@ public class SenseiSysBroker extends AbstractConsistentHashBroker<SenseiRequest,
   }
 
   @Override
-  public SenseiSystemInfo messageToResult(SenseiSysResultBPO.SysResult message)
-  {
-    return SenseiSysRequestBPOConverter.convert(message);
-  }
-
-  @Override
-  public SenseiSysRequestBPO.SysRequest requestToMessage(SenseiRequest request)
-  {
-    return SenseiSysRequestBPOConverter.convert(request);
-  }
-
   @Override
   public void setTimeoutMillis(long timeoutMillis){
     _timeoutMillis = timeoutMillis;

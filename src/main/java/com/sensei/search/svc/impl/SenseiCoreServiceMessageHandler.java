@@ -1,25 +1,20 @@
 package com.sensei.search.svc.impl;
 
-import com.google.protobuf.Message;
-import com.linkedin.norbert.javacompat.network.MessageHandler;
+import com.linkedin.norbert.javacompat.network.RequestHandler;
 import com.sensei.search.req.AbstractSenseiRequest;
 import com.sensei.search.req.AbstractSenseiResult;
 
-public final class SenseiCoreServiceMessageHandler implements MessageHandler {
-    private final AbstractSenseiCoreService<AbstractSenseiRequest, AbstractSenseiResult> _svc;
+public final class SenseiCoreServiceMessageHandler<Req extends AbstractSenseiRequest, Res extends AbstractSenseiResult>
+        implements RequestHandler<Req, Res> {
 
-    
-    public SenseiCoreServiceMessageHandler(AbstractSenseiCoreService<AbstractSenseiRequest, AbstractSenseiResult> svc){
+    private final AbstractSenseiCoreService<Req, Res> _svc;
+
+    public SenseiCoreServiceMessageHandler(AbstractSenseiCoreService<Req, Res> svc){
 		_svc = svc;
 	}
-	
-	@Override
-	public Message handleMessage(final Message msg) throws Exception {
-		final AbstractSenseiRequest req = _svc.reqFromMessage(msg);
-		
-		AbstractSenseiResult res = _svc.execute(req);
-		return _svc.resultToMessage(res);
-		
-	}
 
+  @Override
+  public Res handleRequest(Req req) throws Exception {
+    return _svc.execute(req);
+  }
 }

@@ -13,6 +13,8 @@ import org.apache.log4j.Logger;
 import com.google.protobuf.Message;
 import com.linkedin.norbert.NorbertException;
 import com.linkedin.norbert.javacompat.cluster.ClusterClient;
+import com.linkedin.norbert.javacompat.network.RequestBuilder;
+import com.linkedin.norbert.javacompat.network.PartitionedLoadBalancerFactory;
 import com.linkedin.norbert.javacompat.network.PartitionedNetworkClient;
 import com.sensei.search.cluster.routing.RoutingInfo;
 import com.sensei.search.cluster.routing.SenseiLoadBalancer;
@@ -26,38 +28,30 @@ import com.sensei.search.svc.api.SenseiException;
  *
  * @param <REQUEST>
  * @param <RESULT>
- * @param <REQMSG>
- * @param <RESMSG>
  */
-public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSenseiRequest, RESULT extends AbstractSenseiResult, REQMSG extends Message, RESMSG extends Message>
-    extends AbstractSenseiBroker<REQUEST, RESULT, REQMSG, RESMSG>
+public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSenseiRequest<REQUEST>, RESULT extends AbstractSenseiResult>
+    extends AbstractSenseiBroker<REQUEST, RESULT>
 {
   private final static Logger logger = Logger.getLogger(AbstractConsistentHashBroker.class);
   protected long _timeout = 8000;
   protected SenseiLoadBalancer _loadBalancer;
+  private final Serializer<REQUEST,RESULT> serializer;
 
   /**
    * @param networkClient
    * @param clusterClient
-   * @param defaultrequest
-   *          a default instance of request message object for protobuf
-   *          registration
-   * @param defaultresult
-   *          a default instance of result message object for protobuf
-   *          registration
-   * @param routerFactory
-   * @param scatterGatherHandler
+   * @param loadBalancerFactory
    * @throws NorbertException
    */
-  public AbstractConsistentHashBroker(PartitionedNetworkClient<Integer> networkClient, ClusterClient clusterClient, REQMSG defaultrequest, RESMSG defaultresult, SenseiLoadBalancerFactory loadBalancerFactory)
+  public AbstractConsistentHashBroker(PartitionedNetworkClient<Integer> networkClient,
+                                      ClusterClient clusterClient,
+                                      PartitionedLoadBalancerFactory<Integer> loadBalancerFactory,
+                                      Serializer<REQUEST, RESULT> serializer)
       throws NorbertException
   {
-    super(networkClient, clusterClient, defaultrequest, defaultresult, loadBalancerFactory);
+    super(networkClient, clusterClient, loadBalancerFactory);
+    this.serializer = serializer;
   }
-
-  public abstract REQMSG requestToMessage(REQUEST request);
-
-  public abstract RESULT messageToResult(RESMSG message);
 
   /**
    * @return an empty result instance. Used when the request cannot be properly

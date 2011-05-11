@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.linkedin.norbert.network.Serializer;
+import com.sensei.search.req.protobuf.SenseiSysRequestSerializer;
 import org.apache.log4j.Logger;
 import org.apache.lucene.search.Query;
 
@@ -92,21 +94,11 @@ public class SysSenseiCoreServiceImpl extends AbstractSenseiCoreService<SenseiRe
   @Override
   public SenseiSystemInfo getEmptyResultInstance(Throwable error) {
     return new SenseiSystemInfo();
-  } 
-    
-  @Override
-  public Message resultToMessage(SenseiSystemInfo result) {
-    return SenseiSysRequestBPOConverter.convert(result);
   }
 
   @Override
-  public SenseiRequest reqFromMessage(Message req) {
-    return SenseiSysRequestBPOConverter.convert((SenseiSysRequestBPO.SysRequest)req);
-  }
-
-  @Override
-  public Message getEmptyRequestInstance() {
-    return SenseiSysRequestBPO.SysRequest.getDefaultInstance(); 
+  public Serializer<SenseiRequest, SenseiSystemInfo> getSerializer() {
+    return SenseiSysRequestSerializer.getInstance();
   }
 }
 

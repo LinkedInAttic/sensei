@@ -4,7 +4,6 @@ import it.unimi.dsi.fastutil.ints.IntSet;
 
 import org.apache.log4j.Logger;
 
-import com.google.protobuf.Message;
 import com.linkedin.norbert.NorbertException;
 import com.linkedin.norbert.javacompat.cluster.ClusterClient;
 import com.linkedin.norbert.javacompat.cluster.ClusterListener;
@@ -19,11 +18,8 @@ import com.sensei.search.svc.api.SenseiException;
  * 
  * @param <REQUEST>
  * @param <RESULT>
- * @param <REQMSG>
- * @param <RESMSG>
  */
-public abstract class AbstractSenseiBroker<REQUEST extends AbstractSenseiRequest, RESULT extends AbstractSenseiResult, REQMSG extends Message, RESMSG extends Message>
-    implements ClusterListener
+public abstract class AbstractSenseiBroker<REQUEST extends AbstractSenseiRequest, RESULT extends AbstractSenseiResult>
 {
   private final static Logger logger = Logger.getLogger(AbstractSenseiBroker.class);
   protected final PartitionedNetworkClient<Integer> _networkClient;
@@ -35,12 +31,6 @@ public abstract class AbstractSenseiBroker<REQUEST extends AbstractSenseiRequest
   /**
    * @param networkClient
    * @param clusterClient
-   * @param defaultrequest
-   *          a default instance of request message object for protobuf
-   *          registration
-   * @param defaultresult
-   *          a default instance of result message object for protobuf
-   *          registration
    * @param routerFactory
    * @param scatterGatherHandler
    * @throws NorbertException
@@ -53,13 +43,8 @@ public abstract class AbstractSenseiBroker<REQUEST extends AbstractSenseiRequest
     _networkClient = networkClient;
     _clusterClient = clusterClient;
     // register the request-response messages
-    _networkClient.registerRequest(defaultrequest, defaultresult);
     clusterClient.addListener(this);
   }
-
-  public abstract REQMSG requestToMessage(REQUEST request);
-
-  public abstract RESULT messageToResult(RESMSG message);
 
   /**
    * @return an empty result instance. Used when the request cannot be properly

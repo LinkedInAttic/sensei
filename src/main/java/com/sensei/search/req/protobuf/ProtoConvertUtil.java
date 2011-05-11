@@ -2,10 +2,7 @@ package com.sensei.search.req.protobuf;
 /**
  * @author nnarkhed
  */
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.*;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -17,7 +14,20 @@ import com.google.protobuf.TextFormat.ParseException;
 public class ProtoConvertUtil {
 
 	private final static Logger logger = Logger.getLogger(ProtoConvertUtil.class);
-	public static Object serializeIn(ByteString byteString) throws ParseException{
+
+  static byte[] toBytes(Object o) throws IOException {
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    ObjectOutputStream oos = new ObjectOutputStream(baos);
+    oos.writeObject(o);
+    return baos.toByteArray();
+  }
+
+  public static Object fromBytes(byte[] bytes) throws IOException, ClassNotFoundException {
+    ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
+    return new ObjectInputStream(bais).readObject();
+  }
+
+  public static Object serializeIn(ByteString byteString) throws ParseException {
 		if (byteString==null) return null;
 		try{
 			byte[] bytes = byteString.toByteArray();
@@ -32,7 +42,7 @@ public class ProtoConvertUtil {
 		}
 	}
 
-	public static ByteString serializeOut(Object o) throws ParseException{
+	public static ByteString serializeOut(Object o) throws ParseException {
 		if (o == null) return null;
 		try{
 			ByteArrayOutputStream bout = new ByteArrayOutputStream();
