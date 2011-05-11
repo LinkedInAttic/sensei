@@ -11,7 +11,6 @@ import com.sensei.search.cluster.client.SenseiNetworkClient;
 import com.sensei.search.cluster.routing.SenseiLoadBalancerFactory;
 import com.sensei.search.nodes.SenseiBroker;
 import com.sensei.search.nodes.SenseiSysBroker;
-import com.sensei.search.nodes.impl.NoopRequestScatterRewriter;
 import com.sensei.search.req.SenseiSystemInfo;
 import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.req.SenseiResult;
