@@ -87,7 +87,7 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
       	  return handlePartitionedRequest(senseiReq,boboReaders,queryBuilderFactory);
         }
         finally{
-          if (readerList != null){
+          if (readerFactory != null && readerList != null){
           	readerFactory.returnIndexReaders(readerList);
           }
         }
