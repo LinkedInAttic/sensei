@@ -1,0 +1,209 @@
+  <chapter>
+    <title>Introduction</title>
+
+    <para>Sensei is a distributed database that is designed to handle the
+    following type of query:</para>
+
+    <programlisting>    SELECT f1,f2...fn FROM members
+    WHERE c1 AND c2 AND c3..
+    MATCH (fulltext query, e.g. "java engineer")
+    GROUP BY fx,fy,fz...
+    ORDER BY fa,fb...
+    LIMIT offset,count</programlisting>
+
+    <section>
+      <title>Design Considerations</title>
+
+      <itemizedlist>
+        <listitem>
+          <para>
+            <emphasis role="bold">Data</emphasis>
+          </para>
+
+          <itemizedlist spacing="compact">
+            <listitem>
+              <para>Fault tolerance - when one replication is down, data is
+              still accessible</para>
+            </listitem>
+
+            <listitem>
+              <para>Durability - N copies of data is stored</para>
+            </listitem>
+
+            <listitem>
+              <para>Through-put - Parallelizable request-handling on different
+              nodes/data replicas, designed to handle internet traffic</para>
+            </listitem>
+
+            <listitem>
+              <para>Consistency - Eventally consistent</para>
+            </listitem>
+
+            <listitem>
+              <para>Data recovery - each shared/replica is noted with a
+              watermark for data recovery</para>
+            </listitem>
+
+            <listitem>
+              <para>Large dataset - designed to handle 100s millions -
+              billions of rows</para>
+            </listitem>
+          </itemizedlist>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">Horizontally Scalable</emphasis>e</para>
+
+          <itemizedlist spacing="compact">
+            <listitem>
+              <para>Data is partitioned - so work-load is also
+              distributed</para>
+            </listitem>
+
+            <listitem>
+              <para>Elasticity - Nodes can be added to accomodate data
+              growth</para>
+            </listitem>
+
+            <listitem>
+              <para>Online expansion - Cluster can grow while handling online
+              requests</para>
+            </listitem>
+
+            <listitem>
+              <para>Online cluster management - Cluster topology can change
+              while handling online requests</para>
+            </listitem>
+
+            <listitem>
+              <para>Low operational/maintenance costs - Push it, leave it and
+              forget it.</para>
+            </listitem>
+          </itemizedlist>
+        </listitem>
+
+        <listitem>
+          <para>
+            <emphasis role="bold">Performance</emphasis>
+          </para>
+
+          <itemizedlist spacing="compact">
+            <listitem>
+              <para>low indexing latency - real-time update</para>
+            </listitem>
+
+            <listitem>
+              <para>low search latency - millisecond query response
+              time</para>
+            </listitem>
+
+            <listitem>
+              <para>low volatility - low variance in both indexing and search
+              latency</para>
+            </listitem>
+          </itemizedlist>
+        </listitem>
+
+        <listitem>
+          <para>
+            <emphasis role="bold">Customizability</emphasis>
+          </para>
+
+          <itemizedlist spacing="compact">
+            <listitem>
+              <para>plug-in framework - custom query handling logic</para>
+            </listitem>
+
+            <listitem>
+              <para>routing factory - custom routing logic, default:
+              round-robin</para>
+            </listitem>
+
+            <listitem>
+              <para>index sharding strategy - different sharding strategy for
+              different applications, e.g. time, mod etc.</para>
+            </listitem>
+          </itemizedlist>
+        </listitem>
+      </itemizedlist>
+    </section>
+
+    <section>
+      <title>Comparing to Traditional RDBMS</title>
+
+      <para><emphasis role="bold">RDBMS</emphasis>:</para>
+
+      <itemizedlist spacing="compact">
+        <listitem>
+          <para>vertically scaled</para>
+        </listitem>
+
+        <listitem>
+          <para>strong ACID guarantee</para>
+        </listitem>
+
+        <listitem>
+          <para>relational support</para>
+        </listitem>
+
+        <listitem>
+          <para>performance cost with full-text integration</para>
+        </listitem>
+
+        <listitem>
+          <para>high query latency with large dataset, esp. Group By</para>
+        </listitem>
+
+        <listitem>
+          <para>indexes needs to be built for all sort possibilities
+          offline</para>
+        </listitem>
+      </itemizedlist>
+
+      <para><emphasis role="bold">Sensei</emphasis>:</para>
+
+      <itemizedlist spacing="compact">
+        <listitem>
+          <para>horizontally scaled</para>
+        </listitem>
+
+        <listitem>
+          <para>relaxed Consistency with high durability guarantees</para>
+        </listitem>
+
+        <listitem>
+          <para>data is streamed in, so Atomicity and Isolation is to be
+          handled by the data producer</para>
+        </listitem>
+
+        <listitem>
+          <para>full-text support</para>
+        </listitem>
+
+        <listitem>
+          <para>low query latency with arbitrarily large dataset</para>
+        </listitem>
+
+        <listitem>
+          <para>dynamic sorting, index is already built for all sortable
+          fields and their combinations</para>
+        </listitem>
+      </itemizedlist>
+    </section>
+
+    <section>
+      <title>Architectural Diagram</title>
+
+      <mediaobject>
+        <imageobject role="fo">
+          <imagedata align="center" fileref="figures/sensei-overview.jpg"
+                     format="JPG" scale="75" valign="middle" />
+        </imageobject>
+
+        <imageobject role="html">
+          <imagedata align="center" fileref="figures/sensei-overview.jpg"
+                     format="JPG" scale="100" valign="middle" />
+        </imageobject>
+      </mediaobject>
+    </section>
+  </chapter>
