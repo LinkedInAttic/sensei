@@ -340,13 +340,7 @@ public class ResultMerger
       }
       numHits += res.getNumHits();
       totalDocs += res.getTotalDocs();
-      if (onSearchNode)
-      { // no server side sum the time, since thing are done in sequence
-        time += res.getTime();
-      } else
-      { // no client side take max
-        time = Math.max(time,res.getTime());
-      }
+      time = Math.max(time,res.getTime());
       Map<String, FacetAccessible> facetMap = res.getFacetMap();
       if (facetMap != null)
       {
