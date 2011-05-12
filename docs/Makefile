@@ -20,13 +20,13 @@ HEAP_OPTS=-Xmx1g -Xms1g
 all: pdf html html-chunk wiki
 
 pdf:
-	java $(HEAP_OPTS) com.icl.saxon.StyleSheet	\
+	cd src/docbkx/; java $(HEAP_OPTS) com.icl.saxon.StyleSheet	\
 	     -o $(XMLFILE).fo				\
 	     $(XMLFILE).xml				\
 	     $(DOCBOOK4YST)/yst-docbook.xsl
 
 #	~/XEP/xep -fo $(XMLFILE).fo $(XMLFILE).pdf -pdf
-	$(FOP) $(XMLFILE).fo $(XMLFILE).pdf
+	cd src/docbkx/; $(FOP) $(XMLFILE).fo $(XMLFILE).pdf
 
 html:
 	java com.icl.saxon.StyleSheet					\
