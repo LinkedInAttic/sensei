@@ -220,14 +220,6 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
           if (obj == null) // Just ignore this event.
             continue;
 
-          String srcDataStore = _senseiSchema.getSrcDataStore();
-          String srcDataField = _senseiSchema.getSrcDataField();
-          if (srcDataStore != null && srcDataStore.length() != 0 && !"none".equals(srcDataStore) &&
-              srcDataField != null && srcDataField.length() != 0 && !obj.has(srcDataField)) {
-            // no src-data set, set with original json.
-            obj.put(srcDataField, obj.toString());
-          }
-
           _currentVersion = dataEvt.getVersion();
           long shardBy = obj.getLong(_senseiSchema.getShardByField());
           int routeToPart = (int)(shardBy % _maxPartitionId);

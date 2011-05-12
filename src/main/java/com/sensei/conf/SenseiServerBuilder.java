@@ -400,6 +400,8 @@ public class SenseiServerBuilder implements SenseiConfParams{
         String filterName = _senseiConf.getString(SENSEI_INDEX_MANAGER_FILTER, "");
         if (filterName.length()>0){
           DataSourceFilter filter = (DataSourceFilter)_pluginContext.getBean(filterName);
+          filter.setSrcDataStore(_senseiSchema.getSrcDataStore());
+          filter.setSrcDataField(_senseiSchema.getSrcDataField());
           ((DefaultStreamingIndexingManager)indexingManager).setFilter(filter);
         }
       }
