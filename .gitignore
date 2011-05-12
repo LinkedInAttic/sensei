@@ -7,3 +7,5 @@ TAGS
 cscope.*
 index
 target
+logs
+*.fo
