@@ -140,6 +140,9 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
     else if ("custom".equals(type)) {
       String dataProviderName = _myconfig.getString("custom");
       dataProvider = (StreamDataProvider<JSONObject>) _pluginContext.getBean(dataProviderName);
+      logger.info("Reset starting offset to _oldestSinceKey = " + _oldestSinceKey);
+      dataProvider.setStartingOffset(_oldestSinceKey);
+      dataProvider.reset();
     }
 		else{
 			throw new ConfigurationException("type: "+type+" is not suported");
