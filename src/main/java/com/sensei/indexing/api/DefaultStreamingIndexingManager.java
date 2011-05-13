@@ -47,6 +47,8 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 	
 	private static final String BATCH_SIZE = "batchSize";
 	
+	private static final String SHARDING_STRATEGY = "shardingStrategy";
+	
 	
 	private StreamDataProvider<JSONObject> _dataProvider;
 	private String _oldestSinceKey;
@@ -58,6 +60,7 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 	private Map<Integer, Zoie<BoboIndexReader, JSONObject>> _zoieSystemMap;
 	private final LinkedHashMap<Integer, Collection<DataEvent<JSONObject>>> _dataCollectorMap;
   private final Comparator<String> _versionComparator;
+    private final ShardingStrategy _shardingStrategy;
 	
 	public DefaultStreamingIndexingManager(SenseiSchema schema,Configuration senseiConfig, ApplicationContext pluginContext, Comparator<String> versionComparator){
 	  _dataProvider = null;
@@ -70,6 +73,19 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 	  _registeredMBeans = new LinkedList<ObjectName>();
 	  _dataCollectorMap = new LinkedHashMap<Integer, Collection<DataEvent<JSONObject>>>();
     _versionComparator = versionComparator;
+    
+      String shardingStrategyName = _myconfig.getString(SHARDING_STRATEGY);
+    
+      ShardingStrategy strategy = null;
+      
+      if (shardingStrategyName!=null){
+        strategy = (ShardingStrategy)pluginContext.getBean(shardingStrategyName);
+      }
+      if (strategy == null){
+    	  strategy = new ShardingStrategy.UidModShardingStrategy();
+      }
+      
+      _shardingStrategy = strategy;
 	}
 
 	public void updateOldestSinceKey(String sinceKey){
@@ -217,9 +233,11 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
           }
 
           _currentVersion = dataEvt.getVersion();
-          long shardBy = obj.getLong(_senseiSchema.getShardByField());
-          int routeToPart = (int)(shardBy % _maxPartitionId);
-          if(shardBy>=0 && DefaultStreamingIndexingManager.this._dataCollectorMap.containsKey(routeToPart)){
+          long uid = obj.getLong(_senseiSchema.getUidField());
+          
+          
+          int routeToPart = _shardingStrategy.caculateShard(_maxPartitionId, uid, obj);
+          if(DefaultStreamingIndexingManager.this._dataCollectorMap.containsKey(routeToPart)){
             Collection<DataEvent<JSONObject>> partDataSet = DefaultStreamingIndexingManager.this._dataCollectorMap.get(routeToPart);
             if (partDataSet!=null){
               if (obj == obj)
