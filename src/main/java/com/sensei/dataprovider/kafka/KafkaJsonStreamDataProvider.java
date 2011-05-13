@@ -11,7 +11,7 @@ import org.json.JSONObject;
 import com.sensei.indexing.api.DataSourceFilter;
 import com.sensei.indexing.api.DataSourceFilterable;
 
-public class KafkaJsonStreamDataProvider extends KafkaStreamDataProvider<JSONObject> implements DataSourceFilterable {
+public class KafkaJsonStreamDataProvider extends KafkaStreamDataProvider<JSONObject> implements DataSourceFilterable<byte[]> {
     private final static Charset UTF8 = Charset.forName("UTF-8");
     public final static String KAFKA_MSG_OFFSET = "_KAFKA_MSG_OFFSET_";
 
@@ -22,11 +22,11 @@ public class KafkaJsonStreamDataProvider extends KafkaStreamDataProvider<JSONObj
 		super(versionComparator, kafkaHost, kafkaPort, soTimeout, batchSize, topic, startingOffset);
 	}
 
-  @Override
-  public void setFilter(DataSourceFilter filter)
-  {
-    _dataSourceFilter = filter;
-  }
+	@Override
+    public void setFilter(DataSourceFilter<byte[]> filter)
+    {
+      _dataSourceFilter = filter;
+    }
 
 	@Override
 	protected JSONObject convertMessageBytes(long msgStreamOffset, byte[] bytes,

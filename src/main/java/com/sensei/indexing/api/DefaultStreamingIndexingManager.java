@@ -1,6 +1,5 @@
 package com.sensei.indexing.api;
 
-import java.io.File;
 import java.lang.management.ManagementFactory;
 import java.util.Collection;
 import java.util.Comparator;
@@ -25,15 +24,13 @@ import proj.zoie.api.DataConsumer.DataEvent;
 import proj.zoie.api.DataProvider;
 import proj.zoie.api.Zoie;
 import proj.zoie.api.ZoieException;
-import proj.zoie.api.DataConsumer.DataEvent;
 import proj.zoie.impl.indexing.StreamDataProvider;
 import proj.zoie.mbean.DataProviderAdmin;
 import proj.zoie.mbean.DataProviderAdminMBean;
 
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.sensei.conf.SenseiSchema;
-import com.sensei.dataprovider.file.LinedJsonFileDataProvider;
-import com.sensei.dataprovider.kafka.KafkaJsonStreamDataProvider;
+import com.sensei.indexing.api.DataProviderFactoryRegistry.DataProviderBuilder;
 import com.sensei.search.nodes.SenseiIndexingManager;
 
 public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JSONObject> {
@@ -46,6 +43,10 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 	
 	private static final String PROVIDER_TYPE = "type";
 	
+	private static final String EVTS_PER_MIN = "eventsPerMin";
+	
+	private static final String BATCH_SIZE = "batchSize";
+	
 	
 	private StreamDataProvider<JSONObject> _dataProvider;
 	private String _oldestSinceKey;
@@ -57,8 +58,6 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 	private Map<Integer, Zoie<BoboIndexReader, JSONObject>> _zoieSystemMap;
 	private final LinkedHashMap<Integer, Collection<DataEvent<JSONObject>>> _dataCollectorMap;
   private final Comparator<String> _versionComparator;
-
-  private DataSourceFilter _dataSourceFilter = null;
 	
 	public DefaultStreamingIndexingManager(SenseiSchema schema,Configuration senseiConfig, ApplicationContext pluginContext, Comparator<String> versionComparator){
 	  _dataProvider = null;
@@ -103,19 +102,11 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 	    
 	    
 	    _dataProvider = buildDataProvider();
-      if (_dataProvider instanceof DataSourceFilterable)
-        ((DataSourceFilterable)_dataProvider).setFilter(_dataSourceFilter);
 	    _dataProvider.setDataConsumer(consumer);
 	}
-
-  public void setFilter(DataSourceFilter filter){
-    _dataSourceFilter = filter;
-    if (_dataProvider instanceof DataSourceFilterable)
-      ((DataSourceFilterable)_dataProvider).setFilter(filter);
-  }
   
   @Override
-  public DataProvider getDataProvider()
+  public DataProvider<JSONObject> getDataProvider()
   {
     return _dataProvider;
   }
@@ -123,29 +114,26 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 	private StreamDataProvider<JSONObject> buildDataProvider() throws ConfigurationException{
 		String type = _myconfig.getString(PROVIDER_TYPE);
 		StreamDataProvider<JSONObject> dataProvider = null;
-		if ("file".equals(type)){
-			String path = _myconfig.getString("file.path");
-			long offset = _oldestSinceKey == null ? 0L : Long.parseLong(_oldestSinceKey);
-			dataProvider = new LinedJsonFileDataProvider(_versionComparator, new File(path), offset);
+
+		Configuration conf = _myconfig.subset(type);
+		
+		DataProviderBuilder<?> builder = DataProviderFactoryRegistry.getDataProviderBuilder(type);
+		if (builder==null){
+			builder = (DataProviderBuilder<?>)_pluginContext.getBean(type);
+			if (builder == null){
+			  throw new ConfigurationException("unsupported provider type: "+type);
+			}
 		}
-		else if ("kafka".equals(type)){
-			String host = _myconfig.getString("kafka.host");
-			int port = _myconfig.getInt("kafka.port");
-			String topic = _myconfig.getString("kafka.topic");
-			int timeout = _myconfig.getInt("kafka.timeout",10000);
-			int batchsize = _myconfig.getInt("kafka.batchsize");
-			long offset = _oldestSinceKey == null ? 0L : Long.parseLong(_oldestSinceKey);
-			dataProvider = new KafkaJsonStreamDataProvider(_versionComparator, host,port,timeout,batchsize,topic,offset);
+
+		try{
+		  dataProvider = builder.buildDataProvider(conf, _versionComparator, _oldestSinceKey, _pluginContext);
+		  long maxEventsPerMin = _myconfig.getLong(EVTS_PER_MIN,40000);
+		  dataProvider.setMaxEventsPerMinute(maxEventsPerMin);
+		  int batchSize = _myconfig.getInt(BATCH_SIZE,1);
+		  dataProvider.setBatchSize(batchSize);
 		}
-    else if ("custom".equals(type)) {
-      String dataProviderName = _myconfig.getString("custom");
-      dataProvider = (StreamDataProvider<JSONObject>) _pluginContext.getBean(dataProviderName);
-      logger.info("Reset starting offset to _oldestSinceKey = " + _oldestSinceKey);
-      dataProvider.setStartingOffset(_oldestSinceKey);
-      dataProvider.reset();
-    }
-		else{
-			throw new ConfigurationException("type: "+type+" is not suported");
+		catch(Exception e){
+			throw new ConfigurationException(e.getMessage(),e);
 		}
 		
 		try {
