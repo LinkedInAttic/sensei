@@ -352,15 +352,22 @@ public class ResultMerger
     Map<String, FacetAccessible> mergedFacetMap = null;
     if (onSearchNode)
     {
+    	long a = System.currentTimeMillis();
       mergedFacetMap = mergeFacetContainerServerSide(facetList, req);
+
+  	    long b = System.currentTimeMillis();
+  	    logger.info("merge facet container time: "+(b-a));
     } else
     {
       mergedFacetMap = mergeFacetContainer(facetList, req);
     }
     Comparator<SenseiHit> comparator = new SenseiHitComparator();
 
+    long a = System.currentTimeMillis();
     List<SenseiHit> mergedList = ListMerger.mergeLists(req.getOffset(), req.getCount(), iteratorList
         .toArray(new Iterator[iteratorList.size()]), comparator);
+    long b = System.currentTimeMillis();
+	    logger.info("merge res list time: "+(b-a));
     SenseiHit[] hits = mergedList.toArray(new SenseiHit[mergedList.size()]);
 
     SenseiResult merged = new SenseiResult();
@@ -378,6 +385,8 @@ public class ResultMerger
     time += (end-start);
     merged.setTime(time);
     merged.setParsedQuery(parsedQuery);
+    
+    logger.info("merge time: "+(end-start));
     return merged;
   }
 }

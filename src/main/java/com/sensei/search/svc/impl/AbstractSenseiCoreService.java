@@ -52,7 +52,7 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
 	        logger.info("serving partitions: " + partitions.toString());
 	      }
 	      ArrayList<Res> resultList = new ArrayList<Res>(partitions.size());
-        Future<Res>[] futures = new Future[partitions.size()-1];
+        Future<Res>[] futures =(Future<Res>[]) new Future[partitions.size()-1];
         int i = 0;
 	      for (final int partition : partitions)
 	      {
@@ -114,7 +114,10 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
           }
         }
 
+        long a = System.currentTimeMillis();
 	      finalResult = mergePartitionedResults(senseiReq, resultList);
+	      long b = System.currentTimeMillis();
+	      logger.info("merge took: "+(b-a));
 	    } else
 	    {
 	      if (logger.isInfoEnabled()){
