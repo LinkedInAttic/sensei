@@ -12,6 +12,6 @@ public interface SenseiIndexingManager<D> {
   void initialize(Map<Integer,Zoie<BoboIndexReader,D>> zoieSystemMap) throws Exception;
   void start() throws Exception;
   void shutdown();
-  DataProvider getDataProvider();
+  DataProvider<D> getDataProvider();
   void syncWithVersion(long timeToWait, String version) throws ZoieException;
 }

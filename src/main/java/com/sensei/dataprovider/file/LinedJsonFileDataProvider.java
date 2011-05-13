@@ -10,7 +10,7 @@ import org.json.JSONObject;
 import com.sensei.indexing.api.DataSourceFilter;
 import com.sensei.indexing.api.DataSourceFilterable;
 
-public class LinedJsonFileDataProvider extends LinedFileDataProvider<JSONObject> implements DataSourceFilterable {
+public class LinedJsonFileDataProvider extends LinedFileDataProvider<JSONObject> implements DataSourceFilterable<String> {
 
   private DataSourceFilter<String> _dataSourceFilter;
 
@@ -19,7 +19,7 @@ public class LinedJsonFileDataProvider extends LinedFileDataProvider<JSONObject>
 	}
 
   @Override
-  public void setFilter(DataSourceFilter filter)
+  public void setFilter(DataSourceFilter<String> filter)
   {
     _dataSourceFilter = filter;
   }
