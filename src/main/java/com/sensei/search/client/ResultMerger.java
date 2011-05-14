@@ -128,6 +128,7 @@ public class ResultMerger
   private static Map<String, FacetAccessible> mergeFacetContainerServerSide(Collection<Map<String, FacetAccessible>> subMaps, SenseiRequest req)
   {
     Map<String, List<FacetAccessible>> counts = new HashMap<String, List<FacetAccessible>>();
+    long a1 = System.currentTimeMillis();
     for (Map<String, FacetAccessible> subMap : subMaps)
     {
       for (Map.Entry<String, FacetAccessible> entry : subMap.entrySet())
@@ -142,8 +143,13 @@ public class ResultMerger
         count.add(entry.getValue());
       }
     }
+    long a2 = System.currentTimeMillis();
+    
+    logger.info("!!!!!!!!merge 1: "+(a2-a1));
     // create combinedFacetAccessibles
     Map<String, FacetAccessible> fieldMap = new HashMap<String, FacetAccessible>();
+    
+    a1 = System.currentTimeMillis();
     for(String fieldname : counts.keySet())
     {
       List<FacetAccessible> facetAccs = counts.get(fieldname);
@@ -155,7 +161,11 @@ public class ResultMerger
         fieldMap.put(fieldname, new CombinedFacetAccessible(req.getFacetSpec(fieldname), facetAccs));
       }
     }
+    a2 = System.currentTimeMillis();
+    
+    logger.info("!!!!!!!!merge 2: "+(a2-a1));
     Map<String, FacetAccessible> mergedFacetMap = new HashMap<String, FacetAccessible>();
+    a1 = System.currentTimeMillis();
     for(String fieldname : fieldMap.keySet())
     {
       FacetAccessible facetAcc = fieldMap.get(fieldname);
@@ -181,11 +191,19 @@ public class ResultMerger
         }
       }
       facetAcc.close();
+      
+      a2 = System.currentTimeMillis();
+      
+      logger.info("!!!!!!!!merge 3: "+(a2-a1));
       // sorting
+      a1 = System.currentTimeMillis();
       Comparator<BrowseFacet> facetComp = getComparator(fspec);
       Collections.sort(facets, facetComp);
       MappedFacetAccessible mergedFacetAccessible = new MappedFacetAccessible(facets.toArray(new BrowseFacet[facets.size()]));
       mergedFacetMap.put(fieldname, mergedFacetAccessible);
+a2 = System.currentTimeMillis();
+      
+      logger.info("!!!!!!!!merge 4: "+(a2-a1));
     }
     return mergedFacetMap;
   }
