@@ -169,6 +169,7 @@ public class ResultMerger
     long b1 = System.currentTimeMillis();
     for(String fieldname : fieldMap.keySet())
     {
+    	logger.info("field name: "+fieldname);
     	a1 = System.currentTimeMillis();
       FacetAccessible facetAcc = fieldMap.get(fieldname);
       FacetSpec fspec = req.getFacetSpec(fieldname);
@@ -179,8 +180,13 @@ public class ResultMerger
       {
         values.addAll(Arrays.asList(rawvalues));
       }
+      
+
+  	logger.info("values count: "+values.size());
       List<BrowseFacet> facets = new ArrayList<BrowseFacet>();
       facets.addAll(facetAcc.getFacets());
+
+    	logger.info("facets count: "+facets.size());
       for(BrowseFacet bf : facets)
       {
         values.remove(bf.getValue());
