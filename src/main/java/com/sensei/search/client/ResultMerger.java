@@ -165,9 +165,11 @@ public class ResultMerger
     
     logger.info("!!!!!!!!merge 2: "+(a2-a1));
     Map<String, FacetAccessible> mergedFacetMap = new HashMap<String, FacetAccessible>();
-    a1 = System.currentTimeMillis();
+    
+    long b1 = System.currentTimeMillis();
     for(String fieldname : fieldMap.keySet())
     {
+    	a1 = System.currentTimeMillis();
       FacetAccessible facetAcc = fieldMap.get(fieldname);
       FacetSpec fspec = req.getFacetSpec(fieldname);
       BrowseSelection sel = req.getSelection(fieldname);
@@ -205,6 +207,10 @@ a2 = System.currentTimeMillis();
       
       logger.info("!!!!!!!!merge 4: "+(a2-a1));
     }
+
+    long b2 = System.currentTimeMillis();
+
+    logger.info("!!!!!!!!merge 5: "+(b2-b1));
     return mergedFacetMap;
   }
 
