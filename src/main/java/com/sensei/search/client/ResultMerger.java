@@ -184,22 +184,32 @@ public class ResultMerger
 
   	logger.info("values count: "+values.size());
       List<BrowseFacet> facets = new ArrayList<BrowseFacet>();
+      
+      long d1= System.currentTimeMillis();
       facets.addAll(facetAcc.getFacets());
+      long d2 = System.currentTimeMillis();
 
-    	logger.info("facets count: "+facets.size());
-      for(BrowseFacet bf : facets)
-      {
-        values.remove(bf.getValue());
-      }
+    	logger.info("facets count: "+facets.size()+", retriving took: "+(d2-d1));
+      
       if (values.size()>0)
       {
+    	  for(BrowseFacet bf : facets)
+          {
+            values.remove(bf.getValue());
+          }
+    	  
         for(String value : values)
         {
           facets.add(facetAcc.getFacet(value));
         }
       }
-      facetAcc.close();
       
+      long  c1 = System.currentTimeMillis();
+      facetAcc.close();
+
+      long c2 = System.currentTimeMillis();
+      
+      logger.info("!!!!!!!!facet close took: "+(c2-c1));
       a2 = System.currentTimeMillis();
       
       logger.info("!!!!!!!!merge 3: "+(a2-a1));
