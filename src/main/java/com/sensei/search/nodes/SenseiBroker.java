@@ -128,7 +128,7 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
   {
     request.saveOrigFacetMaxCounts();
     // Rewrite facet max count.
-    Map<String, FacetSpec> facetSpecs = request.getFacetSpecs();
+    /*Map<String, FacetSpec> facetSpecs = request.getFacetSpecs();
     if (facetSpecs != null) {
       for (Map.Entry<String, FacetSpec> entry : facetSpecs.entrySet()) {
         FacetSpec spec = entry.getValue();
@@ -136,7 +136,7 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
           spec.setMaxCount(50);
       }
     }
-
+*/
     return SenseiRequestBPOConverter.convert(request);
   }
 
