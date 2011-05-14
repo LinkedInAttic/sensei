@@ -5,7 +5,6 @@ import it.unimi.dsi.fastutil.ints.IntSet;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -13,7 +12,6 @@ import java.util.zip.GZIPInputStream;
 
 import org.apache.log4j.Logger;
 import org.apache.lucene.document.Document;
-import org.apache.lucene.document.Field;
 
 import com.browseengine.bobo.api.FacetSpec;
 import com.linkedin.norbert.NorbertException;
@@ -26,14 +24,10 @@ import com.sensei.search.cluster.routing.SenseiLoadBalancerFactory;
 import com.sensei.search.req.SenseiHit;
 import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.req.SenseiResult;
-import com.sensei.search.req.SenseiSystemInfo;
 import com.sensei.search.req.protobuf.SenseiRequestBPO;
+import com.sensei.search.req.protobuf.SenseiRequestBPO.Request;
 import com.sensei.search.req.protobuf.SenseiRequestBPOConverter;
 import com.sensei.search.req.protobuf.SenseiResultBPO;
-import com.sensei.search.req.protobuf.SenseiSysRequestBPO;
-import com.sensei.search.req.protobuf.SenseiSysRequestBPOConverter;
-import com.sensei.search.req.protobuf.SenseiSysResultBPO;
-import com.sensei.search.req.protobuf.SenseiRequestBPO.Request;
 import com.sensei.search.req.protobuf.SenseiResultBPO.Result;
 
 /**

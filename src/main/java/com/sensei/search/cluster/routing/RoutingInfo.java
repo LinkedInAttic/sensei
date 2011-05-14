@@ -8,8 +8,8 @@ import com.linkedin.norbert.javacompat.cluster.Node;
 
 public class RoutingInfo
 {
-  public int[] partitions;
-  public int[] nodegroup;
+  public final int[] partitions;
+  public final int[] nodegroup;
   public final List<Node>[] nodelist;
 
   public RoutingInfo(final List<Node>[] nodelist, int[] partitions, int[] nodegroup)
