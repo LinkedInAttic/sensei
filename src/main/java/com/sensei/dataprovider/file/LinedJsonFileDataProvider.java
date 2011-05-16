@@ -24,8 +24,8 @@ public class LinedJsonFileDataProvider extends LinedFileDataProvider<JSONObject>
     _dataSourceFilter = filter;
   }
 
-	@Override
-	protected JSONObject convertLine(String line) throws IOException {
+  @Override
+  protected JSONObject convertLine(String line) throws IOException {
     try
     {
       if (_dataSourceFilter != null)
@@ -33,15 +33,15 @@ public class LinedJsonFileDataProvider extends LinedFileDataProvider<JSONObject>
     }
     catch(Exception e)
     {
-			throw new IOException(e.getMessage(),e);
+	  throw new IOException(e.getMessage(),e);
     }
 
     // Try to create directly.
-		try {
-			return new JSONObject(line);
-		} catch (JSONException e) {
-			throw new IOException(e.getMessage(),e);
-		}
+	try {
+	  return new JSONObject(line);
+	} catch (JSONException e) {
+	  throw new IOException(e.getMessage(),e);
 	}
+  }
 
 }
