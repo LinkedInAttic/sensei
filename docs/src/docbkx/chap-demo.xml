@@ -43,19 +43,19 @@
         <emphasis role="bold">Build:</emphasis>
       </para>
 
-      <programlisting>  ant</programlisting>
+      <programlisting>  $ ant</programlisting>
 
       <para>
-        <emphasis role="bold">Make sure zookeeper is running:</emphasis>
+        <emphasis role="bold">Make sure ZooKeeper is running:</emphasis>
       </para>
 
-      <programlisting>  $ZK_home/bin/zkServer.sh start</programlisting>
+      <programlisting>  $ $ZK_home/bin/zkServer.sh start</programlisting>
 
       <para>
         <emphasis role="bold">Run:</emphasis>
       </para>
 
-      <programlisting>  ./bin/start-sensei-node conf/</programlisting>
+      <programlisting>  $ ./bin/start-sensei-node conf/</programlisting>
     </section>
 
     <section>
@@ -73,7 +73,7 @@
         </listitem>
 
         <listitem>
-          <para>Rest Endpoint: <link
+          <para>RESTful End-Point: <link
           xlink:href="http://localhost:8080/sensei">http://localhost:8080/sensei</link></para>
         </listitem>
       </itemizedlist>
@@ -115,7 +115,9 @@
       </figure>
 
       <figure>
-        <title>REST Endpoint</title>
+        <title>RESTful End-Point<indexterm>
+        <primary>RESTful end-point</primary>
+        </indexterm></title>
 
         <mediaobject>
           <imageobject role="fo">

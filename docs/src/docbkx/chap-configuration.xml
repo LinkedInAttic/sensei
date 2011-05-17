@@ -38,7 +38,7 @@
       </orderedlist>
 
       <section>
-        <title>Table Schema</title>
+        <title>Table Schema<indexterm><primary>table schema</primary></indexterm></title>
 
         <para>A Sensei instance can be viewed as a giant table with many
         columns and many rows. The concept of such table directly correlates
@@ -173,7 +173,7 @@
   </table>]]></programlisting>
 
         <section>
-          <title>JSON</title>
+          <title>JSON<indexterm><primary>JSON</primary></indexterm></title>
 
           <para>By default, data objects inserted into Sensei are JSON
           objects.</para>
@@ -254,7 +254,7 @@
         </section>
 
         <section>
-          <title>Deletes</title>
+          <title>Deletes<indexterm><primary>delete</primary></indexterm></title>
 
           <para>To delete a row from Sensei, simply insert a data object
           with the specified delete-field set to true.</para>
@@ -280,7 +280,7 @@
         </section>
 
         <section>
-          <title>Skips</title>
+          <title>Skips<indexterm><primary>skip</primary></indexterm></title>
 
           <para>In cases where runtime logic decides whether a data object
           should be skipped, the skip field can be useful.</para>
@@ -305,7 +305,7 @@
         </section>
 
         <section>
-          <title>Source JSON</title>
+          <title>Source JSON<indexterm><primary>source JSON</primary></indexterm></title>
 
           <para>For many cases, you may want to save the original source
           data from which we extract all the fields into the index.  You
@@ -317,7 +317,7 @@
       </section>
 
       <section>
-        <title>Facet Schema</title>
+        <title>Facet Schema<indexterm><primary>facet schema</primary></indexterm></title>
 
         <para>The second section is the facet schema, which defines how
         columns can be queried.</para>
@@ -367,10 +367,10 @@
         xlink:href="https://github.com/javasoze/sensei/blob/master/conf/schema.xml">https://github.com/javasoze/sensei/blob/master/conf/schema.xml</link></para>
 
         <section>
-          <title>Optional Attributes</title>
+          <title>Optional Attributes<indexterm><primary>facet schema attribute</primary></indexterm></title>
 
           <section>
-            <title>Column</title>
+            <title>Column<indexterm><primary>facet schema attribute</primary><secondary>column</secondary></indexterm></title>
 
             <para>The column attribute references the column names
             defined in the table section. By default, the value of the
@@ -382,7 +382,7 @@
           </section>
 
           <section>
-            <title>Depends</title>
+            <title>Depends<indexterm><primary>facet schema attribute</primary><secondary>depends</secondary></indexterm></title>
 
             <para>This is a comma delimited string denoting a set of
             facet names this facet is to be depended on.</para>
@@ -396,7 +396,7 @@
           </section>
 
           <section>
-            <title>Dynamic</title>
+            <title>Dynamic<indexterm><primary>facet schema attribute</primary><secondary>dynamic</secondary></indexterm></title>
 
             <para>Dynamic facets are useful when data layout is not known
             until query time.</para>
@@ -525,7 +525,7 @@
         </listitem>
 
         <listitem>
-          <para><emphasis role="bold">broker</emphasis>: e.g. entry into
+          <para><emphasis role="bold">broker and client</emphasis>: e.g. entry into
           Sensei system</para>
         </listitem>
 
@@ -538,6 +538,15 @@
       <para>Below is the configuration file for the demo (available
       from <link
       xlink:href="https://github.com/javasoze/sensei/blob/master/conf/sensei.properties">https://github.com/javasoze/sensei/blob/master/conf/sensei.properties</link></para>
+
+      <programlistingco>
+        <areaspec>
+          <area xml:id="sensei-config-server" coords="1 26" units="linecolumn"/>
+          <area xml:id="sensei-config-cluster" coords="11 29" units="linecolumn"/>
+          <area xml:id="sensei-config-indexing" coords="16 30" units="linecolumn"/>
+          <area xml:id="sensei-config-plugins" coords="31 29" units="linecolumn"/>
+          <area xml:id="sensei-config-broker" coords="60 21" units="linecolumn"/>
+        </areaspec>
 
       <programlisting><![CDATA[# sensei node parameters
 sensei.node.id=1
@@ -617,6 +626,29 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
 # custom router factory
 # sensei.search.router.factory = myRouterFactory]]>
 </programlisting>
+         <calloutlist>
+           <callout arearefs="sensei-config-server">
+             <para>This lines starts the server configurations.</para>
+           </callout>
+           <callout arearefs="sensei-config-cluster">
+             <para>This lines starts the cluster configurations.</para>
+           </callout>
+           <callout arearefs="sensei-config-indexing">
+             <para>This lines starts the indexing configurations.</para>
+           </callout>
+           <callout arearefs="sensei-config-plugins">
+             <para>This lines starts the plugins configurations.</para>
+           </callout>
+           <callout arearefs="sensei-config-broker">
+             <para>This lines starts the broker and client configurations.</para>
+           </callout>
+         </calloutlist>
+      </programlistingco>
+
+      <para>In the following sections, we are going to explain every
+      configuration property in each part: what the property type is,
+      whether it is required, what the default value is, and how it is
+      used, etc.</para>
 
       <section>
         <title>Server Properties</title>
@@ -664,10 +696,9 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
               either integer numbers or ranges, separated by commas.
               For example, the following line 
               denotes that the Sensei server has six partitions:
-              1,2,5,6,7,10.</para>
+              1,4,5,6,7,10.</para>
 
-              <programlisting>  sensei.node.partitions=1,2,5-7,10
-              </programlisting>
+              <programlisting>  sensei.node.partitions=1,4-7,10</programlisting>
             </listitem>
           </varlistentry>
 
@@ -794,7 +825,7 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
                 </listitem>
               </itemizedlist>
 
-              <para>This is the URL to be used to connect to the Sensei
+              <para>This is the ZooKeeper URL for the Sensei
               cluster.</para>
             </listitem>
           </varlistentry>
@@ -930,7 +961,7 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
               </itemizedlist>
 
               <para>This specifies whether the indexing mode is
-              real-time. </para>
+              real-time or not.</para>
             </listitem>
           </varlistentry>
 
@@ -1075,7 +1106,7 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
       </section>
 
       <section>
-        <title>Broker Properties</title>
+        <title>Broker and Client Properties</title>
 
         <variablelist>
           <?dbfo list-presentation="blocks"?>
@@ -1195,8 +1226,8 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
                 </listitem>
               </itemizedlist>
 
-              <para>This is the ZooKeeper URL for the network client of
-              a Sensei cluster.</para>
+              <para>This is the ZooKeeper URL for the Sensei search
+              cluster that brokers talk to.</para>
             </listitem>
           </varlistentry>
 
@@ -1216,7 +1247,7 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
               </itemizedlist>
 
               <para>This is the Sensei cluster name, the service name
-              for the network client.</para>
+              for the network clients and brokers.</para>
             </listitem>
           </varlistentry>
 
@@ -1490,8 +1521,7 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
                 </listitem>
               </itemizedlist>
 
-              <para>This is the bean ID of the customized data provider
-              used by user provided index manager.</para>
+              <para>This is the bean ID of the sharding strategy.</para>
             </listitem>
           </varlistentry>
 
@@ -1521,11 +1551,4 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
       </section>
     </section>
 
-    <!-- System Configurations -->
-
-    <section>
-      <title>Extensions</title>
-
-      <para>(TO BE FINISHED)</para>
-    </section>
   </chapter>

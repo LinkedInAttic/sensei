@@ -6,10 +6,49 @@
     <title>FAQ</title>
 
     <section>
-      <title>FAQ</title>
+      <title>About Sensei</title>
 
-      <para>(To Be Finished)</para>
+      <qandaset>
+        <qandaentry>
+          <question>
+            <para>Why is it called Sensei?</para>
+          </question>
+          <answer>
+            <para>(To Be Finished)</para>
+          </answer>
+        </qandaentry>
+      </qandaset>
 
+    </section>
+
+    <section>
+      <title>Sensei Configuration</title>
+
+      <qandaset>
+        <qandaentry>
+          <question>
+            <para>aaa</para>
+          </question>
+          <answer>
+            <para>(To Be Finished)</para>
+          </answer>
+        </qandaentry>
+      </qandaset>
+    </section>
+
+    <section>
+      <title>Problems Running Sensei</title>
+
+      <qandaset>
+        <qandaentry>
+          <question>
+            <para>aaa</para>
+          </question>
+          <answer>
+            <para>(To Be Finished)</para>
+          </answer>
+        </qandaentry>
+      </qandaset>
     </section>
 
   </chapter>

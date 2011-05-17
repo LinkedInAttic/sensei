@@ -16,45 +16,67 @@
     ORDER BY fa,fb...
     LIMIT offset,count</programlisting>
 
-    <para>Sensei is written in Java and built on top of the following
-    open-source software:</para>
+    <para>Sensei is written in Java and is built on top of several other
+    open-source software systems:</para>
 
     <itemizedlist spacing="compact">
         <listitem>
-          <para>Bobo (<link
+          <para>Bobo <indexterm><primary>Bobo</primary></indexterm>
+          (<link
           xlink:href="http://sna-projects.com/bobo/">http://sna-projects.com/bobo/</link>):
-          This is a Faceted Search implementation written in Java, using
-          Lucene as the underline search and indexing engine.
+          a faceted search implementation written in Java, using Lucene
+          as the underline search and indexing engine.
           </para>
         </listitem>
         <listitem>
-          <para>Zoie (<link
+          <para>Zoie <indexterm><primary>Zoie</primary></indexterm>(<link
           xlink:href="http://sna-projects.com/zoie/">http://sna-projects.com/zoie/</link>):
-          This is a real-time search and indexing system built on
-          Lucene.
+          a real-time search and indexing system built on Lucene.
           </para>
         </listitem>
         <listitem>
-          <para>Apache Lucene (<link
+          <para>Apache Lucene
+          <indexterm><primary>Lucene</primary><secondary>Apach
+          Lucene</secondary></indexterm>(<link
           xlink:href="http://lucene.apache.org/">http://lucene.apache.org/</link>):
-          This is a high-performance, full-featured text search engine
-          library written entirely in Java. </para>
+          a high-performance, full-featured text search engine library
+          written entirely in Java. </para>
         </listitem>
         <listitem>
-          <para>Norbert (<link
+          <para>Norbert
+          <indexterm><primary>Norbert</primary></indexterm>(<link
           xlink:href="http://sna-projects.com/norbert/">http://sna-projects.com/norbert/</link>):
-          This is a library that provides easy cluster management and
-          workload distribution.  Norbert is built on ZooKeeper and
-          Netty.
+          a library that provides easy cluster management and workload
+          distribution.  Norbert is built on ZooKeeper
+          <indexterm><primary>ZooKeeper</primary></indexterm> and Netty
+          <indexterm><primary>Netty</primary></indexterm>.
           </para>
         </listitem>
     </itemizedlist>
 
+    <figure>
+      <title>Sensei and Its Foundation</title>
+
+      <mediaobject>
+        <imageobject role="fo">
+          <imagedata align="center" fileref="figures/sensei-stack.svg"
+                     format="SVG" scale="75" valign="middle" />
+        </imageobject>
+
+        <imageobject role="html">
+          <imagedata align="center" fileref="figures/sensei-stack.png"
+                     format="PNG" scale="100" valign="middle" />
+        </imageobject>
+      </mediaobject>
+    </figure>
+
+
     <section>
       <title>Design Considerations</title>
 
-      <para>As another NoSQL system, Sensei is designed and built with
-      the following considerations:</para>
+      <para>As another NoSQL<indexterm> <primary>NoSQL</primary>
+      </indexterm> system (http://nosql-database.org/), Sensei
+      is designed and built with the following considerations:</para>
 
       <itemizedlist>
         <listitem>
@@ -234,18 +256,144 @@
     </section>
 
     <section>
+      <title>Architecture</title>
+
+      <para>At a high level, a Sensei system consists of two
+      parts:</para>
+
+      <orderedlist>
+        <listitem>
+          <para>A cluster of Sensei
+          <emphasis>servers</emphasis><indexterm><primary>Sensei
+          server</primary></indexterm> (a.k.a. <emphasis>search
+          nodes</emphasis>).</para>
+
+          <para>Each server covers one or more
+          <emphasis>partitions</emphasis> (or
+          <emphasis>shards</emphasis> <indexterm>
+          <primary>partition</primary><secondary>shard</secondary>
+          </indexterm>) of the entire index space, and is
+          responsible for real-time indexing and searching on the
+          partition(s) belonging to the node.</para>
+
+          <sidebar>
+            <title>Partition and Shard</title>
+            <para>A partition or shard is just a slice of the index
+            served by the entire Sense cluster.  Each partition may have
+            multiple replicas handled by different Sensei search nodes.
+            How data is partitioned (or sharded) is up to the business
+            logic of the application, and the sharding strategy can be
+            passed to Sensei as a plug-in.</para>
+          </sidebar>
+
+        </listitem>
+        <listitem>
+          <para>A set of Sensei <emphasis>brokers</emphasis><indexterm>
+          <primary>broker</primary>
+          </indexterm>.</para>
+
+          <para>Brokers receive search requests from clients, pass them
+          to selected servers in the Sensei search cluster, and then
+          merge/return search results back to the clients.</para>
+        </listitem>
+      </orderedlist>
+
+      <para>Sensei brokers are relatively simple and lightweight.  Most
+      of the work is done at Sensei servers.  A Sensei server plays two
+      roles: indexer and searcher, both of which are implemented by Zoie
+      and Bobo embedded in the node.</para>
+
+      <para>Conceptually, a Sensei node contains the following four
+      components:</para>
+
+      <orderedlist>
+        <listitem>
+          <para>Data provider<indexterm>
+          <primary>data provider</primary>
+          </indexterm></para>
+
+          <para>This is the component responsible for getting data from
+          external sources and passing them to the indexer.  Several
+          built-in data providers are available in Sensei, and they can
+          be used to get data from common data sources:</para>
+
+          <itemizedlist spacing="compact">
+            <listitem>
+              <para>Line-based text file containing JSON objects.</para>
+            </listitem>
+            <listitem>
+              <para>Streaming JSON objects.</para>
+            </listitem>
+            <listitem>
+              <para>Kafka (<link
+              xlink:href="http://sna-projects.com/kafka/">http://sna-projects.com/kafka/</link>)</para>
+            </listitem>
+            <listitem>
+              <para>JMS</para>
+            </listitem>
+            <listitem>
+              <para>JDBC</para>
+            </listitem>
+          </itemizedlist>
+          
+          <para>For each data provider, a filter can be plugged in to
+          convert the original source data into the format defined by
+          the table schema.  The output of the filter should be of JSON
+          format, which is the internal format used by Sensei.</para>
+        </listitem>
+
+        <listitem>
+          <para>Indexing manager<indexterm><primary>indexing manager</primary></indexterm></para>
+
+          <para>Indexing manager acts as the bridge between the data
+          provider and the Zoie system.  It is responsible for passing
+          data from the data provider to Zoie, controlling the pace of
+          data consumption, and also maintaining the index
+          versions.</para>
+        </listitem>
+
+        <listitem>
+          <para>Zoie system<indexterm><primary>Zoie system</primary></indexterm></para>
+
+          <para>This is the underlying system powering real-time
+          indexing and search.  Two types of Zoie systems are supported
+          by Sensei today: regular Zoie and Hourglass.</para>
+
+          <para>Hourglass
+          <indexterm><primary>Hourglass</primary></indexterm>is a
+          forward-rolling indexing system based on Zoie, and it is being
+          used in LinkedIn Signal.</para>
+        </listitem>
+        <listitem>
+          <para>List of facet handlers</para>
+
+          <para>Facet handlers are a key component in a Sensei server.
+          Without them, none of the column-based queries can be
+          done.</para>
+        </listitem>
+      </orderedlist>
+
+    </section>
+
+    <section>
       <title>Architectural Diagram</title>
 
-      <mediaobject>
-        <imageobject role="fo">
-          <imagedata align="center" fileref="figures/sensei-architect.svg"
-                     format="SVG" scale="75" valign="middle" />
-        </imageobject>
+      <figure>
+        <title>Sensei Architectural
+        Diagram<indexterm><primary>architectural diagram</primary></indexterm></title>
 
-        <imageobject role="html">
-          <imagedata align="center" fileref="figures/sensei-architect.png"
-                     format="PNG" scale="100" valign="middle" />
-        </imageobject>
-      </mediaobject>
+        <mediaobject>
+          <imageobject role="fo">
+            <imagedata align="center" fileref="figures/sensei-architect.svg"
+                       format="SVG" scale="75" valign="middle" />
+          </imageobject>
+
+          <imageobject role="html">
+            <imagedata align="center" fileref="figures/sensei-architect.png"
+                       format="PNG" scale="100" valign="middle" />
+          </imageobject>
+        </mediaobject>
+      </figure>
+
     </section>
   </chapter>

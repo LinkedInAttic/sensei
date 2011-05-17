@@ -25,7 +25,9 @@
     </section>
 
     <section>
-      <title>Prerequisites</title>
+      <title>Prerequisites<indexterm>
+      <primary>prerequisites</primary>
+      </indexterm></title>
 
       <itemizedlist spacing="compact">
         <listitem>
@@ -35,7 +37,7 @@
           <para>maven 2.2.1 or higher</para>
         </listitem>
         <listitem>
-          <para>zookeeper 3.2.0 (<link
+          <para>ZooKeeper 3.2.0 or higher (<link
           xlink:href="http://hadoop.apache.org/zookeeper/">http://hadoop.apache.org/zookeeper/</link>)</para>
         </listitem>
         
@@ -82,19 +84,19 @@
 
             <para>Check out trunk: 
             </para>
-            <programlisting><![CDATA[  git clone git://github.com/javasoze/sensei.git sensei-trunk]]>
+            <programlisting><![CDATA[  $ git clone git://github.com/javasoze/sensei.git sensei-trunk]]>
             </programlisting>
           </listitem>
           <listitem>
             <para>Simply do:
             </para>
-            <programlisting><![CDATA[  ant]]></programlisting>
+            <programlisting><![CDATA[  $ ant]]></programlisting>
           </listitem>
         </orderedlist>
       </section>
 
       <section>
-        <title>ZooKeeper </title>
+        <title>ZooKeeper <indexterm><primary>ZooKeeper</primary></indexterm> </title>
         <para>
           In order to run the sample of sensei-search, you have to run
           an instance of ZooKeeper first.
@@ -110,7 +112,7 @@
           <code>zookeeper-3.2.0/conf/zoo_sample.cfg</code> to <code>zookeeper-3.2.0/conf/zoo.cfg</code> and
           start an instance of zookeeper by running
         </para>
-        <programlisting><![CDATA[  zookeeper-3.2.0/bin/zkServer.sh start]]></programlisting>
+        <programlisting><![CDATA[  $ zookeeper-3.2.0/bin/zkServer.sh start]]></programlisting>
         <para>
           For details, see <link
           xlink:href="http://hadoop.apache.org/zookeeper/docs/current/zookeeperStarted.html">http://hadoop.apache.org/zookeeper/docs/current/zookeeperStarted.html</link>
@@ -118,18 +120,19 @@
       </section>
 
       <section>
-        <title>Starting Sensei Nodes </title>
-        <para>
-          Do <code>bin/start-sensei-node.sh</code> to start a server node.  This command
-          takes 1 argument: <code>conf.dir</code>, which contains all configuration
-          information for a given Sensei node.
+        <title>Starting Sensei Nodes <indexterm><primary>start Sensei node</primary></indexterm> </title>
+
+        <para>You can use command
+        <literal>bin/start-sensei-node.sh</literal> to start a server
+        node.  This command takes one argument:
+        <literal>conf.dir</literal>, which contains all configuration
+        information for a given Sensei node.</para>
+
+        <para>Here is an example command-line that will work to fire up
+        a single sensei node with some sample data:
         </para>
 
-        <para>
-          Here is an example command-line that will work to fire up a
-          single sensei node with some sample data:
-        </para>
-        <programlisting><![CDATA[  bin/start-sensei-node.sh conf]]></programlisting>
+        <programlisting><![CDATA[  $ bin/start-sensei-node.sh conf]]></programlisting>
 
         <note>
           <para>Do not expect to see any logs after running this
@@ -141,32 +144,45 @@
       </section>
 
       <section>
-        <title>Web Application and Restful End-Point: </title>
+        <title>Web Application and RESTful
+        End-Point<indexterm><primary>RESTful end-point</primary></indexterm></title>
 
-        <para>A restful end-point along with a web interactive client
-        would be started as well:</para>
+        <para>When developing applications using Sensei, we found it
+        convenient to have a RESTful end-point that provides data in
+        JSON format.  Having a RESTful end-point allows one to query the
+        Sensei system in an ad-hoc way, and having a JSON formatted
+        output provides a way to investigate the result set without
+        having the need to depend on jars or any other types of code
+        binding.</para>
+
+        <para>When a Sensei node is started, a RESTful end-point along
+        with a web interactive client would be started as well:</para>
 
         <itemizedlist spacing="compact">
           <listitem>
-            <para>restful endpoint: <link
+            <para>RESTful end-point: <link
             xlink:href="http://localhost:8080/sensei?q=">http://localhost:8080/sensei?q=</link>
             </para>
           </listitem>
           <listitem>
-            <para>web client: <link xlink:href="http://localhost:8080">http://localhost:8080</link>
+            <para>Web client: <link xlink:href="http://localhost:8080">http://localhost:8080</link>
             </para>
           </listitem>
         </itemizedlist>
 
-        <para>For details, please checkout: Restful JSON End-point &amp; Client Application
-        </para>
       </section>
 
       <section>
-        <title>Starting Client </title>
+        <title>Starting Client <indexterm><primary>start Sensei client</primary></indexterm> </title>
         <para>
-          After you start at least one node, you can run <code>bin/sensei-client.sh client-conf</code> to start a client. (Edit <code>client-conf/sensei-client.conf</code>
-          to change properties)
+          After you start at least one node, you can run
+        </para>
+
+        <programlisting>  $ bin/sensei-client.sh client-conf</programlisting>
+
+        <para>to start a client. (Edit
+        <literal>client-conf/sensei-client.conf</literal> to change the
+        properties)
         </para>
 
         <para>
