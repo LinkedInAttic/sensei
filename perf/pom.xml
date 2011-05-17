@@ -37,8 +37,20 @@
 			<artifactId>sensei</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
-		
+		<dependency>
+			<groupId>com.yammer.metrics</groupId>
+			<artifactId>metrics-core_2.8.1</artifactId>
+			<version>2.0.0-BETA13</version>
+		</dependency>
 		
 	</dependencies>
+
+    <repositories>
+      <repository>
+        <id>codahale</id>
+        <name>Coda Hale's Repo</name>
+        <url>http://repo.codahale.com/</url>
+      </repository>
+    </repositories>
 
 </project>
