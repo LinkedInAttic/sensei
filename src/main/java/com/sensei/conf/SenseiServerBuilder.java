@@ -34,6 +34,7 @@ import org.mortbay.jetty.webapp.WebAppContext;
 import org.mortbay.thread.QueuedThreadPool;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.FileSystemXmlApplicationContext;
+import org.springframework.core.io.Resource;
 import org.w3c.dom.Document;
 
 import org.mortbay.servlet.GzipFilter;
@@ -80,7 +81,6 @@ public class SenseiServerBuilder implements SenseiConfParams{
   public static final String SCHEMA_FILE = "schema.xml";
   public static final String PLUGINS = "plugins.xml";
   
-  private final File _confDir;
   private final File _senseiConfFile;
   private final Configuration _senseiConf;
   private final ApplicationContext _pluginContext;
@@ -195,7 +195,6 @@ public class SenseiServerBuilder implements SenseiConfParams{
   
   public SenseiServerBuilder(File confDir, Map<String, Object> properties, ApplicationContext customFacetContext,
       ApplicationContext pluginContext) throws Exception {
-    _confDir = confDir;
     if (properties != null) {
       _senseiConfFile = null;
       _senseiConf = new MapConfiguration(properties);
@@ -227,7 +226,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
     DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
     dbf.setIgnoringComments(true);
     DocumentBuilder db = dbf.newDocumentBuilder();
-    _schemaDoc = db.parse(new File(_confDir,SCHEMA_FILE));
+    _schemaDoc = db.parse(new File(confDir,SCHEMA_FILE));
     _schemaDoc.getDocumentElement().normalize();
     _senseiSchema = SenseiSchema.build(_schemaDoc);
 
@@ -245,6 +244,45 @@ public class SenseiServerBuilder implements SenseiConfParams{
   public SenseiServerBuilder(File confDir) throws Exception {
     this(confDir, null, null, null);
   }
+
+  public SenseiServerBuilder(Resource confDir, Map<String, Object> properties, ApplicationContext customFacetContext,
+      ApplicationContext pluginContext) throws Exception {
+    _senseiConfFile = null;
+
+    _senseiConf = new MapConfiguration(properties);
+
+    //TODO: conditionally load other contexts.
+    _pluginContext = pluginContext;
+
+    String versionComparatorName = _senseiConf.getString(SENSEI_VERSION_COMPARATOR, "");
+    if (versionComparatorName == null || versionComparatorName.equals(""))
+      _versionComparator = ZoieConfig.DEFAULT_VERSION_COMPARATOR;
+    else
+      _versionComparator = (Comparator<String>) _pluginContext.getBean(versionComparatorName);
+
+    _customFacetContext = customFacetContext;
+    
+    DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+    dbf.setIgnoringComments(true);
+    DocumentBuilder db = dbf.newDocumentBuilder();
+    _schemaDoc = db.parse(confDir.createRelative(SCHEMA_FILE).getInputStream());
+    _schemaDoc.getDocumentElement().normalize();
+    _senseiSchema = SenseiSchema.build(_schemaDoc);
+
+    _jettyServer = buildHttpRestServer();
+  }
+
+  //public SenseiServerBuilder(Resource confDir, Map<String, Object> properties, ApplicationContext customFacetContext) throws Exception {
+    //this(confDir, properties, customFacetContext, null);
+  //}
+
+  //public SenseiServerBuilder(Resource confDir, Map<String, Object> properties) throws Exception {
+    //this(confDir, properties, null, null);
+  //}
+
+  //public SenseiServerBuilder(Resource confDir) throws Exception {
+    //this(confDir, null, null, null);
+  //}
 
   static final Pattern PARTITION_PATTERN = Pattern.compile("[\\d]+||[\\d]+-[\\d]+");
   

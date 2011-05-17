@@ -21,7 +21,7 @@ public class DefaultJsonQueryBuilderFactory extends
 
 	
 	@Override
-	protected SenseiQueryBuilder buildQuery(JSONObject jsonQuery) {
+	public SenseiQueryBuilder buildQuery(JSONObject jsonQuery) {
 		final String queryString = jsonQuery == null ? null : jsonQuery.optString("query");
 	
 		return new SenseiQueryBuilder(){
