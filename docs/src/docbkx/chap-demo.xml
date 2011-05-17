@@ -93,7 +93,7 @@
 
           <imageobject role="html">
             <imagedata align="center" fileref="figures/sensei-web-client.png"
-                       format="PNG" scale="50" valign="middle" />
+                       format="PNG" scale="100" valign="middle" />
           </imageobject>
         </mediaobject>
       </figure>
@@ -109,7 +109,7 @@
 
           <imageobject role="html">
             <imagedata align="center" fileref="figures/demo.png" format="PNG"
-                       scale="50" valign="middle" />
+                       scale="100" valign="middle" />
           </imageobject>
         </mediaobject>
       </figure>
@@ -125,7 +125,7 @@
 
           <imageobject role="html">
             <imagedata align="center" fileref="figures/rest-end-point.png"
-                       format="PNG" scale="50" valign="middle" />
+                       format="PNG" scale="100" valign="middle" />
           </imageobject>
         </mediaobject>
       </figure>
@@ -186,7 +186,7 @@
       </itemizedlist>
 
       <section>
-        <title>Data Model: </title>
+        <title>Data Model</title>
 
         <para> The data model is described in
         <filename>schema.xml</filename>: </para>
@@ -245,15 +245,59 @@
         <para>This corresponds to the following data table: </para>
 
         <informaltable border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
-          <colgroup><col align="left" /><col align="left" /><col align="left" /><col align="left" /><col align="left" /><col align="left" /><col align="left" /><col align="left" /><col align="left" /><col align="left" />
+          <colgroup><col align="left" /><col align="left" /><col align="left" /><col align="left" /><col align="left" /><col align="left" /><col align="left" /><col align="left" /><col align="left" /><col align="left" /><col align="left" />
           </colgroup>
           <thead>
-            <tr><th scope="col" align="left"></th><th scope="col" align="left">color</th><th scope="col" align="left">category</th><th scope="col" align="left">city</th><th scope="col" align="left">makemodel</th><th scope="col" align="left">year</th><th scope="col" align="left">price</th><th scope="col" align="left">mileage</th><th scope="col" align="left">tags</th><th scope="col" align="left">contents</th></tr>
+            <tr>
+              <th scope="col" align="left"></th>
+              <th scope="col" align="left">color</th>
+              <th scope="col" align="left">category</th>
+              <th scope="col" align="left">city</th>
+              <th scope="col" align="left" colspan="2">makemodel</th>
+              <th scope="col" align="left">year</th>
+              <th scope="col" align="left">price</th>
+              <th scope="col" align="left">mileage</th>
+              <th scope="col" align="left">tags</th>
+              <th scope="col" align="left">contents</th>
+            </tr>
           </thead>
           <tbody>
-            <tr><td align="left">meta/structured</td><td align="left">yes</td><td align="left">yes</td><td align="left">yes</td><td align="left">yes</td><td align="left">yes</td><td align="left">yes</td><td align="left">yes</td><td align="left">yes</td><td align="left">no</td></tr>
-            <tr><td align="left">type</td><td align="left">string</td><td align="left">string</td><td align="left">string</td><td align="left">string</td><td align="left">int</td><td align="left">float</td><td align="left">int</td><td align="left">string</td><td align="left">text</td></tr>
-            <tr><td align="left">facet</td><td align="left">simple</td><td align="left">simple</td><td align="left">path</td><td align="left">path</td><td align="left">range</td><td align="left">range</td><td align="left">range</td><td align="left">multi</td><td align="left">N/A</td></tr>
+            <tr>
+              <td align="left">meta/structured</td>
+              <td align="left">yes</td>
+              <td align="left">yes</td>
+              <td align="left">yes</td>
+              <td align="left" colspan="2">yes</td>
+              <td align="left">yes</td>
+              <td align="left">yes</td>
+              <td align="left">yes</td>
+              <td align="left">yes</td>
+              <td align="left">no</td>
+            </tr>
+            <tr>
+              <td align="left">type</td>
+              <td align="left">string</td>
+              <td align="left">string</td>
+              <td align="left">string</td>
+              <td align="left" colspan="2">string</td>
+              <td align="left">int</td>
+              <td align="left">float</td>
+              <td align="left">int</td>
+              <td align="left">string</td>
+              <td align="left">text</td>
+            </tr>
+            <tr>
+              <td align="left">facet</td>
+              <td align="left">simple</td>
+              <td align="left">simple</td>
+              <td align="left">path</td>
+              <td align="left" colspan="2">path</td>
+              <td align="left">range</td>
+              <td align="left">range</td>
+              <td align="left">range</td>
+              <td align="left">multi</td>
+              <td align="left">N/A</td>
+            </tr>
           </tbody>
         </informaltable>
 

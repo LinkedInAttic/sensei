@@ -4,6 +4,7 @@
 <!ENTITY chap-getting-started SYSTEM "chap-getting-started.xml">
 <!ENTITY chap-demo SYSTEM "chap-demo.xml">
 <!ENTITY chap-configuration SYSTEM "chap-configuration.xml">
+<!ENTITY chap-faq SYSTEM "chap-faq.xml">
 ]>
 
 <book version="5.0" xml:lang="en" xmlns="http://docbook.org/ns/docbook"
@@ -15,7 +16,7 @@
 
   <title>Sensei</title>
 
-  <subtitle>A Distributed Elastic Realtime Searchable Database</subtitle>
+  <subtitle>A Distributed Elastic Real-Time Searchable Database</subtitle>
 
   <info>
     <author>
@@ -24,7 +25,7 @@
 
     <mediaobject>
       <imageobject>
-        <imagedata align="center" fileref="figures/sensei-small.png"
+        <imagedata align="center" fileref="figures/sensei-small.svg"
                    format="SVG" scale="150" valign="middle" />
       </imageobject>
     </mediaobject>
@@ -37,5 +38,7 @@
   &chap-demo;
 
   &chap-configuration;
+
+  &chap-faq;
 
 </book>

@@ -9,32 +9,31 @@
       <title>Overview</title>
 
       <para>A Sensei node is configured by a set of files. These files
-      describe a Sensei node in terms of data models, server configuration,
-      indexing tuning parameters, customizations etc.</para>
+      describe a Sensei node in terms of data models, server
+      configuration, indexing tuning parameters, customizations,
+      etc.</para>
 
-      <para>This document aims to describe how parts are pieced together via
-      these configuration files.</para>
+      <para>This chapter aims to describe how different parts are pieced
+      together via these configuration files.</para>
     </section>
 
     <section>
       <title>Data Modeling</title>
 
       <para>Data models are described in the
-      <filename>schema.xml</filename> file (XSD definition:
-      http://javasoze.github.com/sensei/schema/sensei-schema.xsd.)</para>
-
-      <para>The demo example can be found here:
-      https://github.com/javasoze/sensei/blob/master/conf/schema.xml</para>
+      <filename>schema.xml</filename> file.  The XSD definition of this
+      XML file can be found from
+      http://javasoze.github.com/sensei/schema/sensei-schema.xsd.</para>
 
       <para>The schema file is composed by 2 sections:</para>
 
       <orderedlist spacing="compact">
         <listitem>
-          <para>table</para>
+          <para>Table schema</para>
         </listitem>
 
         <listitem>
-          <para>facets</para>
+          <para>Facet schema</para>
         </listitem>
       </orderedlist>
 
@@ -51,7 +50,7 @@
           <listitem>
             <para><emphasis role="bold">uid</emphasis> (mandatory) -
             defines the name of the primary key field.  This must be of
-            type <code>long</code>.</para>
+            type <literal>long</literal>.</para>
           </listitem>
 
           <listitem>
@@ -68,26 +67,44 @@
 
           <listitem>
             <para><emphasis role="bold">src-data-store</emphasis>
-            (optional) - defines the format of how the stored field is
-            saved.</para>
+            (optional) - defines the format of how the source data is
+            saved.  Currently the only supported value is
+            "<literal>lucene</literal>".</para>
+          </listitem>
+
+          <listitem>
+            <para><emphasis role="bold">src-data-field</emphasis>
+            (optional) - specifies the field name used to keep the
+            original source data value.</para>
+
+            <note>
+              <para>If this attribute is not specified, the default
+              value is set to "<literal>src_data</literal>".  If this
+              field is not set by the data source filter, the string
+              representation of the original data source is saved in
+              this field by default.  If part of the source data or a
+              modified version of the source data is to be saved in the
+              index, then you need to set this field using the value you
+              prefer in the data source filter.</para>
+            </note>
+
           </listitem>
 
           <listitem>
             <para><emphasis role="bold">compress-src-data</emphasis>
-            (optional) - defines if the stored field is
+            (optional) - defines if the source data is
             compressed.</para>
           </listitem>
         </itemizedlist>
 
-        <para>A table is also composed of a set of columns. Each column has a
-        name and a type.</para>
-
-        <para>These are the supported types:</para>
+        <para>A table is also composed of a set of columns.  Each column
+        has a name and a type.  Below is the list of supported
+        types:</para>
 
         <itemizedlist spacing="compact">
           <listitem>
             <para><emphasis role="bold">string</emphasis> - value is a
-            string, e.g. "<code>abc</code>"</para>
+            string, e.g. "<literal>abc</literal>"</para>
           </listitem>
 
           <listitem>
@@ -123,21 +140,21 @@
           <listitem>
             <para><emphasis role="bold">text</emphasis> - a searchable
             text segment, standard Lucene indexing specification can
-            also be specified here, e.g. <code>index="ANALYZED"</code>,
-            <code>termvector="NO"</code> etc.</para>
+            also be specified here, e.g. <literal>index="ANALYZED"</literal>,
+            <literal>termvector="NO"</literal> etc.</para>
           </listitem>
         </itemizedlist>
 
         <para>A column that is not of type "text" is considered a
         <emphasis>meta</emphasis> column.  Any meta column can be
-        specified to be either <code>single</code> (default) or
-        <code>multi</code>. When a column is specified to be
-        <code>multi</code>, e.g. <code>multi="true"</code>, this means
-        given a row, it can have more than 1 value for this column. A
-        delimited string can be provided to help the indexer to parse
-        the values (default delimiter is ",", for example, to specify a
-        different delimiter to be ":", we can do this by
-        <code>delimiter=":"</code>)</para>
+        specified to be either <emphasis>single</emphasis> (default) or
+        <emphasis>multi</emphasis>.  When a column is specified to be
+        <emphasis>multi</emphasis>, e.g. <literal>multi="true"</literal>, it
+        means that, given a row, the column can have more than one
+        value.  A delimited string can be provided to help the indexer
+        parse the values (default delimiter is "<literal>,</literal>").
+        To specify a different delimiter, say "<literal>:</literal>", we
+        can simply set <literal>delimiter=":"</literal>)</para>
 
         <para>Here is an example of the table schema (see
         https://github.com/javasoze/sensei/blob/master/conf/schema.xml):</para>
@@ -173,8 +190,8 @@
   &lt;/table&gt;
 </programlisting>
 
-          <para>The following table shows as an example how a json object is
-          mapped into the table:</para>
+          <para>The following table shows as an example how a JSON
+          object is mapped into the table:</para>
 
           <para>
             <emphasis role="bold">JSON object</emphasis>
@@ -239,8 +256,8 @@
         <section>
           <title>Deletes</title>
 
-          <para>To deleted a row from Sensei, simply insert a data object with
-          the specified delete-field set to true.</para>
+          <para>To delete a row from Sensei, simply insert a data object
+          with the specified delete-field set to true.</para>
 
           <para>
             <emphasis role="bold">Example:</emphasis>
@@ -290,10 +307,12 @@
         <section>
           <title>Source JSON</title>
 
-          <para>For many cases, you may want to keep the original source
-          JSON objects in the index.  You can </para>
+          <para>For many cases, you may want to save the original source
+          data from which we extract all the fields into the index.  You
+          can do this by setting the attributes <emphasis
+          role="bold">src-data-store</emphasis> and <emphasis
+          role="bold">src-data-field</emphasis>.</para>
         </section>
-
 
       </section>
 
@@ -355,7 +374,7 @@
 
             <para>The column attribute references the column names
             defined in the table section. By default, the value of the
-            <code>name</code> attribute is used.</para>
+            <literal>name</literal> attribute is used.</para>
 
             <para>This can be useful if you want to name the facet name to be
             different from the defined column name, or if you want to have
@@ -368,8 +387,9 @@
             <para>This is a comma delimited string denoting a set of
             facet names this facet is to be depended on.</para>
 
-            <para>When <code>depends</code> is specified, Sensei guarantees
-            the depending facets are loaded before this facet.</para>
+            <para>When attribute <literal>depends</literal> is specified,
+            Sensei guarantees that the depended facets are loaded before
+            this facet.</para>
 
             <para>This is also how Composite Facets are constructed.
             (Another advanced topic).</para>
@@ -385,11 +405,11 @@
 
             <itemizedlist spacing="compact">
               <listitem>
-                <para>searcher's social network</para>
+                <para>Searcher's social network</para>
               </listitem>
 
               <listitem>
-                <para>dynamic time ranges from when the search request is
+                <para>Dynamic time ranges from when the search request is
                 issued</para>
               </listitem>
             </itemizedlist>
@@ -403,7 +423,7 @@
 
           <para>A facet can be configured via a list of parameters.
           Parameters are needed for a facet under some situations, for
-          examples:</para>
+          example:</para>
 
           <itemizedlist spacing="compact">
             <listitem>
@@ -418,13 +438,13 @@
           </itemizedlist>
 
           <para>The parameters can be specified via element
-          <code>params</code>, which contains a list of elements called
-          <code>param</code>.  For each <code>param</code>, two
-          attributes can be specified: <code>name</code> and
-          <code>value</code>.</para>
+          <literal>params</literal>, which contains a list of elements called
+          <literal>param</literal>.  For each <literal>param</literal>, two
+          attributes need to be specified: <literal>name</literal> and
+          <literal>value</literal>.</para>
 
-          <para>How parameters are interpreted is dependent on the facet
-          type.</para>
+          <para>How parameters are interpreted and used is dependent on
+          the facet type.</para>
 
           <para>Here is an example of a facet with a list of predefined
           ranges: </para>
@@ -450,22 +470,22 @@
           for different reasons.</para>
 
           <para>If a customized facet handler is required for a column
-          (or multiple columns), you can set the facet <code>type</code>
-          to <code>custom</code>, and declare a bean for the facet
+          (or multiple columns), you can set the facet type to
+          "<literal>custom</literal>", and declare a bean for the facet
           handler in file <filename>custom-facets.xml</filename>.</para>
 
           <para>For example, if a customized facet called
-          <code>time</code> is declared in
+          <literal>time</literal> is declared in
           <filename>schema.xml</filename> like this: </para>
 
           <programlisting><![CDATA[  <facet name="time" type="custom" dynamic="false"/>]]></programlisting>
 
           <para>and the implementation of the facet handler is in class
-          <code>com.example.facets.TimeFacetHandler</code>, then you
+          <literal>com.example.facets.TimeFacetHandler</literal>, then you
           should include the following line in file
-          <filename>custom-facets.xml</filename> <footnote>
+          <filename>custom-facets.xml</filename>: <footnote>
           <para>Here we assume that the time facet handler does not take
-          any arguments. </para> </footnote>:
+          any arguments. </para> </footnote>
           </para>
 
           <programlisting><![CDATA[  <bean id="time" class="com.example.facets.TimeFacetHandler"/>]]></programlisting>
@@ -482,9 +502,11 @@
     <section>
       <title>System Configuration</title>
 
-      <para>The Sensei system is configured via the
-      <filename>sensei.properties</filename>, which consists of the
-      following sections:</para>
+      <para>A Sensei node is configured via the
+      <filename>sensei.properties</filename>, which uses the format
+      supported by Apache Commons Configuration
+      (http:/commons.apache.org/).  This file consists of the following
+      five parts:</para>
 
       <orderedlist spacing="compact">
         <listitem>
@@ -513,8 +535,8 @@
         </listitem>
       </orderedlist>
 
-      <para>Below is the configuration file for the demo (available from
-      <link
+      <para>Below is the configuration file for the demo (available
+      from <link
       xlink:href="https://github.com/javasoze/sensei/blob/master/conf/sensei.properties">https://github.com/javasoze/sensei/blob/master/conf/sensei.properties</link></para>
 
       <programlisting><![CDATA[# sensei node parameters
@@ -610,7 +632,10 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
                   <para>Type: int</para>
                 </listitem>
                 <listitem>
-                  <para>Default: None (this is a required property) </para>
+                  <para>Required: Yes</para>
+                </listitem>
+                <listitem>
+                  <para>Default: None</para>
                 </listitem>
               </itemizedlist>
 
@@ -627,16 +652,22 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
                   <para>Type: comma separated integers or ranges</para>
                 </listitem>
                 <listitem>
-                  <para>Default: None (this is a required property) </para>
+                  <para>Required: Yes </para>
+                </listitem>
+                <listitem>
+                  <para>Default: None</para>
                 </listitem>
               </itemizedlist>
 
               <para>This specifies the partitions IDs this the Sensei
               server is going to handle.  Partition IDs can be given as
               either integer numbers or ranges, separated by commas.
-              For example: <code>sensei.node.partitions=1,2,5-8</code>
+              For example, the following line 
               denotes that the Sensei server has six partitions:
-              1,2,5,6,7,8.</para>
+              1,2,5,6,7,10.</para>
+
+              <programlisting>  sensei.node.partitions=1,2,5-7,10
+              </programlisting>
             </listitem>
           </varlistentry>
 
@@ -648,7 +679,10 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
                   <para>Type: int</para>
                 </listitem>
                 <listitem>
-                  <para>Default: None (this is a required property) </para>
+                  <para>Required: Yes</para>
+                </listitem>
+                <listitem>
+                  <para>Default: None</para>
                 </listitem>
               </itemizedlist>
 
@@ -662,6 +696,9 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
               <itemizedlist spacing="compact">
                 <listitem>
                   <para>Type: int</para>
+                </listitem>
+                <listitem>
+                  <para>Required: No</para>
                 </listitem>
                 <listitem>
                   <para>Default: 20</para>
@@ -681,6 +718,9 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
                   <para>Type: int</para>
                 </listitem>
                 <listitem>
+                  <para>Required: No</para>
+                </listitem>
+                <listitem>
                   <para>Default: 70</para>
                 </listitem>
               </itemizedlist>
@@ -696,6 +736,9 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
               <itemizedlist spacing="compact">
                 <listitem>
                   <para>Type: int</para>
+                </listitem>
+                <listitem>
+                  <para>Required: No</para>
                 </listitem>
                 <listitem>
                   <para>Default: 300</para>
@@ -725,7 +768,10 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
                   <para>Type: String</para>
                 </listitem>
                 <listitem>
-                  <para>Default: None (required)</para>
+                  <para>Required: Yes</para>
+                </listitem>
+                <listitem>
+                  <para>Default: None</para>
                 </listitem>
               </itemizedlist>
 
@@ -741,7 +787,10 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
                   <para>Type: String</para>
                 </listitem>
                 <listitem>
-                  <para>Default: None (required)</para>
+                  <para>Required: Yes</para>
+                </listitem>
+                <listitem>
+                  <para>Default: None</para>
                 </listitem>
               </itemizedlist>
 
@@ -756,6 +805,9 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
               <itemizedlist spacing="compact">
                 <listitem>
                   <para>Type: int</para>
+                </listitem>
+                <listitem>
+                  <para>Required: No</para>
                 </listitem>
                 <listitem>
                   <para>Default: 300000</para>
@@ -785,7 +837,10 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
                   <para>Type: String</para>
                 </listitem>
                 <listitem>
-                  <para>Default: None (required)</para>
+                  <para>Required: Yes</para>
+                </listitem>
+                <listitem>
+                  <para>Default: None</para>
                 </listitem>
               </itemizedlist>
 
@@ -799,6 +854,9 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
               <itemizedlist spacing="compact">
                 <listitem>
                   <para>Type: int</para>
+                </listitem>
+                <listitem>
+                  <para>Required: No</para>
                 </listitem>
                 <listitem>
                   <para>Default: 10000</para>
@@ -824,6 +882,9 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
                   <para>Type: int</para>
                 </listitem>
                 <listitem>
+                  <para>Required: No</para>
+                </listitem>
+                <listitem>
                   <para>Default: 300000</para>
                 </listitem>
               </itemizedlist>
@@ -842,6 +903,9 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
                   <para>Type: int</para>
                 </listitem>
                 <listitem>
+                  <para>Required: No</para>
+                </listitem>
+                <listitem>
                   <para>Default: 10000</para>
                 </listitem>
               </itemizedlist>
@@ -856,6 +920,9 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
               <itemizedlist spacing="compact">
                 <listitem>
                   <para>Type: boolean</para>
+                </listitem>
+                <listitem>
+                  <para>Required: No</para>
                 </listitem>
                 <listitem>
                   <para>Default: true</para>
@@ -875,6 +942,9 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
                   <para>Type: long</para>
                 </listitem>
                 <listitem>
+                  <para>Required: No</para>
+                </listitem>
+                <listitem>
                   <para>Default: 500</para>
                 </listitem>
               </itemizedlist>
@@ -892,27 +962,30 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
                   <para>Type: String</para>
                 </listitem>
                 <listitem>
+                  <para>Required: Yes</para>
+                </listitem>
+                <listitem>
                   <para>Default: None</para>
                 </listitem>
               </itemizedlist>
 
               <para>This is the internal indexer type used by the Sensei
               cluster.  Currently only two options are supported:
-              <code>zoie</code> and <code>hourglass</code>.  If
-              <code>hourglass</code> is used, three more properties need
+              <literal>zoie</literal> and <literal>hourglass</literal>.  If
+              <literal>hourglass</literal> is used, three more properties need
               to be set too:</para>
 
-              <itemizedlist spacing="compact">
+              <orderedlist spacing="compact">
                 <listitem>
-                  <para>sensei.indexer.hourglass.schedule</para>
+                  <para><emphasis>sensei.indexer.hourglass.schedule</emphasis></para>
                 </listitem>
                 <listitem>
-                  <para>sensei.indexer.hourglass.timethreshold</para>
+                  <para><emphasis>sensei.indexer.hourglass.timethreshold</emphasis></para>
                 </listitem>
                 <listitem>
-                  <para>sensei.indexer.hourglass.frequency</para>
+                  <para><emphasis>sensei.indexer.hourglass.frequency</emphasis></para>
                 </listitem>
-              </itemizedlist>
+              </orderedlist>
             </listitem>
           </varlistentry>
 
@@ -924,19 +997,24 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
                   <para>Type: String</para>
                 </listitem>
                 <listitem>
+                  <para>Required: Yes (if property
+                  <emphasis>sensei.indexer.type</emphasis> is set to
+                  "<literal>hourglass</literal>")</para>
+                </listitem>
+                <listitem>
                   <para>Default: None</para>
                 </listitem>
               </itemizedlist>
 
               <para>This is a string that specifies Hourglass rolling
-              forward schedule.  The format of this string is "<code>ss
-              mm hh</code>", meaning at <code>hh:mm:ss time</code> of
+              forward schedule.  The format of this string is "<literal>ss
+              mm hh</literal>", meaning at <literal>hh:mm:ss time</literal> of
               the day that we roll forward for
               <emphasis>daily</emphasis> rolling.  If it is
               <emphasis>hourly</emphasis> rolling, we roll forward at
-              <code>mm:ss</code> time of the hour.  If it is
+              <literal>mm:ss</literal> time of the hour.  If it is
               <emphasis>minutely</emphasis> rolling, we roll forward at
-              <code>ss</code> seond of the minute.</para>
+              <literal>ss</literal> seond of the minute.</para>
             </listitem>
           </varlistentry>
 
@@ -946,6 +1024,9 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
               <itemizedlist spacing="compact">
                 <listitem>
                   <para>Type: int</para>
+                </listitem>
+                <listitem>
+                  <para>Required: No</para>
                 </listitem>
                 <listitem>
                   <para>Default: 14</para>
@@ -966,7 +1047,10 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
                   <para>Type: String</para>
                 </listitem>
                 <listitem>
-                  <para>Default: "<code>day</code>"</para>
+                  <para>Required: No</para>
+                </listitem>
+                <listitem>
+                  <para>Default: "<literal>day</literal>"</para>
                 </listitem>
               </itemizedlist>
 
@@ -974,13 +1058,13 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
               one of the following three values:</para>
               <itemizedlist spacing="compact">
                 <listitem>
-                  <para><code>day</code></para>
+                  <para><literal>day</literal></para>
                 </listitem>
                 <listitem>
-                  <para><code>hour</code></para>
+                  <para><literal>hour</literal></para>
                 </listitem>
                 <listitem>
-                  <para><code>minute</code></para>
+                  <para><literal>minute</literal></para>
                 </listitem>
               </itemizedlist>
             </listitem>
@@ -1004,6 +1088,9 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
                   <para>Type: int</para>
                 </listitem>
                 <listitem>
+                  <para>Required: Yes</para>
+                </listitem>
+                <listitem>
                   <para>Default: None</para>
                 </listitem>
               </itemizedlist>
@@ -1018,6 +1105,9 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
               <itemizedlist spacing="compact">
                 <listitem>
                   <para>Type: String</para>
+                </listitem>
+                <listitem>
+                  <para>Required: Yes</para>
                 </listitem>
                 <listitem>
                   <para>Default: None</para>
@@ -1037,6 +1127,9 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
                   <para>Type: int</para>
                 </listitem>
                 <listitem>
+                  <para>Required: No</para>
+                </listitem>
+                <listitem>
                   <para>Default: 20</para>
                 </listitem>
               </itemizedlist>
@@ -1052,6 +1145,9 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
               <itemizedlist spacing="compact">
                 <listitem>
                   <para>Type: int</para>
+                </listitem>
+                <listitem>
+                  <para>Required: No</para>
                 </listitem>
                 <listitem>
                   <para>Default: 50</para>
@@ -1071,6 +1167,9 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
                   <para>Type: int</para>
                 </listitem>
                 <listitem>
+                  <para>Required: No</para>
+                </listitem>
+                <listitem>
                   <para>Default: 2000</para>
                 </listitem>
               </itemizedlist>
@@ -1081,23 +1180,15 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
             </listitem>
           </varlistentry>
 
-        </variablelist>
-
-      </section>
-
-
-      <section>
-        <title>Client Properties</title>
-
-        <variablelist>
-          <?dbfo list-presentation="blocks"?>
-
           <varlistentry>
             <term><emphasis role="bold">sensei.search.cluster.zookeeper.url</emphasis></term>
             <listitem>
               <itemizedlist spacing="compact">
                 <listitem>
                   <para>Type: String</para>
+                </listitem>
+                <listitem>
+                  <para>Required: Yes</para>
                 </listitem>
                 <listitem>
                   <para>Default: None</para>
@@ -1117,6 +1208,9 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
                   <para>Type: String</para>
                 </listitem>
                 <listitem>
+                  <para>Required: Yes</para>
+                </listitem>
+                <listitem>
                   <para>Default: None</para>
                 </listitem>
               </itemizedlist>
@@ -1132,6 +1226,9 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
               <itemizedlist spacing="compact">
                 <listitem>
                   <para>Type: int</para>
+                </listitem>
+                <listitem>
+                  <para>Required: No</para>
                 </listitem>
                 <listitem>
                   <para>Default: 10000</para>
@@ -1151,6 +1248,9 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
                   <para>Type: int</para>
                 </listitem>
                 <listitem>
+                  <para>Required: No</para>
+                </listitem>
+                <listitem>
                   <para>Default: 1000</para>
                 </listitem>
               </itemizedlist>
@@ -1166,6 +1266,9 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
               <itemizedlist spacing="compact">
                 <listitem>
                   <para>Type: int</para>
+                </listitem>
+                <listitem>
+                  <para>Required: No</para>
                 </listitem>
                 <listitem>
                   <para>Default: 150</para>
@@ -1185,6 +1288,9 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
                   <para>Type: int</para>
                 </listitem>
                 <listitem>
+                  <para>Required: No</para>
+                </listitem>
+                <listitem>
                   <para>Default: 5</para>
                 </listitem>
               </itemizedlist>
@@ -1202,6 +1308,9 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
                   <para>Type: int</para>
                 </listitem>
                 <listitem>
+                  <para>Required: No</para>
+                </listitem>
+                <listitem>
                   <para>Default: 10</para>
                 </listitem>
               </itemizedlist>
@@ -1217,6 +1326,9 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
               <itemizedlist spacing="compact">
                 <listitem>
                   <para>Type: int</para>
+                </listitem>
+                <listitem>
+                  <para>Required: No</para>
                 </listitem>
                 <listitem>
                   <para>Default: 10</para>
@@ -1245,13 +1357,16 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
                   <para>Type: String</para>
                 </listitem>
                 <listitem>
+                  <para>Required: No</para>
+                </listitem>
+                <listitem>
                   <para>Default: ""</para>
                 </listitem>
               </itemizedlist>
 
               <para>This specifies the bean ID of the analyzer plug-in
               for analyzing text.  If not specified,
-              <code>org.apache.lucene.analysis.standard.StandardAnalyzer</code>
+              <literal>org.apache.lucene.analysis.standard.StandardAnalyzer</literal>
               will be used.</para>
             </listitem>
           </varlistentry>
@@ -1265,13 +1380,16 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
                   <para>Type: String</para>
                 </listitem>
                 <listitem>
+                  <para>Required: No</para>
+                </listitem>
+                <listitem>
                   <para>Default: ""</para>
                 </listitem>
               </itemizedlist>
 
               <para>This specifies the bean ID of similarity plug-in for
               Lucene scoring.  If not specified,
-              <code>org.apache.lucene.search.DefaultSimilarity</code> is
+              <literal>org.apache.lucene.search.DefaultSimilarity</literal> is
               used.</para>
             </listitem>
           </varlistentry>
@@ -1284,13 +1402,16 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
                   <para>Type: String</para>
                 </listitem>
                 <listitem>
+                  <para>Required: No</para>
+                </listitem>
+                <listitem>
                   <para>Default: ""</para>
                 </listitem>
               </itemizedlist>
 
               <para>This specifies the bean ID of the interpretor of
               Zoie indexables.  If not specified,
-              <code>com.sensei.indexing.api.DefaultJsonSchemaInterpreter</code>
+              <literal>com.sensei.indexing.api.DefaultJsonSchemaInterpreter</literal>
               is to be used.</para>
             </listitem>
           </varlistentry>
@@ -1303,6 +1424,9 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
                   <para>Type: String</para>
                 </listitem>
                 <listitem>
+                  <para>Required: Yes</para>
+                </listitem>
+                <listitem>
                   <para>Default: None</para>
                 </listitem>
               </itemizedlist>
@@ -1313,20 +1437,21 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
 
               <itemizedlist spacing="compact">
                 <listitem>
-                  <para><code>file</code></para>
+                  <para><literal>file</literal></para>
                 </listitem>
                 <listitem>
-                  <para><code>kafka</code></para>
+                  <para><literal>kafka</literal></para>
                 </listitem>
                 <listitem>
-                  <para><code>custom</code></para>
+                  <para><literal>custom</literal></para>
                 </listitem>
               </itemizedlist>
 
               <para>If a customized index manager is provided, property
-              <code>sensei.index.manager.default.custom</code> and
-              <code>sensei.index.manager.default.filter</code> should be
-              set too.</para>
+              <emphasis>sensei.index.manager.default.custom</emphasis>
+              and
+              <emphasis>sensei.index.manager.default.filter</emphasis>
+              should be set too.</para>
             </listitem>
           </varlistentry>
 
@@ -1336,6 +1461,9 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
               <itemizedlist spacing="compact">
                 <listitem>
                   <para>Type: String</para>
+                </listitem>
+                <listitem>
+                  <para>Required: No</para>
                 </listitem>
                 <listitem>
                   <para>Default: None</para>
@@ -1348,11 +1476,35 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
           </varlistentry>
 
           <varlistentry>
+            <term><emphasis role="bold">sensei.index.manager.default.shardingStrategy</emphasis></term>
+            <listitem>
+              <itemizedlist spacing="compact">
+                <listitem>
+                  <para>Type: String</para>
+                </listitem>
+                <listitem>
+                  <para>Required: No</para>
+                </listitem>
+                <listitem>
+                  <para>Default: ""</para>
+                </listitem>
+              </itemizedlist>
+
+              <para>This is the bean ID of the customized data provider
+              used by user provided index manager.</para>
+            </listitem>
+          </varlistentry>
+
+
+          <varlistentry>
             <term><emphasis role="bold">sensei.index.manager.default.filter</emphasis></term>
             <listitem>
               <itemizedlist spacing="compact">
                 <listitem>
                   <para>Type: String</para>
+                </listitem>
+                <listitem>
+                  <para>Required: No</para>
                 </listitem>
                 <listitem>
                   <para>Default: None</para>

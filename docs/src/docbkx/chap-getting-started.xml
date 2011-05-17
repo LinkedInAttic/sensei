@@ -10,13 +10,13 @@
 
       <itemizedlist spacing="compact">
         <listitem>
-          <para>Realtime indexing/searching</para>
+          <para>Real-time indexing/searching</para>
         </listitem>
         <listitem>
           <para>Cluster management</para>
         </listitem>
         <listitem>
-          <para>Automatic and configuration data partitioning</para>
+          <para>Automatic data partitioning</para>
         </listitem>
         <listitem>
           <para>Support for structured and faceted search</para>
@@ -43,34 +43,37 @@
     </section>
 	
     <section>
-      <title>Embedded Technologies: </title>
+      <title>Embedded Technologies</title>
       <itemizedlist spacing="compact">
         <listitem>
 
-          <para>bobo-browse <link xlink:href="http://sna-projects.com/bobo/">http://sna-projects.com/bobo/</link>
+          <para>Bobo (<link xlink:href="http://sna-projects.com/bobo/">http://sna-projects.com/bobo/</link>)
           </para>
         </listitem>
         <listitem>
-          <para>zoie <link xlink:href="http://sna-projects.com/zoie/">http://sna-projects.com/zoie/</link>
+          <para>Zoie (<link xlink:href="http://sna-projects.com/zoie/">http://sna-projects.com/zoie/</link>)
           </para>
         </listitem>
         <listitem>
-          <para>lucene <link xlink:href="http://lucene.apache.org/">http://lucene.apache.org/</link>
+          <para>Apache Lucene (<link xlink:href="http://lucene.apache.org/">http://lucene.apache.org/</link>)
           </para>
         </listitem>
         <listitem>
-          <para>norbert <link xlink:href="http://sna-projects.com/norbert/">http://sna-projects.com/norbert/</link>
+          <para>Norbert (<link xlink:href="http://sna-projects.com/norbert/">http://sna-projects.com/norbert/</link>)
           </para>
         </listitem>
         <listitem>
-          <para>spring <link xlink:href="http://www.springsource.com/">http://www.springsource.com/</link>
+          <para>ZooKeeper (<link xlink:href="http://zookeeper.apache.org/">http://zookeeper.apache.org/</link>)</para>
+        </listitem>
+        <listitem>
+          <para>Spring (<link xlink:href="http://www.springsource.com/">http://www.springsource.com/</link>)
           </para>
         </listitem>
       </itemizedlist>
     </section>
 
     <section>
-      <title>Details </title>
+      <title>Details</title>
 
       <section>
         <title>Build </title>
@@ -94,8 +97,7 @@
         <title>ZooKeeper </title>
         <para>
           In order to run the sample of sensei-search, you have to run
-          an instance of <emphasis role="bold">ZooKeeper</emphasis>
-          first.
+          an instance of ZooKeeper first.
         </para>
 
         <para>
@@ -124,8 +126,8 @@
         </para>
 
         <para>
-          An example command-line that will work to fire up a single sensei node
-          with some sample data:
+          Here is an example command-line that will work to fire up a
+          single sensei node with some sample data:
         </para>
         <programlisting><![CDATA[  bin/start-sensei-node.sh conf]]></programlisting>
 
@@ -139,14 +141,15 @@
       </section>
 
       <section>
-        <title>Web Application and Restful end-point: </title>
-        <para>
-          A restful end-point along with a web interactive client would be started as well:
-        </para>
+        <title>Web Application and Restful End-Point: </title>
+
+        <para>A restful end-point along with a web interactive client
+        would be started as well:</para>
+
         <itemizedlist spacing="compact">
           <listitem>
-
-            <para>restful endpoint: <link xlink:href="http://localhost:8080/sensei?q=">http://localhost:8080/sensei?q=</link>
+            <para>restful endpoint: <link
+            xlink:href="http://localhost:8080/sensei?q=">http://localhost:8080/sensei?q=</link>
             </para>
           </listitem>
           <listitem>
@@ -169,9 +172,11 @@
         <para>
           Type help to see command list:
         </para>
-        <programlisting><![CDATA[  help - prints this message
+        <programlisting><![CDATA[  $ bin/sensei-client.sh client-conf
+  > help
+  help - prints this message
   exit - quits
-  nodes - prints a list of node information
+  info - prints system information
   query <query string> - sets query text
   facetspec <name>:<minHitCount>:<maxCount>:<sort> - add facet spec
   page <offset>:<count> - set paging parameters
@@ -183,7 +188,9 @@
   clearSelection <name>: clear selection specified
   clearFacetSpecs: clears all facet specs
   clearFacetSpec <name>: clears specified facetspec
-  browse - executes a search]]></programlisting>
+  browse - executes a search
+  > 
+]]></programlisting>
       </section>
     </section>
   </chapter>
