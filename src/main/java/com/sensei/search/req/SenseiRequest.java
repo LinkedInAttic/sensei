@@ -37,7 +37,7 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable
 	private Map<String,FacetHandlerInitializerParam> _facetInitParamMap;
 	private Set<Integer> _partitions;
 	private boolean _showExplanation;
-	private Random _rand = new Random(System.nanoTime());
+	private static Random _rand = new Random(System.nanoTime());
 	private String _routeParam;
 	
 	public SenseiRequest(){
@@ -48,6 +48,7 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable
 		_fetchStoredFields = false;
 		_partitions = null;
 		_showExplanation = false;
+		_routeParam = null;
 	}
 
 /**
@@ -494,9 +495,9 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable
   private <T> boolean setsAreEqual(Set<T> a, Set<T> b) {
     if (a.size() != b.size()) return false;
 
-    Iterator iter = a.iterator();
+    Iterator<T> iter = a.iterator();
     while (iter.hasNext()) {
-      T val = (T)iter.next();
+      T val = iter.next();
       if (!b.contains(val)) return false;
     }
 
