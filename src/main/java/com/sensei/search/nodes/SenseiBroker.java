@@ -40,16 +40,14 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
 {
   private final static Logger logger = Logger.getLogger(SenseiBroker.class);
   private final static long TIMEOUT_MILLIS = 8000L;
-
   private long _timeoutMillis = TIMEOUT_MILLIS;
+  private final SenseiLoadBalancerFactory _loadBalancerFactory;
 
   public SenseiBroker(PartitionedNetworkClient<Integer> networkClient, ClusterClient clusterClient, SenseiLoadBalancerFactory loadBalancerFactory) throws NorbertException
   {
-    super(networkClient, clusterClient, SenseiRequestBPO.Request.getDefaultInstance(), SenseiResultBPO.Result.getDefaultInstance(),loadBalancerFactory);
-    clusterClient.awaitConnectionUninterruptibly();
-    Set<Node> nodes = clusterClient.getNodes();
-    _partitions = getPartitions(nodes);
-    _loadBalancer = loadBalancerFactory.newLoadBalancer(nodes);
+    super(networkClient,SenseiRequestBPO.Request.getDefaultInstance(), SenseiResultBPO.Result.getDefaultInstance());
+    _loadBalancerFactory = loadBalancerFactory;
+    clusterClient.addListener(this);
     logger.info("created broker instance " + networkClient + " " + clusterClient + " " + loadBalancerFactory);
   }
 
@@ -142,16 +140,6 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
   @Override
   public long getTimeoutMillis(){
     return _timeoutMillis;
-  }
-
-  private IntSet getPartitions(Set<Node> nodes)
-  {
-    IntSet partitionSet = new IntOpenHashSet();
-    for (Node n : nodes)
-    {
-      partitionSet.addAll(n.getPartitionIds());
-    }
-    return partitionSet;
   }
 
   public void handleClusterConnected(Set<Node> nodes)

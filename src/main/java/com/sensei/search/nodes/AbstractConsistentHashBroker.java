@@ -1,5 +1,6 @@
 package com.sensei.search.nodes;
 
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 
 import java.util.ArrayList;
@@ -38,7 +39,7 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
 {
   private final static Logger logger = Logger.getLogger(AbstractConsistentHashBroker.class);
   protected long _timeout = 8000;
-  protected SenseiLoadBalancer _loadBalancer;
+  protected volatile SenseiLoadBalancer _loadBalancer;
 
   /**
    * @param networkClient
@@ -53,15 +54,26 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
    * @param scatterGatherHandler
    * @throws NorbertException
    */
-  public AbstractConsistentHashBroker(PartitionedNetworkClient<Integer> networkClient, ClusterClient clusterClient, REQMSG defaultrequest, RESMSG defaultresult, SenseiLoadBalancerFactory loadBalancerFactory)
+  public AbstractConsistentHashBroker(PartitionedNetworkClient<Integer> networkClient, REQMSG defaultrequest, RESMSG defaultresult)
       throws NorbertException
   {
-    super(networkClient, clusterClient, defaultrequest, defaultresult, loadBalancerFactory);
+    super(networkClient, defaultrequest, defaultresult);
+    _loadBalancer = null;
   }
 
   public abstract REQMSG requestToMessage(REQUEST request);
 
   public abstract RESULT messageToResult(RESMSG message);
+  
+  protected IntSet getPartitions(Set<Node> nodes)
+  {
+	    IntSet partitionSet = new IntOpenHashSet();
+	    for (Node n : nodes)
+	    {
+	      partitionSet.addAll(n.getPartitionIds());
+	    }
+	    return partitionSet;
+	  }
 
   /**
    * @return an empty result instance. Used when the request cannot be properly
@@ -105,12 +117,29 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
   protected RESULT doBrowse(PartitionedNetworkClient<Integer> networkClient, REQUEST req, IntSet partitions)
   {
     long time = System.currentTimeMillis();
-    RoutingInfo searchNodes = _loadBalancer.route(getRouteParam(req));
-    List<RESULT> resultlist = new ArrayList<RESULT>(searchNodes.partitions.length);
+    int[] parts = null;
+    RoutingInfo searchNodes = null;
+
+    if (_loadBalancer != null)
+    {
+      searchNodes = _loadBalancer.route(getRouteParam(req));
+      if (searchNodes != null)
+      {
+        parts = searchNodes.partitions;
+      }
+    }
+    
+    if (parts == null)
+    {
+      logger.info("No search nodes to handle request...");
+      return getEmptyResultInstance();
+    }
+    
+    List<RESULT> resultlist = new ArrayList<RESULT>(parts.length);
     Map<Integer, Set<Integer>> partsMap = new HashMap<Integer, Set<Integer>>();
     Map<Integer, Node> nodeMap = new HashMap<Integer, Node>();
     Map<Integer, Future<RESMSG>> futureMap = new HashMap<Integer, Future<RESMSG>>();
-    for(int ni = 0; ni < searchNodes.partitions.length; ni++)
+    for(int ni = 0; ni < parts.length; ni++)
     {
       Node node = searchNodes.nodelist[ni].get(searchNodes.nodegroup[ni]);
       Set<Integer> pset = partsMap.get(node.getId());
@@ -119,7 +148,7 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
         pset = new HashSet<Integer>();
         partsMap.put(node.getId(), pset);
       }
-      pset.add(searchNodes.partitions[ni]);
+      pset.add(parts[ni]);
       nodeMap.put(node.getId(), node);
     }
     for (Map.Entry<Integer, Node> entry : nodeMap.entrySet())
