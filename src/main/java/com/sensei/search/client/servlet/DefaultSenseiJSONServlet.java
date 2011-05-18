@@ -361,6 +361,9 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
     senseiReq.setCount(params.getInt(PARAM_COUNT, 10));
     senseiReq.setShowExplanation(params.getBoolean(PARAM_SHOW_EXPLAIN, false));
     senseiReq.setFetchStoredFields(params.getBoolean(PARAM_FETCH_STORED, false));
+    String routeParam = params.getString(PARAM_ROUTE_PARAM);
+    if (routeParam != null && routeParam.length() != 0)
+      senseiReq.setRouteParam(routeParam);
   }
 
   public static void convertPartitionParams(SenseiRequest senseiReq, DataConfiguration params)

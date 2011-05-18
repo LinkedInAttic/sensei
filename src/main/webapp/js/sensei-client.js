@@ -102,18 +102,19 @@ SenseiSort.prototype = {
 	}
 };
 
-// SenseiClient(query="", offset=0, length=10, explain=false, fetch=false)
+// SenseiClient(query="", offset=0, length=10, explain=false, fetch=false, routeParam)
 var SenseiClient = function () {
 	this._facets = [];
 	this._selections = [];
 	this._sorts = [];
-    this._initParams = [];
+  this._initParams = [];
 
 	this.query = "";
 	this.offset = 0;
 	this.length = 10;
 	this.explain = false;
 	this.fetch = false;
+	this.routeParam = "";
 
 	if (arguments.length > 0)
 		this.query = arguments[0];
@@ -125,6 +126,8 @@ var SenseiClient = function () {
 		this.explain = arguments[3];
 	if (arguments.length > 4)
 		this.fetch = arguments[4];
+	if (arguments.length > 5)
+		this.routeParam = arguments[5];
 };
 
 SenseiClient.prototype = {
@@ -242,7 +245,8 @@ SenseiClient.prototype = {
 		var qs = {
 			q: this.query,
 			start: this.offset,
-			rows: this.length
+			rows: this.length,
+			routeParam: this.routeParam
 		};
 		if (this.explain)
 			qs['showexplain'] = true;
@@ -646,12 +650,13 @@ function buildreqString(){
 	
 	var start = document.getElementById('start').value;
 	var rows = document.getElementById('rows').value;
+	var routeparam = document.getElementById('routeparam').value;
 	
 	var explain = document.getElementById('explain').checked;
 	
 	var fetchStore = document.getElementById('fetchstore').checked;
 	
-    var reqString="q=" + qstring +"&start=" + start + "&rows=" + rows;
+    var reqString="q=" + qstring +"&start=" + start + "&rows=" + rows + "&routeparam=" + routeparam;
 
 	if (explain){
 		reqString += "&showexplain=true";
