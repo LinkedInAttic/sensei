@@ -25,8 +25,8 @@ public abstract class AbstractSenseiRestServlet extends AbstractSenseiClientServ
 	protected SenseiRequest buildSenseiRequest(HttpServletRequest req)
 			throws Exception {
 		String qString = req.getQueryString();
-		//Logger log = Logger.getLogger("query");
-		//log.info(qString);
+		Logger log = Logger.getLogger("com.sensei.querylog");
+		log.info(qString);
 		DataConfiguration params = new DataConfiguration(new ServletRequestConfiguration(req));
 		return buildSenseiRequest(params);
 	}
