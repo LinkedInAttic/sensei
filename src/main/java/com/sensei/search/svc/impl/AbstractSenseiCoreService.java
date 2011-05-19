@@ -4,6 +4,11 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
 
@@ -19,14 +24,17 @@ import com.sensei.search.req.AbstractSenseiResult;
 
 public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiRequest,Res extends AbstractSenseiResult>{
     private final static Logger logger = Logger.getLogger(AbstractSenseiCoreService.class);
+  protected long _timeout = 8000;
     
 	protected final SenseiCore _core;
+
+  private final ExecutorService _executorService = Executors.newCachedThreadPool();
 	
 	public AbstractSenseiCoreService(SenseiCore core){
 	  _core = core;
 	}
 	
-	public final Res execute(Req senseiReq){
+	public final Res execute(final Req senseiReq){
 		Set<Integer> partitions = senseiReq==null ? null : senseiReq.getPartitions();
 		if (partitions==null){
 			partitions = new HashSet<Integer>();
@@ -44,23 +52,67 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
 	        logger.info("serving partitions: " + partitions.toString());
 	      }
 	      ArrayList<Res> resultList = new ArrayList<Res>(partitions.size());
-	      for (int partition : partitions)
+        Future<Res>[] futures = new Future[partitions.size()-1];
+        int i = 0;
+	      for (final int partition : partitions)
 	      {
-	        try
-	        {
-	          long start = System.currentTimeMillis();
-	          IndexReaderFactory<ZoieIndexReader<BoboIndexReader>> readerFactory = _core.getIndexReaderFactory(partition);
-	          Res res = handleRequest(senseiReq, readerFactory,_core.getQueryBuilderFactory(partition));
-	          resultList.add(res);
-	          long end = System.currentTimeMillis();
-	          res.setTime(end - start);
-	          logger.info("searching partition: " + partition + " browse took: " + res.getTime());
-	        } catch (Exception e)
-	        {
+          final long start = System.currentTimeMillis();
+          final IndexReaderFactory<ZoieIndexReader<BoboIndexReader>> readerFactory = _core.getIndexReaderFactory(partition);
+
+          if (i<partitions.size()-1)  // Search simultaneously.
+          {
+            try
+            {
+              futures[i] = (Future<Res>)_executorService.submit(new Callable<Res>()
+              {
+                public Res call() throws Exception
+                {
+                  Res res = handleRequest(senseiReq, readerFactory, _core.getQueryBuilderFactory(partition));
+
+                  long end = System.currentTimeMillis();
+                  res.setTime(end - start);
+                  logger.info("searching partition: " + partition + " browse took: " + res.getTime());
+
+                  return res;
+                }
+              });
+            } catch (Exception e)
+            {
+              logger.error(e.getMessage(), e);
+            }
+          }
+          else  // Reuse current thread.
+          {
+            try
+            {
+              Res res = handleRequest(senseiReq, readerFactory, _core.getQueryBuilderFactory(partition));
+              resultList.add(res);
+
+              long end = System.currentTimeMillis();
+              res.setTime(end - start);
+              logger.info("searching partition: " + partition + " browse took: " + res.getTime());
+            } catch (Exception e)
+            {
+              logger.error(e.getMessage(), e);
+              resultList.add(getEmptyResultInstance(e));
+            }
+          }
+          ++i;
+	      }
+
+        for (i=0; i<futures.length; ++i)
+        {
+          try
+          {
+            Res res = futures[i].get(_timeout, TimeUnit.MILLISECONDS);
+            resultList.add(res);
+          }
+          catch(Exception e)
+          {
 	          logger.error(e.getMessage(), e);
 	          resultList.add(getEmptyResultInstance(e));
-	        }
-	      }
+          }
+        }
 
 	      finalResult = mergePartitionedResults(senseiReq, resultList);
 	    } else
@@ -87,7 +139,7 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
       	  return handlePartitionedRequest(senseiReq,boboReaders,queryBuilderFactory);
         }
         finally{
-          if (readerFactory!=readerList){
+          if (readerFactory != null && readerList != null){
           	readerFactory.returnIndexReaders(readerList);
           }
         }

@@ -20,6 +20,6 @@ public abstract class AbstractJsonQueryBuilderFactory implements
 		return buildQuery(jsonQuery);
 	}
 
-	protected abstract SenseiQueryBuilder buildQuery(JSONObject jsonQuery);
+	public abstract SenseiQueryBuilder buildQuery(JSONObject jsonQuery);
 
 }

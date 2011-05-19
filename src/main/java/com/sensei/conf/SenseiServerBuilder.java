@@ -34,6 +34,7 @@ import org.mortbay.jetty.webapp.WebAppContext;
 import org.mortbay.thread.QueuedThreadPool;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.FileSystemXmlApplicationContext;
+import org.springframework.core.io.Resource;
 import org.w3c.dom.Document;
 
 import org.mortbay.servlet.GzipFilter;
@@ -50,14 +51,14 @@ import com.linkedin.norbert.javacompat.cluster.ZooKeeperClusterClient;
 import com.linkedin.norbert.javacompat.network.NettyNetworkServer;
 import com.linkedin.norbert.javacompat.network.NetworkServer;
 import com.linkedin.norbert.javacompat.network.NetworkServerConfig;
-import com.linkedin.norbert.javacompat.network.PartitionedLoadBalancerFactory;
 import com.sensei.indexing.api.DefaultJsonSchemaInterpreter;
 import com.sensei.indexing.api.DefaultStreamingIndexingManager;
-import com.sensei.indexing.api.JsonFilter;
+import com.sensei.indexing.api.DataSourceFilter;
 import com.sensei.search.client.servlet.DefaultSenseiJSONServlet;
 import com.sensei.search.client.servlet.SenseiConfigServletContextListener;
 import com.sensei.search.client.servlet.SenseiHttpInvokerServiceServlet;
 import com.sensei.search.cluster.routing.UniformPartitionedRoutingFactory;
+import com.sensei.search.cluster.routing.SenseiLoadBalancerFactory;
 import com.sensei.search.nodes.SenseiCore;
 import com.sensei.search.nodes.SenseiHourglassFactory;
 import com.sensei.search.nodes.SenseiIndexReaderDecorator;
@@ -80,7 +81,6 @@ public class SenseiServerBuilder implements SenseiConfParams{
   public static final String SCHEMA_FILE = "schema.xml";
   public static final String PLUGINS = "plugins.xml";
   
-  private final File _confDir;
   private final File _senseiConfFile;
   private final Configuration _senseiConf;
   private final ApplicationContext _pluginContext;
@@ -98,10 +98,11 @@ public class SenseiServerBuilder implements SenseiConfParams{
     return springCtx;
   }
 
-  private static ClusterClient buildClusterClient(Configuration conf){
-    String clusterName = conf.getString(SENSEI_CLUSTER_NAME);
-    String zkUrl = conf.getString(SENSEI_CLUSTER_URL);
-    int zkTimeout = conf.getInt(SENSEI_CLUSTER_TIMEOUT, 300000);
+  public ClusterClient buildClusterClient()
+  {
+    String clusterName = _senseiConf.getString(SENSEI_CLUSTER_NAME);
+    String zkUrl = _senseiConf.getString(SENSEI_CLUSTER_URL);
+    int zkTimeout = _senseiConf.getInt(SENSEI_CLUSTER_TIMEOUT, 300000);
     ClusterClient clusterClient =  new ZooKeeperClusterClient(clusterName, zkUrl,zkTimeout);
     
 
@@ -169,12 +170,12 @@ public class SenseiServerBuilder implements SenseiConfParams{
     senseiApp.setAttribute("sensei.search.configuration", _senseiConf);
     senseiApp.setAttribute("sensei.search.version.comparator", _versionComparator);
 
-    PartitionedLoadBalancerFactory<Integer> routerFactory = null;
+    SenseiLoadBalancerFactory routerFactory = null;
     String routerFactoryName = _senseiConf.getString(SERVER_SEARCH_ROUTER_FACTORY, "");
     if (routerFactoryName == null || routerFactoryName.equals(""))
       routerFactory = new UniformPartitionedRoutingFactory();
     else
-      routerFactory = (PartitionedLoadBalancerFactory<Integer>) _pluginContext.getBean(routerFactoryName);
+      routerFactory = (SenseiLoadBalancerFactory) _pluginContext.getBean(routerFactoryName);
 
     senseiApp.setAttribute("sensei.search.router.factory", routerFactory);
 
@@ -194,7 +195,6 @@ public class SenseiServerBuilder implements SenseiConfParams{
   
   public SenseiServerBuilder(File confDir, Map<String, Object> properties, ApplicationContext customFacetContext,
       ApplicationContext pluginContext) throws Exception {
-    _confDir = confDir;
     if (properties != null) {
       _senseiConfFile = null;
       _senseiConf = new MapConfiguration(properties);
@@ -226,7 +226,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
     DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
     dbf.setIgnoringComments(true);
     DocumentBuilder db = dbf.newDocumentBuilder();
-    _schemaDoc = db.parse(new File(_confDir,SCHEMA_FILE));
+    _schemaDoc = db.parse(new File(confDir,SCHEMA_FILE));
     _schemaDoc.getDocumentElement().normalize();
     _senseiSchema = SenseiSchema.build(_schemaDoc);
 
@@ -244,6 +244,45 @@ public class SenseiServerBuilder implements SenseiConfParams{
   public SenseiServerBuilder(File confDir) throws Exception {
     this(confDir, null, null, null);
   }
+
+  public SenseiServerBuilder(Resource confDir, Map<String, Object> properties, ApplicationContext customFacetContext,
+      ApplicationContext pluginContext) throws Exception {
+    _senseiConfFile = null;
+
+    _senseiConf = new MapConfiguration(properties);
+
+    //TODO: conditionally load other contexts.
+    _pluginContext = pluginContext;
+
+    String versionComparatorName = _senseiConf.getString(SENSEI_VERSION_COMPARATOR, "");
+    if (versionComparatorName == null || versionComparatorName.equals(""))
+      _versionComparator = ZoieConfig.DEFAULT_VERSION_COMPARATOR;
+    else
+      _versionComparator = (Comparator<String>) _pluginContext.getBean(versionComparatorName);
+
+    _customFacetContext = customFacetContext;
+    
+    DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+    dbf.setIgnoringComments(true);
+    DocumentBuilder db = dbf.newDocumentBuilder();
+    _schemaDoc = db.parse(confDir.createRelative(SCHEMA_FILE).getInputStream());
+    _schemaDoc.getDocumentElement().normalize();
+    _senseiSchema = SenseiSchema.build(_schemaDoc);
+
+    _jettyServer = buildHttpRestServer();
+  }
+
+  //public SenseiServerBuilder(Resource confDir, Map<String, Object> properties, ApplicationContext customFacetContext) throws Exception {
+    //this(confDir, properties, customFacetContext, null);
+  //}
+
+  //public SenseiServerBuilder(Resource confDir, Map<String, Object> properties) throws Exception {
+    //this(confDir, properties, null, null);
+  //}
+
+  //public SenseiServerBuilder(Resource confDir) throws Exception {
+    //this(confDir, null, null, null);
+  //}
 
   static final Pattern PARTITION_PATTERN = Pattern.compile("[\\d]+||[\\d]+-[\\d]+");
   
@@ -396,11 +435,6 @@ public class SenseiServerBuilder implements SenseiConfParams{
       if (idxMgrType.length()==0){
         String uidField = _senseiSchema.getUidField();
         indexingManager = new DefaultStreamingIndexingManager(_senseiSchema,_senseiConf, _pluginContext, _versionComparator);
-        String jsonFilterName = _senseiConf.getString(SENSEI_INDEX_MANAGER_JSON_FILTER, "");
-        if (jsonFilterName.length()>0){
-          JsonFilter jsonFilter = (JsonFilter)_pluginContext.getBean(jsonFilterName);
-          ((DefaultStreamingIndexingManager)indexingManager).setJsonFilter(jsonFilter);
-        }
       }
       else{
         indexingManager = (SenseiIndexingManager)_pluginContext.getBean(idxMgrType);  
@@ -434,7 +468,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
   public SenseiServer buildServer() throws ConfigurationException { 
   int port = _senseiConf.getInt(SERVER_PORT);
     
-  ClusterClient clusterClient = buildClusterClient(_senseiConf);
+  ClusterClient clusterClient = buildClusterClient();
     
   NetworkServer networkServer = buildNetworkServer(_senseiConf,clusterClient);
   

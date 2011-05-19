@@ -357,6 +357,8 @@ public class HttpRestSenseiServiceImpl implements SenseiService
     qparams.add(new BasicNameValuePair(SenseiSearchServletParams.PARAM_SHOW_EXPLAIN, Boolean.toString(req.isShowExplanation())));
     qparams.add(new BasicNameValuePair(SenseiSearchServletParams.PARAM_OFFSET, Integer.toString(req.getOffset())));
     qparams.add(new BasicNameValuePair(SenseiSearchServletParams.PARAM_COUNT, Integer.toString(req.getCount())));
+    if (req.getRouteParam() != null)
+      qparams.add(new BasicNameValuePair(SenseiSearchServletParams.PARAM_ROUTE_PARAM, req.getRouteParam()));
   }
 
   public static void convertFacetInitParams(List<NameValuePair> qparams, Map<String,FacetHandlerInitializerParam> initParams)

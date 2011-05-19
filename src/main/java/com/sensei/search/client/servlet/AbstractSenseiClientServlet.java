@@ -15,6 +15,7 @@ import com.linkedin.norbert.javacompat.cluster.ZooKeeperClusterClient;
 import com.linkedin.norbert.javacompat.network.NetworkClientConfig;
 import com.sensei.search.cluster.client.SenseiNetworkClient;
 import com.sensei.search.nodes.SenseiBroker;
+import com.sensei.search.nodes.SenseiSysBroker;
 import com.sensei.search.nodes.impl.NoopRequestScatterRewriter;
 import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.req.SenseiResult;
@@ -26,12 +27,12 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
   
   private static final Logger logger = Logger.getLogger(AbstractSenseiClientServlet.class);
 
-  private final NoopRequestScatterRewriter _reqRewriter = new NoopRequestScatterRewriter();
   private final NetworkClientConfig _networkClientConfig = new NetworkClientConfig();
   
   private ClusterClient _clusterClient = null;
   private SenseiNetworkClient _networkClient = null;
   private SenseiBroker _senseiBroker = null;
+  private SenseiSysBroker _senseiSysBroker = null;
   public AbstractSenseiClientServlet() {
   
   }
@@ -52,8 +53,9 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
   
     _networkClientConfig.setClusterClient(_clusterClient);
     
-    _networkClient = new SenseiNetworkClient(_networkClientConfig,routerFactory);
-    _senseiBroker = new SenseiBroker(_networkClient, _clusterClient, _reqRewriter, routerFactory, versionComparator);
+    _networkClient = new SenseiNetworkClient(_networkClientConfig, null);
+    _senseiBroker = new SenseiBroker(_networkClient, _clusterClient, loadBalancerFactory);
+    _senseiSysBroker = new SenseiSysBroker(_networkClient, _clusterClient, loadBalancerFactory, versionComparator);
     
     logger.info("Connecting to cluster: "+clusterName+" ...");
     _clusterClient.awaitConnectionUninterruptibly();
@@ -81,7 +83,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
   private void handleSystemInfoRequest(HttpServletRequest req, HttpServletResponse resp)
     throws ServletException, IOException {
     try {
-      SenseiSystemInfo res = _senseiBroker.getSystemInfo();
+      SenseiSystemInfo res = _senseiSysBroker.browse(new SenseiRequest());
       resp.setContentType("text/plain; charset=utf-8");
       resp.setCharacterEncoding("UTF-8");
       OutputStream ostream = resp.getOutputStream();
@@ -113,22 +115,31 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
     try{
       try{
         if (_senseiBroker!=null){
-        _senseiBroker.shutdown();
-        _senseiBroker = null;
+          _senseiBroker.shutdown();
+          _senseiBroker = null;
         }
       }
       finally{
-        try{
-          if (_networkClient!=null){
-            _networkClient.shutdown();
-            _networkClient = null;
+        try {
+          if (_senseiSysBroker!=null){
+            _senseiSysBroker.shutdown();
+            _senseiSysBroker = null;
           }
         }
-        finally{
-        if (_clusterClient!=null){
-          _clusterClient.shutdown();
-          _clusterClient = null;
-        }
+        finally
+        {
+          try{
+            if (_networkClient!=null){
+              _networkClient.shutdown();
+              _networkClient = null;
+            }
+          }
+          finally{
+            if (_clusterClient!=null){
+              _clusterClient.shutdown();
+              _clusterClient = null;
+            }
+          }
         }
       }
       

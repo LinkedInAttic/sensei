@@ -116,7 +116,7 @@ public class TestSensei extends AbstractSenseiTestCase
     broker = null;
     try
     {
-      broker = new SenseiBroker(networkClient, clusterClient, requestRewriter, routerFactory, senseiServerBuilder1.getVersionComparator());
+      broker = new SenseiBroker(networkClient, clusterClient, loadBalancerFactory);
       broker.setTimeoutMillis(0);
     } catch (NorbertException ne)
     {

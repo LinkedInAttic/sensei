@@ -6,9 +6,7 @@ import org.apache.log4j.Logger;
 
 import com.google.protobuf.Message;
 import com.linkedin.norbert.NorbertException;
-import com.linkedin.norbert.javacompat.cluster.ClusterClient;
 import com.linkedin.norbert.javacompat.cluster.ClusterListener;
-import com.linkedin.norbert.javacompat.network.PartitionedLoadBalancerFactory;
 import com.linkedin.norbert.javacompat.network.PartitionedNetworkClient;
 import com.sensei.search.req.AbstractSenseiRequest;
 import com.sensei.search.req.AbstractSenseiResult;
@@ -27,8 +25,6 @@ public abstract class AbstractSenseiBroker<REQUEST extends AbstractSenseiRequest
 {
   private final static Logger logger = Logger.getLogger(AbstractSenseiBroker.class);
   protected final PartitionedNetworkClient<Integer> _networkClient;
-  protected final ClusterClient _clusterClient;
-  protected final PartitionedLoadBalancerFactory<Integer> _routerFactory;
   protected volatile IntSet _partitions = null;
   
 
@@ -45,16 +41,12 @@ public abstract class AbstractSenseiBroker<REQUEST extends AbstractSenseiRequest
    * @param scatterGatherHandler
    * @throws NorbertException
    */
-  public AbstractSenseiBroker(PartitionedNetworkClient<Integer> networkClient, ClusterClient clusterClient, 
-		  	REQMSG defaultrequest, RESMSG defaultresult,PartitionedLoadBalancerFactory<Integer> routerFactory)
+  public AbstractSenseiBroker(PartitionedNetworkClient<Integer> networkClient, REQMSG defaultrequest, RESMSG defaultresult)
       throws NorbertException
   {
-	_routerFactory = routerFactory;
     _networkClient = networkClient;
-    _clusterClient = clusterClient;
     // register the request-response messages
     _networkClient.registerRequest(defaultrequest, defaultresult);
-    clusterClient.addListener(this);
   }
 
   public abstract REQMSG requestToMessage(REQUEST request);

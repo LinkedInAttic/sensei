@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 
 import org.apache.lucene.search.SortField;
@@ -28,6 +29,7 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable
   private HashMap<String,BrowseSelection> _selections;
 	private ArrayList<SortField> _sortSpecs;
 	private Map<String,FacetSpec> _facetSpecMap;
+	private Map<String, Integer> _origFacetSpecMaxCounts;
 	private SenseiQuery _query;
 	private int _offset;
 	private int _count;
@@ -35,6 +37,8 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable
 	private Map<String,FacetHandlerInitializerParam> _facetInitParamMap;
 	private Set<Integer> _partitions;
 	private boolean _showExplanation;
+	private static Random _rand = new Random(System.nanoTime());
+	private String _routeParam;
 	
 	public SenseiRequest(){
 		_facetInitParamMap = new HashMap<String,FacetHandlerInitializerParam>();
@@ -44,6 +48,7 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable
 		_fetchStoredFields = false;
 		_partitions = null;
 		_showExplanation = false;
+		_routeParam = null;
 	}
 
 /**
@@ -80,6 +85,19 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable
 	public Set<Integer> getPartitions(){
 		return _partitions;
 	}
+
+  public void setRouteParam(String routeParam)
+  {
+    _routeParam = routeParam;
+  }
+
+  public String getRouteParam()
+  {
+    if (_routeParam != null)
+      return _routeParam;
+
+    return String.valueOf(_rand.nextInt());
+  }
 	
 	public Map<String,FacetHandlerInitializerParam> getFacetHandlerInitParamMap(){
 		return _facetInitParamMap;
@@ -119,7 +137,37 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable
 		return _facetSpecMap;
 	}
 	
-	
+  public void saveOrigFacetMaxCounts()
+  {
+    if (_origFacetSpecMaxCounts == null && _facetSpecMap != null)
+    {
+      _origFacetSpecMaxCounts= new HashMap<String, Integer>();
+      for (Map.Entry<String, FacetSpec> entry : _facetSpecMap.entrySet())
+      {
+        FacetSpec spec = entry.getValue();
+        if (spec != null)
+        {
+          _origFacetSpecMaxCounts.put(entry.getKey(), spec.getMaxCount());
+        }
+      }
+    }
+  }
+
+	public void restoreOrigFacetMaxCounts()
+  {
+    if (_facetSpecMap != null)
+    {
+      for (Map.Entry<String, FacetSpec> entry : _facetSpecMap.entrySet())
+      {
+        FacetSpec spec = entry.getValue();
+        if (spec != null)
+        {
+          spec.setMaxCount(_origFacetSpecMaxCounts.get(entry.getKey()));
+        }
+      }
+    }
+  }
+
 	public int getSelectionCount()
 	{
 		return _selections.size();
@@ -447,9 +495,9 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable
   private <T> boolean setsAreEqual(Set<T> a, Set<T> b) {
     if (a.size() != b.size()) return false;
 
-    Iterator iter = a.iterator();
+    Iterator<T> iter = a.iterator();
     while (iter.hasNext()) {
-      T val = (T)iter.next();
+      T val = iter.next();
       if (!b.contains(val)) return false;
     }
 

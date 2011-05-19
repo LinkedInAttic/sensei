@@ -1,6 +1,5 @@
 package com.sensei.indexing.api;
 
-import java.io.File;
 import java.lang.management.ManagementFactory;
 import java.util.Collection;
 import java.util.Comparator;
@@ -25,15 +24,13 @@ import proj.zoie.api.DataConsumer.DataEvent;
 import proj.zoie.api.DataProvider;
 import proj.zoie.api.Zoie;
 import proj.zoie.api.ZoieException;
-import proj.zoie.api.DataConsumer.DataEvent;
 import proj.zoie.impl.indexing.StreamDataProvider;
 import proj.zoie.mbean.DataProviderAdmin;
 import proj.zoie.mbean.DataProviderAdminMBean;
 
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.sensei.conf.SenseiSchema;
-import com.sensei.dataprovider.file.LinedJsonFileDataProvider;
-import com.sensei.dataprovider.kafka.KafkaJsonStreamDataProvider;
+import com.sensei.indexing.api.DataProviderFactoryRegistry.DataProviderBuilder;
 import com.sensei.search.nodes.SenseiIndexingManager;
 
 public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JSONObject> {
@@ -46,6 +43,12 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 	
 	private static final String PROVIDER_TYPE = "type";
 	
+	private static final String EVTS_PER_MIN = "eventsPerMin";
+	
+	private static final String BATCH_SIZE = "batchSize";
+	
+	private static final String SHARDING_STRATEGY = "shardingStrategy";
+	
 	
 	private StreamDataProvider<JSONObject> _dataProvider;
 	private String _oldestSinceKey;
@@ -57,8 +60,7 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 	private Map<Integer, Zoie<BoboIndexReader, JSONObject>> _zoieSystemMap;
 	private final LinkedHashMap<Integer, Collection<DataEvent<JSONObject>>> _dataCollectorMap;
   private final Comparator<String> _versionComparator;
-
-  private JsonFilter _jsonFilter = null;
+    private final ShardingStrategy _shardingStrategy;
 	
 	public DefaultStreamingIndexingManager(SenseiSchema schema,Configuration senseiConfig, ApplicationContext pluginContext, Comparator<String> versionComparator){
 	  _dataProvider = null;
@@ -71,6 +73,19 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 	  _registeredMBeans = new LinkedList<ObjectName>();
 	  _dataCollectorMap = new LinkedHashMap<Integer, Collection<DataEvent<JSONObject>>>();
     _versionComparator = versionComparator;
+    
+      String shardingStrategyName = _myconfig.getString(SHARDING_STRATEGY);
+    
+      ShardingStrategy strategy = null;
+      
+      if (shardingStrategyName!=null){
+        strategy = (ShardingStrategy)pluginContext.getBean(shardingStrategyName);
+      }
+      if (strategy == null){
+    	  strategy = new ShardingStrategy.FieldModShardingStrategy(_senseiSchema.getUidField());
+      }
+      
+      _shardingStrategy = strategy;
 	}
 
 	public void updateOldestSinceKey(String sinceKey){
@@ -105,13 +120,9 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 	    _dataProvider = buildDataProvider();
 	    _dataProvider.setDataConsumer(consumer);
 	}
-
-  public void setJsonFilter(JsonFilter jsonFilter){
-    _jsonFilter = jsonFilter;
-  }
   
   @Override
-  public DataProvider getDataProvider()
+  public DataProvider<JSONObject> getDataProvider()
   {
     return _dataProvider;
   }
@@ -119,26 +130,26 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 	private StreamDataProvider<JSONObject> buildDataProvider() throws ConfigurationException{
 		String type = _myconfig.getString(PROVIDER_TYPE);
 		StreamDataProvider<JSONObject> dataProvider = null;
-		if ("file".equals(type)){
-			String path = _myconfig.getString("file.path");
-			long offset = _oldestSinceKey == null ? 0L : Long.parseLong(_oldestSinceKey);
-			dataProvider = new LinedJsonFileDataProvider(_versionComparator, new File(path), offset);
+
+		Configuration conf = _myconfig.subset(type);
+		
+		DataProviderBuilder<?> builder = DataProviderFactoryRegistry.getDataProviderBuilder(type);
+		if (builder==null){
+			builder = (DataProviderBuilder<?>)_pluginContext.getBean(type);
+			if (builder == null){
+			  throw new ConfigurationException("unsupported provider type: "+type);
+			}
 		}
-		else if ("kafka".equals(type)){
-			String host = _myconfig.getString("kafka.host");
-			int port = _myconfig.getInt("kafka.port");
-			String topic = _myconfig.getString("kafka.topic");
-			int timeout = _myconfig.getInt("kafka.timeout",10000);
-			int batchsize = _myconfig.getInt("kafka.batchsize");
-			long offset = _oldestSinceKey == null ? 0L : Long.parseLong(_oldestSinceKey);
-			dataProvider = new KafkaJsonStreamDataProvider(_versionComparator, host,port,timeout,batchsize,topic,offset);
+
+		try{
+		  dataProvider = builder.buildDataProvider(conf, _senseiSchema, _versionComparator, _oldestSinceKey, _pluginContext);
+		  long maxEventsPerMin = _myconfig.getLong(EVTS_PER_MIN,40000);
+		  dataProvider.setMaxEventsPerMinute(maxEventsPerMin);
+		  int batchSize = _myconfig.getInt(BATCH_SIZE,1);
+		  dataProvider.setBatchSize(batchSize);
 		}
-    else if ("custom".equals(type)) {
-      String dataProviderName = _myconfig.getString("custom");
-      dataProvider = (StreamDataProvider<JSONObject>) _pluginContext.getBean(dataProviderName);
-    }
-		else{
-			throw new ConfigurationException("type: "+type+" is not suported");
+		catch(Exception e){
+			throw new ConfigurationException(e.getMessage(),e);
 		}
 		
 		try {
@@ -212,30 +223,17 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 
           if (obj == null) // Just ignore this event.
             continue;
-          JSONObject filtered = obj;
-          if (_jsonFilter != null) {
-            filtered = _jsonFilter.filter(obj);
-            if (filtered == null) // Just ignore this event.
-              continue;
-            String srcDataStore = _senseiSchema.getSrcDataStore();
-            String srcDataField = _senseiSchema.getSrcDataField();
-            if (srcDataStore != null && srcDataStore.length() != 0 && !"none".equals(srcDataStore) &&
-                srcDataField != null && srcDataField.length() != 0 && !filtered.has(srcDataField)) {
-              // no src-data set, set with original json.
-              filtered.put(srcDataField, obj.toString());
-            }
-          }
 
           _currentVersion = dataEvt.getVersion();
-          long uid = filtered.getLong(_uidField);
-          int routeToPart = (int)(uid % _maxPartitionId);
-          if(uid>=0 && DefaultStreamingIndexingManager.this._dataCollectorMap.containsKey(routeToPart)){
+
+          int routeToPart = _shardingStrategy.caculateShard(_maxPartitionId, obj);
+          if(DefaultStreamingIndexingManager.this._dataCollectorMap.containsKey(routeToPart)){
             Collection<DataEvent<JSONObject>> partDataSet = DefaultStreamingIndexingManager.this._dataCollectorMap.get(routeToPart);
             if (partDataSet!=null){
-              if (filtered == obj)
+              if (obj == obj)
                 partDataSet.add(dataEvt);
               else
-                partDataSet.add(new DataEvent(filtered, dataEvt.getVersion()));
+                partDataSet.add(new DataEvent(obj, dataEvt.getVersion()));
             }           
           }
         }
@@ -256,7 +254,7 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
                 markerObj.put(_uidField, 0L); // Add a dummy uid
                 partDataSet.add(new DataEvent<JSONObject>(markerObj, _currentVersion));
               }
-              else if (!partDataSet.getLast().getVersion().equals(_currentVersion))
+              else if (_currentVersion != null && !_currentVersion.equals(partDataSet.getLast().getVersion()))
               {
                 DataEvent<JSONObject> last = partDataSet.pollLast();
                 partDataSet.add(new DataEvent<JSONObject>(last.getData(), _currentVersion));
