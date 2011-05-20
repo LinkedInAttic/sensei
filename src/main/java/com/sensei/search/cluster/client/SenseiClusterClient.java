@@ -11,6 +11,7 @@ import java.util.concurrent.ExecutionException;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.lucene.search.SortField;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.remoting.RemoteConnectFailureException;
 import org.springframework.remoting.httpinvoker.HttpInvokerProxyFactoryBean;
@@ -124,12 +125,12 @@ public class SenseiClusterClient {
 			System.out.println("\t- page <offset>:<count> - set paging parameters. count: the number of result to show; offset may start from 0.");
 			System.out.println("\t- select <name>:<value1>,<value2>... - add selection, with ! in front of value indicates a not");
 			System.out.println("\t- sort <name>:<dir>,... - set sort specs");
-			System.out.println("\t- showReq: shows current request");
-			System.out.println("\t- clear: clears current request");
-			System.out.println("\t- clearSelections: clears all selections");
-			System.out.println("\t- clearSelection <name>: clear selection specified");
-			System.out.println("\t- clearFacetSpecs: clears all facet specs");
-			System.out.println("\t- clearFacetSpec <name>: clears specified facetspec");
+			System.out.println("\t- showReq - shows current request");
+			System.out.println("\t- clear - clears current request");
+			System.out.println("\t- clearSelections - clears all selections");
+			System.out.println("\t- clearSelection <name> - clear selection specified");
+			System.out.println("\t- clearFacetSpecs - clears all facet specs");
+			System.out.println("\t- clearFacetSpec <name> - clears specified facetspec");
 			System.out.println("\t- browse - executes a search");
 		}
 		else if ("info".equalsIgnoreCase(cmd)){
@@ -167,7 +168,7 @@ public class SenseiClusterClient {
 					String[] parts = fspecString.split(":");
 					String name = parts[0].trim();
 					String fvalue=parts[1].trim();
-					String[] valParts = fvalue.split(",");
+					String[] valParts = fvalue.split(",\\s*");
 					if (valParts.length != 4){
 						System.out.println("spec must of of the form <minhitcount>,<maxcount>,<isExpand>,<orderby>");
 					}
@@ -217,11 +218,11 @@ public class SenseiClusterClient {
 			}
 			else{
 				try{
-					String selString = parsed[1];
+					String selString = line.substring(line.indexOf("select")+"select".length()).trim();
 					String[] parts = selString.split(":");
 					String name = parts[0];
 					String selList = parts[1];
-					String[] sels = selList.split(",");
+					String[] sels = selList.split(",\\s*");
 					for (String sel : sels){
 						boolean isNot=false;
 						String val = sel;
@@ -260,7 +261,7 @@ public class SenseiClusterClient {
 				System.out.println("facet spec not defined.");
 			}
 			else{
-				String name = parsed[1];
+				String name = parsed[1].trim();
 				_reqBuilder.clearFacetSpec(name);
 			}
 		}
@@ -269,7 +270,7 @@ public class SenseiClusterClient {
 				System.out.println("selection name not defined.");
 			}
 			else{
-				String name = parsed[1];
+				String name = parsed[1].trim();
 				_reqBuilder.clearSelection(name);
 			}
 		}
@@ -294,44 +295,62 @@ public class SenseiClusterClient {
 		    BrowseSelection[] _selections = req.getSelections();
 		    Map _facetSpecMap = req.getFacetSpecs();
 		    boolean _fetchStoredFields = req.isFetchStoredFields();
-		    if(_query != null)
-		      buf.append("query: ").append(_query.toString()).append('\n');
-		      buf.append("page: [").append(_offset).append(',').append(_count).append("]\n");
-		      if(_sortSpecs != null)
-		        buf.append("sort spec: ").append(arrayToString(_sortSpecs)).append('\n');
-		      if(_selections != null)
-		        buf.append("selections: ").append(arrayToString(_selections)).append('\n');
-		      if(_facetSpecMap != null)
-		        buf.append("facet spec: ").append(facetMapToString(_facetSpecMap)).append('\n');
-		      buf.append("fetch stored fields: ").append(_fetchStoredFields);
-		      System.out.println(buf.toString());
-			}
-			else
+		    if(_query != null){
+		      try
+          {
+            JSONObject query_json = new JSONObject(_query.toString());
+            buf.append("\t- query: \"").append(query_json.optString("query").toString()).append("\"\n");
+            buf.append("\t- page: [").append(_offset).append(',').append(_count).append("]\n");
+            if(_sortSpecs != null)
+              buf.append("\t- sort spec: ").append(arrayToString(_sortSpecs)).append('\n');
+            if(_selections != null)
+              buf.append("\t- selections: ").append(arrayToString(_selections)).append('\n');
+            if(_facetSpecMap != null)
+              buf.append("\t- facet spec: ").append(facetMapToString(_facetSpecMap)).append('\n');
+            buf.append("\t- fetch stored fields: ").append(_fetchStoredFields);
+            System.out.println(buf.toString());
+          } catch (JSONException e)
+          {
+//            e.printStackTrace();
+            System.out.println("Internal error when converting sensei query.");
+          }
+
+		    }
+		    else
               System.out.println("No query request yet..");
+			}
+			else{
+			  System.out.println("No query request yet..");
+			}
 		}
 		else if ("sort".equalsIgnoreCase(cmd)){
-			if (parsed.length == 2){
-				String sortString = parsed[1];
-				String[] sorts = sortString.split(",");
-				ArrayList<SortField> sortList = new ArrayList<SortField>();
-				for (String sort : sorts){
-					String[] sortParams = sort.split(":");
-					boolean rev = false;
-					if (sortParams.length>0){
-					  String sortName = sortParams[0];
-					  if (sortParams.length>1){
-						try{
-						  rev = Boolean.parseBoolean(sortParams[1]);
-						}
-						catch(Exception e){
-							System.out.println(e.getMessage()+", default rev to false");
-						}
-					  }
-					  sortList.add(new SortField(sortName,SortField.CUSTOM,rev));
-					}
-				}
-				_reqBuilder.applySort(sortList.toArray(new SortField[sortList.size()]));
-			}
+      if (parsed.length >= 2)
+      {
+        String sortString = line.substring(line.indexOf("sort") + "sort".length()).trim(); // parsed[1];
+        String[] sorts = sortString.split(",\\s*");
+        ArrayList<SortField> sortList = new ArrayList<SortField>();
+        for (String sort : sorts)
+        {
+          String[] sortParams = sort.split(":");
+          boolean rev = false;
+          if (sortParams.length > 0)
+          {
+            String sortName = sortParams[0];
+            if (sortParams.length > 1)
+            {
+              try
+              {
+                rev = Boolean.parseBoolean(sortParams[1]);
+              } catch (Exception e)
+              {
+                System.out.println(e.getMessage() + ", default rev to false");
+              }
+            }
+            sortList.add(new SortField(sortName, SortField.CUSTOM, rev));
+          }
+        }
+        _reqBuilder.applySort(sortList.toArray(new SortField[sortList.size()]));
+      }
 			else{
 				_reqBuilder.applySort(null);
 			}
@@ -369,7 +388,7 @@ public class SenseiClusterClient {
     Iterator<String> it = _facetSpecMap.keySet().iterator();
     while(it.hasNext()){
       String key = it.next();
-      sb.append("\n\t"+key+": [");
+      sb.append("\n\t  - "+key+": [ ");
       FacetSpec fs = _facetSpecMap.get(key);
       {
         sb.append("orderBy: ").append(fs.getOrderBy()).append(", ");
@@ -377,7 +396,7 @@ public class SenseiClusterClient {
         sb.append("min hit count: ").append(fs.getMinHitCount()).append(", ");
         sb.append("expandSelection: ").append(fs.isExpandSelection());
       }
-      sb.append("]");
+      sb.append(" ]");
     }
     return sb.toString();
   }
@@ -386,27 +405,35 @@ public class SenseiClusterClient {
    * @param _selections
    * @return
    */
-  private static Object arrayToString(BrowseSelection[] _selections)
+  private static String arrayToString(BrowseSelection[] _selections)
   {
     StringBuffer sb = new StringBuffer();
     for(BrowseSelection br : _selections){
-      StringBuffer buf=new StringBuffer();
-      buf.append("name: ").append(br.getFieldName()+", ");
-      buf.append("values: "+ br.getValues()+", ");
-      buf.append("nots: "+ br.getNotValues()+", ");
-      buf.append("op: "+ br.getSelectionOperation()+", ");
-      buf.append("sel props: "+ br.getSelectionProperties());
-      sb.append(br.toString()+" ");
+      sb.append("\n\t  - ");
+      sb.append("name: ").append(br.getFieldName()+", ");
+      sb.append("values: "+ arrayToString(br.getValues())+", ");
+      sb.append("nots: "+ arrayToString(br.getNotValues())+", ");
+      sb.append("op: "+ br.getSelectionOperation().toString()+", ");
+      sb.append("sel props: "+ br.getSelectionProperties().toString());
+//      sb.append(br.toString()+" ");
     }
     return sb.toString();
   }
 
-  static String arrayToString(SortField[] _sortSpecs){
+  private static String arrayToString(SortField[] _sortSpecs){
 	  StringBuffer sb = new StringBuffer();
 	  for(SortField sf : _sortSpecs){
-	    sb.append(sf.toString()+" ");
+	    sb.append(sf.getField()+":reverse="+sf.getReverse()+"  ");
 	  }
-	  return sb.toString();
+	  return sb.toString().trim();
 	}
+
+  private static String arrayToString(String[] _stringArray){
+    StringBuffer sb = new StringBuffer();
+    for(String str : _stringArray){
+      sb.append(str+" ");
+    }
+    return sb.toString().trim().length()>0 ? sb.toString().trim() : "N/A";
+  }
 
 }

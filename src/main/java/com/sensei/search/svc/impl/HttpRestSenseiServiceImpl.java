@@ -627,7 +627,7 @@ public class HttpRestSenseiServiceImpl implements SenseiService
   public InputStream makeRequest(URI uri)
       throws IOException
   {
-	  System.out.println("sending: "+uri);
+//	  System.out.println("sending: "+uri);
     HttpGet httpget = new HttpGet(uri);
     HttpResponse response = _httpclient.execute(httpget);
     HttpEntity entity = response.getEntity();
@@ -677,7 +677,7 @@ public class HttpRestSenseiServiceImpl implements SenseiService
     }
 
     String json = sb.toString();
-    System.out.println("received: "+json);
+//    System.out.println("received: "+json);
     return json;
   }
 
