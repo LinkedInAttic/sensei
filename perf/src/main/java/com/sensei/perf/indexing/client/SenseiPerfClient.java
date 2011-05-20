@@ -14,6 +14,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.DataConfiguration;
@@ -28,6 +29,7 @@ import com.sensei.search.svc.api.SenseiService;
 import com.sensei.search.svc.impl.HttpRestSenseiServiceImpl;
 import com.sensei.search.util.HttpUtil;
 import com.yammer.metrics.Metrics;
+import com.yammer.metrics.core.GaugeMetric;
 import com.yammer.metrics.core.TimerMetric;
 
 public class SenseiPerfClient {
@@ -45,13 +47,25 @@ public class SenseiPerfClient {
 	public static final String SYSTEM_REPORT_FILE = "system-report.txt";
 	
 	static TimerMetric searchTimer = Metrics.newTimer(SenseiPerfClient.class, "perf-timer", TimeUnit.MILLISECONDS, TimeUnit.MILLISECONDS);
+
+	
 	private static PrintStream searchReport;
 	private static PrintStream indexingReport;
 	private static PrintStream systemReport;
 	
 	private static ExecutorService _threadPool;
 	
-	private static volatile int _numDocs  = 0;
+	private static final AtomicInteger _numDocs  = new AtomicInteger(0);
+	
+
+	static GaugeMetric<Integer> indexSizeGauge = Metrics.newGauge(SenseiPerfClient.class, "index-stats", new GaugeMetric<Integer>(){
+
+		@Override
+		public Integer value() {
+			return _numDocs.get();
+		}
+		
+	});
 	
 	public static SenseiService buildSvc(String url,String type) throws Exception{
 		if ("rest".equals(type)){
@@ -219,7 +233,7 @@ public class SenseiPerfClient {
 				builder.append(searchTimer.min()).append(",");
 				builder.append(searchTimer.max()).append(",");
 				builder.append(searchTimer.mean()).append(",");
-				double[] percents = searchTimer.percentiles(90,95,99);
+				double[] percents = searchTimer.percentiles(0.90,0.95,0.99);
 				builder.append(percents[0]).append(",");
 				builder.append(percents[1]).append(",");
 				builder.append(percents[2]);
@@ -234,7 +248,7 @@ public class SenseiPerfClient {
 		}
 	}
 	
-private static class IndexReporter extends Thread{
+    private static class IndexReporter extends Thread{
 		
 		private volatile boolean  stop;
 		private final long _tickInterval;
@@ -255,6 +269,7 @@ private static class IndexReporter extends Thread{
 				StringBuilder builder = new StringBuilder();
 				builder.append(System.currentTimeMillis()).append(",");
 				builder.append(_numDocs);
+				
 				indexingReport.println(builder.toString());
 				indexingReport.flush();
 				try {
@@ -279,7 +294,6 @@ private static class IndexReporter extends Thread{
 		    
 		    // do a search 
 		    SenseiResult res = _svc.doQuery(new SenseiRequest());
-		    _numDocs = res.getTotalDocs();
 		  }
 		  catch(Exception e){
 			_svc = null;
@@ -313,7 +327,14 @@ private static class IndexReporter extends Thread{
 					}
 				   });	
 				   
-				   _numDocs = res.getTotalDocs();
+				   
+				   int numDocs = res.getTotalDocs();
+				   synchronized(_numDocs){
+					   int val = _numDocs.get();
+					   if (numDocs>val){
+						   _numDocs.set(numDocs);
+					   }
+				   }
 			   }
 			   catch(Exception e){
 			     e.printStackTrace();
