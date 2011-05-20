@@ -6,6 +6,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.configuration.DataConfiguration;
 import org.apache.commons.configuration.web.ServletRequestConfiguration;
+import org.apache.log4j.Logger;
 
 import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.req.SenseiResult;
@@ -23,6 +24,9 @@ public abstract class AbstractSenseiRestServlet extends AbstractSenseiClientServ
 	@Override
 	protected SenseiRequest buildSenseiRequest(HttpServletRequest req)
 			throws Exception {
+		String qString = req.getQueryString();
+		Logger log = Logger.getLogger("com.sensei.querylog");
+		log.info(qString);
 		DataConfiguration params = new DataConfiguration(new ServletRequestConfiguration(req));
 		return buildSenseiRequest(params);
 	}

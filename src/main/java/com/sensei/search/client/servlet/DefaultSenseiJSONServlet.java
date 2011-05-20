@@ -573,7 +573,6 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
             (sf.getField() == null || sf.getField().isEmpty()))   // Empty field name.
           continue;
 
-        logger.info("added sort: " + sf);
         sortFieldList.add(sf);
       }
 

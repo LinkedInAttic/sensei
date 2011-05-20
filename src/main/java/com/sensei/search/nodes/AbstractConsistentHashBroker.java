@@ -157,7 +157,7 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
       REQMSG msg = requestToMessage(req);
       if (logger.isDebugEnabled())
       {
-        logger.info("DEBUG: broker sending req part: " + partsMap.get(entry.getKey()) + " on node: " + entry.getValue());
+        logger.debug("DEBUG: broker sending req part: " + partsMap.get(entry.getKey()) + " on node: " + entry.getValue());
       }
       futureMap.put(entry.getKey(), (Future<RESMSG>)_networkClient.sendMessageToNode(msg, entry.getValue()));
     }

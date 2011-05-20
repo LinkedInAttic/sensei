@@ -35,7 +35,9 @@ public class SimpleQueryBuilder implements SenseiQueryBuilder
       }
       
       if (qString.length()>0){
-        _query = parser.parse(qString);
+    	  synchronized(parser){
+            _query = parser.parse(qString);
+    	  }
       }
     }
   }

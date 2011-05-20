@@ -6,8 +6,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -55,6 +57,7 @@ import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
+import org.apache.log4j.Logger;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.search.Explanation;
@@ -62,7 +65,6 @@ import org.apache.lucene.search.SortField;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
 
 import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.BrowseSelection;
@@ -82,6 +84,7 @@ import com.sensei.search.svc.api.SenseiService;
 
 public class HttpRestSenseiServiceImpl implements SenseiService
 {
+  private static final Logger log = Logger.getLogger(HttpRestSenseiServiceImpl.class);
   String _scheme;
   String _host;
   int _port;
@@ -138,12 +141,23 @@ public class HttpRestSenseiServiceImpl implements SenseiService
     _maxRetries = maxRetries;
     _httpclient = createHttpClient(retryHandler);
   }
+  
+  public HttpRestSenseiServiceImpl(String urlString) throws MalformedURLException{
+	URL url = new URL(urlString);
+	_scheme = url.getProtocol();
+	_host = url.getHost();
+	_port = url.getPort();
+	_path = url.getPath();
+	_defaultKeepAliveDurationMS = 5000;
+	_maxRetries = 5;
+	_httpclient = createHttpClient(null);
+  }
 
   private DefaultHttpClient createHttpClient(HttpRequestRetryHandler retryHandler)
   {
     HttpParams params = new BasicHttpParams();
     SchemeRegistry registry = new SchemeRegistry();
-    registry.register(new Scheme("http", _port, PlainSocketFactory.getSocketFactory()));
+    registry.register(new Scheme(_scheme, _port, PlainSocketFactory.getSocketFactory()));
     ClientConnectionManager cm = new ThreadSafeClientConnManager(registry);
     DefaultHttpClient client = new DefaultHttpClient(cm, params);
     if (retryHandler == null)
@@ -627,7 +641,11 @@ public class HttpRestSenseiServiceImpl implements SenseiService
   public InputStream makeRequest(URI uri)
       throws IOException
   {
-//	  System.out.println("sending: "+uri);
+
+	if (log.isDebugEnabled()){
+	  log.debug("sending: "+uri);
+	}
+
     HttpGet httpget = new HttpGet(uri);
     HttpResponse response = _httpclient.execute(httpget);
     HttpEntity entity = response.getEntity();
@@ -677,7 +695,9 @@ public class HttpRestSenseiServiceImpl implements SenseiService
     }
 
     String json = sb.toString();
-//    System.out.println("received: "+json);
+    if (log.isDebugEnabled()){
+      log.debug("received: "+json);
+    }
     return json;
   }
 
