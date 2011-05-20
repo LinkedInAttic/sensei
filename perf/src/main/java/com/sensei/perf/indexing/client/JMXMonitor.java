@@ -1,4 +1,4 @@
-package com.senseidb.perf.indexing.client;
+package com.sensei.perf.indexing.client;
 
 import java.io.IOException;
 

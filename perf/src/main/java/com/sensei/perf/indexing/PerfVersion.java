@@ -1,9 +1,13 @@
-package com.senseidb.perf.indexing;
+package com.sensei.perf.indexing;
 
 import java.util.Comparator;
 
+import org.apache.log4j.Logger;
+
 
 public class PerfVersion implements Comparable<PerfVersion>{
+	private static Logger log = Logger.getLogger(PerfVersion.class);
+	
 	public int iter;
 	public long version;
 	
@@ -36,10 +40,14 @@ public class PerfVersion implements Comparable<PerfVersion>{
 	}
 	
 	public static final PerfVersion parse(String s){
-		if (s==null || s.length()==0){
+		if (s==null || s.trim().length()==0){
 			return new PerfVersion(0,0L); 
 		}
+		
 		String[] parts = s.split(",");
+		if (parts==null || parts.length!=2){
+			return new PerfVersion(0,0L);
+		}
 		int iter = Integer.parseInt(parts[0]);
 		long ver = Long.parseLong(parts[1]);
 		

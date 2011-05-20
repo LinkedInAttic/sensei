@@ -24,8 +24,9 @@
 				</configuration>
 			</plugin>
 		</plugins>
+		
+        <directory>${basedir}/perf-sensei-conf/ext</directory>
 	</build>
-
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

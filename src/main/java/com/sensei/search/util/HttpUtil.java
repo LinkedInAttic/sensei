@@ -1,5 +1,7 @@
 package com.sensei.search.util;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -24,7 +26,13 @@ public class HttpUtil {
 					valList = new LinkedList<String>();
 					map.put(key, valList);
 				}
-				valList.add(val);
+				try {
+					val = URLDecoder.decode(val,"UTF-8");
+					valList.add(val);
+				} catch (UnsupportedEncodingException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 		}
 		

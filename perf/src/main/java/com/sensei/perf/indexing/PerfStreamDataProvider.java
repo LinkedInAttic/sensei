@@ -1,4 +1,4 @@
-package com.senseidb.perf.indexing;
+package com.sensei.perf.indexing;
 
 import java.io.File;
 import java.io.IOException;
@@ -12,7 +12,8 @@ import proj.zoie.impl.indexing.StreamDataProvider;
 
 import com.sensei.indexing.api.DataSourceFilter;
 import com.sensei.indexing.api.DataSourceFilterable;
-import com.senseidb.perf.indexing.PerfVersion.PerfVersionComparator;
+import com.sensei.perf.indexing.PerfVersion.PerfVersionComparator;
+
 
 public class PerfStreamDataProvider extends StreamDataProvider<JSONObject> implements DataSourceFilterable<String> {
 
@@ -89,8 +90,11 @@ public class PerfStreamDataProvider extends StreamDataProvider<JSONObject> imple
 	@Override
 	public void start() {
 		super.start();
+		
 		try{
 		  _offset = _startingOffset;
+
+		  logger.info("data file: "+_file.getAbsolutePath()+", offset: "+_offset);
 		  _rad = new RandomAccessFile(_file,"r");
 		  _rad.seek(_offset.version);
 		}

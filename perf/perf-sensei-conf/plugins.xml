@@ -5,5 +5,11 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans 
                            http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-  <bean id="demo" class="com.sensei.search.nodes.impl.DemoZoieSystemFactory$DemoZoieFactoryFactory" />
+    <bean id="perf-filter" class="com.sensei.perf.indexing.PerfJsonFilter">
+       <constructor-arg value="10000000" />
+    </bean>
+    
+	<bean id="perf" class="com.sensei.perf.indexing.PerfStreamDataProviderBuilder">
+	   <constructor-arg ref="perf-filter" />
+	</bean>
 </beans>

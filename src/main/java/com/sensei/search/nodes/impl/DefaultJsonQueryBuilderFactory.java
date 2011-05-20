@@ -6,7 +6,6 @@ import org.apache.lucene.queryParser.QueryParser;
 import org.apache.lucene.search.Filter;
 import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Query;
-import org.apache.lucene.util.Version;
 import org.json.JSONObject;
 
 import com.sensei.search.nodes.SenseiQueryBuilder;
@@ -34,7 +33,9 @@ public class DefaultJsonQueryBuilderFactory extends
 			@Override
 			public Query buildQuery() throws ParseException {
 				if (queryString!=null && queryString.length()>0){
-					return _qparser.parse(queryString);
+					synchronized(_qparser){
+					  return _qparser.parse(queryString);
+					}
 				}
 				else{
 					return new MatchAllDocsQuery();

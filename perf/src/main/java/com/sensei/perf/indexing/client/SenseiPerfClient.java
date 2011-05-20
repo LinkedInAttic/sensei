@@ -1,4 +1,4 @@
-package com.senseidb.perf.indexing.client;
+package com.sensei.perf.indexing.client;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -51,6 +51,7 @@ public class SenseiPerfClient {
 	
 	private static ExecutorService _threadPool;
 	
+	private static volatile int _numDocs  = 0;
 	
 	public static SenseiService buildSvc(String url,String type) throws Exception{
 		if ("rest".equals(type)){
@@ -163,6 +164,12 @@ public class SenseiPerfClient {
 	    	futureList.add(future);
 	    }
 	    
+	    SearchReporter searchReportThread = new SearchReporter(1000);
+	    IndexReporter indexReportThread = new IndexReporter(1000);
+	    
+	    searchReportThread.start();
+	    indexReportThread.start();
+	    
 	    for(Future<?> future : futureList){
 	    	future.get();
 	    }
@@ -174,6 +181,13 @@ public class SenseiPerfClient {
 	    
 		System.out.println("test completed, cleaning up...");
 		
+
+	    searchReportThread.terminate();
+	    indexReportThread.terminate();
+	    
+	    searchReportThread.join();
+	    indexReportThread.join();
+		
 		svc.shutdown();
 		
 		searchReport.close();
@@ -181,11 +195,15 @@ public class SenseiPerfClient {
 		systemReport.close();
 	}
 	
-	private static class SearchReporter implements Runnable{
+	static class SearchReporter extends Thread{
 		
 		private volatile boolean  stop;
+		private final long _tickInterval;
 		public SearchReporter(long tickInterval){
+			super("search-reporter");
+			super.setDaemon(true);
 			stop = false;
+			_tickInterval = tickInterval;
 		}
 		
 		public void terminate(){
@@ -195,7 +213,55 @@ public class SenseiPerfClient {
 		
 		public void run(){
 			while(!stop){
-				
+				StringBuilder builder = new StringBuilder();
+				builder.append(System.currentTimeMillis()).append(",");
+				builder.append(searchTimer.count()).append(",");
+				builder.append(searchTimer.min()).append(",");
+				builder.append(searchTimer.max()).append(",");
+				builder.append(searchTimer.mean()).append(",");
+				double[] percents = searchTimer.percentiles(90,95,99);
+				builder.append(percents[0]).append(",");
+				builder.append(percents[1]).append(",");
+				builder.append(percents[2]);
+				searchReport.println(builder.toString());
+				searchReport.flush();
+				try {
+					Thread.sleep(_tickInterval);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+	
+private static class IndexReporter extends Thread{
+		
+		private volatile boolean  stop;
+		private final long _tickInterval;
+		public IndexReporter(long tickInterval){
+			super("indexing-reporter");
+			super.setDaemon(true);
+			stop = false;
+			_tickInterval = tickInterval;
+		}
+		
+		public void terminate(){
+			stop = true;
+			Thread.currentThread().interrupt();
+		}
+		
+		public void run(){
+			while(!stop){
+				StringBuilder builder = new StringBuilder();
+				builder.append(System.currentTimeMillis()).append(",");
+				builder.append(_numDocs);
+				indexingReport.println(builder.toString());
+				indexingReport.flush();
+				try {
+					Thread.sleep(_tickInterval);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
 			}
 		}
 	}
@@ -210,6 +276,10 @@ public class SenseiPerfClient {
 		  super(waitInterval,timeToRun);
 		  try{
 		    _svc = SenseiPerfClient.buildSvc(url, type);
+		    
+		    // do a search 
+		    SenseiResult res = _svc.doQuery(new SenseiRequest());
+		    _numDocs = res.getTotalDocs();
 		  }
 		  catch(Exception e){
 			_svc = null;
@@ -235,13 +305,15 @@ public class SenseiPerfClient {
 			   DataConfiguration params = new DataConfiguration(mapConf);
 			   final SenseiRequest req = DefaultSenseiJSONServlet.convertSenseiRequest(params);
 			   try{
-				   searchTimer.time(new Callable<SenseiResult>(){
+				   SenseiResult res = searchTimer.time(new Callable<SenseiResult>(){
 
 					@Override
 					public SenseiResult call() throws Exception {
 						return  _svc.doQuery(req);
 					}
-				   });				   
+				   });	
+				   
+				   _numDocs = res.getTotalDocs();
 			   }
 			   catch(Exception e){
 			     e.printStackTrace();

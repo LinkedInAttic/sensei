@@ -1,4 +1,4 @@
-package com.senseidb.perf.indexing.client;
+package com.sensei.perf.indexing.client;
 
 
 public abstract class PollingDataCollector implements Runnable {
