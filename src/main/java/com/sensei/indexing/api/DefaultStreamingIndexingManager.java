@@ -31,6 +31,7 @@ import proj.zoie.mbean.DataProviderAdminMBean;
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.sensei.conf.SenseiSchema;
 import com.sensei.indexing.api.DataProviderFactoryRegistry.DataProviderBuilder;
+import com.sensei.search.jmx.JmxUtil;
 import com.sensei.search.nodes.SenseiIndexingManager;
 
 public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JSONObject> {
@@ -153,7 +154,7 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 		}
 		
 		try {
-		   ObjectName dataProviderMBeanName = new ObjectName("senseidb","indexing-manager","stream-data-provider");
+		   ObjectName dataProviderMBeanName = new ObjectName(JmxUtil.Domain,"indexing-manager","stream-data-provider");
 		   StandardMBean dataProviderMbean = new StandardMBean(new DataProviderAdmin(dataProvider), DataProviderAdminMBean.class);
 		   _mbeanServer.registerMBean(dataProviderMbean, dataProviderMBeanName);
 		   _registeredMBeans.add(dataProviderMBeanName);

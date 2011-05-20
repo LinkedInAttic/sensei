@@ -30,6 +30,7 @@ import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.facets.RuntimeFacetHandlerFactory;
 
+import com.sensei.search.jmx.JmxUtil;
 import com.sensei.search.req.SenseiSystemInfo;
 
 
@@ -164,7 +165,7 @@ public class SenseiCore{
         String[] mbeannames = zoieSystem.getStandardMBeanNames();
         for(String name : mbeannames)
         {
-          ObjectName oname = new ObjectName("SenseiCore", "name", name + "-" + _id+"-"+part);
+          ObjectName oname = new ObjectName(JmxUtil.Domain, "name", name + "-" + _id+"-"+part);
           try
           {
             mbeanServer.registerMBean(zoieSystem.getStandardMBean(name), oname);
