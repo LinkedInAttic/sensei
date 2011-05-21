@@ -48,8 +48,8 @@
           xlink:href="http://sna-projects.com/norbert/">http://sna-projects.com/norbert/</link>):
           a library that provides easy cluster management and workload
           distribution.  Norbert is built on ZooKeeper
-          <indexterm><primary>ZooKeeper</primary></indexterm> and Netty
-          <indexterm><primary>Netty</primary></indexterm>.
+          <indexterm><primary>ZooKeeper</primary></indexterm> and Netty.
+          <indexterm><primary>Netty</primary></indexterm>
           </para>
         </listitem>
     </itemizedlist>

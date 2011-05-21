@@ -681,7 +681,7 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
             <listitem>
               <itemizedlist spacing="compact">
                 <listitem>
-                  <para>Type: comma separated integers or ranges</para>
+                  <para>Type: String (comma separated integers or ranges)</para>
                 </listitem>
                 <listitem>
                   <para>Required: Yes </para>
@@ -742,26 +742,6 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
           </varlistentry>
 
           <varlistentry>
-            <term><emphasis role="bold">sensei.server.requestThreadMaxPoolSize</emphasis></term>
-            <listitem>
-              <itemizedlist spacing="compact">
-                <listitem>
-                  <para>Type: int</para>
-                </listitem>
-                <listitem>
-                  <para>Required: No</para>
-                </listitem>
-                <listitem>
-                  <para>Default: 70</para>
-                </listitem>
-              </itemizedlist>
-
-              <para>This is the maximum size of thread pool used to
-              execute requests.</para>
-            </listitem>
-          </varlistentry>
-
-          <varlistentry>
             <term><emphasis role="bold">sensei.server.requestThreadKeepAliveTimeSecs</emphasis></term>
             <listitem>
               <itemizedlist spacing="compact">
@@ -778,6 +758,26 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
 
               <para>This is the length of time in seconds to keep an
               idle request thread alive.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term><emphasis role="bold">sensei.server.requestThreadMaxPoolSize</emphasis></term>
+            <listitem>
+              <itemizedlist spacing="compact">
+                <listitem>
+                  <para>Type: int</para>
+                </listitem>
+                <listitem>
+                  <para>Required: No</para>
+                </listitem>
+                <listitem>
+                  <para>Default: 70</para>
+                </listitem>
+              </itemizedlist>
+
+              <para>This is the maximum size of thread pool used to
+              execute requests.</para>
             </listitem>
           </varlistentry>
 
@@ -811,26 +811,6 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
           </varlistentry>
 
           <varlistentry>
-            <term><emphasis role="bold">sensei.cluster.url</emphasis></term>
-            <listitem>
-              <itemizedlist spacing="compact">
-                <listitem>
-                  <para>Type: String</para>
-                </listitem>
-                <listitem>
-                  <para>Required: Yes</para>
-                </listitem>
-                <listitem>
-                  <para>Default: None</para>
-                </listitem>
-              </itemizedlist>
-
-              <para>This is the ZooKeeper URL for the Sensei
-              cluster.</para>
-            </listitem>
-          </varlistentry>
-
-          <varlistentry>
             <term><emphasis role="bold">sensei.cluster.timeout</emphasis></term>
             <listitem>
               <itemizedlist spacing="compact">
@@ -850,18 +830,8 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
             </listitem>
           </varlistentry>
 
-        </variablelist>
-
-      </section>
-
-      <section>
-        <title>Indexing Properties</title>
-
-        <variablelist>
-          <?dbfo list-presentation="blocks"?>
-
           <varlistentry>
-            <term><emphasis role="bold">sensei.index.directory</emphasis></term>
+            <term><emphasis role="bold">sensei.cluster.url</emphasis></term>
             <listitem>
               <itemizedlist spacing="compact">
                 <listitem>
@@ -875,7 +845,50 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
                 </listitem>
               </itemizedlist>
 
-              <para>This is the directory used to save the index.</para>
+              <para>This is the ZooKeeper URL for the Sensei
+              cluster.</para>
+            </listitem>
+          </varlistentry>
+
+        </variablelist>
+
+      </section>
+
+      <!-- Indexing Properties -->
+
+      <section>
+        <title>Indexing Properties</title>
+
+        <variablelist>
+          <?dbfo list-presentation="blocks"?>
+
+          <varlistentry>
+            <term><emphasis role="bold">sensei.index.analyzer</emphasis></term>
+            <listitem>
+              <para>See <emphasis
+              role="bold">sensei.index.analyzer</emphasis> in <xref
+              linkend="sect-plugin-props"/>.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term><emphasis role="bold">sensei.index.batchDelay</emphasis></term>
+            <listitem>
+              <itemizedlist spacing="compact">
+                <listitem>
+                  <para>Type: int</para>
+                </listitem>
+                <listitem>
+                  <para>Required: No</para>
+                </listitem>
+                <listitem>
+                  <para>Default: 300000</para>
+                </listitem>
+              </itemizedlist>
+
+              <para>This is the maximum time to wait in milliseconds
+              before flushing index events to disk.  The default value
+              is 5 minutes.</para>
             </listitem>
           </varlistentry>
 
@@ -906,23 +919,99 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
           </varlistentry>
 
           <varlistentry>
-            <term><emphasis role="bold">sensei.index.batchDelay</emphasis></term>
+            <term><emphasis role="bold">sensei.index.directory</emphasis></term>
+            <listitem>
+              <itemizedlist spacing="compact">
+                <listitem>
+                  <para>Type: String</para>
+                </listitem>
+                <listitem>
+                  <para>Required: Yes</para>
+                </listitem>
+                <listitem>
+                  <para>Default: None</para>
+                </listitem>
+              </itemizedlist>
+
+              <para>This is the directory used to save the index.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term><emphasis role="bold">sensei.index.freshness</emphasis></term>
+            <listitem>
+              <itemizedlist spacing="compact">
+                <listitem>
+                  <para>Type: long</para>
+                </listitem>
+                <listitem>
+                  <para>Required: No</para>
+                </listitem>
+                <listitem>
+                  <para>Default: 500</para>
+                </listitem>
+              </itemizedlist>
+
+              <para>This controls the freshness of entries in the index
+              reader cache.</para>
+            </listitem>
+          </varlistentry>
+
+
+          <varlistentry>
+            <term><emphasis role="bold">sensei.index.interpreter</emphasis></term>
+            <listitem>
+              <para>See <emphasis
+              role="bold">sensei.index.interpreter</emphasis> in <xref
+              linkend="sect-plugin-props"/>.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term><emphasis role="bold">sensei.index.manager</emphasis></term>
+            <listitem>
+              <para>See <emphasis
+              role="bold">sensei.index.manager</emphasis> in <xref
+              linkend="sect-plugin-props"/>.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term><emphasis role="bold">sensei.index.manager.default.maxpartition.id</emphasis></term>
             <listitem>
               <itemizedlist spacing="compact">
                 <listitem>
                   <para>Type: int</para>
                 </listitem>
                 <listitem>
-                  <para>Required: No</para>
+                  <para>Required: Yes if the default indexing manager is
+                  chosen; No otherwise.</para>
                 </listitem>
                 <listitem>
-                  <para>Default: 300000</para>
+                  <para>Default: None</para>
                 </listitem>
               </itemizedlist>
 
-              <para>This is the maximum time to wait in milliseconds
-              before flushing index events to disk.  The default value
-              is 5 minutes.</para>
+              <para>This is the maximum partition ID number served by
+              this Sensei cluster.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term><emphasis role="bold">sensei.index.manager.default.shardingStrategy</emphasis></term>
+            <listitem>
+              <para>See <emphasis
+              role="bold">sensei.index.manager.default.shardingStrategy</emphasis>
+              in <xref linkend="sect-plugin-props"/>.</para>
+            </listitem>            
+          </varlistentry>
+
+          <varlistentry>
+            <term><emphasis role="bold">sensei.index.manager.default.type</emphasis></term>
+            <listitem>
+              <para>See <emphasis
+              role="bold">sensei.index.manager.default.type</emphasis> in <xref
+              linkend="sect-plugin-props"/>.</para>
             </listitem>
           </varlistentry>
 
@@ -966,22 +1055,11 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
           </varlistentry>
 
           <varlistentry>
-            <term><emphasis role="bold">sensei.index.freshness</emphasis></term>
+            <term><emphasis role="bold">sensei.index.similarity</emphasis></term>
             <listitem>
-              <itemizedlist spacing="compact">
-                <listitem>
-                  <para>Type: long</para>
-                </listitem>
-                <listitem>
-                  <para>Required: No</para>
-                </listitem>
-                <listitem>
-                  <para>Default: 500</para>
-                </listitem>
-              </itemizedlist>
-
-              <para>This controls the freshness of entries in the index
-              reader cache.</para>
+              <para>See <emphasis
+              role="bold">sensei.index.similarity</emphasis> in <xref
+              linkend="sect-plugin-props"/>.</para>
             </listitem>
           </varlistentry>
 
@@ -1008,15 +1086,46 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
 
               <orderedlist spacing="compact">
                 <listitem>
-                  <para><emphasis>sensei.indexer.hourglass.schedule</emphasis></para>
+                  <para><emphasis role="bold">sensei.indexer.hourglass.schedule</emphasis></para>
                 </listitem>
                 <listitem>
-                  <para><emphasis>sensei.indexer.hourglass.timethreshold</emphasis></para>
+                  <para><emphasis role="bold">sensei.indexer.hourglass.timethreshold</emphasis></para>
                 </listitem>
                 <listitem>
-                  <para><emphasis>sensei.indexer.hourglass.frequency</emphasis></para>
+                  <para><emphasis role="bold">sensei.indexer.hourglass.frequency</emphasis></para>
                 </listitem>
               </orderedlist>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term><emphasis role="bold">sensei.indexer.hourglass.frequency</emphasis></term>
+            <listitem>
+              <itemizedlist spacing="compact">
+                <listitem>
+                  <para>Type: String</para>
+                </listitem>
+                <listitem>
+                  <para>Required: No</para>
+                </listitem>
+                <listitem>
+                  <para>Default: "<literal>day</literal>"</para>
+                </listitem>
+              </itemizedlist>
+
+              <para>This is the rolling forward frequency.  It has to be
+              one of the following three values:</para>
+              <itemizedlist spacing="compact">
+                <listitem>
+                  <para><literal>day</literal></para>
+                </listitem>
+                <listitem>
+                  <para><literal>hour</literal></para>
+                </listitem>
+                <listitem>
+                  <para><literal>minute</literal></para>
+                </listitem>
+              </itemizedlist>
             </listitem>
           </varlistentry>
 
@@ -1070,37 +1179,6 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
             </listitem>
           </varlistentry>
 
-          <varlistentry>
-            <term><emphasis role="bold">sensei.indexer.hourglass.frequency</emphasis></term>
-            <listitem>
-              <itemizedlist spacing="compact">
-                <listitem>
-                  <para>Type: String</para>
-                </listitem>
-                <listitem>
-                  <para>Required: No</para>
-                </listitem>
-                <listitem>
-                  <para>Default: "<literal>day</literal>"</para>
-                </listitem>
-              </itemizedlist>
-
-              <para>This is the rolling forward frequency.  It has to be
-              one of the following three values:</para>
-              <itemizedlist spacing="compact">
-                <listitem>
-                  <para><literal>day</literal></para>
-                </listitem>
-                <listitem>
-                  <para><literal>hour</literal></para>
-                </listitem>
-                <listitem>
-                  <para><literal>minute</literal></para>
-                </listitem>
-              </itemizedlist>
-            </listitem>
-          </varlistentry>
-
         </variablelist>
 
       </section>
@@ -1110,65 +1188,6 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
 
         <variablelist>
           <?dbfo list-presentation="blocks"?>
-
-          <varlistentry>
-            <term><emphasis role="bold">sensei.broker.port</emphasis></term>
-            <listitem>
-              <itemizedlist spacing="compact">
-                <listitem>
-                  <para>Type: int</para>
-                </listitem>
-                <listitem>
-                  <para>Required: Yes</para>
-                </listitem>
-                <listitem>
-                  <para>Default: None</para>
-                </listitem>
-              </itemizedlist>
-
-              <para>This is the port number of the Sensei broker.</para>
-            </listitem>
-          </varlistentry>
-
-          <varlistentry>
-            <term><emphasis role="bold">sensei.broker.webapp.path</emphasis></term>
-            <listitem>
-              <itemizedlist spacing="compact">
-                <listitem>
-                  <para>Type: String</para>
-                </listitem>
-                <listitem>
-                  <para>Required: Yes</para>
-                </listitem>
-                <listitem>
-                  <para>Default: None</para>
-                </listitem>
-              </itemizedlist>
-
-              <para>This is the resource base of the broker web
-              application.</para>
-            </listitem>
-          </varlistentry>
-
-          <varlistentry>
-            <term><emphasis role="bold">sensei.broker.minThread</emphasis></term>
-            <listitem>
-              <itemizedlist spacing="compact">
-                <listitem>
-                  <para>Type: int</para>
-                </listitem>
-                <listitem>
-                  <para>Required: No</para>
-                </listitem>
-                <listitem>
-                  <para>Default: 20</para>
-                </listitem>
-              </itemizedlist>
-
-              <para>This is the core size of thread pool used by the
-              broker to execute requests.</para>
-            </listitem>
-          </varlistentry>
 
           <varlistentry>
             <term><emphasis role="bold">sensei.broker.maxThread</emphasis></term>
@@ -1208,6 +1227,65 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
               <para>This is the maximum idle time in milliseconds for a
               thread on brokers.  Threads that are idle for longer than
               this period may be stopped.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term><emphasis role="bold">sensei.broker.minThread</emphasis></term>
+            <listitem>
+              <itemizedlist spacing="compact">
+                <listitem>
+                  <para>Type: int</para>
+                </listitem>
+                <listitem>
+                  <para>Required: No</para>
+                </listitem>
+                <listitem>
+                  <para>Default: 20</para>
+                </listitem>
+              </itemizedlist>
+
+              <para>This is the core size of thread pool used by the
+              broker to execute requests.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term><emphasis role="bold">sensei.broker.port</emphasis></term>
+            <listitem>
+              <itemizedlist spacing="compact">
+                <listitem>
+                  <para>Type: int</para>
+                </listitem>
+                <listitem>
+                  <para>Required: Yes</para>
+                </listitem>
+                <listitem>
+                  <para>Default: None</para>
+                </listitem>
+              </itemizedlist>
+
+              <para>This is the port number of the Sensei broker.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term><emphasis role="bold">sensei.broker.webapp.path</emphasis></term>
+            <listitem>
+              <itemizedlist spacing="compact">
+                <listitem>
+                  <para>Type: String</para>
+                </listitem>
+                <listitem>
+                  <para>Required: Yes</para>
+                </listitem>
+                <listitem>
+                  <para>Default: None</para>
+                </listitem>
+              </itemizedlist>
+
+              <para>This is the resource base of the broker web
+              application.</para>
             </listitem>
           </varlistentry>
 
@@ -1374,7 +1452,9 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
         
       </section>
 
-      <section>
+      <!-- Plug-in Properties -->
+
+      <section xml:id="sect-plugin-props">
         <title>Plug-in Properties</title>
 
         <variablelist>
@@ -1426,6 +1506,27 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
           </varlistentry>
 
           <varlistentry>
+            <term><emphasis role="bold">sensei.version.comparator</emphasis></term>
+            <listitem>
+              <itemizedlist spacing="compact">
+                <listitem>
+                  <para>Type: String</para>
+                </listitem>
+                <listitem>
+                  <para>Required: No</para>
+                </listitem>
+                <listitem>
+                  <para>Default: ""</para>
+                </listitem>
+              </itemizedlist>
+
+              <para>This specifies the bean ID of version comparator
+              plug-in to be used by Zoie.  If not specified, Zoie's
+              default version comparator is used.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
             <term><emphasis role="bold">sensei.index.interpreter</emphasis></term>
             <listitem>
               <itemizedlist spacing="compact">
@@ -1443,7 +1544,32 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
               <para>This specifies the bean ID of the interpretor of
               Zoie indexables.  If not specified,
               <literal>com.sensei.indexing.api.DefaultJsonSchemaInterpreter</literal>
-              is to be used.</para>
+              is used.</para>
+
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term><emphasis role="bold">sensei.index.manager</emphasis></term>
+            <listitem>
+              <itemizedlist spacing="compact">
+                <listitem>
+                  <para>Type: String</para>
+                </listitem>
+                <listitem>
+                  <para>Required: No</para>
+                </listitem>
+                <listitem>
+                  <para>Default: ""</para>
+                </listitem>
+              </itemizedlist>
+
+              <para>This specifies the bean ID of the indexing manager
+              object implementing
+              <literal>com.sensei.search.nodes.SenseiIndexingManager</literal>.
+              If not specified,
+              <literal>com.sensei.indexing.api.DefaultStreamingIndexingManager</literal>
+              is used.</para>
             </listitem>
           </varlistentry>
 
@@ -1455,39 +1581,86 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
                   <para>Type: String</para>
                 </listitem>
                 <listitem>
-                  <para>Required: Yes</para>
+                  <para>Required: Yes if <emphasis
+                  role="bold">sensei.index.manager</emphasis> is not
+                  specified, i.e. the default indexing manager is
+                  used.</para>
                 </listitem>
                 <listitem>
                   <para>Default: None</para>
                 </listitem>
               </itemizedlist>
 
-              <para>This is the type of the index manager data provider
-              that will be used by Sensei.  Currently the following
+              <para>This specifies the type of the data provider that
+              will be used by the default indexing manager.  The value
+              identifies the bean ID of the object of a data provider
+              builder:</para>
+
+              <programlisting>  com.sensei.indexing.api.DataProviderFactoryRegistry.DataProviderBuilder</programlisting>
+
+              <para>Several built-in data providers are provided by
+              Sensei, but you can always define your own version based
+              on your need.  No matter a built-in data provider or a
+              custom data provider is used, additional parameters can be
+              specified under the names of <emphasis
+              role="bold">sensei.index.manager.default.&lt;data-provider-type&gt;</emphasis>.</para>
+
+              <para>Currently the following built-in data provider
               types are supported:</para>
 
-              <itemizedlist spacing="compact">
+              <itemizedlist>
                 <listitem>
-                  <para><literal>file</literal></para>
+                  <para><literal>file</literal>:</para>
+
+                  <para>This type of data provider takes a regular text
+                  file as the input.  Each line in the file contains a
+                  data entry in JSON format.</para>
+
+                  <para>Only one property needs to be set for this type
+                  of data providers.  See <xref
+                  linkend="sect-file-data-provider-props"/> </para>
                 </listitem>
+
                 <listitem>
-                  <para><literal>kafka</literal></para>
+                  <para><literal>kafka</literal>: </para>
+
+                  <para>This type of data provider takes Kafka messages
+                  as input.</para>
+
+                  <para>See <xref
+                  linkend="sect-kafka-data-provider-props"/> for
+                  additional property information.</para>
                 </listitem>
+
                 <listitem>
-                  <para><literal>custom</literal></para>
+                  <para><literal>jms</literal>:</para>
+
+                  <para>This type of data provider takes Java Message
+                  Service as input.</para>
+
+                  <para>See <xref
+                  linkend="sect-jms-data-provider-props"/> for
+                  additional property information.</para>
+                </listitem>
+
+                <listitem>
+                  <para><literal>jdbc</literal>:</para>
+
+                  <para>This type of data provider takes JDBC data as
+                  input.</para>
+
+                  <para>See <xref
+                  linkend="sect-jdbc-data-provider-props"/> for
+                  additional property information.</para>
                 </listitem>
               </itemizedlist>
 
-              <para>If a customized index manager is provided, property
-              <emphasis>sensei.index.manager.default.custom</emphasis>
-              and
-              <emphasis>sensei.index.manager.default.filter</emphasis>
-              should be set too.</para>
             </listitem>
           </varlistentry>
 
+          <!-- XXX -->
           <varlistentry>
-            <term><emphasis role="bold">sensei.index.manager.default.custom</emphasis></term>
+            <term><emphasis role="bold">sensei.index.manager.default.filter</emphasis></term>
             <listitem>
               <itemizedlist spacing="compact">
                 <listitem>
@@ -1501,8 +1674,8 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
                 </listitem>
               </itemizedlist>
 
-              <para>This is the bean ID of the customized data provider
-              used by user provided index manager.</para>
+              <para>This is the bean ID of the JSON filter used by user
+              provided index manager.</para>
             </listitem>
           </varlistentry>
 
@@ -1525,28 +1698,329 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
             </listitem>
           </varlistentry>
 
-
-          <varlistentry>
-            <term><emphasis role="bold">sensei.index.manager.default.filter</emphasis></term>
-            <listitem>
-              <itemizedlist spacing="compact">
-                <listitem>
-                  <para>Type: String</para>
-                </listitem>
-                <listitem>
-                  <para>Required: No</para>
-                </listitem>
-                <listitem>
-                  <para>Default: None</para>
-                </listitem>
-              </itemizedlist>
-
-              <para>This is the bean ID of the JSON filter used by user
-              provided index manager.</para>
-            </listitem>
-          </varlistentry>
-
         </variablelist>
+
+        <section xml:id="sect-file-data-provider-props">
+          <title>File Data Provider Properties</title>
+
+          <para>For <literal>file</literal> data providers, the
+          following property has to be specified:</para>
+
+          <variablelist>
+            <?dbfo list-presentation="blocks"?>
+
+            <varlistentry>
+              <term><emphasis role="bold">sensei.index.manager.default.file.path</emphasis></term>
+              <listitem>
+                <itemizedlist spacing="compact">
+                  <listitem>
+                    <para>Type: String</para>
+                  </listitem>
+                  <listitem>
+                    <para>Required: Yes</para>
+                  </listitem>
+                  <listitem>
+                    <para>Default: None</para>
+                  </listitem>
+                </itemizedlist>
+
+                <para>This is the path to the input data file.</para>
+              </listitem>
+            </varlistentry>
+          </variablelist>          
+
+        </section>
+
+        <section xml:id="sect-kafka-data-provider-props">
+          <title>Kafka Data Provider Properties</title>
+
+          <para>For <literal>kafka</literal> data providers, the
+          following properties should/can be specified: <footnote>
+          <para>These properties are basically the parameters needed
+          by the Kafka consumer API.  The Simple Consumer API from
+          Kafka is used by Sensei.</para></footnote></para>
+
+          <variablelist>
+            <?dbfo list-presentation="blocks"?>
+
+            <varlistentry>
+              <term><emphasis role="bold">sensei.index.manager.default.kafka.host</emphasis></term>
+              <listitem>
+                <itemizedlist spacing="compact">
+                  <listitem>
+                    <para>Type: String</para>
+                  </listitem>
+                  <listitem>
+                    <para>Required: Yes</para>
+                  </listitem>
+                  <listitem>
+                    <para>Default: None</para>
+                  </listitem>
+                </itemizedlist>
+
+                <para>This is the host name of the Kafka server.</para>
+              </listitem>
+            </varlistentry>
+
+            <varlistentry>
+              <term><emphasis role="bold">sensei.index.manager.default.kafka.port</emphasis></term>
+              <listitem>
+                <itemizedlist spacing="compact">
+                  <listitem>
+                    <para>Type: int</para>
+                  </listitem>
+                  <listitem>
+                    <para>Required: Yes</para>
+                  </listitem>
+                  <listitem>
+                    <para>Default: None</para>
+                  </listitem>
+                </itemizedlist>
+
+                <para>This is the port number on which the Kafka
+                server is listening for connections.</para>
+              </listitem>
+            </varlistentry>
+
+            <varlistentry>
+              <term><emphasis role="bold">sensei.index.manager.default.kafka.topic</emphasis></term>
+              <listitem>
+                <itemizedlist spacing="compact">
+                  <listitem>
+                    <para>Type: String</para>
+                  </listitem>
+                  <listitem>
+                    <para>Required: Yes</para>
+                  </listitem>
+                  <listitem>
+                    <para>Default: None</para>
+                  </listitem>
+                </itemizedlist>
+
+                <para>The topic of the messages to be fetched.</para>
+              </listitem>
+            </varlistentry>
+
+            <varlistentry>
+              <term><emphasis role="bold">sensei.index.manager.default.kafka.timeout</emphasis></term>
+              <listitem>
+                <itemizedlist spacing="compact">
+                  <listitem>
+                    <para>Type: int</para>
+                  </listitem>
+                  <listitem>
+                    <para>Required: Yes</para>
+                  </listitem>
+                  <listitem>
+                    <para>Default: 10000</para>
+                  </listitem>
+                </itemizedlist>
+
+                <para>This is the socket timeout in milliseconds.</para>
+              </listitem>
+            </varlistentry>
+
+            <varlistentry>
+              <term><emphasis role="bold">sensei.index.manager.default.kafka.batchsize</emphasis></term>
+              <listitem>
+                <itemizedlist spacing="compact">
+                  <listitem>
+                    <para>Type: String</para>
+                  </listitem>
+                  <listitem>
+                    <para>Required: Yes</para>
+                  </listitem>
+                  <listitem>
+                    <para>Default: None</para>
+                  </listitem>
+                </itemizedlist>
+
+                <para>This is the batch size for each pull request.</para>
+              </listitem>
+            </varlistentry>
+
+          </variablelist>   <!-- kafka data provider properties -->
+
+        </section>
+
+        <section xml:id="sect-jms-data-provider-props">
+          <title>JMS Data Provider Properties</title>
+
+          <para>For <literal>jms</literal> data providers, the
+          following properties should/can be specified:</para>
+
+          <variablelist>
+            <?dbfo list-presentation="blocks"?>
+
+            <varlistentry>
+              <term><emphasis role="bold">sensei.index.manager.default.jms.</emphasis></term>
+              <listitem>
+                <itemizedlist spacing="compact">
+                  <listitem>
+                    <para>Type: String</para>
+                  </listitem>
+                  <listitem>
+                    <para>Required: Yes</para>
+                  </listitem>
+                  <listitem>
+                    <para>Default: None</para>
+                  </listitem>
+                </itemizedlist>
+
+                <para></para>
+              </listitem>
+            </varlistentry>
+
+            <varlistentry>
+              <term><emphasis role="bold">sensei.index.manager.default.jms.</emphasis></term>
+              <listitem>
+                <itemizedlist spacing="compact">
+                  <listitem>
+                    <para>Type: String</para>
+                  </listitem>
+                  <listitem>
+                    <para>Required: Yes</para>
+                  </listitem>
+                  <listitem>
+                    <para>Default: None</para>
+                  </listitem>
+                </itemizedlist>
+
+                <para></para>
+              </listitem>
+            </varlistentry>
+
+            <varlistentry>
+              <term><emphasis role="bold">sensei.index.manager.default.jms.</emphasis></term>
+              <listitem>
+                <itemizedlist spacing="compact">
+                  <listitem>
+                    <para>Type: String</para>
+                  </listitem>
+                  <listitem>
+                    <para>Required: Yes</para>
+                  </listitem>
+                  <listitem>
+                    <para>Default: None</para>
+                  </listitem>
+                </itemizedlist>
+
+                <para></para>
+              </listitem>
+            </varlistentry>
+
+            <varlistentry>
+              <term><emphasis role="bold">sensei.index.manager.default.jms.</emphasis></term>
+              <listitem>
+                <itemizedlist spacing="compact">
+                  <listitem>
+                    <para>Type: String</para>
+                  </listitem>
+                  <listitem>
+                    <para>Required: Yes</para>
+                  </listitem>
+                  <listitem>
+                    <para>Default: None</para>
+                  </listitem>
+                </itemizedlist>
+
+                <para></para>
+              </listitem>
+            </varlistentry>
+
+          </variablelist>   <!-- jms data provider properties -->
+
+        </section>
+
+        <section xml:id="sect-jdbc-data-provider-props">
+          <title>JDBC Data Provider Properties</title>
+
+          <para>For <literal>jdbc</literal> data providers, the
+          following properties should/can be specified:</para>
+
+          <variablelist>
+            <?dbfo list-presentation="blocks"?>
+
+            <varlistentry>
+              <term><emphasis role="bold">sensei.index.manager.default.jms.</emphasis></term>
+              <listitem>
+                <itemizedlist spacing="compact">
+                  <listitem>
+                    <para>Type: String</para>
+                  </listitem>
+                  <listitem>
+                    <para>Required: Yes</para>
+                  </listitem>
+                  <listitem>
+                    <para>Default: None</para>
+                  </listitem>
+                </itemizedlist>
+
+                <para></para>
+              </listitem>
+            </varlistentry>
+
+            <varlistentry>
+              <term><emphasis role="bold">sensei.index.manager.default.jms.</emphasis></term>
+              <listitem>
+                <itemizedlist spacing="compact">
+                  <listitem>
+                    <para>Type: String</para>
+                  </listitem>
+                  <listitem>
+                    <para>Required: Yes</para>
+                  </listitem>
+                  <listitem>
+                    <para>Default: None</para>
+                  </listitem>
+                </itemizedlist>
+
+                <para></para>
+              </listitem>
+            </varlistentry>
+
+            <varlistentry>
+              <term><emphasis role="bold">sensei.index.manager.default.jms.</emphasis></term>
+              <listitem>
+                <itemizedlist spacing="compact">
+                  <listitem>
+                    <para>Type: String</para>
+                  </listitem>
+                  <listitem>
+                    <para>Required: Yes</para>
+                  </listitem>
+                  <listitem>
+                    <para>Default: None</para>
+                  </listitem>
+                </itemizedlist>
+
+                <para></para>
+              </listitem>
+            </varlistentry>
+
+            <varlistentry>
+              <term><emphasis role="bold">sensei.index.manager.default.jms.</emphasis></term>
+              <listitem>
+                <itemizedlist spacing="compact">
+                  <listitem>
+                    <para>Type: String</para>
+                  </listitem>
+                  <listitem>
+                    <para>Required: Yes</para>
+                  </listitem>
+                  <listitem>
+                    <para>Default: None</para>
+                  </listitem>
+                </itemizedlist>
+
+                <para></para>
+              </listitem>
+            </varlistentry>
+
+          </variablelist>   <!-- jdbc data provider properties -->
+
+        </section>
+
 
       </section>
     </section>
