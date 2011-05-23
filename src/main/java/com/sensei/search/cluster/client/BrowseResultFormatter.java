@@ -11,7 +11,7 @@ import com.browseengine.bobo.api.FacetAccessible;
 
 public class BrowseResultFormatter{
     
-    static String formatResults(BrowseResult res) {
+    public static String formatResults(BrowseResult res) {
             StringBuffer sb = new StringBuffer();
             sb.append(res.getNumHits());
             sb.append(" hits out of ");

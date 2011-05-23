@@ -32,10 +32,9 @@ public class DefaultJsonQueryBuilderFactory extends
 			@Override
 			public Query buildQuery() throws ParseException {
 				if (queryString!=null && queryString.length()>0){
-          synchronized(_qparser)
-          {
-            return _qparser.parse(queryString);
-          }
+					synchronized(_qparser){
+					  return _qparser.parse(queryString);
+					}
 				}
 				else{
 					return new MatchAllDocsQuery();

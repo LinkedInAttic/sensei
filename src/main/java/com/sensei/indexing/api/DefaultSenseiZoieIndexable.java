@@ -18,8 +18,6 @@ import proj.zoie.api.indexing.ZoieIndexable.IndexingReq;
 
 import com.sensei.indexing.api.DefaultSenseiInterpreter.IndexSpec;
 import com.sensei.indexing.api.DefaultSenseiInterpreter.MetaFormatSpec;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
-
 
 public class DefaultSenseiZoieIndexable<V> extends AbstractZoieIndexable{
 

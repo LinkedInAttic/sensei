@@ -15,15 +15,16 @@ public abstract class LinedFileDataProvider<D> extends StreamDataProvider<D> {
 	private static final Logger logger = Logger.getLogger(LinedFileDataProvider.class);
 	
 	private final File _file;
+	private long _startingOffset;
 	private long _offset;
 	
 	private RandomAccessFile _rad;
 	
 	public LinedFileDataProvider(Comparator<String> versionComparator, File file,long startingOffset){
-    super(versionComparator);
+      super(versionComparator);
 	  _file = file;
 	  _rad = null;
-	  _offset = startingOffset;
+	  _startingOffset = startingOffset;
 	}
 	
 	protected abstract D convertLine(String line) throws IOException;
@@ -51,14 +52,14 @@ public abstract class LinedFileDataProvider<D> extends StreamDataProvider<D> {
 
 	@Override
 	public void setStartingOffset(String version) {
-		_offset = Long.parseLong(version);
+		_startingOffset = Long.parseLong(version);
 	}
 
 	@Override
 	public void reset() {
 	  if (_rad!=null){
 		  try {
-			_offset = 0;
+			_offset = _startingOffset;
 			_rad.seek(_offset);
 		} catch (IOException e) {
 			logger.error(e.getMessage(),e);
@@ -71,6 +72,7 @@ public abstract class LinedFileDataProvider<D> extends StreamDataProvider<D> {
 		super.start();
 		try{
 		  _rad = new RandomAccessFile(_file,"r");
+		  _offset = _startingOffset;
 		  _rad.seek(_offset);
 		}
 		catch(IOException ioe){

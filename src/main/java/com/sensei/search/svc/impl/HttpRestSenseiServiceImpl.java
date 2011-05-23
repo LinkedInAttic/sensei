@@ -6,12 +6,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -53,6 +57,7 @@ import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
+import org.apache.log4j.Logger;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.search.Explanation;
@@ -60,8 +65,6 @@ import org.apache.lucene.search.SortField;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.BrowseSelection;
@@ -81,6 +84,7 @@ import com.sensei.search.svc.api.SenseiService;
 
 public class HttpRestSenseiServiceImpl implements SenseiService
 {
+  private static final Logger log = Logger.getLogger(HttpRestSenseiServiceImpl.class);
   String _scheme;
   String _host;
   int _port;
@@ -137,12 +141,23 @@ public class HttpRestSenseiServiceImpl implements SenseiService
     _maxRetries = maxRetries;
     _httpclient = createHttpClient(retryHandler);
   }
+  
+  public HttpRestSenseiServiceImpl(String urlString) throws MalformedURLException{
+	URL url = new URL(urlString);
+	_scheme = url.getProtocol();
+	_host = url.getHost();
+	_port = url.getPort();
+	_path = url.getPath();
+	_defaultKeepAliveDurationMS = 5000;
+	_maxRetries = 5;
+	_httpclient = createHttpClient(null);
+  }
 
   private DefaultHttpClient createHttpClient(HttpRequestRetryHandler retryHandler)
   {
     HttpParams params = new BasicHttpParams();
     SchemeRegistry registry = new SchemeRegistry();
-    registry.register(new Scheme("http", _port, PlainSocketFactory.getSocketFactory()));
+    registry.register(new Scheme(_scheme, _port, PlainSocketFactory.getSocketFactory()));
     ClientConnectionManager cm = new ThreadSafeClientConnManager(registry);
     DefaultHttpClient client = new DefaultHttpClient(cm, params);
     if (retryHandler == null)
@@ -316,7 +331,37 @@ public class HttpRestSenseiServiceImpl implements SenseiService
   public SenseiSystemInfo getSystemInfo()
       throws SenseiException
   {
-    throw new NotImplementedException();
+    SenseiSystemInfo result;
+    InputStream is = null;
+
+    try
+    {
+      URI requestURI = buildSysInfoRequestURI();
+      is = makeRequest(requestURI);
+      JSONObject jsonObj = convertStreamToJSONObject(is);
+      result = buildSysInfo(jsonObj);
+    }
+    catch (URISyntaxException e)
+    {
+      throw new SenseiException(e);
+    }
+    catch (IOException e)
+    {
+      throw new SenseiException(e);
+    }
+    catch (JSONException e)
+    {
+      throw new SenseiException(e);
+    }
+    finally
+    {
+      if (is != null)
+      {
+    	  IOUtils.closeQuietly(is);
+      }
+    }
+
+    return result;
   }
 
   public static List<NameValuePair> convertRequestToQueryParams(SenseiRequest req)
@@ -565,6 +610,20 @@ public class HttpRestSenseiServiceImpl implements SenseiService
     }
   }
 
+  public URI buildSysInfoRequestURI()
+      throws URISyntaxException
+  {
+    URI uri =
+      URIUtils.createURI(
+        _scheme,
+        _host,
+        _port,
+        _path+"/sysinfo",
+        null,
+        null);
+    return uri;
+  }
+
   public URI buildRequestURI(List<NameValuePair> qparams)
       throws URISyntaxException
   {
@@ -582,7 +641,11 @@ public class HttpRestSenseiServiceImpl implements SenseiService
   public InputStream makeRequest(URI uri)
       throws IOException
   {
-	  System.out.println("sending: "+uri);
+
+	if (log.isDebugEnabled()){
+	  log.debug("sending: "+uri);
+	}
+
     HttpGet httpget = new HttpGet(uri);
     HttpResponse response = _httpclient.execute(httpget);
     HttpEntity entity = response.getEntity();
@@ -632,7 +695,9 @@ public class HttpRestSenseiServiceImpl implements SenseiService
     }
 
     String json = sb.toString();
-    System.out.println("received: "+json);
+    if (log.isDebugEnabled()){
+      log.debug("received: "+json);
+    }
     return json;
   }
 
@@ -658,6 +723,85 @@ public class HttpRestSenseiServiceImpl implements SenseiService
     result.setHits(convertHitsArray(jsonObj.getJSONArray(SenseiSearchServletParams.PARAM_RESULT_HITS)));
 
     return result;
+  }
+
+  public static SenseiSystemInfo buildSysInfo(JSONObject jsonObj)
+      throws JSONException
+  {
+    SenseiSystemInfo result = new SenseiSystemInfo();
+
+    result.setNumDocs(jsonObj.getInt(SenseiSearchServletParams.PARAM_SYSINFO_NUMDOCS));
+    result.setLastModified(jsonObj.getLong(SenseiSearchServletParams.PARAM_SYSINFO_LASTMODIFIED));
+    result.setVersion(jsonObj.getString(SenseiSearchServletParams.PARAM_SYSINFO_VERSION));
+    result.setFacetInfos(convertFacetInfos(jsonObj.getJSONArray(SenseiSearchServletParams.PARAM_SYSINFO_FACETS)));
+    result.setClusterInfo(convertClusterInfo(jsonObj.getJSONObject(SenseiSearchServletParams.PARAM_SYSINFO_CLUSTERINFO)));
+
+    return result;
+  }
+
+  private static Set<SenseiSystemInfo.SenseiFacetInfo> convertFacetInfos(JSONArray array)
+      throws JSONException
+  {
+    if (array == null || array.length() == 0)
+      return Collections.EMPTY_SET;
+
+    Set<SenseiSystemInfo.SenseiFacetInfo> infos = new HashSet<SenseiSystemInfo.SenseiFacetInfo>(array.length());
+    for (int i=0; i<array.length(); ++i)
+    {
+      JSONObject info = array.getJSONObject(i);
+      SenseiSystemInfo.SenseiFacetInfo facetInfo =
+        new SenseiSystemInfo.SenseiFacetInfo(info.getString(SenseiSearchServletParams.PARAM_SYSINFO_FACETS_NAME));
+      facetInfo.setRunTime(info.optBoolean(SenseiSearchServletParams.PARAM_SYSINFO_FACETS_RUNTIME));
+      facetInfo.setProps(convertJsonToStringMap(info.optJSONObject(SenseiSearchServletParams.PARAM_SYSINFO_FACETS_PROPS)));
+
+      infos.add(facetInfo);
+    }
+
+    return infos;
+  }
+
+  private static Map<String, String> convertJsonToStringMap(JSONObject jsonObject)
+      throws JSONException
+  {
+    if (jsonObject == null)
+      return Collections.EMPTY_MAP;
+
+    @SuppressWarnings("unchecked")
+    Iterator<String> nameItr = jsonObject.keys();
+
+    Map<String, String> outMap = new HashMap<String, String>();
+    while(nameItr.hasNext())
+    {
+      String name = nameItr.next();
+      outMap.put(name, jsonObject.getString(name));
+    }
+
+    return outMap;
+  }
+
+  private static Map<Integer, List<Integer>> convertClusterInfo(JSONObject jsonObject)
+      throws JSONException
+  {
+    if (jsonObject == null)
+      return Collections.EMPTY_MAP;
+
+    @SuppressWarnings("unchecked")
+    Iterator<String> nameItr = jsonObject.keys();
+
+    Map<Integer, List<Integer>> outMap = new HashMap<Integer, List<Integer>>();
+    while(nameItr.hasNext())
+    {
+      String name = nameItr.next();
+      JSONArray values = jsonObject.getJSONArray(name);
+      List<Integer> nodes = new ArrayList<Integer>(values.length());
+      for(int i=0; i<values.length(); ++i)
+      {
+        nodes.add(values.getInt(i));
+      }
+      outMap.put(Integer.valueOf(name), nodes);
+    }
+
+    return outMap;
   }
 
   private static Map<String, FacetAccessible> convertFacetMap(JSONObject jsonObject)

@@ -16,7 +16,7 @@ logs=$bin/../logs
 #JAVA_DEBUG="-Xdebug -Xrunjdwp:transport=dt_socket,address=1044,server=y,suspend=y"
 #GC_OPTS="-XX:+UseConcMarkSweepGC -XX:+UseParNewGC"
 JAVA_OPTS="-server -d64 -DclusterName=sensei"
-MAIN_CLASS="com.sensei.search.cluster.client.SenseiClusterClient"
+MAIN_CLASS="com.sensei.client.shell.SenseiShell"
 
 
 

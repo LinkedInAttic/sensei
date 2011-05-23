@@ -1,6 +1,12 @@
 package com.sensei.search.req;
 
 import java.io.Serializable;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -119,12 +125,62 @@ public class SenseiSystemInfo implements AbstractSenseiResult {
   @Override
   public String toString(){
     StringBuffer buf = new StringBuffer();
-    buf.append("numDocs: ").append(_numDocs);
-    buf.append("\nlastModified: ").append(_lastModified);
-    buf.append("\nversion: ").append(_version);
-    buf.append("\nfacetInfos: ").append(_facetInfos);
-    buf.append("\nclusterInfo: ").append(_clusterInfo);
+    buf.append("\t- Number of Documents: ").append(_numDocs);
+    buf.append("\n\t- Last Modified: ").append(new SimpleDateFormat("EEE, MMM d, ''yy").format(new Date(_lastModified)));
+    buf.append("\n\t- Version: ").append(_version);
+    buf.append("\n\t- Facet Information: ").append(getCmdOutPutofSet(_facetInfos));
+    buf.append("\n\t- Cluster Information: ").append(_clusterInfo);
     return buf.toString();
+  }
+
+  /**
+   * @param facetInfos
+   * @return
+   */
+  private String getCmdOutPutofSet(Set<SenseiFacetInfo> facetInfos)
+  {
+    StringBuffer buf = new StringBuffer();
+    Iterator<SenseiFacetInfo> it = facetInfos.iterator();
+    int count = 0;
+    while(it.hasNext()){
+      count++;
+      SenseiFacetInfo senseiFacetInfo = it.next();
+      String _name = senseiFacetInfo.getName();
+      boolean _runTime = senseiFacetInfo.isRunTime();
+      Map<String, String> _props = senseiFacetInfo.getProps();
+      Map<String, String> _sorted_props = sortByKey(_props);
+      
+      buf.append("\n\t  "+ padString("("+count+")",4)+"name: ").append(_name);
+      buf.append("\n\t      isRuntime: ").append(_runTime);
+      buf.append("\n\t      props: ").append(_sorted_props);
+    }
+    return buf.toString();
+  }
+  
+  private String padString(String input, int length){
+    if(input.length()>length)
+      return input;
+    else{
+      StringBuffer sb = new StringBuffer(input);
+      for(int i=0; i<(length-input.length()); i++){
+        sb.append(" ");
+      }
+      return sb.toString();
+    }
+  }
+
+  /**
+   * @param _props
+   */
+  private Map<String, String> sortByKey(Map<String, String> _props)
+  {
+    Map<String, String> map= new LinkedHashMap<String, String>();
+    ArrayList<String> sortedKeys = new ArrayList<String>(_props.keySet());
+    Collections.sort(sortedKeys);
+    for(String key: sortedKeys){
+      map.put(key, _props.get(key));
+    }
+    return map;
   }
   
 }
