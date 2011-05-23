@@ -19,19 +19,19 @@
 
       <itemizedlist spacing="compact">
         <listitem>
-          <para>configuration files: <filename>conf/*</filename></para>
+          <para>Configuration files: <filename>conf/*</filename></para>
         </listitem>
 
         <listitem>
-          <para>data file: <filename>data/cars.json</filename></para>
+          <para>Data file: <filename>data/cars.json</filename></para>
         </listitem>
 
         <listitem>
-          <para>output index: <filename>index/</filename></para>
+          <para>Output index: <filename>index/</filename></para>
         </listitem>
 
         <listitem>
-          <para>web-app: <filename>src/main/webapp/</filename></para>
+          <para>Web-app: <filename>src/main/webapp/</filename></para>
         </listitem>
       </itemizedlist>
     </section>

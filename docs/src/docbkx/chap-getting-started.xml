@@ -78,17 +78,21 @@
       <title>Details</title>
 
       <section>
-        <title>Build </title>
+        <title>Building Sensei</title>
+
+        <para>Getting the Sensei source code and building the entire
+        system is straightforward.  Only two commands are needed:</para>
+
         <orderedlist spacing="compact">
           <listitem>
 
-            <para>Check out trunk: 
+            <para>Checking out the source code from trunk: 
             </para>
             <programlisting><![CDATA[  $ git clone git://github.com/javasoze/sensei.git sensei-trunk]]>
             </programlisting>
           </listitem>
           <listitem>
-            <para>Simply do:
+            <para>Building Sensei using <literal>ant</literal>:
             </para>
             <programlisting><![CDATA[  $ ant]]></programlisting>
           </listitem>
@@ -96,14 +100,14 @@
       </section>
 
       <section>
-        <title>ZooKeeper <indexterm><primary>ZooKeeper</primary></indexterm> </title>
+        <title>Starting ZooKeeper<indexterm><primary>ZooKeeper</primary></indexterm> </title>
         <para>
-          In order to run the sample of sensei-search, you have to run
+          In order to run the sample of Sensei search, you have to run
           an instance of ZooKeeper first.
         </para>
 
         <para>
-          You may download it from <link
+          You may download ZooKeeper from <link
           xlink:href="http://hadoop.apache.org/zookeeper/">http://hadoop.apache.org/zookeeper/</link>.
         </para>
 
@@ -115,7 +119,7 @@
         <programlisting><![CDATA[  $ zookeeper-3.2.0/bin/zkServer.sh start]]></programlisting>
         <para>
           For details, see <link
-          xlink:href="http://hadoop.apache.org/zookeeper/docs/current/zookeeperStarted.html">http://hadoop.apache.org/zookeeper/docs/current/zookeeperStarted.html</link>
+          xlink:href="http://hadoop.apache.org/zookeeper/docs/current/zookeeperStarted.html">http://hadoop.apache.org/zookeeper/docs/current/zookeeperStarted.html</link>.
         </para>
       </section>
 
@@ -173,7 +177,7 @@
       </section>
 
       <section>
-        <title>Starting Client <indexterm><primary>start Sensei client</primary></indexterm> </title>
+        <title>Starting Clients<indexterm><primary>start Sensei clients</primary></indexterm> </title>
         <para>
           After you start at least one node, you can run
         </para>

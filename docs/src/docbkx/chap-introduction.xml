@@ -17,7 +17,8 @@
     LIMIT offset,count</programlisting>
 
     <para>Sensei is written in Java and is built on top of several other
-    open-source software systems:</para>
+    open-source software systems (see <xref
+    linkend="sensei-foundation"></xref>):</para>
 
     <itemizedlist spacing="compact">
         <listitem>
@@ -48,13 +49,16 @@
           xlink:href="http://sna-projects.com/norbert/">http://sna-projects.com/norbert/</link>):
           a library that provides easy cluster management and workload
           distribution.  Norbert is built on ZooKeeper
-          <indexterm><primary>ZooKeeper</primary></indexterm> and Netty.
-          <indexterm><primary>Netty</primary></indexterm>
+          <indexterm><primary>ZooKeeper</primary></indexterm> (<link
+          xlink:href="http://zookeeper.apache.org/">http://zookeeper.apache.org/</link>)
+          and Netty <indexterm><primary>Netty</primary></indexterm>
+          (<link
+          xlink:href="http://www.jboss.org/netty">http://www.jboss.org/netty</link>)
           </para>
         </listitem>
     </itemizedlist>
 
-    <figure>
+    <figure xml:id="sensei-foundation">
       <title>Sensei and Its Foundation</title>
 
       <mediaobject>
@@ -258,15 +262,16 @@
     <section>
       <title>Architecture</title>
 
-      <para>At a high level, a Sensei system consists of two
-      parts:</para>
+      <para>At a high level, a Sensei system consists of two parts: a
+      cluster of Sensei <emphasis>servers</emphasis>
+      <indexterm><primary>Sensei server</primary></indexterm>
+      (a.k.a. <emphasis>search nodes</emphasis>) and a cluster of Sensei
+      <emphasis>brokers</emphasis><indexterm><primary>Sensei
+      broker</primary></indexterm>.</para>
 
       <orderedlist>
         <listitem>
-          <para>A cluster of Sensei
-          <emphasis>servers</emphasis><indexterm><primary>Sensei
-          server</primary></indexterm> (a.k.a. <emphasis>search
-          nodes</emphasis>).</para>
+          <para>The cluster of Sensei servers:</para>
 
           <para>Each server covers one or more
           <emphasis>partitions</emphasis> (or
@@ -288,9 +293,7 @@
 
         </listitem>
         <listitem>
-          <para>A set of Sensei <emphasis>brokers</emphasis><indexterm>
-          <primary>broker</primary>
-          </indexterm>.</para>
+          <para>The cluster of Sensei brokers:</para>
 
           <para>Brokers receive search requests from clients, pass them
           to selected servers in the Sensei search cluster, and then
@@ -348,8 +351,8 @@
           <para>Indexing manager acts as the bridge between the data
           provider and the Zoie system.  It is responsible for passing
           data from the data provider to Zoie, controlling the pace of
-          data consumption, and also maintaining the index
-          versions.</para>
+          data consumption, and maintaining the index versions on the
+          Sensei node.</para>
         </listitem>
 
         <listitem>
@@ -359,17 +362,22 @@
           indexing and search.  Two types of Zoie systems are supported
           by Sensei today: regular Zoie and Hourglass.</para>
 
-          <para>Hourglass
+          <para>Hourglass (<link
+          xlink:href="http://linkedin.jira.com/wiki/display/ZOIE/HourGlass+-+Forward-Rolling+Indexing">http://linkedin.jira.com/wiki/display/ZOIE/HourGlass+-+Forward-Rolling+Indexing</link>)
           <indexterm><primary>Hourglass</primary></indexterm>is a
-          forward-rolling indexing system based on Zoie, and it is being
-          used in LinkedIn Signal.</para>
+          forward-rolling, append-only indexing system based on Zoie.
+          It is used to power LinkedIn Signal <indexterm>
+          <primary>Signal</primary></indexterm> (<link
+          xlink:href="http://www.linkedin.com/signal">http://www.linkedin.com/signal</link>).</para>
+
         </listitem>
         <listitem>
-          <para>List of facet handlers</para>
+          <para>Facet handlers</para>
 
           <para>Facet handlers are a key component in a Sensei server.
-          Without them, none of the column-based queries can be
-          done.</para>
+          They are the way we do faceted searches with Bobo.  Without
+          facet handlers, none of the column-based queries can be
+          done in Sensei.</para>
         </listitem>
       </orderedlist>
 

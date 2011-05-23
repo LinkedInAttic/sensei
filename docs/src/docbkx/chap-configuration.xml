@@ -133,15 +133,15 @@
 
           <listitem>
             <para><emphasis role="bold">date</emphasis> - a date value,
-            must be accompanied by a format string to be used to parse a
-            data string</para>
+            which must be accompanied by a format string to be used to
+            parse a date string</para>
           </listitem>
 
           <listitem>
             <para><emphasis role="bold">text</emphasis> - a searchable
             text segment, standard Lucene indexing specification can
             also be specified here, e.g. <literal>index="ANALYZED"</literal>,
-            <literal>termvector="NO"</literal> etc.</para>
+            <literal>termvector="NO"</literal>.</para>
           </listitem>
         </itemizedlist>
 
@@ -510,18 +510,18 @@
 
       <orderedlist spacing="compact">
         <listitem>
-          <para><emphasis role="bold">server</emphasis>: e.g. port to
-          listen on, rpc paramters etc.</para>
+          <para><emphasis role="bold">server</emphasis>: port to listen
+          on, rpc parameters, etc.</para>
         </listitem>
 
         <listitem>
           <para><emphasis role="bold">cluster</emphasis>: cluster
-          manager, sharding, request routing etc.</para>
+          manager, sharding, request routing, etc.</para>
         </listitem>
 
         <listitem>
           <para><emphasis role="bold">indexing</emphasis>: data
-          interpretation, tokenization, indexer type etc.</para>
+          interpretation, tokenization, indexer type, etc.</para>
         </listitem>
 
         <listitem>
@@ -888,7 +888,7 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
 
               <para>This is the maximum time to wait in milliseconds
               before flushing index events to disk.  The default value
-              is 5 minutes.</para>
+              is 300000 (i.e. 5 minutes).</para>
             </listitem>
           </varlistentry>
 
@@ -984,8 +984,8 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
                   <para>Type: int</para>
                 </listitem>
                 <listitem>
-                  <para>Required: Yes if the default indexing manager is
-                  chosen; No otherwise.</para>
+                  <para>Required: Yes, if the default indexing manager
+                  is chosen; No, otherwise.</para>
                 </listitem>
                 <listitem>
                   <para>Default: None</para>
@@ -993,7 +993,18 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
               </itemizedlist>
 
               <para>This is the maximum partition ID number served by
-              this Sensei cluster.</para>
+              this Sensei cluster if the default Sensei indexing manager
+              is used.</para>
+
+              <warning>
+                <para>This property is different from the total number
+                of partitions in a Sensei cluster.  For example, if a
+                cluster contains 4 partitions, 0, 1, 2, and 3, then
+                <emphasis
+                role="bold">sensei.index.manager.default.maxpartition.id</emphasis>
+                should be set to 3.</para>
+              </warning>
+
             </listitem>
           </varlistentry>
 
@@ -1137,9 +1148,9 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
                   <para>Type: String</para>
                 </listitem>
                 <listitem>
-                  <para>Required: Yes (if property
-                  <emphasis>sensei.indexer.type</emphasis> is set to
-                  "<literal>hourglass</literal>")</para>
+                  <para>Required: Yes, if property <emphasis
+                  role="bold">sensei.indexer.type</emphasis> is set to
+                  "<literal>hourglass</literal>"; No, otherwise.</para>
                 </listitem>
                 <listitem>
                   <para>Default: None</para>
@@ -1204,7 +1215,7 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
                 </listitem>
               </itemizedlist>
 
-              <para>This is the maximum size of thread pool used by the
+              <para>This is the maximum size of thread pool used by a
               broker to execute requests.</para>
             </listitem>
           </varlistentry>
@@ -1225,7 +1236,7 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
               </itemizedlist>
 
               <para>This is the maximum idle time in milliseconds for a
-              thread on brokers.  Threads that are idle for longer than
+              thread on a broker.  Threads that are idle for longer than
               this period may be stopped.</para>
             </listitem>
           </varlistentry>
@@ -1305,7 +1316,7 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
               </itemizedlist>
 
               <para>This is the ZooKeeper URL for the Sensei search
-              cluster that brokers talk to.</para>
+              cluster that a broker talks to.</para>
             </listitem>
           </varlistentry>
 
@@ -1324,8 +1335,8 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
                 </listitem>
               </itemizedlist>
 
-              <para>This is the Sensei cluster name, the service name
-              for the network clients and brokers.</para>
+              <para>This is the Sensei cluster name, i.e. the service
+              name for the network clients and brokers.</para>
             </listitem>
           </varlistentry>
 
@@ -1602,8 +1613,8 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
               Sensei, but you can always define your own version based
               on your need.  No matter a built-in data provider or a
               custom data provider is used, additional parameters can be
-              specified under the names of <emphasis
-              role="bold">sensei.index.manager.default.&lt;data-provider-type&gt;</emphasis>.</para>
+              specified under names with prefix <emphasis
+              role="bold">sensei.index.manager.default.<emphasis>&lt;data-provider-type&gt;</emphasis></emphasis>.</para>
 
               <para>Currently the following built-in data provider
               types are supported:</para>
@@ -1635,8 +1646,11 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
                 <listitem>
                   <para><literal>jms</literal>:</para>
 
-                  <para>This type of data provider takes Java Message
-                  Service as input.</para>
+                  <para>This type of data provider takes JMS (Java
+                  Messages Service) messages as input.  The
+                  publish-and-subscribe messaging model is used by
+                  Sensei, so parameters like topic need to be
+                  provided.</para>
 
                   <para>See <xref
                   linkend="sect-jms-data-provider-props"/> for
@@ -1658,9 +1672,8 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
             </listitem>
           </varlistentry>
 
-          <!-- XXX -->
           <varlistentry>
-            <term><emphasis role="bold">sensei.index.manager.default.filter</emphasis></term>
+            <term><emphasis role="bold">sensei.index.manager.default.<emphasis>&lt;data-provider-type&gt;</emphasis>.filter</emphasis></term>
             <listitem>
               <itemizedlist spacing="compact">
                 <listitem>
@@ -1674,8 +1687,13 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
                 </listitem>
               </itemizedlist>
 
-              <para>This is the bean ID of the JSON filter used by user
-              provided index manager.</para>
+              <para>This is the bean ID of
+              <literal>com.sensei.indexing.api.DataSourceFilter</literal>
+              object.  No matter what data provider the indexing
+              managers uses, a filter can be plugged in to get the
+              original source data converted to the JSON format defined
+              by the table schema.  If the input data is already in the
+              right format, then this filter is not needed.</para>
             </listitem>
           </varlistentry>
 
@@ -1744,6 +1762,25 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
             <?dbfo list-presentation="blocks"?>
 
             <varlistentry>
+              <term><emphasis role="bold">sensei.index.manager.default.kafka.batchsize</emphasis></term>
+              <listitem>
+                <itemizedlist spacing="compact">
+                  <listitem>
+                    <para>Type: String</para>
+                  </listitem>
+                  <listitem>
+                    <para>Required: Yes</para>
+                  </listitem>
+                  <listitem>
+                    <para>Default: None</para>
+                  </listitem>
+                </itemizedlist>
+
+                <para>This is the batch size for each pull request.</para>
+              </listitem>
+            </varlistentry>
+
+            <varlistentry>
               <term><emphasis role="bold">sensei.index.manager.default.kafka.host</emphasis></term>
               <listitem>
                 <itemizedlist spacing="compact">
@@ -1783,25 +1820,6 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
             </varlistentry>
 
             <varlistentry>
-              <term><emphasis role="bold">sensei.index.manager.default.kafka.topic</emphasis></term>
-              <listitem>
-                <itemizedlist spacing="compact">
-                  <listitem>
-                    <para>Type: String</para>
-                  </listitem>
-                  <listitem>
-                    <para>Required: Yes</para>
-                  </listitem>
-                  <listitem>
-                    <para>Default: None</para>
-                  </listitem>
-                </itemizedlist>
-
-                <para>The topic of the messages to be fetched.</para>
-              </listitem>
-            </varlistentry>
-
-            <varlistentry>
               <term><emphasis role="bold">sensei.index.manager.default.kafka.timeout</emphasis></term>
               <listitem>
                 <itemizedlist spacing="compact">
@@ -1821,7 +1839,7 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
             </varlistentry>
 
             <varlistentry>
-              <term><emphasis role="bold">sensei.index.manager.default.kafka.batchsize</emphasis></term>
+              <term><emphasis role="bold">sensei.index.manager.default.kafka.topic</emphasis></term>
               <listitem>
                 <itemizedlist spacing="compact">
                   <listitem>
@@ -1835,7 +1853,7 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
                   </listitem>
                 </itemizedlist>
 
-                <para>This is the batch size for each pull request.</para>
+                <para>The topic of the messages to be fetched.</para>
               </listitem>
             </varlistentry>
 
@@ -1853,7 +1871,7 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
             <?dbfo list-presentation="blocks"?>
 
             <varlistentry>
-              <term><emphasis role="bold">sensei.index.manager.default.jms.</emphasis></term>
+              <term><emphasis role="bold">sensei.index.manager.default.jms.clientId</emphasis></term>
               <listitem>
                 <itemizedlist spacing="compact">
                   <listitem>
@@ -1867,12 +1885,13 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
                   </listitem>
                 </itemizedlist>
 
-                <para></para>
+                <para>This is the client identifier used to connect to
+                the JMS provider.</para>
               </listitem>
             </varlistentry>
 
             <varlistentry>
-              <term><emphasis role="bold">sensei.index.manager.default.jms.</emphasis></term>
+              <term><emphasis role="bold">sensei.index.manager.default.jms.topic</emphasis></term>
               <listitem>
                 <itemizedlist spacing="compact">
                   <listitem>
@@ -1886,12 +1905,13 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
                   </listitem>
                 </itemizedlist>
 
-                <para></para>
+                <para>This is the topic name that the JMS client
+                subscribes to.</para>
               </listitem>
             </varlistentry>
 
             <varlistentry>
-              <term><emphasis role="bold">sensei.index.manager.default.jms.</emphasis></term>
+              <term><emphasis role="bold">sensei.index.manager.default.jms.topicFactory</emphasis></term>
               <listitem>
                 <itemizedlist spacing="compact">
                   <listitem>
@@ -1905,12 +1925,15 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
                   </listitem>
                 </itemizedlist>
 
-                <para></para>
+                <para>This is the bean ID of the
+                <literal>proj.zoie.dataprovider.jms.TopicFactory</literal>
+                object.  This object is used to generate a topic object
+                based on the given topic name.</para>
               </listitem>
             </varlistentry>
 
             <varlistentry>
-              <term><emphasis role="bold">sensei.index.manager.default.jms.</emphasis></term>
+              <term><emphasis role="bold">sensei.index.manager.default.jms.connectionFactory</emphasis></term>
               <listitem>
                 <itemizedlist spacing="compact">
                   <listitem>
@@ -1924,7 +1947,11 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
                   </listitem>
                 </itemizedlist>
 
-                <para></para>
+                <para>This is the bean ID of the
+                <literal>javax.jms.TopicConnectionFactory</literal>
+                object, which is used by the JMS client to create a
+                <literal>javax.jms.TopicConnection</literal> object with
+                the JMS provider.</para>
               </listitem>
             </varlistentry>
 
@@ -1942,7 +1969,7 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
             <?dbfo list-presentation="blocks"?>
 
             <varlistentry>
-              <term><emphasis role="bold">sensei.index.manager.default.jms.</emphasis></term>
+              <term><emphasis role="bold">sensei.index.manager.default.jdbc.adaptor</emphasis></term>
               <listitem>
                 <itemizedlist spacing="compact">
                   <listitem>
@@ -1956,12 +1983,17 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
                   </listitem>
                 </itemizedlist>
 
-                <para></para>
+                <para>This is the bean ID of the
+                <literal>com.sensei.indexing.api.jdbc.SenseiJDBCAdaptor</literal>
+                object.  This object is used to build a
+                <literal>proj.zoie.dataprovider.jdbc.PreparedStatementBuilder</literal>
+                object, which is required by
+                <literal>proj.zoie.dataprovider.jdbc.JDBCStreamDataProvider</literal>.</para>
               </listitem>
             </varlistentry>
 
             <varlistentry>
-              <term><emphasis role="bold">sensei.index.manager.default.jms.</emphasis></term>
+              <term><emphasis role="bold">sensei.index.manager.default.jms.driver</emphasis></term>
               <listitem>
                 <itemizedlist spacing="compact">
                   <listitem>
@@ -1975,12 +2007,13 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
                   </listitem>
                 </itemizedlist>
 
-                <para></para>
+                <para>This is the class name of the JDBC driver that you
+                want to use.</para>
               </listitem>
             </varlistentry>
 
             <varlistentry>
-              <term><emphasis role="bold">sensei.index.manager.default.jms.</emphasis></term>
+              <term><emphasis role="bold">sensei.index.manager.default.jms.password</emphasis></term>
               <listitem>
                 <itemizedlist spacing="compact">
                   <listitem>
@@ -1994,12 +2027,13 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
                   </listitem>
                 </itemizedlist>
 
-                <para></para>
+                <para>This is the password for the user name that you
+                use to connect to the database.</para>
               </listitem>
             </varlistentry>
 
             <varlistentry>
-              <term><emphasis role="bold">sensei.index.manager.default.jms.</emphasis></term>
+              <term><emphasis role="bold">sensei.index.manager.default.jms.username</emphasis></term>
               <listitem>
                 <itemizedlist spacing="compact">
                   <listitem>
@@ -2013,7 +2047,8 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
                   </listitem>
                 </itemizedlist>
 
-                <para></para>
+                <para>This is the user name that you use to connect to
+                the database.</para>
               </listitem>
             </varlistentry>
 
