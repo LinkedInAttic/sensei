@@ -9,10 +9,10 @@ import org.springframework.context.ApplicationContext;
 
 import proj.zoie.impl.indexing.StreamDataProvider;
 
-import com.sensei.indexing.api.DataProviderFactoryRegistry.DataProviderBuilder;
 import com.sensei.indexing.api.DataSourceFilter;
+import com.sensei.indexing.api.gateway.SenseiGateway;
 
-public class PerfStreamDataProviderBuilder extends DataProviderBuilder<JSONObject> {
+public class PerfStreamDataProviderBuilder extends SenseiGateway<JSONObject> {
 
 	private final PerfJsonFilter _perfFilter;
 	public PerfStreamDataProviderBuilder(PerfJsonFilter perfFilter){

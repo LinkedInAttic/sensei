@@ -30,7 +30,8 @@ import proj.zoie.mbean.DataProviderAdminMBean;
 
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.sensei.conf.SenseiSchema;
-import com.sensei.indexing.api.DataProviderFactoryRegistry.DataProviderBuilder;
+import com.sensei.indexing.api.gateway.SenseiGateway;
+import com.sensei.indexing.api.gateway.SenseiGatewayRegistry;
 import com.sensei.search.jmx.JmxUtil;
 import com.sensei.search.nodes.SenseiIndexingManager;
 
@@ -134,9 +135,9 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 
 		Configuration conf = _myconfig.subset(type);
 		
-		DataProviderBuilder<?> builder = DataProviderFactoryRegistry.getDataProviderBuilder(type);
+		SenseiGateway<?> builder = SenseiGatewayRegistry.getDataProviderBuilder(type);
 		if (builder==null){
-			builder = (DataProviderBuilder<?>)_pluginContext.getBean(type);
+			builder = (SenseiGateway<?>)_pluginContext.getBean(type);
 			if (builder == null){
 			  throw new ConfigurationException("unsupported provider type: "+type);
 			}

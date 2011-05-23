@@ -1,4 +1,4 @@
-package com.sensei.indexing.api.jdbc;
+package com.sensei.indexing.api.gateway.jdbc;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -19,10 +19,10 @@ import proj.zoie.dataprovider.jdbc.JDBCStreamDataProvider;
 import proj.zoie.dataprovider.jdbc.PreparedStatementBuilder;
 import proj.zoie.impl.indexing.StreamDataProvider;
 
-import com.sensei.indexing.api.DataProviderFactoryRegistry.DataProviderBuilder;
 import com.sensei.indexing.api.DataSourceFilter;
+import com.sensei.indexing.api.gateway.SenseiGateway;
 
-public class JdbcDataProviderBuilder extends DataProviderBuilder<ResultSet>{
+public class JdbcDataProviderBuilder extends SenseiGateway<ResultSet>{
 
 	public static final String name = "jdbc";
 	

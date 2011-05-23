@@ -1,4 +1,4 @@
-package com.sensei.search.cluster.client;
+package com.sensei.client.shell;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -14,13 +14,13 @@ import org.apache.lucene.search.SortField;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.remoting.RemoteConnectFailureException;
-import org.springframework.remoting.httpinvoker.HttpInvokerProxyFactoryBean;
 
 import com.browseengine.bobo.api.BrowseSelection;
 import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
 import com.linkedin.norbert.NorbertException;
-import com.sensei.search.req.SenseiJSONQuery;
+import com.sensei.search.cluster.client.BrowseRequestBuilder;
+import com.sensei.search.cluster.client.BrowseResultFormatter;
 import com.sensei.search.req.SenseiQuery;
 import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.req.SenseiResult;
@@ -29,7 +29,7 @@ import com.sensei.search.svc.api.SenseiService;
 import com.sensei.search.svc.impl.HttpRestSenseiServiceImpl;
 import com.sensei.search.util.SenseiDefaults;
 
-public class SenseiClusterClient {
+public class SenseiShell {
 
 	static SenseiService svc = null;
 	
