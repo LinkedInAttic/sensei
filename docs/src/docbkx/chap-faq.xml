@@ -24,31 +24,15 @@
     <section>
       <title>Sensei Configuration</title>
 
-      <qandaset>
-        <qandaentry>
-          <question>
-            <para>aaa</para>
-          </question>
-          <answer>
-            <para>(To Be Finished)</para>
-          </answer>
-        </qandaentry>
-      </qandaset>
+      <para>(To Be Finished)</para>
+
     </section>
 
     <section>
       <title>Problems Running Sensei</title>
 
-      <qandaset>
-        <qandaentry>
-          <question>
-            <para>aaa</para>
-          </question>
-          <answer>
-            <para>(To Be Finished)</para>
-          </answer>
-        </qandaentry>
-      </qandaset>
+      <para>(To Be Finished)</para>
+
     </section>
 
   </chapter>

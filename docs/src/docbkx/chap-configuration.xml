@@ -1602,69 +1602,66 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
                 </listitem>
               </itemizedlist>
 
-              <para>This specifies the type of the data provider that
-              will be used by the default indexing manager.  The value
-              identifies the bean ID of the object of a data provider
-              builder:</para>
+              <para>This specifies the type of gateway that will be used
+              by the default indexing manager.  The value identifies the
+              bean ID of an object of
+              <literal>com.sensei.indexing.api.gateway.SenseiGateway</literal>.</para>
 
-              <programlisting>  com.sensei.indexing.api.DataProviderFactoryRegistry.DataProviderBuilder</programlisting>
+              <para>Several built-in gateways are provided by Sensei,
+              but you can always define your own based on your need.  No
+              matter a built-in gateway or a custom gateway is used,
+              additional parameters can be specified under the names
+              with prefix <emphasis
+              role="bold">sensei.index.manager.default.<emphasis>&lt;gateway-type&gt;</emphasis></emphasis>.</para>
 
-              <para>Several built-in data providers are provided by
-              Sensei, but you can always define your own version based
-              on your need.  No matter a built-in data provider or a
-              custom data provider is used, additional parameters can be
-              specified under names with prefix <emphasis
-              role="bold">sensei.index.manager.default.<emphasis>&lt;data-provider-type&gt;</emphasis></emphasis>.</para>
-
-              <para>Currently the following built-in data provider
-              types are supported:</para>
+              <para>Currently the following built-in gateway types are
+              supported:</para>
 
               <itemizedlist>
                 <listitem>
                   <para><literal>file</literal>:</para>
 
-                  <para>This type of data provider takes a regular text
-                  file as the input.  Each line in the file contains a
-                  data entry in JSON format.</para>
+                  <para>This type of gateway takes a regular text file
+                  as the input.  Each line in the file contains a data
+                  entry in JSON format.</para>
 
-                  <para>Only one property needs to be set for this type
-                  of data providers.  See <xref
-                  linkend="sect-file-data-provider-props"/> </para>
+                  <para>Only one property needs to be set for this
+                  gateway type.  See <xref
+                  linkend="sect-file-gateway-props"/> </para>
                 </listitem>
 
                 <listitem>
                   <para><literal>kafka</literal>: </para>
 
-                  <para>This type of data provider takes Kafka messages
-                  as input.</para>
+                  <para>This type of gateway takes Kafka messages as
+                  input.</para>
 
                   <para>See <xref
-                  linkend="sect-kafka-data-provider-props"/> for
+                  linkend="sect-kafka-gateway-props"/> for
                   additional property information.</para>
                 </listitem>
 
                 <listitem>
                   <para><literal>jms</literal>:</para>
 
-                  <para>This type of data provider takes JMS (Java
-                  Messages Service) messages as input.  The
-                  publish-and-subscribe messaging model is used by
-                  Sensei, so parameters like topic need to be
-                  provided.</para>
+                  <para>This type of gateway takes JMS (Java Messages
+                  Service) messages as input.  The publish-and-subscribe
+                  messaging model is used by Sensei, so parameters like
+                  topic need to be provided.</para>
 
                   <para>See <xref
-                  linkend="sect-jms-data-provider-props"/> for
+                  linkend="sect-jms-gateway-props"/> for
                   additional property information.</para>
                 </listitem>
 
                 <listitem>
                   <para><literal>jdbc</literal>:</para>
 
-                  <para>This type of data provider takes JDBC data as
+                  <para>This type of gateway takes JDBC data as
                   input.</para>
 
                   <para>See <xref
-                  linkend="sect-jdbc-data-provider-props"/> for
+                  linkend="sect-jdbc-gateway-props"/> for
                   additional property information.</para>
                 </listitem>
               </itemizedlist>
@@ -1673,7 +1670,7 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
           </varlistentry>
 
           <varlistentry>
-            <term><emphasis role="bold">sensei.index.manager.default.<emphasis>&lt;data-provider-type&gt;</emphasis>.filter</emphasis></term>
+            <term><emphasis role="bold">sensei.index.manager.default.<emphasis>&lt;gateway-type&gt;</emphasis>.filter</emphasis></term>
             <listitem>
               <itemizedlist spacing="compact">
                 <listitem>
@@ -1689,11 +1686,11 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
 
               <para>This is the bean ID of
               <literal>com.sensei.indexing.api.DataSourceFilter</literal>
-              object.  No matter what data provider the indexing
-              managers uses, a filter can be plugged in to get the
-              original source data converted to the JSON format defined
-              by the table schema.  If the input data is already in the
-              right format, then this filter is not needed.</para>
+              object.  No matter what gateway type the indexing managers
+              uses, a filter can be plugged in to get the original
+              source data converted to the JSON format defined by the
+              table schema.  If the input data is already in the right
+              format, then this filter is not needed.</para>
             </listitem>
           </varlistentry>
 
@@ -1718,11 +1715,11 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
 
         </variablelist>
 
-        <section xml:id="sect-file-data-provider-props">
-          <title>File Data Provider Properties</title>
+        <section xml:id="sect-file-gateway-props">
+          <title>File Gateway Properties</title>
 
-          <para>For <literal>file</literal> data providers, the
-          following property has to be specified:</para>
+          <para>For <literal>file</literal> gateway, the following
+          property has to be specified:</para>
 
           <variablelist>
             <?dbfo list-presentation="blocks"?>
@@ -1749,10 +1746,10 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
 
         </section>
 
-        <section xml:id="sect-kafka-data-provider-props">
-          <title>Kafka Data Provider Properties</title>
+        <section xml:id="sect-kafka-gateway-props">
+          <title>Kafka Gateway Properties</title>
 
-          <para>For <literal>kafka</literal> data providers, the
+          <para>For <literal>kafka</literal> gateway, the
           following properties should/can be specified: <footnote>
           <para>These properties are basically the parameters needed
           by the Kafka consumer API.  The Simple Consumer API from
@@ -1857,15 +1854,15 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
               </listitem>
             </varlistentry>
 
-          </variablelist>   <!-- kafka data provider properties -->
+          </variablelist>   <!-- kafka gateway properties -->
 
         </section>
 
-        <section xml:id="sect-jms-data-provider-props">
-          <title>JMS Data Provider Properties</title>
+        <section xml:id="sect-jms-gateway-props">
+          <title>JMS Gateway Properties</title>
 
-          <para>For <literal>jms</literal> data providers, the
-          following properties should/can be specified:</para>
+          <para>For <literal>jms</literal> gateway, the following
+          properties should/can be specified:</para>
 
           <variablelist>
             <?dbfo list-presentation="blocks"?>
@@ -1955,15 +1952,15 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
               </listitem>
             </varlistentry>
 
-          </variablelist>   <!-- jms data provider properties -->
+          </variablelist>   <!-- jms gateway properties -->
 
         </section>
 
-        <section xml:id="sect-jdbc-data-provider-props">
-          <title>JDBC Data Provider Properties</title>
+        <section xml:id="sect-jdbc-gateway-props">
+          <title>JDBC Gateway Properties</title>
 
-          <para>For <literal>jdbc</literal> data providers, the
-          following properties should/can be specified:</para>
+          <para>For <literal>jdbc</literal> gateway, the following
+          properties should/can be specified:</para>
 
           <variablelist>
             <?dbfo list-presentation="blocks"?>
@@ -2052,7 +2049,7 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
               </listitem>
             </varlistentry>
 
-          </variablelist>   <!-- jdbc data provider properties -->
+          </variablelist>   <!-- jdbc gateway properties -->
 
         </section>
 

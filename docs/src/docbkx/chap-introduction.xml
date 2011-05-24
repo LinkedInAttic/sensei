@@ -36,7 +36,7 @@
           </para>
         </listitem>
         <listitem>
-          <para>Apache Lucene
+          <para>Lucene
           <indexterm><primary>Lucene</primary><secondary>Apach
           Lucene</secondary></indexterm>(<link
           xlink:href="http://lucene.apache.org/">http://lucene.apache.org/</link>):
@@ -306,26 +306,30 @@
       roles: indexer and searcher, both of which are implemented by Zoie
       and Bobo embedded in the node.</para>
 
-      <para>Conceptually, a Sensei node contains the following four
+      <para>Conceptually, a Sensei node consists of the following four
       components:</para>
 
       <orderedlist>
         <listitem>
-          <para>Data provider<indexterm>
-          <primary>data provider</primary>
-          </indexterm></para>
+          <para>Data Gateway<indexterm><primary>Data Gateway</primary><secondary>Gateway</secondary></indexterm></para>
 
-          <para>This is the component responsible for getting data from
-          external sources and passing them to the indexer.  Several
-          built-in data providers are available in Sensei, and they can
-          be used to get data from common data sources:</para>
+          <para>This is also simply called <emphasis>gateway</emphasis>,
+          which is the component responsible for getting data from
+          external sources and passing them to the indexer after some
+          kind of conversion (if needed).  The input data to the gateway
+          can be of different formats, while the output of the gateway
+          has to be of the format acceptable by Zoie's streaming data
+          provider.  (By default, JSON is the format used by Sensei to
+          communicate with Zoie.)  The output data from the gateway also
+          needs to match the table schema definition.</para>
+
+          <para>Several types of built-in gateway are available in
+          Sensei.  They can be used to get data from common data sources
+          including:</para>
 
           <itemizedlist spacing="compact">
             <listitem>
               <para>Line-based text file containing JSON objects.</para>
-            </listitem>
-            <listitem>
-              <para>Streaming JSON objects.</para>
             </listitem>
             <listitem>
               <para>Kafka (<link
@@ -339,24 +343,40 @@
             </listitem>
           </itemizedlist>
           
-          <para>For each data provider, a filter can be plugged in to
-          convert the original source data into the format defined by
-          the table schema.  The output of the filter should be of JSON
-          format, which is the internal format used by Sensei.</para>
+          <para>For each built-in data gateway, a filter can be plugged
+          in to convert the original source data into the format defined
+          by the table schema.  (See <xref
+          linkend="sensei-gateway"></xref>.)</para>
+
+          <figure xml:id="sensei-gateway">
+            <title>Sensei Data Gateway</title>
+
+            <mediaobject>
+              <imageobject role="fo">
+                <imagedata align="center" fileref="figures/sensei-gateway.svg"
+                           format="SVG" scale="75" valign="middle" />
+              </imageobject>
+
+              <imageobject role="html">
+                <imagedata align="center" fileref="figures/sensei-gateway.png"
+                           format="PNG" scale="100" valign="middle" />
+              </imageobject>
+            </mediaobject>
+          </figure>
+
         </listitem>
 
         <listitem>
-          <para>Indexing manager<indexterm><primary>indexing manager</primary></indexterm></para>
+          <para>Indexing Manager<indexterm><primary>Indexing Manager</primary></indexterm></para>
 
-          <para>Indexing manager acts as the bridge between the data
-          provider and the Zoie system.  It is responsible for passing
-          data from the data provider to Zoie, controlling the pace of
-          data consumption, and maintaining the index versions on the
-          Sensei node.</para>
+          <para>Indexing manager acts as the bridge between the gateway
+          and the Zoie system.  It is responsible for passing data from
+          the gateway to Zoie, controlling the pace of data consumption,
+          and maintaining the index versions on the Sensei node.</para>
         </listitem>
 
         <listitem>
-          <para>Zoie system<indexterm><primary>Zoie system</primary></indexterm></para>
+          <para>Zoie System<indexterm><primary>Zoie System</primary></indexterm></para>
 
           <para>This is the underlying system powering real-time
           indexing and search.  Two types of Zoie systems are supported
@@ -372,7 +392,7 @@
 
         </listitem>
         <listitem>
-          <para>Facet handlers</para>
+          <para>Facet Handlers<indexterm><primary>Facet Handler</primary></indexterm></para>
 
           <para>Facet handlers are a key component in a Sensei server.
           They are the way we do faceted searches with Bobo.  Without
