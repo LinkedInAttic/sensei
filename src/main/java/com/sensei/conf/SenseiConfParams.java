@@ -55,6 +55,10 @@ public interface SenseiConfParams {
 	public static final String SERVER_BROKER_MAXWAIT = "sensei.broker.maxWaittime";
 	
 	public static final String SERVER_SEARCH_ROUTER_FACTORY = "sensei.search.router.factory";
+	
+	public static final String SENSEI_INDEX_PRUNER = "sensei.index.pruner";
+
+	public static final String SENSEI_ZOIE_RETENTION_DAYS = "sensei.index.zoie.retentionDays";
 
 	public static final String SENSEI_MX4J_PORT = "sensei.mx4j.port";
 	

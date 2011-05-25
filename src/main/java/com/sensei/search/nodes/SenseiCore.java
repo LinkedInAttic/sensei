@@ -1,10 +1,5 @@
 package com.sensei.search.nodes;
 
-import java.io.File;
-import java.io.FilenameFilter;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -20,8 +15,8 @@ import javax.management.ObjectName;
 
 import org.apache.log4j.Logger;
 
-import proj.zoie.api.IndexReaderFactory;
 import proj.zoie.api.DataProvider;
+import proj.zoie.api.IndexReaderFactory;
 import proj.zoie.api.Zoie;
 import proj.zoie.api.ZoieException;
 import proj.zoie.api.ZoieIndexReader;
@@ -29,7 +24,8 @@ import proj.zoie.api.ZoieIndexReader;
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.facets.RuntimeFacetHandlerFactory;
-
+import com.sensei.indexing.api.SenseiIndexPruner;
+import com.sensei.indexing.api.SenseiIndexPruner.DefaultSenseiIndexPruner;
 import com.sensei.search.jmx.JmxUtil;
 import com.sensei.search.req.SenseiSystemInfo;
 
@@ -51,6 +47,7 @@ public class SenseiCore{
   private final Map<Integer,Zoie<BoboIndexReader,?>> _readerFactoryMap;
   private SenseiSystemInfo _senseiSystemInfo;
   private volatile boolean _started;
+  private SenseiIndexPruner _pruner;
     
   public SenseiCore(int id,int[] partitions,
             SenseiZoieFactory<?> zoieSystemFactory,
@@ -67,6 +64,15 @@ public class SenseiCore{
     _builderFactoryMap = new HashMap<Integer,SenseiQueryBuilderFactory>();
     _readerFactoryMap = new HashMap<Integer,Zoie<BoboIndexReader,?>>();
     _started = false;
+    _pruner = null;
+  }
+  
+  public void setIndexPruner(SenseiIndexPruner pruner){
+	_pruner = pruner;
+  }
+  
+  public SenseiIndexPruner getIndexPruner(){
+	  return _pruner == null ? new DefaultSenseiIndexPruner() : _pruner;
   }
   
   public int getNodeId(){
