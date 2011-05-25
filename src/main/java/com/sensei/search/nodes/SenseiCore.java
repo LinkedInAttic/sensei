@@ -43,7 +43,6 @@ public class SenseiCore{
   
   private final int[] _partitions;
   private final int _id;
-  private final Map<Integer,SenseiQueryBuilderFactory> _builderFactoryMap;
   private final Map<Integer,Zoie<BoboIndexReader,?>> _readerFactoryMap;
   private SenseiSystemInfo _senseiSystemInfo;
   private volatile boolean _started;
@@ -61,7 +60,6 @@ public class SenseiCore{
     _partitions = partitions;
     _id = id;
     
-    _builderFactoryMap = new HashMap<Integer,SenseiQueryBuilderFactory>();
     _readerFactoryMap = new HashMap<Integer,Zoie<BoboIndexReader,?>>();
     _started = false;
     _pruner = null;
@@ -161,8 +159,6 @@ public class SenseiCore{
   public void start() throws Exception{
     if (_started) return;
       for (int part : _partitions){
-        //in simple case query builder is the same for each partition
-        _builderFactoryMap.put(part, _queryBuilderFactory);
         
         Zoie<BoboIndexReader,?> zoieSystem = _zoieFactory.getZoieInstance(_id,part);
         
@@ -243,8 +239,9 @@ public class SenseiCore{
     return _readerFactoryMap.get(partition);
   }
   
-  public SenseiQueryBuilderFactory getQueryBuilderFactory(int partition){
-    return _builderFactoryMap.get(partition);
+  public SenseiQueryBuilderFactory getQueryBuilderFactory()
+  {
+    return _queryBuilderFactory;
   }
 
   public void syncWithVersion(long timeToWait, String version) throws ZoieException

@@ -67,7 +67,7 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
               {
                 public Res call() throws Exception
                 {
-                  Res res = handleRequest(senseiReq, readerFactory, _core.getQueryBuilderFactory(partition));
+                  Res res = handleRequest(senseiReq, readerFactory, _core.getQueryBuilderFactory());
 
                   long end = System.currentTimeMillis();
                   res.setTime(end - start);
@@ -85,7 +85,7 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
           {
             try
             {
-              Res res = handleRequest(senseiReq, readerFactory, _core.getQueryBuilderFactory(partition));
+              Res res = handleRequest(senseiReq, readerFactory, _core.getQueryBuilderFactory());
               resultList.add(res);
 
               long end = System.currentTimeMillis();
