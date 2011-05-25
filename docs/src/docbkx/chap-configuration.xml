@@ -977,6 +977,56 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
           </varlistentry>
 
           <varlistentry>
+            <term><emphasis role="bold">sensei.index.manager.default.batchSize</emphasis></term>
+
+            <listitem>
+              <itemizedlist spacing="compact">
+                <listitem>
+                  <para>Type: int</para>
+                </listitem>
+                <listitem>
+                  <para>Required: No</para>
+                </listitem>
+                <listitem>
+                  <para>Default: 1</para>
+                </listitem>
+              </itemizedlist>
+
+              <para>This is the batch size used by Zoie to control when
+              to flush accumulated data events onto disk.  The default
+              value is 1.</para>
+
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term><emphasis role="bold">sensei.index.manager.default.eventsPerMin</emphasis></term>
+
+            <listitem>
+              <itemizedlist spacing="compact">
+                <listitem>
+                  <para>Type: int</para>
+                </listitem>
+                <listitem>
+                  <para>Required: No</para>
+                </listitem>
+                <listitem>
+                  <para>Default: 40000</para>
+                </listitem>
+              </itemizedlist>
+
+              <para>This is the maximum number of data events that the
+              Zoie system can consume per minute.  If this threshold is
+              exceeded, Zoie will pause for a short period of time
+              before continuing to consume incoming data events.</para>
+
+              <para>This property is helpful in preventing the Zoie
+              system from being overloaded.  The default value is
+              40,000.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
             <term><emphasis role="bold">sensei.index.manager.default.maxpartition.id</emphasis></term>
             <listitem>
               <itemizedlist spacing="compact">
@@ -1041,7 +1091,10 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
                 </listitem>
               </itemizedlist>
 
-              <para>This is the maximum batch size.</para>
+              <para>This is the maximum number of incoming data events
+              that can be held by Zoie in a batch before they are
+              flushed to disk.  If this number is exceeded, Zoie will
+              stop processing the data events for one minute.</para>
             </listitem>
           </varlistentry>
 
