@@ -145,6 +145,10 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 
 		try{
 		  dataProvider = builder.buildDataProvider(conf, _senseiSchema, _versionComparator, _oldestSinceKey, _pluginContext);
+      long maxEventsPerMin = _myconfig.getLong(EVTS_PER_MIN,40000);
+      dataProvider.setMaxEventsPerMinute(maxEventsPerMin);
+      int batchSize = _myconfig.getInt(BATCH_SIZE,1);
+      dataProvider.setBatchSize(batchSize);
 		}
 		catch(Exception e){
 			throw new ConfigurationException(e.getMessage(),e);
