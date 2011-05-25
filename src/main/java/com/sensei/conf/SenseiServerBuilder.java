@@ -54,6 +54,7 @@ import com.linkedin.norbert.javacompat.network.NetworkServerConfig;
 import com.sensei.indexing.api.DefaultJsonSchemaInterpreter;
 import com.sensei.indexing.api.DefaultStreamingIndexingManager;
 import com.sensei.indexing.api.DataSourceFilter;
+import com.sensei.indexing.api.SenseiIndexPruner;
 import com.sensei.search.client.servlet.DefaultSenseiJSONServlet;
 import com.sensei.search.client.servlet.SenseiConfigServletContextListener;
 import com.sensei.search.client.servlet.SenseiHttpInvokerServiceServlet;
@@ -397,6 +398,11 @@ public class SenseiServerBuilder implements SenseiConfParams{
       if (SENSEI_INDEXER_TYPE_ZOIE.equals(indexerType)){
         zoieSystemFactory = new SenseiZoieSystemFactory(idxDir,interpreter,decorator,
                 zoieConfig);
+
+        int retentionDays = _senseiConf.getInt(SENSEI_ZOIE_RETENTION_DAYS,-1);
+        if (retentionDays>0){
+        	
+        }
       }
       else if (SENSEI_INDEXER_TYPE_HOURGLASS.equals(indexerType)){
         
@@ -454,6 +460,14 @@ public class SenseiServerBuilder implements SenseiConfParams{
       
       SenseiCore senseiCore = new SenseiCore(nodeid,partitions,zoieSystemFactory,indexingManager,queryBuilderFactory);
       senseiCore.setSystemInfo(sysInfo);
+      
+      
+      String senseiPrunerClass = _senseiConf.getString(SENSEI_INDEX_PRUNER,"");
+      if (senseiPrunerClass.length()>0){
+    	  SenseiIndexPruner pruner = (SenseiIndexPruner)_pluginContext.getBean(senseiPrunerClass);
+    	  senseiCore.setIndexPruner(pruner);
+      }
+      
       return senseiCore;
   }
   

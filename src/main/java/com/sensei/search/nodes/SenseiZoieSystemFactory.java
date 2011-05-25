@@ -29,7 +29,8 @@ public class SenseiZoieSystemFactory<T> extends SenseiZoieFactory<T>
       partDir.mkdirs();
       log.info("nodeId="+nodeId+", partition=" + partitionId + " does not exist, directory created.");
     }
-    return new ZoieSystem<BoboIndexReader,T>(partDir, _interpreter, _indexReaderDecorator, _zoieConfig);
+    ZoieSystem<BoboIndexReader,T> zoie = new ZoieSystem<BoboIndexReader,T>(partDir, _interpreter, _indexReaderDecorator, _zoieConfig);
+    return zoie;
   }
   
   // TODO: change to getDirectoryManager

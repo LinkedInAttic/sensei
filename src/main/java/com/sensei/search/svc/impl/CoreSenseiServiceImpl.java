@@ -1,7 +1,7 @@
 package com.sensei.search.svc.impl;
 
 import java.io.IOException;
-import java.util.Collection;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -21,6 +21,8 @@ import com.browseengine.bobo.api.BrowseResult;
 import com.browseengine.bobo.api.FacetAccessible;
 import com.browseengine.bobo.api.MultiBoboBrowser;
 import com.google.protobuf.Message;
+import com.sensei.indexing.api.SenseiIndexPruner;
+import com.sensei.indexing.api.SenseiIndexPruner.IndexReaderSelector;
 import com.sensei.search.client.ResultMerger;
 import com.sensei.search.nodes.SenseiCore;
 import com.sensei.search.nodes.SenseiQueryBuilderFactory;
@@ -116,12 +118,35 @@ public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiReque
 			List<BoboIndexReader> readerList,SenseiQueryBuilderFactory queryBuilderFactory) throws Exception {
 		SubReaderAccessor<BoboIndexReader> subReaderAccessor = ZoieIndexReader.getSubReaderAccessor(readerList);
 	    MultiBoboBrowser browser = null;
+	    
+	    SenseiIndexPruner pruner = _core.getIndexPruner();
+	    
 	    try
 	    {
-	      browser = new MultiBoboBrowser(BoboBrowser.createBrowsables(readerList));
-	      BrowseRequest breq = RequestConverter.convert(request, queryBuilderFactory);
-	      SenseiResult res = browse(browser, breq, subReaderAccessor);
-	      return res;
+	      IndexReaderSelector readerSelector = pruner.getReaderSelector(request);
+          List<BoboIndexReader> segmentReaders = BoboBrowser.gatherSubReaders(readerList);
+          if (segmentReaders!=null && segmentReaders.size()>0){
+        	int skipDocs = 0;
+        	List<BoboIndexReader> validatedSegmentReaders = new ArrayList<BoboIndexReader>(segmentReaders.size());
+        	for (BoboIndexReader segmentReader : segmentReaders){
+        		if (readerSelector.isSelected(segmentReader)){
+        			validatedSegmentReaders.add(segmentReader);
+        		}
+        		else{
+        			skipDocs+=segmentReader.numDocs();
+        		}
+        	}
+        	
+	        browser = new MultiBoboBrowser(BoboBrowser.createBrowsables(validatedSegmentReaders));
+	        BrowseRequest breq = RequestConverter.convert(request, queryBuilderFactory);
+	        SenseiResult res = browse(browser, breq, subReaderAccessor);
+	        int totalDocs = res.getTotalDocs()+skipDocs;
+	        res.setTotalDocs(totalDocs);
+	        return res;
+          }
+          else{
+        	return new SenseiResult();
+          }
 	    } catch (Exception e)
 	    {
 	      logger.error(e.getMessage(), e);
