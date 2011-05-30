@@ -64,7 +64,7 @@
       <mediaobject>
         <imageobject role="fo">
           <imagedata align="center" fileref="figures/sensei-stack.svg"
-                     format="SVG" scale="75" valign="middle" />
+                     format="SVG" scale="100" valign="middle" />
         </imageobject>
 
         <imageobject role="html">

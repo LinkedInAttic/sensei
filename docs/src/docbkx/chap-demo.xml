@@ -142,7 +142,7 @@
         <mediaobject>
           <imageobject role="fo">
             <imagedata align="center" fileref="figures/sensei-demo.svg"
-                       format="PNG" scale="90" valign="middle" />
+                       format="PNG" scale="80" valign="middle" />
           </imageobject>
 
           <imageobject role="html">
