@@ -595,7 +595,7 @@ sensei.indexer.type=zoie
 #sensei.indexer.hourglass.schedule
 
 # retention
-#sensei.indexer.hourglass.timethreshold
+#sensei.indexer.hourglass.trimthreshold
 
 # frequency for a roll, minute/hour/day
 #sensei.indexer.hourglass.frequency
@@ -1153,7 +1153,7 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
                   <para><emphasis role="bold">sensei.indexer.hourglass.schedule</emphasis></para>
                 </listitem>
                 <listitem>
-                  <para><emphasis role="bold">sensei.indexer.hourglass.timethreshold</emphasis></para>
+                  <para><emphasis role="bold">sensei.indexer.hourglass.trimthreshold</emphasis></para>
                 </listitem>
                 <listitem>
                   <para><emphasis role="bold">sensei.indexer.hourglass.frequency</emphasis></para>
