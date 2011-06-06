@@ -65,13 +65,14 @@ a {
 .tree-container {
   display: inline-block;
   text-align: left;
+  width: 100%;
 }
 
 .tree-nav {
   border: solid 1px #B5B5B5;
   float: left;
   margin-right: 10px;
-  width: 300px;
+  width: 320px;
 }
 
 .tree-nav a {
@@ -85,10 +86,10 @@ a {
 .tree-nav .jstree-hovered, .tree-nav .jstree-clicked { border:0 important; }
 
 .jmx-main-area {
+  margin-left: 330px;
   border: solid 1px #B5B5B5;
   padding: 5px;
-  float: left;
-  width: 700px;
+  /*float: left;*/
   min-height: 500px;
 }
 
