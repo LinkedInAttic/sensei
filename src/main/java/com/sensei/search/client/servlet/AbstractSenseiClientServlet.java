@@ -1,7 +1,11 @@
 package com.sensei.search.client.servlet;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URL;
+import java.net.URLConnection;
+import java.net.URLDecoder;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -93,17 +97,95 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
       throw new ServletException(e.getMessage(),e);
     }
   }
+
+  private void handleJMXRequest(HttpServletRequest req, HttpServletResponse resp)
+    throws ServletException, IOException
+  {
+    InputStream is = null;
+    OutputStream os = null;
+    try
+    {
+      String myPath = req.getRequestURI().substring(req.getServletPath().length()+11);
+      URL adminUrl = null;
+      if (myPath.indexOf('/') > 0)
+      {
+        adminUrl = new URL(new StringBuilder(URLDecoder.decode(myPath.substring(0, myPath.indexOf('/')), "UTF-8"))
+          .append("/admin/jmx")
+          .append(myPath.substring(myPath.indexOf('/'))).toString());
+      }
+      else
+      {
+        adminUrl = new URL(new StringBuilder(URLDecoder.decode(myPath, "UTF-8"))
+          .append("/admin/jmx").toString());
+      }
+
+      URLConnection conn = adminUrl.openConnection();
+
+      byte[] buffer = new byte[8192]; // 8k
+      int len = 0;
+
+      InputStream ris = req.getInputStream();
+
+      while((len=ris.read(buffer)) > 0)
+      {
+        if (!conn.getDoOutput()) {
+          os = conn.getOutputStream();
+          conn.setDoOutput(true);
+        }
+        os.write(buffer, 0, len);
+      }
+      if (os != null)
+        os.flush();
+
+      is = conn.getInputStream();
+      OutputStream ros = resp.getOutputStream();
+
+      while((len=is.read(buffer)) > 0)
+      {
+        ros.write(buffer, 0, len);
+      }
+      ros.flush();
+    }
+    catch (Exception e)
+    {
+      throw new ServletException(e.getMessage(),e);
+    }
+    finally
+    {
+      if (is != null)
+        is.close();
+      if (os != null)
+        os.close();
+    }
+  }
   
   @Override
   protected void doGet(HttpServletRequest req, HttpServletResponse resp)
       throws ServletException, IOException {
 
-    if ("/sysinfo".equalsIgnoreCase(req.getPathInfo())) {
-      handleSystemInfoRequest(req, resp);
-    }
-    else {
+    if (null == req.getPathInfo() || "/".equalsIgnoreCase(req.getPathInfo()))
+    {
       handleSenseiRequest(req, resp);
     }
+    else if ("/sysinfo".equalsIgnoreCase(req.getPathInfo()))
+    {
+      handleSystemInfoRequest(req, resp);
+    }
+    else if (req.getPathInfo().startsWith("/admin/jmx/"))
+    {
+      handleJMXRequest(req, resp);
+    }
+    else
+    {
+      handleSenseiRequest(req, resp);
+    }
+  }
+  
+  @Override
+  protected void doPost(HttpServletRequest req, HttpServletResponse resp)
+      throws ServletException, IOException
+  {
+    doGet(req, resp);
   }
   
   protected abstract void convertResult(SenseiSystemInfo info, OutputStream ostream) throws Exception;

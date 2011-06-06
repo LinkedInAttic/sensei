@@ -113,6 +113,12 @@
 			<version>3.2.3.Final</version>
 		</dependency>
 		
+    <dependency>
+      <groupId>org.jolokia</groupId>
+      <artifactId>jolokia-core</artifactId>
+      <version>0.90</version>
+    </dependency>
+
 		<dependency>
 			<groupId>com.sna-projects.kafka</groupId>
 			<artifactId>kafka</artifactId>
@@ -304,6 +310,11 @@
 	      <id>Coda Hale Repository</id>
 	      <url>http://repo.codahale.com/</url>
 	    </repository>
+      <repository>
+        <id>labs-consol-release</id>
+        <name>ConSol* Labs Repository (Releases)</name>
+        <url>http://labs.consol.de/maven/repository</url>
+      </repository>
 	  </repositories>
 
 	<distributionManagement>

@@ -29,6 +29,7 @@ import com.linkedin.norbert.network.NetworkingException;
 import com.sensei.conf.SenseiServerBuilder;
 import com.sensei.search.req.AbstractSenseiRequest;
 import com.sensei.search.req.AbstractSenseiResult;
+//import com.sensei.search.req.SenseiSystemInfo.SenseiNodeInfo;
 import com.sensei.search.svc.impl.AbstractSenseiCoreService;
 import com.sensei.search.svc.impl.CoreSenseiServiceImpl;
 import com.sensei.search.svc.impl.SysSenseiCoreServiceImpl;
@@ -54,6 +55,8 @@ public class SenseiServer {
     protected volatile Node _serverNode;
     private final CoreSenseiServiceImpl _innerSvc;
     private final List<AbstractSenseiCoreService<AbstractSenseiRequest, AbstractSenseiResult>> _externalSvc;
+
+    //private Server _adminServer;
 
     protected volatile boolean _available = false;
     
@@ -112,6 +115,25 @@ public class SenseiServer {
   {
     return _core;
   }
+
+  /*
+  public void setAdminServer(Server server)
+  {
+    _adminServer = server;
+  }
+
+  public SenseiNodeInfo getSenseiNodeInfo()
+  {
+    StringBuffer adminLink = new StringBuffer();
+    if (_adminServer != null && _adminServer.getConnectors() != null && _adminServer.getConnectors().length != 0)
+    {
+      adminLink.append("http://").append(_adminServer.getConnectors()[0].getHost()).append(":")
+               .append(_adminServer.getConnectors()[0].getPort());
+    }
+
+    return new SenseiNodeInfo(_id, _partitions, _serverNode.getUrl(), adminLink.toString());
+  }
+  */
   
   public void shutdown(){
     logger.info("unregistering mbeans...");

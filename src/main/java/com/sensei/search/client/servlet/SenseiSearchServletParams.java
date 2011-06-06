@@ -67,6 +67,10 @@ public interface SenseiSearchServletParams {
 	public static final String PARAM_SYSINFO_FACETS_RUNTIME = "runtime";
 	public static final String PARAM_SYSINFO_FACETS_PROPS = "props";
 	public static final String PARAM_SYSINFO_CLUSTERINFO = "clusterinfo";
+	public static final String PARAM_SYSINFO_CLUSTERINFO_ID = "id";
+	public static final String PARAM_SYSINFO_CLUSTERINFO_PARTITIONS = "partitions";
+	public static final String PARAM_SYSINFO_CLUSTERINFO_NODELINK = "nodelink";
+	public static final String PARAM_SYSINFO_CLUSTERINFO_ADMINLINK = "adminlink";
 
 	public static final String PARAM_RESULT_HITS_EXPL_VALUE = "value";
 	public static final String PARAM_RESULT_HITS_EXPL_DESC = "description";

@@ -56,7 +56,7 @@ public class SenseiSysBroker extends AbstractConsistentHashBroker<SenseiRequest,
         result.setFacetInfos(res.getFacetInfos());
       if (res.getClusterInfo() != null) {
         if (result.getClusterInfo() != null)
-          result.getClusterInfo().putAll(res.getClusterInfo());
+          result.getClusterInfo().addAll(res.getClusterInfo());
         else
           result.setClusterInfo(res.getClusterInfo());
       }

@@ -86,19 +86,19 @@ public class SenseiCore{
     if (_senseiSystemInfo == null)
       _senseiSystemInfo = new SenseiSystemInfo();
 
-    if (_senseiSystemInfo.getClusterInfo() == null)
-    {
-      List<Integer> partitionList = new ArrayList<Integer>(_partitions.length);
+    //if (_senseiSystemInfo.getClusterInfo() == null)
+    //{
+      //List<Integer> partitionList = new ArrayList<Integer>(_partitions.length);
 
-      for (int i=0; i<_partitions.length; ++i)
-      {
-        partitionList.add(_partitions[i]);
-      }
+      //for (int i=0; i<_partitions.length; ++i)
+      //{
+        //partitionList.add(_partitions[i]);
+      //}
 
-      Map<Integer, List<Integer>> clusterInfo = new HashMap<Integer, List<Integer>>();
-      clusterInfo.put(_id, partitionList);
-      _senseiSystemInfo.setClusterInfo(clusterInfo);
-    }
+      //Map<Integer, List<Integer>> clusterInfo = new HashMap<Integer, List<Integer>>();
+      //clusterInfo.put(_id, partitionList);
+      //_senseiSystemInfo.setClusterInfo(clusterInfo);
+    //}
 
     if (_senseiSystemInfo.getFacetInfos() == null)
     {

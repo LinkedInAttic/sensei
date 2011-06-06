@@ -3,6 +3,7 @@ package com.sensei.search.req;
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Iterator;
@@ -55,6 +56,55 @@ public class SenseiSystemInfo implements AbstractSenseiResult {
       return buf.toString();
     }
   }
+
+  public static class SenseiNodeInfo implements Serializable
+  {
+    private static final long serialVersionUID = 1L;
+
+    private int _id;
+    private int[] _partitions;
+
+    private String _nodeLink;
+    private String _adminLink;
+
+    public SenseiNodeInfo(int id, int[] partitions, String nodeLink, String adminLink)
+    {
+      _id = id;
+      _partitions = partitions;
+      _nodeLink = nodeLink;
+      _adminLink = adminLink;
+    }
+
+    public int getId()
+    {
+      return _id;
+    }
+
+    public int[] getPartitions()
+    {
+      return _partitions;
+    }
+
+    public String getNodeLink()
+    {
+      return _nodeLink;
+    }
+
+    public String getAdminLink()
+    {
+      return _adminLink;
+    }
+
+    public String toString()
+    {
+      StringBuffer buf = new StringBuffer();
+      buf.append("id: ").append(_id)
+         .append("\npartitions: ").append(Arrays.toString(_partitions))
+         .append("\nnodeLink: ").append(_nodeLink)
+         .append("\nadminLink: ").append(_adminLink);
+      return buf.toString();
+    }
+  }
   
   private static final long serialVersionUID = 1L;
 
@@ -64,7 +114,7 @@ public class SenseiSystemInfo implements AbstractSenseiResult {
   private long _lastModified;
   private String _version;
   private Set<SenseiFacetInfo> _facetInfos;
-  private Map<Integer,List<Integer>> _clusterInfo;
+  private List<SenseiNodeInfo> _clusterInfo;
     
   public SenseiSystemInfo(){
     _numDocs = 0;
@@ -114,11 +164,11 @@ public class SenseiSystemInfo implements AbstractSenseiResult {
     _version = version;
   }
 
-  public Map<Integer, List<Integer>> getClusterInfo() {
+  public List<SenseiNodeInfo> getClusterInfo() {
     return _clusterInfo;
   }
 
-  public void setClusterInfo(Map<Integer, List<Integer>> clusterInfo) {
+  public void setClusterInfo(List<SenseiNodeInfo> clusterInfo) {
     _clusterInfo = clusterInfo;
   }
   

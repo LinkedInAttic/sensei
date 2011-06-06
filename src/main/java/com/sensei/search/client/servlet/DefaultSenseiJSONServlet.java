@@ -706,7 +706,21 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
         }
     }
 
-    jsonObj.put(PARAM_SYSINFO_CLUSTERINFO, info.getClusterInfo());
+    jsonArray = new JSONArray();
+    jsonObj.put(PARAM_SYSINFO_CLUSTERINFO, jsonArray);
+    List<SenseiSystemInfo.SenseiNodeInfo> clusterInfo = info.getClusterInfo();
+    if (clusterInfo != null)
+    {
+      for (SenseiSystemInfo.SenseiNodeInfo nodeInfo : clusterInfo)
+      {
+        JSONObject nodeObj = new JSONObject();
+        nodeObj.put(PARAM_SYSINFO_CLUSTERINFO_ID, nodeInfo.getId());
+        nodeObj.put(PARAM_SYSINFO_CLUSTERINFO_PARTITIONS, new JSONArray(nodeInfo.getPartitions()));
+        nodeObj.put(PARAM_SYSINFO_CLUSTERINFO_NODELINK, nodeInfo.getNodeLink());
+        nodeObj.put(PARAM_SYSINFO_CLUSTERINFO_ADMINLINK, nodeInfo.getAdminLink());
+        jsonArray.put(nodeObj);
+      }
+    }
 
     return jsonObj.toString();
   }

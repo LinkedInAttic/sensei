@@ -734,7 +734,7 @@ public class HttpRestSenseiServiceImpl implements SenseiService
     result.setLastModified(jsonObj.getLong(SenseiSearchServletParams.PARAM_SYSINFO_LASTMODIFIED));
     result.setVersion(jsonObj.getString(SenseiSearchServletParams.PARAM_SYSINFO_VERSION));
     result.setFacetInfos(convertFacetInfos(jsonObj.getJSONArray(SenseiSearchServletParams.PARAM_SYSINFO_FACETS)));
-    result.setClusterInfo(convertClusterInfo(jsonObj.getJSONObject(SenseiSearchServletParams.PARAM_SYSINFO_CLUSTERINFO)));
+    result.setClusterInfo(convertClusterInfo(jsonObj.getJSONArray(SenseiSearchServletParams.PARAM_SYSINFO_CLUSTERINFO)));
 
     return result;
   }
@@ -779,29 +779,36 @@ public class HttpRestSenseiServiceImpl implements SenseiService
     return outMap;
   }
 
-  private static Map<Integer, List<Integer>> convertClusterInfo(JSONObject jsonObject)
+  private static List<SenseiSystemInfo.SenseiNodeInfo> convertClusterInfo(JSONArray array)
       throws JSONException
   {
-    if (jsonObject == null)
-      return Collections.EMPTY_MAP;
+    if (array == null || array.length() == 0)
+      return Collections.EMPTY_LIST;
 
-    @SuppressWarnings("unchecked")
-    Iterator<String> nameItr = jsonObject.keys();
-
-    Map<Integer, List<Integer>> outMap = new HashMap<Integer, List<Integer>>();
-    while(nameItr.hasNext())
+    List<SenseiSystemInfo.SenseiNodeInfo> clusterInfo = new ArrayList(array.length());
+    for (int i=0; i<array.length(); ++i)
     {
-      String name = nameItr.next();
-      JSONArray values = jsonObject.getJSONArray(name);
-      List<Integer> nodes = new ArrayList<Integer>(values.length());
-      for(int i=0; i<values.length(); ++i)
+      JSONObject node = array.getJSONObject(i);
+      JSONArray partitionsArray = node.getJSONArray(SenseiSearchServletParams.PARAM_SYSINFO_CLUSTERINFO_PARTITIONS);
+      int[] partitions = null;
+      if (partitionsArray != null)
       {
-        nodes.add(values.getInt(i));
+        partitions = new int[partitionsArray.length()];
+        for(int j=0; j<partitionsArray.length(); ++j)
+        {
+          partitions[j] = partitionsArray.getInt(j);
+        }
       }
-      outMap.put(Integer.valueOf(name), nodes);
+
+      clusterInfo.add(new SenseiSystemInfo.SenseiNodeInfo(
+        node.getInt(SenseiSearchServletParams.PARAM_SYSINFO_CLUSTERINFO_ID),
+        partitions,
+        node.getString(SenseiSearchServletParams.PARAM_SYSINFO_CLUSTERINFO_NODELINK),
+        node.getString(SenseiSearchServletParams.PARAM_SYSINFO_CLUSTERINFO_ADMINLINK)
+      ));
     }
 
-    return outMap;
+    return clusterInfo;
   }
 
   private static Map<String, FacetAccessible> convertFacetMap(JSONObject jsonObject)

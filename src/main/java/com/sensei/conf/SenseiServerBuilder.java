@@ -4,6 +4,8 @@ import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 
 import java.io.File;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -27,6 +29,7 @@ import org.apache.lucene.queryParser.QueryParser;
 import org.apache.lucene.search.DefaultSimilarity;
 import org.apache.lucene.search.Similarity;
 import org.apache.lucene.util.Version;
+import org.jolokia.http.AgentServlet;
 import org.mortbay.jetty.Server;
 import org.mortbay.jetty.nio.SelectChannelConnector;
 import org.mortbay.jetty.servlet.ServletHolder;
@@ -159,6 +162,9 @@ public class SenseiServerBuilder implements SenseiConfParams{
     SenseiHttpInvokerServiceServlet springServlet = new SenseiHttpInvokerServiceServlet();
     ServletHolder springServletHolder = new ServletHolder(springServlet);
 
+    AgentServlet jmxServlet = new AgentServlet();
+    ServletHolder jmxServletHolder = new ServletHolder(jmxServlet);
+
     WebAppContext senseiApp = new WebAppContext();
     senseiApp.addFilter(GzipFilter.class,"/sensei/*",1);
     
@@ -187,6 +193,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
     //senseiApp.addFilter(new FilterHolder(new GzipFilter()), "/sensei/*", 1);
     senseiApp.setResourceBase(webappPath);
     senseiApp.addServlet(springServletHolder,"/sensei-rpc/SenseiSpringRPCService");
+    senseiApp.addServlet(jmxServletHolder,"/admin/jmx/*");
     
         server.setHandler(senseiApp);
         server.setStopAtShutdown(true);  
@@ -365,16 +372,22 @@ public class SenseiServerBuilder implements SenseiConfParams{
 
       if (sysInfo != null)
       {
-        List<Integer> partitionList = new ArrayList<Integer>(partitions.length);
-
-        for (int i=0; i<partitions.length; ++i)
+        try
         {
-          partitionList.add(partitions[i]);
-        }
+          List<SenseiSystemInfo.SenseiNodeInfo> clusterInfo = new ArrayList(1);
 
-        Map<Integer, List<Integer>> clusterInfo = new HashMap<Integer, List<Integer>>();
-        clusterInfo.put(nodeid, partitionList);
-        sysInfo.setClusterInfo(clusterInfo);
+          clusterInfo.add(new SenseiSystemInfo.SenseiNodeInfo(nodeid, partitions,
+              (new InetSocketAddress(InetAddress.getLocalHost().getHostAddress(),
+                  _senseiConf.getInt(SERVER_PORT))).toString().replaceAll("/", ""),
+              "http://"+(new InetSocketAddress(InetAddress.getLocalHost().getHostAddress(),
+                  _senseiConf.getInt(SERVER_BROKER_PORT))).toString().replaceAll("/", "")));
+
+          sysInfo.setClusterInfo(clusterInfo);
+        }
+        catch(Exception e)
+        {
+          throw new ConfigurationException(e.getMessage(), e);
+        }
       }
       
       String indexerType = _senseiConf.getString(SENSEI_INDEXER_TYPE);
