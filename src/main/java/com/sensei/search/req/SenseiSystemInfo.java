@@ -98,10 +98,10 @@ public class SenseiSystemInfo implements AbstractSenseiResult {
     public String toString()
     {
       StringBuffer buf = new StringBuffer();
-      buf.append("id: ").append(_id)
-         .append("\npartitions: ").append(Arrays.toString(_partitions))
-         .append("\nnodeLink: ").append(_nodeLink)
-         .append("\nadminLink: ").append(_adminLink);
+      buf.append("{id: ").append(_id)
+         .append(", partitions: ").append(Arrays.toString(_partitions))
+         .append(", nodeLink: ").append(_nodeLink)
+         .append(", adminLink: ").append(_adminLink).append("}");
       return buf.toString();
     }
   }
