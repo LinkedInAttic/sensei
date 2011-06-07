@@ -24,42 +24,6 @@
   <script type="text/javascript" src="js/jquery.jstree.js" ></script>
   <script type="text/javascript" src="js/sensei-client.js" ></script>
   <script type="text/javascript" src="js/admin.js" ></script>
-  <script type="text/javascript">
-  // <![CDATA[
-  var r = null;
-	$(function (e) {
-		var senseiClient = new SenseiClient();
-		senseiClient.getSysInfo(function (info) {
-			r = info;
-			if (!info) return;
-
-			$('#numDocs').text(info.numdocs);
-			$('#lastModified').text(new Date(info.lastmodified).toLocaleString());
-			$('#version').text(info.version);
-			$('#clusterInfo').text($.toJSON(info.clusterinfo));
-
-			var initFacets = function (select, facets) {
-				if (select && facets) {
-					for (var i=0; i<facets.length; ++i) {
-						select.append('<option value="'+facets[i].name+'">'+facets[i].name+'</option>');
-					}
-				}
-			};
-
-			if (info.facets) {
-				info.facets.sort(function(a,b){
-					if (a.name < b.name) return -1;
-					if (a.name > b.name) return 1;
-					return 0;
-				});
-				initFacets($('#sortFacets'), info.facets);
-				initFacets($('#selFacets'), info.facets);
-				initFacets($('#facetsFacets'), info.facets);
-			}
-		});
-	});
-  // ]]>
-  </script>
   <script id="jmx-attr-tmpl" type="text/x-mustache-tmpl">
     <label>{{ name }}</label>:
     {{#attr.desc}}<p class="help">({{ attr.desc }})</p>{{/attr.desc}}
@@ -101,7 +65,7 @@
     </div>
   </script>
   <script id="sysinfo-tmpl" type="text/x-mustache-tmpl">
-  Docs: {{numdocs}}; Last Modified: {{lastmodified}}; Version: {{version}}; Cluster Info: [{{#clusterinfo}}{{id}}:[{{partitions}}]{{/clusterinfo}}]
+  Docs: {{numdocs}}; Last Modified: {{#dateToLocaleString}}{{lastmodified}}{{/dateToLocaleString}}; Version: {{version}}; Cluster Info: [{{#clusterinfo}}{{id}}:[{{partitions}}]{{/clusterinfo}}]
   </script>
   <script id="node-overview-tmpl" type="text/x-mustache-tmpl">
     <div class="title">

@@ -387,6 +387,11 @@ function addFacet(){
 	divNode.appendChild(removeButton);
 }
 
+function addQueryParam() {
+  var qp = $('#queryParams');
+  qp.append($.mustache($('#query-param-tmpl').html(), {}));
+}
+
 function addInitParam(){
 	var el = document.getElementById("dyn");
 	var divNode = document.createElement('div');
@@ -656,7 +661,20 @@ function buildreqString(){
 	
 	var fetchStore = document.getElementById('fetchstore').checked;
 	
-    var reqString="q=" + qstring +"&start=" + start + "&rows=" + rows + "&routeparam=" + routeparam;
+  var reqString="q=" + qstring +"&start=" + start + "&rows=" + rows + "&routeparam=" + routeparam;
+  var queryParamNames = $('#queryParams').find('.name-input');
+  var queryParamValues = $('#queryParams').find('.value-input');
+  var qparams = [];
+  queryParamNames.each(function(index, obj) {
+    var jobj = $(obj);
+    if(jobj.val()) {
+      qparams.push(jobj.val() + ":" + $(queryParamValues.get(index)).val());
+    }
+  });
+
+  if (qparams.length > 0) {
+    reqString += ("&qparam=" + encodeURIComponent(qparams.join(',')));
+  }
 
 	if (explain){
 		reqString += "&showexplain=true";

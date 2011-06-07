@@ -656,10 +656,17 @@ $(function() {
   });
 
   window.SenseiSystemInfo = Backbone.Model.extend({
-    url: function() {
-      return 'sensei/sysinfo';
+    defaults: {
+      dateToLocaleString: function(text) {
+        return function(text, render) {
+          return new Date(parseInt(render(text))).toLocaleString();
+        }
+      }
     },
 
+    url: function() {
+      return 'sensei/sysinfo';
+    }
   });
 
   window.SenseiSystemInfoView = Backbone.View.extend({
@@ -674,10 +681,6 @@ $(function() {
 
       this.model.nodes = new SenseiNodes();
       this.model.nodesView = new SenseiNodesView({collection: this.model.nodes});
-    },
-
-    dateToLocaleString: function(date) {
-      return new Date(date).toLocaleString();
     },
 
     updateSenseiNodes: function(clusterinfo) {
@@ -705,7 +708,6 @@ $(function() {
     render: function() {
       var jsonModel = this.model.toJSON();
       // Localize lastmodified:
-      jsonModel.lastmodified = this.dateToLocaleString(jsonModel.lastmodified);
       $(this.el).html($.mustache(this.template, jsonModel));
     }
   });

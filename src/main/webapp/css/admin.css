@@ -48,9 +48,12 @@ a {
   border: solid 1px #B5B5B5;
   width: 500px;
   display: inline-block;
+  background: #EEE;
 }
 
 .chart {
+  border: solid 1px #B5B5B5;
+  margin: 10px 5px;
 }
 
 .title {

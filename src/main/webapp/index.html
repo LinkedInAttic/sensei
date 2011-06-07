@@ -3,6 +3,7 @@
 	<title>Sensei Client App</title>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 	<script src="http://code.jquery.com/jquery-1.4.4.js"></script>
+  <script type="text/javascript" src="js/mustache.js" ></script>
 	<script type="text/javascript" src="js/sensei-client.js" ></script>
 	<script type="text/javascript" src="http://jsbeautifier.org/beautify.js" ></script>
 	<script type="text/javascript">
@@ -13,11 +14,13 @@
 		senseiClient.getSysInfo(function (info) {
 			r = info;
 			if (!info) return;
-
-			$('#numDocs').text(info.numdocs);
-			$('#lastModified').text(new Date(info.lastmodified).toLocaleString());
-			$('#version').text(info.version);
-			$('#clusterInfo').text($.toJSON(info.clusterinfo));
+      var sysInfoTmpl = 'Docs: {{numdocs}}; Last Modified: {{#dateToLocaleString}}{{lastmodified}}{{/dateToLocaleString}}; Version: {{version}}; Cluster Info: [{{#clusterinfo}}{{id}}:[{{partitions}}]{{/clusterinfo}}]';
+      info.dateToLocaleString = function(text) {
+        return function(text, render) {
+          return new Date(parseInt(render(text))).toLocaleString();
+        }
+      };
+      $('#sysinfo').text($.mustache(sysInfoTmpl, info));
 
 			var initFacets = function (select, facets) {
 				if (select && facets) {
@@ -41,6 +44,12 @@
 	});
 	// ]]>
 	</script>
+  <script id="query-param-tmpl" type="text/x-mustache-tmpl">
+    <div style="margin: 10px 30px;">
+      name: <input type="text" class="name-input" /><br />
+      value: <input type="text" class="value-input" /><br />
+    </div>
+  </script>
 </head>
 <body>
 	<table border="0" width="100%" bgcolor="black">
@@ -50,12 +59,13 @@
 	   </td>
 	   <td align="center">
 		<h1><span style="color:white">Sensei Search Client Application</span></h1>
-		<div style="color: white; text-align: right; float: right;">Docs: <span id="numDocs"></span>; Last Modified: <span id="lastModified"></span>; Version: <span id="version"></span>; Cluster Info: <span id="clusterInfo"></span></div>
+    <div id="sysinfo" style="color: white; text-align: right; float: right;"></div>
 	   </td>
 	</tr>
 	</table>
 	<br/><br/><br/>
-	query: <input id="query" type="text" /><br/>
+	query: <input id="query" type="text" /> <input type="button" value="add param" onclick="addQueryParam()" /><br/>
+  <div id="queryParams"></div>
 	start: <input id="start" type="text" value="0" /><br/>
 	rows: <input id="rows" type="text" value="10" /> <br/>
 	route param: <input id="routeparam" type="text" value="" /> <br/>
