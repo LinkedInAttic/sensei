@@ -1,7 +1,6 @@
 package com.sensei.search.nodes;
 
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
-import it.unimi.dsi.fastutil.ints.IntSet;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -10,6 +9,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.zip.GZIPInputStream;
 
+import org.apache.http.NameValuePair;
+import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.log4j.Logger;
 import org.apache.lucene.document.Document;
 
@@ -29,6 +30,8 @@ import com.sensei.search.req.protobuf.SenseiRequestBPO.Request;
 import com.sensei.search.req.protobuf.SenseiRequestBPOConverter;
 import com.sensei.search.req.protobuf.SenseiResultBPO;
 import com.sensei.search.req.protobuf.SenseiResultBPO.Result;
+import com.sensei.search.svc.api.SenseiException;
+import com.sensei.search.svc.impl.HttpRestSenseiServiceImpl;
 
 /**
  * This SenseiBroker routes search(browse) request using the routers created by
@@ -114,8 +117,24 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
   {
     return SenseiRequestBPOConverter.convert(message);
   }
+  
+  
 
   @Override
+  public SenseiResult browse(SenseiRequest req) throws SenseiException {
+	  try{
+	    List<NameValuePair> queryParams = HttpRestSenseiServiceImpl.convertRequestToQueryParams(req);
+	    String qString = URLEncodedUtils.format(queryParams, "UTF-8");
+		Logger log = Logger.getLogger("com.sensei.querylog");
+		log.info(qString);
+	  }
+	  catch(Exception e){
+		logger.error(e.getMessage(),e);
+	  }
+	  return super.browse(req);
+  }
+
+@Override
   public Request requestToMessage(SenseiRequest request)
   {
     request.saveOrigFacetMaxCounts();
