@@ -13,7 +13,7 @@ public abstract class AbstractScoreAdjuster extends Query
 {
   private static final long serialVersionUID = 1L;
  
-  private class ScoreAdjusterWeight extends Weight
+  public class ScoreAdjusterWeight extends Weight
   {
     private static final long serialVersionUID = 1L;
     
