@@ -50,7 +50,7 @@ public abstract class HttpStreamDataProvider<D> extends StreamDataProvider<D> im
 	public static final String DEFAULT_OFFSET_PARAM = "offset";
 	public static final String DFEAULT_DATA_PARAM = "data";
 	
-	protected final int _batchSize;
+	protected final int _fetchSize;
 	protected final String _password;
 	protected String _offset;
 	protected String _initialOffset;
@@ -63,11 +63,11 @@ public abstract class HttpStreamDataProvider<D> extends StreamDataProvider<D> im
 	private volatile long _responseParseLatency;
 	
 	
-	public HttpStreamDataProvider(Comparator<String> versionComparator, String baseUrl,String pw,int batchSize,String startingOffset,boolean disableHttps){
+	public HttpStreamDataProvider(Comparator<String> versionComparator, String baseUrl,String pw,int fetchSize,String startingOffset,boolean disableHttps){
     super(versionComparator);
 	  _baseUrl = baseUrl;
 	  _password = pw;
-	  _batchSize = batchSize;
+	  _fetchSize = fetchSize;
 	  _offset = startingOffset;
 	  _disableHttps = disableHttps;
 	  _initialOffset = null;
