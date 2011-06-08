@@ -16,7 +16,7 @@
   <classpathentry kind="var" path="M2_REPO/commons-cli/commons-cli/1.2/commons-cli-1.2.jar"/>
   <classpathentry kind="var" path="M2_REPO/commons-codec/commons-codec/1.4/commons-codec-1.4.jar"/>
   <classpathentry kind="var" path="M2_REPO/commons-collections/commons-collections/3.2.1/commons-collections-3.2.1.jar"/>
-  <classpathentry kind="var" path="M2_REPO/commons-configuration/commons-configuration/1.6/commons-configuration-1.6.jar" sourcepath="M2_REPO/commons-configuration/commons-configuration/1.6/commons-configuration-1.6-sources.jar"/>
+  <classpathentry kind="var" path="M2_REPO/commons-configuration/commons-configuration/1.6/commons-configuration-1.6.jar"/>
   <classpathentry kind="var" path="M2_REPO/commons-digester/commons-digester/1.8/commons-digester-1.8.jar"/>
   <classpathentry kind="var" path="M2_REPO/commons-io/commons-io/2.0.1/commons-io-2.0.1.jar"/>
   <classpathentry kind="var" path="M2_REPO/commons-lang/commons-lang/2.5/commons-lang-2.5.jar"/>
@@ -32,9 +32,13 @@
   <classpathentry kind="var" path="M2_REPO/jline/jline/0.9.94/jline-0.9.94.jar"/>
   <classpathentry kind="var" path="M2_REPO/net/sf/jopt-simple/jopt-simple/3.2/jopt-simple-3.2.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/json/json/20080701/json-20080701.jar"/>
-  <classpathentry kind="var" path="M2_REPO/junit/junit/4.5/junit-4.5.jar" sourcepath="M2_REPO/junit/junit/4.5/junit-4.5-sources.jar"/>
+  <classpathentry kind="var" path="M2_REPO/junit/junit/4.5/junit-4.5.jar"/>
   <classpathentry kind="var" path="M2_REPO/com/sna-projects/kafka/kafka/0.5-SNAPSHOT/kafka-0.5-SNAPSHOT.jar"/>
-  <classpathentry kind="var" path="M2_REPO/com/linkedin/kamikaze/kamikaze/3.0.4/kamikaze-3.0.4.jar"/>
+  <classpathentry kind="var" path="M2_REPO/com/linkedin/kamikaze/kamikaze/3.0.4/kamikaze-3.0.4.jar" sourcepath="M2_REPO/com/linkedin/kamikaze/kamikaze/3.0.4/kamikaze-3.0.4-sources.jar">
+    <attributes>
+      <attribute value="jar:file:/Users/john/.m2/repository/com/linkedin/kamikaze/kamikaze/3.0.4/kamikaze-3.0.4-javadoc.jar!/" name="javadoc_location"/>
+    </attributes>
+  </classpathentry>
   <classpathentry kind="var" path="M2_REPO/com/sna-projects/kamikaze/kamikaze/3.0.3/kamikaze-3.0.3.jar"/>
   <classpathentry kind="var" path="M2_REPO/log4j/log4j/1.2.15/log4j-1.2.15.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/apache/lucene/lucene-core/3.0.2/lucene-core-3.0.2.jar"/>
@@ -55,7 +59,7 @@
   <classpathentry kind="var" path="M2_REPO/org/mortbay/jetty/servlet-api/2.5-20081211/servlet-api-2.5-20081211.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/slf4j/slf4j-api/1.6.1/slf4j-api-1.6.1.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/slf4j/slf4j-log4j12/1.6.1/slf4j-log4j12-1.6.1.jar"/>
-  <classpathentry kind="var" path="M2_REPO/org/springframework/spring/2.5.6/spring-2.5.6.jar" sourcepath="M2_REPO/org/springframework/spring/2.5.6/spring-2.5.6-sources.jar"/>
+  <classpathentry kind="var" path="M2_REPO/org/springframework/spring/2.5.6/spring-2.5.6.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/springframework/spring-beans/2.5.6/spring-beans-2.5.6.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/springframework/spring-context/2.5.6/spring-context-2.5.6.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/springframework/spring-core/2.5.6/spring-core-2.5.6.jar"/>
@@ -63,12 +67,12 @@
   <classpathentry kind="var" path="M2_REPO/org/jolokia/jolokia-core/0.90/jolokia-core-0.90.jar"/>
   <classpathentry kind="var" path="M2_REPO/com/linkedin/zoie/zoie-core/2.7.0-SNAPSHOT/zoie-core-2.7.0-SNAPSHOT.jar" sourcepath="M2_REPO/com/linkedin/zoie/zoie-core/2.7.0-SNAPSHOT/zoie-core-2.7.0-SNAPSHOT-sources.jar">
     <attributes>
-      <attribute value="jar:file:/Users/jwang/.m2/repository/com/linkedin/zoie/zoie-core/2.7.0-SNAPSHOT/zoie-core-2.7.0-SNAPSHOT-javadoc.jar!/" name="javadoc_location"/>
+      <attribute value="jar:file:/Users/john/.m2/repository/com/linkedin/zoie/zoie-core/2.7.0-SNAPSHOT/zoie-core-2.7.0-SNAPSHOT-javadoc.jar!/" name="javadoc_location"/>
     </attributes>
   </classpathentry>
   <classpathentry kind="var" path="M2_REPO/com/linkedin/zoie/zoie-jms/2.7.0-SNAPSHOT/zoie-jms-2.7.0-SNAPSHOT.jar" sourcepath="M2_REPO/com/linkedin/zoie/zoie-jms/2.7.0-SNAPSHOT/zoie-jms-2.7.0-SNAPSHOT-sources.jar">
     <attributes>
-      <attribute value="jar:file:/Users/jwang/.m2/repository/com/linkedin/zoie/zoie-jms/2.7.0-SNAPSHOT/zoie-jms-2.7.0-SNAPSHOT-javadoc.jar!/" name="javadoc_location"/>
+      <attribute value="jar:file:/Users/john/.m2/repository/com/linkedin/zoie/zoie-jms/2.7.0-SNAPSHOT/zoie-jms-2.7.0-SNAPSHOT-javadoc.jar!/" name="javadoc_location"/>
     </attributes>
   </classpathentry>
   <classpathentry kind="var" path="M2_REPO/org/apache/zookeeper/zookeeper/3.3.3/zookeeper-3.3.3.jar"/>
