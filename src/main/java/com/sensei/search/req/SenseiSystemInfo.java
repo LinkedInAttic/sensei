@@ -189,6 +189,9 @@ public class SenseiSystemInfo implements AbstractSenseiResult {
    */
   private String getCmdOutPutofSet(Set<SenseiFacetInfo> facetInfos)
   {
+    if (facetInfos == null)
+      return "null";
+
     StringBuffer buf = new StringBuffer();
     Iterator<SenseiFacetInfo> it = facetInfos.iterator();
     int count = 0;
