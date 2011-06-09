@@ -4,6 +4,7 @@ import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 
 import java.io.File;
+import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
@@ -376,10 +377,12 @@ public class SenseiServerBuilder implements SenseiConfParams{
         {
           List<SenseiSystemInfo.SenseiNodeInfo> clusterInfo = new ArrayList(1);
 
+          DatagramSocket ds = new DatagramSocket();
+          ds.connect(InetAddress.getByName("74.125.224.0"), 80);
           clusterInfo.add(new SenseiSystemInfo.SenseiNodeInfo(nodeid, partitions,
-              (new InetSocketAddress(InetAddress.getLocalHost().getHostAddress(),
+              (new InetSocketAddress(ds.getLocalAddress(),
                   _senseiConf.getInt(SERVER_PORT))).toString().replaceAll("/", ""),
-              "http://"+(new InetSocketAddress(InetAddress.getLocalHost().getHostAddress(),
+              "http://"+(new InetSocketAddress(ds.getLocalAddress(),
                   _senseiConf.getInt(SERVER_BROKER_PORT))).toString().replaceAll("/", "")));
 
           sysInfo.setClusterInfo(clusterInfo);

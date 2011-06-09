@@ -2,6 +2,7 @@ package com.sensei.search.nodes;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
@@ -207,7 +208,9 @@ public class SenseiServer {
       nodeExists = (_serverNode != null);
       if (!nodeExists)
       {
-        String ipAddr = (new InetSocketAddress(InetAddress.getLocalHost().getHostAddress(), _port)).toString().replaceAll("/", "");
+        DatagramSocket ds = new DatagramSocket();
+        ds.connect(InetAddress.getByName("74.125.224.0"), 80);
+        String ipAddr = (new InetSocketAddress(ds.getLocalAddress(), _port)).toString().replaceAll("/", "");
 
         logger.info("Node id : " + _id + " IP address : " + ipAddr);
 
@@ -247,7 +250,9 @@ public class SenseiServer {
         {
           logger.error("problem removing old node: " + e.getMessage(), e);
         }
-        String ipAddr = (new InetSocketAddress(InetAddress.getLocalHost().getHostAddress(), _port)).toString().replaceAll("/", "");
+        DatagramSocket ds = new DatagramSocket();
+        ds.connect(InetAddress.getByName("74.125.224.0"), 80);
+        String ipAddr = (new InetSocketAddress(ds.getLocalAddress(), _port)).toString().replaceAll("/", "");
         _serverNode = _clusterClient.addNode(_id, ipAddr, partition);
         Thread.sleep(1000);
 
