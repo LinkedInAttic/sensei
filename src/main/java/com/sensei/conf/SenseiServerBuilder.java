@@ -81,6 +81,7 @@ import com.sensei.search.svc.impl.AbstractSenseiCoreService;
 public class SenseiServerBuilder implements SenseiConfParams{
 
   private static Logger logger = Logger.getLogger(SenseiServerBuilder.class);
+  private static final String DUMMY_OUT_IP = "74.125.224.0";
   public static final String SENSEI_PROPERTIES = "sensei.properties";
   public static final String CUSTOM_FACETS = "custom-facets.xml";
   public static final String SCHEMA_FILE = "schema.xml";
@@ -378,7 +379,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
           List<SenseiSystemInfo.SenseiNodeInfo> clusterInfo = new ArrayList(1);
 
           DatagramSocket ds = new DatagramSocket();
-          ds.connect(InetAddress.getByName("74.125.224.0"), 80);
+          ds.connect(InetAddress.getByName(DUMMY_OUT_IP), 80);
           clusterInfo.add(new SenseiSystemInfo.SenseiNodeInfo(nodeid, partitions,
               (new InetSocketAddress(ds.getLocalAddress(),
                   _senseiConf.getInt(SERVER_PORT))).toString().replaceAll("/", ""),

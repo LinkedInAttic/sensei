@@ -44,6 +44,7 @@ public class SenseiServer {
   
     private static final String AVAILABLE = "available";
     private static final String UNAVAILABLE = "unavailable";  
+    private static final String DUMMY_OUT_IP = "74.125.224.0";
   
     private int _id;
     private int _port;
@@ -209,7 +210,7 @@ public class SenseiServer {
       if (!nodeExists)
       {
         DatagramSocket ds = new DatagramSocket();
-        ds.connect(InetAddress.getByName("74.125.224.0"), 80);
+        ds.connect(InetAddress.getByName(DUMMY_OUT_IP), 80);
         String ipAddr = (new InetSocketAddress(ds.getLocalAddress(), _port)).toString().replaceAll("/", "");
 
         logger.info("Node id : " + _id + " IP address : " + ipAddr);
@@ -251,7 +252,7 @@ public class SenseiServer {
           logger.error("problem removing old node: " + e.getMessage(), e);
         }
         DatagramSocket ds = new DatagramSocket();
-        ds.connect(InetAddress.getByName("74.125.224.0"), 80);
+        ds.connect(InetAddress.getByName(DUMMY_OUT_IP), 80);
         String ipAddr = (new InetSocketAddress(ds.getLocalAddress(), _port)).toString().replaceAll("/", "");
         _serverNode = _clusterClient.addNode(_id, ipAddr, partition);
         Thread.sleep(1000);
