@@ -8,14 +8,12 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import junit.framework.TestCase;
 
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
-import org.apache.lucene.document.Field.Index;
-import org.apache.lucene.document.Field.Store;
-import org.apache.lucene.document.Field.TermVector;
 
 import proj.zoie.api.indexing.ZoieIndexable;
 import proj.zoie.api.indexing.ZoieIndexable.IndexingReq;
@@ -28,6 +26,7 @@ import com.sensei.indexing.api.SkipChecker;
 import com.sensei.indexing.api.StoredValue;
 import com.sensei.indexing.api.Text;
 import com.sensei.indexing.api.Uid;
+import com.sensei.search.nodes.impl.SenseiTimeFilter;
 
 public class TestIndexingAPI extends TestCase {
 
@@ -214,6 +213,19 @@ public class TestIndexingAPI extends TestCase {
 		for (Field f : fields){
 		  assertTrue(testObj.numSet.contains(Integer.parseInt(f.stringValue())));
 		}
+	}
+	
+	public void testRetentionTimeCalculation(){
+		long now = System.currentTimeMillis();
+		long nowDays = TimeUnit.DAYS.convert(now, TimeUnit.MILLISECONDS);
+		int numDays = 13;
+		
+		TimeUnit tu  = TimeUnit.SECONDS;
+		long from = SenseiTimeFilter.buildFromTime(13,tu);
+		
+		long fromDays = TimeUnit.DAYS.convert(from, tu);
+		assertEquals(numDays,nowDays-fromDays);
+		
 	}
 	
 	public static void main(String[] args) {

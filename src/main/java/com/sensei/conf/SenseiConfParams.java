@@ -1,6 +1,9 @@
 package com.sensei.conf;
 
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 public interface SenseiConfParams {
 	public static final String NODE_ID = "sensei.node.id";
@@ -46,6 +49,8 @@ public interface SenseiConfParams {
 	public static final String SENSEI_HOURGLASS_FREQUENCY_HOUR = "hour";
 	public static final String SENSEI_HOURGLASS_FREQUENCY_DAY = "day";
 	
+	public static final String SENSEI_ZOIE_PURGER = "sensei.indexer.zoie.purger";
+	
 
 	public static final String SERVER_BROKER_PORT = "sensei.broker.port";
 	public static final String SERVER_BROKER_WEBAPP_PATH = "sensei.broker.webapp.path";
@@ -58,7 +63,9 @@ public interface SenseiConfParams {
 	
 	public static final String SENSEI_INDEX_PRUNER = "sensei.index.pruner";
 
-	public static final String SENSEI_ZOIE_RETENTION_DAYS = "sensei.index.zoie.retentionDays";
+	public static final String SENSEI_ZOIE_RETENTION_DAYS = "sensei.indexer.zoie.retention.days";
+	public static final String SENSEI_ZOIE_RETENTION_FIELD = "sensei.indexer.zoie.retention.field";
+	public static final String SENSEI_ZOIE_RETENTION_TIMEUNIT = "sensei.indexer.zoie.retention.timeunit";
 
 	public static final String SENSEI_MX4J_PORT = "sensei.mx4j.port";
 	
