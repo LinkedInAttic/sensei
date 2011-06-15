@@ -57,7 +57,7 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
   @Override
   public SenseiResult mergeResults(SenseiRequest request, List<SenseiResult> resultList)
   {
-    request.restore();
+    request.restoreState();
     SenseiResult res = ResultMerger.merge(request, resultList, false);
 
     if (request.isFetchStoredFields()) {  // Decompress binary data.
