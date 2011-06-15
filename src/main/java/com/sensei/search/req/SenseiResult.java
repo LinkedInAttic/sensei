@@ -52,6 +52,7 @@ public class SenseiResult extends BrowseResult implements AbstractSenseiResult
     if (getTid() != b.getTid()) return false;
     if (getTime() != b.getTime()) return false;
     if (getNumHits() != getNumHits()) return false;
+    if (getNumGroups() != getNumGroups()) return false;
     if (getTotalDocs() != getTotalDocs()) return false;
     if (!facetMapsAreEqual(getFacetMap(), b.getFacetMap())) return false;
 
@@ -66,6 +67,13 @@ public class SenseiResult extends BrowseResult implements AbstractSenseiResult
       if (a[i].getUID() != b[i].getUID()) return false;
       if (a[i].getDocid() != b[i].getDocid()) return false;
       if (a[i].getScore() != b[i].getScore()) return false;
+      if (a[i].getGroupValue() == null) {
+        if (b[i].getGroupValue() != null) return false;
+      }
+      else {
+        if (!a[i].getGroupValue().equals(b[i].getGroupValue())) return false;
+      }
+      if (a[i].getGroupHitsCount() != b[i].getGroupHitsCount()) return false;
       if (!expalanationsAreEqual(a[i].getExplanation(), b[i].getExplanation())) return false;
 
       // TODO: is comparing the document strings adequate?

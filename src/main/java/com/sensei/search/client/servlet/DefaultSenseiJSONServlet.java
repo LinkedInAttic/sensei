@@ -228,6 +228,7 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
     jsonObj.put(PARAM_RESULT_TID, res.getTid());
     jsonObj.put(PARAM_RESULT_TOTALDOCS, res.getTotalDocs());
     jsonObj.put(PARAM_RESULT_NUMHITS, res.getNumHits());
+    jsonObj.put(PARAM_RESULT_NUMGROUPS, res.getNumGroups());
     jsonObj.put(PARAM_RESULT_PARSEDQUERY, res.getParsedQuery());
 
     SenseiHit[] hits = res.getSenseiHits();
@@ -241,6 +242,8 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
       hitObj.put(PARAM_RESULT_HIT_UID, Long.toString(hit.getUID()));
       hitObj.put(PARAM_RESULT_HIT_DOCID, Integer.toString(hit.getDocid()));
       hitObj.put(PARAM_RESULT_HIT_SCORE, Float.toString(hit.getScore()));
+      hitObj.put(PARAM_RESULT_HIT_GROUPVALUE, hit.getGroupValue());
+      hitObj.put(PARAM_RESULT_HIT_GROUPHITSCOUNT, hit.getGroupHitsCount());
       hitObj.put(PARAM_RESULT_HIT_SRC_DATA, hit.getSrcData());
       if (fieldMap != null)
       {
@@ -361,6 +364,7 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
     senseiReq.setCount(params.getInt(PARAM_COUNT, 10));
     senseiReq.setShowExplanation(params.getBoolean(PARAM_SHOW_EXPLAIN, false));
     senseiReq.setFetchStoredFields(params.getBoolean(PARAM_FETCH_STORED, false));
+    senseiReq.setGroupBy(params.getString(PARAM_GROUP_BY, null));
     String routeParam = params.getString(PARAM_ROUTE_PARAM);
     if (routeParam != null && routeParam.length() != 0)
       senseiReq.setRouteParam(routeParam);

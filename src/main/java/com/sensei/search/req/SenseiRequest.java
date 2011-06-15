@@ -33,12 +33,15 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable
 	private SenseiQuery _query;
 	private int _offset;
 	private int _count;
+	private int _origOffset;
+	private int _origCount;
 	private boolean _fetchStoredFields;
 	private Map<String,FacetHandlerInitializerParam> _facetInitParamMap;
 	private Set<Integer> _partitions;
 	private boolean _showExplanation;
 	private static Random _rand = new Random(System.nanoTime());
 	private String _routeParam;
+	private String _groupBy;
 	
 	public SenseiRequest(){
 		_facetInitParamMap = new HashMap<String,FacetHandlerInitializerParam>();
@@ -49,6 +52,7 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable
 		_partitions = null;
 		_showExplanation = false;
 		_routeParam = null;
+		_groupBy = null;
 	}
 
 /**
@@ -98,7 +102,17 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable
 
     return String.valueOf(_rand.nextInt());
   }
-	
+
+  public void setGroupBy(String groupBy)
+  {
+    _groupBy = groupBy;
+  }
+
+  public String getGroupBy()
+  {
+    return _groupBy;
+  }
+
 	public Map<String,FacetHandlerInitializerParam> getFacetHandlerInitParamMap(){
 		return _facetInitParamMap;
 	}
@@ -137,8 +151,10 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable
 		return _facetSpecMap;
 	}
 	
-  public void saveOrigFacetMaxCounts()
+  public void saveState()
   {
+    _origOffset = _offset;
+    _origCount = _count;
     if (_origFacetSpecMaxCounts == null && _facetSpecMap != null)
     {
       _origFacetSpecMaxCounts= new HashMap<String, Integer>();
@@ -153,8 +169,10 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable
     }
   }
 
-	public void restoreOrigFacetMaxCounts()
+	public void restore()
   {
+    _offset = _origOffset;
+    _count = _origCount;
     if (_facetSpecMap != null)
     {
       for (Map.Entry<String, FacetSpec> entry : _facetSpecMap.entrySet())
@@ -370,15 +388,19 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable
 	  StringBuilder buf=new StringBuilder();
 	  if(_query != null)
 	    buf.append("query: ").append(_query.toString()).append('\n');
-      buf.append("page: [").append(_offset).append(',').append(_count).append("]\n");
-      if(_sortSpecs != null)
-        buf.append("sort spec: ").append(_sortSpecs).append('\n');
-      if(_selections != null)
-        buf.append("selections: ").append(_selections).append('\n');
-      if(_facetSpecMap != null)
-        buf.append("facet spec: ").append(_facetSpecMap).append('\n');
-      buf.append("fetch stored fields: ").append(_fetchStoredFields);
-      return buf.toString();
+    buf.append("page: [").append(_offset).append(',').append(_count).append("]\n");
+    if(_sortSpecs != null)
+      buf.append("sort spec: ").append(_sortSpecs).append('\n');
+    if(_selections != null)
+      buf.append("selections: ").append(_selections).append('\n');
+    if(_facetSpecMap != null)
+      buf.append("facet spec: ").append(_facetSpecMap).append('\n');
+    if (_routeParam != null)
+      buf.append("route param: ").append(_routeParam).append('\n');
+    if (_groupBy != null)
+      buf.append("group by: ").append(_groupBy).append('\n');
+    buf.append("fetch stored fields: ").append(_fetchStoredFields);
+    return buf.toString();
 	}
 	
 	public Object clone() throws CloneNotSupportedException
@@ -401,6 +423,12 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable
       if (b.getQuery() != null) return false;
     } else {
       if (!getQuery().toString().equals(b.getQuery().toString())) return false;
+    }
+    if (getGroupBy() == null) {
+      if (b.getGroupBy() != null) return false;
+    }
+    else {
+      if (!getGroupBy().equals(b.getGroupBy())) return false;
     }
     if (getPartitions() == null) {
       if (b.getPartitions() != null) return false;

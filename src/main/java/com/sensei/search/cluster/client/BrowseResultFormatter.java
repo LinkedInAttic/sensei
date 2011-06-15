@@ -16,7 +16,13 @@ public class BrowseResultFormatter{
             sb.append(res.getNumHits());
             sb.append(" hits out of ");
             sb.append(res.getTotalDocs());
-            sb.append(" docs\n");
+            if (res.getNumGroups() > 0) {
+              sb.append(" docs and in ");
+              sb.append(res.getNumGroups());
+              sb.append(" groups\n");
+            }
+            else
+              sb.append(" docs\n");
             BrowseHit[] hits = res.getHits();
             Map<String,FacetAccessible> map = res.getFacetMap();
             Set<String> keys = map.keySet();
@@ -39,6 +45,13 @@ public class BrowseResultFormatter{
     
     static StringBuffer formatHit(BrowseHit hit) {
             StringBuffer sb = new StringBuffer();
+            if (hit.getGroupHitsCount() > 0) {
+              sb.append("\t group: ");
+              sb.append(hit.getGroupValue());
+              sb.append(" hit count: ");
+              sb.append(hit.getGroupHitsCount());
+              sb.append('\n');
+            }
             Map<String, String[]> fields = hit.getFieldValues();
             if (fields!=null){
               Set<String> keys = fields.keySet();

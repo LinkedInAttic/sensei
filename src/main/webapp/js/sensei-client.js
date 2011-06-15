@@ -102,7 +102,7 @@ SenseiSort.prototype = {
 	}
 };
 
-// SenseiClient(query="", offset=0, length=10, explain=false, fetch=false, routeParam)
+// SenseiClient(query="", offset=0, length=10, explain=false, fetch=false, routeParam, groupBy)
 var SenseiClient = function () {
 	this._facets = [];
 	this._selections = [];
@@ -115,6 +115,7 @@ var SenseiClient = function () {
 	this.explain = false;
 	this.fetch = false;
 	this.routeParam = "";
+	this.groupBy = "";
 
 	if (arguments.length > 0)
 		this.query = arguments[0];
@@ -128,6 +129,8 @@ var SenseiClient = function () {
 		this.fetch = arguments[4];
 	if (arguments.length > 5)
 		this.routeParam = arguments[5];
+	if (arguments.length > 6)
+		this.groupBy = arguments[6];
 };
 
 SenseiClient.prototype = {
@@ -246,7 +249,8 @@ SenseiClient.prototype = {
 			q: this.query,
 			start: this.offset,
 			rows: this.length,
-			routeParam: this.routeParam
+			routeParam: this.routeParam,
+			groupBy: this.groupBy
 		};
 		if (this.explain)
 			qs['showexplain'] = true;
@@ -660,6 +664,7 @@ function buildreqString(){
 	var explain = document.getElementById('explain').checked;
 	
 	var fetchStore = document.getElementById('fetchstore').checked;
+	var groupBy = document.getElementById('groupBy').value;
 	
   var reqString="q=" + qstring +"&start=" + start + "&rows=" + rows + "&routeparam=" + routeparam;
   var queryParamNames = $('#queryParams').find('.name-input');
@@ -683,6 +688,10 @@ function buildreqString(){
 	if (fetchStore){
 		reqString += "&fetchstored=true";
 	}
+
+  if (groupBy) {
+		reqString += "&groupby=" + encodeURIComponent(groupBy);
+  }
 	
 	var selectionNodes = document.getElementsByName('selection');
 	var params = {not:"not",val:"val",op:"op"};

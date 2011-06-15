@@ -405,6 +405,8 @@ public class HttpRestSenseiServiceImpl implements SenseiService
     qparams.add(new BasicNameValuePair(SenseiSearchServletParams.PARAM_COUNT, Integer.toString(req.getCount())));
     if (req.getRouteParam() != null)
       qparams.add(new BasicNameValuePair(SenseiSearchServletParams.PARAM_ROUTE_PARAM, req.getRouteParam()));
+    if (req.getGroupBy() != null)
+      qparams.add(new BasicNameValuePair(SenseiSearchServletParams.PARAM_GROUP_BY, req.getGroupBy()));
   }
 
   public static void convertFacetInitParams(List<NameValuePair> qparams, Map<String,FacetHandlerInitializerParam> initParams)
@@ -717,6 +719,7 @@ public class HttpRestSenseiServiceImpl implements SenseiService
     result.setTotalDocs(jsonObj.getInt(SenseiSearchServletParams.PARAM_RESULT_TOTALDOCS));
     result.setParsedQuery(jsonObj.getString(SenseiSearchServletParams.PARAM_RESULT_PARSEDQUERY));
     result.setNumHits(jsonObj.getInt(SenseiSearchServletParams.PARAM_RESULT_NUMHITS));
+    result.setNumGroups(jsonObj.getInt(SenseiSearchServletParams.PARAM_RESULT_NUMGROUPS));
     result.setParsedQuery(jsonObj.getString(SenseiSearchServletParams.PARAM_RESULT_PARSEDQUERY));
     result.setTime(jsonObj.getLong(SenseiSearchServletParams.PARAM_RESULT_TIME));
     result.addAll(convertFacetMap(jsonObj.getJSONObject(SenseiSearchServletParams.PARAM_RESULT_FACETS)));
@@ -867,6 +870,12 @@ public class HttpRestSenseiServiceImpl implements SenseiService
     	  }
     	  else if (SenseiSearchServletParams.PARAM_RESULT_HIT_STORED_FIELDS.equals(key)){
     		  hit.setStoredFields(convertStoredFields(hitObj.optJSONArray(SenseiSearchServletParams.PARAM_RESULT_HIT_STORED_FIELDS)));
+    	  }
+    	  else if (SenseiSearchServletParams.PARAM_RESULT_HIT_GROUPVALUE.equals(key)){
+    		  hit.setGroupValue(hitObj.getString(SenseiSearchServletParams.PARAM_RESULT_HIT_GROUPVALUE));
+    	  }
+    	  else if (SenseiSearchServletParams.PARAM_RESULT_HIT_GROUPHITSCOUNT.equals(key)){
+    		  hit.setGroupHitsCount(hitObj.getInt(SenseiSearchServletParams.PARAM_RESULT_HIT_GROUPHITSCOUNT));
     	  }
     	  else if (SenseiSearchServletParams.PARAM_RESULT_HIT_EXPLANATION.equals(key)){
     		  hit.setExplanation(convertToExplanation(hitObj.optJSONObject(SenseiSearchServletParams.PARAM_RESULT_HIT_EXPLANATION)));

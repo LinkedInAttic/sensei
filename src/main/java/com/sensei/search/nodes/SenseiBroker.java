@@ -57,7 +57,7 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
   @Override
   public SenseiResult mergeResults(SenseiRequest request, List<SenseiResult> resultList)
   {
-    request.restoreOrigFacetMaxCounts();
+    request.restore();
     SenseiResult res = ResultMerger.merge(request, resultList, false);
 
     if (request.isFetchStoredFields()) {  // Decompress binary data.
@@ -137,7 +137,12 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
 @Override
   public Request requestToMessage(SenseiRequest request)
   {
-    request.saveOrigFacetMaxCounts();
+    request.saveState();
+
+    // Rewrite offset and count.
+    request.setCount(request.getOffset()+request.getCount());
+    request.setOffset(0);
+
     // Rewrite facet max count.
     Map<String, FacetSpec> facetSpecs = request.getFacetSpecs();
     if (facetSpecs != null) {
