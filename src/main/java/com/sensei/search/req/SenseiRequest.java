@@ -157,7 +157,7 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable
     }
   }
 
-	public void restore()
+	public void restoreState()
   {
     _offset = _origOffset;
     _count = _origCount;
