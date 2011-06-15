@@ -33,6 +33,8 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable
 	private SenseiQuery _query;
 	private int _offset;
 	private int _count;
+	private int _origOffset;
+	private int _origCount;
 	private boolean _fetchStoredFields;
 	private Map<String,FacetHandlerInitializerParam> _facetInitParamMap;
 	private Set<Integer> _partitions;
@@ -137,8 +139,10 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable
 		return _facetSpecMap;
 	}
 	
-  public void saveOrigFacetMaxCounts()
+  public void saveState()
   {
+    _origOffset = _offset;
+    _origCount = _count;
     if (_origFacetSpecMaxCounts == null && _facetSpecMap != null)
     {
       _origFacetSpecMaxCounts= new HashMap<String, Integer>();
@@ -153,8 +157,10 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable
     }
   }
 
-	public void restoreOrigFacetMaxCounts()
+	public void restore()
   {
+    _offset = _origOffset;
+    _count = _origCount;
     if (_facetSpecMap != null)
     {
       for (Map.Entry<String, FacetSpec> entry : _facetSpecMap.entrySet())
