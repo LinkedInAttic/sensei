@@ -157,7 +157,7 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
       REQMSG msg = requestToMessage(req);
       if (logger.isDebugEnabled())
       {
-        logger.debug("DEBUG: broker sending req part: " + partsMap.get(entry.getKey()) + " on node: " + entry.getValue());
+        logger.debug("broker sending req part: " + partsMap.get(entry.getKey()) + " on node: " + entry.getValue());
       }
       futureMap.put(entry.getKey(), (Future<RESMSG>)_networkClient.sendMessageToNode(msg, entry.getValue()));
     }
@@ -171,12 +171,12 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
         resultlist.add(res);
         if (logger.isDebugEnabled())
         {
-          logger.info("DEBUG: broker receiving res part: " + partsMap.get(entry.getKey()) + " on node: " + nodeMap.get(entry.getKey())
+          logger.debug("broker receiving res part: " + partsMap.get(entry.getKey()) + " on node: " + nodeMap.get(entry.getKey())
               + " node time: " + res.getTime() +"ms remote time: " + (System.currentTimeMillis() - time) + "ms");
         }
       } catch (Exception e)
       {
-        logger.error("DEBUG: broker receiving res part: " + partsMap.get(entry.getKey()) + " on node: " + nodeMap.get(entry.getKey())
+        logger.error("broker receiving res part: " + partsMap.get(entry.getKey()) + " on node: " + nodeMap.get(entry.getKey())
             + e +" remote time: " + (System.currentTimeMillis() - time) + "ms");
       }
     }
