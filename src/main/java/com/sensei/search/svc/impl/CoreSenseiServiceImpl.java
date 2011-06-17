@@ -87,7 +87,7 @@ public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiReque
 	    result.setHits(senseiHits);
 	    result.setNumHits(res.getNumHits());
 	    result.setNumGroups(res.getNumGroups());
-	    result.setGroupMap(res.getGroupMap());
+	    result.setGroupAccessible(res.getGroupAccessible());
 	    result.setTotalDocs(browser.numDocs());
 	    
 
