@@ -1,17 +1,12 @@
 package com.sensei.search.nodes;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.management.InstanceAlreadyExistsException;
 import javax.management.MBeanServer;
-import javax.management.ObjectName;
 
 import org.apache.log4j.Logger;
 
@@ -35,7 +30,6 @@ public class SenseiCore{
 
   private final MBeanServer mbeanServer = java.lang.management.ManagementFactory.getPlatformMBeanServer();
 
-  private final List<ObjectName> _registeredMBeans;
   private SenseiZoieFactory<?> _zoieFactory;
   private SenseiIndexingManager _indexManager;
   private SenseiQueryBuilderFactory _queryBuilderFactory;
@@ -53,7 +47,6 @@ public class SenseiCore{
             SenseiIndexingManager indexManager,
             SenseiQueryBuilderFactory queryBuilderFactory){
 
-    _registeredMBeans = new LinkedList<ObjectName>();
     _zoieFactory = zoieSystemFactory;
     _indexManager = indexManager;
     _queryBuilderFactory = queryBuilderFactory;
@@ -129,8 +122,9 @@ public class SenseiCore{
     {
       if (version == null || _zoieFactory.getVersionComparator().compare(version, zoieSystem.getVersion()) < 0)
         version = zoieSystem.getVersion();
+      
     }
-
+/*
     for (ObjectName name : _registeredMBeans) {
       try
       {
@@ -143,7 +137,9 @@ public class SenseiCore{
         // Simplely ignore.
       }
     }
+    */
     
+    // TODO: fix this after zoie/hourglass jmx is done: http://linkedin.jira.com/browse/ZOIE-81
     _senseiSystemInfo.setLastModified(lastModified.getTime());
     if (version != null)
       _senseiSystemInfo.setVersion(version);
@@ -167,20 +163,7 @@ public class SenseiCore{
         String[] mbeannames = zoieSystem.getStandardMBeanNames();
         for(String name : mbeannames)
         {
-          ObjectName oname = new ObjectName(JmxUtil.Domain, "name", name + "-" + _id+"-"+part);
-          try
-          {
-            mbeanServer.registerMBean(zoieSystem.getStandardMBean(name), oname);
-            _registeredMBeans.add(oname);
-            logger.info("registered mbean " + oname);
-          } catch(Exception e)
-          {
-            logger.error(e.getMessage(),e);
-            if (e instanceof InstanceAlreadyExistsException)
-            {
-              _registeredMBeans.add(oname);
-            }
-          }        
+          JmxUtil.registerMBean(zoieSystem.getStandardMBean(name), "zoie-name", name + "-" + _id+"-"+part);  
         }
               
         if(!zoieSystems.contains(zoieSystem))
@@ -203,18 +186,6 @@ public class SenseiCore{
   public void shutdown(){
     if (!_started) return;
     logger.info("unregistering mbeans...");
-      try{
-        if (_registeredMBeans.size()>0){
-          for (ObjectName name : _registeredMBeans){
-            mbeanServer.unregisterMBean(name);
-          }
-          _registeredMBeans.clear();
-        }
-      }
-      catch(Exception e){
-        logger.error(e.getMessage(),e);
-      }
-     
         // shutdown the index manager
 
     logger.info("shutting down index manager...");
