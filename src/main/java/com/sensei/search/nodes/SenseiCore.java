@@ -28,8 +28,6 @@ import com.sensei.search.req.SenseiSystemInfo;
 public class SenseiCore{
   private static final Logger logger = Logger.getLogger(SenseiServer.class);
 
-  private final MBeanServer mbeanServer = java.lang.management.ManagementFactory.getPlatformMBeanServer();
-
   private SenseiZoieFactory<?> _zoieFactory;
   private SenseiIndexingManager _indexManager;
   private SenseiQueryBuilderFactory _queryBuilderFactory;

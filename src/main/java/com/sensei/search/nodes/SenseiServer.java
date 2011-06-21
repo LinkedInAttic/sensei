@@ -9,17 +9,14 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 
-import javax.management.InstanceAlreadyExistsException;
-import javax.management.MBeanServer;
-import javax.management.ObjectName;
 import javax.management.StandardMBean;
 
 import org.apache.log4j.Logger;
 import org.mortbay.jetty.Server;
 
+import proj.zoie.api.DataProvider;
 import scala.actors.threadpool.Arrays;
 
 import com.google.protobuf.Message;
@@ -31,13 +28,10 @@ import com.sensei.conf.SenseiServerBuilder;
 import com.sensei.search.jmx.JmxUtil;
 import com.sensei.search.req.AbstractSenseiRequest;
 import com.sensei.search.req.AbstractSenseiResult;
-//import com.sensei.search.req.SenseiSystemInfo.SenseiNodeInfo;
 import com.sensei.search.svc.impl.AbstractSenseiCoreService;
 import com.sensei.search.svc.impl.CoreSenseiServiceImpl;
-import com.sensei.search.svc.impl.SysSenseiCoreServiceImpl;
 import com.sensei.search.svc.impl.SenseiCoreServiceMessageHandler;
-
-import proj.zoie.api.DataProvider;
+import com.sensei.search.svc.impl.SysSenseiCoreServiceImpl;
 
 
 public class SenseiServer {

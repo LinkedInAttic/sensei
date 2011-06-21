@@ -48,7 +48,7 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
   protected volatile SenseiLoadBalancer _loadBalancer;
   
   private final static TimerMetric ScatterTimer = new TimerMetric(TimeUnit.MILLISECONDS,TimeUnit.SECONDS);
-  private final static TimerMetric GatherTImer = new TimerMetric(TimeUnit.MILLISECONDS,TimeUnit.SECONDS);
+  private final static TimerMetric GatherTimer = new TimerMetric(TimeUnit.MILLISECONDS,TimeUnit.SECONDS);
   private final static TimerMetric TotalTImer = new TimerMetric(TimeUnit.MILLISECONDS,TimeUnit.SECONDS);
   private final static CounterMetric ErrorCounter = new CounterMetric();
   private final static CounterMetric EmptyCounter = new CounterMetric();
@@ -61,7 +61,7 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
 	    JmxUtil.registerMBean(scatterTimerMBean, scatterMBeanName);
 	    
 	    ObjectName gatherMBeanName = new ObjectName(JmxUtil.Domain+".broker","name","gather-time");
-	    Timer gatherTimerMBean = new Timer(GatherTImer,gatherMBeanName);
+	    Timer gatherTimerMBean = new Timer(GatherTimer,gatherMBeanName);
 	    JmxUtil.registerMBean(gatherTimerMBean, gatherMBeanName);
 
 	    ObjectName totalMBeanName = new ObjectName(JmxUtil.Domain+".broker","name","total-time");
@@ -263,7 +263,7 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
     
     RESULT result;
     try{
-      result = GatherTImer.time(new Callable<RESULT>(){
+      result = GatherTimer.time(new Callable<RESULT>(){
 
 		@Override
 		public RESULT call() throws Exception {
