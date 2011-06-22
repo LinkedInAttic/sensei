@@ -1,0 +1,306 @@
+@import url(reset.css);
+
+html {
+    overflow-y: scroll;
+}
+
+html, body {
+    background: #F7F7F7;
+    color: #666;
+    font-family: 'Lucida Grande', Helvetica, Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.5em !important;
+    text-shadow: #fff 1px 1px 0px; 
+}
+
+h1, h2, h3, h4, h5 {
+    color: #333;
+}
+a {
+    color: #000;
+
+}
+a:hover {
+    text-decoration: none;
+}
+
+.wrapper {
+    width: 900px;
+    margin: auto;
+    position: relative; 
+}
+.wrapper:after {
+    content: " ";
+    display: block;
+    clear: both;
+}
+
+.wrapped {
+    width: 650px;
+}
+
+/** FOOTER **/
+
+#footer {
+    margin-top: 50px;
+    background: #888787;
+    background: -webkit-gradient(linear, left bottom, right top, from(#888787), to(#666));
+    background: -moz-linear-gradient(left bottom, #888787, #666);
+    background: gradient(linear, left bottom, right top, from(#888787), to(#666));
+    padding: 10px;
+    font-size: 12px;
+    color: #eee;
+    -webkit-box-shadow: inset rgba(0,0,0,.1) 0 5px 5px;
+    -moz-box-shadow: inset rgba(0,0,0,.1) 0 5px 5px;
+    box-shadow: inset rgba(0,0,0,.1) 0 5px 5px;
+    border-top: 1px solid rgba(0,0,0,.2);
+    text-shadow: #555 -1px -1px 0px;
+}
+
+.home #footer {
+    margin-top: 0;
+}
+
+#footer a {
+    text-decoration: none;
+    color: #ccc;
+}
+#footer a:hover {
+    color: #fff;
+}
+
+#footer ul {
+    float: left;
+    width: 216px;
+    padding: 10px 0 20px;
+}
+
+#footer ul li {
+    margin-bottom: 3px;
+}
+
+#footer h5 {
+    margin-bottom: 5px;
+}
+#footer h5 a {
+    color: #fff;
+}
+
+#footer small {
+    display: block;
+    clear: both;
+    padding: 10px 0 0 0;
+    font-size: 11px;
+}
+
+#footer small a {
+    text-decoration: underline;
+}
+
+#footer .licence {
+    padding-top: 8px;
+}
+
+#footer .zenexity {
+    float: right;
+    margin: 0 10px;
+}
+
+#footer hr {
+    clear: both;
+    border: none;
+    border-top: 1px solid #616060;
+    border-bottom: 1px solid #939393;
+    margin: 20px 0;
+}
+
+#header {
+    height: 120px;
+    background: #444;
+    background:  -webkit-gradient(linear, left top, left bottom, from(#555), to(#333));
+    background:  -moz-linear-gradient(top, #555, #333);
+    background:  gradient(linear, left top, left bottom, from(#555), to(#333));
+}  
+
+#logo{
+	background: url(../images/sensei_white_transparent_s.png) no-repeat 50% 50%;
+	position:relative;
+	height: 100px;
+	top: 13px;
+    left: 0px;
+    width: 140px;
+	margin-right: 10px; 
+    margin-left: 10px; 
+    margin-top: 7px;
+}
+
+
+#menu {
+    list-style: none;
+    position: absolute;
+    right: 0;
+    top: 50px;
+}
+
+#menu li {
+    float: left;
+    padding: 15px 15px;
+    position: relative;
+}
+
+#menu li:last-child {
+    padding-right: 0;
+}
+
+#menu span {
+    display: none;
+}
+
+#menu a {
+    color: #B3E862;
+    color: #999;
+    text-shadow: #000 -1px -1px 0px;
+    text-decoration: none;
+    font-size: 15px;
+}
+#menu a:hover {
+    color: #B3E862;
+    color: #ccc;
+}
+
+#menu .selected a {
+    color: #fff;
+}
+
+#menu .selected a:after {
+    content: " .";
+    display: block;
+    text-indent: -99em;
+    border-bottom: 0.8em solid #8adc92;
+    border-left: 0.8em solid transparent;
+    border-right: 0.8em solid transparent;
+    border-top: none;
+    height: 0px;
+    margin-left: -.8em;
+    margin-right: auto;
+    margin-top: 10px;
+    position: absolute;
+    left: 50%;
+    width: 1px;
+}
+
+#menu .selected a {
+    color: #fff;
+}
+
+#top {
+    background: #8adc92;
+    padding: 10px 0 0;
+    overflow: hidden
+    zoom: 1;
+    margin-bottom: 20px;
+    background: -webkit-gradient(linear, left bottom, right top, from(#B3E862), to(#73dac1));
+    background: -moz-linear-gradient(left bottom, #B3E862, #73dac1);
+    background: gradient(linear, left bottom, right top, from(#B3E862), to(#73dac1));
+    color: #1e4432;
+    text-shadow: rgba(255, 255, 255, 0.3) 1px 1px 0px;
+    border-bottom: 1px solid #bbb;
+    border-bottom: 1px solid rgba(0,0,0, 0.1);
+}
+
+#top p {
+    color: #1e4432;
+    color: rgba(30, 68, 50, 0.8);
+}
+
+#top .category {
+    font-weight: lighter;
+    font-size: 30px;
+    color: #1e4432;
+    line-height: 1.4em;
+    width: 900px;
+    margin: 0 auto 10px;
+    padding: 0;
+}
+
+#top .wrapper {
+    margin: 10px auto;
+}
+
+#submenu, #docSidebar {
+    float: right;
+    width: 200px;
+    font-size: 12px;
+    position: relative;
+    padding: 11px 10px 0;
+    top: -65px;
+    width: 200px;
+    background: url("../images/side-top.png") top center no-repeat;
+}
+
+#submenu h2 {
+    margin: 20px 0 5px 0;
+    font-size: 16px;
+    color: #444;
+}
+
+#submenu h2:first-child {
+    margin-top: -2px;
+}
+
+#submenu a {
+    color: #568C00;
+}
+
+.sidemenu li {
+    background: #fff;
+    padding: 5px;
+    margin-bottom: 5px;
+    position: relative;
+    -webkit-box-shadow: #eee -1px 1px 0px;
+    -moz-box-shadow: #eee -1px 1px 0px;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+    -webkit-transition: all 100ms ease-out;
+}
+
+.sidemenu li:hover {
+    -webkit-box-shadow: #ddd -1px 1px 0px;
+    -moz-box-shadow: #ddd -1px 1px 0px;
+    background: #fafafa;
+}
+
+.sidemenu li a {
+    text-decoration: none;
+    color: #444 !important;
+    font-size: 13px;
+    display: block;
+}
+
+.sidemenu li span {
+    display: none;
+}
+
+.sidemenu li.selected span {
+    display: inline;
+    position: absolute;
+    right: 5px;
+    top: 7px;
+}
+
+#downloads #submenu p {
+    padding: 5px;
+}
+
+#downloads #submenu hr {
+    margin: 10px 60px 0 60px;
+    border: 0;
+    border-bottom: 1px solid #ccc;
+    border-top: 1px solid #fff;
+}
+
+#pageContent {
+    width: 650px;
+}
+
