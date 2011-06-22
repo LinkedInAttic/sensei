@@ -25,8 +25,7 @@ public final class SenseiCoreServiceMessageHandler implements MessageHandler {
   	  // register jmx monitoring for timers
   	  try{
   	    ObjectName totalMBeanName = new ObjectName(JmxUtil.Domain+".node","name","total-search-time");
-  	    Timer totalTimerMBean = new Timer(TotalSearchTimer,totalMBeanName);
-  	    JmxUtil.registerMBean(totalTimerMBean, totalMBeanName);
+  	    JmxUtil.registerMBean(TotalSearchTimer, totalMBeanName);
   	 }
 	  catch(Exception e){
 		logger.error(e.getMessage(),e);

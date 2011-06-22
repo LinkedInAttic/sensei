@@ -40,16 +40,13 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
 	  // register jmx monitoring for timers
 	  try{
 	    ObjectName getReaderMBeanName = new ObjectName(JmxUtil.Domain+".node","name","getreader-time");
-	    Timer getReaderTimerMBean = new Timer(GetReaderTimer,getReaderMBeanName);
-	    JmxUtil.registerMBean(getReaderTimerMBean, getReaderMBeanName);
+	    JmxUtil.registerMBean(GetReaderTimer, getReaderMBeanName);
 	    
 	    ObjectName searchMBeanName = new ObjectName(JmxUtil.Domain+".node","name","search-time");
-	    Timer searchTimerMBean = new Timer(SearchTimer,searchMBeanName);
-	    JmxUtil.registerMBean(searchTimerMBean, searchMBeanName);
+	    JmxUtil.registerMBean(SearchTimer, searchMBeanName);
 
 	    ObjectName mergeMBeanName = new ObjectName(JmxUtil.Domain+".node","name","merge-time");
-	    Timer mergeTimerMBean = new Timer(MergeTimer,mergeMBeanName);
-	    JmxUtil.registerMBean(mergeTimerMBean, mergeMBeanName); 
+	    JmxUtil.registerMBean(MergeTimer, mergeMBeanName); 
 	  }
 	  catch(Exception e){
 		logger.error(e.getMessage(),e);

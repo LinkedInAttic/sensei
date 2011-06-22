@@ -49,7 +49,7 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
   
   private final static TimerMetric ScatterTimer = new TimerMetric(TimeUnit.MILLISECONDS,TimeUnit.SECONDS);
   private final static TimerMetric GatherTimer = new TimerMetric(TimeUnit.MILLISECONDS,TimeUnit.SECONDS);
-  private final static TimerMetric TotalTImer = new TimerMetric(TimeUnit.MILLISECONDS,TimeUnit.SECONDS);
+  private final static TimerMetric TotalTimer = new TimerMetric(TimeUnit.MILLISECONDS,TimeUnit.SECONDS);
   private final static CounterMetric ErrorCounter = new CounterMetric();
   private final static CounterMetric EmptyCounter = new CounterMetric();
   
@@ -57,24 +57,19 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
 	  // register jmx monitoring for timers
 	  try{
 	    ObjectName scatterMBeanName = new ObjectName(JmxUtil.Domain+".broker","name","scatter-time");
-	    Timer scatterTimerMBean = new Timer(ScatterTimer,scatterMBeanName);
-	    JmxUtil.registerMBean(scatterTimerMBean, scatterMBeanName);
+	    JmxUtil.registerMBean(ScatterTimer, scatterMBeanName);
 	    
 	    ObjectName gatherMBeanName = new ObjectName(JmxUtil.Domain+".broker","name","gather-time");
-	    Timer gatherTimerMBean = new Timer(GatherTimer,gatherMBeanName);
-	    JmxUtil.registerMBean(gatherTimerMBean, gatherMBeanName);
+	    JmxUtil.registerMBean(GatherTimer, gatherMBeanName);
 
 	    ObjectName totalMBeanName = new ObjectName(JmxUtil.Domain+".broker","name","total-time");
-	    Timer totalTimerMBean = new Timer(TotalTImer,totalMBeanName);
-	    JmxUtil.registerMBean(totalTimerMBean, totalMBeanName); 
+	    JmxUtil.registerMBean(TotalTimer, totalMBeanName); 
 	    
 	    ObjectName errorCounterMBeanName = new ObjectName(JmxUtil.Domain+".broker","name","error-count");
-	    Counter errorCounterMBean = new Counter(ErrorCounter,errorCounterMBeanName);
-	    JmxUtil.registerMBean(errorCounterMBean, errorCounterMBeanName); 
+	    JmxUtil.registerMBean(ErrorCounter, errorCounterMBeanName); 
 	    
 	    ObjectName emptyCounterMBeanName = new ObjectName(JmxUtil.Domain+".broker","name","empty-count");
-	    Counter emptyCounterMBean = new Counter(EmptyCounter,emptyCounterMBeanName);
-	    JmxUtil.registerMBean(emptyCounterMBean, emptyCounterMBeanName); 
+	    JmxUtil.registerMBean(EmptyCounter, emptyCounterMBeanName); 
 	  }
 	  catch(Exception e){
 		logger.error(e.getMessage(),e);
@@ -138,7 +133,7 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
     }
     try
     {
-      return TotalTImer.time(new Callable<RESULT>(){
+      return TotalTimer.time(new Callable<RESULT>(){
     	@Override
   		public RESULT call() throws Exception {
           return doBrowse(_networkClient, req, _partitions); 	  

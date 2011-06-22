@@ -9,11 +9,23 @@ import java.util.concurrent.TimeUnit;
 import javax.management.InstanceAlreadyExistsException;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
+import javax.management.StandardMBean;
 
 import org.apache.log4j.Logger;
 
+import com.yammer.metrics.core.CounterMetric;
+import com.yammer.metrics.core.GaugeMetric;
+import com.yammer.metrics.core.HistogramMetric;
+import com.yammer.metrics.core.MeterMetric;
+import com.yammer.metrics.core.Metric;
 import com.yammer.metrics.core.TimerMetric;
+import com.yammer.metrics.reporting.JmxReporter.Counter;
+import com.yammer.metrics.reporting.JmxReporter.CounterMBean;
+import com.yammer.metrics.reporting.JmxReporter.Gauge;
+import com.yammer.metrics.reporting.JmxReporter.GaugeMBean;
+import com.yammer.metrics.reporting.JmxReporter.HistogramMBean;
 import com.yammer.metrics.reporting.JmxReporter.Meter;
+import com.yammer.metrics.reporting.JmxReporter.MeterMBean;
 import com.yammer.metrics.reporting.JmxReporter.TimerMBean;
 
 public class JmxUtil {
@@ -24,28 +36,60 @@ public class JmxUtil {
 
   public static final String Domain = "com.senseidb";
   
-  public static void registerMBean(Object bean,String key,String val){
-	  try{
-	    ObjectName oname = new ObjectName(Domain,key,val);
-	    registerMBean(bean, oname);
-	  }
-	  catch(Exception e){
-		log.error(e.getMessage(),e);
-	  }
+  public static void registerMBean(StandardMBean bean,String key,String val)
+  {
+    ObjectName objectName = null;
+    try
+    {
+      log.info("registering jmx mbean: "+objectName);
+      objectName = new ObjectName(Domain,key,val);
+      MbeanServer.registerMBean(bean, objectName);
+      RegisteredBeans.add(objectName);
+    }
+    catch(Exception e)
+    {
+      log.error(e.getMessage(),e);
+      if (e instanceof InstanceAlreadyExistsException)
+      {
+        RegisteredBeans.add(objectName);
+      }
+    }
   }
   
-  public static void registerMBean(Object bean,ObjectName name){
-	  try{
-		log.info("registering jmx mbean: "+name);
-		MbeanServer.registerMBean(bean, name);
-		RegisteredBeans.add(name);
-	  }
-	  catch(Exception e){
-		log.error(e.getMessage(),e);
-		if (e instanceof InstanceAlreadyExistsException){
-		  RegisteredBeans.add(name);
-		}
-	  }
+  public static void registerMBean(Metric metric, ObjectName objectName){
+    try
+    {
+      log.info("registering jmx mbean using a metric: "+objectName);
+      if (metric instanceof GaugeMetric)
+      {
+        MbeanServer.registerMBean(new StandardMBean(new Gauge((GaugeMetric<?>) metric, objectName), GaugeMBean.class), objectName);
+      }
+      else if (metric instanceof CounterMetric)
+      {
+        MbeanServer.registerMBean(new StandardMBean(new Counter((CounterMetric) metric, objectName), CounterMBean.class), objectName);
+      }
+      else if (metric instanceof HistogramMetric)
+      {
+        MbeanServer.registerMBean(new StandardMBean(new Histogram((HistogramMetric) metric, objectName), HistogramMBean.class), objectName);
+      }
+      else if (metric instanceof MeterMetric)
+      {
+        MbeanServer.registerMBean(new StandardMBean(new Meter((MeterMetric) metric, objectName), MeterMBean.class), objectName);
+      }
+      else if (metric instanceof TimerMetric)
+      {
+        MbeanServer.registerMBean(new StandardMBean(new Timer((TimerMetric) metric, objectName), TimerMBean.class), objectName);
+      }
+      RegisteredBeans.add(objectName);
+    }
+    catch(Exception e)
+    {
+      log.error(e.getMessage(),e);
+      if (e instanceof InstanceAlreadyExistsException)
+      {
+        RegisteredBeans.add(objectName);
+      }
+    }
   }
   
   private static void unregisterMBeans(){
@@ -68,6 +112,9 @@ public class JmxUtil {
 	  });
   }
   
+  // XXX Copy JmxReporter.Timer and JmxReporter.Histogram here and make them
+  // static.  These two classes should be removed once the fix in metric
+  // is available.
   public static class Timer extends Meter implements TimerMBean {
       private final TimerMetric metric;
 
@@ -135,6 +182,82 @@ public class JmxUtil {
       public List<?> values() {
           return metric.values();
       }
+  }
+
+  // XXX To be removed in the future.
+  public static class Histogram implements HistogramMBean {
+    private final ObjectName objectName;
+    private final HistogramMetric metric;
+
+    public Histogram(HistogramMetric metric, ObjectName objectName) {
+      this.metric = metric;
+      this.objectName = objectName;
+    }
+
+    @Override
+    public ObjectName objectName() {
+      return objectName;
+    }
+
+    @Override
+    public double get50thPercentile() {
+      return metric.percentiles(0.5)[0];
+    }
+
+    @Override
+    public long getCount() {
+      return metric.count();
+    }
+
+    @Override
+    public double getMin() {
+      return metric.min();
+    }
+
+    @Override
+    public double getMax() {
+      return metric.max();
+    }
+
+    @Override
+    public double getMean() {
+      return metric.mean();
+    }
+
+    @Override
+    public double getStdDev() {
+      return metric.stdDev();
+    }
+
+    @Override
+    public double get75thPercentile() {
+      return metric.percentiles(0.75)[0];
+    }
+
+    @Override
+    public double get95thPercentile() {
+      return metric.percentiles(0.95)[0];
+    }
+
+    @Override
+    public double get98thPercentile() {
+      return metric.percentiles(0.98)[0];
+    }
+
+    @Override
+    public double get99thPercentile() {
+      return metric.percentiles(0.99)[0];
+    }
+
+    @Override
+    public double get999thPercentile() {
+      return metric.percentiles(0.999)[0];
+    }
+
+    @Override
+    public List<?> values() {
+      return metric.values();
+    }
   }
 
 }

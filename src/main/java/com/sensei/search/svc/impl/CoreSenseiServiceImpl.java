@@ -51,8 +51,7 @@ public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiReque
 		  // register jmx monitoring for timers
 		  try{
 		    ObjectName pruneMBeanName = new ObjectName(JmxUtil.Domain+".node","name","prune-time");
-		    Timer pruneTimerMBean = new Timer(PruneTimer,pruneMBeanName);
-		    JmxUtil.registerMBean(pruneTimerMBean, pruneMBeanName);
+		    JmxUtil.registerMBean(PruneTimer, pruneMBeanName);
 		  }
 		  catch(Exception e){
 				logger.error(e.getMessage(),e);
