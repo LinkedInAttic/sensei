@@ -2,7 +2,8 @@
     <head> 
         <title>Sensei - Home</title> 
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8"> 
-        <link rel="stylesheet" type="text/css" media="screen" href="styles/main.css"> 
+        <link rel="stylesheet" type="text/css" media="screen" href="styles/main.css">  
+        <link rel="stylesheet" type="text/css" media="screen" href="styles/wiki.css">
     </head>
 	<body class="home">
 		
@@ -38,6 +39,37 @@
 					<p class="category">
 						Releases:
 				    </p> 				
+				</div>
+				
+				<div class="wrapper">
+				  <div class="wrapped wikistyle"> 
+				  <p>We are working hard to get the first release for Sensei, so stay tuned...</p>
+				  <h2>Getting a snapshot-build</h2>
+				  <p>
+					You can download a snapshot build of Sensei in either <a href="http://github.com/javasoze/sensei/zipball/master">
+					    zip</a> or
+				      	<a href="http://github.com/javasoze/sensei/tarball/master">tar</a> formats.					
+				   </p>
+				   <p align="right">
+					<img border="0" width="90" src="http://github.com/images/modules/download/zip.png"/>
+					<img border="0" width="90" src="http://github.com/images/modules/download/tar.png"/>
+					
+				   <h2>Maven</h2>
+					<p>
+				    We build snapshots to the <a href="https://oss.sonatype.org/content/repositories/snapshots">Nexus Sonatype Snapshot repository</a> at an ongoing basis until we do a full release, at which point we will sync to Maven central.
+					</p>
+					<p><b>repository:</b> <a href="https://oss.sonatype.org/content/repositories/snapshots/com/senseidb/sensei/">https://oss.sonatype.org/content/repositories/snapshots/com/senseidb/sensei/</a></p>
+					<p><b>details:</b></p>
+					<p>
+						&lt;groupId&gt;com.senseidb&lt;/groupId&gt;<br/>
+						&lt;artifactId&gt;sensei&lt;/artifactId&gt;
+					</p>
+					
+					<h2>Roadmap</h2>
+					<p>
+						We will be publishing a roadmap soon to track the cool things we want to add...
+					</p>
+				 </div>
 				</div>
 				
 				<div id="footer"> 
