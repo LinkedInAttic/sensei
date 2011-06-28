@@ -1,192 +1,133 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-<html xmlns:og="http://ogp.me/ns#">
-<head>
-	<title>Sensei - Distributed elastic realtime searchable database</title>
-	<link rel="icon" type="image/jpg" href="images/sensei_black.jpg"/>
-	<meta name="description" content="sensei is a distributed elastic realtime searchable database"/>
-	<meta name="keywords" content="search,realtime,zoie,bobo,districuted,elastic,bobo,elastic,database,indexing,opensource,lucene" />
-	<meta http-equiv='Content-Type' content='text/html;charset=utf-8' />
-	<meta property="og:title" value="sensei" />
-	<meta property="og:image" value="images/sensei_black.jpg" />
-	<meta property="og:description" value="sensei is a distributed elastic realtime searchable database" />
-	<meta property="og:site_name" value="github" />
-	<meta property="og:type" value="website" />
-
-  <style type="text/css">
-    body {
-      margin-top: 1.0em;
-      background-color: #efefef;
-      font-family: Helvetica, Arial, FreeSans, san-serif;
-      color: black;
-    }
-    #container {
-      margin: 0 auto;
-      width: 700px;
-    }
-    h1 { font-size: 3.8em; color: black; margin-bottom: 3px; }
-    h1 .small { font-size: 0.4em; }
-    h1 a { text-decoration: none }
-    h2 { font-size: 1.5em; color: black; }
-    h3 { text-align: center; color: black; }
-    a { }
-    .description { font-size: 1.2em; margin-bottom: 30px; margin-top: 30px; font-style: italic;}
-    .download { float: right; }
-    pre { background: #000; color: #fff; padding: 15px;}
-    hr { border: 0; width: 80%; border-bottom: 1px solid #aaa}
-    .footer { text-align:center; padding-top:30px; font-style: italic; }
-  </style>
-</head>
-
-<body>
-<a href="http://github.com/javasoze/sensei"><img style="position: absolute; top: 0; right: 0; border: 0;" src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub" /></a>
-<div style="overflow: hidden; background-color: black;" >
-<div style='float: left; margin-right: 10px;  margin-left: 10px; margin-top: 7px'><img src="images/sensei_white_transparent_s.png"/></div><h2 style="color:white">Sensei</h2>
-<p style="color:white">
-Distributed elastic realtime searchable database
-</p>
-</div>
-
-<p> 
-<h2> 
-Overview:
-</h2>
-Sensei is a distributed database that is designed to handle the following type of query:
-<br/> 
-<br/> 
-<b> 
-SELECT f1,f2...fn FROM members <br/> 
-WHERE c1 AND c2 AND c3..<br/> 
-MATCH (fulltext query, e.g. "java engineer")<br/> 
-GROUP BY fx,fy,fz...<br/> 
-ORDER BY fa,fb...<br/> 
-LIMIT offset,count<br/> 
-</b> 
-</p> 
- 
-<p> 
-<h2> 
-Design considerations:
-</h2> 
-</p> 
-<ul> 
-    <li> data:
-       <ul> 
-          <li> Fault tolerance - when one replication is down, data is still accessible</li> 
-          <li> Durability - N copies of data is stored </li> 
-          <li> Through-put - Parallelizable request-handling on different nodes/data replicas, designed to handle internet traffic </li> 
-          <li> Consistency - Eventally consistent</li> 
-          <li> Data recovery - each shared/replica is noted with a watermark for data recovery </li> 
-          <li> Large dataset - designed to handle 100s millions - billions of rows </li> 
-       </ul> 
-    </li> 
-    <li> horizontally scalable:
-      <ul> 
-         <li> Data is partitioned - so work-load is also distributed </li> 
-         <li> Elasticity - Nodes can be added to accomodate data growth </li> 
-         <li> Online expansion - Cluster can grow while handling online requests </li> 
-         <li> Online cluster management - Cluster topology can change while handling online requests </li> 
-         <li> Low operational/maintenance costs - Push it, leave it and forget it. </li> 
-      </ul> 
-    </li> 
-    <li> performance:
-      <ul> 
-         <li> low indexing latency - real-time update </li> 
-         <li> low search latency - millisecond query response time </li> 
-         <li> low volatility - low variance in both indexing and search latency </li> 
-      </ul> 
-    </li> 
-    <li> customizability:
-      <ul> 
-         <li> plug-in framework - custom query handling logic </li> 
-         <li> routing factory - custom routing logic, default: round-robin </li> 
-         <li> index sharding strategy - different sharding strategy for different applications, e.g. time, mod etc. </li> 
-      </ul> 
-    </li> 
-</ul> 
-<p> 
-<h2> 
-Comparing to traditional RDBMS:
-</h2> 
-<b>RDBMS:</b> 
-<ul> 
-<li>vertically scaled</li> 
-<li>strong ACID guarantee</li> 
-<li>relational support</li> 
-<li>performance cost with full-text integration</li> 
-<li>high query latency with large dataset, esp. Group By</li> 
-<li>indexes needs to be built for all sort possibilities offline</li> 
-</ul> 
-<b>Sensei:</b> 
-<ul> 
-<li> horizontally scaled</li> 
-<li> relaxed Consistency with high durability guarantees</li> 
-<li> data is streamed in, so Atomicity and Isolation is to be handled by the data producer</li> 
-<li> full-text support </li> 
-<li> low query latency with arbitrarily large dataset</li> 
-<li> dynamic sorting, index is already built for all sortable fields and their combinations</li> 
-</ul> 
-</p> 
-<p> 
-	
-<h2>
-	Documentation:
-</h2>
-<p>
-	<a href="docs/src/docbkx/sensei.html">html</a><br/>
-	<a href="docs/src/docbkx/sensei.pdf">pdf</a>
-</p>
-
-<h2> 
-Architectural Diagram:
-</h2> 
-</p> 
-<p align="center"> 
-  <img src = "images/sensei-overview.jpg" border="1" /> 
-</p> 
- 
-			</div> 
-		</div>
+<html> 
+    <head> 
+        <title>Sensei - Home</title> 
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"> 
+        <link rel="stylesheet" type="text/css" media="screen" href="styles/main.css"> 
+        <link rel="stylesheet" type="text/css" media="screen" href="styles/wiki.css">
+    </head>
+	<body class="home">
 		
-<p>
-<h2>Bugs/Issus</h2>
-<a href="http://linkedin.jira.com/browse/SENSEI">http://linkedin.jira.com/browse/SENSEI</a>
-<br/>
-</p>
+		<div id="header"> 
+			<a href="http://github.com/javasoze/sensei"><img style="position: absolute; top: 0; right: 0; border: 0;" src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub" /></a>
+			
+		   <div class="wrapper">   
+		     <h1 id="logo">
+			<span style="display:block;float:left;position:relative;color:white;left:150px;top:50px;font-size:50px">Sensei</span>
+			 <div></div>			  
+			  
+			 </h1>   
+	
+		       <ul id="menu"> 
+		         <li class="selected"> 
+		           <a href="index2.html">Home</a><span>&gt;</span> 
+		         </li> 
+		         <li class=""> 
+		                        <a href="docs.html">Learn</a><span>&gt;</span> 
+		                    </li> 
+		                    <li class=""> 
+		                        <a href="download.html">Download</a><span>&gt;</span> 
+		                    </li> 
+		                    <li class=""> 
+		                        <a href="community.html">Community</a><span>&gt;</span> 
+		                    </li> 
+		                    <li class=""> 
+		                        <a href="code.html">Contribute</a><span>&gt;</span> 
+		                    </li>
+		                </ul> 
+		            </div>      
+		        </div>
+					<div id="top">
+							<p class="category">
+								Sensei, a distributed, searchable database
+						    </p> 				
+					</div>
+					
+					<div class="wrapper">
+						<div class="wrapped wikistyle"> 
+							Sensei is a distributed database that is designed to handle the following type of query: 
 
+							<pre><code>
+<b>SELECT</b> f1,f2...fn <b>FROM</b> members 
+<b>WHERE</b> c1 AND c2 AND c3..
+<b>MATCH</b> (fulltext query, e.g. "java engineer")
+<b>GROUP BY</b> fx,fy,fz...
+<b>ORDER BY</b> fa,fb...
+<b>LIMIT</b> offset,count
+							</code></pre>
+							<h2>Architecture:</h2>
+							<p>
+								<img src="docs/src/docbkx/figures/sensei-architect.png" />
+							</p>
+							<h2>Some Features</h2>
+							<ul>
+								<li>Full-text search</li>
+								<li>Faceted Search</li>
+								<li>Dynamic Sorting</li>
+								<li>Streaming index</li>
+								<li>Fast realtime update</li>
+								<li>Distributed - sharded</li>
+								<li>Dynamic cluster support</li>
+								<li>...</li>
 
-<p>
-<h2>Documentation/Wiki</h2>
-<a href="http://linkedin.jira.com/wiki/display/SENSEI/Home">http://linkedin.jira.com/wiki/display/SENSEI/Home</a>
-<br/>
-</p>
-
-<h2>Contact</h2>
-<p>John Wang (john.wang@gmail.com)
-</p>
-
-
-<div class="download">
-  <a href="http://github.com/javasoze/sensei/zipball/master">
-    <img border="0" width="90" src="http://github.com/images/modules/download/zip.png"></a>
-  <a href="http://github.com/javasoze/sensei/tarball/master">
-    <img border="0" width="90" src="http://github.com/images/modules/download/tar.png"></a>
-</div>
-
-    <h2>Download</h2>
-    <p>
-      You can download this project in either
-      <a href="http://github.com/javasoze/sensei/zipball/master">zip</a> or
-      <a href="http://github.com/javasoze/sensei/tarball/master">tar</a> formats.
-    </p>
-    <p>You can also clone the project with <a href="http://git-scm.com">Git</a>
-      by running:
-      <pre>$ git clone git://github.com/javasoze/sensei</pre>
-    </p>
-
-    <div class="footer">
-      get the source code on GitHub : <a href="http://github.com/javasoze/sensei">javasoze/sensei</a>
-    </div>
-
-  
-</body>
+							</ul>
+							<h2>Design considerations</h2>
+							<ul>
+							 <li>data:<ul>
+								<li>Fault tolerance - when one replication is down, data is still accessible</li>
+								<li>Durability - N copies of data is stored</li>
+								<li>Through-put - Parallelizable request-handling on different nodes/data replicas, designed to handle internet traffic</li>
+								<li>Consistency - Eventally consistent</li>
+								<li>Data recovery - each shared/replica is noted with a watermark for data recovery</li>
+								<li>Large dataset - designed to handle 100s millions - billions of rows</li>
+								</ul>
+								<li>horizontally scalable:<ul>
+								<li>Data is partitioned - so work-load is also distributed</li>
+								<li>Elasticity - Nodes can be added to accomodate data growth</li>
+								<li>Online expansion - Cluster can grow while handling online requests</li>
+								<li>Online cluster management - Cluster topology can change while handling online requests</li>
+								<li>Low operational/maintenance costs - Push it, leave it and forget it.</li>
+								</ul>
+							</li>
+							<li>performance:<ul>
+							<li>low indexing latency - real-time update</li>
+							<li>low search latency - millisecond query response time</li>
+							<li>low volatility - low variance in both indexing and search latency</li>
+							</ul>
+							<li>customizability:<ul>
+							<li>plug-in framework - custom query handling logic</li>
+							<li>routing factory - custom routing logic, default: round-robin</li>
+							<li>index sharding strategy - different sharding strategy for different applications, e.g. time, mod etc.</li>
+							</ul>
+							<h2>Comparing to a traditional RDBMS</h2>
+							<h3>RDBMS:</h3>
+							<ul>
+								<li>scales vertically</li>
+								<li>strong ACID guarantee</li>
+								<li>relational support</li>
+								<li>performance cost with full-text integration</li>
+								<li>high query latency with large dataset, esp. Group By</li>
+								<li>indexes needs to be built for all sort possibilities offline</li>
+							</ul>
+							<h3>Sensei:</h3>
+							<ul>
+								<li>scales horizontally</li>
+								<li>relaxed Consistency with high durability guarantees</li>
+								<li>data is streamed in, so Atomicity and Isolation is to be handled by the data producer</li>
+								<li>full-text support</li>
+								<li>low query latency with arbitrarily large dataset</li>
+								<li>dynamic sorting, index is already built for all sortable fields and their combinations</li>
+							</ul>
+							<table>
+						</div>
+					</div>
+					
+					<div id="footer"> 
+					            <div class="wrapper">
+					                <p class="licence"> 
+					                    Sensei is brought to you by <a href="http://www.linkedin.com">LinkedIn.com</a>
+					                    Distributed under <a href="http://www.apache.org/licenses/LICENSE-2.0.html">Apache 2 license</a> - Hosted on <a href="http://www.senseidb.com">senseidb.com</a> 
+					                </p> 
+					            </div> 
+					        </div>
+	</body>
 </html>

@@ -39,6 +39,26 @@ a:hover {
     width: 650px;
 }
 
+.img_left{
+	padding-left:100px;
+	margin-bottom:40px;
+}
+
+.img_left img{
+	float: left;
+	margin-left:-150px;
+}
+
+.img_right{
+	padding-right:200px;
+	margin-bottom:40px;
+}
+
+.img_right img{
+	float: right;
+	margin-right:-150px;
+}
+
 /** FOOTER **/
 
 #footer {
