@@ -20,13 +20,12 @@ import proj.zoie.api.ZoieIndexReader;
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.google.protobuf.Message;
 import com.sensei.search.jmx.JmxUtil;
-import com.sensei.search.jmx.JmxUtil.Timer;
 import com.sensei.search.nodes.SenseiCore;
 import com.sensei.search.nodes.SenseiQueryBuilderFactory;
 import com.sensei.search.req.AbstractSenseiRequest;
 import com.sensei.search.req.AbstractSenseiResult;
+import com.yammer.metrics.core.CounterMetric;
 import com.yammer.metrics.core.TimerMetric;
-import com.yammer.metrics.reporting.JmxReporter.Counter;
 
 public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiRequest,Res extends AbstractSenseiResult>{
   private final static Logger logger = Logger.getLogger(AbstractSenseiCoreService.class);
@@ -35,6 +34,7 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
   private final static TimerMetric GetReaderTimer = new TimerMetric(TimeUnit.MILLISECONDS,TimeUnit.SECONDS);
   private final static TimerMetric SearchTimer = new TimerMetric(TimeUnit.MILLISECONDS,TimeUnit.SECONDS);
   private final static TimerMetric MergeTimer = new TimerMetric(TimeUnit.MILLISECONDS,TimeUnit.SECONDS);
+  private final static CounterMetric SearchCounter = new CounterMetric();
 	
   static{
 	  // register jmx monitoring for timers
@@ -47,6 +47,9 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
 
 	    ObjectName mergeMBeanName = new ObjectName(JmxUtil.Domain+".node","name","merge-time");
 	    JmxUtil.registerMBean(MergeTimer, mergeMBeanName); 
+	    
+	    ObjectName searchCounterMBeanName = new ObjectName(JmxUtil.Domain + ".node", "name", "search-count");
+	    JmxUtil.registerMBean(SearchCounter, searchCounterMBeanName);
 	  }
 	  catch(Exception e){
 		logger.error(e.getMessage(),e);
@@ -63,6 +66,7 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
 	}
 	
 	public final Res execute(final Req senseiReq){
+		SearchCounter.inc();
 		Set<Integer> partitions = senseiReq==null ? null : senseiReq.getPartitions();
 		if (partitions==null){
 			partitions = new HashSet<Integer>();
