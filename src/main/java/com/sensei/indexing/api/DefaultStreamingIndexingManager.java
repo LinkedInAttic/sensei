@@ -57,8 +57,7 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 	private final SenseiSchema _senseiSchema;
 	private final Configuration _myconfig;
   private final ApplicationContext _pluginContext;
-	private final List<ObjectName> _registeredMBeans;
-	private final MBeanServer _mbeanServer;
+	
 	private Map<Integer, Zoie<BoboIndexReader, JSONObject>> _zoieSystemMap;
 	private final LinkedHashMap<Integer, Collection<DataEvent<JSONObject>>> _dataCollectorMap;
   private final Comparator<String> _versionComparator;
@@ -71,8 +70,6 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 	  _oldestSinceKey = null;
 	  _senseiSchema = schema;
 	  _zoieSystemMap = null;
-	  _mbeanServer = ManagementFactory.getPlatformMBeanServer();
-	  _registeredMBeans = new LinkedList<ObjectName>();
 	  _dataCollectorMap = new LinkedHashMap<Integer, Collection<DataEvent<JSONObject>>>();
     _versionComparator = versionComparator;
     
@@ -155,10 +152,8 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 		}
 		
 		try {
-		   ObjectName dataProviderMBeanName = new ObjectName(JmxUtil.Domain,"indexing-manager","stream-data-provider");
 		   StandardMBean dataProviderMbean = new StandardMBean(new DataProviderAdmin(dataProvider), DataProviderAdminMBean.class);
-		   _mbeanServer.registerMBean(dataProviderMbean, dataProviderMBeanName);
-		   _registeredMBeans.add(dataProviderMBeanName);
+		   JmxUtil.registerMBean(dataProviderMbean, "indexing-manager","stream-data-provider");
 		} catch (Exception e) {
 		  logger.error(e.getMessage(),e);
 		} 
@@ -167,18 +162,7 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 
 	@Override
 	public void shutdown() {
-		try{
-		  _dataProvider.stop();
-		}
-		finally{
-		  for (ObjectName mbeanName : _registeredMBeans){
-		    try {
-				_mbeanServer.unregisterMBean(mbeanName);
-			} catch (Exception e) {
-				logger.error(e.getMessage(),e);
-			} 
-		  }
-		}
+	  _dataProvider.stop();
 	}
 
 	@Override

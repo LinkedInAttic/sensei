@@ -5,10 +5,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+
+import javax.management.ObjectName;
 
 import org.apache.log4j.Logger;
 
@@ -17,16 +19,45 @@ import proj.zoie.api.ZoieIndexReader;
 
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.google.protobuf.Message;
+import com.sensei.search.jmx.JmxUtil;
 import com.sensei.search.nodes.SenseiCore;
 import com.sensei.search.nodes.SenseiQueryBuilderFactory;
 import com.sensei.search.req.AbstractSenseiRequest;
 import com.sensei.search.req.AbstractSenseiResult;
+import com.yammer.metrics.core.CounterMetric;
+import com.yammer.metrics.core.TimerMetric;
 
 public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiRequest,Res extends AbstractSenseiResult>{
-    private final static Logger logger = Logger.getLogger(AbstractSenseiCoreService.class);
+  private final static Logger logger = Logger.getLogger(AbstractSenseiCoreService.class);
+  
+
+  private final static TimerMetric GetReaderTimer = new TimerMetric(TimeUnit.MILLISECONDS,TimeUnit.SECONDS);
+  private final static TimerMetric SearchTimer = new TimerMetric(TimeUnit.MILLISECONDS,TimeUnit.SECONDS);
+  private final static TimerMetric MergeTimer = new TimerMetric(TimeUnit.MILLISECONDS,TimeUnit.SECONDS);
+  private final static CounterMetric SearchCounter = new CounterMetric();
+	
+  static{
+	  // register jmx monitoring for timers
+	  try{
+	    ObjectName getReaderMBeanName = new ObjectName(JmxUtil.Domain+".node","name","getreader-time");
+	    JmxUtil.registerMBean(GetReaderTimer, getReaderMBeanName);
+	    
+	    ObjectName searchMBeanName = new ObjectName(JmxUtil.Domain+".node","name","search-time");
+	    JmxUtil.registerMBean(SearchTimer, searchMBeanName);
+
+	    ObjectName mergeMBeanName = new ObjectName(JmxUtil.Domain+".node","name","merge-time");
+	    JmxUtil.registerMBean(MergeTimer, mergeMBeanName); 
+	    
+	    ObjectName searchCounterMBeanName = new ObjectName(JmxUtil.Domain + ".node", "name", "search-count");
+	    JmxUtil.registerMBean(SearchCounter, searchCounterMBeanName);
+	  }
+	  catch(Exception e){
+		logger.error(e.getMessage(),e);
+	  }
+  }
   protected long _timeout = 8000;
     
-	protected final SenseiCore _core;
+  protected final SenseiCore _core;
 
   private final ExecutorService _executorService = Executors.newCachedThreadPool();
 	
@@ -35,6 +66,7 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
 	}
 	
 	public final Res execute(final Req senseiReq){
+		SearchCounter.inc();
 		Set<Integer> partitions = senseiReq==null ? null : senseiReq.getPartitions();
 		if (partitions==null){
 			partitions = new HashSet<Integer>();
@@ -48,10 +80,10 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
 		Res finalResult;
 	    if (partitions != null && partitions.size() > 0)
 	    {
-	      if (logger.isInfoEnabled()){
-	        logger.info("serving partitions: " + partitions.toString());
+	      if (logger.isDebugEnabled()){
+	        logger.debug("serving partitions: " + partitions.toString());
 	      }
-	      ArrayList<Res> resultList = new ArrayList<Res>(partitions.size());
+	      final ArrayList<Res> resultList = new ArrayList<Res>(partitions.size());
         Future<Res>[] futures = new Future[partitions.size()-1];
         int i = 0;
 	      for (final int partition : partitions)
@@ -114,8 +146,19 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
           }
         }
 
-	      finalResult = mergePartitionedResults(senseiReq, resultList);
-	    } else
+          try{
+	        finalResult = MergeTimer.time(new Callable<Res>(){
+	    	 public Res call() throws Exception{
+	    	   return mergePartitionedResults(senseiReq, resultList);
+	    	 }
+	        });
+          }
+          catch(Exception e){
+        	logger.error(e.getMessage(),e);
+        	finalResult = getEmptyResultInstance(null);
+          }
+	    } 
+	    else
 	    {
 	      if (logger.isInfoEnabled()){
 	        logger.info("no partitions specified");
@@ -128,15 +171,24 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
 	    return finalResult;
 	}
 	
-	private final Res handleRequest(Req senseiReq,IndexReaderFactory<ZoieIndexReader<BoboIndexReader>> readerFactory,SenseiQueryBuilderFactory queryBuilderFactory) throws Exception{
+	private final Res handleRequest(final Req senseiReq,final IndexReaderFactory<ZoieIndexReader<BoboIndexReader>> readerFactory,final SenseiQueryBuilderFactory queryBuilderFactory) throws Exception{
 		List<ZoieIndexReader<BoboIndexReader>> readerList = null;
         try{
-      	  readerList = readerFactory.getIndexReaders();
+      	  readerList = GetReaderTimer.time(new Callable<List<ZoieIndexReader<BoboIndexReader>>>(){
+      		 public List<ZoieIndexReader<BoboIndexReader>> call() throws Exception{
+      			return readerFactory.getIndexReaders(); 
+      		 }
+      	  });
       	  if (logger.isDebugEnabled()){
       		  logger.debug("obtained readerList of size: "+readerList==null? 0 : readerList.size());
       	  }
-      	  List<BoboIndexReader> boboReaders = ZoieIndexReader.extractDecoratedReaders(readerList);
-      	  return handlePartitionedRequest(senseiReq,boboReaders,queryBuilderFactory);
+      	  final List<BoboIndexReader> boboReaders = ZoieIndexReader.extractDecoratedReaders(readerList);
+      	  
+      	  return SearchTimer.time(new Callable<Res>(){
+      		public Res call() throws Exception{
+      		  return handlePartitionedRequest(senseiReq,boboReaders,queryBuilderFactory);
+      		}
+      	  });
         }
         finally{
           if (readerFactory != null && readerList != null){

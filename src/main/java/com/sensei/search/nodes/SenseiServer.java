@@ -9,17 +9,14 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 
-import javax.management.InstanceAlreadyExistsException;
-import javax.management.MBeanServer;
-import javax.management.ObjectName;
 import javax.management.StandardMBean;
 
 import org.apache.log4j.Logger;
 import org.mortbay.jetty.Server;
 
+import proj.zoie.api.DataProvider;
 import scala.actors.threadpool.Arrays;
 
 import com.google.protobuf.Message;
@@ -28,15 +25,13 @@ import com.linkedin.norbert.javacompat.cluster.Node;
 import com.linkedin.norbert.javacompat.network.NetworkServer;
 import com.linkedin.norbert.network.NetworkingException;
 import com.sensei.conf.SenseiServerBuilder;
+import com.sensei.search.jmx.JmxUtil;
 import com.sensei.search.req.AbstractSenseiRequest;
 import com.sensei.search.req.AbstractSenseiResult;
-//import com.sensei.search.req.SenseiSystemInfo.SenseiNodeInfo;
 import com.sensei.search.svc.impl.AbstractSenseiCoreService;
 import com.sensei.search.svc.impl.CoreSenseiServiceImpl;
-import com.sensei.search.svc.impl.SysSenseiCoreServiceImpl;
 import com.sensei.search.svc.impl.SenseiCoreServiceMessageHandler;
-
-import proj.zoie.api.DataProvider;
+import com.sensei.search.svc.impl.SysSenseiCoreServiceImpl;
 
 
 public class SenseiServer {
@@ -51,9 +46,7 @@ public class SenseiServer {
     private int[] _partitions;
     private NetworkServer _networkServer;
     private ClusterClient _clusterClient;
-    private final MBeanServer mbeanServer = java.lang.management.ManagementFactory.getPlatformMBeanServer();
     private final SenseiCore _core;
-    private final List<ObjectName> _registeredMBeans;
     protected volatile Node _serverNode;
     private final CoreSenseiServiceImpl _innerSvc;
     private final List<AbstractSenseiCoreService<AbstractSenseiRequest, AbstractSenseiResult>> _externalSvc;
@@ -79,7 +72,6 @@ public class SenseiServer {
             SenseiCore senseiCore,
             List<AbstractSenseiCoreService<AbstractSenseiRequest, AbstractSenseiResult>> externalSvc)
    {
-    	_registeredMBeans = new LinkedList<ObjectName>();
         _core = senseiCore;
         _id = senseiCore.getNodeId();
         _port = port;
@@ -138,18 +130,6 @@ public class SenseiServer {
   */
   
   public void shutdown(){
-    logger.info("unregistering mbeans...");
-    try{
-      if (_registeredMBeans.size()>0){
-        for (ObjectName name : _registeredMBeans){
-          mbeanServer.unregisterMBean(name);
-        }
-        _registeredMBeans.clear();
-      }
-    }
-    catch(Exception e){
-      logger.error(e.getMessage(),e);
-    }
     try {
     	logger.info("shutting down node...");
         try
@@ -288,19 +268,11 @@ public class SenseiServer {
       }
       throw e;
     }
+    
 
-	ObjectName name = new ObjectName(clusterName, "name", "sensei-server-"+_id);
-	try{
-	  SenseiServerAdminMBean mbean = getAdminMBean();
-	  mbeanServer.registerMBean(new StandardMBean(mbean, SenseiServerAdminMBean.class),name);
-	  _registeredMBeans.add(name);
-	}
-	catch(Exception e){
-		logger.error(e.getMessage(),e);
-		if (e instanceof InstanceAlreadyExistsException){
-		  _registeredMBeans.add(name);
-	    }
-	}
+	SenseiServerAdminMBean senseiAdminMBean = getAdminMBean();
+	StandardMBean bean = new StandardMBean(senseiAdminMBean, SenseiServerAdminMBean.class);
+	JmxUtil.registerMBean(bean, "name", "sensei-server-"+_id);
   }
 	
 	private SenseiServerAdminMBean getAdminMBean()
