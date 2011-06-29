@@ -254,9 +254,12 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
           String[] vals = entry.getValue();
 
           JSONArray valArray = new JSONArray();
-          for (String val : vals)
+          if (vals != null)
           {
-            valArray.put(val);
+            for (String val : vals)
+            {
+              valArray.put(val);
+            }
           }
           hitObj.put(key, valArray);
         }
