@@ -8,7 +8,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -235,5 +234,4 @@ public class SenseiSystemInfo implements AbstractSenseiResult {
     }
     return map;
   }
-  
 }

@@ -91,6 +91,13 @@
 	</properties>
 
 	<dependencies>
+		
+	  <dependency>
+	    <groupId>${project.groupId}</groupId>
+	    <artifactId>sensei-api</artifactId>
+	    <version>${project.version}</version>
+	   </dependency>
+	 
 		<dependency>
 			<groupId>org.jboss.netty</groupId>
 			<artifactId>netty</artifactId>

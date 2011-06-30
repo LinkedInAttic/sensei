@@ -30,7 +30,6 @@ import com.sensei.indexing.api.SenseiIndexPruner;
 import com.sensei.indexing.api.SenseiIndexPruner.IndexReaderSelector;
 import com.sensei.search.client.ResultMerger;
 import com.sensei.search.jmx.JmxUtil;
-import com.sensei.search.jmx.JmxUtil.Timer;
 import com.sensei.search.nodes.SenseiCore;
 import com.sensei.search.nodes.SenseiQueryBuilderFactory;
 import com.sensei.search.req.SenseiHit;
