@@ -1,4 +1,4 @@
-package com.sensei.search.client.servlet;
+package com.sensei.search.req;
 
 public interface SenseiSearchServletParams {
 	public static final String PARAM_OFFSET = "start";

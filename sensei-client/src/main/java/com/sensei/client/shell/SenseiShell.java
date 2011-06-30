@@ -18,16 +18,12 @@ import org.springframework.remoting.RemoteConnectFailureException;
 import com.browseengine.bobo.api.BrowseSelection;
 import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
-import com.linkedin.norbert.NorbertException;
-import com.sensei.search.cluster.client.BrowseRequestBuilder;
-import com.sensei.search.cluster.client.BrowseResultFormatter;
 import com.sensei.search.req.SenseiQuery;
 import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.req.SenseiResult;
 import com.sensei.search.req.SenseiSystemInfo;
 import com.sensei.search.svc.api.SenseiService;
 import com.sensei.search.svc.impl.HttpRestSenseiServiceImpl;
-import com.sensei.search.util.SenseiDefaults;
 
 public class SenseiShell {
 
@@ -35,6 +31,9 @@ public class SenseiShell {
 	
 	static BrowseRequestBuilder _reqBuilder = new BrowseRequestBuilder();
 	
+
+	public static final String SENSEI_CLIENT_SVC_URL_PROP = "sensei.service.url";
+	public static final String SENSEI_CLIENT_CONF_FILE = "sensei-client.conf";
 	
 	private static void shutdown(){
 		svc.shutdown();
@@ -52,7 +51,7 @@ public class SenseiShell {
 	    }
 
 	    File confDir = new File(args[0]);
-	    confFile = new File(confDir , SenseiDefaults.SENSEI_CLIENT_CONF_FILE);
+	    confFile = new File(confDir , SENSEI_CLIENT_CONF_FILE);
 	    
 	    Configuration conf = new PropertiesConfiguration(confFile);
 
@@ -88,7 +87,7 @@ public class SenseiShell {
 				try{
 				  processCommand(line);
 				}
-				catch(NorbertException ne){
+				catch(Exception ne){
 					ne.printStackTrace();
 				}
 				System.out.print("> ");
@@ -96,12 +95,12 @@ public class SenseiShell {
 			}
 			
 		}
-		catch(InterruptedException ie){
+		catch(Exception ie){
 			throw new Exception(ie.getMessage(),ie);
 		}
 	}
 	
-	static void processCommand(String line) throws NorbertException, InterruptedException, ExecutionException{
+	static void processCommand(String line) throws InterruptedException, ExecutionException{
 		if (line == null || line.length() == 0) return;
 		String[] parsed = line.split(" ");
 		if (parsed.length == 0) return;

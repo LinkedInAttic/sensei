@@ -23,6 +23,7 @@
 	<modules>
 	    <module>sensei-parent</module>
 	    <module>sensei-api</module>
+		<module>sensei-client</module>
 	    <module>sensei-core</module>
 	</modules>
 

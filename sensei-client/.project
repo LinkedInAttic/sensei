@@ -1,9 +1,8 @@
 <projectDescription>
-  <name>sensei-core</name>
-  <comment>sensei core library. NO_M2ECLIPSE_SUPPORT: Project files created with the maven-eclipse-plugin are not supported in M2Eclipse.</comment>
+  <name>sensei-client</name>
+  <comment>sensei client library. NO_M2ECLIPSE_SUPPORT: Project files created with the maven-eclipse-plugin are not supported in M2Eclipse.</comment>
   <projects>
     <project>sensei-api</project>
-    <project>sensei-client</project>
   </projects>
   <buildSpec>
     <buildCommand>

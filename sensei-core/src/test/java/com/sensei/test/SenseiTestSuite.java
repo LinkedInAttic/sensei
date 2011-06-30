@@ -1,5 +1,7 @@
 package com.sensei.test;
 
+import com.sensei.test.TestHttpRestSenseiServiceImpl;
+
 import junit.framework.Test;
 import junit.framework.TestSuite;
 import junit.textui.TestRunner;
@@ -11,6 +13,7 @@ public class SenseiTestSuite extends TestSuite{
      suite.addTestSuite(TestSerialization.class);
      suite.addTestSuite(TestIndexingAPI.class);
      suite.addTestSuite(TestRestServer.class);
+     suite.addTestSuite(TestHttpRestSenseiServiceImpl.class);
      return suite;
   }
  

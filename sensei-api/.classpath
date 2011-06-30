@@ -6,6 +6,7 @@
   <classpathentry kind="var" path="M2_REPO/commons-cli/commons-cli/1.2/commons-cli-1.2.jar"/>
   <classpathentry kind="var" path="M2_REPO/commons-logging/commons-logging/1.1.1/commons-logging-1.1.1.jar"/>
   <classpathentry kind="var" path="M2_REPO/fastutil/fastutil/5.0.5/fastutil-5.0.5.jar"/>
+  <classpathentry kind="var" path="M2_REPO/org/json/json/20080701/json-20080701.jar"/>
   <classpathentry kind="var" path="M2_REPO/junit/junit/4.5/junit-4.5.jar" sourcepath="M2_REPO/junit/junit/4.5/junit-4.5-sources.jar"/>
   <classpathentry kind="var" path="M2_REPO/com/sna-projects/kamikaze/kamikaze/3.0.3/kamikaze-3.0.3.jar"/>
   <classpathentry kind="var" path="M2_REPO/log4j/log4j/1.2.13/log4j-1.2.13.jar"/>

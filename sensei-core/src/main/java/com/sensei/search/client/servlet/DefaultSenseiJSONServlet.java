@@ -38,7 +38,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import static com.sensei.search.client.servlet.SenseiSearchServletParams.*;
+import static com.sensei.search.req.SenseiSearchServletParams.*;
 
 
 public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet

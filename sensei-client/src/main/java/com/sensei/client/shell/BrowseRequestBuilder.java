@@ -1,4 +1,4 @@
-package com.sensei.search.cluster.client;
+package com.sensei.client.shell;
 
 import java.io.UnsupportedEncodingException;
 

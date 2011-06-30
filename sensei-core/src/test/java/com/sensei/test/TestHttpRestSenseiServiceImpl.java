@@ -32,6 +32,7 @@ import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.api.MappedFacetAccessible;
 import com.browseengine.bobo.facets.DefaultFacetHandlerInitializerParam;
 import com.browseengine.bobo.facets.FacetHandlerInitializerParam;
+import com.sensei.test.MockServletRequest;
 import com.sensei.search.client.servlet.DefaultSenseiJSONServlet;
 import com.sensei.search.req.SenseiHit;
 import com.sensei.search.req.SenseiJSONQuery;

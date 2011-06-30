@@ -1,4 +1,4 @@
-package com.sensei.search.cluster.client;
+package com.sensei.client.shell;
 
 import java.util.List;
 import java.util.Map;
