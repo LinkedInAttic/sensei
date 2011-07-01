@@ -107,9 +107,15 @@ public class SenseiServerBuilder implements SenseiConfParams{
   public ClusterClient buildClusterClient()
   {
     String clusterName = _senseiConf.getString(SENSEI_CLUSTER_NAME);
-    String zkUrl = _senseiConf.getString(SENSEI_CLUSTER_URL);
+    StringBuilder zkUrl = new StringBuilder();
+    for(String part : _senseiConf.getStringArray(SENSEI_CLUSTER_URL))
+    {
+      if (zkUrl.length() > 0)
+        zkUrl.append(',');
+      zkUrl.append(part);
+    }
     int zkTimeout = _senseiConf.getInt(SENSEI_CLUSTER_TIMEOUT, 300000);
-    ClusterClient clusterClient =  new ZooKeeperClusterClient(clusterName, zkUrl,zkTimeout);
+    ClusterClient clusterClient =  new ZooKeeperClusterClient(clusterName, zkUrl.toString(),zkTimeout);
     
 
     logger.info("Connecting to cluster: "+clusterName+" ...");
