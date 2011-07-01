@@ -262,6 +262,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
     _senseiConfFile = null;
 
     _senseiConf = new MapConfiguration(properties);
+    ((MapConfiguration) _senseiConf).setDelimiterParsingDisabled(true);
 
     //TODO: conditionally load other contexts.
     _pluginContext = pluginContext;
