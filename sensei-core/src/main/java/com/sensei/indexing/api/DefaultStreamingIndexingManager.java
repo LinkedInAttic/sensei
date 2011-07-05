@@ -1,16 +1,12 @@
 package com.sensei.indexing.api;
 
-import java.lang.management.ManagementFactory;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 
-import javax.management.MBeanServer;
-import javax.management.ObjectName;
 import javax.management.StandardMBean;
 
 import org.apache.commons.configuration.Configuration;
