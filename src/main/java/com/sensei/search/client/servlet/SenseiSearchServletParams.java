@@ -15,6 +15,7 @@ public interface SenseiSearchServletParams {
 	public static final String PARAM_FETCH_STORED = "fetchstored";
 	public static final String PARAM_SHOW_EXPLAIN = "showexplain";
 	public static final String PARAM_ROUTE_PARAM = "routeparam";
+	public static final String PARAM_GROUP_BY = "groupby";
 	public static final String PARAM_SELECT = "select";
 	public static final String PARAM_SELECT_VAL = "val";
 	public static final String PARAM_SELECT_NOT = "not";
@@ -47,11 +48,15 @@ public interface SenseiSearchServletParams {
 	public static final String PARAM_RESULT_HIT_STORED_FIELDS_NAME = "name";
 	public static final String PARAM_RESULT_HIT_STORED_FIELDS_VALUE = "val";
 	public static final String PARAM_RESULT_HIT_EXPLANATION = "explanation";
+	public static final String PARAM_RESULT_HIT_GROUPVALUE = "groupvalue";
+	public static final String PARAM_RESULT_HIT_GROUPHITSCOUNT = "grouphitscount";
 	public static final String PARAM_RESULT_FACETS = "facets";
 
 	public static final String PARAM_RESULT_TID = "tid";
 	public static final String PARAM_RESULT_TOTALDOCS = "totaldocs";
+	public static final String PARAM_RESULT_TOTALGROUPS = "totalgroups";
 	public static final String PARAM_RESULT_NUMHITS = "numhits";
+	public static final String PARAM_RESULT_NUMGROUPS = "numgroups";
 	public static final String PARAM_RESULT_HITS = "hits";
 	public static final String PARAM_RESULT_HIT_UID = "uid";
 	public static final String PARAM_RESULT_HIT_DOCID = "docid";

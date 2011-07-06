@@ -315,6 +315,12 @@ public class ResultMerger
 
   }
 
+  private static class HitsPointer
+  {
+    SenseiHit[] array;
+    int index;
+  }
+
   public static SenseiResult merge(SenseiRequest req, Collection<SenseiResult> results, boolean onSearchNode)
   {
 	long start = System.currentTimeMillis();
@@ -322,9 +328,12 @@ public class ResultMerger
 
     ArrayList<Iterator<SenseiHit>> iteratorList = new ArrayList<Iterator<SenseiHit>>(results.size());
     int numHits = 0;
+    //int preGroups = 0;
+    int numGroups = 0;
     int totalDocs = 0;
 
     long time = 0L;
+    List<FacetAccessible> groupAccessibles = new ArrayList<FacetAccessible>(results.size());
     
     String parsedQuery = null;
     for (SenseiResult res : results)
@@ -339,12 +348,17 @@ public class ResultMerger
         }
       }
       numHits += res.getNumHits();
+      numGroups += res.getNumGroups();
       totalDocs += res.getTotalDocs();
       time = Math.max(time,res.getTime());
       Map<String, FacetAccessible> facetMap = res.getFacetMap();
       if (facetMap != null)
       {
         facetList.add(facetMap);
+      }
+      if (res.getGroupAccessible() != null)
+      {
+        groupAccessibles.add(res.getGroupAccessible());
       }
       iteratorList.add(Arrays.asList(res.getSenseiHits()).iterator());
     }
@@ -359,13 +373,77 @@ public class ResultMerger
     }
     Comparator<SenseiHit> comparator = new SenseiHitComparator();
 
-    List<SenseiHit> mergedList = ListMerger.mergeLists(req.getOffset(), req.getCount(), iteratorList
-        .toArray(new Iterator[iteratorList.size()]), comparator);
-    SenseiHit[] hits = mergedList.toArray(new SenseiHit[mergedList.size()]);
+    SenseiHit[] hits;
+    if (req.getGroupBy() == null || req.getGroupBy().length() == 0)
+    {
+      List<SenseiHit> mergedList = ListMerger.mergeLists(req.getOffset(), req.getCount(), iteratorList
+          .toArray(new Iterator[iteratorList.size()]), comparator);
+      hits = mergedList.toArray(new SenseiHit[mergedList.size()]);
+    }
+    else {
+      List<SenseiHit> hitsList = new ArrayList<SenseiHit>(req.getCount());
+      Iterator<SenseiHit> mergedIter = ListMerger.mergeLists(iteratorList, comparator);
+      int offsetLeft = req.getOffset();
+      if (groupAccessibles.size() == 0)
+      {
+        Map<String, SenseiHit> groupHitMap = new HashMap<String, SenseiHit>(req.getCount());
+        while(mergedIter.hasNext())
+        {
+          //++preGroups;
+          SenseiHit hit = mergedIter.next();
+          if (groupHitMap.containsKey(hit.getGroupValue()))
+          {
+            if (offsetLeft <= 0) {
+              SenseiHit pre = groupHitMap.get(hit.getGroupValue());
+              pre.setGroupHitsCount(pre.getGroupHitsCount()+hit.getGroupHitsCount());
+            }
+          }
+          else
+          {
+            if (offsetLeft > 0)
+              --offsetLeft;
+            //else if (hitsList.size()<req.getCount())
+              //hitsList.add(hit);
+            hitsList.add(hit);
+            if (hitsList.size()>=req.getCount())
+              break;
+            groupHitMap.put(hit.getGroupValue(), hit);
+          }
+        }
+        //numGroups = (int)(numGroups*(groupHitMap.size()/(float)preGroups));
+      }
+      else
+      {
+        FacetAccessible groupAccessible = new CombinedFacetAccessible(new FacetSpec(), groupAccessibles);
+        Set<String> groupSet = new HashSet<String>(req.getCount());
+        while(mergedIter.hasNext())
+        {
+          SenseiHit hit = mergedIter.next();
+          if (!groupSet.contains(hit.getGroupValue()))
+          {
+            if (offsetLeft > 0)
+              --offsetLeft;
+            else {
+              BrowseFacet facet = groupAccessible.getFacet(hit.getGroupValue());
+              if (facet != null)
+                hit.setGroupHitsCount(facet.getFacetValueHitCount());
+              hitsList.add(hit);
+            }
+            groupSet.add(hit.getGroupValue());
+          }
+          if (hitsList.size() >= req.getCount())
+            break;
+        }
+        //numGroups -= (preGroups - groupMap.size());
+      }
+      hits = hitsList.toArray(new SenseiHit[hitsList.size()]);
+    }
 
     SenseiResult merged = new SenseiResult();
     merged.setHits(hits);
     merged.setNumHits(numHits);
+    merged.setNumGroups(numGroups);
+    //merged.setGroupMap(groupMap);
     merged.setTotalDocs(totalDocs);
     merged.addAll(mergedFacetMap);
     

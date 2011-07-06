@@ -25,6 +25,7 @@ public class RequestConverter {
 		breq.setSort(req.getSort());
 		breq.setFetchStoredFields(req.isFetchStoredFields());
 		breq.setShowExplanation(req.isShowExplanation());
+    breq.setGroupBy(req.getGroupBy());
 		
 		SenseiQueryBuilder queryBuilder = queryBuilderFactory.getQueryBuilder(req.getQuery());
        
