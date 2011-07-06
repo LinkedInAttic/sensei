@@ -107,16 +107,9 @@ public class SenseiServerBuilder implements SenseiConfParams{
   public ClusterClient buildClusterClient()
   {
     String clusterName = _senseiConf.getString(SENSEI_CLUSTER_NAME);
-    StringBuilder zkUrl = new StringBuilder();
-    for(String part : _senseiConf.getStringArray(SENSEI_CLUSTER_URL))
-    {
-      if (zkUrl.length() > 0)
-        zkUrl.append(',');
-      zkUrl.append(part);
-    }
+    String zkUrl = _senseiConf.getString(SENSEI_CLUSTER_URL);
     int zkTimeout = _senseiConf.getInt(SENSEI_CLUSTER_TIMEOUT, 300000);
-    ClusterClient clusterClient =  new ZooKeeperClusterClient(clusterName, zkUrl.toString(),zkTimeout);
-    
+    ClusterClient clusterClient =  new ZooKeeperClusterClient(clusterName, zkUrl, zkTimeout);
 
     logger.info("Connecting to cluster: "+clusterName+" ...");
     clusterClient.awaitConnectionUninterruptibly();
@@ -214,13 +207,16 @@ public class SenseiServerBuilder implements SenseiConfParams{
     if (properties != null) {
       _senseiConfFile = null;
       _senseiConf = new MapConfiguration(properties);
+      ((MapConfiguration) _senseiConf).setDelimiterParsingDisabled(true);
     }
     else {
       _senseiConfFile = new File(confDir,SENSEI_PROPERTIES);
       if (!_senseiConfFile.exists()){
           throw new ConfigurationException("configuration file: "+_senseiConfFile.getAbsolutePath()+" does not exist.");
       }
-      _senseiConf = new PropertiesConfiguration(_senseiConfFile);
+      _senseiConf = new PropertiesConfiguration();
+      ((PropertiesConfiguration)_senseiConf).setDelimiterParsingDisabled(true);
+      ((PropertiesConfiguration)_senseiConf).load(_senseiConfFile);
     }
 
     if (pluginContext != null)
@@ -266,6 +262,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
     _senseiConfFile = null;
 
     _senseiConf = new MapConfiguration(properties);
+    ((MapConfiguration) _senseiConf).setDelimiterParsingDisabled(true);
 
     //TODO: conditionally load other contexts.
     _pluginContext = pluginContext;
@@ -338,7 +335,8 @@ public class SenseiServerBuilder implements SenseiConfParams{
   
   public SenseiCore buildCore() throws ConfigurationException{
     int nodeid = _senseiConf.getInt(NODE_ID);
-    String[] partitionArray = _senseiConf.getStringArray(PARTITIONS);
+    String partStr = _senseiConf.getString(PARTITIONS);
+    String[] partitionArray = partStr.split("[,\\s]+");
     int[] partitions = buildPartitions(partitionArray);
     logger.info("partitions to serve: "+Arrays.toString(partitions));
     
@@ -512,7 +510,8 @@ public class SenseiServerBuilder implements SenseiConfParams{
 
     SenseiCore core = buildCore();
 
-    String[] externalServicList = _senseiConf.getStringArray(SENSEI_PLUGIN_SVCS);
+    String externalServices = _senseiConf.getString(SENSEI_PLUGIN_SVCS);
+    String[] externalServicList = externalServices.split("[,\\s]+");
     List<AbstractSenseiCoreService<AbstractSenseiRequest, AbstractSenseiResult>> svcList = new LinkedList<AbstractSenseiCoreService<AbstractSenseiRequest, AbstractSenseiResult>>();
     if (externalServicList!=null){
       for (String svcName : externalServicList){

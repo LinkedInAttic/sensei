@@ -42,7 +42,9 @@ public class SenseiConfigServletContextListener implements
     if (confFileName != null) {
       File confFile = new File(confFileName);
       try {
-        PropertiesConfiguration conf = new PropertiesConfiguration(confFile);
+        PropertiesConfiguration conf = new PropertiesConfiguration();
+        conf.setDelimiterParsingDisabled(true);
+        conf.load(confFile);
         ctx.setAttribute(SENSEI_CONF_OBJ, conf);
       } 
       catch (ConfigurationException e) {
