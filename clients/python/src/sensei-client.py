@@ -85,10 +85,11 @@ class SenseiSort:
 			self.dir = "asc"
 
 class SenseiRequest:
-	facets = []
-	selections = []
-	sorts = []
+	facets = None
+	selections = None
+	sorts = None
 	query = None
+	qParam = None
 	offset = 0
 	count = 10
 	explain = False
@@ -117,7 +118,6 @@ class SenseiResult:
 	time = 0
 	hits = []
 	facetMap = {}
-	
 class SenseiClient:
 	host = None
 	port = None
@@ -133,9 +133,18 @@ class SenseiClient:
 		
 	@staticmethod
 	def buildUrlString(req):
-		paramMap = dict()
-		paramMap["offset"]=req.offset
-		paramMap["count"]=req.count
+		paramMap = {}
+		paramMap["start"]=req.offset
+		paramMap["rows"]=req.count
+		if req.query:
+			paramMap["q"]=req.query
+		if req.explain:
+			paramMap["showexplain"]="true"
+		if req.fetch:
+			paramMap["fetchstored"]="true"
+		if req.routeParam:
+			paramMap["routeparam"]=req.routeParam
+		
 		return urllib.urlencode(paramMap)
 		
 	def doQuery(self,req):
