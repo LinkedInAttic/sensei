@@ -35,15 +35,7 @@ public class ZookeeperConfigurableServlet extends HttpServlet {
     ServletContext ctx = config.getServletContext();
     
     Configuration senseiConf = (Configuration)ctx.getAttribute(SenseiConfigServletContextListener.SENSEI_CONF_OBJ);
-      
-    StringBuilder zkUrlBuilder = new StringBuilder();
-    for(String part : senseiConf.getStringArray(SenseiConfigServletContextListener.SENSEI_CONF_ZKURL))
-    {
-      if (zkUrlBuilder.length() > 0)
-        zkUrlBuilder.append(',');
-      zkUrlBuilder.append(part);
-    }
-    zkurl = zkUrlBuilder.toString();
+    zkurl = senseiConf.getString(SenseiConfigServletContextListener.SENSEI_CONF_ZKURL);
     clusterName = senseiConf.getString(SenseiConfigServletContextListener.SENSEI_CONF_CLUSTER_NAME);
     zkTimeout = senseiConf.getInt(SenseiConfigServletContextListener.SENSEI_CONF_ZKTIMEOUT,10000);
     connectTimeoutMillis = senseiConf.getInt(SenseiConfigServletContextListener.SENSEI_CONF_NC_CONN_TIMEOUT, 1000);
