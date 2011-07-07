@@ -16,6 +16,7 @@
 
 import urllib
 import urllib2
+import json
 
 class SenseiFacetOrder:
 	Hits = "hits"
@@ -103,6 +104,12 @@ class ScoreExplanation:
 	def __init__(self,description,value):
 		self.description = description
 		self.value = value
+		
+	@staticmethod
+	def load(json):
+		expl = ScoreExplanation()
+		
+		return expl
 
 class SenseiHit:
 	docid = None
@@ -110,7 +117,7 @@ class SenseiHit:
 	srcData = None
 	score = None
 	fieldVals = {}
-	explaination = None
+	explanation = None
 	
 class SenseiResult:
 	numHits = 0
@@ -118,6 +125,7 @@ class SenseiResult:
 	time = 0
 	hits = []
 	facetMap = {}
+	
 	
 class SenseiClient:
 	host = None
@@ -154,8 +162,8 @@ class SenseiClient:
 		paramString = SenseiClient.buildUrlString(req)
 		urlReq = urllib2.Request(self.url,paramString)
 		res = self.opener.open(urlReq)
-		resObj = eval(res.read())
-		print resObj
+		jsonObj = dict(json.loads(res.read()))
+		print jsonObj['numhits']
 		
 s = SenseiRequest()
 c = SenseiClient()
