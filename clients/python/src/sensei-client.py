@@ -118,15 +118,18 @@ class SenseiResult:
 	time = 0
 	hits = []
 	facetMap = {}
+	
 class SenseiClient:
 	host = None
 	port = None
 	opener = None
 	path = None
-	def __init__(self,host,port,path):
+	url = None
+	def __init__(self,host='localhost',port=8080,path='sensei'):
 		self.host = host
 		self.port = port
 		self.path = path
+		self.url = 'http://%s:%d/%s' % (self.host,self.port,self.path)
 		self.opener = urllib2.build_opener()
 		self.opener.addheaders = [('User-agent', 'Python-urllib/2.5')]
 		self.opener.addheaders = [('User-agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_6_7) AppleWebKit/534.30 (KHTML, like Gecko) Chrome/12.0.742.91 Safari/534.30')]
@@ -148,8 +151,12 @@ class SenseiClient:
 		return urllib.urlencode(paramMap)
 		
 	def doQuery(self,req):
-		paramString = buildUrlString(req)
-		urlReq = urllib2.Request(url,paramString)
+		paramString = SenseiClient.buildUrlString(req)
+		urlReq = urllib2.Request(self.url,paramString)
 		res = self.opener.open(urlReq)
 		resObj = eval(res.read())
+		print resObj
 		
+s = SenseiRequest()
+c = SenseiClient()
+c.doQuery(s)
