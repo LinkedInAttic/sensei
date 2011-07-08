@@ -136,6 +136,7 @@ public class SenseiServer {
         {
           _core.shutdown();
           _clusterClient.removeNode(_id);
+          _clusterClient.shutdown();
           _serverNode = null;
         } catch (Exception e)
         {
