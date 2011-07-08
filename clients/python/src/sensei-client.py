@@ -18,42 +18,32 @@ import urllib
 import urllib2
 import json
 
-class SenseiFacetOrder:
-	Hits = "hits"
-	Value = "val"
+SenseiFacetOrderHits = "hits"
+SenseiFacetOrderVals = "val"
+
+SenseiSelectionOperationOr = "or"
+SenseiSelectionOperationAnd = "and"
 
 class SenseiFacet:
 	expand = False
 	minHits = 1
 	maxCounts = 10
-	orderBy = SenseiFacetOrder.Hits
+	orderBy = SenseiFacetOrderHits
 	
-	def __init__(self,expand=False,minHits=1,maxCounts=10,orderBy=SenseiFacetOrder.Hits):
+	def __init__(self,expand=False,minHits=1,maxCounts=10,orderBy=SenseiFacetOrderHits):
 		self.expand = expand
 		self.minHits = minHits
 		self.maxCounts = maxCounts
 		self.orderBy = orderBy
-		
-
-class SenseiPropery:
-	name = None
-	value = None
-	def __init__(self,name,value):
-		self.name = name
-		self.value = value
-		
-class SenseiSelectionOperation:
-	Or = "or"
-	And = "and"
 
 class SenseiSelection:
 	field = None
 	values = []
 	excludes = []
 	properties = {}
-	operation = SenseiSelectionOperation.Or
+	operation = SenseiSelectionOperationOr
 	
-	def __init__(self,field,oper=SenseiSelectionOperation.Or):
+	def __init__(self,field,oper=SenseiSelectionOperationOr):
 		self.field = field
 		self.operation = oper
 		
@@ -90,7 +80,7 @@ class SenseiRequest:
 	selections = None
 	sorts = None
 	query = None
-	qParam = None
+	qParam = {}
 	offset = 0
 	count = 10
 	explain = False
