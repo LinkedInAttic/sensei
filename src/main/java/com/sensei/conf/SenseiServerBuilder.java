@@ -55,6 +55,7 @@ import com.linkedin.norbert.javacompat.cluster.ZooKeeperClusterClient;
 import com.linkedin.norbert.javacompat.network.NettyNetworkServer;
 import com.linkedin.norbert.javacompat.network.NetworkServer;
 import com.linkedin.norbert.javacompat.network.NetworkServerConfig;
+import com.sensei.indexing.api.CustomIndexingPipeline;
 import com.sensei.indexing.api.DefaultJsonSchemaInterpreter;
 import com.sensei.indexing.api.DefaultStreamingIndexingManager;
 import com.sensei.indexing.api.DataSourceFilter;
@@ -404,10 +405,21 @@ public class SenseiServerBuilder implements SenseiConfParams{
       
       ZoieIndexableInterpreter interpreter;
       if (interpreterType.length()==0){
-      interpreter = new DefaultJsonSchemaInterpreter(_senseiSchema);
+        DefaultJsonSchemaInterpreter defaultInterpreter = new DefaultJsonSchemaInterpreter(_senseiSchema);
+        interpreter = defaultInterpreter;
+        String customIndexingName = _senseiConf.getString(SENSEI_INDEX_CUSTOM,"");
+        if (customIndexingName.length()>0){
+          try{
+            CustomIndexingPipeline customIndexingPipeline = (CustomIndexingPipeline)_pluginContext.getBean(customIndexingName);
+            defaultInterpreter.setCustomIndexingPipeline(customIndexingPipeline);
+          }
+          catch(Exception e){
+            logger.error(e.getMessage(),e);
+          }
+        }
       }
       else{
-      interpreter = (ZoieIndexableInterpreter)_pluginContext.getBean(interpreterType);  
+        interpreter = (ZoieIndexableInterpreter)_pluginContext.getBean(interpreterType);  
       } 
       
       SenseiIndexReaderDecorator decorator = new SenseiIndexReaderDecorator(facetHandlers,runtimeFacetHandlerFactories);

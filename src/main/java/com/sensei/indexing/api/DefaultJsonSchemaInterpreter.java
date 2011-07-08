@@ -46,6 +46,8 @@ public class DefaultJsonSchemaInterpreter extends
   
   private JsonFilter _jsonFilter = null;
   
+  private CustomIndexingPipeline _customIndexingPipeline = null;
+  
   public DefaultJsonSchemaInterpreter(SenseiSchema schema) throws ConfigurationException{
      _schema = schema;
      entries = _schema.getFieldDefMap().entrySet();
@@ -118,6 +120,14 @@ public class DefaultJsonSchemaInterpreter extends
       
     });
     
+  }
+  
+  public void setCustomIndexingPipeline(CustomIndexingPipeline customIndexingPipeline){
+    _customIndexingPipeline = customIndexingPipeline;
+  }
+  
+  public CustomIndexingPipeline getCustomIndexingPipeline(){
+    return _customIndexingPipeline;
   }
   
   public void setJsonFilter(JsonFilter jsonFilter){
@@ -235,6 +245,10 @@ public class DefaultJsonSchemaInterpreter extends
               logger.error("problem writing to store data: "+data,e);
             }
           }
+        }
+        
+        if (_customIndexingPipeline != null){
+          _customIndexingPipeline.applyCustomization(luceneDoc, _schema, filtered);
         }
         return new IndexingReq[]{new IndexingReq(luceneDoc)};
       }
