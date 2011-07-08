@@ -123,6 +123,8 @@ public class MockServletRequest implements ServletRequest
   public String[] getParameterValues(String s)
   {
     List<String> value = _map.get(s);
+    if (value == null)
+      return new String[0];
     return value.toArray(new String[value.size()]);
   }
 

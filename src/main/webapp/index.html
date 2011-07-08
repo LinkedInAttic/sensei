@@ -36,6 +36,7 @@
 					if (a.name > b.name) return 1;
 					return 0;
 				});
+				initFacets($('#groupBy'), info.facets);
 				initFacets($('#sortFacets'), info.facets);
 				initFacets($('#selFacets'), info.facets);
 				initFacets($('#facetsFacets'), info.facets);
@@ -71,6 +72,7 @@
 	route param: <input id="routeparam" type="text" value="" /> <br/>
 	return explanation: <input id="explain" type="checkbox" > <br/>
 	fetch stored fields: <input id="fetchstore" type="checkbox" > <br/>
+  group by: <select id="groupBy"><option value="">None</option></select>
 	<hr/>
 	sort: <select id="sortFacets"></select> <input type="button" id="addsort" value="add sort" onclick="addSort()"/> 
 	<input type="button" id="clearSort" value="clear" onclick="clearSorts()" />
