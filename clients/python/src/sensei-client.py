@@ -260,7 +260,7 @@ class SenseiClient:
 			paramMap[PARAM_SORT] = ",".join(sort.buildSortField() for sort in req.sorts)
 
 		if req.qParam.get("query"):
-			paramMap["query"] = req.qParam.get("query")
+			paramMap[PARAM_QUERY] = req.qParam.get("query")
 		paramMap["qparam"] = ",".join(param + ":" + req.qParam.get(param)
 					      for param in req.qParam.keys() if param != "query")
 
@@ -357,6 +357,7 @@ def testSelection():
 	client.doQuery(req)
 
 def testFacetSpecs():
+	print "==== Testing facet specs ====" 
 	req = SenseiRequest()
 	req.offset = 0
 	req.count = 4
