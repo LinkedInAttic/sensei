@@ -309,13 +309,10 @@ class SenseiClient:
 		
 	def doQuery(self,req):
 		paramString = SenseiClient.buildUrlString(req)
-		print ">>> paramString =", paramString
 		urlReq = urllib2.Request(self.url,paramString)
 		res = self.opener.open(urlReq)
 		line = res.read()
-		print ">>> line = ", line
 		jsonObj = dict(json.loads(line))
-		print jsonObj['numhits']
 		res = SenseiResult()
 		res.load(jsonObj)
 		return res
