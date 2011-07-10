@@ -12,13 +12,16 @@ import org.apache.log4j.Logger;
 import org.apache.lucene.document.Field.Index;
 import org.apache.lucene.document.Field.Store;
 import org.apache.lucene.document.Field.TermVector;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 import com.sensei.indexing.api.DefaultSenseiInterpreter;
-import com.sensei.indexing.api.MetaType;
 import com.sensei.indexing.api.DefaultSenseiInterpreter.IndexSpec;
+import com.sensei.indexing.api.MetaType;
 
 public class SenseiSchema {
   public static final String SRC_DATA_FIELD_NAME = "__SRC_DATA__";
@@ -77,6 +80,126 @@ public class SenseiSchema {
 	}
 	
 	private Map<String,FieldDefinition> _fieldDefMap;
+	
+	public static SenseiSchema build(JSONObject schemaObj) throws JSONException,ConfigurationException{
+	  SenseiSchema schema = new SenseiSchema();
+      schema._fieldDefMap = new HashMap<String,FieldDefinition>();
+      JSONObject tableElem = schemaObj.optJSONObject("table");
+      if (tableElem==null){
+          throw new ConfigurationException("empty schema");
+      }
+      
+      schema._uidField = tableElem.getString("uid");
+      schema._deleteField = tableElem.optString("delete-field","");
+      schema._skipField = tableElem.optString("skip-field","");
+      schema._srcDataStore = tableElem.optString("src-data-store","");
+      schema._srcDataField = tableElem.optString("src-data-field","src_data");
+      schema._compressSrcData = tableElem.optBoolean("compress-src-data",true);
+      
+      JSONArray columns = tableElem.optJSONArray("columns");
+
+      int count = 0;
+      if (columns!=null){
+         count = columns.length();
+      }
+    
+      for (int i = 0; i < count; ++i) {
+
+        JSONObject column = columns.getJSONObject(i);  
+        try {
+              String n = column.getString("name");
+              String t = column.getString("type");
+              String frm = column.optString("from");
+              
+              FieldDefinition fdef = new FieldDefinition();
+              fdef.formatter = null;
+              fdef.fromField = frm.length() > 0 ? frm : n;
+
+              fdef.isMeta = true;
+              
+              fdef.isMulti = column.optBoolean("multi");
+              
+              
+              String delimString = column.optString("delimiter");
+              if (delimString!=null && delimString.trim().length()>0){
+                  fdef.delim = delimString;
+              }
+              
+              schema._fieldDefMap.put(n, fdef);
+              
+              if (t.equals("int")) {
+                  MetaType metaType = DefaultSenseiInterpreter.CLASS_METATYPE_MAP.get(int.class);
+                  String formatString = DefaultSenseiInterpreter.DEFAULT_FORMAT_STRING_MAP.get(metaType);
+                  fdef.formatter = new DecimalFormat(formatString);
+                  fdef.type = int.class;
+              } else if (t.equals("short")) {
+                  MetaType metaType = DefaultSenseiInterpreter.CLASS_METATYPE_MAP.get(short.class);
+                  String formatString = DefaultSenseiInterpreter.DEFAULT_FORMAT_STRING_MAP.get(metaType);
+                  fdef.formatter = new DecimalFormat(formatString);
+                  fdef.type = int.class;
+              } else if (t.equals("long")) {
+                  MetaType metaType = DefaultSenseiInterpreter.CLASS_METATYPE_MAP.get(long.class);
+                  String formatString = DefaultSenseiInterpreter.DEFAULT_FORMAT_STRING_MAP.get(metaType);
+                  fdef.formatter = new DecimalFormat(formatString);
+                  fdef.type = long.class;
+              } else if (t.equals("float")) {
+                  MetaType metaType = DefaultSenseiInterpreter.CLASS_METATYPE_MAP.get(float.class);
+                  String formatString = DefaultSenseiInterpreter.DEFAULT_FORMAT_STRING_MAP.get(metaType);
+                  fdef.formatter = new DecimalFormat(formatString);
+                  fdef.type = double.class;
+              } else if (t.equals("double")) {
+                  MetaType metaType = DefaultSenseiInterpreter.CLASS_METATYPE_MAP.get(double.class);
+                  String formatString = DefaultSenseiInterpreter.DEFAULT_FORMAT_STRING_MAP.get(metaType);
+                  fdef.formatter = new DecimalFormat(formatString);
+                  fdef.type = double.class;
+              } else if (t.equals("char")) {
+                  fdef.formatter = null;
+              } else if (t.equals("string")) {
+                  fdef.formatter = null;
+              } else if (t.equals("boolean")) {
+                  fdef.formatter = null;
+              } else if (t.equals("date")) {
+
+                  String f = "";
+                  try {
+                      f = column.optString("format");
+                  } catch (Exception ex) {
+                      logger.error(ex.getMessage(), ex);
+                  }
+                  if (f.isEmpty())
+                      throw new ConfigurationException("Date format cannot be empty.");
+
+                  fdef.formatter = new SimpleDateFormat(f);
+                  fdef.type = Date.class;
+              }
+              else if (t.equals("text")){
+                  fdef.isMeta = false;
+                  String idxString = column.optString("index");
+                  String storeString = column.optString("store");
+                  String tvString = column.optString("termvector");
+                  Index idx = idxString == null ? Index.ANALYZED : DefaultSenseiInterpreter.INDEX_VAL_MAP.get(idxString.toUpperCase());
+                  Store store = storeString == null ? Store.NO : DefaultSenseiInterpreter.STORE_VAL_MAP.get(storeString.toUpperCase());
+                  TermVector tv = tvString == null ? TermVector.NO : DefaultSenseiInterpreter.TV_VAL_MAP.get(tvString.toUpperCase());
+                  
+                  if (idx==null || store==null || tv==null){
+                    throw new ConfigurationException("Invalid indexing parameter specification");
+                  }
+                  
+                  IndexSpec indexingSpec = new IndexSpec();
+                  indexingSpec.store = store;
+                  indexingSpec.index = idx;
+                  indexingSpec.tv = tv;
+                    
+                  fdef.textIndexSpec = indexingSpec; 
+              }
+
+          } catch (Exception e) {
+              throw new ConfigurationException("Error parsing schema: "
+                      + column, e);
+          }
+      }
+      return schema;
+	}
 
 	public static SenseiSchema build(Document schemaDoc) throws ConfigurationException{
 		SenseiSchema schema = new SenseiSchema();
