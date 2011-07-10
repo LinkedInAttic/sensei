@@ -18,20 +18,95 @@ import urllib
 import urllib2
 import json
 
-SenseiFacetOrderHits = "hits"
-SenseiFacetOrderVals = "val"
+PARAM_OFFSET = "start"
+PARAM_COUNT = "rows"
+PARAM_QUERY = "q"
+PARAM_QUERY_PARAM = "qparam"
+PARAM_SORT = "sort"
+PARAM_SORT_ASC = "asc"
+PARAM_SORT_DESC = "desc"
+PARAM_SORT_SCORE = "relevance"
+PARAM_SORT_SCORE_REVERSE = "relrev"
+PARAM_SORT_DOC = "doc"
+PARAM_SORT_DOC_REVERSE = "docrev"
+PARAM_FETCH_STORED = "fetchstored"
+PARAM_SHOW_EXPLAIN = "showexplain"
+PARAM_ROUTE_PARAM = "routeparam"
+PARAM_SELECT = "select"
+PARAM_SELECT_VAL = "val"
+PARAM_SELECT_NOT = "not"
+PARAM_SELECT_OP = "op"
+PARAM_SELECT_OP_AND = "and"
+PARAM_SELECT_OP_OR = "or"
+PARAM_SELECT_PROP = "prop"
+PARAM_FACET = "facet"
+PARAM_DYNAMIC_INIT = "dyn"
+PARAM_PARTITIONS = "partitions"
 
-SenseiSelectionOperationOr = "or"
-SenseiSelectionOperationAnd = "and"
+PARAM_FACET_EXPAND = "expand"
+PARAM_FACET_MAX = "max"
+PARAM_FACET_MINHIT = "minhit"
+PARAM_FACET_ORDER = "order"
+PARAM_FACET_ORDER_HITS = "hits"
+PARAM_FACET_ORDER_VAL = "val"
+
+PARAM_DYNAMIC_TYPE = "type"
+PARAM_DYNAMIC_TYPE_STRING = "string"
+PARAM_DYNAMIC_TYPE_BYTEARRAY = "bytearray"
+PARAM_DYNAMIC_TYPE_BOOL = "boolean"
+PARAM_DYNAMIC_TYPE_INT = "int"
+PARAM_DYNAMIC_TYPE_LONG = "long"
+PARAM_DYNAMIC_TYPE_DOUBLE = "double"
+PARAM_DYNAMIC_VAL = "vals"
+
+PARAM_RESULT_PARSEDQUERY = "parsedquery"
+PARAM_RESULT_HIT_STORED_FIELDS = "stored"
+PARAM_RESULT_HIT_STORED_FIELDS_NAME = "name"
+PARAM_RESULT_HIT_STORED_FIELDS_VALUE = "val"
+PARAM_RESULT_HIT_EXPLANATION = "explanation"
+PARAM_RESULT_FACETS = "facets"
+
+PARAM_RESULT_TID = "tid"
+PARAM_RESULT_TOTALDOCS = "totaldocs"
+PARAM_RESULT_NUMHITS = "numhits"
+PARAM_RESULT_HITS = "hits"
+PARAM_RESULT_HIT_UID = "uid"
+PARAM_RESULT_HIT_DOCID = "docid"
+PARAM_RESULT_HIT_SCORE = "score"
+PARAM_RESULT_HIT_SRC_DATA = "srcdata"
+PARAM_RESULT_TIME = "time"
+
+PARAM_SYSINFO_NUMDOCS = "numdocs"
+PARAM_SYSINFO_LASTMODIFIED = "lastmodified"
+PARAM_SYSINFO_VERSION = "version"
+PARAM_SYSINFO_FACETS = "facets"
+PARAM_SYSINFO_FACETS_NAME = "name"
+PARAM_SYSINFO_FACETS_RUNTIME = "runtime"
+PARAM_SYSINFO_FACETS_PROPS = "props"
+PARAM_SYSINFO_CLUSTERINFO = "clusterinfo"
+PARAM_SYSINFO_CLUSTERINFO_ID = "id"
+PARAM_SYSINFO_CLUSTERINFO_PARTITIONS = "partitions"
+PARAM_SYSINFO_CLUSTERINFO_NODELINK = "nodelink"
+PARAM_SYSINFO_CLUSTERINFO_ADMINLINK = "adminlink"
+
+PARAM_RESULT_HITS_EXPL_VALUE = "value"
+PARAM_RESULT_HITS_EXPL_DESC = "description"
+PARAM_RESULT_HITS_EXPL_DETAILS = "details"
+
+PARAM_RESULT_FACET_INFO_VALUE = "value"
+PARAM_RESULT_FACET_INFO_COUNT = "count"
+PARAM_RESULT_FACET_INFO_SELECTED = "selected"
+
 
 class SenseiFacet:
-	expand = False
+	expand = "false"
 	minHits = 1
 	maxCounts = 10
-	orderBy = SenseiFacetOrderHits
+	orderBy = PARAM_RESULT_HITS
 	
-	def __init__(self,expand=False,minHits=1,maxCounts=10,orderBy=SenseiFacetOrderHits):
-		self.expand = expand
+	def __init__(self,expand=False,minHits=1,maxCounts=10,orderBy=PARAM_RESULT_HITS):
+		if expand:
+			self.expand = "true"
 		self.minHits = minHits
 		self.maxCounts = maxCounts
 		self.orderBy = orderBy
@@ -41,9 +116,9 @@ class SenseiSelection:
 	values = []
 	excludes = []
 	properties = {}
-	operation = SenseiSelectionOperationOr
+	operation = PARAM_SELECT_OP_OR
 	
-	def __init__(self,field,oper=SenseiSelectionOperationOr):
+	def __init__(self,field,oper=PARAM_SELECT_OP_OR):
 		self.field = field
 		self.operation = oper
 		
@@ -60,24 +135,56 @@ class SenseiSelection:
 			self.values.remove(value)
 	
 	def addProperty(self,name,value):
-		properties[name]=value
+		self.properties[name]=value
 	
 	def removeProperty(self,name):
 		del properties[name]
+
+	def getSelectNotParam(self):
+		return "%s.%s.%s" % (PARAM_SELECT, self.field, PARAM_SELECT_NOT)
+
+	def getSelectNotParamValues(self):
+		return ",".join(self.excludes)
+
+	def getSelectOpParam(self):
+		return "%s.%s.%s" % (PARAM_SELECT, self.field, PARAM_SELECT_OP)
+
+	def getSelectValParam(self):
+		return "%s.%s.%s" % (PARAM_SELECT, self.field, PARAM_SELECT_VAL)
+
+	def getSelectValParamValues(self):
+		return ",".join(self.values)
+
+	def getSelectPropParam(self):
+		return "%s.%s.%s" % (PARAM_SELECT, self.field, PARAM_SELECT_PROP)
+
+	def getSelectPropParamValues(self):
+		return ",".join(key + ":" + self.properties.get(key)
+				for key in self.properties.keys())
 	
 class SenseiSort:
 	field = ""
 	dir = ""
 	def __init__(self,field,reverse=False):
 		self.field = field
-		if reverse:
-			self.dir = "desc"
+		if not (field == PARAM_SORT_SCORE or
+			field == PARAM_SORT_SCORE_REVERSE or
+			field == PARAM_SORT_DOC or
+			field == PARAM_SORT_DOC_REVERSE):
+			if reverse:
+				self.dir = PARAM_SORT_DESC
+			else:
+				self.dir = PARAM_SORT_ASC
+
+	def buildSortField(self):
+		if self.dir == "":
+			return self.field
 		else:
-			self.dir = "asc"
+			return self.field + ":" + self.dir
 
 class SenseiRequest:
-	facets = None
-	selections = None
+	facets = {}
+	selections = []
 	sorts = None
 	query = None
 	qParam = {}
@@ -86,7 +193,7 @@ class SenseiRequest:
 	explain = False
 	fetch = False
 	routeParam = None
-	
+
 class ScoreExplanation:
 	description = None
 	value = None
@@ -135,26 +242,147 @@ class SenseiClient:
 	@staticmethod
 	def buildUrlString(req):
 		paramMap = {}
-		paramMap["start"]=req.offset
-		paramMap["rows"]=req.count
+		paramMap[PARAM_OFFSET] = req.offset
+		paramMap[PARAM_COUNT] = req.count
 		if req.query:
-			paramMap["q"]=req.query
+			paramMap[PARAM_QUERY]=req.query
 		if req.explain:
-			paramMap["showexplain"]="true"
+			paramMap[PARAM_SHOW_EXPLAIN] = "true"
 		if req.fetch:
-			paramMap["fetchstored"]="true"
+			paramMap[PARAM_FETCH_STORED] = "true"
 		if req.routeParam:
-			paramMap["routeparam"]=req.routeParam
-		
+			paramMap[PARAM_ROUTE_PARAM] = req.routeParam
+
+		# paramMap["offset"] = req.offset
+		# paramMap["count"] = req.count
+
+		if req.sorts:
+			paramMap[PARAM_SORT] = ",".join(sort.buildSortField() for sort in req.sorts)
+
+		if req.qParam.get("query"):
+			paramMap["query"] = req.qParam.get("query")
+		paramMap["qparam"] = ",".join(param + ":" + req.qParam.get(param)
+					      for param in req.qParam.keys() if param != "query")
+
+		for selection in req.selections:
+			paramMap[selection.getSelectNotParam()] = selection.getSelectNotParamValues()
+			paramMap[selection.getSelectOpParam()] = selection.operation
+			paramMap[selection.getSelectValParam()] = selection.getSelectValParamValues()
+			if selection.properties:
+				paramMap[selection.getSelectPropParam()] = selection.getSelectPropParamValues()
+
+		for facetName, facetSpec in req.facets.iteritems():
+			paramMap["%s.%s.%s" % (PARAM_FACET, facetName, PARAM_FACET_MAX)] = facetSpec.maxCounts
+			paramMap["%s.%s.%s" % (PARAM_FACET, facetName, PARAM_FACET_ORDER)] = facetSpec.orderBy
+			paramMap["%s.%s.%s" % (PARAM_FACET, facetName, PARAM_FACET_EXPAND)] = facetSpec.expand
+			paramMap["%s.%s.%s" % (PARAM_FACET, facetName, PARAM_FACET_MINHIT)] = facetSpec.minHits
+
 		return urllib.urlencode(paramMap)
 		
 	def doQuery(self,req):
 		paramString = SenseiClient.buildUrlString(req)
+		print ">>> paramString =", paramString
 		urlReq = urllib2.Request(self.url,paramString)
 		res = self.opener.open(urlReq)
-		jsonObj = dict(json.loads(res.read()))
+		line = res.read()
+		print ">>> line = ", line
+		jsonObj = dict(json.loads(line))
 		print jsonObj['numhits']
-		
-s = SenseiRequest()
-c = SenseiClient()
-c.doQuery(s)
+
+def testSort1():
+	print "==== Testing sort1 ====" 
+	req = SenseiRequest()
+	req.offset = 0
+	req.count = 4
+
+	sort1 = SenseiSort("relevance")
+	req.sorts = [sort1]
+	
+	client = SenseiClient()
+	client.doQuery(req)
+
+# XXX Does NOT work yet
+def testSort2():
+	print "==== Testing sort2 ====" 
+	req = SenseiRequest()
+	req.offset = 0
+	req.count = 4
+
+	sort1 = SenseiSort("year", True)
+	sort2 = SenseiSort("relevance")
+	req.sorts = [sort1, sort2]
+	
+	client = SenseiClient()
+	client.doQuery(req)
+
+
+def testQueryParam():
+	print "==== Testing query params ====" 
+	req = SenseiRequest()
+	req.offset = 0
+	req.count = 4
+
+	sort1 = SenseiSort("relevance")
+	req.sorts = [sort1]
+
+	qParam = {}
+	qParam["query"] = "cool car"
+	qParam["param1"] = "value1"
+	qParam["param2"] = "value2"
+	req.qParam = qParam
+	
+	client = SenseiClient()
+	client.doQuery(req)
+
+def testSelection():
+	print "==== Testing selections ====" 
+	req = SenseiRequest()
+	req.offset = 0
+	req.count = 4
+
+	select1 = SenseiSelection("color", "or")
+	select1.addSelection("red")
+	select1.addSelection("yellow")
+	select1.addSelection("black", True)
+	select1.addProperty("aaa", "111")
+	select1.addProperty("bbb", "222")
+
+	select2 = SenseiSelection("price")
+	select2.addSelection("[* TO 6700]")
+	select2.addSelection("[10000 TO 13100]")
+	select2.addSelection("[13200 TO 17300]")
+
+	req.selections = [select1]
+	client = SenseiClient()
+	client.doQuery(req)
+
+def testFacetSpecs():
+	req = SenseiRequest()
+	req.offset = 0
+	req.count = 4
+
+	facet1 = SenseiFacet()
+	facet2 = SenseiFacet(True, 1, 3, PARAM_FACET_ORDER_VAL)
+	facet3 = SenseiFacet(True, 1, 3, PARAM_FACET_ORDER_VAL)
+	
+	client = SenseiClient()
+	client.doQuery(req)
+
+
+if __name__ == "__main__":
+
+	# Testing...
+
+	testSort1()
+	testQueryParam()
+	testSelection()
+	testFacetSpecs()
+
+	#
+	# XXX: Initializing runtime facet parameters
+	#
+
+	#
+	# XXX: Partition Params
+	#
+
