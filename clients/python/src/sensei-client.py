@@ -99,14 +99,14 @@ PARAM_RESULT_FACET_INFO_SELECTED = "selected"
 
 
 class SenseiFacet:
-	expand = "false"
+	expand = False
 	minHits = 1
 	maxCounts = 10
 	orderBy = PARAM_RESULT_HITS
 	
 	def __init__(self,expand=False,minHits=1,maxCounts=10,orderBy=PARAM_RESULT_HITS):
 		if expand:
-			self.expand = "true"
+			self.expand = True
 		self.minHits = minHits
 		self.maxCounts = maxCounts
 		self.orderBy = orderBy
@@ -193,36 +193,64 @@ class SenseiRequest:
 	explain = False
 	fetch = False
 	routeParam = None
-
-class ScoreExplanation:
-	description = None
-	value = None
-	inner = None
-	def __init__(self,description,value):
-		self.description = description
-		self.value = value
-		
-	@staticmethod
-	def load(json):
-		expl = ScoreExplanation()
-		
-		return expl
-
+	
 class SenseiHit:
 	docid = None
 	uid = None
 	srcData = None
 	score = None
-	fieldVals = {}
+	fieldVals = None
 	explanation = None
+	stored = None
+	
+	def load(self,json):
+		self.docid = json.get(PARAM_RESULT_HIT_DOCID)
+		self.uid = json.get(PARAM_RESULT_HIT_UID)
+		self.score = json.get(PARAM_RESULT_HIT_SCORE)
+		self.srcData = json.get(PARAM_RESULT_HIT_SRC_DATA)
+		self.fieldVals = json
+		self.explanation = json.get(PARAM_RESULT_HIT_EXPLANATION)
+		self.stored = json.get(PARAM_RESULT_HIT_STORED_FIELDS)
+	
+class SenseiResultFacet:
+	value = None
+	count = None
+	selected = None
+	
+	def load(self,json):
+		self.value=json.get(PARAM_RESULT_FACET_INFO_VALUE)
+		self.count=json.get(PARAM_RESULT_FACET_INFO_COUNT)
+		self.selected=json.get(PARAM_RESULT_FACET_INFO_SELECTED,False)
 	
 class SenseiResult:
 	numHits = 0
 	totalDocs = 0
 	time = 0
-	hits = []
-	facetMap = {}
+	parsedQuery = None
+	hits = None
+	facetMap = None
+	jsonMap = None
 	
+	def load(self,json):
+		self.jsonMap = json
+		self.parsedQuery = json.get(PARAM_RESULT_PARSEDQUERY)
+		self.totalDocs = json.get(PARAM_RESULT_TOTALDOCS,0)
+		self.time = json.get(PARAM_RESULT_TIME,0)
+		self.numHits = json.get(PARAM_RESULT_NUMHITS,0)
+		hitList = json.get(PARAM_RESULT_HITS)
+		if hitList:
+			hits = []
+			for hit in hitList:
+				senseiHit = SenseiHit()
+				senseiHit.load(hit)
+				hits.append(senseiHit)
+		facetMap = json.get(PARAM_RESULT_FACETS)
+		if facetMap:
+			facetMap = {}
+			for k,v in facetMap.items():
+				facetObj = SenseiResultFacet()
+				facetObj.load(v)
+				facetMap[k]=facetObj
 	
 class SenseiClient:
 	host = None
@@ -288,6 +316,9 @@ class SenseiClient:
 		print ">>> line = ", line
 		jsonObj = dict(json.loads(line))
 		print jsonObj['numhits']
+		res = SenseiResult()
+		res.load(jsonObj)
+		return res
 
 def testSort1():
 	print "==== Testing sort1 ====" 
@@ -367,8 +398,8 @@ def testFacetSpecs():
 	facet3 = SenseiFacet(True, 1, 3, PARAM_FACET_ORDER_VAL)
 	
 	client = SenseiClient()
-	client.doQuery(req)
-
+	res = client.doQuery(req)
+	print res.jsonMap
 
 if __name__ == "__main__":
 
