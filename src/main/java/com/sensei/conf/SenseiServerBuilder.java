@@ -4,25 +4,27 @@ import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.Map;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.configuration.MapConfiguration;
+import org.apache.commons.configuration.PropertiesConfiguration;
+import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
@@ -31,17 +33,18 @@ import org.apache.lucene.search.DefaultSimilarity;
 import org.apache.lucene.search.Similarity;
 import org.apache.lucene.util.Version;
 import org.jolokia.http.AgentServlet;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.mortbay.jetty.Server;
 import org.mortbay.jetty.nio.SelectChannelConnector;
 import org.mortbay.jetty.servlet.ServletHolder;
 import org.mortbay.jetty.webapp.WebAppContext;
+import org.mortbay.servlet.GzipFilter;
 import org.mortbay.thread.QueuedThreadPool;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.FileSystemXmlApplicationContext;
 import org.springframework.core.io.Resource;
 import org.w3c.dom.Document;
-
-import org.mortbay.servlet.GzipFilter;
 
 import proj.zoie.api.indexing.ZoieIndexableInterpreter;
 import proj.zoie.hourglass.impl.HourGlassScheduler.FREQUENCY;
@@ -58,13 +61,12 @@ import com.linkedin.norbert.javacompat.network.NetworkServerConfig;
 import com.sensei.indexing.api.CustomIndexingPipeline;
 import com.sensei.indexing.api.DefaultJsonSchemaInterpreter;
 import com.sensei.indexing.api.DefaultStreamingIndexingManager;
-import com.sensei.indexing.api.DataSourceFilter;
 import com.sensei.indexing.api.SenseiIndexPruner;
 import com.sensei.search.client.servlet.DefaultSenseiJSONServlet;
 import com.sensei.search.client.servlet.SenseiConfigServletContextListener;
 import com.sensei.search.client.servlet.SenseiHttpInvokerServiceServlet;
-import com.sensei.search.cluster.routing.UniformPartitionedRoutingFactory;
 import com.sensei.search.cluster.routing.SenseiLoadBalancerFactory;
+import com.sensei.search.cluster.routing.UniformPartitionedRoutingFactory;
 import com.sensei.search.nodes.SenseiCore;
 import com.sensei.search.nodes.SenseiHourglassFactory;
 import com.sensei.search.nodes.SenseiIndexReaderDecorator;
@@ -85,14 +87,15 @@ public class SenseiServerBuilder implements SenseiConfParams{
   private static final String DUMMY_OUT_IP = "74.125.224.0";
   public static final String SENSEI_PROPERTIES = "sensei.properties";
   public static final String CUSTOM_FACETS = "custom-facets.xml";
-  public static final String SCHEMA_FILE = "schema.xml";
+  public static final String SCHEMA_FILE_XML = "schema.xml";
+  public static final String SCHEMA_FILE_JSON = "schema.json";
   public static final String PLUGINS = "plugins.xml";
   
   private final File _senseiConfFile;
   private final Configuration _senseiConf;
   private final ApplicationContext _pluginContext;
   private final ApplicationContext _customFacetContext;
-  private final Document _schemaDoc;
+  private final JSONObject _schemaDoc;
   private final SenseiSchema  _senseiSchema;
   private final Server _jettyServer;
   private final Comparator<String> _versionComparator;
@@ -203,6 +206,29 @@ public class SenseiServerBuilder implements SenseiConfParams{
     return server;
   }
   
+  private JSONObject loadSchema(File confDir) throws Exception{
+    File jsonSchema = new File(confDir,SCHEMA_FILE_JSON);
+    if (jsonSchema.exists()){
+      InputStream is = new FileInputStream(jsonSchema);
+      String json = IOUtils.toString( is );
+      is.close();
+      return new JSONObject(json);
+    }
+    else{
+      File xmlSchema = new File(confDir,SCHEMA_FILE_XML);
+      if (!xmlSchema.exists()){
+        throw new ConfigurationException("schema not file");
+      }
+      DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+      dbf.setIgnoringComments(true);
+      DocumentBuilder db = dbf.newDocumentBuilder();
+      Document schemaXml = db.parse(xmlSchema);
+      schemaXml.getDocumentElement().normalize();
+      return SchemaConverter.convert(schemaXml);
+    }
+    
+  }
+  
   public SenseiServerBuilder(File confDir, Map<String, Object> properties, ApplicationContext customFacetContext,
       ApplicationContext pluginContext) throws Exception {
     if (properties != null) {
@@ -236,11 +262,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
     else
       _customFacetContext = loadSpringContext(new File(confDir,CUSTOM_FACETS));
     
-    DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-    dbf.setIgnoringComments(true);
-    DocumentBuilder db = dbf.newDocumentBuilder();
-    _schemaDoc = db.parse(new File(confDir,SCHEMA_FILE));
-    _schemaDoc.getDocumentElement().normalize();
+    _schemaDoc = loadSchema(confDir);
     _senseiSchema = SenseiSchema.build(_schemaDoc);
 
     _jettyServer = buildHttpRestServer();
@@ -279,8 +301,21 @@ public class SenseiServerBuilder implements SenseiConfParams{
     DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
     dbf.setIgnoringComments(true);
     DocumentBuilder db = dbf.newDocumentBuilder();
-    _schemaDoc = db.parse(confDir.createRelative(SCHEMA_FILE).getInputStream());
-    _schemaDoc.getDocumentElement().normalize();
+    if (confDir.createRelative(SCHEMA_FILE_JSON).exists()){
+      String json = IOUtils.toString(confDir.createRelative(SCHEMA_FILE_JSON).getInputStream());
+      _schemaDoc = new JSONObject(json);
+    }
+    else{
+      if (confDir.createRelative(SCHEMA_FILE_XML).exists()){
+        Document schemaXml = db.parse(confDir.createRelative(SCHEMA_FILE_XML).getInputStream());
+        schemaXml.getDocumentElement().normalize();
+        _schemaDoc = SchemaConverter.convert(schemaXml);
+      }
+      else{
+        throw new Exception("no schema found.");
+      }
+    }
+    
     _senseiSchema = SenseiSchema.build(_schemaDoc);
 
     _jettyServer = buildHttpRestServer();
@@ -374,8 +409,14 @@ public class SenseiServerBuilder implements SenseiConfParams{
       List<FacetHandler<?>> facetHandlers = new LinkedList<FacetHandler<?>>();
       List<RuntimeFacetHandlerFactory<?,?>> runtimeFacetHandlerFactories = new LinkedList<RuntimeFacetHandlerFactory<?,?>>();
       
-      SenseiSystemInfo sysInfo = SenseiFacetHandlerBuilder.buildFacets(_schemaDoc,
-          _customFacetContext, facetHandlers, runtimeFacetHandlerFactories);
+      SenseiSystemInfo sysInfo = null;
+      
+      try{
+        sysInfo = SenseiFacetHandlerBuilder.buildFacets(_schemaDoc,_customFacetContext, facetHandlers, runtimeFacetHandlerFactories);
+      }
+      catch(JSONException jse){
+        throw new ConfigurationException(jse.getMessage(),jse);
+      }
 
       if (sysInfo != null)
       {
