@@ -1,7 +1,5 @@
 package com.sensei.conf;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -12,10 +10,10 @@ import java.util.Set;
 
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.log4j.Logger;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.springframework.context.ApplicationContext;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
 
 import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.facets.RuntimeFacetHandlerFactory;
@@ -34,14 +32,24 @@ public class SenseiFacetHandlerBuilder {
 	private static Logger logger = Logger
 			.getLogger(SenseiFacetHandlerBuilder.class);
 
-	private static Map<String, TermListFactory<?>> getPredefinedTermListFactoryMap(Document schemaDoc) throws ConfigurationException {
+	private static Map<String, TermListFactory<?>> getPredefinedTermListFactoryMap(JSONObject schemaObj) throws JSONException,ConfigurationException {
 		HashMap<String, TermListFactory<?>> retMap = new HashMap<String, TermListFactory<?>>();
-		NodeList columns = schemaDoc.getElementsByTagName("column");
-		for (int i = 0; i < columns.getLength(); ++i) {
+		JSONObject tableElem = schemaObj.optJSONObject("table");
+	    if (tableElem==null){
+	          throw new ConfigurationException("empty schema");
+	    }
+		JSONArray columns = tableElem.optJSONArray("columns");
+
+	      int count = 0;
+	      if (columns!=null){
+	         count = columns.length();
+	      }
+	    
+	      for (int i = 0; i < count; ++i) {
+	        JSONObject column = columns.getJSONObject(i);  
 			try {
-				Element column = (Element) columns.item(i);
-				String n = column.getAttribute("name");
-				String t = column.getAttribute("type");
+				String n = column.getString("name");
+				String t = column.getString("type");
 
 				TermListFactory<?> factory = null;
 
@@ -72,7 +80,7 @@ public class SenseiFacetHandlerBuilder {
 
 					String f = "";
 					try {
-						f = column.getAttribute("format");
+						f = column.optString("format");
 					} catch (Exception ex) {
 						logger.error(ex.getMessage(), ex);
 					}
@@ -90,7 +98,7 @@ public class SenseiFacetHandlerBuilder {
 
 			} catch (Exception e) {
 				throw new ConfigurationException("Error parsing schema: "
-						+ columns.item(i), e);
+						+ column, e);
 			}
 		}
 		return retMap;
@@ -142,14 +150,14 @@ public class SenseiFacetHandlerBuilder {
 		return new RangeFacetHandler(name,fieldName,termListFactory,predefinedRanges);
 	}
 	
-	static Map<String,List<String>> parseParams(NodeList paramList){
+	static Map<String,List<String>> parseParams(JSONArray paramList) throws JSONException{
 		HashMap<String,List<String>> retmap = new HashMap<String,List<String>>();
 		if (paramList!=null){
-		  for (int j = 0; j < paramList.getLength(); ++j) {
-		
-			Element param = (Element) paramList.item(j);
-			String paramName = param.getAttribute("name");
-			String paramValue = param.getAttribute("value");
+		  int count = paramList.length();
+		  for (int j = 0; j < count; ++j) {
+		    JSONObject param = paramList.getJSONObject(j);
+			String paramName = param.getString("name");
+			String paramValue = param.getString("value");
 			
 			List<String>list = retmap.get(paramName);
 			if (list==null){
@@ -188,38 +196,39 @@ public class SenseiFacetHandlerBuilder {
 		return retmap;
 	}
 
-	public static SenseiSystemInfo buildFacets(Document schemaDoc,
+	public static SenseiSystemInfo buildFacets(JSONObject schemaObj,
 			ApplicationContext customFacetContext,List<FacetHandler<?>> facets,List<RuntimeFacetHandlerFactory<?,?>> runtimeFacets)
-			throws ConfigurationException {
+			throws JSONException,ConfigurationException {
 
-    SenseiSystemInfo sysInfo = new SenseiSystemInfo();
-		NodeList facetsList = schemaDoc.getElementsByTagName("facets");
-		Element facetsEle = null;
-		if (facetsList.getLength() > 0) {
-			facetsEle = (Element) facetsList.item(0);
+        SenseiSystemInfo sysInfo = new SenseiSystemInfo();
+        JSONArray facetsList = schemaObj.optJSONArray("facets");
+		
+		JSONObject facetsEle = null;
+		
+		int count = 0;
+		
+		if (facetsList!=null){
+		  count = facetsList.length();
+		}
+		
+		if (count > 0) {
+			facetsEle = facetsList.getJSONObject(0);
 		} else {
 			return sysInfo;
 		}
-		
-		NodeList facetList = facetsEle.getElementsByTagName("facet");
 
-		if (facetList.getLength() <= 0)
-			return sysInfo;
+		Map<String, TermListFactory<?>> termListFactoryMap = getPredefinedTermListFactoryMap(schemaObj);
 
-		Map<String, TermListFactory<?>> termListFactoryMap = getPredefinedTermListFactoryMap(schemaDoc);
+        Set<SenseiSystemInfo.SenseiFacetInfo> facetInfos = new HashSet<SenseiSystemInfo.SenseiFacetInfo>();
+		for (int i = 0; i < count; ++i) {
 
-    Set<SenseiSystemInfo.SenseiFacetInfo> facetInfos = new HashSet<SenseiSystemInfo.SenseiFacetInfo>();
-		for (int i = 0; i < facetList.getLength(); ++i) {
+          JSONObject facet = facetsList.getJSONObject(i);
 			try {
-				Element facet = (Element) facetList.item(i);
-				String name = facet.getAttribute("name");
-				String type = facet.getAttribute("type");
-				String fieldName = facet.getAttribute("column");
-				if (fieldName==null || fieldName.isEmpty()){
-					fieldName = name;
-				}
+				String name = facet.getString("name");
+				String type = facet.getString("type");
+				String fieldName = facet.optString("column",name);
 				Set<String> dependSet = new HashSet<String>();
-				String depends= facet.getAttribute("depends");
+				String depends= facet.optString("depends",null);
 				if (depends != null) {
 					for (String dep :depends.split("[,; ]")) {
 						dep = dep.trim();
@@ -229,20 +238,22 @@ public class SenseiFacetHandlerBuilder {
 					}
 				}
 
-        SenseiSystemInfo.SenseiFacetInfo facetInfo = new SenseiSystemInfo.SenseiFacetInfo(name);
-        Map<String, String> facetProps = new HashMap<String, String>();
-        facetProps.put("type", type);
-        facetProps.put("column", fieldName);
-        facetProps.put("depends", dependSet.toString());
+                SenseiSystemInfo.SenseiFacetInfo facetInfo = new SenseiSystemInfo.SenseiFacetInfo(name);
+                Map<String, String> facetProps = new HashMap<String, String>();
+                facetProps.put("type", type);
+                facetProps.put("column", fieldName);
+                facetProps.put("depends", dependSet.toString());
 
-				NodeList paramList = facet.getElementsByTagName("param");
+				JSONArray paramList = facet.optJSONArray("params");
+				
 				Map<String,List<String>> paramMap = parseParams(paramList);
-        for (String key : paramMap.keySet()) {
-          facetProps.put(key, paramMap.get(key).toString());
-        }
+				
+                for (String key : paramMap.keySet()) {
+                  facetProps.put(key, paramMap.get(key).toString());
+                }
 
-        facetInfo.setProps(facetProps);
-        facetInfos.add(facetInfo);
+                facetInfo.setProps(facetProps);
+                facetInfos.add(facetInfo);
 
 				FacetHandler<?> facetHandler = null;
 				if (type.equals("simple")) {
@@ -257,7 +268,7 @@ public class SenseiFacetHandlerBuilder {
 					facetHandler = buildCompactMultiHandler(name, fieldName, dependSet,  termListFactoryMap.get(fieldName));
 				} else if (type.equals("custom")) {
 					
-					boolean isDynamic = Boolean.parseBoolean(facet.getAttribute("dynamic"));
+					boolean isDynamic = facet.optBoolean("dynamic");
 					// Load from custom-facets spring configuration.
 					if (isDynamic){
 					   RuntimeFacetHandlerFactory<?,?> runtimeFacetFactory = (RuntimeFacetHandlerFactory<?,?>)customFacetContext.getBean(name);
@@ -276,11 +287,11 @@ public class SenseiFacetHandlerBuilder {
 				}
 			} catch (Exception e) {
 				throw new ConfigurationException("Error parsing schema: "
-						+ facetList.item(i), e);
+						+ facet, e);
 			}
 		}
-    sysInfo.setFacetInfos(facetInfos);
+        sysInfo.setFacetInfos(facetInfos);
 
-    return sysInfo;
+        return sysInfo;
 	}
 }
