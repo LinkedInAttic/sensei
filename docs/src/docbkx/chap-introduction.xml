@@ -26,7 +26,7 @@
           (<link
           xlink:href="http://sna-projects.com/bobo/">http://sna-projects.com/bobo/</link>):
           a faceted search implementation written in Java, using Lucene
-          as the underline search and indexing engine.
+          as the underlying search and indexing engine.
           </para>
         </listitem>
         <listitem>
@@ -120,7 +120,7 @@
         </listitem>
 
         <listitem>
-          <para><emphasis role="bold">Horizontally Scalable</emphasis>e</para>
+          <para><emphasis role="bold">Horizontally Scalable</emphasis></para>
 
           <itemizedlist spacing="compact">
             <listitem>
@@ -157,16 +157,16 @@
 
           <itemizedlist spacing="compact">
             <listitem>
-              <para>low indexing latency - real-time update</para>
+              <para>Low indexing latency - real-time update</para>
             </listitem>
 
             <listitem>
-              <para>low search latency - millisecond query response
+              <para>Low search latency - millisecond query response
               time</para>
             </listitem>
 
             <listitem>
-              <para>low volatility - low variance in both indexing and search
+              <para>Low volatility - low variance in both indexing and search
               latency</para>
             </listitem>
           </itemizedlist>
@@ -179,16 +179,18 @@
 
           <itemizedlist spacing="compact">
             <listitem>
-              <para>plug-in framework - custom query handling logic</para>
+              <para>Plug-in framework - custom query handling logic</para>
             </listitem>
 
             <listitem>
-              <para>routing factory - custom routing logic, default:
+              <para>Routing factory - custom routing logic, default:
               round-robin</para>
             </listitem>
 
             <listitem>
-              <para>index sharding strategy - different sharding strategy for
+              <para>Index sharding strategy <indexterm>
+              <primary>sharding strategy</primary>
+              </indexterm> - different sharding strategy for
               different applications, e.g. time, mod etc.</para>
             </listitem>
           </itemizedlist>
@@ -203,27 +205,27 @@
 
       <itemizedlist spacing="compact">
         <listitem>
-          <para>vertically scaled</para>
+          <para>Vertically scaled</para>
         </listitem>
 
         <listitem>
-          <para>strong ACID guarantee</para>
+          <para>Strong ACID guarantee</para>
         </listitem>
 
         <listitem>
-          <para>relational support</para>
+          <para>Relational support</para>
         </listitem>
 
         <listitem>
-          <para>performance cost with full-text integration</para>
+          <para>Performance cost with full-text integration</para>
         </listitem>
 
         <listitem>
-          <para>high query latency with large dataset, esp. Group By</para>
+          <para>High query latency with large dataset, esp. Group By</para>
         </listitem>
 
         <listitem>
-          <para>indexes needs to be built for all sort possibilities
+          <para>Indexes needs to be built for all sort possibilities
           offline</para>
         </listitem>
       </itemizedlist>
@@ -232,28 +234,28 @@
 
       <itemizedlist spacing="compact">
         <listitem>
-          <para>horizontally scaled</para>
+          <para>Horizontally scaled</para>
         </listitem>
 
         <listitem>
-          <para>relaxed Consistency with high durability guarantees</para>
+          <para>Relaxed Consistency with high durability guarantees</para>
         </listitem>
 
         <listitem>
-          <para>data is streamed in, so Atomicity and Isolation is to be
+          <para>Data is streamed in, so Atomicity and Isolation is to be
           handled by the data producer</para>
         </listitem>
 
         <listitem>
-          <para>full-text support</para>
+          <para>Full-text search support</para>
         </listitem>
 
         <listitem>
-          <para>low query latency with arbitrarily large dataset</para>
+          <para>Low query latency with arbitrarily large dataset</para>
         </listitem>
 
         <listitem>
-          <para>dynamic sorting, index is already built for all sortable
+          <para>Dynamic sorting, index is already built for all sortable
           fields and their combinations</para>
         </listitem>
       </itemizedlist>
@@ -271,7 +273,7 @@
 
       <orderedlist>
         <listitem>
-          <para>The cluster of Sensei servers:</para>
+          <para>The cluster of Sensei servers</para>
 
           <para>Each server covers one or more
           <emphasis>partitions</emphasis> (or
@@ -293,7 +295,7 @@
 
         </listitem>
         <listitem>
-          <para>The cluster of Sensei brokers:</para>
+          <para>The cluster of Sensei brokers</para>
 
           <para>Brokers receive search requests from clients, pass them
           to selected servers in the Sensei search cluster, and then
@@ -315,10 +317,10 @@
 
           <para>This is also simply called <emphasis>gateway</emphasis>,
           which is the component responsible for getting data from
-          external sources and passing them to the indexer after some
-          kind of conversion (if needed).  The input data to the gateway
-          can be of different formats, while the output of the gateway
-          has to be of the format acceptable by Zoie's streaming data
+          external sources and passing them to the indexer after an
+          optional conversion.  The input data to the gateway
+          can be in different formats, while the output of the gateway
+          has to be in the format acceptable by Zoie's streaming data
           provider.  (By default, JSON is the format used by Sensei to
           communicate with Zoie.)  The output data from the gateway also
           needs to match the table schema definition.</para>

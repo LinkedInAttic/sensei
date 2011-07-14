@@ -14,7 +14,15 @@
             <para>Why is it called Sensei?</para>
           </question>
           <answer>
-            <para>(To Be Finished)</para>
+            <para><emphasis>Sensei</emphasis> means
+            <emphasis>teacher</emphasis> or
+            <emphasis>professor</emphasis> in Japanese (<link
+            xlink:href="http://en.wikipedia.org/wiki/Sensei">http://en.wikipedia.org/wiki/Sensei</link>).
+            It shares the same pronunciation and writing with the
+            Chinese word that has the same meaning.  This name indicates
+            that the system can be used in place of Oracle database in
+            many applications.
+            </para>
           </answer>
         </qandaentry>
       </qandaset>

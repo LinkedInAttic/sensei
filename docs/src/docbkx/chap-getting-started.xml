@@ -140,7 +140,7 @@
 
         <note>
           <para>Do not expect to see any logs after running this
-          command. If you run it, have zookeeper up and running, a REST
+          command. If you run it, have ZooKeeper up and running, a REST
           server (as discussed below) will also be started, and you will
           be able to get some sample search results. </para>
         </note>

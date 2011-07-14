@@ -3,6 +3,8 @@
 <!ENTITY chap-introduction SYSTEM "chap-introduction.xml">
 <!ENTITY chap-getting-started SYSTEM "chap-getting-started.xml">
 <!ENTITY chap-demo SYSTEM "chap-demo.xml">
+<!ENTITY chap-indexing SYSTEM "chap-indexing.xml">
+<!ENTITY chap-searching SYSTEM "chap-searching.xml">
 <!ENTITY chap-configuration SYSTEM "chap-configuration.xml">
 <!ENTITY chap-faq SYSTEM "chap-faq.xml">
 ]>
@@ -36,6 +38,10 @@
   &chap-getting-started;
 
   &chap-demo;
+
+  &chap-indexing;
+
+  &chap-searching;
 
   &chap-configuration;
 
