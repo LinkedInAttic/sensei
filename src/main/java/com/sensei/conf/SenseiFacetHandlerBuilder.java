@@ -26,11 +26,14 @@ import com.browseengine.bobo.facets.impl.RangeFacetHandler;
 import com.browseengine.bobo.facets.impl.SimpleFacetHandler;
 import com.sensei.indexing.api.DefaultSenseiInterpreter;
 import com.sensei.search.req.SenseiSystemInfo;
+import com.sensei.search.facet.UIDFacetHandler;
 
 public class SenseiFacetHandlerBuilder {
 
 	private static Logger logger = Logger
 			.getLogger(SenseiFacetHandlerBuilder.class);
+			
+	private static String UID_FACET_NAME = "uid";
 
 	private static Map<String, TermListFactory<?>> getPredefinedTermListFactoryMap(JSONObject schemaObj) throws JSONException,ConfigurationException {
 		HashMap<String, TermListFactory<?>> retMap = new HashMap<String, TermListFactory<?>>();
@@ -225,6 +228,10 @@ public class SenseiFacetHandlerBuilder {
           JSONObject facet = facetsList.getJSONObject(i);
 			try {
 				String name = facet.getString("name");
+				if (UID_FACET_NAME.equals(name)){
+					logger.error("facet name: "+UID_FACET_NAME+" is reserved, skipping...");
+					continue;
+				}
 				String type = facet.getString("type");
 				String fieldName = facet.optString("column",name);
 				Set<String> dependSet = new HashSet<String>();
@@ -290,6 +297,9 @@ public class SenseiFacetHandlerBuilder {
 						+ facet, e);
 			}
 		}
+		// uid facet handler to be added by default
+		UIDFacetHandler uidHandler = new UIDFacetHandler(UID_FACET_NAME);
+		facets.add(uidHandler);
         sysInfo.setFacetInfos(facetInfos);
 
         return sysInfo;
