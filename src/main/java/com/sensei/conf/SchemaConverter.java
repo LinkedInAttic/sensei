@@ -45,7 +45,7 @@ public class SchemaConverter
       String srcDatafield = tableElem.getAttribute("src-data-field");
       if (srcDatafield == null || srcDatafield.length() == 0)
         srcDatafield = "src_data";
-      tableObj.put("src-data-store", srcDatafield);
+      tableObj.put("src-data-field", srcDatafield);
 
       String compress = tableElem.getAttribute("compress-src-data");
       if (compress != null && "false".equals(compress))
