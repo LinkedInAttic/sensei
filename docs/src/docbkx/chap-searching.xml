@@ -136,6 +136,13 @@
 
       </itemizedlist>
 
+      <example>
+        <title>Scalar Parameters</title>
+        <programlisting><![CDATA[  q=ipad 2&fetchstored=true&showexplain=false&start=0&rows=10
+  q=linkedin&start=0&rows=10&routeparam=12345&groupby=userid
+]]></programlisting>
+      </example>
+
     </section>
 
     <section>
@@ -183,6 +190,15 @@
           </itemizedlist>
         </listitem>
       </itemizedlist>
+
+      <example>
+        <title>Sort Fields Parameters</title>
+        <programlisting><![CDATA[  sort=relevance
+  sort=docrev
+  sort=price:desc,color=asc
+]]></programlisting>
+      </example>
+
     </section>
 
     <section>
@@ -202,6 +218,13 @@
           parameters to dynamic runtime facet handlers.</para>
         </listitem>
       </itemizedlist>
+
+      <example>
+        <title>Query Parameters</title>
+        <programlisting><![CDATA[  qparam=arg1:123,arg2:abc
+]]></programlisting>
+      </example>
+      
 
     </section>
 
@@ -242,6 +265,12 @@
         </listitem>
 
       </itemizedlist>
+
+      <example>
+        <title>Selection Parameters</title>
+        <programlisting><![CDATA[  select.color.val=red,yellow&select.color.op=or&start=0&select.color.not=black
+]]></programlisting>
+      </example>
 
     </section>
 
@@ -289,8 +318,14 @@
           <para></para>
         </listitem>
       </itemizedlist>
-    </section>
 
+      <example>
+        <title>Facet Specification Parameters</title>
+        <programlisting><![CDATA[  facet.color.minhit=1&facet.color.max=3&facet.color.order=val&facet.color.expand=True
+]]></programlisting>
+      </example>
+
+    </section>
 
   </section>
 
