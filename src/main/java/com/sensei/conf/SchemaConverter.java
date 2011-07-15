@@ -35,11 +35,11 @@ public class SchemaConverter
         tableObj.put("delete-field", deleteField);
 
       String skipField = tableElem.getAttribute("skip-field");
-      if (skipField == null)
+      if (skipField != null)
         tableObj.put("skip-field", skipField);
 
       String srcDataStore = tableElem.getAttribute("src-data-store");
-      if (srcDataStore == null)
+      if (srcDataStore != null)
         tableObj.put("src-data-store", srcDataStore);
 
       String srcDatafield = tableElem.getAttribute("src-data-field");
