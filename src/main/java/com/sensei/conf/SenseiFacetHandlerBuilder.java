@@ -16,17 +16,21 @@ import org.json.JSONObject;
 import org.springframework.context.ApplicationContext;
 
 import com.browseengine.bobo.facets.FacetHandler;
+import com.browseengine.bobo.facets.FacetHandler.FacetDataNone;
+import com.browseengine.bobo.facets.FacetHandlerInitializerParam;
+import com.browseengine.bobo.facets.RuntimeFacetHandler;
 import com.browseengine.bobo.facets.RuntimeFacetHandlerFactory;
 import com.browseengine.bobo.facets.data.PredefinedTermListFactory;
 import com.browseengine.bobo.facets.data.TermListFactory;
 import com.browseengine.bobo.facets.impl.CompactMultiValueFacetHandler;
+import com.browseengine.bobo.facets.impl.HistogramFacetHandler;
 import com.browseengine.bobo.facets.impl.MultiValueFacetHandler;
 import com.browseengine.bobo.facets.impl.PathFacetHandler;
 import com.browseengine.bobo.facets.impl.RangeFacetHandler;
 import com.browseengine.bobo.facets.impl.SimpleFacetHandler;
 import com.sensei.indexing.api.DefaultSenseiInterpreter;
-import com.sensei.search.req.SenseiSystemInfo;
 import com.sensei.search.facet.UIDFacetHandler;
+import com.sensei.search.req.SenseiSystemInfo;
 
 public class SenseiFacetHandlerBuilder {
 
@@ -38,18 +42,18 @@ public class SenseiFacetHandlerBuilder {
 	private static Map<String, TermListFactory<?>> getPredefinedTermListFactoryMap(JSONObject schemaObj) throws JSONException,ConfigurationException {
 		HashMap<String, TermListFactory<?>> retMap = new HashMap<String, TermListFactory<?>>();
 		JSONObject tableElem = schemaObj.optJSONObject("table");
-	    if (tableElem==null){
-	          throw new ConfigurationException("empty schema");
-	    }
+    if (tableElem==null){
+      throw new ConfigurationException("empty schema");
+    }
 		JSONArray columns = tableElem.optJSONArray("columns");
 
-	      int count = 0;
-	      if (columns!=null){
-	         count = columns.length();
-	      }
+    int count = 0;
+    if (columns!=null){
+      count = columns.length();
+    }
 	    
-	      for (int i = 0; i < count; ++i) {
-	        JSONObject column = columns.getJSONObject(i);  
+    for (int i = 0; i < count; ++i) {
+      JSONObject column = columns.getJSONObject(i);  
 			try {
 				String n = column.getString("name");
 				String t = column.getString("type");
@@ -58,27 +62,27 @@ public class SenseiFacetHandlerBuilder {
 
 				if (t.equals("int")) {
 					factory = DefaultSenseiInterpreter
-							.getTermListFactory(int.class);
+            .getTermListFactory(int.class);
 				} else if (t.equals("short")) {
 					factory = DefaultSenseiInterpreter
-							.getTermListFactory(short.class);
+            .getTermListFactory(short.class);
 				} else if (t.equals("long")) {
 					factory = DefaultSenseiInterpreter
-							.getTermListFactory(long.class);
+            .getTermListFactory(long.class);
 				} else if (t.equals("float")) {
 					factory = DefaultSenseiInterpreter
-							.getTermListFactory(float.class);
+            .getTermListFactory(float.class);
 				} else if (t.equals("double")) {
 					factory = DefaultSenseiInterpreter
-							.getTermListFactory(double.class);
+            .getTermListFactory(double.class);
 				} else if (t.equals("char")) {
 					factory = DefaultSenseiInterpreter
-							.getTermListFactory(char.class);
+            .getTermListFactory(char.class);
 				} else if (t.equals("string")) {
 					factory = TermListFactory.StringListFactory;
 				} else if (t.equals("boolean")) {
 					factory = DefaultSenseiInterpreter
-							.getTermListFactory(boolean.class);
+            .getTermListFactory(boolean.class);
 				} else if (t.equals("date")) {
 
 					String f = "";
@@ -91,8 +95,7 @@ public class SenseiFacetHandlerBuilder {
 					if (f.isEmpty())
 						throw new Exception("Date format cannot be empty.");
 					else
-						factory = new PredefinedTermListFactory<Date>(
-								Date.class, f);
+						factory = new PredefinedTermListFactory<Date>(Date.class, f);
 				}
 				
 				if (factory!=null){
@@ -101,7 +104,7 @@ public class SenseiFacetHandlerBuilder {
 
 			} catch (Exception e) {
 				throw new ConfigurationException("Error parsing schema: "
-						+ column, e);
+                                         + column, e);
 			}
 		}
 		return retMap;
@@ -120,7 +123,7 @@ public class SenseiFacetHandlerBuilder {
 		return new MultiValueFacetHandler(name, fieldName, termListFactory,null,depends);
 	}
 	
-	static PathFacetHandler buildPathHandler(String name,String fieldName,Set<String> depends,Map<String,List<String>> paramMap){
+	static PathFacetHandler buildPathHandler(String name,String fieldName, Map<String,List<String>> paramMap){
 		PathFacetHandler handler = new PathFacetHandler(name, fieldName, false);	// path does not support multi value yet
 		String sep = null;
 		if (paramMap!=null){
@@ -199,12 +202,105 @@ public class SenseiFacetHandlerBuilder {
 		return retmap;
 	}
 
+  private static String getRequiredSingleParam(Map<String, List<String>> paramMap,
+                                               String name)
+    throws ConfigurationException
+  {
+    if (paramMap != null)
+    {
+      List<String> vals = paramMap.get(name);
+      if (vals != null && vals.size() > 0)
+      {
+        return vals.get(0);
+      }
+      else
+      {
+        throw new ConfigurationException("Parameter " + name + " is missing.");
+      }
+    }
+    else
+    {
+      throw new ConfigurationException("Parameter map is null.");
+    }
+  }
+
+  private static RuntimeFacetHandlerFactory<?, ?> getHistogramFacetHandlerFactory(JSONObject facet, 
+                                                                                  String name, 
+                                                                                  Map<String,List<String>> paramMap)
+    throws ConfigurationException
+  {
+    String dataType = getRequiredSingleParam(paramMap, "datatype");
+    String dataHandler = getRequiredSingleParam(paramMap, "datahandler");
+    String startParam = getRequiredSingleParam(paramMap, "start");
+    String endParam = getRequiredSingleParam(paramMap, "end");
+    String unitParam = getRequiredSingleParam(paramMap, "unit");
+
+    if ("int".equals(dataType))
+    {
+      int start = Integer.parseInt(startParam);
+      int end = Integer.parseInt(endParam);
+      int unit = Integer.parseInt(unitParam);
+      return buildHistogramFacetHandlerFactory(name, dataHandler, start, end, unit);
+    }
+    else if ("short".equals(dataType))
+    {
+      short start = (short) Integer.parseInt(startParam);
+      short end = (short) Integer.parseInt(endParam);
+      short unit = (short) Integer.parseInt(unitParam);
+      return buildHistogramFacetHandlerFactory(name, dataHandler, start, end, unit);
+    }
+    else if ("long".equals(dataType))
+    {
+      long start = Long.parseLong(startParam);
+      long end = Long.parseLong(endParam);
+      long unit = Long.parseLong(unitParam);
+      return buildHistogramFacetHandlerFactory(name, dataHandler, start, end, unit);
+    }
+    else if ("float".equals(dataType))
+    {
+      float start = Float.parseFloat(startParam);
+      float end = Float.parseFloat(endParam);
+      float unit = Float.parseFloat(unitParam);
+      return buildHistogramFacetHandlerFactory(name, dataHandler, start, end, unit);
+    }
+    else if ("double".equals(dataType))
+    {
+      double start = Double.parseDouble(startParam);
+      double end = Double.parseDouble(endParam);
+      double unit = Double.parseDouble(unitParam); 
+      return buildHistogramFacetHandlerFactory(name, dataHandler, start, end, unit);
+    }
+    return null;
+  }
+	  
+	private static <T extends Number> RuntimeFacetHandlerFactory<?,?> buildHistogramFacetHandlerFactory(final String name, 
+	                                                                                                    final String dataHandler, 
+	                                                                                                    final T start, 
+	                                                                                                    final T end, 
+	                                                                                                    final T unit)
+	{
+	  return new RuntimeFacetHandlerFactory<FacetHandlerInitializerParam, RuntimeFacetHandler<FacetDataNone>>()
+	  {
+	    @Override
+	    public RuntimeFacetHandler<FacetDataNone> get(FacetHandlerInitializerParam params) 
+	    {
+	      return new HistogramFacetHandler<T>(name, dataHandler, start, end, unit); 
+	    };
+	    
+	    @Override
+	    public String getName()
+	    {
+	      return name;
+	    }
+	  };
+	}
+	
 	public static SenseiSystemInfo buildFacets(JSONObject schemaObj,
 			ApplicationContext customFacetContext,List<FacetHandler<?>> facets,List<RuntimeFacetHandlerFactory<?,?>> runtimeFacets)
-			throws JSONException,ConfigurationException {
+    throws JSONException,ConfigurationException {
 
-        SenseiSystemInfo sysInfo = new SenseiSystemInfo();
-        JSONArray facetsList = schemaObj.optJSONArray("facets");
+    SenseiSystemInfo sysInfo = new SenseiSystemInfo();
+    JSONArray facetsList = schemaObj.optJSONArray("facets");
 		
 		JSONObject facetsEle = null;
 		
@@ -222,10 +318,10 @@ public class SenseiFacetHandlerBuilder {
 
 		Map<String, TermListFactory<?>> termListFactoryMap = getPredefinedTermListFactoryMap(schemaObj);
 
-        Set<SenseiSystemInfo.SenseiFacetInfo> facetInfos = new HashSet<SenseiSystemInfo.SenseiFacetInfo>();
+    Set<SenseiSystemInfo.SenseiFacetInfo> facetInfos = new HashSet<SenseiSystemInfo.SenseiFacetInfo>();
 		for (int i = 0; i < count; ++i) {
 
-          JSONObject facet = facetsList.getJSONObject(i);
+      JSONObject facet = facetsList.getJSONObject(i);
 			try {
 				String name = facet.getString("name");
 				if (UID_FACET_NAME.equals(name)){
@@ -245,41 +341,44 @@ public class SenseiFacetHandlerBuilder {
 					}
 				}
 
-                SenseiSystemInfo.SenseiFacetInfo facetInfo = new SenseiSystemInfo.SenseiFacetInfo(name);
-                Map<String, String> facetProps = new HashMap<String, String>();
-                facetProps.put("type", type);
-                facetProps.put("column", fieldName);
-                facetProps.put("depends", dependSet.toString());
+        SenseiSystemInfo.SenseiFacetInfo facetInfo = new SenseiSystemInfo.SenseiFacetInfo(name);
+        Map<String, String> facetProps = new HashMap<String, String>();
+        facetProps.put("type", type);
+        facetProps.put("column", fieldName);
+        facetProps.put("depends", dependSet.toString());
 
 				JSONArray paramList = facet.optJSONArray("params");
 				
 				Map<String,List<String>> paramMap = parseParams(paramList);
 				
-                for (String key : paramMap.keySet()) {
-                  facetProps.put(key, paramMap.get(key).toString());
-                }
+        for (String key : paramMap.keySet()) {
+          facetProps.put(key, paramMap.get(key).toString());
+        }
 
-                facetInfo.setProps(facetProps);
-                facetInfos.add(facetInfo);
+        facetInfo.setProps(facetProps);
+        facetInfos.add(facetInfo);
 
 				FacetHandler<?> facetHandler = null;
 				if (type.equals("simple")) {
 					facetHandler = buildSimpleFacetHandler(name, fieldName, dependSet, termListFactoryMap.get(fieldName));
 				} else if (type.equals("path")) {
-					facetHandler = buildPathHandler(name, fieldName, dependSet, paramMap);
+					facetHandler = buildPathHandler(name, fieldName, paramMap);
 				} else if (type.equals("range")) {
 					facetHandler = buildRangeHandler(name, fieldName, termListFactoryMap.get(fieldName), paramMap);
 				} else if (type.equals("multi")) {
 					facetHandler = buildMultiHandler(name, fieldName,  termListFactoryMap.get(fieldName), dependSet);
 				} else if (type.equals("compact-multi")) {
 					facetHandler = buildCompactMultiHandler(name, fieldName, dependSet,  termListFactoryMap.get(fieldName));
+				} else if (type.equals("histogram")) {
+				  // A histogram facet handler is always dynamic
+				  RuntimeFacetHandlerFactory<?, ?> runtimeFacetFactory = getHistogramFacetHandlerFactory(facet, name, paramMap);
+				  runtimeFacets.add(runtimeFacetFactory);
 				} else if (type.equals("custom")) {
-					
 					boolean isDynamic = facet.optBoolean("dynamic");
 					// Load from custom-facets spring configuration.
 					if (isDynamic){
-					   RuntimeFacetHandlerFactory<?,?> runtimeFacetFactory = (RuntimeFacetHandlerFactory<?,?>)customFacetContext.getBean(name);
-					   runtimeFacets.add(runtimeFacetFactory);
+            RuntimeFacetHandlerFactory<?,?> runtimeFacetFactory = (RuntimeFacetHandlerFactory<?,?>)customFacetContext.getBean(name);
+            runtimeFacets.add(runtimeFacetFactory);
 					}
 					else{
 						facetHandler = (FacetHandler<?>) customFacetContext.getBean(name);
@@ -294,14 +393,14 @@ public class SenseiFacetHandlerBuilder {
 				}
 			} catch (Exception e) {
 				throw new ConfigurationException("Error parsing schema: "
-						+ facet, e);
+                                         + facet, e);
 			}
 		}
 		// uid facet handler to be added by default
 		UIDFacetHandler uidHandler = new UIDFacetHandler(UID_FACET_NAME);
 		facets.add(uidHandler);
-        sysInfo.setFacetInfos(facetInfos);
+    sysInfo.setFacetInfos(facetInfos);
 
-        return sysInfo;
+    return sysInfo;
 	}
 }
