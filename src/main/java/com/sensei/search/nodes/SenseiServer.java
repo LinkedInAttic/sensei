@@ -466,8 +466,8 @@ public class SenseiServer {
    
    
     
-    jettyServer.start();
     server.start(available);
+    jettyServer.start();
   }
   
 }
