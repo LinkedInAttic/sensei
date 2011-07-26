@@ -401,12 +401,22 @@ public class HttpRestSenseiServiceImpl implements SenseiService
   public static void convertScalarParams(List<NameValuePair> qparams, SenseiRequest req) {
     qparams.add(new BasicNameValuePair(SenseiSearchServletParams.PARAM_FETCH_STORED, Boolean.toString(req.isFetchStoredFields())));
     qparams.add(new BasicNameValuePair(SenseiSearchServletParams.PARAM_SHOW_EXPLAIN, Boolean.toString(req.isShowExplanation())));
-    qparams.add(new BasicNameValuePair(SenseiSearchServletParams.PARAM_OFFSET, Integer.toString(req.getOffset())));
-    qparams.add(new BasicNameValuePair(SenseiSearchServletParams.PARAM_COUNT, Integer.toString(req.getCount())));
+
+    if (req.getCount() > 0)
+    {
+      qparams.add(new BasicNameValuePair(SenseiSearchServletParams.PARAM_OFFSET, Integer.toString(req.getOffset())));
+      qparams.add(new BasicNameValuePair(SenseiSearchServletParams.PARAM_COUNT, Integer.toString(req.getCount())));
+    }
+
     if (req.getRouteParam() != null)
+    {
       qparams.add(new BasicNameValuePair(SenseiSearchServletParams.PARAM_ROUTE_PARAM, req.getRouteParam()));
+    }
+
     if (req.getGroupBy() != null)
+    {
       qparams.add(new BasicNameValuePair(SenseiSearchServletParams.PARAM_GROUP_BY, req.getGroupBy()));
+    }
   }
 
   public static void convertFacetInitParams(List<NameValuePair> qparams, Map<String,FacetHandlerInitializerParam> initParams)
@@ -719,8 +729,10 @@ public class HttpRestSenseiServiceImpl implements SenseiService
     result.setTotalDocs(jsonObj.getInt(SenseiSearchServletParams.PARAM_RESULT_TOTALDOCS));
     result.setParsedQuery(jsonObj.getString(SenseiSearchServletParams.PARAM_RESULT_PARSEDQUERY));
     result.setNumHits(jsonObj.getInt(SenseiSearchServletParams.PARAM_RESULT_NUMHITS));
-    result.setNumGroups(jsonObj.getInt(SenseiSearchServletParams.PARAM_RESULT_NUMGROUPS));
-    result.setParsedQuery(jsonObj.getString(SenseiSearchServletParams.PARAM_RESULT_PARSEDQUERY));
+    if (jsonObj.has(SenseiSearchServletParams.PARAM_RESULT_NUMGROUPS))
+    {
+      result.setNumGroups(jsonObj.getInt(SenseiSearchServletParams.PARAM_RESULT_NUMGROUPS));
+    }
     result.setTime(jsonObj.getLong(SenseiSearchServletParams.PARAM_RESULT_TIME));
     result.addAll(convertFacetMap(jsonObj.getJSONObject(SenseiSearchServletParams.PARAM_RESULT_FACETS)));
     result.setHits(convertHitsArray(jsonObj.getJSONArray(SenseiSearchServletParams.PARAM_RESULT_HITS)));
