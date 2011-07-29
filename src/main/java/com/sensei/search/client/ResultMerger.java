@@ -16,14 +16,21 @@ import java.util.Set;
 import java.util.Map.Entry;
 
 import org.apache.log4j.Logger;
+import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.util.PriorityQueue;
+
+import proj.zoie.api.ZoieIndexReader;
 
 import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.BrowseSelection;
+import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.api.FacetAccessible;
 import com.browseengine.bobo.api.FacetIterator;
 import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
 import com.browseengine.bobo.facets.CombinedFacetAccessible;
+import com.browseengine.bobo.sort.SortCollector;
+import com.browseengine.bobo.sort.SortCollector.CollectorContext;
 import com.browseengine.bobo.util.ListMerger;
 import com.sensei.search.req.SenseiHit;
 import com.sensei.search.req.SenseiRequest;
@@ -32,6 +39,54 @@ import com.sensei.search.req.SenseiResult;
 public class ResultMerger
 {
   private final static Logger logger = Logger.getLogger(ResultMerger.class.getName());
+  private final static class MyScoreDoc extends ScoreDoc
+  {
+    private static final long serialVersionUID = 1L;
+
+    private BoboIndexReader reader;
+    private int finalDoc;
+    public Comparable sortValue;
+
+    public MyScoreDoc(int docid, float score, int finalDoc, BoboIndexReader reader)
+    {
+      super(docid, score);
+      this.finalDoc = finalDoc;
+      this.reader = reader;
+    }
+
+    SenseiHit getSenseiHit(boolean fetchStoredFields)
+    {
+      SenseiHit hit = new SenseiHit();
+      if (fetchStoredFields)
+      {
+        try
+        {
+          hit.setStoredFields(reader.document(doc));
+        }
+        catch(Exception e)
+        {
+          logger.error(e.getMessage(),e);
+        }
+      }
+      hit.setUID(((ZoieIndexReader<BoboIndexReader>)reader.getInnerReader()).getUID(doc));
+      hit.setDocid(finalDoc);
+      hit.setScore(score);
+      hit.setComparable(sortValue);
+      return hit;
+    }
+  }
+  private final static class HitWithGroupQueue
+  {
+    public SenseiHit hit;
+    public PriorityQueue<MyScoreDoc> queue;
+    public ArrayList<Iterator<SenseiHit>> iterList = new ArrayList<Iterator<SenseiHit>>();
+
+    public HitWithGroupQueue(SenseiHit hit, PriorityQueue<MyScoreDoc> queue)
+    {
+      this.hit = hit;
+      this.queue = queue;
+    }
+  }
   private static Map<String, FacetAccessible> mergeFacetContainer(Collection<Map<String, FacetAccessible>> subMaps,
       SenseiRequest req)
   {
@@ -321,9 +376,10 @@ public class ResultMerger
     int index;
   }
 
-  public static SenseiResult merge(SenseiRequest req, Collection<SenseiResult> results, boolean onSearchNode)
+  public static SenseiResult merge(final SenseiRequest req, Collection<SenseiResult> results, boolean onSearchNode)
   {
-	long start = System.currentTimeMillis();
+    req.setMaxPerGroup(5);
+    long start = System.currentTimeMillis();
     List<Map<String, FacetAccessible>> facetList = new ArrayList<Map<String, FacetAccessible>>(results.size());
 
     ArrayList<Iterator<SenseiHit>> iteratorList = new ArrayList<Iterator<SenseiHit>>(results.size());
@@ -386,15 +442,15 @@ public class ResultMerger
       int offsetLeft = req.getOffset();
       if (groupAccessibles.size() == 0)
       {
-        Map<String, SenseiHit> groupHitMap = new HashMap<String, SenseiHit>(req.getCount());
+        Map<Object, SenseiHit> groupHitMap = new HashMap<Object, SenseiHit>(req.getCount());
         while(mergedIter.hasNext())
         {
           //++preGroups;
           SenseiHit hit = mergedIter.next();
-          if (groupHitMap.containsKey(hit.getGroupValue()))
+          if (groupHitMap.containsKey(hit.getRawGroupValue()))
           {
             if (offsetLeft <= 0) {
-              SenseiHit pre = groupHitMap.get(hit.getGroupValue());
+              SenseiHit pre = groupHitMap.get(hit.getRawGroupValue());
               pre.setGroupHitsCount(pre.getGroupHitsCount()+hit.getGroupHitsCount());
             }
           }
@@ -407,7 +463,7 @@ public class ResultMerger
             hitsList.add(hit);
             if (hitsList.size()>=req.getCount())
               break;
-            groupHitMap.put(hit.getGroupValue(), hit);
+            groupHitMap.put(hit.getRawGroupValue(), hit);
           }
         }
         //numGroups = (int)(numGroups*(groupHitMap.size()/(float)preGroups));
@@ -415,11 +471,11 @@ public class ResultMerger
       else
       {
         FacetAccessible groupAccessible = new CombinedFacetAccessible(new FacetSpec(), groupAccessibles);
-        Set<String> groupSet = new HashSet<String>(req.getCount());
+        Set<Object> groupSet = new HashSet<Object>(req.getCount());
         while(mergedIter.hasNext())
         {
           SenseiHit hit = mergedIter.next();
-          if (!groupSet.contains(hit.getGroupValue()))
+          if (!groupSet.contains(hit.getRawGroupValue()))
           {
             if (offsetLeft > 0)
               --offsetLeft;
@@ -429,7 +485,7 @@ public class ResultMerger
                 hit.setGroupHitsCount(facet.getFacetValueHitCount());
               hitsList.add(hit);
             }
-            groupSet.add(hit.getGroupValue());
+            groupSet.add(hit.getRawGroupValue());
           }
           if (hitsList.size() >= req.getCount())
             break;
@@ -437,6 +493,142 @@ public class ResultMerger
         //numGroups -= (preGroups - groupMap.size());
       }
       hits = hitsList.toArray(new SenseiHit[hitsList.size()]);
+
+      if (req.getMaxPerGroup() > 1)
+      {
+        Map<Object, HitWithGroupQueue> groupMap = new HashMap<Object, HitWithGroupQueue>(hits.length*2);
+        for (SenseiHit hit : hits)
+        {
+          groupMap.put(hit.getRawGroupValue(), new HitWithGroupQueue(hit, new PriorityQueue<MyScoreDoc>()
+            {
+              private int r;
+
+              {
+                this.initialize(req.getMaxPerGroup());
+              }
+
+              protected boolean lessThan(MyScoreDoc a, MyScoreDoc b)
+              {
+                r = a.sortValue.compareTo(b.sortValue);
+                if (r>0)
+                  return true;
+                else if (r<0)
+                  return false;
+                else
+                  return (a.finalDoc > b.finalDoc);
+              }
+            }
+          ));
+        }
+
+        MyScoreDoc tmpScoreDoc = null;
+        int doc = 0;
+        float score = 0.0f;
+        Object val = null;
+        HitWithGroupQueue hitWithGroupQueue = null;
+
+        boolean hasSortCollector = false;
+
+        totalDocs = 0;
+        for (SenseiResult res : results)
+        {
+          if (res.getSortCollector() != null)
+          {
+            hasSortCollector = true;
+            SortCollector sortCollector = res.getSortCollector();
+            Iterator<CollectorContext> contextIter = sortCollector.contextList.iterator();
+            CollectorContext currentContext = null;
+            int contextLeft = 0;
+            if (contextIter.hasNext()) {
+              currentContext = contextIter.next();
+              contextLeft = currentContext.length;
+            }
+
+            Iterator<float[]> scoreArrayIter = sortCollector.scorearraylist != null ? sortCollector.scorearraylist.iterator():null;
+            for (int[] docs : sortCollector.docidarraylist)
+            {
+              float[] scores = scoreArrayIter != null ? scoreArrayIter.next():null;
+              for (int i=0; i<docs.length; ++i)
+              {
+                doc = docs[i];
+                score = scores != null ? scores[i]:0.0f;
+                val = sortCollector.groupBy.getRawFieldValues(currentContext.reader, doc)[0];
+                hitWithGroupQueue = groupMap.get(val);
+                if (hitWithGroupQueue != null)
+                {
+                  // Collect this hit.
+                  if (tmpScoreDoc == null)
+                    tmpScoreDoc = new MyScoreDoc(doc, score, currentContext.base + totalDocs + doc, currentContext.reader);
+                  else
+                  {
+                    tmpScoreDoc.doc = doc;
+                    tmpScoreDoc.score = score;
+                    tmpScoreDoc.finalDoc = currentContext.base + totalDocs + doc;
+                    tmpScoreDoc.reader = currentContext.reader;
+                  }
+                  tmpScoreDoc.sortValue = currentContext.comparator.value(tmpScoreDoc);
+                  tmpScoreDoc = hitWithGroupQueue.queue.insertWithOverflow(tmpScoreDoc);
+                }
+                --contextLeft;
+                if (contextLeft <= 0)
+                {
+                  if (contextIter.hasNext())
+                  {
+                    currentContext = contextIter.next();
+                    contextLeft = currentContext.length;
+                  }
+                  else  // No more docs left.
+                    break;
+                }
+              }
+            }
+          }
+          else
+          {
+            if (res.getSenseiHits() != null)
+            {
+              for (SenseiHit hit : res.getSenseiHits())
+              {
+                if (hit.getGroupHits() != null)
+                {
+                  hitWithGroupQueue = groupMap.get(hit.getRawGroupValue());
+                  if (hitWithGroupQueue != null)
+                    hitWithGroupQueue.iterList.add(Arrays.asList(hit.getSenseiGroupHits()).iterator());
+                }
+              }
+            }
+          }
+          totalDocs += res.getTotalDocs();
+        }
+
+        if (hasSortCollector)
+        {
+          for (HitWithGroupQueue hwg : groupMap.values())
+          {
+            int index = hwg.queue.size() - 1;
+            if (index >= 0)
+            {
+              SenseiHit[] groupHits = new SenseiHit[index+1];
+              while (index >=0)
+              {
+                groupHits[index] = hwg.queue.pop().getSenseiHit(req.isFetchStoredFields());
+                --index;
+              }
+              hwg.hit.setGroupHits(groupHits);
+            }
+          }
+        }
+        else
+        {
+          for (HitWithGroupQueue hwg : groupMap.values())
+          {
+            List<SenseiHit> mergedList = ListMerger.mergeLists(0, req.getMaxPerGroup(), hwg.iterList
+                .toArray(new Iterator[hwg.iterList.size()]), comparator);
+            SenseiHit[] groupHits = mergedList.toArray(new SenseiHit[mergedList.size()]);
+            hwg.hit.setGroupHits(groupHits);
+          }
+        }
+      }
     }
 
     SenseiResult merged = new SenseiResult();

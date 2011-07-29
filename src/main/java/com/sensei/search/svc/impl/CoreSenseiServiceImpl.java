@@ -100,6 +100,7 @@ public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiReque
 	      senseiHit.setStoredFields(hit.getStoredFields());
 	      senseiHit.setExplanation(hit.getExplanation());
 	      senseiHit.setGroupValue(hit.getGroupValue());
+	      senseiHit.setRawGroupValue(hit.getRawGroupValue());
 	      senseiHit.setGroupHitsCount(hit.getGroupHitsCount());
 
 	      senseiHits[i] = senseiHit;
@@ -108,6 +109,7 @@ public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiReque
 	    result.setNumHits(res.getNumHits());
 	    result.setNumGroups(res.getNumGroups());
 	    result.setGroupAccessible(res.getGroupAccessible());
+	    result.setSortCollector(res.getSortCollector());
 	    result.setTotalDocs(browser.numDocs());
 	    
 
@@ -174,6 +176,7 @@ public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiReque
         	
 	        browser = new MultiBoboBrowser(BoboBrowser.createBrowsables(validatedSegmentReaders));
 	        BrowseRequest breq = RequestConverter.convert(request, queryBuilderFactory);
+          breq.setCollectDocIdCache(true);
 	        SenseiResult res = browse(browser, breq, subReaderAccessor);
 	        int totalDocs = res.getTotalDocs()+skipDocs.get();
 	        res.setTotalDocs(totalDocs);
