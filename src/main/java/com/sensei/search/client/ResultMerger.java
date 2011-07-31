@@ -434,6 +434,7 @@ public class ResultMerger
           if (hitsList.size() >= req.getCount())
             break;
         }
+        groupAccessible.close();
         //numGroups -= (preGroups - groupMap.size());
       }
       hits = hitsList.toArray(new SenseiHit[hitsList.size()]);
