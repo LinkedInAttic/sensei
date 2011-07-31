@@ -251,6 +251,11 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
         for (Entry<String, String[]> entry : entries)
         {
           String key = entry.getKey();
+          if (key.equals(PARAM_RESULT_HIT_UID))
+          {
+            // UID is already set.
+            continue;
+          }
           String[] vals = entry.getValue();
 
           JSONArray valArray = new JSONArray();
