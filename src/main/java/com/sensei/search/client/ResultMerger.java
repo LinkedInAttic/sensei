@@ -535,6 +535,7 @@ public class ResultMerger
         MyScoreDoc tmpScoreDoc = null;
         int doc = 0;
         float score = 0.0f;
+        Object[] vals = null;
         Object val = null;
         HitWithGroupQueue hitWithGroupQueue = null;
 
@@ -563,7 +564,11 @@ public class ResultMerger
               {
                 doc = docs[i];
                 score = scores != null ? scores[i]:0.0f;
-                val = sortCollector.groupBy.getRawFieldValues(currentContext.reader, doc)[0];
+                vals = sortCollector.groupBy.getRawFieldValues(currentContext.reader, doc);
+                if (vals != null && vals.length > 0)
+                  val = vals[0];
+                else
+                  val = null;
                 hitWithGroupQueue = groupMap.get(val);
                 if (hitWithGroupQueue != null)
                 {
