@@ -41,6 +41,7 @@ import com.sensei.search.nodes.SenseiQueryBuilderFactory;
 import com.sensei.search.nodes.SenseiServer;
 import com.sensei.search.nodes.impl.NoopIndexingManager;
 import com.sensei.search.nodes.impl.SimpleQueryBuilderFactory;
+import com.sensei.search.req.SenseiHit;
 import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.req.SenseiResult;
 
@@ -177,8 +178,11 @@ public class TestSensei extends AbstractSenseiTestCase
       e.printStackTrace();
     }
     logger.info("Node 2 started");
+
     try
     {
+      //senseiServerBuilder1.buildHttpRestServer().start();
+
       SenseiRequest req = new SenseiRequest();
       SenseiResult res = null;
       int count = 0;
@@ -189,6 +193,7 @@ public class TestSensei extends AbstractSenseiTestCase
         System.out.println(""+res.getNumHits()+" loaded...");
         ++count;
       } while (count < 20 && res.getNumHits() < 15000);
+      // Thread.sleep(500000);
     } catch (Exception e)
     {
       e.printStackTrace();
@@ -283,6 +288,32 @@ public class TestSensei extends AbstractSenseiTestCase
     logger.info("request:" + req + "\nresult:" + res);
     assertEquals(12093, res.getNumHits());
     verifyFacetCount(res, "year", "[1993 TO 1994]", 3090);
+  }
+
+  public void testGroupBy() throws Exception
+  {
+    logger.info("executing test case testGroupBy");
+    SenseiRequest req = new SenseiRequest();
+    req.setCount(1);
+    req.setGroupBy("groupid");
+    SenseiResult res = broker.browse(req);
+    logger.info("request:" + req + "\nresult:" + res);
+    SenseiHit hit = res.getSenseiHits()[0];
+    assertTrue(hit.getGroupHitsCount() > 0);
+  }
+
+  public void testGroupByWithGroupedHits() throws Exception
+  {
+    logger.info("executing test case testGroupBy");
+    SenseiRequest req = new SenseiRequest();
+    req.setCount(1);
+    req.setGroupBy("groupid");
+    req.setMaxPerGroup(8);
+    SenseiResult res = broker.browse(req);
+    logger.info("request:" + req + "\nresult:" + res);
+    SenseiHit hit = res.getSenseiHits()[0];
+    assertTrue(hit.getGroupHitsCount() > 0);
+    assertTrue(hit.getSenseiGroupHits().length > 0);
   }
 
   /**
