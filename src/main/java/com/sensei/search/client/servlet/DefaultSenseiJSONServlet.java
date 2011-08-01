@@ -221,19 +221,10 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
     return jsonObj.toString();
   }
 
-  public static JSONObject buildJSONResult(SenseiRequest req, SenseiResult res)
+  public static JSONArray buildJSONHits(SenseiHit[] hits)
       throws Exception
   {
-    JSONObject jsonObj = new JSONObject();
-    jsonObj.put(PARAM_RESULT_TID, res.getTid());
-    jsonObj.put(PARAM_RESULT_TOTALDOCS, res.getTotalDocs());
-    jsonObj.put(PARAM_RESULT_NUMHITS, res.getNumHits());
-    jsonObj.put(PARAM_RESULT_NUMGROUPS, res.getNumGroups());
-    jsonObj.put(PARAM_RESULT_PARSEDQUERY, res.getParsedQuery());
-
-    SenseiHit[] hits = res.getSenseiHits();
     JSONArray hitArray = new JSONArray();
-    jsonObj.put(PARAM_RESULT_HITS, hitArray);
     for (SenseiHit hit : hits)
     {
       Map<String, String[]> fieldMap = hit.getFieldValues();
@@ -244,6 +235,8 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
       hitObj.put(PARAM_RESULT_HIT_SCORE, Float.toString(hit.getScore()));
       hitObj.put(PARAM_RESULT_HIT_GROUPVALUE, hit.getGroupValue());
       hitObj.put(PARAM_RESULT_HIT_GROUPHITSCOUNT, hit.getGroupHitsCount());
+      if (hit.getGroupHits() != null && hit.getGroupHits().length > 0)
+        hitObj.put(PARAM_RESULT_HIT_GROUPHITS, buildJSONHits(hit.getSenseiGroupHits()));
       hitObj.put(PARAM_RESULT_HIT_SRC_DATA, hit.getSrcData());
       if (fieldMap != null)
       {
@@ -288,6 +281,22 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
 
       hitArray.put(hitObj);
     }
+    return hitArray;
+  }
+
+  public static JSONObject buildJSONResult(SenseiRequest req, SenseiResult res)
+      throws Exception
+  {
+    JSONObject jsonObj = new JSONObject();
+    jsonObj.put(PARAM_RESULT_TID, res.getTid());
+    jsonObj.put(PARAM_RESULT_TOTALDOCS, res.getTotalDocs());
+    jsonObj.put(PARAM_RESULT_NUMHITS, res.getNumHits());
+    jsonObj.put(PARAM_RESULT_NUMGROUPS, res.getNumGroups());
+    jsonObj.put(PARAM_RESULT_PARSEDQUERY, res.getParsedQuery());
+
+    SenseiHit[] hits = res.getSenseiHits();
+    JSONArray hitArray = buildJSONHits(hits);
+    jsonObj.put(PARAM_RESULT_HITS, hitArray);
 
     jsonObj.put(PARAM_RESULT_TIME, res.getTime());
     jsonObj.put(PARAM_RESULT_FACETS, convert(res.getFacetMap(), req));
@@ -368,6 +377,7 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
     senseiReq.setShowExplanation(params.getBoolean(PARAM_SHOW_EXPLAIN, false));
     senseiReq.setFetchStoredFields(params.getBoolean(PARAM_FETCH_STORED, false));
     senseiReq.setGroupBy(params.getString(PARAM_GROUP_BY, null));
+    senseiReq.setMaxPerGroup(params.getInt(PARAM_MAX_PER_GROUP, 0));
     String routeParam = params.getString(PARAM_ROUTE_PARAM);
     if (routeParam != null && routeParam.length() != 0)
       senseiReq.setRouteParam(routeParam);

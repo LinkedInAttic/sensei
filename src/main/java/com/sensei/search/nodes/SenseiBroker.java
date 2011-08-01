@@ -54,14 +54,12 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
     logger.info("created broker instance " + networkClient + " " + clusterClient + " " + loadBalancerFactory);
   }
 
-  @Override
-  public SenseiResult mergeResults(SenseiRequest request, List<SenseiResult> resultList)
+  private void recoverSrcData(SenseiHit[] hits)
   {
-    request.restoreState();
-    SenseiResult res = ResultMerger.merge(request, resultList, false);
-
-    if (request.isFetchStoredFields()) {  // Decompress binary data.
-      for(SenseiHit hit : res.getSenseiHits()) {
+    if (hits != null)
+    {
+      for(SenseiHit hit : hits)
+      {
         try
         {
           Document doc = hit.getStoredFields();
@@ -94,7 +92,19 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
         {
           logger.error(e.getMessage(),e);
         }
+        recoverSrcData(hit.getSenseiGroupHits());
       }
+    }
+  }
+
+  @Override
+  public SenseiResult mergeResults(SenseiRequest request, List<SenseiResult> resultList)
+  {
+    request.restoreState();
+    SenseiResult res = ResultMerger.merge(request, resultList, false);
+
+    if (request.isFetchStoredFields()) {  // Decompress binary data.
+      recoverSrcData(res.getSenseiHits());
     }
 
     return res;

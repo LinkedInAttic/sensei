@@ -44,7 +44,6 @@ public class SenseiResult extends BrowseResult implements AbstractSenseiResult
     if (!(o instanceof SenseiResult)) return false;
     SenseiResult b = (SenseiResult)o;
 
-    if (!senseiHitsAreEqual(getSenseiHits(), b.getSenseiHits())) return false;
     if (!getParsedQuery().equals(b.getParsedQuery())) return false;
 
     // TODO: move this into BrowseResult equals
@@ -74,6 +73,7 @@ public class SenseiResult extends BrowseResult implements AbstractSenseiResult
         if (!a[i].getGroupValue().equals(b[i].getGroupValue())) return false;
       }
       if (a[i].getGroupHitsCount() != b[i].getGroupHitsCount()) return false;
+      if (!senseiHitsAreEqual(a[i].getSenseiGroupHits(), b[i].getSenseiGroupHits())) return false;
       if (!expalanationsAreEqual(a[i].getExplanation(), b[i].getExplanation())) return false;
 
       // TODO: is comparing the document strings adequate?

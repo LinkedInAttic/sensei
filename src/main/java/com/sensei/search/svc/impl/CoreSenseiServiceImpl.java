@@ -176,7 +176,6 @@ public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiReque
         	
 	        browser = new MultiBoboBrowser(BoboBrowser.createBrowsables(validatedSegmentReaders));
 	        BrowseRequest breq = RequestConverter.convert(request, queryBuilderFactory);
-          breq.setCollectDocIdCache(true);
 	        SenseiResult res = browse(browser, breq, subReaderAccessor);
 	        int totalDocs = res.getTotalDocs()+skipDocs.get();
 	        res.setTotalDocs(totalDocs);

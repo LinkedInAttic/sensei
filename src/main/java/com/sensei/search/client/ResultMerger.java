@@ -29,6 +29,7 @@ import com.browseengine.bobo.api.FacetIterator;
 import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
 import com.browseengine.bobo.facets.CombinedFacetAccessible;
+import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.sort.SortCollector;
 import com.browseengine.bobo.sort.SortCollector.CollectorContext;
 import com.browseengine.bobo.util.ListMerger;
@@ -68,6 +69,16 @@ public class ResultMerger
           logger.error(e.getMessage(),e);
         }
       }
+      Collection<FacetHandler<?>> facetHandlers= reader.getFacetHandlerMap().values();
+      Map<String,String[]> map = new HashMap<String,String[]>();
+      Map<String,Object[]> rawMap = new HashMap<String,Object[]>();
+      for (FacetHandler<?> facetHandler : facetHandlers)
+      {
+          map.put(facetHandler.getName(),facetHandler.getFieldValues(reader,doc));
+          rawMap.put(facetHandler.getName(),facetHandler.getRawFieldValues(reader,doc));
+      }
+      hit.setFieldValues(map);
+      hit.setRawFieldValues(rawMap);
       hit.setUID(((ZoieIndexReader<BoboIndexReader>)reader.getInnerReader()).getUID(doc));
       hit.setDocid(finalDoc);
       hit.setScore(score);
@@ -378,7 +389,6 @@ public class ResultMerger
 
   public static SenseiResult merge(final SenseiRequest req, Collection<SenseiResult> results, boolean onSearchNode)
   {
-    req.setMaxPerGroup(5);
     long start = System.currentTimeMillis();
     List<Map<String, FacetAccessible>> facetList = new ArrayList<Map<String, FacetAccessible>>(results.size());
 
@@ -490,6 +500,7 @@ public class ResultMerger
           if (hitsList.size() >= req.getCount())
             break;
         }
+        groupAccessible.close();
         //numGroups -= (preGroups - groupMap.size());
       }
       hits = hitsList.toArray(new SenseiHit[hitsList.size()]);
@@ -548,7 +559,7 @@ public class ResultMerger
             for (int[] docs : sortCollector.docidarraylist)
             {
               float[] scores = scoreArrayIter != null ? scoreArrayIter.next():null;
-              for (int i=0; i<docs.length; ++i)
+              for (int i=0; i<SortCollector.BLOCK_SIZE; ++i)
               {
                 doc = docs[i];
                 score = scores != null ? scores[i]:0.0f;
@@ -582,6 +593,7 @@ public class ResultMerger
                 }
               }
             }
+            sortCollector.close();
           }
           else
           {

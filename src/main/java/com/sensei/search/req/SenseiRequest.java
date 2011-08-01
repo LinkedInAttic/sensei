@@ -443,6 +443,8 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable
     else {
       if (!getGroupBy().equals(b.getGroupBy())) return false;
     }
+    if (getMaxPerGroup() != b.getMaxPerGroup())
+      return false;
     if (getPartitions() == null) {
       if (b.getPartitions() != null) return false;
     } else {

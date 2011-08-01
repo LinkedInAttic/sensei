@@ -102,7 +102,7 @@ SenseiSort.prototype = {
 	}
 };
 
-// SenseiClient(query="", offset=0, length=10, explain=false, fetch=false, routeParam, groupBy)
+// SenseiClient(query="", offset=0, length=10, explain=false, fetch=false, routeParam, groupBy, maxPerGroup)
 var SenseiClient = function () {
 	this._facets = [];
 	this._selections = [];
@@ -116,6 +116,7 @@ var SenseiClient = function () {
 	this.fetch = false;
 	this.routeParam = "";
 	this.groupBy = "";
+	this.maxPerGroup = 0;
 
 	if (arguments.length > 0)
 		this.query = arguments[0];
@@ -131,6 +132,8 @@ var SenseiClient = function () {
 		this.routeParam = arguments[5];
 	if (arguments.length > 6)
 		this.groupBy = arguments[6];
+	if (arguments.length > 7)
+		this.maxPerGroup = arguments[7];
 };
 
 SenseiClient.prototype = {
@@ -249,8 +252,9 @@ SenseiClient.prototype = {
 			q: this.query,
 			start: this.offset,
 			rows: this.length,
-			routeParam: this.routeParam,
-			groupBy: this.groupBy
+			routeparam: this.routeParam,
+			groupby: this.groupBy,
+			maxpergroup: this.maxPerGroup
 		};
 		if (this.explain)
 			qs['showexplain'] = true;
@@ -665,6 +669,7 @@ function buildreqString(){
 	
 	var fetchStore = document.getElementById('fetchstore').checked;
 	var groupBy = document.getElementById('groupBy').value;
+	var maxPerGroup = document.getElementById('maxpergroup').value;
 	
   var reqString="q=" + qstring +"&start=" + start + "&rows=" + rows + "&routeparam=" + routeparam;
   var queryParamNames = $('#queryParams').find('.name-input');
@@ -691,6 +696,9 @@ function buildreqString(){
 
   if (groupBy) {
 		reqString += "&groupby=" + encodeURIComponent(groupBy);
+  }
+  if (maxPerGroup != '') {
+    reqString += "&maxpergroup=" + encodeURIComponent(maxPerGroup);
   }
 	
 	var selectionNodes = document.getElementsByName('selection');
