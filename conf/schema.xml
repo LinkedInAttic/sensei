@@ -21,6 +21,7 @@
   -->
 
   <table uid="id" src-data-store="none" src-data-field="src_data" compress-src-data="true" delete-field="" skip-field="">
+	<column name="groupid" type="long" />
 	<column name="color" type="string" />
 	<column name="category" type="string" />
 	<column name="city" type="string" />
@@ -46,6 +47,7 @@
       custom - custom facet handler, name must be defined in a spring bean in custom-facets.xml
    -->
    <facets>
+	 <facet name="groupid" type="simple" />
 	 <facet name="color" type="simple" depends=""/>
 	 <facet name="category" type="simple" />
 	 <facet name="city" type="path">
