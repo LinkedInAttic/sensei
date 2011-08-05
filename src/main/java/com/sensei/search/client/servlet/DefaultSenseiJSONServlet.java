@@ -1,6 +1,5 @@
 package com.sensei.search.client.servlet;
 
-
 import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.BrowseSelection;
 import com.browseengine.bobo.api.BrowseSelection.ValueOperation;
@@ -27,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.DataConfiguration;
 import org.apache.log4j.Logger;
@@ -324,8 +324,9 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
       for (String qparam : qparams)
       {
         qparam = qparam.trim();
-        if (qparam.length() == 0) continue;
-        String[] parts = qparam.split(":");
+        if (qparam.length() == 0) 
+          continue;
+        String[] parts = qparam.split(":", 2);
         if (parts.length == 2)
         {
           qjson.put(parts[0], parts[1]);
