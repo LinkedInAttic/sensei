@@ -1,334 +1,36 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>com.senseidb</groupId>
-	<artifactId>sensei</artifactId>
-	<packaging>jar</packaging>
-	<name>sensei</name>
-	<version>0.0.1-SNAPSHOT</version>
-	<description>sensei search</description>
-	<url>http://www.senseidb.com/</url>
+	
 
 	<parent>
-		<groupId>org.sonatype.oss</groupId>
-		<artifactId>oss-parent</artifactId>
-		<version>6</version>
+		<groupId>com.senseidb</groupId>
+		<artifactId>sensei-parent</artifactId>
+		<version>1.0.0-SNAPSHOT</version>
+		<relativePath>sensei-parent/pom.xml</relativePath>
 	</parent>
-
-	<licenses>
-		<license>
-			<name>Apache License, Version 2.0</name>
-			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-			<distribution>repo</distribution>
-		</license>
-	</licenses>
-
-	<scm>
-		<connection>scm:git://github.com/javasoze/sensei.git</connection>
-		<developerConnection>scm:git@github.com:javasoze/sensei.git</developerConnection>
-		<url>http://github.com/javasoze/sensei</url>
-	</scm>
-
-	<developers>
-		<developer>
-			<id>javasoze</id>
-			<name>John Wang</name>
-			<email>john.wang@gmail.com</email>
-		</developer>
-	</developers>
+	
+	<artifactId>sensei-project</artifactId>
+	<packaging>pom</packaging>
+	<name>sensei</name>
+	<description>sensei parent</description>
+	
+	<modules>
+    <module>sensei-parent</module>
+    <module>sensei-core</module>
+  </modules>
+  
 
 	<!-- Set the compiler to java6 -->
 	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>2.1</version>
-				<configuration>
-					<source>1.6</source>
-					<target>1.6</target>
-					<encoding>UTF-8</encoding>
-				</configuration>
-			</plugin>
-			<!--
-			<plugin>
-				<artifactId>maven-resources-plugin</artifactId>
-				<version>2.2</version>
-				<configuration>
-					<encoding>UTF-8</encoding>
-				</configuration>
-			</plugin>
-
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-source-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>attach-sources</id>
-						<goals>
-							<goal>jar</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-javadoc-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>attach-javadocs</id>
-						<goals>
-							<goal>jar</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-			-->
-			<plugin>
-		      <artifactId>maven-dependency-plugin</artifactId>
-		      <executions>
-		         <execution>
-		         <phase>package</phase>
-		         <goals>
-		            <goal>copy-dependencies</goal>
-		         </goals>
-		         <configuration>
-		            <outputDirectory>${project.build.directory}/lib</outputDirectory>
-		         </configuration>
-		       </execution>
-		       </executions>
-		    </plugin>
-		</plugins>
-	</build>
-
-
-	<properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-	</properties>
-
-	<dependencies>
-		<dependency>
-			<groupId>org.jboss.netty</groupId>
-			<artifactId>netty</artifactId>
-			<version>3.2.3.Final</version>
-		</dependency>
-		
-    <dependency>
-      <groupId>org.jolokia</groupId>
-      <artifactId>jolokia-core</artifactId>
-      <version>0.90</version>
-    </dependency>
-
-		<dependency>
-			<groupId>com.sna-projects.kafka</groupId>
-			<artifactId>kafka</artifactId>
-			<version>0.5-SNAPSHOT</version>
-			<exclusions>
-			  <exclusion>  <!-- declare the exclusion here -->
-			    <groupId>zkclient</groupId>
-			    <artifactId>zkclient</artifactId>
-			  </exclusion>
-			</exclusions>
-		</dependency>
-		<dependency>
-			<groupId>com.linkedin.kamikaze</groupId>
-			<artifactId>kamikaze</artifactId>
-			<version>3.0.4</version>
-		</dependency>
-		
-		<dependency>
-			<groupId>org.scala-lang</groupId>
-			<artifactId>scala-library</artifactId>
-			<version>2.8.1</version>
-		</dependency>
-		
-		<dependency>
-			<groupId>com.linkedin.zoie</groupId>
-			<artifactId>zoie-core</artifactId>
-			<version>2.7.0-SNAPSHOT</version>
-		</dependency>
-		
-		<dependency>
-			<groupId>com.linkedin.zoie</groupId>
-			<artifactId>zoie-jms</artifactId>
-			<version>2.7.0-SNAPSHOT</version>
-		</dependency>
-		
-		<dependency>
-			<groupId>fastutil</groupId>
-			<artifactId>fastutil</artifactId>
-			<version>5.0.5</version>
-			<type>jar</type>
-		</dependency>
-
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring</artifactId>
-			<version>2.5.6</version>
-			<type>jar</type>
-			<scope>compile</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-api</artifactId>
-			<version>1.6.1</version>
-		</dependency>
-		
-		<dependency>
-		    <groupId>org.slf4j</groupId>
-		    <artifactId>slf4j-log4j12</artifactId>
-		    <version>1.6.1</version>
-		</dependency>
-
-		<dependency>
-			<groupId>commons-lang</groupId>
-			<artifactId>commons-lang</artifactId>
-			<version>2.5</version>
-		</dependency>
-		
-	    <dependency>
-	      <groupId>commons-io</groupId>
-	      <artifactId>commons-io</artifactId>
-	      <version>2.0.1</version>
-	    </dependency>
-	 
-		<dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpclient</artifactId>
-            <version>4.1</version>
-        </dependency>
-
-		<dependency>
-			<groupId>org.apache.lucene</groupId>
-			<artifactId>lucene-core</artifactId>
-			<version>3.0.2</version>
-		</dependency>
-
-		<dependency>
-			<groupId>com.browseengine.bobo</groupId>
-			<artifactId>bobo-browse</artifactId>
-			<version>2.5.2-SNAPSHOT</version>
-			<type>jar</type>
-		</dependency>
-
-		<dependency>
-			<groupId>commons-configuration</groupId>
-			<artifactId>commons-configuration</artifactId>
-			<version>1.6</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.json</groupId>
-			<artifactId>json</artifactId>
-			<version>20080701</version>
-		</dependency>
-
-		<dependency>
-			<groupId>com.sna-projects.norbert</groupId>
-			<artifactId>norbert-java-cluster</artifactId>
-			<version>1.0.0-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>com.sna-projects.norbert</groupId>
-			<artifactId>norbert-java-network</artifactId>
-			<version>1.0.0-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>com.sna-projects.norbert</groupId>
-			<artifactId>norbert-network</artifactId>
-			<version>1.0.0-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>com.sna-projects.norbert</groupId>
-			<artifactId>norbert-cluster</artifactId>
-			<version>1.0.0-SNAPSHOT</version>
-		</dependency>
-
-		<dependency>
-			<groupId>com.google.protobuf</groupId>
-			<artifactId>protobuf-java</artifactId>
-			<version>2.3.0</version>
-		</dependency>
-		
-		<dependency>
-			<groupId>com.yammer</groupId>
-			<artifactId>metrics_2.8.1</artifactId>
-			<version>2.0.0-BETA11</version>
-		</dependency>
-		
-		<dependency>
-			<groupId>org.apache.avro</groupId>
-			<artifactId>avro</artifactId>
-			<version>1.4.0</version>
-		</dependency>
-
-		<dependency>
-			<groupId>javax.servlet</groupId>
-			<artifactId>servlet-api</artifactId>
-			<version>2.5</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.mortbay.jetty</groupId>
-			<artifactId>jetty</artifactId>
-			<version>6.1.26</version>
-		</dependency>
-		
-		<dependency>
-			<groupId>org.apache.zookeeper</groupId>
-			<artifactId>zookeeper</artifactId>
-			<version>3.3.3</version>
-			<exclusions>
-			  <exclusion>  <!-- declare the exclusion here -->
-			    <groupId>com.sun.jdmk</groupId>
-			    <artifactId>jmxtools</artifactId>
-			  </exclusion>
-			  <exclusion>  <!-- declare the exclusion here -->
-			    <groupId>com.sun.jmx</groupId>
-			    <artifactId>jmxri</artifactId>
-			  </exclusion>
-			</exclusions>
-		</dependency>
-
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>4.5</version>
-			<type>jar</type>
-			<scope>test</scope>
-		</dependency>
-	</dependencies>
-	
-	<repositories>
-	    <repository>
-	      <id>repository.jboss.org</id>
-	      <url>http://repository.jboss.org/nexus/content/groups/public/</url>
-		  <snapshots>
-	        <enabled>false</enabled>
-	       </snapshots>
-	    </repository>
-	    <repository>
-	      <id>Scala Tools Repository</id>
-	      <url>http://nexus.scala-tools.org/content/repositories/snapshots/</url>
-	    </repository>
-	    <repository>
-	      <id>Coda Hale Repository</id>
-	      <url>http://repo.codahale.com/</url>
-	    </repository>
-      <repository>
-        <id>labs-consol-release</id>
-        <name>ConSol* Labs Repository (Releases)</name>
-        <url>http://labs.consol.de/maven/repository</url>
-      </repository>
-	  </repositories>
-
-	<distributionManagement>
-		<snapshotRepository>
-			<id>sonatype-nexus-snapshots</id>
-			<name>sonatype nexus snapshots repository</name>
-			<url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-		</snapshotRepository>
-	</distributionManagement>
+	    <plugins>
+	      <plugin>
+	        <artifactId>maven-deploy-plugin</artifactId>
+	        <configuration>
+	          <skip>true</skip> <!-- No need to deploy the reactor -->
+	        </configuration>
+	      </plugin>
+	    </plugins>
+	  </build>
 
 </project>
