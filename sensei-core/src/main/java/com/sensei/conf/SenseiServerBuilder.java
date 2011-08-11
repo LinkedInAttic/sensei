@@ -206,7 +206,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
     return server;
   }
   
-  private JSONObject loadSchema(File confDir) throws Exception{
+  public static JSONObject loadSchema(File confDir) throws Exception{
     File jsonSchema = new File(confDir,SCHEMA_FILE_JSON);
     if (jsonSchema.exists()){
       InputStream is = new FileInputStream(jsonSchema);
