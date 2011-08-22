@@ -21,8 +21,8 @@ case $OS in
 esac
 
 
-lib=$bin/../target/lib
-dist=$bin/../target
+lib=$bin/../sensei-core/target/lib
+dist=$bin/../sensei-core/target
 resources=$bin/../resources
 logs=$bin/../logs
 

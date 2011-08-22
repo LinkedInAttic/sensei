@@ -1,0 +1,137 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>com.senseidb</groupId>
+	<artifactId>sensei-parent</artifactId>
+	<packaging>pom</packaging>
+	<name>sensei parent</name>
+	<version>1.0.0-SNAPSHOT</version>
+	<description>sensei search</description>
+	<url>http://www.senseidb.com/</url>
+
+	<parent>
+		<groupId>org.sonatype.oss</groupId>
+		<artifactId>oss-parent</artifactId>
+		<version>6</version>
+	</parent>
+	
+	<inceptionYear>2010</inceptionYear>
+
+	<licenses>
+		<license>
+			<name>Apache License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+
+	<scm>
+		<connection>scm:git://github.com/javasoze/sensei.git</connection>
+		<developerConnection>scm:git@github.com:javasoze/sensei.git</developerConnection>
+		<url>http://github.com/javasoze/sensei</url>
+	</scm>
+
+	<developers>
+		<developer>
+			<id>javasoze</id>
+			<name>John Wang</name>
+			<email>john.wang@gmail.com</email>
+		</developer>
+	</developers>
+
+	<!-- Set the compiler to java6 -->
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.1</version>
+				<configuration>
+					<source>1.6</source>
+					<target>1.6</target>
+					<encoding>UTF-8</encoding>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.5</version>
+			<type>jar</type>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+	
+	<repositories>
+	    <repository>
+	      <id>repository.jboss.org</id>
+	      <url>http://repository.jboss.org/nexus/content/groups/public/</url>
+		  <snapshots>
+	        <enabled>false</enabled>
+	       </snapshots>
+	    </repository>
+	    <repository>
+	      <id>Scala Tools Repository</id>
+	      <url>http://nexus.scala-tools.org/content/repositories/snapshots/</url>
+	    </repository>
+	    <repository>
+	      <id>Coda Hale Repository</id>
+	      <url>http://repo.codahale.com/</url>
+	    </repository>
+      <repository>
+        <id>labs-consol-release</id>
+        <name>ConSol* Labs Repository (Releases)</name>
+        <url>http://labs.consol.de/maven/repository</url>
+      </repository>
+	  </repositories>
+
+	<distributionManagement>
+		<repository>
+		  <id>sonatype-nexus-staging</id>
+		  <name>sonatype nexus staging repository</name>
+		  <url>http://oss.sonatype.org/service/local/staging/deploy/maven2</url>
+		</repository>
+		<snapshotRepository>
+		  <id>sonatype-nexus-snapshots</id>
+		  <name>sonatype nexus snapshots repository</name>
+		  <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+		</snapshotRepository>
+	</distributionManagement>
+	<profiles>
+	    <profile>
+	    <id>release-sign-artifacts</id>
+	    <activation>
+	       <property>
+	         <name>performRelease</name>
+	         <value>true</value>
+	       </property>
+	    </activation>
+	    <build>
+	       <plugins>
+	         <plugin>
+	           <groupId>org.apache.maven.plugins</groupId>
+	           <artifactId>maven-gpg-plugin</artifactId>
+	           <version>1.1</version>
+	           <executions>
+	             <execution>
+	               <id>sign-artifacts</id>
+	               <phase>verify</phase>
+	               <goals>
+	                 <goal>sign</goal>
+	               </goals>
+	             </execution>
+	           </executions>
+	          </plugin>
+	        </plugins>
+	    </build>
+	    </profile>
+	 </profiles> 
+</project>
