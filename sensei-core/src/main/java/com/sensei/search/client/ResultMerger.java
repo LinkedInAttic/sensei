@@ -40,6 +40,33 @@ import com.sensei.search.req.SenseiResult;
 public class ResultMerger
 {
   private final static Logger logger = Logger.getLogger(ResultMerger.class.getName());
+
+  private final static class PrimitiveLongArrayWrapper
+  {
+    public long[] data;
+
+    public PrimitiveLongArrayWrapper(long[] data)
+    {
+      this.data = data;
+    }
+
+    @Override
+    public boolean equals(Object other)
+    {
+      if (other instanceof PrimitiveLongArrayWrapper)
+      {
+        return Arrays.equals(data, ((PrimitiveLongArrayWrapper)other).data);
+      }
+      return false;
+    }
+
+    @Override
+    public int hashCode()
+    {
+      return Arrays.hashCode(data);
+    }
+  }
+
   private final static class MyScoreDoc extends ScoreDoc
   {
     private static final long serialVersionUID = 1L;
@@ -504,13 +531,21 @@ public class ResultMerger
         //numGroups -= (preGroups - groupMap.size());
       }
       hits = hitsList.toArray(new SenseiHit[hitsList.size()]);
+      Object rawGroupValue = null;
 
       if (req.getMaxPerGroup() > 1)
       {
+        PrimitiveLongArrayWrapper primitiveLongArrayWrapperTmp = new PrimitiveLongArrayWrapper(null);
+
         Map<Object, HitWithGroupQueue> groupMap = new HashMap<Object, HitWithGroupQueue>(hits.length*2);
         for (SenseiHit hit : hits)
         {
-          groupMap.put(hit.getRawGroupValue(), new HitWithGroupQueue(hit, new PriorityQueue<MyScoreDoc>()
+          rawGroupValue = hit.getRawGroupValue();
+          if (rawGroupValue instanceof long[])
+          {
+            rawGroupValue = new PrimitiveLongArrayWrapper((long[])rawGroupValue);
+          }
+          groupMap.put(rawGroupValue, new HitWithGroupQueue(hit, new PriorityQueue<MyScoreDoc>()
             {
               private int r;
 
@@ -536,7 +571,6 @@ public class ResultMerger
         int doc = 0;
         float score = 0.0f;
         Object[] vals = null;
-        Object val = null;
         HitWithGroupQueue hitWithGroupQueue = null;
 
         boolean hasSortCollector = false;
@@ -566,10 +600,16 @@ public class ResultMerger
                 score = scores != null ? scores[i]:0.0f;
                 vals = sortCollector.groupBy.getRawFieldValues(currentContext.reader, doc);
                 if (vals != null && vals.length > 0)
-                  val = vals[0];
+                  rawGroupValue = vals[0];
                 else
-                  val = null;
-                hitWithGroupQueue = groupMap.get(val);
+                  rawGroupValue = null;
+                if (rawGroupValue instanceof long[])
+                {
+                  primitiveLongArrayWrapperTmp.data = (long[])rawGroupValue;
+                  rawGroupValue = primitiveLongArrayWrapperTmp;
+                }
+
+                hitWithGroupQueue = groupMap.get(rawGroupValue);
                 if (hitWithGroupQueue != null)
                 {
                   // Collect this hit.
@@ -608,7 +648,14 @@ public class ResultMerger
               {
                 if (hit.getGroupHits() != null)
                 {
-                  hitWithGroupQueue = groupMap.get(hit.getRawGroupValue());
+                  rawGroupValue = hit.getRawGroupValue();
+                  if (rawGroupValue instanceof long[])
+                  {
+                    primitiveLongArrayWrapperTmp.data = (long[])rawGroupValue;
+                    rawGroupValue = primitiveLongArrayWrapperTmp;
+                  }
+
+                  hitWithGroupQueue = groupMap.get(rawGroupValue);
                   if (hitWithGroupQueue != null)
                     hitWithGroupQueue.iterList.add(Arrays.asList(hit.getSenseiGroupHits()).iterator());
                 }

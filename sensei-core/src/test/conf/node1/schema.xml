@@ -80,6 +80,8 @@
 		</params>
 	 </facet>
 	 <facet name="tags" type="multi" />
+	 <facet name="virtual_groupid" type="custom" />
+	 <facet name="virtual_groupid_fixedlengthlongarray" type="custom" />
 	 
 	 <!-- example of a custom facet, defined in custom-facets.xml -->
 	 <!-- 
