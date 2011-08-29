@@ -535,16 +535,23 @@ public class ResultMerger
 
       if (req.getMaxPerGroup() > 1)
       {
+        int rawGroupValueType = 0;  // 0: unknown, 1: normal, 2: long[]
+
         PrimitiveLongArrayWrapper primitiveLongArrayWrapperTmp = new PrimitiveLongArrayWrapper(null);
 
         Map<Object, HitWithGroupQueue> groupMap = new HashMap<Object, HitWithGroupQueue>(hits.length*2);
         for (SenseiHit hit : hits)
         {
           rawGroupValue = hit.getRawGroupValue();
-          if (rawGroupValue instanceof long[])
-          {
-            rawGroupValue = new PrimitiveLongArrayWrapper((long[])rawGroupValue);
+          if (rawGroupValueType == 0) {
+            if (rawGroupValue instanceof long[])
+              rawGroupValueType = 2;
+            else
+              rawGroupValueType = 1;
           }
+          if (rawGroupValueType == 2)
+            rawGroupValue = new PrimitiveLongArrayWrapper((long[])rawGroupValue);
+
           groupMap.put(rawGroupValue, new HitWithGroupQueue(hit, new PriorityQueue<MyScoreDoc>()
             {
               private int r;
@@ -603,7 +610,7 @@ public class ResultMerger
                   rawGroupValue = vals[0];
                 else
                   rawGroupValue = null;
-                if (rawGroupValue instanceof long[])
+                if (rawGroupValueType == 2)
                 {
                   primitiveLongArrayWrapperTmp.data = (long[])rawGroupValue;
                   rawGroupValue = primitiveLongArrayWrapperTmp;
@@ -649,7 +656,7 @@ public class ResultMerger
                 if (hit.getGroupHits() != null)
                 {
                   rawGroupValue = hit.getRawGroupValue();
-                  if (rawGroupValue instanceof long[])
+                  if (rawGroupValueType == 2)
                   {
                     primitiveLongArrayWrapperTmp.data = (long[])rawGroupValue;
                     rawGroupValue = primitiveLongArrayWrapperTmp;
