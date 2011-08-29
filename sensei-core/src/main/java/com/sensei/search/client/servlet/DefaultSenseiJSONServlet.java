@@ -372,7 +372,7 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
   }
 
   public static void convertScalarParams(SenseiRequest senseiReq, DataConfiguration params) {
-    senseiReq.setOffset(params.getInt(PARAM_OFFSET, 1));
+    senseiReq.setOffset(params.getInt(PARAM_OFFSET, 0));
     senseiReq.setCount(params.getInt(PARAM_COUNT, 10));
     senseiReq.setShowExplanation(params.getBoolean(PARAM_SHOW_EXPLAIN, false));
     senseiReq.setFetchStoredFields(params.getBoolean(PARAM_FETCH_STORED, false));
