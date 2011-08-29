@@ -544,10 +544,13 @@ public class ResultMerger
         {
           rawGroupValue = hit.getRawGroupValue();
           if (rawGroupValueType == 0) {
-            if (rawGroupValue instanceof long[])
-              rawGroupValueType = 2;
-            else
-              rawGroupValueType = 1;
+            if (rawGroupValue != null)
+            {
+              if (rawGroupValue instanceof long[])
+                rawGroupValueType = 2;
+              else
+                rawGroupValueType = 1;
+            }
           }
           if (rawGroupValueType == 2)
             rawGroupValue = new PrimitiveLongArrayWrapper((long[])rawGroupValue);
