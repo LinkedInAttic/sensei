@@ -408,12 +408,6 @@ public class ResultMerger
 
   }
 
-  private static class HitsPointer
-  {
-    SenseiHit[] array;
-    int index;
-  }
-
   public static SenseiResult merge(final SenseiRequest req, Collection<SenseiResult> results, boolean onSearchNode)
   {
     long start = System.currentTimeMillis();
