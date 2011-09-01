@@ -9,6 +9,16 @@ public class SenseiHit extends BrowseHit
   private long _uid = Long.MIN_VALUE;
   private String _srcData = "";
   
+  public SenseiHit[] getSenseiGroupHits()
+  {
+    BrowseHit[] hits = getGroupHits();
+    if (hits == null || hits.length == 0)
+    {
+      return new SenseiHit[0];
+    }
+    return (SenseiHit[]) hits;
+  }
+
   public void setUID(long uid)
   {
     _uid = uid;

@@ -16,6 +16,7 @@ public interface SenseiSearchServletParams {
 	public static final String PARAM_SHOW_EXPLAIN = "showexplain";
 	public static final String PARAM_ROUTE_PARAM = "routeparam";
 	public static final String PARAM_GROUP_BY = "groupby";
+	public static final String PARAM_MAX_PER_GROUP = "maxpergroup";
 	public static final String PARAM_SELECT = "select";
 	public static final String PARAM_SELECT_VAL = "val";
 	public static final String PARAM_SELECT_NOT = "not";
@@ -50,6 +51,7 @@ public interface SenseiSearchServletParams {
 	public static final String PARAM_RESULT_HIT_EXPLANATION = "explanation";
 	public static final String PARAM_RESULT_HIT_GROUPVALUE = "groupvalue";
 	public static final String PARAM_RESULT_HIT_GROUPHITSCOUNT = "grouphitscount";
+	public static final String PARAM_RESULT_HIT_GROUPHITS = "grouphits";
 	public static final String PARAM_RESULT_FACETS = "facets";
 
 	public static final String PARAM_RESULT_TID = "tid";
