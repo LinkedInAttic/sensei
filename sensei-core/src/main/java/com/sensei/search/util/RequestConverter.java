@@ -26,6 +26,10 @@ public class RequestConverter {
 		breq.setFetchStoredFields(req.isFetchStoredFields());
 		breq.setShowExplanation(req.isShowExplanation());
     breq.setGroupBy(req.getGroupBy());
+    breq.setMaxPerGroup(req.getMaxPerGroup());
+    if (breq.getGroupBy() != null && breq.getMaxPerGroup() > 1) {
+      breq.setCollectDocIdCache(true);
+    }
 		
 		SenseiQueryBuilder queryBuilder = queryBuilderFactory.getQueryBuilder(req.getQuery());
        

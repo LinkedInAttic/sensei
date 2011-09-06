@@ -28,6 +28,8 @@ import com.browseengine.bobo.api.BrowseSelection;
 import com.browseengine.bobo.api.FacetAccessible;
 import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
+import com.browseengine.bobo.facets.data.FacetDataCache;
+import com.browseengine.bobo.facets.data.FacetDataFetcher;
 import com.linkedin.norbert.NorbertException;
 import com.linkedin.norbert.cluster.ClusterShutdownException;
 import com.linkedin.norbert.javacompat.cluster.ClusterClient;
@@ -41,6 +43,7 @@ import com.sensei.search.nodes.SenseiQueryBuilderFactory;
 import com.sensei.search.nodes.SenseiServer;
 import com.sensei.search.nodes.impl.NoopIndexingManager;
 import com.sensei.search.nodes.impl.SimpleQueryBuilderFactory;
+import com.sensei.search.req.SenseiHit;
 import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.req.SenseiResult;
 
@@ -50,6 +53,34 @@ public class TestSensei extends AbstractSenseiTestCase
   static File ConfDir2 = new File("src/test/conf/node2");
 
   private static final Logger logger = Logger.getLogger(TestSensei.class);
+
+  public static FacetDataFetcher facetDataFetcher = new FacetDataFetcher()
+  {
+    public Object fetch(BoboIndexReader reader, int doc)
+    {
+      FacetDataCache dataCache = (FacetDataCache)reader.getFacetData("groupid");
+      return dataCache.valArray.getRawValue(dataCache.orderArray.get(doc));
+    }
+  };
+
+  public static FacetDataFetcher facetDataFetcherFixedLengthLongArray = new FacetDataFetcher()
+  {
+    private int counter = 0;
+
+    public Object fetch(BoboIndexReader reader, int doc)
+    {
+      FacetDataCache dataCache = (FacetDataCache)reader.getFacetData("groupid");
+      long[] val = new long[2];
+      val[0] = counter%5;
+      ++counter;
+      Long groupId = (Long)dataCache.valArray.getRawValue(dataCache.orderArray.get(doc));
+      if (groupId == null)
+        val[1] = 0;
+      else
+        val[1] = groupId;
+      return val;
+    }
+  };
 
   public TestSensei()
   {
@@ -177,8 +208,11 @@ public class TestSensei extends AbstractSenseiTestCase
       e.printStackTrace();
     }
     logger.info("Node 2 started");
+
     try
     {
+      //senseiServerBuilder1.buildHttpRestServer().start();
+
       SenseiRequest req = new SenseiRequest();
       SenseiResult res = null;
       int count = 0;
@@ -189,6 +223,7 @@ public class TestSensei extends AbstractSenseiTestCase
         System.out.println(""+res.getNumHits()+" loaded...");
         ++count;
       } while (count < 20 && res.getNumHits() < 15000);
+      // Thread.sleep(500000);
     } catch (Exception e)
     {
       e.printStackTrace();
@@ -283,6 +318,84 @@ public class TestSensei extends AbstractSenseiTestCase
     logger.info("request:" + req + "\nresult:" + res);
     assertEquals(12093, res.getNumHits());
     verifyFacetCount(res, "year", "[1993 TO 1994]", 3090);
+  }
+
+  public void testGroupBy() throws Exception
+  {
+    logger.info("executing test case testGroupBy");
+    SenseiRequest req = new SenseiRequest();
+    req.setCount(1);
+    req.setGroupBy("groupid");
+    SenseiResult res = broker.browse(req);
+    logger.info("request:" + req + "\nresult:" + res);
+    SenseiHit hit = res.getSenseiHits()[0];
+    assertTrue(hit.getGroupHitsCount() > 0);
+  }
+
+  public void testGroupByWithGroupedHits() throws Exception
+  {
+    logger.info("executing test case testGroupBy");
+    SenseiRequest req = new SenseiRequest();
+    req.setCount(1);
+    req.setGroupBy("groupid");
+    req.setMaxPerGroup(8);
+    SenseiResult res = broker.browse(req);
+    logger.info("request:" + req + "\nresult:" + res);
+    SenseiHit hit = res.getSenseiHits()[0];
+    assertTrue(hit.getGroupHitsCount() > 0);
+    assertTrue(hit.getSenseiGroupHits().length > 0);
+  }
+
+  public void testGroupByVirtual() throws Exception
+  {
+    logger.info("executing test case testGroupByVirtual");
+    SenseiRequest req = new SenseiRequest();
+    req.setCount(1);
+    req.setGroupBy("virtual_groupid");
+    SenseiResult res = broker.browse(req);
+    logger.info("request:" + req + "\nresult:" + res);
+    SenseiHit hit = res.getSenseiHits()[0];
+    assertTrue(hit.getGroupHitsCount() > 0);
+  }
+
+  public void testGroupByVirtualWithGroupedHits() throws Exception
+  {
+    logger.info("executing test case testGroupBy");
+    SenseiRequest req = new SenseiRequest();
+    req.setCount(1);
+    req.setGroupBy("virtual_groupid");
+    req.setMaxPerGroup(8);
+    SenseiResult res = broker.browse(req);
+    logger.info("request:" + req + "\nresult:" + res);
+    SenseiHit hit = res.getSenseiHits()[0];
+    assertTrue(hit.getGroupHitsCount() > 0);
+    assertTrue(hit.getSenseiGroupHits().length > 0);
+  }
+
+  public void testGroupByFixedLengthLongArray() throws Exception
+  {
+    logger.info("executing test case testGroupByVirtual");
+    SenseiRequest req = new SenseiRequest();
+    req.setCount(1);
+    req.setGroupBy("virtual_groupid_fixedlengthlongarray");
+    SenseiResult res = broker.browse(req);
+    logger.info("request:" + req + "\nresult:" + res);
+    SenseiHit hit = res.getSenseiHits()[0];
+    assertTrue(hit.getGroupHitsCount() > 0);
+  }
+
+  public void testGroupByFixedLengthLongArrayWithGroupedHits() throws Exception
+  {
+    logger.info("executing test case testGroupBy");
+    SenseiRequest req = new SenseiRequest();
+    req.setCount(1);
+    req.setGroupBy("virtual_groupid_fixedlengthlongarray");
+    req.setMaxPerGroup(8);
+    SenseiResult res = broker.browse(req);
+    logger.info("request:" + req + "\nresult:" + res);
+    SenseiHit hit = res.getSenseiHits()[0];
+    assertTrue(hit.getGroupHitsCount() > 0);
+    assertTrue(hit.getSenseiGroupHits().length > 0);
   }
 
   /**

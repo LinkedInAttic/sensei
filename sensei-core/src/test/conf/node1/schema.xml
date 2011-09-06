@@ -17,6 +17,7 @@
   -->
 
   <table uid="id" delete-field="" skip-field="">
+	<column name="groupid" type="long" />
 	<column name="color" type="string" />
 	<column name="category" type="string" />
 	<column name="city" type="string" />
@@ -42,6 +43,7 @@
       custom - custom facet handler, name must be defined in a spring bean in custom-facets.xml
    -->
    <facets>
+	 <facet name="groupid" type="simple" />
 	 <facet name="color" type="simple" depends=""/>
 	 <facet name="category" type="simple" />
 	 <facet name="city" type="path">
@@ -78,6 +80,8 @@
 		</params>
 	 </facet>
 	 <facet name="tags" type="multi" />
+	 <facet name="virtual_groupid" type="custom" />
+	 <facet name="virtual_groupid_fixedlengthlongarray" type="custom" />
 	 
 	 <!-- example of a custom facet, defined in custom-facets.xml -->
 	 <!-- 

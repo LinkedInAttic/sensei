@@ -42,6 +42,7 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable
 	private static Random _rand = new Random(System.nanoTime());
 	private String _routeParam;
 	private String _groupBy;
+	private int _maxPerGroup;
 	
 	public SenseiRequest(){
 		_facetInitParamMap = new HashMap<String,FacetHandlerInitializerParam>();
@@ -53,6 +54,7 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable
 		_showExplanation = false;
 		_routeParam = null;
 		_groupBy = null;
+    _maxPerGroup = 0;
 	}
 
 /**
@@ -111,6 +113,16 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable
   public String getGroupBy()
   {
     return _groupBy;
+  }
+
+  public void setMaxPerGroup(int maxPerGroup)
+  {
+    _maxPerGroup = maxPerGroup;
+  }
+
+  public int getMaxPerGroup()
+  {
+    return _maxPerGroup;
   }
 
 	public Map<String,FacetHandlerInitializerParam> getFacetHandlerInitParamMap(){
@@ -399,6 +411,7 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable
       buf.append("route param: ").append(_routeParam).append('\n');
     if (_groupBy != null)
       buf.append("group by: ").append(_groupBy).append('\n');
+    buf.append("max per group: ").append(_maxPerGroup);
     buf.append("fetch stored fields: ").append(_fetchStoredFields);
     return buf.toString();
 	}
@@ -430,6 +443,8 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable
     else {
       if (!getGroupBy().equals(b.getGroupBy())) return false;
     }
+    if (getMaxPerGroup() != b.getMaxPerGroup())
+      return false;
     if (getPartitions() == null) {
       if (b.getPartitions() != null) return false;
     } else {
