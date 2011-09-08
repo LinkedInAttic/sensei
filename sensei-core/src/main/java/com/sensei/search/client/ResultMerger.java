@@ -30,6 +30,7 @@ import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
 import com.browseengine.bobo.facets.CombinedFacetAccessible;
 import com.browseengine.bobo.facets.FacetHandler;
+import com.browseengine.bobo.facets.data.PrimitiveLongArrayWrapper;
 import com.browseengine.bobo.sort.SortCollector;
 import com.browseengine.bobo.sort.SortCollector.CollectorContext;
 import com.browseengine.bobo.util.ListMerger;
@@ -40,32 +41,6 @@ import com.sensei.search.req.SenseiResult;
 public class ResultMerger
 {
   private final static Logger logger = Logger.getLogger(ResultMerger.class.getName());
-
-  private final static class PrimitiveLongArrayWrapper
-  {
-    public long[] data;
-
-    public PrimitiveLongArrayWrapper(long[] data)
-    {
-      this.data = data;
-    }
-
-    @Override
-    public boolean equals(Object other)
-    {
-      if (other instanceof PrimitiveLongArrayWrapper)
-      {
-        return Arrays.equals(data, ((PrimitiveLongArrayWrapper)other).data);
-      }
-      return false;
-    }
-
-    @Override
-    public int hashCode()
-    {
-      return Arrays.hashCode(data);
-    }
-  }
 
   private final static class MyScoreDoc extends ScoreDoc
   {
@@ -468,6 +443,12 @@ public class ResultMerger
       hits = mergedList.toArray(new SenseiHit[mergedList.size()]);
     }
     else {
+      int rawGroupValueType = 0;  // 0: unknown, 1: normal, 2: long[]
+
+      PrimitiveLongArrayWrapper primitiveLongArrayWrapperTmp = new PrimitiveLongArrayWrapper(null);
+
+      Object rawGroupValue = null;
+
       List<SenseiHit> hitsList = new ArrayList<SenseiHit>(req.getCount());
       Iterator<SenseiHit> mergedIter = ListMerger.mergeLists(iteratorList, comparator);
       int offsetLeft = req.getOffset();
@@ -478,7 +459,22 @@ public class ResultMerger
         {
           //++preGroups;
           SenseiHit hit = mergedIter.next();
-          if (groupHitMap.containsKey(hit.getRawGroupValue()))
+          rawGroupValue = hit.getRawGroupValue();
+          if (rawGroupValueType == 0) {
+            if (rawGroupValue != null)
+            {
+              if (rawGroupValue instanceof long[])
+                rawGroupValueType = 2;
+              else
+                rawGroupValueType = 1;
+            }
+          }
+          if (rawGroupValueType == 2)
+          {
+            primitiveLongArrayWrapperTmp.data = (long[])rawGroupValue;
+            rawGroupValue = primitiveLongArrayWrapperTmp;
+          }
+          if (groupHitMap.containsKey(rawGroupValue))
           {
             if (offsetLeft <= 0) {
               SenseiHit pre = groupHitMap.get(hit.getRawGroupValue());
@@ -489,12 +485,13 @@ public class ResultMerger
           {
             if (offsetLeft > 0)
               --offsetLeft;
-            //else if (hitsList.size()<req.getCount())
-              //hitsList.add(hit);
-            hitsList.add(hit);
-            if (hitsList.size()>=req.getCount())
-              break;
-            groupHitMap.put(hit.getRawGroupValue(), hit);
+            else if (hitsList.size()<req.getCount())
+              hitsList.add(hit);
+
+            if (rawGroupValueType == 2)
+              groupHitMap.put(new PrimitiveLongArrayWrapper(primitiveLongArrayWrapperTmp.data), hit);
+            else
+              groupHitMap.put(rawGroupValue, hit);
           }
         }
         //numGroups = (int)(numGroups*(groupHitMap.size()/(float)preGroups));
@@ -506,7 +503,22 @@ public class ResultMerger
         while(mergedIter.hasNext())
         {
           SenseiHit hit = mergedIter.next();
-          if (!groupSet.contains(hit.getRawGroupValue()))
+          rawGroupValue = hit.getRawGroupValue();
+          if (rawGroupValueType == 0) {
+            if (rawGroupValue != null)
+            {
+              if (rawGroupValue instanceof long[])
+                rawGroupValueType = 2;
+              else
+                rawGroupValueType = 1;
+            }
+          }
+          if (rawGroupValueType == 2)
+          {
+            primitiveLongArrayWrapperTmp.data = (long[])rawGroupValue;
+            rawGroupValue = primitiveLongArrayWrapperTmp;
+          }
+          if (!groupSet.contains(rawGroupValue))
           {
             if (offsetLeft > 0)
               --offsetLeft;
@@ -515,24 +527,22 @@ public class ResultMerger
               if (facet != null)
                 hit.setGroupHitsCount(facet.getFacetValueHitCount());
               hitsList.add(hit);
+              if (hitsList.size() >= req.getCount())
+                break;
             }
-            groupSet.add(hit.getRawGroupValue());
+            if (rawGroupValueType == 2)
+              groupSet.add(new PrimitiveLongArrayWrapper(primitiveLongArrayWrapperTmp.data));
+            else
+              groupSet.add(rawGroupValue);
           }
-          if (hitsList.size() >= req.getCount())
-            break;
         }
         groupAccessible.close();
         //numGroups -= (preGroups - groupMap.size());
       }
       hits = hitsList.toArray(new SenseiHit[hitsList.size()]);
-      Object rawGroupValue = null;
 
       if (req.getMaxPerGroup() > 1)
       {
-        int rawGroupValueType = 0;  // 0: unknown, 1: normal, 2: long[]
-
-        PrimitiveLongArrayWrapper primitiveLongArrayWrapperTmp = new PrimitiveLongArrayWrapper(null);
-
         Map<Object, HitWithGroupQueue> groupMap = new HashMap<Object, HitWithGroupQueue>(hits.length*2);
         for (SenseiHit hit : hits)
         {
