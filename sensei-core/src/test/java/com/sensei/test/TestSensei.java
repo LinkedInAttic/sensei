@@ -61,6 +61,10 @@ public class TestSensei extends AbstractSenseiTestCase
       FacetDataCache dataCache = (FacetDataCache)reader.getFacetData("groupid");
       return dataCache.valArray.getRawValue(dataCache.orderArray.get(doc));
     }
+
+    public void close()
+    {
+    }
   };
 
   public static FacetDataFetcher facetDataFetcherFixedLengthLongArray = new FacetDataFetcher()
@@ -79,6 +83,11 @@ public class TestSensei extends AbstractSenseiTestCase
       else
         val[1] = groupId;
       return val;
+    }
+
+    public void close()
+    {
+      counter = 0;
     }
   };
 
