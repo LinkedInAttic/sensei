@@ -62,7 +62,7 @@ public class TestSensei extends AbstractSenseiTestCase
       return dataCache.valArray.getRawValue(dataCache.orderArray.get(doc));
     }
 
-    public void close()
+    public void cleanup(BoboIndexReader reader)
     {
     }
   };
@@ -85,7 +85,7 @@ public class TestSensei extends AbstractSenseiTestCase
       return val;
     }
 
-    public void close()
+    public void cleanup(BoboIndexReader reader)
     {
       counter = 0;
     }
