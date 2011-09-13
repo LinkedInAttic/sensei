@@ -880,6 +880,9 @@ public class HttpRestSenseiServiceImpl implements SenseiService
     	  else if (SenseiSearchServletParams.PARAM_RESULT_HIT_SCORE.equals(key)){
     		  hit.setScore((float) hitObj.getDouble(SenseiSearchServletParams.PARAM_RESULT_HIT_SCORE));
     	  }
+    	  else if (SenseiSearchServletParams.PARAM_RESULT_HIT_SRC_DATA.equals(key)){
+    		  hit.setSrcData(hitObj.getString(SenseiSearchServletParams.PARAM_RESULT_HIT_SRC_DATA));
+    	  }
     	  else if (SenseiSearchServletParams.PARAM_RESULT_HIT_STORED_FIELDS.equals(key)){
     		  hit.setStoredFields(convertStoredFields(hitObj.optJSONArray(SenseiSearchServletParams.PARAM_RESULT_HIT_STORED_FIELDS)));
     	  }
