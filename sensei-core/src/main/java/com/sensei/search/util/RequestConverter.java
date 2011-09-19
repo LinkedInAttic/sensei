@@ -25,6 +25,7 @@ public class RequestConverter {
 		breq.setSort(req.getSort());
 		breq.setFetchStoredFields(req.isFetchStoredFields());
 		breq.setShowExplanation(req.isShowExplanation());
+		breq.setTermVectorsToFetch(req.getTermVectorsToFetch());
     breq.setGroupBy(req.getGroupBy());
     breq.setMaxPerGroup(req.getMaxPerGroup());
     if (breq.getGroupBy() != null && breq.getMaxPerGroup() > 1) {

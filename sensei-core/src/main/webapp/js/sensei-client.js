@@ -668,6 +668,9 @@ function buildreqString(){
 	var explain = document.getElementById('explain').checked;
 	
 	var fetchStore = document.getElementById('fetchstore').checked;
+	
+	var fetchTV = document.getElementById('fetchTermVector').checked;
+	
 	var groupBy = document.getElementById('groupBy').value;
 	var maxPerGroup = document.getElementById('maxpergroup').value;
 	
@@ -692,6 +695,11 @@ function buildreqString(){
 	
 	if (fetchStore){
 		reqString += "&fetchstored=true";
+	}
+	
+	if (fetchTermVector){
+	  var tvFields = document.getElementById('tvFields').value;
+	  reqString += "&fetchtermvector="+tvFields;
 	}
 
   if (groupBy) {

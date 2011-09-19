@@ -403,6 +403,11 @@ public class HttpRestSenseiServiceImpl implements SenseiService
     qparams.add(new BasicNameValuePair(SenseiSearchServletParams.PARAM_SHOW_EXPLAIN, Boolean.toString(req.isShowExplanation())));
     qparams.add(new BasicNameValuePair(SenseiSearchServletParams.PARAM_OFFSET, Integer.toString(req.getOffset())));
     qparams.add(new BasicNameValuePair(SenseiSearchServletParams.PARAM_COUNT, Integer.toString(req.getCount())));
+    Set<String> tvFetch = req.getTermVectorsToFetch();
+    if (tvFetch!=null && tvFetch.size()>0){
+      String fetchString = join(tvFetch,",");
+      qparams.add(new BasicNameValuePair(SenseiSearchServletParams.PARAM_FETCH_TERMVECTOR, fetchString));
+    }
     if (req.getRouteParam() != null)
       qparams.add(new BasicNameValuePair(SenseiSearchServletParams.PARAM_ROUTE_PARAM, req.getRouteParam()));
     if (req.getGroupBy() != null)
