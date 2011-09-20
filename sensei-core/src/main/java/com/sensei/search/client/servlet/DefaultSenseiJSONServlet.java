@@ -486,7 +486,9 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
     String[] fetchTVs= params.getStringArray(PARAM_FETCH_TERMVECTOR);
     if (fetchTVs!=null && fetchTVs.length>0){
       HashSet<String> tvsToFetch = new HashSet<String>(Arrays.asList(fetchTVs));
-      senseiReq.setTermVectorsToFetch(tvsToFetch);
+      tvsToFetch.remove("");
+      if (tvsToFetch.size() > 0)
+        senseiReq.setTermVectorsToFetch(tvsToFetch);
     }
     senseiReq.setGroupBy(params.getString(PARAM_GROUP_BY, null));
     senseiReq.setMaxPerGroup(params.getInt(PARAM_MAX_PER_GROUP, 0));
