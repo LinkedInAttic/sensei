@@ -1,19 +1,84 @@
 package com.sensei.search.client.servlet;
 
-import com.browseengine.bobo.api.BrowseFacet;
-import com.browseengine.bobo.api.BrowseSelection;
-import com.browseengine.bobo.api.BrowseSelection.ValueOperation;
-import com.browseengine.bobo.api.FacetAccessible;
-import com.browseengine.bobo.api.FacetSpec;
-import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
-import com.browseengine.bobo.facets.DefaultFacetHandlerInitializerParam;
-import com.sensei.search.req.SenseiHit;
-import com.sensei.search.req.SenseiJSONQuery;
-import com.sensei.search.req.SenseiQuery;
-import com.sensei.search.req.SenseiRequest;
-import com.sensei.search.req.SenseiResult;
-import com.sensei.search.req.SenseiSystemInfo;
-import com.sensei.search.util.RequestConverter;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_COUNT;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_DYNAMIC_INIT;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_DYNAMIC_TYPE;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_DYNAMIC_TYPE_BOOL;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_DYNAMIC_TYPE_BYTEARRAY;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_DYNAMIC_TYPE_DOUBLE;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_DYNAMIC_TYPE_INT;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_DYNAMIC_TYPE_LONG;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_DYNAMIC_TYPE_STRING;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_DYNAMIC_VAL;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_FACET;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_FACET_EXPAND;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_FACET_MAX;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_FACET_MINHIT;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_FACET_ORDER;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_FACET_ORDER_HITS;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_FACET_ORDER_VAL;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_FETCH_STORED;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_FETCH_TERMVECTOR;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_GROUP_BY;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_MAX_PER_GROUP;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_OFFSET;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_PARTITIONS;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_QUERY;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_QUERY_PARAM;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_RESULT_FACETS;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_RESULT_FACET_INFO_COUNT;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_RESULT_FACET_INFO_SELECTED;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_RESULT_FACET_INFO_VALUE;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_RESULT_HITS;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_RESULT_HITS_EXPL_DESC;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_RESULT_HITS_EXPL_DETAILS;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_RESULT_HITS_EXPL_VALUE;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_RESULT_HIT_DOCID;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_RESULT_HIT_EXPLANATION;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_RESULT_HIT_GROUPHITS;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_RESULT_HIT_GROUPHITSCOUNT;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_RESULT_HIT_GROUPVALUE;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_RESULT_HIT_SCORE;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_RESULT_HIT_SRC_DATA;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_RESULT_HIT_STORED_FIELDS;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_RESULT_HIT_STORED_FIELDS_NAME;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_RESULT_HIT_STORED_FIELDS_VALUE;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_RESULT_HIT_TERMVECTORS;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_RESULT_HIT_UID;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_RESULT_NUMGROUPS;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_RESULT_NUMHITS;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_RESULT_PARSEDQUERY;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_RESULT_TID;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_RESULT_TIME;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_RESULT_TOTALDOCS;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_ROUTE_PARAM;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_SELECT;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_SELECT_NOT;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_SELECT_OP;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_SELECT_OP_AND;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_SELECT_OP_OR;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_SELECT_PROP;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_SELECT_VAL;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_SHOW_EXPLAIN;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_SORT;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_SORT_DESC;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_SORT_DOC;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_SORT_DOC_REVERSE;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_SORT_SCORE;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_SORT_SCORE_REVERSE;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_SYSINFO_CLUSTERINFO;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_SYSINFO_CLUSTERINFO_ADMINLINK;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_SYSINFO_CLUSTERINFO_ID;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_SYSINFO_CLUSTERINFO_NODELINK;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_SYSINFO_CLUSTERINFO_PARTITIONS;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_SYSINFO_FACETS;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_SYSINFO_FACETS_NAME;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_SYSINFO_FACETS_PROPS;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_SYSINFO_FACETS_RUNTIME;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_SYSINFO_LASTMODIFIED;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_SYSINFO_NUMDOCS;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_SYSINFO_VERSION;
+
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -38,7 +103,21 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import static com.sensei.search.client.servlet.SenseiSearchServletParams.*;
+import com.browseengine.bobo.api.BrowseFacet;
+import com.browseengine.bobo.api.BrowseHit;
+import com.browseengine.bobo.api.BrowseSelection;
+import com.browseengine.bobo.api.BrowseSelection.ValueOperation;
+import com.browseengine.bobo.api.FacetAccessible;
+import com.browseengine.bobo.api.FacetSpec;
+import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
+import com.browseengine.bobo.facets.DefaultFacetHandlerInitializerParam;
+import com.sensei.search.req.SenseiHit;
+import com.sensei.search.req.SenseiJSONQuery;
+import com.sensei.search.req.SenseiQuery;
+import com.sensei.search.req.SenseiRequest;
+import com.sensei.search.req.SenseiResult;
+import com.sensei.search.req.SenseiSystemInfo;
+import com.sensei.search.util.RequestConverter;
 
 
 public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
@@ -277,6 +356,26 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
         }
         hitObj.put(PARAM_RESULT_HIT_STORED_FIELDS, new JSONArray(storedData));
       }
+      
+      Map<String,BrowseHit.TermFrequencyVector> tvMap = hit.getTermFreqMap();
+      if (tvMap!=null && tvMap.size()>0){
+        JSONObject tvObj = new JSONObject();
+        hitObj.put(PARAM_RESULT_HIT_TERMVECTORS, tvObj);
+        Set<Entry<String,BrowseHit.TermFrequencyVector>> entries = tvMap.entrySet();
+        for (Entry<String,BrowseHit.TermFrequencyVector> entry : entries){
+          String field = entry.getKey();
+          JSONArray tvArray = new JSONArray();
+          tvObj.put(field, tvArray);
+          String[] terms = entry.getValue().terms;
+          int[] freqs = entry.getValue().freqs;
+          for (int i=0;i<terms.length;++i){
+            JSONObject tv = new JSONObject();
+            tv.put("term", terms[i]);
+            tv.put("freq", freqs[i]);
+            tvArray.put(tv);
+          }
+        }
+      }
 
       Explanation expl = hit.getExplanation();
       if (expl != null)
@@ -382,6 +481,13 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
     senseiReq.setCount(params.getInt(PARAM_COUNT, 10));
     senseiReq.setShowExplanation(params.getBoolean(PARAM_SHOW_EXPLAIN, false));
     senseiReq.setFetchStoredFields(params.getBoolean(PARAM_FETCH_STORED, false));
+    
+
+    String[] fetchTVs= params.getStringArray(PARAM_FETCH_TERMVECTOR);
+    if (fetchTVs!=null && fetchTVs.length>0){
+      HashSet<String> tvsToFetch = new HashSet<String>(Arrays.asList(fetchTVs));
+      senseiReq.setTermVectorsToFetch(tvsToFetch);
+    }
     senseiReq.setGroupBy(params.getString(PARAM_GROUP_BY, null));
     senseiReq.setMaxPerGroup(params.getInt(PARAM_MAX_PER_GROUP, 0));
     String routeParam = params.getString(PARAM_ROUTE_PARAM);

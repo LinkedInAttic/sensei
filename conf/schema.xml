@@ -34,7 +34,7 @@
 	 -->
 	<column name="tags" type="string" multi="true" delimiter=","/>
 	<!-- attributes: indexed,store,termvector are only used when type is text -->
-	<column name="contents" type="text" index="ANALYZED" store="NO" termvector="NO" />
+	<column name="contents" type="text" index="ANALYZED" store="YES" termvector="YES" />
   </table>
 
    <!-- 

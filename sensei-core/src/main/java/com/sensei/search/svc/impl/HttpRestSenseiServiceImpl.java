@@ -401,13 +401,13 @@ public class HttpRestSenseiServiceImpl implements SenseiService
   public static void convertScalarParams(List<NameValuePair> qparams, SenseiRequest req) {
     qparams.add(new BasicNameValuePair(SenseiSearchServletParams.PARAM_FETCH_STORED, Boolean.toString(req.isFetchStoredFields())));
     qparams.add(new BasicNameValuePair(SenseiSearchServletParams.PARAM_SHOW_EXPLAIN, Boolean.toString(req.isShowExplanation())));
-
-    if (req.getCount() > 0)
-    {
-      qparams.add(new BasicNameValuePair(SenseiSearchServletParams.PARAM_OFFSET, Integer.toString(req.getOffset())));
-      qparams.add(new BasicNameValuePair(SenseiSearchServletParams.PARAM_COUNT, Integer.toString(req.getCount())));
+    qparams.add(new BasicNameValuePair(SenseiSearchServletParams.PARAM_OFFSET, Integer.toString(req.getOffset())));
+    qparams.add(new BasicNameValuePair(SenseiSearchServletParams.PARAM_COUNT, Integer.toString(req.getCount())));
+    Set<String> tvFetch = req.getTermVectorsToFetch();
+    if (tvFetch!=null && tvFetch.size()>0){
+      String fetchString = join(tvFetch,",");
+      qparams.add(new BasicNameValuePair(SenseiSearchServletParams.PARAM_FETCH_TERMVECTOR, fetchString));
     }
-
     if (req.getRouteParam() != null)
     {
       qparams.add(new BasicNameValuePair(SenseiSearchServletParams.PARAM_ROUTE_PARAM, req.getRouteParam()));

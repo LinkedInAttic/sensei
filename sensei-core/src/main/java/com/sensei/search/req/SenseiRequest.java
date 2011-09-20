@@ -43,6 +43,7 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable
 	private String _routeParam;
 	private String _groupBy;
 	private int _maxPerGroup;
+	private Set<String> _termVectorsToFetch;
 	
 	public SenseiRequest(){
 		_facetInitParamMap = new HashMap<String,FacetHandlerInitializerParam>();
@@ -55,8 +56,16 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable
 		_routeParam = null;
 		_groupBy = null;
     _maxPerGroup = 0;
+    _termVectorsToFetch = null;
 	}
 
+	public Set<String> getTermVectorsToFetch(){
+	  return _termVectorsToFetch;
+	}
+	
+	public void setTermVectorsToFetch(Set<String> termVectorsToFetch){
+	  _termVectorsToFetch = termVectorsToFetch;
+	}
 /**
    * Get the transaction ID.
    * @return the transaction ID.
