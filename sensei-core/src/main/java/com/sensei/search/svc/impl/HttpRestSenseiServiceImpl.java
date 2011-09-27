@@ -417,6 +417,12 @@ public class HttpRestSenseiServiceImpl implements SenseiService
     {
       qparams.add(new BasicNameValuePair(SenseiSearchServletParams.PARAM_GROUP_BY, req.getGroupBy()));
     }
+
+    if (req.getMaxPerGroup() > 0)
+    {
+      qparams.add(new BasicNameValuePair(SenseiSearchServletParams.PARAM_MAX_PER_GROUP, Integer.toString(req.getMaxPerGroup())));
+    }
+
   }
 
   public static void convertFacetInitParams(List<NameValuePair> qparams, Map<String,FacetHandlerInitializerParam> initParams)

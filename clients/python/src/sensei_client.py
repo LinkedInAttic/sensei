@@ -23,7 +23,7 @@ import logging
 # TODO:
 #
 # 1. Initializing runtime facet parameters
-# 2. Partition Params
+# 2. Term vector
 
 #
 # REST API parameter constants
@@ -42,6 +42,8 @@ PARAM_SORT_DOC_REVERSE = "docrev"
 PARAM_FETCH_STORED = "fetchstored"
 PARAM_SHOW_EXPLAIN = "showexplain"
 PARAM_ROUTE_PARAM = "routeparam"
+PARAM_GROUP_BY = "groupby"
+PARAM_MAX_PER_GROUP = "maxpergroup"
 PARAM_SELECT = "select"
 PARAM_SELECT_VAL = "val"
 PARAM_SELECT_NOT = "not"
@@ -107,6 +109,10 @@ PARAM_RESULT_FACET_INFO_VALUE = "value"
 PARAM_RESULT_FACET_INFO_COUNT = "count"
 PARAM_RESULT_FACET_INFO_SELECTED = "selected"
 
+# Group by related column names
+GROUP_VALUE = "groupvalue"
+GROUP_HITS = "grouphits"
+
 #
 # Definition of the SQL statement grammar
 #
@@ -117,66 +123,82 @@ from pyparsing import Literal, CaselessLiteral, Word, Upcase, delimitedList, Opt
 
 # SQL tokens
 
-selectStmt   = Forward()
-selectToken  = Keyword("select", caseless=True)
-fromToken    = Keyword("from", caseless=True)
-whereToken   = Keyword("where", caseless=True)
-orderbyToken = Keyword("order by", caseless=True)
-browseByToken = Keyword("browse by", caseless=True)
-limitToken   = Keyword("limit", caseless=True)
-queryToken   = Keyword("query", caseless=True)
+andToken        = Keyword("and", caseless=True)
+ascToken        = Keyword("asc", caseless=True)
+browseByToken   = Keyword("browse by", caseless=True)
+containsToken   = Keyword("contains all", caseless=True)
+descToken       = Keyword("desc", caseless=True)
+exceptToken     = Keyword("except", caseless=True)
+falseToken      = Keyword("false", caseless=True)
+fromToken       = Keyword("from", caseless=True)
+groupByToken    = Keyword("group by", caseless=True)
+hitsToken       = Keyword("hits", caseless=True)
+inToken         = Keyword("in", caseless=True)
+isToken         = Keyword("is", caseless=True)
+limitToken      = Keyword("limit", caseless=True)
+orderbyToken    = Keyword("order by", caseless=True)
+withToken       = Keyword("with", caseless=True)
+queryToken      = Keyword("query", caseless=True)
+selectToken     = Keyword("select", caseless=True)
+topToken        = Keyword("top", caseless=True)
+trueToken       = Keyword("true", caseless=True)
+valueToken      = Keyword("value", caseless=True)
+whereToken      = Keyword("where", caseless=True)
 
-ident          = Word(alphas, alphanums + "_$").setName("identifier")
-columnName     = Word(alphas).setName("column")
-columnNameList = Group(delimitedList(columnName))
+selectStmt      = Forward()
+
+ident           = Word(alphas, alphanums + "_$")
+columnName      = Word(alphas, alphanums + "_-")
+columnNameList  = Group(delimitedList(columnName))
 
 whereExpression = Forward()
-andToken        = Keyword("and", caseless=True)
-inToken         = Keyword("in", caseless=True)
-notInToken      = Keyword("not in", caseless=True)
-isToken         = Keyword("is", caseless=True)
-containsToken   = Keyword("contains", caseless=True)
-notToken        = Keyword("not", caseless=True)
-propToken       = Keyword("prop", caseless=True)
 
 intNum = Word(nums)
 
-selectOperation = oneOf("or and", caseless=True)
-
+selectOperation = inToken | containsToken
 propPair = (quotedString + ":" + quotedString)
+quotedStringList = "(" + delimitedList(quotedString) + ")"
 
-whereCondition = Group((columnName + ":" + selectOperation +
-                        "(" + delimitedList(quotedString).setResultsName("value_list") + ")" +
-                        Optional((notToken + "(" + delimitedList(quotedString).setResultsName("not_values") + ")")) +
-                        Optional((propToken + "(" + delimitedList(propPair).setResultsName("prop_list") + ")"))
+whereCondition = Group((columnName + selectOperation +
+                        quotedStringList.setResultsName("value_list") +
+                        Optional(exceptToken + quotedStringList.setResultsName("except_values")) +
+                        Optional(withToken + "(" + delimitedList(propPair).setResultsName("prop_list") + ")")
                         ) |
                        (queryToken + isToken + quotedString)
                        )
 whereExpression << (whereCondition.setResultsName("condition", listAllMatches=True) +
                     ZeroOrMore(andToken + whereExpression))
 
-orderseq    = oneOf("asc desc", caseless=True)
-limitoffset = intNum
-limitcount  = intNum
+orderseq    = ascToken | descToken
 
 orderByExpression = Forward()
 orderBySpec = Group(columnName + Optional(orderseq))
 orderByExpression << (orderBySpec.setResultsName("orderby_spec", listAllMatches=True) +
                       ZeroOrMore("," + orderByExpression))
+orderByClause = (orderbyToken + orderByExpression).setResultsName("orderby")
 
-trueOrFalse = oneOf("true false", caseless=True)
-facetOrderBy = oneOf("hits value", caseless=True)
+limitClause = (limitToken
+               + Group(Optional(intNum + ",") + intNum)).setResultsName("limit")
+
+trueOrFalse = trueToken | falseToken
+facetOrderBy = hitsToken | valueToken
 facetSpec = Group(columnName + ":" + "(" + trueOrFalse + "," + intNum  + "," + intNum + "," + facetOrderBy + ")")
-browseByExpression = "(" + delimitedList(facetSpec).setResultsName("facet_specs") + ")"
+browseByClause = (browseByToken +
+                  "(" + delimitedList(facetSpec).setResultsName("facet_specs") + ")")
+
+groupByClause = (groupByToken +
+                 columnName.setResultsName("groupby") +
+                 Optional(topToken + intNum.setResultsName("max_per_group")))
 
 selectStmt << (selectToken + 
                ('*' | columnNameList).setResultsName("columns") + 
                fromToken + 
                ident.setResultsName("index") + 
                Optional((whereToken + whereExpression.setResultsName("where"))) +
-               ZeroOrMore((orderbyToken + orderByExpression).setResultsName("orderby") |
-                          (limitToken + Group(Optional(limitoffset + ",") + limitcount)).setResultsName("limit") |
-                          (browseByToken + browseByExpression).setResultsName("browse_by")
+               ZeroOrMore(orderByClause |
+                          limitClause |
+                          browseByClause |
+                          groupByClause
                           ) +
                Optional(";")
                )
@@ -196,36 +218,38 @@ class SQLRequest:
     self.tokens = simpleSQL.parseString(sql_stmt, parseAll=True)
     self.query = ""
     self.selections = []
+    self.columns = [str(col) for col in self.tokens.columns]
 
     where = self.tokens.where
     if where:
       for cond in where.condition:
         if cond[0] == "query" and cond[1] == "is":
           self.query = cond[2][1:-1]
-        elif cond[1] == ":":
-          operation = PARAM_SELECT_OP_OR
-          if cond[2] == "and":
+        else:
+          if cond[1] == "in":
+            operation = PARAM_SELECT_OP_OR
+          else:
             operation = PARAM_SELECT_OP_AND
           select = SenseiSelection(cond[0], operation)
-          for val in cond.value_list:
+          for val in cond.value_list[1:-1]:
             select.addSelection(val[1:-1])
-          for val in cond.not_values:
+          for val in cond.except_values[1:-1]:
             select.addSelection(val[1:-1], True)
           for i in xrange(0, len(cond.prop_list), 3):
             select.addProperty(cond.prop_list[i][1:-1], cond.prop_list[i+2][1:-1])
           self.selections.append(select)
 
   def get_offset(self):
-    """Get the offset (default 0)."""
+    """Get the offset."""
 
     limit = self.tokens.limit
     if limit:
       if len(limit[1]) == 3:
         return int(limit[1][0])
       else:
-        return 0
+        return None
     else:
-      return 0
+      return None
 
   def get_count(self):
     """Get the count (default 10)."""
@@ -237,7 +261,7 @@ class SQLRequest:
       else:
         return int(limit[1][0])
     else:
-      return 10
+      return None
 
   def get_index(self):
     """Get the index (i.e. table) name."""
@@ -247,7 +271,7 @@ class SQLRequest:
   def get_columns(self):
     """Get the list of selected columns."""
 
-    return self.tokens.columns
+    return self.columns
 
   def get_query(self):
     """Get the query string."""
@@ -278,11 +302,10 @@ class SQLRequest:
   def get_facets(self):
     """Get facet specs."""
 
+    facet_specs = self.tokens.facet_specs
+    if not facet_specs:
+      return {}
     facets = {}
-    browse_by = self.tokens.browse_by
-    if not browse_by:
-      return facets
-    facet_specs = browse_by.facet_specs
     for spec in facet_specs:
       facet = SenseiFacet(spec[3] == "true" and True or False,
                           int(spec[5]),
@@ -290,6 +313,22 @@ class SQLRequest:
                           spec[9] == "hits" and PARAM_FACET_ORDER_HITS or PARAM_FACET_ORDER_VAL)
       facets[spec[0]] = facet
     return facets
+
+  def get_groupby(self):
+    """Get group by facet name."""
+
+    if self.tokens.groupby:
+      return str(self.tokens.groupby)
+    else:
+      return None
+
+  def get_max_per_group(self):
+    """Get max_per_group value."""
+
+    if self.tokens.max_per_group:
+      return int(self.tokens.max_per_group)
+    else:
+      return None
 
 
 def test(str):
@@ -306,26 +345,19 @@ def test(str):
       print "tokens.where.condition = ", tokens.where.condition
       for cond in tokens.where.condition:
         print "cond.value_list = ", cond.value_list
-        print "cond.not_values = ", cond.not_values
+        print "cond.except_values = ", cond.except_values
         print "cond.prop_list = ", cond.prop_list
     print "tokens.orderby = ", tokens.orderby
     if tokens.orderby:
       print "tokens.orderby.orderby_spec = ", tokens.orderby.orderby_spec
     print "tokens.limit = ", tokens.limit
-    print "tokens.browse_by = ", tokens.browse_by
-    if tokens.browse_by:
-      print "tokens.browse_by.facet_specs = ", tokens.browse_by.facet_specs
+    print "tokens.facet_specs = ", tokens.facet_specs
+    print "tokens.groupby = ", tokens.groupby
+    print "tokens.max_per_group = ", tokens.max_per_group
   except ParseException, err:
     print " "*err.loc + "^\n" + err.msg
     # print err
   print
-
-def test_sql(stmt):
-  # test(stmt)
-  client = SenseiClient()
-  req = SenseiRequest(stmt)
-  res = client.doQuery(req)
-  res.display(req.get_columns())
 
 
 class SenseiClientError(Exception):
@@ -344,6 +376,7 @@ class SenseiFacet:
     self.minHits = minHits
     self.maxCounts = maxCounts
     self.orderBy = orderBy
+
 
 class SenseiSelection:
   def __init__(self, field, operation=PARAM_SELECT_OP_OR):
@@ -422,36 +455,44 @@ class SenseiSort:
 
 
 class SenseiRequest:
-  def __init__(self):
+  def __init__(self, offset=0, count=10, max_per_group=10):
     self.facets = {}
     self.selections = []
     self.sorts = None
     self.query = None
     self.qParam = {}
-    self.offset = 0
-    self.count = 10
+    self.offset = offset
+    self.count = count
     self.explain = False
-    self.fetch = False
-    self.routeParam = None
+    self.fetch_stored = False
+    self.route_param = None
+    self.groupby = None
+    self.max_per_group = max_per_group
     self.columns = []
 
-  def __init__(self, sql_stmt):
+  def __init__(self, sql_stmt, offset=0, count=10, max_per_group=10):
     """Construct a Sensei request using a SQL SELECT-like statement."""
 
-    self.facets = {}
     self.qParam = {}
     self.explain = False
-    self.fetch = False
-    self.routeParam = None
+    self.route_param = None
 
     sql_req = SQLRequest(sql_stmt)
     self.query = sql_req.get_query()
-    self.offset = sql_req.get_offset()
-    self.count = sql_req.get_count()
+    self.offset = sql_req.get_offset() or offset
+    self.count = sql_req.get_count() or count
     self.columns = sql_req.get_columns()
     self.sorts = sql_req.get_sorts()
     self.selections = sql_req.get_selections()
     self.facets = sql_req.get_facets()
+    # PARAM_RESULT_HIT_STORED_FIELDS is a reserved column name.  If this
+    # column is selected, turn on fetch_stored flag automatically.
+    if PARAM_RESULT_HIT_STORED_FIELDS in self.columns:
+      self.fetch_stored = True
+    else:
+      self.fetch_stored = False
+    self.groupby = sql_req.get_groupby()
+    self.max_per_group = sql_req.get_max_per_group() or max_per_group
 
   def get_columns(self):
     return self.columns
@@ -493,9 +534,8 @@ class SenseiResultFacet:
 class SenseiResult:
   """Sensei search results for a query."""
 
-  MAX_LEN = 40
-
   def __init__(self, jsonData):
+    logger.debug("jsonData = %s" % jsonData)
     self.jsonMap = jsonData
     self.parsedQuery = jsonData.get(PARAM_RESULT_PARSEDQUERY)
     self.totalDocs = jsonData.get(PARAM_RESULT_TOTALDOCS,0)
@@ -513,9 +553,73 @@ class SenseiResult:
           facetList.append(facetObj)
         self.facetMap[k]=facetList
 
-  def display(self, columns=['*']):
+  def display(self, columns=['*'], max_col_disp_len=40):
     """Print the results in SQL SELECT result format."""
 
+    keys = []
+    max_lens = None
+    has_group_hits = False
+
+    def get_max_lens(columns):
+      max_lens = {}
+      has_group_hits = False
+      for col in columns:
+        max_lens[col] = len(col)
+      for hit in self.hits:
+        group_hits = [hit]
+        if hit.has_key(GROUP_HITS):
+          group_hits = hit.get(GROUP_HITS)
+          has_group_hits = True
+        for group_hit in group_hits:
+          for col in columns:
+            if group_hit.has_key(col):
+              v = group_hit.get(col)
+            else:
+              v = '<Not Found>'
+            if isinstance(v, list):
+              v = ','.join([str(item) for item in v])
+            elif isinstance(v, (int, long, float)):
+              v = str(v)
+            value_len = len(v)
+            if value_len > max_lens[col]:
+              max_lens[col] = min(value_len, self.max_col_disp_len)
+      return max_lens, has_group_hits
+
+    def print_line(char='-', sep_char='+'):
+      sys.stdout.write(sep_char)
+      for key in keys:
+        sys.stdout.write(char * (max_lens[key] + 2) + sep_char)
+      sys.stdout.write('\n')
+
+    def print_header():
+      if has_group_hits:
+        print_line('=', '=')
+      else:
+        print_line('-', '+')
+      sys.stdout.write('|')
+      for key in keys:
+        sys.stdout.write(' %s%s |' % (key, ' ' * (max_lens[key] - len(key))))
+      sys.stdout.write('\n')
+      if has_group_hits:
+        print_line('=', '=')
+      else:
+        print_line('-', '+')
+
+    def print_footer():
+      if has_group_hits:
+        print_line('=', '=')
+      else:
+        print_line('-', '+')
+      sys.stdout.write('%s %s%s in set, %s hit%s, %s total doc%s\n' %
+                       (len(self.hits),
+                        has_group_hits and 'group' or 'row',
+                        len(self.hits) > 1 and 's' or '',
+                        self.numHits,
+                        self.numHits > 1 and 's' or '',
+                        self.totalDocs,
+                        self.totalDocs > 1 and 's' or ''))
+
+    self.max_col_disp_len = max_col_disp_len
     if not self.hits:
       print "No hit is found."
       return
@@ -523,67 +627,51 @@ class SenseiResult:
       print "No column is selected."
       return
 
-    keys = []
     if len(columns) == 1 and columns[0] == '*':
       keys = self.hits[0].keys()
+      if GROUP_HITS in keys:
+        keys.remove(GROUP_HITS)
+      if GROUP_VALUE in keys:
+        keys.remove(GROUP_VALUE)
     else:
       keys = columns
 
-    max_lens = {}
-    for key in keys:
-      max_lens[key] = len(key)
-    for hit in self.hits:
-      for key in keys:
-        if hit.has_key(key):
-          v = hit.get(key)
-        else:
-          v = '<Not Found>'
-        if isinstance(v, list):
-          v = ','.join(v)
-        elif isinstance(v, int):
-          v = str(v)
-        value_len = len(v)
-        if value_len > max_lens[key]:
-          max_lens[key] = min(value_len, self.MAX_LEN)
-    # Print the result header
-    sys.stdout.write('+')
-    for key in keys:
-      sys.stdout.write('-' * (max_lens[key] + 2) + '+')
-    sys.stdout.write('\n|')
-    for key in keys:
-      sys.stdout.write(' %s%s |' % (key, ' ' * (max_lens[key] - len(key))))
-    sys.stdout.write('\n+')
-    for key in keys:
-      sys.stdout.write('-' * (max_lens[key] + 2) + '+')
+    max_lens, has_group_hits = get_max_lens(keys)
+
+    print_header()
+
     # Print the results
     for hit in self.hits:
-      sys.stdout.write('\n|')
-      for key in keys:
-        if hit.has_key(key):
-          v = hit.get(key)
-        else:
-          v = '<Not Found>'
-        if isinstance(v, list):
-          v = ','.join(v)
-        elif isinstance(v, int):
-          v = str(v)
-        if len(v) > self.MAX_LEN:
-          v = v[:self.MAX_LEN]
-        sys.stdout.write(' %s%s |' % (v, ' ' * (max_lens[key] - len(v))))
+      group_hits = [hit]
+      if hit.has_key(GROUP_HITS):
+        group_hits = hit.get(GROUP_HITS)
+      for group_hit in group_hits:
+        sys.stdout.write('|')
+        for key in keys:
+          if group_hit.has_key(key):
+            v = group_hit.get(key)
+          else:
+            v = '<Not Found>'
+          if isinstance(v, list):
+            v = ','.join([str(item) for item in v])
+          elif isinstance(v, (int, float, long)):
+            v = str(v)
+          if len(v) > self.max_col_disp_len:
+            v = v[:self.max_col_disp_len]
+          sys.stdout.write(' %s%s |' % (v, ' ' * (max_lens[key] - len(v))))
+        sys.stdout.write('\n')
+      if has_group_hits:
+        print_line()
+
     # Print the result footer
-    sys.stdout.write('\n+')
-    for key in keys:
-      sys.stdout.write('-' * (max_lens[key] + 2) + '+')
-    sys.stdout.write('\n')
-    sys.stdout.write('%s rows in set, %s hits, %s total docs\n' %
-                     (len(self.hits), self.numHits, self.totalDocs))
+    print_footer()
 
     # Print facet information
     for facet, values in self.jsonMap.get(PARAM_RESULT_FACETS).iteritems():
       max_val_len = len(facet)
       max_count_len = 1
       for val in values:
-        max_val_len = max(max_val_len, min(self.MAX_LEN, len(val.get('value'))))
+        max_val_len = max(max_val_len, min(self.max_col_disp_len, len(val.get('value'))))
         max_count_len = max(max_count_len, len(str(val.get('count'))))
       total_len = max_val_len + 2 + max_count_len + 3
 
@@ -620,10 +708,10 @@ class SenseiClient:
       paramMap[PARAM_QUERY]=req.query
     if req.explain:
       paramMap[PARAM_SHOW_EXPLAIN] = "true"
-    if req.fetch:
+    if req.fetch_stored:
       paramMap[PARAM_FETCH_STORED] = "true"
-    if req.routeParam:
-      paramMap[PARAM_ROUTE_PARAM] = req.routeParam
+    if req.route_param:
+      paramMap[PARAM_ROUTE_PARAM] = req.route_param
 
     # paramMap["offset"] = req.offset
     # paramMap["count"] = req.count
@@ -648,6 +736,11 @@ class SenseiClient:
       paramMap["%s.%s.%s" % (PARAM_FACET, facetName, PARAM_FACET_ORDER)] = facetSpec.orderBy
       paramMap["%s.%s.%s" % (PARAM_FACET, facetName, PARAM_FACET_EXPAND)] = facetSpec.expand
       paramMap["%s.%s.%s" % (PARAM_FACET, facetName, PARAM_FACET_MINHIT)] = facetSpec.minHits
+
+    if req.groupby:
+      paramMap[PARAM_GROUP_BY] = req.groupby
+    if req.max_per_group > 0:
+      paramMap[PARAM_MAX_PER_GROUP] = req.max_per_group
 
     return urllib.urlencode(paramMap)
     
@@ -775,6 +868,14 @@ def main():
   stream_handler.setFormatter(formatter)
   logger.addHandler(stream_handler)
 
+  client = SenseiClient()
+
+  def test_sql(stmt):
+    # test(stmt)
+    req = SenseiRequest(stmt)
+    res = client.doQuery(req)
+    res.display(req.get_columns(), 1000)
+
   import readline
   readline.parse_and_bind("tab: complete")
   while 1:
@@ -794,8 +895,6 @@ if __name__ == "__main__":
 
   main()
 
-  # test_sql()
-
   # testFacetSpecs()
   # test_basic()
   # testSort1()
@@ -805,7 +904,7 @@ if __name__ == "__main__":
 """
 Testing Data:
 
-select color, year,tags, price from cars where query is "cool" and color: OR("gold", "green", "blue") NOT("black", "blue", "yellow", "white", "red", "silver") and year: OR("[1996 TO 1997]", "[2002 TO 2003]") order by price desc limit 0,10
+select color, year, tags, price from cars where query is "cool" and color in ("gold", "green", "blue") except ("black", "blue", "yellow", "white", "red", "silver") and year in ("[1996 TO 1997]", "[2002 TO 2003]") order by price desc limit 0,10
 +-------+----------------------+----------------------------------+-------------------------+
 | color | year                 | tags                             | price                   |
 +-------+----------------------+----------------------------------+-------------------------+
@@ -822,7 +921,7 @@ select color, year,tags, price from cars where query is "cool" and color: OR("go
 +-------+----------------------+----------------------------------+-------------------------+
 10 rows in set, 325 hits, 15001 total docs
 
-select color, year,tags, price from cars where query is "cool" and tags: AND("cool", "hybrid") NOT("favorite") and color: OR("red", "yellow") order by price desc limit 0,5
+select color, year, tags, price from cars where query is "cool" and tags contains all ("cool", "hybrid") except("favorite") and color in ("red", "yellow") order by price desc limit 0,5
 +--------+----------------------+----------------------------------+-------------------------+
 | color  | year                 | tags                             | price                   |
 +--------+----------------------+----------------------------------+-------------------------+
@@ -834,7 +933,7 @@ select color, year,tags, price from cars where query is "cool" and tags: AND("co
 +--------+----------------------+----------------------------------+-------------------------+
 5 rows in set, 132 hits, 15001 total docs
 
-select color, year,tags, price from cars where query is "cool" and tags: and("cool", "hybrid") not("favorite") and color: and("red")  prop("aaa":"111", "bbb":"222") order by price desc limit 0,10 browse by (color: (true, 1, 10, hits), year: (true, 1, 10, value), price: (true, 1, 10, value))
+select color, year, tags, price from cars where query is "cool" and tags contains all ("cool", "hybrid") except ("favorite") and color in ("red") with ("aaa":"111", "bbb":"222") order by price desc limit 0,10 browse by (color: (true, 1, 10, hits), year: (true, 1, 10, value), price: (true, 1, 10, value))
 +-------+----------------------+----------------------------------+-------------------------+
 | color | year                 | tags                             | price                   |
 +-------+----------------------+----------------------------------+-------------------------+
@@ -879,5 +978,22 @@ select color, year,tags, price from cars where query is "cool" and tags: and("co
 | [1999 TO 2000] (9)  |
 | [2001 TO 2002] (11) |
 +---------------------+
+
+select color, grouphitscount from cars group by color limit 0,16000
++--------+----------------+
+| color  | grouphitscount |
++--------+----------------+
+| white  | 2196           |
+| yellow | 2105           |
+| red    | 2160           |
+| black  | 3141           |
+| green  | 1085           |
+| gold   | 1110           |
+| blue   | 1104           |
+| silver | 2100           |
++--------+----------------+
+8 rows in set, 15001 hits, 15001 total docs
+
+Note: (= (+ 2196 2105 2160 3141 1085 1110 1104 2100) 15001)
 
 """
