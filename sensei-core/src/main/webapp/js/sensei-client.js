@@ -347,6 +347,7 @@ function addFacet(){
 	
 	divNode.appendChild(document.createTextNode('name: '));
 	var nameTextNode = document.createElement('input');
+  nameTextNode.setAttribute('style','width:150px;margin-bottom:10px');
 	nameTextNode.setAttribute('type','text');
 	nameTextNode.setAttribute('name','name');
 	nameTextNode.setAttribute('value',$('#facetsFacets').val());
@@ -362,6 +363,7 @@ function addFacet(){
 	
 	divNode.appendChild(document.createTextNode('min hits: '));
 	var minHitsTextNode = document.createElement('input');
+  minHitsTextNode.setAttribute('style','width:150px;margin-bottom:10px');
 	minHitsTextNode.setAttribute('type','text');
 	minHitsTextNode.setAttribute('name','minhit');
 	minHitsTextNode.setAttribute('value','1');
@@ -370,6 +372,7 @@ function addFacet(){
 	
 	divNode.appendChild(document.createTextNode('max counts: '));
 	var maxCountsTextNode = document.createElement('input');
+  maxCountsTextNode.setAttribute('style','width:150px;margin-bottom:10px');
 	maxCountsTextNode.setAttribute('type','text');
 	maxCountsTextNode.setAttribute('name','max');
 	maxCountsTextNode.setAttribute('value','10');
@@ -378,6 +381,7 @@ function addFacet(){
 	
 	divNode.appendChild(document.createTextNode('order by: '));
 	var dropDownOrderNode = document.createElement('select');
+  dropDownOrderNode.setAttribute('style','width:150px;margin-bottom:10px');
 	dropDownOrderNode.setAttribute('name','order');
 	var opt1 =  document.createElement('option');
 	opt1.innerHTML = 'hits';
@@ -390,8 +394,10 @@ function addFacet(){
 	
 	var removeButton = document.createElement('input');
 	removeButton.setAttribute('type','button');
-	removeButton.setAttribute('value','remove facet');
+	removeButton.setAttribute('value','remove');
+	removeButton.setAttribute('class','btn error');
 	removeButton.setAttribute('onclick','removeFacet(this.parentNode)');
+  
 	divNode.appendChild(removeButton);
 }
 
@@ -410,11 +416,13 @@ function addInitParam(){
 	var nameTextNode = document.createElement('input');
 	nameTextNode.setAttribute('type','text');
 	nameTextNode.setAttribute('name','facetName');
+  nameTextNode.setAttribute('style','width:150px;margin-bottom:10px');
 	divNode.appendChild(nameTextNode);
 	divNode.appendChild(document.createElement('br'));
 
     divNode.appendChild(document.createTextNode('param name: '));
     nameTextNode = document.createElement('input');
+    nameTextNode.setAttribute('style','width:150px;margin-bottom:10px');
     nameTextNode.setAttribute('type','text');
     nameTextNode.setAttribute('name','name');
     divNode.appendChild(nameTextNode);
@@ -423,6 +431,8 @@ function addInitParam(){
     divNode.appendChild(document.createTextNode('type: '));
     el = document.createElement('select');
     el.setAttribute('name', 'type');
+    
+    el.setAttribute('style','width:150px;margin-bottom:10px');
 
     var option = document.createElement('option');
     option.setAttribute('value', 'boolean');
@@ -462,12 +472,14 @@ function addInitParam(){
 	node.setAttribute('type','text');
 	node.setAttribute('name','vals');
 	node.setAttribute('value','');
+  node.setAttribute('style','width:100px;margin-bottom:10px');
 	divNode.appendChild(node);
 	divNode.appendChild(document.createElement('br'));
 
 	var removeButton = document.createElement('input');
 	removeButton.setAttribute('type','button');
-	removeButton.setAttribute('value','remove init param');
+	removeButton.setAttribute('value','removes');
+  removeButton.setAttribute('class','btn error');
 	removeButton.setAttribute('onclick','removeInitParam(this.parentNode)');
 	divNode.appendChild(removeButton);
 }
@@ -519,6 +531,7 @@ function addSelection(){
 	
 	divNode.appendChild(document.createTextNode('name: '));
 	var nameTextNode = document.createElement('input');
+  nameTextNode.setAttribute('style','width:150px;margin-bottom:10px');
 	nameTextNode.setAttribute('type','text');
 	nameTextNode.setAttribute('name','name');
 	nameTextNode.setAttribute('value',$('#selFacets').val());
@@ -527,6 +540,7 @@ function addSelection(){
 	
 	divNode.appendChild(document.createTextNode('values: '));
 	var valTextNode = document.createElement('input');
+  valTextNode.setAttribute('style','width:150px;margin-bottom:10px');
 	valTextNode.setAttribute('type','text');
 	valTextNode.setAttribute('name','val');
 	divNode.appendChild(valTextNode);
@@ -534,6 +548,7 @@ function addSelection(){
 	
 	divNode.appendChild(document.createTextNode('excludes: '));
 	var notTextNode = document.createElement('input');
+  notTextNode.setAttribute('style','width:150px;margin-bottom:10px');
 	notTextNode.setAttribute('type','text');
 	notTextNode.setAttribute('name','not');
 	divNode.appendChild(notTextNode);
@@ -541,6 +556,7 @@ function addSelection(){
 	
 	divNode.appendChild(document.createTextNode('operation: '));
 	var dropDownSelNode = document.createElement('select');
+  dropDownSelNode.setAttribute('style','width:150px;margin-bottom:10px');
 	dropDownSelNode.setAttribute('name','op');
 	var opt1 =  document.createElement('option');
 	opt1.innerHTML = 'or';
@@ -553,8 +569,9 @@ function addSelection(){
 	
 	var removeButton = document.createElement('input');
 	removeButton.setAttribute('type','button');
-	removeButton.setAttribute('value','remove selection');
+	removeButton.setAttribute('value','remove');
 	removeButton.setAttribute('onclick','removeSelection(this.parentNode)');
+  removeButton.setAttribute('class','btn error');
 	divNode.appendChild(removeButton);
 }
 
@@ -613,6 +630,7 @@ function addSort(){
 	
 	divNode.appendChild(document.createTextNode('sort: '));
 	var fieldTextNode = document.createElement('input');
+  fieldTextNode.setAttribute('style','width:150px;margin-bottom:10px');
 	fieldTextNode.setAttribute('type','text');
 	fieldTextNode.setAttribute('name','field');
 	fieldTextNode.setAttribute('value',$('#sortFacets').val());
@@ -620,6 +638,7 @@ function addSort(){
 	
 	var dropDownSelNode = document.createElement('select');
 	dropDownSelNode.setAttribute('name','dir');
+  dropDownSelNode.setAttribute('style','width:150px;margin-bottom:10px');
 	var opt1 =  document.createElement('option');
 	opt1.innerHTML = 'desc';
 	dropDownSelNode.appendChild(opt1);
@@ -631,8 +650,9 @@ function addSort(){
 	
 	var removeButton = document.createElement('input');
 	removeButton.setAttribute('type','button');
-	removeButton.setAttribute('value','remove sort');
+	removeButton.setAttribute('value','remove');
 	removeButton.setAttribute('onclick','removeSort(this.parentNode)');
+  removeButton.setAttribute('class','btn error');
 	divNode.appendChild(removeButton);
 }
 
