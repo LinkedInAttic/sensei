@@ -1,7 +1,22 @@
-<html>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"> 
+<html xmlns="http://www.w3.org/1999/xhtml">
+
 <head>
 	<title>Sensei Client App</title>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <link rel="stylesheet" href="http://twitter.github.com/bootstrap/1.3.0/bootstrap.css" type="text/css" media="screen"/>
+    <link rel="stylesheet" href="http://wonlay.github.com/sin/styles/prettify.css" type="text/css" media="screen"/>
+
+	<style type="text/css">
+	   body {
+	     padding-top: 60px;
+	   }
+	   hr{
+		margin-top:7px;
+		margin-bottom:7px;
+	   }
+	 </style>
+	
 	<script src="http://code.jquery.com/jquery-1.4.4.js"></script>
   <script type="text/javascript" src="js/mustache.js" ></script>
 	<script type="text/javascript" src="js/sensei-client.js" ></script>
@@ -52,59 +67,105 @@
     </div>
   </script>
 </head>
-<body>
-	<table border="0" width="100%" bgcolor="black">
-	  <tr valign="middle">
-	   <td align="right">
-		<img src="http://sna-projects.com/sensei/images/sensei_white_transparent_s.png" />
-	   </td>
-	   <td align="center">
-		<h1><span style="color:white">Sensei Search Client Application</span></h1>
-    <div id="sysinfo" style="color: white; text-align: right; float: right;"></div>
-	   </td>
-	</tr>
-	</table>
-	<br/><br/><br/>
-	query: <input id="query" type="text" /> <input type="button" value="add param" onclick="addQueryParam()" /><br/>
-  <div id="queryParams"></div>
-	start: <input id="start" type="text" value="0" /><br/>
-	rows: <input id="rows" type="text" value="10" /> <br/>
-	route param: <input id="routeparam" type="text" value="" /> <br/>
-	return explanation: <input id="explain" type="checkbox" > <br/>
-	fetch stored fields: <input id="fetchstore" type="checkbox" > <br/>
-	fetch term-vectors: <input id="fetchTermVector" type="checkbox" > <input id="tvFields" type="text" value="" /><br/>
-  group by: <select id="groupBy"><option value="">None</option></select> <br/>
-	max per group: <input id="maxpergroup" type="text" /> <br/>
-	<hr/>
-	sort: <select id="sortFacets"></select> <input type="button" id="addsort" value="add sort" onclick="addSort()"/> 
-	<input type="button" id="clearSort" value="clear" onclick="clearSorts()" />
-	<br/>
-	<div id="sorts">
-	</div>
-	<hr/>
-	selections: <select id="selFacets"></select> <input type="button" id="addsel" value="add selection" onclick="addSelection()"/> 
-	<input type="button" id="clearSel" value="clear" onclick="clearSelections()" />
-	<br/>
-	<div id="selections">
-	</div>
-	<hr/>
-	facets: <select id="facetsFacets"></select> <input type="button" id="addfacet" value="add facet" onclick="addFacet()" /> 
-	<input type="button" id="clearFacets" value="clear" onclick="clearFacets()"/>
-	<div id="facets">
-	</div>
-  <hr/>
-  init params: <input type="button" id="addinit" value="add init param" onclick="addInitParam()" />
-  <input type="button" id="clearInitParams" value="clear" onclick="clearInputParams()"/>
-  <div id="dyn">
-  </div>
-	<hr/>
-	<input type="button" id="buildReqButton" value="build request string" onclick="buildreqString()"/><br/>
-	Rest Query:<input type="text" id="reqtext" size="200"/><br/>
-	<input type="button" id="runquery" value="run query" onclick="runQuery()"/><br/>
-	
-  <hr/>
-	result: <br/>
-	<textarea rows="50" cols="100" name="content" id="content"></textarea>
-	
-</body>
+
+  <body>
+
+    <div class="topbar">
+      <div class="topbar-inner">
+        <div class="container-fluid">
+          <a class="brand" href="#">Sensei</a>
+          <ul class="nav">
+            <li class="active"><a href="http://www.senseidb.com">Home</a></li>
+          </ul>
+          <p class="pull-right">
+    <div id="sysinfo" style="color: white; text-align: right; float: right;"></div></p>
+        </div>
+      </div>
+    </div>
+
+    <div class="container-fluid">
+      <div class="sidebar">
+        <div class="well">
+		  <img width="100" height="100" src="http://javasoze.github.com/sensei/images/sensei_black.jpg" />
+		  <hr/>
+		  <h5>keywords</h5>
+			<input style="width:100px" id="query" type="text" /> <input id="explain" type="checkbox" > explain
+			<input style="margin-top:10px" type="button" value="param" class="btn" onclick="addQueryParam()" /> 
+			  <div id="queryParams"></div>
+			<hr/>
+          <h5>Paging</h5>
+          	start: <input id="start" type="text" value="0" style="width:30px"/>
+			rows: <input id="rows" type="text" value="10" style="width:30px"/>
+		  <h5>Fetch</h5>
+		    stored:
+		    <input id="fetchstore" type="checkbox" /><br/>
+		    term-vectors:
+		    <div class="input">
+			   <div class="input-append">
+			    <input id="tvFields" class="mini" type="text" value="" />
+				<label class="add-on active">
+				  <input id="fetchTermVector" type="checkbox" /> 
+				</label>
+				</div>
+			</div>
+		  <br/>
+		  <br/>
+		  <hr/>
+			<h5>sort:</h5> <select style="width:130px"  id="sortFacets"></select> 
+			<input type="button" id="addsort" value="add" class="btn primary"  onclick="addSort()"/> 
+			<input type="button" id="clearSort" class="btn" value="clear" onclick="clearSorts()" />
+			<br/>
+			<div id="sorts">
+			</div>
+		 <hr/>
+			<h5>selections: </h5><select  style="width:130px"  id="selFacets"></select> 
+			<input type="button" id="addsel" value="add" class="btn primary"  onclick="addSelection()"/> 
+			<input type="button" id="clearSel" value="clear" class="btn" onclick="clearSelections()" />
+			<br/>
+			<div id="selections">
+			</div>
+			<hr/>
+			<h5>facets:</h5> <select style="width:130px" id="facetsFacets"></select> 
+			<input type="button" id="addfacet" class="btn primary"  value="add" onclick="addFacet()" /> 
+			<input type="button" id="clearFacets" value="clear" class="btn" onclick="clearFacets()"/>
+			<div id="facets">
+			</div>
+		 <hr/>
+          
+		  <h5>init params:</h5>
+		  <input type="button" id="addinit" class="btn primary" value="add" onclick="addInitParam()" />
+		    <input type="button" id="clearInitParams" value="clear" class="btn" onclick="clearInputParams()"/>
+		    <div id="dyn">
+		    </div>
+			<hr/>
+			<h5>Group By:</h5>
+			<select style="width:150px" id="groupBy"><option value="">None</option></select><br/>
+				max per group: <input style="width:20px" id="maxpergroup" type="text" />
+				
+			<hr/>
+			<h5>Routing</h5>
+	          route param: <input id="routeparam" type="text" style="width:30px" value="" />
+        </div>
+      </div>
+      <div class="content">
+        <!-- Main hero unit for a primary marketing message or call to action -->
+        <div class="hero-unit" style="padding:20px">
+			<div style="margin-left:auto;margin-right:auto;margin-top:0px;margin-bottom:40px">
+				<input type="button" style="width:120px;margin-right:20px" id="buildReqButton" value="Apply >>" class="btn primary" onclick="buildreqString()"/>
+				Rest Query:<input type="text" id="reqtext" style="width:500px"/>
+				
+				<input type="button" id="runquery" class="btn primary" value="execute" onclick="runQuery()"/>
+			</div>
+			<hr/>
+				<h2>result: </h2>
+				<textarea style="width:100%" rows="50" cols="100" name="content" id="content"></textarea>
+        </div>
+
+        <footer>
+          <p>&copy; Senseidb.com 2011</p>
+        </footer>
+      </div>
+    </div>
+
+  </body>
 </html>

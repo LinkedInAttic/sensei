@@ -697,7 +697,7 @@ function buildreqString(){
 		reqString += "&fetchstored=true";
 	}
 	
-	if (fetchTermVector){
+	if (fetchTV){
 	  var tvFields = document.getElementById('tvFields').value;
 	  reqString += "&fetchtermvector="+tvFields;
 	}
