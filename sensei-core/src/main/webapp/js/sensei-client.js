@@ -772,7 +772,7 @@ function trim_leading_comments(str)
 }
 
 function renderResult(content){
-	var js_source = content.replace(/^\s+/, '');
+  var js_source = $.toJSON(content);
 	var indent_size = 4;
     var indent_char = ' ';
     var preserve_newlines = true;
