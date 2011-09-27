@@ -109,6 +109,10 @@ PARAM_RESULT_FACET_INFO_VALUE = "value"
 PARAM_RESULT_FACET_INFO_COUNT = "count"
 PARAM_RESULT_FACET_INFO_SELECTED = "selected"
 
+# Group by related column names
+GROUP_VALUE = "groupvalue"
+GROUP_HITS = "grouphits"
+
 #
 # Definition of the SQL statement grammar
 #
@@ -563,8 +567,8 @@ class SenseiResult:
         max_lens[col] = len(col)
       for hit in self.hits:
         group_hits = [hit]
-        if hit.has_key("grouphits"): # XXX define constant
-          group_hits = hit.get("grouphits")
+        if hit.has_key(GROUP_HITS):
+          group_hits = hit.get(GROUP_HITS)
           has_group_hits = True
         for group_hit in group_hits:
           for col in columns:
@@ -606,8 +610,14 @@ class SenseiResult:
         print_line('=', '=')
       else:
         print_line('-', '+')
-      sys.stdout.write('%s rows in set, %s hits, %s total docs\n' %
-                       (len(self.hits), self.numHits, self.totalDocs))
+      sys.stdout.write('%s %s%s in set, %s hit%s, %s total doc%s\n' %
+                       (len(self.hits),
+                        has_group_hits and 'group' or 'row',
+                        len(self.hits) > 1 and 's' or '',
+                        self.numHits,
+                        self.numHits > 1 and 's' or '',
+                        self.totalDocs,
+                        self.totalDocs > 1 and 's' or ''))
 
     self.max_col_disp_len = max_col_disp_len
     if not self.hits:
@@ -619,6 +629,10 @@ class SenseiResult:
 
     if len(columns) == 1 and columns[0] == '*':
       keys = self.hits[0].keys()
+      if GROUP_HITS in keys:
+        keys.remove(GROUP_HITS)
+      if GROUP_VALUE in keys:
+        keys.remove(GROUP_VALUE)
     else:
       keys = columns
 
@@ -629,8 +643,8 @@ class SenseiResult:
     # Print the results
     for hit in self.hits:
       group_hits = [hit]
-      if hit.has_key("grouphits"): # XXX define constant
-        group_hits = hit.get("grouphits")
+      if hit.has_key(GROUP_HITS):
+        group_hits = hit.get(GROUP_HITS)
       for group_hit in group_hits:
         sys.stdout.write('|')
         for key in keys:
