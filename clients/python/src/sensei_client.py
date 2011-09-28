@@ -142,9 +142,12 @@ BNF Grammar for BQL
 <predicate> ::=  <query_predicate> | <column_predicate>
 
 <query_predicate> ::=  QUERY IS <quoted_string>
-<column_predicate> ::=  <column_name> <column_operator> <value_list> [<except_clause>] [<prop_clause>]
+<column_predicate> ::=  <column_name> <column_condition> [<prop_clause>]
 
-<column_operator> ::=  IN | CONTAINS ALL
+<column_condition> ::=  <column_positive_operator> <value_list> [<except_clause>]
+                        | <column_negative_operator> <value_list>
+<column_positive_operator> ::=  IN | CONTAINS ALL
+<column_negative_operator> ::=  NOT IN
 <value_list> ::= '(' <quoted_string> ( ',' <quoted_string> )* ')'
 
 <except_clause> ::=  EXCEPT <value_list>
@@ -154,10 +157,10 @@ BNF Grammar for BQL
 <prop_list> ::=  '(' <key_value_pair> ( ',' <key_value_pair> )* ')'
 <key_value_pair> ::=  <quoted_string> ':' <quoted_string>
 
-<additional_specs> ::=  ( <order_by_clause> |
-                          <group_by_clause> |
-                          <limit_clause> |
-                          <browse_by_clause> )*
+<additional_specs> ::=  ( <order_by_clause>
+                          | <group_by_clause>
+                          | <limit_clause>
+                          | <browse_by_clause> )*
 
 <order_by_clause> ::=  ORDER BY <sort_specs>
 <sort_specs> ::=  <sort_spec> ( ',', <sort_spec> )*
@@ -216,6 +219,7 @@ hitsToken       = Keyword("hits", caseless=True)
 inToken         = Keyword("in", caseless=True)
 isToken         = Keyword("is", caseless=True)
 limitToken      = Keyword("limit", caseless=True)
+notInToken      = Keyword("not in", caseless=True)
 orderbyToken    = Keyword("order by", caseless=True)
 withToken       = Keyword("with", caseless=True)
 queryToken      = Keyword("query", caseless=True)
@@ -235,13 +239,17 @@ whereExpression = Forward()
 
 intNum = Word(nums)
 
-selectOperation = inToken | containsToken
 propPair = (quotedString + ":" + quotedString)
 quotedStringList = "(" + delimitedList(quotedString) + ")"
 
-whereCondition = Group((columnName + selectOperation +
-                        quotedStringList.setResultsName("value_list") +
-                        Optional(exceptToken + quotedStringList.setResultsName("except_values")) +
+columnPositiveOperator = inToken | containsToken
+columnNegativeOperator = notInToken
+columnCondition = ((columnPositiveOperator +
+                    quotedStringList.setResultsName("value_list") +
+                    Optional(exceptToken + quotedStringList.setResultsName("except_values"))) |
+                   (columnNegativeOperator + quotedStringList.setResultsName("not_in_list")))
+
+whereCondition = Group((columnName + columnCondition +
                         Optional(withToken + "(" + delimitedList(propPair).setResultsName("prop_list") + ")")
                         ) |
                        (queryToken + isToken + quotedString)
@@ -310,15 +318,19 @@ class SQLRequest:
         if cond[0] == "query" and cond[1] == "is":
           self.query = cond[2][1:-1]
         else:
-          if cond[1] == "in":
+          if cond[1] == "in" or cond[1] == "not in":
             operation = PARAM_SELECT_OP_OR
           else:
             operation = PARAM_SELECT_OP_AND
           select = SenseiSelection(cond[0], operation)
-          for val in cond.value_list[1:-1]:
-            select.addSelection(val[1:-1])
-          for val in cond.except_values[1:-1]:
-            select.addSelection(val[1:-1], True)
+          if cond[1] != "not in":
+            for val in cond.value_list[1:-1]:
+              select.addSelection(val[1:-1])
+            for val in cond.except_values[1:-1]:
+              select.addSelection(val[1:-1], True)
+          else:
+            for val in cond.not_in_list[1:-1]:
+              select.addSelection(val[1:-1], True)
           for i in xrange(0, len(cond.prop_list), 3):
             select.addProperty(cond.prop_list[i][1:-1], cond.prop_list[i+2][1:-1])
           self.selections.append(select)
