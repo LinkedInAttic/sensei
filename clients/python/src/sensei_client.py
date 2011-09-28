@@ -20,6 +20,8 @@ import json
 import sys
 import logging
 
+logger = logging.getLogger("sensei_client")
+
 # TODO:
 #
 # 1. Initializing runtime facet parameters
@@ -119,7 +121,85 @@ GROUP_HITS = "grouphits"
 
 from pyparsing import Literal, CaselessLiteral, Word, Upcase, delimitedList, Optional, \
     Combine, Group, alphas, nums, alphanums, ParseException, Forward, oneOf, quotedString, \
-    ZeroOrMore, restOfLine, Keyword
+    ZeroOrMore, restOfLine, Keyword, OnlyOnce
+
+"""
+
+BNF Grammar for BQL
+===================
+
+<select_stmt> ::=  SELECT <select_list> <from_clause> <where_clause> <additional_specs> [';']
+
+<select_list> ::=  '*' | <column_list>
+<column_list> ::=  <column_name> ( ',' <column_name> )*
+
+<from_clause> ::=  FROM <index_name>
+
+<where_clause> ::=  WHERE <search_condition>
+<search_condition> ::=  <predicates>
+
+<predicates> ::=  <predicate> ( AND <predicate> )*
+<predicate> ::=  <query_predicate> | <column_predicate>
+
+<query_predicate> ::=  QUERY IS <quoted_string>
+<column_predicate> ::=  <column_name> <column_operator> <value_list> [<except_clause>] [<prop_clause>]
+
+<column_operator> ::=  IN | CONTAINS ALL
+<value_list> ::= '(' <quoted_string> ( ',' <quoted_string> )* ')'
+
+<except_clause> ::=  EXCEPT <value_list>
+
+<prop_clause> ::=  WITH <prop_list>
+
+<prop_list> ::=  '(' <key_value_pair> ( ',' <key_value_pair> )* ')'
+<key_value_pair> ::=  <quoted_string> ':' <quoted_string>
+
+<additional_specs> ::=  ( <order_by_clause> |
+                          <group_by_clause> |
+                          <limit_clause> |
+                          <browse_by_clause> )*
+
+<order_by_clause> ::=  ORDER BY <sort_specs>
+<sort_specs> ::=  <sort_spec> ( ',', <sort_spec> )*
+<sort_spec> ::=  <column_name> [<ordering_spec>]
+<ordering_spec> ::=  ASC | DESC
+
+<group_by_clause> ::=  GROUP BY <group_spec>
+<group_spec> ::=  <facet_name> [TOP <max_per_group>]
+
+<limit_clause> ::=  LIMIT [<offset> ','] <count>
+<offset> ::= ( <digit> )+
+<count> ::=  ( <digit> )+
+
+<browse_by_clause> ::=  BROWSE BY <facet_spec_list>
+<facet_spec_list> ::=  '(' <facet_specs> ')'
+<facet_specs> ::=  <facet_spec> ( ',' <facet_spec> )*
+<facet_spec> ::=  <facet_name> ':' <facet_expression>
+<facet_expression> ::=  '(' <expand_flag> <count> <count> <facet_ordering> ')'
+<expand_flag> ::= TRUE | FALSE
+<facet_ordering> ::=  HITS | VALUE
+
+<quoted_string> ::=  '"' ( <char> )* '"'
+
+"""
+
+
+# A dummy parse action used to make sure that some clause appears
+# only once.
+
+def dummy_action(s, loc, tok):
+  pass
+
+limit_once = OnlyOnce(dummy_action)
+order_by_once = OnlyOnce(dummy_action)
+group_by_once = OnlyOnce(dummy_action)
+browse_by_once = OnlyOnce(dummy_action)
+
+def reset_all():
+  limit_once.reset()
+  order_by_once.reset()
+  group_by_once.reset()
+  browse_by_once.reset()
 
 # SQL tokens
 
@@ -175,20 +255,20 @@ orderByExpression = Forward()
 orderBySpec = Group(columnName + Optional(orderseq))
 orderByExpression << (orderBySpec.setResultsName("orderby_spec", listAllMatches=True) +
                       ZeroOrMore("," + orderByExpression))
-orderByClause = (orderbyToken + orderByExpression).setResultsName("orderby")
+orderByClause = (orderbyToken + orderByExpression).setResultsName("orderby").setParseAction(order_by_once)
 
 limitClause = (limitToken
-               + Group(Optional(intNum + ",") + intNum)).setResultsName("limit")
+               + Group(Optional(intNum + ",") + intNum)).setResultsName("limit").setParseAction(limit_once)
 
 trueOrFalse = trueToken | falseToken
 facetOrderBy = hitsToken | valueToken
 facetSpec = Group(columnName + ":" + "(" + trueOrFalse + "," + intNum  + "," + intNum + "," + facetOrderBy + ")")
 browseByClause = (browseByToken +
-                  "(" + delimitedList(facetSpec).setResultsName("facet_specs") + ")")
+                  "(" + delimitedList(facetSpec).setResultsName("facet_specs") + ")").setParseAction(browse_by_once)
 
 groupByClause = (groupByToken +
                  columnName.setResultsName("groupby") +
-                 Optional(topToken + intNum.setResultsName("max_per_group")))
+                 Optional(topToken + intNum.setResultsName("max_per_group"))).setParseAction(group_by_once)
 
 selectStmt << (selectToken + 
                ('*' | columnNameList).setResultsName("columns") + 
@@ -209,13 +289,17 @@ simpleSQL = selectStmt
 sqlComment = "--" + restOfLine
 simpleSQL.ignore(sqlComment)
 
-logger = logging.getLogger("sensei_client")
 
 class SQLRequest:
   """A Sensei request with a SQL SELECT-like statement."""
 
   def __init__(self, sql_stmt):
-    self.tokens = simpleSQL.parseString(sql_stmt, parseAll=True)
+    try:
+      self.tokens = simpleSQL.parseString(sql_stmt, parseAll=True)
+    except ParseException as err:
+      raise err
+    finally:
+      reset_all()
     self.query = ""
     self.selections = []
     self.columns = [str(col) for col in self.tokens.columns]
@@ -354,9 +438,10 @@ def test(str):
     print "tokens.facet_specs = ", tokens.facet_specs
     print "tokens.groupby = ", tokens.groupby
     print "tokens.max_per_group = ", tokens.max_per_group
-  except ParseException, err:
+  except ParseException as err:
     print " "*err.loc + "^\n" + err.msg
-    # print err
+  finally:
+    reset_all()
   print
 
 
@@ -979,7 +1064,7 @@ select color, year, tags, price from cars where query is "cool" and tags contain
 | [2001 TO 2002] (11) |
 +---------------------+
 
-select color, grouphitscount from cars group by color limit 0,16000
+select color, grouphitscount from cars group by color top 1 limit 0,16000
 +--------+----------------+
 | color  | grouphitscount |
 +--------+----------------+
@@ -995,5 +1080,28 @@ select color, grouphitscount from cars group by color limit 0,16000
 8 rows in set, 15001 hits, 15001 total docs
 
 Note: (= (+ 2196 2105 2160 3141 1085 1110 1104 2100) 15001)
+
+select uid, color, makemodel from cars group by color top 3 limit 0,4
+=========================================
+| uid | color  | makemodel              |
+=========================================
+| 1   | white  | asian/acura/1.6el      |
+| 2   | white  | asian/acura/1.6el      |
+| 3   | white  | asian/acura/1.6el      |
++-----+--------+------------------------+
+| 0   | yellow | asian/acura/1.6el      |
+| 244 | yellow | european/bentley/azure |
+| 245 | yellow | european/bentley/azure |
++-----+--------+------------------------+
+| 242 | red    | european/bentley/azure |
+| 246 | red    | european/bentley/azure |
+| 247 | red    | european/bentley/azure |
++-----+--------+------------------------+
+| 241 | black  | european/bentley/azure |
+| 243 | black  | european/bentley/azure |
+| 10  | black  | asian/acura/3.2tl      |
++-----+--------+------------------------+
+=========================================
+4 groups in set, 15001 hits, 15001 total docs
 
 """
