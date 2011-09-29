@@ -128,7 +128,7 @@ from pyparsing import Literal, CaselessLiteral, Word, Upcase, delimitedList, Opt
 BNF Grammar for BQL
 ===================
 
-<select_stmt> ::=  SELECT <select_list> <from_clause> <where_clause> <additional_specs> [';']
+<select_stmt> ::=  SELECT <select_list> <from_clause> <where_clause> <given_clause> <additional_specs> [';']
 
 <select_list> ::=  '*' | <column_list>
 <column_list> ::=  <column_name> ( ',' <column_name> )*
@@ -157,6 +157,13 @@ BNF Grammar for BQL
 <prop_list> ::=  '(' <key_value_pair> ( ',' <key_value_pair> )* ')'
 <key_value_pair> ::=  <quoted_string> ':' <quoted_string>
 
+<given_clause> ::= GIVEN FACET PARAM <facet_param_list>
+<facet_param_list> ::= <facet_param> ( ',' <facet_param> )*
+<facet_param> ::=  '(' <facet_name> <facet_param_name> <facet_param_type> <facet_param_value> ')'
+<facet_param_name> ::= <quoted_string>
+<facet_param_type> ::= BOOLEAN | INT | LONG | STRING | BYTEARRAY | DOUBLE
+<facet_param_value> ::= <quoted_string>
+
 <additional_specs> ::=  ( <order_by_clause>
                           | <group_by_clause>
                           | <limit_clause>
@@ -171,7 +178,7 @@ BNF Grammar for BQL
 <group_spec> ::=  <facet_name> [TOP <max_per_group>]
 
 <limit_clause> ::=  LIMIT [<offset> ','] <count>
-<offset> ::= ( <digit> )+
+<offset> ::=  ( <digit> )+
 <count> ::=  ( <digit> )+
 
 <browse_by_clause> ::=  BROWSE BY <facet_spec_list>
@@ -208,22 +215,30 @@ def reset_all():
 
 andToken        = Keyword("and", caseless=True)
 ascToken        = Keyword("asc", caseless=True)
+booleanToken    = Keyword("boolean", caseless=True)
 browseByToken   = Keyword("browse by", caseless=True)
+byteToken       = Keyword("bytearray", caseless=True)
 containsToken   = Keyword("contains all", caseless=True)
 descToken       = Keyword("desc", caseless=True)
+doubleToken     = Keyword("double", caseless=True)
 exceptToken     = Keyword("except", caseless=True)
+facetParamToken = Keyword("facet param", caseless=True)
 falseToken      = Keyword("false", caseless=True)
 fromToken       = Keyword("from", caseless=True)
 groupByToken    = Keyword("group by", caseless=True)
+givenToken      = Keyword("given", caseless=True)
 hitsToken       = Keyword("hits", caseless=True)
 inToken         = Keyword("in", caseless=True)
+intToken        = Keyword("int", caseless=True)
 isToken         = Keyword("is", caseless=True)
 limitToken      = Keyword("limit", caseless=True)
+longToken       = Keyword("long", caseless=True)
 notInToken      = Keyword("not in", caseless=True)
 orderbyToken    = Keyword("order by", caseless=True)
 withToken       = Keyword("with", caseless=True)
 queryToken      = Keyword("query", caseless=True)
 selectToken     = Keyword("select", caseless=True)
+stringToken     = Keyword("string", caseless=True)
 topToken        = Keyword("top", caseless=True)
 trueToken       = Keyword("true", caseless=True)
 valueToken      = Keyword("value", caseless=True)
@@ -233,6 +248,7 @@ selectStmt      = Forward()
 
 ident           = Word(alphas, alphanums + "_$")
 columnName      = Word(alphas, alphanums + "_-")
+facetName       = Word(alphas, alphanums + "_-")
 columnNameList  = Group(delimitedList(columnName))
 
 whereExpression = Forward()
@@ -256,6 +272,11 @@ whereCondition = Group((columnName + columnCondition +
                        )
 whereExpression << (whereCondition.setResultsName("condition", listAllMatches=True) +
                     ZeroOrMore(andToken + whereExpression))
+
+paramType = booleanToken | intToken | longToken | stringToken | byteToken | doubleToken
+facetParam = ("(" + facetName + "," + quotedString + "," +
+              paramType + "," + quotedString + ")").setResultsName("facet_param", listAllMatches=True)
+givenClause = (givenToken + facetParamToken + delimitedList(facetParam))
 
 orderseq    = ascToken | descToken
 
@@ -282,7 +303,8 @@ selectStmt << (selectToken +
                ('*' | columnNameList).setResultsName("columns") + 
                fromToken + 
                ident.setResultsName("index") + 
-               Optional((whereToken + whereExpression.setResultsName("where"))) +
+               Optional(whereToken + whereExpression.setResultsName("where")) +
+               Optional(givenClause.setResultsName("given")) +
                ZeroOrMore(orderByClause |
                           limitClause |
                           browseByClause |
@@ -310,7 +332,9 @@ class SQLRequest:
       reset_all()
     self.query = ""
     self.selections = []
+    self.sorts = None
     self.columns = [str(col) for col in self.tokens.columns]
+    self.facet_init_param_map = None
 
     where = self.tokens.where
     if where:
@@ -377,18 +401,19 @@ class SQLRequest:
   def get_sorts(self):
     """Get the SenseiSort array base on ORDER BY."""
 
+    if self.sorts:
+      return self.sorts
+
+    self.sorts = []
     orderby = self.tokens.orderby
-    if not orderby:
-      return []
-    else:
+    if orderby:
       orderby_spec = orderby.orderby_spec
-      sorts = []
       for spec in orderby_spec:
         if len(spec) == 1:
-          sorts.append(SenseiSort(spec[0]))
+          self.sorts.append(SenseiSort(spec[0]))
         else:
-          sorts.append(SenseiSort(spec[0], spec[1] == "desc" and True or False))
-      return sorts
+          self.sorts.append(SenseiSort(spec[0], spec[1] == "desc" and True or False))
+    return self.sorts
 
   def get_selections(self):
     """Get all the selections from in statement."""
@@ -426,6 +451,37 @@ class SQLRequest:
     else:
       return None
 
+  def get_facet_init_param_map(self):
+    if self.facet_init_param_map:
+      return self.facet_init_param_map
+
+    self.facet_init_param_map = {}
+    given = self.tokens.given
+    if given:
+      for param in given.facet_param:
+        facet = param[1]
+        name = param[3][1:-1]
+        param_type = param[5]
+        value = param[7][1:-1]
+        init_param = SenseiFacetInitParams()
+
+        if param_type == "boolean":
+          init_param.put_bool_param(name, value)
+        elif param_type == "int":
+          init_param.put_int_param(name, value)
+        elif param_type == "long":
+          init_param.put_long_param(name, value)
+        elif param_type == "string":
+          init_param.put_string_param(name, value)
+        elif param_type == "bytearray":
+          init_param.put_byte_param(name, value)
+        elif param_type == "double":
+          init_param.put_double_param(name, value)
+
+        self.facet_init_param_map[facet] = init_param
+
+    return self.facet_init_param_map
+
 
 def test(str):
   # print str,"->"
@@ -450,6 +506,9 @@ def test(str):
     print "tokens.facet_specs = ", tokens.facet_specs
     print "tokens.groupby = ", tokens.groupby
     print "tokens.max_per_group = ", tokens.max_per_group
+    print "tokens.given = ", tokens.given
+    if tokens.given:
+      print "tokens.given.facet_param = ", tokens.given.facet_param
   except ParseException as err:
     print " "*err.loc + "^\n" + err.msg
   finally:
@@ -551,48 +610,135 @@ class SenseiSort:
       return self.field + ":" + self.dir
 
 
-class SenseiRequest:
-  def __init__(self, offset=0, count=10, max_per_group=10):
-    self.facets = {}
-    self.selections = []
-    self.sorts = None
-    self.query = None
-    self.qParam = {}
-    self.offset = offset
-    self.count = count
-    self.explain = False
-    self.fetch_stored = False
-    self.route_param = None
-    self.groupby = None
-    self.max_per_group = max_per_group
-    self.columns = []
+class SenseiFacetInitParams:
+  """FacetHandler initialization parameters."""
 
-  def __init__(self, sql_stmt, offset=0, count=10, max_per_group=10):
-    """Construct a Sensei request using a SQL SELECT-like statement."""
+  def __init__(self):
+    self.bool_map = {}
+    self.int_map = {}
+    self.long_map = {}
+    self.string_map = {}
+    self.byte_map = {}
+    self.double_map = {}
 
-    self.qParam = {}
-    self.explain = False
-    self.route_param = None
+  # Getters for param names for different types
+  def get_bool_param_names(self):
+    return self.bool_map.keys()
 
-    sql_req = SQLRequest(sql_stmt)
-    self.query = sql_req.get_query()
-    self.offset = sql_req.get_offset() or offset
-    self.count = sql_req.get_count() or count
-    self.columns = sql_req.get_columns()
-    self.sorts = sql_req.get_sorts()
-    self.selections = sql_req.get_selections()
-    self.facets = sql_req.get_facets()
-    # PARAM_RESULT_HIT_STORED_FIELDS is a reserved column name.  If this
-    # column is selected, turn on fetch_stored flag automatically.
-    if PARAM_RESULT_HIT_STORED_FIELDS in self.columns:
-      self.fetch_stored = True
+  def get_int_param_names(self):
+    return self.int_map.keys()
+
+  def get_long_param_names(self):
+    return self.long_map.keys()
+
+  def get_string_param_names(self):
+    return self.string_map.keys()
+
+  def get_byte_param_names(self):
+    return self.byte_map.keys()
+  
+  def get_double_param_names(self):
+    return self.double_map.keys()
+
+  # Add param name, values
+  def put_bool_param(self, key, value):
+    if isinstance(value, list):
+      self.bool_map[key] = value
     else:
+      self.bool_map[key] = [value]
+
+  def put_int_param(self, key, value):
+    if isinstance(value, list):
+      self.int_map[key] = value
+    else:
+      self.int_map[key] = [value]
+
+  def put_long_param(self, key, value):
+    if isinstance(value, list):
+      self.long_map[key] = value
+    else:
+      self.long_map[key] = [value]
+
+  def put_string_param(self, key, value):
+    if isinstance(value, list):
+      self.string_map[key] = value
+    else:
+      self.string_map[key] = [value]
+
+  def put_byte_param(self, key, value):
+    if isinstance(value, list):
+      self.byte_map[key] = value
+    else:
+      self.byte_map[key] = [value]
+
+  def put_double_param(self, key, value):
+    if isinstance(value, list):
+      self.double_map[key] = value
+    else:
+      self.double_map[key] = [value]
+
+  # Getters of param value(s) based on param names
+  def get_bool_param(self, key):
+    return self.bool_map.get(key)
+
+  def get_int_param(self, key):
+    return self.int_map.get(key)
+
+  def get_long_param(self, key):
+    return self.long_map.get(key)
+
+  def get_string_param(self, key):
+    return self.string_map.get(key)
+
+  def get_byte_param(self, key):
+    return self.byte_map.get(key)
+
+  def get_double_param(self, key):
+    return self.double_map.get(key)
+
+
+class SenseiRequest:
+
+  def __init__(self, sql_stmt=None, offset=0, count=10, max_per_group=10):
+    self.qParam = {}
+    self.explain = False
+    self.route_param = None
+    self.sql_stmt = sql_stmt
+
+    if sql_stmt:
+      sql_req = SQLRequest(sql_stmt)
+      self.query = sql_req.get_query()
+      self.offset = sql_req.get_offset() or offset
+      self.count = sql_req.get_count() or count
+      self.columns = sql_req.get_columns()
+      self.sorts = sql_req.get_sorts()
+      self.selections = sql_req.get_selections()
+      self.facets = sql_req.get_facets()
+      # PARAM_RESULT_HIT_STORED_FIELDS is a reserved column name.  If this
+      # column is selected, turn on fetch_stored flag automatically.
+      if PARAM_RESULT_HIT_STORED_FIELDS in self.columns:
+        self.fetch_stored = True
+      else:
+        self.fetch_stored = False
+      self.groupby = sql_req.get_groupby()
+      self.max_per_group = sql_req.get_max_per_group() or max_per_group
+      self.facet_init_param_map = sql_req.get_facet_init_param_map()
+    else:
+      self.query = None
+      self.offset = offset
+      self.count = count
+      self.columns = []
+      self.sorts = None
+      self.selections = []
+      self.facets = {}
       self.fetch_stored = False
-    self.groupby = sql_req.get_groupby()
-    self.max_per_group = sql_req.get_max_per_group() or max_per_group
+      self.groupby = None
+      self.max_per_group = max_per_group
+      self.facet_init_param_map = {}
 
   def get_columns(self):
     return self.columns
+
   
 # XXX Do we really need this class?
 class SenseiHit:
@@ -730,6 +876,8 @@ class SenseiResult:
         keys.remove(GROUP_HITS)
       if GROUP_VALUE in keys:
         keys.remove(GROUP_VALUE)
+      if PARAM_RESULT_HIT_SRC_DATA in keys:
+        keys.remove(PARAM_RESULT_HIT_SRC_DATA)
     else:
       keys = columns
 
@@ -828,11 +976,49 @@ class SenseiClient:
       if selection.properties:
         paramMap[selection.getSelectPropParam()] = selection.getSelectPropParamValues()
 
-    for facetName, facetSpec in req.facets.iteritems():
-      paramMap["%s.%s.%s" % (PARAM_FACET, facetName, PARAM_FACET_MAX)] = facetSpec.maxCounts
-      paramMap["%s.%s.%s" % (PARAM_FACET, facetName, PARAM_FACET_ORDER)] = facetSpec.orderBy
-      paramMap["%s.%s.%s" % (PARAM_FACET, facetName, PARAM_FACET_EXPAND)] = facetSpec.expand
-      paramMap["%s.%s.%s" % (PARAM_FACET, facetName, PARAM_FACET_MINHIT)] = facetSpec.minHits
+    for facet_name, facet_spec in req.facets.iteritems():
+      paramMap["%s.%s.%s" % (PARAM_FACET, facet_name, PARAM_FACET_MAX)] = facet_spec.maxCounts
+      paramMap["%s.%s.%s" % (PARAM_FACET, facet_name, PARAM_FACET_ORDER)] = facet_spec.orderBy
+      paramMap["%s.%s.%s" % (PARAM_FACET, facet_name, PARAM_FACET_EXPAND)] = facet_spec.expand
+      paramMap["%s.%s.%s" % (PARAM_FACET, facet_name, PARAM_FACET_MINHIT)] = facet_spec.minHits
+
+    for facet_name, initParams in req.facet_init_param_map.iteritems():
+      for name, vals in initParams.bool_map.iteritems():
+        paramMap["%s.%s.%s.%s" %
+                 (PARAM_DYNAMIC_INIT, facet_name, name, PARAM_DYNAMIC_TYPE)] = PARAM_DYNAMIC_TYPE_BOOL
+        paramMap["%s.%s.%s.%s" %
+                 (PARAM_DYNAMIC_INIT, facet_name, name,
+                  PARAM_DYNAMIC_VAL)] = ','.join([val and "true" or "false" for val in vals])
+      for name, vals in initParams.int_map.iteritems():
+        paramMap["%s.%s.%s.%s" %
+                 (PARAM_DYNAMIC_INIT, facet_name, name, PARAM_DYNAMIC_TYPE)] = PARAM_DYNAMIC_TYPE_INT
+        paramMap["%s.%s.%s.%s" %
+                 (PARAM_DYNAMIC_INIT, facet_name, name,
+                  PARAM_DYNAMIC_VAL)] = ','.join([str(val) for val in vals])
+      for name, vals in initParams.long_map.iteritems():
+        paramMap["%s.%s.%s.%s" %
+                 (PARAM_DYNAMIC_INIT, facet_name, name, PARAM_DYNAMIC_TYPE)] = PARAM_DYNAMIC_TYPE_LONG
+        paramMap["%s.%s.%s.%s" %
+                 (PARAM_DYNAMIC_INIT, facet_name, name,
+                  PARAM_DYNAMIC_VAL)] = ','.join([str(val) for val in vals])
+      for name, vals in initParams.string_map.iteritems():
+        paramMap["%s.%s.%s.%s" %
+                 (PARAM_DYNAMIC_INIT, facet_name, name, PARAM_DYNAMIC_TYPE)] = PARAM_DYNAMIC_TYPE_STRING
+        paramMap["%s.%s.%s.%s" %
+                 (PARAM_DYNAMIC_INIT, facet_name, name,
+                  PARAM_DYNAMIC_VAL)] = ','.join(vals)
+      for name, vals in initParams.byte_map.iteritems():
+        paramMap["%s.%s.%s.%s" %
+                 (PARAM_DYNAMIC_INIT, facet_name, name, PARAM_DYNAMIC_TYPE)] = PARAM_DYNAMIC_TYPE_BYTEARRAY
+        paramMap["%s.%s.%s.%s" %
+                 (PARAM_DYNAMIC_INIT, facet_name, name,
+                  PARAM_DYNAMIC_VAL)] = ','.join([str(val) for val in vals])
+      for name, vals in initParams.double_map.iteritems():
+        paramMap["%s.%s.%s.%s" %
+                 (PARAM_DYNAMIC_INIT, facet_name, name, PARAM_DYNAMIC_TYPE)] = PARAM_DYNAMIC_TYPE_DOUBLE
+        paramMap["%s.%s.%s.%s" %
+                 (PARAM_DYNAMIC_INIT, facet_name, name,
+                  PARAM_DYNAMIC_VAL)] = ','.join([str(val) for val in vals])
 
     if req.groupby:
       paramMap[PARAM_GROUP_BY] = req.groupby
@@ -845,7 +1031,7 @@ class SenseiClient:
     paramString = None
     if req:
       paramString = SenseiClient.buildUrlString(req)
-    logger.debug(paramString)
+    logger.info(paramString)
     urlReq = urllib2.Request(self.url,paramString)
     res = self.opener.open(urlReq)
     line = res.read()
@@ -958,20 +1144,43 @@ def testFacetSpecs():
   res.display(['year', 'color', 'tags', 'price'])
   # res.display(['bad_name'])
 
+def testInitParams():
+  print "==== Testing Facet Initialization Parameters ===="
+  req = SenseiRequest()
+  req.query = "moon-roof"
+
+  param1 = SenseiFacetInitParams()
+  param1.put_int_param("srcid", [12345])
+  param1.put_bool_param("is_member", False)
+
+  param2 = SenseiFacetInitParams()
+  param2.put_int_param("time", 999999)
+  param2.put_string_param("week", "Monday")
+
+  req.facet_init_param_map["My-Network"] = param1
+  req.facet_init_param_map["Trending"] = param2
+
+  client = SenseiClient()
+  res = client.doQuery(req)
+
 def main():
-  logger.setLevel(logging.DEBUG)
+  logger.setLevel(logging.INFO)
   formatter = logging.Formatter("%(asctime)s %(filename)s:%(lineno)d - %(message)s")
   stream_handler = logging.StreamHandler()
   stream_handler.setFormatter(formatter)
   logger.addHandler(stream_handler)
 
-  client = SenseiClient()
+  # For Signal
+  client = SenseiClient("localhost", 8421, path="sensei")
+
+  # For cars
+  # client = SenseiClient("localhost", 8080, path="sensei")
 
   def test_sql(stmt):
     # test(stmt)
     req = SenseiRequest(stmt)
     res = client.doQuery(req)
-    res.display(req.get_columns(), 1000)
+    res.display(req.get_columns(), 100)
 
   import readline
   readline.parse_and_bind("tab: complete")
@@ -997,6 +1206,7 @@ if __name__ == "__main__":
   # testSort1()
   # testQueryParam()
   # testSelection()
+  # testInitParams()
 
 """
 Testing Data:
@@ -1115,5 +1325,8 @@ select uid, color, makemodel from cars group by color top 3 limit 0,4
 +-----+--------+------------------------+
 =========================================
 4 groups in set, 15001 hits, 15001 total docs
+
+// Signal search example
+select tags, publicShareFlag, userid, country, updateType from signal where country in ("us") and My-Network in ("1", "2") given facet param (My-Network, "srcid", int, "8233570")
 
 """
