@@ -128,7 +128,7 @@ from pyparsing import Literal, CaselessLiteral, Word, Upcase, delimitedList, Opt
 BNF Grammar for BQL
 ===================
 
-<select_stmt> ::=  SELECT <select_list> <from_clause> <where_clause> <given_clause> <additional_specs> [';']
+<select_stmt> ::=  SELECT <select_list> <from_clause> [<where_clause>] [<given_clause>] [<additional_specs>] [';']
 
 <select_list> ::=  '*' | <column_list>
 <column_list> ::=  <column_name> ( ',' <column_name> )*
@@ -148,7 +148,8 @@ BNF Grammar for BQL
                         | <column_negative_operator> <value_list>
 <column_positive_operator> ::=  IN | CONTAINS ALL
 <column_negative_operator> ::=  NOT IN
-<value_list> ::= '(' <quoted_string> ( ',' <quoted_string> )* ')'
+
+<value_list> ::=  '(' <quoted_string> ( ',' <quoted_string> )* ')'
 
 <except_clause> ::=  EXCEPT <value_list>
 
@@ -157,12 +158,12 @@ BNF Grammar for BQL
 <prop_list> ::=  '(' <key_value_pair> ( ',' <key_value_pair> )* ')'
 <key_value_pair> ::=  <quoted_string> ':' <quoted_string>
 
-<given_clause> ::= GIVEN FACET PARAM <facet_param_list>
-<facet_param_list> ::= <facet_param> ( ',' <facet_param> )*
+<given_clause> ::=  GIVEN FACET PARAM <facet_param_list>
+<facet_param_list> ::=  <facet_param> ( ',' <facet_param> )*
 <facet_param> ::=  '(' <facet_name> <facet_param_name> <facet_param_type> <facet_param_value> ')'
-<facet_param_name> ::= <quoted_string>
-<facet_param_type> ::= BOOLEAN | INT | LONG | STRING | BYTEARRAY | DOUBLE
-<facet_param_value> ::= <quoted_string>
+<facet_param_name> ::=  <quoted_string>
+<facet_param_type> ::=  BOOLEAN | INT | LONG | STRING | BYTEARRAY | DOUBLE
+<facet_param_value> ::=  <quoted_string>
 
 <additional_specs> ::=  ( <order_by_clause>
                           | <group_by_clause>
@@ -186,7 +187,7 @@ BNF Grammar for BQL
 <facet_specs> ::=  <facet_spec> ( ',' <facet_spec> )*
 <facet_spec> ::=  <facet_name> ':' <facet_expression>
 <facet_expression> ::=  '(' <expand_flag> <count> <count> <facet_ordering> ')'
-<expand_flag> ::= TRUE | FALSE
+<expand_flag> ::=  TRUE | FALSE
 <facet_ordering> ::=  HITS | VALUE
 
 <quoted_string> ::=  '"' ( <char> )* '"'
