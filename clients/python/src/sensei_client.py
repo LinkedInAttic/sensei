@@ -958,14 +958,21 @@ def testFacetSpecs():
   res.display(['year', 'color', 'tags', 'price'])
   # res.display(['bad_name'])
 
-def main():
+def main(argv):
+  if len(argv) <= 1:
+    client = SenseiClient()
+  else:
+    host = argv[1]
+    port = int(argv[2])
+    print "url specified, host: %s, port: %d" % (host,port)
+    client = SenseiClient(host,port,'sensei')
   logger.setLevel(logging.DEBUG)
   formatter = logging.Formatter("%(asctime)s %(filename)s:%(lineno)d - %(message)s")
   stream_handler = logging.StreamHandler()
   stream_handler.setFormatter(formatter)
   logger.addHandler(stream_handler)
 
-  client = SenseiClient()
+  
 
   def test_sql(stmt):
     # test(stmt)
@@ -990,7 +997,7 @@ def main():
 
 if __name__ == "__main__":
 
-  main()
+  main(sys.argv)
 
   # testFacetSpecs()
   # test_basic()
