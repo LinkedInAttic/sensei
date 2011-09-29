@@ -1,0 +1,108 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"> 
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+	<title>Sensei Query Console</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <link rel="stylesheet" href="http://twitter.github.com/bootstrap/1.3.0/bootstrap.css" type="text/css" media="screen"/>
+    <link rel="stylesheet" href="http://wonlay.github.com/sin/styles/prettify.css" type="text/css" media="screen"/>
+
+	<style type="text/css">
+	   body {
+	     padding-top: 60px;
+	   }
+	   hr{
+		margin-top:7px;
+		margin-bottom:7px;
+	   }
+	 </style>
+	
+	<script src="http://code.jquery.com/jquery-1.6.1.js"></script>
+	<script src="js/app.js"></script>
+  <script src="js/mustache.js" ></script>
+	<script src="http://jsbeautifier.org/beautify.js" ></script>
+  <script>
+  
+  var statsTemplate = "Found {{numhits}} docs in {{time}}ms";
+  var facetTemplate = " {{value}} ({{count}})";
+  var valueTemplate = " {{name}}: {{value}}";
+  
+  function doClick() {
+    var ql = $('#query').val();
+    var reqJson = $.toJSON({'bql':ql});
+    $.getJSON('http://localhost:18888/parse?info='+encodeURIComponent(reqJson),function(res) {
+      var result = res["result"];
+      
+      var searchstats={'numhits':result.numhits,'time':result.time}
+      var statsNode = $('#searchStats');
+      statsNode.empty();
+      statsNode.append($.mustache(statsTemplate, searchstats));
+
+// facets
+      var facets = result["facets"];
+      var facetDiv= $('#facets');
+      facetDiv.empty();
+      for (var f in facets){
+        console.log(f);
+        var facetArray = facets[f];
+        facetDiv.append("<p/>")
+        facetDiv.append(f+"<br/>");
+        for (var i=0;i<facetArray.length;++i){
+          var facetVal = facetArray[i];
+          facetDiv.append($.mustache(facetTemplate,facetVal));
+          facetDiv.append("<br/>")
+        }
+        facetDiv.append("<hr/>");
+      }
+
+//hits
+
+      var hits = result.hits;
+      $('#result').val($.toJSON(hits));
+      var hitsDiv = $('#hits');
+      hitsDiv.empty();
+      for (var i=0;i<hits.length;++i){
+         var hit = hits[0];
+        for (var f in hit){
+          // if array:
+          var field = hit[f];
+          console.log('name:'+f);
+          console.log('val:'+field);
+          hitsDiv.append("<p/>");
+          var val ={'name':f,'value':field};
+            
+          console.log('not array: '+val.name);
+          hitsDiv.append($.mustache(valueTemplate,val));
+          
+        }
+      }
+    });
+  };
+  </script>
+</head>
+
+<body>
+  <div class="container">
+    <h1 style="text-align:center">Sensei Query Console</h1>
+    <h3>Enter query: </h3><textarea style="width:600px;font-size:20px" id="query" cols="200" rows="3">select uid from cars browse by (color:(true,1,5,hits))</textarea>
+    <input id="execute" onclick="doClick()" type="button" class="btn primary" value="execute" />
+    <br/>
+    <div style="text-align:right" id="searchStats"></div>
+    <hr/>
+    <div class="container-fluid">
+      <div class="sidebar">
+        <h3>Facets</h3>
+        <div id="facets">
+        </div>
+      </div>
+      <div class="content">
+        <h3>Results</h3>
+        <div id="hits">
+        </div>
+        <textarea style="width:100%" id="result" type="textarea" cols="50" rows="70"></textarea>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>
