@@ -10,6 +10,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.management.ObjectName;
 
+import com.linkedin.norbert.network.JavaSerializer;
+import com.linkedin.norbert.network.Serializer;
+import com.sensei.search.req.SenseiJavaSerializer;
 import org.apache.log4j.Logger;
 import org.apache.lucene.search.Query;
 
@@ -36,16 +39,15 @@ import com.sensei.search.nodes.SenseiQueryBuilderFactory;
 import com.sensei.search.req.SenseiHit;
 import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.req.SenseiResult;
-import com.sensei.search.req.protobuf.SenseiRequestBPO;
-import com.sensei.search.req.protobuf.SenseiRequestBPOConverter;
 import com.sensei.search.util.RequestConverter;
 import com.yammer.metrics.core.TimerMetric;
 
 public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiRequest, SenseiResult>{
+	public static final Serializer<SenseiRequest, SenseiResult> SERIALIZER =
+			SenseiJavaSerializer.build("SenseiRequest", SenseiRequest.class, SenseiResult.class);
 
 	private static final Logger logger = Logger.getLogger(CoreSenseiServiceImpl.class);
 	
-
 	private final static TimerMetric PruneTimer = new TimerMetric(TimeUnit.MILLISECONDS,TimeUnit.SECONDS);
 	static{
 		  // register jmx monitoring for timers
@@ -145,9 +147,7 @@ public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiReque
 			List<BoboIndexReader> readerList,SenseiQueryBuilderFactory queryBuilderFactory) throws Exception {
 		SubReaderAccessor<BoboIndexReader> subReaderAccessor = ZoieIndexReader.getSubReaderAccessor(readerList);
 	    MultiBoboBrowser browser = null;
-	    
-	    
-	    
+
 	    try
 	    {
           final List<BoboIndexReader> segmentReaders = BoboBrowser.gatherSubReaders(readerList);
@@ -213,20 +213,10 @@ public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiReque
 	@Override
 	public SenseiResult getEmptyResultInstance(Throwable error) {
 		return new SenseiResult();
-	} 
-	  
-	@Override
-	public Message resultToMessage(SenseiResult result) {
-		return SenseiRequestBPOConverter.convert(result);
 	}
 
 	@Override
-	public SenseiRequest reqFromMessage(Message req) {
-		return SenseiRequestBPOConverter.convert((SenseiRequestBPO.Request)req);
-	}
-
-	@Override
-	public Message getEmptyRequestInstance() {
-		return SenseiRequestBPO.Request.getDefaultInstance(); 
+	public Serializer<SenseiRequest, SenseiResult> getSerializer() {
+		 return SERIALIZER;
 	}
 }

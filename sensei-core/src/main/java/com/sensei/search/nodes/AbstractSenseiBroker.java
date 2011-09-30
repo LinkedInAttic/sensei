@@ -17,10 +17,8 @@ import com.sensei.search.svc.api.SenseiException;
  * 
  * @param <REQUEST>
  * @param <RESULT>
- * @param <REQMSG>
- * @param <RESMSG>
  */
-public abstract class AbstractSenseiBroker<REQUEST extends AbstractSenseiRequest, RESULT extends AbstractSenseiResult, REQMSG extends Message, RESMSG extends Message>
+public abstract class AbstractSenseiBroker<REQUEST extends AbstractSenseiRequest, RESULT extends AbstractSenseiResult>
     implements ClusterListener
 {
   private final static Logger logger = Logger.getLogger(AbstractSenseiBroker.class);
@@ -31,27 +29,15 @@ public abstract class AbstractSenseiBroker<REQUEST extends AbstractSenseiRequest
   /**
    * @param networkClient
    * @param clusterClient
-   * @param defaultrequest
-   *          a default instance of request message object for protobuf
-   *          registration
-   * @param defaultresult
-   *          a default instance of result message object for protobuf
-   *          registration
    * @param routerFactory
    * @param scatterGatherHandler
    * @throws NorbertException
    */
-  public AbstractSenseiBroker(PartitionedNetworkClient<Integer> networkClient, REQMSG defaultrequest, RESMSG defaultresult)
+  public AbstractSenseiBroker(PartitionedNetworkClient<Integer> networkClient)
       throws NorbertException
   {
     _networkClient = networkClient;
-    // register the request-response messages
-    _networkClient.registerRequest(defaultrequest, defaultresult);
   }
-
-  public abstract REQMSG requestToMessage(REQUEST request);
-
-  public abstract RESULT messageToResult(RESMSG message);
 
   /**
    * @return an empty result instance. Used when the request cannot be properly

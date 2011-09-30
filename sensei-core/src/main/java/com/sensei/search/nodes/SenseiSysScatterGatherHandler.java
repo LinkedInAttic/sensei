@@ -10,30 +10,24 @@ import com.google.protobuf.Message;
 import com.linkedin.norbert.javacompat.cluster.Node;
 import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.req.SenseiSystemInfo;
-import com.sensei.search.req.protobuf.SenseiSysRequestBPO;
-import com.sensei.search.req.protobuf.SenseiSysRequestBPOConverter;
-import com.sensei.search.req.protobuf.SenseiSysResultBPO;
 
-public class SenseiSysScatterGatherHandler extends AbstractSenseiScatterGatherHandler<SenseiRequest, SenseiSystemInfo, SenseiSysRequestBPO.SysRequest, SenseiSysResultBPO.SysResult>
+public class SenseiSysScatterGatherHandler extends AbstractSenseiScatterGatherHandler<SenseiRequest, SenseiSystemInfo>
 {
 
   private final static Logger logger = Logger.getLogger(SenseiSysScatterGatherHandler.class);
 
   private final Comparator<String> _versionComparator;
 
-  public SenseiSysScatterGatherHandler(Comparator<String> versionComparator)
+  public SenseiSysScatterGatherHandler(SenseiRequest request, Comparator<String> versionComparator)
   {
-    _versionComparator = versionComparator;
+      super(request);
+      _versionComparator = versionComparator;
   }
 
-  public Message customizeMessage(Message msg, Node node, Set<Integer> partitions) throws Exception
-  {
-    SenseiSysRequestBPO.SysRequest req = (SenseiSysRequestBPO.SysRequest) msg;
-    SenseiRequest senseiReq = SenseiSysRequestBPOConverter.convert(req);
-
-    senseiReq.setPartitions(partitions);
-
-    return SenseiSysRequestBPOConverter.convert(senseiReq);
+  @Override
+  public SenseiRequest customizeRequest(SenseiRequest senseiRequest, Node node, Set<Integer> partitions) {
+    senseiRequest.setPartitions(partitions);
+    return senseiRequest;
   }
 
   @Override
@@ -61,30 +55,6 @@ public class SenseiSysScatterGatherHandler extends AbstractSenseiScatterGatherHa
     }
 
     return result;
-  }
-
-  @Override
-  public SenseiRequest messageToRequest(SenseiSysRequestBPO.SysRequest msg)
-  {
-    return SenseiSysRequestBPOConverter.convert(msg);
-  }
-
-  @Override
-  public SenseiSystemInfo messageToResult(SenseiSysResultBPO.SysResult message)
-  {
-    return SenseiSysRequestBPOConverter.convert(message);
-  }
-
-  @Override
-  public SenseiSysRequestBPO.SysRequest requestToMessage(SenseiRequest request)
-  {
-    return SenseiSysRequestBPOConverter.convert(request);
-  }
-
-  @Override
-  public SenseiSysResultBPO.SysResult resultToMessage(SenseiSystemInfo result)
-  {
-    return SenseiSysRequestBPOConverter.convert(result);
   }
 }
 

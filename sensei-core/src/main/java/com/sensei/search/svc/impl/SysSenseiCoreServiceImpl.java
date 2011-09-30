@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.sensei.search.req.SenseiJavaSerializer;
 import org.apache.log4j.Logger;
 import org.apache.lucene.search.Query;
 
@@ -25,17 +26,18 @@ import com.browseengine.bobo.api.BrowseRequest;
 import com.browseengine.bobo.api.BrowseResult;
 import com.browseengine.bobo.api.FacetAccessible;
 import com.browseengine.bobo.api.MultiBoboBrowser;
-import com.google.protobuf.Message;
+import com.linkedin.norbert.network.JavaSerializer;
+import com.linkedin.norbert.network.Serializer;
 import com.sensei.search.client.ResultMerger;
 import com.sensei.search.nodes.SenseiCore;
 import com.sensei.search.nodes.SenseiQueryBuilderFactory;
 import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.req.SenseiSystemInfo;
-import com.sensei.search.req.protobuf.SenseiSysRequestBPO;
-import com.sensei.search.req.protobuf.SenseiSysRequestBPOConverter;
 import com.sensei.search.util.RequestConverter;
 
 public class SysSenseiCoreServiceImpl extends AbstractSenseiCoreService<SenseiRequest, SenseiSystemInfo>{
+	public static final Serializer<SenseiRequest, SenseiSystemInfo> SERIALIZER =
+			SenseiJavaSerializer.build("SenseiSysRequest", SenseiRequest.class, SenseiSystemInfo.class);
 
   private static final Logger logger = Logger.getLogger(SysSenseiCoreServiceImpl.class);
   
@@ -89,24 +91,14 @@ public class SysSenseiCoreServiceImpl extends AbstractSenseiCoreService<SenseiRe
     return result;
   }
 
-  @Override
-  public SenseiSystemInfo getEmptyResultInstance(Throwable error) {
-    return new SenseiSystemInfo();
-  } 
-    
-  @Override
-  public Message resultToMessage(SenseiSystemInfo result) {
-    return SenseiSysRequestBPOConverter.convert(result);
-  }
+	@Override
+	public SenseiSystemInfo getEmptyResultInstance(Throwable error) {
+		return new SenseiSystemInfo();
+	}
 
-  @Override
-  public SenseiRequest reqFromMessage(Message req) {
-    return SenseiSysRequestBPOConverter.convert((SenseiSysRequestBPO.SysRequest)req);
-  }
-
-  @Override
-  public Message getEmptyRequestInstance() {
-    return SenseiSysRequestBPO.SysRequest.getDefaultInstance(); 
-  }
+	@Override
+	public Serializer<SenseiRequest, SenseiSystemInfo> getSerializer() {
+		return SERIALIZER;
+	}
 }
 
