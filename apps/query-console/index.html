@@ -19,13 +19,13 @@
 	
 	<script src="http://code.jquery.com/jquery-1.6.1.js"></script>
 	<script src="js/app.js"></script>
-  <script src="js/mustache.js" ></script>
 	<script src="http://jsbeautifier.org/beautify.js" ></script>
+  <script src="js/mustache.js" ></script>
   <script>
   
   var statsTemplate = "Found {{numhits}} docs in {{time}}ms";
   var facetTemplate = " {{value}} ({{count}})";
-  var valueTemplate = " {{name}}: {{value}}";
+  var valueTemplate = " <span style='padding-right:50px;width:100px;margin-right:30px;background-color:#efefef;font-weight:bold;font-size:14px'>{{name}}:</span>{{value}}";
   
   function doClick() {
     var ql = $('#query').val();
@@ -43,15 +43,15 @@
       var facetDiv= $('#facets');
       facetDiv.empty();
       for (var f in facets){
-        console.log(f);
         var facetArray = facets[f];
-        facetDiv.append("<p/>")
-        facetDiv.append(f+"<br/>");
+        facetDiv.append("<div>");
+        facetDiv.append("<span style='background-color:#efefef;font-weight:bold;font-size:14px'>"+f+"</span><br/>");
         for (var i=0;i<facetArray.length;++i){
           var facetVal = facetArray[i];
           facetDiv.append($.mustache(facetTemplate,facetVal));
           facetDiv.append("<br/>")
         }
+		facetDiv.append("</div>")
         facetDiv.append("<hr/>");
       }
 
@@ -62,19 +62,19 @@
       var hitsDiv = $('#hits');
       hitsDiv.empty();
       for (var i=0;i<hits.length;++i){
-         var hit = hits[0];
+        hitsDiv.append("<div/>");
+        var hit = hits[i];
         for (var f in hit){
-          // if array:
           var field = hit[f];
           console.log('name:'+f);
           console.log('val:'+field);
-          hitsDiv.append("<p/>");
           var val ={'name':f,'value':field};
             
           console.log('not array: '+val.name);
           hitsDiv.append($.mustache(valueTemplate,val));
-          
+          hitsDiv.append("<br/>")
         }
+		hitsDiv.append("<hr/>");
       }
     });
   };
@@ -84,7 +84,7 @@
 <body>
   <div class="container">
     <h1 style="text-align:center">Sensei Query Console</h1>
-    <h3>Enter query: </h3><textarea style="width:600px;font-size:20px" id="query" cols="200" rows="3">select uid from cars browse by (color:(true,1,5,hits))</textarea>
+    <h3>Enter query: </h3><textarea style="width:850px;font-size:20px" id="query" cols="200" rows="3">select * from cars browse by (color:(true,1,5,hits),category:(true,1,5,hits))</textarea>
     <input id="execute" onclick="doClick()" type="button" class="btn primary" value="execute" />
     <br/>
     <div style="text-align:right" id="searchStats"></div>
@@ -99,7 +99,6 @@
         <h3>Results</h3>
         <div id="hits">
         </div>
-        <textarea style="width:100%" id="result" type="textarea" cols="50" rows="70"></textarea>
       </div>
     </div>
   </div>
