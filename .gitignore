@@ -21,3 +21,4 @@ TAGS
 cscope.*
 index
 target
+*.pyc
