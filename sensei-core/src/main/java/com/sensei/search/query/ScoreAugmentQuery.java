@@ -64,7 +64,7 @@ public class ScoreAugmentQuery extends AbstractScoreAdjuster
     
   }
   
-  private ScoreAugmentFunction _func;
+  private transient ScoreAugmentFunction _func;
 
   public ScoreAugmentQuery(Query query,ScoreAugmentFunction func)
   {

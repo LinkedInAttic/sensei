@@ -150,13 +150,14 @@ public class ResultMerger
     }
 
     Map<String, FacetAccessible> mergedFacetMap = new HashMap<String, FacetAccessible>();
-    for (String facet : counts.keySet())
+    for (Entry<String,Map<String, Integer>> entry : counts.entrySet())
     {
-      Map<String, Integer> facetValueCounts = counts.get(facet);
+      String facet = entry.getKey();
+      Map<String, Integer> facetValueCounts = entry.getValue();
       List<BrowseFacet> facets = new ArrayList<BrowseFacet>(facetValueCounts.size());
-      for (Entry<String, Integer> entry : facetValueCounts.entrySet())
+      for (Entry<String, Integer> subEntry : facetValueCounts.entrySet())
       {
-        facets.add(new BrowseFacet(entry.getKey(), entry.getValue()));
+        facets.add(new BrowseFacet(subEntry.getKey(), subEntry.getValue()));
       }
       FacetSpec fspec = null;
       Set<String> values = new HashSet<String>();
@@ -212,9 +213,10 @@ public class ResultMerger
     }
     // create combinedFacetAccessibles
     Map<String, FacetAccessible> fieldMap = new HashMap<String, FacetAccessible>();
-    for(String fieldname : counts.keySet())
+    for(Entry<String,List<FacetAccessible>> entry : counts.entrySet())
     {
-      List<FacetAccessible> facetAccs = counts.get(fieldname);
+      String fieldname = entry.getKey();
+      List<FacetAccessible> facetAccs = entry.getValue();
       if (facetAccs.size() == 1)
       {
         fieldMap.put(fieldname, facetAccs.get(0));
@@ -224,9 +226,10 @@ public class ResultMerger
       }
     }
     Map<String, FacetAccessible> mergedFacetMap = new HashMap<String, FacetAccessible>();
-    for(String fieldname : fieldMap.keySet())
+    for(Entry<String,FacetAccessible> entry : fieldMap.entrySet())
     {
-      FacetAccessible facetAcc = fieldMap.get(fieldname);
+      String fieldname = entry.getKey();
+      FacetAccessible facetAcc = entry.getValue();
       FacetSpec fspec = req.getFacetSpec(fieldname);
       BrowseSelection sel = req.getSelection(fieldname);
       Set<String> values = new HashSet<String>();

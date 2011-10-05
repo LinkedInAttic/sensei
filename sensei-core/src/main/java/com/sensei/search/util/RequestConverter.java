@@ -36,17 +36,17 @@ public class RequestConverter {
        
         // query
         Query q = null;
+        Filter f = null;
         
         if (queryBuilder!=null){
         	q = queryBuilder.buildQuery();
+        	f = queryBuilder.buildFilter();
         }
         
         if(q != null){
             breq.setQuery(q);
         }
         
-        // filter
-        Filter f = queryBuilder.buildFilter();
         if(f != null){
             breq.setFilter(f);
         }

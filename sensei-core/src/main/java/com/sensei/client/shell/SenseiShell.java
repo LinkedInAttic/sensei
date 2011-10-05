@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.ExecutionException;
 
 import org.apache.commons.configuration.Configuration;
@@ -385,11 +386,12 @@ public class SenseiShell {
   private static String facetMapToString(Map<String, FacetSpec> _facetSpecMap)
   {
     StringBuffer sb = new StringBuffer();
-    Iterator<String> it = _facetSpecMap.keySet().iterator();
+    Iterator<Entry<String,FacetSpec>> it = _facetSpecMap.entrySet().iterator();
     while(it.hasNext()){
-      String key = it.next();
-      sb.append("\n\t  - "+key+": [ ");
-      FacetSpec fs = _facetSpecMap.get(key);
+      Entry<String,FacetSpec> entry = it.next();
+      String key = entry.getKey();
+      sb.append("\n\t  - ").append(key).append(": [ ");
+      FacetSpec fs = entry.getValue();
       {
         sb.append("orderBy: ").append(fs.getOrderBy()).append(", ");
         sb.append("max count: ").append(fs.getMaxCount()).append(", ");

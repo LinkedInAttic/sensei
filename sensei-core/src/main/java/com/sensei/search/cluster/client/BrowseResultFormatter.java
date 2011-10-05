@@ -1,7 +1,9 @@
 package com.sensei.search.cluster.client;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import com.browseengine.bobo.api.BrowseFacet;
@@ -25,13 +27,13 @@ public class BrowseResultFormatter{
               sb.append(" docs\n");
             BrowseHit[] hits = res.getHits();
             Map<String,FacetAccessible> map = res.getFacetMap();
-            Set<String> keys = map.keySet();
-            for(String key : keys) {
-                    FacetAccessible fa = map.get(key);
-                    sb.append(key + "\n");
+            for(Entry<String,FacetAccessible> entry : map.entrySet()) {
+            	    String key = entry.getKey();
+                    FacetAccessible fa = entry.getValue();
+                    sb.append(key).append("\n");
                     List<BrowseFacet> lf = fa.getFacets();
                     for(BrowseFacet bf : lf) {
-                            sb.append("\t" + bf + "\n");
+                       sb.append("\t").append(bf).append("\n");
                     }
             }
             for(BrowseHit hit : hits) {
@@ -54,14 +56,12 @@ public class BrowseResultFormatter{
             }
             Map<String, String[]> fields = hit.getFieldValues();
             if (fields!=null){
-              Set<String> keys = fields.keySet();
-              for(String key : keys) {
-                    sb.append("\t" + key + " :");
-                    String[] values = fields.get(key);
-                    for(String value : values)
-                    {
-                            sb.append(" " + value);
-                    }
+              
+              for(Entry<String,String[]> entry: fields.entrySet()) {
+            	    String key = entry.getKey();
+                    sb.append("\t").append(key).append(" :");
+                    String[] values = entry.getValue();
+                    sb.append(Arrays.toString(values));
                     sb.append("\n");
               }
             }

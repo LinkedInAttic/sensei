@@ -1,15 +1,18 @@
 package com.sensei.search.req;
 
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import org.apache.lucene.document.Document;
+import org.apache.lucene.search.Explanation;
+
 import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.BrowseHit;
 import com.browseengine.bobo.api.BrowseResult;
 import com.browseengine.bobo.api.FacetAccessible;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import org.apache.lucene.document.Document;
-import org.apache.lucene.search.Explanation;
 
 
 public class SenseiResult extends BrowseResult implements AbstractSenseiResult
@@ -86,30 +89,6 @@ public class SenseiResult extends BrowseResult implements AbstractSenseiResult
     return true;
   }
 
-  private boolean rawFieldValuesAreEqual(Map<String,Object[]> a, Map<String,Object[]> b) {
-    if (a == null) return b == null;
-    if (a.size() != b.size()) return false;
-
-    for (String key : a.keySet()) {
-      if (!b.containsKey(key)) return false;
-      if (!Arrays.equals(a.get(key), b.get(key))) return false;
-    }
-
-    return true;
-  }
-
-  private boolean fieldValuesAreEqual(Map<String,String[]> a, Map<String,String[]> b) {
-    if (a == null) return b == null;
-    if (a.size() != b.size()) return false;
-
-    for (String key : a.keySet()) {
-      if (!b.containsKey(key)) return false;
-      if (!Arrays.equals(a.get(key), b.get(key))) return false;
-    }
-
-    return true;
-  }
-
   private boolean storedFieldsAreEqual(Document a, Document b) {
     if (a == null) return b == null;
     return a.toString().equals(b.toString());
@@ -124,9 +103,10 @@ public class SenseiResult extends BrowseResult implements AbstractSenseiResult
     if (a == null) return b == null;
     if (a.size() != b.size()) return false;
 
-    for (String fieldName : a.keySet()) {
+    for (Entry<String,FacetAccessible> entry : a.entrySet()) {
+      String fieldName = entry.getKey();
       if (!b.containsKey(fieldName)) return false;
-      if (!facetAccessibleAreEqual(a.get(fieldName), b.get(fieldName))) return false;
+      if (!facetAccessibleAreEqual(entry.getValue(), b.get(fieldName))) return false;
     }
 
     return true;
