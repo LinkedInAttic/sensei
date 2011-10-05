@@ -210,13 +210,16 @@ public abstract class HttpStreamDataProvider<D> extends StreamDataProvider<D> im
 		      if (logger.isDebugEnabled()){
 			    logger.debug("no more data");
 		      }
-		      try{
-                Thread.sleep(_retryTime);
-                return null;
+		      synchronized(this){
+		    	  try{
+		            this.wait(_retryTime);
+		            return null;
+				  }
+				  catch (InterruptedException e1) {
+					return null;
+				  }
 		      }
-		      catch (InterruptedException e1) {
-				return null;
-			  }
+		      
 		    }
 		    _currentDataIter = data;
 		    break;
@@ -233,10 +236,14 @@ public abstract class HttpStreamDataProvider<D> extends StreamDataProvider<D> im
 		}
 	  }
 	  
-	  DataEvent<D> data = _currentDataIter.next();
-	  _offset = data.getVersion();
+	  DataEvent<D> data = null;
+	  if (_currentDataIter.hasNext()){
+	    data = _currentDataIter.next();
+	    if (data!=null){
+	      _offset = data.getVersion();
+	    }
+	  }
 	  return data;
-	  
 	}
 
 	@Override
@@ -266,11 +273,15 @@ public abstract class HttpStreamDataProvider<D> extends StreamDataProvider<D> im
 
 	@Override
 	public void stop() {
+		synchronized(this){
+		  _stopped = true;
+		  this.notifyAll();
+		}
 		try{
 		  super.stop();
 		}
 		finally{
-		  _stopped = true;
+		  
 		  if (_httpClientManager!=null){
 			 _httpClientManager.shutdown();
 		   }

@@ -1199,18 +1199,21 @@ def testInitParams():
   client = SenseiClient()
   res = client.doQuery(req)
 
-def main():
+def main(argv):
+  if len(argv) <= 1:
+    client = SenseiClient()
+  else:
+    host = argv[1]
+    port = int(argv[2])
+    print "url specified, host: %s, port: %d" % (host,port)
+    client = SenseiClient(host,port,'sensei')
+
   logger.setLevel(logging.INFO)
+
   formatter = logging.Formatter("%(asctime)s %(filename)s:%(lineno)d - %(message)s")
   stream_handler = logging.StreamHandler()
   stream_handler.setFormatter(formatter)
   logger.addHandler(stream_handler)
-
-  # For Signal
-  # client = SenseiClient("localhost", 8421, path="sensei")
-
-  # For cars
-  client = SenseiClient("localhost", 8080, path="sensei")
 
   def test_sql(stmt):
     test(stmt)
@@ -1235,7 +1238,7 @@ def main():
 
 if __name__ == "__main__":
 
-  main()
+  main(sys.argv)
 
   # testFacetSpecs()
   # test_basic()

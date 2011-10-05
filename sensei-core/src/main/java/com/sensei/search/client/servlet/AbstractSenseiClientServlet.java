@@ -74,8 +74,6 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
     try {
       SenseiRequest senseiReq = buildSenseiRequest(req);
       SenseiResult res = _senseiBroker.browse(senseiReq);
-      resp.setContentType("text/plain; charset=utf-8");
-      resp.setCharacterEncoding("UTF-8");
       OutputStream ostream = resp.getOutputStream();
       convertResult(senseiReq,res,ostream);
       ostream.flush();
@@ -87,9 +85,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
   private void handleSystemInfoRequest(HttpServletRequest req, HttpServletResponse resp)
     throws ServletException, IOException {
     try {
-      SenseiSystemInfo res = _senseiSysBroker.browse(new SenseiRequest());
-      resp.setContentType("text/plain; charset=utf-8");
-      resp.setCharacterEncoding("UTF-8");
+      SenseiSystemInfo res = _senseiSysBroker.browse(new SenseiRequest()); 
       OutputStream ostream = resp.getOutputStream();
       convertResult(res, ostream);
       ostream.flush();
@@ -162,6 +158,12 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
   @Override
   protected void doGet(HttpServletRequest req, HttpServletResponse resp)
       throws ServletException, IOException {
+    resp.setContentType("application/json; charset=utf-8");
+    resp.setCharacterEncoding("UTF-8");
+
+    resp.setHeader("Access-Control-Allow-Origin", "*");
+    resp.setHeader("Access-Control-Allow-Methods", "GET, POST");
+    resp.setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Accept");
 
     if (null == req.getPathInfo() || "/".equalsIgnoreCase(req.getPathInfo()))
     {
@@ -186,6 +188,15 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
       throws ServletException, IOException
   {
     doGet(req, resp);
+  }
+  
+  @Override
+  protected void doOptions(HttpServletRequest req, HttpServletResponse resp)
+      throws ServletException, IOException
+  {
+    resp.setHeader("Access-Control-Allow-Origin", "*");
+    resp.setHeader("Access-Control-Allow-Methods", "GET, POST");
+    resp.setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Accept");
   }
   
   protected abstract void convertResult(SenseiSystemInfo info, OutputStream ostream) throws Exception;
