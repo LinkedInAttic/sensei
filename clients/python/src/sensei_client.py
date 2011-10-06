@@ -342,6 +342,15 @@ sqlComment = "--" + restOfLine
 simpleSQL.ignore(sqlComment)
 
 
+def safe_str(obj):
+  """Return the byte string representation of obj."""
+  try:
+    return str(obj)
+  except UnicodeEncodeError:
+    # obj is unicode
+    return unicode(obj).encode("unicode_escape")
+
+
 class SQLRequest:
   """A Sensei request with a SQL SELECT-like statement."""
 
@@ -355,7 +364,7 @@ class SQLRequest:
     self.query = ""
     self.selections = []
     self.sorts = None
-    self.columns = [str(col) for col in self.tokens.columns]
+    self.columns = [safe_str(col) for col in self.tokens.columns]
     self.facet_init_param_map = None
 
     where = self.tokens.where
@@ -471,7 +480,7 @@ class SQLRequest:
     """Get group by facet name."""
 
     if self.tokens.groupby:
-      return str(self.tokens.groupby)
+      return self.tokens.groupby
     else:
       return None
 
@@ -856,7 +865,7 @@ class SenseiResult:
             else:
               v = '<Not Found>'
             if isinstance(v, list):
-              v = ','.join([str(item) for item in v])
+              v = ','.join([safe_str(item) for item in v])
             elif isinstance(v, (int, long, float)):
               v = str(v)
             value_len = len(v)
@@ -934,7 +943,7 @@ class SenseiResult:
           else:
             v = '<Not Found>'
           if isinstance(v, list):
-            v = ','.join([str(item) for item in v])
+            v = ','.join([safe_str(item) for item in v])
           elif isinstance(v, (int, float, long)):
             v = str(v)
           if len(v) > self.max_col_disp_len:
@@ -1030,13 +1039,13 @@ class SenseiClient:
                  (PARAM_DYNAMIC_INIT, facet_name, name, PARAM_DYNAMIC_TYPE)] = PARAM_DYNAMIC_TYPE_INT
         paramMap["%s.%s.%s.%s" %
                  (PARAM_DYNAMIC_INIT, facet_name, name,
-                  PARAM_DYNAMIC_VAL)] = ','.join([str(val) for val in vals])
+                  PARAM_DYNAMIC_VAL)] = ','.join([safe_str(val) for val in vals])
       for name, vals in initParams.long_map.iteritems():
         paramMap["%s.%s.%s.%s" %
                  (PARAM_DYNAMIC_INIT, facet_name, name, PARAM_DYNAMIC_TYPE)] = PARAM_DYNAMIC_TYPE_LONG
         paramMap["%s.%s.%s.%s" %
                  (PARAM_DYNAMIC_INIT, facet_name, name,
-                  PARAM_DYNAMIC_VAL)] = ','.join([str(val) for val in vals])
+                  PARAM_DYNAMIC_VAL)] = ','.join([safe_str(val) for val in vals])
       for name, vals in initParams.string_map.iteritems():
         paramMap["%s.%s.%s.%s" %
                  (PARAM_DYNAMIC_INIT, facet_name, name, PARAM_DYNAMIC_TYPE)] = PARAM_DYNAMIC_TYPE_STRING
@@ -1048,13 +1057,13 @@ class SenseiClient:
                  (PARAM_DYNAMIC_INIT, facet_name, name, PARAM_DYNAMIC_TYPE)] = PARAM_DYNAMIC_TYPE_BYTEARRAY
         paramMap["%s.%s.%s.%s" %
                  (PARAM_DYNAMIC_INIT, facet_name, name,
-                  PARAM_DYNAMIC_VAL)] = ','.join([str(val) for val in vals])
+                  PARAM_DYNAMIC_VAL)] = ','.join([safe_str(val) for val in vals])
       for name, vals in initParams.double_map.iteritems():
         paramMap["%s.%s.%s.%s" %
                  (PARAM_DYNAMIC_INIT, facet_name, name, PARAM_DYNAMIC_TYPE)] = PARAM_DYNAMIC_TYPE_DOUBLE
         paramMap["%s.%s.%s.%s" %
                  (PARAM_DYNAMIC_INIT, facet_name, name,
-                  PARAM_DYNAMIC_VAL)] = ','.join([str(val) for val in vals])
+                  PARAM_DYNAMIC_VAL)] = ','.join([safe_str(val) for val in vals])
 
     if req.groupby:
       paramMap[PARAM_GROUP_BY] = req.groupby
