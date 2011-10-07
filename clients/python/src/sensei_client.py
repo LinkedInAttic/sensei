@@ -590,15 +590,15 @@ class SenseiSelection:
     
   def addSelection(self, value, isNot=False):
     if isNot:
-      self.excludes.append(value)
+      self.excludes.append(safe_str(value))
     else:
-      self.values.append(value)
+      self.values.append(safe_str(value))
   
   def removeSelection(self, value, isNot=False):
     if isNot:
-      self.excludes.remove(value)
+      self.excludes.remove(safe_str(value))
     else:
-      self.values.remove(value)
+      self.values.remove(safe_str(value))
   
   def addProperty(self, name, value):
     self.properties[name] = value
@@ -946,6 +946,9 @@ class SenseiResult:
             v = ','.join([safe_str(item) for item in v])
           elif isinstance(v, (int, float, long)):
             v = str(v)
+          else:
+            # The value may contain unicode characters
+            v = safe_str(v)
           if len(v) > self.max_col_disp_len:
             v = v[:self.max_col_disp_len]
           sys.stdout.write(' %s%s |' % (v, ' ' * (max_lens[key] - len(v))))
@@ -1228,7 +1231,7 @@ def main(argv):
     test(stmt)
     req = SenseiRequest(stmt)
     res = client.doQuery(req)
-    res.display(req.get_columns(), 100)
+    res.display(req.get_columns(), 10000)
 
   import readline
   readline.parse_and_bind("tab: complete")

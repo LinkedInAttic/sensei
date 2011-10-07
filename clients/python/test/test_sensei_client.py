@@ -56,7 +56,7 @@ class TestSenseiClient(unittest.TestCase):
     select = req.selections[0]
     self.assertEqual(select.field, "age")
     self.assertEqual(select.operation, sensei_client.PARAM_SELECT_OP_OR)
-    self.assertEqual(select.values, [20, 30, "40"])
+    self.assertEqual(select.values, ["20", "30", "40"])
     select = req.selections[1]
     self.assertEqual(select.field, "last_name")
     self.assertEqual(select.operation, sensei_client.PARAM_SELECT_OP_AND)
