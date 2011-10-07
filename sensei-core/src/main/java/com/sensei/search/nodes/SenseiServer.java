@@ -169,6 +169,9 @@ public class SenseiServer {
       _networkServer.registerHandler(senseiMsgHandler, coreSenseiService.getSerializer());
       _networkServer.registerHandler(senseiSysMsgHandler, sysSenseiCoreService.getSerializer());
 
+	    _networkServer.registerHandler(senseiMsgHandler, CoreSenseiServiceImpl.PROTO_SERIALIZER);
+	    _networkServer.registerHandler(senseiSysMsgHandler, SysSenseiCoreServiceImpl.PROTO_SERIALIZER);
+
       if (_externalSvc!=null){
     	for (AbstractSenseiCoreService svc : _externalSvc){
     		_networkServer.registerHandler(new SenseiCoreServiceMessageHandler(svc), svc.getSerializer());

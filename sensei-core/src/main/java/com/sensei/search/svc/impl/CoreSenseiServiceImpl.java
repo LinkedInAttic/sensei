@@ -12,7 +12,6 @@ import javax.management.ObjectName;
 
 import com.linkedin.norbert.network.JavaSerializer;
 import com.linkedin.norbert.network.Serializer;
-import com.sensei.search.req.SenseiJavaSerializer;
 import org.apache.log4j.Logger;
 import org.apache.lucene.search.Query;
 
@@ -28,23 +27,25 @@ import com.browseengine.bobo.api.BrowseRequest;
 import com.browseengine.bobo.api.BrowseResult;
 import com.browseengine.bobo.api.FacetAccessible;
 import com.browseengine.bobo.api.MultiBoboBrowser;
-import com.google.protobuf.Message;
 import com.sensei.indexing.api.SenseiIndexPruner;
 import com.sensei.indexing.api.SenseiIndexPruner.IndexReaderSelector;
 import com.sensei.search.client.ResultMerger;
 import com.sensei.search.jmx.JmxUtil;
-import com.sensei.search.jmx.JmxUtil.Timer;
 import com.sensei.search.nodes.SenseiCore;
 import com.sensei.search.nodes.SenseiQueryBuilderFactory;
 import com.sensei.search.req.SenseiHit;
 import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.req.SenseiResult;
+import com.sensei.search.req.protobuf.SenseiReqProtoSerializer;
 import com.sensei.search.util.RequestConverter;
 import com.yammer.metrics.core.TimerMetric;
 
 public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiRequest, SenseiResult>{
 	public static final Serializer<SenseiRequest, SenseiResult> SERIALIZER =
-			SenseiJavaSerializer.build("SenseiRequest", SenseiRequest.class, SenseiResult.class);
+			JavaSerializer.apply("SenseiRequest", SenseiRequest.class, SenseiResult.class);
+
+	public static final Serializer<SenseiRequest, SenseiResult> PROTO_SERIALIZER =
+			new SenseiReqProtoSerializer();
 
 	private static final Logger logger = Logger.getLogger(CoreSenseiServiceImpl.class);
 	

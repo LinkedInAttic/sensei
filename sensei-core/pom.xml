@@ -204,7 +204,7 @@
 		<dependency>
 			<groupId>com.linkedin</groupId>
 			<artifactId>norbert_2.8.1</artifactId>
-			<version>0.6.11</version>
+			<version>0.6.12</version>
 		</dependency>
 		<dependency>
 			<groupId>com.google.protobuf</groupId>
