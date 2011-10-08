@@ -5,6 +5,7 @@
 	<classpathentry kind="src" path="sensei-hadoop-indexing/src/main/java"/>
 	<classpathentry kind="src" path="perf/src/main/java"/>
 	<classpathentry kind="src" path="sensei-core/src/test/java"/>
+	<classpathentry kind="lib" path="lib/commons-httpclient-3.1.jar"/>
 	<classpathentry kind="var" path="M2_REPO/javax/inject/javax.inject/1/javax.inject-1.jar"/>
 	<classpathentry kind="var" path="M2_REPO/javax/jms/jms/1.1/jms-1.1.jar"/>
 	<classpathentry kind="var" path="M2_REPO/javax/servlet/servlet-api/2.5/servlet-api-2.5.jar"/>
@@ -28,6 +29,7 @@
 	<classpathentry kind="var" path="M2_REPO/fastutil/fastutil/5.0.5/fastutil-5.0.5.jar"/>
 	<classpathentry kind="var" path="M2_REPO/com/google/inject/guice/3.0/guice-3.0.jar"/>
 	<classpathentry kind="var" path="M2_REPO/org/apache/httpcomponents/httpclient/4.1/httpclient-4.1.jar"/>
+	<classpathentry kind="var" path="M2_REPO/org/apache/hadoop/hadoop-core/0.20.203.0/hadoop-core-0.20.203.0.jar"/>
 	<classpathentry kind="var" path="M2_REPO/org/apache/httpcomponents/httpcore/4.1/httpcore-4.1.jar"/>
 	<classpathentry kind="var" path="M2_REPO/org/codehaus/jackson/jackson-core-asl/1.4.2/jackson-core-asl-1.4.2.jar"/>
 	<classpathentry kind="var" path="M2_REPO/org/codehaus/jackson/jackson-mapper-asl/1.7.5/jackson-mapper-asl-1.7.5.jar"/>
@@ -81,7 +83,5 @@
 	</classpathentry>
 	<classpathentry kind="var" path="M2_REPO/org/apache/zookeeper/zookeeper/3.3.3/zookeeper-3.3.3.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="lib/hadoop-0.20.2-core.jar"/>
-	<classpathentry kind="lib" path="lib/commons-httpclient-3.1.jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
