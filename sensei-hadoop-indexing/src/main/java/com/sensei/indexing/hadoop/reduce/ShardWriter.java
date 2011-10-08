@@ -21,13 +21,12 @@ package com.sensei.indexing.hadoop.reduce;
 import java.io.IOException;
 import java.util.List;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.PathFilter;
+import org.apache.log4j.Logger;
 import org.apache.lucene.index.CorruptIndexException;
 import org.apache.lucene.index.IndexCommit;
 import org.apache.lucene.index.IndexDeletionPolicy;
@@ -48,7 +47,7 @@ import com.sensei.indexing.hadoop.util.LuceneIndexFileNameFilter;
  * moves the new files to the perm dir and deletes the temp dir in close().
  */
 public class ShardWriter {
-  static final Log LOG = LogFactory.getLog(ShardWriter.class);
+  private static Logger logger = Logger.getLogger(ShardWriter.class);
 
   private final FileSystem fs;
   private final FileSystem localFs;
@@ -69,7 +68,7 @@ public class ShardWriter {
    */
   public ShardWriter(FileSystem fs, Shard shard, String tempDir,
       Configuration iconf) throws IOException {
-    LOG.info("Construct a shard writer");
+	  logger.info("Construct a shard writer");
 
     this.fs = fs;
     localFs = FileSystem.getLocal(iconf);
@@ -117,25 +116,25 @@ public class ShardWriter {
    * @throws IOException
    */
   public void close() throws IOException {
-    LOG.info("Closing the shard writer, processed " + numForms + " forms");
+	  logger.info("Closing the shard writer, processed " + numForms + " forms");
     try {
       try {
         if (maxNumSegments > 0) {
           writer.optimize(maxNumSegments);
-          LOG.info("Optimized the shard into at most " + maxNumSegments
+          logger.info("Optimized the shard into at most " + maxNumSegments
               + " segments");
         }
       } finally {
         writer.close();
-        LOG.info("Closed Lucene index writer");
+        logger.info("Closed Lucene index writer");
       }
 
       moveFromTempToPerm();
-      LOG.info("Moved new index files to " + perm);
+      logger.info("Moved new index files to " + perm);
 
     } finally {
       dir.close();
-      LOG.info("Closed the shard writer");
+      logger.info("Closed the shard writer");
     }
   }
 
@@ -155,10 +154,10 @@ public class ShardWriter {
     maxNumSegments = conf.getInt("sea.max.num.segments", -1);
 
     if (maxFieldLength > 0) {
-      LOG.info("sea.max.field.length = " + writer.getMaxFieldLength());
+    	logger.info("sea.max.field.length = " + writer.getMaxFieldLength());
     }
-    LOG.info("sea.use.compound.file = " + writer.getUseCompoundFile());
-    LOG.info("sea.max.num.segments = " + maxNumSegments);
+    logger.info("sea.use.compound.file = " + writer.getUseCompoundFile());
+    logger.info("sea.max.num.segments = " + maxNumSegments);
   }
 
   // in case a previous reduce task fails, restore the generation to
@@ -238,9 +237,9 @@ public class ShardWriter {
 	  try {
 		writer.optimize();
 	} catch (CorruptIndexException e) {
-		e.printStackTrace();
+		logger.error("Corrupt Index error. ", e);
 	} catch (IOException e) {
-		e.printStackTrace();
+		logger.error("IOException during index optimization. ", e);
 	}
   }
   

@@ -5,7 +5,12 @@ import org.json.JSONObject;
 
 public interface MapInputConverter {
 
-    public int getUID(JSONObject json) throws JSONException;
 
+	/**
+	 * @param key  key as mapper input;
+	 * @param value   value as mapper input;
+	 * @return  A JSONObject converted from the map input record;
+	 * @throws JSONException
+	 */
 	public JSONObject getJsonInput(Object key, Object value) throws JSONException;
 }

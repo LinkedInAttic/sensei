@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.StringTokenizer;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -13,15 +12,13 @@ import org.apache.commons.configuration.ConfigurationException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.filecache.DistributedCache;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.IntWritable;
-import org.apache.hadoop.io.LongWritable;
-import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.MapReduceBase;
 import org.apache.hadoop.mapred.Mapper;
 import org.apache.hadoop.mapred.OutputCollector;
 import org.apache.hadoop.mapred.Reporter;
 import org.apache.hadoop.util.ReflectionUtils;
+import org.apache.log4j.Logger;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
@@ -36,19 +33,23 @@ import proj.zoie.api.indexing.ZoieIndexable.IndexingReq;
 import com.sensei.conf.SchemaConverter;
 import com.sensei.conf.SenseiSchema;
 import com.sensei.indexing.api.DefaultJsonSchemaInterpreter;
+import com.sensei.indexing.api.JsonFilter;
 import com.sensei.indexing.api.ShardingStrategy;
 import com.sensei.indexing.hadoop.keyvalueformat.IntermediateForm;
 import com.sensei.indexing.hadoop.keyvalueformat.Shard;
 
 public class SenseiMapper extends MapReduceBase implements Mapper<Object, Object, Shard, IntermediateForm> {
 
+	private final static Logger logger = Logger.getLogger(SenseiMapper.class);
 	private static DefaultJsonSchemaInterpreter _defaultInterpreter = null;
 	private boolean _use_remote_schema = false;
 	private volatile boolean _isConfigured = false;
 	private Configuration _conf;
 	private Shard[] _shards;
+	
 	private ShardingStrategy _shardingStategy;
 	private MapInputConverter _converter;
+	private JsonFilter _filter;
 	
 	private Analyzer analyzer = new StandardAnalyzer(Version.LUCENE_30);
 	  
@@ -58,15 +59,19 @@ public class SenseiMapper extends MapReduceBase implements Mapper<Object, Object
                     Reporter reporter) throws IOException {
     	
         if(_isConfigured == false)
-	      throw new IllegalStateException("Mapper's configure method wasn't sucessful.");
+	      throw new IllegalStateException("Mapper's configure method wasn't sucessful. May not get the correct schema.");
 
         JSONObject json = null;
-        int uid = -1;
     	try{
     		json = _converter.getJsonInput(key, value);
-    		uid = _converter.getUID(json);
     	}catch(JSONException e){
     		throw new IllegalStateException("data conversion failed inside mapper.");
+    	}
+    	
+    	try{
+    		json = _filter.filter(json);
+    	}catch(Exception e){
+    		throw new IllegalStateException("data filtering failed.");
     	}
     	
     	
@@ -81,7 +86,6 @@ public class SenseiMapper extends MapReduceBase implements Mapper<Object, Object
     	      if(idxReqs.length>0){
     	    	  Document doc = idxReqs[0].getDocument();
     		  	  ZoieSegmentReader.fillDocumentID(doc, indexable.getUID());
-//    	    	  output.collect(key_doc, doc);
     	    	  
     		  	  //now we have uid and lucene Doc;
 		          IntermediateForm form = new IntermediateForm();
@@ -123,6 +127,10 @@ public class SenseiMapper extends MapReduceBase implements Mapper<Object, Object
 				job.getClass("sea.mapinput.converter",
 						MapInputConverter.class, MapInputConverter.class), job);
 		
+		_filter = (JsonFilter) ReflectionUtils.newInstance(
+				job.getClass("sea.mapinput.filter",
+						DummyFilter.class, JsonFilter.class), job);
+		
 		try {
 			getSchema(job, _use_remote_schema);
 			_isConfigured = true;
@@ -147,13 +155,13 @@ public class SenseiMapper extends MapReduceBase implements Mapper<Object, Object
 						metadataFileName = strFileName;
 						break;
 					}
-					System.out.println("$$$$$$" + strFileName);
 				}
 				if (metadataFileName.length() > 0) {
 					_schema_uri = "file:///" + metadataFileName;
 
 					if (_defaultInterpreter == null) {
-
+						
+						logger.info("schema file is:" + _schema_uri);
 						URL url = new URL(_schema_uri);
 						URLConnection conn = url.openConnection();
 						conn.connect();
@@ -173,16 +181,10 @@ public class SenseiMapper extends MapReduceBase implements Mapper<Object, Object
 						JSONObject schemaData = SchemaConverter
 								.convert(schemaXml);
 
-						// JSONObject schemaData =
-						// SenseiServerBuilder.loadSchema(new
-						// File(_schema_uri));
-						SenseiSchema schema = SenseiSchema
-								.build(schemaData);
-						_defaultInterpreter = new DefaultJsonSchemaInterpreter(
-								schema);
+						SenseiSchema schema = SenseiSchema.build(schemaData);
+						_defaultInterpreter = new DefaultJsonSchemaInterpreter(schema);
 					}
 				}
-				System.out.println("***" + metadataFileName);
 			}
 
 		} else { // use local schema for debugging;
@@ -203,12 +205,8 @@ public class SenseiMapper extends MapReduceBase implements Mapper<Object, Object
 					JSONObject schemaData = SchemaConverter
 							.convert(schemaXml);
 
-					// JSONObject schemaData =
-					// SenseiServerBuilder.loadSchema(new
-					// File(_schema_uri));
 					SenseiSchema schema = SenseiSchema.build(schemaData);
-					_defaultInterpreter = new DefaultJsonSchemaInterpreter(
-							schema);
+					_defaultInterpreter = new DefaultJsonSchemaInterpreter(schema);
 				}
 			}
 

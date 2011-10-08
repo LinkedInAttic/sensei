@@ -3,8 +3,6 @@ package com.sensei.indexing.hadoop.reduce;
 import java.io.IOException;
 import java.util.Iterator;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -16,6 +14,7 @@ import org.apache.hadoop.mapred.MapReduceBase;
 import org.apache.hadoop.mapred.OutputCollector;
 import org.apache.hadoop.mapred.Reducer;
 import org.apache.hadoop.mapred.Reporter;
+import org.apache.log4j.Logger;
 
 import com.sensei.indexing.hadoop.keyvalueformat.IntermediateForm;
 import com.sensei.indexing.hadoop.keyvalueformat.Shard;
@@ -24,7 +23,7 @@ import com.sensei.indexing.hadoop.util.MRConfig;
 public class SenseiReducer extends MapReduceBase implements
 		Reducer<Shard, IntermediateForm, Shard, Text> {
 	
-	static final Log LOG = LogFactory.getLog(SenseiReducer.class);
+	private static final Logger logger = Logger.getLogger(SenseiReducer.class);
 	static final Text DONE = new Text("done");
 	
 
@@ -35,13 +34,13 @@ public class SenseiReducer extends MapReduceBase implements
                        OutputCollector<Shard, Text> output, 
                        Reporter reporter) throws IOException {
 
-        LOG.info("Construct a shard writer for " + key);
+    	logger.info("Construct a shard writer for " + key);
         FileSystem fs = FileSystem.get(iconf);
         //debug:
-        LOG.info("filesystem is: "+ fs.getName());
+        logger.info("filesystem is: "+ fs.getName());
         String temp =
             mapredTempDir + Path.SEPARATOR + "shard_" + System.currentTimeMillis();
-        LOG.info("mapredTempDir is: "+ mapredTempDir);
+        logger.info("mapredTempDir is: "+ mapredTempDir);
         final ShardWriter writer = new ShardWriter(fs, key, temp, iconf);
 
         // update the shard
@@ -85,7 +84,7 @@ public class SenseiReducer extends MapReduceBase implements
             }
           }
         }.close();
-        LOG.info("Closed the shard writer for " + key + ", writer = " + writer);
+        logger.info("Closed the shard writer for " + key + ", writer = " + writer);
     	
     	
       output.collect(key, DONE);

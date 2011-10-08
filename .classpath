@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="sensei-core/src/main/java"/>
+	<classpathentry kind="src" path="example/hadoop-indexing/src/main/java"/>
+	<classpathentry kind="src" path="sensei-hadoop-indexing/src/main/java"/>
 	<classpathentry kind="src" path="perf/src/main/java"/>
 	<classpathentry kind="src" path="sensei-core/src/test/java"/>
 	<classpathentry kind="var" path="M2_REPO/javax/inject/javax.inject/1/javax.inject-1.jar"/>
@@ -81,6 +83,5 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="lib/hadoop-0.20.2-core.jar"/>
 	<classpathentry kind="lib" path="lib/commons-httpclient-3.1.jar"/>
-	<classpathentry kind="lib" path="lib/commons-logging-1.0.4.jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
