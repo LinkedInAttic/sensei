@@ -35,7 +35,7 @@ schema.use.remote=false
 
 ##### TextJSON schema Sample (car demo)######
 schema.file.url=/user/sguo/schema/schema_member.xml
-schema.file.local=hadoop/conf/schema_car.xml
+schema.file.local=example/hadoop-indexing/conf/schema_car.xml
 
 ############    Input and Output  ##################
 ####### Avro data ########
@@ -51,11 +51,11 @@ read.lock=data/cars.json
 mapreduce.input.fileinputformat.inputdir=data/cars.json
 
 ######## Output configuration ######
-write.lock=hadoop/output 
-mapreduce.output.fileoutputformat.outputdir=hadoop/output
+write.lock=example/hadoop-indexing/output
+mapreduce.output.fileoutputformat.outputdir=example/hadoop-indexing/output
 
 ######## Index output location ######
-sea.index.path=hadoop/index
+sea.index.path=example/hadoop-indexing/index
 
 ############# schemas for mapper input  ################
 # binary Json schema for member profile:

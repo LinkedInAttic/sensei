@@ -25,7 +25,7 @@ public class CarDemo extends MapReduceJob implements Tool {
   
 
   public static void main(String[] args) throws Exception {
-	Configuration conf = PropertiesLoader.loadProperties("hadoop/conf/JobCarDemo.job");
+	Configuration conf = PropertiesLoader.loadProperties("example/hadoop-indexing/conf/JobCarDemo.job");
     int res = ToolRunner.run(conf, new CarDemo(), new String[]{});
     System.exit(res);
   }

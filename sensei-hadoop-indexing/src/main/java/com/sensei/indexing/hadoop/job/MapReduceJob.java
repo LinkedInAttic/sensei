@@ -4,8 +4,6 @@ import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.Arrays;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.FileStatus;
@@ -18,6 +16,7 @@ import org.apache.hadoop.mapred.InputFormat;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.TextInputFormat;
 import org.apache.hadoop.util.StringUtils;
+import org.apache.log4j.Logger;
 
 import com.sensei.indexing.hadoop.keyvalueformat.IntermediateForm;
 import com.sensei.indexing.hadoop.keyvalueformat.Shard;
@@ -32,7 +31,7 @@ import com.sensei.indexing.hadoop.util.MRJobConfig;
 public class MapReduceJob extends Configured {
 
 	private static final NumberFormat NUMBER_FORMAT = NumberFormat.getInstance();
-	public static final Log LOG = LogFactory.getLog(MapReduceJob.class);
+	private static final Logger logger = Logger.getLogger(MapReduceJob.class);
 	
 	  public JobConf createJob(Class MRClass) throws IOException {
 		    
@@ -45,14 +44,14 @@ public class MapReduceJob extends Configured {
 //			inputPaths = FileInputFormat.getInputPaths(jobConf);
 			
 		    String dirs = conf.get("mapreduce.input.fileinputformat.inputdir", null);
-		    LOG.info("dirs:"+ dirs);
+		    logger.info("dirs:"+ dirs);
 		    String [] list = StringUtils.split(dirs);
-		    LOG.info("length after split:"+ list.length);
+		    logger.info("length after split:"+ list.length);
 		    inputPaths = new Path[list.length];
 		    for (int i = 0; i < list.length; i++) {
 		    	inputPaths[i] = new Path(StringUtils.unEscapeString(list[i]));
 		    }
-		    LOG.info("path[0] is:" + inputPaths[0]);
+		    logger.info("path[0] is:" + inputPaths[0]);
 		    	    
 			outputPath = new Path(conf.get("mapreduce.output.fileoutputformat.outputdir"));
 			String indexPath = conf.get("sea.index.path");
@@ -94,13 +93,13 @@ public class MapReduceJob extends Configured {
 		      buffer.append(",");
 		      buffer.append(inputs[i].toString());
 		    }
-		    LOG.info("mapred.input.dir = " + buffer.toString());
-		    LOG.info("mapreduce.output.fileoutputformat.outputdir = " + 
+		    logger.info("mapred.input.dir = " + buffer.toString());
+		    logger.info("mapreduce.output.fileoutputformat.outputdir = " + 
 		             FileOutputFormat.getOutputPath(jobConf).toString());
-		    LOG.info("mapreduce.job.maps = " + jobConf.getNumMapTasks());
-		    LOG.info("mapreduce.job.reduces = " + jobConf.getNumReduceTasks());
-		    LOG.info(shards.length + " shards = " + conf.get("sea.index.shards"));
-		    LOG.info("mapred.input.format.class = "
+		    logger.info("mapreduce.job.maps = " + jobConf.getNumMapTasks());
+		    logger.info("mapreduce.job.reduces = " + jobConf.getNumReduceTasks());
+		    logger.info(shards.length + " shards = " + conf.get("sea.index.shards"));
+		    logger.info("mapred.input.format.class = "
 		        + jobConf.getInputFormat().getClass().getName());
 
 		    // set by the system
@@ -110,7 +109,7 @@ public class MapReduceJob extends Configured {
 		    jobConf.setOutputValueClass(Text.class);
 
 		    jobConf.setMapperClass(SenseiMapper.class);
-//		    jobConf.setPartitionerClass(IndexUpdatePartitioner.class);
+		    // no need for the partitioner.class;
 		    jobConf.setCombinerClass(SenseiCombiner.class);
 		    jobConf.setReducerClass(SenseiReducer.class);
 

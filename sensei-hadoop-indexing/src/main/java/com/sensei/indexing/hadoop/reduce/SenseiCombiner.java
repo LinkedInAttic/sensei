@@ -3,14 +3,14 @@ package com.sensei.indexing.hadoop.reduce;
 import java.io.IOException;
 import java.util.Iterator;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.MapReduceBase;
 import org.apache.hadoop.mapred.OutputCollector;
 import org.apache.hadoop.mapred.Reducer;
 import org.apache.hadoop.mapred.Reporter;
+import org.apache.log4j.Logger;
 
 import com.sensei.indexing.hadoop.keyvalueformat.IntermediateForm;
 import com.sensei.indexing.hadoop.keyvalueformat.Shard;
@@ -24,7 +24,7 @@ import com.sensei.indexing.hadoop.keyvalueformat.Shard;
 public class SenseiCombiner extends MapReduceBase implements
     Reducer<Shard, IntermediateForm, Shard, IntermediateForm> {
 	
-  static final Log LOG = LogFactory.getLog(SenseiCombiner.class);
+  private static final Logger logger = Logger.getLogger(SenseiCombiner.class);	
 
   Configuration iconf;
   long maxSizeInBytes;
@@ -66,7 +66,7 @@ public class SenseiCombiner extends MapReduceBase implements
   }
 
   private IntermediateForm createForm(String message) throws IOException {
-    LOG.info("Construct a form writer for " + message);
+	logger.info("Construct a form writer for " + message);
     IntermediateForm form = new IntermediateForm();
     form.configure(iconf);
     return form;
@@ -75,7 +75,7 @@ public class SenseiCombiner extends MapReduceBase implements
   private void closeForm(IntermediateForm form, String message)
       throws IOException {
     form.closeWriter();
-    LOG.info("Closed the form writer for " + message + ", form = " + form);
+    logger.info("Closed the form writer for " + message + ", form = " + form);
   }
 
 
