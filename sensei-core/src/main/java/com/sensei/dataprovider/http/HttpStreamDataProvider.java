@@ -227,7 +227,9 @@ public abstract class HttpStreamDataProvider<D> extends StreamDataProvider<D> im
 		    logger.error(e.getMessage(),e);
 		    try {
 		    	logger.error("retrying in "+_retryTime+"ms");
-				Thread.sleep(_retryTime);
+		    	synchronized(this){
+				  this.wait(_retryTime);
+		    	}
 				continue;
 			} catch (InterruptedException e1) {
 				return null;
