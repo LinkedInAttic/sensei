@@ -76,6 +76,9 @@ sea.distribution.policy=com.sensei.indexing.hadoop.demo.CarShardingStrategy
 #############  Converter for mapper input ##########
 sea.mapinput.converter=com.sensei.indexing.hadoop.demo.CarMapInputConverter
 
+#############  JSONFilter for mapper input ##########
+sea.mapinput.filter=com.sensei.indexing.hadoop.demo.CarFilter
+
 ##################################################################################################  
 ######################################   Configure Things Above   ################################
 ##################################################################################################

@@ -33,6 +33,7 @@ import proj.zoie.api.indexing.ZoieIndexable.IndexingReq;
 import com.sensei.conf.SchemaConverter;
 import com.sensei.conf.SenseiSchema;
 import com.sensei.indexing.api.DefaultJsonSchemaInterpreter;
+import com.sensei.indexing.api.JsonFilter;
 import com.sensei.indexing.api.ShardingStrategy;
 import com.sensei.indexing.hadoop.keyvalueformat.IntermediateForm;
 import com.sensei.indexing.hadoop.keyvalueformat.Shard;
@@ -45,8 +46,10 @@ public class SenseiMapper extends MapReduceBase implements Mapper<Object, Object
 	private volatile boolean _isConfigured = false;
 	private Configuration _conf;
 	private Shard[] _shards;
+	
 	private ShardingStrategy _shardingStategy;
 	private MapInputConverter _converter;
+	private JsonFilter _filter;
 	
 	private Analyzer analyzer = new StandardAnalyzer(Version.LUCENE_30);
 	  
@@ -63,6 +66,12 @@ public class SenseiMapper extends MapReduceBase implements Mapper<Object, Object
     		json = _converter.getJsonInput(key, value);
     	}catch(JSONException e){
     		throw new IllegalStateException("data conversion failed inside mapper.");
+    	}
+    	
+    	try{
+    		json = _filter.filter(json);
+    	}catch(Exception e){
+    		throw new IllegalStateException("data filtering failed.");
     	}
     	
     	
@@ -117,6 +126,10 @@ public class SenseiMapper extends MapReduceBase implements Mapper<Object, Object
 		_converter = (MapInputConverter) ReflectionUtils.newInstance(
 				job.getClass("sea.mapinput.converter",
 						MapInputConverter.class, MapInputConverter.class), job);
+		
+		_filter = (JsonFilter) ReflectionUtils.newInstance(
+				job.getClass("sea.mapinput.filter",
+						DummyFilter.class, JsonFilter.class), job);
 		
 		try {
 			getSchema(job, _use_remote_schema);
