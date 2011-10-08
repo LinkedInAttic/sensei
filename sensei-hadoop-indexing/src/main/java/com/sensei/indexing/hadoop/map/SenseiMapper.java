@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.StringTokenizer;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -13,9 +12,6 @@ import org.apache.commons.configuration.ConfigurationException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.filecache.DistributedCache;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.IntWritable;
-import org.apache.hadoop.io.LongWritable;
-import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.MapReduceBase;
 import org.apache.hadoop.mapred.Mapper;
@@ -63,10 +59,8 @@ public class SenseiMapper extends MapReduceBase implements Mapper<Object, Object
 	      throw new IllegalStateException("Mapper's configure method wasn't sucessful. May not get the correct schema.");
 
         JSONObject json = null;
-        int uid = -1;
     	try{
     		json = _converter.getJsonInput(key, value);
-    		uid = _converter.getUID(json);
     	}catch(JSONException e){
     		throw new IllegalStateException("data conversion failed inside mapper.");
     	}
