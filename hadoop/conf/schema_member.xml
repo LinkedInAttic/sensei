@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://javasoze.github.com/sensei/schema/sensei-schema.xsd">
+
+  <!-- valid types:
+    uid - only 1 column can be of type uid
+    int - integer
+    short - short
+    char - character
+    long - long
+    float - float
+    double - double
+    string - string (default)
+    date - date, format string must be provided
+    text - searchable
+  -->
+
+<!-- {'key':'int32', 'member_id':'int32', 'account_created_date':'date', 'account_modified_date':'date', 'profile_modified_date':'date',
+ 'allow_openlink_search':'string', 'country_code':'string', 'postal_code':'string', 'geo_place_code':'string', 'geo_place_mask_code':'string',
+  'geo_postal_code':'string', 'latitude_deg':'float64', 'longitude_deg':'float64', 'industry_id':'int32', 'is_active':'boolean', 
+  'l_address':[{'locale':'string', 'value':'string'}], 
+  'l_associations':[{'locale':'string', 'value':'string'}], 
+  'l_first_name':[{'locale':'string', 'value':'string'}], 
+  'l_headline':[{'locale':'string', 'value':'string', 'user_created':'boolean'}],
+  'l_honors':[{'locale':'string', 'value':'string'}], 
+  'l_interests':[{'locale':'string', 'value':'string'}], 
+  'l_last_name':[{'locale':'string', 'value':'string'}],
+  'l_maiden_name':[{'locale':'string', 'value':'string'}], 
+  'l_proposal_comment':[{'locale':'string', 'value':'string'}], 
+  'l_specialties':[{'locale':'string', 'value':'string'}], 
+  'l_summary':[{'locale':'string', 'value':'string'}], 
+    'last_name_preference':'string', 'profile_auth_key':'string', 'profile_default_locale':'string', 'proposal_accepts':'int32',
+     'region_code':'int32', 'registration_date':'date', 'registration_first_name':'string', 'registration_last_name':'string', 
+     'registration_maiden_name':'string', 'require_referral':'string', 'subscriber_until':'date', 'txn':'int64', 'scn':'int64', 
+     'update_version':'int32', 
+   'profile_educations':[{ 'member_id':'int32', 'profile_education_id':'int32', 'modified_date':'date', 'province_code':'string', 'school_id':'int32', 'start_monthyear':'int32', 'country_code':'string', 'created_date':'date', 'end_monthyear':'int32', 
+   														'locales':[{ 'activities':'string', 'degree':'string', 'field_of_study':'string', 'locale':'string', 'notes':'string', 'school_name':'string' }], 
+   							'xml_schema_version':'int32' }], 
+   'profile_positions':[{ 'member_id':'int32', 'profile_position_id':'int32', 'created_date':'date', 'modified_date':'date', 'start_monthyear':'int32', 'end_monthyear':'int32', 'stock_exchange':'string', 'stock_ticker_symbol':'string', 'member_selected_company_id':'int32', 'suggested_company_id':'int32', 'company_size':'string', 'company_type':'string', 'industry_id':'int32', 
+   														'locales':[{ 'company':'string', 'locale':'string', 'summary':'string', 'title':'string' }],
+         					'xml_schema_version':'int32' }], 
+   'profile_elements':[{ 'member_id':'int32', 'profile_element_id':'int32', 'created_date':'date', 'modified_date':'date', 
+         				'element_num':'int32', 'element_type':'string', 'attribute01':'string', 'attribute02':'string', 'attribute03':'string', 'attribute04':'string',
+          				'attribute05':'string', 'attribute06':'string', 'attribute07':'string', 'attribute08':'string', 'attribute09':'string', 'attribute10':'string', 
+          				'locales':[{ 'locale':'string', 'name':'string', 'url':'string' }], 
+          					'xml_schema_version':'int32' }], 
+   'xml_schema_version':'int32' } -->
+
+  <!--
+      Note: The column names should match the definitions in SignalConstants.java or SharedArticle.java.
+  -->
+  <table uid="member_id" src-data-store="lucene" src-data-field="src_data" compress-src-data="true" delete-field="" skip-field="skipped">
+  
+  
+    <column name="country_code" type="string" />
+    <column name="first_name" type="string" />
+    <column name="last_name" type="string" />
+    <column name="geo_postal_code" type="string" />
+    
+    
+    
+    <column name="region_code" type="int" />
+    <column name="industry_id" type="int" />
+
+    
+    
+    <column name="specialties" type="text" index="ANALYZED" store="NO" termvector="NO" />
+    <column name="headline" type="text" index="ANALYZED" store="NO" termvector="NO" />    
+    <column name="summary" type="text" index="ANALYZED" store="NO" termvector="NO" />
+    <column name="comment" type="text" index="ANALYZED" store="NO" termvector="NO" />    
+    <column name="position" type="text" index="ANALYZED" store="NO" termvector="NO" />        
+        
+<!--     <column name="time" type="long" /> -->
+<!--     <column name="userid" type="int" /> -->
+<!--     <column name="companyId" type="int" /> -->
+<!--     <column name="entityId" type="int" /> -->
+<!--     <column name="entityType" type="string" /> -->
+<!--     <column name="memberName" type="string" multi="true" delimiter="," /> -->
+<!--     <column name="targetType" type="string" multi="true" delimiter="," /> -->
+<!--     <column name="targetMemberId" type="int" /> -->
+<!--     <column name="targetGroupId" type="int" multi="true" delimiter="," /> -->
+<!--     <column name="industry" type="int" /> -->
+<!--     <column name="numConnections" type="int" /> -->
+<!--     <column name="tenure" type="int" /> -->
+<!--     <column name="city" type="string" /> -->
+<!--     <column name="region" type="string" /> -->
+<!--     <column name="country" type="string" /> -->
+<!--     <column name="funcArea" type="int" multi="true" delimiter="," /> -->
+<!--     <column name="seniority" type="int" multi="true" delimiter="," /> -->
+<!--     <column name="followCmpySeniority" type="int" multi="true" delimiter="," /> -->
+<!--     <column name="school" type="int" multi="true" delimiter="," /> -->
+<!--     <column name="company" type="int" multi="true" delimiter="," /> -->
+<!--     <column name="preCompany" type="int" multi="true" delimiter="," /> -->
+<!--     <column name="skill" type="int" multi="true" delimiter="," /> -->
+<!--     <column name="groupMembership" type="int" multi="true" delimiter="," /> -->
+<!--     <column name="fortune1000" type="int" multi="true" delimiter="," /> -->
+<!--     <column name="isimported" type="string" /> -->
+<!--     <column name="filterreason" type="string" /> -->
+<!--     <column name="publicShareFlag" type="string" /> -->
+<!--     <column name="visibility" type="string" /> Not used now -->
+<!--     <column name="status" type="text" index="ANALYZED" store="NO" termvector="NO" /> -->
+<!--     <column name="article-id" type="long" /> -->
+<!--     <column name="article-title" type="text" index="ANALYZED" store="NO" termvector="NO" /> -->
+<!--     <column name="article-description" type="text" index="ANALYZED" store="NO" termvector="NO" /> -->
+<!--     <column name="haslinks" type="string" /> -->
+<!--     <column name="tags" type="string" multi="true" delimiter="," /> -->
+<!--     <column name="skipped" type="string" /> -->
+<!--     <column name="generalTopic" type="string" multi="true"/> -->
+<!--     <column name="referenceEntityId" type="int" /> -->
+<!--     <column name="referenceEntityType" type="string" /> -->
+<!--     <column name="referenceUpdateId" type="long" /> -->
+<!--     <column name="serviceProvider" type="string" /> -->
+<!--     <column name="connectee" type="int" /> -->
+  </table>
+
+   <!--
+     valid types are:
+      simple - corresponds to com.browseengine.bobo.facets.impl.SimpleFacetHandler
+      path - corresponds to com.browseengine.bobo.facets.impl.PathFacetHandler
+      range - corresponds to com.browseengine.bobo.facets.impl.RangeFacetHandler
+      multi - corresponds to com.browseengine.bobo.facets.impl.MultiFacetHandler
+      compact-multi - corresponds to com.browseengine.bobo.facets.impl.CompactMultiFacetHandler
+      custom - custom facet handler, name must be defined in a spring bean in custom-facets.xml
+   -->
+   
+   <facets>
+     <facet name="country_code" type="simple" />
+     <facet name="first_name" type="simple" />
+     <facet name="last_name" type="simple" />
+     <facet name="geo_postal_code" type="simple" />
+    
+    
+    
+     <facet name="region_code" type="simple" />
+     <facet name="industry_id" type="simple" />
+    
+   </facets>
+</schema>

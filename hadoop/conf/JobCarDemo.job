@@ -1,0 +1,88 @@
+type=java
+job.class=com.sensei.indexing.hadoop.demo.CarDemo
+
+num.map.tasks=10
+mapreduce.job.maps=2
+sea.num.shards=3
+
+mapred.job.name=ShardedIndexing
+
+# if the output.path already exists, delete it first
+force.output.overwrite=true
+
+hadoop-conf.mapred.job.queue.name=marathon
+
+#mapred.create.symlink=true
+
+mapreduce.cluster.temp.dir=/tmp/hindex
+
+##################################################################################################  
+######################################   Configure Things Below   ################################
+##################################################################################################
+
+#############   remote schema or local running #############
+schema.use.remote=false
+
+
+#############   schema for interpreter #############
+##### Avro Schema Sample ######
+#schema.file.url=/user/sguo/schema/schema_signal.xml
+#schema.file.local=/local/Documents/workspace/search/signal/search-hadoop/conf/schema_signal.xml
+
+##### BinaryJSON schema Sample ######
+#schema.file.url=/user/sguo/schema/schema_member.xml
+#schema.file.local=/local/Documents/workspace/search/signal/search-hadoop/conf/schema_member.xml
+
+##### TextJSON schema Sample (car demo)######
+schema.file.url=/user/sguo/schema/schema_member.xml
+schema.file.local=hadoop/conf/schema_car.xml
+
+############    Input and Output  ##################
+####### Avro data ########
+#read.lock=/local/Documents/workspace/search/signal/search-hadoop/input_avro/firehoseUpdate2.avro
+#mapreduce.input.fileinputformat.inputdir=/local/Documents/workspace/search/signal/search-hadoop/input_avro/firehoseUpdate2.avro
+
+######## Binary JSON data #####
+#read.lock=/local/Documents/workspace/search/signal/search-hadoop/input_json/test_member.json
+#mapreduce.input.fileinputformat.inputdir=/local/Documents/workspace/search/signal/search-hadoop/input_json/test_member.json
+
+####### Text JSON data (car demo) #####
+read.lock=data/cars.json
+mapreduce.input.fileinputformat.inputdir=data/cars.json
+
+######## Output configuration ######
+write.lock=hadoop/output 
+mapreduce.output.fileoutputformat.outputdir=hadoop/output
+
+######## Index output location ######
+sea.index.path=hadoop/index
+
+############# schemas for mapper input  ################
+# binary Json schema for member profile:
+#mapper.input.key.schema='int32'
+#mapper.input.value.schema={'key':'int32', 'member_id':'int32', 'account_created_date':'date', 'account_modified_date':'date', 'profile_modified_date':'date', 'allow_openlink_search':'string', 'country_code':'string', 'postal_code':'string', 'geo_place_code':'string', 'geo_place_mask_code':'string', 'geo_postal_code':'string', 'latitude_deg':'float64', 'longitude_deg':'float64', 'industry_id':'int32', 'is_active':'boolean', 'l_address':[{'locale':'string', 'value':'string'}], 'l_associations':[{'locale':'string', 'value':'string'}], 'l_first_name':[{'locale':'string', 'value':'string'}], 'l_headline':[{'locale':'string', 'value':'string', 'user_created':'boolean'}], 'l_honors':[{'locale':'string', 'value':'string'}], 'l_interests':[{'locale':'string', 'value':'string'}], 'l_last_name':[{'locale':'string', 'value':'string'}], 'l_maiden_name':[{'locale':'string', 'value':'string'}], 'l_proposal_comment':[{'locale':'string', 'value':'string'}], 'l_specialties':[{'locale':'string', 'value':'string'}], 'l_summary':[{'locale':'string', 'value':'string'}], 'last_name_preference':'string', 'profile_auth_key':'string', 'profile_default_locale':'string', 'proposal_accepts':'int32', 'region_code':'int32', 'registration_date':'date', 'registration_first_name':'string', 'registration_last_name':'string', 'registration_maiden_name':'string', 'require_referral':'string', 'subscriber_until':'date', 'txn':'int64', 'scn':'int64', 'update_version':'int32', 'profile_educations':[{ 'member_id':'int32', 'profile_education_id':'int32', 'modified_date':'date', 'province_code':'string', 'school_id':'int32', 'start_monthyear':'int32', 'country_code':'string', 'created_date':'date', 'end_monthyear':'int32', 'locales':[{ 'activities':'string', 'degree':'string', 'field_of_study':'string', 'locale':'string', 'notes':'string', 'school_name':'string' }], 'xml_schema_version':'int32' }], 'profile_positions':[{ 'member_id':'int32', 'profile_position_id':'int32', 'created_date':'date', 'modified_date':'date', 'start_monthyear':'int32', 'end_monthyear':'int32', 'stock_exchange':'string', 'stock_ticker_symbol':'string', 'member_selected_company_id':'int32', 'suggested_company_id':'int32', 'company_size':'string', 'company_type':'string', 'industry_id':'int32', 'locales':[{ 'company':'string', 'locale':'string', 'summary':'string', 'title':'string' }], 'xml_schema_version':'int32' }], 'profile_elements':[{ 'member_id':'int32', 'profile_element_id':'int32', 'created_date':'date', 'modified_date':'date', 'element_num':'int32', 'element_type':'string', 'attribute01':'string', 'attribute02':'string', 'attribute03':'string', 'attribute04':'string', 'attribute05':'string', 'attribute06':'string', 'attribute07':'string', 'attribute08':'string', 'attribute09':'string', 'attribute10':'string', 'locales':[{ 'locale':'string', 'name':'string', 'url':'string' }], 'xml_schema_version':'int32' }], 'xml_schema_version':'int32' }
+
+# firehoseUpdates Avro schema:
+#avro.input.schema={"type":"record","name":"NetworkUpdateEvent","namespace":"com.linkedin.events.nus","fields":[{"name":"header","type":{"type":"record","name":"EventHeader","namespace":"com.linkedin.events","fields":[{"name":"memberId","type":"int","doc":"The member id of the user initiating the action"},{"name":"time","type":"long","doc":"The time of the event"},{"name":"server","type":"string","doc":"The name of the server"},{"name":"service","type":"string","doc":"The name of the service"},{"name":"guid","type":{"type":"fixed","name":"Guid","namespace":"com.linkedin.events","size":16},"doc":"A unique identifier for the message"}]}},{"name":"source","type":{"type":"record","name":"EntityID","namespace":"com.linkedin.events","fields":[{"name":"type","type":{"type":"enum","name":"EntityType","namespace":"com.linkedin.events","symbols":["ANET","ARTC","CMPY","EVNT","JOB","MBR","QSTN","SHAR","LART","CMTS","CMTA","NUDG","PDCT","REVW","PMOD","INDY","CSRC","STTL","ANSW","APP","AD"]}},{"name":"id","type":"string"}]}},{"name":"updateId","type":"string","default":""},{"name":"updateType","type":"string","default":""},{"name":"updateSubtype","type":"string","default":""},{"name":"visibility","type":"string","default":""},{"name":"primaryUrl","type":"string","default":""},{"name":"destinations","type":{"type":"array","items":"com.linkedin.events.EntityID"}},{"name":"targets","type":{"type":"array","items":{"type":"record","name":"Target","fields":[{"name":"destination","type":"com.linkedin.events.EntityID"},{"name":"visibility","type":"string","default":""}]}}},{"name":"references","type":{"type":"array","items":"com.linkedin.events.EntityID"}},{"name":"content","type":{"type":"map","values":"string"}},{"name":"joinedData","type":{"type":"map","values":[{"type":"record","name":"PersonInfo","namespace":"com.linkedin.firehose","fields":[{"name":"id","type":"int"},{"name":"active","type":"boolean"},{"name":"deleted","type":"boolean"},{"name":"name","type":"string"},{"name":"firstName","type":"string"},{"name":"lastName","type":"string"},{"name":"maidenName","type":"string"},{"name":"headline","type":"string"},{"name":"industryId","type":"int"},{"name":"pictureId","type":"string"},{"name":"showPictureSetting","type":"string"},{"name":"showFullLastName","type":"boolean"},{"name":"createdTime","type":"long"},{"name":"location","type":{"type":"record","name":"Location","namespace":"com.linkedin.firehose","fields":[{"name":"country","type":"string","default":""},{"name":"region","type":"string","default":""},{"name":"postalCode","type":"string","default":""},{"name":"place","type":"string","default":""},{"name":"latitude","type":"string","default":""},{"name":"longitude","type":"string","default":""}]}},{"name":"currentIndustries","type":{"type":"array","items":"int"}},{"name":"currentTitles","type":{"type":"array","items":"int"}},{"name":"currentCompanies","type":{"type":"array","items":"int"}},{"name":"currentFuncareas","type":{"type":"array","items":"int"}},{"name":"currentJobNames","type":{"type":"array","items":"int"}},{"name":"pastTitles","type":{"type":"array","items":"int"}},{"name":"pastCompanies","type":{"type":"array","items":"int"}},{"name":"pastFuncareas","type":{"type":"array","items":"int"}},{"name":"pastIndustries","type":{"type":"array","items":"int"}},{"name":"pastJobNames","type":{"type":"array","items":"int"}},{"name":"jobSeniorities","type":{"type":"array","items":"int"}},{"name":"standardizedSkills","type":{"type":"array","items":"int"}},{"name":"schools","type":{"type":"array","items":"int"}},{"name":"fieldsOfStudy","type":{"type":"array","items":"int"}},{"name":"degreeIds","type":{"type":"array","items":"int"}},{"name":"skillsAndScores","type":{"type":"array","items":{"type":"record","name":"SkillAndScore","namespace":"com.linkedin.firehose","fields":[{"name":"id","type":"int"},{"name":"score","type":"float"}]}}},{"name":"anetMembership","type":{"type":"array","items":"int"}},{"name":"connectionCount","type":"int"},{"name":"fortune1000","type":{"type":"array","items":"int"}}]},{"type":"record","name":"UrlUnwoundInfo","namespace":"com.linkedin.firehose","fields":[{"name":"submittedUrl","type":"string"},{"name":"resolvedUrl","type":"string"},{"name":"title","type":"string"},{"name":"description","type":"string"},{"name":"primaryImageUrl","type":"string"},{"name":"createdAt","type":"long"},{"name":"entityId","type":"com.linkedin.events.EntityID"},{"name":"hasBadWords","type":"boolean","default":false}]},{"type":"record","name":"CompanyInfo","namespace":"com.linkedin.firehose","fields":[{"name":"id","type":"int"},{"name":"companyNames","type":{"type":"array","items":"string"}},{"name":"universalName","type":"string"},{"name":"logoId","type":"string"},{"name":"squareLogoMediaId","type":"string"},{"name":"website","type":"string"},{"name":"companyType","type":"string"},{"name":"employeeCountRange","type":"string"},{"name":"industries","type":{"type":"array","items":"int"}},{"name":"stockSymbol","type":"string"},{"name":"exchangeId","type":"int"},{"name":"foundedYear","type":"int"}]}]},"doc":"array of joined entities","default":{}}]}
+
+##############   Input Format  ##################
+#sea.input.format=org.apache.avro.mapred.AvroInputFormat
+#sea.input.format=com.linkedin.batch.serialization.JsonSequenceFileInputFormat
+sea.input.format=org.apache.hadoop.mapred.TextInputFormat
+
+##############  Sharding strategy  ################
+sea.distribution.policy=com.sensei.indexing.hadoop.demo.CarShardingStrategy
+
+#############  Converter for mapper input ##########
+sea.mapinput.converter=com.sensei.indexing.hadoop.demo.CarMapInputConverter
+
+##################################################################################################  
+######################################   Configure Things Above   ################################
+##################################################################################################
+
+
+
+# set compound to true may slow down the indexing;
+sea.use.compound.file=true
+sea.document.analyzer=org.apache.lucene.analysis.standard.StandardAnalyzer
+
