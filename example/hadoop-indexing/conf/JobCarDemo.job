@@ -37,7 +37,7 @@ mapreduce.input.fileinputformat.inputdir=data/cars.json
 
 ######## Output configuration ######
 write.lock=example/hadoop-indexing/output
-mapreduce.output.fileoutputformat.outputdir=example/hadoop-indexing/output
+mapreduce.output.fileoutputformat.outputdir=example/hadoop-indexing/fileoutput
 
 ######## Index output location ######
 sea.index.path=example/hadoop-indexing/index
