@@ -27,6 +27,14 @@
 					<encoding>UTF-8</encoding>
 				</configuration>
 			</plugin>
+			<plugin> 
+                <groupId>com.github.maven-hadoop.plugin</groupId>
+                <artifactId>maven-hadoop-plugin</artifactId>
+                <version>0.20.1</version>
+                <configuration>
+                  <hadoopHome>/home/jwang/opensource/hadoop-0.21.0</hadoopHome>
+                </configuration>
+            </plugin>
 		</plugins>
 	</build>
 
@@ -34,5 +42,24 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
+	
+	<dependencies>
+		<dependency>
+		  <groupId>${project.groupId}</groupId>
+		  <artifactId>sensei-hadoop-indexing</artifactId>
+		  <version>${project.version}</version>
+		</dependency>
+		<dependency>
+		    <groupId>org.apache.hadoop</groupId>
+		    <artifactId>hadoop-core</artifactId>
+		    <version>0.20.204.0</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.json</groupId>
+			<artifactId>json</artifactId>
+			<version>20080701</version>
+		</dependency>
+	</dependencies>
 
 </project>
