@@ -19,6 +19,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
 import java.util.zip.GZIPInputStream;
@@ -430,9 +431,9 @@ public class HttpRestSenseiServiceImpl implements SenseiService
   {
     final String format = "%s.%s.%s.%s";
 
-    for (String facetName : initParams.keySet()) {
-
-      FacetHandlerInitializerParam param = initParams.get(facetName);
+    for (Entry<String,FacetHandlerInitializerParam> entry : initParams.entrySet()) {
+      String facetName = entry.getKey();
+      FacetHandlerInitializerParam param = entry.getValue();
 
       for (String paramName : param.getBooleanParamNames()) {
         qparams.add(new BasicNameValuePair(
@@ -493,9 +494,9 @@ public class HttpRestSenseiServiceImpl implements SenseiService
   public static void convertFacetSpecs(List<NameValuePair> qparams, Map<String,FacetSpec> facetSpecs) {
     final String format = "%s.%s.%s";
 
-    for (String facetName : facetSpecs.keySet()) {
-
-      FacetSpec spec = facetSpecs.get(facetName);
+    for (Entry<String,FacetSpec> entry : facetSpecs.entrySet()) {
+      String facetName = entry.getKey();
+      FacetSpec spec = entry.getValue();
 
       qparams.add(new BasicNameValuePair(
           String.format(format, SenseiSearchServletParams.PARAM_FACET, facetName, SenseiSearchServletParams.PARAM_FACET_MAX),
@@ -592,8 +593,9 @@ public class HttpRestSenseiServiceImpl implements SenseiService
 
     final String format = "%s:%s";
 
-    for (Object keyObj : props.keySet()) {
-      propList.add(String.format(format, keyObj, props.get(keyObj)));
+    Set<Entry<Object,Object>> entries = props.entrySet();
+    for (Entry<Object,Object> entry: entries) {
+      propList.add(String.format(format, entry.getKey(), entry.getValue()));
     }
 
     return join(propList, ",");

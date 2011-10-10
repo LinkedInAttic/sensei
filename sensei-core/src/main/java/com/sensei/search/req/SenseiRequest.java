@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Random;
 import java.util.Set;
 
@@ -467,9 +468,10 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable
                                      Map<String, FacetHandlerInitializerParam> b) {
     if (a.size() != b.size()) return false;
 
-    for (String key : a.keySet()) {
+    for (Entry<String,FacetHandlerInitializerParam> entry : a.entrySet()) {
+      String key = entry.getKey();
       if (!b.containsKey(key)) return false;
-      if (!areFacetHandlerInitializerParamsEqual(a.get(key), b.get(key))) return false;
+      if (!areFacetHandlerInitializerParamsEqual(entry.getValue(), b.get(key))) return false;
     }
 
     return true;
@@ -509,9 +511,10 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable
   private boolean facetSpecsAreEqual(Map<String, FacetSpec> a, Map<String, FacetSpec> b) {
     if (a.size() != b.size()) return false;
 
-    for (String key : a.keySet()) {
+    for (Entry<String,FacetSpec> entry : a.entrySet()) {
+      String key = entry.getKey();
       if (!(b.containsKey(key))) return false;
-      if (!facetSpecsAreEqual(a.get(key), b.get(key))) return false;
+      if (!facetSpecsAreEqual(entry.getValue(), b.get(key))) return false;
     }
 
     return true;

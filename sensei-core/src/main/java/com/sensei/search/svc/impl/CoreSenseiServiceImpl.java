@@ -113,8 +113,6 @@ public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiReque
 	    result.setSortCollector(res.getSortCollector());
 	    result.setTotalDocs(browser.numDocs());
 	    
-
-	    Map<String, FacetAccessible> facetMap = res.getFacetMap();
 	    result.addAll(res.getFacetMap());
 	    
       // Defer the closing of facetAccessibles till result merging time.

@@ -44,10 +44,10 @@ import com.sensei.search.svc.impl.HttpRestSenseiServiceImpl;
 
 public class TestHttpRestSenseiServiceImpl extends TestCase
 {
-  private final int EXPECTED_COUNT = 72;
-  private final int EXPECTED_OFFSET = 227;
-  private final boolean EXPECTED_FETCH_STORED_FIELDS = true;
-  private final boolean EXPECTED_SHOW_EXPLANATION = true;
+  private static final int EXPECTED_COUNT = 72;
+  private static  final int EXPECTED_OFFSET = 227;
+  private static  final boolean EXPECTED_FETCH_STORED_FIELDS = true;
+  private static  final boolean EXPECTED_SHOW_EXPLANATION = true;
 
   public TestHttpRestSenseiServiceImpl(String name)
   {
