@@ -135,7 +135,7 @@ from pyparsing import Literal, CaselessLiteral, Word, Upcase, delimitedList, Opt
 BNF Grammar for BQL
 ===================
 
-<select_stmt> ::= SELECT <select_list> <from_clause> [<where_clause>] [<given_clause>] [<additional_specs>] [';']
+<select_stmt> ::= SELECT <select_list> <from_clause> [<where_clause>] [<given_clause>] [<additional_clauses>] [';']
 
 <select_list> ::= '*' | <column_list>
 <column_list> ::= <column_name> ( ',' <column_name> )*
@@ -157,8 +157,7 @@ BNF Grammar for BQL
 <column_negative_operator> ::= NOT IN
 
 <value_list> ::= '(' <value> ( ',' <value> )* ')'
-<value> ::= <quoted_string>
-          | <integer>
+<value> ::= <quoted_string> | <num>
 
 <except_clause> ::= EXCEPT <value_list>
 
@@ -174,10 +173,12 @@ BNF Grammar for BQL
 <facet_param_type> ::= BOOLEAN | INT | LONG | STRING | BYTEARRAY | DOUBLE
 <facet_param_value> ::= <quoted_string>
 
-<additional_specs> ::= ( <order_by_clause>
-                       | <group_by_clause>
-                       | <limit_clause>
-                       | <browse_by_clause> )*
+<additional_clauses> ::= (  <order_by_clause>
+                          | <group_by_clause>
+                          | <limit_clause>
+                          | <browse_by_clause>
+                          | <fetching_stored_clause>
+                         )*
 
 <order_by_clause> ::= ORDER BY <sort_specs>
 <sort_specs> ::= <sort_spec> ( ',', <sort_spec> )*
@@ -198,11 +199,28 @@ BNF Grammar for BQL
 <expand_flag> ::= TRUE | FALSE
 <facet_ordering> ::= HITS | VALUE
 
+<fetching_stored_clause> ::= FETCHING STORED [<fetching_flag>]
+<fetching_flag> ::= TRUE | FALSE
+
 <quoted_string> ::= '"' ( <char> )* '"'
                   | "'" ( <char> )* "'"
 
+<identifier> ::= <identifier_start> ( <identifier_part> )*
+<identifier_start> ::= <alpha> | '-' | '_'
+<identifier_part> ::= <identifier_start> | <digit>
+
+<column_name> ::= <identifier>
+<facet_name> ::= <identifier>
+
+<alpha> ::= <alpha_lower_case> | <alpha_upper_case>
+
+<alpha_upper_case> ::= A | B | C | D | E | F | G | H | I | J | K | L | M | N | O
+                     | P | Q | R | S | T | U | V | W | X | Y | Z
+<alpha_lower_case> ::= a | b | c | d | e | f | g | h | i | j | k | l | m | n | o
+                     | p | q | r | s | t | u | v | w | x | y | z
 <digit> ::= 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
-<integer> ::= ( <digit> )+
+
+<num> ::= ( <digit> )+
 
 """
 
@@ -217,12 +235,14 @@ limit_once = OnlyOnce(dummy_action)
 order_by_once = OnlyOnce(dummy_action)
 group_by_once = OnlyOnce(dummy_action)
 browse_by_once = OnlyOnce(dummy_action)
+fetching_stored_once = OnlyOnce(dummy_action)
 
 def reset_all():
   limit_once.reset()
   order_by_once.reset()
   group_by_once.reset()
   browse_by_once.reset()
+  fetching_stored_once.reset()
 
 # SQL tokens
 
@@ -237,6 +257,7 @@ doubleToken     = Keyword("double", caseless=True)
 exceptToken     = Keyword("except", caseless=True)
 facetParamToken = Keyword("facet param", caseless=True)
 falseToken      = Keyword("false", caseless=True)
+fetchingStoredToken = Keyword("fetching stored", caseless=True)
 fromToken       = Keyword("from", caseless=True)
 groupByToken    = Keyword("group by", caseless=True)
 givenToken      = Keyword("given", caseless=True)
@@ -314,12 +335,16 @@ facetOrderBy = hitsToken | valueToken
 facetSpec = Group(columnName +
                   Optional(LPAR + expandFlag + COMMA + intNum  + COMMA + intNum + COMMA + facetOrderBy + RPAR))
 
-browseByClause = (browseByToken +
-                  delimitedList(facetSpec).setResultsName("facet_specs")).setParseAction(browse_by_once)
-
 groupByClause = (groupByToken +
                  columnName.setResultsName("groupby") +
                  Optional(topToken + intNum.setResultsName("max_per_group"))).setParseAction(group_by_once)
+
+browseByClause = (browseByToken +
+                  delimitedList(facetSpec).setResultsName("facet_specs")).setParseAction(browse_by_once)
+
+fetchingFlag = trueToken | falseToken
+fetchingStoredClause = (fetchingStoredToken +
+                        Optional(fetchingFlag)).setResultsName("fetching_stored").setParseAction(fetching_stored_once)
 
 selectStmt << (selectToken + 
                ('*' | columnNameList).setResultsName("columns") + 
@@ -329,8 +354,9 @@ selectStmt << (selectToken +
                Optional(givenClause.setResultsName("given")) +
                ZeroOrMore(orderByClause |
                           limitClause |
+                          groupByClause |
                           browseByClause |
-                          groupByClause
+                          fetchingStoredClause
                           ) +
                Optional(SEMICOLON)
                )
@@ -340,6 +366,15 @@ simpleSQL = selectStmt
 # Define comment format, and ignore them
 sqlComment = "--" + restOfLine
 simpleSQL.ignore(sqlComment)
+
+
+def safe_str(obj):
+  """Return the byte string representation of obj."""
+  try:
+    return str(obj)
+  except UnicodeEncodeError:
+    # obj is unicode
+    return unicode(obj).encode("unicode_escape")
 
 
 class SQLRequest:
@@ -355,7 +390,7 @@ class SQLRequest:
     self.query = ""
     self.selections = []
     self.sorts = None
-    self.columns = [str(col) for col in self.tokens.columns]
+    self.columns = [safe_str(col) for col in self.tokens.columns]
     self.facet_init_param_map = None
 
     where = self.tokens.where
@@ -471,7 +506,7 @@ class SQLRequest:
     """Get group by facet name."""
 
     if self.tokens.groupby:
-      return str(self.tokens.groupby)
+      return self.tokens.groupby
     else:
       return None
 
@@ -482,6 +517,16 @@ class SQLRequest:
       return self.tokens.max_per_group
     else:
       return None
+
+  def get_fetching_stored(self):
+    """Get the fetching-stored flag."""
+    fetching_stored = self.tokens.fetching_stored
+    if (not fetching_stored or
+        len(fetching_stored) == 1 or
+        fetching_stored[1] == "true"):
+      return True
+    else:
+      return False
 
   def get_facet_init_param_map(self):
     if self.facet_init_param_map:
@@ -541,6 +586,7 @@ def test(str):
     print "tokens.given = ", tokens.given
     if tokens.given:
       print "tokens.given.facet_param = ", tokens.given.facet_param
+    print "tokens.fetching_stored = ", tokens.fetching_stored
   except ParseException as err:
     print " "*err.loc + "^\n" + err.msg
   finally:
@@ -581,15 +627,15 @@ class SenseiSelection:
     
   def addSelection(self, value, isNot=False):
     if isNot:
-      self.excludes.append(value)
+      self.excludes.append(safe_str(value))
     else:
-      self.values.append(value)
+      self.values.append(safe_str(value))
   
   def removeSelection(self, value, isNot=False):
     if isNot:
-      self.excludes.remove(value)
+      self.excludes.remove(safe_str(value))
     else:
-      self.values.remove(value)
+      self.values.remove(safe_str(value))
   
   def addProperty(self, name, value):
     self.properties[name] = value
@@ -752,7 +798,8 @@ class SenseiRequest:
       self.facets = sql_req.get_facets()
       # PARAM_RESULT_HIT_STORED_FIELDS is a reserved column name.  If this
       # column is selected, turn on fetch_stored flag automatically.
-      if PARAM_RESULT_HIT_STORED_FIELDS in self.columns:
+      if (PARAM_RESULT_HIT_STORED_FIELDS in self.columns or
+          sql_req.get_fetching_stored()):
         self.fetch_stored = True
       else:
         self.fetch_stored = False
@@ -832,7 +879,7 @@ class SenseiResult:
           facetList.append(facetObj)
         self.facetMap[k]=facetList
 
-  def display(self, columns=['*'], max_col_disp_len=40):
+  def display(self, columns=['*'], max_col_width=40):
     """Print the results in SQL SELECT result format."""
 
     keys = []
@@ -856,12 +903,12 @@ class SenseiResult:
             else:
               v = '<Not Found>'
             if isinstance(v, list):
-              v = ','.join([str(item) for item in v])
+              v = ','.join([safe_str(item) for item in v])
             elif isinstance(v, (int, long, float)):
               v = str(v)
             value_len = len(v)
             if value_len > max_lens[col]:
-              max_lens[col] = min(value_len, self.max_col_disp_len)
+              max_lens[col] = min(value_len, max_col_width)
       return max_lens, has_group_hits
 
     def print_line(char='-', sep_char='+'):
@@ -889,16 +936,17 @@ class SenseiResult:
         print_line('=', '=')
       else:
         print_line('-', '+')
-      sys.stdout.write('%s %s%s in set, %s hit%s, %s total doc%s\n' %
+      sys.stdout.write('%s %s%s in set, %s hit%s, %s total doc%s (%sms)\n' %
                        (len(self.hits),
                         has_group_hits and 'group' or 'row',
                         len(self.hits) > 1 and 's' or '',
                         self.numHits,
                         self.numHits > 1 and 's' or '',
                         self.totalDocs,
-                        self.totalDocs > 1 and 's' or ''))
+                        self.totalDocs > 1 and 's' or '',
+                        self.time
+                        ))
 
-    self.max_col_disp_len = max_col_disp_len
     if not self.hits:
       print "No hit is found."
       return
@@ -934,11 +982,14 @@ class SenseiResult:
           else:
             v = '<Not Found>'
           if isinstance(v, list):
-            v = ','.join([str(item) for item in v])
+            v = ','.join([safe_str(item) for item in v])
           elif isinstance(v, (int, float, long)):
             v = str(v)
-          if len(v) > self.max_col_disp_len:
-            v = v[:self.max_col_disp_len]
+          else:
+            # The value may contain unicode characters
+            v = safe_str(v)
+          if len(v) > max_col_width:
+            v = v[:max_col_width]
           sys.stdout.write(' %s%s |' % (v, ' ' * (max_lens[key] - len(v))))
         sys.stdout.write('\n')
       if has_group_hits:
@@ -952,7 +1003,7 @@ class SenseiResult:
       max_val_len = len(facet)
       max_count_len = 1
       for val in values:
-        max_val_len = max(max_val_len, min(self.max_col_disp_len, len(val.get('value'))))
+        max_val_len = max(max_val_len, min(max_col_width, len(val.get('value'))))
         max_count_len = max(max_count_len, len(str(val.get('count'))))
       total_len = max_val_len + 2 + max_count_len + 3
 
@@ -1030,13 +1081,13 @@ class SenseiClient:
                  (PARAM_DYNAMIC_INIT, facet_name, name, PARAM_DYNAMIC_TYPE)] = PARAM_DYNAMIC_TYPE_INT
         paramMap["%s.%s.%s.%s" %
                  (PARAM_DYNAMIC_INIT, facet_name, name,
-                  PARAM_DYNAMIC_VAL)] = ','.join([str(val) for val in vals])
+                  PARAM_DYNAMIC_VAL)] = ','.join([safe_str(val) for val in vals])
       for name, vals in initParams.long_map.iteritems():
         paramMap["%s.%s.%s.%s" %
                  (PARAM_DYNAMIC_INIT, facet_name, name, PARAM_DYNAMIC_TYPE)] = PARAM_DYNAMIC_TYPE_LONG
         paramMap["%s.%s.%s.%s" %
                  (PARAM_DYNAMIC_INIT, facet_name, name,
-                  PARAM_DYNAMIC_VAL)] = ','.join([str(val) for val in vals])
+                  PARAM_DYNAMIC_VAL)] = ','.join([safe_str(val) for val in vals])
       for name, vals in initParams.string_map.iteritems():
         paramMap["%s.%s.%s.%s" %
                  (PARAM_DYNAMIC_INIT, facet_name, name, PARAM_DYNAMIC_TYPE)] = PARAM_DYNAMIC_TYPE_STRING
@@ -1048,13 +1099,13 @@ class SenseiClient:
                  (PARAM_DYNAMIC_INIT, facet_name, name, PARAM_DYNAMIC_TYPE)] = PARAM_DYNAMIC_TYPE_BYTEARRAY
         paramMap["%s.%s.%s.%s" %
                  (PARAM_DYNAMIC_INIT, facet_name, name,
-                  PARAM_DYNAMIC_VAL)] = ','.join([str(val) for val in vals])
+                  PARAM_DYNAMIC_VAL)] = ','.join([safe_str(val) for val in vals])
       for name, vals in initParams.double_map.iteritems():
         paramMap["%s.%s.%s.%s" %
                  (PARAM_DYNAMIC_INIT, facet_name, name, PARAM_DYNAMIC_TYPE)] = PARAM_DYNAMIC_TYPE_DOUBLE
         paramMap["%s.%s.%s.%s" %
                  (PARAM_DYNAMIC_INIT, facet_name, name,
-                  PARAM_DYNAMIC_VAL)] = ','.join([str(val) for val in vals])
+                  PARAM_DYNAMIC_VAL)] = ','.join([safe_str(val) for val in vals])
 
     if req.groupby:
       paramMap[PARAM_GROUP_BY] = req.groupby
@@ -1067,7 +1118,7 @@ class SenseiClient:
     paramString = None
     if req:
       paramString = SenseiClient.buildUrlString(req)
-    logger.info(paramString)
+    logger.debug(paramString)
     urlReq = urllib2.Request(self.url,paramString)
     res = self.opener.open(urlReq)
     line = res.read()
@@ -1200,26 +1251,32 @@ def testInitParams():
   res = client.doQuery(req)
 
 def main(argv):
-  if len(argv) <= 1:
-    client = SenseiClient()
-  else:
-    host = argv[1]
-    port = int(argv[2])
-    print "url specified, host: %s, port: %d" % (host,port)
-    client = SenseiClient(host,port,'sensei')
+  from optparse import OptionParser
+  usage = "usage: %prog [options]"
+  parser = OptionParser(usage=usage)
+  parser.add_option("-w", "--column-width", dest="max_col_width",
+                    default=100, help="Set the max column wide")
+  parser.add_option("-v", "--verbose", action="store_true", dest="verbose",
+                    default=False, help="Turn on verbose mode")
+  (options, args) = parser.parse_args()
 
-  logger.setLevel(logging.INFO)
+  if options.verbose:
+    logger.setLevel(logging.DEBUG)
+  else:
+    logger.setLevel(logging.INFO)
 
   formatter = logging.Formatter("%(asctime)s %(filename)s:%(lineno)d - %(message)s")
   stream_handler = logging.StreamHandler()
   stream_handler.setFormatter(formatter)
   logger.addHandler(stream_handler)
 
-  def test_sql(stmt):
-    test(stmt)
-    req = SenseiRequest(stmt)
-    res = client.doQuery(req)
-    res.display(req.get_columns(), 100)
+  if len(args) <= 1:
+    client = SenseiClient()
+  else:
+    host = args[0]
+    port = int(args[1])
+    logger.debug("Url specified, host: %s, port: %d" % (host,port))
+    client = SenseiClient(host, port, 'sensei')
 
   import readline
   readline.parse_and_bind("tab: complete")
@@ -1228,7 +1285,12 @@ def main(argv):
       stmt = raw_input('> ')
       if stmt == "exit":
         break
-      test_sql(stmt)
+      if options.verbose:
+        test(stmt)
+      req = SenseiRequest(stmt)
+      res = client.doQuery(req)
+      res.display(columns=req.get_columns(), max_col_width=int(options.max_col_width))
+
     except EOFError:
       print
       break

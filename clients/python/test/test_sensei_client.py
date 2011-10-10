@@ -4,6 +4,7 @@ import unittest
 sys.path.insert(0, "../src")
 import sensei_client
 from sensei_client import SenseiRequest
+from pyparsing import ParseException
 
 class TestSenseiClient(unittest.TestCase):
 
@@ -56,7 +57,7 @@ class TestSenseiClient(unittest.TestCase):
     select = req.selections[0]
     self.assertEqual(select.field, "age")
     self.assertEqual(select.operation, sensei_client.PARAM_SELECT_OP_OR)
-    self.assertEqual(select.values, [20, 30, "40"])
+    self.assertEqual(select.values, ["20", "30", "40"])
     select = req.selections[1]
     self.assertEqual(select.field, "last_name")
     self.assertEqual(select.operation, sensei_client.PARAM_SELECT_OP_AND)
@@ -210,6 +211,51 @@ class TestSenseiClient(unittest.TestCase):
     self.assertEqual(init_params.long_map["now"], ["999999"])
     init_params = req.facet_init_param_map["member"]
     self.assertEqual(init_params.string_map["last_name"], ["Cui"])
+
+  def testFetchingStored(self):
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    FETCHING STORED TRUE
+    """
+    req = SenseiRequest(stmt)
+    self.assertTrue(req.fetch_stored)
+
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    """
+    req = SenseiRequest(stmt)
+    self.assertTrue(req.fetch_stored)
+
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    FETCHING STORED False
+    """
+    req = SenseiRequest(stmt)
+    self.assertFalse(req.fetch_stored)
+
+    # Make sure we only allow one FETCHING STORED clause
+    intactFlag = True
+    try:
+      stmt = \
+      """
+      SELECT *
+      FROM cars
+      FETCHING STORED False
+      FETCHING STORED true
+      """
+      req = SenseiRequest(stmt)
+      intactFlag = False
+    except ParseException as err:
+      pass
+    finally:
+      self.assertTrue(intactFlag)
+
 
 if __name__ == "__main__":
     unittest.main()
