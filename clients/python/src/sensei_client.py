@@ -19,6 +19,7 @@ import urllib2
 import json
 import sys
 import logging
+import datetime
 
 logger = logging.getLogger("sensei_client")
 
@@ -123,7 +124,7 @@ DEFAULT_FACET_MAXHIT = 10
 DEFAULT_FACET_ORDER = PARAM_FACET_ORDER_HITS
 
 #
-# Definition of the SQL statement grammar
+# Definition of the BQL statement grammar
 #
 
 from pyparsing import Literal, CaselessLiteral, Word, Upcase, delimitedList, Optional, \
@@ -135,7 +136,10 @@ from pyparsing import Literal, CaselessLiteral, Word, Upcase, delimitedList, Opt
 BNF Grammar for BQL
 ===================
 
-<select_stmt> ::= SELECT <select_list> <from_clause> [<where_clause>] [<given_clause>] [<additional_clauses>] [';']
+<statement> ::= (  <select_stmt> | <describe_stmt> ) [';']
+
+<select_stmt> ::= SELECT <select_list> <from_clause> [<where_clause>] [<given_clause>] [<additional_clauses>]
+<describe_stmt> ::= ( DESC | DESCRIBE ) <index_name>
 
 <select_list> ::= '*' | <column_list>
 <column_list> ::= <column_name> ( ',' <column_name> )*
@@ -231,8 +235,14 @@ BNF Grammar for BQL
 def dummy_action(s, loc, tok):
   pass
 
+def order_by_act(s, loc, tok):
+  for order in tok[1:]:
+    if (order[0] == PARAM_SORT_SCORE and len(order) > 1):
+      raise ParseException(s, loc, "%s should not be followed by %s"
+                           % (PARAM_SORT_SCORE, order[1]))
+
 limit_once = OnlyOnce(dummy_action)
-order_by_once = OnlyOnce(dummy_action)
+order_by_once = OnlyOnce(order_by_act)
 group_by_once = OnlyOnce(dummy_action)
 browse_by_once = OnlyOnce(dummy_action)
 fetching_stored_once = OnlyOnce(dummy_action)
@@ -244,7 +254,7 @@ def reset_all():
   browse_by_once.reset()
   fetching_stored_once.reset()
 
-# SQL tokens
+# BQL tokens
 
 andToken        = Keyword("and", caseless=True)
 ascToken        = Keyword("asc", caseless=True)
@@ -253,6 +263,8 @@ browseByToken   = Keyword("browse by", caseless=True)
 byteToken       = Keyword("bytearray", caseless=True)
 containsToken   = Keyword("contains all", caseless=True)
 descToken       = Keyword("desc", caseless=True)
+descTableToken  = Keyword("desc", caseless=True)
+describeToken   = Keyword("describe", caseless=True)
 doubleToken     = Keyword("double", caseless=True)
 exceptToken     = Keyword("except", caseless=True)
 facetParamToken = Keyword("facet param", caseless=True)
@@ -357,15 +369,16 @@ selectStmt << (selectToken +
                           groupByClause |
                           browseByClause |
                           fetchingStoredClause
-                          ) +
-               Optional(SEMICOLON)
+                          )
                )
 
-simpleSQL = selectStmt
+describeStmt = (descTableToken | describeToken).setResultsName("describe") + ident.setResultsName("index")
+
+BQLstmt = (selectStmt | describeStmt) + Optional(SEMICOLON)
 
 # Define comment format, and ignore them
 sqlComment = "--" + restOfLine
-simpleSQL.ignore(sqlComment)
+BQLstmt.ignore(sqlComment)
 
 
 def safe_str(obj):
@@ -377,21 +390,34 @@ def safe_str(obj):
     return unicode(obj).encode("unicode_escape")
 
 
-class SQLRequest:
-  """A Sensei request with a SQL SELECT-like statement."""
+class BQLRequest:
+  """A Sensei request with a BQL statement.
+
+  The BQL statement can be one of the following statements:
+
+  1. SELECT
+  2. DESCRIBE
+
+  """
 
   def __init__(self, sql_stmt):
     try:
-      self.tokens = simpleSQL.parseString(sql_stmt, parseAll=True)
+      self.tokens = BQLstmt.parseString(sql_stmt, parseAll=True)
     except ParseException as err:
       raise err
     finally:
       reset_all()
+
     self.query = ""
     self.selections = []
     self.sorts = None
     self.columns = [safe_str(col) for col in self.tokens.columns]
     self.facet_init_param_map = None
+
+    if self.tokens.describe:
+      self.stmt_type = "desc"
+    else:
+      self.stmt_type = "select"
 
     where = self.tokens.where
     if where:
@@ -418,6 +444,11 @@ class SQLRequest:
           for i in xrange(0, len(cond.prop_list), 2):
             select.addProperty(cond.prop_list[i], cond.prop_list[i+1])
           self.selections.append(select)
+
+  def get_stmt_type(self):
+    """Get the statement type."""
+
+    return self.stmt_type
 
   def get_offset(self):
     """Get the offset."""
@@ -472,7 +503,7 @@ class SQLRequest:
         if len(spec) == 1:
           self.sorts.append(SenseiSort(spec[0]))
         else:
-          self.sorts.append(SenseiSort(spec[0], spec[1] == "desc" and True or False))
+          self.sorts.append(SenseiSort(spec[0], spec[1] == "desc"))
     return self.sorts
 
   def get_selections(self):
@@ -495,7 +526,7 @@ class SQLRequest:
                             DEFAULT_FACET_MAXHIT,
                             DEFAULT_FACET_ORDER)
       else:
-        facet = SenseiFacet(spec[1] == "true" and True or False,
+        facet = SenseiFacet(spec[1] == "true",
                             spec[2],
                             spec[3],
                             spec[4] == "hits" and PARAM_FACET_ORDER_HITS or PARAM_FACET_ORDER_VAL)
@@ -520,6 +551,7 @@ class SQLRequest:
 
   def get_fetching_stored(self):
     """Get the fetching-stored flag."""
+
     fetching_stored = self.tokens.fetching_stored
     if (not fetching_stored or
         len(fetching_stored) == 1 or
@@ -529,6 +561,8 @@ class SQLRequest:
       return False
 
   def get_facet_init_param_map(self):
+    """Get run-time facet handler initialization parameters."""
+
     if self.facet_init_param_map:
       return self.facet_init_param_map
 
@@ -563,7 +597,7 @@ class SQLRequest:
 def test(str):
   # print str,"->"
   try:
-    tokens = simpleSQL.parseString(str)
+    tokens = BQLstmt.parseString(str)
     print "tokens = ",        tokens
     print "tokens.columns =", tokens.columns
     print "tokens.index =",  tokens.index
@@ -669,6 +703,7 @@ class SenseiSelection:
 class SenseiSort:
   def __init__(self, field, reverse=False):
     self.field = field
+    self.dir = None
     if not (field == PARAM_SORT_SCORE or
             field == PARAM_SORT_SCORE_REVERSE or
             field == PARAM_SORT_DOC or
@@ -679,14 +714,13 @@ class SenseiSort:
         self.dir = PARAM_SORT_ASC
 
   def __str__(self):
-    return "%s:%s" % (self.field, self.dir)
+    return self.buildSortField()
 
   def buildSortField(self):
-    if self.dir == "":
-      return self.field
-    else:
+    if self.dir:
       return self.field + ":" + self.dir
-
+    else:
+      return self.field
 
 class SenseiFacetInitParams:
   """FacetHandler initialization parameters."""
@@ -775,6 +809,171 @@ class SenseiFacetInitParams:
     return self.double_map.get(key)
 
 
+class SenseiFacetInfo:
+
+  def __init__(self, name, runtime=False, props={}):
+    self.name = name
+    self.runtime = runtime
+    self.props = props
+
+  def get_name(self):
+    return self.name
+
+  def set_name(self, name):
+    self.name = name
+
+  def get_runtime(self):
+    return self.runtime
+
+  def set_runtime(self, runtime):
+    self.runtime = runtime
+
+  def get_props(self):
+    return self.props
+
+  def set_props(self, props):
+    self.props = props
+
+
+class SenseiNodeInfo:
+
+  def __init__(self, id, partitions, node_link, admin_link):
+    self.id = id
+    self.partitions = partitions
+    self.node_link = node_link
+    self.admin_link = admin_link
+
+  def get_id(self):
+    return self.id
+
+  def get_partitions(self):
+    return self.partitions
+
+  def get_node_link(self):
+    return self.node_link
+
+  def get_admin_link(self):
+    return self.admin_link
+
+
+class SenseiSystemInfo:
+
+  def __init__(self, json_data):
+    logger.debug("json_data = %s" % json_data)
+    self.num_docs = int(json_data.get(PARAM_SYSINFO_NUMDOCS))
+    self.last_modified = long(json_data.get(PARAM_SYSINFO_LASTMODIFIED))
+    self.version = json_data.get(PARAM_SYSINFO_VERSION)
+    self.facet_infos = []
+    for facet in json_data.get(PARAM_SYSINFO_FACETS):
+      facet_info = SenseiFacetInfo(facet.get(PARAM_SYSINFO_FACETS_NAME),
+                                   facet.get(PARAM_SYSINFO_FACETS_RUNTIME),
+                                   facet.get(PARAM_SYSINFO_FACETS_PROPS))
+      self.facet_infos.append(facet_info)
+    # TODO: get cluster_info
+    self.cluster_info = None
+
+  def display(self):
+    """Display sysinfo."""
+
+    keys = ["facet_name", "runtime", "column", "type", "depends"]
+    max_lens = None
+    # XXX add existing flags
+
+    def get_max_lens(columns):
+      max_lens = {}
+      for column in columns:
+        max_lens[column] = len(column)
+      for facet_info in self.facet_infos:
+        tmp_len = len(facet_info.get_name())
+        if tmp_len > max_lens["facet_name"]:
+          max_lens["facet_name"] = tmp_len
+        # runtime can only contain "true" or "false", so len("runtime")
+        # is big enough
+        props = facet_info.get_props()
+        tmp_len = len(props.get("column"))
+        if tmp_len > max_lens["column"]:
+          max_lens["column"] = tmp_len
+        tmp_len = len(props.get("type"))
+        if tmp_len > max_lens["type"]:
+          max_lens["type"] = tmp_len
+        tmp_len = len(props.get("depends"))
+        if tmp_len > max_lens["depends"]:
+          max_lens["depends"] = tmp_len
+      return max_lens
+
+    def print_line(char='-', sep_char='+'):
+      sys.stdout.write(sep_char)
+      for key in keys:
+        sys.stdout.write(char * (max_lens[key] + 2) + sep_char)
+      sys.stdout.write('\n')
+
+    def print_header():
+      print_line('-', '+')
+      sys.stdout.write('|')
+      for key in keys:
+        sys.stdout.write(' %s%s |' % (key, ' ' * (max_lens[key] - len(key))))
+      sys.stdout.write('\n')
+      print_line('-', '+')
+
+    def print_footer():
+      print_line('-', '+')
+      
+    max_lens = get_max_lens(keys)
+    print_header()
+
+    for facet_info in self.facet_infos:
+      sys.stdout.write('|')
+      val = facet_info.get_name()
+      sys.stdout.write(' %s%s |' % (val, ' ' * (max_lens["facet_name"] - len(val))))
+
+      val = facet_info.get_runtime() and "true" or "false"
+      sys.stdout.write(' %s%s |' % (val, ' ' * (max_lens["runtime"] - len(val))))
+
+      props = facet_info.get_props()
+      val = props.get("column")
+      sys.stdout.write(' %s%s |' % (val, ' ' * (max_lens["column"] - len(val))))
+
+      val = props.get("type")
+      sys.stdout.write(' %s%s |' % (val, ' ' * (max_lens["type"] - len(val))))
+
+      val = props.get("depends")
+      sys.stdout.write(' %s%s |' % (val, ' ' * (max_lens["depends"] - len(val))))
+
+      sys.stdout.write('\n')
+
+    print_footer()
+
+  def get_num_docs(self):
+    return self.num_docs
+
+  def set_num_docs(self, num_docs):
+    self.num_docs = num_docs
+
+  def get_last_modified(self):
+    return self.last_modified
+
+  def set_last_modified(self, last_modified):
+    self.last_modified = last_modified
+
+  def get_facet_infos(self):
+    return self.facet_infos
+
+  def set_facet_infos(self, facet_infos):
+    self.facet_infos = facet_infos
+
+  def get_version(self):
+    return self.version
+
+  def set_version(self, version):
+    self.version = version
+
+  def get_cluster_info(self):
+    return self.cluster_info
+
+  def set_cluster_info(self, cluster_info):
+    self.cluster_info = cluster_info
+
+
 class SenseiRequest:
 
   def __init__(self,
@@ -786,26 +985,35 @@ class SenseiRequest:
     self.explain = False
     self.route_param = None
     self.sql_stmt = sql_stmt
+    self.prepare_time = 0       # Statement prepare time in milliseconds
 
     if sql_stmt:
-      sql_req = SQLRequest(sql_stmt)
-      self.query = sql_req.get_query()
-      self.offset = sql_req.get_offset() or offset
-      self.count = sql_req.get_count() or count
-      self.columns = sql_req.get_columns()
-      self.sorts = sql_req.get_sorts()
-      self.selections = sql_req.get_selections()
-      self.facets = sql_req.get_facets()
-      # PARAM_RESULT_HIT_STORED_FIELDS is a reserved column name.  If this
-      # column is selected, turn on fetch_stored flag automatically.
-      if (PARAM_RESULT_HIT_STORED_FIELDS in self.columns or
-          sql_req.get_fetching_stored()):
-        self.fetch_stored = True
+      time1 = datetime.datetime.now()
+      bql_req = BQLRequest(sql_stmt)
+      self.stmt_type = bql_req.get_stmt_type()
+      if self.stmt_type == "desc":
+        self.index = bql_req.get_index()
       else:
-        self.fetch_stored = False
-      self.groupby = sql_req.get_groupby()
-      self.max_per_group = sql_req.get_max_per_group() or max_per_group
-      self.facet_init_param_map = sql_req.get_facet_init_param_map()
+        self.query = bql_req.get_query()
+        self.offset = bql_req.get_offset() or offset
+        self.count = bql_req.get_count() or count
+        self.columns = bql_req.get_columns()
+        self.sorts = bql_req.get_sorts()
+        self.selections = bql_req.get_selections()
+        self.facets = bql_req.get_facets()
+        # PARAM_RESULT_HIT_STORED_FIELDS is a reserved column name.  If this
+        # column is selected, turn on fetch_stored flag automatically.
+        if (PARAM_RESULT_HIT_STORED_FIELDS in self.columns or
+            bql_req.get_fetching_stored()):
+          self.fetch_stored = True
+        else:
+          self.fetch_stored = False
+        self.groupby = bql_req.get_groupby()
+        self.max_per_group = bql_req.get_max_per_group() or max_per_group
+        self.facet_init_param_map = bql_req.get_facet_init_param_map()
+        delta = datetime.datetime.now() - time1
+        self.prepare_time = delta.seconds * 1000 + delta.microseconds / 1000
+        logger.debug("Prepare time: %sms" % self.prepare_time)
     else:
       self.query = None
       self.offset = offset
@@ -860,18 +1068,19 @@ class SenseiResultFacet:
 class SenseiResult:
   """Sensei search results for a query."""
 
-  def __init__(self, jsonData):
-    logger.debug("jsonData = %s" % jsonData)
-    self.jsonMap = jsonData
-    self.parsedQuery = jsonData.get(PARAM_RESULT_PARSEDQUERY)
-    self.totalDocs = jsonData.get(PARAM_RESULT_TOTALDOCS,0)
-    self.time = jsonData.get(PARAM_RESULT_TIME,0)
-    self.numHits = jsonData.get(PARAM_RESULT_NUMHITS,0)
-    self.hits = jsonData.get(PARAM_RESULT_HITS)
-    map = jsonData.get(PARAM_RESULT_FACETS)
+  def __init__(self, json_data):
+    logger.debug("json_data = %s" % json_data)
+    self.jsonMap = json_data
+    self.parsedQuery = json_data.get(PARAM_RESULT_PARSEDQUERY)
+    self.totalDocs = json_data.get(PARAM_RESULT_TOTALDOCS, 0)
+    self.time = json_data.get(PARAM_RESULT_TIME, 0)
+    self.total_time = 0
+    self.numHits = json_data.get(PARAM_RESULT_NUMHITS, 0)
+    self.hits = json_data.get(PARAM_RESULT_HITS)
+    map = json_data.get(PARAM_RESULT_FACETS)
     self.facetMap = {}
     if map:
-      for k,v in map.items():
+      for k, v in map.items():
         facetList = []
         for facet in v:
           facetObj = SenseiResultFacet()
@@ -936,7 +1145,7 @@ class SenseiResult:
         print_line('=', '=')
       else:
         print_line('-', '+')
-      sys.stdout.write('%s %s%s in set, %s hit%s, %s total doc%s (%sms)\n' %
+      sys.stdout.write('%s %s%s in set, %s hit%s, %s total doc%s (server: %sms, total: %sms)\n' %
                        (len(self.hits),
                         has_group_hits and 'group' or 'row',
                         len(self.hits) > 1 and 's' or '',
@@ -944,7 +1153,8 @@ class SenseiResult:
                         self.numHits > 1 and 's' or '',
                         self.totalDocs,
                         self.totalDocs > 1 and 's' or '',
-                        self.time
+                        self.time,
+                        self.total_time
                         ))
 
     if not self.hits:
@@ -1053,8 +1263,10 @@ class SenseiClient:
 
     if req.qParam.get("query"):
       paramMap[PARAM_QUERY] = req.qParam.get("query")
-    paramMap[PARAM_QUERY_PARAM] = ",".join(param + ":" + req.qParam.get(param)
-                                           for param in req.qParam.keys() if param != "query")
+      del req.qParam["query"]
+    if req.qParam:
+      paramMap[PARAM_QUERY_PARAM] = ",".join(param + ":" + req.qParam.get(param)
+                                             for param in req.qParam.keys() if param != "query")
 
     for selection in req.selections:
       paramMap[selection.getSelectNotParam()] = selection.getSelectNotParamValues()
@@ -1066,7 +1278,7 @@ class SenseiClient:
     for facet_name, facet_spec in req.facets.iteritems():
       paramMap["%s.%s.%s" % (PARAM_FACET, facet_name, PARAM_FACET_MAX)] = facet_spec.maxCounts
       paramMap["%s.%s.%s" % (PARAM_FACET, facet_name, PARAM_FACET_ORDER)] = facet_spec.orderBy
-      paramMap["%s.%s.%s" % (PARAM_FACET, facet_name, PARAM_FACET_EXPAND)] = facet_spec.expand
+      paramMap["%s.%s.%s" % (PARAM_FACET, facet_name, PARAM_FACET_EXPAND)] = facet_spec.expand and "true" or "false"
       paramMap["%s.%s.%s" % (PARAM_FACET, facet_name, PARAM_FACET_MINHIT)] = facet_spec.minHits
 
     for facet_name, initParams in req.facet_init_param_map.iteritems():
@@ -1109,153 +1321,44 @@ class SenseiClient:
 
     if req.groupby:
       paramMap[PARAM_GROUP_BY] = req.groupby
-    if req.max_per_group > 0:
-      paramMap[PARAM_MAX_PER_GROUP] = req.max_per_group
+      if req.max_per_group > 0:
+        paramMap[PARAM_MAX_PER_GROUP] = req.max_per_group
 
     return urllib.urlencode(paramMap)
     
   def doQuery(self, req=None):
+    """Execute a search query."""
+
+    time1 = datetime.datetime.now()
     paramString = None
     if req:
       paramString = SenseiClient.buildUrlString(req)
     logger.debug(paramString)
-    urlReq = urllib2.Request(self.url,paramString)
+    urlReq = urllib2.Request(self.url, paramString)
     res = self.opener.open(urlReq)
     line = res.read()
     jsonObj = json.loads(line)
     res = SenseiResult(jsonObj)
+    delta = datetime.datetime.now() - time1
+    res.total_time = delta.seconds * 1000 + delta.microseconds / 1000
     return res
 
-def test_basic():
-  print "==== Testing basic ====" 
-  req = SenseiRequest()
-  req.offset = 0
-  req.count = 4
+  def getSystemInfo(self):
+    """Get Sensei system info."""
 
-  client = SenseiClient()
-  res = client.doQuery(req)
-  print res.jsonMap
-
-
-def testSort1():
-  print "==== Testing sort1 ====" 
-  req = SenseiRequest()
-  req.offset = 0
-  req.count = 4
-
-  sort1 = SenseiSort("relevance")
-  req.sorts = [sort1]
-  
-  client = SenseiClient()
-  client.doQuery(req)
-
-# XXX Sort on multiple columns Does NOT work yet
-def testSort2():
-  print "==== Testing sort2 ====" 
-  req = SenseiRequest()
-  req.offset = 0
-  req.count = 4
-
-  sort1 = SenseiSort("year", True)
-  sort2 = SenseiSort("relevance")
-  req.sorts = [sort1, sort2]
-  
-  client = SenseiClient()
-  client.doQuery(req)
-
-
-def testQueryParam():
-  print "==== Testing query params ====" 
-  req = SenseiRequest()
-  req.offset = 0
-  req.count = 4
-
-  sort1 = SenseiSort("relevance")
-  req.sorts = [sort1]
-
-  qParam = {}
-  qParam["query"] = "cool car"
-  qParam["param1"] = "value1"
-  qParam["param2"] = "value2"
-  req.qParam = qParam
-  
-  client = SenseiClient()
-  client.doQuery(req)
-
-def testSelection():
-  print "==== Testing selections ====" 
-  req = SenseiRequest()
-  req.offset = 0
-  req.count = 3
-
-  select1 = SenseiSelection("color", "or")
-  select1.addSelection("red")
-  select1.addSelection("yellow")
-  select1.addSelection("black", True)
-  select1.addProperty("aaa", "111")
-  select1.addProperty("bbb", "222")
-
-  select2 = SenseiSelection("price")
-  select2.addSelection("[* TO 6700]")
-  select2.addSelection("[10000 TO 13100]")
-  select2.addSelection("[13200 TO 17300]")
-
-  req.selections = [select1]
-  client = SenseiClient()
-  res = client.doQuery(req)
-  print res.jsonMap
-
-def testFacetSpecs():
-  print "==== Testing facet specs ====" 
-  req = SenseiRequest()
-  req.query = 'moon-roof'
-  req.offset = 0
-  req.count = 10
-
-  facet1 = SenseiFacet()
-  facet2 = SenseiFacet(True, 1, 3, PARAM_FACET_ORDER_VAL)
-  facet3 = SenseiFacet(True, 1, 3, PARAM_FACET_ORDER_VAL)
-
-  req.facets["year"] = facet1
-  req.facets["color"] = facet2
-  req.facets["price"] = facet3
-  req.facets["city"] = facet3
-  req.facets["category"] = facet3
-
-  sort = SenseiSort("price")
-  req.sorts = [sort]
-  
-  client = SenseiClient()
-  res = client.doQuery(req)
-  # res.display()
-  res.display(['year', 'color', 'tags', 'price'])
-  # res.display(['bad_name'])
-
-def testInitParams():
-  print "==== Testing Facet Initialization Parameters ===="
-  req = SenseiRequest()
-  req.query = "moon-roof"
-
-  param1 = SenseiFacetInitParams()
-  param1.put_int_param("srcid", [12345])
-  param1.put_bool_param("is_member", False)
-
-  param2 = SenseiFacetInitParams()
-  param2.put_int_param("time", 999999)
-  param2.put_string_param("week", "Monday")
-
-  req.facet_init_param_map["My-Network"] = param1
-  req.facet_init_param_map["Trending"] = param2
-
-  client = SenseiClient()
-  res = client.doQuery(req)
+    urlReq = urllib2.Request(self.url + "/sysinfo")
+    res = self.opener.open(urlReq)
+    line = res.read()
+    jsonObj = json.loads(line)
+    res = SenseiSystemInfo(jsonObj)
+    return res
 
 def main(argv):
   from optparse import OptionParser
   usage = "usage: %prog [options]"
   parser = OptionParser(usage=usage)
   parser.add_option("-w", "--column-width", dest="max_col_width",
-                    default=100, help="Set the max column wide")
+                    default=100, help="Set the max column width")
   parser.add_option("-v", "--verbose", action="store_true", dest="verbose",
                     default=False, help="Turn on verbose mode")
   (options, args) = parser.parse_args()
@@ -1288,8 +1391,12 @@ def main(argv):
       if options.verbose:
         test(stmt)
       req = SenseiRequest(stmt)
-      res = client.doQuery(req)
-      res.display(columns=req.get_columns(), max_col_width=int(options.max_col_width))
+      if req.stmt_type == "select":
+        res = client.doQuery(req)
+        res.display(columns=req.get_columns(), max_col_width=int(options.max_col_width))
+      else:
+        sysinfo = client.getSystemInfo()
+        sysinfo.display()
 
     except EOFError:
       print
@@ -1299,15 +1406,8 @@ def main(argv):
       # print err
 
 if __name__ == "__main__":
-
   main(sys.argv)
 
-  # testFacetSpecs()
-  # test_basic()
-  # testSort1()
-  # testQueryParam()
-  # testSelection()
-  # testInitParams()
 
 """
 Testing Data:
