@@ -302,17 +302,13 @@ public class SenseiFacetHandlerBuilder {
     SenseiSystemInfo sysInfo = new SenseiSystemInfo();
     JSONArray facetsList = schemaObj.optJSONArray("facets");
 		
-		JSONObject facetsEle = null;
-		
 		int count = 0;
 		
 		if (facetsList!=null){
 		  count = facetsList.length();
 		}
 		
-		if (count > 0) {
-			facetsEle = facetsList.getJSONObject(0);
-		} else {
+		if (count <= 0) {
 			return sysInfo;
 		}
 
@@ -379,6 +375,7 @@ public class SenseiFacetHandlerBuilder {
 					if (isDynamic){
             RuntimeFacetHandlerFactory<?,?> runtimeFacetFactory = (RuntimeFacetHandlerFactory<?,?>)customFacetContext.getBean(name);
             runtimeFacets.add(runtimeFacetFactory);
+            facetInfo.setRunTime(true);
 					}
 					else{
 						facetHandler = (FacetHandler<?>) customFacetContext.getBean(name);
