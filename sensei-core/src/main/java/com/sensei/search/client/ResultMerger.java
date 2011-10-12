@@ -150,13 +150,14 @@ public class ResultMerger
     }
 
     Map<String, FacetAccessible> mergedFacetMap = new HashMap<String, FacetAccessible>();
-    for (String facet : counts.keySet())
+    for (Entry<String,Map<String, Integer>> entry : counts.entrySet())
     {
-      Map<String, Integer> facetValueCounts = counts.get(facet);
+      String facet = entry.getKey();
+      Map<String, Integer> facetValueCounts = entry.getValue();
       List<BrowseFacet> facets = new ArrayList<BrowseFacet>(facetValueCounts.size());
-      for (Entry<String, Integer> entry : facetValueCounts.entrySet())
+      for (Entry<String, Integer> subEntry : facetValueCounts.entrySet())
       {
-        facets.add(new BrowseFacet(entry.getKey(), entry.getValue()));
+        facets.add(new BrowseFacet(subEntry.getKey(), subEntry.getValue()));
       }
       FacetSpec fspec = null;
       Set<String> values = new HashSet<String>();
@@ -212,9 +213,10 @@ public class ResultMerger
     }
     // create combinedFacetAccessibles
     Map<String, FacetAccessible> fieldMap = new HashMap<String, FacetAccessible>();
-    for(String fieldname : counts.keySet())
+    for(Entry<String,List<FacetAccessible>> entry : counts.entrySet())
     {
-      List<FacetAccessible> facetAccs = counts.get(fieldname);
+      String fieldname = entry.getKey();
+      List<FacetAccessible> facetAccs = entry.getValue();
       if (facetAccs.size() == 1)
       {
         fieldMap.put(fieldname, facetAccs.get(0));
@@ -224,9 +226,10 @@ public class ResultMerger
       }
     }
     Map<String, FacetAccessible> mergedFacetMap = new HashMap<String, FacetAccessible>();
-    for(String fieldname : fieldMap.keySet())
+    for(Entry<String,FacetAccessible> entry : fieldMap.entrySet())
     {
-      FacetAccessible facetAcc = fieldMap.get(fieldname);
+      String fieldname = entry.getKey();
+      FacetAccessible facetAcc = entry.getValue();
       FacetSpec fspec = req.getFacetSpec(fieldname);
       BrowseSelection sel = req.getSelection(fieldname);
       Set<String> values = new HashSet<String>();
@@ -599,56 +602,62 @@ public class ResultMerger
             Iterator<CollectorContext> contextIter = sortCollector.contextList.iterator();
             CollectorContext currentContext = null;
             int contextLeft = 0;
-            if (contextIter.hasNext()) {
+            while (contextIter.hasNext()) {
               currentContext = contextIter.next();
               contextLeft = currentContext.length;
+              if (contextLeft > 0)
+                break;
             }
 
             Iterator<float[]> scoreArrayIter = sortCollector.scorearraylist != null ? sortCollector.scorearraylist.iterator():null;
-            for (int[] docs : sortCollector.docidarraylist)
+            if (contextLeft > 0)
             {
-              float[] scores = scoreArrayIter != null ? scoreArrayIter.next():null;
-              for (int i=0; i<SortCollector.BLOCK_SIZE; ++i)
+              for (int[] docs : sortCollector.docidarraylist)
               {
-                doc = docs[i];
-                score = scores != null ? scores[i]:0.0f;
-                vals = sortCollector.groupBy.getRawFieldValues(currentContext.reader, doc);
-                if (vals != null && vals.length > 0)
-                  rawGroupValue = vals[0];
-                else
-                  rawGroupValue = null;
-                if (rawGroupValueType == 2)
+                float[] scores = scoreArrayIter != null ? scoreArrayIter.next():null;
+                for (int i=0; i<SortCollector.BLOCK_SIZE; ++i)
                 {
-                  primitiveLongArrayWrapperTmp.data = (long[])rawGroupValue;
-                  rawGroupValue = primitiveLongArrayWrapperTmp;
-                }
-
-                hitWithGroupQueue = groupMap.get(rawGroupValue);
-                if (hitWithGroupQueue != null)
-                {
-                  // Collect this hit.
-                  if (tmpScoreDoc == null)
-                    tmpScoreDoc = new MyScoreDoc(doc, score, currentContext.base + totalDocs + doc, currentContext.reader);
+                  doc = docs[i];
+                  score = scores != null ? scores[i]:0.0f;
+                  vals = sortCollector.groupBy.getRawFieldValues(currentContext.reader, doc);
+                  if (vals != null && vals.length > 0)
+                    rawGroupValue = vals[0];
                   else
+                    rawGroupValue = null;
+                  if (rawGroupValueType == 2)
                   {
-                    tmpScoreDoc.doc = doc;
-                    tmpScoreDoc.score = score;
-                    tmpScoreDoc.finalDoc = currentContext.base + totalDocs + doc;
-                    tmpScoreDoc.reader = currentContext.reader;
+                    primitiveLongArrayWrapperTmp.data = (long[])rawGroupValue;
+                    rawGroupValue = primitiveLongArrayWrapperTmp;
                   }
-                  tmpScoreDoc.sortValue = currentContext.comparator.value(tmpScoreDoc);
-                  tmpScoreDoc = hitWithGroupQueue.queue.insertWithOverflow(tmpScoreDoc);
-                }
-                --contextLeft;
-                if (contextLeft <= 0)
-                {
-                  if (contextIter.hasNext())
+
+                  hitWithGroupQueue = groupMap.get(rawGroupValue);
+                  if (hitWithGroupQueue != null)
                   {
-                    currentContext = contextIter.next();
-                    contextLeft = currentContext.length;
+                    // Collect this hit.
+                    if (tmpScoreDoc == null)
+                      tmpScoreDoc = new MyScoreDoc(doc, score, currentContext.base + totalDocs + doc, currentContext.reader);
+                    else
+                    {
+                      tmpScoreDoc.doc = doc;
+                      tmpScoreDoc.score = score;
+                      tmpScoreDoc.finalDoc = currentContext.base + totalDocs + doc;
+                      tmpScoreDoc.reader = currentContext.reader;
+                    }
+                    tmpScoreDoc.sortValue = currentContext.comparator.value(tmpScoreDoc);
+                    tmpScoreDoc = hitWithGroupQueue.queue.insertWithOverflow(tmpScoreDoc);
                   }
-                  else  // No more docs left.
-                    break;
+                  --contextLeft;
+                  if (contextLeft <= 0)
+                  {
+                    while (contextIter.hasNext()) {
+                      currentContext = contextIter.next();
+                      contextLeft = currentContext.length;
+                      if (contextLeft > 0)
+                        break;
+                    }
+                    if (contextLeft <= 0) // No more docs left.
+                      break;
+                  }
                 }
               }
             }

@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.commons.configuration.ConfigurationException;
@@ -334,7 +335,7 @@ public class SenseiFacetHandlerBuilder {
 
 		Map<String, TermListFactory<?>> termListFactoryMap = getPredefinedTermListFactoryMap(schemaObj);
 
-    Set<SenseiSystemInfo.SenseiFacetInfo> facetInfos = new HashSet<SenseiSystemInfo.SenseiFacetInfo>();
+        Set<SenseiSystemInfo.SenseiFacetInfo> facetInfos = new HashSet<SenseiSystemInfo.SenseiFacetInfo>();
 		for (int i = 0; i < count; ++i) {
 
       JSONObject facet = facetsList.getJSONObject(i);
@@ -370,8 +371,8 @@ public class SenseiFacetHandlerBuilder {
 				
 				Map<String,List<String>> paramMap = parseParams(paramList);
 				
-        for (String key : paramMap.keySet()) {
-          facetProps.put(key, paramMap.get(key).toString());
+        for (Entry<String,List<String>> entry : paramMap.entrySet()) {
+          facetProps.put(entry.getKey(), entry.getValue().toString());
         }
 
         facetInfo.setProps(facetProps);

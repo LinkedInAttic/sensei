@@ -216,10 +216,7 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
           if(DefaultStreamingIndexingManager.this._dataCollectorMap.containsKey(routeToPart)){
             Collection<DataEvent<JSONObject>> partDataSet = DefaultStreamingIndexingManager.this._dataCollectorMap.get(routeToPart);
             if (partDataSet!=null){
-              if (obj == obj)
-                partDataSet.add(dataEvt);
-              else
-                partDataSet.add(new DataEvent(obj, dataEvt.getVersion()));
+              partDataSet.add(dataEvt);
             }           
           }
         }
