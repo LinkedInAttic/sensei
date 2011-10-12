@@ -875,7 +875,7 @@ class SenseiSystemInfo:
   def display(self):
     """Display sysinfo."""
 
-    keys = ["facet_name", "runtime", "column", "type", "depends"]
+    keys = ["facet_name", "facet_type", "runtime", "column", "column_type", "depends"]
     max_lens = None
     # XXX add existing flags
 
@@ -884,18 +884,27 @@ class SenseiSystemInfo:
       for column in columns:
         max_lens[column] = len(column)
       for facet_info in self.facet_infos:
+        props = facet_info.get_props()
+
         tmp_len = len(facet_info.get_name())
         if tmp_len > max_lens["facet_name"]:
           max_lens["facet_name"] = tmp_len
+
+        tmp_len = len(props.get("type"))
+        if tmp_len > max_lens["facet_type"]:
+          max_lens["facet_type"] = tmp_len
+
         # runtime can only contain "true" or "false", so len("runtime")
         # is big enough
-        props = facet_info.get_props()
+
         tmp_len = len(props.get("column"))
         if tmp_len > max_lens["column"]:
           max_lens["column"] = tmp_len
-        tmp_len = len(props.get("type"))
-        if tmp_len > max_lens["type"]:
-          max_lens["type"] = tmp_len
+
+        tmp_len = len(props.get("column_type"))
+        if tmp_len > max_lens["column_type"]:
+          max_lens["column_type"] = tmp_len
+
         tmp_len = len(props.get("depends"))
         if tmp_len > max_lens["depends"]:
           max_lens["depends"] = tmp_len
@@ -922,19 +931,22 @@ class SenseiSystemInfo:
     print_header()
 
     for facet_info in self.facet_infos:
+      props = facet_info.get_props()
       sys.stdout.write('|')
       val = facet_info.get_name()
       sys.stdout.write(' %s%s |' % (val, ' ' * (max_lens["facet_name"] - len(val))))
 
+      val = props.get("type")
+      sys.stdout.write(' %s%s |' % (val, ' ' * (max_lens["facet_type"] - len(val))))
+
       val = facet_info.get_runtime() and "true" or "false"
       sys.stdout.write(' %s%s |' % (val, ' ' * (max_lens["runtime"] - len(val))))
 
-      props = facet_info.get_props()
       val = props.get("column")
       sys.stdout.write(' %s%s |' % (val, ' ' * (max_lens["column"] - len(val))))
 
-      val = props.get("type")
-      sys.stdout.write(' %s%s |' % (val, ' ' * (max_lens["type"] - len(val))))
+      val = props.get("column_type")
+      sys.stdout.write(' %s%s |' % (val, ' ' * (max_lens["column_type"] - len(val))))
 
       val = props.get("depends")
       sys.stdout.write(' %s%s |' % (val, ' ' * (max_lens["depends"] - len(val))))

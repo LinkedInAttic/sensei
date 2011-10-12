@@ -311,6 +311,26 @@ public class SenseiFacetHandlerBuilder {
 		if (count <= 0) {
 			return sysInfo;
 		}
+		
+    JSONObject table = schemaObj.optJSONObject("table");
+    if (table == null)
+    {
+      throw new ConfigurationException("Empty schema");
+    }
+    JSONArray columns = table.optJSONArray("columns");
+    Map<String, JSONObject> columnMap = new HashMap<String, JSONObject>();
+    for (int i = 0; i < columns.length(); ++i)
+    {
+      JSONObject column = columns.getJSONObject(i);
+      try
+      {
+        String name = column.getString("name");
+        columnMap.put(name, column);
+      }
+      catch (Exception e) {
+        throw new ConfigurationException("Error parsing schema: ", e);
+      }
+    }
 
 		Map<String, TermListFactory<?>> termListFactoryMap = getPredefinedTermListFactoryMap(schemaObj);
 
@@ -341,6 +361,9 @@ public class SenseiFacetHandlerBuilder {
         Map<String, String> facetProps = new HashMap<String, String>();
         facetProps.put("type", type);
         facetProps.put("column", fieldName);
+        JSONObject column = columnMap.get(fieldName);
+        String columnType = (column == null) ? "" : column.optString("type", "");
+        facetProps.put("column_type", columnType);
         facetProps.put("depends", dependSet.toString());
 
 				JSONArray paramList = facet.optJSONArray("params");
