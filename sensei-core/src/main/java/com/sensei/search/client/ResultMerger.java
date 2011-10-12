@@ -649,12 +649,13 @@ public class ResultMerger
                   --contextLeft;
                   if (contextLeft <= 0)
                   {
-                    if (contextIter.hasNext())
-                    {
+                    while (contextIter.hasNext()) {
                       currentContext = contextIter.next();
                       contextLeft = currentContext.length;
+                      if (contextLeft > 0)
+                        break;
                     }
-                    else  // No more docs left.
+                    if (contextLeft <= 0) // No more docs left.
                       break;
                   }
                 }
