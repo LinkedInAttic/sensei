@@ -61,11 +61,11 @@ public class Shard implements WritableComparable {
       shardsString.append(",");
       shardsString.append(shards[i].toString());
     }
-    conf.set("sea.index.shards", shardsString.toString());
+    conf.set("sensei.index.shards", shardsString.toString());
   }
 
   public static Shard[] getIndexShards(Configuration conf) {
-    String shards = conf.get("sea.index.shards");
+    String shards = conf.get("sensei.index.shards");
     if (shards != null) {
       ArrayList<Object> list =
           Collections.list(new StringTokenizer(shards, ","));

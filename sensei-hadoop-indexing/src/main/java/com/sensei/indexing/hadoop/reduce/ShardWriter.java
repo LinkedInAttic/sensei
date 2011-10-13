@@ -146,18 +146,18 @@ public class ShardWriter {
   }
 
   private void setParameters(Configuration conf) {
-    int maxFieldLength = conf.getInt("sea.max.field.length", -1);
+    int maxFieldLength = conf.getInt("sensei.max.field.length", -1);
     if (maxFieldLength > 0) {
       writer.setMaxFieldLength(maxFieldLength);
     }
-    writer.setUseCompoundFile(conf.getBoolean("sea.use.compound.file", false));
-    maxNumSegments = conf.getInt("sea.max.num.segments", -1);
+    writer.setUseCompoundFile(conf.getBoolean("sensei.use.compound.file", false));
+    maxNumSegments = conf.getInt("sensei.max.num.segments", -1);
 
     if (maxFieldLength > 0) {
-    	logger.info("sea.max.field.length = " + writer.getMaxFieldLength());
+    	logger.info("sensei.max.field.length = " + writer.getMaxFieldLength());
     }
-    logger.info("sea.use.compound.file = " + writer.getUseCompoundFile());
-    logger.info("sea.max.num.segments = " + maxNumSegments);
+    logger.info("sensei.use.compound.file = " + writer.getUseCompoundFile());
+    logger.info("sensei.max.num.segments = " + maxNumSegments);
   }
 
   // in case a previous reduce task fails, restore the generation to

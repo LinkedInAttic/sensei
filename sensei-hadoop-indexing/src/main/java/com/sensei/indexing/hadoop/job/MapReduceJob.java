@@ -40,7 +40,7 @@ public class MapReduceJob extends Configured {
 		    Path outputPath;
 		    Shard[] shards = null;
 			int numMapTasks = conf.getInt("mapreduce.job.maps", 2);
-			int numShards = conf.getInt("sea.num.shards", 2);
+			int numShards = conf.getInt("sensei.num.shards", 2);
 //			inputPaths = FileInputFormat.getInputPaths(jobConf);
 			
 		    String dirs = conf.get("mapreduce.input.fileinputformat.inputdir", null);
@@ -54,7 +54,7 @@ public class MapReduceJob extends Configured {
 		    logger.info("path[0] is:" + inputPaths[0]);
 		    	    
 			outputPath = new Path(conf.get("mapreduce.output.fileoutputformat.outputdir"));
-			String indexPath = conf.get("sea.index.path");
+			String indexPath = conf.get("sensei.index.path");
 			shards = createShards(indexPath, numShards, conf);
 			
 			
@@ -85,7 +85,7 @@ public class MapReduceJob extends Configured {
 		    jobConf.setNumReduceTasks(shards.length);
 
 		    jobConf.setInputFormat(
-		    		conf.getClass("sea.input.format", TextInputFormat.class, InputFormat.class));
+		    		conf.getClass("sensei.input.format", TextInputFormat.class, InputFormat.class));
 
 		    Path[] inputs = FileInputFormat.getInputPaths(jobConf);
 		    StringBuilder buffer = new StringBuilder(inputs[0].toString());
@@ -98,7 +98,7 @@ public class MapReduceJob extends Configured {
 		             FileOutputFormat.getOutputPath(jobConf).toString());
 		    logger.info("mapreduce.job.maps = " + jobConf.getNumMapTasks());
 		    logger.info("mapreduce.job.reduces = " + jobConf.getNumReduceTasks());
-		    logger.info(shards.length + " shards = " + conf.get("sea.index.shards"));
+		    logger.info(shards.length + " shards = " + conf.get("sensei.index.shards"));
 		    logger.info("mapred.input.format.class = "
 		        + jobConf.getInputFormat().getClass().getName());
 

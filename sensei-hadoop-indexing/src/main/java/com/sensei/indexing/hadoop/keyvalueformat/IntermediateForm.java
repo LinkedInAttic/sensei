@@ -163,7 +163,7 @@ public class IntermediateForm implements Writable {
     writer.setUseCompoundFile(false);
 
     if (conf != null) {
-      int maxFieldLength = conf.getInt("sea.max.field.length", -1);
+      int maxFieldLength = conf.getInt("sensei.max.field.length", -1);
       if (maxFieldLength > 0) {
         writer.setMaxFieldLength(maxFieldLength);
       }

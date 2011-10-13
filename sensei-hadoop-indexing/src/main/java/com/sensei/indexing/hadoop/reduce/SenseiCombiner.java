@@ -81,7 +81,7 @@ public class SenseiCombiner extends MapReduceBase implements
 
   public void configure(JobConf job) {
     iconf = new Configuration(job);
-    maxSizeInBytes = iconf.getLong("sea.max.ramsize.bytes", 50L << 20);
+    maxSizeInBytes = iconf.getLong("sensei.max.ramsize.bytes", 50L << 20);
     nearMaxSizeInBytes = maxSizeInBytes - (maxSizeInBytes >>> 3); // 7/8 of max
   }
 

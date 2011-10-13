@@ -120,15 +120,15 @@ public class SenseiMapper extends MapReduceBase implements Mapper<Object, Object
 		
 		_shardingStategy =
 		        (ShardingStrategy) ReflectionUtils.newInstance(
-				job.getClass("sea.distribution.policy",
+				job.getClass("sensei.distribution.policy",
 				DummyShardingStrategy.class, ShardingStrategy.class), job);
 		
 		_converter = (MapInputConverter) ReflectionUtils.newInstance(
-				job.getClass("sea.mapinput.converter",
+				job.getClass("sensei.mapinput.converter",
 						MapInputConverter.class, MapInputConverter.class), job);
 		
 		_filter = (JsonFilter) ReflectionUtils.newInstance(
-				job.getClass("sea.mapinput.filter",
+				job.getClass("sensei.mapinput.filter",
 						DummyFilter.class, JsonFilter.class), job);
 		
 		try {
