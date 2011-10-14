@@ -126,6 +126,7 @@ public class IntermediateForm implements Writable {
    */
   public void closeWriter() throws IOException {
     if (writer != null) {
+      writer.optimize();
       writer.close();
       writer = null;
     }

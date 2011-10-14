@@ -15,24 +15,4 @@ public interface SenseiJobConfig {
 	public static final String MAX_RAMSIZE_BYTES = "sensei.max.ramsize.bytes";
 	public static final String MAX_NUM_SEGMENTS = "sensei.max.num.segments";
 	
-	
-//	public static final String 
-//	public static final String
-//	public static final String
-//	public static final String
-//	public static final String
-//	public static final String
-	
 }
-	
-
-
-
-
-
-
-
-
-
-	
-	
