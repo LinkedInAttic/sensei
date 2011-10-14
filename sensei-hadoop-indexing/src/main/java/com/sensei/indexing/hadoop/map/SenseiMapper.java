@@ -2,6 +2,7 @@ package com.sensei.indexing.hadoop.map;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
 import java.net.URL;
 import java.net.URLConnection;
 
@@ -50,7 +51,9 @@ public class SenseiMapper extends MapReduceBase implements Mapper<Object, Object
 	private ShardingStrategy _shardingStategy;
 	private MapInputConverter _converter;
 	
-	private Analyzer analyzer = new StandardAnalyzer(Version.LUCENE_30);
+	private static Analyzer analyzer;
+	
+
 	  
     
     public void map(Object key, Object value, 
@@ -58,7 +61,7 @@ public class SenseiMapper extends MapReduceBase implements Mapper<Object, Object
                     Reporter reporter) throws IOException {
     	
         if(_isConfigured == false)
-	      throw new IllegalStateException("Mapper's configure method wasn't sucessful. May not get the correct schema.");
+	      throw new IllegalStateException("Mapper's configure method wasn't sucessful. May not get the correct schema or Lucene Analyzer.");
 
         JSONObject json = null;
     	try{
@@ -72,7 +75,7 @@ public class SenseiMapper extends MapReduceBase implements Mapper<Object, Object
     	if( _defaultInterpreter == null)
     		reporter.incrCounter("Map", "Interpreter_null", 1);
     	
-    	if(  _defaultInterpreter != null && json != null){
+    	if(  _defaultInterpreter != null && json != null && analyzer != null){
 
     	      ZoieIndexable indexable = _defaultInterpreter.convertAndInterpret(json);
     	      
@@ -122,14 +125,35 @@ public class SenseiMapper extends MapReduceBase implements Mapper<Object, Object
 						DummyMapInputConverter.class, MapInputConverter.class), job);
 		
 		try {
-			getSchema(job, _use_remote_schema);
+			setSchema(job, _use_remote_schema);
+			setAnalyzer(job);		   	 
+			
 			_isConfigured = true;
 		} catch (Exception e) {
 			_isConfigured = false;
 		}
     }
+	
+	private void setAnalyzer(JobConf conf) throws Exception{
+		
+		if(analyzer != null)
+			return;
+		
+		String version = _conf.get("sensei.document.analyzer.version");
+		if(version == null)
+			 throw new IllegalStateException("version has not been specified");
+		
+		String analyzerName = _conf.get("sensei.document.analyzer");
+		if(analyzerName == null)
+			 throw new IllegalStateException("analyzer name has not been specified");
+		
+		Class analyzerClass = Class.forName(analyzerName);
+		Constructor constructor = analyzerClass.getConstructor(Version.class);
+		analyzer = (Analyzer) constructor.newInstance((Version) Enum.valueOf((Class)Class.forName("org.apache.lucene.util.Version"), version));
 
-	private void getSchema(JobConf conf, boolean use_remote_schema) throws Exception {
+	}
+
+	private void setSchema(JobConf conf, boolean use_remote_schema) throws Exception {
 
 		if (_use_remote_schema == true) {
 

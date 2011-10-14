@@ -62,4 +62,5 @@ sensei.mapinput.converter=com.sensei.indexing.hadoop.demo.CarMapInputConverter
 # set compound to true may slow down the indexing;
 sensei.use.compound.file=true
 sensei.document.analyzer=org.apache.lucene.analysis.standard.StandardAnalyzer
+sensei.document.analyzer.version=LUCENE_30
 
