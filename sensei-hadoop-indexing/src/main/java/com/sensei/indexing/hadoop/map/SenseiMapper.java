@@ -38,6 +38,7 @@ import com.sensei.indexing.api.JsonFilter;
 import com.sensei.indexing.api.ShardingStrategy;
 import com.sensei.indexing.hadoop.keyvalueformat.IntermediateForm;
 import com.sensei.indexing.hadoop.keyvalueformat.Shard;
+import com.sensei.indexing.hadoop.util.SenseiJobConfig;
 
 public class SenseiMapper extends MapReduceBase implements Mapper<Object, Object, Shard, IntermediateForm> {
 
@@ -117,11 +118,11 @@ public class SenseiMapper extends MapReduceBase implements Mapper<Object, Object
 		
 		_shardingStategy =
 		        (ShardingStrategy) ReflectionUtils.newInstance(
-				job.getClass("sensei.distribution.policy",
+				job.getClass(SenseiJobConfig.DISTRIBUTION_POLICY,
 				DummyShardingStrategy.class, ShardingStrategy.class), job);
 		
 		_converter = (MapInputConverter) ReflectionUtils.newInstance(
-				job.getClass("sensei.mapinput.converter",
+				job.getClass(SenseiJobConfig.MAPINPUT_CONVERTER,
 						DummyMapInputConverter.class, MapInputConverter.class), job);
 		
 		try {
@@ -139,11 +140,11 @@ public class SenseiMapper extends MapReduceBase implements Mapper<Object, Object
 		if(analyzer != null)
 			return;
 		
-		String version = _conf.get("sensei.document.analyzer.version");
+		String version = _conf.get(SenseiJobConfig.DOCUMENT_ANALYZER_VERSION);
 		if(version == null)
 			 throw new IllegalStateException("version has not been specified");
 		
-		String analyzerName = _conf.get("sensei.document.analyzer");
+		String analyzerName = _conf.get(SenseiJobConfig.DOCUMENT_ANALYZER);
 		if(analyzerName == null)
 			 throw new IllegalStateException("analyzer name has not been specified");
 		

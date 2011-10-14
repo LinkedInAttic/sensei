@@ -27,6 +27,7 @@ import com.sensei.indexing.hadoop.reduce.SenseiCombiner;
 import com.sensei.indexing.hadoop.reduce.SenseiReducer;
 import com.sensei.indexing.hadoop.util.LuceneUtil;
 import com.sensei.indexing.hadoop.util.MRJobConfig;
+import com.sensei.indexing.hadoop.util.SenseiJobConfig;
 
 public class MapReduceJob extends Configured {
 
@@ -40,7 +41,7 @@ public class MapReduceJob extends Configured {
 		    Path outputPath;
 		    Shard[] shards = null;
 			int numMapTasks = conf.getInt("mapreduce.job.maps", 2);
-			int numShards = conf.getInt("sensei.num.shards", 2);
+			int numShards = conf.getInt(SenseiJobConfig.NUM_SHARDS, 2);
 //			inputPaths = FileInputFormat.getInputPaths(jobConf);
 			
 		    String dirs = conf.get("mapreduce.input.fileinputformat.inputdir", null);
@@ -54,7 +55,7 @@ public class MapReduceJob extends Configured {
 		    logger.info("path[0] is:" + inputPaths[0]);
 		    	    
 			outputPath = new Path(conf.get("mapreduce.output.fileoutputformat.outputdir"));
-			String indexPath = conf.get("sensei.index.path");
+			String indexPath = conf.get(SenseiJobConfig.INDEX_PATH);
 			shards = createShards(indexPath, numShards, conf);
 			
 			
@@ -72,7 +73,7 @@ public class MapReduceJob extends Configured {
 		    conf.setInt(MRJobConfig.IO_SORT_MB,  conf.getInt(MRJobConfig.IO_SORT_MB, 100) / 2);
 		    
 		    //always using compound file format to speed up;
-		    conf.setBoolean("sensei.use.compound.file", true);
+		    conf.setBoolean(SenseiJobConfig.USE_COMPOUND_FILE, true);
 
 		    // create the job configuration
 		    JobConf jobConf = new JobConf(conf, MRClass);
@@ -88,7 +89,7 @@ public class MapReduceJob extends Configured {
 		    jobConf.setNumReduceTasks(shards.length);
 
 		    jobConf.setInputFormat(
-		    		conf.getClass("sensei.input.format", TextInputFormat.class, InputFormat.class));
+		    		conf.getClass(SenseiJobConfig.INPUT_FORMAT, TextInputFormat.class, InputFormat.class));
 
 		    Path[] inputs = FileInputFormat.getInputPaths(jobConf);
 		    StringBuilder buffer = new StringBuilder(inputs[0].toString());
@@ -101,7 +102,7 @@ public class MapReduceJob extends Configured {
 		             FileOutputFormat.getOutputPath(jobConf).toString());
 		    logger.info("mapreduce.job.maps = " + jobConf.getNumMapTasks());
 		    logger.info("mapreduce.job.reduces = " + jobConf.getNumReduceTasks());
-		    logger.info(shards.length + " shards = " + conf.get("sensei.index.shards"));
+		    logger.info(shards.length + " shards = " + conf.get(SenseiJobConfig.INDEX_SHARDS));
 		    logger.info("mapred.input.format.class = "
 		        + jobConf.getInputFormat().getClass().getName());
 

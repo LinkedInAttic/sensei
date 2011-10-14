@@ -29,6 +29,8 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.WritableComparable;
 
+import com.sensei.indexing.hadoop.util.SenseiJobConfig;
+
 /**
  * This class represents the metadata of a shard. Version is the version number
  * of the entire index. Directory is the directory where this shard resides in.
@@ -61,11 +63,11 @@ public class Shard implements WritableComparable {
       shardsString.append(",");
       shardsString.append(shards[i].toString());
     }
-    conf.set("sensei.index.shards", shardsString.toString());
+    conf.set(SenseiJobConfig.INDEX_SHARDS, shardsString.toString());
   }
 
   public static Shard[] getIndexShards(Configuration conf) {
-    String shards = conf.get("sensei.index.shards");
+    String shards = conf.get(SenseiJobConfig.INDEX_SHARDS);
     if (shards != null) {
       ArrayList<Object> list =
           Collections.list(new StringTokenizer(shards, ","));

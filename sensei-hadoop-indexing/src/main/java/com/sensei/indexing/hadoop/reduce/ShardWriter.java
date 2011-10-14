@@ -39,6 +39,7 @@ import com.sensei.indexing.hadoop.keyvalueformat.IntermediateForm;
 import com.sensei.indexing.hadoop.keyvalueformat.Shard;
 import com.sensei.indexing.hadoop.util.LuceneUtil;
 import com.sensei.indexing.hadoop.util.LuceneIndexFileNameFilter;
+import com.sensei.indexing.hadoop.util.SenseiJobConfig;
 
 /**
  * The initial version of an index is stored in the perm dir. Index files
@@ -146,18 +147,18 @@ public class ShardWriter {
   }
 
   private void setParameters(Configuration conf) {
-    int maxFieldLength = conf.getInt("sensei.max.field.length", -1);
+    int maxFieldLength = conf.getInt(SenseiJobConfig.MAX_FIELD_LENGTH, -1);
     if (maxFieldLength > 0) {
       writer.setMaxFieldLength(maxFieldLength);
     }
-    writer.setUseCompoundFile(conf.getBoolean("sensei.use.compound.file", false));
-    maxNumSegments = conf.getInt("sensei.max.num.segments", -1);
+    writer.setUseCompoundFile(conf.getBoolean(SenseiJobConfig.USE_COMPOUND_FILE, false));
+    maxNumSegments = conf.getInt(SenseiJobConfig.MAX_NUM_SEGMENTS, -1);
 
     if (maxFieldLength > 0) {
-    	logger.info("sensei.max.field.length = " + writer.getMaxFieldLength());
+    	logger.info(SenseiJobConfig.MAX_FIELD_LENGTH + " = " + writer.getMaxFieldLength());
     }
-    logger.info("sensei.use.compound.file = " + writer.getUseCompoundFile());
-    logger.info("sensei.max.num.segments = " + maxNumSegments);
+    logger.info(SenseiJobConfig.USE_COMPOUND_FILE + " = " + writer.getUseCompoundFile());
+    logger.info(SenseiJobConfig.MAX_NUM_SEGMENTS + " = " + maxNumSegments);
   }
 
   // in case a previous reduce task fails, restore the generation to

@@ -33,6 +33,7 @@ import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.RAMDirectory;
 
 import com.sensei.indexing.hadoop.reduce.RAMDirectoryUtil;
+import com.sensei.indexing.hadoop.util.SenseiJobConfig;
 
 /**
  * An intermediate form for one or more parsed Lucene documents and/or
@@ -163,7 +164,7 @@ public class IntermediateForm implements Writable {
     writer.setUseCompoundFile(true);  //use compound file fortmat to speed up;
 
     if (conf != null) {
-      int maxFieldLength = conf.getInt("sensei.max.field.length", -1);
+      int maxFieldLength = conf.getInt(SenseiJobConfig.MAX_FIELD_LENGTH, -1);
       if (maxFieldLength > 0) {
         writer.setMaxFieldLength(maxFieldLength);
       }
