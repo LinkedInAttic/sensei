@@ -160,7 +160,7 @@ public class IntermediateForm implements Writable {
     IndexWriter writer =
 //        new IndexWriter(dir, false, null, new KeepOnlyLastCommitDeletionPolicy());
     	new IndexWriter(dir,  null, new KeepOnlyLastCommitDeletionPolicy(), MaxFieldLength.UNLIMITED);
-    writer.setUseCompoundFile(false);
+    writer.setUseCompoundFile(true);  //use compound file fortmat to speed up;
 
     if (conf != null) {
       int maxFieldLength = conf.getInt("sensei.max.field.length", -1);

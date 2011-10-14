@@ -70,6 +70,9 @@ public class MapReduceJob extends Configured {
 		    // Here we half-en JobContext.IO_SORT_MB because we use the other half memory to
 		    // build an intermediate form/index in Combiner.
 		    conf.setInt(MRJobConfig.IO_SORT_MB,  conf.getInt(MRJobConfig.IO_SORT_MB, 100) / 2);
+		    
+		    //always using compound file format to speed up;
+		    conf.setBoolean("sensei.use.compound.file", true);
 
 		    // create the job configuration
 		    JobConf jobConf = new JobConf(conf, MRClass);

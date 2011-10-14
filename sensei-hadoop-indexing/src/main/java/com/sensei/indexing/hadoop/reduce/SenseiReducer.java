@@ -75,7 +75,7 @@ public class SenseiReducer extends MapReduceBase implements
               prog.start();
 
               if (writer != null) {
-//            	  writer.optimize();  //added this option to optimize after all the docs have been added;
+            	writer.optimize();  //added this option to optimize after all the docs have been added;
                 writer.close();
               }
             } finally {

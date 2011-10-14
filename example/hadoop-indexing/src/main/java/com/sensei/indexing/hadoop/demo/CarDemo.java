@@ -25,8 +25,11 @@ public class CarDemo extends MapReduceJob implements Tool {
   
 
   public static void main(String[] args) throws Exception {
+	long start = System.currentTimeMillis();
 	Configuration conf = PropertiesLoader.loadProperties("example/hadoop-indexing/conf/JobCarDemo.job");
     int res = ToolRunner.run(conf, new CarDemo(), new String[]{});
+    long end = System.currentTimeMillis();
+    System.out.println("Total time: " + (end - start));
     System.exit(res);
   }
 

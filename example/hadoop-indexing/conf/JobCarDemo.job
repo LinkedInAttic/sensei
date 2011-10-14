@@ -52,15 +52,11 @@ sensei.distribution.policy=com.sensei.indexing.hadoop.demo.CarShardingStrategy
 #############  Converter for mapper input (data conversion and filtering) ##########
 sensei.mapinput.converter=com.sensei.indexing.hadoop.demo.CarMapInputConverter
 
+#############  Analyzer configuration for lucene ###############
+sensei.document.analyzer=org.apache.lucene.analysis.standard.StandardAnalyzer
+sensei.document.analyzer.version=LUCENE_30
 
 ##################################################################################################  
 ######################################   Configure Things Above   ################################
 ##################################################################################################
-
-
-
-# set compound to true may slow down the indexing;
-sensei.use.compound.file=true
-sensei.document.analyzer=org.apache.lucene.analysis.standard.StandardAnalyzer
-sensei.document.analyzer.version=LUCENE_30
 
