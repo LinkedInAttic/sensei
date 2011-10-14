@@ -46,7 +46,7 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
   public SenseiBroker(PartitionedNetworkClient<Integer> networkClient, ClusterClient clusterClient,
                       SenseiLoadBalancerFactory loadBalancerFactory) throws NorbertException
   {
-    super(networkClient, CoreSenseiServiceImpl.SERIALIZER);
+    super(networkClient, CoreSenseiServiceImpl.PROTO_SERIALIZER); //TODO: Switch to the java serializer after upgrade
     _loadBalancerFactory = loadBalancerFactory;
     clusterClient.addListener(this);
     logger.info("created broker instance " + networkClient + " " + clusterClient + " " + loadBalancerFactory);
