@@ -1,12 +1,10 @@
-package com.sensei.indexing.hadoop.demo;
+package com.sensei.indexing.hadoop.map;
 
+import org.apache.hadoop.io.Text;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.apache.hadoop.io.Text;
 
-import com.sensei.indexing.hadoop.map.MapInputConverter;
-
-public class CarMapInputConverter extends MapInputConverter {
+public class DummyMapInputConverter extends MapInputConverter {
 
 	@Override
 	public JSONObject getJsonInput(Object key, Object value) throws JSONException {
@@ -18,6 +16,5 @@ public class CarMapInputConverter extends MapInputConverter {
 	protected JSONObject doFilter(JSONObject data) throws Exception {
 		return data;
 	}
-
 
 }

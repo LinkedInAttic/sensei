@@ -49,7 +49,6 @@ public class SenseiMapper extends MapReduceBase implements Mapper<Object, Object
 	
 	private ShardingStrategy _shardingStategy;
 	private MapInputConverter _converter;
-	private JsonFilter _filter;
 	
 	private Analyzer analyzer = new StandardAnalyzer(Version.LUCENE_30);
 	  
@@ -64,14 +63,9 @@ public class SenseiMapper extends MapReduceBase implements Mapper<Object, Object
         JSONObject json = null;
     	try{
     		json = _converter.getJsonInput(key, value);
-    	}catch(JSONException e){
-    		throw new IllegalStateException("data conversion failed inside mapper.");
-    	}
-    	
-    	try{
-    		json = _filter.filter(json);
+    		json = _converter.doFilter(json);
     	}catch(Exception e){
-    		throw new IllegalStateException("data filtering failed.");
+    		throw new IllegalStateException("data conversion or filtering failed inside mapper.");
     	}
     	
     	
@@ -125,11 +119,7 @@ public class SenseiMapper extends MapReduceBase implements Mapper<Object, Object
 		
 		_converter = (MapInputConverter) ReflectionUtils.newInstance(
 				job.getClass("sensei.mapinput.converter",
-						MapInputConverter.class, MapInputConverter.class), job);
-		
-		_filter = (JsonFilter) ReflectionUtils.newInstance(
-				job.getClass("sensei.mapinput.filter",
-						DummyFilter.class, JsonFilter.class), job);
+						DummyMapInputConverter.class, MapInputConverter.class), job);
 		
 		try {
 			getSchema(job, _use_remote_schema);

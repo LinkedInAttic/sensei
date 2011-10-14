@@ -49,11 +49,9 @@ sensei.input.format=org.apache.hadoop.mapred.TextInputFormat
 ##############  Sharding strategy  ################
 sensei.distribution.policy=com.sensei.indexing.hadoop.demo.CarShardingStrategy
 
-#############  Converter for mapper input ##########
+#############  Converter for mapper input (data conversion and filtering) ##########
 sensei.mapinput.converter=com.sensei.indexing.hadoop.demo.CarMapInputConverter
 
-#############  JSONFilter for mapper input ##########
-sensei.mapinput.filter=com.sensei.indexing.hadoop.demo.CarFilter
 
 ##################################################################################################  
 ######################################   Configure Things Above   ################################

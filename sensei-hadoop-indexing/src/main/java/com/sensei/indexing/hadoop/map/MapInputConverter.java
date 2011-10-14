@@ -3,7 +3,9 @@ package com.sensei.indexing.hadoop.map;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public interface MapInputConverter {
+import com.sensei.indexing.api.JsonFilter;
+
+public abstract class MapInputConverter extends JsonFilter   {
 
 
 	/**
@@ -12,5 +14,10 @@ public interface MapInputConverter {
 	 * @return  A JSONObject converted from the map input record;
 	 * @throws JSONException
 	 */
-	public JSONObject getJsonInput(Object key, Object value) throws JSONException;
+	public abstract JSONObject getJsonInput(Object key, Object value) throws JSONException;
+	
+	
+	@Override
+	protected abstract JSONObject doFilter(JSONObject data) throws Exception;
+	
 }
