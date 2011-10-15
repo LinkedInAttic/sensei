@@ -114,7 +114,6 @@ public class SenseiMapper extends MapReduceBase implements Mapper<Object, Object
 		super.configure(job);
 		_conf = job;
 	    _shards = Shard.getIndexShards(_conf);
-		_use_remote_schema = job.getBoolean("schema.use.remote", false);
 		
 		_shardingStategy =
 		        (ShardingStrategy) ReflectionUtils.newInstance(
@@ -126,11 +125,12 @@ public class SenseiMapper extends MapReduceBase implements Mapper<Object, Object
 						DummyMapInputConverter.class, MapInputConverter.class), job);
 		
 		try {
-			setSchema(job, _use_remote_schema);
+			setSchema(job);
 			setAnalyzer(job);		   	 
 			
 			_isConfigured = true;
 		} catch (Exception e) {
+			e.printStackTrace();
 			_isConfigured = false;
 		}
     }
@@ -154,80 +154,51 @@ public class SenseiMapper extends MapReduceBase implements Mapper<Object, Object
 
 	}
 
-	private void setSchema(JobConf conf, boolean use_remote_schema) throws Exception {
+	private void setSchema(JobConf conf) throws Exception {
 
-		if (_use_remote_schema == true) {
-
-			Path[] localFiles = DistributedCache.getLocalCacheFiles(conf);
-
-			if (localFiles != null) {
-
-				String _schema_uri = null;
-				String metadataFileName = "";
-				for (int i = 0; i < localFiles.length; i++) {
-					String strFileName = localFiles[i].toString();
-					if (strFileName.contains(conf.get("schema.file.url"))) {
-						metadataFileName = strFileName;
-						break;
-					}
-				}
-				if (metadataFileName.length() > 0) {
-					_schema_uri = "file:///" + metadataFileName;
-
-					if (_defaultInterpreter == null) {
-						
-						logger.info("schema file is:" + _schema_uri);
-						URL url = new URL(_schema_uri);
-						URLConnection conn = url.openConnection();
-						conn.connect();
-
-						File xmlSchema = new File(url.toURI());
-						if (!xmlSchema.exists()) {
-							throw new ConfigurationException(
-									"schema not file");
-						}
-						DocumentBuilderFactory dbf = DocumentBuilderFactory
-								.newInstance();
-						dbf.setIgnoringComments(true);
-						DocumentBuilder db = dbf.newDocumentBuilder();
-						org.w3c.dom.Document schemaXml = db
-								.parse(xmlSchema);
-						schemaXml.getDocumentElement().normalize();
-						JSONObject schemaData = SchemaConverter
-								.convert(schemaXml);
-
-						SenseiSchema schema = SenseiSchema.build(schemaData);
-						_defaultInterpreter = new DefaultJsonSchemaInterpreter(schema);
-					}
-				}
-			}
-
-		} else { // use local schema for debugging;
-			String metadataFileName = conf.get("schema.file.local", "");
-			if (metadataFileName.length() > 0) {
-				if (_defaultInterpreter == null) {
-
-					File xmlSchema = new File(metadataFileName);
-					if (!xmlSchema.exists()) {
-						throw new ConfigurationException("schema not file");
-					}
-					DocumentBuilderFactory dbf = DocumentBuilderFactory
-							.newInstance();
-					dbf.setIgnoringComments(true);
-					DocumentBuilder db = dbf.newDocumentBuilder();
-					org.w3c.dom.Document schemaXml = db.parse(xmlSchema);
-					schemaXml.getDocumentElement().normalize();
-					JSONObject schemaData = SchemaConverter
-							.convert(schemaXml);
-
-					SenseiSchema schema = SenseiSchema.build(schemaData);
-					_defaultInterpreter = new DefaultJsonSchemaInterpreter(schema);
-				}
-			}
-
+		String _schema_uri = null;
+		String metadataFileName = conf.get("schema.file.url");
+		
+		Path[] localFiles = DistributedCache.getLocalCacheFiles(conf);
+		if (localFiles != null) {
+		  for (int i = 0; i < localFiles.length; i++) {
+			  String strFileName = localFiles[i].toString();
+			  if (strFileName.contains(conf.get("schema.file.url"))) {
+				  metadataFileName = strFileName;
+				  break;
+			  }
+		  }
 		}
+		
+		if (metadataFileName != null && metadataFileName.length() > 0) {
+			_schema_uri = "file:///" + metadataFileName;
 
-			
+			if (_defaultInterpreter == null) {
+				
+				logger.info("schema file is:" + _schema_uri);
+				URL url = new URL(_schema_uri);
+				URLConnection conn = url.openConnection();
+				conn.connect();
+
+				File xmlSchema = new File(url.toURI());
+				if (!xmlSchema.exists()) {
+					throw new ConfigurationException(
+							"schema not file");
+				}
+				DocumentBuilderFactory dbf = DocumentBuilderFactory
+						.newInstance();
+				dbf.setIgnoringComments(true);
+				DocumentBuilder db = dbf.newDocumentBuilder();
+				org.w3c.dom.Document schemaXml = db
+						.parse(xmlSchema);
+				schemaXml.getDocumentElement().normalize();
+				JSONObject schemaData = SchemaConverter
+						.convert(schemaXml);
+
+				SenseiSchema schema = SenseiSchema.build(schemaData);
+				_defaultInterpreter = new DefaultJsonSchemaInterpreter(schema);
+			}
+		}
 	}
 
 }

@@ -20,14 +20,10 @@ mapreduce.cluster.temp.dir=/tmp/hindex
 ######################################   Configure Things Below   ################################
 ##################################################################################################
 
-#############   remote schema or local running #############
-schema.use.remote=false
+#############   path of schema for interpreter #############
 
-
-#############   schema for interpreter #############
-
-##### TextJSON schema Sample (car demo)######
-schema.file.local=conf/schema.xml
+##### TextJSON schema Sample (car demo) absolute path ######
+schema.file.url=/local/Documents/workspace_web/sensei/conf/schema.xml
 
 ############    Input and Output  ##################
 
