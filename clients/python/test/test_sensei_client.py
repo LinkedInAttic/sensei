@@ -82,7 +82,8 @@ class TestSenseiClient(unittest.TestCase):
     select2.addSelection("[10000 TO 13100]")
     select2.addSelection("[13200 TO 17300]")
     
-    req.selections = [select1, select2]
+    req.selections["color"] = select1
+    req.selections["price"] = select2
     self.compare("select.color.val=red%2Cyellow&rows=3&select.color.op=or" +
                  "&select.price.not=&start=0&select.color.not=black" +
                  "&select.color.prop=aaa%3A111%2Cbbb%3A222&select.price.op=or" +
@@ -141,7 +142,7 @@ class TestSenseiClient(unittest.TestCase):
   def compare(self, paramStr1, paramStr2):
     """Compare two URL param strings built by Sensei client.
 
-    Return True if two strings are equivalent; False otherwise.
+    Make sure two strings are equivalent.
 
     """
 
@@ -156,7 +157,7 @@ class TestBQL(unittest.TestCase):
   """ Test cases for BQL."""
 
   def setUp(self):
-    pass
+    self.client = SenseiClient()
 
   def testBasics(self):
     stmt = \
@@ -172,7 +173,7 @@ class TestBQL(unittest.TestCase):
     self.assertEqual(req.query, "")
     self.assertEqual(req.sorts, [])
     self.assertEqual(len(req.selections), 1)
-    select = req.selections[0]
+    select = req.selections["color"]
     self.assertEqual(select.field, "color")
     self.assertEqual(select.operation, sensei_client.PARAM_SELECT_OP_OR)
     self.assertEqual(select.values, ["red", "blue"])
@@ -186,7 +187,7 @@ class TestBQL(unittest.TestCase):
     """
     req = SenseiRequest(stmt)
     self.assertEqual(len(req.selections), 1)
-    select = req.selections[0]
+    select = req.selections["color"]
     self.assertEqual(select.field, "color")
     self.assertEqual(select.operation, sensei_client.PARAM_SELECT_OP_OR)
     self.assertEqual(select.excludes, ["yellow", "green"])
@@ -201,11 +202,11 @@ class TestBQL(unittest.TestCase):
     """
     req = SenseiRequest(stmt)
     self.assertEqual(len(req.selections), 2)
-    select = req.selections[0]
+    select = req.selections["age"]
     self.assertEqual(select.field, "age")
     self.assertEqual(select.operation, sensei_client.PARAM_SELECT_OP_OR)
     self.assertEqual(select.values, ["20", "30", "40"])
-    select = req.selections[1]
+    select = req.selections["last_name"]
     self.assertEqual(select.field, "last_name")
     self.assertEqual(select.operation, sensei_client.PARAM_SELECT_OP_AND)
     self.assertEqual(select.values, ["Cui"])
@@ -270,19 +271,19 @@ class TestBQL(unittest.TestCase):
     sort = req.sorts[0]
     self.assertEqual(sort.field, "price")
     self.assertEqual(sort.dir, sensei_client.PARAM_SORT_DESC)
-    self.assertEqual(len(req.selections), 3)
-    select_color = req.selections[0]
+
+    select_color = req.selections["color"]
     self.assertEqual(select_color.field, "color")
     self.assertEqual(select_color.operation, sensei_client.PARAM_SELECT_OP_OR)
     self.assertEqual(select_color.values, ["gold", "green", "blue"])
     self.assertEqual(select_color.excludes, ["black"])
-    select_year = req.selections[1]
+    select_year = req.selections["year"]
     self.assertEqual(select_year.field, "year")
     self.assertEqual(select_year.operation, sensei_client.PARAM_SELECT_OP_OR)
     self.assertEqual(select_year.values, ["[1996 TO 1997]", "[2002 TO 2003]"])
     self.assertEqual(select_year.properties["aaa"], "111")
     self.assertEqual(select_year.properties["bbb"], "222")
-    select_tags = req.selections[2]
+    select_tags = req.selections["tags"]
     self.assertEqual(select_tags.field, "tags")
     self.assertEqual(select_tags.operation, sensei_client.PARAM_SELECT_OP_AND)
     self.assertEqual(select_tags.values, ["hybrid", "favorite"])
@@ -303,7 +304,7 @@ class TestBQL(unittest.TestCase):
     """
     SELECT *
     FROM cars
-    GROUP BY color top 3
+    GROUP     BY color top 3
     """
     req = SenseiRequest(stmt)
     self.assertEqual(req.groupby, "color")
@@ -442,6 +443,253 @@ class TestBQL(unittest.TestCase):
     finally:
       self.assertTrue(intactFlag)
 
+  def testBetweenPredicate(self):
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    WHERE year BETWEEN 2000 AND 2001
+    """
+    req = SenseiRequest(stmt)
+    self.compare("rows=10&select.year.val=%5B2000+TO+2001%5D" +
+                 "&select.year.op=or&start=0&select.year.not=&fetchstored=true",
+                 SenseiClient.buildUrlString(req))
+
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    WHERE year NOT BETWEEN 1999 AND 2000
+    """
+    req = SenseiRequest(stmt)
+    self.compare("rows=10&select.year.val=&select.year.op=or" +
+                 "&start=0&select.year.not=%5B1999+TO+2000%5D&fetchstored=true",
+                 SenseiClient.buildUrlString(req))
+
+  def testNotEqualPredicate(self):
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    WHERE color <> "red"
+    """
+    req = SenseiRequest(stmt)
+    self.assertEqual(len(req.selections), 1)
+    select_color = req.selections["color"]
+    self.assertEqual(select_color.field, "color")
+    self.assertEqual(select_color.operation, sensei_client.PARAM_SELECT_OP_OR)
+    self.assertEqual(select_color.values, [])
+    self.assertEqual(select_color.excludes, ["red"])
+
+  def testSelectionConflict(self):
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    WHERE color = "red"
+      AND color = "blue"
+    """
+    error = None
+    try:
+      req = SenseiRequest(stmt)
+    except SenseiClientError as err:
+      error = str(err)
+    self.assertEqual(error, repr("There is conflict in selection(s) for column 'color'"))
+
+  def testSelectionMerge(self):
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    WHERE color <> "red" AND color <> "blue"
+    """
+    req = SenseiRequest(stmt)
+    self.assertEqual(len(req.selections), 1)
+    select_color = req.selections["color"]
+    self.assertEqual(select_color.field, "color")
+    self.assertEqual(select_color.operation, sensei_client.PARAM_SELECT_OP_OR)
+    self.assertEqual(select_color.values, [])
+    self.assertEqual(len(select_color.excludes), 2)
+    self.assertTrue("red" in select_color.excludes)
+    self.assertTrue("blue" in select_color.excludes)
+
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    WHERE year NOT BETWEEN 1995 AND 1996
+      AND year NOT BETWEEN 1999 AND 2000
+    """
+    req = SenseiRequest(stmt)
+    self.assertEqual(len(req.selections), 1)
+    select = req.selections["year"]
+    self.assertEqual(select.field, "year")
+    self.assertEqual(select.operation, sensei_client.PARAM_SELECT_OP_OR)
+    self.assertEqual(select.values, [])
+    self.assertEqual(len(select.excludes), 2)
+    self.assertTrue("[1995 TO 1996]" in select.excludes)
+    self.assertTrue("[1999 TO 2000]" in select.excludes)
+
+  def testCumulativePredicate(self):
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    WHERE (color = "red" OR
+           color in ("blue", "yellow") OR
+           color = "black")
+    """
+    req = SenseiRequest(stmt)
+    self.assertEqual(len(req.selections), 1)
+    select_color = req.selections["color"]
+    self.assertEqual(select_color.field, "color")
+    self.assertEqual(select_color.operation, sensei_client.PARAM_SELECT_OP_OR)
+    self.assertEqual(len(select_color.values), 4)
+    self.assertTrue("red" in select_color.values)
+    self.assertTrue("blue" in select_color.values)
+    self.assertTrue("yellow" in select_color.values)
+    self.assertTrue("black" in select_color.values)
+
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    WHERE (color = "red" OR
+           color in ("blue", "yellow") OR
+           color = "black")
+      AND (year BETWEEN 1999 AND 2000 OR
+           year BETWEEN 1995 AND 1996)
+    """
+    req = SenseiRequest(stmt)
+    self.assertEqual(len(req.selections), 2)
+    select_color = req.selections["color"]
+    self.assertEqual(select_color.field, "color")
+    self.assertEqual(select_color.operation, sensei_client.PARAM_SELECT_OP_OR)
+    self.assertEqual(len(select_color.values), 4)
+    self.assertTrue("red" in select_color.values)
+    self.assertTrue("blue" in select_color.values)
+    self.assertTrue("yellow" in select_color.values)
+    self.assertTrue("black" in select_color.values)
+
+    select_year = req.selections["year"]
+    self.assertEqual(select_year.field, "year")
+    self.assertEqual(select_year.operation, sensei_client.PARAM_SELECT_OP_OR)
+    self.assertEqual(len(select_year.values), 2)
+    self.assertTrue("[1999 TO 2000]" in select_year.values)
+    self.assertTrue("[1995 TO 1996]" in select_year.values)
+
+  def testCumulativePredicateOnly(self):
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    WHERE color = "red" OR color = "blue"
+    """
+    req = SenseiRequest(stmt)
+    self.assertEqual(len(req.selections), 1)
+    select_color = req.selections["color"]
+    self.assertEqual(select_color.field, "color")
+    self.assertEqual(select_color.operation, sensei_client.PARAM_SELECT_OP_OR)
+    self.assertEqual(len(select_color.values), 2)
+    self.assertTrue("red" in select_color.values)
+    self.assertTrue("blue" in select_color.values)
+
+  def testCumulativePredicateError(self):
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    WHERE (color = "red" OR year = 1999)
+    """
+    error = None
+    try:
+      req = SenseiRequest(stmt)
+    except SenseiClientError as err:
+      error = str(err)
+    self.assertEqual(error, repr("A different column 'year' appeared in cumulative predicates"))
+
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    WHERE (color = "red" OR
+           color NOT in ("blue", "yellow") OR
+           color = "black")
+    """
+    error = None
+    try:
+      req = SenseiRequest(stmt)
+    except SenseiClientError as err:
+      error = str(err)
+    self.assertEqual(error, repr("Negative predicate for column 'color' appeared in cumulative predicates"))
+
+
+  def compare(self, paramStr1, paramStr2):
+    """Compare two URL param strings built by Sensei client.
+
+    Make sure two strings are equivalent.
+
+    """
+
+    list1 = paramStr1.split('&')
+    list1.sort()
+    list2 = paramStr2.split('&')
+    list2.sort()
+    self.assertTrue(len(paramStr1) == len(paramStr2) and list1 == list2)
+
 
 if __name__ == "__main__":
     unittest.main()
+
+"""
+TODO:
+
+1. BETWEEN ... AND ...
+
+   SELECT *
+   FROM cars
+   WHERE year BETWEEN 1995 AND 1996
+
+   SELECT *
+   FROM cars
+   WHERE year NOT BETWEEN 1995 AND 1996
+
+   SELECT *
+   FROM cars
+   WHERE year NOT BETWEEN 1995 AND 1996
+     AND 
+     AND year NOT BETWEEN 2000 AND 2001
+
+2. Relevance
+
+3. Make sure that we do not have predicate conflict:
+
+   SELECT *
+   FROM cars
+   WHERE color = "red" AND color = "blue"
+
+   But, the following NOT predicate should be OK:
+
+   WHERE color <> "red" AND color <> "blue"
+
+   WHERE year NOT BETWEEN 1995 AND 1996
+     AND year NOT BETWEEN 1995 AND 1996
+
+   WHERE (color = "red" OR color = "blue")
+     AND (year BETWEEN 1995 AND 1996 OR
+          year BETWEEN 2000 AND 2001)
+
+
+predicates ::= (predicate + ZeroOrMore(AND + predicate))
+
+predicate ::= in_predicate
+            | contains_all_predicate
+            | between_predicate
+            | negative_predicate
+            | "(" or_positive_predicates ")"
+
+positive_predicate ::= in_predicate | contains_all_predicate
+
+
+
+"""

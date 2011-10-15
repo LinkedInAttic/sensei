@@ -129,7 +129,7 @@ DEFAULT_FACET_ORDER = PARAM_FACET_ORDER_HITS
 
 from pyparsing import Literal, CaselessLiteral, Word, Upcase, delimitedList, Optional, \
     Combine, Group, alphas, nums, alphanums, ParseException, Forward, oneOf, quotedString, \
-    ZeroOrMore, restOfLine, Keyword, OnlyOnce, Suppress, removeQuotes
+    ZeroOrMore, restOfLine, Keyword, OnlyOnce, Suppress, removeQuotes, NotAny
 
 """
 
@@ -138,34 +138,46 @@ BNF Grammar for BQL
 
 <statement> ::= (  <select_stmt> | <describe_stmt> ) [';']
 
-<select_stmt> ::= SELECT <select_list> <from_clause> [<where_clause>] [<given_clause>] [<additional_clauses>]
+<select_stmt> ::= SELECT <select_list> <from_clause> [<where_clause>] [<given_clause>] <additional_clauses>
 <describe_stmt> ::= ( DESC | DESCRIBE ) <index_name>
 
-<select_list> ::= '*' | <column_list>
-<column_list> ::= <column_name> ( ',' <column_name> )*
+<select_list> ::= '*' | <column_name_list>
+<column_name_list> ::= <column_name> ( ',' <column_name> )*
 
 <from_clause> ::= FROM <index_name>
 
 <where_clause> ::= WHERE <search_condition>
 <search_condition> ::= <predicates>
+                     | <cumulative_predicates>
 
 <predicates> ::= <predicate> ( AND <predicate> )*
-<predicate> ::= <query_predicate> | <column_predicate>
+<predicate> ::= <in_predicate>
+              | <contains_all_predicate>
+              | <equal_predicate>
+              | <not_equal_predicate>
+              | <query_predicate>
+              | <between_predicate>
+              | <same_column_or_pred>
 
+<in_predicate> ::= <column_name> [NOT] IN <value_list> [<except_clause>] [<predicate_props>]
+<contains_all_predicate> ::= <column_name> CONTAINS ALL <value_list> [<except_clause>] [<predicate_props>]
+<equal_predicate> ::= <column_name> '=' <value> [<predicate_props>]
+<not_equal_predicate> ::= <column_name> '<>' <value> [<predicate_props>]
 <query_predicate> ::= QUERY IS <quoted_string>
-<column_predicate> ::= <column_name> <column_condition> [<prop_clause>]
+<between_predicate> ::= <column_name> [NOT] BETWEEN <value> AND <value>
+<same_column_or_pred> ::= '(' + <cumulative_predicates> + ')'
 
-<column_condition> ::= <column_positive_operator> <value_list> [<except_clause>]
-                     | <column_negative_operator> <value_list>
-<column_positive_operator> ::= IN | CONTAINS ALL
-<column_negative_operator> ::= NOT IN
+<cumulative_predicates> ::= <cumulative_predicate> ( ',' <cumulative_predicate> )*
+<cumulative_predicate> ::= <in_predicate>
+                         | <equal_predicate>
+                         | <between_predicate>
 
 <value_list> ::= '(' <value> ( ',' <value> )* ')'
 <value> ::= <quoted_string> | <num>
 
 <except_clause> ::= EXCEPT <value_list>
 
-<prop_clause> ::= WITH <prop_list>
+<predicate_props> ::= WITH <prop_list>
 
 <prop_list> ::= '(' <key_value_pair> ( ',' <key_value_pair> )* ')'
 <key_value_pair> ::= <quoted_string> ':' <quoted_string>
@@ -177,12 +189,12 @@ BNF Grammar for BQL
 <facet_param_type> ::= BOOLEAN | INT | LONG | STRING | BYTEARRAY | DOUBLE
 <facet_param_value> ::= <quoted_string>
 
-<additional_clauses> ::= (  <order_by_clause>
-                          | <group_by_clause>
-                          | <limit_clause>
-                          | <browse_by_clause>
-                          | <fetching_stored_clause>
-                         )*
+<additional_clauses> ::= ( <additional_clause> )*
+<additional_clause> ::= <order_by_clause>
+                      | <group_by_clause>
+                      | <limit_clause>
+                      | <browse_by_clause>
+                      | <fetching_stored_clause>
 
 <order_by_clause> ::= ORDER BY <sort_specs>
 <sort_specs> ::= <sort_spec> ( ',', <sort_spec> )*
@@ -228,24 +240,17 @@ BNF Grammar for BQL
 
 """
 
-
-# A dummy parse action used to make sure that some clause appears
-# only once.
-
-def dummy_action(s, loc, tok):
-  pass
-
 def order_by_act(s, loc, tok):
   for order in tok[1:]:
     if (order[0] == PARAM_SORT_SCORE and len(order) > 1):
       raise ParseException(s, loc, "%s should not be followed by %s"
                            % (PARAM_SORT_SCORE, order[1]))
 
-limit_once = OnlyOnce(dummy_action)
+limit_once = OnlyOnce(lambda s, loc, tok: tok)
 order_by_once = OnlyOnce(order_by_act)
-group_by_once = OnlyOnce(dummy_action)
-browse_by_once = OnlyOnce(dummy_action)
-fetching_stored_once = OnlyOnce(dummy_action)
+group_by_once = OnlyOnce(lambda s, loc, tok: tok)
+browse_by_once = OnlyOnce(lambda s, loc, tok: tok)
+fetching_stored_once = OnlyOnce(lambda s, loc, tok: tok)
 
 def reset_all():
   limit_once.reset()
@@ -254,131 +259,172 @@ def reset_all():
   browse_by_once.reset()
   fetching_stored_once.reset()
 
+#
 # BQL tokens
-
-andToken        = Keyword("and", caseless=True)
-ascToken        = Keyword("asc", caseless=True)
-booleanToken    = Keyword("boolean", caseless=True)
-browseByToken   = Keyword("browse by", caseless=True)
-byteToken       = Keyword("bytearray", caseless=True)
-containsToken   = Keyword("contains all", caseless=True)
-descToken       = Keyword("desc", caseless=True)
-descTableToken  = Keyword("desc", caseless=True)
-describeToken   = Keyword("describe", caseless=True)
-doubleToken     = Keyword("double", caseless=True)
-exceptToken     = Keyword("except", caseless=True)
-facetParamToken = Keyword("facet param", caseless=True)
-falseToken      = Keyword("false", caseless=True)
-fetchingStoredToken = Keyword("fetching stored", caseless=True)
-fromToken       = Keyword("from", caseless=True)
-groupByToken    = Keyword("group by", caseless=True)
-givenToken      = Keyword("given", caseless=True)
-hitsToken       = Keyword("hits", caseless=True)
-inToken         = Keyword("in", caseless=True)
-intToken        = Keyword("int", caseless=True)
-isToken         = Keyword("is", caseless=True)
-limitToken      = Keyword("limit", caseless=True)
-longToken       = Keyword("long", caseless=True)
-notInToken      = Keyword("not in", caseless=True)
-orderbyToken    = Keyword("order by", caseless=True)
-withToken       = Keyword("with", caseless=True)
-queryToken      = Keyword("query", caseless=True)
-selectToken     = Keyword("select", caseless=True)
-stringToken     = Keyword("string", caseless=True)
-topToken        = Keyword("top", caseless=True)
-trueToken       = Keyword("true", caseless=True)
-valueToken      = Keyword("value", caseless=True)
-whereToken      = Keyword("where", caseless=True)
+#
+# Remember to use lower case in the definition because we use
+# Keyword.match to do comparison at other places in the code.
+#
+ALL = Keyword("all", caseless=True)
+AND = Keyword("and", caseless=True)
+ASC = Keyword("asc", caseless=True)
+BETWEEN = Keyword("between", caseless=True)
+BOOLEAN = Keyword("boolean", caseless=True)
+BROWSE = Keyword("browse", caseless=True)
+BY = Keyword("by", caseless=True)
+BYTEARRAY = Keyword("bytearray", caseless=True)
+CONTAINS = Keyword("contains", caseless=True)
+DESC = Keyword("desc", caseless=True)
+DESCRIBE = Keyword("describe", caseless=True)
+DOUBLE = Keyword("double", caseless=True)
+EXCEPT = Keyword("except", caseless=True)
+FACET_PARAM = Keyword("facet param", caseless=True)
+FALSE = Keyword("false", caseless=True)
+FETCHING_STORED = Keyword("fetching stored", caseless=True)
+FROM = Keyword("from", caseless=True)
+GROUP = Keyword("group", caseless=True)
+GIVEN = Keyword("given", caseless=True)
+HITS = Keyword("hits", caseless=True)
+IN = Keyword("in", caseless=True)
+INT = Keyword("int", caseless=True)
+IS = Keyword("is", caseless=True)
+LIMIT = Keyword("limit", caseless=True)
+LONG = Keyword("long", caseless=True)
+NOT = Keyword("not", caseless=True)
+OR = Keyword("or", caseless=True)
+ORDER = Keyword("order", caseless=True)
+WITH = Keyword("with", caseless=True)
+QUERY = Keyword("query", caseless=True)
+SELECT = Keyword("select", caseless=True)
+STRING = Keyword("string", caseless=True)
+TOP = Keyword("top", caseless=True)
+TRUE = Keyword("true", caseless=True)
+VALUE = Keyword("value", caseless=True)
+WHERE = Keyword("where", caseless=True)
 
 LPAR, RPAR, COMMA, COLON, SEMICOLON = map(Suppress,"(),:;")
 EQUAL = "="
+NOT_EQUAL = "<>"
 
-selectStmt      = Forward()
+select_stmt = Forward()
 
-ident           = Word(alphas, alphanums + "_$")
-columnName      = Word(alphas, alphanums + "_-")
-facetName       = Word(alphas, alphanums + "_-")
-columnNameList  = Group(delimitedList(columnName))
+ident = Word(alphas, alphanums + "_$")
+column_name = Word(alphas, alphanums + "_-")
+facet_name = Word(alphas, alphanums + "_-")
+column_name_list = Group(delimitedList(column_name))
 
-whereExpression = Forward()
-
-intNum = Word(nums).setParseAction(lambda t: int(t[0]))
+int_num = Word(nums).setParseAction(lambda t: int(t[0]))
 quotedString.setParseAction(removeQuotes)
 
-value = (intNum | quotedString)
+value = (int_num | quotedString)
 value_list = LPAR + delimitedList(value) + RPAR
 
-propPair = (quotedString + COLON + value)
+prop_pair = (quotedString + COLON + value)
+predicate_props = (WITH + LPAR + delimitedList(prop_pair).setResultsName("prop_list") + RPAR)
 
-columnPositiveOperator = inToken | containsToken
-columnNegativeOperator = notInToken
-columnCondition = ((columnPositiveOperator + value_list.setResultsName("value_list") +
-                    Optional(exceptToken + value_list.setResultsName("except_values")))
-                   | (columnNegativeOperator + value_list.setResultsName("not_in_list"))
-                   | (EQUAL + value)
-                   )
+in_predicate = (column_name + Optional(NOT) +
+                IN + value_list.setResultsName("value_list") +
+                Optional(EXCEPT + value_list.setResultsName("except_values")) +
+                Optional(predicate_props)
+                ).setResultsName("in_pred")
 
-whereCondition = Group((columnName + columnCondition +
-                        Optional(withToken + LPAR + delimitedList(propPair).setResultsName("prop_list") + RPAR)
-                        ) |
-                       (queryToken + isToken + quotedString)
-                       )
-whereExpression << (whereCondition.setResultsName("condition", listAllMatches=True) +
-                    ZeroOrMore(andToken + whereExpression))
-
-paramType = booleanToken | intToken | longToken | stringToken | byteToken | doubleToken
-facetParam = Group(LPAR + facetName + COMMA + quotedString + COMMA +
-                   paramType + COMMA + value + RPAR).setResultsName("facet_param", listAllMatches=True)
-givenClause = (givenToken + facetParamToken + delimitedList(facetParam))
-
-orderseq = ascToken | descToken
-
-orderByExpression = Forward()
-orderBySpec = Group(columnName + Optional(orderseq))
-orderByExpression << (orderBySpec.setResultsName("orderby_spec", listAllMatches=True) +
-                      ZeroOrMore(COMMA + orderByExpression))
-orderByClause = (orderbyToken + orderByExpression).setResultsName("orderby").setParseAction(order_by_once)
-
-limitClause = (limitToken
-               + Group(Optional(intNum + COMMA) + intNum)).setResultsName("limit").setParseAction(limit_once)
-
-expandFlag = trueToken | falseToken
-facetOrderBy = hitsToken | valueToken
-facetSpec = Group(columnName +
-                  Optional(LPAR + expandFlag + COMMA + intNum  + COMMA + intNum + COMMA + facetOrderBy + RPAR))
-
-groupByClause = (groupByToken +
-                 columnName.setResultsName("groupby") +
-                 Optional(topToken + intNum.setResultsName("max_per_group"))).setParseAction(group_by_once)
-
-browseByClause = (browseByToken +
-                  delimitedList(facetSpec).setResultsName("facet_specs")).setParseAction(browse_by_once)
-
-fetchingFlag = trueToken | falseToken
-fetchingStoredClause = (fetchingStoredToken +
-                        Optional(fetchingFlag)).setResultsName("fetching_stored").setParseAction(fetching_stored_once)
-
-selectStmt << (selectToken + 
-               ('*' | columnNameList).setResultsName("columns") + 
-               fromToken + 
-               ident.setResultsName("index") + 
-               Optional(whereToken + whereExpression.setResultsName("where")) +
-               Optional(givenClause.setResultsName("given")) +
-               ZeroOrMore(orderByClause |
-                          limitClause |
-                          groupByClause |
-                          browseByClause |
-                          fetchingStoredClause
+contains_all_predicate = (column_name +
+                          CONTAINS + ALL + value_list.setResultsName("value_list") +
+                          Optional(EXCEPT + value_list.setResultsName("except_values")) +
+                          Optional(predicate_props)
                           )
-               )
 
-describeStmt = (descTableToken | describeToken).setResultsName("describe") + ident.setResultsName("index")
+equal_predicate = (column_name +
+                   EQUAL + value +
+                   Optional(predicate_props)).setResultsName("equal_pred")
 
-BQLstmt = (selectStmt | describeStmt) + Optional(SEMICOLON)
+not_equal_predicate = (column_name +
+                       NOT_EQUAL + value +
+                       Optional(predicate_props)).setResultsName("not_equal_pred")
+
+query_predicate = (QUERY + IS + quotedString).setResultsName("query_pred")
+
+between_predicate = (column_name + Optional(NOT) +
+                     BETWEEN + value + AND + value).setResultsName("between_pred")
+
+cumulative_predicate = Group(in_predicate
+                             | equal_predicate
+                             | between_predicate
+                             ).setResultsName("cumulative_preds", listAllMatches=True)
+
+cumulative_predicates = (cumulative_predicate +
+                         ZeroOrMore(OR + cumulative_predicate))
+
+same_column_or_pred = (LPAR + cumulative_predicates + RPAR).setResultsName("same_column_or_pred")
+
+predicate = Group(in_predicate
+                  | contains_all_predicate
+                  | equal_predicate
+                  | not_equal_predicate
+                  | query_predicate
+                  | between_predicate
+                  | same_column_or_pred
+                  ).setResultsName("predicates", listAllMatches=True)
+
+predicates = predicate + NotAny(OR) + ZeroOrMore(AND + predicate)
+
+search_condition = Group(predicates | cumulative_predicates)
+
+param_type = BOOLEAN | INT | LONG | STRING | BYTEARRAY | DOUBLE
+facet_param = Group(LPAR + facet_name + COMMA + quotedString + COMMA +
+                    param_type + COMMA + value + RPAR).setResultsName("facet_param", listAllMatches=True)
+given_clause = (GIVEN + FACET_PARAM + delimitedList(facet_param))
+
+orderseq = ASC | DESC
+
+order_by_expression = Forward()
+order_by_spec = Group(column_name + Optional(orderseq)).setResultsName("orderby_spec", listAllMatches=True)
+order_by_expression << (order_by_spec + ZeroOrMore(COMMA + order_by_expression))
+order_by_clause = (ORDER + BY + order_by_expression).setResultsName("orderby").setParseAction(order_by_once)
+
+limit_clause = (LIMIT + Group(Optional(int_num + COMMA) + int_num)).setResultsName("limit").setParseAction(limit_once)
+
+expand_flag = TRUE | FALSE
+facet_order_by = HITS | VALUE
+facet_spec = Group(column_name +
+                   Optional(LPAR + expand_flag + COMMA + int_num  + COMMA + int_num + COMMA + facet_order_by + RPAR))
+
+group_by_clause = (GROUP + BY +
+                   column_name.setResultsName("groupby") +
+                   Optional(TOP + int_num.setResultsName("max_per_group"))).setParseAction(group_by_once)
+
+browse_by_clause = (BROWSE + BY +
+                    delimitedList(facet_spec).setResultsName("facet_specs")).setParseAction(browse_by_once)
+
+fetching_flag = TRUE | FALSE
+fetching_stored_clause = (FETCHING_STORED +
+                          Optional(fetching_flag)).setResultsName("fetching_stored").setParseAction(fetching_stored_once)
+
+additional_clause = (order_by_clause
+                     | limit_clause
+                     | group_by_clause
+                     | browse_by_clause
+                     | fetching_stored_clause
+                     )
+
+additional_clauses = ZeroOrMore(additional_clause)
+
+select_stmt << (SELECT + 
+                ('*' | column_name_list).setResultsName("columns") + 
+                FROM + 
+                ident.setResultsName("index") + 
+                Optional(WHERE + search_condition.setResultsName("where")) +
+                Optional(given_clause.setResultsName("given")) +
+                additional_clauses
+                )
+
+describe_stmt = (DESC | DESCRIBE).setResultsName("describe") + ident.setResultsName("index")
+
+BQLstmt = (select_stmt | describe_stmt) + Optional(SEMICOLON)
 
 # Define comment format, and ignore them
-sqlComment = "--" + restOfLine
-BQLstmt.ignore(sqlComment)
+sql_comment = "--" + restOfLine
+BQLstmt.ignore(sql_comment)
 
 
 def safe_str(obj):
@@ -389,6 +435,106 @@ def safe_str(obj):
     # obj is unicode
     return unicode(obj).encode("unicode_escape")
 
+def merge_values(list1, list2):
+  """Merge two list and dedup."""
+
+  tmp = list1[:]
+  if not tmp:
+    return list2
+  else:
+    tmp.extend(list2)
+    return list(set(tmp))
+
+
+def build_selection(predicate):
+  """Build a SenseiSelection based on a predicate."""
+
+  select = None
+  if predicate.in_pred:
+    select = SenseiSelection(predicate[0], PARAM_SELECT_OP_OR)
+    is_not = predicate[1] == NOT.match
+    for val in predicate.value_list:
+      select.addSelection(val, is_not)
+    for val in predicate.except_values:
+      select.addSelection(val, not is_not)
+    for i in xrange(0, len(predicate.prop_list), 2):
+      select.addProperty(predicate.prop_list[i], predicate.prop_list[i+1])
+
+  elif predicate.equal_pred:
+    select = SenseiSelection(predicate[0], PARAM_SELECT_OP_AND)
+    select.addSelection(predicate[2])
+    for i in xrange(0, len(predicate.prop_list), 2):
+      select.addProperty(predicate.prop_list[i], predicate.prop_list[i+1])
+  
+  elif predicate.not_equal_pred:
+    select = SenseiSelection(predicate[0], PARAM_SELECT_OP_OR)
+    select.addSelection(predicate[2], True)
+    for i in xrange(0, len(predicate.prop_list), 2):
+      select.addProperty(predicate.prop_list[i], predicate.prop_list[i+1])
+  
+  elif predicate.between_pred:
+    # BETWEEN predicate
+    if predicate[1] == BETWEEN.match:
+      # Normal BETWEEN predicate 
+      select = SenseiSelection(predicate[0], PARAM_SELECT_OP_OR)
+      select.addSelection("[%s TO %s]" % (predicate[2], predicate[4]))
+    else:
+      # Negative BETWEEN predicate
+      select = SenseiSelection(predicate[0], PARAM_SELECT_OP_OR)
+      select.addSelection("[%s TO %s]" % (predicate[3], predicate[5]), True)
+  
+  elif predicate.same_column_or_pred:
+    # Need to merge all values.
+    # XXX Need to consider props here too
+    selections = []
+    field = None
+    for pred in predicate.cumulative_preds:
+      tmp = build_selection(pred)
+      if not field and tmp:
+        field = tmp.field
+      elif tmp.field != field:
+        raise SenseiClientError("A different column '%s' appeared in cumulative predicates"
+                                % tmp.field)
+      elif tmp.excludes:
+        raise SenseiClientError("Negative predicate for column '%s' appeared in cumulative predicates"
+                                % tmp.field)
+      selections.append(tmp)
+
+    if not selections:
+      select = None
+    elif len(selections) == 1:
+      select = selections[0]
+    else:
+      values = selections[0].values
+      select = SenseiSelection(field, PARAM_SELECT_OP_OR)
+      for i in xrange(1, len(selections)):
+        values = merge_values(values, selections[i].values)
+      select.values = values
+
+  else:
+    if predicate[1] == "in" or predicate[1] == "not":
+      operation = PARAM_SELECT_OP_OR
+    else:
+      # "contains all" or "="
+      operation = PARAM_SELECT_OP_AND
+    select = SenseiSelection(predicate[0], operation)
+    if predicate[1] == "=":
+      # column = ...
+      select.addSelection(predicate[2])
+    elif predicate[1] in ["in", "contains"]:
+      # column IN ... or column CONTAINS ALL ...
+      for val in predicate.value_list:
+        select.addSelection(val)
+      for val in predicate.except_values:
+        select.addSelection(val, True)
+    else:
+      # column NOT IN ...
+      for val in predicate.value_list:
+        select.addSelection(val, True)
+    for i in xrange(0, len(predicate.prop_list), 2):
+      select.addProperty(predicate.prop_list[i], predicate.prop_list[i+1])
+
+  return select
 
 class BQLRequest:
   """A Sensei request with a BQL statement.
@@ -409,7 +555,8 @@ class BQLRequest:
       reset_all()
 
     self.query = ""
-    self.selections = []
+    self.selections = None
+    self.selection_list = []
     self.sorts = None
     self.columns = [safe_str(col) for col in self.tokens.columns]
     self.facet_init_param_map = None
@@ -421,29 +568,40 @@ class BQLRequest:
 
     where = self.tokens.where
     if where:
-      for cond in where.condition:
-        if cond[0] == "query" and cond[1] == "is":
-          self.query = cond[2]
+      if where.predicates:
+        for predicate in where.predicates:
+          if predicate.query_pred:
+            self.query = predicate[2]
+          else:
+            select = build_selection(predicate)
+            if select:
+              self.selection_list.append(select)
+      elif where.cumulative_preds:
+        selections = []
+        field = None
+        for pred in where.cumulative_preds:
+          tmp = build_selection(pred)
+          if not field and tmp:
+            field = tmp.field
+          elif tmp.field != field:
+            raise SenseiClientError("A different column '%s' appeared in cumulative predicates"
+                                    % tmp.field)
+          elif tmp.excludes:
+            raise SenseiClientError("Negative predicate for column '%s' appeared in cumulative predicates"
+                                    % tmp.field)
+          selections.append(tmp)
+        select = None
+        if not selections:
+          select = None
+        elif len(selections) == 1:
+          select = selections[0]
         else:
-          if cond[1] == "in" or cond[1] == "not in":
-            operation = PARAM_SELECT_OP_OR
-          else:
-            # "contains all" or "="
-            operation = PARAM_SELECT_OP_AND
-          select = SenseiSelection(cond[0], operation)
-          if cond[1] == "=":
-            select.addSelection(cond[2])
-          elif cond[1] != "not in":
-            for val in cond.value_list:
-              select.addSelection(val)
-            for val in cond.except_values:
-              select.addSelection(val, True)
-          else:
-            for val in cond.not_in_list:
-              select.addSelection(val, True)
-          for i in xrange(0, len(cond.prop_list), 2):
-            select.addProperty(cond.prop_list[i], cond.prop_list[i+1])
-          self.selections.append(select)
+          values = selections[0].values
+          select = SenseiSelection(field, PARAM_SELECT_OP_OR)
+          for i in xrange(1, len(selections)):
+            values = merge_values(values, selections[i].values)
+          select.values = values
+        self.selection_list.append(select)
 
   def get_stmt_type(self):
     """Get the statement type."""
@@ -506,9 +664,30 @@ class BQLRequest:
           self.sorts.append(SenseiSort(spec[0], spec[1] == "desc"))
     return self.sorts
 
+  def merge_selections(self):
+    """Merge all selections and detect conflicts."""
+
+    self.selections = {}
+    for select in self.selection_list:
+      existing = self.selections.get(select.field)
+      if existing:
+        if existing.values and select.values:
+          return False, "There is conflict in selection(s) for column '%s'" % select.field
+        if select.values:
+          existing.values = select.values
+        if select.excludes:
+          existing.excludes = merge_values(existing.excludes,
+                                           select.excludes)
+        # XXX How about props?
+      else:
+        self.selections[select.field] = select
+    return True, None
+
   def get_selections(self):
     """Get all the selections from in statement."""
 
+    if self.selections == None:
+      merge_selections()
     return self.selections
 
   def get_facets(self):
@@ -598,29 +777,31 @@ def test(str):
   # print str,"->"
   try:
     tokens = BQLstmt.parseString(str)
-    print "tokens = ",        tokens
+    print "tokens =",        tokens
     print "tokens.columns =", tokens.columns
     print "tokens.index =",  tokens.index
     print "tokens.where =", tokens.where
-
-    print "tokens.where = ", tokens.where
     if tokens.where:
-      print "tokens.where.condition = ", tokens.where.condition
-      for cond in tokens.where.condition:
-        print "cond.value_list = ", cond.value_list
-        print "cond.except_values = ", cond.except_values
-        print "cond.prop_list = ", cond.prop_list
-    print "tokens.orderby = ", tokens.orderby
+      print "tokens.where.predicates =", tokens.where.predicates
+      print "tokens.where.cumulative_preds =", tokens.where.cumulative_preds
+      for predicate in tokens.where.predicates:
+        print "--------------------------------------"
+        print "predicate.value_list =", predicate.value_list
+        print "predicate.except_values =", predicate.except_values
+        print "predicate.prop_list =", predicate.prop_list
+        if predicate.cumulative_preds:
+          print "predicate.cumulative_preds =", predicate.cumulative_preds
+    print "tokens.orderby =", tokens.orderby
     if tokens.orderby:
-      print "tokens.orderby.orderby_spec = ", tokens.orderby.orderby_spec
-    print "tokens.limit = ", tokens.limit
-    print "tokens.facet_specs = ", tokens.facet_specs
-    print "tokens.groupby = ", tokens.groupby
-    print "tokens.max_per_group = ", tokens.max_per_group
-    print "tokens.given = ", tokens.given
+      print "tokens.orderby.orderby_spec =", tokens.orderby.orderby_spec
+    print "tokens.limit =", tokens.limit
+    print "tokens.facet_specs =", tokens.facet_specs
+    print "tokens.groupby =", tokens.groupby
+    print "tokens.max_per_group =", tokens.max_per_group
+    print "tokens.given =", tokens.given
     if tokens.given:
-      print "tokens.given.facet_param = ", tokens.given.facet_param
-    print "tokens.fetching_stored = ", tokens.fetching_stored
+      print "tokens.given.facet_param =", tokens.given.facet_param
+    print "tokens.fetching_stored =", tokens.fetching_stored
   except ParseException as err:
     print " "*err.loc + "^\n" + err.msg
   finally:
@@ -1002,6 +1183,10 @@ class SenseiRequest:
     if sql_stmt:
       time1 = datetime.datetime.now()
       bql_req = BQLRequest(sql_stmt)
+      ok, msg = bql_req.merge_selections()
+      if not ok:
+        raise SenseiClientError(msg)
+
       self.stmt_type = bql_req.get_stmt_type()
       if self.stmt_type == "desc":
         self.index = bql_req.get_index()
@@ -1032,7 +1217,7 @@ class SenseiRequest:
       self.count = count
       self.columns = []
       self.sorts = None
-      self.selections = []
+      self.selections = {}
       self.facets = {}
       self.fetch_stored = False
       self.groupby = None
@@ -1280,7 +1465,7 @@ class SenseiClient:
       paramMap[PARAM_QUERY_PARAM] = ",".join(param + ":" + req.qParam.get(param)
                                              for param in req.qParam.keys() if param != "query")
 
-    for selection in req.selections:
+    for selection in req.selections.values():
       paramMap[selection.getSelectNotParam()] = selection.getSelectNotParamValues()
       paramMap[selection.getSelectOpParam()] = selection.operation
       paramMap[selection.getSelectValParam()] = selection.getSelectValParamValues()
@@ -1414,8 +1599,9 @@ def main(argv):
       print
       break
     except ParseException as err:
-      print " "*err.loc + "^\n" + err.msg
-      # print err
+      print " " * (err.loc + 2) + "^\n" + err.msg
+    except SenseiClientError as err:
+      print err
 
 if __name__ == "__main__":
   main(sys.argv)
