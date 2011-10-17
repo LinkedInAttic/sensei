@@ -1,11 +1,14 @@
 package com.sensei.indexing.hadoop.job;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.text.NumberFormat;
 import java.util.Arrays;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
+import org.apache.hadoop.filecache.DistributedCache;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -34,7 +37,7 @@ public class MapReduceJob extends Configured {
 	private static final NumberFormat NUMBER_FORMAT = NumberFormat.getInstance();
 	private static final Logger logger = Logger.getLogger(MapReduceJob.class);
 	
-	  public JobConf createJob(Class MRClass) throws IOException {
+	  public JobConf createJob(Class MRClass) throws IOException, URISyntaxException {
 		    
 		    Configuration conf = getConf();
 		    Path[] inputPaths;
@@ -74,6 +77,14 @@ public class MapReduceJob extends Configured {
 		    
 		    //always using compound file format to speed up;
 		    conf.setBoolean(SenseiJobConfig.USE_COMPOUND_FILE, true);
+		    
+		    String schemaFile = conf.get("schema.file.url");
+		    if(schemaFile == null)
+		    	throw new IOException("no schema file is found");
+		    else{
+		    	logger.info("Adding schema file: " + conf.get("schema.file.url"));	      
+				DistributedCache.addCacheFile(new URI(schemaFile), conf);
+		    }
 
 		    // create the job configuration
 		    JobConf jobConf = new JobConf(conf, MRClass);
