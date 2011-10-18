@@ -129,7 +129,7 @@ DEFAULT_FACET_ORDER = PARAM_FACET_ORDER_HITS
 
 from pyparsing import Literal, CaselessLiteral, Word, Upcase, delimitedList, Optional, \
     Combine, Group, alphas, nums, alphanums, ParseException, Forward, oneOf, quotedString, \
-    ZeroOrMore, restOfLine, Keyword, OnlyOnce, Suppress, removeQuotes, NotAny
+    ZeroOrMore, restOfLine, Keyword, OnlyOnce, Suppress, removeQuotes, NotAny, OneOrMore, MatchFirst
 
 """
 
@@ -278,9 +278,9 @@ DESC = Keyword("desc", caseless=True)
 DESCRIBE = Keyword("describe", caseless=True)
 DOUBLE = Keyword("double", caseless=True)
 EXCEPT = Keyword("except", caseless=True)
-FACET_PARAM = Keyword("facet param", caseless=True)
+FACET = Keyword("facet", caseless=True)
 FALSE = Keyword("false", caseless=True)
-FETCHING_STORED = Keyword("fetching stored", caseless=True)
+FETCHING = Keyword("fetching", caseless=True)
 FROM = Keyword("from", caseless=True)
 GROUP = Keyword("group", caseless=True)
 GIVEN = Keyword("given", caseless=True)
@@ -293,14 +293,25 @@ LONG = Keyword("long", caseless=True)
 NOT = Keyword("not", caseless=True)
 OR = Keyword("or", caseless=True)
 ORDER = Keyword("order", caseless=True)
-WITH = Keyword("with", caseless=True)
+PARAM = Keyword("param", caseless=True)
 QUERY = Keyword("query", caseless=True)
 SELECT = Keyword("select", caseless=True)
+STORED = Keyword("stored", caseless=True)
 STRING = Keyword("string", caseless=True)
 TOP = Keyword("top", caseless=True)
 TRUE = Keyword("true", caseless=True)
 VALUE = Keyword("value", caseless=True)
 WHERE = Keyword("where", caseless=True)
+WITH = Keyword("with", caseless=True)
+
+keyword = MatchFirst((ALL, AND, ASC, BETWEEN, BOOLEAN, BROWSE, BY, BYTEARRAY,
+                      CONTAINS, DESC, DESCRIBE, DOUBLE, EXCEPT,
+                      FACET, FALSE, FETCHING, FROM, GROUP, GIVEN,
+                      HITS, IN, INT, IS, LIMIT, LONG, NOT,
+                      OR, ORDER, PARAM, QUERY,
+                      SELECT, STORED, STRING, TOP, TRUE,
+                      VALUE, WHERE, WITH
+                      ))
 
 LPAR, RPAR, COMMA, COLON, SEMICOLON = map(Suppress,"(),:;")
 EQUAL = "="
@@ -309,8 +320,8 @@ NOT_EQUAL = "<>"
 select_stmt = Forward()
 
 ident = Word(alphas, alphanums + "_$")
-column_name = Word(alphas, alphanums + "_-")
-facet_name = Word(alphas, alphanums + "_-")
+column_name = ~keyword + Word(alphas, alphanums + "_-")
+facet_name = column_name.copy()
 column_name_list = Group(delimitedList(column_name))
 
 int_num = Word(nums).setParseAction(lambda t: int(t[0]))
@@ -332,7 +343,7 @@ contains_all_predicate = (column_name +
                           CONTAINS + ALL + value_list.setResultsName("value_list") +
                           Optional(EXCEPT + value_list.setResultsName("except_values")) +
                           Optional(predicate_props)
-                          )
+                          ).setResultsName("contains_all_pred")
 
 equal_predicate = (column_name +
                    EQUAL + value +
@@ -353,7 +364,7 @@ cumulative_predicate = Group(in_predicate
                              ).setResultsName("cumulative_preds", listAllMatches=True)
 
 cumulative_predicates = (cumulative_predicate +
-                         ZeroOrMore(OR + cumulative_predicate))
+                         OneOrMore(OR + cumulative_predicate))
 
 same_column_or_pred = (LPAR + cumulative_predicates + RPAR).setResultsName("same_column_or_pred")
 
@@ -373,7 +384,7 @@ search_condition = Group(predicates | cumulative_predicates)
 param_type = BOOLEAN | INT | LONG | STRING | BYTEARRAY | DOUBLE
 facet_param = Group(LPAR + facet_name + COMMA + quotedString + COMMA +
                     param_type + COMMA + value + RPAR).setResultsName("facet_param", listAllMatches=True)
-given_clause = (GIVEN + FACET_PARAM + delimitedList(facet_param))
+given_clause = (GIVEN + FACET + PARAM + delimitedList(facet_param))
 
 orderseq = ASC | DESC
 
@@ -397,7 +408,7 @@ browse_by_clause = (BROWSE + BY +
                     delimitedList(facet_spec).setResultsName("facet_specs")).setParseAction(browse_by_once)
 
 fetching_flag = TRUE | FALSE
-fetching_stored_clause = (FETCHING_STORED +
+fetching_stored_clause = (FETCHING + STORED +
                           Optional(fetching_flag)).setResultsName("fetching_stored").setParseAction(fetching_stored_once)
 
 additional_clause = (order_by_clause
@@ -445,6 +456,36 @@ def merge_values(list1, list2):
     tmp.extend(list2)
     return list(set(tmp))
 
+def collapse_cumulative_preds(cumulative_preds):
+  """Collapse cumulative predicates into one selection."""
+
+  # XXX Need to consider props here too
+  select = None
+  selections = []
+  field = None
+  for pred in cumulative_preds:
+    tmp = build_selection(pred)
+    if not field and tmp:
+      field = tmp.field
+    elif tmp.field != field:
+      raise SenseiClientError("A different column '%s' appeared in cumulative predicates"
+                              % tmp.field)
+    elif tmp.excludes:
+      raise SenseiClientError("Negative predicate for column '%s' appeared in cumulative predicates"
+                              % tmp.field)
+    selections.append(tmp)
+
+  if not selections:
+    select = None
+  elif len(selections) == 1:
+    select = selections[0]
+  else:
+    values = selections[0].values
+    select = SenseiSelection(field, PARAM_SELECT_OP_OR)
+    for i in xrange(1, len(selections)):
+      values = merge_values(values, selections[i].values)
+    select.values = values
+  return select
 
 def build_selection(predicate):
   """Build a SenseiSelection based on a predicate."""
@@ -457,6 +498,15 @@ def build_selection(predicate):
       select.addSelection(val, is_not)
     for val in predicate.except_values:
       select.addSelection(val, not is_not)
+    for i in xrange(0, len(predicate.prop_list), 2):
+      select.addProperty(predicate.prop_list[i], predicate.prop_list[i+1])
+
+  elif predicate.contains_all_pred:
+    select = SenseiSelection(predicate[0], PARAM_SELECT_OP_AND)
+    for val in predicate.value_list:
+      select.addSelection(val)
+    for val in predicate.except_values:
+      select.addSelection(val, True)
     for i in xrange(0, len(predicate.prop_list), 2):
       select.addProperty(predicate.prop_list[i], predicate.prop_list[i+1])
 
@@ -473,66 +523,15 @@ def build_selection(predicate):
       select.addProperty(predicate.prop_list[i], predicate.prop_list[i+1])
   
   elif predicate.between_pred:
-    # BETWEEN predicate
     if predicate[1] == BETWEEN.match:
-      # Normal BETWEEN predicate 
       select = SenseiSelection(predicate[0], PARAM_SELECT_OP_OR)
       select.addSelection("[%s TO %s]" % (predicate[2], predicate[4]))
     else:
-      # Negative BETWEEN predicate
       select = SenseiSelection(predicate[0], PARAM_SELECT_OP_OR)
       select.addSelection("[%s TO %s]" % (predicate[3], predicate[5]), True)
   
   elif predicate.same_column_or_pred:
-    # Need to merge all values.
-    # XXX Need to consider props here too
-    selections = []
-    field = None
-    for pred in predicate.cumulative_preds:
-      tmp = build_selection(pred)
-      if not field and tmp:
-        field = tmp.field
-      elif tmp.field != field:
-        raise SenseiClientError("A different column '%s' appeared in cumulative predicates"
-                                % tmp.field)
-      elif tmp.excludes:
-        raise SenseiClientError("Negative predicate for column '%s' appeared in cumulative predicates"
-                                % tmp.field)
-      selections.append(tmp)
-
-    if not selections:
-      select = None
-    elif len(selections) == 1:
-      select = selections[0]
-    else:
-      values = selections[0].values
-      select = SenseiSelection(field, PARAM_SELECT_OP_OR)
-      for i in xrange(1, len(selections)):
-        values = merge_values(values, selections[i].values)
-      select.values = values
-
-  else:
-    if predicate[1] == "in" or predicate[1] == "not":
-      operation = PARAM_SELECT_OP_OR
-    else:
-      # "contains all" or "="
-      operation = PARAM_SELECT_OP_AND
-    select = SenseiSelection(predicate[0], operation)
-    if predicate[1] == "=":
-      # column = ...
-      select.addSelection(predicate[2])
-    elif predicate[1] in ["in", "contains"]:
-      # column IN ... or column CONTAINS ALL ...
-      for val in predicate.value_list:
-        select.addSelection(val)
-      for val in predicate.except_values:
-        select.addSelection(val, True)
-    else:
-      # column NOT IN ...
-      for val in predicate.value_list:
-        select.addSelection(val, True)
-    for i in xrange(0, len(predicate.prop_list), 2):
-      select.addProperty(predicate.prop_list[i], predicate.prop_list[i+1])
+    select = collapse_cumulative_preds(predicate.cumulative_preds)
 
   return select
 
@@ -577,30 +576,7 @@ class BQLRequest:
             if select:
               self.selection_list.append(select)
       elif where.cumulative_preds:
-        selections = []
-        field = None
-        for pred in where.cumulative_preds:
-          tmp = build_selection(pred)
-          if not field and tmp:
-            field = tmp.field
-          elif tmp.field != field:
-            raise SenseiClientError("A different column '%s' appeared in cumulative predicates"
-                                    % tmp.field)
-          elif tmp.excludes:
-            raise SenseiClientError("Negative predicate for column '%s' appeared in cumulative predicates"
-                                    % tmp.field)
-          selections.append(tmp)
-        select = None
-        if not selections:
-          select = None
-        elif len(selections) == 1:
-          select = selections[0]
-        else:
-          values = selections[0].values
-          select = SenseiSelection(field, PARAM_SELECT_OP_OR)
-          for i in xrange(1, len(selections)):
-            values = merge_values(values, selections[i].values)
-          select.values = values
+        select = collapse_cumulative_preds(where.cumulative_preds)
         self.selection_list.append(select)
 
   def get_stmt_type(self):
@@ -716,7 +692,7 @@ class BQLRequest:
     """Get group by facet name."""
 
     if self.tokens.groupby:
-      return self.tokens.groupby
+      return self.tokens.groupby[0]
     else:
       return None
 
@@ -733,8 +709,8 @@ class BQLRequest:
 
     fetching_stored = self.tokens.fetching_stored
     if (not fetching_stored or
-        len(fetching_stored) == 1 or
-        fetching_stored[1] == "true"):
+        len(fetching_stored) == 2 or
+        fetching_stored[2] == "true"):
       return True
     else:
       return False
@@ -774,7 +750,6 @@ class BQLRequest:
 
 
 def test(str):
-  # print str,"->"
   try:
     tokens = BQLstmt.parseString(str)
     print "tokens =",        tokens
@@ -803,11 +778,10 @@ def test(str):
       print "tokens.given.facet_param =", tokens.given.facet_param
     print "tokens.fetching_stored =", tokens.fetching_stored
   except ParseException as err:
-    print " "*err.loc + "^\n" + err.msg
+    # print " " * (err.loc + 2) + "^\n" + err.msg
+    pass
   finally:
     reset_all()
-  print
-
 
 class SenseiClientError(Exception):
   """Exception raised for all errors related to Sensei client."""
@@ -1179,8 +1153,9 @@ class SenseiRequest:
     self.route_param = None
     self.sql_stmt = sql_stmt
     self.prepare_time = 0       # Statement prepare time in milliseconds
+    self.stmt_type = "unknown"
 
-    if sql_stmt:
+    if sql_stmt != None:
       time1 = datetime.datetime.now()
       bql_req = BQLRequest(sql_stmt)
       ok, msg = bql_req.merge_selections()
@@ -1591,12 +1566,12 @@ def main(argv):
       if req.stmt_type == "select":
         res = client.doQuery(req)
         res.display(columns=req.get_columns(), max_col_width=int(options.max_col_width))
-      else:
+      elif req.stmt_type == "desc":
         sysinfo = client.getSystemInfo()
         sysinfo.display()
-
+      else:
+        pass
     except EOFError:
-      print
       break
     except ParseException as err:
       print " " * (err.loc + 2) + "^\n" + err.msg

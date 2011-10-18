@@ -178,6 +178,22 @@ class TestBQL(unittest.TestCase):
     self.assertEqual(select.operation, sensei_client.PARAM_SELECT_OP_OR)
     self.assertEqual(select.values, ["red", "blue"])
 
+  def testKeyword(self):
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    WHERE NOT IN ("red", "blue")  -- 'NOT' here cannot be treated as column name
+    """
+    intactFlag = True
+    try:
+      req = SenseiRequest(stmt)
+      intactFlag = False
+    except ParseException as err:
+      pass
+    finally:
+      self.assertTrue(intactFlag)
+
   def testNotIn(self):
     stmt = \
     """
@@ -622,7 +638,6 @@ class TestBQL(unittest.TestCase):
     except SenseiClientError as err:
       error = str(err)
     self.assertEqual(error, repr("Negative predicate for column 'color' appeared in cumulative predicates"))
-
 
   def compare(self, paramStr1, paramStr2):
     """Compare two URL param strings built by Sensei client.
