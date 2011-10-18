@@ -31,6 +31,7 @@ import org.apache.lucene.index.IndexWriter.MaxFieldLength;
 import org.apache.lucene.index.KeepOnlyLastCommitDeletionPolicy;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.RAMDirectory;
+import org.apache.lucene.store.RAMDirectorySerializer;
 
 import com.sensei.indexing.hadoop.reduce.RAMDirectoryUtil;
 import com.sensei.indexing.hadoop.util.SenseiJobConfig;
@@ -196,6 +197,8 @@ public class IntermediateForm implements Writable {
 
     String[] files = dir.listAll();
     RAMDirectoryUtil.writeRAMFiles(out, dir, files);
+    
+//    RAMDirectorySerializer.toDataOutput(out, dir);
   }
 
   /* (non-Javadoc)
@@ -203,8 +206,10 @@ public class IntermediateForm implements Writable {
    */
   public void readFields(DataInput in) throws IOException {
     resetForm();
-
     RAMDirectoryUtil.readRAMFiles(in, dir);
+
+//	  numDocs = 0;
+//	  dir = RAMDirectorySerializer.fromDataInput(in);
   }
 
 }

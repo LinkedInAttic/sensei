@@ -2,7 +2,9 @@ package org.apache.lucene.store;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.DataInput;
 import java.io.DataInputStream;
+import java.io.DataOutput;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -12,9 +14,10 @@ import java.util.Map.Entry;
 
 public class RAMDirectorySerializer {
 	
-  private static void streamToBytes(RAMFile ramFile,DataOutputStream out) throws IOException{
+  private static void streamToBytes(RAMFile ramFile,DataOutput out) throws IOException{
 	out.writeLong(ramFile.getLastModified());
 	out.writeLong(ramFile.sizeInBytes);
+	out.writeLong(ramFile.length);
 	if (ramFile.buffers==null){
 	  out.writeInt(0);
 	}
@@ -27,9 +30,10 @@ public class RAMDirectorySerializer {
 	}
   }
   
-  private static void loadFromBytes(RAMFile rfile,DataInputStream din) throws IOException{
+  private static void loadFromBytes(RAMFile rfile,DataInput din) throws IOException{
 	rfile.setLastModified(din.readLong());
 	rfile.sizeInBytes=din.readLong();
+	rfile.length = din.readLong();
 	
 	int count = din.readInt();
 	rfile.buffers = new ArrayList<byte[]>(count);
@@ -44,19 +48,28 @@ public class RAMDirectorySerializer {
   public static byte[] toBytes(RAMDirectory dir) throws IOException{
 	ByteArrayOutputStream bout = new ByteArrayOutputStream((int)dir.sizeInBytes);
 	DataOutputStream dout = new DataOutputStream(bout);
+	toDataOutput(dout, dir);
+	dout.flush();
+	return bout.toByteArray();
+  }
+  
+  public static void toDataOutput(DataOutput dout, RAMDirectory dir) throws IOException{
 	dout.writeLong(dir.sizeInBytes());
 	dout.writeInt(dir.fileMap.size());
 	for (Entry<String,RAMFile> entry : dir.fileMap.entrySet()){
 	  dout.writeUTF(entry.getKey());
 	  streamToBytes(entry.getValue(),dout);
 	}
-	dout.flush();
-	return bout.toByteArray();
   }
+  
   
   public static RAMDirectory fromBytes(byte[] bytes) throws IOException{
 	ByteArrayInputStream bin = new ByteArrayInputStream(bytes);
 	DataInputStream din = new DataInputStream(bin);
+	return fromDataInput(din);
+  }
+  
+  public static RAMDirectory fromDataInput(DataInput din) throws IOException{
 	RAMDirectory rdir = new RAMDirectory();
 	rdir.sizeInBytes = din.readLong();
 	int count = din.readInt();
