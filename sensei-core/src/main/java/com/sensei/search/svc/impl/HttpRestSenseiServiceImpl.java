@@ -903,6 +903,9 @@ public class HttpRestSenseiServiceImpl implements SenseiService
     	  else if (SenseiSearchServletParams.PARAM_RESULT_HIT_EXPLANATION.equals(key)){
     		  hit.setExplanation(convertToExplanation(hitObj.optJSONObject(SenseiSearchServletParams.PARAM_RESULT_HIT_EXPLANATION)));
     	  }
+        else if (SenseiSearchServletParams.PARAM_RESULT_HIT_GROUPHITS.equals(key)) {
+          hit.setGroupHits(convertHitsArray(hitObj.getJSONArray(SenseiSearchServletParams.PARAM_RESULT_HIT_GROUPHITS)));
+        }
     	  else{
     		  JSONArray array = hitObj.optJSONArray(key);
     		  if (array!=null){
