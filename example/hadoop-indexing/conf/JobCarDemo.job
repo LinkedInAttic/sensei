@@ -23,7 +23,7 @@ mapreduce.cluster.temp.dir=/tmp/hindex
 #############   path of schema for interpreter #############
 
 ##### TextJSON schema Sample (car demo) absolute path ######
-schema.file.url=/local/Documents/workspace_web/sensei/conf/schema.xml
+schema.file.url=conf/schema.xml
 
 ############    Input and Output  ##################
 
