@@ -20,12 +20,21 @@ import json
 import sys
 import logging
 import datetime
+import re
 
 logger = logging.getLogger("sensei_client")
+
+# Regular expression that matches a range facet value
+RANGE_REGEX = re.compile(r"\[(\d+|\*) TO (\d+|\*)\]")
+
+SELECTION_TYPE_RANGE = 1
+SELECTION_TYPE_SIMPLE = 2
+SELECTION_TYPE_TIME = 3
 
 # TODO:
 #
 # 1. Term vector
+# 2. Section
 
 #
 # REST API parameter constants
@@ -157,6 +166,7 @@ BNF Grammar for BQL
               | <not_equal_predicate>
               | <query_predicate>
               | <between_predicate>
+              | <range_predicate>
               | <same_column_or_pred>
 
 <in_predicate> ::= <column_name> [NOT] IN <value_list> [<except_clause>] [<predicate_props>]
@@ -165,15 +175,18 @@ BNF Grammar for BQL
 <not_equal_predicate> ::= <column_name> '<>' <value> [<predicate_props>]
 <query_predicate> ::= QUERY IS <quoted_string>
 <between_predicate> ::= <column_name> [NOT] BETWEEN <value> AND <value>
+<range_predicate> ::= <column_name> <range_op> <num>
 <same_column_or_pred> ::= '(' + <cumulative_predicates> + ')'
 
 <cumulative_predicates> ::= <cumulative_predicate> ( ',' <cumulative_predicate> )*
 <cumulative_predicate> ::= <in_predicate>
                          | <equal_predicate>
                          | <between_predicate>
+                         | <range_predicate>
 
 <value_list> ::= '(' <value> ( ',' <value> )* ')'
 <value> ::= <quoted_string> | <num>
+<range_op> ::= '<' | '<=' | '>=' | '>'
 
 <except_clause> ::= EXCEPT <value_list>
 
@@ -358,9 +371,13 @@ query_predicate = (QUERY + IS + quotedString).setResultsName("query_pred")
 between_predicate = (column_name + Optional(NOT) +
                      BETWEEN + value + AND + value).setResultsName("between_pred")
 
+range_op = oneOf("< <= >= >")
+range_predicate = (column_name + range_op + int_num).setResultsName("range_pred")
+
 cumulative_predicate = Group(in_predicate
                              | equal_predicate
                              | between_predicate
+                             | range_predicate
                              ).setResultsName("cumulative_preds", listAllMatches=True)
 
 cumulative_predicates = (cumulative_predicate +
@@ -374,6 +391,7 @@ predicate = Group(in_predicate
                   | not_equal_predicate
                   | query_predicate
                   | between_predicate
+                  | range_predicate
                   | same_column_or_pred
                   ).setResultsName("predicates", listAllMatches=True)
 
@@ -447,7 +465,11 @@ def safe_str(obj):
     return unicode(obj).encode("unicode_escape")
 
 def merge_values(list1, list2):
-  """Merge two list and dedup."""
+  """Merge two selection value lists and dedup.
+
+  All selection values should be simple value types.
+
+  """
 
   tmp = list1[:]
   if not tmp:
@@ -456,12 +478,60 @@ def merge_values(list1, list2):
     tmp.extend(list2)
     return list(set(tmp))
 
+def and_ranges(range1, range2):
+  """Try to AND two ranges.
+
+  Return the intersection of two ranges if there is overlap; None otherwise.
+
+  """
+  def __max(n1, n2):
+    if n1 == '*':
+      return n2
+    elif n2 == '*':
+      return n1
+    else:
+      return str(max(int(n1), int(n2)))
+
+  def __min(n1, n2):
+    if n1 == '*':
+      return n2
+    elif n2 == '*':
+      return n1
+    else:
+      return str(min(int(n1), int(n2)))
+
+  m1 = RANGE_REGEX.match(range1)
+  (low1, high1) = m1.groups()
+  m2 = RANGE_REGEX.match(range2)
+  (low2, high2) = m2.groups()
+
+  low = __max(low1, low2)
+  high = __min(high1, high2)
+
+  if (low != '*' and high != '*'
+      and int(low) > int(high)):
+    return None
+  else:
+    return "[%s TO %s]" % (low, high)
+
+def and_range_list(range_list, range0):
+  new_list = []
+  if not range_list:
+    return new_list
+  for r in range_list:
+    new_r = and_ranges(r, range0)
+    if new_r:
+      new_list.append(new_r)
+    else:
+      return []
+  return new_list
+
 def collapse_cumulative_preds(cumulative_preds):
   """Collapse cumulative predicates into one selection."""
 
   # XXX Need to consider props here too
-  select = None
-  selections = []
+  selection = None
+  selection_list = []
   field = None
   for pred in cumulative_preds:
     tmp = build_selection(pred)
@@ -473,67 +543,81 @@ def collapse_cumulative_preds(cumulative_preds):
     elif tmp.excludes:
       raise SenseiClientError("Negative predicate for column '%s' appeared in cumulative predicates"
                               % tmp.field)
-    selections.append(tmp)
+    selection_list.append(tmp)
 
-  if not selections:
-    select = None
-  elif len(selections) == 1:
-    select = selections[0]
+  if not selection_list:
+    selection = None
+  elif len(selection_list) == 1:
+    selection = selection_list[0]
   else:
-    values = selections[0].values
-    select = SenseiSelection(field, PARAM_SELECT_OP_OR)
-    for i in xrange(1, len(selections)):
-      values = merge_values(values, selections[i].values)
-    select.values = values
-  return select
+    values = selection_list[0].getValues()
+    selection = SenseiSelection(field, PARAM_SELECT_OP_OR)
+    for i in xrange(1, len(selection_list)):
+      values = merge_values(values, selection_list[i].getValues())
+    selection.setValues(values)
+  return selection
 
 def build_selection(predicate):
   """Build a SenseiSelection based on a predicate."""
 
-  select = None
+  selection = None
   if predicate.in_pred:
-    select = SenseiSelection(predicate[0], PARAM_SELECT_OP_OR)
+    selection = SenseiSelection(predicate[0], PARAM_SELECT_OP_OR)
     is_not = predicate[1] == NOT.match
     for val in predicate.value_list:
-      select.addSelection(val, is_not)
+      selection.addSelection(val, is_not)
     for val in predicate.except_values:
-      select.addSelection(val, not is_not)
+      selection.addSelection(val, not is_not)
     for i in xrange(0, len(predicate.prop_list), 2):
-      select.addProperty(predicate.prop_list[i], predicate.prop_list[i+1])
+      selection.addProperty(predicate.prop_list[i], predicate.prop_list[i+1])
 
   elif predicate.contains_all_pred:
-    select = SenseiSelection(predicate[0], PARAM_SELECT_OP_AND)
+    selection = SenseiSelection(predicate[0], PARAM_SELECT_OP_AND)
     for val in predicate.value_list:
-      select.addSelection(val)
+      selection.addSelection(val)
     for val in predicate.except_values:
-      select.addSelection(val, True)
+      selection.addSelection(val, True)
     for i in xrange(0, len(predicate.prop_list), 2):
-      select.addProperty(predicate.prop_list[i], predicate.prop_list[i+1])
+      selection.addProperty(predicate.prop_list[i], predicate.prop_list[i+1])
 
   elif predicate.equal_pred:
-    select = SenseiSelection(predicate[0], PARAM_SELECT_OP_AND)
-    select.addSelection(predicate[2])
+    selection = SenseiSelection(predicate[0], PARAM_SELECT_OP_AND)
+    selection.addSelection(predicate[2])
     for i in xrange(0, len(predicate.prop_list), 2):
-      select.addProperty(predicate.prop_list[i], predicate.prop_list[i+1])
+      selection.addProperty(predicate.prop_list[i], predicate.prop_list[i+1])
   
   elif predicate.not_equal_pred:
-    select = SenseiSelection(predicate[0], PARAM_SELECT_OP_OR)
-    select.addSelection(predicate[2], True)
+    selection = SenseiSelection(predicate[0], PARAM_SELECT_OP_OR)
+    selection.addSelection(predicate[2], True)
     for i in xrange(0, len(predicate.prop_list), 2):
-      select.addProperty(predicate.prop_list[i], predicate.prop_list[i+1])
+      selection.addProperty(predicate.prop_list[i], predicate.prop_list[i+1])
   
   elif predicate.between_pred:
     if predicate[1] == BETWEEN.match:
-      select = SenseiSelection(predicate[0], PARAM_SELECT_OP_OR)
-      select.addSelection("[%s TO %s]" % (predicate[2], predicate[4]))
+      selection = SenseiSelection(predicate[0], PARAM_SELECT_OP_AND)
+      selection.addSelection("[%s TO %s]" % (predicate[2], predicate[4]))
     else:
-      select = SenseiSelection(predicate[0], PARAM_SELECT_OP_OR)
-      select.addSelection("[%s TO %s]" % (predicate[3], predicate[5]), True)
+      selection = SenseiSelection(predicate[0], PARAM_SELECT_OP_AND)
+      selection.addSelection("[%s TO %s]" % (predicate[3], predicate[5]), True)
+
+  elif predicate.range_pred:
+    low = "*"
+    high = "*"
+    if predicate[1] == "<":
+      high = max(predicate[2] - 1, 0)
+    elif predicate[1] == "<=":
+      high = predicate[2]
+    elif predicate[1] == ">=":
+      low = predicate[2]
+    else:
+      low = predicate[2] + 1
+    selection = SenseiSelection(predicate[0], PARAM_SELECT_OP_AND)
+    selection.addSelection("[%s TO %s]" % (low, high))
   
   elif predicate.same_column_or_pred:
-    select = collapse_cumulative_preds(predicate.cumulative_preds)
+    selection = collapse_cumulative_preds(predicate.cumulative_preds)
 
-  return select
+  return selection
 
 class BQLRequest:
   """A Sensei request with a BQL statement.
@@ -572,12 +656,12 @@ class BQLRequest:
           if predicate.query_pred:
             self.query = predicate[2]
           else:
-            select = build_selection(predicate)
-            if select:
-              self.selection_list.append(select)
+            selection = build_selection(predicate)
+            if selection:
+              self.selection_list.append(selection)
       elif where.cumulative_preds:
-        select = collapse_cumulative_preds(where.cumulative_preds)
-        self.selection_list.append(select)
+        selection = collapse_cumulative_preds(where.cumulative_preds)
+        self.selection_list.append(selection)
 
   def get_stmt_type(self):
     """Get the statement type."""
@@ -644,26 +728,36 @@ class BQLRequest:
     """Merge all selections and detect conflicts."""
 
     self.selections = {}
-    for select in self.selection_list:
-      existing = self.selections.get(select.field)
+    for selection in self.selection_list:
+      existing = self.selections.get(selection.field)
       if existing:
-        if existing.values and select.values:
-          return False, "There is conflict in selection(s) for column '%s'" % select.field
-        if select.values:
-          existing.values = select.values
-        if select.excludes:
-          existing.excludes = merge_values(existing.excludes,
-                                           select.excludes)
+        # Try to merge simple range predicates
+        if (len(selection.getValues()) == 1 and
+            selection.getType() == SELECTION_TYPE_RANGE and
+            existing.getType() == SELECTION_TYPE_RANGE):
+          new_values = and_range_list(existing.getValues(), selection.getValues()[0])
+          if not new_values:
+            raise SenseiClientError("There is conflict in selection(s) for column '%s'" % selection.field)
+          existing.setValues(new_values)
+        else:
+          # Don't bother trying to merge predicates
+          if existing.getValues() and selection.getValues():
+            return False, "There is conflict in selection(s) for column '%s'" % selection.field
+          if selection.getValues():
+            existing.setValues(selection.getValues())
+          if selection.getExcludes():
+            existing.setExcludes(merge_values(existing.getExcludes(),
+                                            selection.getExcludes()))
         # XXX How about props?
       else:
-        self.selections[select.field] = select
+        self.selections[selection.field] = selection
     return True, None
 
   def get_selections(self):
     """Get all the selections from in statement."""
 
     if self.selections == None:
-      merge_selections()
+      self.merge_selections()
     return self.selections
 
   def get_facets(self):
@@ -805,6 +899,7 @@ class SenseiSelection:
   def __init__(self, field, operation=PARAM_SELECT_OP_OR):
     self.field = field
     self.operation = operation
+    self.type = None
     self.values = []
     self.excludes = []
     self.properties = {}
@@ -813,8 +908,20 @@ class SenseiSelection:
     return ("Selection:%s:%s:%s:%s" %
             (self.field, self.operation,
              ','.join(self.values), ','.join(self.excludes)))
+
+  def __get_type(self, value):
+    if isinstance(value, basestring) and RANGE_REGEX.match(value):
+      return SELECTION_TYPE_RANGE
+    else:
+      return SELECTION_TYPE_SIMPLE
     
   def addSelection(self, value, isNot=False):
+    val_type = self.__get_type(value)
+    if not self.type:
+      self.type = val_type
+    elif self.type != val_type:
+      raise SenseiClientError("Value (%s) type mismatch for facet %s: "
+                              % (value, self.field))
     if isNot:
       self.excludes.append(safe_str(value))
     else:
@@ -831,6 +938,30 @@ class SenseiSelection:
   
   def removeProperty(self, name):
     del self.properties[name]
+
+  def getValues(self):
+    return self.values
+
+  def setValues(self, values):
+    self.values = []
+    if len(values) > 0:
+      for value in values:
+        self.addSelection(value)
+
+  def getExcludes(self):
+    return self.excludes
+
+  def setExcludes(self, excludes):
+    self.excludes = []
+    if len(excludes) > 0:
+      for value in excludes:
+        self.addSelection(value, True)
+
+  def getType(self):
+    return self.type
+
+  def setType(self, val_type):
+    self.type = val_type
 
   def getSelectNotParam(self):
     return "%s.%s.%s" % (PARAM_SELECT, self.field, PARAM_SELECT_NOT)

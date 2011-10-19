@@ -468,7 +468,7 @@ class TestBQL(unittest.TestCase):
     """
     req = SenseiRequest(stmt)
     self.compare("rows=10&select.year.val=%5B2000+TO+2001%5D" +
-                 "&select.year.op=or&start=0&select.year.not=&fetchstored=true",
+                 "&select.year.op=and&start=0&select.year.not=&fetchstored=true",
                  SenseiClient.buildUrlString(req))
 
     stmt = \
@@ -478,7 +478,7 @@ class TestBQL(unittest.TestCase):
     WHERE year NOT BETWEEN 1999 AND 2000
     """
     req = SenseiRequest(stmt)
-    self.compare("rows=10&select.year.val=&select.year.op=or" +
+    self.compare("rows=10&select.year.val=&select.year.op=and" +
                  "&start=0&select.year.not=%5B1999+TO+2000%5D&fetchstored=true",
                  SenseiClient.buildUrlString(req))
 
@@ -540,7 +540,7 @@ class TestBQL(unittest.TestCase):
     self.assertEqual(len(req.selections), 1)
     select = req.selections["year"]
     self.assertEqual(select.field, "year")
-    self.assertEqual(select.operation, sensei_client.PARAM_SELECT_OP_OR)
+    self.assertEqual(select.operation, sensei_client.PARAM_SELECT_OP_AND)
     self.assertEqual(select.values, [])
     self.assertEqual(len(select.excludes), 2)
     self.assertTrue("[1995 TO 1996]" in select.excludes)
@@ -639,6 +639,57 @@ class TestBQL(unittest.TestCase):
       error = str(err)
     self.assertEqual(error, repr("Negative predicate for column 'color' appeared in cumulative predicates"))
 
+  def testRangePredicates(self):
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    WHERE year > 1999 AND year < 2001
+    """
+    req = SenseiRequest(stmt)
+    select_year = req.selections["year"]
+    self.assertEqual(select_year.operation, sensei_client.PARAM_SELECT_OP_AND)
+    self.assertEqual(len(select_year.values), 1)
+    self.assertTrue("[2000 TO 2000]" in select_year.values)
+
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    WHERE year >= 1999 AND year <= 2004
+    """
+    req = SenseiRequest(stmt)
+    select_year = req.selections["year"]
+    self.assertEqual(select_year.operation, sensei_client.PARAM_SELECT_OP_AND)
+    self.assertEqual(len(select_year.values), 1)
+    self.assertTrue("[1999 TO 2004]" in select_year.values)
+
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    WHERE year BETWEEN 1995 AND 2000
+      AND year < 1999
+    """
+    req = SenseiRequest(stmt)
+    select_year = req.selections["year"]
+    self.assertEqual(select_year.operation, sensei_client.PARAM_SELECT_OP_AND)
+    self.assertEqual(len(select_year.values), 1)
+    self.assertTrue("[1995 TO 1998]" in select_year.values)
+
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    WHERE year BETWEEN 1995 AND 1997 OR year > 1999
+    """
+    req = SenseiRequest(stmt)
+    select_year = req.selections["year"]
+    self.assertEqual(select_year.operation, sensei_client.PARAM_SELECT_OP_OR)
+    self.assertEqual(len(select_year.values), 2)
+    self.assertTrue("[1995 TO 1997]" in select_year.values)
+    self.assertTrue("[2000 TO *]" in select_year.values)
+
   def compare(self, paramStr1, paramStr2):
     """Compare two URL param strings built by Sensei client.
 
@@ -651,6 +702,20 @@ class TestBQL(unittest.TestCase):
     list2 = paramStr2.split('&')
     list2.sort()
     self.assertTrue(len(paramStr1) == len(paramStr2) and list1 == list2)
+
+
+class TestUtils(unittest.TestCase):
+
+  def testRanges(self):
+    self.assertEqual("[50 TO 100]", sensei_client.and_ranges("[* TO 100]", "[50 TO 200]"))
+    self.assertEqual("[100 TO 200]", sensei_client.and_ranges("[100 TO *]", "[50 TO 200]"))
+    self.assertEqual("[200 TO *]", sensei_client.and_ranges("[100 TO *]", "[200 TO *]"))
+    self.assertEqual("[150 TO 200]", sensei_client.and_ranges("[100 TO 200]", "[150 TO 400]"))
+    self.assertEqual("[100 TO 200]", sensei_client.and_ranges("[* TO 200]", "[100 TO *]"))
+    self.assertEqual(None, sensei_client.and_ranges("[100 TO 200]", "[15 TO 50]"))
+
+    new_list = sensei_client.and_range_list(["[10 TO 50]", "[60 TO 80]", "[100 TO 200]"], "[40 TO 150]")
+    self.assertEqual(["[40 TO 50]", "[60 TO 80]", "[100 TO 150]"], new_list)
 
 
 if __name__ == "__main__":
