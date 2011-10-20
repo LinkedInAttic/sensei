@@ -5,16 +5,11 @@ num.map.tasks=10
 mapreduce.job.maps=2
 sensei.num.shards=3
 
-mapred.job.name=ShardedIndexing
+mapred.job.name=CarDemoShardedIndexing
 
 # if the output.path already exists, delete it first
 force.output.overwrite=true
 
-hadoop-conf.mapred.job.queue.name=marathon
-
-#mapred.create.symlink=true
-
-mapreduce.cluster.temp.dir=/tmp/hindex
 
 ##################################################################################################  
 ######################################   Configure Things Below   ################################

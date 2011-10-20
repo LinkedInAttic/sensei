@@ -29,6 +29,7 @@ import com.sensei.indexing.hadoop.reduce.IndexUpdateOutputFormat;
 import com.sensei.indexing.hadoop.reduce.SenseiCombiner;
 import com.sensei.indexing.hadoop.reduce.SenseiReducer;
 import com.sensei.indexing.hadoop.util.LuceneUtil;
+import com.sensei.indexing.hadoop.util.MRConfig;
 import com.sensei.indexing.hadoop.util.MRJobConfig;
 import com.sensei.indexing.hadoop.util.SenseiJobConfig;
 
@@ -61,6 +62,11 @@ public class MapReduceJob extends Configured {
 			String indexPath = conf.get(SenseiJobConfig.INDEX_PATH);
 			shards = createShards(indexPath, numShards, conf);
 			
+		    FileSystem fs = FileSystem.get(conf);
+		    String username = conf.get("hadoop.job.ugi");
+		    if (fs.exists(outputPath) && conf.getBoolean("force.output.overwrite", false))
+		        fs.delete(outputPath, true);
+			
 			
 		    // set the starting generation for each shard
 		    // when a reduce task fails, a new reduce task
@@ -74,6 +80,9 @@ public class MapReduceJob extends Configured {
 		    // Here we half-en JobContext.IO_SORT_MB because we use the other half memory to
 		    // build an intermediate form/index in Combiner.
 		    conf.setInt(MRJobConfig.IO_SORT_MB,  conf.getInt(MRJobConfig.IO_SORT_MB, 100) / 2);
+		    
+		    // set the temp dir for the job;
+		    conf.set(MRConfig.TEMP_DIR, "${mapred.child.tmp}/hindex/");
 		    
 		    //always using compound file format to speed up;
 		    conf.setBoolean(SenseiJobConfig.USE_COMPOUND_FILE, true);
@@ -133,7 +142,18 @@ public class MapReduceJob extends Configured {
 		    return jobConf;
 		  }
 	  
-	  
+	  private static FileSystem getFileSystem(String user) {
+		    Configuration conf = new Configuration();
+		    conf.set("hadoop.job.ugi", user);
+			try
+			{
+		      return FileSystem.get(conf);
+		    }
+		    catch(IOException e)
+		    {
+		      throw new RuntimeException(e);    
+		    }
+		  }
 	  
 	  private static Shard[] createShards(String indexPath, int numShards,
 			  org.apache.hadoop.conf.Configuration conf) throws IOException {
