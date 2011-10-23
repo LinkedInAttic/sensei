@@ -7,7 +7,6 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Closeable;
-import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.MapReduceBase;
@@ -76,7 +75,7 @@ public class SenseiReducer extends MapReduceBase implements
               prog.start();
 
               if (writer != null) {
-//            	  writer.optimize();  //added this option to optimize after all the docs have been added;
+            	writer.optimize();  //added this option to optimize after all the docs have been added;
                 writer.close();
               }
             } finally {

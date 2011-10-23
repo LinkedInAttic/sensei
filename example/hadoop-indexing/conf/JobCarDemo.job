@@ -3,31 +3,22 @@ job.class=com.sensei.indexing.hadoop.demo.CarDemo
 
 num.map.tasks=10
 mapreduce.job.maps=2
-sea.num.shards=3
+sensei.num.shards=3
 
-mapred.job.name=ShardedIndexing
+mapred.job.name=CarDemoShardedIndexing
 
 # if the output.path already exists, delete it first
 force.output.overwrite=true
 
-hadoop-conf.mapred.job.queue.name=marathon
-
-#mapred.create.symlink=true
-
-mapreduce.cluster.temp.dir=/tmp/hindex
 
 ##################################################################################################  
 ######################################   Configure Things Below   ################################
 ##################################################################################################
 
-#############   remote schema or local running #############
-schema.use.remote=false
+#############   path of schema for interpreter #############
 
-
-#############   schema for interpreter #############
-
-##### TextJSON schema Sample (car demo)######
-schema.file.local=conf/schema.xml
+##### TextJSON schema Sample (car demo) absolute path ######
+schema.file.url=conf/schema.xml
 
 ############    Input and Output  ##################
 
@@ -40,28 +31,23 @@ write.lock=example/hadoop-indexing/output
 mapreduce.output.fileoutputformat.outputdir=example/hadoop-indexing/fileoutput
 
 ######## Index output location ######
-sea.index.path=example/hadoop-indexing/index
+sensei.index.path=example/hadoop-indexing/index
 
 ############# schemas for mapper input  ################
 
-sea.input.format=org.apache.hadoop.mapred.TextInputFormat
+sensei.input.format=org.apache.hadoop.mapred.TextInputFormat
 
 ##############  Sharding strategy  ################
-sea.distribution.policy=com.sensei.indexing.hadoop.demo.CarShardingStrategy
+sensei.distribution.policy=com.sensei.indexing.hadoop.demo.CarShardingStrategy
 
-#############  Converter for mapper input ##########
-sea.mapinput.converter=com.sensei.indexing.hadoop.demo.CarMapInputConverter
+#############  Converter for mapper input (data conversion and filtering) ##########
+sensei.mapinput.converter=com.sensei.indexing.hadoop.demo.CarMapInputConverter
 
-#############  JSONFilter for mapper input ##########
-sea.mapinput.filter=com.sensei.indexing.hadoop.demo.CarFilter
+#############  Analyzer configuration for lucene ###############
+sensei.document.analyzer=org.apache.lucene.analysis.standard.StandardAnalyzer
+sensei.document.analyzer.version=LUCENE_30
 
 ##################################################################################################  
 ######################################   Configure Things Above   ################################
 ##################################################################################################
-
-
-
-# set compound to true may slow down the indexing;
-sea.use.compound.file=true
-sea.document.analyzer=org.apache.lucene.analysis.standard.StandardAnalyzer
 

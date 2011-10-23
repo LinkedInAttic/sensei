@@ -21,23 +21,20 @@ package com.sensei.indexing.hadoop.keyvalueformat;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.Writable;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.IndexWriter;
-import org.apache.lucene.index.KeepOnlyLastCommitDeletionPolicy;
-import org.apache.lucene.index.Term;
 import org.apache.lucene.index.IndexWriter.MaxFieldLength;
+import org.apache.lucene.index.KeepOnlyLastCommitDeletionPolicy;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.RAMDirectory;
+import org.apache.lucene.store.RAMDirectorySerializer;
 
 import com.sensei.indexing.hadoop.reduce.RAMDirectoryUtil;
+import com.sensei.indexing.hadoop.util.SenseiJobConfig;
 
 /**
  * An intermediate form for one or more parsed Lucene documents and/or
@@ -130,6 +127,7 @@ public class IntermediateForm implements Writable {
    */
   public void closeWriter() throws IOException {
     if (writer != null) {
+      writer.optimize();
       writer.close();
       writer = null;
     }
@@ -165,10 +163,10 @@ public class IntermediateForm implements Writable {
     IndexWriter writer =
 //        new IndexWriter(dir, false, null, new KeepOnlyLastCommitDeletionPolicy());
     	new IndexWriter(dir,  null, new KeepOnlyLastCommitDeletionPolicy(), MaxFieldLength.UNLIMITED);
-    writer.setUseCompoundFile(false);
+    writer.setUseCompoundFile(true);  //use compound file fortmat to speed up;
 
     if (conf != null) {
-      int maxFieldLength = conf.getInt("sea.max.field.length", -1);
+      int maxFieldLength = conf.getInt(SenseiJobConfig.MAX_FIELD_LENGTH, -1);
       if (maxFieldLength > 0) {
         writer.setMaxFieldLength(maxFieldLength);
       }
@@ -199,6 +197,8 @@ public class IntermediateForm implements Writable {
 
     String[] files = dir.listAll();
     RAMDirectoryUtil.writeRAMFiles(out, dir, files);
+    
+//    RAMDirectorySerializer.toDataOutput(out, dir);
   }
 
   /* (non-Javadoc)
@@ -206,8 +206,10 @@ public class IntermediateForm implements Writable {
    */
   public void readFields(DataInput in) throws IOException {
     resetForm();
-
     RAMDirectoryUtil.readRAMFiles(in, dir);
+
+//	  numDocs = 0;
+//	  dir = RAMDirectorySerializer.fromDataInput(in);
   }
 
 }

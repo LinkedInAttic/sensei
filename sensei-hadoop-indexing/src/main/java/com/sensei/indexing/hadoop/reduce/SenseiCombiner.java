@@ -14,6 +14,7 @@ import org.apache.log4j.Logger;
 
 import com.sensei.indexing.hadoop.keyvalueformat.IntermediateForm;
 import com.sensei.indexing.hadoop.keyvalueformat.Shard;
+import com.sensei.indexing.hadoop.util.SenseiJobConfig;
 
 /**
  * This combiner combines multiple intermediate forms into one intermediate
@@ -81,7 +82,7 @@ public class SenseiCombiner extends MapReduceBase implements
 
   public void configure(JobConf job) {
     iconf = new Configuration(job);
-    maxSizeInBytes = iconf.getLong("sea.max.ramsize.bytes", 50L << 20);
+    maxSizeInBytes = iconf.getLong(SenseiJobConfig.MAX_RAMSIZE_BYTES, 50L << 20);
     nearMaxSizeInBytes = maxSizeInBytes - (maxSizeInBytes >>> 3); // 7/8 of max
   }
 

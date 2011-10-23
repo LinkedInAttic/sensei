@@ -2,6 +2,7 @@ package com.sensei.indexing.hadoop.map;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
 import java.net.URL;
 import java.net.URLConnection;
 
@@ -37,6 +38,7 @@ import com.sensei.indexing.api.JsonFilter;
 import com.sensei.indexing.api.ShardingStrategy;
 import com.sensei.indexing.hadoop.keyvalueformat.IntermediateForm;
 import com.sensei.indexing.hadoop.keyvalueformat.Shard;
+import com.sensei.indexing.hadoop.util.SenseiJobConfig;
 
 public class SenseiMapper extends MapReduceBase implements Mapper<Object, Object, Shard, IntermediateForm> {
 
@@ -49,9 +51,10 @@ public class SenseiMapper extends MapReduceBase implements Mapper<Object, Object
 	
 	private ShardingStrategy _shardingStategy;
 	private MapInputConverter _converter;
-	private JsonFilter _filter;
 	
-	private Analyzer analyzer = new StandardAnalyzer(Version.LUCENE_30);
+	private static Analyzer analyzer;
+	
+
 	  
     
     public void map(Object key, Object value, 
@@ -59,26 +62,21 @@ public class SenseiMapper extends MapReduceBase implements Mapper<Object, Object
                     Reporter reporter) throws IOException {
     	
         if(_isConfigured == false)
-	      throw new IllegalStateException("Mapper's configure method wasn't sucessful. May not get the correct schema.");
+	      throw new IllegalStateException("Mapper's configure method wasn't sucessful. May not get the correct schema or Lucene Analyzer.");
 
         JSONObject json = null;
     	try{
     		json = _converter.getJsonInput(key, value);
-    	}catch(JSONException e){
-    		throw new IllegalStateException("data conversion failed inside mapper.");
-    	}
-    	
-    	try{
-    		json = _filter.filter(json);
+    		json = _converter.doFilter(json);
     	}catch(Exception e){
-    		throw new IllegalStateException("data filtering failed.");
+    		throw new IllegalStateException("data conversion or filtering failed inside mapper.");
     	}
     	
     	
     	if( _defaultInterpreter == null)
     		reporter.incrCounter("Map", "Interpreter_null", 1);
     	
-    	if(  _defaultInterpreter != null && json != null){
+    	if(  _defaultInterpreter != null && json != null && analyzer != null){
 
     	      ZoieIndexable indexable = _defaultInterpreter.convertAndInterpret(json);
     	      
@@ -116,103 +114,91 @@ public class SenseiMapper extends MapReduceBase implements Mapper<Object, Object
 		super.configure(job);
 		_conf = job;
 	    _shards = Shard.getIndexShards(_conf);
-		_use_remote_schema = job.getBoolean("schema.use.remote", false);
 		
 		_shardingStategy =
 		        (ShardingStrategy) ReflectionUtils.newInstance(
-				job.getClass("sea.distribution.policy",
+				job.getClass(SenseiJobConfig.DISTRIBUTION_POLICY,
 				DummyShardingStrategy.class, ShardingStrategy.class), job);
 		
 		_converter = (MapInputConverter) ReflectionUtils.newInstance(
-				job.getClass("sea.mapinput.converter",
-						MapInputConverter.class, MapInputConverter.class), job);
-		
-		_filter = (JsonFilter) ReflectionUtils.newInstance(
-				job.getClass("sea.mapinput.filter",
-						DummyFilter.class, JsonFilter.class), job);
+				job.getClass(SenseiJobConfig.MAPINPUT_CONVERTER,
+						DummyMapInputConverter.class, MapInputConverter.class), job);
 		
 		try {
-			getSchema(job, _use_remote_schema);
+			setSchema(job);
+			setAnalyzer(job);		   	 
+			
 			_isConfigured = true;
 		} catch (Exception e) {
+			e.printStackTrace();
 			_isConfigured = false;
 		}
     }
+	
+	private void setAnalyzer(JobConf conf) throws Exception{
+		
+		if(analyzer != null)
+			return;
+		
+		String version = _conf.get(SenseiJobConfig.DOCUMENT_ANALYZER_VERSION);
+		if(version == null)
+			 throw new IllegalStateException("version has not been specified");
+		
+		String analyzerName = _conf.get(SenseiJobConfig.DOCUMENT_ANALYZER);
+		if(analyzerName == null)
+			 throw new IllegalStateException("analyzer name has not been specified");
+		
+		Class analyzerClass = Class.forName(analyzerName);
+		Constructor constructor = analyzerClass.getConstructor(Version.class);
+		analyzer = (Analyzer) constructor.newInstance((Version) Enum.valueOf((Class)Class.forName("org.apache.lucene.util.Version"), version));
 
-	private void getSchema(JobConf conf, boolean use_remote_schema) throws Exception {
+	}
 
-		if (_use_remote_schema == true) {
+	private void setSchema(JobConf conf) throws Exception {
 
-			Path[] localFiles = DistributedCache.getLocalCacheFiles(conf);
-
-			if (localFiles != null) {
-
-				String _schema_uri = null;
-				String metadataFileName = "";
-				for (int i = 0; i < localFiles.length; i++) {
-					String strFileName = localFiles[i].toString();
-					if (strFileName.contains(conf.get("schema.file.url"))) {
-						metadataFileName = strFileName;
-						break;
-					}
-				}
-				if (metadataFileName.length() > 0) {
-					_schema_uri = "file:///" + metadataFileName;
-
-					if (_defaultInterpreter == null) {
-						
-						logger.info("schema file is:" + _schema_uri);
-						URL url = new URL(_schema_uri);
-						URLConnection conn = url.openConnection();
-						conn.connect();
-
-						File xmlSchema = new File(url.toURI());
-						if (!xmlSchema.exists()) {
-							throw new ConfigurationException(
-									"schema not file");
-						}
-						DocumentBuilderFactory dbf = DocumentBuilderFactory
-								.newInstance();
-						dbf.setIgnoringComments(true);
-						DocumentBuilder db = dbf.newDocumentBuilder();
-						org.w3c.dom.Document schemaXml = db
-								.parse(xmlSchema);
-						schemaXml.getDocumentElement().normalize();
-						JSONObject schemaData = SchemaConverter
-								.convert(schemaXml);
-
-						SenseiSchema schema = SenseiSchema.build(schemaData);
-						_defaultInterpreter = new DefaultJsonSchemaInterpreter(schema);
-					}
-				}
-			}
-
-		} else { // use local schema for debugging;
-			String metadataFileName = conf.get("schema.file.local", "");
-			if (metadataFileName.length() > 0) {
-				if (_defaultInterpreter == null) {
-
-					File xmlSchema = new File(metadataFileName);
-					if (!xmlSchema.exists()) {
-						throw new ConfigurationException("schema not file");
-					}
-					DocumentBuilderFactory dbf = DocumentBuilderFactory
-							.newInstance();
-					dbf.setIgnoringComments(true);
-					DocumentBuilder db = dbf.newDocumentBuilder();
-					org.w3c.dom.Document schemaXml = db.parse(xmlSchema);
-					schemaXml.getDocumentElement().normalize();
-					JSONObject schemaData = SchemaConverter
-							.convert(schemaXml);
-
-					SenseiSchema schema = SenseiSchema.build(schemaData);
-					_defaultInterpreter = new DefaultJsonSchemaInterpreter(schema);
-				}
-			}
-
+		String _schema_uri = null;
+		String metadataFileName = conf.get("schema.file.url");
+		
+		Path[] localFiles = DistributedCache.getLocalCacheFiles(conf);
+		if (localFiles != null) {
+		  for (int i = 0; i < localFiles.length; i++) {
+			  String strFileName = localFiles[i].toString();
+			  if (strFileName.contains(conf.get("schema.file.url"))) {
+				  metadataFileName = strFileName;
+				  break;
+			  }
+		  }
 		}
+		
+		if (metadataFileName != null && metadataFileName.length() > 0) {
+			_schema_uri = "file:///" + metadataFileName;
 
-			
+			if (_defaultInterpreter == null) {
+				
+				logger.info("schema file is:" + _schema_uri);
+				URL url = new URL(_schema_uri);
+				URLConnection conn = url.openConnection();
+				conn.connect();
+
+				File xmlSchema = new File(url.toURI());
+				if (!xmlSchema.exists()) {
+					throw new ConfigurationException(
+							"schema not file");
+				}
+				DocumentBuilderFactory dbf = DocumentBuilderFactory
+						.newInstance();
+				dbf.setIgnoringComments(true);
+				DocumentBuilder db = dbf.newDocumentBuilder();
+				org.w3c.dom.Document schemaXml = db
+						.parse(xmlSchema);
+				schemaXml.getDocumentElement().normalize();
+				JSONObject schemaData = SchemaConverter
+						.convert(schemaXml);
+
+				SenseiSchema schema = SenseiSchema.build(schemaData);
+				_defaultInterpreter = new DefaultJsonSchemaInterpreter(schema);
+			}
+		}
 	}
 
 }

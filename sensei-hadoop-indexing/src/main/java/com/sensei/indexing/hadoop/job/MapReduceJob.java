@@ -1,11 +1,14 @@
 package com.sensei.indexing.hadoop.job;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.text.NumberFormat;
 import java.util.Arrays;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
+import org.apache.hadoop.filecache.DistributedCache;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -26,21 +29,23 @@ import com.sensei.indexing.hadoop.reduce.IndexUpdateOutputFormat;
 import com.sensei.indexing.hadoop.reduce.SenseiCombiner;
 import com.sensei.indexing.hadoop.reduce.SenseiReducer;
 import com.sensei.indexing.hadoop.util.LuceneUtil;
+import com.sensei.indexing.hadoop.util.MRConfig;
 import com.sensei.indexing.hadoop.util.MRJobConfig;
+import com.sensei.indexing.hadoop.util.SenseiJobConfig;
 
 public class MapReduceJob extends Configured {
 
 	private static final NumberFormat NUMBER_FORMAT = NumberFormat.getInstance();
 	private static final Logger logger = Logger.getLogger(MapReduceJob.class);
 	
-	  public JobConf createJob(Class MRClass) throws IOException {
+	  public JobConf createJob(Class MRClass) throws IOException, URISyntaxException {
 		    
 		    Configuration conf = getConf();
 		    Path[] inputPaths;
 		    Path outputPath;
 		    Shard[] shards = null;
 			int numMapTasks = conf.getInt("mapreduce.job.maps", 2);
-			int numShards = conf.getInt("sea.num.shards", 2);
+			int numShards = conf.getInt(SenseiJobConfig.NUM_SHARDS, 2);
 //			inputPaths = FileInputFormat.getInputPaths(jobConf);
 			
 		    String dirs = conf.get("mapreduce.input.fileinputformat.inputdir", null);
@@ -54,8 +59,13 @@ public class MapReduceJob extends Configured {
 		    logger.info("path[0] is:" + inputPaths[0]);
 		    	    
 			outputPath = new Path(conf.get("mapreduce.output.fileoutputformat.outputdir"));
-			String indexPath = conf.get("sea.index.path");
+			String indexPath = conf.get(SenseiJobConfig.INDEX_PATH);
 			shards = createShards(indexPath, numShards, conf);
+			
+		    FileSystem fs = FileSystem.get(conf);
+		    String username = conf.get("hadoop.job.ugi");
+		    if (fs.exists(outputPath) && conf.getBoolean("force.output.overwrite", false))
+		        fs.delete(outputPath, true);
 			
 			
 		    // set the starting generation for each shard
@@ -70,6 +80,20 @@ public class MapReduceJob extends Configured {
 		    // Here we half-en JobContext.IO_SORT_MB because we use the other half memory to
 		    // build an intermediate form/index in Combiner.
 		    conf.setInt(MRJobConfig.IO_SORT_MB,  conf.getInt(MRJobConfig.IO_SORT_MB, 100) / 2);
+		    
+		    // set the temp dir for the job;
+		    conf.set(MRConfig.TEMP_DIR, "${mapred.child.tmp}/hindex/");
+		    
+		    //always using compound file format to speed up;
+		    conf.setBoolean(SenseiJobConfig.USE_COMPOUND_FILE, true);
+		    
+		    String schemaFile = conf.get("schema.file.url");
+		    if(schemaFile == null)
+		    	throw new IOException("no schema file is found");
+		    else{
+		    	logger.info("Adding schema file: " + conf.get("schema.file.url"));	      
+				DistributedCache.addCacheFile(new URI(schemaFile), conf);
+		    }
 
 		    // create the job configuration
 		    JobConf jobConf = new JobConf(conf, MRClass);
@@ -85,7 +109,7 @@ public class MapReduceJob extends Configured {
 		    jobConf.setNumReduceTasks(shards.length);
 
 		    jobConf.setInputFormat(
-		    		conf.getClass("sea.input.format", TextInputFormat.class, InputFormat.class));
+		    		conf.getClass(SenseiJobConfig.INPUT_FORMAT, TextInputFormat.class, InputFormat.class));
 
 		    Path[] inputs = FileInputFormat.getInputPaths(jobConf);
 		    StringBuilder buffer = new StringBuilder(inputs[0].toString());
@@ -98,7 +122,7 @@ public class MapReduceJob extends Configured {
 		             FileOutputFormat.getOutputPath(jobConf).toString());
 		    logger.info("mapreduce.job.maps = " + jobConf.getNumMapTasks());
 		    logger.info("mapreduce.job.reduces = " + jobConf.getNumReduceTasks());
-		    logger.info(shards.length + " shards = " + conf.get("sea.index.shards"));
+		    logger.info(shards.length + " shards = " + conf.get(SenseiJobConfig.INDEX_SHARDS));
 		    logger.info("mapred.input.format.class = "
 		        + jobConf.getInputFormat().getClass().getName());
 
@@ -118,7 +142,18 @@ public class MapReduceJob extends Configured {
 		    return jobConf;
 		  }
 	  
-	  
+	  private static FileSystem getFileSystem(String user) {
+		    Configuration conf = new Configuration();
+		    conf.set("hadoop.job.ugi", user);
+			try
+			{
+		      return FileSystem.get(conf);
+		    }
+		    catch(IOException e)
+		    {
+		      throw new RuntimeException(e);    
+		    }
+		  }
 	  
 	  private static Shard[] createShards(String indexPath, int numShards,
 			  org.apache.hadoop.conf.Configuration conf) throws IOException {
