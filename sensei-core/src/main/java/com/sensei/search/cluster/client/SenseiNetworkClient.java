@@ -11,15 +11,12 @@ import com.linkedin.norbert.cluster.ClusterDisconnectedException;
 import com.linkedin.norbert.cluster.InvalidClusterException;
 import com.linkedin.norbert.cluster.InvalidNodeException;
 import com.linkedin.norbert.javacompat.cluster.Node;
+import com.linkedin.norbert.javacompat.network.*;
 import com.linkedin.norbert.javacompat.network.IntegerConsistentHashPartitionedLoadBalancerFactory;
 import com.linkedin.norbert.javacompat.network.NettyPartitionedNetworkClient;
-import com.linkedin.norbert.javacompat.network.NetworkClientConfig;
-import com.linkedin.norbert.javacompat.network.PartitionedLoadBalancer;
-import com.linkedin.norbert.javacompat.network.PartitionedLoadBalancerFactory;
-import com.linkedin.norbert.javacompat.network.PartitionedNetworkClient;
-import com.linkedin.norbert.javacompat.network.ScatterGatherHandler;
 import com.linkedin.norbert.network.NoNodesAvailableException;
 import com.linkedin.norbert.network.ResponseIterator;
+import com.linkedin.norbert.network.Serializer;
 
 /**
  * @author nnarkhed
@@ -37,46 +34,50 @@ public class SenseiNetworkClient implements PartitionedNetworkClient<Integer>
     }
     else
     {
-      _networkClient = new NettyPartitionedNetworkClient<Integer>(netConfig, new IntegerConsistentHashPartitionedLoadBalancerFactory());
+      _networkClient = new NettyPartitionedNetworkClient<Integer>(netConfig, new IntegerConsistentHashPartitionedLoadBalancerFactory(1, false));
     }
   }
-  
-  public Future<Message> sendMessage(Integer id, Message message) throws InvalidClusterException,
-      NoNodesAvailableException,
-      ClusterDisconnectedException
-  {
-    return _networkClient.sendMessage(id, message);
-  }
 
-  public ResponseIterator sendMessage(Set<Integer> ids, Message message) throws InvalidClusterException,
-      NoNodesAvailableException,
-      ClusterDisconnectedException
-  {
-    return _networkClient.sendMessage(ids, message);
-  }
+    @Override
+    public <RequestMsg, ResponseMsg> Future<ResponseMsg> sendRequest(Integer partition, RequestMsg request, Serializer<RequestMsg, ResponseMsg> serializer) throws InvalidClusterException, NoNodesAvailableException, ClusterDisconnectedException {
+        return _networkClient.sendRequest(partition, request, serializer);
+    }
 
-  public <T> T sendMessage(Set<Integer> ids,
-                           Message message,
-                           ScatterGatherHandler<T, Integer> scatterGather) throws Exception
-  {
-    return _networkClient.sendMessage(ids, message, scatterGather);
-  }
+    @Override
+    public <RequestMsg, ResponseMsg> ResponseIterator<ResponseMsg> sendRequest(Set<Integer> partitions, RequestMsg request, Serializer<RequestMsg, ResponseMsg> serializer) throws InvalidClusterException, NoNodesAvailableException, ClusterDisconnectedException {
+        return _networkClient.sendRequest(partitions, request, serializer);
+    }
 
-  public ResponseIterator broadcastMessage(Message message) throws ClusterDisconnectedException
-  {
-    return _networkClient.broadcastMessage(message);
-  }
+    @Override
+    public <RequestMsg, ResponseMsg> ResponseIterator<ResponseMsg> sendRequest(Set<Integer> partitions, RequestBuilder<Integer, RequestMsg> requestBuilder, Serializer<RequestMsg, ResponseMsg> serializer) throws Exception {
+        return _networkClient.sendRequest(partitions, requestBuilder, serializer);
+    }
 
-  public void registerRequest(Message request, Message response)
-  {
-    _networkClient.registerRequest(request, response);
-  }
+    @Override
+    public <RequestMsg, ResponseMsg, T> T sendRequest(Set<Integer> partitions, RequestBuilder<Integer, RequestMsg> requestBuilder, ScatterGatherHandler<RequestMsg, ResponseMsg, T, Integer> scatterGatherHandler, Serializer<RequestMsg, ResponseMsg> serializer) throws Exception {
+        return _networkClient.sendRequest(partitions, requestBuilder, scatterGatherHandler, serializer);
 
-  public Future<Message> sendMessageToNode(Message message, Node node) throws InvalidNodeException,
-      ClusterDisconnectedException
-  {
-    return _networkClient.sendMessageToNode(message, node);
-  }
+    }
+
+    @Override
+    public <RequestMsg, ResponseMsg> ResponseIterator<ResponseMsg> sendRequestToOneReplica(RequestBuilder<Integer, RequestMsg> requestBuilder, Serializer<RequestMsg, ResponseMsg> serializer) throws InvalidClusterException, NoNodesAvailableException, ClusterDisconnectedException {
+        return _networkClient.sendRequestToOneReplica(requestBuilder, serializer);
+    }
+
+    @Override
+    public <RequestMsg, ResponseMsg> ResponseIterator<ResponseMsg> sendRequestToOneReplica(RequestMsg request, Serializer<RequestMsg, ResponseMsg> serializer) throws InvalidClusterException, NoNodesAvailableException, ClusterDisconnectedException {
+        return _networkClient.sendRequestToOneReplica(request, serializer);
+    }
+
+    @Override
+    public <RequestMsg, ResponseMsg> Future<ResponseMsg> sendRequestToNode(RequestMsg request, Node node, Serializer<RequestMsg, ResponseMsg> serializer) throws InvalidNodeException, ClusterDisconnectedException {
+        return _networkClient.sendRequestToNode(request, node, serializer);
+    }
+
+    @Override
+    public <RequestMsg, ResponseMsg> ResponseIterator<ResponseMsg> broadcastMessage(RequestMsg request, Serializer<RequestMsg, ResponseMsg> serializer) throws ClusterDisconnectedException {
+        return _networkClient.broadcastMessage(request, serializer);
+    }
 
   public void shutdown()
   {

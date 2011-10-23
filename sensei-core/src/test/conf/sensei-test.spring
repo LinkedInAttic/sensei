@@ -8,7 +8,8 @@
 	<import resource="zoie.spring" />
 
 	<bean id="cluster-client" class="com.linkedin.norbert.javacompat.cluster.ZooKeeperClusterClient" init-method="awaitConnectionUninterruptibly">
-	  <constructor-arg value="testCluster" />
+	  <constructor-arg value="test-client" />
+		<constructor-arg value="testCluster" />
 	  <constructor-arg value="localhost:2181" />
 	  <constructor-arg value="30000" />
 	</bean>

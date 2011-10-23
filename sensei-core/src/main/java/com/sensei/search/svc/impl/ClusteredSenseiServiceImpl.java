@@ -29,7 +29,7 @@ public class ClusteredSenseiServiceImpl implements SenseiService {
   private ClusterClient _clusterClient;
   private final String _clusterName;
   
-  public ClusteredSenseiServiceImpl(String zkurl,int zkTimeout,String clusterName, int connectTimeoutMillis,
+  public ClusteredSenseiServiceImpl(String zkurl,int zkTimeout,String clusterClientName, String clusterName, int connectTimeoutMillis,
       int writeTimeoutMillis, int maxConnectionsPerNode, int staleRequestTimeoutMins,
       int staleRequestCleanupFrequencyMins, SenseiLoadBalancerFactory loadBalancerFactory,
       Comparator<String> versionComparator) {
@@ -43,7 +43,7 @@ public class ClusteredSenseiServiceImpl implements SenseiService {
     _networkClientConfig.setStaleRequestTimeoutMins(staleRequestTimeoutMins);
     _networkClientConfig.setStaleRequestCleanupFrequencyMins(staleRequestCleanupFrequencyMins);
     
-    _clusterClient = new ZooKeeperClusterClient(clusterName,zkurl,zkTimeout);
+    _clusterClient = new ZooKeeperClusterClient(clusterClientName,clusterName,zkurl,zkTimeout);
   
     _networkClientConfig.setClusterClient(_clusterClient);
     

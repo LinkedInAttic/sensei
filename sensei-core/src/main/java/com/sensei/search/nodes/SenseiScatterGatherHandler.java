@@ -7,25 +7,18 @@ import java.util.Map;
 import java.util.Set;
 import java.util.zip.GZIPInputStream;
 
+import com.browseengine.bobo.api.FacetSpec;
+import com.linkedin.norbert.javacompat.cluster.Node;
 import org.apache.log4j.Logger;
 import org.apache.lucene.document.Document;
-import org.apache.lucene.document.Field;
 
-import com.browseengine.bobo.api.FacetSpec;
-import com.google.protobuf.Message;
-import com.linkedin.norbert.javacompat.cluster.Node;
 import com.sensei.conf.SenseiSchema;
 import com.sensei.search.client.ResultMerger;
 import com.sensei.search.req.SenseiHit;
 import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.req.SenseiResult;
-import com.sensei.search.req.protobuf.SenseiRequestBPO;
-import com.sensei.search.req.protobuf.SenseiRequestBPOConverter;
-import com.sensei.search.req.protobuf.SenseiResultBPO;
-import com.sensei.search.req.protobuf.SenseiRequestBPO.Request;
-import com.sensei.search.req.protobuf.SenseiResultBPO.Result;
 
-public class SenseiScatterGatherHandler extends AbstractSenseiScatterGatherHandler<SenseiRequest, SenseiResult, SenseiRequestBPO.Request, SenseiResultBPO.Result> 
+public class SenseiScatterGatherHandler extends AbstractSenseiScatterGatherHandler<SenseiRequest, SenseiResult>
 {
 
   private final static Logger logger = Logger.getLogger(SenseiScatterGatherHandler.class);
@@ -36,9 +29,10 @@ public class SenseiScatterGatherHandler extends AbstractSenseiScatterGatherHandl
   
   private long _timeoutMillis = TIMEOUT_MILLIS;
 
-  public SenseiScatterGatherHandler(SenseiRequestScatterRewriter reqRewriter)
+  public SenseiScatterGatherHandler(SenseiRequest request, SenseiRequestScatterRewriter reqRewriter)
   {
-    _reqRewriter = reqRewriter;
+      super(request);
+      _reqRewriter = reqRewriter;
   }
   
   public void setTimeoutMillis(long timeoutMillis){
@@ -95,35 +89,8 @@ public class SenseiScatterGatherHandler extends AbstractSenseiScatterGatherHandl
   }
 
   @Override
-  public SenseiRequest messageToRequest(Request msg)
+  public SenseiRequest customizeRequest(SenseiRequest senseiReq, Node node, Set<Integer> partitions)
   {
-    return SenseiRequestBPOConverter.convert(msg);
-  }
-
-  @Override
-  public SenseiResult messageToResult(Result message)
-  {
-    return SenseiRequestBPOConverter.convert(message);
-  }
-
-  @Override
-  public Request requestToMessage(SenseiRequest request)
-  {
-    return SenseiRequestBPOConverter.convert(request);
-  }
-
-  @Override
-  public Result resultToMessage(SenseiResult result)
-  {
-    return SenseiRequestBPOConverter.convert(result);
-  }
-
-  @Override
-  public Message customizeMessage(Message msg, Node node, Set<Integer> partitions) throws Exception
-  {
-    SenseiRequestBPO.Request req = (SenseiRequestBPO.Request) msg;
-    SenseiRequest senseiReq = SenseiRequestBPOConverter.convert(req);
-
     // Rewrite facet max count.
     Map<String, FacetSpec> facetSpecs = senseiReq.getFacetSpecs();
     if (facetSpecs != null) {
@@ -153,7 +120,7 @@ public class SenseiScatterGatherHandler extends AbstractSenseiScatterGatherHandl
     {
       logger.debug("scattering to partitions: " + partitions.toString());
     }
-    return SenseiRequestBPOConverter.convert(senseiReq);
+    return senseiReq;
   }
 
 }

@@ -18,6 +18,7 @@ public class SenseiConfigServletContextListener implements
 	public static final String SENSEI_CONF_FILE_PARAM = "config.file";
 	
 	public static final String SENSEI_CONF_ZKURL = "sensei.search.cluster.zookeeper.url";
+	public static final String SENSEI_CONF_CLUSTER_CLIENT_NAME = "sensei.search.cluster.client-name";
 	public static final String SENSEI_CONF_CLUSTER_NAME = "sensei.search.cluster.name";
 	public static final String SENSEI_CONF_ZKTIMEOUT = "sensei.search.cluster.zookeeper.conn.timeout";
 	public static final String SENSEI_CONF_NC_CONN_TIMEOUT = "sensei.search.cluster.network.conn.timeout";
@@ -28,7 +29,7 @@ public class SenseiConfigServletContextListener implements
 	public static final String SENSEI_CONF_VERSION_COMPARATOR = "sensei.search.version.comparator";
 	public static final String SENSEI_CONF_ROUTER_FACTORY = "sensei.search.router.factory";
 	public static final String SENSEI_CONF_OBJ = "sensei.search.configuration";
-	
+
 	@Override
 	public void contextDestroyed(ServletContextEvent ctx) {
 		

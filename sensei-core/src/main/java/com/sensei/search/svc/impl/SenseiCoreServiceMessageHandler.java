@@ -5,20 +5,18 @@ import java.util.concurrent.TimeUnit;
 
 import javax.management.ObjectName;
 
+import com.linkedin.norbert.javacompat.network.RequestHandler;
 import org.apache.log4j.Logger;
 
-import com.google.protobuf.Message;
-import com.linkedin.norbert.javacompat.network.MessageHandler;
 import com.sensei.search.jmx.JmxUtil;
 import com.sensei.search.jmx.JmxUtil.Timer;
 import com.sensei.search.req.AbstractSenseiRequest;
 import com.sensei.search.req.AbstractSenseiResult;
 import com.yammer.metrics.core.TimerMetric;
 
-public final class SenseiCoreServiceMessageHandler implements MessageHandler {
+public final class SenseiCoreServiceMessageHandler<REQUEST extends AbstractSenseiRequest, RESULT extends AbstractSenseiResult> implements RequestHandler<REQUEST, RESULT> {
 	private static final Logger logger = Logger.getLogger(SenseiCoreServiceMessageHandler.class);
-    private final AbstractSenseiCoreService<AbstractSenseiRequest, AbstractSenseiResult> _svc;
-
+    private final AbstractSenseiCoreService<REQUEST, RESULT> _svc;
 
     private final static TimerMetric TotalSearchTimer = new TimerMetric(TimeUnit.MILLISECONDS,TimeUnit.SECONDS);
     static{
@@ -31,22 +29,18 @@ public final class SenseiCoreServiceMessageHandler implements MessageHandler {
 		logger.error(e.getMessage(),e);
 	  }
    }
-    public SenseiCoreServiceMessageHandler(AbstractSenseiCoreService<AbstractSenseiRequest, AbstractSenseiResult> svc){
+    public SenseiCoreServiceMessageHandler(AbstractSenseiCoreService<REQUEST, RESULT> svc){
 		_svc = svc;
 	}
-	
-	@Override
-	public Message handleMessage(final Message msg) throws Exception {
-		return TotalSearchTimer.time(new Callable<Message>(){
 
-			@Override
-			public Message call() throws Exception {
-				final AbstractSenseiRequest req = _svc.reqFromMessage(msg);
-				
-				AbstractSenseiResult res = _svc.execute(req);
-				return _svc.resultToMessage(res);
-			}
-		});
-	}
+    @Override
+    public RESULT handleRequest(final REQUEST request) throws Exception {
+        return TotalSearchTimer.time(new Callable<RESULT>(){
 
+            @Override
+            public RESULT call() throws Exception {
+                return _svc.execute(request);
+            }
+        });
+    }
 }

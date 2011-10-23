@@ -18,7 +18,7 @@ import proj.zoie.api.IndexReaderFactory;
 import proj.zoie.api.ZoieIndexReader;
 
 import com.browseengine.bobo.api.BoboIndexReader;
-import com.google.protobuf.Message;
+import com.linkedin.norbert.network.Serializer;
 import com.sensei.search.jmx.JmxUtil;
 import com.sensei.search.nodes.SenseiCore;
 import com.sensei.search.nodes.SenseiQueryBuilderFactory;
@@ -200,8 +200,6 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
 	public abstract Res handlePartitionedRequest(Req r,final List<BoboIndexReader> readerList,SenseiQueryBuilderFactory queryBuilderFactory) throws Exception;
 	public abstract Res mergePartitionedResults(Req r,List<Res> reqList);
 	public abstract Res getEmptyResultInstance(Throwable error);
-	public abstract Message getEmptyRequestInstance();
-	
-	public abstract Message resultToMessage(Res result);
-	public abstract Req reqFromMessage(Message req);
+
+	public abstract Serializer<Req, Res> getSerializer();
 }
