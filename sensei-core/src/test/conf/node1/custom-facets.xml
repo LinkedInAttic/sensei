@@ -43,4 +43,11 @@
       </set>
     </constructor-arg>
   </bean>
+
+  <bean id="beanInFacets" class="java.lang.Integer">
+    <constructor-arg value="1" />
+  </bean>
+  <bean id="beanRefPlugins" class="java.lang.Integer">
+    <constructor-arg ref="beanInPlugins" />
+  </bean>
 </beans>

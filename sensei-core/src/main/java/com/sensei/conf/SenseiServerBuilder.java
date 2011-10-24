@@ -100,10 +100,16 @@ public class SenseiServerBuilder implements SenseiConfParams{
   private final Server _jettyServer;
   private final Comparator<String> _versionComparator;
   
-  private static ApplicationContext loadSpringContext(File confFile){
+  private static ApplicationContext loadSpringContext(File[] confFiles, ApplicationContext parent){
     ApplicationContext springCtx = null;
-    if (confFile.exists()){
-      springCtx = new FileSystemXmlApplicationContext("file:"+confFile.getAbsolutePath());
+    List<String> confList = new ArrayList<String>(confFiles.length);
+    for(File confFile : confFiles)
+    {
+      if (confFile.exists())
+        confList.add("file:"+confFile.getAbsolutePath());
+    }
+    if (confList.size() > 0){
+      springCtx = new FileSystemXmlApplicationContext(confList.toArray(new String[confList.size()]), parent);
     }
     return springCtx;
   }
@@ -249,7 +255,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
     if (pluginContext != null)
       _pluginContext = pluginContext;
     else
-      _pluginContext = loadSpringContext(new File(confDir,PLUGINS));
+      _pluginContext = loadSpringContext(new File[] {new File(confDir,PLUGINS), new File(confDir,CUSTOM_FACETS)}, null);
 
     String versionComparatorName = _senseiConf.getString(SENSEI_VERSION_COMPARATOR, "");
     if (versionComparatorName == null || versionComparatorName.equals(""))
@@ -259,8 +265,10 @@ public class SenseiServerBuilder implements SenseiConfParams{
 
     if (customFacetContext != null)
       _customFacetContext = customFacetContext;
+    else if (pluginContext != null)
+      _customFacetContext = loadSpringContext(new File[] {new File(confDir,CUSTOM_FACETS)}, _pluginContext);
     else
-      _customFacetContext = loadSpringContext(new File(confDir,CUSTOM_FACETS));
+      _customFacetContext = _pluginContext;
     
     _schemaDoc = loadSchema(confDir);
     _senseiSchema = SenseiSchema.build(_schemaDoc);
