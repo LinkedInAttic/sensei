@@ -404,7 +404,8 @@ class TestBQL(unittest.TestCase):
     FROM cars
     GIVEN FACET PARAM (My-Network, "srcid", int, 8233570),
                       (time, "now", long, "999999"),   -- Accept string too
-                      (member, "last_name", string, "Cui")
+                      (member, "last_name", string, "Cui"),
+                      (member, "age", int, 25)
     """
     req = SenseiRequest(stmt)
     self.assertEqual(len(req.facet_init_param_map), 3)
@@ -414,6 +415,7 @@ class TestBQL(unittest.TestCase):
     self.assertEqual(init_params.long_map["now"], ["999999"])
     init_params = req.facet_init_param_map["member"]
     self.assertEqual(init_params.string_map["last_name"], ["Cui"])
+    self.assertEqual(init_params.int_map["age"], [25])
 
   def testFetchingStored(self):
     stmt = \
@@ -690,6 +692,56 @@ class TestBQL(unittest.TestCase):
     self.assertTrue("[1995 TO 1997]" in select_year.values)
     self.assertTrue("[2000 TO *]" in select_year.values)
 
+  def testFloatNumbers(self):
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    WHERE price > 14000.00 AND price <= 19000.50
+    """
+    req = SenseiRequest(stmt)
+    select = req.selections["price"]
+    self.assertEqual(select.operation, sensei_client.PARAM_SELECT_OP_AND)
+    self.assertEqual(len(select.values), 1)
+    # print select.values
+    self.assertTrue("[14000.01 TO 19000.5]" in select.values)
+
+  def testTimeRange(self):
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    WHERE time > 2 days 3 hours ago AND time < 1 day 15 minutes ago
+    """
+    req = SenseiRequest(stmt)
+    select = req.selections["time"]
+    self.assertEqual(select.operation, sensei_client.PARAM_SELECT_OP_AND)
+    self.assertEqual(len(select.values), 1)
+    # print select.values
+    mm = RANGE_REGEX.match(select.values[0])
+    (time1, _, time2, _) = mm.groups()
+    gap = int(time2) - int(time1)
+    self.assertEqual(gap, 24*60*60*1000 + 3*60*60*1000 - 15*60*1000 - 2)
+    # ==================> 1 day ......... 3 hours ...... 15 mins ... exclusive
+
+  def testTimeRangeNow(self):
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    WHERE time > 2 days 3 hours 20 min 10 sec ago AND time < NOW
+    """
+    req = SenseiRequest(stmt)
+    select = req.selections["time"]
+    self.assertEqual(select.operation, sensei_client.PARAM_SELECT_OP_AND)
+    self.assertEqual(len(select.values), 1)
+    # print select.values
+    mm = RANGE_REGEX.match(select.values[0])
+    (time1, _, time2, _) = mm.groups()
+    gap = int(time2) - int(time1)
+    self.assertEqual(gap, 2*24*60*60*1000 + 3*60*60*1000 + 20*60*1000 + 10*1000 - 2)
+    # ==================> 2 day ........... 3 hours ...... 20 min ..... 10 sec . exclusive
+
   def compare(self, paramStr1, paramStr2):
     """Compare two URL param strings built by Sensei client.
 
@@ -724,25 +776,9 @@ if __name__ == "__main__":
 """
 TODO:
 
-1. BETWEEN ... AND ...
+1. Relevance
 
-   SELECT *
-   FROM cars
-   WHERE year BETWEEN 1995 AND 1996
-
-   SELECT *
-   FROM cars
-   WHERE year NOT BETWEEN 1995 AND 1996
-
-   SELECT *
-   FROM cars
-   WHERE year NOT BETWEEN 1995 AND 1996
-     AND 
-     AND year NOT BETWEEN 2000 AND 2001
-
-2. Relevance
-
-3. Make sure that we do not have predicate conflict:
+2. Make sure that we do not have predicate conflict:
 
    SELECT *
    FROM cars
@@ -758,18 +794,5 @@ TODO:
    WHERE (color = "red" OR color = "blue")
      AND (year BETWEEN 1995 AND 1996 OR
           year BETWEEN 2000 AND 2001)
-
-
-predicates ::= (predicate + ZeroOrMore(AND + predicate))
-
-predicate ::= in_predicate
-            | contains_all_predicate
-            | between_predicate
-            | negative_predicate
-            | "(" or_positive_predicates ")"
-
-positive_predicate ::= in_predicate | contains_all_predicate
-
-
 
 """

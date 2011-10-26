@@ -20,12 +20,16 @@ import json
 import sys
 import logging
 import datetime
+import time
 import re
 
 logger = logging.getLogger("sensei_client")
 
 # Regular expression that matches a range facet value
-RANGE_REGEX = re.compile(r"\[(\d+|\*) TO (\d+|\*)\]")
+RANGE_REGEX = re.compile(r"\[(\d+(\.\d+)*|\*) TO (\d+(\.\d+)*|\*)\]")
+
+# The lowest resolution that can make a difference in range predicate
+EPSILON = 0.01
 
 SELECTION_TYPE_RANGE = 1
 SELECTION_TYPE_SIMPLE = 2
@@ -145,7 +149,7 @@ from pyparsing import Literal, CaselessLiteral, Word, Upcase, delimitedList, Opt
 BNF Grammar for BQL
 ===================
 
-<statement> ::= (  <select_stmt> | <describe_stmt> ) [';']
+<statement> ::= ( <select_stmt> | <describe_stmt> ) [';']
 
 <select_stmt> ::= SELECT <select_list> <from_clause> [<where_clause>] [<given_clause>] <additional_clauses>
 <describe_stmt> ::= ( DESC | DESCRIBE ) <index_name>
@@ -175,7 +179,7 @@ BNF Grammar for BQL
 <not_equal_predicate> ::= <column_name> '<>' <value> [<predicate_props>]
 <query_predicate> ::= QUERY IS <quoted_string>
 <between_predicate> ::= <column_name> [NOT] BETWEEN <value> AND <value>
-<range_predicate> ::= <column_name> <range_op> <num>
+<range_predicate> ::= <column_name> <range_op> <numeric>
 <same_column_or_pred> ::= '(' + <cumulative_predicates> + ')'
 
 <cumulative_predicates> ::= <cumulative_predicate> ( ',' <cumulative_predicate> )*
@@ -185,7 +189,7 @@ BNF Grammar for BQL
                          | <range_predicate>
 
 <value_list> ::= '(' <value> ( ',' <value> )* ')'
-<value> ::= <quoted_string> | <num>
+<value> ::= <quoted_string> | <numeric>
 <range_op> ::= '<' | '<=' | '>=' | '>'
 
 <except_clause> ::= EXCEPT <value_list>
@@ -249,7 +253,21 @@ BNF Grammar for BQL
                      | p | q | r | s | t | u | v | w | x | y | z
 <digit> ::= 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
 
-<num> ::= ( <digit> )+
+<numeric> ::= <time_expr> | <number>
+<number> ::= <integer> | <real>
+<integer> ::= ( <digit> )+
+<real> ::= ( <digit> )+ '.' ( <digit> )+
+
+<time_expr> ::= [<time_week_part>] [<time_day_part>] [<time_hour_part>]
+                [<time_minute_part>] [<time_second_part>] [<time_millisecond_part>] AGO
+              | NOW
+
+<time_week_part> ::= <integer> ( 'week' | 'weeks' )
+<time_day_part>  ::= <integer> ( 'day'  | 'days' )
+<time_hour_part> ::= <integer> ( 'hour' | 'hours' )
+<time_minute_part> ::= <integer> ( 'minute' | 'minutes' | 'min' )
+<time_second_part> ::= <integer> ( 'second' | 'seconds' | 'sec' )
+<time_millisecond_part> ::= <integer> ( 'millisecond' | 'milliseconds' | 'msec' )
 
 """
 
@@ -272,6 +290,28 @@ def reset_all():
   browse_by_once.reset()
   fetching_stored_once.reset()
 
+def convert_time(toks):
+  """Convert a time expression into a epoch time."""
+
+  if toks[0] == NOW.match:
+    return time_now
+
+  total = 0
+  if toks.week_part:
+    total += toks.week_part[0] * 7 * 24 * 60 * 60 * 1000
+  if toks.day_part:
+    total += toks.day_part[0] * 24 * 60 * 60 * 1000
+  if toks.hour_part:
+    total += toks.hour_part[0] * 60 * 60 * 1000
+  if toks.minute_part:
+    total += toks.minute_part[0] * 60 * 1000
+  if toks.second_part:
+    total += toks.second_part[0] * 1000
+  if toks.millisecond_part:
+    total += toks.millisecond_part[0]
+  
+  return time_now - total
+
 #
 # BQL tokens
 #
@@ -279,6 +319,7 @@ def reset_all():
 # Keyword.match to do comparison at other places in the code.
 #
 ALL = Keyword("all", caseless=True)
+AGO = Keyword("ago", caseless=True)
 AND = Keyword("and", caseless=True)
 ASC = Keyword("asc", caseless=True)
 BETWEEN = Keyword("between", caseless=True)
@@ -304,6 +345,7 @@ IS = Keyword("is", caseless=True)
 LIMIT = Keyword("limit", caseless=True)
 LONG = Keyword("long", caseless=True)
 NOT = Keyword("not", caseless=True)
+NOW = Keyword("now", caseless=True)
 OR = Keyword("or", caseless=True)
 ORDER = Keyword("order", caseless=True)
 PARAM = Keyword("param", caseless=True)
@@ -337,10 +379,40 @@ column_name = ~keyword + Word(alphas, alphanums + "_-")
 facet_name = column_name.copy()
 column_name_list = Group(delimitedList(column_name))
 
-int_num = Word(nums).setParseAction(lambda t: int(t[0]))
+integer = Word(nums).setParseAction(lambda t: int(t[0]))
+real = Combine(Word(nums) + "." + Word(nums)).setParseAction(lambda t: float(t[0]))
 quotedString.setParseAction(removeQuotes)
 
-value = (int_num | quotedString)
+# Time expression
+CL = CaselessLiteral
+week = Combine(CL("week") + Optional(CL("s")))
+day = Combine(CL("day") + Optional(CL("s")))
+hour = Combine(CL("hour") + Optional(CL("s")))
+minute = Combine(CL("minute") + Optional(CL("s"))) | CL("min")
+second = Combine(CL("second") + Optional(CL("s"))) | CL("sec")
+millisecond = Combine(CL("millisecond") + Optional(CL("s"))) | CL("msec")
+
+time_week_part = (integer + week).setResultsName("week_part")
+time_day_part = (integer + day).setResultsName("day_part")
+time_hour_part = (integer + hour).setResultsName("hour_part")
+time_minute_part = (integer + minute).setResultsName("minute_part")
+time_second_part = (integer + second).setResultsName("second_part")
+time_millisecond_part = (integer + millisecond).setResultsName("millisecond_part")
+
+time_expr = ((Optional(time_week_part) +
+              Optional(time_day_part) +
+              Optional(time_hour_part) +
+              Optional(time_minute_part) +
+              Optional(time_second_part) +
+              Optional(time_millisecond_part) +
+              AGO)
+             | NOW
+             ).setParseAction(convert_time)
+
+number = (real | integer)       # Put real before integer to avoid ambiguity
+numeric = (time_expr | number)
+
+value = (numeric | quotedString)
 value_list = LPAR + delimitedList(value) + RPAR
 
 prop_pair = (quotedString + COLON + value)
@@ -372,7 +444,7 @@ between_predicate = (column_name + Optional(NOT) +
                      BETWEEN + value + AND + value).setResultsName("between_pred")
 
 range_op = oneOf("< <= >= >")
-range_predicate = (column_name + range_op + int_num).setResultsName("range_pred")
+range_predicate = (column_name + range_op + numeric).setResultsName("range_pred")
 
 cumulative_predicate = Group(in_predicate
                              | equal_predicate
@@ -411,16 +483,16 @@ order_by_spec = Group(column_name + Optional(orderseq)).setResultsName("orderby_
 order_by_expression << (order_by_spec + ZeroOrMore(COMMA + order_by_expression))
 order_by_clause = (ORDER + BY + order_by_expression).setResultsName("orderby").setParseAction(order_by_once)
 
-limit_clause = (LIMIT + Group(Optional(int_num + COMMA) + int_num)).setResultsName("limit").setParseAction(limit_once)
+limit_clause = (LIMIT + Group(Optional(integer + COMMA) + integer)).setResultsName("limit").setParseAction(limit_once)
 
 expand_flag = TRUE | FALSE
 facet_order_by = HITS | VALUE
 facet_spec = Group(column_name +
-                   Optional(LPAR + expand_flag + COMMA + int_num  + COMMA + int_num + COMMA + facet_order_by + RPAR))
+                   Optional(LPAR + expand_flag + COMMA + integer  + COMMA + integer + COMMA + facet_order_by + RPAR))
 
 group_by_clause = (GROUP + BY +
                    column_name.setResultsName("groupby") +
-                   Optional(TOP + int_num.setResultsName("max_per_group"))).setParseAction(group_by_once)
+                   Optional(TOP + integer.setResultsName("max_per_group"))).setParseAction(group_by_once)
 
 browse_by_clause = (BROWSE + BY +
                     delimitedList(facet_spec).setResultsName("facet_specs")).setParseAction(browse_by_once)
@@ -449,6 +521,7 @@ select_stmt << (SELECT +
 
 describe_stmt = (DESC | DESCRIBE).setResultsName("describe") + ident.setResultsName("index")
 
+time_now = int(time.time() * 1000)
 BQLstmt = (select_stmt | describe_stmt) + Optional(SEMICOLON)
 
 # Define comment format, and ignore them
@@ -490,7 +563,16 @@ def and_ranges(range1, range2):
     elif n2 == '*':
       return n1
     else:
-      return str(max(int(n1), int(n2)))
+      val1 = val2 = None
+      try:
+        val1 = int(n1)
+      except:
+        val1 = float(n1)
+      try:
+        val2 = int(n2)
+      except:
+        val2 = float(n2)
+      return str(max(val1, val2))
 
   def __min(n1, n2):
     if n1 == '*':
@@ -498,18 +580,27 @@ def and_ranges(range1, range2):
     elif n2 == '*':
       return n1
     else:
-      return str(min(int(n1), int(n2)))
+      val1 = val2 = None
+      try:
+        val1 = int(n1)
+      except:
+        val1 = float(n1)
+      try:
+        val2 = int(n2)
+      except:
+        val2 = float(n2)
+      return str(min(val1, val2))
 
   m1 = RANGE_REGEX.match(range1)
-  (low1, high1) = m1.groups()
+  (low1, _, high1, _) = m1.groups()
   m2 = RANGE_REGEX.match(range2)
-  (low2, high2) = m2.groups()
+  (low2, _, high2, _) = m2.groups()
 
   low = __max(low1, low2)
   high = __min(high1, high2)
 
   if (low != '*' and high != '*'
-      and int(low) > int(high)):
+      and float(low) > float(high)):
     return None
   else:
     return "[%s TO %s]" % (low, high)
@@ -603,14 +694,15 @@ def build_selection(predicate):
   elif predicate.range_pred:
     low = "*"
     high = "*"
+    delta = isinstance(predicate[2], int) and 1 or EPSILON
     if predicate[1] == "<":
-      high = max(predicate[2] - 1, 0)
+      high = max(predicate[2] - delta, 0)
     elif predicate[1] == "<=":
       high = predicate[2]
     elif predicate[1] == ">=":
       low = predicate[2]
     else:
-      low = predicate[2] + 1
+      low = predicate[2] + delta
     selection = SenseiSelection(predicate[0], PARAM_SELECT_OP_AND)
     selection.addSelection("[%s TO %s]" % (low, high))
   
@@ -631,6 +723,7 @@ class BQLRequest:
 
   def __init__(self, sql_stmt):
     try:
+      time_now = int(time.time() * 1000)
       self.tokens = BQLstmt.parseString(sql_stmt, parseAll=True)
     except ParseException as err:
       raise err
@@ -823,22 +916,26 @@ class BQLRequest:
         name = param[1]
         param_type = param[2]
         value = param[3]
-        init_param = SenseiFacetInitParams()
+        init_params = None
+
+        if self.facet_init_param_map.has_key(facet):
+          init_params = self.facet_init_param_map[facet]
+        else:
+          init_params = SenseiFacetInitParams()
+          self.facet_init_param_map[facet] = init_params
 
         if param_type == "boolean":
-          init_param.put_bool_param(name, value)
+          init_params.put_bool_param(name, value)
         elif param_type == "int":
-          init_param.put_int_param(name, value)
+          init_params.put_int_param(name, value)
         elif param_type == "long":
-          init_param.put_long_param(name, value)
+          init_params.put_long_param(name, value)
         elif param_type == "string":
-          init_param.put_string_param(name, value)
+          init_params.put_string_param(name, value)
         elif param_type == "bytearray":
-          init_param.put_byte_param(name, value)
+          init_params.put_byte_param(name, value)
         elif param_type == "double":
-          init_param.put_double_param(name, value)
-
-        self.facet_init_param_map[facet] = init_param
+          init_params.put_double_param(name, value)
 
     return self.facet_init_param_map
 
