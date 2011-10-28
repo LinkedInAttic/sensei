@@ -1,5 +1,7 @@
 import sys
 import unittest
+import time
+from datetime import datetime
 
 sys.path.insert(0, "../src")
 import sensei_client
@@ -729,7 +731,7 @@ class TestBQL(unittest.TestCase):
     """
     SELECT *
     FROM cars
-    WHERE time > 2 days 3 hours 20 min 10 sec ago AND time < NOW
+    WHERE time > 2 days 3 hours 20 min 10 secs ago AND time < NOW
     """
     req = SenseiRequest(stmt)
     select = req.selections["time"]
@@ -741,6 +743,78 @@ class TestBQL(unittest.TestCase):
     gap = int(time2) - int(time1)
     self.assertEqual(gap, 2*24*60*60*1000 + 3*60*60*1000 + 20*60*1000 + 10*1000 - 2)
     # ==================> 2 day ........... 3 hours ...... 20 min ..... 10 sec . exclusive
+
+  def testTimePredicates(self):
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    WHERE time IN LAST 2 hours 20 mins
+    """
+    req = SenseiRequest(stmt)
+    select = req.selections["time"]
+    self.assertEqual(select.operation, sensei_client.PARAM_SELECT_OP_AND)
+    self.assertEqual(len(select.values), 1)
+    mm = RANGE_REGEX.match(select.values[0])
+    (time1, _, time2, _) = mm.groups()
+    self.assertEqual(time2, "*")
+    gap = int(time.time() * 1000) - int(time1)
+    self.assertTrue(gap < 2*60*60*1000 + 20*60*1000 + 2*1000)
+    # ==================> 2 hours ...... 20 min ....+ 2 secs
+
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    WHERE time SINCE 2 hours 20 mins ago
+    """
+    req = SenseiRequest(stmt)
+    select = req.selections["time"]
+    self.assertEqual(select.operation, sensei_client.PARAM_SELECT_OP_AND)
+    self.assertEqual(len(select.values), 1)
+    mm = RANGE_REGEX.match(select.values[0])
+    (time1, _, time2, _) = mm.groups()
+    self.assertEqual(time2, "*")
+    gap = int(time.time() * 1000) - int(time1)
+    self.assertTrue(gap < 2*60*60*1000 + 20*60*1000 + 2*1000)
+    # ==================> 2 hours ...... 20 min ....+ 2 secs
+
+  def testDateTimeStrings(self):
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    WHERE time >= "2011-10-20 15:30:00"
+      AND time < '2011/10/22 18:30:30'
+    """
+    req = SenseiRequest(stmt)
+    select = req.selections["time"]
+    self.assertEqual(select.operation, sensei_client.PARAM_SELECT_OP_AND)
+    self.assertEqual(len(select.values), 1)
+    mm = RANGE_REGEX.match(select.values[0])
+    (time1, _, time2, _) = mm.groups()
+    orig_time1 = datetime.strptime("2011-10-20 15:30:00", "%Y-%m-%d %H:%M:%S")
+    orig_time2 = datetime.strptime('2011/10/22 18:30:30', "%Y/%m/%d %H:%M:%S")
+    self.assertEqual(int(time1), int(time.mktime(orig_time1.timetuple()) * 1000))
+    self.assertEqual(int(time2), int(time.mktime(orig_time2.timetuple()) * 1000) - 1)
+
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    WHERE time AFTER "2011-10-20 15:30:00"
+      AND time BEFORE '2011/10/22 18:30:30'
+    """
+    req = SenseiRequest(stmt)
+    select = req.selections["time"]
+    self.assertEqual(select.operation, sensei_client.PARAM_SELECT_OP_AND)
+    self.assertEqual(len(select.values), 1)
+    mm = RANGE_REGEX.match(select.values[0])
+    (time1, _, time2, _) = mm.groups()
+    orig_time1 = datetime.strptime("2011-10-20 15:30:00", "%Y-%m-%d %H:%M:%S")
+    orig_time2 = datetime.strptime('2011/10/22 18:30:30', "%Y/%m/%d %H:%M:%S")
+    self.assertEqual(int(time1), int(time.mktime(orig_time1.timetuple()) * 1000) + 1)
+    self.assertEqual(int(time2), int(time.mktime(orig_time2.timetuple()) * 1000) - 1)
 
   def compare(self, paramStr1, paramStr2):
     """Compare two URL param strings built by Sensei client.

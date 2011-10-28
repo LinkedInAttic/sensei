@@ -20,13 +20,18 @@ import json
 import sys
 import logging
 import datetime
+from datetime import datetime
 import time
 import re
 
 logger = logging.getLogger("sensei_client")
 
 # Regular expression that matches a range facet value
-RANGE_REGEX = re.compile(r"\[(\d+(\.\d+)*|\*) TO (\d+(\.\d+)*|\*)\]")
+RANGE_REGEX = re.compile(r'''\[(\d+(\.\d+)*|\*) TO (\d+(\.\d+)*|\*)\]''')
+
+# Datetime regular expression
+DATE_TIME = r'''(["'])(\d\d\d\d)([-/\.])(\d\d)\3(\d\d) (\d\d):(\d\d):(\d\d)\1'''
+DATE_TIME_REGEX = re.compile(DATE_TIME)
 
 # The lowest resolution that can make a difference in range predicate
 EPSILON = 0.01
@@ -142,7 +147,8 @@ DEFAULT_FACET_ORDER = PARAM_FACET_ORDER_HITS
 
 from pyparsing import Literal, CaselessLiteral, Word, Upcase, delimitedList, Optional, \
     Combine, Group, alphas, nums, alphanums, ParseException, Forward, oneOf, quotedString, \
-    ZeroOrMore, restOfLine, Keyword, OnlyOnce, Suppress, removeQuotes, NotAny, OneOrMore, MatchFirst
+    ZeroOrMore, restOfLine, Keyword, OnlyOnce, Suppress, removeQuotes, NotAny, OneOrMore, \
+    MatchFirst, Regex
 
 """
 
@@ -171,6 +177,7 @@ BNF Grammar for BQL
               | <query_predicate>
               | <between_predicate>
               | <range_predicate>
+              | <time_predicate>
               | <same_column_or_pred>
 
 <in_predicate> ::= <column_name> [NOT] IN <value_list> [<except_clause>] [<predicate_props>]
@@ -180,6 +187,11 @@ BNF Grammar for BQL
 <query_predicate> ::= QUERY IS <quoted_string>
 <between_predicate> ::= <column_name> [NOT] BETWEEN <value> AND <value>
 <range_predicate> ::= <column_name> <range_op> <numeric>
+                    | <time_predicate>
+
+<time_predicate> ::= <column_name> IN LAST <time_span>
+                   | <column_name> ( SINCE | AFTER | BEFORE ) <time_expr>
+
 <same_column_or_pred> ::= '(' + <cumulative_predicates> + ')'
 
 <cumulative_predicates> ::= <cumulative_predicate> ( ',' <cumulative_predicate> )*
@@ -187,6 +199,7 @@ BNF Grammar for BQL
                          | <equal_predicate>
                          | <between_predicate>
                          | <range_predicate>
+                         | <time_predicate>
 
 <value_list> ::= '(' <value> ( ',' <value> )* ')'
 <value> ::= <quoted_string> | <numeric>
@@ -258,16 +271,22 @@ BNF Grammar for BQL
 <integer> ::= ( <digit> )+
 <real> ::= ( <digit> )+ '.' ( <digit> )+
 
-<time_expr> ::= [<time_week_part>] [<time_day_part>] [<time_hour_part>]
-                [<time_minute_part>] [<time_second_part>] [<time_millisecond_part>] AGO
+<time_expr> ::= <time_span> AGO
+              | <date_time_string>
               | NOW
+
+<time_span> ::= [<time_week_part>] [<time_day_part>] [<time_hour_part>]
+                [<time_minute_part>] [<time_second_part>] [<time_millisecond_part>]
 
 <time_week_part> ::= <integer> ( 'week' | 'weeks' )
 <time_day_part>  ::= <integer> ( 'day'  | 'days' )
 <time_hour_part> ::= <integer> ( 'hour' | 'hours' )
-<time_minute_part> ::= <integer> ( 'minute' | 'minutes' | 'min' )
-<time_second_part> ::= <integer> ( 'second' | 'seconds' | 'sec' )
-<time_millisecond_part> ::= <integer> ( 'millisecond' | 'milliseconds' | 'msec' )
+<time_minute_part> ::= <integer> ( 'minute' | 'minutes' | 'min' | 'mins')
+<time_second_part> ::= <integer> ( 'second' | 'seconds' | 'sec' | 'secs')
+<time_millisecond_part> ::= <integer> ( 'millisecond' | 'milliseconds' | 'msec' | 'msecs')
+
+<date_time_string> ::= <digit><digit><digit><digit> ('-' | '/' | '.') <digit><digit> ('-' | '/' | '.') <digit><digit>
+                       <digit><digit> ':' <digit><digit> ':' <digit><digit>
 
 """
 
@@ -295,6 +314,12 @@ def convert_time(toks):
 
   if toks[0] == NOW.match:
     return time_now
+  elif toks.date_time_regex:
+    mm = DATE_TIME_REGEX.match(toks[0])
+    (_, year, _, month, day, hour, minute, second) = mm.groups()
+    time_stamp = datetime.strptime("%s-%s-%s %s:%s:%s" % (year, month, day, hour, minute, second),
+                                   "%Y-%m-%d %H:%M:%S")
+    return int(time.mktime(time_stamp.timetuple()) * 1000)
 
   total = 0
   if toks.week_part:
@@ -319,9 +344,11 @@ def convert_time(toks):
 # Keyword.match to do comparison at other places in the code.
 #
 ALL = Keyword("all", caseless=True)
+AFTER = Keyword("after", caseless=True)
 AGO = Keyword("ago", caseless=True)
 AND = Keyword("and", caseless=True)
 ASC = Keyword("asc", caseless=True)
+BEFORE = Keyword("before", caseless=True)
 BETWEEN = Keyword("between", caseless=True)
 BOOLEAN = Keyword("boolean", caseless=True)
 BROWSE = Keyword("browse", caseless=True)
@@ -342,6 +369,7 @@ HITS = Keyword("hits", caseless=True)
 IN = Keyword("in", caseless=True)
 INT = Keyword("int", caseless=True)
 IS = Keyword("is", caseless=True)
+LAST = Keyword("last", caseless=True)
 LIMIT = Keyword("limit", caseless=True)
 LONG = Keyword("long", caseless=True)
 NOT = Keyword("not", caseless=True)
@@ -351,6 +379,7 @@ ORDER = Keyword("order", caseless=True)
 PARAM = Keyword("param", caseless=True)
 QUERY = Keyword("query", caseless=True)
 SELECT = Keyword("select", caseless=True)
+SINCE = Keyword("since", caseless=True)
 STORED = Keyword("stored", caseless=True)
 STRING = Keyword("string", caseless=True)
 TOP = Keyword("top", caseless=True)
@@ -388,9 +417,9 @@ CL = CaselessLiteral
 week = Combine(CL("week") + Optional(CL("s")))
 day = Combine(CL("day") + Optional(CL("s")))
 hour = Combine(CL("hour") + Optional(CL("s")))
-minute = Combine(CL("minute") + Optional(CL("s"))) | CL("min")
-second = Combine(CL("second") + Optional(CL("s"))) | CL("sec")
-millisecond = Combine(CL("millisecond") + Optional(CL("s"))) | CL("msec")
+minute = Combine((CL("minute") | CL("min")) + Optional(CL("s")))
+second = Combine((CL("second") | CL("sec")) + Optional(CL("s")))
+millisecond = Combine((CL("millisecond") | CL("msec")) + Optional(CL("s")))
 
 time_week_part = (integer + week).setResultsName("week_part")
 time_day_part = (integer + day).setResultsName("day_part")
@@ -399,15 +428,18 @@ time_minute_part = (integer + minute).setResultsName("minute_part")
 time_second_part = (integer + second).setResultsName("second_part")
 time_millisecond_part = (integer + millisecond).setResultsName("millisecond_part")
 
-time_expr = ((Optional(time_week_part) +
-              Optional(time_day_part) +
-              Optional(time_hour_part) +
-              Optional(time_minute_part) +
-              Optional(time_second_part) +
-              Optional(time_millisecond_part) +
-              AGO)
-             | NOW
-             ).setParseAction(convert_time)
+time_span = (Optional(time_week_part) +
+             Optional(time_day_part) +
+             Optional(time_hour_part) +
+             Optional(time_minute_part) +
+             Optional(time_second_part) +
+             Optional(time_millisecond_part)).setParseAction(convert_time)
+
+date_time_string = Regex(DATE_TIME).setResultsName("date_time_regex").setParseAction(convert_time)
+
+time_expr = ((time_span + AGO)
+             | date_time_string
+             | NOW.setParseAction(convert_time))
 
 number = (real | integer)       # Put real before integer to avoid ambiguity
 numeric = (time_expr | number)
@@ -446,6 +478,10 @@ between_predicate = (column_name + Optional(NOT) +
 range_op = oneOf("< <= >= >")
 range_predicate = (column_name + range_op + numeric).setResultsName("range_pred")
 
+time_predicate = ((column_name + IN + LAST + time_span)
+                  | (column_name + (SINCE | AFTER | BEFORE) + time_expr)
+                  ).setResultsName("time_pred")
+
 cumulative_predicate = Group(in_predicate
                              | equal_predicate
                              | between_predicate
@@ -464,6 +500,7 @@ predicate = Group(in_predicate
                   | query_predicate
                   | between_predicate
                   | range_predicate
+                  | time_predicate
                   | same_column_or_pred
                   ).setResultsName("predicates", listAllMatches=True)
 
@@ -705,6 +742,15 @@ def build_selection(predicate):
       low = predicate[2] + delta
     selection = SenseiSelection(predicate[0], PARAM_SELECT_OP_AND)
     selection.addSelection("[%s TO %s]" % (low, high))
+
+  elif predicate.time_pred:
+    selection = SenseiSelection(predicate[0], PARAM_SELECT_OP_AND)
+    if predicate[1] == IN.match and predicate[2] == LAST.match:
+      selection.addSelection("[%s TO %s]" % (predicate[3], "*"))
+    elif predicate[1] == SINCE.match or predicate[1] == AFTER.match:
+      selection.addSelection("[%s TO %s]" % (predicate[2] + 1, "*"))
+    elif predicate[1] == BEFORE.match:
+      selection.addSelection("[%s TO %s]" % ("*", predicate[2] - 1))
   
   elif predicate.same_column_or_pred:
     selection = collapse_cumulative_preds(predicate.cumulative_preds)
@@ -1384,7 +1430,7 @@ class SenseiRequest:
     self.stmt_type = "unknown"
 
     if sql_stmt != None:
-      time1 = datetime.datetime.now()
+      time1 = datetime.now()
       bql_req = BQLRequest(sql_stmt)
       ok, msg = bql_req.merge_selections()
       if not ok:
@@ -1411,7 +1457,7 @@ class SenseiRequest:
         self.groupby = bql_req.get_groupby()
         self.max_per_group = bql_req.get_max_per_group() or max_per_group
         self.facet_init_param_map = bql_req.get_facet_init_param_map()
-        delta = datetime.datetime.now() - time1
+        delta = datetime.now() - time1
         self.prepare_time = delta.seconds * 1000 + delta.microseconds / 1000
         logger.debug("Prepare time: %sms" % self.prepare_time)
     else:
@@ -1729,7 +1775,7 @@ class SenseiClient:
   def doQuery(self, req=None):
     """Execute a search query."""
 
-    time1 = datetime.datetime.now()
+    time1 = datetime.now()
     paramString = None
     if req:
       paramString = SenseiClient.buildUrlString(req)
@@ -1739,7 +1785,7 @@ class SenseiClient:
     line = res.read()
     jsonObj = json.loads(line)
     res = SenseiResult(jsonObj)
-    delta = datetime.datetime.now() - time1
+    delta = datetime.now() - time1
     res.total_time = delta.seconds * 1000 + delta.microseconds / 1000
     return res
 
