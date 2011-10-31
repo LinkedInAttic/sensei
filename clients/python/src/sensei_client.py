@@ -146,9 +146,10 @@ DEFAULT_FACET_ORDER = PARAM_FACET_ORDER_HITS
 #
 
 from pyparsing import Literal, CaselessLiteral, Word, Upcase, delimitedList, Optional, \
-    Combine, Group, alphas, nums, alphanums, ParseException, Forward, oneOf, quotedString, \
+    Combine, Group, alphas, nums, alphanums, ParseException, ParseFatalException, ParseSyntaxException, \
+    Forward, oneOf, quotedString, \
     ZeroOrMore, restOfLine, Keyword, OnlyOnce, Suppress, removeQuotes, NotAny, OneOrMore, \
-    MatchFirst, Regex
+    MatchFirst, Regex, stringEnd
 
 """
 
@@ -187,14 +188,12 @@ BNF Grammar for BQL
 <query_predicate> ::= QUERY IS <quoted_string>
 <between_predicate> ::= <column_name> [NOT] BETWEEN <value> AND <value>
 <range_predicate> ::= <column_name> <range_op> <numeric>
-                    | <time_predicate>
-
 <time_predicate> ::= <column_name> IN LAST <time_span>
                    | <column_name> ( SINCE | AFTER | BEFORE ) <time_expr>
 
 <same_column_or_pred> ::= '(' + <cumulative_predicates> + ')'
 
-<cumulative_predicates> ::= <cumulative_predicate> ( ',' <cumulative_predicate> )*
+<cumulative_predicates> ::= <cumulative_predicate> ( OR <cumulative_predicate> )*
 <cumulative_predicate> ::= <in_predicate>
                          | <equal_predicate>
                          | <between_predicate>
@@ -293,8 +292,8 @@ BNF Grammar for BQL
 def order_by_act(s, loc, tok):
   for order in tok[1:]:
     if (order[0] == PARAM_SORT_SCORE and len(order) > 1):
-      raise ParseException(s, loc, "%s should not be followed by %s"
-                           % (PARAM_SORT_SCORE, order[1]))
+      raise ParseSyntaxException(ParseException(s, loc, '"ORDER BY %s" should not be followed by %s'
+                                                % (PARAM_SORT_SCORE, order[1])))
 
 limit_once = OnlyOnce(lambda s, loc, tok: tok)
 order_by_once = OnlyOnce(order_by_act)
@@ -309,17 +308,23 @@ def reset_all():
   browse_by_once.reset()
   fetching_stored_once.reset()
 
-def convert_time(toks):
-  """Convert a time expression into a epoch time."""
+def convert_time(s, loc, toks):
+  """Convert a time expression into an epoch time."""
 
   if toks[0] == NOW.match:
     return time_now
   elif toks.date_time_regex:
     mm = DATE_TIME_REGEX.match(toks[0])
     (_, year, _, month, day, hour, minute, second) = mm.groups()
-    time_stamp = datetime.strptime("%s-%s-%s %s:%s:%s" % (year, month, day, hour, minute, second),
-                                   "%Y-%m-%d %H:%M:%S")
+    try:
+      time_stamp = datetime.strptime("%s-%s-%s %s:%s:%s" % (year, month, day, hour, minute, second),
+                                     "%Y-%m-%d %H:%M:%S")
+    except ValueError as err:
+      raise ParseSyntaxException(ParseException(s, loc, "Invalid date/time string: %s" % toks[0]))
     return int(time.mktime(time_stamp.timetuple()) * 1000)
+
+def convert_time_span(s, loc, toks):
+  """Convert a time span expression into an epoch time."""
 
   total = 0
   if toks.week_part:
@@ -433,7 +438,7 @@ time_span = (Optional(time_week_part) +
              Optional(time_hour_part) +
              Optional(time_minute_part) +
              Optional(time_second_part) +
-             Optional(time_millisecond_part)).setParseAction(convert_time)
+             Optional(time_millisecond_part)).setParseAction(convert_time_span)
 
 date_time_string = Regex(DATE_TIME).setResultsName("date_time_regex").setParseAction(convert_time)
 
@@ -559,7 +564,7 @@ select_stmt << (SELECT +
 describe_stmt = (DESC | DESCRIBE).setResultsName("describe") + ident.setResultsName("index")
 
 time_now = int(time.time() * 1000)
-BQLstmt = (select_stmt | describe_stmt) + Optional(SEMICOLON)
+BQLstmt = (select_stmt | describe_stmt) + Optional(SEMICOLON) + stringEnd
 
 # Define comment format, and ignore them
 sql_comment = "--" + restOfLine
@@ -772,6 +777,10 @@ class BQLRequest:
       time_now = int(time.time() * 1000)
       self.tokens = BQLstmt.parseString(sql_stmt, parseAll=True)
     except ParseException as err:
+      raise err
+    except ParseSyntaxException as err:
+      raise err
+    except ParseFatalException as err:
       raise err
     finally:
       reset_all()
@@ -1015,6 +1024,12 @@ def test(str):
       print "tokens.given.facet_param =", tokens.given.facet_param
     print "tokens.fetching_stored =", tokens.fetching_stored
   except ParseException as err:
+    # print " " * (err.loc + 2) + "^\n" + err.msg
+    pass
+  except ParseSyntaxException as err:
+    # print " " * (err.loc + 2) + "^\n" + err.msg
+    pass
+  except ParseFatalException as err:
     # print " " * (err.loc + 2) + "^\n" + err.msg
     pass
   finally:
@@ -1848,6 +1863,10 @@ def main(argv):
     except EOFError:
       break
     except ParseException as err:
+      print " " * (err.loc + 2) + "^\n" + err.msg
+    except ParseSyntaxException as err:
+      print " " * (err.loc + 2) + "^\n" + err.msg
+    except ParseFatalException as err:
       print " " * (err.loc + 2) + "^\n" + err.msg
     except SenseiClientError as err:
       print err

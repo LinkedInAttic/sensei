@@ -262,7 +262,7 @@ class TestBQL(unittest.TestCase):
     try:
       req = SenseiRequest(stmt)
       intactFlag = False
-    except ParseException as err:
+    except ParseSyntaxException as err:
       pass
     finally:
       self.assertTrue(intactFlag)
