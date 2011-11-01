@@ -1,34 +1,28 @@
 type=java
 job.class=com.sensei.indexing.hadoop.demo.CarDemo
 
-num.map.tasks=10
 mapreduce.job.maps=2
 sensei.num.shards=3
 
 mapred.job.name=CarDemoShardedIndexing
 
 # if the output.path already exists, delete it first
-force.output.overwrite=true
-
-
-##################################################################################################  
-######################################   Configure Things Below   ################################
-##################################################################################################
+sensei.force.output.overwrite=true
 
 #############   path of schema for interpreter #############
 
 ##### TextJSON schema Sample (car demo) absolute path ######
-schema.file.url=conf/schema.xml
+sensei.schema.file.url=conf/schema.xml
 
 ############    Input and Output  ##################
 
 ####### Text JSON data (car demo) #####
 read.lock=data/cars.json
-mapreduce.input.fileinputformat.inputdir=data/cars.json
+sensei.input.dirs=data/cars.json
 
 ######## Output configuration ######
 write.lock=example/hadoop-indexing/output
-mapreduce.output.fileoutputformat.outputdir=example/hadoop-indexing/fileoutput
+sensei.output.dir=example/hadoop-indexing/fileoutput
 
 ######## Index output location ######
 sensei.index.path=example/hadoop-indexing/index
@@ -47,7 +41,4 @@ sensei.mapinput.converter=com.sensei.indexing.hadoop.demo.CarMapInputConverter
 sensei.document.analyzer=org.apache.lucene.analysis.standard.StandardAnalyzer
 sensei.document.analyzer.version=LUCENE_30
 
-##################################################################################################  
-######################################   Configure Things Above   ################################
-##################################################################################################
 

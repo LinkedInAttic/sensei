@@ -44,11 +44,11 @@ public class MapReduceJob extends Configured {
 		    Path[] inputPaths;
 		    Path outputPath;
 		    Shard[] shards = null;
-			int numMapTasks = conf.getInt("mapreduce.job.maps", 2);
+			int numMapTasks = conf.getInt(MRJobConfig.NUM_MAPS, 2);
 			int numShards = conf.getInt(SenseiJobConfig.NUM_SHARDS, 2);
 //			inputPaths = FileInputFormat.getInputPaths(jobConf);
 			
-		    String dirs = conf.get("mapreduce.input.fileinputformat.inputdir", null);
+		    String dirs = conf.get(SenseiJobConfig.INPUT_DIRS, null);
 		    logger.info("dirs:"+ dirs);
 		    String [] list = StringUtils.split(dirs);
 		    logger.info("length after split:"+ list.length);
@@ -58,14 +58,16 @@ public class MapReduceJob extends Configured {
 		    }
 		    logger.info("path[0] is:" + inputPaths[0]);
 		    	    
-			outputPath = new Path(conf.get("mapreduce.output.fileoutputformat.outputdir"));
+			outputPath = new Path(conf.get(SenseiJobConfig.OUTPUT_DIR));
 			String indexPath = conf.get(SenseiJobConfig.INDEX_PATH);
 			shards = createShards(indexPath, numShards, conf);
 			
 		    FileSystem fs = FileSystem.get(conf);
 		    String username = conf.get("hadoop.job.ugi");
-		    if (fs.exists(outputPath) && conf.getBoolean("force.output.overwrite", false))
+		    if (fs.exists(outputPath) && conf.getBoolean(SenseiJobConfig.FORCE_OUTPUT_OVERWRITE, false))
 		        fs.delete(outputPath, true);
+		    if (fs.exists(new Path(indexPath)) && conf.getBoolean(SenseiJobConfig.FORCE_OUTPUT_OVERWRITE, false))
+		        fs.delete(new Path(indexPath), true);
 			
 			
 		    // set the starting generation for each shard
@@ -87,11 +89,11 @@ public class MapReduceJob extends Configured {
 		    //always using compound file format to speed up;
 		    conf.setBoolean(SenseiJobConfig.USE_COMPOUND_FILE, true);
 		    
-		    String schemaFile = conf.get("schema.file.url");
+		    String schemaFile = conf.get(SenseiJobConfig.SCHEMA_FILE_URL);
 		    if(schemaFile == null)
 		    	throw new IOException("no schema file is found");
 		    else{
-		    	logger.info("Adding schema file: " + conf.get("schema.file.url"));	      
+		    	logger.info("Adding schema file: " + conf.get(SenseiJobConfig.SCHEMA_FILE_URL));	      
 				DistributedCache.addCacheFile(new URI(schemaFile), conf);
 		    }
 

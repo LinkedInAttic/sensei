@@ -157,13 +157,13 @@ public class SenseiMapper extends MapReduceBase implements Mapper<Object, Object
 	private void setSchema(JobConf conf) throws Exception {
 
 		String _schema_uri = null;
-		String metadataFileName = conf.get("schema.file.url");
+		String metadataFileName = conf.get(SenseiJobConfig.SCHEMA_FILE_URL);
 		
 		Path[] localFiles = DistributedCache.getLocalCacheFiles(conf);
 		if (localFiles != null) {
 		  for (int i = 0; i < localFiles.length; i++) {
 			  String strFileName = localFiles[i].toString();
-			  if (strFileName.contains(conf.get("schema.file.url"))) {
+			  if (strFileName.contains(conf.get(SenseiJobConfig.SCHEMA_FILE_URL))) {
 				  metadataFileName = strFileName;
 				  break;
 			  }
