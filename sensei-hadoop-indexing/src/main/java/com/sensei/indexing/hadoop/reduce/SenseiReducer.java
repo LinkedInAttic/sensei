@@ -38,7 +38,7 @@ public class SenseiReducer extends MapReduceBase implements
         //debug:
         logger.info("filesystem is: "+ fs.getName());
         String temp =
-            mapredTempDir + Path.SEPARATOR + "shard_" + System.currentTimeMillis();
+            mapredTempDir + Path.SEPARATOR + "shard_" + key.toFlatString()+ "_" + System.currentTimeMillis();
         logger.info("mapredTempDir is: "+ mapredTempDir);
         final ShardWriter writer = new ShardWriter(fs, key, temp, iconf);
 

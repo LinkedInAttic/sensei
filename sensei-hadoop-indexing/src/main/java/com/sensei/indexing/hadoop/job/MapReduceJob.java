@@ -85,6 +85,11 @@ public class MapReduceJob extends Configured {
 		    
 		    // set the temp dir for the job;
 		    conf.set(MRConfig.TEMP_DIR, "${mapred.child.tmp}/hindex/");
+		    if (fs.exists(new Path(conf.get(MRConfig.TEMP_DIR))))
+		        fs.delete(new Path(conf.get(MRConfig.TEMP_DIR)), true);
+		    if(fs.exists(new Path("./tmp")))
+		    	fs.delete(new Path("./tmp"), true);
+		    
 		    
 		    //always using compound file format to speed up;
 		    conf.setBoolean(SenseiJobConfig.USE_COMPOUND_FILE, true);
@@ -127,6 +132,7 @@ public class MapReduceJob extends Configured {
 		    logger.info(shards.length + " shards = " + conf.get(SenseiJobConfig.INDEX_SHARDS));
 		    logger.info("mapred.input.format.class = "
 		        + jobConf.getInputFormat().getClass().getName());
+		    logger.info("mapreduce.cluster.temp.dir = " + jobConf.get(MRConfig.TEMP_DIR));
 
 		    // set by the system
 		    jobConf.setMapOutputKeyClass(Shard.class);

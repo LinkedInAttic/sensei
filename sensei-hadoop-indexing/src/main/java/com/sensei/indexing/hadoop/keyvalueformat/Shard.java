@@ -159,6 +159,13 @@ public class Shard implements WritableComparable {
   public String toString() {
     return version + "@" + dir + "@" + gen;
   }
+  
+  public String toFlatString(){
+	  String dirPath = dir.replace("/", "_");
+	  String flatString = version + "_" + dirPath + "_" + gen;
+	  flatString = flatString.replace("@", "_");
+	  return flatString;
+  }
 
   // ///////////////////////////////////
   // Writable
