@@ -66,7 +66,7 @@ public class SenseiMapper extends MapReduceBase implements Mapper<Object, Object
 
         JSONObject json = null;
     	try{
-    		json = _converter.getJsonInput(key, value);
+    		json = _converter.getJsonInput(key, value, _conf);
     		json = _converter.doFilter(json);
     	}catch(Exception e){
     		throw new IllegalStateException("data conversion or filtering failed inside mapper.");
@@ -101,7 +101,7 @@ public class SenseiMapper extends MapReduceBase implements Mapper<Object, Object
 		            // insert into one shard
 		            output.collect(_shards[chosenShard], form);
 		          } else {
-		            throw new IOException("Chosen shard for insert must be >= 0");
+		            throw new IOException("Chosen shard for insert must be >= 0. current shard is: " + chosenShard);
 		          }
     	      }
     	}

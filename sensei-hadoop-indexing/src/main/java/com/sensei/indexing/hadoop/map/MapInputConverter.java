@@ -1,5 +1,6 @@
 package com.sensei.indexing.hadoop.map;
 
+import org.apache.hadoop.conf.Configuration;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -14,7 +15,7 @@ public abstract class MapInputConverter extends JsonFilter   {
 	 * @return  A JSONObject converted from the map input record;
 	 * @throws JSONException
 	 */
-	public abstract JSONObject getJsonInput(Object key, Object value) throws JSONException;
+	public abstract JSONObject getJsonInput(Object key, Object value, Configuration conf) throws JSONException;
 	
 	
 	@Override
