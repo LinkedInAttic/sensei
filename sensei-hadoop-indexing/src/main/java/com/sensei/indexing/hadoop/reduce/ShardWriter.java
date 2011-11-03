@@ -18,27 +18,26 @@
 
 package com.sensei.indexing.hadoop.reduce;
 
+import java.io.File;
 import java.io.IOException;
-import java.util.List;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.fs.PathFilter;
+import org.apache.hadoop.fs.Trash;
 import org.apache.log4j.Logger;
 import org.apache.lucene.index.CorruptIndexException;
-import org.apache.lucene.index.IndexCommit;
-import org.apache.lucene.index.IndexDeletionPolicy;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriter.MaxFieldLength;
 import org.apache.lucene.index.KeepOnlyLastCommitDeletionPolicy;
 import org.apache.lucene.store.Directory;
+import org.apache.lucene.store.FSDirectory;
 
 import com.sensei.indexing.hadoop.keyvalueformat.IntermediateForm;
 import com.sensei.indexing.hadoop.keyvalueformat.Shard;
-import com.sensei.indexing.hadoop.util.LuceneUtil;
 import com.sensei.indexing.hadoop.util.LuceneIndexFileNameFilter;
+import com.sensei.indexing.hadoop.util.LuceneUtil;
 import com.sensei.indexing.hadoop.util.SenseiJobConfig;
 
 /**
@@ -54,10 +53,12 @@ public class ShardWriter {
   private final FileSystem localFs;
   private final Path perm;
   private final Path temp;
-  private final Directory dir;
+//  private final Directory dir;
   private final IndexWriter writer;
   private int maxNumSegments;
   private long numForms = 0;
+  
+  private Configuration iconf;
 
   /**
    * Constructor
@@ -67,31 +68,44 @@ public class ShardWriter {
    * @param iconf
    * @throws IOException
    */
-  public ShardWriter(FileSystem fs, Shard shard, String tempDir,
+  public ShardWriter(FileSystem fs, Shard shard,   String tempDir,
       Configuration iconf) throws IOException {
 	  logger.info("Construct a shard writer");
 
+	this.iconf = iconf;
     this.fs = fs;
     localFs = FileSystem.getLocal(iconf);
     perm = new Path(shard.getDirectory());
     temp = new Path(tempDir);
 
     long initGeneration = shard.getGeneration();
+    
+    if(localFs.exists(temp)) {
+    	File tempFile = new File(temp.getName());
+    	if(tempFile.exists())
+    		SenseiReducer.deleteDir(tempFile);
+    }
+    
     if (!fs.exists(perm)) {
       assert (initGeneration < 0);
       fs.mkdirs(perm);
     } else {
-      restoreGeneration(fs, perm, initGeneration);
+      moveToTrash(iconf, perm);
+      fs.mkdirs(perm);
+//      restoreGeneration(fs, perm, initGeneration);
     }
-    dir =  //new FileSystemDirectory(fs, perm, false, iconf.getConfiguration());
-        new MixedDirectory(fs, perm, localFs, fs.startLocalOutput(perm, temp),
-            iconf);
+//    dir =  //new FileSystemDirectory(fs, perm, false, iconf.getConfiguration());
+//        new MixedDirectory(fs, perm, localFs, fs.startLocalOutput(perm, temp),
+//            iconf);
 
     // analyzer is null because we only use addIndexes, not addDocument
-    writer =
-        new IndexWriter(dir, null, 
-        		initGeneration < 0 ? new KeepOnlyLastCommitDeletionPolicy() : new MixedDeletionPolicy(), 
-        				MaxFieldLength.UNLIMITED);
+//    writer =
+//        new IndexWriter(dir, null, 
+//        		initGeneration < 0 ? new KeepOnlyLastCommitDeletionPolicy() : new MixedDeletionPolicy(), 
+//        				MaxFieldLength.UNLIMITED);
+
+//    writer =  new IndexWriter(dir, null, new KeepOnlyLastCommitDeletionPolicy(), MaxFieldLength.UNLIMITED);
+    writer = new IndexWriter(FSDirectory.open(new File(tempDir)), null, new KeepOnlyLastCommitDeletionPolicy(), MaxFieldLength.UNLIMITED);
     setParameters(iconf);
 //    dir = null;
 //    writer = null;
@@ -134,7 +148,7 @@ public class ShardWriter {
       logger.info("Moved new index files to " + perm);
 
     } finally {
-      dir.close();
+//      dir.close();
       logger.info("Closed the shard writer");
     }
   }
@@ -166,75 +180,109 @@ public class ShardWriter {
   // and the segments_N files whose generations are greater than the
   // starting generation; rest of the unwanted files will be deleted
   // once the unwanted segments_N files are deleted
-  private void restoreGeneration(FileSystem fs, Path perm, long startGen)
-      throws IOException {
-
-    FileStatus[] fileStatus = fs.listStatus(perm, new PathFilter() {
-      public boolean accept(Path path) {
-        return LuceneUtil.isSegmentsFile(path.getName());
-      }
-    });
-
-    // remove the segments_N files whose generation are greater than
-    // the starting generation
-    for (int i = 0; i < fileStatus.length; i++) {
-      Path path = fileStatus[i].getPath();
-      if (startGen < LuceneUtil.generationFromSegmentsFileName(path.getName())) {
-        fs.delete(path, true);
-      }
-    }
-
-    // always remove segments.gen in case last failed try removed segments_N
-    // but not segments.gen, and segments.gen will be overwritten anyway.
-    Path segmentsGenFile = new Path(LuceneUtil.IndexFileNames.SEGMENTS_GEN);
-    if (fs.exists(segmentsGenFile)) {
-      fs.delete(segmentsGenFile, true);
-    }
-  }
+//  private void restoreGeneration(FileSystem fs, Path perm, long startGen)
+//      throws IOException {
+//
+//    FileStatus[] fileStatus = fs.listStatus(perm, new PathFilter() {
+//      public boolean accept(Path path) {
+//        return LuceneUtil.isSegmentsFile(path.getName());
+//      }
+//    });
+//
+//    // remove the segments_N files whose generation are greater than
+//    // the starting generation
+//    for (int i = 0; i < fileStatus.length; i++) {
+//      Path path = fileStatus[i].getPath();
+//      if (startGen < LuceneUtil.generationFromSegmentsFileName(path.getName())) {
+//        fs.delete(path, true);
+//      }
+//    }
+//
+//    // always remove segments.gen in case last failed try removed segments_N
+//    // but not segments.gen, and segments.gen will be overwritten anyway.
+//    Path segmentsGenFile = new Path(LuceneUtil.IndexFileNames.SEGMENTS_GEN);
+//    if (fs.exists(segmentsGenFile)) {
+//      fs.delete(segmentsGenFile, true);
+//    }
+//  }
 
   // move the files created in the temp dir into the perm dir
   // and then delete the temp dir from the local FS
-  private void moveFromTempToPerm() throws IOException {
-    try {
-      FileStatus[] fileStatus =
-          localFs.listStatus(temp, LuceneIndexFileNameFilter.getFilter());
-      Path segmentsPath = null;
-      Path segmentsGenPath = null;
-
-      // move the files created in temp dir except segments_N and segments.gen
-      for (int i = 0; i < fileStatus.length; i++) {
-        Path path = fileStatus[i].getPath();
-        String name = path.getName();
-
-        if (LuceneUtil.isSegmentsGenFile(name)) {
-          assert (segmentsGenPath == null);
-          segmentsGenPath = path;
-        } else if (LuceneUtil.isSegmentsFile(name)) {
-          assert (segmentsPath == null);
-          segmentsPath = path;
-        } else {
-          fs.completeLocalOutput(new Path(perm, name), path);
-        }
-      }
-
-      // move the segments_N file
-      if (segmentsPath != null) {
-        fs.completeLocalOutput(new Path(perm, segmentsPath.getName()),
-            segmentsPath);
-      }
-
-      // move the segments.gen file
-      if (segmentsGenPath != null) {
-        fs.completeLocalOutput(new Path(perm, segmentsGenPath.getName()),
-            segmentsGenPath);
-      }
-    } finally {
-      // finally delete the temp dir (files should have been deleted)
-      localFs.delete(temp, true);
-    }
-  }
+//  private void moveFromTempToPerm() throws IOException {
+//    try {
+//      FileStatus[] fileStatus =
+//          localFs.listStatus(temp, LuceneIndexFileNameFilter.getFilter());
+//      Path segmentsPath = null;
+//      Path segmentsGenPath = null;
+//
+//      // move the files created in temp dir except segments_N and segments.gen
+//      for (int i = 0; i < fileStatus.length; i++) {
+//        Path path = fileStatus[i].getPath();
+//        String name = path.getName();
+//
+//        if (LuceneUtil.isSegmentsGenFile(name)) {
+//          assert (segmentsGenPath == null);
+//          segmentsGenPath = path;
+//        } else if (LuceneUtil.isSegmentsFile(name)) {
+//          assert (segmentsPath == null);
+//          segmentsPath = path;
+//        } else {
+//          fs.completeLocalOutput(new Path(perm, name), path);
+//        }
+//      }
+//
+//      // move the segments_N file
+//      if (segmentsPath != null) {
+//        fs.completeLocalOutput(new Path(perm, segmentsPath.getName()),
+//            segmentsPath);
+//      }
+//
+//      // move the segments.gen file
+//      if (segmentsGenPath != null) {
+//        fs.completeLocalOutput(new Path(perm, segmentsGenPath.getName()),
+//            segmentsGenPath);
+//      }
+//    } finally {
+//      // finally delete the temp dir (files should have been deleted)
+//      localFs.delete(temp, true);
+//    }
+//  }
   
-  public void optimize(){
+  private void moveFromTempToPerm() throws IOException {
+
+	  FileStatus[] fileStatus = localFs.listStatus(temp, LuceneIndexFileNameFilter.getFilter());
+
+
+	      // move the files created in temp dir except segments_N and segments.gen
+	      for (int i = 0; i < fileStatus.length; i++) {
+	        Path path = fileStatus[i].getPath();
+	        String name = path.getName();
+
+//	        if (fs.exists(new Path(perm, name))) {
+//	        	  moveToTrash(iconf, perm);
+//	        } 
+//	        
+//	        fs.copyFromLocalFile(path, new Path(perm, name));
+	        
+	        try{
+	        if (!fs.exists(new Path(perm, name))) {
+	        	fs.copyFromLocalFile(path, new Path(perm, name));
+	        }else{
+	        	moveToTrash(iconf, perm);
+	        	fs.copyFromLocalFile(path, new Path(perm, name));
+	        }
+	        }catch(Exception e)
+	        {
+	        	;
+	        }
+	        
+	        
+	      }
+
+	  }
+  
+
+public void optimize(){
 	  try {
 		writer.optimize();
 	} catch (CorruptIndexException e) {
@@ -245,23 +293,33 @@ public class ShardWriter {
   }
   
   
-  static class MixedDeletionPolicy implements IndexDeletionPolicy {
+//  static class MixedDeletionPolicy implements IndexDeletionPolicy {
+//
+//	  private int keepAllFromInit = 0;
+//
+//	  public void onInit(List commits) throws IOException {
+//	    keepAllFromInit = commits.size();
+//	  }
+//
+//	  public void onCommit(List commits) throws IOException {
+//	    int size = commits.size();
+//	    assert (size > keepAllFromInit);
+//	    // keep all from init and the latest, delete the rest
+//	    for (int i = keepAllFromInit; i < size - 1; i++) {
+//	      ((IndexCommit) commits.get(i)).delete();
+//	    }
+//	  }
+//
+//	}
 
-	  private int keepAllFromInit = 0;
-
-	  public void onInit(List commits) throws IOException {
-	    keepAllFromInit = commits.size();
-	  }
-
-	  public void onCommit(List commits) throws IOException {
-	    int size = commits.size();
-	    assert (size > keepAllFromInit);
-	    // keep all from init and the latest, delete the rest
-	    for (int i = keepAllFromInit; i < size - 1; i++) {
-	      ((IndexCommit) commits.get(i)).delete();
-	    }
-	  }
-
-	}
-
+  public static void moveToTrash(Configuration conf,Path path) throws IOException
+  {
+       Trash t=new Trash(conf);
+       boolean isMoved=t.moveToTrash(path);
+       t.expunge();
+       if(!isMoved)
+       {
+    	   logger.error("Trash is not enabled or file is already in the trash.");
+       }
+  }
 }

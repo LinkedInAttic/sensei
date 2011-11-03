@@ -1,5 +1,6 @@
 package com.sensei.indexing.hadoop.reduce;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Iterator;
 
@@ -37,8 +38,7 @@ public class SenseiReducer extends MapReduceBase implements
         FileSystem fs = FileSystem.get(iconf);
         //debug:
         logger.info("filesystem is: "+ fs.getName());
-        String temp =
-            mapredTempDir + Path.SEPARATOR + "shard_" + key.toFlatString()+ "_" + System.currentTimeMillis();
+        String temp = mapredTempDir + Path.SEPARATOR + "shard_" + key.toFlatString()+ "_" + System.currentTimeMillis();
         logger.info("mapredTempDir is: "+ mapredTempDir);
         final ShardWriter writer = new ShardWriter(fs, key, temp, iconf);
 
@@ -89,6 +89,28 @@ public class SenseiReducer extends MapReduceBase implements
       output.collect(key, DONE);
     }
     
+    @Override
+    public void close() throws IOException {
+    	if(mapredTempDir != null){
+    		File file = new File(mapredTempDir);
+    		if(file.exists())
+    			deleteDir(file);
+    	}
+    }
+    
+    static void deleteDir(File file)
+    {
+      if (file == null || !file.exists())
+        return;
+      for (File f : file.listFiles())
+      {
+        if (f.isDirectory())
+          deleteDir(f);
+        else
+          f.delete();
+      }
+      file.delete();
+    }
     
     public void configure(JobConf job) {
         iconf = job;

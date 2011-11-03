@@ -147,6 +147,7 @@ public class MapReduceJob extends Configured {
 
 		    jobConf.setOutputFormat(IndexUpdateOutputFormat.class);
 
+		    jobConf.setReduceSpeculativeExecution(false);
 		    return jobConf;
 		  }
 	  
