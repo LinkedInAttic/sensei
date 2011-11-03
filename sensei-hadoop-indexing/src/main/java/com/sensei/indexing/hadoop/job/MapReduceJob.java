@@ -12,6 +12,7 @@ import org.apache.hadoop.filecache.DistributedCache;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.Trash;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.FileInputFormat;
 import org.apache.hadoop.mapred.FileOutputFormat;
@@ -90,6 +91,8 @@ public class MapReduceJob extends Configured {
 		    if(fs.exists(new Path("./tmp")))
 		    	fs.delete(new Path("./tmp"), true);
 		    
+		    (new Trash(conf)).expunge();  //empty trash;
+		    
 		    
 		    //always using compound file format to speed up;
 		    conf.setBoolean(SenseiJobConfig.USE_COMPOUND_FILE, true);
@@ -104,7 +107,8 @@ public class MapReduceJob extends Configured {
 
 		    // create the job configuration
 		    JobConf jobConf = new JobConf(conf, MRClass);
-		    jobConf.setJobName(MRClass.getName() + "_"+ System.currentTimeMillis());
+		    if(jobConf.getJobName().length()<1)
+		    	jobConf.setJobName(MRClass.getName() + "_"+ System.currentTimeMillis());
 
 		    // provided by application
 		    FileInputFormat.setInputPaths(jobConf, inputPaths);
