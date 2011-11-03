@@ -9,6 +9,9 @@ mapred.job.name=CarDemoShardedIndexing
 # if the output.path already exists, delete it first
 sensei.force.output.overwrite=true
 
+# adjust this to a small one if mapper number is huge. default is 50Mb =  52428800
+sensei.max.ramsize.bytes=52428800
+
 #############   path of schema for interpreter #############
 
 ##### TextJSON schema Sample (car demo) absolute path ######
