@@ -56,6 +56,7 @@ $(function() {
 
   window.JMXModel = Backbone.Model.extend({
     defaults: {
+      req: {type: 'list'},
       lazy: false,
       jmxBase: 'sensei/admin/jmx/'
     },
