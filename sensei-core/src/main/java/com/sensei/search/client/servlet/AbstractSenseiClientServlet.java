@@ -125,8 +125,8 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
       while((len=ris.read(buffer)) > 0)
       {
         if (!conn.getDoOutput()) {
-          os = conn.getOutputStream();
           conn.setDoOutput(true);
+          os = conn.getOutputStream();
         }
         os.write(buffer, 0, len);
       }
