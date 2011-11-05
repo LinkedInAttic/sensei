@@ -53,7 +53,6 @@ if [ -f $PIDFILE ]; then
   echo "Please check PID" `cat $PIDFILE`
   echo "Make sure the node is shutdown and the file" $PIDFILE "is removed before stating the node"
  else
-  echo "File $PIDFILE does not exists"
   java $JAVA_OPTS $JMX_OPTS $HEAP_OPTS $GC_OPTS -classpath $CLASSPATH  -Dlog.home=$logs $MAIN_CLASS $1  &
   echo $! > ${PIDFILE}
  fi
