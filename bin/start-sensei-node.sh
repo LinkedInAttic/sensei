@@ -55,4 +55,5 @@ if [ -f $PIDFILE ]; then
  else
   java $JAVA_OPTS $JMX_OPTS $HEAP_OPTS $GC_OPTS -classpath $CLASSPATH  -Dlog.home=$logs $MAIN_CLASS $1  &
   echo $! > ${PIDFILE}
+  echo "Sensei node started successfully! Logs are at $logs"
  fi
