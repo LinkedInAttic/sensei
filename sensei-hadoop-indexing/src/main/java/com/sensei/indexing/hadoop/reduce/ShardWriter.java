@@ -37,7 +37,6 @@ import org.apache.lucene.store.FSDirectory;
 import com.sensei.indexing.hadoop.keyvalueformat.IntermediateForm;
 import com.sensei.indexing.hadoop.keyvalueformat.Shard;
 import com.sensei.indexing.hadoop.util.LuceneIndexFileNameFilter;
-import com.sensei.indexing.hadoop.util.LuceneUtil;
 import com.sensei.indexing.hadoop.util.SenseiJobConfig;
 
 /**
@@ -175,78 +174,7 @@ public class ShardWriter {
     logger.info(SenseiJobConfig.MAX_NUM_SEGMENTS + " = " + maxNumSegments);
   }
 
-  // in case a previous reduce task fails, restore the generation to
-  // the original starting point by deleting the segments.gen file
-  // and the segments_N files whose generations are greater than the
-  // starting generation; rest of the unwanted files will be deleted
-  // once the unwanted segments_N files are deleted
-//  private void restoreGeneration(FileSystem fs, Path perm, long startGen)
-//      throws IOException {
-//
-//    FileStatus[] fileStatus = fs.listStatus(perm, new PathFilter() {
-//      public boolean accept(Path path) {
-//        return LuceneUtil.isSegmentsFile(path.getName());
-//      }
-//    });
-//
-//    // remove the segments_N files whose generation are greater than
-//    // the starting generation
-//    for (int i = 0; i < fileStatus.length; i++) {
-//      Path path = fileStatus[i].getPath();
-//      if (startGen < LuceneUtil.generationFromSegmentsFileName(path.getName())) {
-//        fs.delete(path, true);
-//      }
-//    }
-//
-//    // always remove segments.gen in case last failed try removed segments_N
-//    // but not segments.gen, and segments.gen will be overwritten anyway.
-//    Path segmentsGenFile = new Path(LuceneUtil.IndexFileNames.SEGMENTS_GEN);
-//    if (fs.exists(segmentsGenFile)) {
-//      fs.delete(segmentsGenFile, true);
-//    }
-//  }
 
-  // move the files created in the temp dir into the perm dir
-  // and then delete the temp dir from the local FS
-//  private void moveFromTempToPerm() throws IOException {
-//    try {
-//      FileStatus[] fileStatus =
-//          localFs.listStatus(temp, LuceneIndexFileNameFilter.getFilter());
-//      Path segmentsPath = null;
-//      Path segmentsGenPath = null;
-//
-//      // move the files created in temp dir except segments_N and segments.gen
-//      for (int i = 0; i < fileStatus.length; i++) {
-//        Path path = fileStatus[i].getPath();
-//        String name = path.getName();
-//
-//        if (LuceneUtil.isSegmentsGenFile(name)) {
-//          assert (segmentsGenPath == null);
-//          segmentsGenPath = path;
-//        } else if (LuceneUtil.isSegmentsFile(name)) {
-//          assert (segmentsPath == null);
-//          segmentsPath = path;
-//        } else {
-//          fs.completeLocalOutput(new Path(perm, name), path);
-//        }
-//      }
-//
-//      // move the segments_N file
-//      if (segmentsPath != null) {
-//        fs.completeLocalOutput(new Path(perm, segmentsPath.getName()),
-//            segmentsPath);
-//      }
-//
-//      // move the segments.gen file
-//      if (segmentsGenPath != null) {
-//        fs.completeLocalOutput(new Path(perm, segmentsGenPath.getName()),
-//            segmentsGenPath);
-//      }
-//    } finally {
-//      // finally delete the temp dir (files should have been deleted)
-//      localFs.delete(temp, true);
-//    }
-//  }
   
   private void moveFromTempToPerm() throws IOException {
 
@@ -282,35 +210,16 @@ public class ShardWriter {
 	  }
   
 
-public void optimize(){
-	  try {
-		writer.optimize();
-	} catch (CorruptIndexException e) {
-		logger.error("Corrupt Index error. ", e);
-	} catch (IOException e) {
-		logger.error("IOException during index optimization. ", e);
+	public void optimize() {
+		try {
+			writer.optimize();
+		} catch (CorruptIndexException e) {
+			logger.error("Corrupt Index error. ", e);
+		} catch (IOException e) {
+			logger.error("IOException during index optimization. ", e);
+		}
 	}
-  }
   
-  
-//  static class MixedDeletionPolicy implements IndexDeletionPolicy {
-//
-//	  private int keepAllFromInit = 0;
-//
-//	  public void onInit(List commits) throws IOException {
-//	    keepAllFromInit = commits.size();
-//	  }
-//
-//	  public void onCommit(List commits) throws IOException {
-//	    int size = commits.size();
-//	    assert (size > keepAllFromInit);
-//	    // keep all from init and the latest, delete the rest
-//	    for (int i = keepAllFromInit; i < size - 1; i++) {
-//	      ((IndexCommit) commits.get(i)).delete();
-//	    }
-//	  }
-//
-//	}
 
   public static void moveToTrash(Configuration conf,Path path) throws IOException
   {

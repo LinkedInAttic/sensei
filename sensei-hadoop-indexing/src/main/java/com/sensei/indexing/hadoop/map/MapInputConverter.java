@@ -12,6 +12,7 @@ public abstract class MapInputConverter extends JsonFilter   {
 	/**
 	 * @param key  key as mapper input;
 	 * @param value   value as mapper input;
+	 * @param conf   conf as the Job Configuration;
 	 * @return  A JSONObject converted from the map input record;
 	 * @throws JSONException
 	 */

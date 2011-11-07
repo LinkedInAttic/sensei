@@ -10,6 +10,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.filecache.DistributedCache;
 import org.apache.hadoop.fs.Path;
@@ -69,7 +70,8 @@ public class SenseiMapper extends MapReduceBase implements Mapper<Object, Object
     		json = _converter.getJsonInput(key, value, _conf);
     		json = _converter.doFilter(json);
     	}catch(Exception e){
-    		throw new IllegalStateException("data conversion or filtering failed inside mapper.");
+    		ExceptionUtils.printRootCauseStackTrace(e);
+    		throw new IllegalStateException("data conversion or filtering failed inside mapper. \n");
     	}
     	
     	
