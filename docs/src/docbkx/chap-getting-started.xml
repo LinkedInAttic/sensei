@@ -114,7 +114,7 @@
         <para>
           Using the sample configuration file in <code>zookeeper-3.2.0/conf</code> by copying
           <code>zookeeper-3.2.0/conf/zoo_sample.cfg</code> to <code>zookeeper-3.2.0/conf/zoo.cfg</code> and
-          start an instance of zookeeper by running
+          start an instance of ZooKeeper by running
         </para>
         <programlisting><![CDATA[  $ zookeeper-3.2.0/bin/zkServer.sh start]]></programlisting>
         <para>
@@ -162,15 +162,14 @@
         <para>When a Sensei node is started, a RESTful end-point along
         with a web interactive client would be started as well:</para>
 
-        <itemizedlist spacing="compact">
+        <itemizedlist>
           <listitem>
-            <para>RESTful end-point: <link
-            xlink:href="http://localhost:8080/sensei?q=">http://localhost:8080/sensei?q=</link>
-            </para>
+            <para>RESTful end-point:</para>
+            <programlisting>  http://localhost:8080/sensei?q=</programlisting>
           </listitem>
           <listitem>
-            <para>Web client: <link xlink:href="http://localhost:8080">http://localhost:8080</link>
-            </para>
+            <para>Web client</para>
+            <programlisting>  http://localhost:8080</programlisting>
           </listitem>
         </itemizedlist>
 
@@ -184,10 +183,9 @@
 
         <programlisting>  $ bin/sensei-client.sh client-conf</programlisting>
 
-        <para>to start a client. (Edit
+        <para>to start a client.  You can edit
         <literal>client-conf/sensei-client.conf</literal> to change the
-        properties)
-        </para>
+        properties.</para>
 
         <para>
           Type help to see command list:

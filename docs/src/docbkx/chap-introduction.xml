@@ -53,7 +53,7 @@
           xlink:href="http://zookeeper.apache.org/">http://zookeeper.apache.org/</link>)
           and Netty <indexterm><primary>Netty</primary></indexterm>
           (<link
-          xlink:href="http://www.jboss.org/netty">http://www.jboss.org/netty</link>)
+          xlink:href="http://www.jboss.org/netty">http://www.jboss.org/netty</link>).
           </para>
         </listitem>
     </itemizedlist>
@@ -145,7 +145,7 @@
 
             <listitem>
               <para>Low operational/maintenance costs - Push it, leave it and
-              forget it.</para>
+              forget it</para>
             </listitem>
           </itemizedlist>
         </listitem>
@@ -221,7 +221,8 @@
         </listitem>
 
         <listitem>
-          <para>High query latency with large dataset, esp. Group By</para>
+          <para>High query latency with large dataset, especially for
+          operations like Group By</para>
         </listitem>
 
         <listitem>
@@ -238,11 +239,11 @@
         </listitem>
 
         <listitem>
-          <para>Relaxed Consistency with high durability guarantees</para>
+          <para>Relaxed consistency with high durability guarantees</para>
         </listitem>
 
         <listitem>
-          <para>Data is streamed in, so Atomicity and Isolation is to be
+          <para>Data is streamed in, so atomicity and isolation is to be
           handled by the data producer</para>
         </listitem>
 

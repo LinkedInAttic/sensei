@@ -39,23 +39,20 @@
     <section>
       <title>Run the Demo</title>
 
-      <para>
-        <emphasis role="bold">Build:</emphasis>
-      </para>
-
-      <programlisting>  $ ant</programlisting>
-
-      <para>
-        <emphasis role="bold">Make sure ZooKeeper is running:</emphasis>
-      </para>
-
-      <programlisting>  $ $ZK_home/bin/zkServer.sh start</programlisting>
-
-      <para>
-        <emphasis role="bold">Run:</emphasis>
-      </para>
-
-      <programlisting>  $ ./bin/start-sensei-node conf/</programlisting>
+      <orderedlist>
+        <listitem>
+          <para>Build Sensei:</para>
+          <programlisting>  $ ant</programlisting>
+        </listitem>
+        <listitem>
+          <para>Make sure ZooKeeper is running:</para>
+          <programlisting>  $ $ZK_home/bin/zkServer.sh start</programlisting>    
+        </listitem>
+        <listitem>
+          <para>Run the demo:</para>
+          <programlisting>  $ ./bin/start-sensei-node conf/</programlisting>
+        </listitem>
+      </orderedlist>
     </section>
 
     <section>
@@ -63,18 +60,18 @@
 
       <itemizedlist>
         <listitem>
-          <para>Sensei Web Client: <link
-          xlink:href="http://localhost:8080/">http://localhost:8080/</link></para>
+          <para>Sensei Web Client:</para>
+          <programlisting>  http://localhost:8080/</programlisting>
         </listitem>
 
         <listitem>
-          <para>Demo: <link
-          xlink:href="http://localhost:8080/">http://localhost:8080/</link></para>
+          <para>Demo Page:</para>
+          <programlisting>  http://localhost:8080/demo.html</programlisting>
         </listitem>
 
         <listitem>
-          <para>RESTful End-Point: <link
-          xlink:href="http://localhost:8080/sensei">http://localhost:8080/sensei</link></para>
+          <para>RESTful End-Point:</para>
+          <programlisting>  http://localhost:8080/sensei</programlisting>
         </listitem>
       </itemizedlist>
     </section>
@@ -182,7 +179,7 @@
         </listitem>
         <listitem>
           <para><filename>plugins.xml</filename>: any other plug-ins,
-          e.g. Analyzer, Similarity, Interpreter etc.
+          e.g. Analyzer, Similarity, and Interpreter.
           </para>
         </listitem>
       </itemizedlist>
