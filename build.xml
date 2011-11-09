@@ -1,6 +1,5 @@
 <project name="sensei" default="dist">
 	<target name="init" description="loading jars to repo">
-		<exec executable="./bin/mvn-install.sh"/>
 	</target>
 
 	<target name="clean" description="--> clean build, dist, and logs">
