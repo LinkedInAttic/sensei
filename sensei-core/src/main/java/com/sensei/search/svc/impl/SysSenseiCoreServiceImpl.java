@@ -1,41 +1,27 @@
 package com.sensei.search.svc.impl;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import org.apache.log4j.Logger;
-import org.apache.lucene.search.Query;
-
-import proj.zoie.api.ZoieIndexReader;
-import proj.zoie.api.ZoieIndexReader.SubReaderAccessor;
-import proj.zoie.api.ZoieIndexReader.SubReaderInfo;
-import proj.zoie.mbean.ZoieSystemAdminMBean;
-import proj.zoie.impl.indexing.ZoieSystem;
 
 import com.browseengine.bobo.api.BoboBrowser;
 import com.browseengine.bobo.api.BoboIndexReader;
-import com.browseengine.bobo.api.BrowseException;
-import com.browseengine.bobo.api.BrowseHit;
-import com.browseengine.bobo.api.BrowseRequest;
-import com.browseengine.bobo.api.BrowseResult;
-import com.browseengine.bobo.api.FacetAccessible;
 import com.browseengine.bobo.api.MultiBoboBrowser;
-import com.google.protobuf.Message;
-import com.sensei.search.client.ResultMerger;
+import com.linkedin.norbert.network.JavaSerializer;
+import com.linkedin.norbert.network.Serializer;
 import com.sensei.search.nodes.SenseiCore;
 import com.sensei.search.nodes.SenseiQueryBuilderFactory;
+import com.sensei.search.req.protobuf.SenseiSysReqProtoSerializer;
 import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.req.SenseiSystemInfo;
-import com.sensei.search.req.protobuf.SenseiSysRequestBPO;
-import com.sensei.search.req.protobuf.SenseiSysRequestBPOConverter;
-import com.sensei.search.util.RequestConverter;
 
 public class SysSenseiCoreServiceImpl extends AbstractSenseiCoreService<SenseiRequest, SenseiSystemInfo>{
+	public static final Serializer<SenseiRequest, SenseiSystemInfo> SERIALIZER =
+			JavaSerializer.apply("SenseiSysRequest", SenseiRequest.class, SenseiSystemInfo.class);
+
+	public static final Serializer<SenseiRequest, SenseiSystemInfo> PROTO_SERIALIZER =
+			new SenseiSysReqProtoSerializer();
 
   private static final Logger logger = Logger.getLogger(SysSenseiCoreServiceImpl.class);
   
@@ -89,24 +75,14 @@ public class SysSenseiCoreServiceImpl extends AbstractSenseiCoreService<SenseiRe
     return result;
   }
 
-  @Override
-  public SenseiSystemInfo getEmptyResultInstance(Throwable error) {
-    return new SenseiSystemInfo();
-  } 
-    
-  @Override
-  public Message resultToMessage(SenseiSystemInfo result) {
-    return SenseiSysRequestBPOConverter.convert(result);
-  }
+	@Override
+	public SenseiSystemInfo getEmptyResultInstance(Throwable error) {
+		return new SenseiSystemInfo();
+	}
 
-  @Override
-  public SenseiRequest reqFromMessage(Message req) {
-    return SenseiSysRequestBPOConverter.convert((SenseiSysRequestBPO.SysRequest)req);
-  }
-
-  @Override
-  public Message getEmptyRequestInstance() {
-    return SenseiSysRequestBPO.SysRequest.getDefaultInstance(); 
-  }
+	@Override
+	public Serializer<SenseiRequest, SenseiSystemInfo> getSerializer() {
+		return SERIALIZER;
+	}
 }
 

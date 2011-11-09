@@ -21,8 +21,6 @@ import com.sensei.search.cluster.routing.SenseiLoadBalancerFactory;
 import com.sensei.search.nodes.SenseiRequestScatterRewriter;
 import com.sensei.search.nodes.SenseiZoieFactory;
 import com.sensei.search.nodes.SenseiZoieSystemFactory;
-import com.sensei.search.req.protobuf.SenseiRequestBPO;
-import com.sensei.search.req.protobuf.SenseiResultBPO;
 
 /**
  * @author nnarkhed
@@ -73,7 +71,6 @@ public class AbstractSenseiTestCase extends TestCase {
       else logger.error("Unexpected Exception", e.getCause());
     }
     networkClient = (SenseiNetworkClient)testSpringCtx.getBean("network-client");
-    networkClient.registerRequest(SenseiRequestBPO.Request.getDefaultInstance(), SenseiResultBPO.Result.getDefaultInstance());
     clusterClient = (ClusterClient)testSpringCtx.getBean("cluster-client");
     requestRewriter = (SenseiRequestScatterRewriter)testSpringCtx.getBean("request-rewriter");
     loadBalancerFactory = (SenseiLoadBalancerFactory)testSpringCtx.getBean("router-factory");

@@ -13,21 +13,19 @@ import java.util.List;
 
 import javax.management.StandardMBean;
 
+import com.sensei.search.req.*;
 import org.apache.log4j.Logger;
 import org.mortbay.jetty.Server;
 
 import proj.zoie.api.DataProvider;
 import scala.actors.threadpool.Arrays;
 
-import com.google.protobuf.Message;
 import com.linkedin.norbert.javacompat.cluster.ClusterClient;
 import com.linkedin.norbert.javacompat.cluster.Node;
 import com.linkedin.norbert.javacompat.network.NetworkServer;
 import com.linkedin.norbert.network.NetworkingException;
 import com.sensei.conf.SenseiServerBuilder;
 import com.sensei.search.jmx.JmxUtil;
-import com.sensei.search.req.AbstractSenseiRequest;
-import com.sensei.search.req.AbstractSenseiResult;
 import com.sensei.search.svc.impl.AbstractSenseiCoreService;
 import com.sensei.search.svc.impl.CoreSenseiServiceImpl;
 import com.sensei.search.svc.impl.SenseiCoreServiceMessageHandler;
@@ -167,13 +165,16 @@ public class SenseiServer {
 //    SenseiClusterClientImpl senseiClusterClient = new SenseiClusterClientImpl(clusterName, zookeeperURL, zookeeperTimeout, false);
       SenseiCoreServiceMessageHandler senseiMsgHandler =  new SenseiCoreServiceMessageHandler(coreSenseiService);
       SenseiCoreServiceMessageHandler senseiSysMsgHandler =  new SenseiCoreServiceMessageHandler(sysSenseiCoreService);
-    _networkServer.registerHandler(coreSenseiService.getEmptyRequestInstance(),coreSenseiService.resultToMessage(coreSenseiService.getEmptyResultInstance(null)),senseiMsgHandler);
-    _networkServer.registerHandler(sysSenseiCoreService.getEmptyRequestInstance(),sysSenseiCoreService.resultToMessage(sysSenseiCoreService.getEmptyResultInstance(null)),senseiSysMsgHandler);
-    if (_externalSvc!=null){
+
+      _networkServer.registerHandler(senseiMsgHandler, coreSenseiService.getSerializer());
+      _networkServer.registerHandler(senseiSysMsgHandler, sysSenseiCoreService.getSerializer());
+
+	    _networkServer.registerHandler(senseiMsgHandler, CoreSenseiServiceImpl.PROTO_SERIALIZER);
+	    _networkServer.registerHandler(senseiSysMsgHandler, SysSenseiCoreServiceImpl.PROTO_SERIALIZER);
+
+      if (_externalSvc!=null){
     	for (AbstractSenseiCoreService svc : _externalSvc){
-    		Message req = svc.getEmptyRequestInstance();
-    		Message res = svc.resultToMessage(svc.getEmptyResultInstance(null));
-    		_networkServer.registerHandler(req,res, new SenseiCoreServiceMessageHandler(svc));
+    		_networkServer.registerHandler(new SenseiCoreServiceMessageHandler(svc), svc.getSerializer());
     	}
     }
     HashSet<Integer> partition = new HashSet<Integer>();

@@ -120,8 +120,6 @@ public class TestSensei extends AbstractSenseiTestCase
   return partReaderMap;
   }
   
-  
-  
   static SenseiBroker broker = null;
   static SenseiServer node1;
   static SenseiServer node2;
