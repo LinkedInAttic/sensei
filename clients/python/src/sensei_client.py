@@ -1526,6 +1526,7 @@ class SenseiClient:
     return res
 
 def main(argv):
+  print "Welcome to Sensei Shell"
   from optparse import OptionParser
   usage = "usage: %prog [options]"
   parser = OptionParser(usage=usage)
@@ -1547,10 +1548,12 @@ def main(argv):
 
   if len(args) <= 1:
     client = SenseiClient()
+    print "using default host=localhsot, port=8080"
   else:
     host = args[0]
     port = int(args[1])
     logger.debug("Url specified, host: %s, port: %d" % (host,port))
+    print "Url specified, host: %s, port: %d" % (host,port)
     client = SenseiClient(host, port, 'sensei')
 
   import readline
