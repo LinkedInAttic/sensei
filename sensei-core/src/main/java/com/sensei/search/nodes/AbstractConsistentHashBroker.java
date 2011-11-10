@@ -17,10 +17,10 @@ import javax.management.ObjectName;
 
 import org.apache.log4j.Logger;
 
-import com.google.protobuf.Message;
 import com.linkedin.norbert.NorbertException;
 import com.linkedin.norbert.javacompat.cluster.Node;
 import com.linkedin.norbert.javacompat.network.PartitionedNetworkClient;
+import com.linkedin.norbert.network.Serializer;
 import com.sensei.search.cluster.routing.RoutingInfo;
 import com.sensei.search.cluster.routing.SenseiLoadBalancer;
 import com.sensei.search.jmx.JmxUtil;
@@ -37,14 +37,14 @@ import com.yammer.metrics.reporting.JmxReporter.Counter;
  *
  * @param <REQUEST>
  * @param <RESULT>
- * @param <REQMSG>
- * @param <RESMSG>
  */
-public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSenseiRequest, RESULT extends AbstractSenseiResult, REQMSG extends Message, RESMSG extends Message>
-    extends AbstractSenseiBroker<REQUEST, RESULT, REQMSG, RESMSG>
+public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSenseiRequest, RESULT extends AbstractSenseiResult>
+    extends AbstractSenseiBroker<REQUEST, RESULT>
 {
   private final static Logger logger = Logger.getLogger(AbstractConsistentHashBroker.class);
+
   protected long _timeout = 8000;
+  protected final Serializer<REQUEST, RESULT> _serializer;
   protected volatile SenseiLoadBalancer _loadBalancer;
   
   private final static TimerMetric ScatterTimer = new TimerMetric(TimeUnit.MILLISECONDS,TimeUnit.SECONDS);
@@ -81,27 +81,25 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
   /**
    * @param networkClient
    * @param clusterClient
-   * @param defaultrequest
-   *          a default instance of request message object for protobuf
-   *          registration
-   * @param defaultresult
-   *          a default instance of result message object for protobuf
-   *          registration
    * @param routerFactory
+   * @param serializer
+   *          The serializer used to serialize/deserialize request/response pairs
    * @param scatterGatherHandler
    * @throws NorbertException
    */
-  public AbstractConsistentHashBroker(PartitionedNetworkClient<Integer> networkClient, REQMSG defaultrequest, RESMSG defaultresult)
+  public AbstractConsistentHashBroker(PartitionedNetworkClient<Integer> networkClient, Serializer<REQUEST, RESULT> serializer)
       throws NorbertException
   {
-    super(networkClient, defaultrequest, defaultresult);
+    super(networkClient);
     _loadBalancer = null;
+    _serializer = serializer;
   }
 
-  public abstract REQMSG requestToMessage(REQUEST request);
+	public REQUEST customizeRequest(REQUEST request)
+	{
+		return request;
+	}
 
-  public abstract RESULT messageToResult(RESMSG message);
-  
   protected IntSet getPartitions(Set<Node> nodes)
   {
 	    IntSet partitionSet = new IntOpenHashSet();
@@ -188,7 +186,7 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
     final List<RESULT> resultlist = new ArrayList<RESULT>(parts.length);
     final Map<Integer, Set<Integer>> partsMap = new HashMap<Integer, Set<Integer>>();
     final Map<Integer, Node> nodeMap = new HashMap<Integer, Node>();
-    final Map<Integer, Future<RESMSG>> futureMap = new HashMap<Integer, Future<RESMSG>>();
+    final Map<Integer, Future<RESULT>> futureMap = new HashMap<Integer, Future<RESULT>>();
     
     try{
       ScatterTimer.time(new Callable<Object>(){
@@ -211,25 +209,24 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
 			    for (Map.Entry<Integer, Node> entry : nodeMap.entrySet())
 			    {
 			      req.setPartitions(partsMap.get(entry.getKey()));
-			      REQMSG msg = requestToMessage(req);
-			      if (logger.isDebugEnabled())
+			      REQUEST thisRequest = customizeRequest(req);
+				    if (logger.isDebugEnabled())
 			      {
 			        logger.debug("broker sending req part: " + partsMap.get(entry.getKey()) + " on node: " + entry.getValue());
 			      }
-			      futureMap.put(entry.getKey(), (Future<RESMSG>)_networkClient.sendMessageToNode(msg, entry.getValue()));
+			      futureMap.put(entry.getKey(), (Future<RESULT>)_networkClient.sendRequestToNode(thisRequest, entry.getValue(), _serializer));
 			    }
-			    for(Map.Entry<Integer, Future<RESMSG>> entry : futureMap.entrySet())
+			    for(Map.Entry<Integer, Future<RESULT>> entry : futureMap.entrySet())
 			    { 
-			      RESMSG resp;
+			      RESULT resp;
 			      try
 			      {
 			        resp = entry.getValue().get(_timeout,TimeUnit.MILLISECONDS);
-			        RESULT res = messageToResult(resp);
-			        resultlist.add(res);
+			        resultlist.add(resp);
 			        if (logger.isDebugEnabled())
 			        {
 			          logger.debug("broker receiving res part: " + partsMap.get(entry.getKey()) + " on node: " + nodeMap.get(entry.getKey())
-			              + " node time: " + res.getTime() +"ms remote time: " + (System.currentTimeMillis() - time) + "ms");
+			              + " node time: " + resp.getTime() +"ms remote time: " + (System.currentTimeMillis() - time) + "ms");
 			        }
 			      } catch (Exception e)
 			      {

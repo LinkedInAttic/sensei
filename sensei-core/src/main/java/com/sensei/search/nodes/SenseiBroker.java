@@ -16,6 +16,7 @@ import org.apache.lucene.document.Document;
 
 import com.browseengine.bobo.api.FacetSpec;
 import com.linkedin.norbert.NorbertException;
+import com.linkedin.norbert.network.Serializer;
 import com.linkedin.norbert.javacompat.cluster.ClusterClient;
 import com.linkedin.norbert.javacompat.cluster.Node;
 import com.linkedin.norbert.javacompat.network.PartitionedNetworkClient;
@@ -25,12 +26,8 @@ import com.sensei.search.cluster.routing.SenseiLoadBalancerFactory;
 import com.sensei.search.req.SenseiHit;
 import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.req.SenseiResult;
-import com.sensei.search.req.protobuf.SenseiRequestBPO;
-import com.sensei.search.req.protobuf.SenseiRequestBPO.Request;
-import com.sensei.search.req.protobuf.SenseiRequestBPOConverter;
-import com.sensei.search.req.protobuf.SenseiResultBPO;
-import com.sensei.search.req.protobuf.SenseiResultBPO.Result;
 import com.sensei.search.svc.api.SenseiException;
+import com.sensei.search.svc.impl.CoreSenseiServiceImpl;
 import com.sensei.search.svc.impl.HttpRestSenseiServiceImpl;
 
 /**
@@ -39,16 +36,17 @@ import com.sensei.search.svc.impl.HttpRestSenseiServiceImpl;
  * mechanism to handle distributed search, which does not support request based
  * context sensitive routing.
  */
-public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, SenseiResult, SenseiRequestBPO.Request, SenseiResultBPO.Result>
+public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, SenseiResult>
 {
   private final static Logger logger = Logger.getLogger(SenseiBroker.class);
   private final static long TIMEOUT_MILLIS = 8000L;
   private long _timeoutMillis = TIMEOUT_MILLIS;
   private final SenseiLoadBalancerFactory _loadBalancerFactory;
 
-  public SenseiBroker(PartitionedNetworkClient<Integer> networkClient, ClusterClient clusterClient, SenseiLoadBalancerFactory loadBalancerFactory) throws NorbertException
+  public SenseiBroker(PartitionedNetworkClient<Integer> networkClient, ClusterClient clusterClient,
+                      SenseiLoadBalancerFactory loadBalancerFactory) throws NorbertException
   {
-    super(networkClient,SenseiRequestBPO.Request.getDefaultInstance(), SenseiResultBPO.Result.getDefaultInstance());
+    super(networkClient, CoreSenseiServiceImpl.PROTO_SERIALIZER); //TODO: Switch to the java serializer after upgrade
     _loadBalancerFactory = loadBalancerFactory;
     clusterClient.addListener(this);
     logger.info("created broker instance " + networkClient + " " + clusterClient + " " + loadBalancerFactory);
@@ -121,15 +119,7 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
   {
     return new SenseiResult();
   }
-
-  @Override
-  public SenseiResult messageToResult(Result message)
-  {
-    return SenseiRequestBPOConverter.convert(message);
-  }
   
-  
-
   @Override
   public SenseiResult browse(SenseiRequest req) throws SenseiException {
 	  try{
@@ -144,8 +134,8 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
 	  return super.browse(req);
   }
 
-@Override
-  public Request requestToMessage(SenseiRequest request)
+  @Override
+  public SenseiRequest customizeRequest(SenseiRequest request)
   {
     request.saveState();
 
@@ -163,7 +153,7 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
       }
     }
 
-    return SenseiRequestBPOConverter.convert(request);
+    return request;
   }
 
   @Override
