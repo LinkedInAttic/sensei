@@ -43,9 +43,8 @@ public class CompositeDataConsumer<T> implements DataConsumer<T> {
     return version;
   }
 
-  //@Override
-  //public Comparator<String> getVersionComparator() {
-    //return _versionComparator;
-  //}
-
+  @Override
+  public Comparator<String> getVersionComparator() {
+    return _versionComparator;
+  }
 }

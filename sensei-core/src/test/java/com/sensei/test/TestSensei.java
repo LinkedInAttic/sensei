@@ -54,6 +54,7 @@ public class TestSensei extends AbstractSenseiTestCase
 {
   static File ConfDir1 = new File("src/test/conf/node1");
   static File ConfDir2 = new File("src/test/conf/node2");
+  static File IndexDir = new File("index/test");
 
   private static final Logger logger = Logger.getLogger(TestSensei.class);
 
@@ -106,7 +107,7 @@ public class TestSensei extends AbstractSenseiTestCase
 
   
   public static <T> IndexReaderFactory<ZoieIndexReader<BoboIndexReader>> buildReaderFactory(File file,ZoieIndexableInterpreter<T> interpreter){
-  ZoieSystem<BoboIndexReader,T> zoieSystem = new ZoieSystem<BoboIndexReader,T>(file,interpreter,new SenseiIndexReaderDecorator(),new StandardAnalyzer(Version.LUCENE_30),new DefaultSimilarity(),1000,300000,true,ZoieConfig.DEFAULT_VERSION_COMPARATOR);
+  ZoieSystem<BoboIndexReader,T> zoieSystem = new ZoieSystem<BoboIndexReader,T>(file,interpreter,new SenseiIndexReaderDecorator(),new StandardAnalyzer(Version.LUCENE_34),new DefaultSimilarity(),1000,300000,true,ZoieConfig.DEFAULT_VERSION_COMPARATOR,false);
     zoieSystem.getAdminMBean().setFreshness(50);
     zoieSystem.start();
   return zoieSystem;
@@ -132,8 +133,35 @@ public class TestSensei extends AbstractSenseiTestCase
   static Server httpServer1;
   static Server httpServer2;
 
+  static boolean rmrf(File f)
+  {
+    if (f != null)
+    {
+      if (f.isDirectory())
+      {
+        for (File sub : f.listFiles())
+        {
+          if (!rmrf(sub))
+            return false;
+        }
+      }
+      else
+        return f.delete();
+    }
+    return true;
+  }
+
   static
   {
+    // Try to remove pre-existing test index files:
+    try
+    {
+      rmrf(IndexDir);
+    }
+    catch (Exception e)
+    {
+      // Ignore.
+    }
     SenseiServerBuilder senseiServerBuilder1 = null;
     SenseiServerBuilder senseiServerBuilder2 = null;
     try

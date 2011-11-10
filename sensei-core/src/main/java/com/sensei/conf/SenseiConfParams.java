@@ -28,6 +28,9 @@ public interface SenseiConfParams {
 	public static final String SENSEI_INDEXER_TYPE_HOURGLASS = "hourglass";
 	public static final String SENSEI_INDEXER_TYPE_ZOIE = "zoie";
 
+	public static final String SENSEI_INDEXER_COPIER = "sensei.indexer.copier";
+	public static final String SENSEI_INDEXER_COPIER_HDFS = "hdfs";
+
 	public static final String SENSEI_INDEX_ANALYZER = "sensei.index.analyzer";
 	public static final String SENSEI_INDEX_SIMILARITY = "sensei.index.similarity";
 	public static final String SENSEI_INDEX_INTERPRETER = "sensei.index.interpreter";

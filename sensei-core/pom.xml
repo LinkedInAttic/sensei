@@ -122,13 +122,13 @@
 		<dependency>
 			<groupId>com.linkedin.zoie</groupId>
 			<artifactId>zoie-core</artifactId>
-			<version>3.0.0</version>
+			<version>3.1.0-SNAPSHOT</version>
 		</dependency>
 		
 		<dependency>
 			<groupId>com.linkedin.zoie</groupId>
 			<artifactId>zoie-jms</artifactId>
-			<version>3.0.0</version>
+			<version>3.1.0-SNAPSHOT</version>
 		</dependency>
 		
 		<dependency>
@@ -179,7 +179,7 @@
 		<dependency>
 			<groupId>org.apache.lucene</groupId>
 			<artifactId>lucene-core</artifactId>
-			<version>3.0.2</version>
+			<version>3.4.0</version>
 		</dependency>
 
 		<dependency>
@@ -252,6 +252,12 @@
 			<version>6.1.26</version>
 		</dependency>
 		
+    <dependency>
+      <groupId>org.apache.mahout.hadoop</groupId>
+      <artifactId>hadoop-core</artifactId>
+      <version>0.20.1</version>
+    </dependency>
+
 		<dependency>
 			<groupId>org.apache.zookeeper</groupId>
 			<artifactId>zookeeper</artifactId>
