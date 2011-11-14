@@ -136,10 +136,7 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
 
   @Override
   public SenseiRequest customizeRequest(SenseiRequest request)
-  {
-    request.saveState();
-
-    // Rewrite offset and count.
+  {    // Rewrite offset and count.
     request.setCount(request.getOffset()+request.getCount());
     request.setOffset(0);
 

@@ -95,9 +95,13 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
     _serializer = serializer;
   }
 
-	public REQUEST customizeRequest(REQUEST request)
+	public <T> T customizeRequest(REQUEST request)
 	{
-		return request;
+		return null;
+	}
+	
+	public <T> T restoreRequest(REQUEST request,T state){
+		return state;
 	}
 
   protected IntSet getPartitions(Set<Node> nodes)
@@ -209,12 +213,13 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
 			    for (Map.Entry<Integer, Node> entry : nodeMap.entrySet())
 			    {
 			      req.setPartitions(partsMap.get(entry.getKey()));
+			      req.saveState();
 			      REQUEST thisRequest = customizeRequest(req);
-				    if (logger.isDebugEnabled())
-			      {
+				  if (logger.isDebugEnabled()){
 			        logger.debug("broker sending req part: " + partsMap.get(entry.getKey()) + " on node: " + entry.getValue());
 			      }
 			      futureMap.put(entry.getKey(), (Future<RESULT>)_networkClient.sendRequestToNode(thisRequest, entry.getValue(), _serializer));
+			      req.restoreState();
 			    }
 			    for(Map.Entry<Integer, Future<RESULT>> entry : futureMap.entrySet())
 			    { 
