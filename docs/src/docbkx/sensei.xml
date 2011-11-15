@@ -6,7 +6,9 @@
 <!ENTITY chap-indexing SYSTEM "chap-indexing.xml">
 <!ENTITY chap-searching SYSTEM "chap-searching.xml">
 <!ENTITY chap-configuration SYSTEM "chap-configuration.xml">
+
 <!ENTITY chap-bql SYSTEM "chap-bql.xml">
+<!ENTITY chap-hadoop-indexing SYSTEM "chap-hadoop-indexing.xml">
 <!ENTITY chap-faq SYSTEM "chap-faq.xml">
 ]>
 
@@ -47,6 +49,8 @@
   &chap-configuration;
 
   &chap-bql;
+
+  &chap-hadoop-indexing;
 
   &chap-faq;
 
