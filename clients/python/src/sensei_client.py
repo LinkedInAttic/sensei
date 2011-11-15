@@ -457,8 +457,8 @@ NOT_EQUAL = "<>"
 
 select_stmt = Forward()
 
-ident = Word(alphas, alphanums + "_$")
-column_name = ~keyword + Word(alphas, alphanums + "_-")
+ident = Word(alphas, alphanums + "_-.$")
+column_name = ~keyword + Word(alphas, alphanums + "_-.")
 facet_name = column_name.copy()
 column_name_list = Group(delimitedList(column_name))
 
