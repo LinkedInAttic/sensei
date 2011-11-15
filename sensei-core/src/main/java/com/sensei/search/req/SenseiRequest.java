@@ -580,9 +580,7 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable
     {
       qjson.put("query", query);
     }
-
-    JSONObject obj;
-
+    
     sq = new SenseiJSONQuery(qjson);
     return sq;
   }
@@ -759,8 +757,9 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable
 	  req.setFetchStoredFields(fetchStored);
 	  
 	  String[] termVectors = getStrings(json,"termVectors");
-	  req.setTermVectorsToFetch(new HashSet<String>(Arrays.asList(termVectors)));
-	  
+	  if (termVectors!=null && termVectors.length>0){
+	    req.setTermVectorsToFetch(new HashSet<String>(Arrays.asList(termVectors)));
+	  }
 	  int[] partitions = getInts(json,"partitions",0);
 	  if (partitions!=null && partitions.length>0){
 		HashSet<Integer> partSet = new HashSet<Integer>(partitions.length);
@@ -770,7 +769,7 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable
 	    req.setPartitions(partSet);
 	  }
 	  
-	  boolean isExplain = json.optBoolean("termVectors");
+	  boolean isExplain = json.optBoolean("explain",false);
 	  req.setShowExplanation(isExplain);
 	  
 	  String routeParam = json.optString("routeParam",null);

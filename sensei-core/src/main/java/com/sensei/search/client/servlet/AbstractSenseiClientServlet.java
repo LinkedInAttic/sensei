@@ -1,5 +1,6 @@
 package com.sensei.search.client.servlet;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -13,6 +14,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
+import org.json.JSONObject;
 
 import com.linkedin.norbert.javacompat.cluster.ClusterClient;
 import com.linkedin.norbert.javacompat.cluster.ZooKeeperClusterClient;
@@ -20,7 +22,6 @@ import com.linkedin.norbert.javacompat.network.NetworkClientConfig;
 import com.sensei.search.cluster.client.SenseiNetworkClient;
 import com.sensei.search.nodes.SenseiBroker;
 import com.sensei.search.nodes.SenseiSysBroker;
-import com.sensei.search.nodes.impl.NoopRequestScatterRewriter;
 import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.req.SenseiResult;
 import com.sensei.search.req.SenseiSystemInfo;
@@ -155,6 +156,14 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
     }
   }
   
+  private static String readContent(BufferedReader reader) throws IOException{
+	  StringBuilder jb = new StringBuilder();
+      String line = null;
+	  while ((line = reader.readLine()) != null)
+		jb.append(line);
+	  return jb.toString();
+  }
+  
   @Override
   protected void doGet(HttpServletRequest req, HttpServletResponse resp)
       throws ServletException, IOException {
@@ -176,6 +185,33 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
     else if (req.getPathInfo().startsWith("/admin/jmx/"))
     {
       handleJMXRequest(req, resp);
+    }
+    else if ("/query".equalsIgnoreCase(req.getPathInfo())){
+    	try {
+    	  BufferedReader reader = req.getReader();
+    	  String content = readContent(reader);
+    	  JSONObject jsonObj = new JSONObject(content);
+    	  SenseiRequest senseiReq = SenseiRequest.fromJSON(jsonObj);
+    	  SenseiResult res = _senseiBroker.browse(senseiReq);
+    	  OutputStream ostream = resp.getOutputStream();
+    	  convertResult(senseiReq,res,ostream);
+    	  ostream.flush();
+    	} catch (Exception e) {
+    	  throw new ServletException(e.getMessage(),e);
+    	}
+    }
+    else if ("/request".equalsIgnoreCase(req.getPathInfo())){
+    	String jsonString = req.getParameter("json");
+    	try {
+      	  JSONObject jsonObj = new JSONObject(jsonString);
+      	  SenseiRequest senseiReq = SenseiRequest.fromJSON(jsonObj);
+      	  SenseiResult res = _senseiBroker.browse(senseiReq);
+      	  OutputStream ostream = resp.getOutputStream();
+      	  convertResult(senseiReq,res,ostream);
+      	  ostream.flush();
+      	} catch (Exception e) {
+      	  throw new ServletException(e.getMessage(),e);
+      	}
     }
     else
     {
