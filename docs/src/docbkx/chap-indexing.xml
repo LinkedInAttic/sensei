@@ -16,10 +16,10 @@
   <para>If the amount of data is small, and the run-time indexing and
   search rates are not high, then a single Sensei node may be all you
   need.  If the amount of data is large and you cannot fit them into one
-  box, however, you have to split the data into multiple shards and
-  store them on a cluster of Sensei nodes, each serving one or multiple
+  box, however, you have to split them into multiple shards and store
+  them on a cluster of Sensei nodes, each serving one or multiple
   shards.  When a user query comes in, Sensei performs the search on all
-  shards and merge the search results from all shards for you
+  shards and merges the search results from all shards for you
   automatically.</para>
 
   <para>If the run-time indexing or search rate is high, network
@@ -64,8 +64,8 @@
     <para>The type of indexing manager is specified via configuration
     parameter <literal>sensei.index.manager</literal>, which is the bean
     ID of the indexing manager object that you use.  When
-    <literal>sensei.index.manager</literal> is not set, Sensei will just
-    use <classname>DefaultStreamingIndexingManager</classname>.</para>
+    <literal>sensei.index.manager</literal> is not set, Sensei just uses
+    <classname>DefaultStreamingIndexingManager</classname>.</para>
 
     <para>Once the indexing manager is selected, the next thing to set
     up is the data gateway.  What data gateway to use depends on how
@@ -142,7 +142,7 @@
     <para>How to split your data into different shards is up to the
     business logic of the application.  Sensei allows you to provide a
     <emphasis>sharding strategy</emphasis> plug-in (see
-    <classname>com.sensei.indexing.api.ShardingStrategy</classname> to
+    <classname>com.sensei.indexing.api.ShardingStrategy</classname>) to
     let the indexing manager know what data should belong to which
     shards.</para>
 
@@ -154,8 +154,8 @@
     the data should be sharded.
     </para>
 
-    <para>If data that does not belong to any partitions on a Sensei
-    node is passed to the indexing manager, it will be discarded.</para>
+    <para>If data that does not belong to any partition on a Sensei node
+    is passed to the indexing manager, it is discarded.</para>
 
   </section>
 
@@ -172,7 +172,8 @@
     <para>In Sensei, failovers of replicas are achieved by ZooKeeper and
     the built-in load balancer implemented based on consistent hashing.
     If one replica is down, the load balancer will be notified by
-    ZooKeeper and new search requests can be sent to a different
+    ZooKeeper, and it will update the replica information maintained
+    internally and route new search requests to a different
     replica.</para>
 
     <para>It is very easy to add a Sensei node to an existing Sensei
@@ -199,7 +200,7 @@
       <mediaobject>
         <imageobject role="fo">
           <imagedata align="center" fileref="figures/index-sharding.svg"
-                     format="SVG" scale="75" valign="middle" />
+                     format="SVG" scale="90" valign="middle" />
         </imageobject>
 
         <imageobject role="html">

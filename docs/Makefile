@@ -12,12 +12,15 @@ XMLFILE=sensei
 # /Users/bcui/Downloads/docbook-xsl-ns/extensions/saxon65.jar is
 # required to process callouts.
 
-export CLASSPATH=.:/Users/bcui/Downloads/saxon6-5-5/saxon.jar:/Users/bcui/Downloads/docbook-xsl-ns/extensions/saxon65.jar:/Users/bcui/Downloads/xslthl-2-1/xslthl-2.0.1.jar:/Users/bcui/Downloads/fop-pdf-images-2.0.0.SNAPSHOT/fop-pdf-images-2.0.0.SNAPSHOT.jar:/Users/bcui/Downloads/fop-pdf-images-2.0.0.SNAPSHOT/pdfbox-0.8.0-incubating.jar
+export CLASSPATH=.:/Users/bcui/Downloads/saxon6-5-5/saxon.jar:/Users/bcui/Downloads/docbook-xsl-ns/extensions/saxon65.jar:/Users/bcui/Downloads/xslthl-2-1/xslthl-2.0.1.jar:/Users/bcui/Downloads/fop-pdf-images-2.0.0/fop-pdf-images-2.0.0.jar:/Users/bcui/Downloads/fop-pdf-images-2.0.0/pdfbox-1.3.1.jar
 HEAP_OPTS=-Xmx1g -Xms1g
 
 .PHONY: all pdf html html-chunk twiki txt install
 
 all: pdf html html-chunk wiki
+
+bql:
+	cd src/docbkx/figures/BQL/; BQL-diagrams.tcl
 
 pdf:
 	cd src/docbkx/; java $(HEAP_OPTS) com.icl.saxon.StyleSheet	\

@@ -358,8 +358,18 @@
           </listitem>
 
           <listitem>
-            <para><emphasis role="bold">custom</emphasis>: any user defined facet type (We will
-            cover this in advanced section)</para>
+            <para><emphasis role="bold">histogram</emphasis><indexterm>
+            <primary>histogram facet handler</primary> </indexterm>:
+            similar to a range facet, but a histogram facet
+            automatically calculates the distribution of facet values
+            over a predefined series of ranges with the same size. (A
+            histogram facet depends on another numeric facet, and it
+            requires several mandatory parameters, see <xref
+            linkend="sect-histogram-parameters"/>.</para>
+          </listitem>
+
+          <listitem>
+            <para><emphasis role="bold">custom</emphasis>: any user defined facet type</para>
           </listitem>
         </itemizedlist>
 
@@ -418,7 +428,7 @@
           </section>
         </section>
 
-        <section>
+        <section xml:id="sect-facet-parameters">
           <title>Parameters</title>
 
           <para>A facet can be configured via a list of parameters.
@@ -458,6 +468,70 @@
       <param name="range" value="2001-2002"/>
     </params>
   <facet>]]></programlisting>
+
+          <section xml:id="sect-histogram-parameters">
+            <title>Parameters for Histogram Facets</title>
+
+            <para>A histogram facet requires 5 parameters:</para>
+
+            <itemizedlist>
+              <listitem>
+                <para><emphasis role="bold">datatype</emphasis>: the
+                data type.  Only the following 5 numeric data types are
+                allowed:</para>
+
+                <orderedlist spacing="compact">
+                  <listitem>
+                    <para>int</para>
+                  </listitem>
+                  <listitem>
+                    <para>short</para>
+                  </listitem>
+                  <listitem>
+                    <para>long</para>
+                  </listitem>
+                  <listitem>
+                    <para>float</para>
+                  </listitem>
+                  <listitem>
+                    <para>double</para>
+                  </listitem>
+                </orderedlist>
+              </listitem>
+              <listitem>
+                <para><emphasis role="bold">datahandler</emphasis>: this
+                is the name of the facet that the histogram facet
+                depends on.  The values of this facet are used to
+                generate the distribution information.</para>
+              </listitem>
+              <listitem>
+                <para><emphasis role="bold">start</emphasis>: the
+                minimum value of the facet.</para>
+              </listitem>
+              <listitem>
+                <para><emphasis role="bold">end</emphasis>: the maximum
+                value of the facet.</para>
+              </listitem>
+              <listitem>
+                <para><emphasis role="bold">unit</emphasis>: the unit
+                value used to divide facet values into ranges.</para>
+              </listitem>
+            </itemizedlist>
+
+            <para>Here is an example configuration for a histogram facet
+            over a facet called <literal>score</literal>:</para>
+
+            <programlisting><![CDATA[  <facet name="scoreHistogram" type="histogram">
+    <params>
+      <param name="datatype" value="int"/>
+      <param name="datahandler" value="score"/>
+      <param name="start" value="0"/>
+      <param name="end" value="100"/>
+      <param name="unit" value="10"/>
+    </params>
+  </facet>]]></programlisting>
+
+          </section>
 
         </section>
 
