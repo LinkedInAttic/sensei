@@ -70,31 +70,112 @@
         "minimum_number_should_match" : 1,
         "boost" : 1.0,
         "disable_coord" : false                      // optional: default = false
-    }
+    },
 
 // dist max
+    "dis_max" : {
+        "tie_breaker" : 0.7,
+        "boost" : 1.2,
+        "queries" : [
+            {
+                "term" : { "age" : 34 }
+            },
+            {
+                "term" : { "age" : 35 }
+            }
+        ]
+    },
 
 // prefix
+   "prefix" : { 
+       "user" : "ki" 
+
+       // or
+       // "user" : {"value" : "ki", "boost" : 2.0 } 
+   },
 
 // wildcard
+   "wildcard" : { 
+       "user" : "ki*y" 
 
+       // or 
+       //user" : { "value" : "ki*y", "boost" : 2.0 } 
+   },
 // range
-
+    "range" : {
+        "age" : { 
+            "from" : 10, 
+            "to" : 20, 
+            "include_lower" : true, 
+            "include_upper": false, 
+            "boost" : 2.0
+        }
+    },
 // filtered
+
+    "filtered" : {
+            // any query object
+        "query" : {
+            "term" : { "tag" : "wow" }
+        },
+           // any filter defined in the filters.json
+        "filter" : {
+            "range" : {
+                "age" : { "from" : 10, "to" : 20 }
+            }
+        }
+    },
 
 // terms
 
+    "terms" : {
+        "tags" : [ "blue", "pill" ],
+        "minimum_match" : 1
+    },
+
 // span term
+    "span_term" : { 
+        "user" : "kimchy" 
 
+     //or
+     // "user" : { "value" : "kimchy", "boost" : 2.0 } 
+    },
 // span or
-
+    "span_or" : {
+        "clauses" : [
+            { "span_term" : { "field" : "value1" } },
+            { "span_term" : { "field" : "value2" } },
+            { "span_term" : { "field" : "value3" } }
+        ]
+    },
 // span not
-
+    "span_not" : {
+        "include" : {
+            "span_term" : { "field1" : "value1" }
+        },
+        "exclude" : {
+            "span_term" : { "field2" : "value2" }
+        }
+    },
 // span near
+    "span_near" : {
+        "clauses" : [
+            { "span_term" : { "field" : "value1" } },
+            { "span_term" : { "field" : "value2" } },
+            { "span_term" : { "field" : "value3" } }
+        ],
+        "slop" : 12,
+        "in_order" : false,
+        "collect_payloads" : false
+    },
 
 // span first
 
-// fuzzy
-
+    "span_first" : {
+        "match" : {
+            "span_term" : { "user" : "kimchy" }
+        },
+        "end" : 3
+    }
 }
 

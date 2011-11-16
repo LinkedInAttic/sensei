@@ -2,9 +2,12 @@
 // example Sensei Request
 {
 	// query
+	// see: queries.json for more examples
 	"query" : {
-		
-		},
+	  "query_string" : { 
+          "query" : "this AND that OR thus"
+      }
+	},
 
     // any other query parameters, we will be reserving some parameter namespaces in the future.
 	"queryParams" :{
@@ -13,10 +16,9 @@
 	},
 
 	// paging parameters
-	"paging" :{
-		"offset" : 0,
-		"count" : 10
-	},
+	"from" : 0,
+
+	"size" : 10,
 	
 	// group by parameters   
 	"groupBy" : {
@@ -66,9 +68,9 @@
 	},
 
 	// sort parameters
-	"sorts":[
-	    {"field":"color","reverse" : true},       // sort by color in reverse order
-	    {"field":"relevance"}                     // secondary sort by relevance, reverse  parameter is ignored
+	"sort":[
+	    "color",{"order" : "desc"},       // sort by color in reverse order
+	    "_score"                     // secondary sort by relevance, reverse  parameter is ignored
 	],
 
     // fetch stored fields

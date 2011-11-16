@@ -1,3 +1,48 @@
 {
-	
+  // id filter
+  
+  "ids" : {
+  	"values" : ["1","4","100"]
+  }	,
+
+  // boolean filter
+  "bool" : {
+        "must" : {
+                 "term" : { "tag" : "wow" }
+        },
+        "must_not" : {
+                 "range" : {
+                 "age" : { "from" : 10, "to" : 20 }
+                 }
+        },
+        "should" : [
+         {
+           "term" : { "tag" : "sometag" }
+         },
+         {
+           "term" : { "tag" : "sometagtag" }
+         }
+         ]
+  },
+
+  // term filter
+   "term" : { "user" : "kimchy"},
+  
+  // query filter
+  // see queries.json for a lis of valid queries
+  "query" : {
+     "query_string" : { 
+          "query" : "this AND that OR thus"
+      }
+  },
+
+  // range filter
+  // see range query
+  "range":{
+    "age" : { 
+            "from" : 10, 
+            "to" : 20
+    }
+  },
 }
+
