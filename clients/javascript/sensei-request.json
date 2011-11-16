@@ -1,8 +1,10 @@
 
 // example Sensei Request
 {
-	// any o' lucene text query
-	"query" : null,
+	// query
+	"query" : {
+		
+		},
 
     // any other query parameters, we will be reserving some parameter namespaces in the future.
 	"queryParams" :{
