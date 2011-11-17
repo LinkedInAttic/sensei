@@ -106,7 +106,8 @@
         "age" : { 
             "from" : 10, 
             "to" : 20, 
-            "boost" : 2.0
+            "boost" : 2.0,
+            "_noOptimize" : false
         }
     },
 // filtered

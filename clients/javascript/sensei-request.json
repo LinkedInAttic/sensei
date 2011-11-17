@@ -28,12 +28,12 @@
             "excludes" : ["red"],
             "minimum_match" : 1,
             "operator" : "or",
-            "noOptimize" : false
+            "_noOptimize" : false
           }
         },
         "term" :{
-          "value" : "red",
-          "noOptimize" : false
+          "color" : "red",
+          "_noOptimize" : false
         },
         "range" : {
           "from" : "",

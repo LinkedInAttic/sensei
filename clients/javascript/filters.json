@@ -26,7 +26,7 @@
   },
 
   // term filter
-   "term" : { "color" : "red","noOptimize" : false},
+   "term" : { "color" : "red","_noOptimize" : false},
   
   // query filter
   // see queries.json for a lis of valid queries
@@ -41,7 +41,7 @@
             "values" : [ "blue", "pill" ],
             "excludes" : ["red"],
             "operator" : "or",
-            "noOptimize" : false
+            "_noOptimize" : false
         }
         // or
         // "tags" : [ "blue", "pill" ], default operator or
@@ -52,7 +52,8 @@
   "range":{
     "age" : { 
             "from" : 10, 
-            "to" : 20
+            "to" : 20,
+            "_noOptimize" : false
     }
   },
 
