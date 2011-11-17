@@ -11,7 +11,6 @@
 
 	// paging parameters
 	"from" : 0,
-
 	"size" : 10,
 	
 	// group by parameters   
