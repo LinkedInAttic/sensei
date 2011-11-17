@@ -4,13 +4,16 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 import org.apache.lucene.search.SortField;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.browseengine.bobo.api.FacetSpec;
+import com.browseengine.bobo.facets.DefaultFacetHandlerInitializerParam;
 import com.sensei.search.req.SenseiRequest;
 
 public class RequestConverter2 {
@@ -69,6 +72,60 @@ public class RequestConverter2 {
 		if (groupBy!=null){
 		  req.setGroupBy(groupBy.optString("column", null));
 		  req.setMaxPerGroup(groupBy.optInt("top", 3));
+		}
+		
+//	  "facetInit":{
+//	    "network" : {
+//	      // parameter
+//	      "srcId" :{
+//	        // parameter type, valid values are: "int","string","boolean","long","bytes","double", default: "string"
+//	        "type" : "int",
+//	        // parameter values
+//	        "values" : ["1234"]
+//	      },
+//	      "param2" : {
+//	          
+//	      }
+//	    }
+//	  },
+		
+		// facetinit
+		JSONObject facetInitParams = json.optJSONObject("facetInit");
+		if(facetInitParams != null){
+		  Iterator<String> keyIter = facetInitParams.keys();
+		  while(keyIter.hasNext()){  
+		    //may have multiple facets;
+		    String facetName = keyIter.next();
+		    DefaultFacetHandlerInitializerParam param = new DefaultFacetHandlerInitializerParam();
+		    
+		    JSONObject jsonParams = facetInitParams.getJSONObject(facetName);
+		    if(jsonParams != null && jsonParams.length()>0){
+		      Iterator<String> paramIter = jsonParams.keys();
+		      while(paramIter.hasNext()){  
+		        //each facet may have multiple parameters to be configured;
+		        String paramName = paramIter.next();
+		        JSONObject jsonParamValues = jsonParams.getJSONObject(paramName);
+		        String type = jsonParamValues.optString("type", "string");
+		        JSONArray jsonValues = jsonParamValues.optJSONArray("values");
+		        if(jsonValues != null){
+		          if(type.equals("int"))
+		            param.putIntParam(paramName, convertJSONToIntArray(jsonValues));
+		          else if(type.equals("string"))
+		            param.putStringParam(paramName, convertJSONToStringArray(jsonValues));
+		          else if(type.equals("boolean"))
+                param.putBooleanParam(paramName, convertJSONToBoolArray(jsonValues));
+		          else if(type.equals("long"))
+                param.putLongParam(paramName, convertJSONToLongArray(jsonValues));
+		          else if(type.equals("bytes"))
+                param.putByteArrayParam(paramName, convertJSONToByteArray(jsonValues));
+		          else if(type.equals("double"))
+                param.putDoubleParam(paramName, convertJSONToDoubleArray(jsonValues));
+		        }
+		      }
+		      req.setFacetHandlerInitializerParam(facetName, param);
+		    }
+		    
+		  }
 		}
 		
 		 // facets
@@ -147,4 +204,101 @@ public class RequestConverter2 {
 		  
 		return req;
 	}
+
+  /**
+   * @param jsonValues
+   * @return
+   * @throws JSONException 
+   */
+  private static double[] convertJSONToDoubleArray(JSONArray jsonArray) throws JSONException
+  {
+    double[] doubleArray = new double[jsonArray.length()];
+    if (jsonArray != null && jsonArray.length()>0) { 
+       for (int i=0;i<jsonArray.length();i++){ 
+         doubleArray[i] = jsonArray.getDouble(i);
+       } 
+    } 
+    return doubleArray;
+  }
+
+  /**
+   * @param jsonValues
+   * @return
+   * @throws JSONException 
+   * @throws NumberFormatException 
+   */
+  private static byte[] convertJSONToByteArray(JSONArray jsonArray) throws NumberFormatException, JSONException
+  {
+    byte[] byteArray = new byte[jsonArray.length()];
+    if (jsonArray != null && jsonArray.length()>0) { 
+       for (int i=0;i<jsonArray.length();i++){ 
+         byteArray[i] = Byte.valueOf( String.valueOf(jsonArray.get(i)) ) ;
+       } 
+    } 
+    return byteArray;
+  }
+
+  /**
+   * @param jsonValues
+   * @return
+   * @throws JSONException 
+   */
+  private static long[] convertJSONToLongArray(JSONArray jsonArray) throws JSONException
+  {
+    long[] longArray = new long[jsonArray.length()];
+    if (jsonArray != null && jsonArray.length()>0) { 
+       for (int i=0;i<jsonArray.length();i++){ 
+         longArray[i] = jsonArray.getLong(i);
+       } 
+    } 
+    return longArray;
+  }
+
+  /**
+   * @param jsonValues
+   * @return
+   * @throws JSONException 
+   */
+  private static boolean[] convertJSONToBoolArray(JSONArray jsonArray) throws JSONException
+  {
+    boolean[] boolArray = new boolean[jsonArray.length()];
+    if (jsonArray != null && jsonArray.length()>0) { 
+       for (int i=0;i<jsonArray.length();i++){ 
+         boolArray[i] = jsonArray.getBoolean(i);
+       } 
+    } 
+    return boolArray;
+  }
+
+  /**
+   * @param jsonValues
+   * @return
+   * @throws JSONException 
+   */
+  private static List<String> convertJSONToStringArray(JSONArray jsonArray) throws JSONException
+  {
+    List<String> arString = new ArrayList<String>();
+    if (jsonArray != null && jsonArray.length()>0) { 
+       for (int i=0;i<jsonArray.length();i++){ 
+         arString.add(jsonArray.getString(i));
+       } 
+    } 
+    return arString;
+  }
+
+  /**
+   * @param jsonValues
+   * @return
+   * @throws JSONException 
+   */
+  private static int[] convertJSONToIntArray(JSONArray jsonArray) throws JSONException
+  {
+    int[] intArray = new int[jsonArray.length()];
+    if (jsonArray != null && jsonArray.length()>0) { 
+       for (int i=0;i<jsonArray.length();i++){ 
+        intArray[i] = jsonArray.getInt(i);
+       } 
+    } 
+    return intArray;
+  }
 }
