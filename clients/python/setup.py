@@ -7,7 +7,7 @@ except ImportError:
   sys.exit(1)
 
 setup(
-  name          = 'sensei',
+  name          = 'sensei-python',
   version       = '1.0',
   description   = 'Sensei client library',
   author        = 'senseidb.com',
