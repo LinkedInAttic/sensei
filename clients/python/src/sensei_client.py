@@ -133,6 +133,7 @@ PARAM_RESULT_FACET_INFO_SELECTED = "selected"
 # JSON API parameter constants
 #
 
+JSON_PARAM_COLUMN = "column"
 JSON_PARAM_EXPLAIN = "explain"
 JSON_PARAM_FACETS = "facets"
 JSON_PARAM_FACET_INIT = "facetInit"
@@ -146,6 +147,8 @@ JSON_PARAM_QUERY = "query"
 JSON_PARAM_ROUTEPARAM = "routeParam"
 JSON_PARAM_SIZE = "size"
 JSON_PARAM_SORT = "sort"
+JSON_PARAM_TOP = "top"
+JSON_PARAM_VALUES = "values"
 
 # Group by related column names
 GROUP_VALUE = "groupvalue"
@@ -1777,9 +1780,16 @@ class SenseiClient:
   @staticmethod
   def buildJsonString(req, sort_keys=True, indent=None):
     """
-    Build Sensei request in JSON format.
+    Build a Sensei request in JSON format.
 
-    curl -XPOST http://localhost:8080/sensei -d '{"paging": {"offset": 0, "count": 2}}'
+    Once built, a Sensei request in JSON format can be sent to a Sensei
+    broker using the following command:
+
+    $ curl -XPOST http://localhost:8080/sensei -d '{
+      "fetchStored": "true", 
+      "from": 0, 
+      "size": 10
+    }'
 
     """
 
@@ -1789,9 +1799,9 @@ class SenseiClient:
     if req.query:
       output_json[JSON_PARAM_QUERY] = req.query # TODO handle parameters
     if req.explain:
-      output_json[JSON_PARAM_QUERY] = "true"
+      output_json[JSON_PARAM_QUERY] = True
     if req.fetch_stored:
-      output_json[JSON_PARAM_FETCH_STORED] = "true"
+      output_json[JSON_PARAM_FETCH_STORED] = True
     if req.route_param:
       output_json[JSON_PARAM_ROUTEPARAM] = req.route_param
     if req.sorts:
@@ -1799,6 +1809,17 @@ class SenseiClient:
 
     # XXX  for selection in req.selections.values():
 
+    facet_spec_map = {}
+    for facet_name, facet_spec in req.facets.iteritems():
+      facet_spec_map[facet_name] = {
+        PARAM_FACET_MAX: facet_spec.maxCounts,
+        PARAM_FACET_ORDER: facet_spec.orderBy,
+        PARAM_FACET_EXPAND: facet_spec.expand,
+        PARAM_FACET_MINHIT: facet_spec.minHits
+        }
+    if facet_spec_map:
+      output_json[JSON_PARAM_FACETS] = facet_spec_map
+      
     facet_init_map = {}
     for facet_name, initParams in req.facet_init_param_map.iteritems():
       inner_map = {}
@@ -1823,6 +1844,13 @@ class SenseiClient:
       facet_init_map[facet_name] = inner_map
     if facet_init_map:
       output_json[JSON_PARAM_FACET_INIT] = facet_init_map
+
+    if req.groupby:
+      # For now we only support group-by on single column
+      output_json[JSON_PARAM_GROUPBY] = [{
+        JSON_PARAM_COLUMN: req.groupby,
+        JSON_PARAM_TOP: req.max_per_group
+        }]
 
     return json.dumps(output_json, sort_keys=sort_keys, indent=indent)
 

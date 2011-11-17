@@ -30,6 +30,43 @@ class TestJsonAPI(unittest.TestCase):
   "size": 10
 }""")
 
+  def testBrowseBy2(self):
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    BROWSE BY color, price(true, 1, 20, value), year
+    """
+    req = SenseiRequest(stmt)
+    # print SenseiClient.buildJsonString(req, indent=2)
+    self.assertTrue(SenseiClient.buildJsonString(req, indent=2),
+                    """{
+  "facets": {
+    "color": {
+      "expand": false, 
+      "max": 10, 
+      "minhit": 1, 
+      "order": "hits"
+    }, 
+    "price": {
+      "expand": true, 
+      "max": 20, 
+      "minhit": 1, 
+      "order": "val"
+    }, 
+    "year": {
+      "expand": false, 
+      "max": 10, 
+      "minhit": 1, 
+      "order": "hits"
+    }
+  }, 
+  "fetchStored": true, 
+  "from": 0, 
+  "size": 10
+}""")
+
+
   def testFacetInitParams(self):
     stmt = \
     """
@@ -79,6 +116,29 @@ class TestJsonAPI(unittest.TestCase):
   "from": 0, 
   "size": 10
 }""")
+
+  def testGroupBy(self):
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    GROUP BY color
+    """
+    req = SenseiRequest(stmt)
+    # print SenseiClient.buildJsonString(req, indent=2)
+    self.assertTrue(SenseiClient.buildJsonString(req, indent=2),
+                    """{
+  "fetchStored": true, 
+  "from": 0, 
+  "groupBy": [
+    {
+      "column": "color", 
+      "top": 10
+    }
+  ], 
+  "size": 10
+}""")
+
 
 if __name__ == "__main__":
     unittest.main()
