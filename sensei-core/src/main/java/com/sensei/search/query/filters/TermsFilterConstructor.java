@@ -4,8 +4,6 @@ import org.apache.lucene.search.Filter;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import com.sensei.search.query.FilterConstructor;
-import com.sensei.search.query.SenseiTermFilter;
 import com.sensei.search.util.RequestConverter2;
 
 public class TermsFilterConstructor extends FilterConstructor{

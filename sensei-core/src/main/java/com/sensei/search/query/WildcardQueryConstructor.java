@@ -1,7 +1,5 @@
 package com.sensei.search.query;
 
-import java.util.Iterator;
-
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.WildcardQuery;
@@ -10,6 +8,7 @@ import org.json.JSONObject;
 
 public class WildcardQueryConstructor extends QueryConstructor {
 
+  public static final String QUERY_TYPE = "wildcard";
 	@Override
 	public Query constructQuery(JSONObject jsonQuery) throws JSONException{
 

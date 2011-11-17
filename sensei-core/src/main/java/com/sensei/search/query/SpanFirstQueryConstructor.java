@@ -10,6 +10,8 @@ import org.json.JSONObject;
 
 public class SpanFirstQueryConstructor extends QueryConstructor {
 
+  public static final String QUERY_TYPE = "span_first";
+  
 	@Override
 	public Query constructQuery(JSONObject jsonQuery) throws JSONException {
 

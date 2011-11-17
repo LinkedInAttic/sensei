@@ -5,7 +5,6 @@ import org.apache.lucene.search.Query;
 import org.apache.lucene.search.QueryWrapperFilter;
 import org.json.JSONObject;
 
-import com.sensei.search.query.FilterConstructor;
 import com.sensei.search.query.QueryConstructor;
 
 public class QueryFilterConstructor extends FilterConstructor{

@@ -12,6 +12,7 @@ import org.json.JSONObject;
 
 public class DistMaxQueryConstructor extends QueryConstructor {
 
+  public static final String QUERY_TYPE = "dis_max";
 	@Override
 	public Query constructQuery(JSONObject jsonQuery) throws JSONException {
 

@@ -12,7 +12,6 @@ import com.browseengine.bobo.api.BrowseSelection;
 import com.browseengine.bobo.facets.FacetHandler;
 import com.sensei.conf.SenseiFacetHandlerBuilder;
 import com.sensei.search.facet.UIDFacetHandler;
-import com.sensei.search.query.FilterConstructor;
 import com.sensei.search.util.RequestConverter2;
 
 public class UIDFilterConstructor  extends FilterConstructor{

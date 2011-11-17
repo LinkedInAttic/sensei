@@ -8,6 +8,7 @@ import org.json.JSONObject;
 
 public class SpanTermQueryConstructor extends QueryConstructor {
 
+  public static final String QUERY_TYPE = "span_term";
 	@Override
 	public Query constructQuery(JSONObject jsonQuery) throws JSONException {
 		

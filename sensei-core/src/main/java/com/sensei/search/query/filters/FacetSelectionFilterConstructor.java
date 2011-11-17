@@ -15,7 +15,6 @@ import com.browseengine.bobo.api.BrowseSelection;
 import com.browseengine.bobo.api.BrowseSelection.ValueOperation;
 import com.browseengine.bobo.facets.FacetHandler;
 import com.kamikaze.docidset.impl.AndDocIdSet;
-import com.sensei.search.query.FilterConstructor;
 import com.sensei.search.util.RequestConverter2;
 
 public class FacetSelectionFilterConstructor extends FilterConstructor{

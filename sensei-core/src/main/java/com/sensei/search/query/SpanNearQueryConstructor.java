@@ -13,6 +13,7 @@ import org.json.JSONObject;
 
 public class SpanNearQueryConstructor extends QueryConstructor {
 
+  public static final String QUERY_TYPE = "span_near";
 	@Override
 	public Query constructQuery(JSONObject jsonQuery) throws JSONException {
 

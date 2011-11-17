@@ -10,6 +10,7 @@ import org.json.JSONObject;
 
 public class SpanNotQueryConstructor extends QueryConstructor {
 
+  public static final String QUERY_TYPE = "span_not";
 	@Override
 	public Query constructQuery(JSONObject jsonQuery) throws JSONException {
 

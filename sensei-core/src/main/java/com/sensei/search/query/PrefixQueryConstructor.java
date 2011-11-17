@@ -8,6 +8,8 @@ import org.json.JSONObject;
 
 public class PrefixQueryConstructor extends QueryConstructor {
 
+  public static final String QUERY_TYPE = "prefix";
+  
 	@Override
 	public Query constructQuery(JSONObject jsonQuery) throws JSONException {
 

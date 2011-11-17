@@ -1,4 +1,4 @@
-package com.sensei.search.query;
+package com.sensei.search.query.filters;
 
 import java.io.IOException;
 
