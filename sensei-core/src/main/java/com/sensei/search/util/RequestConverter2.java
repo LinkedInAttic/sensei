@@ -15,7 +15,7 @@ import com.sensei.search.req.SenseiRequest;
 
 public class RequestConverter2 {
 
-	private static String[] getStrings(JSONObject obj,String field){
+	public static String[] getStrings(JSONObject obj,String field){
 		  String[] strArray = null;
 		  JSONArray array = obj.optJSONArray(field);
 		  if (array!=null){
@@ -52,6 +52,15 @@ public class RequestConverter2 {
 			}
 		  }
 		  return intSet;
+	  }
+	  
+	  public static String[] getStrings(JSONArray jsonArray) throws Exception{
+		  int count = jsonArray.length();
+		  String[] vals = new String[count];
+		  for (int i=0;i<count;++i){
+			vals[i] = jsonArray.getString(i);
+		  }
+		  return vals;
 	  }
 	  
 	public static SenseiRequest fromJSON(JSONObject json) throws Exception{
