@@ -1748,9 +1748,20 @@ class SenseiClient:
     self.path = path
     self.url = 'http://%s:%d/%s' % (self.host,self.port,self.path)
     self.opener = urllib2.build_opener()
-    self.opener.addheaders = [('User-agent', 'Python-urllib/2.5')]
     self.opener.addheaders = [('User-agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_6_7) AppleWebKit/534.30 (KHTML, like Gecko) Chrome/12.0.742.91 Safari/534.30')]
     
+  @staticmethod
+  def buildJsonString(req):
+    """
+    Build Sensei request in JSON format.
+
+    curl -XPOST http://localhost:8080/sensei -d '{"paging": {"offset": 0, "count": 2}}'
+
+    """
+
+    # XXX
+    return '{"paging": {"offset": 0, "count": 2}}'
+
   @staticmethod
   def buildUrlString(req):
     paramMap = {}
@@ -1836,15 +1847,17 @@ class SenseiClient:
 
     return urllib.urlencode(paramMap)
     
-  def doQuery(self, req=None):
+  def doQuery(self, req=None, using_json=True):
     """Execute a search query."""
 
     time1 = datetime.now()
-    paramString = None
-    if req:
-      paramString = SenseiClient.buildUrlString(req)
-    logger.debug(paramString)
-    urlReq = urllib2.Request(self.url, paramString)
+    query_string = None
+    if using_json: # Use JSON format
+      query_string = SenseiClient.buildJsonString(req)
+    else:
+      query_string = SenseiClient.buildUrlString(req)
+    logger.debug(query_string)
+    urlReq = urllib2.Request(self.url, query_string)
     res = self.opener.open(urlReq)
     line = res.read()
     jsonObj = json.loads(line)
