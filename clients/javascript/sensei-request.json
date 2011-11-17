@@ -1,8 +1,6 @@
 
 // example Sensei Request
 {
-	// query
-	// see: queries.json for more examples
 	"query" : {
 	  "query_string" : { 
           "query" : "this AND that OR thus"
@@ -87,5 +85,5 @@
 	"explain" : false,
 
 	// routing parameter, if set, request will be consistent hashed to the same replica for each partition
-	"routeParam": null,
+	"routeParam": null
 }
