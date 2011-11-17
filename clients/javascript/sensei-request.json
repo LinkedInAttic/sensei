@@ -9,12 +9,6 @@
       }
 	},
 
-    // any other query parameters, we will be reserving some parameter namespaces in the future.
-	"queryParams" :{
-		"parser" : "job-search-parser",
-		"relevanceModel" : "job-model"
-	},
-
 	// paging parameters
 	"from" : 0,
 
@@ -22,22 +16,29 @@
 	
 	// group by parameters   
 	"groupBy" : {
-		"field" : "category",
-		"count" : 3
+		"column" : "category",
+		"top" : 3
 	},
 
-	// selections
-	"selections" : {
-		"color":{
-			// intersection flag, if false, union is assumed
-			"intersect" : false,
-			// selected values
-			"values":["red","green"],
-			// exclude values
-			"not":[],
-			// selection properties
-			"props":{}
-		}
+	// filters
+	"filters" : {
+		"terms" : {
+          "tags" : {
+            "values" : [ "blue", "pill" ],
+            "excludes" : ["red"],
+            "minimum_match" : 1,
+            "operator" : "or",
+            "noOptimize" : false
+          }
+        },
+        "term" :{
+          "value" : "red",
+          "noOptimize" : false
+        },
+        "range" : {
+          "from" : "",
+          "to" : "",
+        }
 	},
 
 	// facet parameters
@@ -50,7 +51,7 @@
 			// expand sibling facet values
 			"expand" : false,
 			// facet ordering, possible values: "hits", "val", defaults to "hits"
-			"orderBy" : "hits"
+			"order" : "hits"
 		}
 	},
 
@@ -69,7 +70,7 @@
 
 	// sort parameters
 	"sort":[
-	    "color",{"order" : "desc"},       // sort by color in reverse order
+	    {"color":"desc"},       // sort by color in reverse order
 	    "_score"                     // secondary sort by relevance, reverse  parameter is ignored
 	],
 
@@ -77,9 +78,9 @@
 	"fetchStored" : false,
 
 	// fetch term vectors: array of field names
-	"termVectors" : [],
+	"fetchTermVectors" : [],
 
-	// partitions to send request to, default empty implies all partitions
+	// partitions to send request to, empty list or null implies all partitions
 	"partitions":[],
 
 	// send back scoring explanation for each hit

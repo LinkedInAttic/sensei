@@ -61,10 +61,10 @@
         },
         "should" : [
             {
-                "term" : { "tag" : "wow" }
+                "term" : { "tag" : "wow", "noOptimize" : false}
             },
             {
-                "term" : { "tag" : "search" }
+                "term" : { "tag" : "search"}
             }
         ],
         "minimum_number_should_match" : 1,
@@ -106,8 +106,6 @@
         "age" : { 
             "from" : 10, 
             "to" : 20, 
-            "include_lower" : true, 
-            "include_upper": false, 
             "boost" : 2.0
         }
     },
@@ -129,13 +127,16 @@
 // terms
 
     "terms" : {
-        "tags" : [ "blue", "pill" ],
-        "minimum_match" : 1
+        "tags" : {
+            "values" : [ "blue", "pill" ],
+            "excludes" : ["red"],
+            "minimum_match" : 1,
+            "operator" : "or"}
     },
 
 // span term
     "span_term" : { 
-        "user" : "kimchy" 
+        "color" : "red" 
 
      //or
      // "user" : { "value" : "kimchy", "boost" : 2.0 } 
@@ -173,9 +174,19 @@
 
     "span_first" : {
         "match" : {
-            "span_term" : { "user" : "kimchy" }
+            "span_term" : { "color" : "red" }
         },
         "end" : 3
+    },
+
+// custom
+    "custom" : {
+        "mesage" : "my secret query",
+        "props"  : {
+            "query-rewriter-server": "localhost:19999",
+            "connectivitySrc" : 1200,
+            "connectivityBoost" : 2.0,
+        }
     }
 }
 

@@ -26,7 +26,7 @@
   },
 
   // term filter
-   "term" : { "user" : "kimchy"},
+   "term" : { "color" : "red","noOptimize" : false},
   
   // query filter
   // see queries.json for a lis of valid queries
@@ -34,6 +34,17 @@
      "query_string" : { 
           "query" : "this AND that OR thus"
       }
+  },
+
+  "terms" : {
+        "tags" : {
+            "values" : [ "blue", "pill" ],
+            "excludes" : ["red"],
+            "operator" : "or",
+            "noOptimize" : false
+        }
+        // or
+        // "tags" : [ "blue", "pill" ], default operator or
   },
 
   // range filter
@@ -44,5 +55,21 @@
             "to" : 20
     }
   },
+
+  "custom":{
+    "myfilter" : {
+      "values" : ["v1","v2"],
+      "excludes" : ["v3"],
+      "operator" : "or",
+      "props" : {}
+    }
+  },
+
+  // hierarchical path filter
+  "path":{
+    "value" : "a/b/c",
+    "strict" : false,
+    "depth" : 1
+  }
 }
 
