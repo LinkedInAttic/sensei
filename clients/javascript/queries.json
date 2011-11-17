@@ -183,7 +183,6 @@
     "custom" : {
         "mesage" : "my secret query",
         "props"  : {
-            "query-rewriter-server": "localhost:19999",
             "connectivitySrc" : 1200,
             "connectivityBoost" : 2.0,
         }
