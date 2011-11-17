@@ -129,6 +129,24 @@ PARAM_RESULT_FACET_INFO_VALUE = "value"
 PARAM_RESULT_FACET_INFO_COUNT = "count"
 PARAM_RESULT_FACET_INFO_SELECTED = "selected"
 
+#
+# JSON API parameter constants
+#
+
+JSON_PARAM_EXPLAIN = "explain"
+JSON_PARAM_FACETS = "facets"
+JSON_PARAM_FACET_INIT = "facetInit"
+JSON_PARAM_FETCH_STORED = "fetchStored"
+JSON_PARAM_FETCH_TERM_VECTORS = "fetchTermVectors"
+JSON_PARAM_FILTERS = "filters"
+JSON_PARAM_FROM = "from"
+JSON_PARAM_GROUPBY = "groupBy"
+JSON_PARAM_PARTITIONS = "partitions"
+JSON_PARAM_QUERY = "query"
+JSON_PARAM_ROUTEPARAM = "routeParam"
+JSON_PARAM_SIZE = "size"
+JSON_PARAM_SORT = "sort"
+
 # Group by related column names
 GROUP_VALUE = "groupvalue"
 GROUP_HITS = "grouphits"
@@ -1207,11 +1225,17 @@ class SenseiSort:
         self.dir = PARAM_SORT_ASC
 
   def __str__(self):
-    return self.buildSortField()
+    return self.build_sort_field()
 
-  def buildSortField(self):
+  def build_sort_field(self):
     if self.dir:
       return self.field + ":" + self.dir
+    else:
+      return self.field
+
+  def build_sort_spec(self):
+    if self.dir:
+      return {self.field: self.dir}
     else:
       return self.field
 
@@ -1751,7 +1775,7 @@ class SenseiClient:
     self.opener.addheaders = [('User-agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_6_7) AppleWebKit/534.30 (KHTML, like Gecko) Chrome/12.0.742.91 Safari/534.30')]
     
   @staticmethod
-  def buildJsonString(req):
+  def buildJsonString(req, sort_keys=True, indent=None):
     """
     Build Sensei request in JSON format.
 
@@ -1759,8 +1783,48 @@ class SenseiClient:
 
     """
 
-    # XXX
-    return '{"paging": {"offset": 0, "count": 2}}'
+    output_json = {}
+    output_json[JSON_PARAM_FROM] = req.offset
+    output_json[JSON_PARAM_SIZE] = req.count
+    if req.query:
+      output_json[JSON_PARAM_QUERY] = req.query # TODO handle parameters
+    if req.explain:
+      output_json[JSON_PARAM_QUERY] = "true"
+    if req.fetch_stored:
+      output_json[JSON_PARAM_FETCH_STORED] = "true"
+    if req.route_param:
+      output_json[JSON_PARAM_ROUTEPARAM] = req.route_param
+    if req.sorts:
+      output_json[JSON_PARAM_SORT] = [sort.build_sort_spec() for sort in req.sorts]
+
+    # XXX  for selection in req.selections.values():
+
+    facet_init_map = {}
+    for facet_name, initParams in req.facet_init_param_map.iteritems():
+      inner_map = {}
+      for name, vals in initParams.bool_map.iteritems():
+        inner_map[name] = {PARAM_DYNAMIC_TYPE : PARAM_DYNAMIC_TYPE_BOOL,
+                           "values" : vals}
+      for name, vals in initParams.int_map.iteritems():
+        inner_map[name] = {PARAM_DYNAMIC_TYPE : PARAM_DYNAMIC_TYPE_INT,
+                           "values" : [safe_str(val) for val in vals]}
+      for name, vals in initParams.long_map.iteritems():
+        inner_map[name] = {PARAM_DYNAMIC_TYPE : PARAM_DYNAMIC_TYPE_LONG,
+                           "values" : [safe_str(val) for val in vals]}
+      for name, vals in initParams.string_map.iteritems():
+        inner_map[name] = {PARAM_DYNAMIC_TYPE : PARAM_DYNAMIC_TYPE_STRING,
+                           "values" : vals}
+      for name, vals in initParams.byte_map.iteritems():
+        inner_map[name] = {PARAM_DYNAMIC_TYPE : PARAM_DYNAMIC_TYPE_BYTEARRAY,
+                           "values" : [safe_str(val) for val in vals]}
+      for name, vals in initParams.double_map.iteritems():
+        inner_map[name] = {PARAM_DYNAMIC_TYPE : PARAM_DYNAMIC_TYPE_DOUBLE,
+                           "values" : [safe_str(val) for val in vals]}
+      facet_init_map[facet_name] = inner_map
+    if facet_init_map:
+      output_json[JSON_PARAM_FACET_INIT] = facet_init_map
+
+    return json.dumps(output_json, sort_keys=sort_keys, indent=indent)
 
   @staticmethod
   def buildUrlString(req):
@@ -1770,17 +1834,14 @@ class SenseiClient:
     if req.query:
       paramMap[PARAM_QUERY]=req.query
     if req.explain:
-      paramMap[PARAM_SHOW_EXPLAIN] = "true"
+      paramMap[PARAM_SHOW_EXPLAIN] = True
     if req.fetch_stored:
-      paramMap[PARAM_FETCH_STORED] = "true"
+      paramMap[PARAM_FETCH_STORED] = True
     if req.route_param:
       paramMap[PARAM_ROUTE_PARAM] = req.route_param
 
-    # paramMap["offset"] = req.offset
-    # paramMap["count"] = req.count
-
     if req.sorts:
-      paramMap[PARAM_SORT] = ",".join(sort.buildSortField() for sort in req.sorts)
+      paramMap[PARAM_SORT] = ",".join(sort.build_sort_field() for sort in req.sorts)
 
     if req.qParam.get("query"):
       paramMap[PARAM_QUERY] = req.qParam.get("query")
