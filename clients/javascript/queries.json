@@ -101,7 +101,7 @@
        "user" : "ki*y" 
 
        // or 
-       //user" : { "value" : "ki*y", "boost" : 2.0 } 
+       //"user" : { "value" : "ki*y", "boost" : 2.0 } 
    },
 // range
     "range" : {

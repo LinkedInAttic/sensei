@@ -2,10 +2,11 @@ package com.sensei.search.query;
 
 import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Query;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 public abstract class QueryConstructor {
-	abstract public Query constructQuery(JSONObject params);
+	abstract public Query constructQuery(JSONObject params) throws JSONException;
 	
 	public static QueryConstructor getQueryConstructor(String type){
 		return null;
