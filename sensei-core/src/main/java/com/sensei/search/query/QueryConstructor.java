@@ -1,8 +1,6 @@
 package com.sensei.search.query;
 
 import org.apache.lucene.index.Term;
-import org.apache.lucene.search.BooleanClause;
-import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TermQuery;
@@ -81,10 +79,7 @@ public abstract class QueryConstructor
     public Query constructQuery(JSONObject params)
     {
       if (params == null)
-        return null;
-
-      BooleanQuery bq = null;
-      Query query = null;
+        throw new IllegalArgumentException("no term specified: " + params);
 
       for (String field : JSONObject.getNames(params))
       {
@@ -97,6 +92,8 @@ public abstract class QueryConstructor
         {
           txt = ((JSONObject)obj).optString("term");
           if (txt == null || txt.length() == 0)
+            txt = ((JSONObject)obj).optString("value");
+          if (txt == null || txt.length() == 0)
             throw new IllegalArgumentException("no term value specified: " + params);
           boost = (float)((JSONObject)obj).optDouble("boost", 1.0);
         }
@@ -107,19 +104,10 @@ public abstract class QueryConstructor
         }
         Query q = new TermQuery(new Term(field, txt));
         q.setBoost(boost);
-        if (query == null)
-          query = q;
-        else
-        {
-          if (bq == null)
-            bq = new BooleanQuery();
-          bq.add(q, BooleanClause.Occur.MUST);
-        }
+        return q; // Term query have only one field.
       }
 
-      if (bq != null)
-        return bq;
-      return query;
+      throw new IllegalArgumentException("no term specified: " + params);
     }
   }
   
