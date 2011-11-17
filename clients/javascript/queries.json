@@ -11,7 +11,9 @@
 
 // id query
 	"ids" : {
-		"values" : ["1","4","100"]      
+		"values" : ["1","4","100"],
+		"excludes" : ["5"],
+		"boost" : 1.0    
 	},
 
 // query string
@@ -99,7 +101,7 @@
        "user" : "ki*y" 
 
        // or 
-       //user" : { "value" : "ki*y", "boost" : 2.0 } 
+       //"user" : { "value" : "ki*y", "boost" : 2.0 } 
    },
 // range
     "range" : {
