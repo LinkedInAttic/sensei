@@ -27,7 +27,7 @@ public class SpanFirstQueryConstructor extends QueryConstructor {
 		String spanterm = (String) spanJson.getString(field);
 		SpanQuery sq = new SpanTermQuery(new Term(field, spanterm));		
 		
-		int end = jsonQuery.getInt("end");
+		int end = jsonQuery.optInt("end", 3);
 		
 		return new SpanFirstQuery(sq, end);
 	}

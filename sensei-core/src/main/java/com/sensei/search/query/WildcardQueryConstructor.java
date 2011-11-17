@@ -27,7 +27,7 @@ public class WildcardQueryConstructor extends QueryConstructor {
 		
 		if(value instanceof JSONObject){
 			wildcard = ((JSONObject)value).optString("value", "");
-			float boost = (float)((JSONObject)value).optDouble("boost", 1.0);
+			float boost = (float)((JSONObject)value).optDouble("boost", 2.0);
 			Query query = new WildcardQuery(new Term(field, wildcard));
 			query.setBoost(boost);
 			return query;

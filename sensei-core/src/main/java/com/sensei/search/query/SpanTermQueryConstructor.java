@@ -25,7 +25,7 @@ public class SpanTermQueryConstructor extends QueryConstructor {
 		
 		if(value instanceof JSONObject){
 			spanterm = ((JSONObject)value).optString("value", "");
-			float boost = (float)((JSONObject)value).optDouble("boost", 1.0);
+			float boost = (float)((JSONObject)value).optDouble("boost", 2.0);
 			Query query = new SpanTermQuery(new Term(field, spanterm));
 			query.setBoost(boost);
 			return query;

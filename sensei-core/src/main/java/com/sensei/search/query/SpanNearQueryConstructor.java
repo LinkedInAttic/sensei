@@ -39,9 +39,9 @@ public class SpanNearQueryConstructor extends QueryConstructor {
 		
 		SpanQuery[] clauses = clausesList.toArray(new SpanQuery[clausesList.size()]);
 		
-		int slop = jsonQuery.getInt("slop");
-		boolean inOrder = jsonQuery.getBoolean("in_order");
-		boolean collectPayloads = jsonQuery.getBoolean("collect_payloads");
+		int slop = jsonQuery.optInt("slop", 12);
+		boolean inOrder = jsonQuery.optBoolean("in_order", false);
+		boolean collectPayloads = jsonQuery.optBoolean("collect_payloads", false);
 		
 		return new SpanNearQuery(clauses, slop, inOrder, collectPayloads);
 	}
