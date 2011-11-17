@@ -1862,9 +1862,9 @@ class SenseiClient:
     if req.query:
       paramMap[PARAM_QUERY]=req.query
     if req.explain:
-      paramMap[PARAM_SHOW_EXPLAIN] = True
+      paramMap[PARAM_SHOW_EXPLAIN] = "true"
     if req.fetch_stored:
-      paramMap[PARAM_FETCH_STORED] = True
+      paramMap[PARAM_FETCH_STORED] = "true"
     if req.route_param:
       paramMap[PARAM_ROUTE_PARAM] = req.route_param
 
