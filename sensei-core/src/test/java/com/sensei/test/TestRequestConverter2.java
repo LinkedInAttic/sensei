@@ -1,17 +1,21 @@
 package com.sensei.test;
 
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 import org.apache.lucene.search.SortField;
 import org.json.JSONObject;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
+import com.browseengine.bobo.facets.FacetHandlerInitializerParam;
 import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.util.RequestConverter2;
 
@@ -62,8 +66,35 @@ public class TestRequestConverter2
     
     
     //test facets;
+    assertTrue("facet number is not correct", req.getFacetSpecCount() ==1);
+    assertTrue("facet category max", req.getFacetSpec("category").getMaxCount()==10);
+    assertTrue("facet category min", req.getFacetSpec("category").getMinHitCount()==1);
+    assertTrue("facet category expand", req.getFacetSpec("category").isExpandSelection() == false);
+    assertTrue("facet category order", req.getFacetSpec("category").getOrderBy()== FacetSortSpec.OrderHitsDesc);
     
     //test facet initial parameters;
+    Map<String, FacetHandlerInitializerParam> mapParams = req.getFacetHandlerInitParamMap();
+    assertTrue("facet number is not correct", mapParams.size() ==1);
+    FacetHandlerInitializerParam param = mapParams.get("network");
+    
+    boolean[] coldstart = param.getBooleanParam("coldStart");
+    evaluateBool(coldstart, new boolean[]{true});
+    
+    List<String> names = param.getStringParam("names");
+    ArrayList<String> ar = new ArrayList<String>();
+    ar.add("a");
+    ar.add("b");
+    ar.add("c");
+    evaluateListString(names, ar);
+    
+    double[] timeout = param.getDoubleParam("timeOut");
+    evaluateDouble(timeout, new double[]{2.4});
+    
+    int[] srcId = param.getIntParam("srcId");
+    evaluateInt(srcId, new int[]{1234});
+    
+    long[] longId = param.getLongParam("longId");
+    evaluateLong(longId, new long[]{1234567890L, 9876543210L});
     
     //test sortby;
     assertTrue("first sort by is not correct", req.getSort()[0].getField().equals("color"));
@@ -86,6 +117,52 @@ public class TestRequestConverter2
     
     //test routeParam;
     assertTrue("routing parameter test", req.getRouteParam()!= null); // when it is a null, we get a rand int;
+  }
+
+  private void evaluateLong(long[] result, long[] sample)
+  {
+    assertTrue("long array size is not correct", result.length == sample.length);
+    for(int i=0; i< result.length; i++)
+    {
+      assertTrue("content in long array is not the same", result[i] == sample[i]);
+    }
+  }
+
+  private void evaluateInt(int[] result, int[] sample)
+  {
+    assertTrue("int array size is not correct", result.length == sample.length);
+    for(int i=0; i< result.length; i++)
+    {
+      assertTrue("content in int array is not the same", result[i] == sample[i]);
+    }
+    
+  }
+
+  private void evaluateDouble(double[] result, double[] sample)
+  {
+    assertTrue("double array size is not correct", result.length == sample.length);
+    for(int i=0; i< result.length; i++)
+    {
+      assertTrue("content in double array is not the same", result[i] == sample[i]);
+    }
+  }
+
+  private void evaluateListString(List<String> result, ArrayList<String> sample)
+  {
+    assertTrue("string array size is not correct", result.size() == sample.size());
+    for(int i=0; i< result.size(); i++)
+    {
+      assertTrue("content in double array is not the same", result.get(i).equals(sample.get(i)));
+    }
+  }
+
+  private void evaluateBool(boolean[] result, boolean[] sample)
+  {
+    assertTrue("boolean array size is not correct", result.length == sample.length);
+    for(int i=0; i< result.length; i++)
+    {
+      assertTrue("content in boolean array is not the same", result[i] == sample[i]);
+    }
   }
 
 }
