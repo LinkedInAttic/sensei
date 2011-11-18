@@ -7,6 +7,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.lucene.search.SortField;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -229,21 +230,18 @@ public class RequestConverter2 {
   /**
    * @param jsonValues
    * @return
-   * @throws JSONException
-   * @throws NumberFormatException
+   * @throws Exception 
    */
-  private static byte[] convertJSONToByteArray(JSONArray jsonArray) throws NumberFormatException,
-      JSONException
+  private static byte[] convertJSONToByteArray(JSONArray jsonArray) throws Exception
   {
-    byte[] byteArray = new byte[jsonArray.length()];
-    if (jsonArray != null && jsonArray.length() > 0)
+    if(jsonArray != null && jsonArray.length() == 1)
     {
-      for (int i = 0; i < jsonArray.length(); i++)
-      {
-        byteArray[i] = Byte.valueOf(String.valueOf(jsonArray.get(i)));
-      }
+      String base64 = jsonArray.getString(0);
+      byte[] bytes = Base64.decodeBase64(base64);
+      return bytes;
     }
-    return byteArray;
+    else
+      throw new Exception("too many base64 encoded data in one parameter");
   }
 
   /**

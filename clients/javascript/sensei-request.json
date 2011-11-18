@@ -68,15 +68,23 @@
 			},
 			"timeOut":{
 				"type" : "double",
-				"value" : [2.4]			    
+				"values" : [2.4]			    
 			},
 			"coldStart":{
 				"type" : "boolean",
-				"value" : [true]			    
+				"values" : [true]			    
 			},
 			"names":{
 				"type": "string",
-				"value":["a", "b", "c"]
+				"values":["a", "b", "c"]
+			},
+			"longId":{
+				"type": "long",
+				"values":[1234567890, 9876543210]
+			},
+			"binary":{
+				"type": "bytes",
+				"values":["SGVsbG8gd29ybGQ="]			    
 			}
 		}
 	},
