@@ -78,6 +78,10 @@
 			"longId":{
 				"type": "long",
 				"values":[1234567890, 9876543210]
+			},
+			"binary":{
+				"type": "bytes",
+				"values":["SGVsbG8gd29ybGQ="]			    
 			}
 		}
 	},

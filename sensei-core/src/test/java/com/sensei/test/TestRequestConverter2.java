@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.lucene.search.SortField;
 import org.json.JSONObject;
 import org.junit.BeforeClass;
@@ -96,6 +97,9 @@ public class TestRequestConverter2
     long[] longId = param.getLongParam("longId");
     evaluateLong(longId, new long[]{1234567890L, 9876543210L});
     
+    byte[] base64 = param.getByteArrayParam("binary");
+    evaluateBytes(base64, (new String("Hello world")).getBytes());
+    
     //test sortby;
     assertTrue("first sort by is not correct", req.getSort()[0].getField().equals("color"));
     assertTrue("first sort by order is not correct", req.getSort()[0].getReverse() == true);
@@ -117,6 +121,15 @@ public class TestRequestConverter2
     
     //test routeParam;
     assertTrue("routing parameter test", req.getRouteParam()!= null); // when it is a null, we get a rand int;
+  }
+
+  private void evaluateBytes(byte[] result, byte[] sample)
+  {
+    assertTrue("byte array size is not correct", result.length == sample.length);
+    for(int i=0; i< result.length; i++)
+    {
+      assertTrue("content in byte array is not the same", result[i] == sample[i]);
+    }
   }
 
   private void evaluateLong(long[] result, long[] sample)
@@ -165,4 +178,27 @@ public class TestRequestConverter2
     }
   }
 
+  @Test
+  public void testBase64() throws Exception
+  {
+    try {
+      String clearText = "Hello world";
+      String encodedText;
+
+      // Base64
+      encodedText = new String(Base64.encodeBase64(clearText.getBytes()));
+//      System.out.println("Encoded: " + encodedText);
+      byte[] encodedbytes = encodedText.getBytes();
+//      System.out.println("Decoded:"  + new String(Base64.decodeBase64(encodedbytes)));
+      //    
+      // output :
+      //   Encoded: SGVsbG8gd29ybGQ=
+      //   Decoded:Hello world      
+      //
+      assertTrue("Hello world".equals(new String(Base64.decodeBase64(encodedbytes))));
+    } 
+    catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
 }
