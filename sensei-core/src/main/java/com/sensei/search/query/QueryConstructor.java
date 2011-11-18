@@ -36,7 +36,11 @@ public abstract class QueryConstructor
     QueryConstructor queryConstructor = QUERY_CONSTRUCTOR_MAP.get(type);
     if (queryConstructor == null)
     {
-      if (TextQueryConstructor.QUERY_TYPE.equals(type))
+      if (QueryStringQueryConstructor.QUERY_TYPE.equals(type))
+      {
+        queryConstructor = new QueryStringQueryConstructor(analyzer);
+      }
+      else if (TextQueryConstructor.QUERY_TYPE.equals(type))
       {
         queryConstructor = new TextQueryConstructor(analyzer);
       }
