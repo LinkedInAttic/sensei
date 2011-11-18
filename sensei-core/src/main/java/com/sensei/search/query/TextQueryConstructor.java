@@ -25,6 +25,12 @@ public class TextQueryConstructor extends QueryConstructor
 
   public static final String QUERY_TYPE = "text";
 
+  // "text" : {
+  //   "message" : "this is a test",   // field: "message", query: "this is a test"
+  //   "operator" : "or",              // operator, possible values: "and", "or"
+  //   "type" : "phrase"               // query type, can be "phrase", "phrase_prefix"
+  // },
+
   private Analyzer _analyzer;
 
   public TextQueryConstructor(Analyzer analyzer)

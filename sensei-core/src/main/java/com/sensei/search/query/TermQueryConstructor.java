@@ -12,11 +12,11 @@ public class TermQueryConstructor extends QueryConstructor
 {
   public static final String QUERY_TYPE = "term";
 
-  //"term" : {
-  //  "color" : "red"
-  //
-  //  // or "color" : {"term" : "red", "boost": 2.0}
-  //},
+  // "term" : {
+  //   "color" : "red"
+  // 
+  //   // or "color" : {"term" : "red", "boost": 2.0}
+  // },
 
   @Override
   public Query constructQuery(JSONObject jsonQuery) throws JSONException
