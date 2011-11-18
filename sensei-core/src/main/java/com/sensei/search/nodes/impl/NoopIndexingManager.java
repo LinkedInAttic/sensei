@@ -3,17 +3,16 @@ package com.sensei.search.nodes.impl;
 import java.util.Map;
 
 import proj.zoie.api.DataProvider;
-import proj.zoie.api.Zoie;
 import proj.zoie.api.ZoieException;
+import proj.zoie.impl.indexing.AsyncDataConsumer;
 
-import com.browseengine.bobo.api.BoboIndexReader;
 import com.sensei.search.nodes.SenseiIndexingManager;
 
 public class NoopIndexingManager<D> implements SenseiIndexingManager<D> {
 
 	@Override
 	public void initialize(
-			Map<Integer, Zoie<BoboIndexReader, D>> zoieSystemMap)
+			Map<Integer, AsyncDataConsumer<D>> dataConsumerMap)
 			throws Exception {
 		// TODO Auto-generated method stub
 
