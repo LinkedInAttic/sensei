@@ -71,29 +71,22 @@
             "from" : 10, 
             "to" : 20,
             "_noOptimize" : false
-    }
-  },
-
-  "facetSelection":{
-    "f1" : {
-      "values" : ["v1","v2"],
-      "excludes" : ["v3"],
-      "operator" : "or",
-      "params" : {}
     },
-    "f2" : {
-      "values" : ["v1","v2"],
-      "excludes" : ["v3"],
-      "operator" : "and",
-      "params" : {}
+    
+    "selection":{
+      "path":{
+        
+      }
     }
   },
 
-  // hierarchical path filter
-  "path":{
-    "value" : "a/b/c",
-    "strict" : false,
-    "depth" : 1
+  "selection":{
+    "term":{
+      
+    },
+    "range":{
+      
+    }
   }
 }
 

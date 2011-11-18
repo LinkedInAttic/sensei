@@ -15,7 +15,7 @@
 	"groupBy" : [{
 		"column" : "category",
 		"top" : 3
-	}]
+	}],
 
 	// filters
 	"filters" : {
@@ -36,6 +36,10 @@
           "from" : "",
           "to" : "",
         }
+	},
+	
+	"selections" :{
+	  
 	},
 
 	// facet parameters
