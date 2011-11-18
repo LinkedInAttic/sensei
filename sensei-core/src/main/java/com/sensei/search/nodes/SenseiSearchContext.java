@@ -14,6 +14,7 @@ import org.apache.lucene.util.Version;
 import proj.zoie.api.IndexReaderFactory;
 import proj.zoie.api.ZoieIndexReader;
 import proj.zoie.api.indexing.ZoieIndexableInterpreter;
+import proj.zoie.impl.indexing.ZoieConfig;
 import proj.zoie.impl.indexing.ZoieSystem;
 
 import com.browseengine.bobo.api.BoboIndexReader;
@@ -23,7 +24,15 @@ public class SenseiSearchContext {
 	private final Map<Integer,IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>> _partReaderMap;
 
 	private static <T> IndexReaderFactory<ZoieIndexReader<BoboIndexReader>> buildReaderFactory(File file,ZoieIndexableInterpreter<T> interpreter, Comparator<String> versionComparator){
-		ZoieSystem<BoboIndexReader,T> zoieSystem = new ZoieSystem<BoboIndexReader,T>(file,interpreter,new SenseiIndexReaderDecorator(),new StandardAnalyzer(Version.LUCENE_34),new DefaultSimilarity(),1000,300000,true,versionComparator,false);
+	  ZoieConfig config = new ZoieConfig();
+    config.setAnalyzer(new StandardAnalyzer(Version.LUCENE_34));
+    config.setSimilarity(new DefaultSimilarity());
+    config.setVersionComparator(versionComparator);
+    config.setBatchSize(1000);
+    config.setBatchDelay(300000);
+    config.setRtIndexing(true);
+    
+    ZoieSystem<BoboIndexReader,T> zoieSystem = new ZoieSystem<BoboIndexReader,T>(file,interpreter,new SenseiIndexReaderDecorator(),config);
 		zoieSystem.getAdminMBean().setFreshness(50);
 		zoieSystem.start();
 		return zoieSystem;

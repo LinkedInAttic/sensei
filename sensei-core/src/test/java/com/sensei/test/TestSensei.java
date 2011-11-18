@@ -103,21 +103,28 @@ public class TestSensei extends AbstractSenseiTestCase
 
   
   public static <T> IndexReaderFactory<ZoieIndexReader<BoboIndexReader>> buildReaderFactory(File file,ZoieIndexableInterpreter<T> interpreter){
-  ZoieSystem<BoboIndexReader,T> zoieSystem = new ZoieSystem<BoboIndexReader,T>(file,interpreter,new SenseiIndexReaderDecorator(),new StandardAnalyzer(Version.LUCENE_30),new DefaultSimilarity(),1000,300000,true,ZoieConfig.DEFAULT_VERSION_COMPARATOR,false);
+    ZoieConfig config = new ZoieConfig();
+    config.setAnalyzer(new StandardAnalyzer(Version.LUCENE_34));
+    config.setSimilarity(new DefaultSimilarity());
+    config.setBatchSize(1000);
+    config.setBatchDelay(300000);
+    config.setRtIndexing(true);
+    
+    ZoieSystem<BoboIndexReader,T> zoieSystem = new ZoieSystem<BoboIndexReader,T>(file,interpreter,new SenseiIndexReaderDecorator(),config);
     zoieSystem.getAdminMBean().setFreshness(50);
     zoieSystem.start();
-  return zoieSystem;
+    return zoieSystem;
   }
   
   public static Map<Integer,IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>> buildZoieFactoryMap(ZoieIndexableInterpreter<?> interpreter,Map<Integer,File> partFileMap){
-  Map<Integer,IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>> partReaderMap = new HashMap<Integer,IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>>();
-  Set<Entry<Integer,File>> entrySet = partFileMap.entrySet();
+    Map<Integer,IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>> partReaderMap = new HashMap<Integer,IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>>();
+    Set<Entry<Integer,File>> entrySet = partFileMap.entrySet();
   
-  for (Entry<Integer,File> entry : entrySet){
-    partReaderMap.put(entry.getKey(), buildReaderFactory(entry.getValue(), interpreter));
-  }
+    for (Entry<Integer,File> entry : entrySet){
+      partReaderMap.put(entry.getKey(), buildReaderFactory(entry.getValue(), interpreter));
+    }
   
-  return partReaderMap;
+    return partReaderMap;
   }
   
   static SenseiBroker broker = null;
