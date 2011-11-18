@@ -46,7 +46,7 @@ public class RAMDirectorySerializer {
   }
   
   public static byte[] toBytes(RAMDirectory dir) throws IOException{
-	ByteArrayOutputStream bout = new ByteArrayOutputStream((int)dir.sizeInBytes);
+	ByteArrayOutputStream bout = new ByteArrayOutputStream((int)dir.sizeInBytes.get());
 	DataOutputStream dout = new DataOutputStream(bout);
 	toDataOutput(dout, dir);
 	dout.flush();
@@ -71,7 +71,7 @@ public class RAMDirectorySerializer {
   
   public static RAMDirectory fromDataInput(DataInput din) throws IOException{
 	RAMDirectory rdir = new RAMDirectory();
-	rdir.sizeInBytes = din.readLong();
+	rdir.sizeInBytes.set(din.readLong());
 	int count = din.readInt();
 	for (int i=0;i<count;++i){
 	  String fileName = din.readUTF();

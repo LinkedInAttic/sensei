@@ -110,7 +110,7 @@
 		<dependency>
 			<groupId>com.linkedin.kamikaze</groupId>
 			<artifactId>kamikaze</artifactId>
-			<version>3.0.4</version>
+			<version>3.0.5</version>
 		</dependency>
 		
 		<dependency>
@@ -122,13 +122,13 @@
 		<dependency>
 			<groupId>com.linkedin.zoie</groupId>
 			<artifactId>zoie-core</artifactId>
-			<version>3.0.0</version>
+			<version>3.1.0-SNAPSHOT</version>
 		</dependency>
 		
 		<dependency>
 			<groupId>com.linkedin.zoie</groupId>
 			<artifactId>zoie-jms</artifactId>
-			<version>3.0.0</version>
+			<version>3.1.0-SNAPSHOT</version>
 		</dependency>
 		
 		<dependency>
@@ -177,12 +177,6 @@
         </dependency>
 
 		<dependency>
-			<groupId>org.apache.lucene</groupId>
-			<artifactId>lucene-core</artifactId>
-			<version>3.0.2</version>
-		</dependency>
-
-		<dependency>
 			<groupId>com.browseengine.bobo</groupId>
 			<artifactId>bobo-browse</artifactId>
 			<version>3.0.0-SNAPSHOT</version>
@@ -213,9 +207,9 @@
 		</dependency>
 		
 		<dependency>
-			<groupId>com.yammer</groupId>
-			<artifactId>metrics_2.8.1</artifactId>
-			<version>2.0.0-BETA11</version>
+			<groupId>com.yammer.metrics</groupId>
+			<artifactId>metrics-core</artifactId>
+			<version>2.0.0-BETA18-SNAPSHOT</version>
 		</dependency>
 		
 		<dependency>
