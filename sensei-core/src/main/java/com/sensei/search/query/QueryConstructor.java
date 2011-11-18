@@ -45,6 +45,10 @@ public abstract class QueryConstructor
       {
         queryConstructor = new TextQueryConstructor(analyzer);
       }
+      else if (BooleanQueryConstructor.QUERY_TYPE.equals(type))
+      {
+        queryConstructor = new BooleanQueryConstructor(analyzer);
+      }
     }
     return queryConstructor;
   }
