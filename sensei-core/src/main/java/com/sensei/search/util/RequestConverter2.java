@@ -172,13 +172,13 @@ public class RequestConverter2 {
 			    }
 			  }
 			  if (sortFieldList.size()>0){
-			    req.setSort(sortFieldList.toArray(new SortField[0]));
+			    req.setSort(sortFieldList.toArray(new SortField[sortFieldList.size()]));
 			  }
 		  }
 		
 		// other
 		  
-		boolean fetchStored = json.optBoolean("stored");
+		boolean fetchStored = json.optBoolean("fetchStored");
 		req.setFetchStoredFields(fetchStored);
 		  
 		String[] termVectors = getStrings(json,"fetchTermVectors");
@@ -191,7 +191,10 @@ public class RequestConverter2 {
 		  
 		req.setShowExplanation(json.optBoolean("explain",false));
 		  
-		req.setRouteParam(json.optString("routeParam",null));
+		String routeParam = json.optString("routeParam",null);
+		if(routeParam.equals("null"))
+		  routeParam = null;
+		req.setRouteParam(routeParam);
 		  
 		return req;
 	}

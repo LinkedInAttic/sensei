@@ -61,7 +61,19 @@
 				// parameter type, valid values are: "int","string","boolean","long","bytes","double", default: "string"
 				"type" : "int",
 				// parameter values
-				"values" : ["1234"]
+				"values" : [1234]
+			},
+			"timeOut":{
+				"type" : "double",
+				"value" : [2.4]			    
+			},
+			"coldStart":{
+				"type" : "boolean",
+				"value" : [true]			    
+			},
+			"names":{
+				"type": "string",
+				"value":["a", "b", "c"]
 			}
 		}
 	},
@@ -79,7 +91,7 @@
 	"fetchTermVectors" : [],
 
 	// partitions to send request to, empty list or null implies all partitions
-	"partitions":[],
+	"partitions":[1,2],
 
 	// send back scoring explanation for each hit
 	"explain" : false,
