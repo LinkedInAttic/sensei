@@ -31,11 +31,6 @@ public abstract class QueryConstructor
     QUERY_CONSTRUCTOR_MAP.put(TermQueryConstructor.QUERY_TYPE, new TermQueryConstructor());
   }
   
-  public static QueryConstructor getQueryConstructor(String type)
-  {
-    return QUERY_CONSTRUCTOR_MAP.get(type);
-  }
-
   public static QueryConstructor getQueryConstructor(String type, Analyzer analyzer)
   {
     QueryConstructor queryConstructor = QUERY_CONSTRUCTOR_MAP.get(type);
