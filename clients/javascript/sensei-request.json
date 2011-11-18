@@ -17,7 +17,7 @@
 	"groupBy" : [{
 		"column" : "category",
 		"top" : 3
-	}]
+	}],
 
 	// filters
 	"filters" : {
