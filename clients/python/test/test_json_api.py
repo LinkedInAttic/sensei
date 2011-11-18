@@ -30,7 +30,28 @@ class TestJsonAPI(unittest.TestCase):
   "size": 10
 }""")
 
-  def testBrowseBy2(self):
+  def testQuery(self):
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    WHERE QUERY IS "cool AND moon-roof"
+    """
+    req = SenseiRequest(stmt)
+    # print SenseiClient.buildJsonString(req, indent=2),
+    self.assertTrue(SenseiClient.buildJsonString(req, indent=2),
+                    """{
+  "fetchStored": true, 
+  "from": 0, 
+  "query": {
+    "query_string": {
+      "query": "cool AND moon-roof"
+    }
+  }, 
+  "size": 10
+}""")
+
+  def testBrowseBy(self):
     stmt = \
     """
     SELECT *
@@ -142,3 +163,17 @@ class TestJsonAPI(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+'''
+  def testQuery(self):
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    WHERE QUERY IS "cool AND moon-roof"
+    """
+    req = SenseiRequest(stmt)
+    # print SenseiClient.buildJsonString(req, indent=2),
+    self.assertTrue(SenseiClient.buildJsonString(req, indent=2),
+    """"""
+'''

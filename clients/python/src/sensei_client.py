@@ -144,6 +144,7 @@ JSON_PARAM_FROM = "from"
 JSON_PARAM_GROUPBY = "groupBy"
 JSON_PARAM_PARTITIONS = "partitions"
 JSON_PARAM_QUERY = "query"
+JSON_PARAM_QUERY_STRING = "query_string"
 JSON_PARAM_ROUTEPARAM = "routeParam"
 JSON_PARAM_SIZE = "size"
 JSON_PARAM_SORT = "sort"
@@ -1794,10 +1795,17 @@ class SenseiClient:
     """
 
     output_json = {}
+
     output_json[JSON_PARAM_FROM] = req.offset
     output_json[JSON_PARAM_SIZE] = req.count
+
     if req.query:
-      output_json[JSON_PARAM_QUERY] = req.query # TODO handle parameters
+      output_json[JSON_PARAM_QUERY] = {
+        JSON_PARAM_QUERY_STRING: {
+          JSON_PARAM_QUERY: req.query
+          }
+        }
+
     if req.explain:
       output_json[JSON_PARAM_QUERY] = True
     if req.fetch_stored:
@@ -1807,7 +1815,10 @@ class SenseiClient:
     if req.sorts:
       output_json[JSON_PARAM_SORT] = [sort.build_sort_spec() for sort in req.sorts]
 
-    # XXX  for selection in req.selections.values():
+    filters = {}
+    for selection in req.selections.values():
+      # XXX
+      pass
 
     facet_spec_map = {}
     for facet_name, facet_spec in req.facets.iteritems():
