@@ -10,11 +10,11 @@ import org.json.JSONObject;
 
 
 public class AndFilterConstructor extends FilterConstructor {
+  public static final String FILTER_TYPE = "and";
 
-	@Override
-	public Filter constructFilter(final JSONObject json) throws Exception {
-	   return null;
-		
-	}
+  @Override
+  public Filter constructFilter(final JSONObject json) throws Exception {
+     return null;
+  }
 
 }

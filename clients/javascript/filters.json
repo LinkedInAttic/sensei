@@ -2,9 +2,9 @@
   // id filter
   
   "ids" : {
-  	"values" : ["1","4","100"],
-  	"excludes" : ["5"]
-  }	,
+    "values" : ["1","4","100"],
+    "excludes" : ["5"]
+  },
   
   // and filter
   "and" : {

@@ -9,6 +9,8 @@ import org.json.JSONObject;
 import com.sensei.search.query.QueryConstructor;
 
 public class QueryFilterConstructor extends FilterConstructor{
+  public static final String FILTER_TYPE = "query";
+
   private Analyzer _analyzer;
 
   public QueryFilterConstructor(Analyzer analyzer)

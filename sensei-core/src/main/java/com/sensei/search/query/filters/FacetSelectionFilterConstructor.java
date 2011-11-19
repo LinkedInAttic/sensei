@@ -18,70 +18,71 @@ import com.kamikaze.docidset.impl.AndDocIdSet;
 import com.sensei.search.util.RequestConverter2;
 
 public class FacetSelectionFilterConstructor extends FilterConstructor{
+  public static final String FILTER_TYPE = "selection";
 
-	public static BrowseSelection buildFacetSelection(String name,JSONObject json) throws Exception{
-		BrowseSelection sel = new BrowseSelection(name);
-		String[] vals = RequestConverter2.getStrings(json.optJSONArray(VALUES_PARAM));
-		String[] nots = RequestConverter2.getStrings(json.optJSONArray(EXCLUDES_PARAM));
-		sel.setValues(vals);
-		sel.setNotValues(nots);
-		String operator = json.optString(OPERATOR_PARAM,"or");
-		if ("or".equalsIgnoreCase(operator)){
-			sel.setSelectionOperation(ValueOperation.ValueOperationOr);
-		}
-		else{
-			sel.setSelectionOperation(ValueOperation.ValueOperationAnd);
-		}
-		JSONObject paramsObj = json.optJSONObject(PARAMS_PARAM);
-		if (paramsObj!=null){
-			Map<String,String> paramMap = convertParams(paramsObj);
-			if (paramMap!=null && paramMap.size()>0){
-		 	  sel.setSelectionProperties(paramMap);
-			}
-		}
-		return sel;
-	}
-	
-	
-	@Override
-	public Filter constructFilter(final JSONObject json) throws Exception {
-		return new Filter(){
+  public static BrowseSelection buildFacetSelection(String name,JSONObject json) throws Exception{
+    BrowseSelection sel = new BrowseSelection(name);
+    String[] vals = RequestConverter2.getStrings(json.optJSONArray(VALUES_PARAM));
+    String[] nots = RequestConverter2.getStrings(json.optJSONArray(EXCLUDES_PARAM));
+    sel.setValues(vals);
+    sel.setNotValues(nots);
+    String operator = json.optString(OPERATOR_PARAM,"or");
+    if ("or".equalsIgnoreCase(operator)){
+      sel.setSelectionOperation(ValueOperation.ValueOperationOr);
+    }
+    else{
+      sel.setSelectionOperation(ValueOperation.ValueOperationAnd);
+    }
+    JSONObject paramsObj = json.optJSONObject(PARAMS_PARAM);
+    if (paramsObj!=null){
+      Map<String,String> paramMap = convertParams(paramsObj);
+      if (paramMap!=null && paramMap.size()>0){
+         sel.setSelectionProperties(paramMap);
+      }
+    }
+    return sel;
+  }
+  
+  
+  @Override
+  public Filter constructFilter(final JSONObject json) throws Exception {
+    return new Filter(){
 
-			@Override
-			public DocIdSet getDocIdSet(IndexReader reader)
-					throws IOException {
-				if (reader instanceof BoboIndexReader){
-					BoboIndexReader boboReader = (BoboIndexReader)reader;
-					Iterator<String> iter = json.keys();
-					ArrayList<DocIdSet> docSets = new ArrayList<DocIdSet>();
-					while(iter.hasNext()){
-						String key = iter.next();
-						FacetHandler facetHandler = boboReader.getFacetHandler(key);
-						if (facetHandler!=null){
-						  try{
-					 	    JSONObject obj = json.getJSONObject(key);
-						    BrowseSelection sel = buildFacetSelection(key, obj);
-						    docSets.add(facetHandler.buildFilter(sel).getDocIdSet(boboReader));
-						  }
-						  catch(Exception e){
-							  throw new IOException(e.getMessage());
-						  }
-						}
-						else{
-						  throw new IOException(key+" is not defined as a facet handler");
-						}
-					}
-					if (docSets.size()==0) return null;
-					else if (docSets.size()==1) return docSets.get(0);
-					return new AndDocIdSet(docSets);
-				}
-				else{
-					throw new IllegalStateException("read not instance of "+BoboIndexReader.class);
-				}
-			}
-			
-		};
-		
-	}
-	
+      @Override
+      public DocIdSet getDocIdSet(IndexReader reader)
+          throws IOException {
+        if (reader instanceof BoboIndexReader){
+          BoboIndexReader boboReader = (BoboIndexReader)reader;
+          Iterator<String> iter = json.keys();
+          ArrayList<DocIdSet> docSets = new ArrayList<DocIdSet>();
+          while(iter.hasNext()){
+            String key = iter.next();
+            FacetHandler facetHandler = boboReader.getFacetHandler(key);
+            if (facetHandler!=null){
+              try{
+                JSONObject obj = json.getJSONObject(key);
+                BrowseSelection sel = buildFacetSelection(key, obj);
+                docSets.add(facetHandler.buildFilter(sel).getDocIdSet(boboReader));
+              }
+              catch(Exception e){
+                throw new IOException(e.getMessage());
+              }
+            }
+            else{
+              throw new IOException(key+" is not defined as a facet handler");
+            }
+          }
+          if (docSets.size()==0) return null;
+          else if (docSets.size()==1) return docSets.get(0);
+          return new AndDocIdSet(docSets);
+        }
+        else{
+          throw new IllegalStateException("read not instance of "+BoboIndexReader.class);
+        }
+      }
+      
+    };
+    
+  }
+  
 }
