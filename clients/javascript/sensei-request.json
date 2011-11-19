@@ -1,8 +1,6 @@
 
 // example Sensei Request
 {
-	// query
-	// see: queries.json for more examples
 	"query" : {
 	  "query_string" : { 
           "query" : "this AND that OR thus"
@@ -67,6 +65,26 @@
 				"type" : "int",
 				// parameter values
 				"values" : ["$member"]
+			},
+			"timeOut":{
+				"type" : "double",
+				"values" : [2.4]			    
+			},
+			"coldStart":{
+				"type" : "boolean",
+				"values" : [true]			    
+			},
+			"names":{
+				"type": "string",
+				"values":["a", "b", "c"]
+			},
+			"longId":{
+				"type": "long",
+				"values":[1234567890, 9876543210]
+			},
+			"binary":{
+				"type": "bytes",
+				"values":["SGVsbG8gd29ybGQ="]			    
 			}
 		}
 	},
@@ -84,7 +102,7 @@
 	"fetchTermVectors" : [],
 
 	// partitions to send request to, empty list or null implies all partitions
-	"partitions":[],
+	"partitions":[1,2],
 
 	// send back scoring explanation for each hit
 	"explain" : false,
