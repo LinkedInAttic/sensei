@@ -39,17 +39,13 @@ public abstract class QueryConstructor
     if (queryConstructor == null)
     {
       if (QueryStringQueryConstructor.QUERY_TYPE.equals(type))
-      {
         queryConstructor = new QueryStringQueryConstructor(analyzer);
-      }
       else if (TextQueryConstructor.QUERY_TYPE.equals(type))
-      {
         queryConstructor = new TextQueryConstructor(analyzer);
-      }
       else if (BooleanQueryConstructor.QUERY_TYPE.equals(type))
-      {
         queryConstructor = new BooleanQueryConstructor(analyzer);
-      }
+      else if (FilteredQueryConstructor.QUERY_TYPE.equals(type))
+        queryConstructor = new FilteredQueryConstructor(analyzer);
     }
     return queryConstructor;
   }

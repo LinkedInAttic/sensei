@@ -54,7 +54,7 @@ public class BooleanQueryConstructor extends QueryConstructor
       QueryConstructor qc = QueryConstructor.getQueryConstructor(type, _analyzer);
       if (qc == null)
         throw new JSONException("Wrong type: " + type);
-      query.add(qc.constructQuery(obj), BooleanClause.Occur.MUST);
+      query.add(qc.constructQuery(obj.getJSONObject(type)), BooleanClause.Occur.MUST);
     }
     obj = jsonQuery.optJSONObject("must_not");
     if (obj != null)
@@ -63,7 +63,7 @@ public class BooleanQueryConstructor extends QueryConstructor
       QueryConstructor qc = QueryConstructor.getQueryConstructor(type, _analyzer);
       if (qc == null)
         throw new JSONException("Wrong type: " + type);
-      query.add(qc.constructQuery(obj), BooleanClause.Occur.MUST_NOT);
+      query.add(qc.constructQuery(obj.getJSONObject(type)), BooleanClause.Occur.MUST_NOT);
     }
     JSONArray array = jsonQuery.optJSONArray("should");
     if (array != null)
@@ -75,7 +75,7 @@ public class BooleanQueryConstructor extends QueryConstructor
         QueryConstructor qc = QueryConstructor.getQueryConstructor(type, _analyzer);
         if (qc == null)
           throw new JSONException("Wrong type: " + type);
-        query.add(qc.constructQuery(obj), BooleanClause.Occur.SHOULD);
+        query.add(qc.constructQuery(obj.getJSONObject(type)), BooleanClause.Occur.SHOULD);
       }
     }
 

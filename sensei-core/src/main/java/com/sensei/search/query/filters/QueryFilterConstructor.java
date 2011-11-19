@@ -24,7 +24,7 @@ public class QueryFilterConstructor extends FilterConstructor{
 		if (qconstructor == null){
 			throw new IllegalArgumentException("unknow query type: "+type);
 		}
-		Query q = qconstructor.constructQuery(queryObj.optJSONObject(type));
+		Query q = qconstructor.constructQuery(queryObj.getJSONObject(type));
 		return new QueryWrapperFilter(q);
 	}
 	
