@@ -568,7 +568,7 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable
   {
     SenseiQuery sq;
 
-    JSONObject qjson = new JSONObject();
+    JSONObject qjson = null;
     if (params==null){
     	qjson = new JSONObject();
     }
