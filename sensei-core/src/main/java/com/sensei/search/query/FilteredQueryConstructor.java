@@ -17,7 +17,7 @@ public class FilteredQueryConstructor extends QueryConstructor
 {
   public static final String QUERY_TYPE = "filtered";
 
-  // "filtered" : { // TODO
+  // "filtered" : {
   //         // any query object
   //     "query" : {
   //         "term" : { "tag" : "wow" }
