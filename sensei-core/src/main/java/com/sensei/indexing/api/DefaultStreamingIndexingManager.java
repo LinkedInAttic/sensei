@@ -249,6 +249,11 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
     }
       
     @Override
+    public void flushEvents() throws ZoieException {
+      
+    }
+
+    @Override
     public String getVersion()
     {
       return _currentVersion;
