@@ -7,10 +7,17 @@ import org.json.JSONObject;
 public class OrFilterConstructor extends FilterConstructor {
   public static final String FILTER_TYPE = "or";
 
+  // "or" : [
+  //   {
+  //     "term" : { "color" : "red","_noOptimize" : false}
+  //   },
+  //   {
+  //     "term" : { "category" : "van","_noOptimize" : false}
+  //   }
+  // ],
+
   @Override
-  public Filter constructFilter(JSONObject json) throws Exception {
-    // TODO Auto-generated method stub
+  protected Filter doConstructFilter(JSONObject json) throws Exception {
     return null;
   }
-
 }

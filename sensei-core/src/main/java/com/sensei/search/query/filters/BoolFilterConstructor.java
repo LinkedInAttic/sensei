@@ -8,7 +8,7 @@ public class BoolFilterConstructor extends FilterConstructor{
   public static final String FILTER_TYPE = "bool";
 
   @Override
-  public Filter constructFilter(JSONObject json) throws Exception {
+  protected Filter doConstructFilter(JSONObject json) throws Exception {
     // TODO Auto-generated method stub
     return null;
   }

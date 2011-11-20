@@ -18,7 +18,7 @@ public class UIDFilterConstructor  extends FilterConstructor{
   public static final String FILTER_TYPE = "ids";
 
   @Override
-  public Filter constructFilter(final JSONObject json) throws Exception {
+  protected Filter doConstructFilter(final JSONObject json) throws Exception {
     return new Filter(){
 
         @Override

@@ -8,7 +8,7 @@ public class TermFilterConstructor extends FilterConstructor{
   public static final String FILTER_TYPE = "term";
 
   @Override
-  public Filter constructFilter(JSONObject json) throws Exception {
+  protected Filter doConstructFilter(JSONObject json) throws Exception {
     boolean noOptimize = json.optBoolean("_noOptimize",false);
     
     String[] names = JSONObject.getNames(json);

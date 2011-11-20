@@ -33,7 +33,12 @@ public abstract class FilterConstructor {
 		}
 		return paramMap;
 	}
+
+	public static Filter constructFilter(JSONObject json) throws Exception
+  {
+    return null;
+  }
 	
-	abstract public Filter constructFilter(JSONObject json) throws Exception;
+	abstract protected Filter doConstructFilter(JSONObject json) throws Exception;
 
 }

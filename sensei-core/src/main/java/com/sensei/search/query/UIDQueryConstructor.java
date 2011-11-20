@@ -18,11 +18,13 @@ public class UIDQueryConstructor extends QueryConstructor
   @Override
   public Query constructQuery(JSONObject jsonQuery) throws JSONException
   {
-    FilterConstructor filterConstructor = FilterConstructor.getFilterConstructor(QUERY_TYPE);
+    JSONObject filterJson = new JSONObject();
+    filterJson.put(QUERY_TYPE, jsonQuery);
+
     Filter filter = null;
     try
     {
-      filter = filterConstructor.constructFilter(jsonQuery);
+      filter = FilterConstructor.constructFilter(filterJson);
     }
     catch(Exception e)
     {

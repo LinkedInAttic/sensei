@@ -45,7 +45,7 @@ public class FacetSelectionFilterConstructor extends FilterConstructor{
   
   
   @Override
-  public Filter constructFilter(final JSONObject json) throws Exception {
+  protected Filter doConstructFilter(final JSONObject json) throws Exception {
     return new Filter(){
 
       @Override

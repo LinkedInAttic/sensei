@@ -13,7 +13,7 @@ public class AndFilterConstructor extends FilterConstructor {
   public static final String FILTER_TYPE = "and";
 
   @Override
-  public Filter constructFilter(final JSONObject json) throws Exception {
+  protected Filter doConstructFilter(final JSONObject json) throws Exception {
      return null;
   }
 
