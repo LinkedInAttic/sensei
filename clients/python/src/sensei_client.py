@@ -150,6 +150,9 @@ JSON_PARAM_SIZE = "size"
 JSON_PARAM_SORT = "sort"
 JSON_PARAM_TOP = "top"
 JSON_PARAM_VALUES = "values"
+JSON_PARAM_EXCLUDES = "excludes"
+JSON_PARAM_OPERATOR = "operator"
+JSON_PARAM_NO_OPTIMIZE = "_noOptimize"
 
 # Group by related column names
 GROUP_VALUE = "groupvalue"
@@ -171,7 +174,7 @@ from pyparsing import Literal, CaselessLiteral, Word, Upcase, delimitedList, Opt
     Combine, Group, alphas, nums, alphanums, ParseException, ParseFatalException, ParseSyntaxException, \
     Forward, oneOf, quotedString, \
     ZeroOrMore, restOfLine, Keyword, OnlyOnce, Suppress, removeQuotes, NotAny, OneOrMore, \
-    MatchFirst, Regex, stringEnd
+    MatchFirst, Regex, stringEnd, operatorPrecedence, opAssoc
 
 """
 
@@ -191,10 +194,14 @@ BNF Grammar for BQL
 
 <from_clause> ::= FROM <index_name>
 
-<where_clause> ::= WHERE <search_condition>
+<where_clause> ::= WHERE <search_expr>
 
-<search_condition> ::= <predicates>
-                     | <cumulative_predicates>
+# <search_expr> ::= <predicates>
+#                 | <cumulative_predicates>
+# 
+<search_expr> ::= <predicate>
+                | <search_expr> (AND | OR) <search_expr>
+                | '(' <search_expr> ')'
 
 <predicates> ::= <predicate> ( AND <predicate> )*
 
@@ -360,14 +367,116 @@ BNF Grammar for BQL
 
 """
 
-def order_by_act(s, loc, tok):
+def order_by_action(s, loc, tok):
   for order in tok[1:]:
     if (order[0] == PARAM_SORT_SCORE and len(order) > 1):
       raise ParseSyntaxException(ParseException(s, loc, '"ORDER BY %s" should not be followed by %s'
                                                 % (PARAM_SORT_SCORE, order[1])))
+def pred_type(pred):
+  return pred.keys()[0]
+
+def pred_field(pred):
+  return pred.values()[0].keys()[0]
+
+def accumulate_range_pred(field_map, pred):
+  old_range = field_map.get(pred_field(pred))
+  if not old_range:
+    field_map[pred_field(pred)] = pred
+  else:
+    # XXX
+    pass
+
+def predicate_and_action(s, loc, tok):
+  # print ">>> in predicate_and_action: tok = ", tok
+  # [[{'term': {'a': 1}}, 'and', {'term': {'b': 2}}, 'and', {'query_string': {'query': 'xxx'}}, 'and', {'term': {'c': 3}}]]
+
+  filters = []
+  field_map = {}
+  for i in xrange(0, len(tok[0]), 2):
+    pred = tok[0][i]
+    if pred_type(pred) != "range":
+      filters.append(pred)
+    else:
+      accumulate_range_pred(field_map, pred)
+  for f in field_map:
+    filters.append(f)
+  return {"and": filters}
+
+def predicate_or_action(s, loc, tok):
+  # print ">>> in predicate_or_action: tok = ", tok
+  filters = []
+  for i in xrange(0, len(tok[0]), 2):
+    if type(tok[0][i]) != dict:
+      preds = tok[0][i].asList()
+      filters.append(preds[0])
+    else:
+      filters.append(tok[0][i])
+  # print ">>> in predicate_or_action: return ", {"or": filters}
+  return {"or": filters}
+
+def prop_list_action(s, loc, tok):
+  props = {}
+  for i in xrange(0, len(tok), 2):
+    props[tok[i]] = tok[i+1]
+  return props
+
+def in_predicate_action(s, loc, tok):
+  is_not = tok[1] == NOT.match
+  if not is_not:
+    return {"terms":
+              {tok[0]: {
+                 JSON_PARAM_VALUES: (tok.value_list[:] or []),
+                 JSON_PARAM_EXCLUDES: (tok.except_values[:] or []),
+                 JSON_PARAM_OPERATOR: PARAM_SELECT_OP_OR,
+                 JSON_PARAM_NO_OPTIMIZE: False
+                 }
+               }
+            }
+  else:
+    return {"terms":
+              {tok[0]: {
+                 JSON_PARAM_VALUES: (tok.except_values[:] or []),
+                 JSON_PARAM_EXCLUDES: (tok.value_list[:] or []),
+                 JSON_PARAM_OPERATOR: PARAM_SELECT_OP_OR,
+                 JSON_PARAM_NO_OPTIMIZE: False
+                 }
+               }
+            }
+
+def query_predicate_action(s, loc, tok):
+  # print ">>> in query_predicate_action: tok = ", tok
+  return {JSON_PARAM_QUERY_STRING: {JSON_PARAM_QUERY: tok[2]}}
+
+def equal_predicate_action(s, loc, tok):
+  return {"term": {tok[0]: tok[2]}}
+
+def range_predicate_action(s, loc, tok):
+  # print ">>> in range_predicate_action: tok = ", tok
+  val = None
+  try:
+    val = int(tok[2])
+  except:
+    val = float(tok[2])
+  include_lower = (tok[1] == ">=")
+  include_upper = (tok[1] == "<=")
+  from_val = "*"
+  to_val = "*"
+  if tok[1] == "<" or tok[1] == "<=":
+    to_val = val
+  else:
+    from_val = val
+  return {"range":
+            {tok[0]:
+               {"from": from_val,
+                "to": to_val,
+                "include_lower": include_lower,
+                "include_upper": include_upper
+                }
+             }
+          }
 
 limit_once = OnlyOnce(lambda s, loc, tok: tok)
-order_by_once = OnlyOnce(order_by_act)
+order_by_once = OnlyOnce(order_by_action)
 group_by_once = OnlyOnce(lambda s, loc, tok: tok)
 browse_by_once = OnlyOnce(lambda s, loc, tok: tok)
 fetching_stored_once = OnlyOnce(lambda s, loc, tok: tok)
@@ -524,13 +633,14 @@ value = (numeric | quotedString)
 value_list = LPAR + delimitedList(value) + RPAR
 
 prop_pair = (quotedString + COLON + value)
-predicate_props = (WITH + LPAR + delimitedList(prop_pair).setResultsName("prop_list") + RPAR)
+predicate_props = (WITH + LPAR + delimitedList(prop_pair).
+                   setResultsName("prop_list").setParseAction(prop_list_action) + RPAR)
 
 in_predicate = (column_name + Optional(NOT) +
                 IN + value_list.setResultsName("value_list") +
                 Optional(EXCEPT + value_list.setResultsName("except_values")) +
                 Optional(predicate_props)
-                ).setResultsName("in_pred")
+                ).setResultsName("in_pred").setParseAction(in_predicate_action)
 
 contains_all_predicate = (column_name +
                           CONTAINS + ALL + value_list.setResultsName("value_list") +
@@ -540,19 +650,22 @@ contains_all_predicate = (column_name +
 
 equal_predicate = (column_name +
                    EQUAL + value +
-                   Optional(predicate_props)).setResultsName("equal_pred")
+                   Optional(predicate_props)
+                   ).setResultsName("equal_pred").setParseAction(equal_predicate_action)
 
 not_equal_predicate = (column_name +
                        NOT_EQUAL + value +
                        Optional(predicate_props)).setResultsName("not_equal_pred")
 
-query_predicate = (QUERY + IS + quotedString).setResultsName("query_pred")
+query_predicate = (QUERY + IS + quotedString
+                   ).setResultsName("query_pred").setParseAction(query_predicate_action)
 
 between_predicate = (column_name + Optional(NOT) +
                      BETWEEN + value + AND + value).setResultsName("between_pred")
 
 range_op = oneOf("< <= >= >")
-range_predicate = (column_name + range_op + numeric).setResultsName("range_pred")
+range_predicate = (column_name + range_op + numeric
+                   ).setResultsName("range_pred").setParseAction(range_predicate_action)
 
 time_predicate = ((column_name + IN + LAST + time_span)
                   | (column_name + (SINCE | AFTER | BEFORE) + time_expr)
@@ -569,20 +682,25 @@ cumulative_predicates = (cumulative_predicate +
 
 same_column_or_pred = (LPAR + cumulative_predicates + RPAR).setResultsName("same_column_or_pred")
 
-predicate = Group(in_predicate
-                  | contains_all_predicate
-                  | equal_predicate
-                  | not_equal_predicate
-                  | query_predicate
-                  | between_predicate
-                  | range_predicate
-                  | time_predicate
-                  | same_column_or_pred
-                  ).setResultsName("predicates", listAllMatches=True)
+predicate = (in_predicate
+             | contains_all_predicate
+             | equal_predicate
+             | not_equal_predicate
+             | query_predicate
+             | between_predicate
+             | range_predicate
+             | time_predicate
+             | same_column_or_pred
+             )
 
 predicates = predicate + NotAny(OR) + ZeroOrMore(AND + predicate)
 
-search_condition = Group(predicates | cumulative_predicates)
+# search_condition = Group(predicates | cumulative_predicates)
+
+search_expr = operatorPrecedence(predicate,
+                                 [(AND, 2, opAssoc.LEFT, predicate_and_action),
+                                  (OR,  2, opAssoc.LEFT, predicate_or_action)
+                                  ])
 
 param_type = BOOLEAN | INT | LONG | STRING | BYTEARRAY | DOUBLE
 facet_param = Group(LPAR + facet_name + COMMA + quotedString + COMMA +
@@ -627,7 +745,7 @@ select_stmt << (SELECT +
                 ('*' | column_name_list).setResultsName("columns") + 
                 FROM + 
                 ident.setResultsName("index") + 
-                Optional(WHERE + search_condition.setResultsName("where")) +
+                Optional(WHERE + search_expr.setResultsName("where")) +
                 Optional(given_clause.setResultsName("given")) +
                 additional_clauses
                 )
@@ -833,6 +951,56 @@ def build_selection(predicate):
 
   return selection
 
+
+def build_filter(predicate):
+  """Build a filter based on a predicate."""
+
+  filter = None
+  if predicate.in_pred:
+    is_not = predicate[1] == NOT.match
+    if not is_not:
+      return {"facetSelection":
+                {predicate[0]: {
+                   "value": predicate.value_list,
+                   "excludes": predicate.except_values,
+                   "operator": PARAM_SELECT_OP_OR,
+                   "params": predicate.prop_list
+                   }
+                 }
+              }
+    else:
+      return {"facetSelection":
+                {predicate[0]: {
+                   "value": predicate.except_values,
+                   "excludes": predicate.value_list,
+                   "operator": PARAM_SELECT_OP_OR,
+                   "params": predicate.prop_list
+                   }
+                 }
+              }
+
+  elif predicate.contains_all_pred:
+    selection = SenseiSelection(predicate[0], PARAM_SELECT_OP_AND)
+    for val in predicate.value_list:
+      selection.addSelection(val)
+    for val in predicate.except_values:
+      selection.addSelection(val, True)
+    for i in xrange(0, len(predicate.prop_list), 2):
+      selection.addProperty(predicate.prop_list[i], predicate.prop_list[i+1])
+
+  elif predicate.equal_pred:
+    return {"facetSelection":
+              {predicate[0]: {
+                 "value": [predicate[2]],
+                 "excludes": {},
+                 "operator": PARAM_SELECT_OP_AND,
+                 "params": predicate.prop_list
+                 }
+               }
+            }
+
+  return filter
+
 class BQLRequest:
   """A Sensei request with a BQL statement.
 
@@ -859,6 +1027,8 @@ class BQLRequest:
     self.query = ""
     self.selections = None
     self.selection_list = []
+    self.filters = None
+    self.query_pred = None
     self.sorts = None
     self.columns = [safe_str(col) for col in self.tokens.columns]
     self.facet_init_param_map = None
@@ -870,17 +1040,53 @@ class BQLRequest:
 
     where = self.tokens.where
     if where:
-      if where.predicates:
-        for predicate in where.predicates:
-          if predicate.query_pred:
-            self.query = predicate[2]
-          else:
-            selection = build_selection(predicate)
-            if selection:
-              self.selection_list.append(selection)
-      elif where.cumulative_preds:
-        selection = collapse_cumulative_preds(where.cumulative_preds)
-        self.selection_list.append(selection)
+      if type(where) == dict:
+        pass
+      else:
+        # Single predicate in where clause
+        where = where.asList()[0]
+      self.__extract_query_and_filter(where)
+
+      # if where[0].get(JSON_PARAM_QUERY):
+      #   self.query_pred = where[0].get(JSON_PARAM_QUERY)
+      #   where[0].pop(JSON_PARAM_QUERY)
+    
+      # if where.predicates:
+      #   for predicate in where.predicates:
+      #     if predicate.query_pred:
+      #       self.query = predicate[2]
+      #     else:
+      #       selection = build_selection(predicate)
+      #       if selection:
+      #         self.selection_list.append(selection)
+      # elif where.cumulative_preds:
+      #   selection = collapse_cumulative_preds(where.cumulative_preds)
+      #   self.selection_list.append(selection)
+
+  def __extract_query_and_filter(self, where):
+    """Extract the query and filter information from the where clause."""
+
+    if where.get(JSON_PARAM_QUERY_STRING):
+      self.query_pred = where
+      self.filter = None
+    elif where.get("and"):
+      preds = where.get("and")
+      query_pred = None
+      for pred in preds:
+        if pred.get(JSON_PARAM_QUERY_STRING):
+          query_pred = pred
+          break
+      if query_pred:
+        self.query_pred = query_pred
+        preds.remove(pred)
+        if len(preds) == 1:
+          self.filters = preds[0]
+        else:
+          self.filters = {"and": preds}
+      else:
+        self.filters = where
+    else:
+      self.filters = where
 
   def get_stmt_type(self):
     """Get the statement type."""
@@ -979,6 +1185,15 @@ class BQLRequest:
       self.merge_selections()
     return self.selections
 
+  def get_filters(self):
+    """Get the filters from the statement."""
+
+    return self.filters
+
+  def get_query_pred(self):
+    """Get the QUERY predicate."""
+    return self.query_pred
+
   def get_facets(self):
     """Get facet specs."""
 
@@ -1074,15 +1289,16 @@ def test(str):
     print "tokens.index =",  tokens.index
     print "tokens.where =", tokens.where
     if tokens.where:
-      print "tokens.where.predicates =", tokens.where.predicates
-      print "tokens.where.cumulative_preds =", tokens.where.cumulative_preds
-      for predicate in tokens.where.predicates:
-        print "--------------------------------------"
-        print "predicate.value_list =", predicate.value_list
-        print "predicate.except_values =", predicate.except_values
-        print "predicate.prop_list =", predicate.prop_list
-        if predicate.cumulative_preds:
-          print "predicate.cumulative_preds =", predicate.cumulative_preds
+      pass
+      # print "tokens.where.predicates =", tokens.where.predicates
+      # print "tokens.where.cumulative_preds =", tokens.where.cumulative_preds
+      # for predicate in tokens.where.predicates:
+      #   print "--------------------------------------"
+      #   print "predicate.value_list =", predicate.value_list
+      #   print "predicate.except_values =", predicate.except_values
+      #   print "predicate.prop_list =", predicate.prop_list
+      #   if predicate.cumulative_preds:
+      #     print "predicate.cumulative_preds =", predicate.cumulative_preds
     print "tokens.orderby =", tokens.orderby
     if tokens.orderby:
       print "tokens.orderby.orderby_spec =", tokens.orderby.orderby_spec
@@ -1538,6 +1754,8 @@ class SenseiRequest:
         self.columns = bql_req.get_columns()
         self.sorts = bql_req.get_sorts()
         self.selections = bql_req.get_selections()
+        self.filters = bql_req.get_filters()
+        self.query_pred = bql_req.get_query_pred()
         self.facets = bql_req.get_facets()
         # PARAM_RESULT_HIT_STORED_FIELDS is a reserved column name.  If this
         # column is selected, turn on fetch_stored flag automatically.
@@ -1559,6 +1777,8 @@ class SenseiRequest:
       self.columns = []
       self.sorts = None
       self.selections = {}
+      self.filters = {}
+      self.query_pred = {}
       self.facets = {}
       self.fetch_stored = False
       self.groupby = None
@@ -1815,10 +2035,10 @@ class SenseiClient:
     if req.sorts:
       output_json[JSON_PARAM_SORT] = [sort.build_sort_spec() for sort in req.sorts]
 
-    filters = {}
-    for selection in req.selections.values():
-      # XXX
-      pass
+    if req.filters:
+      output_json[JSON_PARAM_FILTERS] = req.filters
+    if req.query_pred:
+      output_json[JSON_PARAM_QUERY] = req.query_pred
 
     facet_spec_map = {}
     for facet_name, facet_spec in req.facets.iteritems():
@@ -1863,6 +2083,7 @@ class SenseiClient:
         JSON_PARAM_TOP: req.max_per_group
         }]
 
+    # print ">>> output_json = ", output_json
     return json.dumps(output_json, sort_keys=sort_keys, indent=indent)
 
   @staticmethod
@@ -1957,14 +2178,14 @@ class SenseiClient:
     else:
       query_string = SenseiClient.buildUrlString(req)
     logger.debug(query_string)
-    urlReq = urllib2.Request(self.url, query_string)
-    res = self.opener.open(urlReq)
-    line = res.read()
-    jsonObj = json.loads(line)
-    res = SenseiResult(jsonObj)
-    delta = datetime.now() - time1
-    res.total_time = delta.seconds * 1000 + delta.microseconds / 1000
-    return res
+    # urlReq = urllib2.Request(self.url, query_string)
+    # res = self.opener.open(urlReq)
+    # line = res.read()
+    # jsonObj = json.loads(line)
+    # res = SenseiResult(jsonObj)
+    # delta = datetime.now() - time1
+    # res.total_time = delta.seconds * 1000 + delta.microseconds / 1000
+    # return res
 
   def getSystemInfo(self):
     """Get Sensei system info."""
@@ -2018,7 +2239,7 @@ def main(argv):
       req = SenseiRequest(stmt)
       if req.stmt_type == "select":
         res = client.doQuery(req)
-        res.display(columns=req.get_columns(), max_col_width=int(options.max_col_width))
+        # res.display(columns=req.get_columns(), max_col_width=int(options.max_col_width))
       elif req.stmt_type == "desc":
         sysinfo = client.getSystemInfo()
         sysinfo.display()
@@ -2159,5 +2380,10 @@ select uid, color, makemodel from cars group by color top 3 limit 0,4
 
 // Signal search example
 select tags, publicShareFlag, userid, country, updateType from signal where country in ("us") and My-Network in ("1", "2") given facet param (My-Network, "srcid", int, "8233570")
+
+------------------------------------------------------------------------
+
+select * from cars where color = "red" OR year = 1995 AND color in ("blue", "black")
+select * from cars where (color = "red" OR color = "blue") OR year = 1995
 
 """
