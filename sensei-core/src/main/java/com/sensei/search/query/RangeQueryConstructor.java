@@ -27,11 +27,10 @@ public class RangeQueryConstructor extends QueryConstructor
   @Override
   public Query constructQuery(JSONObject jsonQuery) throws JSONException
   {
-    FilterConstructor filterConstructor = FilterConstructor.getFilterConstructor(QUERY_TYPE);
     Filter filter = null;
     try
     {
-      filter = filterConstructor.constructFilter(jsonQuery);
+      filter = FilterConstructor.constructFilter(jsonQuery);
     }
     catch(Exception e)
     {

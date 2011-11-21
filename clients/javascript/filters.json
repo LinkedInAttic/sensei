@@ -17,10 +17,14 @@
   },
   
   // or filter
-  "or" : {
-    "term" : { "color" : "red","_noOptimize" : false},
-    "term" : { "category" : "van","_noOptimize" : false}
-  },
+  "or" : [
+    {
+      "term" : { "color" : "red","_noOptimize" : false}
+    },
+    {
+      "term" : { "category" : "van","_noOptimize" : false}
+    }
+  ],
   
   // boolean filter
   "bool" : {

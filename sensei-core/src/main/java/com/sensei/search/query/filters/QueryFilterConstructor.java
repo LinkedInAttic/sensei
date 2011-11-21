@@ -19,7 +19,7 @@ public class QueryFilterConstructor extends FilterConstructor{
   }
 
 	@Override
-	public Filter constructFilter(JSONObject json) throws Exception {
+	protected Filter doConstructFilter(JSONObject json) throws Exception {
 		JSONObject queryObj = json.getJSONObject("query");
 		String type = (String)queryObj.keys().next();
 		QueryConstructor qconstructor = QueryConstructor.getQueryConstructor(type, _analyzer);

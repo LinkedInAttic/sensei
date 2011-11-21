@@ -8,7 +8,7 @@ public class PathFilterConstructor extends FilterConstructor {
   public static final String FILTER_TYPE = "path";
 
   @Override
-  public Filter constructFilter(JSONObject json) throws Exception {
+  protected Filter doConstructFilter(JSONObject json) throws Exception {
     // TODO Auto-generated method stub
     return null;
   }

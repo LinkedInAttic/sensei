@@ -47,9 +47,7 @@ public class FilteredQueryConstructor extends QueryConstructor
       throw new IllegalArgumentException("query and filter are both required: " + jsonQuery);
 
     String queryType  = (String)queryJson.keys().next();
-    String filterType = (String)filterJson.keys().next();
 
-    FilterConstructor filterConstructor = FilterConstructor.getFilterConstructor(filterType);
     QueryConstructor queryConstructor = QueryConstructor.getQueryConstructor(queryType, _analyzer);
     Query query = null;
     try
@@ -63,7 +61,7 @@ public class FilteredQueryConstructor extends QueryConstructor
     Filter filter = null;
     try
     {
-      filter = filterConstructor.constructFilter(filterJson.getJSONObject(filterType));
+      filter = FilterConstructor.constructFilter(filterJson);
     }
     catch(Exception e)
     {
