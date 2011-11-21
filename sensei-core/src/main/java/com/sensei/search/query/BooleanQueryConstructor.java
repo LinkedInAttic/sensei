@@ -44,26 +44,18 @@ public class BooleanQueryConstructor extends QueryConstructor
   }
 
   @Override
-  public Query constructQuery(JSONObject jsonQuery) throws JSONException
+  protected Query doConstructQuery(JSONObject jsonQuery) throws JSONException
   {
     BooleanQuery query = new BooleanQuery(jsonQuery.optBoolean("disable_coord", false));
     JSONObject obj = jsonQuery.optJSONObject("must");
     if (obj != null)
     {
-      String type = (String)obj.keys().next();
-      QueryConstructor qc = QueryConstructor.getQueryConstructor(type, _analyzer);
-      if (qc == null)
-        throw new JSONException("Wrong type: " + type);
-      query.add(qc.constructQuery(obj.getJSONObject(type)), BooleanClause.Occur.MUST);
+      query.add(QueryConstructor.constructQuery(obj, _analyzer), BooleanClause.Occur.MUST);
     }
     obj = jsonQuery.optJSONObject("must_not");
     if (obj != null)
     {
-      String type = (String)obj.keys().next();
-      QueryConstructor qc = QueryConstructor.getQueryConstructor(type, _analyzer);
-      if (qc == null)
-        throw new JSONException("Wrong type: " + type);
-      query.add(qc.constructQuery(obj.getJSONObject(type)), BooleanClause.Occur.MUST_NOT);
+      query.add(QueryConstructor.constructQuery(obj, _analyzer), BooleanClause.Occur.MUST_NOT);
     }
     JSONArray array = jsonQuery.optJSONArray("should");
     if (array != null)
@@ -71,11 +63,7 @@ public class BooleanQueryConstructor extends QueryConstructor
       for (int i=0; i<array.length(); ++i)
       {
         obj = array.getJSONObject(i);
-        String type = (String)obj.keys().next();
-        QueryConstructor qc = QueryConstructor.getQueryConstructor(type, _analyzer);
-        if (qc == null)
-          throw new JSONException("Wrong type: " + type);
-        query.add(qc.constructQuery(obj.getJSONObject(type)), BooleanClause.Occur.SHOULD);
+        query.add(QueryConstructor.constructQuery(obj, _analyzer), BooleanClause.Occur.SHOULD);
       }
     }
 

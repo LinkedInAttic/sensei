@@ -15,7 +15,8 @@ public class SpanNearQueryConstructor extends QueryConstructor {
 
   public static final String QUERY_TYPE = "span_near";
 	@Override
-	public Query constructQuery(JSONObject jsonQuery) throws JSONException {
+  protected Query doConstructQuery(JSONObject jsonQuery) throws JSONException
+  {
 
 		
 //	    "span_near" : {

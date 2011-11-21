@@ -16,7 +16,7 @@ public class UIDQueryConstructor extends QueryConstructor
   public static final String QUERY_TYPE = "ids";
 
   @Override
-  public Query constructQuery(JSONObject jsonQuery) throws JSONException
+  protected Query doConstructQuery(JSONObject jsonQuery) throws JSONException
   {
     JSONObject filterJson = new JSONObject();
     filterJson.put(QUERY_TYPE, jsonQuery);
@@ -24,7 +24,7 @@ public class UIDQueryConstructor extends QueryConstructor
     Filter filter = null;
     try
     {
-      filter = FilterConstructor.constructFilter(filterJson);
+      filter = FilterConstructor.constructFilter(filterJson, null/* Analyzer is not used by this filter */);
     }
     catch(Exception e)
     {

@@ -1,5 +1,6 @@
 package com.sensei.search.query;
 
+import java.util.Iterator;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -13,8 +14,6 @@ import org.json.JSONObject;
 
 public abstract class QueryConstructor
 {
-  abstract public Query constructQuery(JSONObject params) throws JSONException;
-
   private static final Map<String,QueryConstructor> QUERY_CONSTRUCTOR_MAP = new HashMap<String,QueryConstructor>();
 
   static
@@ -50,4 +49,23 @@ public abstract class QueryConstructor
     }
     return queryConstructor;
   }
+
+  public static Query constructQuery(JSONObject jsonQuery, Analyzer analyzer) throws JSONException
+  {
+    if (jsonQuery == null)
+      return null;
+
+    Iterator<String> iter = jsonQuery.keys();
+    if (!iter.hasNext())
+      throw new IllegalArgumentException("Query type not specified: " + jsonQuery);
+
+    String type = iter.next();
+
+    QueryConstructor queryConstructor = QueryConstructor.getQueryConstructor(type, analyzer);
+    if (queryConstructor == null)
+      throw new IllegalArgumentException("Query type '" + type + "' not supported");
+    return queryConstructor.doConstructQuery(jsonQuery.getJSONObject(type));
+  }
+
+  abstract protected Query doConstructQuery(JSONObject jsonQuery) throws JSONException;
 }

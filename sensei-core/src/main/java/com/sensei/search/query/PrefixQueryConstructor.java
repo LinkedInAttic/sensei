@@ -11,7 +11,8 @@ public class PrefixQueryConstructor extends QueryConstructor {
   public static final String QUERY_TYPE = "prefix";
   
 	@Override
-	public Query constructQuery(JSONObject jsonQuery) throws JSONException {
+  protected Query doConstructQuery(JSONObject jsonQuery) throws JSONException
+  {
 
 //		   "prefix" : { 
 //	       "user" : "ki" 

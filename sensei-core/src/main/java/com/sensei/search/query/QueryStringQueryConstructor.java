@@ -20,9 +20,10 @@ public class QueryStringQueryConstructor extends QueryConstructor {
   }
   
   @Override
-  public Query constructQuery(JSONObject params) throws JSONException {
-    String defaultField = params.optString("default_field", "_all");
-    String queryText = params.getString("query");
+  protected Query doConstructQuery(JSONObject jsonQuery) throws JSONException
+  {
+    String defaultField = jsonQuery.optString("default_field", "_all");
+    String queryText = jsonQuery.getString("query");
     QueryParser qparser = new QueryParser(Version.LUCENE_30, defaultField, _analyzer);
     try {
       return qparser.parse(queryText);

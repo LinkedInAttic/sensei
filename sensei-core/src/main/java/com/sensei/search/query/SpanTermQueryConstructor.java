@@ -10,7 +10,8 @@ public class SpanTermQueryConstructor extends QueryConstructor {
 
   public static final String QUERY_TYPE = "span_term";
 	@Override
-	public Query constructQuery(JSONObject jsonQuery) throws JSONException {
+  protected Query doConstructQuery(JSONObject jsonQuery) throws JSONException
+  {
 		
 		
 //	    "span_term" : { 

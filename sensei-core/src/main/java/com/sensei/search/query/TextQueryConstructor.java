@@ -39,7 +39,7 @@ public class TextQueryConstructor extends QueryConstructor
   }
 
   @Override
-  public Query constructQuery(JSONObject jsonQuery) throws JSONException
+  protected Query doConstructQuery(JSONObject jsonQuery) throws JSONException
   {
     String op = null;
     String type = null;

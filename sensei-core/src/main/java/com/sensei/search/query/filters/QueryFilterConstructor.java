@@ -21,12 +21,7 @@ public class QueryFilterConstructor extends FilterConstructor{
 	@Override
 	protected Filter doConstructFilter(JSONObject json) throws Exception {
 		JSONObject queryObj = json.getJSONObject("query");
-		String type = (String)queryObj.keys().next();
-		QueryConstructor qconstructor = QueryConstructor.getQueryConstructor(type, _analyzer);
-		if (qconstructor == null){
-			throw new IllegalArgumentException("unknow query type: "+type);
-		}
-		Query q = qconstructor.constructQuery(queryObj.getJSONObject(type));
+		Query q = QueryConstructor.constructQuery(queryObj, _analyzer);
 		return new QueryWrapperFilter(q);
 	}
 	
