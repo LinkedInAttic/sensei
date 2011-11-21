@@ -20,7 +20,7 @@
 	}],
 
 	// filters
-	"filters" : {
+	"filter" : {
 		"terms" : {
           "tags" : {
             "values" : [ "blue", "pill" ],
@@ -29,19 +29,15 @@
             "operator" : "or",
             "_noOptimize" : false
           }
-        },
-        "term" :{
-          "color" : "red",
-          "_noOptimize" : false
-        },
-        "range" : {
-          "from" : "",
-          "to" : "",
-        }
+      }
 	},
 	
 	"selections" :{
-	  
+	  "tags" : {
+        "values" : [ "blue", "pill" ],
+        "excludes" : ["red"],
+        "operator" : "or"
+    }
 	},
 
 	// facet parameters
@@ -55,19 +51,6 @@
 			"expand" : false,
 			// facet ordering, possible values: "hits", "val", defaults to "hits"
 			"order" : "hits"
-		}
-	},
-
-    // facet initialization parameters for runtime facets
-	"facetInit":{
-		"network" : {
-			// parameter
-			"srcId" :{
-				// parameter type, valid values are: "int","string","boolean","long","bytes","double", default: "string"
-				"type" : "int",
-				// parameter values
-				"values" : ["$member"]
-			}
 		}
 	},
 

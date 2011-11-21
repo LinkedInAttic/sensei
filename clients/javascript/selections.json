@@ -1,0 +1,49 @@
+{
+  "term":{
+    
+  },
+  "terms":{
+    
+  },
+  "range":{
+    
+  },
+  "path":{
+    "value":"a/b/c",
+    "strict":false,
+    "depth":1
+  },
+  
+    // facet initialization parameters for runtime facets
+	"facetInit":{
+		"network" : {
+			// parameter
+			"srcId" :{
+				// parameter type, valid values are: "int","string","boolean","long","bytes","double", default: "string"
+				"type" : "int",
+				// parameter values
+				"values" : ["$member"]
+			}
+		}
+	},
+	
+  "custom":{
+    "network":{
+       "values":["0","1"],
+       "runtime":true,
+       "init-params":{
+          "srcId":{
+          "type" : "int",
+          "values" : ["$member"]
+      }
+    }
+  },
+  
+  "default":{
+    "color" : {
+      "values" : [],
+      "not" : [],
+      "params" : {}
+    }
+  }
+}
