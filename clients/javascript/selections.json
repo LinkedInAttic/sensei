@@ -30,8 +30,7 @@
   "custom":{
     "network":{
        "values":["0","1"],
-       "runtime":true,
-       "init-params":{
+       "runtime-params":{
           "srcId":{
           "type" : "int",
           "values" : ["$member"]

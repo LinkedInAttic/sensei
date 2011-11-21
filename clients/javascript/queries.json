@@ -184,11 +184,11 @@
 
 // custom
     "custom" : {
-        "mesage" : "my secret query",
-        "props"  : {
-            "connectivitySrc" : 1200,
-            "connectivityBoost" : 2.0,
-        }
+        "class" : "com.sensidb.query.TestQuery",
+        "params":{
+          
+        },
+        "boost" : 2.0
     }
 }
 
