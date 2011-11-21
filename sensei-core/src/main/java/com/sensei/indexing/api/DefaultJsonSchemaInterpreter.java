@@ -172,6 +172,7 @@ public class DefaultJsonSchemaInterpreter extends
             if (filtered.has(fldDef.fromField))
             {
               List<Object> vals = new LinkedList<Object>();
+              if (filtered.isNull(fldDef.fromField)) continue;
               if (fldDef.isMulti){
                 String val = filtered.optString(fldDef.fromField);
 
@@ -184,6 +185,8 @@ public class DefaultJsonSchemaInterpreter extends
                 }
               }
               else{
+                String val = filtered.optString(fldDef.fromField);
+                if (val == null) continue;
                 vals.add(extractor.extract(filtered.optString(fldDef.fromField)));
               }
                       
