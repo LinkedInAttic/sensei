@@ -21,18 +21,35 @@
     <module>sensei-hadoop-indexing</module>
     <module>example</module>
   </modules>
-  
 
-	<!-- Set the compiler to java6 -->
+
 	<build>
-	    <plugins>
-	      <plugin>
-	        <artifactId>maven-deploy-plugin</artifactId>
-	        <configuration>
-	          <skip>true</skip> <!-- No need to deploy the reactor -->
-	        </configuration>
-	      </plugin>
-	    </plugins>
-	  </build>
+		<plugins>
+			<plugin>
+				<artifactId>maven-deploy-plugin</artifactId>
+				<configuration>
+					<skip>true</skip> <!-- No need to deploy the reactor -->
+				</configuration>
+			</plugin>
+			<plugin>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<version>2.2.1</version>
+				<executions>
+					<execution>
+						<id>distro-assembly</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+						<configuration>
+							<descriptors>
+								<descriptor>src/main/assembly/release.xml</descriptor>
+							</descriptors>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
 
 </project>
