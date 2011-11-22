@@ -75,12 +75,6 @@
             "from" : 10, 
             "to" : 20,
             "_noOptimize" : false
-    },
-    
-    "selection":{
-      "path":{
-        
-      }
     }
   },
 
@@ -88,7 +82,13 @@
     "term":{
       
     },
+    "terms":{
+      
+    },
     "range":{
+      
+    },
+    "path":{
       
     }
   }
