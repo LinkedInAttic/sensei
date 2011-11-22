@@ -4,7 +4,7 @@ import java.util.Iterator;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.queryParser.QueryParser;
 import org.apache.lucene.search.Filter;
 import org.json.JSONObject;
 
@@ -34,13 +34,13 @@ public abstract class FilterConstructor {
     FILTER_CONSTRUCTOR_MAP.put(TermsFilterConstructor.FILTER_TYPE, new TermsFilterConstructor());
   }
   
-  public static FilterConstructor getFilterConstructor(String type, Analyzer analyzer)
+  public static FilterConstructor getFilterConstructor(String type, QueryParser qparser)
   {
     FilterConstructor filterConstructor = FILTER_CONSTRUCTOR_MAP.get(type);
     if (filterConstructor == null)
     {
       if (QueryFilterConstructor.FILTER_TYPE.equals(type))
-        filterConstructor = new QueryFilterConstructor(analyzer);
+        filterConstructor = new QueryFilterConstructor(qparser);
     }
     return filterConstructor;
   }
@@ -59,7 +59,7 @@ public abstract class FilterConstructor {
 		return paramMap;
 	}
 
-	public static Filter constructFilter(JSONObject json, Analyzer analyzer) throws Exception
+	public static Filter constructFilter(JSONObject json, QueryParser qparser) throws Exception
   {
     if (json == null)
       return null;
@@ -70,7 +70,7 @@ public abstract class FilterConstructor {
 
     String type = iter.next();
 
-    FilterConstructor filterConstructor = FilterConstructor.getFilterConstructor(type, analyzer);
+    FilterConstructor filterConstructor = FilterConstructor.getFilterConstructor(type, qparser);
     if (filterConstructor == null)
       throw new IllegalArgumentException("Filter type '" + type + "' not supported");
 

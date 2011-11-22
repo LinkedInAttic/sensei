@@ -8,6 +8,7 @@ import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.tokenattributes.TermAttribute;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.index.Term;
+import org.apache.lucene.queryParser.QueryParser;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.MultiPhraseQuery;
@@ -33,9 +34,9 @@ public class TextQueryConstructor extends QueryConstructor
 
   private Analyzer _analyzer;
 
-  public TextQueryConstructor(Analyzer analyzer)
+  public TextQueryConstructor(QueryParser qparser)
   {
-    _analyzer = analyzer;
+    _analyzer = qparser.getAnalyzer();
   }
 
   @Override

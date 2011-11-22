@@ -1,6 +1,6 @@
 package com.sensei.search.query;
 
-import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.queryParser.QueryParser;
 import org.apache.lucene.search.ConstantScoreQuery;
 import org.apache.lucene.search.Filter;
 import org.apache.lucene.search.FilteredQuery;
@@ -30,11 +30,11 @@ public class FilteredQueryConstructor extends QueryConstructor
   //     }
   // },
 
-  private Analyzer _analyzer;
+  private QueryParser _qparser;
 
-  public FilteredQueryConstructor(Analyzer analyzer)
+  public FilteredQueryConstructor(QueryParser qparser)
   {
-    _analyzer = analyzer;
+    _qparser = qparser;
   }
 
   @Override
@@ -49,7 +49,7 @@ public class FilteredQueryConstructor extends QueryConstructor
     Query query = null;
     try
     {
-      query = QueryConstructor.constructQuery(queryJson, _analyzer);
+      query = QueryConstructor.constructQuery(queryJson, _qparser);
     }
     catch(Exception e)
     {
@@ -58,7 +58,7 @@ public class FilteredQueryConstructor extends QueryConstructor
     Filter filter = null;
     try
     {
-      filter = FilterConstructor.constructFilter(filterJson, _analyzer);
+      filter = FilterConstructor.constructFilter(filterJson, _qparser);
     }
     catch(Exception e)
     {

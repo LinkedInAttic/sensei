@@ -1,6 +1,6 @@
 package com.sensei.search.query;
 
-import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.queryParser.QueryParser;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.Query;
@@ -36,11 +36,11 @@ public class BooleanQueryConstructor extends QueryConstructor
   //     "disable_coord" : false                      // optional: default = false
   // },
 
-  private Analyzer _analyzer;
+  private QueryParser _qparser;
 
-  public BooleanQueryConstructor(Analyzer analyzer)
+  public BooleanQueryConstructor(QueryParser qparser)
   {
-    _analyzer = analyzer;
+    _qparser = qparser;
   }
 
   @Override
@@ -50,12 +50,12 @@ public class BooleanQueryConstructor extends QueryConstructor
     JSONObject obj = jsonQuery.optJSONObject("must");
     if (obj != null)
     {
-      query.add(QueryConstructor.constructQuery(obj, _analyzer), BooleanClause.Occur.MUST);
+      query.add(QueryConstructor.constructQuery(obj, _qparser), BooleanClause.Occur.MUST);
     }
     obj = jsonQuery.optJSONObject("must_not");
     if (obj != null)
     {
-      query.add(QueryConstructor.constructQuery(obj, _analyzer), BooleanClause.Occur.MUST_NOT);
+      query.add(QueryConstructor.constructQuery(obj, _qparser), BooleanClause.Occur.MUST_NOT);
     }
     JSONArray array = jsonQuery.optJSONArray("should");
     if (array != null)
@@ -63,7 +63,7 @@ public class BooleanQueryConstructor extends QueryConstructor
       for (int i=0; i<array.length(); ++i)
       {
         obj = array.getJSONObject(i);
-        query.add(QueryConstructor.constructQuery(obj, _analyzer), BooleanClause.Occur.SHOULD);
+        query.add(QueryConstructor.constructQuery(obj, _qparser), BooleanClause.Occur.SHOULD);
       }
     }
 

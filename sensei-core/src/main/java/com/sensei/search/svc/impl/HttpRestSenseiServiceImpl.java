@@ -617,7 +617,7 @@ public class HttpRestSenseiServiceImpl implements SenseiService
         String key = (String) iter.next();
 
         if (key.equals("query")) {
-          qparams.add(new BasicNameValuePair(SenseiSearchServletParams.PARAM_QUERY, (String) jsonObj.get(key)));
+          qparams.add(new BasicNameValuePair(SenseiSearchServletParams.PARAM_QUERY, jsonObj.get(key).toString()));
           continue;
         }
 

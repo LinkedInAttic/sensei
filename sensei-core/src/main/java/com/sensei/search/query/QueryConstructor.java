@@ -4,7 +4,7 @@ import java.util.Iterator;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.queryParser.QueryParser;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Query;
@@ -33,37 +33,38 @@ public abstract class QueryConstructor
     QUERY_CONSTRUCTOR_MAP.put(UIDQueryConstructor.QUERY_TYPE, new UIDQueryConstructor());
   }
   
-  public static QueryConstructor getQueryConstructor(String type, Analyzer analyzer)
+  public static QueryConstructor getQueryConstructor(String type, QueryParser qparser)
   {
     QueryConstructor queryConstructor = QUERY_CONSTRUCTOR_MAP.get(type);
     if (queryConstructor == null)
     {
       if (QueryStringQueryConstructor.QUERY_TYPE.equals(type))
-        queryConstructor = new QueryStringQueryConstructor(analyzer);
+        queryConstructor = new QueryStringQueryConstructor(qparser);
       else if (TextQueryConstructor.QUERY_TYPE.equals(type))
-        queryConstructor = new TextQueryConstructor(analyzer);
+        queryConstructor = new TextQueryConstructor(qparser);
       else if (BooleanQueryConstructor.QUERY_TYPE.equals(type))
-        queryConstructor = new BooleanQueryConstructor(analyzer);
+        queryConstructor = new BooleanQueryConstructor(qparser);
       else if (FilteredQueryConstructor.QUERY_TYPE.equals(type))
-        queryConstructor = new FilteredQueryConstructor(analyzer);
+        queryConstructor = new FilteredQueryConstructor(qparser);
     }
     return queryConstructor;
   }
 
-  public static Query constructQuery(JSONObject jsonQuery, Analyzer analyzer) throws JSONException
+  public static Query constructQuery(JSONObject jsonQuery, QueryParser qparser) throws JSONException
   {
     if (jsonQuery == null)
       return null;
 
     Iterator<String> iter = jsonQuery.keys();
     if (!iter.hasNext())
-      throw new IllegalArgumentException("Query type not specified: " + jsonQuery);
+      return null;
 
     String type = iter.next();
 
-    QueryConstructor queryConstructor = QueryConstructor.getQueryConstructor(type, analyzer);
+    QueryConstructor queryConstructor = QueryConstructor.getQueryConstructor(type, qparser);
     if (queryConstructor == null)
       throw new IllegalArgumentException("Query type '" + type + "' not supported");
+
     return queryConstructor.doConstructQuery(jsonQuery.getJSONObject(type));
   }
 
