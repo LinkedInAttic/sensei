@@ -15,6 +15,7 @@ import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.queryParser.QueryParser;
 import org.apache.lucene.search.DefaultSimilarity;
 import org.apache.lucene.util.Version;
+import org.mortbay.jetty.Server;
 
 import proj.zoie.api.IndexReaderFactory;
 import proj.zoie.api.ZoieIndexReader;
@@ -46,11 +47,14 @@ import com.sensei.search.nodes.impl.SimpleQueryBuilderFactory;
 import com.sensei.search.req.SenseiHit;
 import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.req.SenseiResult;
+import com.sensei.search.svc.api.SenseiService;
+import com.sensei.search.svc.impl.HttpRestSenseiServiceImpl;
 
 public class TestSensei extends AbstractSenseiTestCase
 {
   static File ConfDir1 = new File("src/test/conf/node1");
   static File ConfDir2 = new File("src/test/conf/node2");
+  static File IndexDir = new File("index/test");
 
   private static final Logger logger = Logger.getLogger(TestSensei.class);
 
@@ -103,7 +107,7 @@ public class TestSensei extends AbstractSenseiTestCase
 
   
   public static <T> IndexReaderFactory<ZoieIndexReader<BoboIndexReader>> buildReaderFactory(File file,ZoieIndexableInterpreter<T> interpreter){
-  ZoieSystem<BoboIndexReader,T> zoieSystem = new ZoieSystem<BoboIndexReader,T>(file,interpreter,new SenseiIndexReaderDecorator(),new StandardAnalyzer(Version.LUCENE_30),new DefaultSimilarity(),1000,300000,true,ZoieConfig.DEFAULT_VERSION_COMPARATOR);
+  ZoieSystem<BoboIndexReader,T> zoieSystem = new ZoieSystem<BoboIndexReader,T>(file,interpreter,new SenseiIndexReaderDecorator(),new StandardAnalyzer(Version.LUCENE_34),new DefaultSimilarity(),1000,300000,true,ZoieConfig.DEFAULT_VERSION_COMPARATOR,false);
     zoieSystem.getAdminMBean().setFreshness(50);
     zoieSystem.start();
   return zoieSystem;
@@ -121,17 +125,48 @@ public class TestSensei extends AbstractSenseiTestCase
   }
   
   static SenseiBroker broker = null;
+  static SenseiService httpRestSenseiService = null;
   static SenseiServer node1;
   static SenseiServer node2;
+  static Server httpServer1;
+  static Server httpServer2;
+
+  static boolean rmrf(File f)
+  {
+    if (f != null)
+    {
+      if (f.isDirectory())
+      {
+        for (File sub : f.listFiles())
+        {
+          if (!rmrf(sub))
+            return false;
+        }
+      }
+      else
+        return f.delete();
+    }
+    return true;
+  }
 
   static
   {
+    // Try to remove pre-existing test index files:
+    try
+    {
+      rmrf(IndexDir);
+    }
+    catch (Exception e)
+    {
+      // Ignore.
+    }
     SenseiServerBuilder senseiServerBuilder1 = null;
     SenseiServerBuilder senseiServerBuilder2 = null;
     try
     {
       senseiServerBuilder1 = new SenseiServerBuilder(ConfDir1);
       node1 = senseiServerBuilder1.buildServer();
+      httpServer1 = senseiServerBuilder1.buildHttpRestServer();
       logger.info("Node 1 created.");
     }
     catch (Exception e)
@@ -143,6 +178,7 @@ public class TestSensei extends AbstractSenseiTestCase
     {
       senseiServerBuilder2 = new SenseiServerBuilder(ConfDir2);
       node2 = senseiServerBuilder2.buildServer();
+      httpServer2 = senseiServerBuilder2.buildHttpRestServer();
       logger.info("Node 2 created.");
     }
     catch (Exception e)
@@ -170,6 +206,8 @@ public class TestSensei extends AbstractSenseiTestCase
       }
     }
 
+    httpRestSenseiService = new HttpRestSenseiServiceImpl("http", "localhost", 8079, "/sensei");
+
     logger.info("Cluster client started");
 
     Runtime.getRuntime().addShutdownHook(new Thread(){
@@ -179,11 +217,23 @@ public class TestSensei extends AbstractSenseiTestCase
           }
           catch(Throwable t){}
           try{
+            httpRestSenseiService.shutdown();
+          }
+          catch(Throwable t){}
+          try{
             node1.shutdown();
           }
           catch(Throwable t){}
           try{
+            httpServer1.stop();
+          }
+          catch(Throwable t){}
+          try{
             node2.shutdown();
+          }
+          catch(Throwable t){}
+          try{
+            httpServer2.stop();
           }
           catch(Throwable t){}
           try{
@@ -205,6 +255,14 @@ public class TestSensei extends AbstractSenseiTestCase
       // TODO Auto-generated catch block
       e.printStackTrace();
     }
+    try
+    {
+      httpServer1.start();
+    } catch (Exception e)
+    {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
     logger.info("Node 1 started");
     try
     {
@@ -214,12 +272,18 @@ public class TestSensei extends AbstractSenseiTestCase
       // TODO Auto-generated catch block
       e.printStackTrace();
     }
+    try
+    {
+      httpServer2.start();
+    } catch (Exception e)
+    {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
     logger.info("Node 2 started");
 
     try
     {
-      //senseiServerBuilder1.buildHttpRestServer().start();
-
       SenseiRequest req = new SenseiRequest();
       SenseiResult res = null;
       int count = 0;
@@ -349,6 +413,13 @@ public class TestSensei extends AbstractSenseiTestCase
     SenseiResult res = broker.browse(req);
     logger.info("request:" + req + "\nresult:" + res);
     SenseiHit hit = res.getSenseiHits()[0];
+    assertTrue(hit.getGroupHitsCount() > 0);
+    assertTrue(hit.getSenseiGroupHits().length > 0);
+
+    // use httpRestSenseiService
+    res = httpRestSenseiService.doQuery(req);
+    logger.info("request:" + req + "\nresult:" + res);
+    hit = res.getSenseiHits()[0];
     assertTrue(hit.getGroupHitsCount() > 0);
     assertTrue(hit.getSenseiGroupHits().length > 0);
   }

@@ -480,7 +480,7 @@ public class ResultMerger
           if (groupHitMap.containsKey(rawGroupValue))
           {
             if (offsetLeft <= 0) {
-              SenseiHit pre = groupHitMap.get(hit.getRawGroupValue());
+              SenseiHit pre = groupHitMap.get(rawGroupValue);
               pre.setGroupHitsCount(pre.getGroupHitsCount()+hit.getGroupHitsCount());
             }
           }

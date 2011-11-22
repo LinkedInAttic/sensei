@@ -46,9 +46,11 @@ import org.springframework.context.support.FileSystemXmlApplicationContext;
 import org.springframework.core.io.Resource;
 import org.w3c.dom.Document;
 
+import proj.zoie.api.IndexCopier;
 import proj.zoie.api.indexing.ZoieIndexableInterpreter;
 import proj.zoie.hourglass.impl.HourGlassScheduler.FREQUENCY;
 import proj.zoie.impl.indexing.ZoieConfig;
+import proj.zoie.impl.HDFSIndexCopier;
 import scala.actors.threadpool.Arrays;
 
 import com.browseengine.bobo.facets.FacetHandler;
@@ -71,6 +73,7 @@ import com.sensei.search.nodes.SenseiCore;
 import com.sensei.search.nodes.SenseiHourglassFactory;
 import com.sensei.search.nodes.SenseiIndexReaderDecorator;
 import com.sensei.search.nodes.SenseiIndexingManager;
+import com.sensei.search.nodes.SenseiPairFactory;
 import com.sensei.search.nodes.SenseiQueryBuilderFactory;
 import com.sensei.search.nodes.SenseiServer;
 import com.sensei.search.nodes.SenseiZoieFactory;
@@ -100,10 +103,16 @@ public class SenseiServerBuilder implements SenseiConfParams{
   private final Server _jettyServer;
   private final Comparator<String> _versionComparator;
   
-  private static ApplicationContext loadSpringContext(File confFile){
+  private static ApplicationContext loadSpringContext(File[] confFiles, ApplicationContext parent){
     ApplicationContext springCtx = null;
-    if (confFile.exists()){
-      springCtx = new FileSystemXmlApplicationContext("file:"+confFile.getAbsolutePath());
+    List<String> confList = new ArrayList<String>(confFiles.length);
+    for(File confFile : confFiles)
+    {
+      if (confFile.exists())
+        confList.add("file:"+confFile.getAbsolutePath());
+    }
+    if (confList.size() > 0){
+      springCtx = new FileSystemXmlApplicationContext(confList.toArray(new String[confList.size()]), parent);
     }
     return springCtx;
   }
@@ -250,7 +259,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
     if (pluginContext != null)
       _pluginContext = pluginContext;
     else
-      _pluginContext = loadSpringContext(new File(confDir,PLUGINS));
+      _pluginContext = loadSpringContext(new File[] {new File(confDir,PLUGINS), new File(confDir,CUSTOM_FACETS)}, null);
 
     String versionComparatorName = _senseiConf.getString(SENSEI_VERSION_COMPARATOR, "");
     if (versionComparatorName == null || versionComparatorName.equals(""))
@@ -260,8 +269,10 @@ public class SenseiServerBuilder implements SenseiConfParams{
 
     if (customFacetContext != null)
       _customFacetContext = customFacetContext;
+    else if (pluginContext != null)
+      _customFacetContext = loadSpringContext(new File[] {new File(confDir,CUSTOM_FACETS)}, _pluginContext);
     else
-      _customFacetContext = loadSpringContext(new File(confDir,CUSTOM_FACETS));
+      _customFacetContext = _pluginContext;
     
     _schemaDoc = loadSchema(confDir);
     _senseiSchema = SenseiSchema.build(_schemaDoc);
@@ -381,7 +392,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
       Analyzer analyzer = null;
       String analyzerName = _senseiConf.getString(SENSEI_INDEX_ANALYZER, "");
       if (analyzerName == null || analyzerName.equals("")) {
-        analyzer = new StandardAnalyzer(Version.LUCENE_30);
+        analyzer = new StandardAnalyzer(Version.LUCENE_34);
       }
       else {
         analyzer = (Analyzer)_pluginContext.getBean(analyzerName);
@@ -509,7 +520,37 @@ public class SenseiServerBuilder implements SenseiConfParams{
         }
         zoieSystemFactory = zoieFactoryFactory.getZoieFactory(idxDir, interpreter, decorator, zoieConfig);
       }
-      
+
+      String indexerCopier = _senseiConf.getString(SENSEI_INDEXER_COPIER);
+
+      if (indexerCopier == null || indexerCopier.length() == 0)
+      {
+        // do not support bootstrap index from other sources.
+      }
+      else if (SENSEI_INDEXER_COPIER_HDFS.equals(indexerCopier))
+      {
+        zoieSystemFactory = new SenseiPairFactory(idxDir,
+                                                  new HDFSIndexCopier(),
+                                                  interpreter,
+                                                  decorator,
+                                                  zoieConfig,
+                                                  zoieSystemFactory);
+      }
+      else
+      {
+        IndexCopier copier = (IndexCopier)_pluginContext.getBean(indexerCopier);
+        if (indexerCopier == null)
+        {
+          throw new ConfigurationException(indexerCopier + " not defined");
+        }
+        zoieSystemFactory = new SenseiPairFactory(idxDir,
+                                                  copier,
+                                                  interpreter,
+                                                  decorator,
+                                                  zoieConfig,
+                                                  zoieSystemFactory);
+      }
+
       String idxMgrType = _senseiConf.getString(SENSEI_INDEX_MANAGER,"");
       SenseiIndexingManager<?> indexingManager;
       
@@ -526,7 +567,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
       String qbuilderFactory = _senseiConf.getString(SENSEI_QUERY_BUILDER_FACTORY,"");
       
       if (qbuilderFactory.length()==0){
-        QueryParser queryParser = new QueryParser(Version.LUCENE_30,"contents", analyzer);
+        QueryParser queryParser = new QueryParser(Version.LUCENE_34,"contents", analyzer);
         queryBuilderFactory = new DefaultJsonQueryBuilderFactory(queryParser);
       }
       else{

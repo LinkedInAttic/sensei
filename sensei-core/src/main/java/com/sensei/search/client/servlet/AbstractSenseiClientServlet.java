@@ -142,8 +142,8 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
       while((len=ris.read(buffer)) > 0)
       {
         if (!conn.getDoOutput()) {
-          os = conn.getOutputStream();
           conn.setDoOutput(true);
+          os = conn.getOutputStream();
         }
         os.write(buffer, 0, len);
       }
@@ -188,7 +188,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
 
     resp.setHeader("Access-Control-Allow-Origin", "*");
     resp.setHeader("Access-Control-Allow-Methods", "GET, POST");
-    resp.setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Accept");
+    resp.setHeader("Access-Control-Allow-Headers", "Origin, Content-Type, X-Requested-With, Accept");
 
     if (null == req.getPathInfo() || "/".equalsIgnoreCase(req.getPathInfo()))
     {
@@ -221,7 +221,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
   {
     resp.setHeader("Access-Control-Allow-Origin", "*");
     resp.setHeader("Access-Control-Allow-Methods", "GET, POST");
-    resp.setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Accept");
+    resp.setHeader("Access-Control-Allow-Headers", "Origin, Content-Type, X-Requested-With, Accept");
   }
   
   protected abstract void convertResult(SenseiSystemInfo info, OutputStream ostream) throws Exception;
