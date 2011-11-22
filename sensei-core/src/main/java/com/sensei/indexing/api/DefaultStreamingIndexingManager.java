@@ -1,12 +1,16 @@
 package com.sensei.indexing.api;
 
+import java.lang.management.ManagementFactory;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
+import javax.management.MBeanServer;
+import javax.management.ObjectName;
 import javax.management.StandardMBean;
 
 import org.apache.commons.configuration.Configuration;
@@ -18,12 +22,13 @@ import org.springframework.context.ApplicationContext;
 import proj.zoie.api.DataConsumer;
 import proj.zoie.api.DataConsumer.DataEvent;
 import proj.zoie.api.DataProvider;
+import proj.zoie.api.Zoie;
 import proj.zoie.api.ZoieException;
-import proj.zoie.impl.indexing.AsyncDataConsumer;
 import proj.zoie.impl.indexing.StreamDataProvider;
 import proj.zoie.mbean.DataProviderAdmin;
 import proj.zoie.mbean.DataProviderAdminMBean;
 
+import com.browseengine.bobo.api.BoboIndexReader;
 import com.sensei.conf.SenseiSchema;
 import com.sensei.indexing.api.gateway.SenseiGateway;
 import com.sensei.indexing.api.gateway.SenseiGatewayRegistry;
@@ -53,7 +58,7 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 	private final Configuration _myconfig;
   private final ApplicationContext _pluginContext;
 	
-	private Map<Integer, AsyncDataConsumer<JSONObject>> _dataConsumerMap;
+	private Map<Integer, Zoie<BoboIndexReader, JSONObject>> _zoieSystemMap;
 	private final LinkedHashMap<Integer, Collection<DataEvent<JSONObject>>> _dataCollectorMap;
   private final Comparator<String> _versionComparator;
     private final ShardingStrategy _shardingStrategy;
@@ -64,7 +69,7 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
     _pluginContext = pluginContext;
 	  _oldestSinceKey = null;
 	  _senseiSchema = schema;
-	  _dataConsumerMap = null;
+	  _zoieSystemMap = null;
 	  _dataCollectorMap = new LinkedHashMap<Integer, Collection<DataEvent<JSONObject>>>();
     _versionComparator = versionComparator;
     
@@ -93,19 +98,19 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 	
 	@Override
 	public void initialize(
-			Map<Integer, AsyncDataConsumer<JSONObject>> dataConsumerMap)
+			Map<Integer, Zoie<BoboIndexReader, JSONObject>> zoieSystemMap)
 			throws Exception {
 
 		int maxPartitionId = _myconfig.getInt(MAX_PARTITION_ID)+1;
 		String uidField = _senseiSchema.getUidField();
 		DataDispatcher consumer = new DataDispatcher(maxPartitionId,uidField);
 		
-		_dataConsumerMap = dataConsumerMap;
+		_zoieSystemMap = zoieSystemMap;
 		
-	    Iterator<Integer> it = _dataConsumerMap.keySet().iterator();
+	    Iterator<Integer> it = zoieSystemMap.keySet().iterator();
 	    while(it.hasNext()){
 	      int part = it.next();
-	      DataConsumer<JSONObject> zoie = _dataConsumerMap.get(part);
+	      Zoie<BoboIndexReader,JSONObject> zoie = zoieSystemMap.get(part);
 	      updateOldestSinceKey(zoie.getVersion());
 	      _dataCollectorMap.put(part, new LinkedList<DataEvent<JSONObject>>());
 	    }
@@ -171,11 +176,11 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
   @Override
   public void syncWithVersion(long timeToWait, String version) throws ZoieException
   {
-    Iterator<Integer> itr = _dataConsumerMap.keySet().iterator();
+    Iterator<Integer> itr = _zoieSystemMap.keySet().iterator();
     while (itr.hasNext())
     {
       int part_num = itr.next();
-      AsyncDataConsumer<JSONObject> dataConsumer = _dataConsumerMap.get(part_num);
+      Zoie<BoboIndexReader,JSONObject> dataConsumer = _zoieSystemMap.get(part_num);
       if (dataConsumer != null)
       {
         dataConsumer.syncWithVersion(timeToWait, version);
@@ -216,10 +221,10 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
           }
         }
         
-        Iterator<Integer> it = DefaultStreamingIndexingManager.this._dataConsumerMap.keySet().iterator();
+        Iterator<Integer> it = DefaultStreamingIndexingManager.this._zoieSystemMap.keySet().iterator();
         while(it.hasNext()){
           int part_num = it.next();
-          DataConsumer<JSONObject> dataConsumer = DefaultStreamingIndexingManager.this._dataConsumerMap.get(part_num);
+          Zoie<BoboIndexReader,JSONObject> dataConsumer = DefaultStreamingIndexingManager.this._zoieSystemMap.get(part_num);
           if (dataConsumer!=null){
             LinkedList<DataEvent<JSONObject>> partDataSet =
               (LinkedList<DataEvent<JSONObject>>) DefaultStreamingIndexingManager.this._dataCollectorMap.get(part_num);
