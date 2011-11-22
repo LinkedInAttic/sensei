@@ -23,12 +23,14 @@ import com.sensei.search.util.RequestConverter2;
 public class TestRequestConverter2
 {
 
-  static JSONObject testJson = null;
+  static JSONObject senseiRequestJson = null;
+  static JSONObject queryJson = null;
+  static JSONObject selectionsJson = null;
+  static JSONObject filtersJson = null;
 
-  @BeforeClass
-  public static void setUpBeforeClass() throws Exception
+  public static JSONObject readJSONFromFile(String fileName) throws Exception
   {
-    File file = new File("clients/javascript/sensei-request.json");
+    File file = new File(fileName);
     BufferedReader br = new BufferedReader(new FileReader(file));
     StringBuffer sb = new StringBuffer();
     String line = br.readLine();
@@ -43,14 +45,28 @@ public class TestRequestConverter2
       line = br.readLine();
     }
     
-    testJson = new JSONObject(sb.toString());
-
+    return new JSONObject(sb.toString());
+  }
+  
+  @BeforeClass
+  public static void setUpBeforeClass() throws Exception
+  {
+    senseiRequestJson = readJSONFromFile("clients/javascript/sensei-request.json");
+    selectionsJson = readJSONFromFile("clients/javascript/selections.json");
+    queryJson = readJSONFromFile("clients/javascript/queries.json");
+    filtersJson = readJSONFromFile("clients/javascript/filters.json");
+    
+    senseiRequestJson.remove("selections");
+    senseiRequestJson.remove("query");
+    
+    senseiRequestJson.putOpt("selections", selectionsJson);
+    senseiRequestJson.putOpt("query", queryJson);
   }
 
   @Test
   public void test() throws Exception
   {
-    SenseiRequest req = RequestConverter2.fromJSON(testJson);
+    SenseiRequest req = RequestConverter2.fromJSON(senseiRequestJson);
     
     //testquery;
 //    assertTrue("query_string is not equal", req.getQuery().toString().equals("this AND that OR thus"));
@@ -92,7 +108,7 @@ public class TestRequestConverter2
     evaluateDouble(timeout, new double[]{2.4});
     
     int[] srcId = param.getIntParam("srcId");
-    evaluateInt(srcId, new int[]{1234});
+    evaluateInt(srcId, new int[]{26609850});
     
     long[] longId = param.getLongParam("longId");
     evaluateLong(longId, new long[]{1234567890L, 9876543210L});
