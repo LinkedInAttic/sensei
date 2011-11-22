@@ -89,7 +89,17 @@ public class DefaultJsonSchemaInterpreter extends
 
       @Override
       public Object extract(String val) {
-        return (val == null || val.length()==0) ? 0 : Integer.parseInt(val);
+        if (val == null || val.length()==0){
+          return 0;
+        }
+        else{
+          int num = Integer.parseInt(val);
+          if (num<0){
+            logger.error("we don't yet support negative values, 0 is used.");
+            return 0;
+          }
+          return num;
+        }
       }
       
     });
@@ -98,7 +108,17 @@ public class DefaultJsonSchemaInterpreter extends
       @Override
       public Object extract(String val) {
 
-        return (val == null || val.length()==0) ? 0 : Double.parseDouble(val);
+        if (val == null || val.length()==0){
+          return 0.0;
+        }
+        else{
+          double num = Double.parseDouble(val);
+          if (num<0.0){
+            logger.error("we don't yet support negative values, 0 is used.");
+            return 0.0;
+          }
+          return num;
+        }
       }
       
     });
@@ -106,8 +126,17 @@ public class DefaultJsonSchemaInterpreter extends
 
       @Override
       public Object extract(String val) {
-
-        return (val == null || val.length()==0) ? 0 : Long.parseLong(val);
+        if (val == null || val.length()==0){
+          return 0.0;
+        }
+        else{
+          long num = Long.parseLong(val);
+          if (num<0){
+            logger.error("we don't yet support negative values, 0 is used.");
+            return 0L;
+          }
+          return num;
+        }
       }
       
     });
@@ -191,6 +220,7 @@ public class DefaultJsonSchemaInterpreter extends
               }
                       
               for (Object val : vals){
+                if (val==null) continue;
                 String strVal = null;
                 if (fldDef.formatter!=null){
                   strVal = fldDef.formatter.format(val);
