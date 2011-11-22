@@ -43,13 +43,6 @@ public class CompositeDataConsumer<T> implements DataConsumer<T> {
     return version;
   }
 
-  @Override
-  public void flushEvents() throws ZoieException {
-    for (DataConsumer<T> consumer : _consumerList){
-      consumer.flushEvents();
-    }
-  }
-
   //@Override
   //public Comparator<String> getVersionComparator() {
     //return _versionComparator;
