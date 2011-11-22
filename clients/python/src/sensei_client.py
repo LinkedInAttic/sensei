@@ -379,17 +379,79 @@ def pred_field(pred):
   return pred.values()[0].keys()[0]
 
 def accumulate_range_pred(field_map, pred):
-  old_range = field_map.get(pred_field(pred))
+  """Try to merge ANDed range predicates.
+
+  For example, "year > 1999 AND year <= 2003" can be accumulated into
+  "1999 < year <= 2003".
+  """
+
+  def __max(n1, include1, n2, include2):
+    """Find the larger of the two lower bounds."""
+
+    if n1 == None:
+      return n2, include2
+    elif n2 == None:
+      return n1, include1
+    else:
+      if n1 > n2:
+        return n1, include1
+      elif n1 == n2:
+        return n1, (include1 and include2)
+      else:
+        return n2, include2
+
+  def __min(n1, include1, n2, include2):
+    """Find the smaller of the two upper bounds."""
+
+    if n1 == None:
+      return n2, include2
+    elif n2 == None:
+      return n1, include1
+    else:
+      if n1 > n2:
+        return n2, include2
+      elif n1 == n2:
+        return n1, (include1 and include2)
+      else:
+        return n1, include1
+
+  field = pred_field(pred)
+  old_range = field_map.get(field)
   if not old_range:
-    field_map[pred_field(pred)] = pred
-  else:
-    # XXX
-    pass
+    field_map[field] = pred
+    return
+  old_spec = old_range.values()[0].values()[0]
+  old_from = old_spec.get("from")
+  old_include_lower = old_spec.get("include_lower") or False
+  old_to = old_spec.get("to")
+  old_include_upper = old_spec.get("include_upper") or False
+
+  cur_spec = pred.values()[0].values()[0]
+  cur_from = cur_spec.get("from")
+  cur_include_lower = cur_spec.get("include_lower") or False
+  cur_to = cur_spec.get("to")
+  cur_include_upper = cur_spec.get("include_upper") or False
+
+  new_spec = {}
+  lower, include_lower = __max(old_from, old_include_lower, cur_from, cur_include_lower)
+  upper, include_upper = __min(old_to, old_include_upper, cur_to, cur_include_upper)
+
+  if lower and upper:
+    if (lower > upper or
+        (lower == upper and (not include_lower or include_upper))):
+      raise ParseSyntaxException(ParseException("", 0, "Conflict range predicates for column '%s'"
+                                                % field))
+  if lower:
+    new_spec["from"] = lower
+    new_spec["include_lower"] = include_lower
+  if upper:
+    new_spec["to"] = upper
+    new_spec["include_upper"] = include_upper
+  field_map[field] = {"range": {field: new_spec} }
 
 def predicate_and_action(s, loc, tok):
   # print ">>> in predicate_and_action: tok = ", tok
   # [[{'term': {'a': 1}}, 'and', {'term': {'b': 2}}, 'and', {'query_string': {'query': 'xxx'}}, 'and', {'term': {'c': 3}}]]
-
   filters = []
   field_map = {}
   for i in xrange(0, len(tok[0]), 2):
@@ -398,7 +460,7 @@ def predicate_and_action(s, loc, tok):
       filters.append(pred)
     else:
       accumulate_range_pred(field_map, pred)
-  for f in field_map:
+  for f in field_map.values():
     filters.append(f)
   return {"and": filters}
 
@@ -452,28 +514,22 @@ def equal_predicate_action(s, loc, tok):
 
 def range_predicate_action(s, loc, tok):
   # print ">>> in range_predicate_action: tok = ", tok
-  val = None
-  try:
-    val = int(tok[2])
-  except:
-    val = float(tok[2])
-  include_lower = (tok[1] == ">=")
-  include_upper = (tok[1] == "<=")
-  from_val = "*"
-  to_val = "*"
-  if tok[1] == "<" or tok[1] == "<=":
-    to_val = val
+  if tok[1] == ">" or tok[1] == ">=":
+    return {"range":
+              {tok[0]:
+                 {"from": tok[2],
+                  "include_lower": tok[1] == ">="
+                  }
+               }
+            }
   else:
-    from_val = val
-  return {"range":
-            {tok[0]:
-               {"from": from_val,
-                "to": to_val,
-                "include_lower": include_lower,
-                "include_upper": include_upper
-                }
-             }
-          }
+    return {"range":
+              {tok[0]:
+                 {"to": tok[2],
+                  "include_lower": tok[1] == "<="
+                  }
+               }
+            }
 
 limit_once = OnlyOnce(lambda s, loc, tok: tok)
 order_by_once = OnlyOnce(order_by_action)
@@ -664,7 +720,7 @@ between_predicate = (column_name + Optional(NOT) +
                      BETWEEN + value + AND + value).setResultsName("between_pred")
 
 range_op = oneOf("< <= >= >")
-range_predicate = (column_name + range_op + numeric
+range_predicate = (column_name + range_op + value
                    ).setResultsName("range_pred").setParseAction(range_predicate_action)
 
 time_predicate = ((column_name + IN + LAST + time_span)
