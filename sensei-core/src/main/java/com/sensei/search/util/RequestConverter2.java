@@ -77,12 +77,18 @@ public class RequestConverter2 {
 		req.setOffset(offset);
 		req.setCount(count);
 		
-		// group by params
-		JSONObject groupBy = json.optJSONObject("groupBy");
-		if (groupBy!=null){
-		  req.setGroupBy(groupBy.optString("column", null));
-		  req.setMaxPerGroup(groupBy.optInt("top", 3));
-		}
+		
+        JSONArray groupBy = json.optJSONArray("groupBy");
+        if (groupBy != null)
+        {
+          // currently we only support one group by parameter;
+          JSONObject groupByCategory = groupBy.optJSONObject(0);
+          if (groupByCategory != null)
+          {
+            req.setGroupBy(groupByCategory.optString("column", null));
+            req.setMaxPerGroup(groupByCategory.optInt("top", 3));
+          }
+        }
 		
 		// facetinit
         JSONObject facetInitParams = json.optJSONObject("facetInit");

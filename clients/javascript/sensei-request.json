@@ -35,7 +35,7 @@
         "values" : [ "blue", "pill" ],
         "excludes" : ["red"],
         "operator" : "or"
-    }
+      }
 	},
 
 	// facet parameters
