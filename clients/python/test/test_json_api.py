@@ -23,7 +23,7 @@ class TestJsonAPI(unittest.TestCase):
     WHERE color in ("red", "blue");
     """
     req = SenseiRequest(stmt)
-    # print SenseiClient.buildJsonString(req, indent=2),
+    # print SenseiClient.buildJsonString(req, indent=2)
     self.assertEqual(SenseiClient.buildJsonString(req, indent=2),
                     """{
   "fetchStored": true, 
@@ -53,7 +53,7 @@ class TestJsonAPI(unittest.TestCase):
       AND make = "honda"
     """
     req = SenseiRequest(stmt)
-    # print SenseiClient.buildJsonString(req, indent=2),
+    # print SenseiClient.buildJsonString(req, indent=2)
     self.assertEqual(SenseiClient.buildJsonString(req, indent=2),
                      """{
   "fetchStored": true, 
@@ -91,7 +91,7 @@ class TestJsonAPI(unittest.TestCase):
     WHERE QUERY IS "cool AND moon-roof"
     """
     req = SenseiRequest(stmt)
-    # print SenseiClient.buildJsonString(req, indent=2),
+    # print SenseiClient.buildJsonString(req, indent=2)
     self.assertEqual(SenseiClient.buildJsonString(req, indent=2),
                     """{
   "fetchStored": true, 
@@ -114,7 +114,7 @@ class TestJsonAPI(unittest.TestCase):
       AND year = 1995
     """
     req = SenseiRequest(stmt)
-    # print SenseiClient.buildJsonString(req, indent=2),
+    # print SenseiClient.buildJsonString(req, indent=2)
     self.assertEqual(SenseiClient.buildJsonString(req, indent=2),
                      """{
   "fetchStored": true, 
@@ -150,7 +150,7 @@ class TestJsonAPI(unittest.TestCase):
       AND color = "red"
     """
     req = SenseiRequest(stmt)
-    # print SenseiClient.buildJsonString(req, indent=2),
+    # print SenseiClient.buildJsonString(req, indent=2)
     self.assertEqual(SenseiClient.buildJsonString(req, indent=2),
                      """{
   "fetchStored": true, 
@@ -278,7 +278,7 @@ class TestJsonAPI(unittest.TestCase):
 }""")
 
 
-  def testRangePredicates(self):
+  def testRangePredicate1(self):
     stmt = \
     """
     SELECT *
@@ -287,7 +287,7 @@ class TestJsonAPI(unittest.TestCase):
     """
 
     req = SenseiRequest(stmt)
-    # print SenseiClient.buildJsonString(req, indent=2),
+    # print SenseiClient.buildJsonString(req, indent=2)
     self.assertEqual(SenseiClient.buildJsonString(req, indent=2),
                      """{
   "fetchStored": true, 
@@ -295,9 +295,7 @@ class TestJsonAPI(unittest.TestCase):
     "range": {
       "year": {
         "from": 1999, 
-        "include_lower": false, 
-        "include_upper": false, 
-        "to": "*"
+        "include_lower": false
       }
     }
   }, 
@@ -305,6 +303,81 @@ class TestJsonAPI(unittest.TestCase):
   "size": 10
 }""")
 
+  def testRangePredicate2(self):
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    WHERE year > 1999 AND year <= 2003 AND year >= 1999
+    """
+
+    req = SenseiRequest(stmt)
+    # print SenseiClient.buildJsonString(req, indent=2)
+    self.assertEqual(SenseiClient.buildJsonString(req, indent=2),
+                     """{
+  "fetchStored": true, 
+  "filters": {
+    "and": [
+      {
+        "range": {
+          "year": {
+            "from": 1999, 
+            "include_lower": false, 
+            "include_upper": false, 
+            "to": 2003
+          }
+        }
+      }
+    ]
+  }, 
+  "from": 0, 
+  "size": 10
+}""")
+
+  def testRangePredicate3(self):
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    WHERE name > "abc" AND name < "xyz" AND name >= "ddd"
+    """
+
+    req = SenseiRequest(stmt)
+    # print SenseiClient.buildJsonString(req, indent=2)
+    self.assertEqual(SenseiClient.buildJsonString(req, indent=2),
+                     """{
+  "fetchStored": true, 
+  "filters": {
+    "and": [
+      {
+        "range": {
+          "name": {
+            "from": "ddd", 
+            "include_lower": true, 
+            "include_upper": false, 
+            "to": "xyz"
+          }
+        }
+      }
+    ]
+  }, 
+  "from": 0, 
+  "size": 10
+}""")
+
+  def testRangeConflict(self):
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    WHERE year > 1999 AND year < 1995
+    """
+    error = None
+    try:
+      req = SenseiRequest(stmt)
+    except ParseSyntaxException as err:
+      error = str(err)
+    self.assertTrue(error != None)
 
 if __name__ == "__main__":
     unittest.main()
