@@ -77,58 +77,67 @@ public class RequestConverter2 {
 		req.setOffset(offset);
 		req.setCount(count);
 		
-		// group by params
-		JSONObject groupBy = json.optJSONObject("groupBy");
-		if (groupBy!=null){
-		  req.setGroupBy(groupBy.optString("column", null));
-		  req.setMaxPerGroup(groupBy.optInt("top", 3));
-		}
 		
-		// facetinit
-        JSONObject facetInitParams = json.optJSONObject("facetInit");
-        if (facetInitParams != null)
+        JSONArray groupBy = json.optJSONArray("groupBy");
+        if (groupBy != null)
         {
-          Iterator<String> keyIter = facetInitParams.keys();
-          while (keyIter.hasNext())
+          // currently we only support one group by parameter;
+          JSONObject groupByCategory = groupBy.optJSONObject(0);
+          if (groupByCategory != null)
           {
-            // may have multiple facets;
-            String facetName = keyIter.next();
-            DefaultFacetHandlerInitializerParam param =
-                new DefaultFacetHandlerInitializerParam();
-    
-            JSONObject jsonParams = facetInitParams.getJSONObject(facetName);
-            if (jsonParams != null && jsonParams.length() > 0)
-            {
-              Iterator<String> paramIter = jsonParams.keys();
-              while (paramIter.hasNext())
-              {
-                // each facet may have multiple parameters to be configured;
-                String paramName = paramIter.next();
-                JSONObject jsonParamValues = jsonParams.getJSONObject(paramName);
-                String type = jsonParamValues.optString("type", "string");
-                JSONArray jsonValues = jsonParamValues.optJSONArray("values");
-                if (jsonValues != null)
-                {
-                  if (type.equals("int"))
-                    param.putIntParam(paramName, convertJSONToIntArray(jsonValues));
-                  else if (type.equals("string"))
-                    param.putStringParam(paramName, convertJSONToStringArray(jsonValues));
-                  else if (type.equals("boolean"))
-                    param.putBooleanParam(paramName, convertJSONToBoolArray(jsonValues));
-                  else if (type.equals("long"))
-                    param.putLongParam(paramName, convertJSONToLongArray(jsonValues));
-                  else if (type.equals("bytes"))
-                    param.putByteArrayParam(paramName, convertJSONToByteArray(jsonValues));
-                  else if (type.equals("double"))
-                    param.putDoubleParam(paramName, convertJSONToDoubleArray(jsonValues));
-                }
-              }
-              req.setFacetHandlerInitializerParam(facetName, param);
-            }
-    
+            req.setGroupBy(groupByCategory.optString("column", null));
+            req.setMaxPerGroup(groupByCategory.optInt("top", 3));
           }
         }
 		
+		// facetinit
+        JSONObject selections = json.optJSONObject("selections");
+        if(selections != null)
+        {  
+          JSONObject facetInitParams = selections.optJSONObject("facetInit");
+          if (facetInitParams != null)
+          {
+            Iterator<String> keyIter = facetInitParams.keys();
+            while (keyIter.hasNext())
+            {
+              // may have multiple facets;
+              String facetName = keyIter.next();
+              DefaultFacetHandlerInitializerParam param =
+                  new DefaultFacetHandlerInitializerParam();
+      
+              JSONObject jsonParams = facetInitParams.getJSONObject(facetName);
+              if (jsonParams != null && jsonParams.length() > 0)
+              {
+                Iterator<String> paramIter = jsonParams.keys();
+                while (paramIter.hasNext())
+                {
+                  // each facet may have multiple parameters to be configured;
+                  String paramName = paramIter.next();
+                  JSONObject jsonParamValues = jsonParams.getJSONObject(paramName);
+                  String type = jsonParamValues.optString("type", "string");
+                  JSONArray jsonValues = jsonParamValues.optJSONArray("values");
+                  if (jsonValues != null)
+                  {
+                    if (type.equals("int"))
+                      param.putIntParam(paramName, convertJSONToIntArray(jsonValues));
+                    else if (type.equals("string"))
+                      param.putStringParam(paramName, convertJSONToStringArray(jsonValues));
+                    else if (type.equals("boolean"))
+                      param.putBooleanParam(paramName, convertJSONToBoolArray(jsonValues));
+                    else if (type.equals("long"))
+                      param.putLongParam(paramName, convertJSONToLongArray(jsonValues));
+                    else if (type.equals("bytes"))
+                      param.putByteArrayParam(paramName, convertJSONToByteArray(jsonValues));
+                    else if (type.equals("double"))
+                      param.putDoubleParam(paramName, convertJSONToDoubleArray(jsonValues));
+                  }
+                }
+                req.setFacetHandlerInitializerParam(facetName, param);
+              }
+      
+            }
+          }
+        }
 		 // facets
 		  
 		  JSONObject facets = json.optJSONObject("facets");

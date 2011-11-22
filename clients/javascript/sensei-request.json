@@ -31,11 +31,12 @@
 	},
 	
 	"selections" :{
+	  //details of this part see the selections.json
 	  "tags" : {
         "values" : [ "blue", "pill" ],
         "excludes" : ["red"],
         "operator" : "or"
-    }
+      }
 	},
 
 	// facet parameters

@@ -22,7 +22,7 @@
 				// parameter type, valid values are: "int","string","boolean","long","bytes","double", default: "string"
 				"type" : "int",
 				// parameter values
-				"values" : ["$member"]
+				"values" : [26609850]  //e.g. "$member"
 			},
 			"timeOut":{
 				"type" : "double",
@@ -53,7 +53,8 @@
        "runtime-params":{
           "srcId":{
           "type" : "int",
-          "values" : ["$member"]
+          "values" : ["$member"],
+          }
       }
     }
   },
