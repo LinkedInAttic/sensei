@@ -1501,9 +1501,8 @@ class SenseiRequest:
         raise SenseiClientError(msg)
 
       self.stmt_type = bql_req.get_stmt_type()
-      if self.stmt_type == "desc":
-        self.index = bql_req.get_index()
-      else:
+      self.index = bql_req.get_index()
+      if self.stmt_type == "select":
         self.query = bql_req.get_query()
         self.offset = bql_req.get_offset() or offset
         self.count = bql_req.get_count() or count
