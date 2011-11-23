@@ -95,8 +95,8 @@ public class DefaultJsonSchemaInterpreter extends
         else{
           int num = Integer.parseInt(val);
           if (num<0){
-            logger.error("we don't yet support negative values, 0 is used.");
-            return 0;
+            logger.error("we don't yet support negative values, skipping.");
+            return null;
           }
           return num;
         }
@@ -114,8 +114,8 @@ public class DefaultJsonSchemaInterpreter extends
         else{
           double num = Double.parseDouble(val);
           if (num<0.0){
-            logger.error("we don't yet support negative values, 0 is used.");
-            return 0.0;
+            logger.error("we don't yet support negative values, skipping.");
+            return null;
           }
           return num;
         }
@@ -132,8 +132,8 @@ public class DefaultJsonSchemaInterpreter extends
         else{
           long num = Long.parseLong(val);
           if (num<0){
-            logger.error("we don't yet support negative values, 0 is used.");
-            return 0L;
+            logger.error("we don't yet support negative values, skipping.");
+            return null;
           }
           return num;
         }
@@ -209,14 +209,20 @@ public class DefaultJsonSchemaInterpreter extends
                   StringTokenizer strtok = new StringTokenizer(val,fldDef.delim);
                   while(strtok.hasMoreTokens()){
                     String token = strtok.nextToken();
-                    vals.add(extractor.extract(token));
+                    Object obj = extractor.extract(token);
+                    if (obj!=null){
+                      vals.add(obj);
+                    }
                   }
                 }
               }
               else{
                 String val = filtered.optString(fldDef.fromField);
                 if (val == null) continue;
-                vals.add(extractor.extract(filtered.optString(fldDef.fromField)));
+                Object obj = extractor.extract(filtered.optString(fldDef.fromField));
+                if (obj!=null){
+                  vals.add(obj);
+                }
               }
                       
               for (Object val : vals){
