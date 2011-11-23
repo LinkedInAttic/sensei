@@ -634,9 +634,14 @@ private long   tid           =          -1;
     
     // group by
     JSONObject groupBy = json.optJSONObject("groupBy");
-    if (groupBy!=null){
-      req.setGroupBy(groupBy.optString("field", null));
-      req.setMaxPerGroup(groupBy.optInt("count", 3));
+    if (groupBy != null)
+    {
+      JSONArray columns = groupBy.optJSONArray("columns");
+      if (columns != null && columns.length() >= 1)
+      {
+        req.setGroupBy(columns.getString(0));
+      }
+      req.setMaxPerGroup(groupBy.optInt("top", groupBy.optInt("count", 1)));
     }
     
     // selections
