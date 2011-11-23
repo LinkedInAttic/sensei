@@ -8,7 +8,7 @@ public class RangeFilterConstructor extends FilterConstructor {
   public static final String FILTER_TYPE = "range";
 
   @Override
-  protected Filter doConstructFilter(JSONObject json) throws Exception {
+  protected Filter doConstructFilter(Object obj) throws Exception {
     // TODO Auto-generated method stub
     return null;
   }

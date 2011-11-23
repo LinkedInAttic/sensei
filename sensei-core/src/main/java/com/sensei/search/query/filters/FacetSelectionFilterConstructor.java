@@ -26,8 +26,8 @@ public class FacetSelectionFilterConstructor extends FilterConstructor{
     String[] nots = RequestConverter2.getStrings(json.optJSONArray(EXCLUDES_PARAM));
     sel.setValues(vals);
     sel.setNotValues(nots);
-    String operator = json.optString(OPERATOR_PARAM,"or");
-    if ("or".equalsIgnoreCase(operator)){
+    String op = json.optString(OPERATOR_PARAM,"or");
+    if ("or".equalsIgnoreCase(op)){
       sel.setSelectionOperation(ValueOperation.ValueOperationOr);
     }
     else{
@@ -45,7 +45,8 @@ public class FacetSelectionFilterConstructor extends FilterConstructor{
   
   
   @Override
-  protected Filter doConstructFilter(final JSONObject json) throws Exception {
+  protected Filter doConstructFilter(Object obj) throws Exception {
+    final JSONObject json = (JSONObject)obj;
     return new Filter(){
 
       @Override
@@ -60,8 +61,8 @@ public class FacetSelectionFilterConstructor extends FilterConstructor{
             FacetHandler facetHandler = boboReader.getFacetHandler(key);
             if (facetHandler!=null){
               try{
-                JSONObject obj = json.getJSONObject(key);
-                BrowseSelection sel = buildFacetSelection(key, obj);
+                JSONObject jsonObj = json.getJSONObject(key);
+                BrowseSelection sel = buildFacetSelection(key, jsonObj);
                 docSets.add(facetHandler.buildFilter(sel).getDocIdSet(boboReader));
               }
               catch(Exception e){

@@ -30,14 +30,20 @@
     }
   },
   
-  "selections" :{
-    //details of this part see the selections.json
-    "tags" : {
-      "values" : [ "blue", "pill" ],
-      "excludes" : ["red"],
-      "operator" : "or"
-    }
-  },
+  "selections" : [
+    {
+      //details of this part see the selections.json
+      "tags" : {
+        "values" : [ "blue", "pill" ],
+        "excludes" : ["red"],
+        "operator" : "or"
+      }
+    },
+    {
+      "term":{
+      },
+    },
+  ],
 
   // facet parameters
   "facets":{

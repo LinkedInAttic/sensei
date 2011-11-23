@@ -10,7 +10,8 @@ public class TermsFilterConstructor extends FilterConstructor{
   public static final String FILTER_TYPE = "terms";
 
   @Override
-  protected Filter doConstructFilter(JSONObject json) throws Exception {
+  protected Filter doConstructFilter(Object obj) throws Exception {
+    JSONObject json = (JSONObject)obj;
     boolean noOptimize = json.optBoolean("_noOptimize",false);
     
     String[] names = JSONObject.getNames(json);
@@ -24,7 +25,7 @@ public class TermsFilterConstructor extends FilterConstructor{
     
     if (termName == null) throw new IllegalArgumentException("no term name specified: "+json);
     
-    Object obj = json.opt(termName);
+    obj = json.opt(termName);
     if (obj == null){
       throw new IllegalArgumentException("no term value specified: "+json);
     }

@@ -24,12 +24,9 @@ public abstract class FilterConstructor {
   static
   {
     FILTER_CONSTRUCTOR_MAP.put(UIDFilterConstructor.FILTER_TYPE, new UIDFilterConstructor());
-    FILTER_CONSTRUCTOR_MAP.put(AndFilterConstructor.FILTER_TYPE, new AndFilterConstructor());
     FILTER_CONSTRUCTOR_MAP.put(FacetSelectionFilterConstructor.FILTER_TYPE, new FacetSelectionFilterConstructor());
-    FILTER_CONSTRUCTOR_MAP.put(OrFilterConstructor.FILTER_TYPE, new OrFilterConstructor());
     FILTER_CONSTRUCTOR_MAP.put(RangeFilterConstructor.FILTER_TYPE, new RangeFilterConstructor());
     FILTER_CONSTRUCTOR_MAP.put(TermFilterConstructor.FILTER_TYPE, new TermFilterConstructor());
-    FILTER_CONSTRUCTOR_MAP.put(BoolFilterConstructor.FILTER_TYPE, new BoolFilterConstructor());
     FILTER_CONSTRUCTOR_MAP.put(PathFilterConstructor.FILTER_TYPE, new PathFilterConstructor());
     FILTER_CONSTRUCTOR_MAP.put(TermsFilterConstructor.FILTER_TYPE, new TermsFilterConstructor());
   }
@@ -41,6 +38,12 @@ public abstract class FilterConstructor {
     {
       if (QueryFilterConstructor.FILTER_TYPE.equals(type))
         filterConstructor = new QueryFilterConstructor(qparser);
+      else if (AndFilterConstructor.FILTER_TYPE.equals(type))
+        filterConstructor = new AndFilterConstructor(qparser);
+      else if (OrFilterConstructor.FILTER_TYPE.equals(type))
+        filterConstructor = new OrFilterConstructor(qparser);
+      else if (BooleanFilterConstructor.FILTER_TYPE.equals(type))
+        filterConstructor = new BooleanFilterConstructor(qparser);
     }
     return filterConstructor;
   }
@@ -77,6 +80,6 @@ public abstract class FilterConstructor {
     return filterConstructor.doConstructFilter(json.getJSONObject(type));
   }
 	
-	abstract protected Filter doConstructFilter(JSONObject json) throws Exception;
+	abstract protected Filter doConstructFilter(Object json/* JSONObject or JSONArray */) throws Exception;
 
 }
