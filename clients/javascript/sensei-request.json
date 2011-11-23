@@ -13,7 +13,7 @@
   
   // group by parameters   
   "groupBy" : {
-    "columns" : ["category"]
+    "columns" : ["category"],
     "top" : 3
   },
 

@@ -78,22 +78,33 @@ public class RequestConverter2 {
 		req.setCount(count);
 		
 		
-        JSONArray groupBy = json.optJSONArray("groupBy");
-        if (groupBy != null)
-        {
-          // currently we only support one group by parameter;
-          JSONObject groupByCategory = groupBy.optJSONObject(0);
-          if (groupByCategory != null)
-          {
-            req.setGroupBy(groupByCategory.optString("column", null));
-            req.setMaxPerGroup(groupByCategory.optInt("top", 3));
-          }
-        }
+	    // group by
+	    JSONObject groupBy = json.optJSONObject("groupBy");
+	    if (groupBy != null)
+	    {
+	      JSONArray columns = groupBy.optJSONArray("columns");
+	      if (columns != null && columns.length() >= 1)
+	      {
+	        req.setGroupBy(columns.getString(0));
+	      }
+	      req.setMaxPerGroup(groupBy.optInt("top", groupBy.optInt("count", 1)));
+	    }
 		
 		// facetinit
         JSONObject selections = json.optJSONObject("selections");
         if(selections != null)
         {  
+          //path selection;
+          JSONObject pathSel = selections.optJSONObject("path");
+          if(pathSel != null)
+          {
+            String value = pathSel.optString("value");
+            boolean strict = pathSel.optBoolean("strict");
+            int depth = pathSel.optInt("depth");
+            
+            
+          }
+          
           JSONObject facetInitParams = selections.optJSONObject("facetInit");
           if (facetInitParams != null)
           {
