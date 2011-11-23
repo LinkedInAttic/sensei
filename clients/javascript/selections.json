@@ -1,69 +1,52 @@
-{
-  "term":{
+[
+    {
+        "term":{
+            
+        }
+    },
     
-  },
-  "terms":{
+    {
+        "terms":{
+            
+        }
+    },
     
-  },
-  "range":{
+    {
+        "range":{
+            
+        }
+    },
     
-  },
-  "path":{
-    "value":"a/b/c",
-    "strict":false,
-    "depth":1
-  },
-  
-    // facet initialization parameters for runtime facets
-	"facetInit":{
-		"network" : {
-			// parameter
-			"srcId" :{
-				// parameter type, valid values are: "int","string","boolean","long","bytes","double", default: "string"
-				"type" : "int",
-				// parameter values
-				"values" : [26609850]  //e.g. "$member"
-			},
-			"timeOut":{
-				"type" : "double",
-				"values" : [2.4]			    
-			},
-			"coldStart":{
-				"type" : "boolean",
-				"values" : [true]			    
-			},
-			"names":{
-				"type": "string",
-				"values":["a", "b", "c"]
-			},
-			"longId":{
-				"type": "long",
-				"values":[1234567890, 9876543210]
-			},
-			"binary":{
-				"type": "bytes",
-				"values":["SGVsbG8gd29ybGQ="]			    
-			}
-		}
-	},
-	
-  "custom":{
-    "network":{
-       "values":["0","1"],
-       "runtime-params":{
-          "srcId":{
-          "type" : "int",
-          "values" : ["$member"],
-          }
-      }
+    {
+        "path":{
+            "value":"a/b/c",
+            "strict":false,
+            "depth":1
+        }
+    },
+    
+    {
+        "custom":{
+            "network":{
+                "values":["0","1"],
+                "runtime-params":{
+                    "srcId":{
+                        "type":"int",
+                        "values":["$member"]
+                        
+                    }
+                }
+            }
+        }
+    },
+    
+    {
+        "default":{
+            "color":{
+                "values":[],
+                "not":[],
+                "params":{ }
+            }
+        }
     }
-  },
-  
-  "default":{
-    "color" : {
-      "values" : [],
-      "not" : [],
-      "params" : {}
-    }
-  }
-}
+]

@@ -602,11 +602,11 @@ private long   tid           =          -1;
     int[] intArray = null;
     JSONArray array = obj.optJSONArray(field);
     if (array!=null){
-    int count = array.length();
-    intArray = new int[count];
-    for (int i=0;i<count;++i){
-      intArray[i] = array.optInt(i,defaultVal);
-    }
+      int count = array.length();
+      intArray = new int[count];
+      for (int i=0;i<count;++i){
+        intArray[i] = array.optInt(i,defaultVal);
+      }
     }
     return intArray;
   }
