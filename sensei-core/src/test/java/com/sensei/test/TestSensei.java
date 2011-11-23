@@ -518,7 +518,7 @@ public class TestSensei extends AbstractSenseiTestCase
     logger.info("executing test case testQueryStringQuery");
     String req = "{\"query\": {\"query_string\": {\"query\": \"red AND cool\"}}}";
     JSONObject res = search(new JSONObject(req));
-    // TODO: implementation
+    assertEquals("numhits is wrong", 1070, res.getInt("numhits"));
   }
 
   /**
