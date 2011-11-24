@@ -19,6 +19,7 @@ import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.api.BrowseSelection.ValueOperation;
 import com.browseengine.bobo.facets.DefaultFacetHandlerInitializerParam;
 import com.browseengine.bobo.facets.impl.PathFacetHandler;
+import com.sensei.search.req.SenseiJSONQuery;
 import com.sensei.search.req.SenseiRequest;
 
 public class RequestConverter2 {
@@ -73,6 +74,9 @@ public class RequestConverter2 {
 	  
 	public static SenseiRequest fromJSON(JSONObject json) throws Exception{
 		SenseiRequest req = new SenseiRequest();
+		
+	    // query
+	    req.setQuery(new SenseiJSONQuery(json));
 		
 		// paging params
 	    int offset = 0, count = 10;
@@ -231,8 +235,6 @@ public class RequestConverter2 {
 		req.setShowExplanation(json.optBoolean("explain",false));
 		  
 		String routeParam = json.optString("routeParam",null);
-		if(routeParam.equals("null"))
-		  routeParam = null;
 		req.setRouteParam(routeParam);
 		  
 		return req;
