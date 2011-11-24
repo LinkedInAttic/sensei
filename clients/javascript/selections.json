@@ -1,8 +1,8 @@
 [
     {
         "term":{
-			"field":"makemodel",
-			"value":"ford"            
+			"field":"category",
+			"value":"sedan"            
         }
     },
     
@@ -24,13 +24,15 @@
     
     {
         "range":{
-			"field":"year"
-			            
+			"field":"year",
+			"upper":"*",   
+			"lower":"2000"         
         }
     },
     
     {
         "path":{
+			"field":"city",            
             "value":"a/b/c",
             "strict":false,
             "depth":1

@@ -18,6 +18,7 @@ import com.browseengine.bobo.api.BrowseSelection;
 import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.api.BrowseSelection.ValueOperation;
 import com.browseengine.bobo.facets.DefaultFacetHandlerInitializerParam;
+import com.browseengine.bobo.facets.impl.PathFacetHandler;
 import com.sensei.search.req.SenseiRequest;
 
 public class RequestConverter2 {
@@ -248,7 +249,7 @@ public class RequestConverter2 {
       String value = jsonSel.optString("value");
       if(facet!= null && value != null)
       {
-        BrowseSelection sel = new BrowseSelection(facet.toString());
+        BrowseSelection sel = new BrowseSelection(facet);
         String[] vals = new String[1];
         vals[0] = value;
         sel.setValues(vals);
@@ -263,7 +264,7 @@ public class RequestConverter2 {
       String operator = jsonSel.optString("operator", "or");
       if(facet!= null && (values != null || excludes != null))
       {
-        BrowseSelection sel = new BrowseSelection(facet.toString());
+        BrowseSelection sel = new BrowseSelection(facet);
         ValueOperation op = ValueOperation.ValueOperationOr;
         if("and".equals(operator))
           op = ValueOperation.ValueOperationAnd;
@@ -282,11 +283,42 @@ public class RequestConverter2 {
     }
     else if("range".equals(type))
     {
-      
+      String facet = jsonSel.optString("field");
+      String upper = jsonSel.optString("upper", "*");
+      String lower = jsonSel.optString("lower", "*");
+      String range = "["+ lower + " TO " + upper + "]";
+      if(facet!= null )
+      {
+        BrowseSelection sel = new BrowseSelection(facet);
+        String[] vals = new String[1];
+        vals[0] = range;
+        sel.setValues(vals);
+        req.addSelection(sel);
+      }
     }
     else if("path".equals(type))
     {
-      
+      String facet = jsonSel.optString("field");
+      String value = jsonSel.optString("value");
+
+      if(facet != null && value != null){
+        BrowseSelection sel = new BrowseSelection(facet);
+        String[] vals = new String[1];
+        vals[0] = value;
+        sel.setValues(vals);
+        
+        if(jsonSel.has("strict")){
+          boolean strict = jsonSel.optBoolean("strict", false);
+          sel.getSelectionProperties().setProperty(PathFacetHandler.SEL_PROP_NAME_STRICT, String.valueOf(strict));
+        }
+        
+        if(jsonSel.has("depth")){
+          int depth = jsonSel.optInt("depth", 1);
+          sel.getSelectionProperties().setProperty(PathFacetHandler.SEL_PROP_NAME_DEPTH, String.valueOf(depth));
+        }
+        
+        req.addSelection(sel);
+      }
     }
     else if("custom".equals(type))
     {
