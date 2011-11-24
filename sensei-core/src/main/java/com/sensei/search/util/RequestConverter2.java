@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.Map.Entry;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.lucene.search.SortField;
@@ -13,8 +14,12 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.browseengine.bobo.api.BrowseSelection;
 import com.browseengine.bobo.api.FacetSpec;
+import com.browseengine.bobo.api.BrowseSelection.ValueOperation;
 import com.browseengine.bobo.facets.DefaultFacetHandlerInitializerParam;
+import com.browseengine.bobo.facets.impl.PathFacetHandler;
+import com.sensei.search.req.SenseiJSONQuery;
 import com.sensei.search.req.SenseiRequest;
 
 public class RequestConverter2 {
@@ -70,31 +75,80 @@ public class RequestConverter2 {
 	public static SenseiRequest fromJSON(JSONObject json) throws Exception{
 		SenseiRequest req = new SenseiRequest();
 		
+	    // query
+	    req.setQuery(new SenseiJSONQuery(json));
+		
 		// paging params
-		int offset = json.optInt("from", 0);
-		int count = json.optInt("size",10);
+	    int offset = 0, count = 10;
+	    JSONObject paging = json.optJSONObject("paging");
+	    if (paging != null)
+	    {
+	      count = paging.optInt("count", 10);
+	      offset = paging.optInt("offset", 0);
+	    }
+	    req.setCount(count);
+	    req.setOffset(offset);
 		
-		req.setOffset(offset);
-		req.setCount(count);
 		
+	    // group by
+	    JSONObject groupBy = json.optJSONObject("groupBy");
+	    if (groupBy != null)
+	    {
+	      JSONArray columns = groupBy.optJSONArray("columns");
+	      if (columns != null && columns.length() >= 1)
+	      {
+	        req.setGroupBy(columns.getString(0));
+	      }
+	      req.setMaxPerGroup(groupBy.optInt("top", groupBy.optInt("count", 1)));
+	    }
 		
-        JSONArray groupBy = json.optJSONArray("groupBy");
-        if (groupBy != null)
-        {
-          // currently we only support one group by parameter;
-          JSONObject groupByCategory = groupBy.optJSONObject(0);
-          if (groupByCategory != null)
-          {
-            req.setGroupBy(groupByCategory.optString("column", null));
-            req.setMaxPerGroup(groupByCategory.optInt("top", 3));
-          }
-        }
-		
-		// facetinit
-        JSONObject selections = json.optJSONObject("selections");
+		// selections
+        JSONArray selections = json.optJSONArray("selections");
         if(selections != null)
         {  
-          JSONObject facetInitParams = selections.optJSONObject("facetInit");
+          for(int i=0; i<selections.length(); i++)
+          {
+            JSONObject selItem = selections.optJSONObject(i);
+            if(selItem != null){
+              Iterator<String> keyIter = selItem.keys();
+              while(keyIter.hasNext()){
+                String type = keyIter.next();
+                JSONObject jsonSel = selItem.optJSONObject(type);
+                if(jsonSel != null){
+                    addSelection(type, jsonSel, req);
+                }
+              }
+            }
+          }
+
+        }
+		 // facets
+		  JSONObject facets = json.optJSONObject("facets");
+		  if (facets!=null){
+			  Iterator<String> keyIter = facets.keys();
+			  while (keyIter.hasNext()){
+				  String field = keyIter.next();
+				  JSONObject facetObj = facets.getJSONObject(field);
+				  if (facetObj!=null){
+					 FacetSpec facetSpec = new FacetSpec();
+					 facetSpec.setMaxCount(facetObj.optInt("max", 10));
+					 facetSpec.setMinHitCount(facetObj.optInt("minCount", 1));
+					 facetSpec.setExpandSelection(facetObj.optBoolean("expand", false));
+					 
+					 String orderBy = facetObj.optString("order", "hits");
+					 FacetSpec.FacetSortSpec facetOrder = FacetSpec.FacetSortSpec.OrderHitsDesc;
+					 if ("val".equals(orderBy)){
+						 facetOrder = FacetSpec.FacetSortSpec.OrderValueAsc;
+					 }
+					 
+					 facetSpec.setOrderBy(facetOrder);
+					 req.setFacetSpec(field, facetSpec);
+				  }
+			  }
+		  }
+		  
+		  //facet init;
+          JSONObject facetInitParams = json.optJSONObject("facetInit");
           if (facetInitParams != null)
           {
             Iterator<String> keyIter = facetInitParams.keys();
@@ -137,70 +191,40 @@ public class RequestConverter2 {
       
             }
           }
-        }
-		 // facets
-		  
-		  JSONObject facets = json.optJSONObject("facets");
-		  if (facets!=null){
-			  Iterator<String> keyIter = facets.keys();
-			  while (keyIter.hasNext()){
-				  String field = keyIter.next();
-				  JSONObject facetObj = facets.getJSONObject(field);
-				  if (facetObj!=null){
-					 FacetSpec facetSpec = new FacetSpec();
-					 facetSpec.setMaxCount(facetObj.optInt("max", 10));
-					 facetSpec.setMinHitCount(facetObj.optInt("minCount", 1));
-					 facetSpec.setExpandSelection(facetObj.optBoolean("expand", false));
-					 
-					 String orderBy = facetObj.optString("order", "hits");
-					 FacetSpec.FacetSortSpec facetOrder = FacetSpec.FacetSortSpec.OrderHitsDesc;
-					 if ("val".equals(orderBy)){
-						 facetOrder = FacetSpec.FacetSortSpec.OrderValueAsc;
-					 }
-					 
-					 facetSpec.setOrderBy(facetOrder);
-					 req.setFacetSpec(field, facetSpec);
-				  }
-			  }
-		  }
+          
 		// sorts
 		  
-		  JSONArray sortArray = json.optJSONArray("sort");
-		  if (sortArray!=null && sortArray.length()>0){
-			  ArrayList<SortField> sortFieldList = new ArrayList<SortField>(sortArray.length());
-			  for (int i=0;i<sortArray.length();++i){
-				String strForm = sortArray.optString(i, null);
-				if (strForm!=null && "_score".equals(strForm)){
-					sortFieldList.add(SortField.FIELD_SCORE);
-			    	continue;
-				}
-				if (sortArray.optString(i,null)==null){
-					
-				}
-			    JSONObject sortObj = sortArray.optJSONObject(i);
-			    if (sortObj!=null){
-			       String[] fieldNames = JSONObject.getNames(sortObj);
-			       if (fieldNames!=null && fieldNames.length>0){
-			    	   String field = fieldNames[0];
-			    	   boolean reverse=false;
-			    	   if ("desc".equals(sortObj.optString(field, "asc"))){
-			    		   reverse = true;
-			    	   }
-			    	   sortFieldList.add(new SortField(field,SortField.CUSTOM,reverse));
-			       }
-			    }
-			  }
-			  if (sortFieldList.size()>0){
-			    req.setSort(sortFieldList.toArray(new SortField[sortFieldList.size()]));
-			  }
-		  }
+          JSONArray sortArray = json.optJSONArray("sorts");
+          if (sortArray!=null && sortArray.length()>0){
+            ArrayList<SortField> sortFieldList = new ArrayList<SortField>(sortArray.length());
+            for (int i=0;i<sortArray.length();++i){
+              JSONObject sortObj = sortArray.optJSONObject(i);
+              if (sortObj!=null){
+                 String sortField = sortObj.getString("field");
+                 if ("relevance".equals(sortField)){
+                  sortFieldList.add(SortField.FIELD_SCORE);
+                  continue;
+                 }
+                 else{
+                   String order = sortObj.optString("order", "asc");
+                   boolean rev = false;
+                   if("desc".equals(order))
+                     rev = true;
+                   sortFieldList.add(new SortField(sortField,SortField.CUSTOM,rev));
+                 }
+              }
+            }
+            if (sortFieldList.size()>0){
+              req.setSort(sortFieldList.toArray(new SortField[0]));
+            }
+          }
 		
 		// other
 		  
 		boolean fetchStored = json.optBoolean("fetchStored");
 		req.setFetchStoredFields(fetchStored);
 		  
-		String[] termVectors = getStrings(json,"fetchTermVectors");
+		String[] termVectors = getStrings(json,"termVectors");
 		if (termVectors!=null && termVectors.length>0){
 		  req.setTermVectorsToFetch(new HashSet<String>(Arrays.asList(termVectors)));
 		}
@@ -211,12 +235,98 @@ public class RequestConverter2 {
 		req.setShowExplanation(json.optBoolean("explain",false));
 		  
 		String routeParam = json.optString("routeParam",null);
-		if(routeParam.equals("null"))
-		  routeParam = null;
 		req.setRouteParam(routeParam);
 		  
 		return req;
 	}
+
+  private static void addSelection(String type, JSONObject jsonSel, SenseiRequest req) throws Exception
+  {
+ // we process "term", "terms", "range", "path", "custom" selection types;
+    
+    
+    if("term".equals(type))
+    {
+      String facet = jsonSel.optString("field");
+      String value = jsonSel.optString("value");
+      if(facet!= null && value != null)
+      {
+        BrowseSelection sel = new BrowseSelection(facet);
+        String[] vals = new String[1];
+        vals[0] = value;
+        sel.setValues(vals);
+        req.addSelection(sel);
+      }
+    }
+    else if("terms".equals(type))
+    {
+      String facet = jsonSel.optString("field");
+      JSONArray values = jsonSel.optJSONArray("values");
+      JSONArray excludes = jsonSel.optJSONArray("excludes");
+      String operator = jsonSel.optString("operator", "or");
+      if(facet!= null && (values != null || excludes != null))
+      {
+        BrowseSelection sel = new BrowseSelection(facet);
+        ValueOperation op = ValueOperation.ValueOperationOr;
+        if("and".equals(operator))
+          op = ValueOperation.ValueOperationAnd;
+        
+        if(values != null && values.length()>0){
+          sel.setValues(getStrings(values));  
+        }
+
+        if(excludes != null && excludes.length()>0){
+          sel.setNotValues(getStrings(excludes));  
+        }
+        
+        sel.setSelectionOperation(op);
+        req.addSelection(sel);
+      }
+    }
+    else if("range".equals(type))
+    {
+      String facet = jsonSel.optString("field");
+      String upper = jsonSel.optString("upper", "*");
+      String lower = jsonSel.optString("lower", "*");
+      String range = "["+ lower + " TO " + upper + "]";
+      if(facet!= null )
+      {
+        BrowseSelection sel = new BrowseSelection(facet);
+        String[] vals = new String[1];
+        vals[0] = range;
+        sel.setValues(vals);
+        req.addSelection(sel);
+      }
+    }
+    else if("path".equals(type))
+    {
+      String facet = jsonSel.optString("field");
+      String value = jsonSel.optString("value");
+
+      if(facet != null && value != null){
+        BrowseSelection sel = new BrowseSelection(facet);
+        String[] vals = new String[1];
+        vals[0] = value;
+        sel.setValues(vals);
+        
+        if(jsonSel.has("strict")){
+          boolean strict = jsonSel.optBoolean("strict", false);
+          sel.getSelectionProperties().setProperty(PathFacetHandler.SEL_PROP_NAME_STRICT, String.valueOf(strict));
+        }
+        
+        if(jsonSel.has("depth")){
+          int depth = jsonSel.optInt("depth", 1);
+          sel.getSelectionProperties().setProperty(PathFacetHandler.SEL_PROP_NAME_DEPTH, String.valueOf(depth));
+        }
+        
+        req.addSelection(sel);
+      }
+    }
+    else if("custom".equals(type))
+    {
+      
+    }
+  }
 
   /**
    * @param jsonValues

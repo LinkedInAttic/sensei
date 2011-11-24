@@ -11,6 +11,7 @@ import java.util.Map;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.lucene.search.SortField;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -25,7 +26,7 @@ public class TestRequestConverter2
 
   static JSONObject senseiRequestJson = null;
   static JSONObject queryJson = null;
-  static JSONObject selectionsJson = null;
+  static JSONArray selectionsJson = null;
   static JSONObject filtersJson = null;
 
   public static JSONObject readJSONFromFile(String fileName) throws Exception
@@ -48,13 +49,33 @@ public class TestRequestConverter2
     return new JSONObject(sb.toString());
   }
   
+  public static JSONArray readJSONArrayFromFile(String fileName) throws Exception
+  {
+    File file = new File(fileName);
+    BufferedReader br = new BufferedReader(new FileReader(file));
+    StringBuffer sb = new StringBuffer();
+    String line = br.readLine();
+    while (line != null)
+    {
+      if (!line.trim().startsWith("//"))
+      {
+        if(line.indexOf("//")>0)
+          line = line.substring(0, line.indexOf("//"));
+        sb.append(line.trim());
+      }
+      line = br.readLine();
+    }
+    
+    return new JSONArray(sb.toString());
+  }
+  
   @BeforeClass
   public static void setUpBeforeClass() throws Exception
   {
-    senseiRequestJson = readJSONFromFile("clients/javascript/sensei-request.json");
-    selectionsJson = readJSONFromFile("clients/javascript/selections.json");
-    queryJson = readJSONFromFile("clients/javascript/queries.json");
-    filtersJson = readJSONFromFile("clients/javascript/filters.json");
+    senseiRequestJson = readJSONFromFile("../clients/javascript/sensei-request.json");
+    selectionsJson = readJSONArrayFromFile("../clients/javascript/selections.json");
+    queryJson = readJSONFromFile("../clients/javascript/queries.json");
+    filtersJson = readJSONFromFile("../clients/javascript/filters.json");
     
     senseiRequestJson.remove("selections");
     senseiRequestJson.remove("query");
@@ -118,7 +139,7 @@ public class TestRequestConverter2
     
     //test sortby;
     assertTrue("first sort by is not correct", req.getSort()[0].getField().equals("color"));
-    assertTrue("first sort by order is not correct", req.getSort()[0].getReverse() == true);
+    assertTrue("first sort by order is not correct", req.getSort()[0].getReverse() == false);
     assertTrue("secondary sort by is not correct", req.getSort()[1] == SortField.FIELD_SCORE);
     
     //test fetchStored;
