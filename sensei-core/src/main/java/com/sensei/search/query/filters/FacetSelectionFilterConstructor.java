@@ -78,7 +78,7 @@ public class FacetSelectionFilterConstructor extends FilterConstructor{
           return new AndDocIdSet(docSets);
         }
         else{
-          throw new IllegalStateException("read not instance of "+BoboIndexReader.class);
+          throw new IllegalStateException("reader not instance of "+BoboIndexReader.class);
         }
       }
       
