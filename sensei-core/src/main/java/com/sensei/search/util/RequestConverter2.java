@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.Map.Entry;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.lucene.search.SortField;
@@ -13,7 +14,9 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.browseengine.bobo.api.BrowseSelection;
 import com.browseengine.bobo.api.FacetSpec;
+import com.browseengine.bobo.api.BrowseSelection.ValueOperation;
 import com.browseengine.bobo.facets.DefaultFacetHandlerInitializerParam;
 import com.sensei.search.req.SenseiRequest;
 
@@ -98,17 +101,20 @@ public class RequestConverter2 {
         JSONArray selections = json.optJSONArray("selections");
         if(selections != null)
         {  
-          //path selection;
-//          JSONObject pathSel = selections.optJSONObject("path");
-//          if(pathSel != null)
-//          {
-//            String value = pathSel.optString("value");
-//            boolean strict = pathSel.optBoolean("strict");
-//            int depth = pathSel.optInt("depth");
-//            
-//            
-//          }
-          
+          for(int i=0; i<selections.length(); i++)
+          {
+            JSONObject selItem = selections.optJSONObject(i);
+            if(selItem != null){
+              Iterator<String> keyIter = selItem.keys();
+              while(keyIter.hasNext()){
+                String type = keyIter.next();
+                JSONObject jsonSel = selItem.optJSONObject(type);
+                if(jsonSel != null){
+                    addSelection(type, jsonSel, req);
+                }
+              }
+            }
+          }
 
         }
 		 // facets
@@ -230,6 +236,63 @@ public class RequestConverter2 {
 		  
 		return req;
 	}
+
+  private static void addSelection(String type, JSONObject jsonSel, SenseiRequest req) throws Exception
+  {
+ // we process "term", "terms", "range", "path", "custom" selection types;
+    
+    
+    if("term".equals(type))
+    {
+      String facet = jsonSel.optString("field");
+      String value = jsonSel.optString("value");
+      if(facet!= null && value != null)
+      {
+        BrowseSelection sel = new BrowseSelection(facet.toString());
+        String[] vals = new String[1];
+        vals[0] = value;
+        sel.setValues(vals);
+        req.addSelection(sel);
+      }
+    }
+    else if("terms".equals(type))
+    {
+      String facet = jsonSel.optString("field");
+      JSONArray values = jsonSel.optJSONArray("values");
+      JSONArray excludes = jsonSel.optJSONArray("excludes");
+      String operator = jsonSel.optString("operator", "or");
+      if(facet!= null && (values != null || excludes != null))
+      {
+        BrowseSelection sel = new BrowseSelection(facet.toString());
+        ValueOperation op = ValueOperation.ValueOperationOr;
+        if("and".equals(operator))
+          op = ValueOperation.ValueOperationAnd;
+        
+        if(values != null && values.length()>0){
+          sel.setValues(getStrings(values));  
+        }
+
+        if(excludes != null && excludes.length()>0){
+          sel.setNotValues(getStrings(excludes));  
+        }
+        
+        sel.setSelectionOperation(op);
+        req.addSelection(sel);
+      }
+    }
+    else if("range".equals(type))
+    {
+      
+    }
+    else if("path".equals(type))
+    {
+      
+    }
+    else if("custom".equals(type))
+    {
+      
+    }
+  }
 
   /**
    * @param jsonValues

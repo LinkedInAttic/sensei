@@ -1,19 +1,31 @@
 [
     {
         "term":{
-            
+			"field":"makemodel",
+			"value":"ford"            
+        }
+    },
+    
+    {
+        "term":{
+			"field":"color",
+			"value":"red"            
         }
     },
     
     {
         "terms":{
-            
+            "field":"tags",
+            "values" : [ "blue", "pill" ],
+            "excludes" : ["red"],
+            "operator" : "or"
         }
     },
     
     {
         "range":{
-            
+			"field":"year"
+			            
         }
     },
     
