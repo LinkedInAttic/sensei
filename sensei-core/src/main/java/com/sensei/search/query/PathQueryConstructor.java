@@ -11,27 +11,34 @@ import org.json.JSONObject;
 import com.sensei.search.query.filters.FilterConstructor;
 
 
-public class UIDQueryConstructor extends QueryConstructor
+public class PathQueryConstructor extends QueryConstructor
 {
-  public static final String QUERY_TYPE = "ids";
+  public static final String QUERY_TYPE = "path";
+
+  // "path" : {
+  //   "city" : "china/beijing"
+  // },
 
   @Override
   protected Query doConstructQuery(JSONObject jsonQuery) throws JSONException
   {
-    JSONObject filterJson = new JSONObject();
-    filterJson.put(QUERY_TYPE, jsonQuery);
-
     Filter filter = null;
     try
     {
-      filter = FilterConstructor.constructFilter(filterJson, null/* QueryParser is not used by this filter */);
+      JSONObject newJson = new JSONObject();
+      newJson.put(QUERY_TYPE, jsonQuery);
+      filter = FilterConstructor.constructFilter(newJson, null/* QueryParser is not used by this filter */);
     }
     catch(Exception e)
     {
       throw new JSONException(e);
     }
     ConstantScoreQuery query = new ConstantScoreQuery(filter);
-    query.setBoost((float)jsonQuery.optDouble("boost", 1.0));
+    Object obj = jsonQuery.get((String)jsonQuery.keys().next());
+    if (obj instanceof JSONObject)
+    {
+      query.setBoost((float)((JSONObject)obj).optDouble("boost", 1.0));
+    }
     return query;
   }
 }

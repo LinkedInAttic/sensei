@@ -1,5 +1,6 @@
 package com.sensei.search.nodes.impl;
 
+import org.apache.log4j.Logger;
 import org.apache.lucene.queryParser.ParseException;
 import org.apache.lucene.queryParser.QueryParser;
 import org.apache.lucene.search.Filter;
@@ -14,6 +15,7 @@ import com.sensei.search.query.filters.FilterConstructor;
 
 public class DefaultJsonQueryBuilderFactory extends
     AbstractJsonQueryBuilderFactory {
+  private static Logger logger = Logger.getLogger(DefaultJsonQueryBuilderFactory.class);
 
   private final QueryParser _qparser;
   public DefaultJsonQueryBuilderFactory(QueryParser qparser) {
@@ -86,6 +88,7 @@ public class DefaultJsonQueryBuilderFactory extends
         }
         catch (Exception e)
         {
+          logger.error(e.getMessage(), e);
           throw new ParseException(e.getMessage());
         }
       }
