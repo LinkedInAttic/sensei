@@ -1,0 +1,46 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>com.senseidb</groupId>
+		<artifactId>sensei-parent</artifactId>
+		<version>1.0.0-SNAPSHOT</version>
+		<relativePath>../../sensei-parent/pom.xml</relativePath>
+	</parent>
+	
+	<artifactId>sensei-java-client</artifactId>
+	<packaging>jar</packaging>
+	<name>sensei java client</name>
+	<description>sensei core search</description>
+
+	<!-- Set the compiler to java6 -->
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.1</version>
+				<configuration>
+					<source>1.6</source>
+					<target>1.6</target>
+					<encoding>UTF-8</encoding>
+				</configuration>
+			</plugin>			
+		</plugins>
+	</build>
+
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.json</groupId>
+			<artifactId>json</artifactId>
+			<version>20080701</version>
+		</dependency>
+		
+	</dependencies>
+</project>

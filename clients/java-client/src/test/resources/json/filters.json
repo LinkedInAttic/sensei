@@ -1,0 +1,96 @@
+{
+  // id filter
+  
+  "ids" : {
+    "values" : ["1","4","100"],
+    "excludes" : ["5"]
+  },
+  
+  // and filter
+  "and" : {
+    "term" : { "color" : "red","_noOptimize" : false},
+    "query" : {
+       "query_string" : { 
+            "query" : "this AND that OR thus"
+        }
+    }
+  },
+  
+  // or filter
+  "or" : [
+    {
+      "term" : { "color" : "red","_noOptimize" : false}
+    },
+    {
+      "term" : { "category" : "van","_noOptimize" : false}
+    }
+  ],
+  
+  // boolean filter
+  "bool" : {
+        "must" : {
+                 "term" : { "tag" : "wow" }
+        },
+        "must_not" : {
+                 "range" : {
+                 "age" : { "from" : 10, "to" : 20 }
+                 }
+        },
+        "should" : [
+         {
+           "term" : { "tag" : "sometag" }
+         },
+         {
+           "term" : { "tag" : "sometagtag" }
+         }
+         ]
+  },
+
+  // term filter
+   "term" : { "color" : "red","_noOptimize" : false},
+  
+  // query filter
+  // see queries.json for a lis of valid queries
+  "query" : {
+     "query_string" : { 
+          "query" : "this AND that OR thus"
+      }
+  },
+
+  "terms" : {
+        "tags" : {
+            "values" : [ "blue", "pill" ],
+            "excludes" : ["red"],
+            "operator" : "or",
+            "_noOptimize" : false
+        }
+        // or
+        // "tags" : [ "blue", "pill" ], default operator or
+  },
+
+  // range filter
+  // see range query
+  "range":{
+    "age" : { 
+            "from" : 10, 
+            "to" : 20,
+            "_noOptimize" : false
+    }
+  },
+
+  "selection":{
+    "term":{
+      
+    },
+    "terms":{
+      
+    },
+    "range":{
+      
+    },
+    "path":{
+      
+    }
+  }
+}
+
