@@ -27,7 +27,7 @@ class TestJsonAPI(unittest.TestCase):
     self.assertEqual(SenseiClient.buildJsonString(req, indent=2),
                     """{
   "fetchStored": true, 
-  "filters": {
+  "filter": {
     "terms": {
       "color": {
         "_noOptimize": false, 
@@ -57,7 +57,7 @@ class TestJsonAPI(unittest.TestCase):
     self.assertEqual(SenseiClient.buildJsonString(req, indent=2),
                      """{
   "fetchStored": true, 
-  "filters": {
+  "filter": {
     "and": [
       {
         "terms": {
@@ -118,7 +118,7 @@ class TestJsonAPI(unittest.TestCase):
     self.assertEqual(SenseiClient.buildJsonString(req, indent=2),
                      """{
   "fetchStored": true, 
-  "filters": {
+  "filter": {
     "and": [
       {
         "term": {
@@ -154,7 +154,7 @@ class TestJsonAPI(unittest.TestCase):
     self.assertEqual(SenseiClient.buildJsonString(req, indent=2),
                      """{
   "fetchStored": true, 
-  "filters": {
+  "filter": {
     "term": {
       "color": "red"
     }
@@ -291,7 +291,7 @@ class TestJsonAPI(unittest.TestCase):
     self.assertEqual(SenseiClient.buildJsonString(req, indent=2),
                      """{
   "fetchStored": true, 
-  "filters": {
+  "filter": {
     "range": {
       "year": {
         "from": 1999, 
@@ -316,7 +316,7 @@ class TestJsonAPI(unittest.TestCase):
     self.assertEqual(SenseiClient.buildJsonString(req, indent=2),
                      """{
   "fetchStored": true, 
-  "filters": {
+  "filter": {
     "and": [
       {
         "range": {
@@ -347,7 +347,7 @@ class TestJsonAPI(unittest.TestCase):
     self.assertEqual(SenseiClient.buildJsonString(req, indent=2),
                      """{
   "fetchStored": true, 
-  "filters": {
+  "filter": {
     "and": [
       {
         "range": {

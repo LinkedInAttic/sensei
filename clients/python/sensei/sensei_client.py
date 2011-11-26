@@ -139,7 +139,7 @@ JSON_PARAM_FACETS = "facets"
 JSON_PARAM_FACET_INIT = "facetInit"
 JSON_PARAM_FETCH_STORED = "fetchStored"
 JSON_PARAM_FETCH_TERM_VECTORS = "fetchTermVectors"
-JSON_PARAM_FILTERS = "filters"
+JSON_PARAM_FILTER = "filter"
 JSON_PARAM_FROM = "from"
 JSON_PARAM_GROUPBY = "groupBy"
 JSON_PARAM_PARTITIONS = "partitions"
@@ -452,29 +452,29 @@ def accumulate_range_pred(field_map, pred):
 def predicate_and_action(s, loc, tok):
   # print ">>> in predicate_and_action: tok = ", tok
   # [[{'term': {'a': 1}}, 'and', {'term': {'b': 2}}, 'and', {'query_string': {'query': 'xxx'}}, 'and', {'term': {'c': 3}}]]
-  filters = []
+  preds = []
   field_map = {}
   for i in xrange(0, len(tok[0]), 2):
     pred = tok[0][i]
     if pred_type(pred) != "range":
-      filters.append(pred)
+      preds.append(pred)
     else:
       accumulate_range_pred(field_map, pred)
   for f in field_map.values():
-    filters.append(f)
-  return {"and": filters}
+    preds.append(f)
+  return {"and": preds}
 
 def predicate_or_action(s, loc, tok):
   # print ">>> in predicate_or_action: tok = ", tok
-  filters = []
+  preds = []
   for i in xrange(0, len(tok[0]), 2):
     if type(tok[0][i]) != dict:
       preds = tok[0][i].asList()
-      filters.append(preds[0])
+      preds.append(preds[0])
     else:
-      filters.append(tok[0][i])
-  # print ">>> in predicate_or_action: return ", {"or": filters}
-  return {"or": filters}
+      preds.append(tok[0][i])
+  # print ">>> in predicate_or_action: return ", {"or": preds}
+  return {"or": preds}
 
 def prop_list_action(s, loc, tok):
   props = {}
@@ -1083,7 +1083,7 @@ class BQLRequest:
     self.query = ""
     self.selections = None
     self.selection_list = []
-    self.filters = None
+    self.filter = None
     self.query_pred = None
     self.sorts = None
     self.columns = [safe_str(col) for col in self.tokens.columns]
@@ -1136,13 +1136,13 @@ class BQLRequest:
         self.query_pred = query_pred
         preds.remove(pred)
         if len(preds) == 1:
-          self.filters = preds[0]
+          self.filter = preds[0]
         else:
-          self.filters = {"and": preds}
+          self.filter = {"and": preds}
       else:
-        self.filters = where
+        self.filter = where
     else:
-      self.filters = where
+      self.filter = where
 
   def get_stmt_type(self):
     """Get the statement type."""
@@ -1241,10 +1241,10 @@ class BQLRequest:
       self.merge_selections()
     return self.selections
 
-  def get_filters(self):
-    """Get the filters from the statement."""
+  def get_filter(self):
+    """Get the filter from the statement."""
 
-    return self.filters
+    return self.filter
 
   def get_query_pred(self):
     """Get the QUERY predicate."""
@@ -1810,7 +1810,7 @@ class SenseiRequest:
         self.columns = bql_req.get_columns()
         self.sorts = bql_req.get_sorts()
         self.selections = bql_req.get_selections()
-        self.filters = bql_req.get_filters()
+        self.filter = bql_req.get_filter()
         self.query_pred = bql_req.get_query_pred()
         self.facets = bql_req.get_facets()
         # PARAM_RESULT_HIT_STORED_FIELDS is a reserved column name.  If this
@@ -1833,7 +1833,7 @@ class SenseiRequest:
       self.columns = []
       self.sorts = None
       self.selections = {}
-      self.filters = {}
+      self.filter = {}
       self.query_pred = {}
       self.facets = {}
       self.fetch_stored = False
@@ -2091,8 +2091,8 @@ class SenseiClient:
     if req.sorts:
       output_json[JSON_PARAM_SORT] = [sort.build_sort_spec() for sort in req.sorts]
 
-    if req.filters:
-      output_json[JSON_PARAM_FILTERS] = req.filters
+    if req.filter:
+      output_json[JSON_PARAM_FILTER] = req.filter
     if req.query_pred:
       output_json[JSON_PARAM_QUERY] = req.query_pred
 
