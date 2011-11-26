@@ -3,7 +3,7 @@ import unittest
 import time
 from datetime import datetime
 
-sys.path.insert(0, "../src")
+sys.path.insert(0, "../sensei")
 import sensei_client
 from sensei_client import *
 from pyparsing import ParseException
