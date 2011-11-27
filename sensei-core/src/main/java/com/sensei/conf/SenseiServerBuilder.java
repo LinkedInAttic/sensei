@@ -11,9 +11,11 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -30,6 +32,7 @@ import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.queryParser.QueryParser;
 import org.apache.lucene.search.DefaultSimilarity;
+import org.apache.lucene.search.Filter;
 import org.apache.lucene.search.Similarity;
 import org.apache.lucene.util.Version;
 import org.jolokia.http.AgentServlet;
@@ -76,6 +79,7 @@ import com.sensei.search.nodes.SenseiServer;
 import com.sensei.search.nodes.SenseiZoieFactory;
 import com.sensei.search.nodes.SenseiZoieSystemFactory;
 import com.sensei.search.nodes.impl.DefaultJsonQueryBuilderFactory;
+import com.sensei.search.query.RetentionFilterFactory;
 import com.sensei.search.req.AbstractSenseiRequest;
 import com.sensei.search.req.AbstractSenseiResult;
 import com.sensei.search.req.SenseiSystemInfo;
@@ -99,6 +103,13 @@ public class SenseiServerBuilder implements SenseiConfParams{
   private final SenseiSchema  _senseiSchema;
   private final Server _jettyServer;
   private final Comparator<String> _versionComparator;
+  
+  private final static Map<String,TimeUnit> TIMEUNIT_MAP = new HashMap<String,TimeUnit>();
+  static{
+    TIMEUNIT_MAP.put("seconds", TimeUnit.SECONDS);
+    TIMEUNIT_MAP.put("hours", TimeUnit.HOURS);
+    TIMEUNIT_MAP.put("days", TimeUnit.DAYS);
+  }
   
   private static ApplicationContext loadSpringContext(File confFile){
     ApplicationContext springCtx = null;
@@ -471,12 +482,38 @@ public class SenseiServerBuilder implements SenseiConfParams{
       SenseiZoieFactory<?> zoieSystemFactory = null;
       
       if (SENSEI_INDEXER_TYPE_ZOIE.equals(indexerType)){
-        zoieSystemFactory = new SenseiZoieSystemFactory(idxDir,interpreter,decorator,
+        SenseiZoieSystemFactory senseiZoieFactory = new SenseiZoieSystemFactory(idxDir,interpreter,decorator,
                 zoieConfig);
 
         int retentionDays = _senseiConf.getInt(SENSEI_ZOIE_RETENTION_DAYS,-1);
         if (retentionDays>0){
+          String retentionClass = _senseiConf.getString(SENSEI_ZOIE_RETENTION_CLASS,null);
+          Filter purgeFilter = null;
+          if (retentionClass!=null){
+            try{
+              Class cls = Class.forName(retentionClass);
+              RetentionFilterFactory retentionFilterFactory = (RetentionFilterFactory)cls.newInstance();
+              purgeFilter = retentionFilterFactory.buildRetentionFilter(retentionDays);
+            }
+            catch(Exception e){
+              throw new ConfigurationException("unable constructing retention filter", e);
+            }
+          }
+          else{
+        	  String timeColumn = _senseiConf.getString(SENSEI_ZOIE_RETENTION_COLUMN, null);
+        	  if (timeColumn==null){
+        	    throw new ConfigurationException("Retention specified without a time column");
+        	  }
         	
+        	  String unitString = _senseiConf.getString(SENSEI_ZOIE_RETENTION_TIMEUNIT,"seconds");
+        	  TimeUnit unit =TIMEUNIT_MAP.get(unitString.toLowerCase());
+        	
+        	  if (unit == null){
+        	    throw new ConfigurationException("Invalid timeunit for retention: "+unitString); 
+        	  }
+          }
+          senseiZoieFactory.setPurgeFilter(purgeFilter);
+          zoieSystemFactory = senseiZoieFactory;
         }
       }
       else if (SENSEI_INDEXER_TYPE_HOURGLASS.equals(indexerType)){
