@@ -44,19 +44,42 @@ public class BooleanFilterConstructor extends FilterConstructor
   }
 
   @Override
-  protected Filter doConstructFilter(Object obj) throws Exception
+  protected Filter doConstructFilter(Object param) throws Exception
   {
-    JSONObject json = (JSONObject)obj;
-    JSONObject jsonObj = json.optJSONObject(MUST_PARAM);
+    JSONObject json = (JSONObject)param;
+    Object obj = json.opt(MUST_PARAM);
     List<Filter> andFilters = new ArrayList<Filter>();
-    if (jsonObj != null)
+    if (obj != null)
     {
-      andFilters.add(FilterConstructor.constructFilter(jsonObj, _qparser));
+      if (obj instanceof JSONArray)
+      {
+        for (int i=0; i<((JSONArray)obj).length(); ++i)
+        {
+          andFilters.add(FilterConstructor.constructFilter(((JSONArray)obj).getJSONObject(i),
+                                                           _qparser));
+        }
+      }
+      else if (obj instanceof JSONObject)
+      {
+        andFilters.add(FilterConstructor.constructFilter((JSONObject)obj, _qparser));
+      }
     }
-    jsonObj = json.optJSONObject(MUST_NOT_PARAM);
-    if (jsonObj != null)
+    obj = json.opt(MUST_NOT_PARAM);
+    if (obj != null)
     {
-      andFilters.add(new NotFilter(FilterConstructor.constructFilter(jsonObj, _qparser)));
+      if (obj instanceof JSONArray)
+      {
+        for (int i=0; i<((JSONArray)obj).length(); ++i)
+        {
+          andFilters.add(
+            new NotFilter(FilterConstructor.constructFilter(((JSONArray)obj).getJSONObject(i),
+                                                            _qparser)));
+        }
+      }
+      else if (obj instanceof JSONObject)
+      {
+        andFilters.add(new NotFilter(FilterConstructor.constructFilter((JSONObject)obj, _qparser)));
+      }
     }
     JSONArray array = json.optJSONArray(SHOULD_PARAM);
     if (array != null)
@@ -64,8 +87,7 @@ public class BooleanFilterConstructor extends FilterConstructor
       List<Filter> orFilters = new ArrayList<Filter>(array.length());
       for (int i=0; i<array.length(); ++i)
       {
-        jsonObj = array.getJSONObject(i);
-        orFilters.add(FilterConstructor.constructFilter(jsonObj, _qparser));
+        orFilters.add(FilterConstructor.constructFilter(array.getJSONObject(i), _qparser));
       }
       andFilters.add(new OrFilter(orFilters));
     }

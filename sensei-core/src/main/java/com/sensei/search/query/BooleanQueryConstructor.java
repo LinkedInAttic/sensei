@@ -47,23 +47,47 @@ public class BooleanQueryConstructor extends QueryConstructor
   protected Query doConstructQuery(JSONObject jsonQuery) throws JSONException
   {
     BooleanQuery query = new BooleanQuery(jsonQuery.optBoolean(DISABLE_COORD_PARAM, false));
-    JSONObject obj = jsonQuery.optJSONObject(MUST_PARAM);
+    Object obj = jsonQuery.opt(MUST_PARAM);
     if (obj != null)
     {
-      query.add(QueryConstructor.constructQuery(obj, _qparser), BooleanClause.Occur.MUST);
+      if (obj instanceof JSONArray)
+      {
+        for (int i=0; i<((JSONArray)obj).length(); ++i)
+        {
+          query.add(QueryConstructor.constructQuery(((JSONArray)obj).getJSONObject(i), _qparser),
+                    BooleanClause.Occur.MUST);
+        }
+      }
+      else if (obj instanceof JSONObject)
+      {
+        query.add(QueryConstructor.constructQuery((JSONObject)obj, _qparser), BooleanClause.Occur.MUST);
+      }
     }
-    obj = jsonQuery.optJSONObject(MUST_NOT_PARAM);
+    obj = jsonQuery.opt(MUST_NOT_PARAM);
     if (obj != null)
     {
-      query.add(QueryConstructor.constructQuery(obj, _qparser), BooleanClause.Occur.MUST_NOT);
+      if (obj instanceof JSONArray)
+      {
+        for (int i=0; i<((JSONArray)obj).length(); ++i)
+        {
+          query.add(QueryConstructor.constructQuery(((JSONArray)obj).getJSONObject(i), _qparser),
+                    BooleanClause.Occur.MUST_NOT);
+        }
+      }
+      else if (obj instanceof JSONObject)
+      {
+        query.add(QueryConstructor.constructQuery((JSONObject)obj, _qparser),
+                  BooleanClause.Occur.MUST_NOT);
+      }
     }
+
     JSONArray array = jsonQuery.optJSONArray(SHOULD_PARAM);
     if (array != null)
     {
       for (int i=0; i<array.length(); ++i)
       {
-        obj = array.getJSONObject(i);
-        query.add(QueryConstructor.constructQuery(obj, _qparser), BooleanClause.Occur.SHOULD);
+        query.add(QueryConstructor.constructQuery(array.getJSONObject(i), _qparser),
+                  BooleanClause.Occur.SHOULD);
       }
     }
 
