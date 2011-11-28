@@ -2257,14 +2257,14 @@ class SenseiClient:
     else:
       query_string = SenseiClient.buildUrlString(req)
     logger.debug(query_string)
-    # urlReq = urllib2.Request(self.url, query_string)
-    # res = self.opener.open(urlReq)
-    # line = res.read()
-    # jsonObj = json.loads(line)
-    # res = SenseiResult(jsonObj)
-    # delta = datetime.now() - time1
-    # res.total_time = delta.seconds * 1000 + delta.microseconds / 1000
-    # return res
+    urlReq = urllib2.Request(self.url, query_string)
+    res = self.opener.open(urlReq)
+    line = res.read()
+    jsonObj = json.loads(line)
+    res = SenseiResult(jsonObj)
+    delta = datetime.now() - time1
+    res.total_time = delta.seconds * 1000 + delta.microseconds / 1000
+    return res
 
   def getSystemInfo(self):
     """Get Sensei system info."""
@@ -2318,7 +2318,7 @@ def main(argv):
       req = SenseiRequest(stmt)
       if req.stmt_type == "select":
         res = client.doQuery(req)
-        # res.display(columns=req.get_columns(), max_col_width=int(options.max_col_width))
+        res.display(columns=req.get_columns(), max_col_width=int(options.max_col_width))
       elif req.stmt_type == "desc":
         sysinfo = client.getSystemInfo()
         sysinfo.display()
