@@ -52,7 +52,7 @@ public class JsonDeserializer {
                     value = deserializeArray((isParameterizedType ? getGenericType(genericType, 0) : null), jsonArray);
                 }  else if (type == Map.class) { 
                         
-                		value = deserializeMap(genericType, name, jsonObject);
+                		value = deserializeMap(genericType, jsonObject.getJSONObject(name));
                 		if (value == null) {
                 			continue;
                 		}
@@ -73,12 +73,13 @@ public class JsonDeserializer {
             
             return obj;
         } catch (Exception ex) {
-            throw new RuntimeException(ex);
+            throw new RuntimeException(ex.getMessage(), ex);
         }    
     }
-    private static Map deserializeMap(Type genericType, String name, JSONObject jsonObject ) throws Exception {
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    private static Map deserializeMap(Type genericType,  JSONObject mapJson ) throws Exception {
         Map map = new HashMap();
-        JSONObject mapJson = jsonObject.optJSONObject(name);
+       
         if (mapJson == null) {
             return null;
         }
@@ -86,16 +87,21 @@ public class JsonDeserializer {
         if (names == null) {
             return null;
         }
+        Type valueType =  getGenericType(genericType, 1);
         for (String paramName : names) {
-            Object mapValue = mapJson.get(paramName);
-            Type valueType =  getGenericType(genericType, 1);
-            if (mapValue instanceof JSONArray) {
+            Object mapValue = mapJson.opt(paramName);
+            if (mapValue == null) {
+                map.put(paramName, null);
+            } else if (mapValue instanceof JSONArray) {
                 if (((Type)valueType) instanceof ParameterizedType) {
                     map.put(paramName, deserializeArray(getGenericType(valueType, 0), (JSONArray) mapValue));
                 } else {
                     map.put(paramName, deserializeArray(null, (JSONArray) mapValue));
                 }
-            } else if (mapValue instanceof JSONObject) {
+            } else if (valueType instanceof ParameterizedType && Map.class.isAssignableFrom(((Class)((ParameterizedType)valueType).getRawType()))) {
+                
+                map.put(paramName, deserializeMap(valueType, (JSONObject)mapValue));
+            }  else if (mapValue instanceof JSONObject) {
                 map.put(paramName, deserialize((Class)valueType, (JSONObject) mapValue));
             } else {
                 map.put(paramName, mapValue);

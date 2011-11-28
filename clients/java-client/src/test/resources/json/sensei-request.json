@@ -2,16 +2,20 @@
 // example Sensei Request
 {
   "query" : {
-    "query_string" : {"query" : "this AND that OR thus"}
+    "query_string" : { 
+      "query" : "this AND that OR thus"
+    }
   },
 
   // paging parameters
-  "from" : 0,
-  "size" : 10,
+  "paging":{
+  	"count" : 10,
+  	"offset" : 0
+  },
   
   // group by parameters   
   "groupBy" : {
-    "columns" : ["category"]
+    "columns" : ["category"],
     "top" : 3
   },
 
@@ -28,14 +32,20 @@
     }
   },
   
-  "selections" :{
-    //details of this part see the selections.json
-    "tags" : {
-      "values" : [ "blue", "pill" ],
-      "excludes" : ["red"],
-      "operator" : "or"
-    }
-  },
+  "selections" : [
+    {
+      //details of this part see the selections.json
+      "tags" : {
+        "values" : [ "blue", "pill" ],
+        "excludes" : ["red"],
+        "operator" : "or"
+      }
+    },
+    {
+      "term":{
+      },
+    },
+  ],
 
   // facet parameters
   "facets":{
@@ -50,18 +60,55 @@
       "order" : "hits"
     }
   },
+  
+      // facet initialization parameters for runtime facets
+	"facetInit":{
+		"network" : {
+			// parameter
+			"srcId" :{
+				// parameter type, valid values are: "int","string","boolean","long","bytes","double", default: "string"
+				"type" : "int",
+				// parameter values
+				"values" : [26609850]  //e.g. "$member"
+			},
+			"timeOut":{
+				"type" : "double",
+				"values" : [2.4]			    
+			},
+			"coldStart":{
+				"type" : "boolean",
+				"values" : [true]			    
+			},
+			"names":{
+				"type": "string",
+				"values":["a", "b", "c"]
+			},
+			"longId":{
+				"type": "long",
+				"values":[1234567890, 9876543210]
+			},
+			"binary":{
+				"type": "bytes",
+				"values":["SGVsbG8gd29ybGQ="]			    
+			}
+		}
+	},
 
   // sort parameters
-  "sort":[
-    {"color":"desc"},       // sort by color in reverse order
-    "_score"                     // secondary sort by relevance, reverse  parameter is ignored
+  "sorts":[
+    {"field":"color",  // sort by color in reverse order
+      "order":"asc"
+    },       
+    {"field":"relevance",  // secondary sort by relevance, order  parameter is ignored
+      "order":"desc"
+    },    
   ],
 
   // fetch stored fields
   "fetchStored" : false,
 
   // fetch term vectors: array of field names
-  "fetchTermVectors" : [],
+  "termVectors" : [],
 
   // partitions to send request to, empty list or null implies all partitions
   "partitions":[1,2],

@@ -8,17 +8,18 @@ import java.util.Map;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.junit.Assert;
 
 
 public class SenseiClientRequest {
     private ClientQuery query;
-    private int from;
-    private int size;
-    private int count;
+    private Paging paging;
+   
+    
     private GroupBy groupBy;
-    private Map<String, Selection> selections = new HashMap<String, Selection>();
+    private List<SelectionContainer> selections = new ArrayList<SelectionContainer>();
     private Map<String, Map<String, FacetInit>> facetInit = new HashMap<String, Map<String, FacetInit>>();
-    private List<Object> sorts = new ArrayList<Object>();
+    private List<Sort> sorts = new ArrayList<Sort>();
     private Map<String, Facet> facets = new HashMap<String, Facet>();
     private boolean fetchStored;
     private List<String> termVectors = new ArrayList<String>();
@@ -28,18 +29,12 @@ public class SenseiClientRequest {
     
     public static class Builder {
         private SenseiClientRequest request = new SenseiClientRequest();
-        public Builder from(int from) {
-            request.from = from;
+        public Builder paging(int count, int offset) {
+            request.paging = new Paging(count, offset);
             return this;
         }
-        public Builder size(int size) {
-            request.size = size;
-            return this;
-        }
-        public Builder count(int count) {
-            request.count = count;
-            return this;
-        }    
+       
+       
         
         public Builder fetchStored(boolean fetchStored) {
             request.fetchStored = fetchStored;
@@ -66,34 +61,34 @@ public class SenseiClientRequest {
             request.query = new ClientQuery(query);
             return this;
         }
-        public Builder groupBy(String... columns) {
-            request.groupBy = new GroupBy(Arrays.asList(columns));
+        public Builder groupBy(int top, String... columns) {
+            request.groupBy = new GroupBy(Arrays.asList(columns), top);
             return this;
         }
-        public Builder groupBy(List<String> columns) {
-            request.groupBy = new GroupBy(columns);
+        public Builder groupBy(List<String> columns, int top) {
+            request.groupBy = new GroupBy(columns, top);
             return this;
         }
-        public Builder addSelection(String name, Selection selection) {
-            request.selections.put(name, selection);
+        public Builder addSelection(SelectionContainer selection) {
+            if (selection == null) {
+                throw new IllegalArgumentException("The selectionContainer should be not null");
+            }
+            request.selections.add(selection);
             return this;
         }
         public Builder addFacetInit(String name, Map<String, FacetInit> facetInits) {
             request.facetInit.put(name, facetInits);
             return this;
         }
-        public Builder sortBy(String columnName) {
-            request.sorts.add(columnName);
+        public Builder addSort(Sort sort) {
+            if (sort == null) {
+                throw new IllegalArgumentException("The sort should be not null");
+            }
+            request.sorts.add(sort);
             return this;
         }
-        public Builder sortByDesc(String columnName) {
-            Map<String, String> oneEntryMap = new HashMap<String, String>();
-            oneEntryMap.put(columnName, "desc");
-            request.sorts.add(oneEntryMap);
-            return this;
-        }
-        public Builder sortByRelevance() {
-            request.sorts.add("_score");
+        public Builder addTermVector(String term) {
+            request.termVectors.add(term);
             return this;
         }
         public Builder addFacetInit(String name, String parameter, FacetInit facetInit) {
@@ -114,90 +109,43 @@ public class SenseiClientRequest {
     public static Builder builder() {
         return new Builder();
     }
-	public ClientQuery getQuery() {
-		return query;
-	}
-	public void setQuery(ClientQuery query) {
-		this.query = query;
-	}
-	public int getFrom() {
-		return from;
-	}
-	public void setFrom(int from) {
-		this.from = from;
-	}
-	public int getSize() {
-		return size;
-	}
-	public void setSize(int size) {
-		this.size = size;
-	}
-	public int getCount() {
-		return count;
-	}
-	public void setCount(int count) {
-		this.count = count;
-	}
-	public GroupBy getGroupBy() {
-		return groupBy;
-	}
-	public void setGroupBy(GroupBy groupBy) {
-		this.groupBy = groupBy;
-	}
-	public Map<String, Selection> getSelections() {
-		return selections;
-	}
-	public void setSelections(Map<String, Selection> selections) {
-		this.selections = selections;
-	}
-	public Map<String, Map<String, FacetInit>> getFacetInit() {
-		return facetInit;
-	}
-	public void setFacetInit(Map<String, Map<String, FacetInit>> facetInit) {
-		this.facetInit = facetInit;
-	}
-	public List<Object> getSorts() {
-		return sorts;
-	}
-	public void setSorts(List<Object> sorts) {
-		this.sorts = sorts;
-	}
-	public Map<String, Facet> getFacets() {
-		return facets;
-	}
-	public void setFacets(Map<String, Facet> facets) {
-		this.facets = facets;
-	}
-	public boolean isFetchStored() {
-		return fetchStored;
-	}
-	public void setFetchStored(boolean fetchStored) {
-		this.fetchStored = fetchStored;
-	}
-	public List<String> getTermVectors() {
-		return termVectors;
-	}
-	public void setTermVectors(List<String> termVectors) {
-		this.termVectors = termVectors;
-	}
-	public List<Integer> getPartitions() {
-		return partitions;
-	}
-	public void setPartitions(List<Integer> partitions) {
-		this.partitions = partitions;
-	}
-	public boolean isExplain() {
-		return explain;
-	}
-	public void setExplain(boolean explain) {
-		this.explain = explain;
-	}
-	public boolean isRouteParam() {
-		return routeParam;
-	}
-	public void setRouteParam(boolean routeParam) {
-		this.routeParam = routeParam;
-	}
+    public ClientQuery getQuery() {
+        return query;
+    }
+    public Paging getPaging() {
+        return paging;
+    }
+    public GroupBy getGroupBy() {
+        return groupBy;
+    }
+    public List<SelectionContainer> getSelections() {
+        return selections;
+    }
+    public Map<String, Map<String, FacetInit>> getFacetInit() {
+        return facetInit;
+    }
+    public List<Sort> getSorts() {
+        return sorts;
+    }
+    public Map<String, Facet> getFacets() {
+        return facets;
+    }
+    public boolean isFetchStored() {
+        return fetchStored;
+    }
+    public List<String> getTermVectors() {
+        return termVectors;
+    }
+    public List<Integer> getPartitions() {
+        return partitions;
+    }
+    public boolean isExplain() {
+        return explain;
+    }
+    public boolean isRouteParam() {
+        return routeParam;
+    }
+
     
     
 }

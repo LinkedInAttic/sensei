@@ -30,7 +30,7 @@ public class SenseiServiceProxy {
         //System.out.println("Output from Server = " + output);
         return JsonDeserializer.deserialize(SenseiResult.class, jsonResponse(output));
     }
-	private String sendPost(String urlStr, String requestStr)
+	public String sendPost(String urlStr, String requestStr)
 			throws MalformedURLException, IOException, ProtocolException,
 			UnsupportedEncodingException {
 		HttpURLConnection conn = null;

@@ -7,14 +7,18 @@
   },
   
   // and filter
-  "and" : {
-    "term" : { "color" : "red","_noOptimize" : false},
-    "query" : {
-       "query_string" : { 
-            "query" : "this AND that OR thus"
-        }
+  "and" : [
+    {
+      "term" : { "color" : "red","_noOptimize" : false},
+    },
+    {
+      "query" : {
+         "query_string" : { 
+              "query" : "this AND that OR thus"
+         }
+      }
     }
-  },
+  ],
   
   // or filter
   "or" : [
@@ -28,22 +32,22 @@
   
   // boolean filter
   "bool" : {
-        "must" : {
-                 "term" : { "tag" : "wow" }
-        },
-        "must_not" : {
-                 "range" : {
-                 "age" : { "from" : 10, "to" : 20 }
-                 }
-        },
-        "should" : [
-         {
-           "term" : { "tag" : "sometag" }
-         },
-         {
-           "term" : { "tag" : "sometagtag" }
-         }
-         ]
+    "must" : {
+      "term" : { "tag" : "wow" }
+    },
+    "must_not" : {
+      "range" : {
+      "age" : { "from" : 10, "to" : 20 }
+      }
+    },
+    "should" : [
+       {
+         "term" : { "tag" : "sometag" }
+       },
+       {
+         "term" : { "tag" : "sometagtag" }
+       }
+    ]
   },
 
   // term filter

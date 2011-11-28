@@ -4,8 +4,9 @@ import java.util.Arrays;
 
 import com.sensei.search.client.json.req.Facet;
 import com.sensei.search.client.json.req.FacetInit;
-import com.sensei.search.client.json.req.Selection;
+import com.sensei.search.client.json.req.SelectionContainer;
 import com.sensei.search.client.json.req.SenseiClientRequest;
+import com.sensei.search.client.json.req.Sort;
 import com.sensei.search.client.json.res.SenseiResult;
 
 public class Main {
@@ -20,15 +21,15 @@ public class Main {
 	public static SenseiClientRequest createSenseiRequest() {
 		SenseiClientRequest senseiRequest = SenseiClientRequest.builder()
         .query("{\"query\" : \"this AND that OR thus\"}")
-        .count(2).from(3)
-        .groupBy("car", "year").size(7)
-        .addSelection("tags", 
-                Selection.builder().values("val1", "val2")
-                .excludes("excl1", "excl2")
-                .operatorAnd().build())
-        .addFacet("facet1", Facet.builder().max(2).minCount(1).orderByVal().build())
-        //.addFacetInit("facetInit1", "param", FacetInit.build("string", "val1", "val2"))
-       // .sortByDesc("column1").sortByRelevance()
+        .paging(5, 2)
+        .groupBy(7, "car", "year")
+        .addSelection(SelectionContainer.path("field", "value", true, 1))
+        .addSelection(SelectionContainer.range("color", "*", "*"))
+        .addFacet("facet1", Facet.builder().max(2).minCount(1).orderByVal().build())      
+        .addFacetInit("name", "parameter", FacetInit.build("string", "val1", "val2"))
+        .addSort(Sort.desc("color"))
+        .addSort(Sort.asc("year"))
+        .addTermVector("Term1")
         .explain(true)
         .partitions(Arrays.asList(1,2))        
         .build();
