@@ -21,7 +21,7 @@ public class QueryStringQueryConstructor extends QueryConstructor {
   @Override
   protected Query doConstructQuery(JSONObject jsonQuery) throws JSONException
   {
-    String queryText = jsonQuery.getString("query");
+    String queryText = jsonQuery.getString(QUERY_PARAM);
     try
     {
       synchronized(_qparser)

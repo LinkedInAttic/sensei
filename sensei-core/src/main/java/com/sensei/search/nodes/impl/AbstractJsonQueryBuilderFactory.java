@@ -17,9 +17,9 @@ public abstract class AbstractJsonQueryBuilderFactory implements
 			byte[] bytes = query.toBytes();
 			jsonQuery = new JSONObject(new String(bytes,SenseiQuery.utf8Charset));
 		}
-		return buildQuery(jsonQuery);
+		return buildQueryBuilder(jsonQuery);
 	}
 
-	public abstract SenseiQueryBuilder buildQuery(JSONObject jsonQuery);
+	public abstract SenseiQueryBuilder buildQueryBuilder(JSONObject jsonQuery);
 
 }

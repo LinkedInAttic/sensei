@@ -30,18 +30,18 @@ public class DistMaxQueryConstructor extends QueryConstructor {
 //        ]
 //    },
 		
-	   JSONArray jsonArray = jsonQuery.getJSONArray("queries");
+	   JSONArray jsonArray = jsonQuery.getJSONArray(QUERIES_PARAM);
 	   ArrayList<Query> ar = new ArrayList<Query>();
 	   
 	    for(int i = 0; i<jsonArray.length(); i++){
-	      JSONObject json = jsonArray.getJSONObject(i).getJSONObject("term");
+	      JSONObject json = jsonArray.getJSONObject(i).getJSONObject(TERM_PARAM);
 	      String field = (String)(json.keys().next());
 	      String value = (String)json.get(field);
 	      ar.add(new TermQuery(new Term(field, value)));
 	    }
 	    
-	    float tieBreakerMultiplier = (float) jsonQuery.optDouble("tie_breaker", 0.7);
-	    float boost = (float) jsonQuery.optDouble("boost", 1.2);
+	    float tieBreakerMultiplier = (float) jsonQuery.optDouble(TIE_BREAKER_PARAM, 0.7);
+	    float boost = (float) jsonQuery.optDouble(BOOST_PARAM, 1.2);
 	    Query dmq = new DisjunctionMaxQuery(ar, tieBreakerMultiplier);
 	    dmq.setBoost(boost);
 	    

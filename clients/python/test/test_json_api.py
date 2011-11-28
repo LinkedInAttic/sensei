@@ -3,7 +3,7 @@ import unittest
 import time
 from datetime import datetime
 
-sys.path.insert(0, "../src")
+sys.path.insert(0, "../sensei")
 import sensei_client
 from sensei_client import *
 from pyparsing import ParseException
@@ -27,20 +27,22 @@ class TestJsonAPI(unittest.TestCase):
     self.assertEqual(SenseiClient.buildJsonString(req, indent=2),
                     """{
   "fetchStored": true, 
-  "filters": {
-    "terms": {
-      "color": {
-        "_noOptimize": false, 
-        "excludes": [], 
-        "operator": "or", 
-        "values": [
-          "red", 
-          "blue"
-        ]
+  "from": 0, 
+  "selections": [
+    {
+      "terms": {
+        "color": {
+          "_noOptimize": false, 
+          "excludes": [], 
+          "operator": "or", 
+          "values": [
+            "red", 
+            "blue"
+          ]
+        }
       }
     }
-  }, 
-  "from": 0, 
+  ], 
   "size": 10
 }""")
 
@@ -57,29 +59,27 @@ class TestJsonAPI(unittest.TestCase):
     self.assertEqual(SenseiClient.buildJsonString(req, indent=2),
                      """{
   "fetchStored": true, 
-  "filters": {
-    "and": [
-      {
-        "terms": {
-          "color": {
-            "_noOptimize": false, 
-            "excludes": [], 
-            "operator": "or", 
-            "values": [
-              "red", 
-              "blue"
-            ]
-          }
-        }
-      }, 
-      {
-        "term": {
-          "make": "honda"
+  "from": 0, 
+  "selections": [
+    {
+      "terms": {
+        "color": {
+          "_noOptimize": false, 
+          "excludes": [], 
+          "operator": "or", 
+          "values": [
+            "red", 
+            "blue"
+          ]
         }
       }
-    ]
-  }, 
-  "from": 0, 
+    }, 
+    {
+      "term": {
+        "make": "honda"
+      }
+    }
+  ], 
   "size": 10
 }""")
 
@@ -104,7 +104,7 @@ class TestJsonAPI(unittest.TestCase):
   "size": 10
 }""")
 
-  def testQueryAndFilter(self):
+  def testQueryAndSelections(self):
     stmt = \
     """
     SELECT *
@@ -118,30 +118,28 @@ class TestJsonAPI(unittest.TestCase):
     self.assertEqual(SenseiClient.buildJsonString(req, indent=2),
                      """{
   "fetchStored": true, 
-  "filters": {
-    "and": [
-      {
-        "term": {
-          "color": "red"
-        }
-      }, 
-      {
-        "term": {
-          "year": 1995
-        }
-      }
-    ]
-  }, 
   "from": 0, 
   "query": {
     "query_string": {
       "query": "cool AND moon-roof"
     }
   }, 
+  "selections": [
+    {
+      "term": {
+        "color": "red"
+      }
+    }, 
+    {
+      "term": {
+        "year": 1995
+      }
+    }
+  ], 
   "size": 10
 }""")
 
-  def testQueryAndFilter2(self):
+  def testQueryAndSelections2(self):
     stmt = \
     """
     SELECT *
@@ -154,17 +152,19 @@ class TestJsonAPI(unittest.TestCase):
     self.assertEqual(SenseiClient.buildJsonString(req, indent=2),
                      """{
   "fetchStored": true, 
-  "filters": {
-    "term": {
-      "color": "red"
-    }
-  }, 
   "from": 0, 
   "query": {
     "query_string": {
       "query": "cool AND moon-roof"
     }
   }, 
+  "selections": [
+    {
+      "term": {
+        "color": "red"
+      }
+    }
+  ], 
   "size": 10
 }""")
 
@@ -291,15 +291,17 @@ class TestJsonAPI(unittest.TestCase):
     self.assertEqual(SenseiClient.buildJsonString(req, indent=2),
                      """{
   "fetchStored": true, 
-  "filters": {
-    "range": {
-      "year": {
-        "from": 1999, 
-        "include_lower": false
+  "from": 0, 
+  "selections": [
+    {
+      "range": {
+        "year": {
+          "from": 1999, 
+          "include_lower": false
+        }
       }
     }
-  }, 
-  "from": 0, 
+  ], 
   "size": 10
 }""")
 
@@ -316,21 +318,19 @@ class TestJsonAPI(unittest.TestCase):
     self.assertEqual(SenseiClient.buildJsonString(req, indent=2),
                      """{
   "fetchStored": true, 
-  "filters": {
-    "and": [
-      {
-        "range": {
-          "year": {
-            "from": 1999, 
-            "include_lower": false, 
-            "include_upper": false, 
-            "to": 2003
-          }
+  "from": 0, 
+  "selections": [
+    {
+      "range": {
+        "year": {
+          "from": 1999, 
+          "include_lower": false, 
+          "include_upper": true, 
+          "to": 2003
         }
       }
-    ]
-  }, 
-  "from": 0, 
+    }
+  ], 
   "size": 10
 }""")
 
@@ -347,21 +347,19 @@ class TestJsonAPI(unittest.TestCase):
     self.assertEqual(SenseiClient.buildJsonString(req, indent=2),
                      """{
   "fetchStored": true, 
-  "filters": {
-    "and": [
-      {
-        "range": {
-          "name": {
-            "from": "ddd", 
-            "include_lower": true, 
-            "include_upper": false, 
-            "to": "xyz"
-          }
+  "from": 0, 
+  "selections": [
+    {
+      "range": {
+        "name": {
+          "from": "ddd", 
+          "include_lower": true, 
+          "include_upper": false, 
+          "to": "xyz"
         }
       }
-    ]
-  }, 
-  "from": 0, 
+    }
+  ], 
   "size": 10
 }""")
 
@@ -378,6 +376,45 @@ class TestJsonAPI(unittest.TestCase):
     except ParseSyntaxException as err:
       error = str(err)
     self.assertTrue(error != None)
+
+  def testFilterAndSelection(self):
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    WHERE color IN ("red", "blue")  -- a selection
+      AND fff = 1234                -- a filter
+    """
+
+    req = SenseiRequest(stmt, facet_list=['color'])
+    # print SenseiClient.buildJsonString(req, indent=2)
+    self.assertEqual(SenseiClient.buildJsonString(req, indent=2),
+                     """{
+  "fetchStored": true, 
+  "filter": {
+    "term": {
+      "fff": 1234
+    }
+  }, 
+  "from": 0, 
+  "selections": [
+    {
+      "terms": {
+        "color": {
+          "_noOptimize": false, 
+          "excludes": [], 
+          "operator": "or", 
+          "values": [
+            "red", 
+            "blue"
+          ]
+        }
+      }
+    }
+  ], 
+  "size": 10
+}""")
+
 
 if __name__ == "__main__":
     unittest.main()

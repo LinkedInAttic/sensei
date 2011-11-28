@@ -10,12 +10,12 @@ public class TermFilterConstructor extends FilterConstructor{
   @Override
   protected Filter doConstructFilter(Object obj) throws Exception {
     JSONObject json = (JSONObject)obj;
-    boolean noOptimize = json.optBoolean("_noOptimize",false);
+    boolean noOptimize = json.optBoolean(NOOPTIMIZE_PARAM,false);
     
     String[] names = JSONObject.getNames(json);
     String termName = null;
     for (String name : names){
-      if (!name.equals("_noOptimize")){
+      if (!name.equals(NOOPTIMIZE_PARAM)){
         termName = name;
         break;
       }

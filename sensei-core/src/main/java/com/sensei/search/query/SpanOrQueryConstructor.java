@@ -26,10 +26,10 @@ public class SpanOrQueryConstructor extends QueryConstructor {
 //        ]
 //    },
 		
-		JSONArray jsonArray = jsonQuery.getJSONArray("clauses");
+		JSONArray jsonArray = jsonQuery.getJSONArray(CLAUSES_PARAM);
 		ArrayList<SpanTermQuery> clausesList = new ArrayList<SpanTermQuery>();
 		for(int i = 0; i<jsonArray.length(); i++){
-			JSONObject json = jsonArray.getJSONObject(i).getJSONObject("span_term");
+			JSONObject json = jsonArray.getJSONObject(i).getJSONObject(SPAN_TERM_PARAM);
 			String field = (String)(json.keys().next());
 			String value = (String)json.get(field);
 			clausesList.add(new SpanTermQuery(new Term(field, value)));

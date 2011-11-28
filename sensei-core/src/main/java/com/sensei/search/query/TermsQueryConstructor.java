@@ -36,11 +36,11 @@ public class TermsQueryConstructor extends QueryConstructor
 
     for (String name : JSONObject.getNames(jsonQuery))
     {
-      if ("operator".equals(name))
+      if (OPERATOR_PARAM.equals(name))
         op = jsonQuery.getString(name);
-      else if ("minimum_match".equals(name))
+      else if (MINIMUM_MATCH_PARAM.equals(name))
         minimum_match = jsonQuery.getInt(name);
-      else if ("boost".equals(name))
+      else if (BOOST_PARAM.equals(name))
         boost = (float)jsonQuery.getDouble(name);
       else
         field = name;
@@ -51,10 +51,10 @@ public class TermsQueryConstructor extends QueryConstructor
     Object obj = jsonQuery.get(field);
     if (obj instanceof JSONObject)
     {
-      values        = ((JSONObject)obj).optJSONArray("values");
-      excludes      = ((JSONObject)obj).optJSONArray("excludes");
-      op            = ((JSONObject)obj).optString("operator");
-      minimum_match = ((JSONObject)obj).optInt("minimum_match",   1);
+      values          = ((JSONObject)obj).optJSONArray(VALUES_PARAM);
+      excludes        = ((JSONObject)obj).optJSONArray(EXCLUDES_PARAM);
+      op              = ((JSONObject)obj).optString(OPERATOR_PARAM);
+      minimum_match   = ((JSONObject)obj).optInt(MINIMUM_MATCH_PARAM, 1);
     }
     else if (obj instanceof JSONArray)
     {
@@ -66,7 +66,7 @@ public class TermsQueryConstructor extends QueryConstructor
     {
       for (int i=0; i<values.length(); ++i)
       {
-        if ("and".equals(op))
+        if (AND_PARAM.equals(op))
         {
           query.add(new TermQuery(new Term(field, values.getString(i))), BooleanClause.Occur.MUST);
         }
