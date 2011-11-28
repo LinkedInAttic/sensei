@@ -1,41 +1,46 @@
 [
     {
         "term":{
-			"field":"category",
-			"value":"sedan"            
+			"category":{
+			    "value":"sedan"
+			}            
         }
     },
     
     {
         "term":{
-			"field":"color",
-			"value":"red"            
+			"color":{
+			    "value":"red"
+			}            
         }
     },
     
     {
         "terms":{
-            "field":"tags",
-            "values" : [ "blue", "pill" ],
-            "excludes" : ["red"],
-            "operator" : "or"
+            "tags":{
+                "values" : [ "blue", "pill" ],
+                "excludes" : ["red"],
+                "operator" : "or"
+            }
         }
     },
     
     {
         "range":{
-			"field":"year",
-			"upper":"2009",   //if there is no such key (upper, or lower), it returns "*";   
-			"lower":"2000"         
+			"year":{
+			    "upper":"2009",   //if there is no such key (upper, or lower), it returns "*";   
+			    "lower":"2000"
+			}         
         }
     },
     
     {
         "path":{
-			"field":"city",            
-            "value":"a/b/c",
-            "strict":false,
-            "depth":1
+			"city":{            
+                "value":"a/b/c",
+                "strict":false,
+                "depth":1
+            }
         }
     },
     
