@@ -79,13 +79,9 @@ public class RequestConverter2 {
 	    req.setQuery(new SenseiJSONQuery(json));
 		
 		// paging params
-	    int offset = 0, count = 10;
-	    JSONObject paging = json.optJSONObject("paging");
-	    if (paging != null)
-	    {
-	      count = paging.optInt("count", 10);
-	      offset = paging.optInt("offset", 0);
-	    }
+
+	    int  count = json.optInt("size", 10);
+	    int  offset = json.optInt("from", 0);
 	    req.setCount(count);
 	    req.setOffset(offset);
 		
@@ -247,79 +243,97 @@ public class RequestConverter2 {
     
     if("term".equals(type))
     {
-      String facet = jsonSel.optString("field");
-      String value = jsonSel.optString("value");
-      if(facet!= null && value != null)
-      {
-        BrowseSelection sel = new BrowseSelection(facet);
-        String[] vals = new String[1];
-        vals[0] = value;
-        sel.setValues(vals);
-        req.addSelection(sel);
+      Iterator<String> iter = jsonSel.keys();
+      if(iter.hasNext()){
+        String facet = iter.next();
+        JSONObject jsonParams = jsonSel.optJSONObject(facet);
+        String value = jsonParams.optString("value");
+        if(facet!= null && value != null)
+        {
+          BrowseSelection sel = new BrowseSelection(facet);
+          String[] vals = new String[1];
+          vals[0] = value;
+          sel.setValues(vals);
+          req.addSelection(sel);
+        }
       }
     }
     else if("terms".equals(type))
     {
-      String facet = jsonSel.optString("field");
-      JSONArray values = jsonSel.optJSONArray("values");
-      JSONArray excludes = jsonSel.optJSONArray("excludes");
-      String operator = jsonSel.optString("operator", "or");
-      if(facet!= null && (values != null || excludes != null))
-      {
-        BrowseSelection sel = new BrowseSelection(facet);
-        ValueOperation op = ValueOperation.ValueOperationOr;
-        if("and".equals(operator))
-          op = ValueOperation.ValueOperationAnd;
-        
-        if(values != null && values.length()>0){
-          sel.setValues(getStrings(values));  
-        }
+      Iterator<String> iter = jsonSel.keys();
+      if(iter.hasNext()){
+        String facet = iter.next();
+        JSONObject jsonParams = jsonSel.optJSONObject(facet);
+        JSONArray values = jsonParams.optJSONArray("values");
+        JSONArray excludes = jsonParams.optJSONArray("excludes");
+        String operator = jsonParams.optString("operator", "or");
+        if(facet!= null && (values != null || excludes != null))
+        {
+          BrowseSelection sel = new BrowseSelection(facet);
+          ValueOperation op = ValueOperation.ValueOperationOr;
+          if("and".equals(operator))
+            op = ValueOperation.ValueOperationAnd;
+          
+          if(values != null && values.length()>0){
+            sel.setValues(getStrings(values));  
+          }
 
-        if(excludes != null && excludes.length()>0){
-          sel.setNotValues(getStrings(excludes));  
+          if(excludes != null && excludes.length()>0){
+            sel.setNotValues(getStrings(excludes));  
+          }
+          
+          sel.setSelectionOperation(op);
+          req.addSelection(sel);
         }
-        
-        sel.setSelectionOperation(op);
-        req.addSelection(sel);
       }
     }
     else if("range".equals(type))
     {
-      String facet = jsonSel.optString("field");
-      String upper = jsonSel.optString("upper", "*");
-      String lower = jsonSel.optString("lower", "*");
-      String range = "["+ lower + " TO " + upper + "]";
-      if(facet!= null )
-      {
-        BrowseSelection sel = new BrowseSelection(facet);
-        String[] vals = new String[1];
-        vals[0] = range;
-        sel.setValues(vals);
-        req.addSelection(sel);
+      Iterator<String> iter = jsonSel.keys();
+      if(iter.hasNext()){
+        String facet = iter.next();
+        JSONObject jsonParams = jsonSel.optJSONObject(facet);
+        
+        String upper = jsonParams.optString("upper", "*");
+        String lower = jsonParams.optString("lower", "*");
+        String range = "["+ lower + " TO " + upper + "]";
+        if(facet!= null )
+        {
+          BrowseSelection sel = new BrowseSelection(facet);
+          String[] vals = new String[1];
+          vals[0] = range;
+          sel.setValues(vals);
+          req.addSelection(sel);
+        }
       }
     }
     else if("path".equals(type))
     {
-      String facet = jsonSel.optString("field");
-      String value = jsonSel.optString("value");
+      Iterator<String> iter = jsonSel.keys();
+      if(iter.hasNext()){
+        String facet = iter.next();
+        JSONObject jsonParams = jsonSel.optJSONObject(facet);
+        
+        String value = jsonParams.optString("value");
 
-      if(facet != null && value != null){
-        BrowseSelection sel = new BrowseSelection(facet);
-        String[] vals = new String[1];
-        vals[0] = value;
-        sel.setValues(vals);
-        
-        if(jsonSel.has("strict")){
-          boolean strict = jsonSel.optBoolean("strict", false);
-          sel.getSelectionProperties().setProperty(PathFacetHandler.SEL_PROP_NAME_STRICT, String.valueOf(strict));
+        if(facet != null && value != null){
+          BrowseSelection sel = new BrowseSelection(facet);
+          String[] vals = new String[1];
+          vals[0] = value;
+          sel.setValues(vals);
+          
+          if(jsonParams.has("strict")){
+            boolean strict = jsonParams.optBoolean("strict", false);
+            sel.getSelectionProperties().setProperty(PathFacetHandler.SEL_PROP_NAME_STRICT, String.valueOf(strict));
+          }
+          
+          if(jsonParams.has("depth")){
+            int depth = jsonParams.optInt("depth", 1);
+            sel.getSelectionProperties().setProperty(PathFacetHandler.SEL_PROP_NAME_DEPTH, String.valueOf(depth));
+          }
+          
+          req.addSelection(sel);
         }
-        
-        if(jsonSel.has("depth")){
-          int depth = jsonSel.optInt("depth", 1);
-          sel.getSelectionProperties().setProperty(PathFacetHandler.SEL_PROP_NAME_DEPTH, String.valueOf(depth));
-        }
-        
-        req.addSelection(sel);
       }
     }
     else if("custom".equals(type))
