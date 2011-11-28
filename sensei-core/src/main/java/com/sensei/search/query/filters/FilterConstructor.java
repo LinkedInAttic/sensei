@@ -11,6 +11,7 @@ import org.json.JSONObject;
 public abstract class FilterConstructor {
 
   public static final String VALUES_PARAM     = "values";
+  public static final String VALUE_PARAM      = "value";
   public static final String EXCLUDES_PARAM   = "excludes";
   public static final String OPERATOR_PARAM   = "operator";
   public static final String PARAMS_PARAM     = "params";
@@ -22,6 +23,8 @@ public abstract class FilterConstructor {
   public static final String NOOPTIMIZE_PARAM = "_noOptimize";
   public static final String QUERY_PARAM      = "query";
   public static final String OR_PARAM         = "or";
+  public static final String DEPTH_PARAM      = "depth";
+  public static final String STRICT_PARAM     = "strict";
 	
   private static final Map<String, FilterConstructor> FILTER_CONSTRUCTOR_MAP = 
     new HashMap<String, FilterConstructor>();
