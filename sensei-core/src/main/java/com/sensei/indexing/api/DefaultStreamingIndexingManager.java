@@ -258,6 +258,10 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
     {
       return _currentVersion;
     }
-  }
 
+    @Override
+    public Comparator<String> getVersionComparator() {
+      return DefaultStreamingIndexingManager.this._versionComparator;
+    }
+  }
 }

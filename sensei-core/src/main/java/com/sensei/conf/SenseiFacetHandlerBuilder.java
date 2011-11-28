@@ -38,7 +38,7 @@ public class SenseiFacetHandlerBuilder {
 	private static Logger logger = Logger
 			.getLogger(SenseiFacetHandlerBuilder.class);
 			
-	private static String UID_FACET_NAME = "uid";
+	public static String UID_FACET_NAME = "_uid";
 
 	private static Map<String, TermListFactory<?>> getPredefinedTermListFactoryMap(JSONObject schemaObj) throws JSONException,ConfigurationException {
 		HashMap<String, TermListFactory<?>> retMap = new HashMap<String, TermListFactory<?>>();

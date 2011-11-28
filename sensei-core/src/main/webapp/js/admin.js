@@ -56,6 +56,7 @@ $(function() {
 
   window.JMXModel = Backbone.Model.extend({
     defaults: {
+      req: {type: 'list'},
       lazy: false,
       jmxBase: 'sensei/admin/jmx/'
     },
@@ -78,7 +79,7 @@ $(function() {
       var req = _.clone(this.get('req'));
       if (req.type != 'list' && req.type != 'exec')
         req.type = 'read';
-      res = jmx.request(req);
+      res = jmx.request(req, {method: "post"});
       if (_.isUndefined(res.id)) {
         if (_.isUndefined(this.id))
           res.id = this.cid;
@@ -97,7 +98,7 @@ $(function() {
         req.type = 'write';
         req.value = this.get('value');
       }
-      res = jmx.request(req);
+      res = jmx.request(req, {method: "post"});
       if (_.isUndefined(res.id)) {
         if (_.isUndefined(this.id))
           res.id = this.cid;

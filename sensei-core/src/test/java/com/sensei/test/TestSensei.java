@@ -1,11 +1,17 @@
 package com.sensei.test;
 
+import java.io.InputStreamReader;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.OutputStreamWriter;
 import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
+import java.net.URL;
+import java.net.URLConnection;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -15,6 +21,8 @@ import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.queryParser.QueryParser;
 import org.apache.lucene.search.DefaultSimilarity;
 import org.apache.lucene.util.Version;
+import org.json.JSONObject;
+import org.mortbay.jetty.Server;
 
 import proj.zoie.api.IndexReaderFactory;
 import proj.zoie.api.ZoieIndexReader;
@@ -46,11 +54,15 @@ import com.sensei.search.nodes.impl.SimpleQueryBuilderFactory;
 import com.sensei.search.req.SenseiHit;
 import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.req.SenseiResult;
+import com.sensei.search.svc.api.SenseiService;
+import com.sensei.search.svc.impl.HttpRestSenseiServiceImpl;
 
 public class TestSensei extends AbstractSenseiTestCase
 {
   static File ConfDir1 = new File("src/test/conf/node1");
   static File ConfDir2 = new File("src/test/conf/node2");
+  static File IndexDir = new File("index/test");
+  static URL SenseiUrl = null;
 
   private static final Logger logger = Logger.getLogger(TestSensei.class);
 
@@ -103,7 +115,7 @@ public class TestSensei extends AbstractSenseiTestCase
 
   
   public static <T> IndexReaderFactory<ZoieIndexReader<BoboIndexReader>> buildReaderFactory(File file,ZoieIndexableInterpreter<T> interpreter){
-  ZoieSystem<BoboIndexReader,T> zoieSystem = new ZoieSystem<BoboIndexReader,T>(file,interpreter,new SenseiIndexReaderDecorator(),new StandardAnalyzer(Version.LUCENE_30),new DefaultSimilarity(),1000,300000,true,ZoieConfig.DEFAULT_VERSION_COMPARATOR);
+  ZoieSystem<BoboIndexReader,T> zoieSystem = new ZoieSystem<BoboIndexReader,T>(file,interpreter,new SenseiIndexReaderDecorator(),new StandardAnalyzer(Version.LUCENE_34),new DefaultSimilarity(),1000,300000,true,ZoieConfig.DEFAULT_VERSION_COMPARATOR,false);
     zoieSystem.getAdminMBean().setFreshness(50);
     zoieSystem.start();
   return zoieSystem;
@@ -121,17 +133,81 @@ public class TestSensei extends AbstractSenseiTestCase
   }
   
   static SenseiBroker broker = null;
+  static SenseiService httpRestSenseiService = null;
   static SenseiServer node1;
   static SenseiServer node2;
+  static Server httpServer1;
+  static Server httpServer2;
+
+  static boolean rmrf(File f)
+  {
+    if (f != null)
+    {
+      if (f.isDirectory())
+      {
+        for (File sub : f.listFiles())
+        {
+          if (!rmrf(sub))
+            return false;
+        }
+      }
+      else
+        return f.delete();
+    }
+    return true;
+  }
+
+  static JSONObject search(JSONObject req) throws Exception
+  {
+    URLConnection conn = SenseiUrl.openConnection();
+    conn.setDoOutput(true);
+
+    BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(conn.getOutputStream(), "UTF-8"));
+
+    String reqStr = req.toString();
+    System.out.println("req: " + reqStr);
+    writer.write(reqStr, 0, reqStr.length());
+    writer.flush();
+
+    BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream(), "UTF-8"));
+
+    StringBuilder sb = new StringBuilder();
+    String line = null;
+    while((line = reader.readLine()) != null)
+      sb.append(line);
+
+    String res = sb.toString();
+    System.out.println("res: " + res);
+
+    return new JSONObject(res);
+  }
 
   static
   {
+    // Try to remove pre-existing test index files:
+    try
+    {
+      SenseiUrl = new URL("http://localhost:8079/sensei");
+    }
+    catch (Exception e)
+    {
+      e.printStackTrace();
+    }
+    try
+    {
+      rmrf(IndexDir);
+    }
+    catch (Exception e)
+    {
+      // Ignore.
+    }
     SenseiServerBuilder senseiServerBuilder1 = null;
     SenseiServerBuilder senseiServerBuilder2 = null;
     try
     {
       senseiServerBuilder1 = new SenseiServerBuilder(ConfDir1);
       node1 = senseiServerBuilder1.buildServer();
+      httpServer1 = senseiServerBuilder1.buildHttpRestServer();
       logger.info("Node 1 created.");
     }
     catch (Exception e)
@@ -143,6 +219,7 @@ public class TestSensei extends AbstractSenseiTestCase
     {
       senseiServerBuilder2 = new SenseiServerBuilder(ConfDir2);
       node2 = senseiServerBuilder2.buildServer();
+      httpServer2 = senseiServerBuilder2.buildHttpRestServer();
       logger.info("Node 2 created.");
     }
     catch (Exception e)
@@ -170,6 +247,8 @@ public class TestSensei extends AbstractSenseiTestCase
       }
     }
 
+    httpRestSenseiService = new HttpRestSenseiServiceImpl("http", "localhost", 8079, "/sensei");
+
     logger.info("Cluster client started");
 
     Runtime.getRuntime().addShutdownHook(new Thread(){
@@ -179,11 +258,23 @@ public class TestSensei extends AbstractSenseiTestCase
           }
           catch(Throwable t){}
           try{
+            httpRestSenseiService.shutdown();
+          }
+          catch(Throwable t){}
+          try{
             node1.shutdown();
           }
           catch(Throwable t){}
           try{
+            httpServer1.stop();
+          }
+          catch(Throwable t){}
+          try{
             node2.shutdown();
+          }
+          catch(Throwable t){}
+          try{
+            httpServer2.stop();
           }
           catch(Throwable t){}
           try{
@@ -202,7 +293,13 @@ public class TestSensei extends AbstractSenseiTestCase
       node1.start(true);
     } catch (Exception e)
     {
-      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+    try
+    {
+      httpServer1.start();
+    } catch (Exception e)
+    {
       e.printStackTrace();
     }
     logger.info("Node 1 started");
@@ -211,15 +308,19 @@ public class TestSensei extends AbstractSenseiTestCase
       node2.start(true);
     } catch (Exception e)
     {
-      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+    try
+    {
+      httpServer2.start();
+    } catch (Exception e)
+    {
       e.printStackTrace();
     }
     logger.info("Node 2 started");
 
     try
     {
-      //senseiServerBuilder1.buildHttpRestServer().start();
-
       SenseiRequest req = new SenseiRequest();
       SenseiResult res = null;
       int count = 0;
@@ -351,6 +452,13 @@ public class TestSensei extends AbstractSenseiTestCase
     SenseiHit hit = res.getSenseiHits()[0];
     assertTrue(hit.getGroupHitsCount() > 0);
     assertTrue(hit.getSenseiGroupHits().length > 0);
+
+    // use httpRestSenseiService
+    res = httpRestSenseiService.doQuery(req);
+    logger.info("request:" + req + "\nresult:" + res);
+    hit = res.getSenseiHits()[0];
+    assertTrue(hit.getGroupHitsCount() > 0);
+    assertTrue(hit.getSenseiGroupHits().length > 0);
   }
 
   public void testGroupByVirtual() throws Exception
@@ -367,7 +475,7 @@ public class TestSensei extends AbstractSenseiTestCase
 
   public void testGroupByVirtualWithGroupedHits() throws Exception
   {
-    logger.info("executing test case testGroupBy");
+    logger.info("executing test case testGroupByVirtualWithGroupedHits");
     SenseiRequest req = new SenseiRequest();
     req.setCount(1);
     req.setGroupBy("virtual_groupid");
@@ -381,7 +489,7 @@ public class TestSensei extends AbstractSenseiTestCase
 
   public void testGroupByFixedLengthLongArray() throws Exception
   {
-    logger.info("executing test case testGroupByVirtual");
+    logger.info("executing test case testGroupByFixedLengthLongArray");
     SenseiRequest req = new SenseiRequest();
     req.setCount(1);
     req.setGroupBy("virtual_groupid_fixedlengthlongarray");
@@ -393,7 +501,7 @@ public class TestSensei extends AbstractSenseiTestCase
 
   public void testGroupByFixedLengthLongArrayWithGroupedHits() throws Exception
   {
-    logger.info("executing test case testGroupBy");
+    logger.info("executing test case testGroupByFixedLengthLongArrayWithGroupedHits");
     SenseiRequest req = new SenseiRequest();
     req.setCount(1);
     req.setGroupBy("virtual_groupid_fixedlengthlongarray");
@@ -403,6 +511,14 @@ public class TestSensei extends AbstractSenseiTestCase
     SenseiHit hit = res.getSenseiHits()[0];
     assertTrue(hit.getGroupHitsCount() > 0);
     assertTrue(hit.getSenseiGroupHits().length > 0);
+  }
+
+  public void testQueryStringQuery() throws Exception
+  {
+    logger.info("executing test case testQueryStringQuery");
+    String req = "{\"query\": {\"query_string\": {\"query\": \"red AND cool\"}}}";
+    JSONObject res = search(new JSONObject(req));
+    assertEquals("numhits is wrong", 1070, res.getInt("numhits"));
   }
 
   /**

@@ -1,5 +1,7 @@
 import sys
 import unittest
+import time
+from datetime import datetime
 
 sys.path.insert(0, "../src")
 import sensei_client
@@ -260,7 +262,7 @@ class TestBQL(unittest.TestCase):
     try:
       req = SenseiRequest(stmt)
       intactFlag = False
-    except ParseException as err:
+    except ParseSyntaxException as err:
       pass
     finally:
       self.assertTrue(intactFlag)
@@ -404,7 +406,8 @@ class TestBQL(unittest.TestCase):
     FROM cars
     GIVEN FACET PARAM (My-Network, "srcid", int, 8233570),
                       (time, "now", long, "999999"),   -- Accept string too
-                      (member, "last_name", string, "Cui")
+                      (member, "last_name", string, "Cui"),
+                      (member, "age", int, 25)
     """
     req = SenseiRequest(stmt)
     self.assertEqual(len(req.facet_init_param_map), 3)
@@ -414,6 +417,7 @@ class TestBQL(unittest.TestCase):
     self.assertEqual(init_params.long_map["now"], ["999999"])
     init_params = req.facet_init_param_map["member"]
     self.assertEqual(init_params.string_map["last_name"], ["Cui"])
+    self.assertEqual(init_params.int_map["age"], [25])
 
   def testFetchingStored(self):
     stmt = \
@@ -468,7 +472,7 @@ class TestBQL(unittest.TestCase):
     """
     req = SenseiRequest(stmt)
     self.compare("rows=10&select.year.val=%5B2000+TO+2001%5D" +
-                 "&select.year.op=or&start=0&select.year.not=&fetchstored=true",
+                 "&select.year.op=and&start=0&select.year.not=&fetchstored=true",
                  SenseiClient.buildUrlString(req))
 
     stmt = \
@@ -478,7 +482,7 @@ class TestBQL(unittest.TestCase):
     WHERE year NOT BETWEEN 1999 AND 2000
     """
     req = SenseiRequest(stmt)
-    self.compare("rows=10&select.year.val=&select.year.op=or" +
+    self.compare("rows=10&select.year.val=&select.year.op=and" +
                  "&start=0&select.year.not=%5B1999+TO+2000%5D&fetchstored=true",
                  SenseiClient.buildUrlString(req))
 
@@ -540,7 +544,7 @@ class TestBQL(unittest.TestCase):
     self.assertEqual(len(req.selections), 1)
     select = req.selections["year"]
     self.assertEqual(select.field, "year")
-    self.assertEqual(select.operation, sensei_client.PARAM_SELECT_OP_OR)
+    self.assertEqual(select.operation, sensei_client.PARAM_SELECT_OP_AND)
     self.assertEqual(select.values, [])
     self.assertEqual(len(select.excludes), 2)
     self.assertTrue("[1995 TO 1996]" in select.excludes)
@@ -639,6 +643,179 @@ class TestBQL(unittest.TestCase):
       error = str(err)
     self.assertEqual(error, repr("Negative predicate for column 'color' appeared in cumulative predicates"))
 
+  def testRangePredicates(self):
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    WHERE year > 1999 AND year < 2001
+    """
+    req = SenseiRequest(stmt)
+    select_year = req.selections["year"]
+    self.assertEqual(select_year.operation, sensei_client.PARAM_SELECT_OP_AND)
+    self.assertEqual(len(select_year.values), 1)
+    self.assertTrue("[2000 TO 2000]" in select_year.values)
+
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    WHERE year >= 1999 AND year <= 2004
+    """
+    req = SenseiRequest(stmt)
+    select_year = req.selections["year"]
+    self.assertEqual(select_year.operation, sensei_client.PARAM_SELECT_OP_AND)
+    self.assertEqual(len(select_year.values), 1)
+    self.assertTrue("[1999 TO 2004]" in select_year.values)
+
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    WHERE year BETWEEN 1995 AND 2000
+      AND year < 1999
+    """
+    req = SenseiRequest(stmt)
+    select_year = req.selections["year"]
+    self.assertEqual(select_year.operation, sensei_client.PARAM_SELECT_OP_AND)
+    self.assertEqual(len(select_year.values), 1)
+    self.assertTrue("[1995 TO 1998]" in select_year.values)
+
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    WHERE year BETWEEN 1995 AND 1997 OR year > 1999
+    """
+    req = SenseiRequest(stmt)
+    select_year = req.selections["year"]
+    self.assertEqual(select_year.operation, sensei_client.PARAM_SELECT_OP_OR)
+    self.assertEqual(len(select_year.values), 2)
+    self.assertTrue("[1995 TO 1997]" in select_year.values)
+    self.assertTrue("[2000 TO *]" in select_year.values)
+
+  def testFloatNumbers(self):
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    WHERE price > 14000.00 AND price <= 19000.50
+    """
+    req = SenseiRequest(stmt)
+    select = req.selections["price"]
+    self.assertEqual(select.operation, sensei_client.PARAM_SELECT_OP_AND)
+    self.assertEqual(len(select.values), 1)
+    # print select.values
+    self.assertTrue("[14000.01 TO 19000.5]" in select.values)
+
+  def testTimeRange(self):
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    WHERE time > 2 days 3 hours ago AND time < 1 day 15 minutes ago
+    """
+    req = SenseiRequest(stmt)
+    select = req.selections["time"]
+    self.assertEqual(select.operation, sensei_client.PARAM_SELECT_OP_AND)
+    self.assertEqual(len(select.values), 1)
+    # print select.values
+    mm = RANGE_REGEX.match(select.values[0])
+    (time1, _, time2, _) = mm.groups()
+    gap = int(time2) - int(time1)
+    self.assertEqual(gap, 24*60*60*1000 + 3*60*60*1000 - 15*60*1000 - 2)
+    # ==================> 1 day ......... 3 hours ...... 15 mins ... exclusive
+
+  def testTimeRangeNow(self):
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    WHERE time > 2 days 3 hours 20 min 10 secs ago AND time < NOW
+    """
+    req = SenseiRequest(stmt)
+    select = req.selections["time"]
+    self.assertEqual(select.operation, sensei_client.PARAM_SELECT_OP_AND)
+    self.assertEqual(len(select.values), 1)
+    # print select.values
+    mm = RANGE_REGEX.match(select.values[0])
+    (time1, _, time2, _) = mm.groups()
+    gap = int(time2) - int(time1)
+    self.assertEqual(gap, 2*24*60*60*1000 + 3*60*60*1000 + 20*60*1000 + 10*1000 - 2)
+    # ==================> 2 day ........... 3 hours ...... 20 min ..... 10 sec . exclusive
+
+  def testTimePredicates(self):
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    WHERE time IN LAST 2 hours 20 mins
+    """
+    req = SenseiRequest(stmt)
+    select = req.selections["time"]
+    self.assertEqual(select.operation, sensei_client.PARAM_SELECT_OP_AND)
+    self.assertEqual(len(select.values), 1)
+    mm = RANGE_REGEX.match(select.values[0])
+    (time1, _, time2, _) = mm.groups()
+    self.assertEqual(time2, "*")
+    gap = int(time.time() * 1000) - int(time1)
+    self.assertTrue(gap < 2*60*60*1000 + 20*60*1000 + 2*1000)
+    # ==================> 2 hours ...... 20 min ....+ 2 secs
+
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    WHERE time SINCE 2 hours 20 mins ago
+    """
+    req = SenseiRequest(stmt)
+    select = req.selections["time"]
+    self.assertEqual(select.operation, sensei_client.PARAM_SELECT_OP_AND)
+    self.assertEqual(len(select.values), 1)
+    mm = RANGE_REGEX.match(select.values[0])
+    (time1, _, time2, _) = mm.groups()
+    self.assertEqual(time2, "*")
+    gap = int(time.time() * 1000) - int(time1)
+    self.assertTrue(gap < 2*60*60*1000 + 20*60*1000 + 2*1000)
+    # ==================> 2 hours ...... 20 min ....+ 2 secs
+
+  def testDateTimeStrings(self):
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    WHERE time >= "2011-10-20 15:30:00"
+      AND time < '2011/10/22 18:30:30'
+    """
+    req = SenseiRequest(stmt)
+    select = req.selections["time"]
+    self.assertEqual(select.operation, sensei_client.PARAM_SELECT_OP_AND)
+    self.assertEqual(len(select.values), 1)
+    mm = RANGE_REGEX.match(select.values[0])
+    (time1, _, time2, _) = mm.groups()
+    orig_time1 = datetime.strptime("2011-10-20 15:30:00", "%Y-%m-%d %H:%M:%S")
+    orig_time2 = datetime.strptime('2011/10/22 18:30:30', "%Y/%m/%d %H:%M:%S")
+    self.assertEqual(int(time1), int(time.mktime(orig_time1.timetuple()) * 1000))
+    self.assertEqual(int(time2), int(time.mktime(orig_time2.timetuple()) * 1000) - 1)
+
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    WHERE time AFTER "2011-10-20 15:30:00"
+      AND time BEFORE '2011/10/22 18:30:30'
+    """
+    req = SenseiRequest(stmt)
+    select = req.selections["time"]
+    self.assertEqual(select.operation, sensei_client.PARAM_SELECT_OP_AND)
+    self.assertEqual(len(select.values), 1)
+    mm = RANGE_REGEX.match(select.values[0])
+    (time1, _, time2, _) = mm.groups()
+    orig_time1 = datetime.strptime("2011-10-20 15:30:00", "%Y-%m-%d %H:%M:%S")
+    orig_time2 = datetime.strptime('2011/10/22 18:30:30', "%Y/%m/%d %H:%M:%S")
+    self.assertEqual(int(time1), int(time.mktime(orig_time1.timetuple()) * 1000) + 1)
+    self.assertEqual(int(time2), int(time.mktime(orig_time2.timetuple()) * 1000) - 1)
+
   def compare(self, paramStr1, paramStr2):
     """Compare two URL param strings built by Sensei client.
 
@@ -653,31 +830,29 @@ class TestBQL(unittest.TestCase):
     self.assertTrue(len(paramStr1) == len(paramStr2) and list1 == list2)
 
 
+class TestUtils(unittest.TestCase):
+
+  def testRanges(self):
+    self.assertEqual("[50 TO 100]", sensei_client.and_ranges("[* TO 100]", "[50 TO 200]"))
+    self.assertEqual("[100 TO 200]", sensei_client.and_ranges("[100 TO *]", "[50 TO 200]"))
+    self.assertEqual("[200 TO *]", sensei_client.and_ranges("[100 TO *]", "[200 TO *]"))
+    self.assertEqual("[150 TO 200]", sensei_client.and_ranges("[100 TO 200]", "[150 TO 400]"))
+    self.assertEqual("[100 TO 200]", sensei_client.and_ranges("[* TO 200]", "[100 TO *]"))
+    self.assertEqual(None, sensei_client.and_ranges("[100 TO 200]", "[15 TO 50]"))
+
+    new_list = sensei_client.and_range_list(["[10 TO 50]", "[60 TO 80]", "[100 TO 200]"], "[40 TO 150]")
+    self.assertEqual(["[40 TO 50]", "[60 TO 80]", "[100 TO 150]"], new_list)
+
+
 if __name__ == "__main__":
     unittest.main()
 
 """
 TODO:
 
-1. BETWEEN ... AND ...
+1. Relevance
 
-   SELECT *
-   FROM cars
-   WHERE year BETWEEN 1995 AND 1996
-
-   SELECT *
-   FROM cars
-   WHERE year NOT BETWEEN 1995 AND 1996
-
-   SELECT *
-   FROM cars
-   WHERE year NOT BETWEEN 1995 AND 1996
-     AND 
-     AND year NOT BETWEEN 2000 AND 2001
-
-2. Relevance
-
-3. Make sure that we do not have predicate conflict:
+2. Make sure that we do not have predicate conflict:
 
    SELECT *
    FROM cars
@@ -693,18 +868,5 @@ TODO:
    WHERE (color = "red" OR color = "blue")
      AND (year BETWEEN 1995 AND 1996 OR
           year BETWEEN 2000 AND 2001)
-
-
-predicates ::= (predicate + ZeroOrMore(AND + predicate))
-
-predicate ::= in_predicate
-            | contains_all_predicate
-            | between_predicate
-            | negative_predicate
-            | "(" or_positive_predicates ")"
-
-positive_predicate ::= in_predicate | contains_all_predicate
-
-
 
 """

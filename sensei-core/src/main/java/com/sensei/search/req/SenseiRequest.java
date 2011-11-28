@@ -3,6 +3,7 @@ package com.sensei.search.req;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -10,63 +11,68 @@ import java.util.Random;
 import java.util.Set;
 
 import org.apache.lucene.search.SortField;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import com.browseengine.bobo.api.BrowseSelection;
+import com.browseengine.bobo.api.BrowseSelection.ValueOperation;
 import com.browseengine.bobo.api.FacetSpec;
+import com.browseengine.bobo.facets.DefaultFacetHandlerInitializerParam;
 import com.browseengine.bobo.facets.FacetHandlerInitializerParam;
+import com.sensei.search.util.RequestConverter2;
 
-public class SenseiRequest implements AbstractSenseiRequest, Cloneable
+public  class  SenseiRequest implements AbstractSenseiRequest, Cloneable
 {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
-	
-  /**
-   * The transaction ID
-   */
-  private long tid = -1;
+/**
+*
+*/
+private static final         long       serialVersionUID       =         1L;
+  
+/**
+*       The    transaction   ID
+*/
+private long   tid           =          -1;
 
   private HashMap<String,BrowseSelection> _selections;
-	private ArrayList<SortField> _sortSpecs;
-	private Map<String,FacetSpec> _facetSpecMap;
-	private Map<String, Integer> _origFacetSpecMaxCounts;
-	private SenseiQuery _query;
-	private int _offset;
-	private int _count;
-	private int _origOffset;
-	private int _origCount;
-	private boolean _fetchStoredFields;
-	private Map<String,FacetHandlerInitializerParam> _facetInitParamMap;
-	private Set<Integer> _partitions;
-	private boolean _showExplanation;
-	private static Random _rand = new Random(System.nanoTime());
-	private String _routeParam;
-	private String _groupBy;
-	private int _maxPerGroup;
-	private Set<String> _termVectorsToFetch;
-	
-	public SenseiRequest(){
-		_facetInitParamMap = new HashMap<String,FacetHandlerInitializerParam>();
-		_selections=new HashMap<String,BrowseSelection>();
-		_sortSpecs=new ArrayList<SortField>();
-		_facetSpecMap=new HashMap<String,FacetSpec>();
-		_fetchStoredFields = false;
-		_partitions = null;
-		_showExplanation = false;
-		_routeParam = null;
-		_groupBy = null;
+  private ArrayList<SortField> _sortSpecs;
+  private Map<String,FacetSpec> _facetSpecMap;
+  private Map<String, Integer> _origFacetSpecMaxCounts;
+  private SenseiQuery _query;
+  private int _offset;
+  private int _count;
+  private int _origOffset;
+  private int _origCount;
+  private boolean _fetchStoredFields;
+  private Map<String,FacetHandlerInitializerParam> _facetInitParamMap;
+  private Set<Integer> _partitions;
+  private boolean _showExplanation;
+  private static Random _rand = new Random(System.nanoTime());
+  private String _routeParam;
+  private String _groupBy;
+  private int _maxPerGroup;
+  private Set<String> _termVectorsToFetch;
+  
+  public SenseiRequest(){
+    _facetInitParamMap = new HashMap<String,FacetHandlerInitializerParam>();
+    _selections=new HashMap<String,BrowseSelection>();
+    _sortSpecs=new ArrayList<SortField>();
+    _facetSpecMap=new HashMap<String,FacetSpec>();
+    _fetchStoredFields = false;
+    _partitions = null;
+    _showExplanation = false;
+    _routeParam = null;
+    _groupBy = null;
     _maxPerGroup = 0;
     _termVectorsToFetch = null;
-	}
+  }
 
-	public Set<String> getTermVectorsToFetch(){
-	  return _termVectorsToFetch;
-	}
-	
-	public void setTermVectorsToFetch(Set<String> termVectorsToFetch){
-	  _termVectorsToFetch = termVectorsToFetch;
-	}
+  public Set<String> getTermVectorsToFetch(){
+    return _termVectorsToFetch;
+  }
+  
+  public void setTermVectorsToFetch(Set<String> termVectorsToFetch){
+    _termVectorsToFetch = termVectorsToFetch;
+  }
 /**
    * Get the transaction ID.
    * @return the transaction ID.
@@ -86,21 +92,21 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable
   }
   
   
-	public boolean isShowExplanation() {
-	  return _showExplanation;
+  public boolean isShowExplanation() {
+    return _showExplanation;
     }
 
     public void setShowExplanation(boolean showExplanation) {
-	  _showExplanation = showExplanation;
+    _showExplanation = showExplanation;
     }
 
-	public void setPartitions(Set<Integer> partitions){
-		_partitions = partitions;
-	}
-	
-	public Set<Integer> getPartitions(){
-		return _partitions;
-	}
+  public void setPartitions(Set<Integer> partitions){
+    _partitions = partitions;
+  }
+  
+  public Set<Integer> getPartitions(){
+    return _partitions;
+  }
 
   public void setRouteParam(String routeParam)
   {
@@ -135,44 +141,44 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable
     return _maxPerGroup;
   }
 
-	public Map<String,FacetHandlerInitializerParam> getFacetHandlerInitParamMap(){
-		return _facetInitParamMap;
-	}
-	
-	public void setFacetHandlerInitParamMap(Map<String,FacetHandlerInitializerParam> paramMap){
-	  _facetInitParamMap = paramMap;
-	}
+  public Map<String,FacetHandlerInitializerParam> getFacetHandlerInitParamMap(){
+    return _facetInitParamMap;
+  }
+  
+  public void setFacetHandlerInitParamMap(Map<String,FacetHandlerInitializerParam> paramMap){
+    _facetInitParamMap = paramMap;
+  }
 
-	public void putAllFacetHandlerInitializerParams(Map<String,FacetHandlerInitializerParam> params){
-		_facetInitParamMap.putAll(params);
-	}
-	
-	public void setFacetHandlerInitializerParam(String name,FacetHandlerInitializerParam param){
-		_facetInitParamMap.put(name, param);
-	}
-	
-	public FacetHandlerInitializerParam getFacetHandlerInitializerParam(String name){
-		return _facetInitParamMap.get(name);
-	}
+  public void putAllFacetHandlerInitializerParams(Map<String,FacetHandlerInitializerParam> params){
+    _facetInitParamMap.putAll(params);
+  }
+  
+  public void setFacetHandlerInitializerParam(String name,FacetHandlerInitializerParam param){
+    _facetInitParamMap.put(name, param);
+  }
+  
+  public FacetHandlerInitializerParam getFacetHandlerInitializerParam(String name){
+    return _facetInitParamMap.get(name);
+  }
 
-	public Set<String> getSelectionNames(){
-		return _selections.keySet();
-	}
-	
-	public void removeSelection(String name){
-		_selections.remove(name);
-	}
-	
-	public void setFacetSpecs(Map<String,FacetSpec> facetSpecMap)
-	{
-		_facetSpecMap = facetSpecMap;
-	}
-	
-	public Map<String,FacetSpec> getFacetSpecs()
-	{
-		return _facetSpecMap;
-	}
-	
+  public Set<String> getSelectionNames(){
+    return _selections.keySet();
+  }
+  
+  public void removeSelection(String name){
+    _selections.remove(name);
+  }
+  
+  public void setFacetSpecs(Map<String,FacetSpec> facetSpecMap)
+  {
+    _facetSpecMap = facetSpecMap;
+  }
+  
+  public Map<String,FacetSpec> getFacetSpecs()
+  {
+    return _facetSpecMap;
+  }
+  
   public void saveState()
   {
     _origOffset = _offset;
@@ -191,7 +197,7 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable
     }
   }
 
-	public void restoreState()
+  public void restoreState()
   {
     _offset = _origOffset;
     _count = _origCount;
@@ -208,110 +214,110 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable
     }
   }
 
-	public int getSelectionCount()
-	{
-		return _selections.size();
-	}
-	
-	public void clearSelections(){
-		_selections.clear();
-	}
-	
-	/**
-	 * Gets the number of facet specs
-	 * @return number of facet pecs
-	 * @see #setFacetSpec(String, FacetSpec)
-	 * @see #getFacetSpec(String)
-	 */
-	public int getFacetSpecCount(){
-		return _facetSpecMap.size();
-	}
-	
-	public void clearSort(){
-		_sortSpecs.clear();
-	}
-	
-	public boolean isFetchStoredFields(){
-		return _fetchStoredFields;
-	}
-	
-	public void setFetchStoredFields(boolean fetchStoredFields){
-		_fetchStoredFields = fetchStoredFields;
-	}
-	
-	/**
-	 * Sets a facet spec
-	 * @param name field name
-	 * @param facetSpec Facet spec
-	 * @see #getFacetSpec(String)
-	 */
-	public void setFacetSpec(String name,FacetSpec facetSpec){
-		_facetSpecMap.put(name,facetSpec);
-	}
-	
-	/**
-	 * Gets a facet spec
-	 * @param name field name
-	 * @return facet spec
-	 * @see #setFacetSpec(String, FacetSpec)
-	 */
-	public FacetSpec getFacetSpec(String name){
-		return _facetSpecMap.get(name);
-	}
-	
-	/**
-	 * Gets the number of hits to return. Part of the paging parameters.
-	 * @return number of hits to return.
-	 * @see #setCount(int)
-	 */
-	public int getCount() {
-		return _count;
-	}
+  public int getSelectionCount()
+  {
+    return _selections.size();
+  }
+  
+  public void clearSelections(){
+    _selections.clear();
+  }
+  
+  /**
+   * Gets the number of facet specs
+   * @return number of facet pecs
+   * @see #setFacetSpec(String, FacetSpec)
+   * @see #getFacetSpec(String)
+   */
+  public int getFacetSpecCount(){
+    return _facetSpecMap.size();
+  }
+  
+  public void clearSort(){
+    _sortSpecs.clear();
+  }
+  
+  public boolean isFetchStoredFields(){
+    return _fetchStoredFields;
+  }
+  
+  public void setFetchStoredFields(boolean fetchStoredFields){
+    _fetchStoredFields = fetchStoredFields;
+  }
+  
+  /**
+   * Sets a facet spec
+   * @param name field name
+   * @param facetSpec Facet spec
+   * @see #getFacetSpec(String)
+   */
+  public void setFacetSpec(String name,FacetSpec facetSpec){
+    _facetSpecMap.put(name,facetSpec);
+  }
+  
+  /**
+   * Gets a facet spec
+   * @param name field name
+   * @return facet spec
+   * @see #setFacetSpec(String, FacetSpec)
+   */
+  public FacetSpec getFacetSpec(String name){
+    return _facetSpecMap.get(name);
+  }
+  
+  /**
+   * Gets the number of hits to return. Part of the paging parameters.
+   * @return number of hits to return.
+   * @see #setCount(int)
+   */
+  public int getCount() {
+    return _count;
+  }
 
-	/**
-	 * Sets the number of hits to return. Part of the paging parameters.
-	 * @param count number of hits to return.
-	 * @see #getCount()
-	 */
-	public void setCount(int count) {
-		_count = count;
-	}
+  /**
+   * Sets the number of hits to return. Part of the paging parameters.
+   * @param count number of hits to return.
+   * @see #getCount()
+   */
+  public void setCount(int count) {
+    _count = count;
+  }
 
-	/**
-	 * Gets the offset. Part of the paging parameters.
-	 * @return offset
-	 * @see #setOffset(int)
-	 */
-	public int getOffset() {
-		return _offset;
-	}
+  /**
+   * Gets the offset. Part of the paging parameters.
+   * @return offset
+   * @see #setOffset(int)
+   */
+  public int getOffset() {
+    return _offset;
+  }
 
-	/**
-	 * Sets of the offset. Part of the paging parameters.
-	 * @param offset offset
-	 * @see #getOffset()
-	 */
-	public void setOffset(int offset) {
-		_offset = offset;
-	}
+  /**
+   * Sets of the offset. Part of the paging parameters.
+   * @param offset offset
+   * @see #getOffset()
+   */
+  public void setOffset(int offset) {
+    _offset = offset;
+  }
 
-	/**
-	 * Set the search query
-	 * @param query query object
-	 * @see #getQuery()
-	 */
-	public void setQuery(SenseiQuery query){
-		_query=query;
-	}
-	
-	/**
-	 * Gets the search query
-	 * @return query object
-	 * @see #setQuery(SenseiQuery)
-	 */
-	public SenseiQuery getQuery(){
-		return _query;
-	}
+  /**
+   * Set the search query
+   * @param query query object
+   * @see #getQuery()
+   */
+  public void setQuery(SenseiQuery query){
+    _query=query;
+  }
+  
+  /**
+   * Gets the search query
+   * @return query object
+   * @see #setQuery(SenseiQuery)
+   */
+  public SenseiQuery getQuery(){
+    return _query;
+  }
 
   /**
    * Adds a browse selection array
@@ -325,42 +331,42 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable
     }
   }
 
-	/**
-	 * Adds a browse selection
-	 * @param sel selection
-	 * @see #getSelections()
-	 */
-	public void addSelection(BrowseSelection sel){
-		_selections.put(sel.getFieldName(),sel);
-	}
-	
-	/**
-	 * Gets all added browse selections
-	 * @return added selections
-	 * @see #addSelection(BrowseSelection)
-	 */
-	public BrowseSelection[] getSelections(){
-		return _selections.values().toArray(new BrowseSelection[_selections.size()]);
-	}
-	
-	/**
-	 * Gets selection by field name
-	 * @param fieldname
-	 * @return selection on the field
-	 */
-	public BrowseSelection getSelection(String fieldname){
-	  return _selections.get(fieldname);
-	}
-	
-	/**
-	 * Add a sort spec
-	 * @param sortSpec sort spec
-	 * @see #getSort() 
-	 * @see #setSort(SortField[])
-	 */
-	public void addSortField(SortField sortSpec){
-		_sortSpecs.add(sortSpec);
-	}
+  /**
+   * Adds a browse selection
+   * @param sel selection
+   * @see #getSelections()
+   */
+  public void addSelection(BrowseSelection sel){
+    _selections.put(sel.getFieldName(),sel);
+  }
+  
+  /**
+   * Gets all added browse selections
+   * @return added selections
+   * @see #addSelection(BrowseSelection)
+   */
+  public BrowseSelection[] getSelections(){
+    return _selections.values().toArray(new BrowseSelection[_selections.size()]);
+  }
+  
+  /**
+   * Gets selection by field name
+   * @param fieldname
+   * @return selection on the field
+   */
+  public BrowseSelection getSelection(String fieldname){
+    return _selections.get(fieldname);
+  }
+  
+  /**
+   * Add a sort spec
+   * @param sortSpec sort spec
+   * @see #getSort() 
+   * @see #setSort(SortField[])
+   */
+  public void addSortField(SortField sortSpec){
+    _sortSpecs.add(sortSpec);
+  }
 
   /**
    * Add a sort spec
@@ -374,29 +380,29 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable
     }
   }
 
-	/**
-	 * Gets the sort criteria
-	 * @return sort criteria
-	 * @see #setSort(SortField[])
-	 * @see #addSortField(SortField)
-	 */
-	public SortField[] getSort(){
-		return _sortSpecs.toArray(new SortField[_sortSpecs.size()]);
-	}
-	
-	/**
-	 * Sets the sort criteria
-	 * @param sorts sort criteria
-	 * @see #addSortField(SortField)
-	 * @see #getSort()
-	 */
-	public void setSort(SortField[] sorts){
-		_sortSpecs.clear();
-		for (int i=0;i<sorts.length;++i){
-			_sortSpecs.add(sorts[i]);
-		}
-	}
-	
+  /**
+   * Gets the sort criteria
+   * @return sort criteria
+   * @see #setSort(SortField[])
+   * @see #addSortField(SortField)
+   */
+  public SortField[] getSort(){
+    return _sortSpecs.toArray(new SortField[_sortSpecs.size()]);
+  }
+  
+  /**
+   * Sets the sort criteria
+   * @param sorts sort criteria
+   * @see #addSortField(SortField)
+   * @see #getSort()
+   */
+  public void setSort(SortField[] sorts){
+    _sortSpecs.clear();
+    for (int i=0;i<sorts.length;++i){
+      _sortSpecs.add(sorts[i]);
+    }
+  }
+  
   /** Represents sorting by document score (relevancy). */
   public static final SortField FIELD_SCORE = new SortField (null, SortField.SCORE);
   public static final SortField FIELD_SCORE_REVERSE = new SortField (null, SortField.SCORE, true);
@@ -405,11 +411,11 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable
   public static final SortField FIELD_DOC = new SortField (null, SortField.DOC);
   public static final SortField FIELD_DOC_REVERSE = new SortField (null, SortField.DOC, true);
 
-	@Override
-	public String toString(){
-	  StringBuilder buf=new StringBuilder();
-	  if(_query != null)
-	    buf.append("query: ").append(_query.toString()).append('\n');
+  @Override
+  public String toString(){
+    StringBuilder buf=new StringBuilder();
+    if(_query != null)
+      buf.append("query: ").append(_query.toString()).append('\n');
     buf.append("page: [").append(_offset).append(',').append(_count).append("]\n");
     if(_sortSpecs != null)
       buf.append("sort spec: ").append(_sortSpecs).append('\n');
@@ -424,12 +430,12 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable
     buf.append("max per group: ").append(_maxPerGroup);
     buf.append("fetch stored fields: ").append(_fetchStoredFields);
     return buf.toString();
-	}
-	
-	public Object clone() throws CloneNotSupportedException
-	{
-	  return super.clone();
-	}
+  }
+  
+  public Object clone() throws CloneNotSupportedException
+  {
+    return super.clone();
+  }
 
   @Override
   public boolean equals(Object o) {
@@ -557,6 +563,32 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable
     }
 
     return true;
+  }
+  
+  //private static SenseiQuery buildSenseiQuery(String query,JSONObject params) throws Exception
+  //{
+    //SenseiQuery sq;
+
+    //JSONObject qjson = null;
+    //if (params==null){
+      //qjson = new JSONObject();
+    //}
+    //else{
+      //qjson = params;
+    //}
+    
+    //if (query != null && query.length() > 0)
+    //{
+      //qjson.put("query", query);
+    //}
+    
+    //sq = new SenseiJSONQuery(qjson);
+    //return sq;
+  //}
+  
+  
+  public static SenseiRequest fromJSON(JSONObject json) throws Exception{
+    return RequestConverter2.fromJSON(json);
   }
 
 }
