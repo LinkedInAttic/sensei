@@ -37,7 +37,7 @@ public class PathQueryConstructor extends QueryConstructor
     Object obj = jsonQuery.get((String)jsonQuery.keys().next());
     if (obj instanceof JSONObject)
     {
-      query.setBoost((float)((JSONObject)obj).optDouble("boost", 1.0));
+      query.setBoost((float)((JSONObject)obj).optDouble(BOOST_PARAM, 1.0));
     }
     return query;
   }

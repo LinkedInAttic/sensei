@@ -30,10 +30,10 @@ public class SpanNearQueryConstructor extends QueryConstructor {
 //        "collect_payloads" : false
 //    },
 		
-		JSONArray jsonArray = jsonQuery.getJSONArray("clauses");
+		JSONArray jsonArray = jsonQuery.getJSONArray(CLAUSES_PARAM);
 		ArrayList<SpanTermQuery> clausesList = new ArrayList<SpanTermQuery>();
 		for(int i = 0; i<jsonArray.length(); i++){
-			JSONObject json = jsonArray.getJSONObject(i).getJSONObject("span_term");
+			JSONObject json = jsonArray.getJSONObject(i).getJSONObject(SPAN_TERM_PARAM);
 			String field = (String)(json.keys().next());
 			String value = (String)json.get(field);
 			clausesList.add(new SpanTermQuery(new Term(field, value)));
@@ -41,9 +41,9 @@ public class SpanNearQueryConstructor extends QueryConstructor {
 		
 		SpanQuery[] clauses = clausesList.toArray(new SpanQuery[clausesList.size()]);
 		
-		int slop = jsonQuery.optInt("slop", 12);
-		boolean inOrder = jsonQuery.optBoolean("in_order", false);
-		boolean collectPayloads = jsonQuery.optBoolean("collect_payloads", false);
+		int slop = jsonQuery.optInt(SLOP_PARAM, 12);
+		boolean inOrder = jsonQuery.optBoolean(IN_ORDER_PARAM, false);
+		boolean collectPayloads = jsonQuery.optBoolean(COLLECT_PAYLOADS_PARAM, false);
 		
 		return new SpanNearQuery(clauses, slop, inOrder, collectPayloads);
 	}

@@ -46,18 +46,18 @@ public class BooleanQueryConstructor extends QueryConstructor
   @Override
   protected Query doConstructQuery(JSONObject jsonQuery) throws JSONException
   {
-    BooleanQuery query = new BooleanQuery(jsonQuery.optBoolean("disable_coord", false));
-    JSONObject obj = jsonQuery.optJSONObject("must");
+    BooleanQuery query = new BooleanQuery(jsonQuery.optBoolean(DISABLE_COORD_PARAM, false));
+    JSONObject obj = jsonQuery.optJSONObject(MUST_PARAM);
     if (obj != null)
     {
       query.add(QueryConstructor.constructQuery(obj, _qparser), BooleanClause.Occur.MUST);
     }
-    obj = jsonQuery.optJSONObject("must_not");
+    obj = jsonQuery.optJSONObject(MUST_NOT_PARAM);
     if (obj != null)
     {
       query.add(QueryConstructor.constructQuery(obj, _qparser), BooleanClause.Occur.MUST_NOT);
     }
-    JSONArray array = jsonQuery.optJSONArray("should");
+    JSONArray array = jsonQuery.optJSONArray(SHOULD_PARAM);
     if (array != null)
     {
       for (int i=0; i<array.length(); ++i)
@@ -67,8 +67,8 @@ public class BooleanQueryConstructor extends QueryConstructor
       }
     }
 
-    query.setMinimumNumberShouldMatch(jsonQuery.optInt("minimum_number_should_match", 1));
-    query.setBoost((float)jsonQuery.optDouble("boost", 1.0));
+    query.setMinimumNumberShouldMatch(jsonQuery.optInt(MINIMUM_NUMBER_SHOULD_MATCH_PARAM, 1));
+    query.setBoost((float)jsonQuery.optDouble(BOOST_PARAM, 1.0));
 
     return query;
   }

@@ -47,18 +47,18 @@ public class BooleanFilterConstructor extends FilterConstructor
   protected Filter doConstructFilter(Object obj) throws Exception
   {
     JSONObject json = (JSONObject)obj;
-    JSONObject jsonObj = json.optJSONObject("must");
+    JSONObject jsonObj = json.optJSONObject(MUST_PARAM);
     List<Filter> andFilters = new ArrayList<Filter>();
     if (jsonObj != null)
     {
       andFilters.add(FilterConstructor.constructFilter(jsonObj, _qparser));
     }
-    jsonObj = json.optJSONObject("must_not");
+    jsonObj = json.optJSONObject(MUST_NOT_PARAM);
     if (jsonObj != null)
     {
       andFilters.add(new NotFilter(FilterConstructor.constructFilter(jsonObj, _qparser)));
     }
-    JSONArray array = json.optJSONArray("should");
+    JSONArray array = json.optJSONArray(SHOULD_PARAM);
     if (array != null)
     {
       List<Filter> orFilters = new ArrayList<Filter>(array.length());
