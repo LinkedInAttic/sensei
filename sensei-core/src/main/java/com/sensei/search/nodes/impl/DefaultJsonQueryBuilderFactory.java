@@ -23,7 +23,7 @@ public class DefaultJsonQueryBuilderFactory extends
   }
 
   @Override
-  public SenseiQueryBuilder buildQuery(JSONObject jsonQuery) {
+  public SenseiQueryBuilder buildQueryBuilder(JSONObject jsonQuery) {
     final JSONObject query;
     final JSONObject filter;
 

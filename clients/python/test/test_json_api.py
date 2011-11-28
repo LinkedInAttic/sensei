@@ -3,7 +3,7 @@ import unittest
 import time
 from datetime import datetime
 
-sys.path.insert(0, "../src")
+sys.path.insert(0, "../sensei")
 import sensei_client
 from sensei_client import *
 from pyparsing import ParseException
@@ -27,7 +27,7 @@ class TestJsonAPI(unittest.TestCase):
     self.assertEqual(SenseiClient.buildJsonString(req, indent=2),
                     """{
   "fetchStored": true, 
-  "filters": {
+  "filter": {
     "terms": {
       "color": {
         "_noOptimize": false, 
@@ -57,7 +57,7 @@ class TestJsonAPI(unittest.TestCase):
     self.assertEqual(SenseiClient.buildJsonString(req, indent=2),
                      """{
   "fetchStored": true, 
-  "filters": {
+  "filter": {
     "and": [
       {
         "terms": {
@@ -118,7 +118,7 @@ class TestJsonAPI(unittest.TestCase):
     self.assertEqual(SenseiClient.buildJsonString(req, indent=2),
                      """{
   "fetchStored": true, 
-  "filters": {
+  "filter": {
     "and": [
       {
         "term": {
@@ -154,7 +154,7 @@ class TestJsonAPI(unittest.TestCase):
     self.assertEqual(SenseiClient.buildJsonString(req, indent=2),
                      """{
   "fetchStored": true, 
-  "filters": {
+  "filter": {
     "term": {
       "color": "red"
     }
@@ -287,11 +287,11 @@ class TestJsonAPI(unittest.TestCase):
     """
 
     req = SenseiRequest(stmt)
-    # print SenseiClient.buildJsonString(req, indent=2)
+    print SenseiClient.buildJsonString(req, indent=2)
     self.assertEqual(SenseiClient.buildJsonString(req, indent=2),
                      """{
   "fetchStored": true, 
-  "filters": {
+  "filter": {
     "range": {
       "year": {
         "from": 1999, 
@@ -316,19 +316,15 @@ class TestJsonAPI(unittest.TestCase):
     self.assertEqual(SenseiClient.buildJsonString(req, indent=2),
                      """{
   "fetchStored": true, 
-  "filters": {
-    "and": [
-      {
-        "range": {
-          "year": {
-            "from": 1999, 
-            "include_lower": false, 
-            "include_upper": false, 
-            "to": 2003
-          }
-        }
+  "filter": {
+    "range": {
+      "year": {
+        "from": 1999, 
+        "include_lower": false, 
+        "include_upper": false, 
+        "to": 2003
       }
-    ]
+    }
   }, 
   "from": 0, 
   "size": 10
@@ -347,19 +343,15 @@ class TestJsonAPI(unittest.TestCase):
     self.assertEqual(SenseiClient.buildJsonString(req, indent=2),
                      """{
   "fetchStored": true, 
-  "filters": {
-    "and": [
-      {
-        "range": {
-          "name": {
-            "from": "ddd", 
-            "include_lower": true, 
-            "include_upper": false, 
-            "to": "xyz"
-          }
-        }
+  "filter": {
+    "range": {
+      "name": {
+        "from": "ddd", 
+        "include_lower": true, 
+        "include_upper": false, 
+        "to": "xyz"
       }
-    ]
+    }
   }, 
   "from": 0, 
   "size": 10
