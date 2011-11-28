@@ -527,7 +527,7 @@ def range_predicate_action(s, loc, tok):
     return {"range":
               {tok[0]:
                  {"to": tok[2],
-                  "include_lower": tok[1] == "<="
+                  "include_upper": tok[1] == "<="
                   }
                }
             }
@@ -1068,7 +1068,7 @@ class BQLRequest:
 
   """
 
-  def __init__(self, sql_stmt):
+  def __init__(self, sql_stmt, facet_list=None):
     try:
       time_now = int(time.time() * 1000)
       self.tokens = BQLstmt.parseString(sql_stmt, parseAll=True)
@@ -1081,6 +1081,7 @@ class BQLRequest:
     finally:
       reset_all()
 
+    self.facet_list = facet_list
     self.query = ""
     self.selections = None
     self.selection_list = []
@@ -1137,20 +1138,23 @@ class BQLRequest:
         else:
           filter_list.append(pred)
       if len(filter_list) == 1:
-        self.filter = preds[0]
-      else:
+        self.filter = filter_list[0]
+      elif filter_list:
         self.filter = {"and": filter_list}
     elif self.__is_facet(pred_field(where)):
       self.selection_list.append(where)
-    else:
+    elif where:
       self.filter = where
 
     # XXX Do merging, etc. on self.selection_list
     self.selections = self.selection_list
 
   def __is_facet(self, pred):
-    # XXX
-    return True
+    if self.facet_list == None:
+      # All fields are facets
+      return True
+    else:
+      return pred in self.facet_list
 
   def get_stmt_type(self):
     """Get the statement type."""
@@ -1799,7 +1803,8 @@ class SenseiRequest:
                sql_stmt=None,
                offset=DEFAULT_REQUEST_OFFSET,
                count=DEFAULT_REQUEST_COUNT,
-               max_per_group=DEFAULT_REQUEST_MAX_PER_GROUP):
+               max_per_group=DEFAULT_REQUEST_MAX_PER_GROUP,
+               facet_list=None):
     self.qParam = {}
     self.explain = False
     self.route_param = None
@@ -1809,7 +1814,7 @@ class SenseiRequest:
 
     if sql_stmt != None:
       time1 = datetime.now()
-      bql_req = BQLRequest(sql_stmt)
+      bql_req = BQLRequest(sql_stmt, facet_list=facet_list)
       # ok, msg = bql_req.merge_selections()
       # if not ok:
       #   raise SenseiClientError(msg)
@@ -2252,14 +2257,14 @@ class SenseiClient:
     else:
       query_string = SenseiClient.buildUrlString(req)
     logger.debug(query_string)
-    urlReq = urllib2.Request(self.url, query_string)
-    res = self.opener.open(urlReq)
-    line = res.read()
-    jsonObj = json.loads(line)
-    res = SenseiResult(jsonObj)
-    delta = datetime.now() - time1
-    res.total_time = delta.seconds * 1000 + delta.microseconds / 1000
-    return res
+    # urlReq = urllib2.Request(self.url, query_string)
+    # res = self.opener.open(urlReq)
+    # line = res.read()
+    # jsonObj = json.loads(line)
+    # res = SenseiResult(jsonObj)
+    # delta = datetime.now() - time1
+    # res.total_time = delta.seconds * 1000 + delta.microseconds / 1000
+    # return res
 
   def getSystemInfo(self):
     """Get Sensei system info."""
@@ -2313,7 +2318,7 @@ def main(argv):
       req = SenseiRequest(stmt)
       if req.stmt_type == "select":
         res = client.doQuery(req)
-        res.display(columns=req.get_columns(), max_col_width=int(options.max_col_width))
+        # res.display(columns=req.get_columns(), max_col_width=int(options.max_col_width))
       elif req.stmt_type == "desc":
         sysinfo = client.getSystemInfo()
         sysinfo.display()
