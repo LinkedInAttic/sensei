@@ -287,7 +287,7 @@ class TestJsonAPI(unittest.TestCase):
     """
 
     req = SenseiRequest(stmt)
-    # print SenseiClient.buildJsonString(req, indent=2)
+    print SenseiClient.buildJsonString(req, indent=2)
     self.assertEqual(SenseiClient.buildJsonString(req, indent=2),
                      """{
   "fetchStored": true, 
@@ -317,18 +317,14 @@ class TestJsonAPI(unittest.TestCase):
                      """{
   "fetchStored": true, 
   "filter": {
-    "and": [
-      {
-        "range": {
-          "year": {
-            "from": 1999, 
-            "include_lower": false, 
-            "include_upper": false, 
-            "to": 2003
-          }
-        }
+    "range": {
+      "year": {
+        "from": 1999, 
+        "include_lower": false, 
+        "include_upper": false, 
+        "to": 2003
       }
-    ]
+    }
   }, 
   "from": 0, 
   "size": 10
@@ -348,18 +344,14 @@ class TestJsonAPI(unittest.TestCase):
                      """{
   "fetchStored": true, 
   "filter": {
-    "and": [
-      {
-        "range": {
-          "name": {
-            "from": "ddd", 
-            "include_lower": true, 
-            "include_upper": false, 
-            "to": "xyz"
-          }
-        }
+    "range": {
+      "name": {
+        "from": "ddd", 
+        "include_lower": true, 
+        "include_upper": false, 
+        "to": "xyz"
       }
-    ]
+    }
   }, 
   "from": 0, 
   "size": 10
