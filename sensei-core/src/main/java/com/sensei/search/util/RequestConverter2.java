@@ -79,13 +79,9 @@ public class RequestConverter2 {
 	    req.setQuery(new SenseiJSONQuery(json));
 		
 		// paging params
-	    int offset = 0, count = 10;
-	    JSONObject paging = json.optJSONObject("paging");
-	    if (paging != null)
-	    {
-	      count = paging.optInt("count", 10);
-	      offset = paging.optInt("offset", 0);
-	    }
+
+	    int  count = json.optInt("size", 10);
+	    int  offset = json.optInt("from", 0);
 	    req.setCount(count);
 	    req.setOffset(offset);
 		

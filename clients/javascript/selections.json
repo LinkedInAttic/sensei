@@ -25,7 +25,7 @@
     {
         "range":{
 			"field":"year",
-			"upper":"*",   
+			"upper":"2009",   //if there is no such key (upper, or lower), it returns "*";   
 			"lower":"2000"         
         }
     },

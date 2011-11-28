@@ -512,6 +512,8 @@ public class TestSensei extends AbstractSenseiTestCase
     assertTrue(hit.getGroupHitsCount() > 0);
     assertTrue(hit.getSenseiGroupHits().length > 0);
   }
+  
+
 
   public void testQueryStringQuery() throws Exception
   {
