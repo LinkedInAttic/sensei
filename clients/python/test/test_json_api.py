@@ -377,6 +377,45 @@ class TestJsonAPI(unittest.TestCase):
       error = str(err)
     self.assertTrue(error != None)
 
+  def testFilterAndSelection(self):
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    WHERE color IN ("red", "blue")  -- a selection
+      AND fff = 1234                -- a filter
+    """
+
+    req = SenseiRequest(stmt, facet_list=['color'])
+    # print SenseiClient.buildJsonString(req, indent=2)
+    self.assertEqual(SenseiClient.buildJsonString(req, indent=2),
+                     """{
+  "fetchStored": true, 
+  "filter": {
+    "term": {
+      "fff": 1234
+    }
+  }, 
+  "from": 0, 
+  "selections": [
+    {
+      "terms": {
+        "color": {
+          "_noOptimize": false, 
+          "excludes": [], 
+          "operator": "or", 
+          "values": [
+            "red", 
+            "blue"
+          ]
+        }
+      }
+    }
+  ], 
+  "size": 10
+}""")
+
+
 if __name__ == "__main__":
     unittest.main()
 

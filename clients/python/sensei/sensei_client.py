@@ -1138,7 +1138,7 @@ class BQLRequest:
         else:
           filter_list.append(pred)
       if len(filter_list) == 1:
-        self.filter = preds[0]
+        self.filter = filter_list[0]
       elif filter_list:
         self.filter = {"and": filter_list}
     elif self.__is_facet(pred_field(where)):
@@ -1150,10 +1150,11 @@ class BQLRequest:
     self.selections = self.selection_list
 
   def __is_facet(self, pred):
-    if not self.facet_list:
+    if self.facet_list == None:
+      # All fields are facets
       return True
     else:
-      return pred in self.facet_list    
+      return pred in self.facet_list
 
   def get_stmt_type(self):
     """Get the statement type."""
