@@ -139,13 +139,14 @@ JSON_PARAM_FACETS = "facets"
 JSON_PARAM_FACET_INIT = "facetInit"
 JSON_PARAM_FETCH_STORED = "fetchStored"
 JSON_PARAM_FETCH_TERM_VECTORS = "fetchTermVectors"
-JSON_PARAM_FILTERS = "filters"
+JSON_PARAM_FILTER = "filter"
 JSON_PARAM_FROM = "from"
 JSON_PARAM_GROUPBY = "groupBy"
 JSON_PARAM_PARTITIONS = "partitions"
 JSON_PARAM_QUERY = "query"
 JSON_PARAM_QUERY_STRING = "query_string"
 JSON_PARAM_ROUTEPARAM = "routeParam"
+JSON_PARAM_SELECTIONS = "selections"
 JSON_PARAM_SIZE = "size"
 JSON_PARAM_SORT = "sort"
 JSON_PARAM_TOP = "top"
@@ -452,29 +453,29 @@ def accumulate_range_pred(field_map, pred):
 def predicate_and_action(s, loc, tok):
   # print ">>> in predicate_and_action: tok = ", tok
   # [[{'term': {'a': 1}}, 'and', {'term': {'b': 2}}, 'and', {'query_string': {'query': 'xxx'}}, 'and', {'term': {'c': 3}}]]
-  filters = []
+  preds = []
   field_map = {}
   for i in xrange(0, len(tok[0]), 2):
     pred = tok[0][i]
     if pred_type(pred) != "range":
-      filters.append(pred)
+      preds.append(pred)
     else:
       accumulate_range_pred(field_map, pred)
   for f in field_map.values():
-    filters.append(f)
-  return {"and": filters}
+    preds.append(f)
+  return {"and": preds}
 
 def predicate_or_action(s, loc, tok):
   # print ">>> in predicate_or_action: tok = ", tok
-  filters = []
+  preds = []
   for i in xrange(0, len(tok[0]), 2):
     if type(tok[0][i]) != dict:
       preds = tok[0][i].asList()
-      filters.append(preds[0])
+      preds.append(preds[0])
     else:
-      filters.append(tok[0][i])
-  # print ">>> in predicate_or_action: return ", {"or": filters}
-  return {"or": filters}
+      preds.append(tok[0][i])
+  # print ">>> in predicate_or_action: return ", {"or": preds}
+  return {"or": preds}
 
 def prop_list_action(s, loc, tok):
   props = {}
@@ -526,7 +527,7 @@ def range_predicate_action(s, loc, tok):
     return {"range":
               {tok[0]:
                  {"to": tok[2],
-                  "include_lower": tok[1] == "<="
+                  "include_upper": tok[1] == "<="
                   }
                }
             }
@@ -1067,7 +1068,7 @@ class BQLRequest:
 
   """
 
-  def __init__(self, sql_stmt):
+  def __init__(self, sql_stmt, facet_list=None):
     try:
       time_now = int(time.time() * 1000)
       self.tokens = BQLstmt.parseString(sql_stmt, parseAll=True)
@@ -1080,10 +1081,11 @@ class BQLRequest:
     finally:
       reset_all()
 
+    self.facet_list = facet_list
     self.query = ""
     self.selections = None
     self.selection_list = []
-    self.filters = None
+    self.filter = None
     self.query_pred = None
     self.sorts = None
     self.columns = [safe_str(col) for col in self.tokens.columns]
@@ -1101,7 +1103,7 @@ class BQLRequest:
       else:
         # Single predicate in where clause
         where = where.asList()[0]
-      self.__extract_query_and_filter(where)
+      self.__extract_query_filter_selections(where)
 
       # if where[0].get(JSON_PARAM_QUERY):
       #   self.query_pred = where[0].get(JSON_PARAM_QUERY)
@@ -1119,30 +1121,40 @@ class BQLRequest:
       #   selection = collapse_cumulative_preds(where.cumulative_preds)
       #   self.selection_list.append(selection)
 
-  def __extract_query_and_filter(self, where):
+  def __extract_query_filter_selections(self, where):
     """Extract the query and filter information from the where clause."""
 
+    filter_list = []
     if where.get(JSON_PARAM_QUERY_STRING):
       self.query_pred = where
       self.filter = None
     elif where.get("and"):
       preds = where.get("and")
-      query_pred = None
       for pred in preds:
         if pred.get(JSON_PARAM_QUERY_STRING):
-          query_pred = pred
-          break
-      if query_pred:
-        self.query_pred = query_pred
-        preds.remove(pred)
-        if len(preds) == 1:
-          self.filters = preds[0]
+          self.query_pred = pred
+        elif self.__is_facet(pred_field(pred)):
+          self.selection_list.append(pred)
         else:
-          self.filters = {"and": preds}
-      else:
-        self.filters = where
+          filter_list.append(pred)
+      if len(filter_list) == 1:
+        self.filter = filter_list[0]
+      elif filter_list:
+        self.filter = {"and": filter_list}
+    elif self.__is_facet(pred_field(where)):
+      self.selection_list.append(where)
+    elif where:
+      self.filter = where
+
+    # XXX Do merging, etc. on self.selection_list
+    self.selections = self.selection_list
+
+  def __is_facet(self, pred):
+    if self.facet_list == None:
+      # All fields are facets
+      return True
     else:
-      self.filters = where
+      return pred in self.facet_list
 
   def get_stmt_type(self):
     """Get the statement type."""
@@ -1208,6 +1220,12 @@ class BQLRequest:
   def merge_selections(self):
     """Merge all selections and detect conflicts."""
 
+    # TODO finish the implementation
+    self.selections = self.selection_list
+
+  def merge_selections_old(self):
+    """Merge all selections and detect conflicts."""
+
     self.selections = {}
     for selection in self.selection_list:
       existing = self.selections.get(selection.field)
@@ -1237,14 +1255,14 @@ class BQLRequest:
   def get_selections(self):
     """Get all the selections from in statement."""
 
-    if self.selections == None:
-      self.merge_selections()
+    # if self.selections == None:
+    #   self.merge_selections()
     return self.selections
 
-  def get_filters(self):
-    """Get the filters from the statement."""
+  def get_filter(self):
+    """Get the filter from the statement."""
 
-    return self.filters
+    return self.filter
 
   def get_query_pred(self):
     """Get the QUERY predicate."""
@@ -1785,7 +1803,8 @@ class SenseiRequest:
                sql_stmt=None,
                offset=DEFAULT_REQUEST_OFFSET,
                count=DEFAULT_REQUEST_COUNT,
-               max_per_group=DEFAULT_REQUEST_MAX_PER_GROUP):
+               max_per_group=DEFAULT_REQUEST_MAX_PER_GROUP,
+               facet_list=None):
     self.qParam = {}
     self.explain = False
     self.route_param = None
@@ -1795,10 +1814,10 @@ class SenseiRequest:
 
     if sql_stmt != None:
       time1 = datetime.now()
-      bql_req = BQLRequest(sql_stmt)
-      ok, msg = bql_req.merge_selections()
-      if not ok:
-        raise SenseiClientError(msg)
+      bql_req = BQLRequest(sql_stmt, facet_list=facet_list)
+      # ok, msg = bql_req.merge_selections()
+      # if not ok:
+      #   raise SenseiClientError(msg)
 
       self.stmt_type = bql_req.get_stmt_type()
       if self.stmt_type == "desc":
@@ -1810,7 +1829,7 @@ class SenseiRequest:
         self.columns = bql_req.get_columns()
         self.sorts = bql_req.get_sorts()
         self.selections = bql_req.get_selections()
-        self.filters = bql_req.get_filters()
+        self.filter = bql_req.get_filter()
         self.query_pred = bql_req.get_query_pred()
         self.facets = bql_req.get_facets()
         # PARAM_RESULT_HIT_STORED_FIELDS is a reserved column name.  If this
@@ -1833,7 +1852,7 @@ class SenseiRequest:
       self.columns = []
       self.sorts = None
       self.selections = {}
-      self.filters = {}
+      self.filter = {}
       self.query_pred = {}
       self.facets = {}
       self.fetch_stored = False
@@ -2091,10 +2110,14 @@ class SenseiClient:
     if req.sorts:
       output_json[JSON_PARAM_SORT] = [sort.build_sort_spec() for sort in req.sorts]
 
-    if req.filters:
-      output_json[JSON_PARAM_FILTERS] = req.filters
+    if req.filter:
+      output_json[JSON_PARAM_FILTER] = req.filter
+
     if req.query_pred:
       output_json[JSON_PARAM_QUERY] = req.query_pred
+
+    if req.selections:
+      output_json[JSON_PARAM_SELECTIONS] = req.selections
 
     facet_spec_map = {}
     for facet_name, facet_spec in req.facets.iteritems():
