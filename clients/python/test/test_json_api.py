@@ -76,7 +76,9 @@ class TestJsonAPI(unittest.TestCase):
     }, 
     {
       "term": {
-        "make": "honda"
+        "make": {
+          "value": "honda"
+        }
       }
     }
   ], 
@@ -127,12 +129,16 @@ class TestJsonAPI(unittest.TestCase):
   "selections": [
     {
       "term": {
-        "color": "red"
+        "color": {
+          "value": "red"
+        }
       }
     }, 
     {
       "term": {
-        "year": 1995
+        "year": {
+          "value": 1995
+        }
       }
     }
   ], 
@@ -161,7 +167,9 @@ class TestJsonAPI(unittest.TestCase):
   "selections": [
     {
       "term": {
-        "color": "red"
+        "color": {
+          "value": "red"
+        }
       }
     }
   ], 
@@ -393,7 +401,9 @@ class TestJsonAPI(unittest.TestCase):
   "fetchStored": true, 
   "filter": {
     "term": {
-      "fff": 1234
+      "fff": {
+        "value": 1234
+      }
     }
   }, 
   "from": 0, 

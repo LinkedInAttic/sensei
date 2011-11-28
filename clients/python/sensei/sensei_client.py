@@ -511,7 +511,7 @@ def query_predicate_action(s, loc, tok):
   return {JSON_PARAM_QUERY_STRING: {JSON_PARAM_QUERY: tok[2]}}
 
 def equal_predicate_action(s, loc, tok):
-  return {"term": {tok[0]: tok[2]}}
+  return {"term": {tok[0]: {"value": tok[2]}}}
 
 def range_predicate_action(s, loc, tok):
   # print ">>> in range_predicate_action: tok = ", tok
