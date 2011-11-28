@@ -1,4 +1,4 @@
-package com.sensei.search.res.json.domain;
+package com.sensei.search.client.json.res;
 
 public class FacetResult {
     private String value;

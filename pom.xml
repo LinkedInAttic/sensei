@@ -18,7 +18,7 @@
 	<modules>
     <module>sensei-parent</module>
     <module>sensei-core</module>
-    <module>sensei-hadoop-indexing</module>
+    <!--<module>sensei-hadoop-indexing</module>-->
     <module>example</module>
   </modules>
   

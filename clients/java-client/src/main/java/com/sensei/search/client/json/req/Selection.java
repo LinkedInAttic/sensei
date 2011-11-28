@@ -1,4 +1,4 @@
-package com.sensei.search.req.json.domain;
+package com.sensei.search.client.json.req;
 
 import java.util.Arrays;
 import java.util.List;
@@ -11,6 +11,7 @@ public class Selection {
     List<String> excludes; 
     Selection.Operator op; 
     Map<String,String> props;
+    
     public static enum Operator{and, or;}
     
     public static Builder builder() {

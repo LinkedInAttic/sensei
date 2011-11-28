@@ -1,10 +1,10 @@
-package com.sensei.search.res.json.domain;
+package com.sensei.search.client.json.res;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import com.sensei.search.req.json.JsonField;
+import com.sensei.search.client.json.JsonField;
 
 public class SenseiResult {
     private Long tid;

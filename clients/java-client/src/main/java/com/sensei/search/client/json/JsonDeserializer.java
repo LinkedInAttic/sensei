@@ -1,4 +1,4 @@
-package com.sensei.search.req.json;
+package com.sensei.search.client.json;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
@@ -27,7 +27,10 @@ public class JsonDeserializer {
                 Object value = null;
                 if (type == Integer.class) {
                     value = jsonObject.optInt(name);
-                } else if (type == Boolean.class) {
+                } else if (type.isPrimitive()) {
+                	value = jsonObject.opt(name);
+                }
+                else if (type == Boolean.class) {
                     value = jsonObject.optBoolean(name);
                 } else if (type == Long.class) {
                     value = jsonObject.optLong(name);
@@ -35,6 +38,11 @@ public class JsonDeserializer {
                     value = jsonObject.optString(name);
                 } else if (type == Double.class) {
                     value = jsonObject.optDouble(name);
+                } else if (type.isEnum()) {
+                    value = jsonObject.optString(name);
+                    if (value != null) {
+                    	value = Enum.valueOf((Class)type, value.toString());
+                    }
                 } else if (type == List.class) { 
                     JSONArray jsonArray = jsonObject.optJSONArray(name);
                     if (jsonArray == null) {
@@ -43,9 +51,21 @@ public class JsonDeserializer {
                     boolean isParameterizedType = ((Type) genericType)  instanceof ParameterizedType;
                     value = deserializeArray((isParameterizedType ? getGenericType(genericType, 0) : null), jsonArray);
                 }  else if (type == Map.class) { 
-                        value = deserializeMap(genericType, name, jsonObject);
+                        
+                		value = deserializeMap(genericType, name, jsonObject);
+                		if (value == null) {
+                			continue;
+                		}
                     }  else {
-                        throw new UnsupportedOperationException("Type " + type + " is unsupported for json deserializtion"); 
+                    	JSONObject propObj = jsonObject.optJSONObject(name);
+                    	if (propObj == null) {
+                    		continue;
+                    	}
+                    	if (type == JSONObject.class) {
+                    			value = propObj;
+                    	} else {
+                    		value = deserialize(type, propObj);
+                    	}
                     }
                 
                 field.set(obj, value);

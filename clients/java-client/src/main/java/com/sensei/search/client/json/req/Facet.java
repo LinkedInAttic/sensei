@@ -1,4 +1,4 @@
-package com.sensei.search.req.json.domain;
+package com.sensei.search.client.json.req;
 
 
 public class Facet {

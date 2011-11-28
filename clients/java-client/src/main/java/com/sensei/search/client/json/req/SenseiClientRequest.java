@@ -1,4 +1,4 @@
-package com.sensei.search.req.json.domain;
+package com.sensei.search.client.json.req;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -10,7 +10,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 
-public class SenseiRequest {
+public class SenseiClientRequest {
     private ClientQuery query;
     private int from;
     private int size;
@@ -27,7 +27,7 @@ public class SenseiRequest {
     private boolean routeParam;
     
     public static class Builder {
-        private SenseiRequest request = new SenseiRequest();
+        private SenseiClientRequest request = new SenseiClientRequest();
         public Builder from(int from) {
             request.from = from;
             return this;
@@ -107,11 +107,97 @@ public class SenseiRequest {
             request.facets.put(name, facet);
             return this;
         }
-        public SenseiRequest build() {
+        public SenseiClientRequest build() {
             return request;
         }
     }
     public static Builder builder() {
         return new Builder();
     }
+	public ClientQuery getQuery() {
+		return query;
+	}
+	public void setQuery(ClientQuery query) {
+		this.query = query;
+	}
+	public int getFrom() {
+		return from;
+	}
+	public void setFrom(int from) {
+		this.from = from;
+	}
+	public int getSize() {
+		return size;
+	}
+	public void setSize(int size) {
+		this.size = size;
+	}
+	public int getCount() {
+		return count;
+	}
+	public void setCount(int count) {
+		this.count = count;
+	}
+	public GroupBy getGroupBy() {
+		return groupBy;
+	}
+	public void setGroupBy(GroupBy groupBy) {
+		this.groupBy = groupBy;
+	}
+	public Map<String, Selection> getSelections() {
+		return selections;
+	}
+	public void setSelections(Map<String, Selection> selections) {
+		this.selections = selections;
+	}
+	public Map<String, Map<String, FacetInit>> getFacetInit() {
+		return facetInit;
+	}
+	public void setFacetInit(Map<String, Map<String, FacetInit>> facetInit) {
+		this.facetInit = facetInit;
+	}
+	public List<Object> getSorts() {
+		return sorts;
+	}
+	public void setSorts(List<Object> sorts) {
+		this.sorts = sorts;
+	}
+	public Map<String, Facet> getFacets() {
+		return facets;
+	}
+	public void setFacets(Map<String, Facet> facets) {
+		this.facets = facets;
+	}
+	public boolean isFetchStored() {
+		return fetchStored;
+	}
+	public void setFetchStored(boolean fetchStored) {
+		this.fetchStored = fetchStored;
+	}
+	public List<String> getTermVectors() {
+		return termVectors;
+	}
+	public void setTermVectors(List<String> termVectors) {
+		this.termVectors = termVectors;
+	}
+	public List<Integer> getPartitions() {
+		return partitions;
+	}
+	public void setPartitions(List<Integer> partitions) {
+		this.partitions = partitions;
+	}
+	public boolean isExplain() {
+		return explain;
+	}
+	public void setExplain(boolean explain) {
+		this.explain = explain;
+	}
+	public boolean isRouteParam() {
+		return routeParam;
+	}
+	public void setRouteParam(boolean routeParam) {
+		this.routeParam = routeParam;
+	}
+    
+    
 }

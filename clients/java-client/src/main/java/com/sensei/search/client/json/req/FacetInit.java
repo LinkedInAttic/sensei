@@ -1,10 +1,11 @@
-package com.sensei.search.req.json.domain;
+package com.sensei.search.client.json.req;
 
 import java.util.Arrays;
 import java.util.List;
 
 public class FacetInit {
     String type; List<Object> values;
+    
     public static FacetInit build(String type, Object... values) {
         FacetInit facetInit = new FacetInit();
         facetInit.type = type;

@@ -1,4 +1,4 @@
-package com.sensei.search.req.json;
+package com.sensei.search.client.json;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
