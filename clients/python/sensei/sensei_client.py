@@ -487,31 +487,41 @@ def in_predicate_action(s, loc, tok):
   is_not = tok[1] == NOT.match
   if not is_not:
     return {"terms":
-              {tok[0]: {
-                 JSON_PARAM_VALUES: (tok.value_list[:] or []),
-                 JSON_PARAM_EXCLUDES: (tok.except_values[:] or []),
-                 JSON_PARAM_OPERATOR: PARAM_SELECT_OP_OR,
-                 JSON_PARAM_NO_OPTIMIZE: False
-                 }
+              {tok[0]:
+                 {JSON_PARAM_VALUES: (tok.value_list[:] or []),
+                  JSON_PARAM_EXCLUDES: (tok.except_values[:] or []),
+                  JSON_PARAM_OPERATOR: PARAM_SELECT_OP_OR,
+                  JSON_PARAM_NO_OPTIMIZE: False
+                  }
                }
             }
   else:
     return {"terms":
-              {tok[0]: {
-                 JSON_PARAM_VALUES: (tok.except_values[:] or []),
-                 JSON_PARAM_EXCLUDES: (tok.value_list[:] or []),
-                 JSON_PARAM_OPERATOR: PARAM_SELECT_OP_OR,
-                 JSON_PARAM_NO_OPTIMIZE: False
-                 }
+              {tok[0]:
+                 {JSON_PARAM_VALUES: (tok.except_values[:] or []),
+                  JSON_PARAM_EXCLUDES: (tok.value_list[:] or []),
+                  JSON_PARAM_OPERATOR: PARAM_SELECT_OP_OR,
+                  JSON_PARAM_NO_OPTIMIZE: False
+                  }
                }
             }
 
 def query_predicate_action(s, loc, tok):
-  # print ">>> in query_predicate_action: tok = ", tok
   return {JSON_PARAM_QUERY_STRING: {JSON_PARAM_QUERY: tok[2]}}
 
 def equal_predicate_action(s, loc, tok):
-  return {"term": {tok[0]: tok[2]}}
+  return {"term": {tok[0]: {"value": tok[2]}}}
+
+def not_equal_predicate_action(s, loc, tok):
+  return {"terms":
+            {tok[0]:
+               {JSON_PARAM_VALUES: [],
+                JSON_PARAM_EXCLUDES: [tok[2]],
+                JSON_PARAM_OPERATOR: PARAM_SELECT_OP_OR,
+                JSON_PARAM_NO_OPTIMIZE: False
+                }
+             }
+          }
 
 def range_predicate_action(s, loc, tok):
   # print ">>> in range_predicate_action: tok = ", tok
@@ -712,7 +722,8 @@ equal_predicate = (column_name +
 
 not_equal_predicate = (column_name +
                        NOT_EQUAL + value +
-                       Optional(predicate_props)).setResultsName("not_equal_pred")
+                       Optional(predicate_props)
+                       ).setResultsName("not_equal_pred").setParseAction(not_equal_predicate_action)
 
 query_predicate = (QUERY + IS + quotedString
                    ).setResultsName("query_pred").setParseAction(query_predicate_action)
@@ -798,10 +809,11 @@ additional_clause = (order_by_clause
 
 additional_clauses = ZeroOrMore(additional_clause)
 
+from_clause = (FROM + ident.setResultsName("index"))
+
 select_stmt << (SELECT + 
                 ('*' | column_name_list).setResultsName("columns") + 
-                FROM + 
-                ident.setResultsName("index") + 
+                Optional(from_clause) +
                 Optional(WHERE + search_expr.setResultsName("where")) +
                 Optional(given_clause.setResultsName("given")) +
                 additional_clauses
@@ -1530,6 +1542,8 @@ class SenseiSort:
   def build_sort_spec(self):
     if self.dir:
       return {self.field: self.dir}
+    elif self.field == PARAM_SORT_SCORE:
+      return "_score"
     else:
       return self.field
 
@@ -2257,14 +2271,14 @@ class SenseiClient:
     else:
       query_string = SenseiClient.buildUrlString(req)
     logger.debug(query_string)
-    # urlReq = urllib2.Request(self.url, query_string)
-    # res = self.opener.open(urlReq)
-    # line = res.read()
-    # jsonObj = json.loads(line)
-    # res = SenseiResult(jsonObj)
-    # delta = datetime.now() - time1
-    # res.total_time = delta.seconds * 1000 + delta.microseconds / 1000
-    # return res
+    urlReq = urllib2.Request(self.url, query_string)
+    res = self.opener.open(urlReq)
+    line = res.read()
+    jsonObj = json.loads(line)
+    res = SenseiResult(jsonObj)
+    delta = datetime.now() - time1
+    res.total_time = delta.seconds * 1000 + delta.microseconds / 1000
+    return res
 
   def getSystemInfo(self):
     """Get Sensei system info."""
@@ -2318,7 +2332,7 @@ def main(argv):
       req = SenseiRequest(stmt)
       if req.stmt_type == "select":
         res = client.doQuery(req)
-        # res.display(columns=req.get_columns(), max_col_width=int(options.max_col_width))
+        res.display(columns=req.get_columns(), max_col_width=int(options.max_col_width))
       elif req.stmt_type == "desc":
         sysinfo = client.getSystemInfo()
         sysinfo.display()
