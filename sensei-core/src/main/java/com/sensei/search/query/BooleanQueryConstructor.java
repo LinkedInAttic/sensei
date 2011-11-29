@@ -82,16 +82,16 @@ public class BooleanQueryConstructor extends QueryConstructor
     }
 
     JSONArray array = jsonQuery.optJSONArray(SHOULD_PARAM);
-    if (array != null)
+    if (array != null && array.length() > 0)
     {
       for (int i=0; i<array.length(); ++i)
       {
         query.add(QueryConstructor.constructQuery(array.getJSONObject(i), _qparser),
                   BooleanClause.Occur.SHOULD);
       }
+      query.setMinimumNumberShouldMatch(jsonQuery.optInt(MINIMUM_NUMBER_SHOULD_MATCH_PARAM, 1));
     }
 
-    query.setMinimumNumberShouldMatch(jsonQuery.optInt(MINIMUM_NUMBER_SHOULD_MATCH_PARAM, 1));
     query.setBoost((float)jsonQuery.optDouble(BOOST_PARAM, 1.0));
 
     return query;
