@@ -294,8 +294,8 @@ public class RequestConverter2 {
         String facet = iter.next();
         JSONObject jsonParams = jsonSel.optJSONObject(facet);
         
-        String upper = jsonParams.optString("upper", "*");
-        String lower = jsonParams.optString("lower", "*");
+        String upper = jsonParams.optString("to", "*");
+        String lower = jsonParams.optString("from", "*");
         String range = "["+ lower + " TO " + upper + "]";
         if(facet!= null )
         {

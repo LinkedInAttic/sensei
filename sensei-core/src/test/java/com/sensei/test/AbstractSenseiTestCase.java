@@ -67,8 +67,10 @@ public class AbstractSenseiTestCase extends TestCase {
       testSpringCtx = new FileSystemXmlApplicationContext("file:" + new File(confDir, SENSEI_TEST_CONF_FILE).getAbsolutePath());
     } catch(Throwable e)
     {
-      if (e instanceof InstanceAlreadyExistsException) logger.warn("norbert JMX InstanceAlreadyExistsException");
-      else logger.error("Unexpected Exception", e.getCause());
+      if (e instanceof InstanceAlreadyExistsException) 
+        logger.warn("norbert JMX InstanceAlreadyExistsException");
+      else 
+        logger.error("Unexpected Exception", e.getCause());
     }
     networkClient = (SenseiNetworkClient)testSpringCtx.getBean("network-client");
     clusterClient = (ClusterClient)testSpringCtx.getBean("cluster-client");
