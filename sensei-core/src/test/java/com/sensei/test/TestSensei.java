@@ -522,13 +522,13 @@ public class TestSensei extends AbstractSenseiTestCase
     assertEquals("numhits is wrong", 15000, res.getInt("numhits"));
   }
   
-//  public void testBooleanQuery() throws Exception
-//  {
-//    logger.info("executing test case testBooleanQuery");
-//    String req = "{\"query\":{\"bool\":{\"must_not\":{\"term\":{\"category\":\"compact\"}},\"must\":{\"term\":{\"color\":\"red\"}}}}}";
-//    JSONObject res = search(new JSONObject(req));
-//    assertEquals("numhits is wrong", 1652, res.getInt("numhits"));
-//  }
+  public void testBooleanQuery() throws Exception
+  {
+    logger.info("executing test case testBooleanQuery");
+    String req = "{\"query\":{\"bool\":{\"must_not\":{\"term\":{\"category\":\"compact\"}},\"must\":{\"term\":{\"color\":\"red\"}}}}}";
+    JSONObject res = search(new JSONObject(req));
+    assertEquals("numhits is wrong", 1652, res.getInt("numhits"));
+  }
   
 
   public void testQueryStringQuery() throws Exception
