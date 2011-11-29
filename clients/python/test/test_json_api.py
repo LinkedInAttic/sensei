@@ -747,6 +747,19 @@ class TestJsonAPI(unittest.TestCase):
   "size": 10
 }""")
 
+  def testPathPred(self):
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    WHERE city IN ("china/hongkong") WITH ("strict":false, "depth":1)
+    """
+    req = self.client.compile(stmt)
+    print self.client.buildJsonString(req, indent=2),
+    # self.assertEqual(self.client.buildJsonString(req, indent=2),
+    
+
+
 #   def testWhereConditions(self):
 #     stmt = \
 #     """

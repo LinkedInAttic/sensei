@@ -478,6 +478,7 @@ def predicate_or_action(s, loc, tok):
   return {"or": preds}
 
 def prop_list_action(s, loc, tok):
+  # print ">>> in prop_list_action: tok = ", tok
   props = {}
   for i in xrange(0, len(tok), 2):
     props[tok[i]] = tok[i+1]
@@ -696,7 +697,9 @@ time_expr = ((time_span + AGO)
 number = (real | integer)       # Put real before integer to avoid ambiguity
 numeric = (time_expr | number)
 
-value = (numeric | quotedString)
+boolean_constant = (TRUE | FALSE).setParseAction(lambda t: t[0] == "true")
+
+value = (numeric | quotedString | boolean_constant)
 value_list = LPAR + delimitedList(value) + RPAR
 
 prop_pair = (quotedString + COLON + value)
@@ -2095,7 +2098,7 @@ class SenseiClient:
       res = self.opener.open(urlReq)
       line = res.read()
       jsonObj = json.loads(line)
-      print json.dumps(jsonObj, indent=4)
+      # print json.dumps(jsonObj, indent=4)
       self.sysinfo = SenseiSystemInfo(jsonObj)
     self.facet_map = {}
     for facet_info in self.sysinfo.get_facet_infos():
