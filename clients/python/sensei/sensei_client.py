@@ -1542,6 +1542,8 @@ class SenseiSort:
   def build_sort_spec(self):
     if self.dir:
       return {self.field: self.dir}
+    elif self.field == PARAM_SORT_SCORE:
+      return "_score"
     else:
       return self.field
 
