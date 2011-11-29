@@ -798,10 +798,11 @@ additional_clause = (order_by_clause
 
 additional_clauses = ZeroOrMore(additional_clause)
 
+from_clause = (FROM + ident.setResultsName("index"))
+
 select_stmt << (SELECT + 
                 ('*' | column_name_list).setResultsName("columns") + 
-                FROM + 
-                ident.setResultsName("index") + 
+                Optional(from_clause) +
                 Optional(WHERE + search_expr.setResultsName("where")) +
                 Optional(given_clause.setResultsName("given")) +
                 additional_clauses
