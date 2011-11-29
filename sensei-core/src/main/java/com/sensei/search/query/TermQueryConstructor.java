@@ -15,7 +15,7 @@ public class TermQueryConstructor extends QueryConstructor
   // "term" : {
   //   "color" : "red"
   // 
-  //   // or "color" : {"term" : "red", "boost": 2.0}
+  //   // or "color" : {"value" : "red", "boost": 2.0}
   // },
 
   @Override
