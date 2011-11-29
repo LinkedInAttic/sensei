@@ -89,9 +89,13 @@ public class BooleanFilterConstructor extends FilterConstructor
       {
         orFilters.add(FilterConstructor.constructFilter(array.getJSONObject(i), _qparser));
       }
-      andFilters.add(new OrFilter(orFilters));
+      if (orFilters.size() > 0)
+        andFilters.add(new OrFilter(orFilters));
     }
 
-    return new AndFilter(andFilters);
+    if (andFilters.size() > 0)
+      return new AndFilter(andFilters);
+    else
+      return null;
   }
 }
