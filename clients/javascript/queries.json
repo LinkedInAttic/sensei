@@ -63,7 +63,7 @@
     },
     "should" : [
       {
-        "term" : { "tag" : "wow", "noOptimize" : false}
+        "term" : { "tag" : "wow"}
       },
       {
         "term" : { "tag" : "search"}
