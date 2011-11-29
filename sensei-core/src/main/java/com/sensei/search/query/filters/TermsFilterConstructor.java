@@ -12,12 +12,12 @@ public class TermsFilterConstructor extends FilterConstructor{
   @Override
   protected Filter doConstructFilter(Object obj) throws Exception {
     JSONObject json = (JSONObject)obj;
-    boolean noOptimize = json.optBoolean("_noOptimize",false);
+    boolean noOptimize = json.optBoolean(NOOPTIMIZE_PARAM,false);
     
     String[] names = JSONObject.getNames(json);
     String termName = null;
     for (String name : names){
-      if (!name.equals("_noOptimize")){
+      if (!name.equals(NOOPTIMIZE_PARAM)){
         termName = name;
         break;
       }
@@ -36,11 +36,11 @@ public class TermsFilterConstructor extends FilterConstructor{
     }
     else if (obj instanceof JSONObject){
       JSONObject jsonObj = (JSONObject)obj;
-      String[] vals = RequestConverter2.getStrings(jsonObj, "values");
-      String[] notVals = RequestConverter2.getStrings(jsonObj, "excludes");
-      String op = jsonObj.optString("operator","or");
+      String[] vals = RequestConverter2.getStrings(jsonObj, VALUES_PARAM);
+      String[] notVals = RequestConverter2.getStrings(jsonObj, EXCLUDES_PARAM);
+      String op = jsonObj.optString(OPERATOR_PARAM, OR_PARAM);
       boolean isAnd = false;
-      if (!"or".equals(op)){
+      if (!OR_PARAM.equals(op)){
         isAnd = true;
       }
       return new SenseiTermFilter(termName, vals, notVals, isAnd, noOptimize);

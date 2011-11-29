@@ -27,8 +27,8 @@ public class PrefixQueryConstructor extends QueryConstructor {
 		Object value = jsonQuery.get(field);
 		
 		if(value instanceof JSONObject){
-			prefix = ((JSONObject)value).optString("value", "");
-			float boost = (float)((JSONObject)value).optDouble("boost", 2.0);
+			prefix = ((JSONObject)value).optString(VALUE_PARAM, "");
+			float boost = (float)((JSONObject)value).optDouble(BOOST_PARAM, 2.0);
 			Query query = new PrefixQuery(new Term(field, prefix));
 			query.setBoost(boost);
 			return query;

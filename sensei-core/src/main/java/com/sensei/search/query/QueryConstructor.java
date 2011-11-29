@@ -14,6 +14,38 @@ import org.json.JSONObject;
 
 public abstract class QueryConstructor
 {
+  public static final String VALUES_PARAM                      = "values";
+  public static final String EXCLUDES_PARAM                    = "excludes";
+  public static final String OPERATOR_PARAM                    = "operator";
+  public static final String PARAMS_PARAM                      = "params";
+  public static final String MUST_PARAM                        = "must";
+  public static final String MUST_NOT_PARAM                    = "must_not";
+  public static final String SHOULD_PARAM                      = "should";
+  public static final String BOOST_PARAM                       = "boost";
+  public static final String DISABLE_COORD_PARAM               = "disable_coord";
+  public static final String MINIMUM_NUMBER_SHOULD_MATCH_PARAM = "minimum_number_should_match";
+  public static final String TYPE_PARAM                        = "type";
+  public static final String PHRASE_PARAM                      = "phrase";
+  public static final String PHRASE_PREFIX_PARAM               = "phrase_prefix";
+  public static final String AND_PARAM                         = "and";
+  public static final String INCLUDE_PARAM                     = "include";
+  public static final String EXCLUDE_PARAM                     = "exclude";
+  public static final String SPAN_TERM_PARAM                   = "span_term";
+  public static final String MATCH_PARAM                       = "match";
+  public static final String END_PARAM                         = "end";
+  public static final String CLASS_PARAM                       = "class";
+  public static final String MINIMUM_MATCH_PARAM               = "minimum_match";
+  public static final String CLAUSES_PARAM                     = "clauses";
+  public static final String SLOP_PARAM                        = "slop";
+  public static final String IN_ORDER_PARAM                    = "in_order";
+  public static final String COLLECT_PAYLOADS_PARAM            = "collect_payloads";
+  public static final String VALUE_PARAM                       = "value";
+  public static final String QUERY_PARAM                       = "query";
+  public static final String FILTER_PARAM                      = "filter";
+  public static final String QUERIES_PARAM                     = "queries";
+  public static final String TERM_PARAM                        = "term";
+  public static final String TIE_BREAKER_PARAM                 = "tie_breaker";
+
   private static final Map<String,QueryConstructor> QUERY_CONSTRUCTOR_MAP = new HashMap<String,QueryConstructor>();
 
   static

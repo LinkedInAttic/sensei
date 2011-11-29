@@ -12,7 +12,7 @@ public class MatchAllQueryConstructor extends QueryConstructor{
   @Override
   protected Query doConstructQuery(JSONObject jsonQuery) throws JSONException
   {
-    double boost = jsonQuery.optDouble("boost",1.0);
+    double boost = jsonQuery.optDouble(BOOST_PARAM, 1.0);
     
     MatchAllDocsQuery q = new MatchAllDocsQuery();
     q.setBoost((float)boost);

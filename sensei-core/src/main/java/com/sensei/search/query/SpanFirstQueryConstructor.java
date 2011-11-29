@@ -25,12 +25,12 @@ public class SpanFirstQueryConstructor extends QueryConstructor {
 //    },
 		
 
-		JSONObject spanJson = jsonQuery.getJSONObject("match").getJSONObject("span_term");
+		JSONObject spanJson = jsonQuery.getJSONObject(MATCH_PARAM).getJSONObject(SPAN_TERM_PARAM);
 		String field = (String) (spanJson.keys().next());
 		String spanterm = (String) spanJson.getString(field);
 		SpanQuery sq = new SpanTermQuery(new Term(field, spanterm));		
 		
-		int end = jsonQuery.optInt("end", 3);
+		int end = jsonQuery.optInt(END_PARAM, 3);
 		
 		return new SpanFirstQuery(sq, end);
 	}

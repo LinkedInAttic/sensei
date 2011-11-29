@@ -25,15 +25,15 @@ public class SpanNotQueryConstructor extends QueryConstructor {
 //        }
 //    },
 		
-		JSONObject jsonInclude = jsonQuery.getJSONObject("include");
-		JSONObject jsonExclude = jsonQuery.getJSONObject("exclude");
+		JSONObject jsonInclude = jsonQuery.getJSONObject(INCLUDE_PARAM);
+		JSONObject jsonExclude = jsonQuery.getJSONObject(EXCLUDES_PARAM);
 		
-		JSONObject jsonInc = jsonInclude.getJSONObject("span_term");
+		JSONObject jsonInc = jsonInclude.getJSONObject(SPAN_TERM_PARAM);
 		String fieldInc = (String)(jsonInc.keys().next());
 		String valueInc = (String)jsonInc.get(fieldInc);
 		SpanQuery sInc = new SpanTermQuery(new Term(fieldInc, valueInc));
 
-		JSONObject jsonExc = jsonExclude.getJSONObject("span_term");
+		JSONObject jsonExc = jsonExclude.getJSONObject(SPAN_TERM_PARAM);
 		String fieldExc = (String)(jsonExc.keys().next());
 		String valueExc = (String)jsonExc.get(fieldExc);
 		SpanQuery sExc = new SpanTermQuery(new Term(fieldExc, valueExc));		

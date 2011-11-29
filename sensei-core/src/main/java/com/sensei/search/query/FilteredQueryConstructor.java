@@ -40,8 +40,8 @@ public class FilteredQueryConstructor extends QueryConstructor
   @Override
   protected Query doConstructQuery(JSONObject jsonQuery) throws JSONException
   {
-    JSONObject queryJson  = jsonQuery.getJSONObject("query");
-    JSONObject filterJson = jsonQuery.getJSONObject("filter");
+    JSONObject queryJson  = jsonQuery.getJSONObject(QUERY_PARAM);
+    JSONObject filterJson = jsonQuery.getJSONObject(FILTER_PARAM);
 
     if (queryJson == null || filterJson == null)
       throw new IllegalArgumentException("query and filter are both required: " + jsonQuery);

@@ -26,8 +26,8 @@ public class FacetSelectionFilterConstructor extends FilterConstructor{
     String[] nots = RequestConverter2.getStrings(json.optJSONArray(EXCLUDES_PARAM));
     sel.setValues(vals);
     sel.setNotValues(nots);
-    String op = json.optString(OPERATOR_PARAM,"or");
-    if ("or".equalsIgnoreCase(op)){
+    String op = json.optString(OPERATOR_PARAM,OR_PARAM);
+    if (OR_PARAM.equalsIgnoreCase(op)){
       sel.setSelectionOperation(ValueOperation.ValueOperationOr);
     }
     else{
