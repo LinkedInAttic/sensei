@@ -191,7 +191,7 @@ public class SenseiSystemInfo implements AbstractSenseiResult {
     buf.append("\n\t- Last Modified: ").append(new SimpleDateFormat("EEE, MMM d, ''yy").format(new Date(_lastModified)));
     buf.append("\n\t- Version: ").append(_version);
     if (_schema != null && _schema.length() != 0)
-      buf.append("\nschema: ").append(_schema);
+      buf.append("\n\tschema: ").append(_schema);
     buf.append("\n\t- Facet Information: ").append(getCmdOutPutofSet(_facetInfos));
     buf.append("\n\t- Cluster Information: ").append(_clusterInfo);
     return buf.toString();
