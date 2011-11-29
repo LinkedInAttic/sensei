@@ -87,15 +87,19 @@ public class RequestConverter2 {
 		
 		
 	    // group by
-	    JSONObject groupBy = json.optJSONObject("groupBy");
-	    if (groupBy != null)
+	    JSONArray groupBy = json.optJSONArray("groupBy");
+	    if(groupBy != null)
 	    {
-	      JSONArray columns = groupBy.optJSONArray("columns");
-	      if (columns != null && columns.length() >= 1)
+	      for(int i=0; i< groupBy.length(); i++)
 	      {
-	        req.setGroupBy(columns.getString(0));
+	        JSONObject item = groupBy.optJSONObject(i);
+	        if(item != null){
+	          String column = item.optString("column");
+	          int top = item.optInt("top", 1);
+	          req.setGroupBy(column);
+	          req.setMaxPerGroup(top);
+	        }
 	      }
-	      req.setMaxPerGroup(groupBy.optInt("top", groupBy.optInt("count", 1)));
 	    }
 		
 		// selections
