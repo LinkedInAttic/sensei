@@ -48,7 +48,7 @@
   "term" : {
     "color" : "red"
 
-    // or "color" : {"term" : "red", "boost": 2.0}
+    // or "color" : {"value" : "red", "boost": 2.0}
   },
 
 // boolean query
