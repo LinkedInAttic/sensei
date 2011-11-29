@@ -190,28 +190,31 @@ public class RequestConverter2 {
           
 		// sorts
 		  
-          JSONArray sortArray = json.optJSONArray("sorts");
+          JSONArray sortArray = json.optJSONArray("sort");
           if (sortArray!=null && sortArray.length()>0){
             ArrayList<SortField> sortFieldList = new ArrayList<SortField>(sortArray.length());
             for (int i=0;i<sortArray.length();++i){
-              JSONObject sortObj = sortArray.optJSONObject(i);
-              if (sortObj!=null){
-                 String sortField = sortObj.getString("field");
-                 if ("relevance".equals(sortField)){
+              Object obj = sortArray.opt(i);
+              if(obj instanceof JSONObject){
+                String field = (String) ((JSONObject)obj).keys().next();
+                String order = ((JSONObject)obj).optString(field);
+                boolean rev = false;
+                if("desc".equals(order))
+                  rev = true;
+                sortFieldList.add(new SortField(field,SortField.CUSTOM,rev));
+                continue;
+              }
+              else if (obj instanceof String){
+                if("_score".equals(obj)){
                   sortFieldList.add(SortField.FIELD_SCORE);
                   continue;
-                 }
-                 else{
-                   String order = sortObj.optString("order", "asc");
-                   boolean rev = false;
-                   if("desc".equals(order))
-                     rev = true;
-                   sortFieldList.add(new SortField(sortField,SortField.CUSTOM,rev));
-                 }
+                }
               }
             }
+            
+            
             if (sortFieldList.size()>0){
-              req.setSort(sortFieldList.toArray(new SortField[0]));
+              req.setSort(sortFieldList.toArray(new SortField[sortFieldList.size()]));
             }
           }
 		
@@ -294,8 +297,8 @@ public class RequestConverter2 {
         String facet = iter.next();
         JSONObject jsonParams = jsonSel.optJSONObject(facet);
         
-        String upper = jsonParams.optString("upper", "*");
-        String lower = jsonParams.optString("lower", "*");
+        String upper = jsonParams.optString("to", "*");
+        String lower = jsonParams.optString("from", "*");
         String range = "["+ lower + " TO " + upper + "]";
         if(facet!= null )
         {

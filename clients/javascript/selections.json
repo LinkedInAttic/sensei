@@ -28,8 +28,8 @@
     {
         "range":{
 			"year":{
-			    "upper":"2009",   //if there is no such key (upper, or lower), it returns "*";   
-			    "lower":"2000"
+			    "to":"2009",   //if there is no such key (upper, or lower), it returns "*";   
+			    "from":"2000"
 			}         
         }
     },

@@ -513,6 +513,24 @@ public class TestSensei extends AbstractSenseiTestCase
     assertTrue(hit.getSenseiGroupHits().length > 0);
   }
 
+  
+  public void testMatchAllWithBoostQuery() throws Exception
+  {
+    logger.info("executing test case MatchAllQuery");
+    String req = "{\"query\": {\"match_all\": {\"boost\": \"1.2\"}}}";
+    JSONObject res = search(new JSONObject(req));
+    assertEquals("numhits is wrong", 15000, res.getInt("numhits"));
+  }
+  
+  public void testBooleanQuery() throws Exception
+  {
+    logger.info("executing test case testBooleanQuery");
+    String req = "{\"query\":{\"bool\":{\"must_not\":{\"term\":{\"category\":\"compact\"}},\"must\":{\"term\":{\"color\":\"red\"}}}}}";
+    JSONObject res = search(new JSONObject(req));
+    assertEquals("numhits is wrong", 1652, res.getInt("numhits"));
+  }
+  
+
   public void testQueryStringQuery() throws Exception
   {
     logger.info("executing test case testQueryStringQuery");

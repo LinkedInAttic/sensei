@@ -48,7 +48,7 @@
   "term" : {
     "color" : "red"
 
-    // or "color" : {"term" : "red", "boost": 2.0}
+    // or "color" : {"value" : "red", "boost": 2.0}
   },
 
 // boolean query
@@ -69,7 +69,7 @@
         "term" : { "tag" : "search"}
       }
     ],
-    "minimum_number_should_match" : 1,
+    "minimum_number_should_match" : 1,   // if there is no should item above, this one will be ignored;
     "boost" : 1.0,
     "disable_coord" : false            // optional: default = false
   },
