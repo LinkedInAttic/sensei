@@ -426,6 +426,37 @@ class TestJsonAPI(unittest.TestCase):
 }""")
 
 
+  def testNotEqual(self):
+    stmt = \
+    """
+    SELECT color, price
+    FROM cars
+    WHERE color <> "red"
+    """
+    req = SenseiRequest(stmt)
+    print SenseiClient.buildJsonString(req, indent=2)
+    self.assertEqual(SenseiClient.buildJsonString(req, indent=2),
+                     """{
+  "fetchStored": true, 
+  "from": 0, 
+  "selections": [
+    {
+      "terms": {
+        "color": {
+          "_noOptimize": false, 
+          "excludes": [
+            "red"
+          ], 
+          "operator": "or", 
+          "values": []
+        }
+      }
+    }
+  ], 
+  "size": 10
+}""")
+
+
 if __name__ == "__main__":
     unittest.main()
 

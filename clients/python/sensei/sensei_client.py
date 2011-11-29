@@ -487,31 +487,41 @@ def in_predicate_action(s, loc, tok):
   is_not = tok[1] == NOT.match
   if not is_not:
     return {"terms":
-              {tok[0]: {
-                 JSON_PARAM_VALUES: (tok.value_list[:] or []),
-                 JSON_PARAM_EXCLUDES: (tok.except_values[:] or []),
-                 JSON_PARAM_OPERATOR: PARAM_SELECT_OP_OR,
-                 JSON_PARAM_NO_OPTIMIZE: False
-                 }
+              {tok[0]:
+                 {JSON_PARAM_VALUES: (tok.value_list[:] or []),
+                  JSON_PARAM_EXCLUDES: (tok.except_values[:] or []),
+                  JSON_PARAM_OPERATOR: PARAM_SELECT_OP_OR,
+                  JSON_PARAM_NO_OPTIMIZE: False
+                  }
                }
             }
   else:
     return {"terms":
-              {tok[0]: {
-                 JSON_PARAM_VALUES: (tok.except_values[:] or []),
-                 JSON_PARAM_EXCLUDES: (tok.value_list[:] or []),
-                 JSON_PARAM_OPERATOR: PARAM_SELECT_OP_OR,
-                 JSON_PARAM_NO_OPTIMIZE: False
-                 }
+              {tok[0]:
+                 {JSON_PARAM_VALUES: (tok.except_values[:] or []),
+                  JSON_PARAM_EXCLUDES: (tok.value_list[:] or []),
+                  JSON_PARAM_OPERATOR: PARAM_SELECT_OP_OR,
+                  JSON_PARAM_NO_OPTIMIZE: False
+                  }
                }
             }
 
 def query_predicate_action(s, loc, tok):
-  # print ">>> in query_predicate_action: tok = ", tok
   return {JSON_PARAM_QUERY_STRING: {JSON_PARAM_QUERY: tok[2]}}
 
 def equal_predicate_action(s, loc, tok):
   return {"term": {tok[0]: {"value": tok[2]}}}
+
+def not_equal_predicate_action(s, loc, tok):
+  return {"terms":
+            {tok[0]:
+               {JSON_PARAM_VALUES: [],
+                JSON_PARAM_EXCLUDES: [tok[2]],
+                JSON_PARAM_OPERATOR: PARAM_SELECT_OP_OR,
+                JSON_PARAM_NO_OPTIMIZE: False
+                }
+             }
+          }
 
 def range_predicate_action(s, loc, tok):
   # print ">>> in range_predicate_action: tok = ", tok
@@ -712,7 +722,8 @@ equal_predicate = (column_name +
 
 not_equal_predicate = (column_name +
                        NOT_EQUAL + value +
-                       Optional(predicate_props)).setResultsName("not_equal_pred")
+                       Optional(predicate_props)
+                       ).setResultsName("not_equal_pred").setParseAction(not_equal_predicate_action)
 
 query_predicate = (QUERY + IS + quotedString
                    ).setResultsName("query_pred").setParseAction(query_predicate_action)
