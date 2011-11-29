@@ -58,6 +58,7 @@ public class SenseiSysBroker extends AbstractConsistentHashBroker<SenseiRequest,
     for (SenseiSystemInfo res : resultList)
     {
       result.setNumDocs(result.getNumDocs()+res.getNumDocs());
+      result.setSchema(res.getSchema());
       if (result.getLastModified() < res.getLastModified())
         result.setLastModified(res.getLastModified());
       if (result.getVersion() == null || _versionComparator.compare(result.getVersion(), res.getVersion()) < 0)
