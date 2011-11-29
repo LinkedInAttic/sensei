@@ -439,7 +439,7 @@ def accumulate_range_pred(field_map, pred):
 
   if lower and upper:
     if (lower > upper or
-        (lower == upper and (not include_lower or include_upper))):
+        (lower == upper and (not include_lower or not include_upper))):
       raise ParseSyntaxException(ParseException("", 0, "Conflict range predicates for column '%s'"
                                                 % field))
   if lower:
