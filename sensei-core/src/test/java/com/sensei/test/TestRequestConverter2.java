@@ -139,7 +139,7 @@ public class TestRequestConverter2
     
     //test sortby;
     assertTrue("first sort by is not correct", req.getSort()[0].getField().equals("color"));
-    assertTrue("first sort by order is not correct", req.getSort()[0].getReverse() == false);
+    assertTrue("first sort by order is not correct", req.getSort()[0].getReverse() == true);
     assertTrue("secondary sort by is not correct", req.getSort()[1] == SortField.FIELD_SCORE);
     
     //test fetchStored;
