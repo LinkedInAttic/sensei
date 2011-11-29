@@ -114,6 +114,7 @@ public class SenseiSystemInfo implements AbstractSenseiResult {
   private long _lastModified;
   private String _version;
   private Set<SenseiFacetInfo> _facetInfos;
+  private String _schema; /* JSONObject is not protobuf serializerable, we use string here. */
   private List<SenseiNodeInfo> _clusterInfo;
     
   public SenseiSystemInfo(){
@@ -121,6 +122,7 @@ public class SenseiSystemInfo implements AbstractSenseiResult {
     _lastModified =0L;
     _version = null;
     _facetInfos = null;
+    _schema = null;
     _clusterInfo = null;
   }
 
@@ -147,7 +149,17 @@ public class SenseiSystemInfo implements AbstractSenseiResult {
   public void setLastModified(long lastModified) {
     _lastModified = lastModified;
   }
-  
+
+  public String getSchema()
+  {
+    return _schema;
+  }
+
+  public void setSchema(String schema)
+  {
+    _schema = schema;
+  }
+
   public Set<SenseiFacetInfo> getFacetInfos() {
     return _facetInfos;
   }
@@ -178,6 +190,8 @@ public class SenseiSystemInfo implements AbstractSenseiResult {
     buf.append("\t- Number of Documents: ").append(_numDocs);
     buf.append("\n\t- Last Modified: ").append(new SimpleDateFormat("EEE, MMM d, ''yy").format(new Date(_lastModified)));
     buf.append("\n\t- Version: ").append(_version);
+    if (_schema != null && _schema.length() != 0)
+      buf.append("\n\tschema: ").append(_schema);
     buf.append("\n\t- Facet Information: ").append(getCmdOutPutofSet(_facetInfos));
     buf.append("\n\t- Cluster Information: ").append(_clusterInfo);
     return buf.toString();

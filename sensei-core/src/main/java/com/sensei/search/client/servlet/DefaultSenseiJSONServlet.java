@@ -71,6 +71,7 @@ import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_S
 import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_SYSINFO_CLUSTERINFO_ID;
 import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_SYSINFO_CLUSTERINFO_NODELINK;
 import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_SYSINFO_CLUSTERINFO_PARTITIONS;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_SYSINFO_SCHEMA;
 import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_SYSINFO_FACETS;
 import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_SYSINFO_FACETS_NAME;
 import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_SYSINFO_FACETS_PROPS;
@@ -823,6 +824,11 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
     jsonObj.put(PARAM_SYSINFO_NUMDOCS, info.getNumDocs());
     jsonObj.put(PARAM_SYSINFO_LASTMODIFIED, info.getLastModified());
     jsonObj.put(PARAM_SYSINFO_VERSION, info.getVersion());
+
+    if (info.getSchema() != null && info.getSchema().length() != 0)
+    {
+      jsonObj.put(PARAM_SYSINFO_SCHEMA, new JSONObject(info.getSchema()));
+    }
 
     JSONArray jsonArray = new JSONArray();
     jsonObj.put(PARAM_SYSINFO_FACETS, jsonArray);

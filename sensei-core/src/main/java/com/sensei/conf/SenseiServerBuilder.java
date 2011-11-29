@@ -432,6 +432,8 @@ public class SenseiServerBuilder implements SenseiConfParams{
 
       if (sysInfo != null)
       {
+        sysInfo.setSchema(_schemaDoc.toString());
+
         try
         {
           List<SenseiSystemInfo.SenseiNodeInfo> clusterInfo = new ArrayList(1);
