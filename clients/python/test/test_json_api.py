@@ -13,7 +13,118 @@ class TestJsonAPI(unittest.TestCase):
   """ Test cases for BQL using JSON API."""
 
   def setUp(self):
-    self.client = SenseiClient()
+    self.client = SenseiClient(sysinfo={
+        "lastmodified": 0, 
+        "facets": [
+          {
+            "runtime": False, 
+            "name": "tags", 
+            "props": {
+              "column": "tags", 
+              "depends": "[]", 
+              "type": "multi", 
+              "column_type": "string"
+              }
+            }, 
+          {
+            "runtime": False, 
+            "name": "mileage", 
+            "props": {
+              "column": "mileage", 
+              "range": "[*-12500, 12501-15000, 15001-17500, 17501-*]", 
+              "type": "range", 
+              "depends": "[]", 
+              "column_type": "int"
+              }
+            }, 
+          {
+            "runtime": False, 
+            "name": "category", 
+            "props": {
+              "column": "category", 
+              "depends": "[]", 
+              "type": "simple", 
+              "column_type": "string"
+              }
+            }, 
+          {
+            "runtime": False, 
+            "name": "groupid", 
+            "props": {
+              "column": "groupid", 
+              "depends": "[]", 
+              "type": "simple", 
+              "column_type": "long"
+              }
+            }, 
+          {
+            "runtime": False, 
+            "name": "year", 
+            "props": {
+              "column": "year", 
+              "range": "[1993-1994, 1995-1996, 1997-1998, 1999-2000, 2001-2002]", 
+              "type": "range", 
+              "depends": "[]", 
+              "column_type": "int"
+              }
+            }, 
+          {
+            "runtime": False, 
+            "name": "city", 
+            "props": {
+              "column": "city", 
+              "separator": "[/]", 
+              "depends": "[]", 
+              "type": "path", 
+              "column_type": "string"
+              }
+            }, 
+          {
+            "runtime": False, 
+            "name": "price", 
+            "props": {
+              "column": "price", 
+              "range": "[*,6700, 6800,9900, 10000,13100, 13200,17300, 17400,*]", 
+              "type": "range", 
+              "depends": "[]", 
+              "column_type": "float"
+              }
+            }, 
+          {
+            "runtime": False, 
+            "name": "makemodel", 
+            "props": {
+              "column": "makemodel", 
+              "depends": "[]", 
+              "type": "path", 
+              "column_type": "string"
+              }
+            }, 
+          {
+            "runtime": False, 
+            "name": "color", 
+            "props": {
+              "column": "color", 
+              "depends": "[]", 
+              "type": "simple", 
+              "column_type": "string"
+              }
+            }
+          ], 
+        "version": "4957216", 
+        "clusterinfo": [
+          {
+            "adminlink": "http://192.168.1.104:8080", 
+            "nodelink": "192.168.1.104:1234", 
+            "id": 1, 
+            "partitions": [
+              0, 
+              1
+              ]
+            }
+          ], 
+        "numdocs": 15000
+        })
 
   def testBasics(self):
     stmt = \
@@ -22,9 +133,9 @@ class TestJsonAPI(unittest.TestCase):
     FROM cars
     WHERE color in ("red", "blue");
     """
-    req = SenseiRequest(stmt)
-    # print SenseiClient.buildJsonString(req, indent=2)
-    self.assertEqual(SenseiClient.buildJsonString(req, indent=2),
+    req = self.client.compile(stmt)
+    # print self.client.buildJsonString(req, indent=2)
+    self.assertEqual(self.client.buildJsonString(req, indent=2),
                     """{
   "fetchStored": true, 
   "from": 0, 
@@ -52,11 +163,11 @@ class TestJsonAPI(unittest.TestCase):
     SELECT color, price
     FROM cars
     WHERE color in ("red", "blue")
-      AND make = "honda"
+      AND makemodel = "honda"
     """
-    req = SenseiRequest(stmt)
-    # print SenseiClient.buildJsonString(req, indent=2)
-    self.assertEqual(SenseiClient.buildJsonString(req, indent=2),
+    req = self.client.compile(stmt)
+    # print self.client.buildJsonString(req, indent=2)
+    self.assertEqual(self.client.buildJsonString(req, indent=2),
                      """{
   "fetchStored": true, 
   "from": 0, 
@@ -76,7 +187,7 @@ class TestJsonAPI(unittest.TestCase):
     }, 
     {
       "term": {
-        "make": {
+        "makemodel": {
           "value": "honda"
         }
       }
@@ -92,9 +203,9 @@ class TestJsonAPI(unittest.TestCase):
     FROM cars
     WHERE QUERY IS "cool AND moon-roof"
     """
-    req = SenseiRequest(stmt)
-    # print SenseiClient.buildJsonString(req, indent=2)
-    self.assertEqual(SenseiClient.buildJsonString(req, indent=2),
+    req = self.client.compile(stmt)
+    # print self.client.buildJsonString(req, indent=2)
+    self.assertEqual(self.client.buildJsonString(req, indent=2),
                     """{
   "fetchStored": true, 
   "from": 0, 
@@ -115,9 +226,9 @@ class TestJsonAPI(unittest.TestCase):
       AND color = "red"
       AND year = 1995
     """
-    req = SenseiRequest(stmt)
-    # print SenseiClient.buildJsonString(req, indent=2)
-    self.assertEqual(SenseiClient.buildJsonString(req, indent=2),
+    req = self.client.compile(stmt)
+    # print self.client.buildJsonString(req, indent=2)
+    self.assertEqual(self.client.buildJsonString(req, indent=2),
                      """{
   "fetchStored": true, 
   "from": 0, 
@@ -153,9 +264,9 @@ class TestJsonAPI(unittest.TestCase):
     WHERE QUERY IS "cool AND moon-roof"
       AND color = "red"
     """
-    req = SenseiRequest(stmt)
-    # print SenseiClient.buildJsonString(req, indent=2)
-    self.assertEqual(SenseiClient.buildJsonString(req, indent=2),
+    req = self.client.compile(stmt)
+    # print self.client.buildJsonString(req, indent=2)
+    self.assertEqual(self.client.buildJsonString(req, indent=2),
                      """{
   "fetchStored": true, 
   "from": 0, 
@@ -183,9 +294,9 @@ class TestJsonAPI(unittest.TestCase):
     FROM cars
     BROWSE BY color, price(true, 1, 20, value), year
     """
-    req = SenseiRequest(stmt)
-    # print SenseiClient.buildJsonString(req, indent=2)
-    self.assertEqual(SenseiClient.buildJsonString(req, indent=2),
+    req = self.client.compile(stmt)
+    # print self.client.buildJsonString(req, indent=2)
+    self.assertEqual(self.client.buildJsonString(req, indent=2),
                     """{
   "facets": {
     "color": {
@@ -223,8 +334,8 @@ class TestJsonAPI(unittest.TestCase):
                       (member, "last_name", string, "Cui"),
                       (member, "age", int, 25)
     """
-    req = SenseiRequest(stmt)
-    self.assertEqual(SenseiClient.buildJsonString(req, indent=2),
+    req = self.client.compile(stmt)
+    self.assertEqual(self.client.buildJsonString(req, indent=2),
                     """{
   "facetInit": {
     "My-Network": {
@@ -270,9 +381,9 @@ class TestJsonAPI(unittest.TestCase):
     FROM cars
     GROUP BY color
     """
-    req = SenseiRequest(stmt)
-    # print SenseiClient.buildJsonString(req, indent=2)
-    self.assertEqual(SenseiClient.buildJsonString(req, indent=2),
+    req = self.client.compile(stmt)
+    # print self.client.buildJsonString(req, indent=2)
+    self.assertEqual(self.client.buildJsonString(req, indent=2),
                     """{
   "fetchStored": true, 
   "from": 0, 
@@ -294,9 +405,9 @@ class TestJsonAPI(unittest.TestCase):
     WHERE year > 1999
     """
 
-    req = SenseiRequest(stmt)
-    # print SenseiClient.buildJsonString(req, indent=2)
-    self.assertEqual(SenseiClient.buildJsonString(req, indent=2),
+    req = self.client.compile(stmt)
+    # print self.client.buildJsonString(req, indent=2)
+    self.assertEqual(self.client.buildJsonString(req, indent=2),
                      """{
   "fetchStored": true, 
   "from": 0, 
@@ -321,9 +432,9 @@ class TestJsonAPI(unittest.TestCase):
     WHERE year > 1999 AND year <= 2003 AND year >= 1999
     """
 
-    req = SenseiRequest(stmt)
-    # print SenseiClient.buildJsonString(req, indent=2)
-    self.assertEqual(SenseiClient.buildJsonString(req, indent=2),
+    req = self.client.compile(stmt)
+    # print self.client.buildJsonString(req, indent=2)
+    self.assertEqual(self.client.buildJsonString(req, indent=2),
                      """{
   "fetchStored": true, 
   "from": 0, 
@@ -350,24 +461,22 @@ class TestJsonAPI(unittest.TestCase):
     WHERE name > "abc" AND name < "xyz" AND name >= "ddd"
     """
 
-    req = SenseiRequest(stmt)
-    # print SenseiClient.buildJsonString(req, indent=2)
-    self.assertEqual(SenseiClient.buildJsonString(req, indent=2),
+    req = self.client.compile(stmt)
+    # print self.client.buildJsonString(req, indent=2)
+    self.assertEqual(self.client.buildJsonString(req, indent=2),
                      """{
   "fetchStored": true, 
-  "from": 0, 
-  "selections": [
-    {
-      "range": {
-        "name": {
-          "from": "ddd", 
-          "include_lower": true, 
-          "include_upper": false, 
-          "to": "xyz"
-        }
+  "filter": {
+    "range": {
+      "name": {
+        "from": "ddd", 
+        "include_lower": true, 
+        "include_upper": false, 
+        "to": "xyz"
       }
     }
-  ], 
+  }, 
+  "from": 0, 
   "size": 10
 }""")
 
@@ -380,7 +489,7 @@ class TestJsonAPI(unittest.TestCase):
     """
     error = None
     try:
-      req = SenseiRequest(stmt)
+      req = self.client.compile(stmt)
     except ParseSyntaxException as err:
       error = str(err)
     self.assertTrue(error != None)
@@ -394,9 +503,9 @@ class TestJsonAPI(unittest.TestCase):
       AND fff = 1234                -- a filter
     """
 
-    req = SenseiRequest(stmt, facet_list=['color'])
-    # print SenseiClient.buildJsonString(req, indent=2)
-    self.assertEqual(SenseiClient.buildJsonString(req, indent=2),
+    req = self.client.compile(stmt)
+    # print self.client.buildJsonString(req, indent=2)
+    self.assertEqual(self.client.buildJsonString(req, indent=2),
                      """{
   "fetchStored": true, 
   "filter": {
@@ -433,9 +542,9 @@ class TestJsonAPI(unittest.TestCase):
     FROM cars
     WHERE color <> "red"
     """
-    req = SenseiRequest(stmt)
-    # print SenseiClient.buildJsonString(req, indent=2)
-    self.assertEqual(SenseiClient.buildJsonString(req, indent=2),
+    req = self.client.compile(stmt)
+    # print self.client.buildJsonString(req, indent=2)
+    self.assertEqual(self.client.buildJsonString(req, indent=2),
                      """{
   "fetchStored": true, 
   "from": 0, 
@@ -465,7 +574,7 @@ class TestJsonAPI(unittest.TestCase):
     """
     intactFlag = True
     try:
-      req = SenseiRequest(stmt)
+      req = self.client.compile(stmt)
       intactFlag = False
     except ParseException as err:
       pass
@@ -479,9 +588,9 @@ class TestJsonAPI(unittest.TestCase):
     FROM cars
     WHERE color NOT IN ("yellow", "green");
     """
-    req = SenseiRequest(stmt)
-    # print SenseiClient.buildJsonString(req, indent=2)
-    self.assertEqual(SenseiClient.buildJsonString(req, indent=2),
+    req = self.client.compile(stmt)
+    # print self.client.buildJsonString(req, indent=2)
+    self.assertEqual(self.client.buildJsonString(req, indent=2),
                      """{
   "fetchStored": true, 
   "from": 0, 
@@ -511,35 +620,37 @@ class TestJsonAPI(unittest.TestCase):
     WHERE age in (20, 30, "40")         -- Now we accept both string and integer
       AND last_name = "Cui"
     """
-    req = SenseiRequest(stmt)
-    # print SenseiClient.buildJsonString(req, indent=2),
-    self.assertEqual(SenseiClient.buildJsonString(req, indent=2),
+    req = self.client.compile(stmt)
+    # print self.client.buildJsonString(req, indent=2),
+    self.assertEqual(self.client.buildJsonString(req, indent=2),
                      """{
   "fetchStored": true, 
+  "filter": {
+    "and": [
+      {
+        "terms": {
+          "age": {
+            "_noOptimize": false, 
+            "excludes": [], 
+            "operator": "or", 
+            "values": [
+              20, 
+              30, 
+              "40"
+            ]
+          }
+        }
+      }, 
+      {
+        "term": {
+          "last_name": {
+            "value": "Cui"
+          }
+        }
+      }
+    ]
+  }, 
   "from": 0, 
-  "selections": [
-    {
-      "terms": {
-        "age": {
-          "_noOptimize": false, 
-          "excludes": [], 
-          "operator": "or", 
-          "values": [
-            20, 
-            30, 
-            "40"
-          ]
-        }
-      }
-    }, 
-    {
-      "term": {
-        "last_name": {
-          "value": "Cui"
-        }
-      }
-    }
-  ], 
   "size": 10
 }""")
 
@@ -550,9 +661,9 @@ class TestJsonAPI(unittest.TestCase):
     FROM cars
     ORDER BY year desc, price
     """
-    req = SenseiRequest(stmt)
-    # print SenseiClient.buildJsonString(req, indent=2),
-    self.assertEqual(SenseiClient.buildJsonString(req, indent=2),
+    req = self.client.compile(stmt)
+    # print self.client.buildJsonString(req, indent=2),
+    self.assertEqual(self.client.buildJsonString(req, indent=2),
                      """{
   "fetchStored": true, 
   "from": 0, 
@@ -574,9 +685,9 @@ class TestJsonAPI(unittest.TestCase):
     FROM cars
     ORDER BY relevance
     """
-    req = SenseiRequest(stmt)
-    # print SenseiClient.buildJsonString(req, indent=2),
-    self.assertEqual(SenseiClient.buildJsonString(req, indent=2),
+    req = self.client.compile(stmt)
+    # print self.client.buildJsonString(req, indent=2),
+    self.assertEqual(self.client.buildJsonString(req, indent=2),
                      """{
   "fetchStored": true, 
   "from": 0, 
@@ -596,7 +707,7 @@ class TestJsonAPI(unittest.TestCase):
     # Make sure we do not allow anything to follow "relevance"
     intactFlag = True
     try:
-      req = SenseiRequest(stmt)
+      req = self.client.compile(stmt)
       intactFlag = False
     except ParseSyntaxException as err:
       pass
@@ -610,9 +721,9 @@ class TestJsonAPI(unittest.TestCase):
     FROM cars
     WHERE color IN ("red", "blue") EXCEPT("black")
     """
-    req = SenseiRequest(stmt)
-    # print SenseiClient.buildJsonString(req, indent=2),
-    self.assertEqual(SenseiClient.buildJsonString(req, indent=2),
+    req = self.client.compile(stmt)
+    # print self.client.buildJsonString(req, indent=2),
+    self.assertEqual(self.client.buildJsonString(req, indent=2),
                      """{
   "fetchStored": true, 
   "from": 0, 
@@ -636,6 +747,19 @@ class TestJsonAPI(unittest.TestCase):
   "size": 10
 }""")
 
+  def testPathPred(self):
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    WHERE city IN ("china/hongkong") WITH ("strict":false, "depth":1)
+    """
+    req = self.client.compile(stmt)
+    print self.client.buildJsonString(req, indent=2),
+    # self.assertEqual(self.client.buildJsonString(req, indent=2),
+    
+
+
 #   def testWhereConditions(self):
 #     stmt = \
 #     """
@@ -648,9 +772,9 @@ class TestJsonAPI(unittest.TestCase):
 #     ORDER BY price desc
 #     LIMIT 5, 20
 #     """
-#     req = SenseiRequest(stmt)
-#     print SenseiClient.buildJsonString(req, indent=2),
-#     # self.assertEqual(SenseiClient.buildJsonString(req, indent=2),
+#     req = self.client.compile(stmt)
+#     print self.client.buildJsonString(req, indent=2),
+#     # self.assertEqual(self.client.buildJsonString(req, indent=2),
 
 if __name__ == "__main__":
     unittest.main()
@@ -663,9 +787,9 @@ if __name__ == "__main__":
     FROM cars
     WHERE QUERY IS "cool AND moon-roof"
     """
-    req = SenseiRequest(stmt)
-    print SenseiClient.buildJsonString(req, indent=2),
-    # self.assertEqual(SenseiClient.buildJsonString(req, indent=2),
+    req = self.client.compile(stmt)
+    print self.client.buildJsonString(req, indent=2),
+    # self.assertEqual(self.client.buildJsonString(req, indent=2),
     """...
     """
 '''
