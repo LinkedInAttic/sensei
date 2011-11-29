@@ -1,5 +1,7 @@
 package com.sensei.search.query;
 
+import java.util.Iterator;
+
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.spans.SpanTermQuery;
@@ -10,7 +12,7 @@ public class SpanTermQueryConstructor extends QueryConstructor {
 
   public static final String QUERY_TYPE = "span_term";
 	@Override
-  protected Query doConstructQuery(JSONObject jsonQuery) throws JSONException
+  protected Query doConstructQuery(JSONObject json) throws JSONException
   {
 		
 		
@@ -20,19 +22,23 @@ public class SpanTermQueryConstructor extends QueryConstructor {
 //     //or
 //     // "user" : { "value" : "kimchy", "boost" : 2.0 } 
 //    },
-		
-		String field = (String)(jsonQuery.keys().next());
+
+    Iterator<String> iter = json.keys();
+    if (!iter.hasNext())
+      throw new IllegalArgumentException("no term value specified: " + json);
+
+		String field = iter.next();
 		String spanterm = null;
-		Object value = jsonQuery.get(field);
+		Object obj = json.get(field);
 		
-		if(value instanceof JSONObject){
-			spanterm = ((JSONObject)value).optString(VALUE_PARAM, "");
-			float boost = (float)((JSONObject)value).optDouble(BOOST_PARAM, 2.0);
+		if(obj instanceof JSONObject){
+			spanterm = ((JSONObject)obj).optString(VALUE_PARAM, "");
+			float boost = (float)((JSONObject)obj).optDouble(BOOST_PARAM, 2.0);
 			Query query = new SpanTermQuery(new Term(field, spanterm));
 			query.setBoost(boost);
 			return query;
 		}else{
-			spanterm = (String) value;
+			spanterm = String.valueOf(obj);
 			return new SpanTermQuery(new Term(field, spanterm));
 		}
 	}

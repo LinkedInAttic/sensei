@@ -22,7 +22,7 @@ public class UIDFilterConstructor  extends FilterConstructor{
     final JSONObject json = (JSONObject)obj;
     return new Filter(){
 
-        @Override
+      @Override
       public DocIdSet getDocIdSet(IndexReader reader)
           throws IOException {
         if (reader instanceof BoboIndexReader){
