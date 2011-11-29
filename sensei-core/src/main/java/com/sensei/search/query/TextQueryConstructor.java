@@ -49,9 +49,9 @@ public class TextQueryConstructor extends QueryConstructor
 
     for (String name : JSONObject.getNames(jsonQuery))
     {
-      if ("operator".equals(name))
+      if (OPERATOR_PARAM.equals(name))
         op = jsonQuery.getString(name);
-      else if ("type".equals(name))
+      else if (TYPE_PARAM.equals(name))
         type = jsonQuery.getString(name);
       else
       {
@@ -68,7 +68,7 @@ public class TextQueryConstructor extends QueryConstructor
 
     try
     {
-      if ("phrase".equals(type))
+      if (PHRASE_PARAM.equals(type))
       {
         PhraseQuery q = new PhraseQuery();
         while (tokenStream.incrementToken())
@@ -77,7 +77,7 @@ public class TextQueryConstructor extends QueryConstructor
         }
         return q;
       }
-      else if ("phrase_prefix".equals(type))
+      else if (PHRASE_PREFIX_PARAM.equals(type))
       {
         MultiPhraseQuery q = new MultiPhraseQuery();
         while (tokenStream.incrementToken())
@@ -89,7 +89,7 @@ public class TextQueryConstructor extends QueryConstructor
       else
       {
         BooleanQuery q = new BooleanQuery();
-        if ("and".equals(op))
+        if (AND_PARAM.equals(op))
         {
           while (tokenStream.incrementToken())
           {

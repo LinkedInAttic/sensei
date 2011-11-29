@@ -29,10 +29,10 @@ public class TermQueryConstructor extends QueryConstructor
     float boost;
     if (obj instanceof JSONObject)
     {
-      txt = ((JSONObject)obj).optString("term");
+      txt = ((JSONObject)obj).optString(TERM_PARAM);
       if (txt == null || txt.length() == 0)
-        txt = ((JSONObject)obj).getString("value");
-      boost = (float)((JSONObject)obj).optDouble("boost", 1.0);
+        txt = ((JSONObject)obj).getString(VALUE_PARAM);
+      boost = (float)((JSONObject)obj).optDouble(BOOST_PARAM, 1.0);
     }
     else
     {

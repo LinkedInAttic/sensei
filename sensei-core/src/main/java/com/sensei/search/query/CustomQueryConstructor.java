@@ -22,13 +22,13 @@ public class CustomQueryConstructor extends QueryConstructor
   {
     try
     {
-      String className = jsonQuery.getString("class");
+      String className = jsonQuery.getString(CLASS_PARAM);
       Class queryClass = Class.forName(className);
 
       Object q = queryClass.newInstance();
-      ((SenseiPlugin)q).initialize(jsonQuery.optJSONObject("params"));
+      ((SenseiPlugin)q).initialize(jsonQuery.optJSONObject(PARAMS_PARAM));
 
-      ((Query)q).setBoost((float)jsonQuery.optDouble("boost", 1.0));
+      ((Query)q).setBoost((float)jsonQuery.optDouble(BOOST_PARAM, 1.0));
       return (Query)q;
     }
     catch(Throwable t)

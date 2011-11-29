@@ -512,13 +512,37 @@ public class TestSensei extends AbstractSenseiTestCase
     assertTrue(hit.getGroupHitsCount() > 0);
     assertTrue(hit.getSenseiGroupHits().length > 0);
   }
-  
-
 
   public void testQueryStringQuery() throws Exception
   {
     logger.info("executing test case testQueryStringQuery");
     String req = "{\"query\": {\"query_string\": {\"query\": \"red AND cool\"}}}";
+    JSONObject res = search(new JSONObject(req));
+    assertEquals("numhits is wrong", 1070, res.getInt("numhits"));
+  }
+
+  public void testMatchAllQuery() throws Exception
+  {
+    logger.info("executing test case testMatchAllQuery");
+    String req = "{\"query\": {\"match_all\": {}}}";
+    JSONObject res = search(new JSONObject(req));
+    assertEquals("numhits is wrong", 15000, res.getInt("numhits"));
+  }
+
+  public void testUIDQuery() throws Exception
+  {
+    logger.info("executing test case testUIDQuery");
+    String req = "{\"query\": {\"ids\": {\"values\": [\"1\", \"2\", \"3\"], \"excludes\": [\"2\"]}}}";
+    JSONObject res = search(new JSONObject(req));
+    assertEquals("numhits is wrong", 2, res.getInt("numhits"));
+    assertEquals("the first uid is wrong", 1, res.getJSONArray("hits").getJSONObject(0).getInt("uid"));
+    assertEquals("the second uid is wrong", 3, res.getJSONArray("hits").getJSONObject(1).getInt("uid"));
+  }
+
+  public void testTextQuery() throws Exception
+  {
+    logger.info("executing test case testTextQuery");
+    String req = "{\"query\": {\"text\": {\"contents\": \"red cool\", \"operator\": \"and\"}}}";
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 1070, res.getInt("numhits"));
   }

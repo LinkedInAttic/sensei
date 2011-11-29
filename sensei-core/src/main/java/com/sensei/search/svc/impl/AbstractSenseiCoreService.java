@@ -1,6 +1,7 @@
 package com.sensei.search.svc.impl;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -176,6 +177,8 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
         try{
       	  readerList = GetReaderTimer.time(new Callable<List<ZoieIndexReader<BoboIndexReader>>>(){
       		 public List<ZoieIndexReader<BoboIndexReader>> call() throws Exception{
+            if (readerFactory == null)
+              return Collections.EMPTY_LIST;
       			return readerFactory.getIndexReaders(); 
       		 }
       	  });

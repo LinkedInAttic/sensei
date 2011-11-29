@@ -33,9 +33,9 @@ public class RangeFilterConstructor extends FilterConstructor
 
     JSONObject jsonObj = json.getJSONObject(field);
 
-    final String from          = jsonObj.optString("from");
-    final String to            = jsonObj.optString("to");
-    final boolean noOptimize   = jsonObj.optBoolean("_noOptimize", false);
+    final String from          = jsonObj.optString(FROM_PARAM);
+    final String to            = jsonObj.optString(TO_PARAM);
+    final boolean noOptimize   = jsonObj.optBoolean(NOOPTIMIZE_PARAM, false);
 
     return new Filter()
     {

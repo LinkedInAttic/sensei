@@ -31,7 +31,7 @@ public class UIDQueryConstructor extends QueryConstructor
       throw new JSONException(e);
     }
     ConstantScoreQuery query = new ConstantScoreQuery(filter);
-    query.setBoost((float)jsonQuery.optDouble("boost", 1.0));
+    query.setBoost((float)jsonQuery.optDouble(BOOST_PARAM, 1.0));
     return query;
   }
 }
