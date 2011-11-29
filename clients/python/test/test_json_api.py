@@ -603,23 +603,54 @@ class TestJsonAPI(unittest.TestCase):
     finally:
       self.assertTrue(intactFlag)
 
-  def testWhereConditions(self):
+  def testInPred(self):
     stmt = \
     """
-    SELECT color, year, tags, price
+    SELECT *
     FROM cars
-    WHERE query is "cool"
-      AND color in ("gold", "green", "blue") EXCEPT ("black")
-      AND year in ("[1996 TO 1997]", "[2002 TO 2003]") WITH ("aaa":"111", "bbb":"222")
-      and tags contains all ("hybrid", "favorite")
-    ORDER BY price desc
-    LIMIT 5, 20
+    WHERE color IN ("red", "blue") EXCEPT("black")
     """
     req = SenseiRequest(stmt)
-    print SenseiClient.buildJsonString(req, indent=2),
-    # self.assertEqual(SenseiClient.buildJsonString(req, indent=2),
+    # print SenseiClient.buildJsonString(req, indent=2),
+    self.assertEqual(SenseiClient.buildJsonString(req, indent=2),
+                     """{
+  "fetchStored": true, 
+  "from": 0, 
+  "selections": [
+    {
+      "terms": {
+        "color": {
+          "_noOptimize": false, 
+          "excludes": [
+            "black"
+          ], 
+          "operator": "or", 
+          "values": [
+            "red", 
+            "blue"
+          ]
+        }
+      }
+    }
+  ], 
+  "size": 10
+}""")
 
-
+#   def testWhereConditions(self):
+#     stmt = \
+#     """
+#     SELECT color, year, tags, price
+#     FROM cars
+#     WHERE query is "cool"
+#       AND color in ("gold", "green", "blue") EXCEPT ("black")
+#       AND year in ("[1996 TO 1997]", "[2002 TO 2003]") WITH ("aaa":"111", "bbb":"222")
+#       and tags contains all ("hybrid", "favorite")
+#     ORDER BY price desc
+#     LIMIT 5, 20
+#     """
+#     req = SenseiRequest(stmt)
+#     print SenseiClient.buildJsonString(req, indent=2),
+#     # self.assertEqual(SenseiClient.buildJsonString(req, indent=2),
 
 if __name__ == "__main__":
     unittest.main()
