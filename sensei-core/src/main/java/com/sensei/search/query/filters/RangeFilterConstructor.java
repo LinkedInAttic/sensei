@@ -33,9 +33,46 @@ public class RangeFilterConstructor extends FilterConstructor
 
     JSONObject jsonObj = json.getJSONObject(field);
 
-    final String from          = jsonObj.optString(FROM_PARAM);
-    final String to            = jsonObj.optString(TO_PARAM);
-    final boolean noOptimize   = jsonObj.optBoolean(NOOPTIMIZE_PARAM, false);
+    final String  from, to;
+    final boolean include_lower, include_upper;
+    final boolean noOptimize = jsonObj.optBoolean(NOOPTIMIZE_PARAM, false);
+
+    String gt  = jsonObj.optString(GT_PARAM, null);
+    String gte = jsonObj.optString(GTE_PARAM, null);
+    String lt  = jsonObj.optString(LT_PARAM, null);
+    String lte = jsonObj.optString(LTE_PARAM, null);
+
+    if (gt != null && gt.length() != 0)
+    {
+      from          = gt;
+      include_lower = false;
+    }
+    else if (gte != null && gte.length() != 0)
+    {
+      from          = gte;
+      include_lower = true;
+    }
+    else
+    {
+      from          = jsonObj.optString(FROM_PARAM, null);
+      include_lower = jsonObj.optBoolean(INCLUDE_LOWER_PARAM, true);
+    }
+
+    if (lt != null && lt.length() != 0)
+    {
+      to = lt;
+      include_upper = false;
+    }
+    else if (lte != null && lte.length() != 0)
+    {
+      to = lte;
+      include_upper = true;
+    }
+    else
+    {
+      to            = jsonObj.optString(TO_PARAM, null);
+      include_upper = jsonObj.optBoolean(INCLUDE_UPPER_PARAM, true);
+    }
 
     return new Filter()
     {
@@ -50,31 +87,40 @@ public class RangeFilterConstructor extends FilterConstructor
             FacetHandler facetHandler = boboReader.getFacetHandler(field);
             if (facetHandler != null)
             {
-              StringBuilder sb = new StringBuilder("[");
-              if (from == null)
+              StringBuilder sb = new StringBuilder();
+              if (include_lower && from != null && from.length() != 0)
+                sb.append("[");
+              else
+                sb.append("(");
+
+              if (from == null || from.length() == 0)
                 sb.append("*");
               else
                 sb.append(from);
               sb.append(" TO ");
-              if (to == null)
+              if (to == null || to.length() == 0)
                 sb.append("*");
               else
                 sb.append(to);
-              sb.append("]");
+
+              if (include_upper && to != null && to.length() != 0)
+                sb.append("]");
+              else
+                sb.append(")");
 
               FacetRangeFilter filter = new FacetRangeFilter(facetHandler, sb.toString());
               return filter.getDocIdSet(reader);
             }
           }
         }
-        if (from == null)
-          if (to == null)
+        if (from == null || from.length() == 0)
+          if (to == null || to.length() == 0)
             return new DocIdSet()
             {
               @Override
               public boolean isCacheable()
               {
-                return true;
+                return false;
               }
 
               @Override
@@ -84,11 +130,11 @@ public class RangeFilterConstructor extends FilterConstructor
               }
             };
           else
-            return new TermRangeFilter(field, from, to, false, true).getDocIdSet(reader);
-        else if (to == null)
-          return new TermRangeFilter(field, from, to, true, false).getDocIdSet(reader);
+            return new TermRangeFilter(field, from, to, false, include_upper).getDocIdSet(reader);
+        else if (to == null|| to.length() == 0)
+          return new TermRangeFilter(field, from, to, include_lower, false).getDocIdSet(reader);
 
-        return new TermRangeFilter(field, from, to, true, true).getDocIdSet(reader);
+        return new TermRangeFilter(field, from, to, include_lower, include_upper).getDocIdSet(reader);
       }
     };
   }

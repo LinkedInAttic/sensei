@@ -1,5 +1,7 @@
 package com.sensei.search.query;
 
+import java.util.Iterator;
+
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
@@ -15,7 +17,7 @@ public class TermsQueryConstructor extends QueryConstructor
 {
   public static final String QUERY_TYPE = "terms";
 
-  // "terms" : { // TODO
+  // "terms" : {
   //     "tags" : {
   //         "values" : [ "blue", "pill" ],
   //         "excludes" : ["red"],
@@ -26,7 +28,7 @@ public class TermsQueryConstructor extends QueryConstructor
   // },
 
   @Override
-  protected Query doConstructQuery(JSONObject jsonQuery) throws JSONException
+  protected Query doConstructQuery(JSONObject json) throws JSONException
   {
     String field = null;
     JSONArray values = null, excludes = null;
@@ -34,21 +36,13 @@ public class TermsQueryConstructor extends QueryConstructor
     int minimum_match = 1;
     float boost = 1.0f;
 
-    for (String name : JSONObject.getNames(jsonQuery))
-    {
-      if (OPERATOR_PARAM.equals(name))
-        op = jsonQuery.getString(name);
-      else if (MINIMUM_MATCH_PARAM.equals(name))
-        minimum_match = jsonQuery.getInt(name);
-      else if (BOOST_PARAM.equals(name))
-        boost = (float)jsonQuery.getDouble(name);
-      else
-        field = name;
-    }
-    if (field == null)
-      throw new IllegalArgumentException("no term value specified: " + jsonQuery);
+    Iterator<String> iter = json.keys();
+    if (!iter.hasNext())
+      throw new IllegalArgumentException("no term value specified: " + json);
 
-    Object obj = jsonQuery.get(field);
+    field = iter.next();
+
+    Object obj = json.get(field);
     if (obj instanceof JSONObject)
     {
       values          = ((JSONObject)obj).optJSONArray(VALUES_PARAM);
@@ -62,7 +56,7 @@ public class TermsQueryConstructor extends QueryConstructor
     }
 
     BooleanQuery query = new BooleanQuery();
-    if (values != null)
+    if (values != null && values.length() > 0)
     {
       for (int i=0; i<values.length(); ++i)
       {
@@ -75,6 +69,8 @@ public class TermsQueryConstructor extends QueryConstructor
           query.add(new TermQuery(new Term(field, values.getString(i))), BooleanClause.Occur.SHOULD);
         }
       }
+      if (!AND_PARAM.equals(op))
+        query.setMinimumNumberShouldMatch(minimum_match);
     }
     if (excludes != null)
     {
@@ -84,7 +80,6 @@ public class TermsQueryConstructor extends QueryConstructor
       }
     }
 
-    query.setMinimumNumberShouldMatch(minimum_match);
     query.setBoost(boost);
 
     return query;

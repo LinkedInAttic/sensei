@@ -12,11 +12,11 @@
   "size" : 10,   // default to 10;
   "from" : 0,    //default to 0;   
   
-  // group by parameters   
-  "groupBy" : {
-    "columns" : ["category"],
-    "top" : 3
-  },
+  // group by parameters (currently only support group by one column)
+  "groupBy" : [{
+		"column" : "category",
+		"top" : 3
+	}],
 
   // filters
   "filter" : {
@@ -92,16 +92,12 @@
 			}
 		}
 	},
-
+  
   // sort parameters
-  "sorts":[
-    {"field":"color",  // sort by color in reverse order
-      "order":"asc"
-    },       
-    {"field":"relevance",  // secondary sort by relevance, order  parameter is ignored
-      "order":"desc"
-    },    
-  ],
+	"sort":[
+	    {"color":"desc"},       // sort by color in reverse order
+	    "_score"                     // secondary sort by relevance, reverse  parameter is ignored
+	],
 
   // fetch stored fields
   "fetchStored" : false,

@@ -71,6 +71,7 @@ public interface SenseiSearchServletParams {
 	public static final String PARAM_SYSINFO_NUMDOCS = "numdocs";
 	public static final String PARAM_SYSINFO_LASTMODIFIED = "lastmodified";
 	public static final String PARAM_SYSINFO_VERSION = "version";
+	public static final String PARAM_SYSINFO_SCHEMA = "schema";
 	public static final String PARAM_SYSINFO_FACETS = "facets";
 	public static final String PARAM_SYSINFO_FACETS_NAME = "name";
 	public static final String PARAM_SYSINFO_FACETS_RUNTIME = "runtime";

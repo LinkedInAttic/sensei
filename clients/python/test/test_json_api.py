@@ -76,7 +76,9 @@ class TestJsonAPI(unittest.TestCase):
     }, 
     {
       "term": {
-        "make": "honda"
+        "make": {
+          "value": "honda"
+        }
       }
     }
   ], 
@@ -127,12 +129,16 @@ class TestJsonAPI(unittest.TestCase):
   "selections": [
     {
       "term": {
-        "color": "red"
+        "color": {
+          "value": "red"
+        }
       }
     }, 
     {
       "term": {
-        "year": 1995
+        "year": {
+          "value": 1995
+        }
       }
     }
   ], 
@@ -161,7 +167,9 @@ class TestJsonAPI(unittest.TestCase):
   "selections": [
     {
       "term": {
-        "color": "red"
+        "color": {
+          "value": "red"
+        }
       }
     }
   ], 
@@ -393,7 +401,9 @@ class TestJsonAPI(unittest.TestCase):
   "fetchStored": true, 
   "filter": {
     "term": {
-      "fff": 1234
+      "fff": {
+        "value": 1234
+      }
     }
   }, 
   "from": 0, 
@@ -416,6 +426,201 @@ class TestJsonAPI(unittest.TestCase):
 }""")
 
 
+  def testNotEqual(self):
+    stmt = \
+    """
+    SELECT color, price
+    FROM cars
+    WHERE color <> "red"
+    """
+    req = SenseiRequest(stmt)
+    # print SenseiClient.buildJsonString(req, indent=2)
+    self.assertEqual(SenseiClient.buildJsonString(req, indent=2),
+                     """{
+  "fetchStored": true, 
+  "from": 0, 
+  "selections": [
+    {
+      "terms": {
+        "color": {
+          "_noOptimize": false, 
+          "excludes": [
+            "red"
+          ], 
+          "operator": "or", 
+          "values": []
+        }
+      }
+    }
+  ], 
+  "size": 10
+}""")
+
+  def testKeyword(self):
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    WHERE NOT IN ("red", "blue")  -- 'NOT' here cannot be treated as column name
+    """
+    intactFlag = True
+    try:
+      req = SenseiRequest(stmt)
+      intactFlag = False
+    except ParseException as err:
+      pass
+    finally:
+      self.assertTrue(intactFlag)
+
+  def testNotIn(self):
+    stmt = \
+    """
+    SELECT color, price
+    FROM cars
+    WHERE color NOT IN ("yellow", "green");
+    """
+    req = SenseiRequest(stmt)
+    # print SenseiClient.buildJsonString(req, indent=2)
+    self.assertEqual(SenseiClient.buildJsonString(req, indent=2),
+                     """{
+  "fetchStored": true, 
+  "from": 0, 
+  "selections": [
+    {
+      "terms": {
+        "color": {
+          "_noOptimize": false, 
+          "excludes": [
+            "yellow", 
+            "green"
+          ], 
+          "operator": "or", 
+          "values": []
+        }
+      }
+    }
+  ], 
+  "size": 10
+}""")
+
+  def testLiterals(self):
+    stmt = \
+    """
+    SELECT *
+    FROM people
+    WHERE age in (20, 30, "40")         -- Now we accept both string and integer
+      AND last_name = "Cui"
+    """
+    req = SenseiRequest(stmt)
+    # print SenseiClient.buildJsonString(req, indent=2),
+    self.assertEqual(SenseiClient.buildJsonString(req, indent=2),
+                     """{
+  "fetchStored": true, 
+  "from": 0, 
+  "selections": [
+    {
+      "terms": {
+        "age": {
+          "_noOptimize": false, 
+          "excludes": [], 
+          "operator": "or", 
+          "values": [
+            20, 
+            30, 
+            "40"
+          ]
+        }
+      }
+    }, 
+    {
+      "term": {
+        "last_name": {
+          "value": "Cui"
+        }
+      }
+    }
+  ], 
+  "size": 10
+}""")
+
+  def testOrderBy(self):
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    ORDER BY year desc, price
+    """
+    req = SenseiRequest(stmt)
+    # print SenseiClient.buildJsonString(req, indent=2),
+    self.assertEqual(SenseiClient.buildJsonString(req, indent=2),
+                     """{
+  "fetchStored": true, 
+  "from": 0, 
+  "size": 10, 
+  "sort": [
+    {
+      "year": "desc"
+    }, 
+    {
+      "price": "asc"
+    }
+  ]
+}""")
+
+  def testOrderByRelevance(self):
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    ORDER BY relevance
+    """
+    req = SenseiRequest(stmt)
+    # print SenseiClient.buildJsonString(req, indent=2),
+    self.assertEqual(SenseiClient.buildJsonString(req, indent=2),
+                     """{
+  "fetchStored": true, 
+  "from": 0, 
+  "size": 10, 
+  "sort": [
+    "_score"
+  ]
+}""")
+
+  def testOrderByRelevanceDesc(self):
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    ORDER BY relevance desc
+    """
+    # Make sure we do not allow anything to follow "relevance"
+    intactFlag = True
+    try:
+      req = SenseiRequest(stmt)
+      intactFlag = False
+    except ParseSyntaxException as err:
+      pass
+    finally:
+      self.assertTrue(intactFlag)
+
+  def testWhereConditions(self):
+    stmt = \
+    """
+    SELECT color, year, tags, price
+    FROM cars
+    WHERE query is "cool"
+      AND color in ("gold", "green", "blue") EXCEPT ("black")
+      AND year in ("[1996 TO 1997]", "[2002 TO 2003]") WITH ("aaa":"111", "bbb":"222")
+      and tags contains all ("hybrid", "favorite")
+    ORDER BY price desc
+    LIMIT 5, 20
+    """
+    req = SenseiRequest(stmt)
+    print SenseiClient.buildJsonString(req, indent=2),
+    # self.assertEqual(SenseiClient.buildJsonString(req, indent=2),
+
+
+
 if __name__ == "__main__":
     unittest.main()
 
@@ -428,7 +633,8 @@ if __name__ == "__main__":
     WHERE QUERY IS "cool AND moon-roof"
     """
     req = SenseiRequest(stmt)
-    # print SenseiClient.buildJsonString(req, indent=2),
-    self.assertEqual(SenseiClient.buildJsonString(req, indent=2),
-    """"""
+    print SenseiClient.buildJsonString(req, indent=2),
+    # self.assertEqual(SenseiClient.buildJsonString(req, indent=2),
+    """...
+    """
 '''
