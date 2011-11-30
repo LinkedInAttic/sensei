@@ -29,7 +29,9 @@
         "range":{
 			"year":{
 			    "to":"2009",   //if there is no such key (upper, or lower), it returns "*";   
-			    "from":"2000"
+			    "from":"2000",
+			    "include_lower":true,    //by default 'include_lower' and 'include_upper' are set to true;
+			    "include_upper":false
 			}         
         }
     },

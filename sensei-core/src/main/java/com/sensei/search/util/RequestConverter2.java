@@ -305,7 +305,15 @@ public class RequestConverter2 {
         
         String upper = jsonParams.optString("to", "*");
         String lower = jsonParams.optString("from", "*");
-        String range = "["+ lower + " TO " + upper + "]";
+        boolean includeUpper = jsonParams.optBoolean("include_upper", true);
+        boolean includeLower = jsonParams.optBoolean("include_lower", true);
+        String left = "[", right = "]";
+        if(includeLower == false)
+          left = "(";
+        if(includeUpper == false)
+          right = ")";
+        
+        String range = left + lower + " TO " + upper + right;
         if(facet!= null )
         {
           BrowseSelection sel = new BrowseSelection(facet);
