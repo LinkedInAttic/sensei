@@ -8,6 +8,7 @@ import org.json.JSONObject;
 import org.springframework.context.ApplicationContext;
 
 import proj.zoie.impl.indexing.StreamDataProvider;
+import proj.zoie.impl.indexing.ZoieConfig;
 
 import com.sensei.dataprovider.file.LinedJsonFileDataProvider;
 import com.sensei.indexing.api.DataSourceFilter;
@@ -16,16 +17,22 @@ import com.sensei.indexing.api.gateway.SenseiGateway;
 public  class LinedFileDataProviderBuilder extends SenseiGateway<String>{
 
 	public static final String name = "file";
+	private Comparator<String> _versionComparator;
+	public LinedFileDataProviderBuilder(Configuration conf){
+	  super(conf);
+	  _versionComparator = ZoieConfig.DEFAULT_VERSION_COMPARATOR;
+	}
 	
 	@Override
-	public StreamDataProvider<JSONObject> buildDataProvider(
-			Configuration conf,DataSourceFilter<String> dataFilter,Comparator<String> versionComparator,
+	public StreamDataProvider<JSONObject> buildDataProvider(DataSourceFilter<String> dataFilter,
 			String oldSinceKey,ApplicationContext plugin) throws Exception{
-		String path = conf.getString("path");
+	  
+	  Configuration myConf = _conf.subset(name);
+		String path = myConf.getString("path");
 		long offset = oldSinceKey == null ? 0L : Long.parseLong(oldSinceKey);
 		
 		
-		LinedJsonFileDataProvider provider = new LinedJsonFileDataProvider(versionComparator, new File(path), offset);
+		LinedJsonFileDataProvider provider = new LinedJsonFileDataProvider(_versionComparator, new File(path), offset);
 		if (dataFilter!=null){
 		  provider.setFilter(dataFilter);
 		}
@@ -36,4 +43,9 @@ public  class LinedFileDataProviderBuilder extends SenseiGateway<String>{
 	public String getName() {
 		return name;
 	}
+
+  @Override
+  public Comparator<String> getVersionComparator() {
+    return _versionComparator;
+  }
 }

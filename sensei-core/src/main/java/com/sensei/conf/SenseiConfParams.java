@@ -36,6 +36,8 @@ public interface SenseiConfParams {
 	public static final String SENSEI_QUERY_BUILDER_FACTORY = "sensei.query.builder.factory";
 	public static final String SENSEI_INDEX_MANAGER = "sensei.index.manager";
 	public static final String SENSEI_INDEX_MANAGER_FILTER = "sensei.index.manager.default.filter";
+	
+	public static final String SENSEI_GATEWAY = "sensei.gateway";
 
 	public static final String SENSEI_VERSION_COMPARATOR = "sensei.version.comparator";
 

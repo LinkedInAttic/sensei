@@ -17,6 +17,7 @@ import proj.zoie.dataprovider.jms.DataEventBuilder;
 import proj.zoie.dataprovider.jms.JMSStreamDataProvider;
 import proj.zoie.dataprovider.jms.TopicFactory;
 import proj.zoie.impl.indexing.StreamDataProvider;
+import proj.zoie.impl.indexing.ZoieConfig;
 
 import com.sensei.indexing.api.DataSourceFilter;
 import com.sensei.indexing.api.gateway.SenseiGateway;
@@ -24,22 +25,29 @@ import com.sensei.indexing.api.gateway.SenseiGateway;
 public class JmsDataProviderBuilder extends SenseiGateway<Message>{
 
 	public static final String name = "jms";
+  private final Comparator<String> _versionComparator;
 	
 	private final AtomicLong _version = new AtomicLong();
+	
+	public JmsDataProviderBuilder(Configuration conf){
+	  super(conf);
+	  _versionComparator = ZoieConfig.DEFAULT_VERSION_COMPARATOR;
+	}
+	
 	@Override
 	public String getName() {
 		return name;
 	}
 
 	@Override
-	public StreamDataProvider<JSONObject> buildDataProvider(
-			Configuration conf, final DataSourceFilter<Message> dataFilter,Comparator<String> versionComparator,
+	public StreamDataProvider<JSONObject> buildDataProvider(final DataSourceFilter<Message> dataFilter,
 			String oldSinceKey,ApplicationContext plugin) throws Exception{
 
-		_version.set(Long.parseLong(oldSinceKey));
-	    final String topic = conf.getString("topic");
-	    final String clientID = conf.getString("clientId",null);
-	    final String topicFac = conf.getString("topicFactory");
+	    Configuration myConf = _conf.subset(name);
+		  _version.set(Long.parseLong(oldSinceKey));
+	    final String topic = myConf.getString("topic");
+	    final String clientID = myConf.getString("clientId",null);
+	    final String topicFac = myConf.getString("topicFactory");
 	    
 	    TopicFactory topicFactory = (TopicFactory)plugin.getBean(topicFac);
 	    
@@ -68,8 +76,15 @@ public class JmsDataProviderBuilder extends SenseiGateway<Message>{
 	    	
 		};
 	    
-		JMSStreamDataProvider<JSONObject> provider = new JMSStreamDataProvider<JSONObject>(topic, clientID, connectionFactory, topicFactory, dataEventBuilder, versionComparator);
+		JMSStreamDataProvider<JSONObject> provider = new JMSStreamDataProvider<JSONObject>(topic, clientID, connectionFactory, topicFactory, dataEventBuilder, _versionComparator);
 		return provider;
 	}
+
+  @Override
+  public Comparator<String> getVersionComparator() {
+    return _versionComparator;
+  }
+	
+	
 	
 }

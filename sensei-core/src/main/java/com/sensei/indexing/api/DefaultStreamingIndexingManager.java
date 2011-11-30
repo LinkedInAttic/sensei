@@ -43,8 +43,6 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 	
 	private static final String MAX_PARTITION_ID = "maxpartition.id";
 	
-	private static final String PROVIDER_TYPE = "type";
-	
 	private static final String EVTS_PER_MIN = "eventsPerMin";
 	
 	private static final String BATCH_SIZE = "batchSize";
@@ -60,10 +58,11 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 	
 	private Map<Integer, Zoie<BoboIndexReader, JSONObject>> _zoieSystemMap;
 	private final LinkedHashMap<Integer, Collection<DataEvent<JSONObject>>> _dataCollectorMap;
-  private final Comparator<String> _versionComparator;
-    private final ShardingStrategy _shardingStrategy;
+	private final SenseiGateway<?> _gateway;
+  private final ShardingStrategy _shardingStrategy;
+  private final Comparator<String> _versionComparator;  
 	
-	public DefaultStreamingIndexingManager(SenseiSchema schema,Configuration senseiConfig, ApplicationContext pluginContext, Comparator<String> versionComparator){
+	public DefaultStreamingIndexingManager(SenseiSchema schema,Configuration senseiConfig, ApplicationContext pluginContext, SenseiGateway<?> gateway){
 	  _dataProvider = null;
 	  _myconfig = senseiConfig.subset(CONFIG_PREFIX);
     _pluginContext = pluginContext;
@@ -71,7 +70,9 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 	  _senseiSchema = schema;
 	  _zoieSystemMap = null;
 	  _dataCollectorMap = new LinkedHashMap<Integer, Collection<DataEvent<JSONObject>>>();
-    _versionComparator = versionComparator;
+	  _gateway = gateway;
+	  
+	  _versionComparator = _gateway.getVersionComparator();
     
       String shardingStrategyName = _myconfig.getString(SHARDING_STRATEGY);
     
@@ -127,21 +128,10 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
   }
 	
 	private StreamDataProvider<JSONObject> buildDataProvider() throws ConfigurationException{
-		String type = _myconfig.getString(PROVIDER_TYPE);
 		StreamDataProvider<JSONObject> dataProvider = null;
 
-		Configuration conf = _myconfig.subset(type);
-		
-		SenseiGateway<?> builder = SenseiGatewayRegistry.getDataProviderBuilder(type);
-		if (builder==null){
-			builder = (SenseiGateway<?>)_pluginContext.getBean(type);
-			if (builder == null){
-			  throw new ConfigurationException("unsupported provider type: "+type);
-			}
-		}
-
 		try{
-		  dataProvider = builder.buildDataProvider(conf, _senseiSchema, _versionComparator, _oldestSinceKey, _pluginContext);
+		  dataProvider = _gateway.buildDataProvider(_senseiSchema, _oldestSinceKey, _pluginContext);
       long maxEventsPerMin = _myconfig.getLong(EVTS_PER_MIN,40000);
       dataProvider.setMaxEventsPerMinute(maxEventsPerMin);
       int batchSize = _myconfig.getInt(BATCH_SIZE,1);

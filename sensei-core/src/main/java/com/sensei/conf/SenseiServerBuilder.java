@@ -6,10 +6,12 @@ import it.unimi.dsi.fastutil.ints.IntSet;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.lang.reflect.Constructor;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
@@ -62,6 +64,8 @@ import com.sensei.indexing.api.CustomIndexingPipeline;
 import com.sensei.indexing.api.DefaultJsonSchemaInterpreter;
 import com.sensei.indexing.api.DefaultStreamingIndexingManager;
 import com.sensei.indexing.api.SenseiIndexPruner;
+import com.sensei.indexing.api.gateway.SenseiGateway;
+import com.sensei.indexing.api.gateway.SenseiGatewayRegistry;
 import com.sensei.search.client.servlet.DefaultSenseiJSONServlet;
 import com.sensei.search.client.servlet.SenseiConfigServletContextListener;
 import com.sensei.search.client.servlet.SenseiHttpInvokerServiceServlet;
@@ -98,7 +102,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
   private final JSONObject _schemaDoc;
   private final SenseiSchema  _senseiSchema;
   private final Server _jettyServer;
-  private final Comparator<String> _versionComparator;
+  private final SenseiGateway _gateway;
   
   private static ApplicationContext loadSpringContext(File confFile){
     ApplicationContext springCtx = null;
@@ -181,7 +185,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
     //}
     //senseiApp.setInitParams(initParam);
     senseiApp.setAttribute("sensei.search.configuration", _senseiConf);
-    senseiApp.setAttribute("sensei.search.version.comparator", _versionComparator);
+    senseiApp.setAttribute("sensei.search.version.comparator", _gateway.getVersionComparator());
 
     SenseiLoadBalancerFactory routerFactory = null;
     String routerFactoryName = _senseiConf.getString(SERVER_SEARCH_ROUTER_FACTORY, "");
@@ -246,17 +250,13 @@ public class SenseiServerBuilder implements SenseiConfParams{
       ((PropertiesConfiguration)_senseiConf).setDelimiterParsingDisabled(true);
       ((PropertiesConfiguration)_senseiConf).load(_senseiConfFile);
     }
+    
+    _gateway = constructGateway(_senseiConf);
 
     if (pluginContext != null)
       _pluginContext = pluginContext;
     else
       _pluginContext = loadSpringContext(new File(confDir,PLUGINS));
-
-    String versionComparatorName = _senseiConf.getString(SENSEI_VERSION_COMPARATOR, "");
-    if (versionComparatorName == null || versionComparatorName.equals(""))
-      _versionComparator = ZoieConfig.DEFAULT_VERSION_COMPARATOR;
-    else
-      _versionComparator = (Comparator<String>) _pluginContext.getBean(versionComparatorName);
 
     if (customFacetContext != null)
       _customFacetContext = customFacetContext;
@@ -291,11 +291,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
     //TODO: conditionally load other contexts.
     _pluginContext = pluginContext;
 
-    String versionComparatorName = _senseiConf.getString(SENSEI_VERSION_COMPARATOR, "");
-    if (versionComparatorName == null || versionComparatorName.equals(""))
-      _versionComparator = ZoieConfig.DEFAULT_VERSION_COMPARATOR;
-    else
-      _versionComparator = (Comparator<String>) _pluginContext.getBean(versionComparatorName);
+    _gateway = constructGateway(_senseiConf);
 
     _customFacetContext = customFacetContext;
     
@@ -370,6 +366,32 @@ public class SenseiServerBuilder implements SenseiConfParams{
     return partitions.toIntArray();
   }
   
+  private SenseiGateway constructGateway(Configuration conf) throws ConfigurationException{
+    Configuration subConf = conf.subset(SENSEI_GATEWAY);
+    Class gatewayClass = null;
+    try{
+      String type = subConf.getString("type");
+      if ("custom".equals(type)){
+        Configuration customConf = subConf.subset("custom");
+        String clz = customConf.getString("class");
+        gatewayClass = Class.forName(clz);
+      }
+      else{
+        gatewayClass = SenseiGatewayRegistry.getGatewayClass(type);
+      }
+      if (gatewayClass==null){
+        throw new ConfigurationException("unsupported provider type: "+type);
+      }
+    
+      Constructor constructor = gatewayClass.getConstructor(Configuration.class); 
+      SenseiGateway gateway = (SenseiGateway)(constructor.newInstance(subConf));
+      return gateway;
+    }
+    catch(Exception e){
+      throw new ConfigurationException(e.getMessage(),e);
+    }
+  }
+  
   public SenseiCore buildCore() throws ConfigurationException{
     int nodeid = _senseiConf.getInt(NODE_ID);
     String partStr = _senseiConf.getString(PARTITIONS);
@@ -396,7 +418,8 @@ public class SenseiServerBuilder implements SenseiConfParams{
       else {
         similarity = (Similarity)_pluginContext.getBean(similarityName);
       }
-      ZoieConfig zoieConfig = new ZoieConfig(_versionComparator);
+      
+      ZoieConfig zoieConfig = new ZoieConfig(_gateway.getVersionComparator());
       
       zoieConfig.setAnalyzer(analyzer);
       zoieConfig.setSimilarity(similarity);
@@ -441,7 +464,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
         }
       }
       
-      String indexerType = _senseiConf.getString(SENSEI_INDEXER_TYPE);
+      String indexerType = _senseiConf.getString(SENSEI_INDEXER_TYPE,"zoie");
       
       String interpreterType = _senseiConf.getString(SENSEI_INDEX_INTERPRETER,"");
       
@@ -515,7 +538,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
       
       if (idxMgrType.length()==0){
         String uidField = _senseiSchema.getUidField();
-        indexingManager = new DefaultStreamingIndexingManager(_senseiSchema,_senseiConf, _pluginContext, _versionComparator);
+        indexingManager = new DefaultStreamingIndexingManager(_senseiSchema,_senseiConf, _pluginContext, _gateway);
       }
       else{
         indexingManager = (SenseiIndexingManager)_pluginContext.getBean(idxMgrType);  
@@ -551,7 +574,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
   }
 
   public Comparator<String> getVersionComparator() {
-    return _versionComparator;
+    return _gateway.getVersionComparator();
   }
   
   public SenseiServer buildServer() throws ConfigurationException { 
@@ -564,21 +587,24 @@ public class SenseiServerBuilder implements SenseiConfParams{
 
     SenseiCore core = buildCore();
 
+    List<AbstractSenseiCoreService<AbstractSenseiRequest, AbstractSenseiResult>> svcList = Collections.EMPTY_LIST;
     String externalServices = _senseiConf.getString(SENSEI_PLUGIN_SVCS);
-    String[] externalServicList = externalServices.split("[,\\s]+");
-    List<AbstractSenseiCoreService<AbstractSenseiRequest, AbstractSenseiResult>> svcList = new LinkedList<AbstractSenseiCoreService<AbstractSenseiRequest, AbstractSenseiResult>>();
-    if (externalServicList!=null){
-      for (String svcName : externalServicList){
-        if (svcName!=null && svcName.trim().length()>0){
-          try{
-          AbstractSenseiCoreService<AbstractSenseiRequest, AbstractSenseiResult> svc = (AbstractSenseiCoreService<AbstractSenseiRequest, AbstractSenseiResult>)_pluginContext.getBean(svcName);
-          svcList.add(svc);
-          }
-          catch(Exception e){
-          throw new ConfigurationException(e.getMessage(),e);
+    if (externalServices != null){
+      String[] externalServicList = externalServices.split("[,\\s]+");
+      svcList = new LinkedList<AbstractSenseiCoreService<AbstractSenseiRequest, AbstractSenseiResult>>();
+      if (externalServicList!=null){
+        for (String svcName : externalServicList){
+          if (svcName!=null && svcName.trim().length()>0){
+            try{
+              AbstractSenseiCoreService<AbstractSenseiRequest, AbstractSenseiResult> svc = (AbstractSenseiCoreService<AbstractSenseiRequest, AbstractSenseiResult>)_pluginContext.getBean(svcName);
+              svcList.add(svc);
+            }
+            catch(Exception e){
+              throw new ConfigurationException(e.getMessage(),e);
+            }
           }
         }
-      }
+      }  
     }
   return new SenseiServer(port,networkServer,clusterClient,core,svcList);
   }
