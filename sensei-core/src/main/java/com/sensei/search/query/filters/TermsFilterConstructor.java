@@ -1,5 +1,7 @@
 package com.sensei.search.query.filters;
 
+import java.util.Iterator;
+
 import org.apache.lucene.search.Filter;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -12,38 +14,35 @@ public class TermsFilterConstructor extends FilterConstructor{
   @Override
   protected Filter doConstructFilter(Object obj) throws Exception {
     JSONObject json = (JSONObject)obj;
-    boolean noOptimize = json.optBoolean(NOOPTIMIZE_PARAM,false);
+
+    Iterator<String> iter = json.keys();
+    if (!iter.hasNext())
+      return null;
+
+    String field = iter.next();
+
+    boolean noOptimize = false;
     
-    String[] names = JSONObject.getNames(json);
-    String termName = null;
-    for (String name : names){
-      if (!name.equals(NOOPTIMIZE_PARAM)){
-        termName = name;
-        break;
-      }
-    }
-    
-    if (termName == null) throw new IllegalArgumentException("no term name specified: "+json);
-    
-    obj = json.opt(termName);
+    obj = json.get(field);
     if (obj == null){
       throw new IllegalArgumentException("no term value specified: "+json);
     }
     if (obj instanceof JSONArray){
       JSONArray jsonArray = (JSONArray)obj;
       String[] vals = RequestConverter2.getStrings(jsonArray);
-      return new SenseiTermFilter(termName, vals, null, false, noOptimize);  
+      return new SenseiTermFilter(field, vals, null, false, noOptimize);  
     }
     else if (obj instanceof JSONObject){
       JSONObject jsonObj = (JSONObject)obj;
       String[] vals = RequestConverter2.getStrings(jsonObj, VALUES_PARAM);
       String[] notVals = RequestConverter2.getStrings(jsonObj, EXCLUDES_PARAM);
       String op = jsonObj.optString(OPERATOR_PARAM, OR_PARAM);
+      noOptimize = jsonObj.optBoolean(NOOPTIMIZE_PARAM, false);
       boolean isAnd = false;
       if (!OR_PARAM.equals(op)){
         isAnd = true;
       }
-      return new SenseiTermFilter(termName, vals, notVals, isAnd, noOptimize);
+      return new SenseiTermFilter(field, vals, notVals, isAnd, noOptimize);
     }
     else{
       throw new IllegalArgumentException("invalid term value specified: "+json);

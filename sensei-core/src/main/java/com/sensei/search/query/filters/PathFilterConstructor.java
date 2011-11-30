@@ -70,7 +70,7 @@ public class PathFilterConstructor extends FilterConstructor
                 @Override
                 public boolean isCacheable()
                 {
-                  return true;
+                  return false;
                 }
 
                 @Override

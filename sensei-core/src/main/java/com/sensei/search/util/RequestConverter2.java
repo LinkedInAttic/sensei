@@ -130,6 +130,8 @@ public class RequestConverter2 {
 	  }
 	  
 	  public static String[] getStrings(JSONArray jsonArray) throws Exception{
+      if (jsonArray == null)
+        return null;
 		  int count = jsonArray.length();
 		  String[] vals = new String[count];
 		  for (int i=0;i<count;++i){
@@ -320,7 +322,7 @@ public class RequestConverter2 {
       if(iter.hasNext()){
         String facet = iter.next();
         JSONObject jsonParams = jsonSel.optJSONObject(facet);
-        String value = jsonParams.optString(RequestConverter2.SELECTIONS_TERM_VALUE);
+        String value = jsonParams.optString(RequestConverter2.SELECTIONS_TERM_VALUE, null);
         if(facet!= null && value != null)
         {
           BrowseSelection sel = new BrowseSelection(facet);
@@ -395,7 +397,7 @@ public class RequestConverter2 {
         String facet = iter.next();
         JSONObject jsonParams = jsonSel.optJSONObject(facet);
         
-        String value = jsonParams.optString(RequestConverter2.SELECTIONS_PATH_VALUE);
+        String value = jsonParams.optString(RequestConverter2.SELECTIONS_PATH_VALUE, null);
 
         if(facet != null && value != null){
           BrowseSelection sel = new BrowseSelection(facet);

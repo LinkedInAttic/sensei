@@ -2,6 +2,7 @@ package com.sensei.search.query;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.Iterator;
 
 import org.apache.log4j.Logger;
 import org.apache.lucene.analysis.Analyzer;
@@ -40,28 +41,30 @@ public class TextQueryConstructor extends QueryConstructor
   }
 
   @Override
-  protected Query doConstructQuery(JSONObject jsonQuery) throws JSONException
+  protected Query doConstructQuery(JSONObject json) throws JSONException
   {
     String op = null;
     String type = null;
     String field = null;
     String text = null;
 
-    for (String name : JSONObject.getNames(jsonQuery))
-    {
-      if (OPERATOR_PARAM.equals(name))
-        op = jsonQuery.getString(name);
-      else if (TYPE_PARAM.equals(name))
-        type = jsonQuery.getString(name);
-      else
-      {
-        field = name;
-        text = jsonQuery.getString(name);
-      }
-    }
+    Iterator<String> iter = json.keys();
+    if (!iter.hasNext())
+      throw new IllegalArgumentException("text field not fould");
 
-    if (field == null || text == null || field.length() == 0 || text.length() == 0)
-      throw new JSONException("text field not found");
+    field = iter.next();
+
+    Object obj = json.get(field);
+    if (obj instanceof JSONObject)
+    {
+      text = ((JSONObject)obj).getString(VALUE_PARAM);
+      op   = ((JSONObject)obj).optString(OPERATOR_PARAM);
+      type = ((JSONObject)obj).optString(TYPE_PARAM);
+    }
+    else
+    {
+      text = String.valueOf(obj);
+    }
 
     TokenStream tokenStream = _analyzer.tokenStream(field, new StringReader(text));
     TermAttribute termAttribute = tokenStream.getAttribute(TermAttribute.class);

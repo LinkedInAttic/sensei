@@ -1,5 +1,7 @@
 package com.sensei.search.query;
 
+import java.util.Iterator;
+
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.WildcardQuery;
@@ -10,7 +12,7 @@ public class WildcardQueryConstructor extends QueryConstructor {
 
   public static final String QUERY_TYPE = "wildcard";
 	@Override
-  protected Query doConstructQuery(JSONObject jsonQuery) throws JSONException
+  protected Query doConstructQuery(JSONObject json) throws JSONException
   {
 
 //		   "wildcard" : { 
@@ -19,20 +21,23 @@ public class WildcardQueryConstructor extends QueryConstructor {
 //	       // or 
 //	       //"user" : { "value" : "ki*y", "boost" : 2.0 } 
 //	   },
-		
-		
-		String field = (String)(jsonQuery.keys().next());
+
+    Iterator<String> iter = json.keys();
+    if (!iter.hasNext())
+      throw new IllegalArgumentException("no term value specified: " + json);
+
+		String field = iter.next();
 		String wildcard = null;
-		Object value = jsonQuery.get(field);
+		Object obj = json.get(field);
 		
-		if(value instanceof JSONObject){
-			wildcard = ((JSONObject)value).optString(VALUE_PARAM, "");
-			float boost = (float)((JSONObject)value).optDouble(BOOST_PARAM, 2.0);
+		if(obj instanceof JSONObject){
+			wildcard = ((JSONObject)obj).optString(VALUE_PARAM, "");
+			float boost = (float)((JSONObject)obj).optDouble(BOOST_PARAM, 2.0);
 			Query query = new WildcardQuery(new Term(field, wildcard));
 			query.setBoost(boost);
 			return query;
 		}else{
-			wildcard = (String) value;
+			wildcard = String.valueOf(obj);
 			return new WildcardQuery(new Term(field, wildcard));
 		}
 	}
