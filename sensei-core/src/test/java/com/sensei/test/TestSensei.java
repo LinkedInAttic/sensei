@@ -560,7 +560,7 @@ public class TestSensei extends AbstractSenseiTestCase
   public void testTextQuery() throws Exception
   {
     logger.info("executing test case testTextQuery");
-    String req = "{\"query\": {\"text\": {\"contents\": \"red cool\", \"operator\": \"and\"}}}";
+    String req = "{\"query\": {\"text\": {\"contents\": { \"value\": \"red cool\", \"operator\": \"and\"}}}}";
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 1070, res.getInt("numhits"));
   }
