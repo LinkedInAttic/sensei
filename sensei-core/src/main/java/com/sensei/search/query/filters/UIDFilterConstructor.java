@@ -22,7 +22,7 @@ public class UIDFilterConstructor  extends FilterConstructor{
     final JSONObject json = (JSONObject)obj;
     return new Filter(){
 
-        @Override
+      @Override
       public DocIdSet getDocIdSet(IndexReader reader)
           throws IOException {
         if (reader instanceof BoboIndexReader){
@@ -34,12 +34,14 @@ public class UIDFilterConstructor  extends FilterConstructor{
               String[] vals = RequestConverter2.getStrings(json.optJSONArray(VALUES_PARAM));
               String[] nots = RequestConverter2.getStrings(json.optJSONArray(EXCLUDES_PARAM));
               BrowseSelection uidSel = new BrowseSelection(SenseiFacetHandlerBuilder.UID_FACET_NAME);
-              uidSel.setValues(vals);
-              uidSel.setNotValues(nots);
+              if (vals != null)
+                uidSel.setValues(vals);
+              if (nots != null)
+                uidSel.setNotValues(nots);
               return uidFacet.buildFilter(uidSel).getDocIdSet(boboReader);
             }
             catch(Exception e){
-              throw new IOException(e.getMessage());
+              throw new IOException(e);
             }
           }
           else{

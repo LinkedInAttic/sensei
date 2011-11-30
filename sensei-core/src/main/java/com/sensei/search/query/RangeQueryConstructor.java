@@ -30,7 +30,9 @@ public class RangeQueryConstructor extends QueryConstructor
     Filter filter = null;
     try
     {
-      filter = FilterConstructor.constructFilter(jsonQuery, null/* QueryParser is not used by this filter */);
+      JSONObject newJson = new JSONObject();
+      newJson.put(QUERY_TYPE, jsonQuery);
+      filter = FilterConstructor.constructFilter(newJson, null/* QueryParser is not used by this filter */);
     }
     catch(Exception e)
     {

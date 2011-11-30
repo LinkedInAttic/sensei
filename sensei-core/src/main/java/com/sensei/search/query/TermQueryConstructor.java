@@ -1,5 +1,7 @@
 package com.sensei.search.query;
 
+import java.util.Iterator;
+
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TermQuery;
@@ -19,11 +21,15 @@ public class TermQueryConstructor extends QueryConstructor
   // },
 
   @Override
-  protected Query doConstructQuery(JSONObject jsonQuery) throws JSONException
+  protected Query doConstructQuery(JSONObject json) throws JSONException
   {
-    String field = (String)(jsonQuery.keys().next());
+    Iterator<String> iter = json.keys();
+    if (!iter.hasNext())
+      throw new IllegalArgumentException("no term value specified: " + json);
 
-    Object obj = jsonQuery.get(field);
+    String field = iter.next();
+
+    Object obj = json.get(field);
 
     String txt;
     float boost;

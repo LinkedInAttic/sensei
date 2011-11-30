@@ -64,6 +64,8 @@ public class RequestConverter2 {
 	  }
 	  
 	  public static String[] getStrings(JSONArray jsonArray) throws Exception{
+      if (jsonArray == null)
+        return null;
 		  int count = jsonArray.length();
 		  String[] vals = new String[count];
 		  for (int i=0;i<count;++i){
@@ -87,15 +89,19 @@ public class RequestConverter2 {
 		
 		
 	    // group by
-	    JSONObject groupBy = json.optJSONObject("groupBy");
-	    if (groupBy != null)
+	    JSONArray groupBy = json.optJSONArray("groupBy");
+	    if(groupBy != null)
 	    {
-	      JSONArray columns = groupBy.optJSONArray("columns");
-	      if (columns != null && columns.length() >= 1)
+	      for(int i=0; i< groupBy.length(); i++)
 	      {
-	        req.setGroupBy(columns.getString(0));
+	        JSONObject item = groupBy.optJSONObject(i);
+	        if(item != null){
+	          String column = item.optString("column", null);
+	          int top = item.optInt("top", 1);
+	          req.setGroupBy(column);
+	          req.setMaxPerGroup(top);
+	        }
 	      }
-	      req.setMaxPerGroup(groupBy.optInt("top", groupBy.optInt("count", 1)));
 	    }
 		
 		// selections
@@ -250,7 +256,7 @@ public class RequestConverter2 {
       if(iter.hasNext()){
         String facet = iter.next();
         JSONObject jsonParams = jsonSel.optJSONObject(facet);
-        String value = jsonParams.optString("value");
+        String value = jsonParams.optString("value", null);
         if(facet!= null && value != null)
         {
           BrowseSelection sel = new BrowseSelection(facet);
@@ -317,7 +323,7 @@ public class RequestConverter2 {
         String facet = iter.next();
         JSONObject jsonParams = jsonSel.optJSONObject(facet);
         
-        String value = jsonParams.optString("value");
+        String value = jsonParams.optString("value", null);
 
         if(facet != null && value != null){
           BrowseSelection sel = new BrowseSelection(facet);
