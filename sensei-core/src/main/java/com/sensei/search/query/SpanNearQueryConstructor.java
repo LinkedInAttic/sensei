@@ -30,11 +30,18 @@ public class SpanNearQueryConstructor extends QueryConstructor {
 //        "collect_payloads" : false
 //    },
 		
+	    String fieldCheck = null;
 		JSONArray jsonArray = jsonQuery.getJSONArray(CLAUSES_PARAM);
 		ArrayList<SpanTermQuery> clausesList = new ArrayList<SpanTermQuery>();
 		for(int i = 0; i<jsonArray.length(); i++){
 			JSONObject json = jsonArray.getJSONObject(i).getJSONObject(SPAN_TERM_PARAM);
 			String field = (String)(json.keys().next());
+			
+            if(fieldCheck == null)
+              fieldCheck = field;
+            else if( !fieldCheck.equals(field))
+              throw new IllegalArgumentException("Clauses must have same field: " + jsonQuery);
+
 			String value = (String)json.get(field);
 			clausesList.add(new SpanTermQuery(new Term(field, value)));
 		}

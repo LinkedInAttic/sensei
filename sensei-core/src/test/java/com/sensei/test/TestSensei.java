@@ -626,6 +626,15 @@ public class TestSensei extends AbstractSenseiTestCase
     assertEquals("numhits is wrong", 2160, res.getInt("numhits"));
   }
   
+  public void testTermsQuery() throws Exception
+  {
+    logger.info("executing test case testTermQuery");
+    String req = "{\"query\":{\"terms\":{\"tags\":{\"values\":[\"leather\",\"moon-roof\"],\"excludes\":[\"hybrid\"],\"minimum_match\":0,\"operator\":\"or\"}}}}";
+    JSONObject res = search(new JSONObject(req));
+    assertEquals("numhits is wrong", 5777, res.getInt("numhits"));
+  }
+  
+  
   public void testBooleanQuery() throws Exception
   {
     logger.info("executing test case testBooleanQuery");
@@ -644,6 +653,16 @@ public class TestSensei extends AbstractSenseiTestCase
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 3264, res.getInt("numhits"));
   }
+  
+//  public void testPathQuery() throws Exception
+//  {
+//    //color red ==> 2160
+//    //color blue ==> 1104
+//    logger.info("executing test case testDistMaxQuery");
+//    String req = "{\"query\":{\"dis_max\":{\"tie_breaker\":0.7,\"queries\":[{\"term\":{\"color\":\"red\"}},{\"term\":{\"color\":\"blue\"}}],\"boost\":1.2}}}";
+//    JSONObject res = search(new JSONObject(req));
+//    assertEquals("numhits is wrong", 3264, res.getInt("numhits"));
+//  }
   
   public void testPrefixQuery() throws Exception
   {
@@ -664,7 +683,89 @@ public class TestSensei extends AbstractSenseiTestCase
     assertEquals("numhits is wrong", 1104, res.getInt("numhits"));
   }
   
+  public void testRangeQuery() throws Exception
+  {
+    logger.info("executing test case testRangeQuery");
+    String req = "{\"query\":{\"range\":{\"year\":{\"to\":2000,\"boost\":2,\"from\":1999,\"_noOptimize\":false}}}}";
+    JSONObject res = search(new JSONObject(req));
+    assertEquals("numhits is wrong", 3015, res.getInt("numhits"));
+  }
   
+//  public void testRangeQuery2() throws Exception
+//  {
+//    logger.info("executing test case testRangeQuery2");
+//    String req = "{\"query\":{\"range\":{\"year\":{\"to\":2000,\"boost\":2,\"from\":1999,\"_noOptimize\":true}}}}";
+//    JSONObject res = search(new JSONObject(req));
+//    assertEquals("numhits is wrong", 3015, res.getInt("numhits"));
+//  }
+  
+  
+  public void testFilteredQuery() throws Exception
+  {
+    logger.info("executing test case testFilteredQuery");
+    String req ="{\"query\":{\"filtered\":{\"query\":{\"term\":{\"color\":\"red\"}},\"filter\":{\"range\":{\"year\":{\"to\":2000,\"from\":1999}}}}}}";
+    JSONObject res = search(new JSONObject(req));
+    assertEquals("numhits is wrong", 447, res.getInt("numhits"));
+  }
+  
+  
+  public void testSpanTermQuery() throws Exception
+  {
+    logger.info("executing test case testSpanTermQuery");
+    String req = "{\"query\":{\"span_term\":{\"color\":\"red\"}}}";
+    JSONObject res = search(new JSONObject(req));
+    assertEquals("numhits is wrong", 2160, res.getInt("numhits"));
+  }
+  
+  
+  public void testSpanOrQuery() throws Exception
+  {
+    logger.info("executing test case testSpanOrQuery");
+    String req = "{\"query\":{\"span_or\":{\"clauses\":[{\"span_term\":{\"color\":\"red\"}},{\"span_term\":{\"color\":\"blue\"}}]}}}";
+    JSONObject res = search(new JSONObject(req));
+    assertEquals("numhits is wrong", 3264, res.getInt("numhits"));
+  }
+  
+  
+  public void testSpanNotQuery() throws Exception
+  {
+    logger.info("executing test case testSpanNotQuery");
+    String req = "{\"query\":{\"span_not\":{\"exclude\":{\"span_term\":{\"contents\":\"red\"}},\"include\":{\"span_term\":{\"contents\":\"compact\"}}}}}";
+    JSONObject res = search(new JSONObject(req));
+    assertEquals("numhits is wrong", 4596, res.getInt("numhits"));
+  }
+  
+  public void testSpanNearQuery1() throws Exception
+  {
+    logger.info("executing test case testSpanNearQuery1");
+    String req = "{\"query\":{\"span_near\":{\"in_order\":false,\"collect_payloads\":false,\"slop\":12,\"clauses\":[{\"span_term\":{\"contents\":\"red\"}},{\"span_term\":{\"contents\":\"compact\"}},{\"span_term\":{\"contents\":\"hybrid\"}}]}}}";
+    JSONObject res = search(new JSONObject(req));
+    assertEquals("numhits is wrong", 274, res.getInt("numhits"));
+  }
+  
+  public void testSpanNearQuery2() throws Exception
+  {
+    logger.info("executing test case testSpanNearQuery2");
+    String req = "{\"query\":{\"span_near\":{\"in_order\":true,\"collect_payloads\":false,\"slop\":0,\"clauses\":[{\"span_term\":{\"contents\":\"red\"}},{\"span_term\":{\"contents\":\"compact\"}},{\"span_term\":{\"contents\":\"favorite\"}}]}}}";
+    JSONObject res = search(new JSONObject(req));
+    assertEquals("numhits is wrong", 63, res.getInt("numhits"));
+  }
+  
+  public void testSpanFirstQuery() throws Exception
+  {
+    logger.info("executing test case testSpanFirstQuery");
+    String req = "{\"query\":{\"span_first\":{\"match\":{\"span_term\":{\"color\":\"red\"}},\"end\":2}}}";
+    JSONObject res = search(new JSONObject(req));
+    assertEquals("numhits is wrong", 2160, res.getInt("numhits"));
+  }
+  
+//  public void testSpanFirstQuery2() throws Exception
+//  {
+//    logger.info("executing test case testSpanFirstQuery2");
+//    String req = "{\"query\":{\"span_first\":{\"match\":{\"span_term\":{\"contents\":\"red compact favorite\"}},\"end\":0}}}";
+//    JSONObject res = search(new JSONObject(req));
+//    assertEquals("numhits is wrong", 63, res.getInt("numhits"));
+//  }
   
   /**
    * @param res
