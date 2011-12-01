@@ -617,7 +617,7 @@ public class HttpRestSenseiServiceImpl implements SenseiService
         String key = (String) iter.next();
 
         if (key.equals("query")) {
-          qparams.add(new BasicNameValuePair(SenseiSearchServletParams.PARAM_QUERY, (String) jsonObj.get(key)));
+          qparams.add(new BasicNameValuePair(SenseiSearchServletParams.PARAM_QUERY, jsonObj.get(key).toString()));
           continue;
         }
 
@@ -903,6 +903,9 @@ public class HttpRestSenseiServiceImpl implements SenseiService
     	  else if (SenseiSearchServletParams.PARAM_RESULT_HIT_EXPLANATION.equals(key)){
     		  hit.setExplanation(convertToExplanation(hitObj.optJSONObject(SenseiSearchServletParams.PARAM_RESULT_HIT_EXPLANATION)));
     	  }
+        else if (SenseiSearchServletParams.PARAM_RESULT_HIT_GROUPHITS.equals(key)) {
+          hit.setGroupHits(convertHitsArray(hitObj.getJSONArray(SenseiSearchServletParams.PARAM_RESULT_HIT_GROUPHITS)));
+        }
     	  else{
     		  JSONArray array = hitObj.optJSONArray(key);
     		  if (array!=null){

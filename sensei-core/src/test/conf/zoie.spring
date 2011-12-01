@@ -10,7 +10,7 @@
   <bean id="interpreter" class="com.sensei.search.nodes.NoOpIndexableInterpreter" />
   
   <bean id="lucene-version" class="org.springframework.beans.factory.config.FieldRetrievingFactoryBean">
-    <property name="staticField" value="org.apache.lucene.util.Version.LUCENE_30"/>
+    <property name="staticField" value="org.apache.lucene.util.Version.LUCENE_34"/>
   </bean>
   
   <bean id="analyzer" class="org.apache.lucene.analysis.standard.StandardAnalyzer">

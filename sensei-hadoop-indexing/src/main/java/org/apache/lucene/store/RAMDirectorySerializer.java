@@ -46,7 +46,8 @@ public class RAMDirectorySerializer {
   }
   
   public static byte[] toBytes(RAMDirectory dir) throws IOException{
-	ByteArrayOutputStream bout = new ByteArrayOutputStream((int)dir.sizeInBytes.get());
+  //ByteArrayOutputStream bout = new ByteArrayOutputStream((int)dir.sizeInBytes.get());
+	ByteArrayOutputStream bout = new ByteArrayOutputStream(dir.sizeInBytes.intValue());
 	DataOutputStream dout = new DataOutputStream(bout);
 	toDataOutput(dout, dir);
 	dout.flush();

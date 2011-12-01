@@ -174,9 +174,9 @@ public class SenseiSchema {
               }
               else if (t.equals("text")){
                   fdef.isMeta = false;
-                  String idxString = column.optString("index");
-                  String storeString = column.optString("store");
-                  String tvString = column.optString("termvector");
+                  String idxString = column.optString("index", null);
+                  String storeString = column.optString("store", null);
+                  String tvString = column.optString("termvector", null);
                   Index idx = idxString == null ? Index.ANALYZED : DefaultSenseiInterpreter.INDEX_VAL_MAP.get(idxString.toUpperCase());
                   Store store = storeString == null ? Store.NO : DefaultSenseiInterpreter.STORE_VAL_MAP.get(storeString.toUpperCase());
                   TermVector tv = tvString == null ? TermVector.NO : DefaultSenseiInterpreter.TV_VAL_MAP.get(tvString.toUpperCase());

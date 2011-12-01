@@ -1,5 +1,6 @@
 package com.sensei.search.client.servlet;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -13,6 +14,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
+import org.json.JSONObject;
 
 import com.linkedin.norbert.javacompat.cluster.ClusterClient;
 import com.linkedin.norbert.javacompat.cluster.ZooKeeperClusterClient;
@@ -20,7 +22,6 @@ import com.linkedin.norbert.javacompat.network.NetworkClientConfig;
 import com.sensei.search.cluster.client.SenseiNetworkClient;
 import com.sensei.search.nodes.SenseiBroker;
 import com.sensei.search.nodes.SenseiSysBroker;
-import com.sensei.search.nodes.impl.NoopRequestScatterRewriter;
 import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.req.SenseiResult;
 import com.sensei.search.req.SenseiSystemInfo;
@@ -71,8 +72,24 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
 
   private void handleSenseiRequest(HttpServletRequest req, HttpServletResponse resp)
     throws ServletException, IOException {
+	SenseiRequest senseiReq;
     try {
-      SenseiRequest senseiReq = buildSenseiRequest(req);
+      if ("post".equalsIgnoreCase(req.getMethod())){
+    	BufferedReader reader = req.getReader();
+    	String content = readContent(reader);
+    	JSONObject jsonObj = new JSONObject(content);
+    	senseiReq = SenseiRequest.fromJSON(jsonObj);
+      }
+      else{
+    	String jsonString = req.getParameter("json");
+    	if (jsonString!=null){
+    	  JSONObject jsonObj = new JSONObject(jsonString);
+          senseiReq = SenseiRequest.fromJSON(jsonObj);
+    	}
+    	else{
+          senseiReq = buildSenseiRequest(req);
+    	}
+      }
       SenseiResult res = _senseiBroker.browse(senseiReq);
       OutputStream ostream = resp.getOutputStream();
       convertResult(senseiReq,res,ostream);
@@ -125,8 +142,8 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
       while((len=ris.read(buffer)) > 0)
       {
         if (!conn.getDoOutput()) {
-          os = conn.getOutputStream();
           conn.setDoOutput(true);
+          os = conn.getOutputStream();
         }
         os.write(buffer, 0, len);
       }
@@ -155,6 +172,14 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
     }
   }
   
+  private static String readContent(BufferedReader reader) throws IOException{
+	  StringBuilder jb = new StringBuilder();
+      String line = null;
+	  while ((line = reader.readLine()) != null)
+		jb.append(line);
+	  return jb.toString();
+  }
+  
   @Override
   protected void doGet(HttpServletRequest req, HttpServletResponse resp)
       throws ServletException, IOException {
@@ -163,7 +188,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
 
     resp.setHeader("Access-Control-Allow-Origin", "*");
     resp.setHeader("Access-Control-Allow-Methods", "GET, POST");
-    resp.setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Accept");
+    resp.setHeader("Access-Control-Allow-Headers", "Origin, Content-Type, X-Requested-With, Accept");
 
     if (null == req.getPathInfo() || "/".equalsIgnoreCase(req.getPathInfo()))
     {
@@ -196,7 +221,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
   {
     resp.setHeader("Access-Control-Allow-Origin", "*");
     resp.setHeader("Access-Control-Allow-Methods", "GET, POST");
-    resp.setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Accept");
+    resp.setHeader("Access-Control-Allow-Headers", "Origin, Content-Type, X-Requested-With, Accept");
   }
   
   protected abstract void convertResult(SenseiSystemInfo info, OutputStream ostream) throws Exception;

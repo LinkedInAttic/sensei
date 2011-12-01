@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<chapter xmlns="http://docbook.org/ns/docbook"
+         xmlns:xlink="http://www.w3.org/1999/xlink">
+
+  <title>Indexing</title>  
+
+  <para>Before it can be searched, all data has to be indexed first.
+  Depending on where you get the source data from, you can use different
+  data gateways to get the data converted to the format required by
+  Sensei.  No matter what gateway is used, you need to define the data
+  model in file <filename>schema.xml</filename> (see <xref
+  linkend="sect-data-modeling"/> for more details), which is equivalent
+  to the table definition in a RDBMS.</para>
+
+  <para>If the amount of data is small, and the run-time indexing and
+  search rates are not high, then a single Sensei node may be all you
+  need.  If the amount of data is large and you cannot fit them into one
+  box, however, you have to split them into multiple shards and store
+  them on a cluster of Sensei nodes, each serving one or multiple
+  shards.  When a user query comes in, Sensei performs the search on all
+  shards and merges the search results from all shards for you
+  automatically.</para>
+
+  <para>If the run-time indexing or search rate is high, network
+  bandwidth, memory or CPU may become the bottleneck on a Sensei server.
+  In this case, sharding the index only is not enough.  You have to
+  <emphasis>replicate</emphasis> the index onto different nodes, and
+  have multiple nodes share the indexing/search workload on the same
+  shard(s).</para>
+
+  <para>In this chapter, we explain how to get the data indexed, and how
+  to get the data sharded and replicated.</para>
+
+  <section>
+    <title>Data Acquisition</title>
+
+    <para>To get data indexed, the first thing to set up is the indexing
+    manager (see
+    <literal>com.sensei.search.nodes.SenseiIndexingManager</literal>).
+    An indexing manager is responsible for:
+    </para>
+
+    <itemizedlist>
+      <listitem>
+        <para>Initializing the Zoie system(s): one Zoie system is needed
+        for every shard of index on one Sensei node.</para>
+      </listitem>
+      <listitem>
+        <para>Building the data provider: a data provider needs to be
+        built for the chosen data gateway.</para>
+      </listitem>
+      <listitem>
+        <para>Starting and shutting down the data gateway.</para>
+      </listitem>
+    </itemizedlist>
+
+    <para>For most of the cases you can simply use the default indexing
+    manger provided by Sensei:
+    <literal>com.sensei.indexing.api.DefaultStreamingIndexingManager</literal>.
+    However you can always write your own version when it is
+    needed.</para>
+
+    <para>The type of indexing manager is specified via configuration
+    parameter <literal>sensei.index.manager</literal>, which is the bean
+    ID of the indexing manager object that you use.  When
+    <literal>sensei.index.manager</literal> is not set, Sensei just uses
+    <classname>DefaultStreamingIndexingManager</classname>.</para>
+
+    <para>Once the indexing manager is selected, the next thing to set
+    up is the data gateway.  What data gateway to use depends on how
+    your original source data is stored.  Sensei provides four types of
+    built-in data gateways to cover the most common data sources (see
+    <xref linkend="sensei-gateway"></xref>), however you can also write
+    your own version if needed.
+    </para>
+
+    <para>The data gateway type is specified via configuration parameter
+    <literal>sensei.index.manager.&lt;indexing-manager-type&gt;.type</literal>.
+    Here <literal>&lt;indexing-manager-type&gt;</literal> is the bean ID
+    of your indexing manager.  If you use the default indexing manager,
+    <classname>DefaultStreamingIndexingManager</classname>,
+    <literal>&lt;indexing-manager-type&gt;</literal> should be
+    <literal>default</literal>.</para>
+
+    <para>Additional configuration parameters may be needed for the data
+    gateway you choose.  These configuration parameters are named with
+    the following prefix:</para>
+
+    <programlisting>  sensei.index.manager.&lt;indexing-manager-type&gt;.&lt;data-gateway-type&gt;</programlisting>
+
+    <para>For example, if you use the default indexing manager and the
+    Kafka data gateway, the following configuration parameters need to
+    be specified:</para>
+
+    <programlisting>  sensei.index.manager.default.type = kafka
+  sensei.index.manager.default.kafka.host = my-kafka-host
+  sensei.index.manager.default.kafka.port = 1234
+  sensei.index.manager.default.kafka.topic = log-data
+  sensei.index.manager.default.kafka.batchsize = 10000
+  sensei.index.manager.default.kafka.filter = my-kafka-filter</programlisting>
+
+    <para>In the rest of the document, we will use the default indexing
+    manager in most of the examples, unless a different indexing manager
+    type is specified explicitly.</para>
+
+  </section>
+
+  <section>
+    <title>Index Sharding<indexterm><primary>sharding</primary></indexterm></title>
+
+    <para>Index sharding is needed when the amount of data to be indexed
+    is too big for one single machine to handle.  Most of the times
+    sharding is required because the disk space on a single machine is
+    not big enough, but limited memory or limited CPU power can also be
+    the reason.</para>
+
+    <para>Index sharding is controlled by the following two
+    configuration parameters:</para>
+
+    <itemizedlist>
+      <listitem>
+        <para><literal>sensei.index.manager.&lt;indexing-manager-type&gt;.maxpartition.id</literal></para>
+      </listitem>
+      <listitem>
+        <para><literal>sensei.node.partitions</literal></para>
+      </listitem>
+    </itemizedlist>
+
+    <para>The first parameter tells Sensei how many shards in total the
+    index will be divided into, and the second parameter tells Sensei
+    how many and what shards are handled by the current node.</para>
+
+    <para>For example, if you want to divide the entire index into 10
+    shards (shard 0, shard 1, ..., shard 9), and you want to put the
+    first two shards onto the first Sensei node, then you just need to
+    add the following two lines to your configuration file:</para>
+
+    <programlisting>  sensei.index.manager.default.maxpartition.id = 9
+  sensei.node.partitions = 0,1</programlisting>
+
+    <para>How to split your data into different shards is up to the
+    business logic of the application.  Sensei allows you to provide a
+    <emphasis>sharding strategy</emphasis> plug-in (see
+    <classname>com.sensei.indexing.api.ShardingStrategy</classname>) to
+    let the indexing manager know what data should belong to which
+    shards.</para>
+
+    <para>A simple but common sharding strategy is implemented in
+    <classname>com.sensei.indexing.api.ShardingStrategy</classname>:
+    <classname>FieldModShardingStrategy</classname>.  This is basically
+    the round-robin style.  To make this sharding strategy work, you
+    need to specify the total number of shards and on which data field
+    the data should be sharded.
+    </para>
+
+    <para>If data that does not belong to any partition on a Sensei node
+    is passed to the indexing manager, it is discarded.</para>
+
+  </section>
+
+  <section>
+    <title>Index Replication</title>
+
+    <para>There are two reasons for index replication.  First, index
+    replication improves the reliability and fault-tolerance of the
+    search service that you build.  Second, by replicating the index and
+    having multiple Sensei nodes handle the same shards of index, you
+    can reduce the workload every Sensei node takes and thus improve the
+    performance of the search service.</para>
+
+    <para>In Sensei, failovers of replicas are achieved by ZooKeeper and
+    the built-in load balancer implemented based on consistent hashing.
+    If one replica is down, the load balancer will be notified by
+    ZooKeeper, and it will update the replica information maintained
+    internally and route new search requests to a different
+    replica.</para>
+
+    <para>It is very easy to add a Sensei node to an existing Sensei
+    cluster and make it a replica of one or more index shards.  Suppose
+    you want to add one replica for a Sensei node, node 2, that contains
+    two shards, all you need to do is copy over the config file
+    <filename>sensei.properties</filename> on node 2 and change the node
+    ID setting (<literal>sensei.node.id</literal>) to the node ID that
+    you are going to assign to the newly added node.</para>
+
+  </section>
+
+  <section>
+    <title>Sensei Cluster Overview</title>
+
+    <para>The following figure shows an example of a Sensei cluster
+    where the index is split into 8 shards, each having 3 replicas.
+    There are 12 Sensei nodes in this cluster, and every node serves two
+    shards.</para>
+
+    <figure>
+      <title>Index Sharding and Replication</title>
+
+      <mediaobject>
+        <imageobject role="fo">
+          <imagedata align="center" fileref="figures/index-sharding.svg"
+                     format="SVG" scale="90" valign="middle" />
+        </imageobject>
+
+        <imageobject role="html">
+          <imagedata align="center" fileref="figures/index-sharding.png"
+                     format="PNG" scale="100" valign="middle" />
+        </imageobject>
+      </mediaobject>
+    </figure>
+
+  </section>
+
+</chapter>
