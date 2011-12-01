@@ -18,8 +18,8 @@
     {
         "terms":{
             "tags":{
-                "values" : [ "blue", "pill" ],
-                "excludes" : ["red"],
+                "values" : [ "mp3", "moon-roof" ],
+                "excludes" : ["leather"],
                 "operator" : "or"
             }
         }

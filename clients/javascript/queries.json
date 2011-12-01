@@ -88,6 +88,10 @@
     ]
   },
 
+  "path" : {
+    "city" : "china/beijing"
+  },
+
 // prefix
   "prefix" : { 
     "user" : "ki" 
@@ -128,7 +132,6 @@
   },
 
 // terms
-
   "terms" : {
     "tags" : {
       "values" : [ "blue", "pill" ],
