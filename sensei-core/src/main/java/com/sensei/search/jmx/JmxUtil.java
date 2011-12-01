@@ -13,6 +13,7 @@ import javax.management.StandardMBean;
 
 import org.apache.log4j.Logger;
 
+import com.sensei.metrics.MetricsConstants;
 import com.yammer.metrics.core.CounterMetric;
 import com.yammer.metrics.core.GaugeMetric;
 import com.yammer.metrics.core.HistogramMetric;
@@ -34,7 +35,6 @@ public class JmxUtil {
   private static final MBeanServer MbeanServer = ManagementFactory.getPlatformMBeanServer();
   private static final List<ObjectName> RegisteredBeans = Collections.synchronizedList(new LinkedList<ObjectName>());
 
-  public static final String Domain = "com.senseidb";
   
   public static void registerMBean(StandardMBean bean,String key,String val)
   {
@@ -42,7 +42,7 @@ public class JmxUtil {
     try
     {
       log.info("registering jmx mbean: "+objectName);
-      objectName = new ObjectName(Domain,key,val);
+      objectName = new ObjectName(MetricsConstants.Domain,key,val);
       MbeanServer.registerMBean(bean, objectName);
       RegisteredBeans.add(objectName);
     }

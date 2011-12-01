@@ -3,15 +3,10 @@ package com.sensei.search.svc.impl;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import javax.management.ObjectName;
-
-import com.linkedin.norbert.network.JavaSerializer;
-import com.linkedin.norbert.network.Serializer;
 import org.apache.log4j.Logger;
 import org.apache.lucene.search.Query;
 
@@ -25,12 +20,13 @@ import com.browseengine.bobo.api.BrowseException;
 import com.browseengine.bobo.api.BrowseHit;
 import com.browseengine.bobo.api.BrowseRequest;
 import com.browseengine.bobo.api.BrowseResult;
-import com.browseengine.bobo.api.FacetAccessible;
 import com.browseengine.bobo.api.MultiBoboBrowser;
+import com.linkedin.norbert.network.JavaSerializer;
+import com.linkedin.norbert.network.Serializer;
 import com.sensei.indexing.api.SenseiIndexPruner;
 import com.sensei.indexing.api.SenseiIndexPruner.IndexReaderSelector;
+import com.sensei.metrics.MetricsConstants;
 import com.sensei.search.client.ResultMerger;
-import com.sensei.search.jmx.JmxUtil;
 import com.sensei.search.nodes.SenseiCore;
 import com.sensei.search.nodes.SenseiQueryBuilderFactory;
 import com.sensei.search.req.SenseiHit;
@@ -38,6 +34,8 @@ import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.req.SenseiResult;
 import com.sensei.search.req.protobuf.SenseiReqProtoSerializer;
 import com.sensei.search.util.RequestConverter;
+import com.yammer.metrics.Metrics;
+import com.yammer.metrics.core.MetricName;
 import com.yammer.metrics.core.TimerMetric;
 
 public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiRequest, SenseiResult>{
@@ -49,12 +47,12 @@ public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiReque
 
 	private static final Logger logger = Logger.getLogger(CoreSenseiServiceImpl.class);
 	
-	private final static TimerMetric PruneTimer = new TimerMetric(TimeUnit.MILLISECONDS,TimeUnit.SECONDS);
+	private static TimerMetric timerMetric = null;
 	static{
-		  // register jmx monitoring for timers
+		  // register prune time metric
 		  try{
-		    ObjectName pruneMBeanName = new ObjectName(JmxUtil.Domain+".node","name","prune-time");
-		    JmxUtil.registerMBean(PruneTimer, pruneMBeanName);
+		    MetricName metricName = new MetricName(MetricsConstants.Domain, "timer", "prune", "node");
+		    timerMetric = Metrics.newTimer(metricName, TimeUnit.MILLISECONDS,TimeUnit.SECONDS);
 		  }
 		  catch(Exception e){
 				logger.error(e.getMessage(),e);
@@ -152,27 +150,27 @@ public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiReque
           final List<BoboIndexReader> segmentReaders = BoboBrowser.gatherSubReaders(readerList);
           if (segmentReaders!=null && segmentReaders.size()>0){
         	final AtomicInteger skipDocs = new AtomicInteger(0);
-        	List<BoboIndexReader> validatedSegmentReaders = PruneTimer.time(new Callable<List<BoboIndexReader>>(){
 
-				@Override
-				public List<BoboIndexReader> call() throws Exception {
-					SenseiIndexPruner pruner = _core.getIndexPruner();
+        	List<BoboIndexReader> validatedSegmentReaders = timerMetric.time(new Callable<List<BoboIndexReader>>(){
+
+				     @Override
+				     public List<BoboIndexReader> call() throws Exception {
+					      SenseiIndexPruner pruner = _core.getIndexPruner();
 
 		  	        IndexReaderSelector readerSelector = pruner.getReaderSelector(request);
 		  	        List<BoboIndexReader> validatedReaders = new ArrayList<BoboIndexReader>(segmentReaders.size());
-		        	for (BoboIndexReader segmentReader : segmentReaders){
-		        		if (readerSelector.isSelected(segmentReader)){
-		        			validatedReaders.add(segmentReader);
-		        		}
-		        		else{
-		        			skipDocs.addAndGet(segmentReader.numDocs());
-		        		}
-		        	}
-		        	return validatedReaders;
-				}
+		        	  for (BoboIndexReader segmentReader : segmentReaders){
+		        		  if (readerSelector.isSelected(segmentReader)){
+		        			  validatedReaders.add(segmentReader);
+		        		  }
+		        		  else{
+		        			  skipDocs.addAndGet(segmentReader.numDocs());
+		        		  }
+		        	  }
+		        	  return validatedReaders;
+				      }
         		
         	});
-        	
         	
 	        browser = new MultiBoboBrowser(BoboBrowser.createBrowsables(validatedSegmentReaders));
 	        BrowseRequest breq = RequestConverter.convert(request, queryBuilderFactory);
