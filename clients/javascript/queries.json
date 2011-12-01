@@ -158,10 +158,10 @@
 // span not
   "span_not" : {
     "include" : {
-      "span_term" : { "field1" : "value1" }
+      "span_term" : { "field" : "value1" }
     },
     "exclude" : {
-      "span_term" : { "field2" : "value2" }
+      "span_term" : { "field" : "value2" }
     }
   },
 // span near
@@ -177,7 +177,6 @@
   },
 
 // span first
-
   "span_first" : {
     "match" : {
       "span_term" : { "color" : "red" }
