@@ -439,7 +439,7 @@ def accumulate_range_pred(field_map, pred):
 
   if lower and upper:
     if (lower > upper or
-        (lower == upper and (not include_lower or include_upper))):
+        (lower == upper and (not include_lower or not include_upper))):
       raise ParseSyntaxException(ParseException("", 0, "Conflict range predicates for column '%s'"
                                                 % field))
   if lower:
@@ -478,6 +478,7 @@ def predicate_or_action(s, loc, tok):
   return {"or": preds}
 
 def prop_list_action(s, loc, tok):
+  # print ">>> in prop_list_action: tok = ", tok
   props = {}
   for i in xrange(0, len(tok), 2):
     props[tok[i]] = tok[i+1]
@@ -696,7 +697,9 @@ time_expr = ((time_span + AGO)
 number = (real | integer)       # Put real before integer to avoid ambiguity
 numeric = (time_expr | number)
 
-value = (numeric | quotedString)
+boolean_constant = (TRUE | FALSE).setParseAction(lambda t: t[0] == "true")
+
+value = (numeric | quotedString | boolean_constant)
 value_list = LPAR + delimitedList(value) + RPAR
 
 prop_pair = (quotedString + COLON + value)
@@ -1080,10 +1083,10 @@ class BQLRequest:
 
   """
 
-  def __init__(self, sql_stmt, facet_list=None):
+  def __init__(self, bql_stmt, facet_map=None):
     try:
       time_now = int(time.time() * 1000)
-      self.tokens = BQLstmt.parseString(sql_stmt, parseAll=True)
+      self.tokens = BQLstmt.parseString(bql_stmt, parseAll=True)
     except ParseException as err:
       raise err
     except ParseSyntaxException as err:
@@ -1093,7 +1096,7 @@ class BQLRequest:
     finally:
       reset_all()
 
-    self.facet_list = facet_list
+    self.facet_map = facet_map
     self.query = ""
     self.selections = None
     self.selection_list = []
@@ -1161,12 +1164,12 @@ class BQLRequest:
     # XXX Do merging, etc. on self.selection_list
     self.selections = self.selection_list
 
-  def __is_facet(self, pred):
-    if self.facet_list == None:
+  def __is_facet(self, pred_field):
+    if self.facet_map == None:
       # All fields are facets
       return True
     else:
-      return pred in self.facet_list
+      return self.facet_map.has_key(pred_field)
 
   def get_stmt_type(self):
     """Get the statement type."""
@@ -1814,21 +1817,22 @@ class SenseiSystemInfo:
 class SenseiRequest:
 
   def __init__(self,
-               sql_stmt=None,
+               bql_stmt=None,
                offset=DEFAULT_REQUEST_OFFSET,
                count=DEFAULT_REQUEST_COUNT,
                max_per_group=DEFAULT_REQUEST_MAX_PER_GROUP,
-               facet_list=None):
+               facet_map=None):
     self.qParam = {}
     self.explain = False
     self.route_param = None
-    self.sql_stmt = sql_stmt
+    self.bql_stmt = bql_stmt
     self.prepare_time = 0       # Statement prepare time in milliseconds
     self.stmt_type = "unknown"
 
-    if sql_stmt != None:
+    if bql_stmt != None:
       time1 = datetime.now()
-      bql_req = BQLRequest(sql_stmt, facet_list=facet_list)
+      bql_req = BQLRequest(bql_stmt, facet_map=facet_map)
+
       # ok, msg = bql_req.merge_selections()
       # if not ok:
       #   raise SenseiClientError(msg)
@@ -2079,18 +2083,34 @@ class SenseiResult:
 class SenseiClient:
   """Sensei client class."""
 
-  def __init__(self,host='localhost',port=8080,path='sensei'):
+  def __init__(self, host='localhost', port=8080, path='sensei', sysinfo=None):
     self.host = host
     self.port = port
     self.path = path
-    self.url = 'http://%s:%d/%s' % (self.host,self.port,self.path)
+    self.url = 'http://%s:%d/%s' % (self.host, self.port, self.path)
     self.opener = urllib2.build_opener()
     self.opener.addheaders = [('User-agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_6_7) AppleWebKit/534.30 (KHTML, like Gecko) Chrome/12.0.742.91 Safari/534.30')]
+
+    if sysinfo:
+      self.sysinfo = SenseiSystemInfo(sysinfo)
+    else:
+      urlReq = urllib2.Request(self.url + "/sysinfo")
+      res = self.opener.open(urlReq)
+      line = res.read()
+      jsonObj = json.loads(line)
+      # print json.dumps(jsonObj, indent=4)
+      self.sysinfo = SenseiSystemInfo(jsonObj)
+    self.facet_map = {}
+    for facet_info in self.sysinfo.get_facet_infos():
+      self.facet_map[facet_info.get_name()] = facet_info
+
+  def compile(self, bql_stmt):
+    """Compile a BQL statement into a SenseiRequest."""
+
+    return SenseiRequest(bql_stmt, facet_map=self.facet_map)
     
-  @staticmethod
-  def buildJsonString(req, sort_keys=True, indent=None):
-    """
-    Build a Sensei request in JSON format.
+  def buildJsonString(self, req, sort_keys=True, indent=None):
+    """Build a Sensei request in JSON format.
 
     Once built, a Sensei request in JSON format can be sent to a Sensei
     broker using the following command:
@@ -2261,13 +2281,13 @@ class SenseiClient:
 
     return urllib.urlencode(paramMap)
     
-  def doQuery(self, req=None, using_json=True):
+  def doQuery(self, req, using_json=True):
     """Execute a search query."""
 
     time1 = datetime.now()
     query_string = None
     if using_json: # Use JSON format
-      query_string = SenseiClient.buildJsonString(req)
+      query_string = self.buildJsonString(req)
     else:
       query_string = SenseiClient.buildUrlString(req)
     logger.debug(query_string)
@@ -2280,15 +2300,11 @@ class SenseiClient:
     res.total_time = delta.seconds * 1000 + delta.microseconds / 1000
     return res
 
-  def getSystemInfo(self):
-    """Get Sensei system info."""
+  def get_sysinfo(self):
+    return self.sysinfo
 
-    urlReq = urllib2.Request(self.url + "/sysinfo")
-    res = self.opener.open(urlReq)
-    line = res.read()
-    jsonObj = json.loads(line)
-    res = SenseiSystemInfo(jsonObj)
-    return res
+  def get_facet_map(self):
+    return self.facet_map
 
 def main(argv):
   print "Welcome to Sensei Shell"
@@ -2329,12 +2345,12 @@ def main(argv):
         break
       if options.verbose:
         test(stmt)
-      req = SenseiRequest(stmt)
+      req = client.compile(stmt)
       if req.stmt_type == "select":
         res = client.doQuery(req)
         res.display(columns=req.get_columns(), max_col_width=int(options.max_col_width))
       elif req.stmt_type == "desc":
-        sysinfo = client.getSystemInfo()
+        sysinfo = client.get_sysinfo()
         sysinfo.display()
       else:
         pass
