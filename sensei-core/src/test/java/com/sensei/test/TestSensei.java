@@ -576,15 +576,6 @@ public class TestSensei extends AbstractSenseiTestCase
     assertEquals("numhits is wrong", 15000, res.getInt("numhits"));
   }
   
-  public void testBooleanQuery() throws Exception
-  {
-    logger.info("executing test case testBooleanQuery");
-    String req = "{\"query\":{\"bool\":{\"must_not\":{\"term\":{\"category\":\"compact\"}},\"must\":{\"term\":{\"color\":\"red\"}}}}}";
-    JSONObject res = search(new JSONObject(req));
-    assertEquals("numhits is wrong", 1652, res.getInt("numhits"));
-  }
-  
-
   public void testQueryStringQuery() throws Exception
   {
     logger.info("executing test case testQueryStringQuery");
@@ -619,6 +610,54 @@ public class TestSensei extends AbstractSenseiTestCase
     assertEquals("numhits is wrong", 1070, res.getInt("numhits"));
   }
 
+  public void testTermQuery() throws Exception
+  {
+    logger.info("executing test case testTermQuery");
+    String req = "{\"query\":{\"term\":{\"color\":\"red\"}}}";
+    JSONObject res = search(new JSONObject(req));
+    assertEquals("numhits is wrong", 2160, res.getInt("numhits"));
+  }
+  
+  public void testBooleanQuery() throws Exception
+  {
+    logger.info("executing test case testBooleanQuery");
+    String req = "{\"query\":{\"bool\":{\"must_not\":{\"term\":{\"category\":\"compact\"}},\"must\":{\"term\":{\"color\":\"red\"}}}}}";
+    JSONObject res = search(new JSONObject(req));
+    assertEquals("numhits is wrong", 1652, res.getInt("numhits"));
+  }
+  
+  
+  public void testDistMaxQuery() throws Exception
+  {
+    //color red ==> 2160
+    //color blue ==> 1104
+    logger.info("executing test case testDistMaxQuery");
+    String req = "{\"query\":{\"dis_max\":{\"tie_breaker\":0.7,\"queries\":[{\"term\":{\"color\":\"red\"}},{\"term\":{\"color\":\"blue\"}}],\"boost\":1.2}}}";
+    JSONObject res = search(new JSONObject(req));
+    assertEquals("numhits is wrong", 3264, res.getInt("numhits"));
+  }
+  
+  public void testPrefixQuery() throws Exception
+  {
+    //color blue ==> 1104
+    logger.info("executing test case testPrefixQuery");
+    String req = "{\"query\":{\"prefix\":{\"color\":{\"value\":\"blu\",\"boost\":2}}}}";
+    JSONObject res = search(new JSONObject(req));
+    assertEquals("numhits is wrong", 1104, res.getInt("numhits"));
+  }
+  
+  
+  public void testWildcardQuery() throws Exception
+  {
+    //color blue ==> 1104
+    logger.info("executing test case testWildcardQuery");
+    String req = "{\"query\":{\"wildcard\":{\"color\":{\"value\":\"bl*e\",\"boost\":2}}}}";
+    JSONObject res = search(new JSONObject(req));
+    assertEquals("numhits is wrong", 1104, res.getInt("numhits"));
+  }
+  
+  
+  
   /**
    * @param res
    *          result
