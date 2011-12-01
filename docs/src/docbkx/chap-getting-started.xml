@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+  <chapter xmlns="http://docbook.org/ns/docbook"
+           xmlns:xlink="http://www.w3.org/1999/xlink">
+
+    <title>Getting Started</title>
+
+    <section>
+      <title>Overview</title>
+
+      <itemizedlist spacing="compact">
+        <listitem>
+          <para>Real-time indexing/searching</para>
+        </listitem>
+        <listitem>
+          <para>Cluster management</para>
+        </listitem>
+        <listitem>
+          <para>Automatic data partitioning</para>
+        </listitem>
+        <listitem>
+          <para>Support for structured and faceted search</para>
+        </listitem>
+      </itemizedlist>
+    </section>
+
+    <section>
+      <title>Prerequisites<indexterm>
+      <primary>prerequisites</primary>
+      </indexterm></title>
+
+      <itemizedlist spacing="compact">
+        <listitem>
+          <para>Java 1.6 or higher</para>
+        </listitem>
+        <listitem>
+          <para>maven 2.2.1 or higher</para>
+        </listitem>
+        <listitem>
+          <para>ZooKeeper 3.2.0 or higher (<link
+          xlink:href="http://hadoop.apache.org/zookeeper/">http://hadoop.apache.org/zookeeper/</link>)</para>
+        </listitem>
+        
+      </itemizedlist>
+    </section>
+	
+    <section>
+      <title>Embedded Technologies</title>
+      <itemizedlist spacing="compact">
+        <listitem>
+
+          <para>Bobo (<link xlink:href="http://sna-projects.com/bobo/">http://sna-projects.com/bobo/</link>)
+          </para>
+        </listitem>
+        <listitem>
+          <para>Zoie (<link xlink:href="http://sna-projects.com/zoie/">http://sna-projects.com/zoie/</link>)
+          </para>
+        </listitem>
+        <listitem>
+          <para>Lucene (<link xlink:href="http://lucene.apache.org/">http://lucene.apache.org/</link>)
+          </para>
+        </listitem>
+        <listitem>
+          <para>Norbert (<link xlink:href="http://sna-projects.com/norbert/">http://sna-projects.com/norbert/</link>)
+          </para>
+        </listitem>
+        <listitem>
+          <para>ZooKeeper (<link xlink:href="http://zookeeper.apache.org/">http://zookeeper.apache.org/</link>)</para>
+        </listitem>
+        <listitem>
+          <para>Spring (<link xlink:href="http://www.springsource.com/">http://www.springsource.com/</link>)
+          </para>
+        </listitem>
+      </itemizedlist>
+    </section>
+
+    <section>
+      <title>Details</title>
+
+      <section>
+        <title>Building Sensei</title>
+
+        <para>Getting the Sensei source code and building the entire
+        system is straightforward.  Only two commands are needed:</para>
+
+        <orderedlist spacing="compact">
+          <listitem>
+
+            <para>Checking out the source code from trunk: 
+            </para>
+            <programlisting><![CDATA[  $ git clone git://github.com/javasoze/sensei.git sensei-trunk]]>
+            </programlisting>
+          </listitem>
+          <listitem>
+            <para>Building Sensei using <literal>ant</literal>:
+            </para>
+            <programlisting><![CDATA[  $ ant]]></programlisting>
+          </listitem>
+        </orderedlist>
+      </section>
+
+      <section>
+        <title>Starting ZooKeeper<indexterm><primary>ZooKeeper</primary></indexterm> </title>
+        <para>
+          In order to run the sample of Sensei search, you have to run
+          an instance of ZooKeeper first.
+        </para>
+
+        <para>
+          You may download ZooKeeper from <link
+          xlink:href="http://hadoop.apache.org/zookeeper/">http://hadoop.apache.org/zookeeper/</link>.
+        </para>
+
+        <para>
+          Using the sample configuration file in <code>zookeeper-3.2.0/conf</code> by copying
+          <code>zookeeper-3.2.0/conf/zoo_sample.cfg</code> to <code>zookeeper-3.2.0/conf/zoo.cfg</code> and
+          start an instance of ZooKeeper by running
+        </para>
+        <programlisting><![CDATA[  $ zookeeper-3.2.0/bin/zkServer.sh start]]></programlisting>
+        <para>
+          For details, see <link
+          xlink:href="http://hadoop.apache.org/zookeeper/docs/current/zookeeperStarted.html">http://hadoop.apache.org/zookeeper/docs/current/zookeeperStarted.html</link>.
+        </para>
+      </section>
+
+      <section>
+        <title>Starting Sensei Nodes <indexterm><primary>start Sensei node</primary></indexterm> </title>
+
+        <para>You can use command
+        <literal>bin/start-sensei-node.sh</literal> to start a server
+        node.  This command takes one argument:
+        <literal>conf.dir</literal>, which contains all configuration
+        information for a given Sensei node.</para>
+
+        <para>Here is an example command-line that will work to fire up
+        a single sensei node with some sample data:
+        </para>
+
+        <programlisting><![CDATA[  $ bin/start-sensei-node.sh conf]]></programlisting>
+
+        <note>
+          <para>Do not expect to see any logs after running this
+          command. If you run it, have ZooKeeper up and running, a REST
+          server (as discussed below) will also be started, and you will
+          be able to get some sample search results. </para>
+        </note>
+
+      </section>
+
+      <section>
+        <title>Web Application and RESTful
+        End-Point<indexterm><primary>RESTful end-point</primary></indexterm></title>
+
+        <para>When developing applications using Sensei, we found it
+        convenient to have a RESTful end-point that provides data in
+        JSON format.  Having a RESTful end-point allows one to query the
+        Sensei system in an ad-hoc way, and having a JSON formatted
+        output provides a way to investigate the result set without
+        having the need to depend on jars or any other types of code
+        binding.</para>
+
+        <para>When a Sensei node is started, a RESTful end-point along
+        with a web interactive client would be started as well:</para>
+
+        <itemizedlist>
+          <listitem>
+            <para>RESTful end-point:</para>
+            <programlisting>  http://localhost:8080/sensei?q=</programlisting>
+          </listitem>
+          <listitem>
+            <para>Web client</para>
+            <programlisting>  http://localhost:8080</programlisting>
+          </listitem>
+        </itemizedlist>
+
+      </section>
+
+      <section>
+        <title>Starting Clients<indexterm><primary>start Sensei clients</primary></indexterm> </title>
+        <para>
+          After you start at least one node, you can run
+        </para>
+
+        <programlisting>  $ bin/sensei-client.sh client-conf</programlisting>
+
+        <para>to start a client.  You can edit
+        <literal>client-conf/sensei-client.conf</literal> to change the
+        properties.</para>
+
+        <para>
+          Type help to see command list:
+        </para>
+        <programlisting><![CDATA[  $ bin/sensei-client.sh client-conf
+  > help
+  help - prints this message
+  exit - quits
+  info - prints system information
+  query <query string> - sets query text
+  facetspec <name>:<minHitCount>:<maxCount>:<sort> - add facet spec
+  page <offset>:<count> - set paging parameters
+  select <name>:<value1>,<value2>... - add selection, with ! in front of value indicates a not
+  sort <name>:<dir>,... - set sort specs
+  showReq: shows current request
+  clear: clears current request
+  clearSelections: clears all selections
+  clearSelection <name>: clear selection specified
+  clearFacetSpecs: clears all facet specs
+  clearFacetSpec <name>: clears specified facetspec
+  browse - executes a search
+  > 
+]]></programlisting>
+      </section>
+    </section>
+  </chapter>

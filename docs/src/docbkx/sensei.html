@@ -1,0 +1,1509 @@
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+   <title>Sensei</title><meta name="generator" content="DocBook XSL-NS Stylesheets V1.75.2"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div lang="en" class="book" title="Sensei"><div class="titlepage"><div><div><h1 class="title"><a name="d0e1"></a>Sensei</h1></div><div><h2 class="subtitle">A Distributed Elastic Real-Time Searchable Database</h2></div><div><div class="author"><h3 class="author">Sensei Development Team</h3></div></div></div><hr></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><span class="chapter"><a href="#d0e13">1. Introduction</a></span></dt><dd><dl><dt><span class="section"><a href="#d0e89">Design Considerations</a></span></dt><dt><span class="section"><a href="#d0e180">Comparing to Traditional RDBMS</a></span></dt><dt><span class="section"><a href="#d0e229">Architecture</a></span></dt><dt><span class="section"><a href="#d0e366">Architectural Diagram</a></span></dt></dl></dd><dt><span class="chapter"><a href="#d0e380">2. Getting Started</a></span></dt><dd><dl><dt><span class="section"><a href="#d0e383">Overview</a></span></dt><dt><span class="section"><a href="#d0e399">Prerequisites</a></span></dt><dt><span class="section"><a href="#d0e418">Embedded Technologies</a></span></dt><dt><span class="section"><a href="#d0e458">Details</a></span></dt><dd><dl><dt><span class="section"><a href="#d0e461">Building Sensei</a></span></dt><dt><span class="section"><a href="#d0e480">Starting ZooKeeper </a></span></dt><dt><span class="section"><a href="#d0e512">Starting Sensei Nodes  </a></span></dt><dt><span class="section"><a href="#d0e534">Web Application and RESTful
+        End-Point</a></span></dt><dt><span class="section"><a href="#d0e555">Starting Clients </a></span></dt></dl></dd></dl></dd><dt><span class="chapter"><a href="#d0e575">3. Sensei Demo</a></span></dt><dd><dl><dt><span class="section"><a href="#d0e578">Overview</a></span></dt><dt><span class="section"><a href="#d0e608">Run the Demo</a></span></dt><dt><span class="section"><a href="#d0e627">URLs</a></span></dt><dt><span class="section"><a href="#d0e646">Screenshots</a></span></dt><dt><span class="section"><a href="#d0e676">Diagram</a></span></dt><dt><span class="section"><a href="#d0e687">Demo Configuration</a></span></dt><dd><dl><dt><span class="section"><a href="#d0e716">Data Model</a></span></dt></dl></dd></dl></dd><dt><span class="chapter"><a href="#d0e871">4. Indexing</a></span></dt><dd><dl><dt><span class="section"><a href="#d0e890">Data Acquisition</a></span></dt><dt><span class="section"><a href="#d0e955">Index Sharding</a></span></dt><dt><span class="section"><a href="#d0e998">Index Replication</a></span></dt><dt><span class="section"><a href="#d0e1013">Sensei Cluster Overview</a></span></dt></dl></dd><dt><span class="chapter"><a href="#d0e1026">5. Hadoop Indexing</a></span></dt><dd><dl><dt><span class="section"><a href="#d0e1029">Overview</a></span></dt><dt><span class="section"><a href="#d0e1034">Hadoop Indexing Sub-system</a></span></dt><dt><span class="section"><a href="#d0e1065">Demo</a></span></dt><dd><dl><dt><span class="section"><a href="#d0e1070">Configuration</a></span></dt></dl></dd></dl></dd><dt><span class="chapter"><a href="#d0e1075">6. Searching</a></span></dt><dd><dl><dt><span class="section"><a href="#d0e1082">Sensei Request</a></span></dt><dt><span class="section"><a href="#d0e1121">Load Balancing</a></span></dt><dt><span class="section"><a href="#d0e1126">RESTful API</a></span></dt><dd><dl><dt><span class="section"><a href="#d0e1129">Scalar Parameters</a></span></dt><dt><span class="section"><a href="#d0e1204">Sort Fields Parameter</a></span></dt><dt><span class="section"><a href="#d0e1260">Query Parameters</a></span></dt><dt><span class="section"><a href="#d0e1283">Selection Parameters</a></span></dt><dt><span class="section"><a href="#d0e1337">Facet Specification Parameters</a></span></dt></dl></dd></dl></dd><dt><span class="chapter"><a href="#d0e1398">7. Sensei Configuration</a></span></dt><dd><dl><dt><span class="section"><a href="#d0e1401">Overview</a></span></dt><dt><span class="section"><a href="#sect-data-modeling">Data Modeling</a></span></dt><dd><dl><dt><span class="section"><a href="#d0e1425">Table Schema</a></span></dt><dt><span class="section"><a href="#d0e1700">Facet Schema</a></span></dt></dl></dd><dt><span class="section"><a href="#d0e1949">System Configuration</a></span></dt><dd><dl><dt><span class="section"><a href="#d0e2015">Server Properties</a></span></dt><dt><span class="section"><a href="#d0e2124">Cluster Properties</a></span></dt><dt><span class="section"><a href="#d0e2181">Indexing Properties</a></span></dt><dt><span class="section"><a href="#d0e2568">Broker and Client Properties</a></span></dt><dt><span class="section"><a href="#sect-plugin-props">Plug-in Properties</a></span></dt></dl></dd></dl></dd><dt><span class="chapter"><a href="#d0e3362">8. BQL: Browsing Query Language</a></span></dt><dd><dl><dt><span class="section"><a href="#d0e3373">BNF Grammar for BQL</a></span></dt><dd><dl><dt><span class="section"><a href="#d0e3376">BNF Notation</a></span></dt><dt><span class="section"><a href="#d0e3413">BQL Grammar</a></span></dt></dl></dd><dt><span class="section"><a href="#d0e3418">Syntax Diagrams</a></span></dt><dd><dl><dt><span class="section"><a href="#d0e3421">Top Level Statement</a></span></dt><dt><span class="section"><a href="#d0e3429">DESCRIBE Statement</a></span></dt><dt><span class="section"><a href="#d0e3437">SELECT Statement</a></span></dt><dt><span class="section"><a href="#d0e3445">WHERE Clause</a></span></dt><dt><span class="section"><a href="#d0e3453">Predicates</a></span></dt><dt><span class="section"><a href="#d0e3461">Cumulative Predicates</a></span></dt><dt><span class="section"><a href="#d0e3469">IN Predicate</a></span></dt><dt><span class="section"><a href="#d0e3477">CONTAINS ALL Predicate</a></span></dt><dt><span class="section"><a href="#d0e3485">Equal Predicate</a></span></dt><dt><span class="section"><a href="#d0e3493">NOT equal Predicate</a></span></dt><dt><span class="section"><a href="#d0e3501">Query Predicate</a></span></dt><dt><span class="section"><a href="#d0e3509">BETWEEN Predicate</a></span></dt><dt><span class="section"><a href="#d0e3517">Range Predicate</a></span></dt><dt><span class="section"><a href="#d0e3525">Time Predicate</a></span></dt><dt><span class="section"><a href="#d0e3533">EXCEPT Clause</a></span></dt><dt><span class="section"><a href="#d0e3541">Predicate Properties</a></span></dt><dt><span class="section"><a href="#d0e3549">GIVEN Clause</a></span></dt><dt><span class="section"><a href="#d0e3557">Additional Clauses</a></span></dt><dt><span class="section"><a href="#d0e3565">ORDER BY Clause</a></span></dt><dt><span class="section"><a href="#d0e3573">GROUP BY Clause</a></span></dt><dt><span class="section"><a href="#d0e3581">LIMIT Clause</a></span></dt><dt><span class="section"><a href="#d0e3589">BROWSE BY Clause</a></span></dt><dt><span class="section"><a href="#d0e3597">Facet Specification</a></span></dt><dt><span class="section"><a href="#d0e3605">FETCHING STORED Clause</a></span></dt></dl></dd><dt><span class="section"><a href="#d0e3613">Query Examples</a></span></dt><dd><dl><dt><span class="section"><a href="#d0e3616">DESCRIBE Statement</a></span></dt><dt><span class="section"><a href="#d0e3629">Basic Query</a></span></dt><dt><span class="section"><a href="#d0e3644">Queries with Limited Number of Results</a></span></dt><dt><span class="section"><a href="#d0e3674">Queries with Basic Conditions</a></span></dt><dt><span class="section"><a href="#d0e3722">Queries with AND, OR, and NOT Logic in Value Selections</a></span></dt><dt><span class="section"><a href="#d0e3766">Having Search Results Sorted</a></span></dt><dt><span class="section"><a href="#d0e3794">Queries with Full Text Search</a></span></dt><dt><span class="section"><a href="#d0e3822">Queries with Group By</a></span></dt><dt><span class="section"><a href="#d0e3850">Getting Facet Information Using Browse By Clause</a></span></dt><dt><span class="section"><a href="#d0e3880">Queries with Run-Time Facet Handler Initialization
+      Parameters</a></span></dt></dl></dd></dl></dd><dt><span class="chapter"><a href="#d0e3911">9. FAQ</a></span></dt><dd><dl><dt><span class="section"><a href="#d0e3914">About Sensei</a></span></dt><dt><span class="section"><a href="#d0e3936">Sensei Configuration</a></span></dt><dt><span class="section"><a href="#d0e3941">Problems Running Sensei</a></span></dt></dl></dd><dt><span class="index"><a href="#d0e3946">Index</a></span></dt></dl></div><div class="list-of-figures"><p><b>List of Figures</b></p><dl><dt>1.1. <a href="#sensei-foundation">Sensei and Its Foundation</a></dt><dt>1.2. <a href="#sensei-gateway">Sensei Data Gateway</a></dt><dt>1.3. <a href="#d0e369">Sensei Architectural
+        Diagram</a></dt><dt>3.1. <a href="#d0e649">Sensei Web Client</a></dt><dt>3.2. <a href="#d0e657">Demo</a></dt><dt>3.3. <a href="#d0e665">RESTful End-Point</a></dt><dt>3.4. <a href="#d0e679">The Sensei Demo System</a></dt><dt>4.1. <a href="#d0e1018">Index Sharding and Replication</a></dt><dt>5.1. <a href="#d0e1059">Sensei Hadoop Indexing Workflow</a></dt></dl></div><div class="list-of-examples"><p><b>List of Examples</b></p><dl><dt>6.1. <a href="#d0e1199">Scalar Parameters</a></dt><dt>6.2. <a href="#d0e1255">Sort Fields Parameters</a></dt><dt>6.3. <a href="#d0e1278">Query Parameters</a></dt><dt>6.4. <a href="#d0e1332">Selection Parameters</a></dt><dt>6.5. <a href="#d0e1393">Facet Specification Parameters</a></dt></dl></div><div class="chapter" title="Chapter&nbsp;1.&nbsp;Introduction"><div class="titlepage"><div><div><h2 class="title"><a name="d0e13"></a>Chapter&nbsp;1.&nbsp;Introduction</h2></div></div></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><span class="section"><a href="#d0e89">Design Considerations</a></span></dt><dt><span class="section"><a href="#d0e180">Comparing to Traditional RDBMS</a></span></dt><dt><span class="section"><a href="#d0e229">Architecture</a></span></dt><dt><span class="section"><a href="#d0e366">Architectural Diagram</a></span></dt></dl></div><p>Sensei is an open-source, real-time, full-text searchable
+    distributed database that is designed to handle the following type
+    of queries:</p><pre class="programlisting">    SELECT f1,f2...fn FROM members
+    WHERE c1 AND c2 AND c3..
+    MATCH (fulltext query, e.g. "java engineer")
+    GROUP BY fx,fy,fz...
+    ORDER BY fa,fb...
+    LIMIT offset,count</pre><p>Sensei is written in Java and is built on top of several other
+    open-source software systems (see <a class="xref" href="#sensei-foundation" title="Figure&nbsp;1.1.&nbsp;Sensei and Its Foundation">Figure&nbsp;1.1, &#8220;Sensei and Its Foundation&#8221;</a>):</p><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Bobo <a class="indexterm" name="d0e28"></a>
+          (<a class="link" href="http://sna-projects.com/bobo/" target="_top">http://sna-projects.com/bobo/</a>):
+          a faceted search implementation written in Java, using Lucene
+          as the underlying search and indexing engine.
+          </p></li><li class="listitem"><p>Zoie <a class="indexterm" name="d0e38"></a>(<a class="link" href="http://sna-projects.com/zoie/" target="_top">http://sna-projects.com/zoie/</a>):
+          a real-time search and indexing system built on Lucene.
+          </p></li><li class="listitem"><p>Lucene
+          <a class="indexterm" name="d0e48"></a>(<a class="link" href="http://lucene.apache.org/" target="_top">http://lucene.apache.org/</a>):
+          a high-performance, full-featured text search engine library
+          written entirely in Java. </p></li><li class="listitem"><p>Norbert
+          <a class="indexterm" name="d0e60"></a>(<a class="link" href="http://sna-projects.com/norbert/" target="_top">http://sna-projects.com/norbert/</a>):
+          a library that provides easy cluster management and workload
+          distribution.  Norbert is built on ZooKeeper
+          <a class="indexterm" name="d0e67"></a> (<a class="link" href="http://zookeeper.apache.org/" target="_top">http://zookeeper.apache.org/</a>)
+          and Netty <a class="indexterm" name="d0e74"></a>
+          (<a class="link" href="http://www.jboss.org/netty" target="_top">http://www.jboss.org/netty</a>).
+          </p></li></ul></div><div class="figure"><a name="sensei-foundation"></a><p class="title"><b>Figure&nbsp;1.1.&nbsp;Sensei and Its Foundation</b></p><div class="figure-contents"><div class="mediaobject" align="center"><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0"><tr><td align="center" valign="middle"><img src="figures/sensei-stack.png" align="middle" alt="Sensei and Its Foundation"></td></tr></table></div></div></div><br class="figure-break"><div class="section" title="Design Considerations"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="d0e89"></a>Design Considerations</h2></div></div></div><p>As another NoSQL<a class="indexterm" name="d0e94"></a> system (http://nosql-database.org/), Sensei
+      is designed and built with the following considerations:</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>
+            <span class="bold"><strong>Data</strong></span>
+          </p><div class="itemizedlist"><ul class="itemizedlist" type="circle" compact><li class="listitem"><p>Fault tolerance - when one replication is down, data is
+              still accessible</p></li><li class="listitem"><p>Durability - N copies of data is stored</p></li><li class="listitem"><p>Through-put - Parallelizable request-handling on different
+              nodes/data replicas, designed to handle internet traffic</p></li><li class="listitem"><p>Consistency - Eventally consistent</p></li><li class="listitem"><p>Data recovery - each shared/replica is noted with a
+              watermark for data recovery</p></li><li class="listitem"><p>Large dataset - designed to handle 100s millions -
+              billions of rows</p></li></ul></div></li><li class="listitem"><p><span class="bold"><strong>Horizontally Scalable</strong></span></p><div class="itemizedlist"><ul class="itemizedlist" type="circle" compact><li class="listitem"><p>Data is partitioned - so work-load is also
+              distributed</p></li><li class="listitem"><p>Elasticity - Nodes can be added to accomodate data
+              growth</p></li><li class="listitem"><p>Online expansion - Cluster can grow while handling online
+              requests</p></li><li class="listitem"><p>Online cluster management - Cluster topology can change
+              while handling online requests</p></li><li class="listitem"><p>Low operational/maintenance costs - Push it, leave it and
+              forget it</p></li></ul></div></li><li class="listitem"><p>
+            <span class="bold"><strong>Performance</strong></span>
+          </p><div class="itemizedlist"><ul class="itemizedlist" type="circle" compact><li class="listitem"><p>Low indexing latency - real-time update</p></li><li class="listitem"><p>Low search latency - millisecond query response
+              time</p></li><li class="listitem"><p>Low volatility - low variance in both indexing and search
+              latency</p></li></ul></div></li><li class="listitem"><p>
+            <span class="bold"><strong>Customizability</strong></span>
+          </p><div class="itemizedlist"><ul class="itemizedlist" type="circle" compact><li class="listitem"><p>Plug-in framework - custom query handling logic</p></li><li class="listitem"><p>Routing factory - custom routing logic, default:
+              round-robin</p></li><li class="listitem"><p>Index sharding strategy <a class="indexterm" name="d0e176"></a> - different sharding strategy for
+              different applications, e.g. time, mod etc.</p></li></ul></div></li></ul></div></div><div class="section" title="Comparing to Traditional RDBMS"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="d0e180"></a>Comparing to Traditional RDBMS</h2></div></div></div><p><span class="bold"><strong>RDBMS</strong></span>:</p><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Vertically scaled</p></li><li class="listitem"><p>Strong ACID guarantee</p></li><li class="listitem"><p>Relational support</p></li><li class="listitem"><p>Performance cost with full-text integration</p></li><li class="listitem"><p>High query latency with large dataset, especially for
+          operations like Group By</p></li><li class="listitem"><p>Indexes needs to be built for all sort possibilities
+          offline</p></li></ul></div><p><span class="bold"><strong>Sensei</strong></span>:</p><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Horizontally scaled</p></li><li class="listitem"><p>Relaxed consistency with high durability guarantees</p></li><li class="listitem"><p>Data is streamed in, so atomicity and isolation is to be
+          handled by the data producer</p></li><li class="listitem"><p>Full-text search support</p></li><li class="listitem"><p>Low query latency with arbitrarily large dataset</p></li><li class="listitem"><p>Dynamic sorting, index is already built for all sortable
+          fields and their combinations</p></li></ul></div></div><div class="section" title="Architecture"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="d0e229"></a>Architecture</h2></div></div></div><p>At a high level, a Sensei system consists of two parts: a
+      cluster of Sensei <span class="emphasis"><em>servers</em></span>
+      <a class="indexterm" name="d0e237"></a>
+      (a.k.a. <span class="emphasis"><em>search nodes</em></span>) and a cluster of Sensei
+      <span class="emphasis"><em>brokers</em></span><a class="indexterm" name="d0e246"></a>.</p><div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem"><p>The cluster of Sensei servers</p><p>Each server covers one or more
+          <span class="emphasis"><em>partitions</em></span> (or
+          <span class="emphasis"><em>shards</em></span> <a class="indexterm" name="d0e262"></a>) of the entire index space, and is
+          responsible for real-time indexing and searching on the
+          partition(s) belonging to the node.</p><div class="sidebar" title="Partition and Shard"><p class="title"><b>Partition and Shard</b></p><p>A partition or shard is just a slice of the index
+            served by the entire Sense cluster.  Each partition may have
+            multiple replicas handled by different Sensei search nodes.
+            How data is partitioned (or sharded) is up to the business
+            logic of the application, and the sharding strategy can be
+            passed to Sensei as a plug-in.</p></div></li><li class="listitem"><p>The cluster of Sensei brokers</p><p>Brokers receive search requests from clients, pass them
+          to selected servers in the Sensei search cluster, and then
+          merge/return search results back to the clients.</p></li></ol></div><p>Sensei brokers are relatively simple and lightweight.  Most
+      of the work is done at Sensei servers.  A Sensei server plays two
+      roles: indexer and searcher, both of which are implemented by Zoie
+      and Bobo embedded in the node.</p><p>Conceptually, a Sensei node consists of the following four
+      components:</p><div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem"><p>Data Gateway<a class="indexterm" name="d0e286"></a></p><p>This is also simply called <span class="emphasis"><em>gateway</em></span>,
+          which is the component responsible for getting data from
+          external sources and passing them to the indexer after an
+          optional conversion.  The input data to the gateway
+          can be in different formats, while the output of the gateway
+          has to be in the format acceptable by Zoie's streaming data
+          provider.  (By default, JSON is the format used by Sensei to
+          communicate with Zoie.)  The output data from the gateway also
+          needs to match the table schema definition.</p><p>Several types of built-in gateway are available in
+          Sensei.  They can be used to get data from common data sources
+          including:</p><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Line-based text file containing JSON objects.</p></li><li class="listitem"><p>Kafka (<a class="link" href="http://sna-projects.com/kafka/" target="_top">http://sna-projects.com/kafka/</a>)</p></li><li class="listitem"><p>JMS</p></li><li class="listitem"><p>JDBC</p></li></ul></div><p>For each built-in data gateway, a filter can be plugged
+          in to convert the original source data into the format defined
+          by the table schema.  (See <a class="xref" href="#sensei-gateway" title="Figure&nbsp;1.2.&nbsp;Sensei Data Gateway">Figure&nbsp;1.2, &#8220;Sensei Data Gateway&#8221;</a>.)</p><div class="figure"><a name="sensei-gateway"></a><p class="title"><b>Figure&nbsp;1.2.&nbsp;Sensei Data Gateway</b></p><div class="figure-contents"><div class="mediaobject" align="center"><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0"><tr><td align="center" valign="middle"><img src="figures/sensei-gateway.png" align="middle" alt="Sensei Data Gateway"></td></tr></table></div></div></div><br class="figure-break"></li><li class="listitem"><p>Indexing Manager<a class="indexterm" name="d0e329"></a></p><p>Indexing manager acts as the bridge between the gateway
+          and the Zoie system.  It is responsible for passing data from
+          the gateway to Zoie, controlling the pace of data consumption,
+          and maintaining the index versions on the Sensei node.</p></li><li class="listitem"><p>Zoie System<a class="indexterm" name="d0e337"></a></p><p>This is the underlying system powering real-time
+          indexing and search.  Two types of Zoie systems are supported
+          by Sensei today: regular Zoie and Hourglass.</p><p>Hourglass (<a class="link" href="http://linkedin.jira.com/wiki/display/ZOIE/HourGlass+-+Forward-Rolling+Indexing" target="_top">http://linkedin.jira.com/wiki/display/ZOIE/HourGlass+-+Forward-Rolling+Indexing</a>)
+          <a class="indexterm" name="d0e347"></a>is a
+          forward-rolling, append-only indexing system based on Zoie.
+          It is used to power LinkedIn Signal <a class="indexterm" name="d0e351"></a> (<a class="link" href="http://www.linkedin.com/signal" target="_top">http://www.linkedin.com/signal</a>).</p></li><li class="listitem"><p>Facet Handlers<a class="indexterm" name="d0e361"></a></p><p>Facet handlers are a key component in a Sensei server.
+          They are the way we do faceted searches with Bobo.  Without
+          facet handlers, none of the column-based queries can be
+          done in Sensei.</p></li></ol></div></div><div class="section" title="Architectural Diagram"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="d0e366"></a>Architectural Diagram</h2></div></div></div><div class="figure"><a name="d0e369"></a><p class="title"><b>Figure&nbsp;1.3.&nbsp;Sensei Architectural
+        Diagram<a class="indexterm" name="d0e372"></a></b></p><div class="figure-contents"><div class="mediaobject" align="center"><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0"><tr><td align="center" valign="middle"><img src="figures/sensei-architect.png" align="middle" alt="Sensei Architectural Diagramarchitectural diagram"></td></tr></table></div></div></div><br class="figure-break"></div></div><div class="chapter" title="Chapter&nbsp;2.&nbsp;Getting Started"><div class="titlepage"><div><div><h2 class="title"><a name="d0e380"></a>Chapter&nbsp;2.&nbsp;Getting Started</h2></div></div></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><span class="section"><a href="#d0e383">Overview</a></span></dt><dt><span class="section"><a href="#d0e399">Prerequisites</a></span></dt><dt><span class="section"><a href="#d0e418">Embedded Technologies</a></span></dt><dt><span class="section"><a href="#d0e458">Details</a></span></dt><dd><dl><dt><span class="section"><a href="#d0e461">Building Sensei</a></span></dt><dt><span class="section"><a href="#d0e480">Starting ZooKeeper </a></span></dt><dt><span class="section"><a href="#d0e512">Starting Sensei Nodes  </a></span></dt><dt><span class="section"><a href="#d0e534">Web Application and RESTful
+        End-Point</a></span></dt><dt><span class="section"><a href="#d0e555">Starting Clients </a></span></dt></dl></dd></dl></div><div class="section" title="Overview"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="d0e383"></a>Overview</h2></div></div></div><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Real-time indexing/searching</p></li><li class="listitem"><p>Cluster management</p></li><li class="listitem"><p>Automatic data partitioning</p></li><li class="listitem"><p>Support for structured and faceted search</p></li></ul></div></div><div class="section" title="Prerequisites"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="d0e399"></a>Prerequisites<a class="indexterm" name="d0e402"></a></h2></div></div></div><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Java 1.6 or higher</p></li><li class="listitem"><p>maven 2.2.1 or higher</p></li><li class="listitem"><p>ZooKeeper 3.2.0 or higher (<a class="link" href="http://hadoop.apache.org/zookeeper/" target="_top">http://hadoop.apache.org/zookeeper/</a>)</p></li></ul></div></div><div class="section" title="Embedded Technologies"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="d0e418"></a>Embedded Technologies</h2></div></div></div><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Bobo (<a class="link" href="http://sna-projects.com/bobo/" target="_top">http://sna-projects.com/bobo/</a>)
+          </p></li><li class="listitem"><p>Zoie (<a class="link" href="http://sna-projects.com/zoie/" target="_top">http://sna-projects.com/zoie/</a>)
+          </p></li><li class="listitem"><p>Lucene (<a class="link" href="http://lucene.apache.org/" target="_top">http://lucene.apache.org/</a>)
+          </p></li><li class="listitem"><p>Norbert (<a class="link" href="http://sna-projects.com/norbert/" target="_top">http://sna-projects.com/norbert/</a>)
+          </p></li><li class="listitem"><p>ZooKeeper (<a class="link" href="http://zookeeper.apache.org/" target="_top">http://zookeeper.apache.org/</a>)</p></li><li class="listitem"><p>Spring (<a class="link" href="http://www.springsource.com/" target="_top">http://www.springsource.com/</a>)
+          </p></li></ul></div></div><div class="section" title="Details"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="d0e458"></a>Details</h2></div></div></div><div class="section" title="Building Sensei"><div class="titlepage"><div><div><h3 class="title"><a name="d0e461"></a>Building Sensei</h3></div></div></div><p>Getting the Sensei source code and building the entire
+        system is straightforward.  Only two commands are needed:</p><div class="orderedlist"><ol class="orderedlist" type="1" compact><li class="listitem"><p>Checking out the source code from trunk: 
+            </p><pre class="programlisting">  $ git clone git://github.com/javasoze/sensei.git sensei-trunk
+            </pre></li><li class="listitem"><p>Building Sensei using <code class="literal">ant</code>:
+            </p><pre class="programlisting">  $ ant</pre></li></ol></div></div><div class="section" title="Starting ZooKeeper"><div class="titlepage"><div><div><h3 class="title"><a name="d0e480"></a>Starting ZooKeeper<a class="indexterm" name="d0e483"></a> </h3></div></div></div><p>
+          In order to run the sample of Sensei search, you have to run
+          an instance of ZooKeeper first.
+        </p><p>
+          You may download ZooKeeper from <a class="link" href="http://hadoop.apache.org/zookeeper/" target="_top">http://hadoop.apache.org/zookeeper/</a>.
+        </p><p>
+          Using the sample configuration file in <code class="code">zookeeper-3.2.0/conf</code> by copying
+          <code class="code">zookeeper-3.2.0/conf/zoo_sample.cfg</code> to <code class="code">zookeeper-3.2.0/conf/zoo.cfg</code> and
+          start an instance of ZooKeeper by running
+        </p><pre class="programlisting">  $ zookeeper-3.2.0/bin/zkServer.sh start</pre><p>
+          For details, see <a class="link" href="http://hadoop.apache.org/zookeeper/docs/current/zookeeperStarted.html" target="_top">http://hadoop.apache.org/zookeeper/docs/current/zookeeperStarted.html</a>.
+        </p></div><div class="section" title="Starting Sensei Nodes"><div class="titlepage"><div><div><h3 class="title"><a name="d0e512"></a>Starting Sensei Nodes <a class="indexterm" name="d0e515"></a> </h3></div></div></div><p>You can use command
+        <code class="literal">bin/start-sensei-node.sh</code> to start a server
+        node.  This command takes one argument:
+        <code class="literal">conf.dir</code>, which contains all configuration
+        information for a given Sensei node.</p><p>Here is an example command-line that will work to fire up
+        a single sensei node with some sample data:
+        </p><pre class="programlisting">  $ bin/start-sensei-node.sh conf</pre><div class="note" title="Note" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Note</h3><p>Do not expect to see any logs after running this
+          command. If you run it, have ZooKeeper up and running, a REST
+          server (as discussed below) will also be started, and you will
+          be able to get some sample search results. </p></div></div><div class="section" title="Web Application and RESTful End-Point"><div class="titlepage"><div><div><h3 class="title"><a name="d0e534"></a>Web Application and RESTful
+        End-Point<a class="indexterm" name="d0e537"></a></h3></div></div></div><p>When developing applications using Sensei, we found it
+        convenient to have a RESTful end-point that provides data in
+        JSON format.  Having a RESTful end-point allows one to query the
+        Sensei system in an ad-hoc way, and having a JSON formatted
+        output provides a way to investigate the result set without
+        having the need to depend on jars or any other types of code
+        binding.</p><p>When a Sensei node is started, a RESTful end-point along
+        with a web interactive client would be started as well:</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>RESTful end-point:</p><pre class="programlisting">  http://localhost:8080/sensei?q=</pre></li><li class="listitem"><p>Web client</p><pre class="programlisting">  http://localhost:8080</pre></li></ul></div></div><div class="section" title="Starting Clients"><div class="titlepage"><div><div><h3 class="title"><a name="d0e555"></a>Starting Clients<a class="indexterm" name="d0e558"></a> </h3></div></div></div><p>
+          After you start at least one node, you can run
+        </p><pre class="programlisting">  $ bin/sensei-client.sh client-conf</pre><p>to start a client.  You can edit
+        <code class="literal">client-conf/sensei-client.conf</code> to change the
+        properties.</p><p>
+          Type help to see command list:
+        </p><pre class="programlisting">  $ bin/sensei-client.sh client-conf
+  &gt; help
+  help - prints this message
+  exit - quits
+  info - prints system information
+  query &lt;query string&gt; - sets query text
+  facetspec &lt;name&gt;:&lt;minHitCount&gt;:&lt;maxCount&gt;:&lt;sort&gt; - add facet spec
+  page &lt;offset&gt;:&lt;count&gt; - set paging parameters
+  select &lt;name&gt;:&lt;value1&gt;,&lt;value2&gt;... - add selection, with ! in front of value indicates a not
+  sort &lt;name&gt;:&lt;dir&gt;,... - set sort specs
+  showReq: shows current request
+  clear: clears current request
+  clearSelections: clears all selections
+  clearSelection &lt;name&gt;: clear selection specified
+  clearFacetSpecs: clears all facet specs
+  clearFacetSpec &lt;name&gt;: clears specified facetspec
+  browse - executes a search
+  &gt; 
+</pre></div></div></div><div class="chapter" title="Chapter&nbsp;3.&nbsp;Sensei Demo"><div class="titlepage"><div><div><h2 class="title"><a name="d0e575"></a>Chapter&nbsp;3.&nbsp;Sensei Demo</h2></div></div></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><span class="section"><a href="#d0e578">Overview</a></span></dt><dt><span class="section"><a href="#d0e608">Run the Demo</a></span></dt><dt><span class="section"><a href="#d0e627">URLs</a></span></dt><dt><span class="section"><a href="#d0e646">Screenshots</a></span></dt><dt><span class="section"><a href="#d0e676">Diagram</a></span></dt><dt><span class="section"><a href="#d0e687">Demo Configuration</a></span></dt><dd><dl><dt><span class="section"><a href="#d0e716">Data Model</a></span></dt></dl></dd></dl></div><div class="section" title="Overview"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="d0e578"></a>Overview</h2></div></div></div><p>We feel the best way to learn a new system is through
+      examples.</p><p>Sensei comes with a sample application and this page aims to
+      provide an anatomy of the Sensei car demo and to help new-comers in
+      building a Sensei application.</p><p>File layout:</p><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Configuration files: <code class="filename">conf/*</code></p></li><li class="listitem"><p>Data file: <code class="filename">data/cars.json</code></p></li><li class="listitem"><p>Output index: <code class="filename">index/</code></p></li><li class="listitem"><p>Web-app: <code class="filename">src/main/webapp/</code></p></li></ul></div></div><div class="section" title="Run the Demo"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="d0e608"></a>Run the Demo</h2></div></div></div><div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem"><p>Build Sensei:</p><pre class="programlisting">  $ ant</pre></li><li class="listitem"><p>Make sure ZooKeeper is running:</p><pre class="programlisting">  $ $ZK_home/bin/zkServer.sh start</pre></li><li class="listitem"><p>Run the demo:</p><pre class="programlisting">  $ ./bin/start-sensei-node conf/</pre></li></ol></div></div><div class="section" title="URLs"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="d0e627"></a>URLs</h2></div></div></div><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>Sensei Web Client:</p><pre class="programlisting">  http://localhost:8080/</pre></li><li class="listitem"><p>Demo Page:</p><pre class="programlisting">  http://localhost:8080/demo.html</pre></li><li class="listitem"><p>RESTful End-Point:</p><pre class="programlisting">  http://localhost:8080/sensei</pre></li></ul></div></div><div class="section" title="Screenshots"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="d0e646"></a>Screenshots</h2></div></div></div><div class="figure"><a name="d0e649"></a><p class="title"><b>Figure&nbsp;3.1.&nbsp;Sensei Web Client</b></p><div class="figure-contents"><div class="mediaobject" align="center"><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0"><tr><td align="center" valign="middle"><img src="figures/sensei-web-client.png" align="middle" alt="Sensei Web Client"></td></tr></table></div></div></div><br class="figure-break"><div class="figure"><a name="d0e657"></a><p class="title"><b>Figure&nbsp;3.2.&nbsp;Demo</b></p><div class="figure-contents"><div class="mediaobject" align="center"><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0"><tr><td align="center" valign="middle"><img src="figures/demo.png" align="middle" alt="Demo"></td></tr></table></div></div></div><br class="figure-break"><div class="figure"><a name="d0e665"></a><p class="title"><b>Figure&nbsp;3.3.&nbsp;RESTful End-Point<a class="indexterm" name="d0e668"></a></b></p><div class="figure-contents"><div class="mediaobject" align="center"><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0"><tr><td align="center" valign="middle"><img src="figures/rest-end-point.png" align="middle" alt="RESTful End-PointRESTful end-point"></td></tr></table></div></div></div><br class="figure-break"></div><div class="section" title="Diagram"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="d0e676"></a>Diagram</h2></div></div></div><div class="figure"><a name="d0e679"></a><p class="title"><b>Figure&nbsp;3.4.&nbsp;The Sensei Demo System</b></p><div class="figure-contents"><div class="mediaobject" align="center"><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0"><tr><td align="center" valign="middle"><img src="figures/sensei-demo.png" align="middle" alt="The Sensei Demo System"></td></tr></table></div></div></div><br class="figure-break"></div><div class="section" title="Demo Configuration"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="d0e687"></a>Demo Configuration</h2></div></div></div><p>The configuration for the demo application can be found at:
+      <a class="link" href="https://github.com/javasoze/sensei/tree/master/conf" target="_top">https://github.com/javasoze/sensei/tree/master/conf</a>,
+      which contains the following files:</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p><code class="filename">sensei.properties</code>: main
+          configuration file, describes the overall configuration of the
+          system (we will dig into that in detail later)
+          </p></li><li class="listitem"><p><code class="filename">schema.xml</code>: this describes the data
+          model and the faceting behavior of the application
+          </p></li><li class="listitem"><p><code class="filename">custom-facets.xml</code>: Spring file for
+          adding custom facets, while Sensei comes with a set of facet
+          types out of the box, this allows user-defined facets to be
+          plugged into the application
+          </p></li><li class="listitem"><p><code class="filename">plugins.xml</code>: any other plug-ins,
+          e.g. Analyzer, Similarity, and Interpreter.
+          </p></li></ul></div><div class="section" title="Data Model"><div class="titlepage"><div><div><h3 class="title"><a name="d0e716"></a>Data Model</h3></div></div></div><p> The data model is described in
+        <code class="filename">schema.xml</code>: </p><pre class="programlisting"> &lt;table uid="id" delete-field="" skip-field=""&gt;
+   &lt;column name="color" type="string" /&gt;
+   &lt;column name="category" type="string" /&gt;
+   &lt;column name="city" type="string" /&gt;
+   &lt;column name="makemodel" type="string" /&gt;
+   &lt;column name="year" type="int" /&gt;
+   &lt;column name="price" type="float" /&gt;
+   &lt;column name="mileage" type="int" /&gt;
+   &lt;column name="tags" type="string" multi="true" delimiter=","/&gt;
+   &lt;column name="contents" type="text" index="ANALYZED" store="NO" termvector="NO" /&gt;  
+ &lt;/table&gt;
+ 
+ &lt;facets&gt;
+   &lt;facet name="color" type="simple" depends=""/&gt;
+   &lt;facet name="category" type="simple" /&gt;
+   &lt;facet name="city" type="path"&gt;
+     &lt;params&gt;
+       &lt;param name="separator" value="/" /&gt;
+     &lt;/params&gt;
+   &lt;/facet&gt;
+   &lt;facet name="makemodel" type="path" /&gt;
+   &lt;facet name="year" type="range"&gt;
+     &lt;params&gt;
+       &lt;param name="range" value="1993-1994" /&gt;
+       &lt;param name="range" value="1995-1996" /&gt;
+       &lt;param name="range" value="1997-1998" /&gt;
+       &lt;param name="range" value="1999-2000" /&gt;
+       &lt;param name="range" value="2001-2002" /&gt;
+     &lt;/params&gt;
+   &lt;/facet&gt;
+   &lt;facet name="mileage" type="range"&gt;
+     &lt;params&gt;
+       &lt;param name="range" value="*-12500" /&gt;
+       &lt;param name="range" value="12501-15000" /&gt;
+       &lt;param name="range" value="15001-17500" /&gt;
+       &lt;param name="range" value="17501-*" /&gt;
+     &lt;/params&gt;
+   &lt;/facet&gt;
+   &lt;facet name="price" type="range"&gt;
+        &lt;params&gt;
+          &lt;param name="range" value="*,6700" /&gt;
+          &lt;param name="range" value="6800,9900" /&gt;
+          &lt;param name="range" value="10000,13100" /&gt;
+          &lt;param name="range" value="13200,17300" /&gt;
+          &lt;param name="range" value="17400,*" /&gt;
+       &lt;/params&gt;
+   &lt;/facet&gt;
+   &lt;facet name="tags" type="multi" /&gt;
+ &lt;/facets&gt;
+</pre><p>This corresponds to the following data table: </p><table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides" id="d0e728"><colgroup><col align="left"><col align="left"><col align="left"><col align="left"><col align="left"><col align="left"><col align="left"><col align="left"><col align="left"><col align="left"><col align="left">
+          </colgroup><thead><tr>
+              <th align="left"></th>
+              <th align="left">color</th>
+              <th align="left">category</th>
+              <th align="left">city</th>
+              <th align="left" colspan="2">makemodel</th>
+              <th align="left">year</th>
+              <th align="left">price</th>
+              <th align="left">mileage</th>
+              <th align="left">tags</th>
+              <th align="left">contents</th>
+            </tr></thead><tbody><tr>
+              <td align="left">meta/structured</td>
+              <td align="left">yes</td>
+              <td align="left">yes</td>
+              <td align="left">yes</td>
+              <td align="left" colspan="2">yes</td>
+              <td align="left">yes</td>
+              <td align="left">yes</td>
+              <td align="left">yes</td>
+              <td align="left">yes</td>
+              <td align="left">no</td>
+            </tr><tr>
+              <td align="left">type</td>
+              <td align="left">string</td>
+              <td align="left">string</td>
+              <td align="left">string</td>
+              <td align="left" colspan="2">string</td>
+              <td align="left">int</td>
+              <td align="left">float</td>
+              <td align="left">int</td>
+              <td align="left">string</td>
+              <td align="left">text</td>
+            </tr><tr>
+              <td align="left">facet</td>
+              <td align="left">simple</td>
+              <td align="left">simple</td>
+              <td align="left">path</td>
+              <td align="left" colspan="2">path</td>
+              <td align="left">range</td>
+              <td align="left">range</td>
+              <td align="left">range</td>
+              <td align="left">multi</td>
+              <td align="left">N/A</td>
+            </tr></tbody></table></div></div></div><div class="chapter" title="Chapter&nbsp;4.&nbsp;Indexing"><div class="titlepage"><div><div><h2 class="title"><a name="d0e871"></a>Chapter&nbsp;4.&nbsp;Indexing</h2></div></div></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><span class="section"><a href="#d0e890">Data Acquisition</a></span></dt><dt><span class="section"><a href="#d0e955">Index Sharding</a></span></dt><dt><span class="section"><a href="#d0e998">Index Replication</a></span></dt><dt><span class="section"><a href="#d0e1013">Sensei Cluster Overview</a></span></dt></dl></div><p>Before it can be searched, all data has to be indexed first.
+  Depending on where you get the source data from, you can use different
+  data gateways to get the data converted to the format required by
+  Sensei.  No matter what gateway is used, you need to define the data
+  model in file <code class="filename">schema.xml</code> (see <a class="xref" href="#sect-data-modeling" title="Data Modeling">the section called &#8220;Data Modeling&#8221;</a> for more details), which is equivalent
+  to the table definition in a RDBMS.</p><p>If the amount of data is small, and the run-time indexing and
+  search rates are not high, then a single Sensei node may be all you
+  need.  If the amount of data is large and you cannot fit them into one
+  box, however, you have to split them into multiple shards and store
+  them on a cluster of Sensei nodes, each serving one or multiple
+  shards.  When a user query comes in, Sensei performs the search on all
+  shards and merges the search results from all shards for you
+  automatically.</p><p>If the run-time indexing or search rate is high, network
+  bandwidth, memory or CPU may become the bottleneck on a Sensei server.
+  In this case, sharding the index only is not enough.  You have to
+  <span class="emphasis"><em>replicate</em></span> the index onto different nodes, and
+  have multiple nodes share the indexing/search workload on the same
+  shard(s).</p><p>In this chapter, we explain how to get the data indexed, and how
+  to get the data sharded and replicated.</p><div class="section" title="Data Acquisition"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="d0e890"></a>Data Acquisition</h2></div></div></div><p>To get data indexed, the first thing to set up is the indexing
+    manager (see
+    <code class="literal">com.sensei.search.nodes.SenseiIndexingManager</code>).
+    An indexing manager is responsible for:
+    </p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>Initializing the Zoie system(s): one Zoie system is needed
+        for every shard of index on one Sensei node.</p></li><li class="listitem"><p>Building the data provider: a data provider needs to be
+        built for the chosen data gateway.</p></li><li class="listitem"><p>Starting and shutting down the data gateway.</p></li></ul></div><p>For most of the cases you can simply use the default indexing
+    manger provided by Sensei:
+    <code class="literal">com.sensei.indexing.api.DefaultStreamingIndexingManager</code>.
+    However you can always write your own version when it is
+    needed.</p><p>The type of indexing manager is specified via configuration
+    parameter <code class="literal">sensei.index.manager</code>, which is the bean
+    ID of the indexing manager object that you use.  When
+    <code class="literal">sensei.index.manager</code> is not set, Sensei just uses
+    <code class="classname">DefaultStreamingIndexingManager</code>.</p><p>Once the indexing manager is selected, the next thing to set
+    up is the data gateway.  What data gateway to use depends on how
+    your original source data is stored.  Sensei provides four types of
+    built-in data gateways to cover the most common data sources (see
+    <a class="xref" href="#sensei-gateway" title="Figure&nbsp;1.2.&nbsp;Sensei Data Gateway">Figure&nbsp;1.2, &#8220;Sensei Data Gateway&#8221;</a>), however you can also write
+    your own version if needed.
+    </p><p>The data gateway type is specified via configuration parameter
+    <code class="literal">sensei.index.manager.&lt;indexing-manager-type&gt;.type</code>.
+    Here <code class="literal">&lt;indexing-manager-type&gt;</code> is the bean ID
+    of your indexing manager.  If you use the default indexing manager,
+    <code class="classname">DefaultStreamingIndexingManager</code>,
+    <code class="literal">&lt;indexing-manager-type&gt;</code> should be
+    <code class="literal">default</code>.</p><p>Additional configuration parameters may be needed for the data
+    gateway you choose.  These configuration parameters are named with
+    the following prefix:</p><pre class="programlisting">  sensei.index.manager.&lt;indexing-manager-type&gt;.&lt;data-gateway-type&gt;</pre><p>For example, if you use the default indexing manager and the
+    Kafka data gateway, the following configuration parameters need to
+    be specified:</p><pre class="programlisting">  sensei.index.manager.default.type = kafka
+  sensei.index.manager.default.kafka.host = my-kafka-host
+  sensei.index.manager.default.kafka.port = 1234
+  sensei.index.manager.default.kafka.topic = log-data
+  sensei.index.manager.default.kafka.batchsize = 10000
+  sensei.index.manager.default.kafka.filter = my-kafka-filter</pre><p>In the rest of the document, we will use the default indexing
+    manager in most of the examples, unless a different indexing manager
+    type is specified explicitly.</p></div><div class="section" title="Index Sharding"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="d0e955"></a>Index Sharding<a class="indexterm" name="d0e958"></a></h2></div></div></div><p>Index sharding is needed when the amount of data to be indexed
+    is too big for one single machine to handle.  Most of the times
+    sharding is required because the disk space on a single machine is
+    not big enough, but limited memory or limited CPU power can also be
+    the reason.</p><p>Index sharding is controlled by the following two
+    configuration parameters:</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p><code class="literal">sensei.index.manager.&lt;indexing-manager-type&gt;.maxpartition.id</code></p></li><li class="listitem"><p><code class="literal">sensei.node.partitions</code></p></li></ul></div><p>The first parameter tells Sensei how many shards in total the
+    index will be divided into, and the second parameter tells Sensei
+    how many and what shards are handled by the current node.</p><p>For example, if you want to divide the entire index into 10
+    shards (shard 0, shard 1, ..., shard 9), and you want to put the
+    first two shards onto the first Sensei node, then you just need to
+    add the following two lines to your configuration file:</p><pre class="programlisting">  sensei.index.manager.default.maxpartition.id = 9
+  sensei.node.partitions = 0,1</pre><p>How to split your data into different shards is up to the
+    business logic of the application.  Sensei allows you to provide a
+    <span class="emphasis"><em>sharding strategy</em></span> plug-in (see
+    <code class="classname">com.sensei.indexing.api.ShardingStrategy</code>) to
+    let the indexing manager know what data should belong to which
+    shards.</p><p>A simple but common sharding strategy is implemented in
+    <code class="classname">com.sensei.indexing.api.ShardingStrategy</code>:
+    <code class="classname">FieldModShardingStrategy</code>.  This is basically
+    the round-robin style.  To make this sharding strategy work, you
+    need to specify the total number of shards and on which data field
+    the data should be sharded.
+    </p><p>If data that does not belong to any partition on a Sensei node
+    is passed to the indexing manager, it is discarded.</p></div><div class="section" title="Index Replication"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="d0e998"></a>Index Replication</h2></div></div></div><p>There are two reasons for index replication.  First, index
+    replication improves the reliability and fault-tolerance of the
+    search service that you build.  Second, by replicating the index and
+    having multiple Sensei nodes handle the same shards of index, you
+    can reduce the workload every Sensei node takes and thus improve the
+    performance of the search service.</p><p>In Sensei, failovers of replicas are achieved by ZooKeeper and
+    the built-in load balancer implemented based on consistent hashing.
+    If one replica is down, the load balancer will be notified by
+    ZooKeeper, and it will update the replica information maintained
+    internally and route new search requests to a different
+    replica.</p><p>It is very easy to add a Sensei node to an existing Sensei
+    cluster and make it a replica of one or more index shards.  Suppose
+    you want to add one replica for a Sensei node, node 2, that contains
+    two shards, all you need to do is copy over the config file
+    <code class="filename">sensei.properties</code> on node 2 and change the node
+    ID setting (<code class="literal">sensei.node.id</code>) to the node ID that
+    you are going to assign to the newly added node.</p></div><div class="section" title="Sensei Cluster Overview"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="d0e1013"></a>Sensei Cluster Overview</h2></div></div></div><p>The following figure shows an example of a Sensei cluster
+    where the index is split into 8 shards, each having 3 replicas.
+    There are 12 Sensei nodes in this cluster, and every node serves two
+    shards.</p><div class="figure"><a name="d0e1018"></a><p class="title"><b>Figure&nbsp;4.1.&nbsp;Index Sharding and Replication</b></p><div class="figure-contents"><div class="mediaobject" align="center"><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0"><tr><td align="center" valign="middle"><img src="figures/index-sharding.png" align="middle" alt="Index Sharding and Replication"></td></tr></table></div></div></div><br class="figure-break"></div></div><div class="chapter" title="Chapter&nbsp;5.&nbsp;Hadoop Indexing"><div class="titlepage"><div><div><h2 class="title"><a name="d0e1026"></a>Chapter&nbsp;5.&nbsp;Hadoop Indexing</h2></div></div></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><span class="section"><a href="#d0e1029">Overview</a></span></dt><dt><span class="section"><a href="#d0e1034">Hadoop Indexing Sub-system</a></span></dt><dt><span class="section"><a href="#d0e1065">Demo</a></span></dt><dd><dl><dt><span class="section"><a href="#d0e1070">Configuration</a></span></dt></dl></dd></dl></div><div class="section" title="Overview"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="d0e1029"></a>Overview</h2></div></div></div><p>Hadoop system has been widely adopted for many industrial
+    applications to solve the scalability and fault tolerance requirements. As
+    one of the implementations of Map/Reduce computing framework, it provides
+    a convenient way to handle large data processing in a parallel way. Sensei
+    internally integrates hadoop indexing sub-system since its underlying
+    index files are the same as lucene index files. In this chapter we
+    introduces sensei hadoop indexing functionality, a demo program will also
+    be given.</p></div><div class="section" title="Hadoop Indexing Sub-system"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="d0e1034"></a>Hadoop Indexing Sub-system</h2></div></div></div><p>To those who are not interested in the technical details of sensei
+    hadoop indexing, you can skip this section and continue the following demo
+    section.</p><p>File layout of sensei hadoop indexing system source packages:</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>com.sensei.indexing.hadoop.job;</p></li><li class="listitem"><p>com.sensei.indexing.hadoop.keyvalueformat;</p></li><li class="listitem"><p>com.sensei.indexing.hadoop.map;</p></li><li class="listitem"><p>com.sensei.indexing.hadoop.reduce;</p></li><li class="listitem"><p>com.sensei.indexing.hadoop.util;</p></li></ul></div><p>System Workflow:</p><div class="figure"><a name="d0e1059"></a><p class="title"><b>Figure&nbsp;5.1.&nbsp;Sensei Hadoop Indexing Workflow</b></p><div class="figure-contents"><div class="mediaobject"><img src="figures/sensei-hadoop-index.png" alt="Sensei Hadoop Indexing Workflow"></div></div></div><br class="figure-break"></div><div class="section" title="Demo"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="d0e1065"></a>Demo</h2></div></div></div><p>To be consistent, we also use the car demo data to describe our
+    hadoop indexing system.</p><div class="section" title="Configuration"><div class="titlepage"><div><div><h3 class="title"><a name="d0e1070"></a>Configuration</h3></div></div></div><pre class="programlisting">type=java
+job.class=com.sensei.indexing.hadoop.demo.CarDemo
+
+mapreduce.job.maps=2
+sensei.num.shards=3
+
+mapred.job.name=CarDemoShardedIndexing
+
+# if the output.path already exists, delete it first
+sensei.force.output.overwrite=true
+
+# adjust this to a small one if mapper number is huge. default is 50Mb =  52428800
+sensei.max.ramsize.bytes=52428800
+
+#############   path of schema for interpreter #############
+
+##### TextJSON schema Sample (car demo) absolute path ######
+sensei.schema.file.url=conf/schema.xml
+
+############    Input and Output  ##################
+
+####### Text JSON data (car demo) #####
+read.lock=data/cars.json
+sensei.input.dirs=data/cars.json
+
+######## Output configuration ######
+write.lock=example/hadoop-indexing/output
+sensei.output.dir=example/hadoop-indexing/fileoutput
+
+######## Index output location ######
+sensei.index.path=example/hadoop-indexing/index
+
+############# schemas for mapper input  ################
+
+sensei.input.format=org.apache.hadoop.mapred.TextInputFormat
+
+##############  Sharding strategy  ################
+sensei.distribution.policy=com.sensei.indexing.hadoop.demo.CarShardingStrategy
+
+#############  Converter for mapper input (data conversion and filtering) ##########
+sensei.mapinput.converter=com.sensei.indexing.hadoop.demo.CarMapInputConverter
+
+#############  Analyzer configuration for lucene ###############
+sensei.document.analyzer=org.apache.lucene.analysis.standard.StandardAnalyzer
+sensei.document.analyzer.version=LUCENE_30
+
+</pre></div></div></div><div class="chapter" title="Chapter&nbsp;6.&nbsp;Searching"><div class="titlepage"><div><div><h2 class="title"><a name="d0e1075"></a>Chapter&nbsp;6.&nbsp;Searching</h2></div></div></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><span class="section"><a href="#d0e1082">Sensei Request</a></span></dt><dt><span class="section"><a href="#d0e1121">Load Balancing</a></span></dt><dt><span class="section"><a href="#d0e1126">RESTful API</a></span></dt><dd><dl><dt><span class="section"><a href="#d0e1129">Scalar Parameters</a></span></dt><dt><span class="section"><a href="#d0e1204">Sort Fields Parameter</a></span></dt><dt><span class="section"><a href="#d0e1260">Query Parameters</a></span></dt><dt><span class="section"><a href="#d0e1283">Selection Parameters</a></span></dt><dt><span class="section"><a href="#d0e1337">Facet Specification Parameters</a></span></dt></dl></dd></dl></div><p>Once the indexing process is started and some data has been
+  indexed, you can start to perform searches against the Sensei cluster.
+  A search query is done by building a Sensei request and sending it to
+  a Sensei broker.  You can do this using a native Java Sensei client,
+  or other client APIs that support other languages like Python or
+  JavaScript.</p><p>Upon receiving a request, a Sensei broker passes it to a set of
+  selected Sensei nodes, merges the search results from these nodes, and
+  then returns the merged results back to the requester.  What set of
+  Sensei nodes are selected for a request is decided using load
+  balancer.  Based on the need of the applications, you can plug in
+  different customized load balancers.  By default, Sensei uses a load
+  balancer that distributes work load based on consistent
+  hashing.</p><div class="section" title="Sensei Request"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="d0e1082"></a>Sensei Request</h2></div></div></div><p>A Sensei request contains the following main
+    parameters:</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>Query: the input query string</p></li><li class="listitem"><p>Offset: the starting offset of search results</p></li><li class="listitem"><p>Count: the number of search results to return</p></li><li class="listitem"><p>Initializing parameters for runtime facet handlers: a map
+        that contains the initializing parameters that are needed by all
+        runtime facet handlers</p></li><li class="listitem"><p>Flag indicating whether stored fields are to be
+        fetched</p></li><li class="listitem"><p>Partitions: shards of the index to be searched</p></li><li class="listitem"><p>Flag indicating whether explanation information should be returned</p></li><li class="listitem"><p>Routing parameter: the field value used for routing</p></li><li class="listitem"><p>Group-by field: the field name used for the group-by
+        operation (also called <span class="emphasis"><em>field collapsing <a class="indexterm" name="d0e1117"></a></em></span>)</p></li></ul></div></div><div class="section" title="Load Balancing"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="d0e1121"></a>Load Balancing</h2></div></div></div><p>(To be finished)</p></div><div class="section" title="RESTful API"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="d0e1126"></a>RESTful API</h2></div></div></div><div class="section" title="Scalar Parameters"><div class="titlepage"><div><div><h3 class="title"><a name="d0e1129"></a>Scalar Parameters</h3></div></div></div><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p><span class="bold"><strong>Query parameter:</strong></span>
+          <code class="literal">q</code></p><p>The <code class="literal">q</code> parameter specifies the query string.</p></li><li class="listitem"><p><span class="bold"><strong>Fetch stored fields:</strong></span>
+          <code class="literal">fetchstored</code></p><p>This is a boolean parameter that specifies whether
+          stored fields should be fetched or not.</p></li><li class="listitem"><p><span class="bold"><strong>Show explanation:</strong></span>
+          <code class="literal">showexplain</code></p><p>This is a boolean parameter that specifies whether query
+          explanation information should be returned in the search
+          result.</p></li><li class="listitem"><p><span class="bold"><strong>Starting offset:</strong></span>
+          <code class="literal">start</code></p><p>This is the offset value used for search result
+          pagination.</p></li><li class="listitem"><p><span class="bold"><strong>Number of result:</strong></span>
+          <code class="literal">rows</code></p><p>This parameter specifies how many results should be
+          returned for this query.</p></li><li class="listitem"><p><span class="bold"><strong>Routing parameter:</strong></span>
+          <code class="literal">routeparam</code></p><p>This parameter specifies the value of the field used for
+          routing (i.e. load balancing).</p></li><li class="listitem"><p><span class="bold"><strong>Group-by parameter:</strong></span>
+          <code class="literal">groupby</code></p><p>This parameter specifies the field name used to do the
+          group-by operation.</p></li></ul></div><div class="example"><a name="d0e1199"></a><p class="title"><b>Example&nbsp;6.1.&nbsp;Scalar Parameters</b></p><div class="example-contents"><pre class="programlisting">  q=ipad 2&amp;fetchstored=true&amp;showexplain=false&amp;start=0&amp;rows=10
+  q=linkedin&amp;start=0&amp;rows=10&amp;routeparam=12345&amp;groupby=userid
+</pre></div></div><br class="example-break"></div><div class="section" title="Sort Fields Parameter"><div class="titlepage"><div><div><h3 class="title"><a name="d0e1204"></a>Sort Fields Parameter</h3></div></div></div><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p><span class="bold"><strong>Sort fields parameter:</strong></span>
+          <code class="literal">sort</code></p><p>This parameter specifies how the search results should
+          be sorted.  The results can be sorted based on one or multiple
+          fields, in either ascending or descending order.  The value of
+          this parameter consists of a list of comma separated strings,
+          each of which can be one of the following values:</p><div class="itemizedlist"><ul class="itemizedlist" type="circle"><li class="listitem"><p><code class="literal">relevance</code>: this means that the
+              results should be sorted by scores in descending
+              order.</p></li><li class="listitem"><p><code class="literal">relrev</code>: this means that the
+              results should be sorted by scores in ascending
+              order.</p></li><li class="listitem"><p><code class="literal">doc</code>: this means that the results
+              should be sorted by doc ids in ascending order.</p></li><li class="listitem"><p><code class="literal">docrev</code>: this means that the
+              results should be sorted by doc ids in descending
+              order.</p></li><li class="listitem"><p><code class="literal">&lt;field-name&gt;:&lt;direction&gt;</code>:
+              this means that the results should be sorted by field
+              <code class="literal">&lt;field-name&gt;</code> in the direction of
+              <code class="literal">&lt;direction&gt;</code>, which can be either
+              <code class="literal">asc</code> or <code class="literal">desc</code>.</p></li></ul></div></li></ul></div><div class="example"><a name="d0e1255"></a><p class="title"><b>Example&nbsp;6.2.&nbsp;Sort Fields Parameters</b></p><div class="example-contents"><pre class="programlisting">  sort=relevance
+  sort=docrev
+  sort=price:desc,color=asc
+</pre></div></div><br class="example-break"></div><div class="section" title="Query Parameters"><div class="titlepage"><div><div><h3 class="title"><a name="d0e1260"></a>Query Parameters</h3></div></div></div><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p><span class="bold"><strong>Query Parameters:</strong></span>
+          <code class="literal">qparam</code></p><p>This parameter specifies a list of arbitrary query
+          parameters in the form of name-value pairs, separated by
+          commas.  Each pair is formatted as
+          <code class="literal">&lt;name&gt;:&lt;value&gt;</code>.</p><p>This parameter is commonly used to pass query-level
+          parameters to dynamic runtime facet handlers.</p></li></ul></div><div class="example"><a name="d0e1278"></a><p class="title"><b>Example&nbsp;6.3.&nbsp;Query Parameters</b></p><div class="example-contents"><pre class="programlisting">  qparam=arg1:123,arg2:abc
+</pre></div></div><br class="example-break"></div><div class="section" title="Selection Parameters"><div class="titlepage"><div><div><h3 class="title"><a name="d0e1283"></a>Selection Parameters</h3></div></div></div><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p><span class="bold"><strong>Not-value parameter:</strong></span>
+          <code class="literal">select.&lt;field-name&gt;.no</code></p><p>This parameter specifies what values for a field should be excluded
+          from the search results.</p></li><li class="listitem"><p><span class="bold"><strong>Value parameter:</strong></span>
+          <code class="literal">select.&lt;field-name&gt;.val</code></p><p>This parameter specifies what values for a field should
+          be included in the search results.</p></li><li class="listitem"><p><span class="bold"><strong>Operator parameter:</strong></span>
+          <code class="literal">select.&lt;field-name&gt;.op</code></p><p>This parameter specifies the operator used for selection
+          values: <code class="literal">and</code> or
+          <code class="literal">or</code>.</p></li><li class="listitem"><p><span class="bold"><strong>Property parameter:</strong></span>
+          <code class="literal">select.&lt;field-name&gt;.prop</code></p><p>This parameter specifies the additional properties if a
+          selection is on a field with the <span class="emphasis"><em>path</em></span>
+          type.</p></li></ul></div><div class="example"><a name="d0e1332"></a><p class="title"><b>Example&nbsp;6.4.&nbsp;Selection Parameters</b></p><div class="example-contents"><pre class="programlisting">  select.color.val=red,yellow&amp;select.color.op=or&amp;start=0&amp;select.color.not=black
+</pre></div></div><br class="example-break"></div><div class="section" title="Facet Specification Parameters"><div class="titlepage"><div><div><h3 class="title"><a name="d0e1337"></a>Facet Specification Parameters</h3></div></div></div><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p><span class="bold"><strong>Maximum count parameter:</strong></span>
+          <code class="literal">facet.&lt;facet-name&gt;.max</code>
+          </p><p>This parameter specifies the maximum count value for a
+          facet with name <code class="literal">fact-name</code>.</p></li><li class="listitem"><p><span class="bold"><strong>Order-by parameter:</strong></span>
+          <code class="literal">facet.&lt;facet-name&gt;.order</code>
+          </p><p>This parameter specifies how facet values should be
+          ordered:</p><div class="itemizedlist"><ul class="itemizedlist" type="circle"><li class="listitem"><p><code class="literal">hits</code>: order-by hits</p></li><li class="listitem"><p><code class="literal">val</code>: order-by values</p></li></ul></div></li><li class="listitem"><p><span class="bold"><strong>Selection-expand parameter:</strong></span>
+          <code class="literal">facet.&lt;facet-name&gt;.expand</code>
+          </p><p></p></li><li class="listitem"><p><span class="bold"><strong>Minimum hits parameter:</strong></span>
+          <code class="literal">facet.&lt;facet-name&gt;.minhit</code>
+          </p><p></p></li></ul></div><div class="example"><a name="d0e1393"></a><p class="title"><b>Example&nbsp;6.5.&nbsp;Facet Specification Parameters</b></p><div class="example-contents"><pre class="programlisting">  facet.color.minhit=1&amp;facet.color.max=3&amp;facet.color.order=val&amp;facet.color.expand=True
+</pre></div></div><br class="example-break"></div></div></div><div class="chapter" title="Chapter&nbsp;7.&nbsp;Sensei Configuration"><div class="titlepage"><div><div><h2 class="title"><a name="d0e1398"></a>Chapter&nbsp;7.&nbsp;Sensei Configuration</h2></div></div></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><span class="section"><a href="#d0e1401">Overview</a></span></dt><dt><span class="section"><a href="#sect-data-modeling">Data Modeling</a></span></dt><dd><dl><dt><span class="section"><a href="#d0e1425">Table Schema</a></span></dt><dt><span class="section"><a href="#d0e1700">Facet Schema</a></span></dt></dl></dd><dt><span class="section"><a href="#d0e1949">System Configuration</a></span></dt><dd><dl><dt><span class="section"><a href="#d0e2015">Server Properties</a></span></dt><dt><span class="section"><a href="#d0e2124">Cluster Properties</a></span></dt><dt><span class="section"><a href="#d0e2181">Indexing Properties</a></span></dt><dt><span class="section"><a href="#d0e2568">Broker and Client Properties</a></span></dt><dt><span class="section"><a href="#sect-plugin-props">Plug-in Properties</a></span></dt></dl></dd></dl></div><div class="section" title="Overview"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="d0e1401"></a>Overview</h2></div></div></div><p>A Sensei node is configured by a set of files. These files
+      describe a Sensei node in terms of data models, server
+      configuration, indexing tuning parameters, customizations,
+      etc.</p><p>This chapter aims to describe how different parts are pieced
+      together via these configuration files.</p></div><div class="section" title="Data Modeling"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="sect-data-modeling"></a>Data Modeling</h2></div></div></div><p>Data models are described in the
+      <code class="filename">schema.xml</code> file.  The XSD definition of this
+      XML file can be found from
+      http://javasoze.github.com/sensei/schema/sensei-schema.xsd.</p><p>The schema file is composed by 2 sections:</p><div class="orderedlist"><ol class="orderedlist" type="1" compact><li class="listitem"><p>Table schema</p></li><li class="listitem"><p>Facet schema</p></li></ol></div><div class="section" title="Table Schema"><div class="titlepage"><div><div><h3 class="title"><a name="d0e1425"></a>Table Schema<a class="indexterm" name="d0e1428"></a></h3></div></div></div><p>A Sensei instance can be viewed as a giant table with many
+        columns and many rows. The concept of such table directly correlates
+        to that of traditional RDBMS's.</p><p>A table may have the following attributes:</p><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p><span class="bold"><strong>uid</strong></span> (mandatory) -
+            defines the name of the primary key field.  This must be of
+            type <code class="literal">long</code>.</p></li><li class="listitem"><p><span class="bold"><strong>delete-field</strong></span>
+            (optional) - defines the field that would indicate a delete
+            event (we will get back to this later).</p></li><li class="listitem"><p><span class="bold"><strong>skip-field</strong></span> (optional)
+            - defines the field that would indicate a skipping event (we
+            will get back to this later).</p></li><li class="listitem"><p><span class="bold"><strong>src-data-store</strong></span>
+            (optional) - defines the format of how the source data is
+            saved.  Currently the only supported value is
+            "<code class="literal">lucene</code>".</p></li><li class="listitem"><p><span class="bold"><strong>src-data-field</strong></span>
+            (optional) - specifies the field name used to keep the
+            original source data value.</p><div class="note" title="Note" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Note</h3><p>If this attribute is not specified, the default
+              value is set to "<code class="literal">src_data</code>".  If this
+              field is not set by the data source filter, the string
+              representation of the original data source is saved in
+              this field by default.  If part of the source data or a
+              modified version of the source data is to be saved in the
+              index, then you need to set this field using the value you
+              prefer in the data source filter.</p></div></li><li class="listitem"><p><span class="bold"><strong>compress-src-data</strong></span>
+            (optional) - defines if the source data is
+            compressed.</p></li></ul></div><p>A table is also composed of a set of columns.  Each column
+        has a name and a type.  Below is the list of supported
+        types:</p><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p><span class="bold"><strong>string</strong></span> - value is a
+            string, e.g. "<code class="literal">abc</code>"</p></li><li class="listitem"><p><span class="bold"><strong>int</strong></span> - integer value</p></li><li class="listitem"><p><span class="bold"><strong>long</strong></span> - long value</p></li><li class="listitem"><p><span class="bold"><strong>short</strong></span> - short value</p></li><li class="listitem"><p><span class="bold"><strong>float</strong></span> - a floating point value</p></li><li class="listitem"><p><span class="bold"><strong>double</strong></span> - double value</p></li><li class="listitem"><p><span class="bold"><strong>char</strong></span> - a character</p></li><li class="listitem"><p><span class="bold"><strong>date</strong></span> - a date value,
+            which must be accompanied by a format string to be used to
+            parse a date string</p></li><li class="listitem"><p><span class="bold"><strong>text</strong></span> - a searchable
+            text segment, standard Lucene indexing specification can
+            also be specified here, e.g. <code class="literal">index="ANALYZED"</code>,
+            <code class="literal">termvector="NO"</code>.</p></li></ul></div><p>A column that is not of type "text" is considered a
+        <span class="emphasis"><em>meta</em></span> column.  Any meta column can be
+        specified to be either <span class="emphasis"><em>single</em></span> (default) or
+        <span class="emphasis"><em>multi</em></span>.  When a column is specified to be
+        <span class="emphasis"><em>multi</em></span>, e.g. <code class="literal">multi="true"</code>, it
+        means that, given a row, the column can have more than one
+        value.  A delimited string can be provided to help the indexer
+        parse the values (default delimiter is "<code class="literal">,</code>").
+        To specify a different delimiter, say "<code class="literal">:</code>", we
+        can simply set <code class="literal">delimiter=":"</code>)</p><p>Here is an example of the table schema (see
+        https://github.com/javasoze/sensei/blob/master/conf/schema.xml):</p><pre class="programlisting">  &lt;table uid="id" delete-field="" skip-field=""&gt;
+    &lt;column name="color" type="string" /&gt;
+    &lt;column name="category" type="string" /&gt;
+    &lt;column name="city" type="string" /&gt;
+    &lt;column name="makemodel" type="string" /&gt;
+    &lt;column name="year" type="int" /&gt;
+    &lt;column name="price" type="float" /&gt;
+    &lt;column name="mileage" type="int" /&gt;
+    &lt;column name="tags" type="string" multi="true" delimiter=","/&gt;
+    &lt;column name="contents" type="text" index="ANALYZED"
+            store="NO" termvector="NO"/&gt;
+  &lt;/table&gt;</pre><div class="section" title="JSON"><div class="titlepage"><div><div><h4 class="title"><a name="d0e1565"></a>JSON<a class="indexterm" name="d0e1568"></a></h4></div></div></div><p>By default, data objects inserted into Sensei are JSON
+          objects.</p><p><span class="bold"><strong>Example</strong></span>:</p><p>Given the following table definition:</p><pre class="programlisting">  &lt;table uid="id"&gt;
+    &lt;column name="color" type="string" /&gt;
+    &lt;column name="year" type="int" /&gt;
+    &lt;column name=tag" type="string" multi="true" /&gt;
+    &lt;column name="description" type="text" index="ANALYZED" store="NO" /&gt;
+  &lt;/table&gt;
+</pre><p>The following table shows as an example how a JSON
+          object is mapped into the table:</p><p>
+            <span class="bold"><strong>JSON object</strong></span>
+          </p><pre class="programlisting">  {
+    id:1
+    color:"red",
+    year:2000,
+    tag:"cool,leather",
+    description:"i love this car"
+  }</pre><p>
+            <span class="bold"><strong>Table view</strong></span>
+          </p><table border="2" cellpadding="6" cellspacing="0" frame="hsides" rules="groups" id="d0e1595"><colgroup>
+              <col align="left">
+
+              <col align="left">
+
+              <col align="left">
+
+              <col align="left">
+
+              <col align="left">
+            </colgroup><thead><tr>
+                <th align="left">id</th>
+
+                <th align="left">color</th>
+
+                <th align="left">year</th>
+
+                <th align="left">tag</th>
+
+                <th align="left">description</th>
+              </tr></thead><tbody><tr>
+                <td align="left">1</td>
+
+                <td align="left">red</td>
+
+                <td align="left">2000</td>
+
+                <td align="left">cool, leather</td>
+
+                <td align="left">i love this car</td>
+              </tr></tbody></table></div><div class="section" title="Deletes"><div class="titlepage"><div><div><h4 class="title"><a name="d0e1644"></a>Deletes<a class="indexterm" name="d0e1647"></a></h4></div></div></div><p>To delete a row from Sensei, simply insert a data object
+          with the specified delete-field set to true.</p><p>
+            <span class="bold"><strong>Example:</strong></span>
+          </p><p>Given the table schema:</p><pre class="programlisting">  &lt;table uid="id" delete-field="isDelete"&gt;
+  ...
+  &lt;/table&gt;
+</pre><p>The following JSON object would delete the row where
+          id=5:</p><pre class="programlisting">  {
+    id:5,
+    isDelete:"true"
+  }</pre></div><div class="section" title="Skips"><div class="titlepage"><div><div><h4 class="title"><a name="d0e1665"></a>Skips<a class="indexterm" name="d0e1668"></a></h4></div></div></div><p>In cases where runtime logic decides whether a data object
+          should be skipped, the skip field can be useful.</p><p>
+            <span class="bold"><strong>Example:</strong></span>
+          </p><p>Given the table schema:</p><pre class="programlisting">  &lt;table uid="id" skip-field="isSkip"&gt;
+  ...
+  &lt;/table&gt;</pre><p>The following JSON object would be skipped from
+          indexing:</p><pre class="programlisting">  {
+    id:7,
+    isSkip:"true"
+  }</pre></div><div class="section" title="Source JSON"><div class="titlepage"><div><div><h4 class="title"><a name="d0e1686"></a>Source JSON<a class="indexterm" name="d0e1689"></a></h4></div></div></div><p>For many cases, you may want to save the original source
+          data from which we extract all the fields into the index.  You
+          can do this by setting the attributes <span class="bold"><strong>src-data-store</strong></span> and <span class="bold"><strong>src-data-field</strong></span>.</p></div></div><div class="section" title="Facet Schema"><div class="titlepage"><div><div><h3 class="title"><a name="d0e1700"></a>Facet Schema<a class="indexterm" name="d0e1703"></a></h3></div></div></div><p>The second section is the facet schema, which defines how
+        columns can be queried.</p><p>If we think of the table section defines how data is added into
+        Sensei, then the facet section describes how these data can be
+        queried.</p><p>The facet sections is composed of a set of facet
+        definitions.</p><p>A facet definition requires a name and a type.</p><p>Possible types:</p><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p><span class="bold"><strong>simple</strong></span>: simplest facet, 1 row = 1 discrete
+            value</p></li><li class="listitem"><p><span class="bold"><strong>path</strong></span>: hierarchical facet, e.g. a/b/c</p></li><li class="listitem"><p><span class="bold"><strong>range</strong></span>: range facet, used to support range
+            queries</p></li><li class="listitem"><p><span class="bold"><strong>multi</strong></span>: 1 row = N discrete values</p></li><li class="listitem"><p><span class="bold"><strong>compact-multi</strong></span>: similar to multi, but possible
+            values are limited to 32</p></li><li class="listitem"><p><span class="bold"><strong>histogram</strong></span><a class="indexterm" name="d0e1746"></a>:
+            similar to a range facet, but a histogram facet
+            automatically calculates the distribution of facet values
+            over a predefined series of ranges with the same size. (A
+            histogram facet depends on another numeric facet, and it
+            requires several mandatory parameters, see <a class="xref" href="#sect-histogram-parameters" title="Parameters for Histogram Facets">the section called &#8220;Parameters for Histogram Facets&#8221;</a>.</p></li><li class="listitem"><p><span class="bold"><strong>custom</strong></span>: any user defined facet type</p></li></ul></div><p>Example: <a class="link" href="https://github.com/javasoze/sensei/blob/master/conf/schema.xml" target="_top">https://github.com/javasoze/sensei/blob/master/conf/schema.xml</a></p><div class="section" title="Optional Attributes"><div class="titlepage"><div><div><h4 class="title"><a name="d0e1761"></a>Optional Attributes<a class="indexterm" name="d0e1764"></a></h4></div></div></div><div class="section" title="Column"><div class="titlepage"><div><div><h5 class="title"><a name="d0e1767"></a>Column<a class="indexterm" name="d0e1770"></a></h5></div></div></div><p>The column attribute references the column names
+            defined in the table section. By default, the value of the
+            <code class="literal">name</code> attribute is used.</p><p>This can be useful if you want to name the facet name to be
+            different from the defined column name, or if you want to have
+            multiple facets defined on the same column.</p></div><div class="section" title="Depends"><div class="titlepage"><div><div><h5 class="title"><a name="d0e1782"></a>Depends<a class="indexterm" name="d0e1785"></a></h5></div></div></div><p>This is a comma delimited string denoting a set of
+            facet names this facet is to be depended on.</p><p>When attribute <code class="literal">depends</code> is specified,
+            Sensei guarantees that the depended facets are loaded before
+            this facet.</p><p>This is also how Composite Facets are constructed.
+            (Another advanced topic).</p></div><div class="section" title="Dynamic"><div class="titlepage"><div><div><h5 class="title"><a name="d0e1799"></a>Dynamic<a class="indexterm" name="d0e1802"></a></h5></div></div></div><p>Dynamic facets are useful when data layout is not known
+            until query time.</p><p>Some examples:</p><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Searcher's social network</p></li><li class="listitem"><p>Dynamic time ranges from when the search request is
+                issued</p></li></ul></div><p>This is another advanced topic to be discussed later.</p></div></div><div class="section" title="Parameters"><div class="titlepage"><div><div><h4 class="title"><a name="sect-facet-parameters"></a>Parameters</h4></div></div></div><p>A facet can be configured via a list of parameters.
+          Parameters are needed for a facet under some situations, for
+          example:</p><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>For path facets, separator strings can be
+              configured</p></li><li class="listitem"><p>For range facets, predefined ranges can be
+              configured</p></li></ul></div><p>The parameters can be specified via element
+          <code class="literal">params</code>, which contains a list of elements called
+          <code class="literal">param</code>.  For each <code class="literal">param</code>, two
+          attributes need to be specified: <code class="literal">name</code> and
+          <code class="literal">value</code>.</p><p>How parameters are interpreted and used is dependent on
+          the facet type.</p><p>Here is an example of a facet with a list of predefined
+          ranges: </p><pre class="programlisting">  &lt;facet name="year" type="range"&gt;
+    &lt;params&gt;
+      &lt;param name="range" value="1993-1994"/&gt;
+      &lt;param name="range" value="1995-1996"/&gt;
+      &lt;param name="range" value="1997-1998"/&gt;
+      &lt;param name="range" value="1999-2000"/&gt;
+      &lt;param name="range" value="2001-2002"/&gt;
+    &lt;/params&gt;
+  &lt;facet&gt;</pre><div class="section" title="Parameters for Histogram Facets"><div class="titlepage"><div><div><h5 class="title"><a name="sect-histogram-parameters"></a>Parameters for Histogram Facets</h5></div></div></div><p>A histogram facet requires 5 parameters:</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p><span class="bold"><strong>datatype</strong></span>: the
+                data type.  Only the following 5 numeric data types are
+                allowed:</p><div class="orderedlist"><ol class="orderedlist" type="1" compact><li class="listitem"><p>int</p></li><li class="listitem"><p>short</p></li><li class="listitem"><p>long</p></li><li class="listitem"><p>float</p></li><li class="listitem"><p>double</p></li></ol></div></li><li class="listitem"><p><span class="bold"><strong>datahandler</strong></span>: this
+                is the name of the facet that the histogram facet
+                depends on.  The values of this facet are used to
+                generate the distribution information.</p></li><li class="listitem"><p><span class="bold"><strong>start</strong></span>: the
+                minimum value of the facet.</p></li><li class="listitem"><p><span class="bold"><strong>end</strong></span>: the maximum
+                value of the facet.</p></li><li class="listitem"><p><span class="bold"><strong>unit</strong></span>: the unit
+                value used to divide facet values into ranges.</p></li></ul></div><p>Here is an example configuration for a histogram facet
+            over a facet called <code class="literal">score</code>:</p><pre class="programlisting">  &lt;facet name="scoreHistogram" type="histogram"&gt;
+    &lt;params&gt;
+      &lt;param name="datatype" value="int"/&gt;
+      &lt;param name="datahandler" value="score"/&gt;
+      &lt;param name="start" value="0"/&gt;
+      &lt;param name="end" value="100"/&gt;
+      &lt;param name="unit" value="10"/&gt;
+    &lt;/params&gt;
+  &lt;/facet&gt;</pre></div></div><div class="section" title="Customized Facets"><div class="titlepage"><div><div><h4 class="title"><a name="d0e1909"></a>Customized Facets</h4></div></div></div><p>We understand we cannot possibly cover all use cases
+          using a short list of predefined facet handlers.  It is
+          necessary to allow users to define their own customized facets
+          for different reasons.</p><p>If a customized facet handler is required for a column
+          (or multiple columns), you can set the facet type to
+          "<code class="literal">custom</code>", and declare a bean for the facet
+          handler in file <code class="filename">custom-facets.xml</code>.</p><p>For example, if a customized facet called
+          <code class="literal">time</code> is declared in
+          <code class="filename">schema.xml</code> like this: </p><pre class="programlisting">  &lt;facet name="time" type="custom" dynamic="false"/&gt;</pre><p>and the implementation of the facet handler is in class
+          <code class="literal">com.example.facets.TimeFacetHandler</code>, then you
+          should include the following line in file
+          <code class="filename">custom-facets.xml</code>: <sup>[<a name="d0e1940" href="#ftn.d0e1940" class="footnote">1</a>]</sup>
+          </p><pre class="programlisting">  &lt;bean id="time" class="com.example.facets.TimeFacetHandler"/&gt;</pre><p>The id of the bean should match the name of the
+          facet.</p></div></div></div><div class="section" title="System Configuration"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="d0e1949"></a>System Configuration</h2></div></div></div><p>A Sensei node is configured via the
+      <code class="filename">sensei.properties</code>, which uses the format
+      supported by Apache Commons Configuration
+      (http:/commons.apache.org/).  This file consists of the following
+      five parts:</p><div class="orderedlist"><ol class="orderedlist" type="1" compact><li class="listitem"><p><span class="bold"><strong>server</strong></span>: port to listen
+          on, rpc parameters, etc.</p></li><li class="listitem"><p><span class="bold"><strong>cluster</strong></span>: cluster
+          manager, sharding, request routing, etc.</p></li><li class="listitem"><p><span class="bold"><strong>indexing</strong></span>: data
+          interpretation, tokenization, indexer type, etc.</p></li><li class="listitem"><p><span class="bold"><strong>broker and client</strong></span>: e.g. entry into
+          Sensei system</p></li><li class="listitem"><p><span class="bold"><strong>plugins</strong></span>:
+          e.g. customized facet handlers</p></li></ol></div><p>Below is the configuration file for the demo (available from
+      <a class="link" href="https://github.com/javasoze/sensei/blob/master/conf/sensei.properties" target="_top">https://github.com/javasoze/sensei/blob/master/conf/sensei.properties</a>):</p><div class="programlistingco"><pre class="programlisting"># sensei node parameters
+sensei.node.id=1
+sensei.node.partitions=0,1
+
+# sensei network server parameters
+sensei.server.port=1234
+sensei.server.requestThreadCorePoolSize=20
+sensei.server.requestThreadMaxPoolSize=70
+sensei.server.requestThreadKeepAliveTimeSecs=300
+
+# sensei cluster parameters
+sensei.cluster.name=sensei
+sensei.cluster.url=localhost:2181
+sensei.cluster.timeout=30000
+
+# sensei indexing parameters
+sensei.index.directory = index/cardata
+
+sensei.index.batchSize = 10000
+sensei.index.batchDelay = 300000
+sensei.index.maxBatchSize = 10000
+sensei.index.realtime = true
+sensei.index.freshness = 10000
+
+# index manager parameters
+
+sensei.index.manager.default.maxpartition.id = 1
+sensei.index.manager.default.type = file
+sensei.index.manager.default.file.path = data/cars.json
+
+# plugins: from plugins.xml
+
+# analyzer, default: StandardAnalyzer
+# sensei.index.analyzer = myanalyzer
+
+# similarity, default: DefaultSimilarity
+# sensei.index.similarity = mysimilarity
+
+# indexer type, zoie/hourglass/&lt;custom name&gt;
+
+sensei.indexer.type=zoie
+
+#extra parameters for hourglass
+
+#sensei.indexer.hourglass.schedule
+
+# retention
+#sensei.indexer.hourglass.trimthreshold
+
+# frequency for a roll, minute/hour/day
+#sensei.indexer.hourglass.frequency
+
+# sensei
+# version comparator, default: ZoieConfig.DefaultVersionComparator
+# sensei.version.comparator = myVersionComparator
+
+# extra services
+sensei.plugin.services =
+
+# broker properties
+sensei.broker.port = 8080
+sensei.broker.minThread = 50
+sensei.broker.maxThread = 100
+sensei.broker.maxWaittime = 2000
+
+sensei.broker.webapp.path=src/main/webapp
+sensei.search.cluster.name = sensei
+sensei.search.cluster.zookeeper.url = localhost:2181
+sensei.search.cluster.zookeeper.conn.timeout = 30000
+sensei.search.cluster.network.conn.timeout = 1000
+sensei.search.cluster.network.write.timeout = 150
+sensei.search.cluster.network.max.conn.per.node = 5
+sensei.search.cluster.network.stale.timeout.mins = 10
+sensei.search.cluster.network.stale.cleanup.freq.mins = 10
+
+# custom router factory
+# sensei.search.router.factory = myRouterFactory
+</pre><div class="calloutlist"><table border="0" summary="Callout list"><tr><td width="5%" valign="top" align="left"><p><img src="images/callouts/1.png" alt="1" border="0"></p></td><td valign="top" align="left"><p>This lines starts the server configurations.</p></td></tr><tr><td width="5%" valign="top" align="left"><p><img src="images/callouts/2.png" alt="2" border="0"></p></td><td valign="top" align="left"><p>This lines starts the cluster configurations.</p></td></tr><tr><td width="5%" valign="top" align="left"><p><img src="images/callouts/3.png" alt="3" border="0"></p></td><td valign="top" align="left"><p>This lines starts the indexing configurations.</p></td></tr><tr><td width="5%" valign="top" align="left"><p><img src="images/callouts/4.png" alt="4" border="0"></p></td><td valign="top" align="left"><p>This lines starts the plugins configurations.</p></td></tr><tr><td width="5%" valign="top" align="left"><p><img src="images/callouts/5.png" alt="5" border="0"></p></td><td valign="top" align="left"><p>This lines starts the broker and client configurations.</p></td></tr></table></div></div><p>In the following sections, we are going to explain every
+      configuration property in each part: what the property type is,
+      whether it is required, what the default value is, and how it is
+      used, etc.</p><div class="section" title="Server Properties"><div class="titlepage"><div><div><h3 class="title"><a name="d0e2015"></a>Server Properties</h3></div></div></div><div class="variablelist"><dl><dt><span class="term"><span class="bold"><strong>sensei.node.id</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: int</p></li><li class="listitem"><p>Required: Yes</p></li><li class="listitem"><p>Default: None</p></li></ul></div><p>This is the node ID of the Sensei node in a
+              cluster.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.node.partitions</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: String (comma separated integers or ranges)</p></li><li class="listitem"><p>Required: Yes </p></li><li class="listitem"><p>Default: None</p></li></ul></div><p>This specifies the partitions IDs this the Sensei
+              server is going to handle.  Partition IDs can be given as
+              either integer numbers or ranges, separated by commas.
+              For example, the following line 
+              denotes that the Sensei server has six partitions:
+              1,4,5,6,7,10.</p><pre class="programlisting">  sensei.node.partitions=1,4-7,10</pre></dd><dt><span class="term"><span class="bold"><strong>sensei.server.port</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: int</p></li><li class="listitem"><p>Required: Yes</p></li><li class="listitem"><p>Default: None</p></li></ul></div><p>This is the Sensei server port number.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.server.requestThreadCorePoolSize</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: int</p></li><li class="listitem"><p>Required: No</p></li><li class="listitem"><p>Default: 20</p></li></ul></div><p>This is the core size of thread pool used to execute
+              requests.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.server.requestThreadKeepAliveTimeSecs</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: int</p></li><li class="listitem"><p>Required: No</p></li><li class="listitem"><p>Default: 300</p></li></ul></div><p>This is the length of time in seconds to keep an
+              idle request thread alive.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.server.requestThreadMaxPoolSize</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: int</p></li><li class="listitem"><p>Required: No</p></li><li class="listitem"><p>Default: 70</p></li></ul></div><p>This is the maximum size of thread pool used to
+              execute requests.</p></dd></dl></div></div><div class="section" title="Cluster Properties"><div class="titlepage"><div><div><h3 class="title"><a name="d0e2124"></a>Cluster Properties</h3></div></div></div><div class="variablelist"><dl><dt><span class="term"><span class="bold"><strong>sensei.cluster.name</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: String</p></li><li class="listitem"><p>Required: Yes</p></li><li class="listitem"><p>Default: None</p></li></ul></div><p>This is the name of the Sensei server cluster.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.cluster.timeout</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: int</p></li><li class="listitem"><p>Required: No</p></li><li class="listitem"><p>Default: 300000</p></li></ul></div><p>This is the session timeout value, in milliseconds,
+              that is passed to ZooKeeper.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.cluster.url</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: String</p></li><li class="listitem"><p>Required: Yes</p></li><li class="listitem"><p>Default: None</p></li></ul></div><p>This is the ZooKeeper URL for the Sensei
+              cluster.</p></dd></dl></div></div><div class="section" title="Indexing Properties"><div class="titlepage"><div><div><h3 class="title"><a name="d0e2181"></a>Indexing Properties</h3></div></div></div><div class="variablelist"><dl><dt><span class="term"><span class="bold"><strong>sensei.index.analyzer</strong></span></span></dt><dd><p>See <span class="bold"><strong>sensei.index.analyzer</strong></span> in <a class="xref" href="#sect-plugin-props" title="Plug-in Properties">the section called &#8220;Plug-in Properties&#8221;</a>.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.index.batchDelay</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: int</p></li><li class="listitem"><p>Required: No</p></li><li class="listitem"><p>Default: 300000</p></li></ul></div><p>This is the maximum time to wait in milliseconds
+              before flushing index events to disk.  The default value
+              is 300000 (i.e. 5 minutes).</p></dd><dt><span class="term"><span class="bold"><strong>sensei.index.batchSize</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: int</p></li><li class="listitem"><p>Required: No</p></li><li class="listitem"><p>Default: 10000</p></li></ul></div><p>This is the batch size to control the pace of data
+              event consumption on the back-end.  It is the
+              <span class="emphasis"><em>soft</em></span> size limit of each event batch.
+              If the events come in too fast and the limit is already
+              reached, then the indexer will block the incoming events
+              until the number of buffered events drop below this limit
+              after some of the events are sent to the background data
+              consumer.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.index.custom</strong></span></span></dt><dd><p>See <span class="bold"><strong>sensei.index.custom</strong></span> in <a class="xref" href="#sect-plugin-props" title="Plug-in Properties">the section called &#8220;Plug-in Properties&#8221;</a>.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.index.directory</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: String</p></li><li class="listitem"><p>Required: Yes</p></li><li class="listitem"><p>Default: None</p></li></ul></div><p>This is the directory used to save the index.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.index.freshness</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: long</p></li><li class="listitem"><p>Required: No</p></li><li class="listitem"><p>Default: 500</p></li></ul></div><p>This controls the freshness of entries in the index
+              reader cache.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.index.interpreter</strong></span></span></dt><dd><p>See <span class="bold"><strong>sensei.index.interpreter</strong></span> in <a class="xref" href="#sect-plugin-props" title="Plug-in Properties">the section called &#8220;Plug-in Properties&#8221;</a>.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.index.manager</strong></span></span></dt><dd><p>See <span class="bold"><strong>sensei.index.manager</strong></span> in <a class="xref" href="#sect-plugin-props" title="Plug-in Properties">the section called &#8220;Plug-in Properties&#8221;</a>.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.index.manager.default.batchSize</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: int</p></li><li class="listitem"><p>Required: No</p></li><li class="listitem"><p>Default: 1</p></li></ul></div><p>This is the batch size to control when data events
+              accumulated in the default index manger should be consumed
+              by the data consumer.  The default value is 1.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.index.manager.default.eventsPerMin</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: int</p></li><li class="listitem"><p>Required: No</p></li><li class="listitem"><p>Default: 40000</p></li></ul></div><p>This is the maximum number of data events that the
+              indexer can consume per minute.  If this threshold is
+              exceeded, the indexer will pause for a short period of
+              time before continuing to consume incoming data
+              events.</p><p>This property is helpful in preventing the indexer
+              from being overloaded.  The default value is
+              40,000.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.index.manager.default.maxpartition.id</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: int</p></li><li class="listitem"><p>Required: Yes, if the default indexing manager
+                  is chosen; No, otherwise.</p></li><li class="listitem"><p>Default: None</p></li></ul></div><p>This is the maximum partition ID number served by
+              this Sensei cluster if the default Sensei indexing manager
+              is used.</p><div class="warning" title="Warning" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Warning</h3><p>This property is different from the total number
+                of partitions in a Sensei cluster.  For example, if a
+                cluster contains 4 partitions, 0, 1, 2, and 3, then
+                <span class="bold"><strong>sensei.index.manager.default.maxpartition.id</strong></span>
+                should be set to 3.</p></div></dd><dt><span class="term"><span class="bold"><strong>sensei.index.manager.default.shardingStrategy</strong></span></span></dt><dd><p>See <span class="bold"><strong>sensei.index.manager.default.shardingStrategy</strong></span>
+              in <a class="xref" href="#sect-plugin-props" title="Plug-in Properties">the section called &#8220;Plug-in Properties&#8221;</a>.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.index.manager.default.type</strong></span></span></dt><dd><p>See <span class="bold"><strong>sensei.index.manager.default.type</strong></span> in <a class="xref" href="#sect-plugin-props" title="Plug-in Properties">the section called &#8220;Plug-in Properties&#8221;</a>.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.index.maxBatchSize</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: int</p></li><li class="listitem"><p>Required: No</p></li><li class="listitem"><p>Default: 10000</p></li></ul></div><p>This is the maximum number of incoming data events
+              that can be held by the indexer in a batch before they are
+              flushed to disk.  If this number is exceeded, the indexer
+              will stop processing the data events for one
+              minute.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.index.realtime</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: boolean</p></li><li class="listitem"><p>Required: No</p></li><li class="listitem"><p>Default: true</p></li></ul></div><p>This specifies whether the indexing mode is
+              real-time or not.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.index.similarity</strong></span></span></dt><dd><p>See <span class="bold"><strong>sensei.index.similarity</strong></span> in <a class="xref" href="#sect-plugin-props" title="Plug-in Properties">the section called &#8220;Plug-in Properties&#8221;</a>.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.indexer.type</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: String</p></li><li class="listitem"><p>Required: Yes</p></li><li class="listitem"><p>Default: None</p></li></ul></div><p>This is the internal indexer type used by the Sensei
+              cluster.  Currently only two options are supported:
+              <code class="literal">zoie</code> and <code class="literal">hourglass</code>.  If
+              <code class="literal">hourglass</code> is used, three more properties need
+              to be set too:</p><div class="orderedlist"><ol class="orderedlist" type="1" compact><li class="listitem"><p><span class="bold"><strong>sensei.indexer.hourglass.schedule</strong></span></p></li><li class="listitem"><p><span class="bold"><strong>sensei.indexer.hourglass.trimthreshold</strong></span></p></li><li class="listitem"><p><span class="bold"><strong>sensei.indexer.hourglass.frequency</strong></span></p></li></ol></div></dd><dt><span class="term"><span class="bold"><strong>sensei.indexer.hourglass.frequency</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: String</p></li><li class="listitem"><p>Required: No</p></li><li class="listitem"><p>Default: "<code class="literal">day</code>"</p></li></ul></div><p>This is the rolling forward frequency.  It has to be
+              one of the following three values:</p><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p><code class="literal">day</code></p></li><li class="listitem"><p><code class="literal">hour</code></p></li><li class="listitem"><p><code class="literal">minute</code></p></li></ul></div></dd><dt><span class="term"><span class="bold"><strong>sensei.indexer.hourglass.schedule</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: String</p></li><li class="listitem"><p>Required: Yes, if property <span class="bold"><strong>sensei.indexer.type</strong></span> is set to
+                  "<code class="literal">hourglass</code>"; No, otherwise.</p></li><li class="listitem"><p>Default: None</p></li></ul></div><p>This is a string that specifies Hourglass rolling
+              forward schedule.  The format of this string is "<code class="literal">ss
+              mm hh</code>", meaning at <code class="literal">hh:mm:ss time</code> of
+              the day that we roll forward for
+              <span class="emphasis"><em>daily</em></span> rolling.  If it is
+              <span class="emphasis"><em>hourly</em></span> rolling, we roll forward at
+              <code class="literal">mm:ss</code> time of the hour.  If it is
+              <span class="emphasis"><em>minutely</em></span> rolling, we roll forward at
+              <code class="literal">ss</code> seond of the minute.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.indexer.hourglass.trimthreshold</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: int</p></li><li class="listitem"><p>Required: No</p></li><li class="listitem"><p>Default: 14</p></li></ul></div><p>This is the retention period for how long we are
+              going to keep the events in the index.  The unit is the
+              rolling period.</p></dd></dl></div></div><div class="section" title="Broker and Client Properties"><div class="titlepage"><div><div><h3 class="title"><a name="d0e2568"></a>Broker and Client Properties</h3></div></div></div><div class="variablelist"><dl><dt><span class="term"><span class="bold"><strong>sensei.broker.maxThread</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: int</p></li><li class="listitem"><p>Required: No</p></li><li class="listitem"><p>Default: 50</p></li></ul></div><p>This is the maximum size of thread pool used by a
+              broker to execute requests.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.broker.maxWaittime</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: int</p></li><li class="listitem"><p>Required: No</p></li><li class="listitem"><p>Default: 2000</p></li></ul></div><p>This is the maximum idle time in milliseconds for a
+              thread on a broker.  Threads that are idle for longer than
+              this period may be stopped.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.broker.minThread</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: int</p></li><li class="listitem"><p>Required: No</p></li><li class="listitem"><p>Default: 20</p></li></ul></div><p>This is the core size of thread pool used by the
+              broker to execute requests.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.broker.port</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: int</p></li><li class="listitem"><p>Required: Yes</p></li><li class="listitem"><p>Default: None</p></li></ul></div><p>This is the port number of the Sensei broker.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.broker.webapp.path</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: String</p></li><li class="listitem"><p>Required: Yes</p></li><li class="listitem"><p>Default: None</p></li></ul></div><p>This is the resource base of the broker web
+              application.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.search.cluster.zookeeper.url</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: String</p></li><li class="listitem"><p>Required: Yes</p></li><li class="listitem"><p>Default: None</p></li></ul></div><p>This is the ZooKeeper URL for the Sensei search
+              cluster that a broker talks to.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.search.cluster.name</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: String</p></li><li class="listitem"><p>Required: Yes</p></li><li class="listitem"><p>Default: None</p></li></ul></div><p>This is the Sensei cluster name, i.e. the service
+              name for the network clients and brokers.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.search.cluster.zookeeper.conn.timeout</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: int</p></li><li class="listitem"><p>Required: No</p></li><li class="listitem"><p>Default: 10000</p></li></ul></div><p>This is the ZooKeeper network client session timeout
+              value in milliseconds.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.search.cluster.network.conn.timeout</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: int</p></li><li class="listitem"><p>Required: No</p></li><li class="listitem"><p>Default: 1000</p></li></ul></div><p>This is the maximum number of milliseconds to allow
+              a connection attempt to take.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.search.cluster.network.write.timeout</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: int</p></li><li class="listitem"><p>Required: No</p></li><li class="listitem"><p>Default: 150</p></li></ul></div><p>This is the number of milliseconds a request can be
+              queued for write before it is considered stale.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.search.cluster.network.max.conn.per.node</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: int</p></li><li class="listitem"><p>Required: No</p></li><li class="listitem"><p>Default: 5</p></li></ul></div><p>This is the maximum number of open connections to a
+              node.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.search.cluster.network.stale.timeout.mins</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: int</p></li><li class="listitem"><p>Required: No</p></li><li class="listitem"><p>Default: 10</p></li></ul></div><p>This is the number of minutes to keep a request that
+              is waiting for a response.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.search.cluster.network.stale.cleanup.freq.mins</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: int</p></li><li class="listitem"><p>Required: No</p></li><li class="listitem"><p>Default: 10</p></li></ul></div><p>This is the frequency to clean up stale requests.</p></dd></dl></div></div><div class="section" title="Plug-in Properties"><div class="titlepage"><div><div><h3 class="title"><a name="sect-plugin-props"></a>Plug-in Properties</h3></div></div></div><div class="variablelist"><dl><dt><span class="term"><span class="bold"><strong>sensei.index.analyzer</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: String</p></li><li class="listitem"><p>Required: No</p></li><li class="listitem"><p>Default: ""</p></li></ul></div><p>This specifies the bean ID of the analyzer plug-in
+              for analyzing text.  If not specified,
+              <code class="literal">org.apache.lucene.analysis.standard.StandardAnalyzer</code>
+              will be used.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.index.similarity</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: String</p></li><li class="listitem"><p>Required: No</p></li><li class="listitem"><p>Default: ""</p></li></ul></div><p>This specifies the bean ID of similarity plug-in for
+              Lucene scoring.  If not specified,
+              <code class="literal">org.apache.lucene.search.DefaultSimilarity</code> is
+              used.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.index.custom</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: String</p></li><li class="listitem"><p>Required: No</p></li><li class="listitem"><p>Default: ""</p></li></ul></div><p>This specifies the bean ID of the custom indexing
+              pipeline <a class="indexterm" name="d0e2857"></a> implementation.  A custom indexing pipeline can
+              be plugged into the indexing process to allow users to
+              modify generated Lucene documents at the last step before
+              they are indexed.</p><p>A custom indexing pipeline has to implement
+              interface
+              <code class="classname">com.sensei.indexing.api.CustomIndexingPipeline</code>.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.index.interpreter</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: String</p></li><li class="listitem"><p>Required: No</p></li><li class="listitem"><p>Default: ""</p></li></ul></div><p>This specifies the bean ID of the interpretor of
+              Zoie indexables.  If not specified,
+              <code class="literal">com.sensei.indexing.api.DefaultJsonSchemaInterpreter</code>
+              is used.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.index.manager</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: String</p></li><li class="listitem"><p>Required: No</p></li><li class="listitem"><p>Default: ""</p></li></ul></div><p>This specifies the bean ID of the indexing manager
+              object implementing
+              <code class="literal">com.sensei.search.nodes.SenseiIndexingManager</code>.
+              If not specified,
+              <code class="literal">com.sensei.indexing.api.DefaultStreamingIndexingManager</code>
+              is used.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.index.manager.default.type</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: String</p></li><li class="listitem"><p>Required: Yes if <span class="bold"><strong>sensei.index.manager</strong></span> is not
+                  specified, i.e. the default indexing manager is
+                  used.</p></li><li class="listitem"><p>Default: None</p></li></ul></div><p>This specifies the type of gateway that will be used
+              by the default indexing manager.  The value identifies the
+              bean ID of an object of
+              <code class="literal">com.sensei.indexing.api.gateway.SenseiGateway</code>.</p><p>Several built-in gateways are provided by Sensei,
+              but you can always define your own based on your need.  No
+              matter a built-in gateway or a custom gateway is used,
+              additional parameters can be specified under the names
+              with prefix <span class="bold"><strong>sensei.index.manager.default.<span class="emphasis"><em>&lt;gateway-type&gt;</em></span></strong></span>.</p><p>Currently the following built-in gateway types are
+              supported:</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p><code class="literal">file</code>:</p><p>This type of gateway takes a regular text file
+                  as the input.  Each line in the file contains a data
+                  entry in JSON format.</p><p>Only one property needs to be set for this
+                  gateway type.  See <a class="xref" href="#sect-file-gateway-props" title="File Gateway Properties">the section called &#8220;File Gateway Properties&#8221;</a> </p></li><li class="listitem"><p><code class="literal">kafka</code>: </p><p>This type of gateway takes Kafka messages as
+                  input.</p><p>See <a class="xref" href="#sect-kafka-gateway-props" title="Kafka Gateway Properties">the section called &#8220;Kafka Gateway Properties&#8221;</a> for
+                  additional property information.</p></li><li class="listitem"><p><code class="literal">jms</code>:</p><p>This type of gateway takes JMS (Java Messages
+                  Service) messages as input.  The publish-and-subscribe
+                  messaging model is used by Sensei, so parameters like
+                  topic need to be provided.</p><p>See <a class="xref" href="#sect-jms-gateway-props" title="JMS Gateway Properties">the section called &#8220;JMS Gateway Properties&#8221;</a> for
+                  additional property information.</p></li><li class="listitem"><p><code class="literal">jdbc</code>:</p><p>This type of gateway takes JDBC data as
+                  input.</p><p>See <a class="xref" href="#sect-jdbc-gateway-props" title="JDBC Gateway Properties">the section called &#8220;JDBC Gateway Properties&#8221;</a> for
+                  additional property information.</p></li></ul></div></dd><dt><span class="term"><span class="bold"><strong>sensei.index.manager.default.<span class="emphasis"><em>&lt;gateway-type&gt;</em></span>.filter</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: String</p></li><li class="listitem"><p>Required: No</p></li><li class="listitem"><p>Default: None</p></li></ul></div><p>This is the bean ID of
+              <code class="literal">com.sensei.indexing.api.DataSourceFilter</code>
+              object.  No matter what gateway type the indexing managers
+              uses, a filter can be plugged in to get the original
+              source data converted to the JSON format defined by the
+              table schema.  If the input data is already in the right
+              format, then this filter is not needed.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.index.manager.default.shardingStrategy</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: String</p></li><li class="listitem"><p>Required: No</p></li><li class="listitem"><p>Default: ""</p></li></ul></div><p>This is the bean ID of the sharding strategy.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.search.router.factory</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: String</p></li><li class="listitem"><p>Required: No</p></li><li class="listitem"><p>Default: ""</p></li></ul></div><p>This is the bean ID of the Sensei request router
+              factory.  This factory builds the load balancer that is
+              used by Sensei brokers to route incoming requests to
+              different Sensei nodes.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.version.comparator</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: String</p></li><li class="listitem"><p>Required: No</p></li><li class="listitem"><p>Default: ""</p></li></ul></div><p>This specifies the bean ID of version comparator
+              plug-in to be used by the indexer.  If not specified,
+              Zoie's default version comparator is used.</p></dd></dl></div><div class="section" title="File Gateway Properties"><div class="titlepage"><div><div><h4 class="title"><a name="sect-file-gateway-props"></a>File Gateway Properties</h4></div></div></div><p>For <code class="literal">file</code> gateway, the following
+          property has to be specified:</p><div class="variablelist"><dl><dt><span class="term"><span class="bold"><strong>sensei.index.manager.default.file.path</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: String</p></li><li class="listitem"><p>Required: Yes</p></li><li class="listitem"><p>Default: None</p></li></ul></div><p>This is the path to the input data file.</p></dd></dl></div></div><div class="section" title="Kafka Gateway Properties"><div class="titlepage"><div><div><h4 class="title"><a name="sect-kafka-gateway-props"></a>Kafka Gateway Properties</h4></div></div></div><p>For <code class="literal">kafka</code> gateway, the
+          following properties should/can be specified: <sup>[<a name="d0e3095" href="#ftn.d0e3095" class="footnote">2</a>]</sup></p><div class="variablelist"><dl><dt><span class="term"><span class="bold"><strong>sensei.index.manager.default.kafka.batchsize</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: String</p></li><li class="listitem"><p>Required: Yes</p></li><li class="listitem"><p>Default: None</p></li></ul></div><p>This is the batch size for each pull request.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.index.manager.default.kafka.host</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: String</p></li><li class="listitem"><p>Required: Yes</p></li><li class="listitem"><p>Default: None</p></li></ul></div><p>This is the host name of the Kafka server.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.index.manager.default.kafka.port</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: int</p></li><li class="listitem"><p>Required: Yes</p></li><li class="listitem"><p>Default: None</p></li></ul></div><p>This is the port number on which the Kafka
+                server is listening for connections.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.index.manager.default.kafka.timeout</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: int</p></li><li class="listitem"><p>Required: Yes</p></li><li class="listitem"><p>Default: 10000</p></li></ul></div><p>This is the socket timeout in milliseconds.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.index.manager.default.kafka.topic</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: String</p></li><li class="listitem"><p>Required: Yes</p></li><li class="listitem"><p>Default: None</p></li></ul></div><p>The topic of the messages to be fetched.</p></dd></dl></div></div><div class="section" title="JMS Gateway Properties"><div class="titlepage"><div><div><h4 class="title"><a name="sect-jms-gateway-props"></a>JMS Gateway Properties</h4></div></div></div><p>For <code class="literal">jms</code> gateway, the following
+          properties should/can be specified:</p><div class="variablelist"><dl><dt><span class="term"><span class="bold"><strong>sensei.index.manager.default.jms.clientId</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: String</p></li><li class="listitem"><p>Required: Yes</p></li><li class="listitem"><p>Default: None</p></li></ul></div><p>This is the client identifier used to connect to
+                the JMS provider.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.index.manager.default.jms.topic</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: String</p></li><li class="listitem"><p>Required: Yes</p></li><li class="listitem"><p>Default: None</p></li></ul></div><p>This is the topic name that the JMS client
+                subscribes to.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.index.manager.default.jms.topicFactory</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: String</p></li><li class="listitem"><p>Required: Yes</p></li><li class="listitem"><p>Default: None</p></li></ul></div><p>This is the bean ID of the
+                <code class="literal">proj.zoie.dataprovider.jms.TopicFactory</code>
+                object.  This object is used to generate a topic object
+                based on the given topic name.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.index.manager.default.jms.connectionFactory</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: String</p></li><li class="listitem"><p>Required: Yes</p></li><li class="listitem"><p>Default: None</p></li></ul></div><p>This is the bean ID of the
+                <code class="literal">javax.jms.TopicConnectionFactory</code>
+                object, which is used by the JMS client to create a
+                <code class="literal">javax.jms.TopicConnection</code> object with
+                the JMS provider.</p></dd></dl></div></div><div class="section" title="JDBC Gateway Properties"><div class="titlepage"><div><div><h4 class="title"><a name="sect-jdbc-gateway-props"></a>JDBC Gateway Properties</h4></div></div></div><p>For <code class="literal">jdbc</code> gateway, the following
+          properties should/can be specified:</p><div class="variablelist"><dl><dt><span class="term"><span class="bold"><strong>sensei.index.manager.default.jdbc.adaptor</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: String</p></li><li class="listitem"><p>Required: Yes</p></li><li class="listitem"><p>Default: None</p></li></ul></div><p>This is the bean ID of the
+                <code class="literal">com.sensei.indexing.api.jdbc.SenseiJDBCAdaptor</code>
+                object.  This object is used to build a
+                <code class="literal">proj.zoie.dataprovider.jdbc.PreparedStatementBuilder</code>
+                object, which is required by
+                <code class="literal">proj.zoie.dataprovider.jdbc.JDBCStreamDataProvider</code>.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.index.manager.default.jms.driver</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: String</p></li><li class="listitem"><p>Required: Yes</p></li><li class="listitem"><p>Default: None</p></li></ul></div><p>This is the class name of the JDBC driver that you
+                want to use.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.index.manager.default.jms.password</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: String</p></li><li class="listitem"><p>Required: Yes</p></li><li class="listitem"><p>Default: None</p></li></ul></div><p>This is the password for the user name that you
+                use to connect to the database.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.index.manager.default.jms.username</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: String</p></li><li class="listitem"><p>Required: Yes</p></li><li class="listitem"><p>Default: None</p></li></ul></div><p>This is the user name that you use to connect to
+                the database.</p></dd></dl></div></div></div></div><div class="footnotes"><br><hr width="100" align="left"><div class="footnote"><p><sup>[<a name="ftn.d0e1940" href="#d0e1940" class="para">1</a>] </sup>Here we assume that the time facet handler does not take
+          any arguments. </p></div><div class="footnote"><p><sup>[<a name="ftn.d0e3095" href="#d0e3095" class="para">2</a>] </sup>These properties are basically the parameters needed
+          by the Kafka consumer API.  The Simple Consumer API from
+          Kafka is used by Sensei.</p></div></div></div><div class="chapter" title="Chapter&nbsp;8.&nbsp;BQL: Browsing Query Language"><div class="titlepage"><div><div><h2 class="title"><a name="d0e3362"></a>Chapter&nbsp;8.&nbsp;BQL: Browsing Query Language</h2></div></div></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><span class="section"><a href="#d0e3373">BNF Grammar for BQL</a></span></dt><dd><dl><dt><span class="section"><a href="#d0e3376">BNF Notation</a></span></dt><dt><span class="section"><a href="#d0e3413">BQL Grammar</a></span></dt></dl></dd><dt><span class="section"><a href="#d0e3418">Syntax Diagrams</a></span></dt><dd><dl><dt><span class="section"><a href="#d0e3421">Top Level Statement</a></span></dt><dt><span class="section"><a href="#d0e3429">DESCRIBE Statement</a></span></dt><dt><span class="section"><a href="#d0e3437">SELECT Statement</a></span></dt><dt><span class="section"><a href="#d0e3445">WHERE Clause</a></span></dt><dt><span class="section"><a href="#d0e3453">Predicates</a></span></dt><dt><span class="section"><a href="#d0e3461">Cumulative Predicates</a></span></dt><dt><span class="section"><a href="#d0e3469">IN Predicate</a></span></dt><dt><span class="section"><a href="#d0e3477">CONTAINS ALL Predicate</a></span></dt><dt><span class="section"><a href="#d0e3485">Equal Predicate</a></span></dt><dt><span class="section"><a href="#d0e3493">NOT equal Predicate</a></span></dt><dt><span class="section"><a href="#d0e3501">Query Predicate</a></span></dt><dt><span class="section"><a href="#d0e3509">BETWEEN Predicate</a></span></dt><dt><span class="section"><a href="#d0e3517">Range Predicate</a></span></dt><dt><span class="section"><a href="#d0e3525">Time Predicate</a></span></dt><dt><span class="section"><a href="#d0e3533">EXCEPT Clause</a></span></dt><dt><span class="section"><a href="#d0e3541">Predicate Properties</a></span></dt><dt><span class="section"><a href="#d0e3549">GIVEN Clause</a></span></dt><dt><span class="section"><a href="#d0e3557">Additional Clauses</a></span></dt><dt><span class="section"><a href="#d0e3565">ORDER BY Clause</a></span></dt><dt><span class="section"><a href="#d0e3573">GROUP BY Clause</a></span></dt><dt><span class="section"><a href="#d0e3581">LIMIT Clause</a></span></dt><dt><span class="section"><a href="#d0e3589">BROWSE BY Clause</a></span></dt><dt><span class="section"><a href="#d0e3597">Facet Specification</a></span></dt><dt><span class="section"><a href="#d0e3605">FETCHING STORED Clause</a></span></dt></dl></dd><dt><span class="section"><a href="#d0e3613">Query Examples</a></span></dt><dd><dl><dt><span class="section"><a href="#d0e3616">DESCRIBE Statement</a></span></dt><dt><span class="section"><a href="#d0e3629">Basic Query</a></span></dt><dt><span class="section"><a href="#d0e3644">Queries with Limited Number of Results</a></span></dt><dt><span class="section"><a href="#d0e3674">Queries with Basic Conditions</a></span></dt><dt><span class="section"><a href="#d0e3722">Queries with AND, OR, and NOT Logic in Value Selections</a></span></dt><dt><span class="section"><a href="#d0e3766">Having Search Results Sorted</a></span></dt><dt><span class="section"><a href="#d0e3794">Queries with Full Text Search</a></span></dt><dt><span class="section"><a href="#d0e3822">Queries with Group By</a></span></dt><dt><span class="section"><a href="#d0e3850">Getting Facet Information Using Browse By Clause</a></span></dt><dt><span class="section"><a href="#d0e3880">Queries with Run-Time Facet Handler Initialization
+      Parameters</a></span></dt></dl></dd></dl></div><p>BQL stands for <span class="emphasis"><em>Browsing Query Language</em></span>.  It
+  was originally proposed as a query language for <a class="link" href="http://sna-projects.com/bobo/" target="_top">Bobo</a>.  Now it is
+  being developed and bundled with Sensei, and used by both Sensei and
+  Sin.</p><div class="section" title="BNF Grammar for BQL"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="d0e3373"></a>BNF Grammar for BQL</h2></div></div></div><div class="section" title="BNF Notation"><div class="titlepage"><div><div><h3 class="title"><a name="d0e3376"></a>BNF Notation</h3></div></div></div><p>
+        We use a modified BNF notation to describe BQL.  The following table
+        lists the meaning of all the meta-symbols we use.
+      </p><table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides" id="d0e3381"><colgroup><col align="left"><col align="left">
+        </colgroup><thead><tr><th align="left">Symbol</th><th align="left">Meaning</th></tr></thead><tbody><tr><td align="left">|</td><td align="left">Or.  Choose one of the items.</td></tr><tr><td align="left">[ ]</td><td align="left">Enclose optional items.</td></tr><tr><td align="left">*</td><td align="left">Flags items that can be repeated 0 or more times.</td></tr><tr><td align="left">( )</td><td align="left">Group items so that they can be marked with one of the symbols: [ ], |, or *.</td></tr></tbody></table></div><div class="section" title="BQL Grammar"><div class="titlepage"><div><div><h3 class="title"><a name="d0e3413"></a>BQL Grammar</h3></div></div></div><pre class="programlisting">
+&lt;statement&gt; ::= ( &lt;select_stmt&gt; | &lt;describe_stmt&gt; ) [';']
+
+&lt;select_stmt&gt; ::= SELECT &lt;select_list&gt; &lt;from_clause&gt; [&lt;where_clause&gt;] [&lt;given_clause&gt;]
+                  [&lt;additional_clauses&gt;]
+
+&lt;describe_stmt&gt; ::= ( DESC | DESCRIBE ) &lt;index_name&gt;
+
+&lt;select_list&gt; ::= '*' | &lt;column_name_list&gt;
+
+&lt;column_name_list&gt; ::= &lt;column_name&gt; ( ',' &lt;column_name&gt; )*
+
+&lt;from_clause&gt; ::= FROM &lt;index_name&gt;
+
+&lt;where_clause&gt; ::= WHERE &lt;search_condition&gt;
+
+&lt;search_condition&gt; ::= &lt;predicates&gt;
+                     | &lt;cumulative_predicates&gt;
+
+&lt;predicates&gt; ::= &lt;predicate&gt; ( AND &lt;predicate&gt; )*
+
+&lt;predicate&gt; ::= &lt;in_predicate&gt;
+              | &lt;contains_all_predicate&gt;
+              | &lt;equal_predicate&gt;
+              | &lt;not_equal_predicate&gt;
+              | &lt;query_predicate&gt;
+              | &lt;between_predicate&gt;
+              | &lt;range_predicate&gt;
+              | &lt;time_predicate&gt;
+              | &lt;same_column_or_pred&gt;
+
+&lt;in_predicate&gt; ::= &lt;column_name&gt; [NOT] IN &lt;value_list&gt; [&lt;except_clause&gt;] [&lt;predicate_props&gt;]
+
+&lt;contains_all_predicate&gt; ::= &lt;column_name&gt; CONTAINS ALL &lt;value_list&gt; [&lt;except_clause&gt;]
+                             [&lt;predicate_props&gt;]
+
+&lt;equal_predicate&gt; ::= &lt;column_name&gt; '=' &lt;value&gt; [&lt;predicate_props&gt;]
+
+&lt;not_equal_predicate&gt; ::= &lt;column_name&gt; '&lt;&gt;' &lt;value&gt; [&lt;predicate_props&gt;]
+
+&lt;query_predicate&gt; ::= QUERY IS &lt;quoted_string&gt;
+
+&lt;between_predicate&gt; ::= &lt;column_name&gt; [NOT] BETWEEN &lt;value&gt; AND &lt;value&gt;
+
+&lt;range_predicate&gt; ::= &lt;column_name&gt; &lt;range_op&gt; &lt;numeric&gt;
+
+&lt;time_predicate&gt; ::= &lt;column_name&gt; IN LAST &lt;time_span&gt;
+                   | &lt;column_name&gt; ( SINCE | AFTER | BEFORE ) &lt;time_expr&gt;
+
+&lt;same_column_or_pred&gt; ::= '(' &lt;cumulative_predicates&gt; ')'
+
+&lt;cumulative_predicates&gt; ::= &lt;cumulative_predicate&gt; ( OR &lt;cumulative_predicate&gt; )*
+
+&lt;cumulative_predicate&gt; ::= &lt;in_predicate&gt;
+                         | &lt;equal_predicate&gt;
+                         | &lt;between_predicate&gt;
+                         | &lt;range_predicate&gt;
+                         | &lt;time_predicate&gt;
+
+&lt;value_list&gt; ::= '(' &lt;value&gt; ( ',' &lt;value&gt; )* ')'
+
+&lt;value&gt; ::= &lt;quoted_string&gt; | &lt;numeric&gt;
+
+&lt;range_op&gt; ::= '&lt;' | '&lt;=' | '&gt;=' | '&gt;'
+
+&lt;except_clause&gt; ::= EXCEPT &lt;value_list&gt;
+
+&lt;predicate_props&gt; ::= WITH &lt;prop_list&gt;
+
+&lt;prop_list&gt; ::= '(' &lt;key_value_pair&gt; ( ',' &lt;key_value_pair&gt; )* ')'
+
+&lt;key_value_pair&gt; ::= &lt;quoted_string&gt; ':' &lt;quoted_string&gt;
+
+&lt;given_clause&gt; ::= GIVEN FACET PARAM &lt;facet_param_list&gt;
+
+&lt;facet_param_list&gt; ::= &lt;facet_param&gt; ( ',' &lt;facet_param&gt; )*
+
+&lt;facet_param&gt; ::= '(' &lt;facet_name&gt; &lt;facet_param_name&gt; &lt;facet_param_type&gt; &lt;facet_param_value&gt; ')'
+
+&lt;facet_param_name&gt; ::= &lt;quoted_string&gt;
+
+&lt;facet_param_type&gt; ::= BOOLEAN | INT | LONG | STRING | BYTEARRAY | DOUBLE
+
+&lt;facet_param_value&gt; ::= &lt;quoted_string&gt;
+
+&lt;additional_clauses&gt; ::= ( &lt;additional_clause&gt; )+
+
+&lt;additional_clause&gt; ::= &lt;order_by_clause&gt;
+                      | &lt;group_by_clause&gt;
+                      | &lt;limit_clause&gt;
+                      | &lt;browse_by_clause&gt;
+                      | &lt;fetching_stored_clause&gt;
+
+&lt;order_by_clause&gt; ::= ORDER BY &lt;sort_specs&gt;
+
+&lt;sort_specs&gt; ::= &lt;sort_spec&gt; ( ',', &lt;sort_spec&gt; )*
+
+&lt;sort_spec&gt; ::= &lt;column_name&gt; [&lt;ordering_spec&gt;]
+
+&lt;ordering_spec&gt; ::= ASC | DESC
+
+&lt;group_by_clause&gt; ::= GROUP BY &lt;group_spec&gt;
+
+&lt;group_spec&gt; ::= &lt;facet_name&gt; [TOP &lt;max_per_group&gt;]
+
+&lt;limit_clause&gt; ::= LIMIT [&lt;offset&gt; ','] &lt;count&gt;
+
+&lt;offset&gt; ::= ( &lt;digit&gt; )+
+
+&lt;count&gt; ::= ( &lt;digit&gt; )+
+
+&lt;browse_by_clause&gt; ::= BROWSE BY &lt;facet_specs&gt;
+
+&lt;facet_specs&gt; ::= &lt;facet_spec&gt; ( ',' &lt;facet_spec&gt; )*
+
+&lt;facet_spec&gt; ::= &lt;facet_name&gt; [&lt;facet_expression&gt;]
+
+&lt;facet_expression&gt; ::= '(' &lt;expand_flag&gt; &lt;count&gt; &lt;count&gt; &lt;facet_ordering&gt; ')'
+
+&lt;expand_flag&gt; ::= TRUE | FALSE
+
+&lt;facet_ordering&gt; ::= HITS | VALUE
+
+&lt;fetching_stored_clause&gt; ::= FETCHING STORED [&lt;fetching_flag&gt;]
+
+&lt;fetching_flag&gt; ::= TRUE | FALSE
+
+&lt;quoted_string&gt; ::= '"' ( &lt;char&gt; )* '"'
+                  | "'" ( &lt;char&gt; )* "'"
+
+&lt;identifier&gt; ::= &lt;identifier_start&gt; ( &lt;identifier_part&gt; )*
+
+&lt;identifier_start&gt; ::= &lt;alpha&gt; | '-' | '_'
+
+&lt;identifier_part&gt; ::= &lt;identifier_start&gt; | &lt;digit&gt;
+
+&lt;column_name&gt; ::= &lt;identifier&gt;
+
+&lt;facet_name&gt; ::= &lt;identifier&gt;
+
+&lt;alpha&gt; ::= &lt;alpha_lower_case&gt; | &lt;alpha_upper_case&gt;
+
+&lt;alpha_upper_case&gt; ::= A | B | C | D | E | F | G | H | I | J | K | L | M | N | O
+                     | P | Q | R | S | T | U | V | W | X | Y | Z
+
+&lt;alpha_lower_case&gt; ::= a | b | c | d | e | f | g | h | i | j | k | l | m | n | o
+                     | p | q | r | s | t | u | v | w | x | y | z
+
+&lt;digit&gt; ::= 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
+
+&lt;numeric&gt; ::= &lt;time_expr&gt; | &lt;number&gt;
+
+&lt;number&gt; ::= &lt;integer&gt; | &lt;real&gt;
+
+&lt;integer&gt; ::= ( &lt;digit&gt; )+
+
+&lt;real&gt; ::= ( &lt;digit&gt; )+ '.' ( &lt;digit&gt; )+
+
+&lt;time_expr&gt; ::= &lt;time_span&gt; AGO
+              | &lt;date_time_string&gt;
+              | NOW
+
+&lt;time_span&gt; ::= [&lt;time_week_part&gt;] [&lt;time_day_part&gt;] [&lt;time_hour_part&gt;]
+                [&lt;time_minute_part&gt;] [&lt;time_second_part&gt;] [&lt;time_millisecond_part&gt;]
+
+&lt;time_week_part&gt; ::= &lt;integer&gt; ( 'week' | 'weeks' )
+
+&lt;time_day_part&gt;  ::= &lt;integer&gt; ( 'day'  | 'days' )
+
+&lt;time_hour_part&gt; ::= &lt;integer&gt; ( 'hour' | 'hours' )
+
+&lt;time_minute_part&gt; ::= &lt;integer&gt; ( 'minute' | 'minutes' | 'min' | 'mins')
+
+&lt;time_second_part&gt; ::= &lt;integer&gt; ( 'second' | 'seconds' | 'sec' | 'secs')
+
+&lt;time_millisecond_part&gt; ::= &lt;integer&gt; ( 'millisecond' | 'milliseconds' | 'msec' | 'msecs')
+
+&lt;date_time_string&gt; ::= &lt;digit&gt;&lt;digit&gt;&lt;digit&gt;&lt;digit&gt; ('-' | '/' | '.') &lt;digit&gt;&lt;digit&gt;
+                       ('-' | '/' | '.') &lt;digit&gt;&lt;digit&gt;
+                       &lt;digit&gt;&lt;digit&gt; ':' &lt;digit&gt;&lt;digit&gt; ':' &lt;digit&gt;&lt;digit&gt;
+</pre></div></div><div class="section" title="Syntax Diagrams"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="d0e3418"></a>Syntax Diagrams</h2></div></div></div><div class="section" title="Top Level Statement"><div class="titlepage"><div><div><h3 class="title"><a name="d0e3421"></a>Top Level Statement</h3></div></div></div><div class="mediaobject" align="left"><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0"><tr><td align="left" valign="middle"><img src="figures/BQL/statement.png" align="left"></td></tr></table></div></div><div class="section" title="DESCRIBE Statement"><div class="titlepage"><div><div><h3 class="title"><a name="d0e3429"></a>DESCRIBE Statement</h3></div></div></div><div class="mediaobject" align="left"><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0"><tr><td align="left" valign="middle"><img src="figures/BQL/describe_stmt.png" align="left"></td></tr></table></div></div><div class="section" title="SELECT Statement"><div class="titlepage"><div><div><h3 class="title"><a name="d0e3437"></a>SELECT Statement</h3></div></div></div><div class="mediaobject" align="left"><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0"><tr><td align="left" valign="middle"><img src="figures/BQL/select_stmt.png" align="left"></td></tr></table></div></div><div class="section" title="WHERE Clause"><div class="titlepage"><div><div><h3 class="title"><a name="d0e3445"></a>WHERE Clause</h3></div></div></div><div class="mediaobject" align="left"><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0"><tr><td align="left" valign="middle"><img src="figures/BQL/where_clause.png" align="left"></td></tr></table></div></div><div class="section" title="Predicates"><div class="titlepage"><div><div><h3 class="title"><a name="d0e3453"></a>Predicates</h3></div></div></div><div class="mediaobject" align="left"><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0"><tr><td align="left" valign="middle"><img src="figures/BQL/predicates.png" align="left"></td></tr></table></div></div><div class="section" title="Cumulative Predicates"><div class="titlepage"><div><div><h3 class="title"><a name="d0e3461"></a>Cumulative Predicates</h3></div></div></div><div class="mediaobject" align="left"><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0"><tr><td align="left" valign="middle"><img src="figures/BQL/cumulative_predicates.png" align="left"></td></tr></table></div></div><div class="section" title="IN Predicate"><div class="titlepage"><div><div><h3 class="title"><a name="d0e3469"></a>IN Predicate</h3></div></div></div><div class="mediaobject" align="left"><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0"><tr><td align="left" valign="middle"><img src="figures/BQL/in_predicate.png" align="left"></td></tr></table></div></div><div class="section" title="CONTAINS ALL Predicate"><div class="titlepage"><div><div><h3 class="title"><a name="d0e3477"></a>CONTAINS ALL Predicate</h3></div></div></div><div class="mediaobject" align="left"><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0"><tr><td align="left" valign="middle"><img src="figures/BQL/contains_all_predicate.png" align="left"></td></tr></table></div></div><div class="section" title="Equal Predicate"><div class="titlepage"><div><div><h3 class="title"><a name="d0e3485"></a>Equal Predicate</h3></div></div></div><div class="mediaobject" align="left"><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0"><tr><td align="left" valign="middle"><img src="figures/BQL/equal_predicate.png" align="left"></td></tr></table></div></div><div class="section" title="NOT equal Predicate"><div class="titlepage"><div><div><h3 class="title"><a name="d0e3493"></a>NOT equal Predicate</h3></div></div></div><div class="mediaobject" align="left"><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0"><tr><td align="left" valign="middle"><img src="figures/BQL/not_equal_predicate.png" align="left"></td></tr></table></div></div><div class="section" title="Query Predicate"><div class="titlepage"><div><div><h3 class="title"><a name="d0e3501"></a>Query Predicate</h3></div></div></div><div class="mediaobject" align="left"><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0"><tr><td align="left" valign="middle"><img src="figures/BQL/query_predicate.png" align="left"></td></tr></table></div></div><div class="section" title="BETWEEN Predicate"><div class="titlepage"><div><div><h3 class="title"><a name="d0e3509"></a>BETWEEN Predicate</h3></div></div></div><div class="mediaobject" align="left"><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0"><tr><td align="left" valign="middle"><img src="figures/BQL/between_predicate.png" align="left"></td></tr></table></div></div><div class="section" title="Range Predicate"><div class="titlepage"><div><div><h3 class="title"><a name="d0e3517"></a>Range Predicate</h3></div></div></div><div class="mediaobject" align="left"><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0"><tr><td align="left" valign="middle"><img src="figures/BQL/range_predicate.png" align="left"></td></tr></table></div></div><div class="section" title="Time Predicate"><div class="titlepage"><div><div><h3 class="title"><a name="d0e3525"></a>Time Predicate</h3></div></div></div><div class="mediaobject" align="left"><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0"><tr><td align="left" valign="middle"><img src="figures/BQL/time_predicate.png" align="left"></td></tr></table></div></div><div class="section" title="EXCEPT Clause"><div class="titlepage"><div><div><h3 class="title"><a name="d0e3533"></a>EXCEPT Clause</h3></div></div></div><div class="mediaobject" align="left"><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0"><tr><td align="left" valign="middle"><img src="figures/BQL/except_clause.png" align="left"></td></tr></table></div></div><div class="section" title="Predicate Properties"><div class="titlepage"><div><div><h3 class="title"><a name="d0e3541"></a>Predicate Properties</h3></div></div></div><div class="mediaobject" align="left"><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0"><tr><td align="left" valign="middle"><img src="figures/BQL/predicate_props.png" align="left"></td></tr></table></div></div><div class="section" title="GIVEN Clause"><div class="titlepage"><div><div><h3 class="title"><a name="d0e3549"></a>GIVEN Clause</h3></div></div></div><div class="mediaobject" align="left"><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0"><tr><td align="left" valign="middle"><img src="figures/BQL/given_clause.png" align="left"></td></tr></table></div></div><div class="section" title="Additional Clauses"><div class="titlepage"><div><div><h3 class="title"><a name="d0e3557"></a>Additional Clauses</h3></div></div></div><div class="mediaobject" align="left"><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0"><tr><td align="left" valign="middle"><img src="figures/BQL/additional_clauses.png" align="left"></td></tr></table></div></div><div class="section" title="ORDER BY Clause"><div class="titlepage"><div><div><h3 class="title"><a name="d0e3565"></a>ORDER BY Clause</h3></div></div></div><div class="mediaobject" align="left"><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0"><tr><td align="left" valign="middle"><img src="figures/BQL/order_by_clause.png" align="left"></td></tr></table></div></div><div class="section" title="GROUP BY Clause"><div class="titlepage"><div><div><h3 class="title"><a name="d0e3573"></a>GROUP BY Clause</h3></div></div></div><div class="mediaobject" align="left"><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0"><tr><td align="left" valign="middle"><img src="figures/BQL/group_by_clause.png" align="left"></td></tr></table></div></div><div class="section" title="LIMIT Clause"><div class="titlepage"><div><div><h3 class="title"><a name="d0e3581"></a>LIMIT Clause</h3></div></div></div><div class="mediaobject" align="left"><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0"><tr><td align="left" valign="middle"><img src="figures/BQL/limit_clause.png" align="left"></td></tr></table></div></div><div class="section" title="BROWSE BY Clause"><div class="titlepage"><div><div><h3 class="title"><a name="d0e3589"></a>BROWSE BY Clause</h3></div></div></div><div class="mediaobject" align="left"><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0"><tr><td align="left" valign="middle"><img src="figures/BQL/browse_by_clause.png" align="left"></td></tr></table></div></div><div class="section" title="Facet Specification"><div class="titlepage"><div><div><h3 class="title"><a name="d0e3597"></a>Facet Specification</h3></div></div></div><div class="mediaobject" align="left"><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0"><tr><td align="left" valign="middle"><img src="figures/BQL/facet_spec.png" align="left"></td></tr></table></div></div><div class="section" title="FETCHING STORED Clause"><div class="titlepage"><div><div><h3 class="title"><a name="d0e3605"></a>FETCHING STORED Clause</h3></div></div></div><div class="mediaobject" align="left"><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0"><tr><td align="left" valign="middle"><img src="figures/BQL/fetching_stored_clause.png" align="left"></td></tr></table></div></div></div><div class="section" title="Query Examples"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="d0e3613"></a>Query Examples</h2></div></div></div><div class="section" title="DESCRIBE Statement"><div class="titlepage"><div><div><h3 class="title"><a name="d0e3616"></a>DESCRIBE Statement</h3></div></div></div><p><span class="bold"><strong>Statement:</strong></span></p><pre class="programlisting">DESCRIBE cars;</pre><p><span class="bold"><strong>Results:</strong></span></p><pre class="programlisting">+------------+------------+---------+-----------+-------------+---------+
+| facet_name | facet_type | runtime | column    | column_type | depends |
++------------+------------+---------+-----------+-------------+---------+
+| category   | simple     | false   | category  | string      | []      |
+| groupid    | simple     | false   | groupid   | long        | []      |
+| city       | path       | false   | city      | string      | []      |
+| color      | simple     | false   | color     | string      | []      |
+| tags       | multi      | false   | tags      | string      | []      |
+| price      | range      | false   | price     | float       | []      |
+| makemodel  | path       | false   | makemodel | string      | []      |
+| mileage    | range      | false   | mileage   | int         | []      |
+| year       | range      | false   | year      | int         | []      |
++------------+------------+---------+-----------+-------------+---------+
+</pre></div><div class="section" title="Basic Query"><div class="titlepage"><div><div><h3 class="title"><a name="d0e3629"></a>Basic Query</h3></div></div></div><p><span class="bold"><strong>Find the first 10 cars in the
+      index:</strong></span></p><pre class="programlisting">SELECT *
+FROM cars;</pre><p>This query searches for the top 10 cars, sorted by time,
+      from index cars.  All columns are selected.  Number 10 is the
+      default number of results to be returned, and time is the default
+      order-by column.</p><p><span class="bold"><strong>Results:</strong></span></p><pre class="programlisting">+---------------+---------------------------------+ ... +-------+
+| category      | city                            |     | uid   |
++---------------+---------------------------------+ ... +-------+
+| station wagon | u.s.a./florida/tampa            |     | 14999 |
+| compact       | u.s.a./florida/tampa            |     | 0     |
+| exotic        | u.s.a./florida/tampa            |     | 242   |
+| compact       | u.s.a./texas/houston            |     | 1     |
+| compact       | u.s.a./california/sunnyvale     |     | 241   |
+| compact       | u.s.a./texas/houston            |     | 2     |
+| exotic        | u.s.a./california/san francisco |     | 244   |
+| compact       | u.s.a./california/san francisco |     | 243   |
+| compact       | u.s.a./california/sacramento    |     | 3     |
+| compact       | u.s.a./california/san diego     |     | 4     |
++---------------+---------------------------------+ ... +-------+
+10 rows in set, 15000 hits, 15000 total docs (server: 20ms, total: 68ms)</pre></div><div class="section" title="Queries with Limited Number of Results"><div class="titlepage"><div><div><h3 class="title"><a name="d0e3644"></a>Queries with Limited Number of Results</h3></div></div></div><p>You can use the limit clause in a query to specify the
+      starting offset and number of documents to be returned in the
+      results. By default, the starting offset is 0, and number of
+      results to be returned is 10. If only one number is specified in
+      the limit clause, then it is treated the number of results.</p><p>The limit clause is mainly used for pagination on search
+      result age.</p><div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem"><p><span class="bold"><strong>Find the next 10 cars
+          starting from offset 5:</strong></span></p><pre class="programlisting">SELECT *
+FROM cars
+LIMIT 5, 10</pre><p><span class="bold"><strong>Results:</strong></span></p><pre class="programlisting">+----------+---------------------------------+ ... +-----+
+| category | city                            |     | uid |
++----------+---------------------------------+ ... +-----+
+| compact  | u.s.a./texas/houston            |     | 2   |
+| exotic   | u.s.a./california/san francisco |     | 244 |
+| compact  | u.s.a./california/sacramento    |     | 3   |
+| exotic   | china/beijing                   |     | 245 |
+| compact  | u.s.a./california/san diego     |     | 4   |
+| exotic   | u.s.a./new york/rochester       |     | 246 |
+| compact  | china/shanghai                  |     | 5   |
+| exotic   | u.s.a./new york/binghamton      |     | 247 |
+| compact  | u.s.a./utah/salt lake city      |     | 6   |
+| exotic   | china/shanghai                  |     | 248 |
++----------+---------------------------------+ ... +-----+
+10 rows in set, 15000 hits, 15000 total docs (server: 10ms, total: 60ms)</pre></li><li class="listitem"><p><span class="bold"><strong>Just get the top 3
+          results:</strong></span></p><pre class="programlisting">SELECT *
+FROM cars
+LIMIT 3</pre><p><span class="bold"><strong>Results:</strong></span></p><pre class="programlisting">+----------+-----------------------------+ ... +-----+
+| category | city                        |     | uid |
++----------+-----------------------------+ ... +-----+
+| compact  | u.s.a./california/sunnyvale |     | 1   |
+| compact  | u.s.a./florida/tampa        |     | 0   |
+| exotic   | u.s.a./florida/tampa        |     | 242 |
++----------+-----------------------------+ ... +-----+
+3 rows in set, 15001 hits, 15001 total docs (server: 7ms, total: 27ms)</pre></li></ol></div></div><div class="section" title="Queries with Basic Conditions"><div class="titlepage"><div><div><h3 class="title"><a name="d0e3674"></a>Queries with Basic Conditions</h3></div></div></div><div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem"><p><span class="bold"><strong>Find all red
+          cars:</strong></span></p><pre class="programlisting">  SELECT color, year, makemodel
+  FROM cars
+  WHERE color = "red"</pre><p><span class="bold"><strong>Results:</strong></span></p><pre class="programlisting">+-------+----------------------+------------------------+
+| color | year                 | makemodel              |
++-------+----------------------+------------------------+
+| red   | 00000000000000001996 | european/bentley/azure |
+| red   | 00000000000000001995 | european/bentley/azure |
+| red   | 00000000000000002000 | european/bentley/azure |
+| red   | 00000000000000001995 | european/bentley/azure |
+| red   | 00000000000000001994 | european/bentley/azure |
+| red   | 00000000000000001995 | asian/acura/3.2tl      |
+| red   | 00000000000000001996 | asian/acura/3.2tl      |
+| red   | 00000000000000001999 | european/bentley/azure |
+| red   | 00000000000000002002 | european/bentley/azure |
+| red   | 00000000000000001996 | asian/acura/integra    |
++-------+----------------------+------------------------+
+10 rows in set, 2160 hits, 15000 total docs (server: 5ms, total: 41ms)</pre></li><li class="listitem"><p><span class="bold"><strong>Find all red and blue
+          cars:</strong></span></p><pre class="programlisting">SELECT color, year, makemodel
+FROM cars
+WHERE color in ("red", "blue")
+</pre><p><span class="bold"><strong>Results:</strong></span></p><pre class="programlisting">+-------+----------------------+------------------------+
+| color | year                 | makemodel              |
++-------+----------------------+------------------------+
+| blue  | 00000000000000001999 | asian/acura/tl         |
+| red   | 00000000000000001996 | european/bentley/azure |
+| blue  | 00000000000000001998 | asian/acura/tl         |
+| red   | 00000000000000001995 | european/bentley/azure |
+| blue  | 00000000000000001995 | asian/acura/1.6el      |
+| red   | 00000000000000002000 | european/bentley/azure |
+| blue  | 00000000000000001993 | asian/acura/3.2tl      |
+| blue  | 00000000000000001998 | asian/acura/tl         |
+| red   | 00000000000000001995 | european/bentley/azure |
+| red   | 00000000000000001994 | european/bentley/azure |
++-------+----------------------+------------------------+
+10 rows in set, 3264 hits, 15000 total docs (server: 4ms, total: 33ms)
+</pre></li><li class="listitem"><p><span class="bold"><strong>Find all 1999 or 2000 cars
+          that are not black nor red:</strong></span></p><pre class="programlisting">SELECT color, year, makemodel
+FROM cars
+WHERE color not in ("black", "red")
+  AND year BETWEEN 1999 AND 2000</pre><p><span class="bold"><strong>Results:</strong></span></p><pre class="programlisting">+--------+----------------------+------------------------+
+| color  | year                 | makemodel              |
++--------+----------------------+------------------------+
+| blue   | 00000000000000001999 | asian/acura/tl         |
+| white  | 00000000000000001999 | asian/acura/1.6el      |
+| yellow | 00000000000000001999 | asian/acura/3.2tl      |
+| silver | 00000000000000002000 | asian/acura/3.5rl      |
+| silver | 00000000000000002000 | asian/acura/3.5rl      |
+| yellow | 00000000000000002000 | asian/acura/integra    |
+| yellow | 00000000000000002000 | asian/acura/integra    |
+| yellow | 00000000000000002000 | european/bentley/azure |
+| yellow | 00000000000000002000 | european/bentley/azure |
+| yellow | 00000000000000002000 | asian/acura/tl         |
++--------+----------------------+------------------------+
+10 rows in set, 1934 hits, 15000 total docs (server: 4ms, total: 35ms)</pre></li><li class="listitem"><p><span class="bold"><strong>Find all cars in New York
+          state:</strong></span></p><pre class="programlisting">SELECT color, city, price
+FROM cars
+WHERE city in ("u.s.a./new york")</pre><p><span class="bold"><strong>Results:</strong></span></p><pre class="programlisting">+--------+----------------------------+-------------------------+
+| color  | city                       | price                   |
++--------+----------------------------+-------------------------+
+| white  | u.s.a./new york/albany     | 00000000000000007500.00 |
+| red    | u.s.a./new york/rochester  | 00000000000000014500.00 |
+| green  | u.s.a./new york/syracuse   | 00000000000000009500.00 |
+| yellow | u.s.a./new york/binghamton | 00000000000000007200.00 |
+| blue   | u.s.a./new york/new york   | 00000000000000009300.00 |
+| yellow | u.s.a./new york/new york   | 00000000000000015400.00 |
+| yellow | u.s.a./new york/new york   | 00000000000000015200.00 |
+| black  | u.s.a./new york/albany     | 00000000000000009200.00 |
+| gold   | u.s.a./new york/new york   | 00000000000000011100.00 |
+| red    | u.s.a./new york/rochester  | 00000000000000009500.00 |
++--------+----------------------------+-------------------------+
+10 rows in set, 2781 hits, 15000 total docs (server: 5ms, total: 37ms)</pre></li></ol></div></div><div class="section" title="Queries with AND, OR, and NOT Logic in Value Selections"><div class="titlepage"><div><div><h3 class="title"><a name="d0e3722"></a>Queries with AND, OR, and NOT Logic in Value Selections</h3></div></div></div><div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem"><p><span class="bold"><strong>Find all cars tagged with
+          both <code class="literal">"cool"</code> and <code class="literal">"hybrid"</code>
+          but not <code class="literal">"favorite"</code>:</strong></span></p><pre class="programlisting">SELECT tags, price from cars
+WHERE tags CONTAINS ALL ("cool", "hybrid") EXCEPT("favorite")
+LIMIT 5</pre><p><span class="bold"><strong>Results:</strong></span></p><pre class="programlisting">+----------------------------------+-------------------------+
+| tags                             | price                   |
++----------------------------------+-------------------------+
+| automatic,cool,hybrid,reliable   | 00000000000000009400.00 |
+| cool,hybrid,moon-roof,navigation | 00000000000000011500.00 |
+| automatic,cool,hybrid,reliable   | 00000000000000006300.00 |
+| cool,hybrid,moon-roof,reliable   | 00000000000000006500.00 |
+| cool,hybrid,moon-roof,reliable   | 00000000000000007100.00 |
++----------------------------------+-------------------------+
+5 rows in set, 491 hits, 15000 total docs (server: 9ms, total: 28ms)</pre></li><li class="listitem"><p><span class="bold"><strong>Find all cars tagged with
+          either <code class="literal">"cool"</code> or
+          <code class="literal">"hybrid"</code> but not
+          <code class="literal">"mp3"</code></strong></span>:</p><pre class="programlisting">SELECT tags, price
+FROM cars
+WHERE tags IN ("cool", "hybrid") EXCEPT ("mp3")
+LIMIT 5</pre><p><span class="bold"><strong>Results:</strong></span></p><pre class="programlisting">+----------------------------------------------+-------------------------+
+| tags                                         | price                   |
++----------------------------------------------+-------------------------+
+| hybrid,leather,moon-roof,reliable            | 00000000000000007500.00 |
+| automatic,chick magnet,cool,highend,reliable | 00000000000000014200.00 |
+| cool,electric,favorite,navigation            | 00000000000000007300.00 |
+| cool,electric,favorite,reliable              | 00000000000000007200.00 |
+| automatic,hybrid,leather,reliable            | 00000000000000007100.00 |
++----------------------------------------------+-------------------------+
+5 rows in set, 8176 hits, 15000 total docs (server: 6ms, total: 25ms)</pre></li></ol></div></div><div class="section" title="Having Search Results Sorted"><div class="titlepage"><div><div><h3 class="title"><a name="d0e3766"></a>Having Search Results Sorted</h3></div></div></div><p>You can sort the search result based on one or more columns,
+      in either ascending (the default) or descending order.</p><div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem"><p><span class="bold"><strong>Find the top 5 cheapest
+          but newest cars.</strong></span></p><pre class="programlisting">SELECT year, makemodel, price
+FROM cars
+ORDER BY year desc, price
+LIMIT 5</pre><p><span class="bold"><strong>Results:</strong></span></p><pre class="programlisting">+----------------------+-------------------------------+-------------------------+
+| year                 | makemodel                     | price                   |
++----------------------+-------------------------------+-------------------------+
+| 00000000000000002002 | asian/subaru/justy            | 00000000000000002100.00 |
+| 00000000000000002002 | asian/subaru/justy            | 00000000000000002100.00 |
+| 00000000000000002002 | north american/dodge/colt     | 00000000000000002400.00 |
+| 00000000000000002002 | north american/mercury/tracer | 00000000000000002400.00 |
+| 00000000000000002002 | north american/mercury/tracer | 00000000000000002500.00 |
++----------------------+-------------------------------+-------------------------+
+5 rows in set, 15000 hits, 15000 total docs (server: 22ms, total: 50ms)</pre></li><li class="listitem"><p><span class="bold"><strong>Find the top 5 most
+          expensive but oldest cars:</strong></span></p><pre class="programlisting">SELECT year, makemodel, price
+FROM cars
+ORDER BY year asc, price desc
+LIMIT 5</pre><p><span class="bold"><strong>Results:</strong></span></p><pre class="programlisting">+----------------------+-----------------------------+-------------------------+
+| year                 | makemodel                   | price                   |
++----------------------+-----------------------------+-------------------------+
+| 00000000000000001993 | european/ferrari/360 modena | 00000000000000019500.00 |
+| 00000000000000001993 | asian/acura/nsx             | 00000000000000019500.00 |
+| 00000000000000001993 | european/aston martin/db7   | 00000000000000019500.00 |
+| 00000000000000001993 | european/ferrari/360 modena | 00000000000000019500.00 |
+| 00000000000000001993 | asian/acura/nsx             | 00000000000000019500.00 |
++----------------------+-----------------------------+-------------------------+
+5 rows in set, 15000 hits, 15000 total docs (server: 5ms, total: 27ms)</pre></li></ol></div></div><div class="section" title="Queries with Full Text Search"><div class="titlepage"><div><div><h3 class="title"><a name="d0e3794"></a>Queries with Full Text Search</h3></div></div></div><p>In the WHERE clause, you can add a condition for full text
+      search, which is called a (text) query. This condition is to find
+      the documents that contain matching text. You can use Lucene Query
+      Syntax in the text string that you search on.</p><div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem"><p><span class="bold"><strong>Find all the cars that are
+          tagged with "hybrid" and "navigation":</strong></span></p><pre class="programlisting">SELECT tags, makemodel
+FROM cars
+WHERE QUERY IS "hybrid AND navigation"</pre><p><span class="bold"><strong>Results:</strong></span></p><pre class="programlisting">+-------------------------------------+----------------------------+
+| tags                                | makemodel                  |
++-------------------------------------+----------------------------+
+| hybrid,leather,moon-roof,navigation | asian/acura/tl             |
+| favorite,hybrid,mp3,navigation      | asian/acura/tl             |
+| favorite,hybrid,mp3,navigation      | asian/acura/3.2tl          |
+| favorite,hybrid,mp3,navigation      | asian/acura/tl             |
+| cool,hybrid,moon-roof,navigation    | asian/acura/tl             |
+| cool,favorite,hybrid,navigation     | asian/acura/vigor          |
+| automatic,cool,hybrid,navigation    | asian/acura/vigor          |
+| cool,hybrid,moon-roof,navigation    | asian/acura/vigor          |
+| cool,hybrid,moon-roof,navigation    | north american/asuna/se/gt |
+| automatic,hybrid,leather,navigation | european/saab/900          |
++-------------------------------------+----------------------------+
+10 rows in set, 778 hits, 15000 total docs (server: 186ms, total: 209ms)</pre></li><li class="listitem"><p><span class="bold"><strong>A more complicated
+          example:</strong></span></p><pre class="programlisting">SELECT color, tags, city
+FROM cars
+WHERE QUERY IS "(hybrid OR mooon-roof) AND mp3 NOT cool NOT navigation"
+  AND city in ("u.s.a./new york")
+  AND color = "red"</pre><p><span class="bold"><strong>Results:</strong></span></p><pre class="programlisting">+-------+-------------------------------+----------------------------+
+| color | tags                          | city                       |
++-------+-------------------------------+----------------------------+
+| red   | automatic,hybrid,mp3,reliable | u.s.a./new york/new york   |
+| red   | hybrid,moon-roof,mp3,reliable | u.s.a./new york/buffalo    |
+| red   | favorite,hybrid,mp3,reliable  | u.s.a./new york/syracuse   |
+| red   | favorite,hybrid,mp3,reliable  | u.s.a./new york/buffalo    |
+| red   | automatic,hybrid,mp3,reliable | u.s.a./new york/syracuse   |
+| red   | favorite,hybrid,mp3,reliable  | u.s.a./new york/binghamton |
+| red   | automatic,hybrid,mp3,reliable | u.s.a./new york/syracuse   |
++-------+-------------------------------+----------------------------+
+7 rows in set, 7 hits, 15000 total docs (server: 17ms, total: 44ms)</pre></li></ol></div></div><div class="section" title="Queries with Group By"><div class="titlepage"><div><div><h3 class="title"><a name="d0e3822"></a>Queries with Group By</h3></div></div></div><div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem"><p>You can group the search results of a query by one
+          facet, which can be a simple column or a facet built upon a
+          group of columns. You can also specify how many hits you want
+          to keep in each group (the default is 10).</p><p><span class="bold"><strong>Find the first 10 groups
+          of cars, with 2 hits in each group:</strong></span></p><pre class="programlisting">SELECT category, city, makemodel
+FROM cars
+GROUP BY category TOP 2</pre><p><span class="bold"><strong>Results:</strong></span></p><pre class="programlisting">========================================================================================
+| category      | city                            | makemodel                          |
+========================================================================================
+| compact       | u.s.a./texas/houston            | asian/acura/tl                     |
+| compact       | u.s.a./florida/tampa            | asian/acura/1.6el                  |
++---------------+---------------------------------+------------------------------------+
+| exotic        | u.s.a./florida/tampa            | european/bentley/azure             |
+| exotic        | u.s.a./california/san francisco | european/bentley/azure             |
++---------------+---------------------------------+------------------------------------+
+| luxury        | u.s.a./florida/orlando          | asian/acura/3.5rl                  |
+| luxury        | u.s.a./new york/rochester       | asian/acura/3.5rl                  |
++---------------+---------------------------------+------------------------------------+
+| sports car    | u.s.a./california/sunnyvale     | asian/acura/integra                |
+| sports car    | u.s.a./texas/austin             | asian/acura/integra                |
++---------------+---------------------------------+------------------------------------+
+| sedan         | china/beijing                   | north american/eagle/vision        |
+| sedan         | australia/perth                 | north american/eagle/vision        |
++---------------+---------------------------------+------------------------------------+
+| suv           | china/shanghai                  | north american/ford/bronco         |
+| suv           | u.s.a./california/sacramento    | north american/ford/bronco         |
++---------------+---------------------------------+------------------------------------+
+| van           | u.s.a./florida/palm beach       | north american/ford/club wagon     |
+| van           | u.s.a./new york/albany          | north american/ford/club wagon     |
++---------------+---------------------------------+------------------------------------+
+| truck         | u.s.a./utah/provo               | asian/mazda/b-series               |
+| truck         | australia/melbourn              | asian/isuzu/pickup                 |
++---------------+---------------------------------+------------------------------------+
+| station wagon | u.s.a./texas/dallas             | north american/saturn/sw           |
+| station wagon | u.s.a./california/san jose      | north american/saturn/sw           |
++---------------+---------------------------------+------------------------------------+
+| mini-van      | u.s.a./texas/austin             | north american/chevrolet/astro van |
+| mini-van      | u.s.a./california/san jose      | north american/chevrolet/astro van |
++---------------+---------------------------------+------------------------------------+
+========================================================================================
+10 groups in set, 15000 hits, 15000 total docs (server: 55ms, total: 130ms)</pre></li><li class="listitem"><p><span class="bold"><strong>Find the numbers of cars
+          in different categories:</strong></span></p><pre class="programlisting">SELECT category, grouphitscount
+FROM cars
+GROUP BY category top 1</pre><p><span class="bold"><strong>Results:</strong></span></p><pre class="programlisting">+---------------+----------------+
+| category      | grouphitscount |
++---------------+----------------+
+| compact       | 4169           |
+| exotic        | 1902           |
+| luxury        | 2735           |
+| sports car    | 1494           |
+| sedan         | 990            |
+| suv           | 1449           |
+| van           | 168            |
+| truck         | 611            |
+| station wagon | 186            |
+| mini-van      | 869            |
++---------------+----------------+
+10 rows in set, 15000 hits, 15000 total docs (server: 3ms, total: 38ms)</pre></li></ol></div></div><div class="section" title="Getting Facet Information Using Browse By Clause"><div class="titlepage"><div><div><h3 class="title"><a name="d0e3850"></a>Getting Facet Information Using Browse By Clause</h3></div></div></div><p>BQL is designed to support faceted search, so we have to
+      make it possible to get facet information along with the search
+      results. This can be done using the Browse By clause, where you
+      can specify one or more facets for which you want to get the facet
+      count information. For each facet in the Browse By clause, you can
+      optionally include</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>whether the selection is expanded (default false)</p></li><li class="listitem"><p>the minimum number of hit counts (default 1)</p></li><li class="listitem"><p>the maximum number of hit counts (default 10)</p></li><li class="listitem"><p>facet ordering method ("hits" or "value") (default
+          "hits")</p></li></ul></div><p>Here is an example:</p><p><span class="bold"><strong>Query:</strong></span></p><pre class="programlisting">SELECT color, year, tags, price
+FROM cars
+WHERE QUERY IS "cool"
+  AND tags CONTAINS ALL ("cool", "hybrid") EXCEPT ("favorite")
+  AND color in ("red")
+ORDER BY price desc
+LIMIT 0,10
+BROWSE BY color(true, 1, 10, hits), year(true, 1, 10, value), price</pre><p><span class="bold"><strong>Results:</strong></span></p><pre class="programlisting">+-------+----------------------+----------------------------------+-------------------------+
+| color | year                 | tags                             | price                   |
++-------+----------------------+----------------------------------+-------------------------+
+| red   | 00000000000000002000 | cool,hybrid,moon-roof,navigation | 00000000000000014500.00 |
+| red   | 00000000000000001993 | cool,hybrid,moon-roof,navigation | 00000000000000014400.00 |
+| red   | 00000000000000002002 | automatic,cool,hybrid,navigation | 00000000000000014200.00 |
+| red   | 00000000000000001998 | automatic,cool,hybrid,navigation | 00000000000000012100.00 |
+| red   | 00000000000000002002 | automatic,cool,hybrid,reliable   | 00000000000000011500.00 |
+| red   | 00000000000000002002 | automatic,cool,hybrid,reliable   | 00000000000000011400.00 |
+| red   | 00000000000000001998 | automatic,cool,hybrid,reliable   | 00000000000000011400.00 |
+| red   | 00000000000000001996 | automatic,cool,hybrid,reliable   | 00000000000000011200.00 |
+| red   | 00000000000000001999 | automatic,cool,hybrid,reliable   | 00000000000000011100.00 |
+| red   | 00000000000000002001 | cool,hybrid,moon-roof,reliable   | 00000000000000010500.00 |
++-------+----------------------+----------------------------------+-------------------------+
+10 rows in set, 59 hits, 15000 total docs (server: 337ms, total: 372ms)
++-------------+
+| color       |
++-------------+
+| white  (73) |
+| yellow (73) |
+| blue   (62) |
+| silver (61) |
+| red    (59) |
+| green  (58) |
+| gold   (53) |
+| black  (52) |
++-------------+
++-----------------------+
+| price                 |
++-----------------------+
+| [6800 TO 9900]   (27) |
+| [* TO 6700]      (21) |
+| [10000 TO 13100] (8)  |
+| [13200 TO 17300] (3)  |
++-----------------------+
++---------------------+
+| year                |
++---------------------+
+| [1993 TO 1994] (16) |
+| [1995 TO 1996] (13) |
+| [1997 TO 1998] (10) |
+| [1999 TO 2000] (9)  |
+| [2001 TO 2002] (11) |
++---------------------+</pre></div><div class="section" title="Queries with Run-Time Facet Handler Initialization Parameters"><div class="titlepage"><div><div><h3 class="title"><a name="d0e3880"></a>Queries with Run-Time Facet Handler Initialization
+      Parameters</h3></div></div></div><p>In a faceted search system, a run-time facet handler usually
+      requires initialization parameter(s) to be provided at search time
+      for each query. For example, in a search system that searches
+      LinkedIn shares or Twitter tweets, one or more run-time facets
+      usually require the searcher to provide his/her user Id (or user
+      name) and the time when the search is performed.</p><p>One run-time facet may need multiple initialization
+      parameters, each of which has a different name and/or a different
+      data type. These parameters can be specified in the SELECT
+      statement using the GIVEN FACET PARAM clause. Every parameter is
+      specified in the clause as a 4-tuple,
+      (<span class="emphasis"><em>facet-name</em></span>, <span class="emphasis"><em>param-name</em></span>,
+      <span class="emphasis"><em>param-type</em></span>,
+      <span class="emphasis"><em>param-value</em></span>).</p><div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem"><p><span class="bold"><strong>On a search system for LinkedIn
+          shares, find recent updates from member 12345678 himself
+          (i.e. value 0 for the Network facet) and all his first degree
+          connections (i.e. value 1 for the Network facet) in US:
+          </strong></span></p><pre class="programlisting">SELECT uid, Network, userid, country
+FROM shares
+WHERE country = "us"
+  AND Network in (0, 1)
+GIVEN FACET PARAM (Network, "member_id", int, 12345678)</pre><p><span class="bold"><strong>Results:</strong></span></p><pre class="programlisting">+---------------------+---------+----------------------+---------+
+| uid                 | Network | userid               | country |
++---------------------+---------+----------------------+---------+
+| 5527797854963249152 | 0       | 00000000000012345678 | us      |
+| 5527805402646839296 | 1       | 00000000000042593551 | us      |
+| 5527816561408086016 | 0       | 00000000000012345678 | us      |
+| 5527825082430267392 | 1       | 00000000000022593551 | us      |
+| 5527829323551084544 | 0       | 00000000000012345678 | us      |
+| 5527848889647902720 | 1       | 00000000000004730909 | us      |
+| 5527853965330358272 | 1       | 00000000000004730909 | us      |
+| 5527884781573898240 | 1       | 00000000000026325826 | us      |
+| 5527487070454427648 | 0       | 00000000000012345678 | us      |
+| 5527488521884930048 | 0       | 00000000000012345678 | us      |
++---------------------+---------+----------------------+---------+
+10 rows in set, 14 hits, 10749644 total docs (server: 432ms, total: 472ms)</pre></li></ol></div></div></div></div><div class="chapter" title="Chapter&nbsp;9.&nbsp;FAQ"><div class="titlepage"><div><div><h2 class="title"><a name="d0e3911"></a>Chapter&nbsp;9.&nbsp;FAQ</h2></div></div></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><span class="section"><a href="#d0e3914">About Sensei</a></span></dt><dt><span class="section"><a href="#d0e3936">Sensei Configuration</a></span></dt><dt><span class="section"><a href="#d0e3941">Problems Running Sensei</a></span></dt></dl></div><div class="section" title="About Sensei"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="d0e3914"></a>About Sensei</h2></div></div></div><div class="qandaset" title="Frequently Asked Questions"><a name="d0e3917"></a><dl><dt>1. <a href="#d0e3918">Why is it called Sensei?</a></dt></dl><table border="0" width="100%" summary="Q and A Set"><col align="left" width="1%"><col><tbody><tr class="question" title="1."><td align="left" valign="top"><a name="d0e3918"></a><a name="d0e3919"></a><p><b>1.</b></p></td><td align="left" valign="top"><p>Why is it called Sensei?</p></td></tr><tr class="answer"><td align="left" valign="top"></td><td align="left" valign="top"><p><span class="emphasis"><em>Sensei</em></span> means
+            <span class="emphasis"><em>teacher</em></span> or
+            <span class="emphasis"><em>professor</em></span> in Japanese (<a class="link" href="http://en.wikipedia.org/wiki/Sensei" target="_top">http://en.wikipedia.org/wiki/Sensei</a>).
+            It shares the same pronunciation and writing with the
+            Chinese word that has the same meaning.  This name indicates
+            that the system can be used in place of Oracle database in
+            many applications.
+            </p></td></tr></tbody></table></div></div><div class="section" title="Sensei Configuration"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="d0e3936"></a>Sensei Configuration</h2></div></div></div><p>(To Be Finished)</p></div><div class="section" title="Problems Running Sensei"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="d0e3941"></a>Problems Running Sensei</h2></div></div></div><p>(To Be Finished)</p></div></div><div class="index" title="Index"><div class="titlepage"><div><div><h2 class="title"><a name="d0e3946"></a>Index</h2></div></div></div><div class="index"><div class="indexdiv"><h3>A</h3><dl><dt>architectural diagram, <a class="indexterm" href="#d0e366">Architectural Diagram</a></dt></dl></div><div class="indexdiv"><h3>B</h3><dl><dt>Bobo, <a class="indexterm" href="#d0e13">Introduction</a></dt></dl></div><div class="indexdiv"><h3>C</h3><dl><dt>custom indexing pipeline, <a class="indexterm" href="#sect-plugin-props">Plug-in Properties</a></dt></dl></div><div class="indexdiv"><h3>D</h3><dl><dt>Data Gateway</dt><dd><dl><dt>Gateway, <a class="indexterm" href="#d0e229">Architecture</a></dt></dl></dd><dt>delete, <a class="indexterm" href="#d0e1644">Deletes</a></dt></dl></div><div class="indexdiv"><h3>F</h3><dl><dt>Facet Handler, <a class="indexterm" href="#d0e229">Architecture</a></dt><dt>facet schema, <a class="indexterm" href="#d0e1700">Facet Schema</a></dt><dt>facet schema attribute, <a class="indexterm" href="#d0e1761">Optional Attributes</a></dt><dd><dl><dt>column, <a class="indexterm" href="#d0e1767">Column</a></dt><dt>depends, <a class="indexterm" href="#d0e1782">Depends</a></dt><dt>dynamic, <a class="indexterm" href="#d0e1799">Dynamic</a></dt></dl></dd><dt>field collapsing, <a class="indexterm" href="#d0e1082">Sensei Request</a></dt></dl></div><div class="indexdiv"><h3>H</h3><dl><dt>histogram facet handler, <a class="indexterm" href="#d0e1700">Facet Schema</a></dt><dt>Hourglass, <a class="indexterm" href="#d0e229">Architecture</a></dt></dl></div><div class="indexdiv"><h3>I</h3><dl><dt>Indexing Manager, <a class="indexterm" href="#d0e229">Architecture</a></dt></dl></div><div class="indexdiv"><h3>J</h3><dl><dt>JSON, <a class="indexterm" href="#d0e1565">JSON</a></dt></dl></div><div class="indexdiv"><h3>L</h3><dl><dt>Lucene</dt><dd><dl><dt>Apach
+          Lucene, <a class="indexterm" href="#d0e13">Introduction</a></dt></dl></dd></dl></div><div class="indexdiv"><h3>N</h3><dl><dt>Netty, <a class="indexterm" href="#d0e13">Introduction</a></dt><dt>Norbert, <a class="indexterm" href="#d0e13">Introduction</a></dt><dt>NoSQL, <a class="indexterm" href="#d0e89">Design Considerations</a></dt></dl></div><div class="indexdiv"><h3>P</h3><dl><dt>partition</dt><dd><dl><dt>shard, <a class="indexterm" href="#d0e229">Architecture</a></dt></dl></dd><dt>prerequisites, <a class="indexterm" href="#d0e399">Prerequisites</a></dt></dl></div><div class="indexdiv"><h3>R</h3><dl><dt>RESTful end-point, <a class="indexterm" href="#d0e534">Web Application and RESTful
+        End-Point</a>, <a class="indexterm" href="#d0e646">Screenshots</a></dt></dl></div><div class="indexdiv"><h3>S</h3><dl><dt>Sensei
+      broker, <a class="indexterm" href="#d0e229">Architecture</a></dt><dt>Sensei server, <a class="indexterm" href="#d0e229">Architecture</a></dt><dt>sharding, <a class="indexterm" href="#d0e955">Index Sharding</a></dt><dt>sharding strategy, <a class="indexterm" href="#d0e89">Design Considerations</a></dt><dt>Signal, <a class="indexterm" href="#d0e229">Architecture</a></dt><dt>skip, <a class="indexterm" href="#d0e1665">Skips</a></dt><dt>source JSON, <a class="indexterm" href="#d0e1686">Source JSON</a></dt><dt>start Sensei clients, <a class="indexterm" href="#d0e555">Starting Clients </a></dt><dt>start Sensei node, <a class="indexterm" href="#d0e512">Starting Sensei Nodes  </a></dt></dl></div><div class="indexdiv"><h3>T</h3><dl><dt>table schema, <a class="indexterm" href="#d0e1425">Table Schema</a></dt></dl></div><div class="indexdiv"><h3>Z</h3><dl><dt>Zoie, <a class="indexterm" href="#d0e13">Introduction</a></dt><dt>Zoie System, <a class="indexterm" href="#d0e229">Architecture</a></dt><dt>ZooKeeper, <a class="indexterm" href="#d0e13">Introduction</a>, <a class="indexterm" href="#d0e480">Starting ZooKeeper </a></dt></dl></div></div></div></div></body></html>

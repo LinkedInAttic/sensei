@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+  <chapter xmlns="http://docbook.org/ns/docbook"
+           xmlns:xlink="http://www.w3.org/1999/xlink">
+
+    <title>FAQ</title>
+
+    <section>
+      <title>About Sensei</title>
+
+      <qandaset>
+        <qandaentry>
+          <question>
+            <para>Why is it called Sensei?</para>
+          </question>
+          <answer>
+            <para><emphasis>Sensei</emphasis> means
+            <emphasis>teacher</emphasis> or
+            <emphasis>professor</emphasis> in Japanese (<link
+            xlink:href="http://en.wikipedia.org/wiki/Sensei">http://en.wikipedia.org/wiki/Sensei</link>).
+            It shares the same pronunciation and writing with the
+            Chinese word that has the same meaning.  This name indicates
+            that the system can be used in place of Oracle database in
+            many applications.
+            </para>
+          </answer>
+        </qandaentry>
+      </qandaset>
+
+    </section>
+
+    <section>
+      <title>Sensei Configuration</title>
+
+      <para>(To Be Finished)</para>
+
+    </section>
+
+    <section>
+      <title>Problems Running Sensei</title>
+
+      <para>(To Be Finished)</para>
+
+    </section>
+
+  </chapter>
