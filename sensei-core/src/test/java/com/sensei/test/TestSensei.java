@@ -513,6 +513,60 @@ public class TestSensei extends AbstractSenseiTestCase
     assertTrue(hit.getSenseiGroupHits().length > 0);
   }
 
+  public void testSelectionTerm() throws Exception
+  {
+    logger.info("executing test case Selection term");
+    String req = "{\"selections\":[{\"term\":{\"color\":{\"value\":\"red\"}}}]}";
+    JSONObject res = search(new JSONObject(req));
+    assertEquals("numhits is wrong", 2160, res.getInt("numhits"));
+  }
+  
+  public void testSelectionTerms() throws Exception
+  {
+    logger.info("executing test case Selection terms");
+    String req = "{\"selections\":[{\"terms\":{\"tags\":{\"values\":[\"mp3\",\"moon-roof\"],\"excludes\":[\"leather\"],\"operator\":\"or\"}}}]}";
+    JSONObject res = search(new JSONObject(req));
+    assertEquals("numhits is wrong", 4483, res.getInt("numhits"));
+  }
+  
+  public void testSelectionRange() throws Exception
+  {
+    //2000 1548;
+    //2001 1443;
+    //2002 1464;
+    // [2000 TO 2002]   ==> 4455
+    // (2000 TO 2002)   ==> 1443
+    // (2000 TO 2002]   ==> 2907
+    // [2000 TO 2002)   ==> 2991
+    {
+      logger.info("executing test case Selection range [2000 TO 2002]");
+      String req = "{\"selections\":[{\"range\":{\"year\":{\"to\":\"2002\",\"include_lower\":true,\"include_upper\":true,\"from\":\"2000\"}}}]}";
+      JSONObject res = search(new JSONObject(req));
+      assertEquals("numhits is wrong", 4455, res.getInt("numhits"));
+    }
+    
+    {
+      logger.info("executing test case Selection range (2000 TO 2002)");
+      String req = "{\"selections\":[{\"range\":{\"year\":{\"to\":\"2002\",\"include_lower\":false,\"include_upper\":false,\"from\":\"2000\"}}}]}";
+      JSONObject res = search(new JSONObject(req));
+      assertEquals("numhits is wrong", 1443, res.getInt("numhits"));
+    }
+    
+    {
+      logger.info("executing test case Selection range (2000 TO 2002]");
+      String req = "{\"selections\":[{\"range\":{\"year\":{\"to\":\"2002\",\"include_lower\":false,\"include_upper\":true,\"from\":\"2000\"}}}]}";
+      JSONObject res = search(new JSONObject(req));
+      assertEquals("numhits is wrong", 2907, res.getInt("numhits"));
+    }
+    
+    {
+      logger.info("executing test case Selection range [2000 TO 2002)");
+      String req = "{\"selections\":[{\"range\":{\"year\":{\"to\":\"2002\",\"include_lower\":true,\"include_upper\":false,\"from\":\"2000\"}}}]}";
+      JSONObject res = search(new JSONObject(req));
+      assertEquals("numhits is wrong", 2991, res.getInt("numhits"));
+    }
+    
+  }
   
   public void testMatchAllWithBoostQuery() throws Exception
   {
