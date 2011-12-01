@@ -683,13 +683,13 @@ public class TestSensei extends AbstractSenseiTestCase
     assertEquals("numhits is wrong", 3015, res.getInt("numhits"));
   }
   
-//  public void testRangeQuery2() throws Exception
-//  {
-//    logger.info("executing test case testRangeQuery2");
-//    String req = "{\"query\":{\"range\":{\"year\":{\"to\":2000,\"boost\":2,\"from\":1999,\"_noOptimize\":true}}}}";
-//    JSONObject res = search(new JSONObject(req));
-//    assertEquals("numhits is wrong", 3015, res.getInt("numhits"));
-//  }
+  public void testRangeQuery2() throws Exception
+  {
+    logger.info("executing test case testRangeQuery2");
+    String req = "{\"query\":{\"range\":{\"year\":{\"to\":\"2000\",\"boost\":2,\"from\":\"1999\",\"_noOptimize\":true,\"_type\":\"int\"}}}}";
+    JSONObject res = search(new JSONObject(req));
+    assertEquals("numhits is wrong", 3015, res.getInt("numhits"));
+  }
   
   
   public void testFilteredQuery() throws Exception

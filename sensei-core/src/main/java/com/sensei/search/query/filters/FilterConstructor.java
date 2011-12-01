@@ -21,6 +21,8 @@ public abstract class FilterConstructor {
   public static final String FROM_PARAM          = "from";
   public static final String TO_PARAM            = "to";
   public static final String NOOPTIMIZE_PARAM    = "_noOptimize";
+  public static final String RANGE_FIELD_TYPE    = "_type";
+  public static final String RANGE_DATE_FORMAT   = "_date_format";
   public static final String QUERY_PARAM         = "query";
   public static final String OR_PARAM            = "or";
   public static final String DEPTH_PARAM         = "depth";
