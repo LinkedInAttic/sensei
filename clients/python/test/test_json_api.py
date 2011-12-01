@@ -621,7 +621,7 @@ class TestJsonAPI(unittest.TestCase):
       AND last_name = "Cui"
     """
     req = self.client.compile(stmt)
-    # print self.client.buildJsonString(req, indent=2),
+    # print self.client.buildJsonString(req, indent=2)
     self.assertEqual(self.client.buildJsonString(req, indent=2),
                      """{
   "fetchStored": true, 
@@ -662,7 +662,7 @@ class TestJsonAPI(unittest.TestCase):
     ORDER BY year desc, price
     """
     req = self.client.compile(stmt)
-    # print self.client.buildJsonString(req, indent=2),
+    # print self.client.buildJsonString(req, indent=2)
     self.assertEqual(self.client.buildJsonString(req, indent=2),
                      """{
   "fetchStored": true, 
@@ -686,7 +686,7 @@ class TestJsonAPI(unittest.TestCase):
     ORDER BY relevance
     """
     req = self.client.compile(stmt)
-    # print self.client.buildJsonString(req, indent=2),
+    # print self.client.buildJsonString(req, indent=2)
     self.assertEqual(self.client.buildJsonString(req, indent=2),
                      """{
   "fetchStored": true, 
@@ -722,7 +722,7 @@ class TestJsonAPI(unittest.TestCase):
     WHERE color IN ("red", "blue") EXCEPT("black")
     """
     req = self.client.compile(stmt)
-    # print self.client.buildJsonString(req, indent=2),
+    # print self.client.buildJsonString(req, indent=2)
     self.assertEqual(self.client.buildJsonString(req, indent=2),
                      """{
   "fetchStored": true, 
@@ -755,7 +755,8 @@ class TestJsonAPI(unittest.TestCase):
     WHERE city IN ("china/hongkong") WITH ("strict":false, "depth":1)
     """
     req = self.client.compile(stmt)
-    print self.client.buildJsonString(req, indent=2),
+    # XXX
+    print self.client.buildJsonString(req, indent=2)
     # self.assertEqual(self.client.buildJsonString(req, indent=2),
     
 
@@ -773,8 +774,173 @@ class TestJsonAPI(unittest.TestCase):
 #     LIMIT 5, 20
 #     """
 #     req = self.client.compile(stmt)
-#     print self.client.buildJsonString(req, indent=2),
+#     print self.client.buildJsonString(req, indent=2)
 #     # self.assertEqual(self.client.buildJsonString(req, indent=2),
+
+  def testGroupBy1(self):
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    GROUP BY color
+    """
+    req = self.client.compile(stmt)
+    # print self.client.buildJsonString(req, indent=2)
+    self.assertEqual(self.client.buildJsonString(req, indent=2),
+                     """{
+  "fetchStored": true, 
+  "from": 0, 
+  "groupBy": [
+    {
+      "column": "color", 
+      "top": 10
+    }
+  ], 
+  "size": 10
+}""")
+
+  def testGroupBy2(self):
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    GROUP     BY color top 3
+    """
+    req = self.client.compile(stmt)
+    # print self.client.buildJsonString(req, indent=2)
+    self.assertEqual(self.client.buildJsonString(req, indent=2),
+                     """{
+  "fetchStored": true, 
+  "from": 0, 
+  "groupBy": [
+    {
+      "column": "color", 
+      "top": 3
+    }
+  ], 
+  "size": 10
+}""")
+    
+
+  def testBrowseBy1(self):
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    BROWSE BY color(false, 1, 10, hits), price(true, 1, 20, value)
+    """
+    req = self.client.compile(stmt)
+    # print self.client.buildJsonString(req, indent=2)
+    self.assertEqual(self.client.buildJsonString(req, indent=2),
+                     """{
+  "facets": {
+    "color": {
+      "expand": false, 
+      "max": 10, 
+      "minhit": 1, 
+      "order": "hits"
+    }, 
+    "price": {
+      "expand": true, 
+      "max": 20, 
+      "minhit": 1, 
+      "order": "val"
+    }
+  }, 
+  "fetchStored": true, 
+  "from": 0, 
+  "size": 10
+}""")
+
+  def testBrowseBy2(self):
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    BROWSE BY color, price(true, 1, 20, value), year
+    """
+    req = self.client.compile(stmt)
+    # print self.client.buildJsonString(req, indent=2)
+    self.assertEqual(self.client.buildJsonString(req, indent=2),
+                     """{
+  "facets": {
+    "color": {
+      "expand": false, 
+      "max": 10, 
+      "minhit": 1, 
+      "order": "hits"
+    }, 
+    "price": {
+      "expand": true, 
+      "max": 20, 
+      "minhit": 1, 
+      "order": "val"
+    }, 
+    "year": {
+      "expand": false, 
+      "max": 10, 
+      "minhit": 1, 
+      "order": "hits"
+    }
+  }, 
+  "fetchStored": true, 
+  "from": 0, 
+  "size": 10
+}""")
+
+  def testGivenClause1(self):
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    GIVEN FACET PARAM (My-Network, "srcid", int, 8233570)
+    """
+    req = self.client.compile(stmt)
+    # print self.client.buildJsonString(req, indent=2)
+    self.assertEqual(self.client.buildJsonString(req, indent=2),
+                     """{
+  "facetInit": {
+    "My-Network": {
+      "srcid": {
+        "type": "int", 
+        "values": [
+          "8233570"
+        ]
+      }
+    }
+  }, 
+  "fetchStored": true, 
+  "from": 0, 
+  "size": 10
+}""")
+
+  def testGivenClause2(self):
+    # XXX
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    GIVEN FACET PARAM (My-Network, "srcid", int, 8233570),
+                      (time, "now", long, "999999"),   -- Accept string too
+                      (member, "last_name", string, "Cui"),
+                      (member, "age", int, 25)
+    """
+
+  def testFetchingStored(self):
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    FETCHING STORED FALSE
+    """
+    req = self.client.compile(stmt)
+    # print self.client.buildJsonString(req, indent=2)
+    self.assertEqual(self.client.buildJsonString(req, indent=2),
+                     """{
+  "from": 0, 
+  "size": 10
+}""")
+
 
 if __name__ == "__main__":
     unittest.main()
