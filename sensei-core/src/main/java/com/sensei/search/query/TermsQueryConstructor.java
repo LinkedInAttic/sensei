@@ -48,7 +48,7 @@ public class TermsQueryConstructor extends QueryConstructor
       values          = ((JSONObject)obj).optJSONArray(VALUES_PARAM);
       excludes        = ((JSONObject)obj).optJSONArray(EXCLUDES_PARAM);
       op              = ((JSONObject)obj).optString(OPERATOR_PARAM);
-      minimum_match   = ((JSONObject)obj).optInt(MINIMUM_MATCH_PARAM, 1);
+      minimum_match   = ((JSONObject)obj).optInt(MINIMUM_MATCH_PARAM, 0);
     }
     else if (obj instanceof JSONArray)
     {
@@ -76,7 +76,7 @@ public class TermsQueryConstructor extends QueryConstructor
     {
       for (int i=0; i<excludes.length(); ++i)
       {
-        query.add(new TermQuery(new Term(field, values.getString(i))), BooleanClause.Occur.MUST_NOT);
+        query.add(new TermQuery(new Term(field, excludes.getString(i))), BooleanClause.Occur.MUST_NOT);
       }
     }
 
