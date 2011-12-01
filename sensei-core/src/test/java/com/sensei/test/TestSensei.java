@@ -675,24 +675,31 @@ public class TestSensei extends AbstractSenseiTestCase
     assertEquals("numhits is wrong", 1104, res.getInt("numhits"));
   }
   
-//  public void testRangeQuery() throws Exception
+  public void testRangeQuery() throws Exception
+  {
+    logger.info("executing test case testRangeQuery");
+    String req = "{\"query\":{\"range\":{\"year\":{\"to\":2000,\"boost\":2,\"from\":1999,\"_noOptimize\":false}}}}";
+    JSONObject res = search(new JSONObject(req));
+    assertEquals("numhits is wrong", 3015, res.getInt("numhits"));
+  }
+  
+//  public void testRangeQuery2() throws Exception
 //  {
-//    //color blue ==> 1104
-//    logger.info("executing test case testWildcardQuery");
-//    String req = "{\"query\":{\"wildcard\":{\"color\":{\"value\":\"bl*e\",\"boost\":2}}}}";
+//    logger.info("executing test case testRangeQuery2");
+//    String req = "{\"query\":{\"range\":{\"year\":{\"to\":2000,\"boost\":2,\"from\":1999,\"_noOptimize\":true}}}}";
 //    JSONObject res = search(new JSONObject(req));
-//    assertEquals("numhits is wrong", 1104, res.getInt("numhits"));
+//    assertEquals("numhits is wrong", 3015, res.getInt("numhits"));
 //  }
   
   
-//  public void testFilteredQuery() throws Exception
-//  {
-//    //color blue ==> 1104
-//    logger.info("executing test case testWildcardQuery");
-//    String req = "{\"query\":{\"wildcard\":{\"color\":{\"value\":\"bl*e\",\"boost\":2}}}}";
-//    JSONObject res = search(new JSONObject(req));
-//    assertEquals("numhits is wrong", 1104, res.getInt("numhits"));
-//  }
+  public void testFilteredQuery() throws Exception
+  {
+    logger.info("executing test case testFilteredQuery");
+    String req ="{\"query\":{\"filtered\":{\"query\":{\"term\":{\"color\":\"red\"}},\"filter\":{\"range\":{\"year\":{\"to\":2000,\"from\":1999}}}}}}";
+    JSONObject res = search(new JSONObject(req));
+    assertEquals("numhits is wrong", 447, res.getInt("numhits"));
+  }
+  
   
   public void testSpanTermQuery() throws Exception
   {
