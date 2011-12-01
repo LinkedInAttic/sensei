@@ -18,15 +18,15 @@ public class SpanNotQueryConstructor extends QueryConstructor {
 		
 //	    "span_not" : {
 //        "include" : {
-//            "span_term" : { "field1" : "value1" }
+//            "span_term" : { "field" : "value1" }
 //        },
 //        "exclude" : {
-//            "span_term" : { "field2" : "value2" }
+//            "span_term" : { "field" : "value2" }
 //        }
 //    },
 		
 		JSONObject jsonInclude = jsonQuery.getJSONObject(INCLUDE_PARAM);
-		JSONObject jsonExclude = jsonQuery.getJSONObject(EXCLUDES_PARAM);
+		JSONObject jsonExclude = jsonQuery.getJSONObject(EXCLUDE_PARAM);
 		
 		JSONObject jsonInc = jsonInclude.getJSONObject(SPAN_TERM_PARAM);
 		String fieldInc = (String)(jsonInc.keys().next());
@@ -36,7 +36,10 @@ public class SpanNotQueryConstructor extends QueryConstructor {
 		JSONObject jsonExc = jsonExclude.getJSONObject(SPAN_TERM_PARAM);
 		String fieldExc = (String)(jsonExc.keys().next());
 		String valueExc = (String)jsonExc.get(fieldExc);
-		SpanQuery sExc = new SpanTermQuery(new Term(fieldExc, valueExc));		
+		SpanQuery sExc = new SpanTermQuery(new Term(fieldExc, valueExc));
+		
+		if(!fieldInc.equals(fieldExc))
+		  throw new IllegalArgumentException("Clauses must have same field: " + jsonQuery);
 		
 		SpanNotQuery snq = new SpanNotQuery(sInc, sExc);
 		return snq;
