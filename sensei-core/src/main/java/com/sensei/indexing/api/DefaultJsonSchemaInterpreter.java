@@ -246,6 +246,7 @@ public class DefaultJsonSchemaInterpreter extends
           String strData = src.toString();
           if (strData!=null){
             try{
+              data = strData.getBytes("UTF-8");
               if (_compressSrcData) {
                 ByteArrayOutputStream bout = new ByteArrayOutputStream();
                 GZIPOutputStream gzipStream = new GZIPOutputStream(bout);
