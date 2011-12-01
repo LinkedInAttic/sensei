@@ -942,6 +942,35 @@ class TestJsonAPI(unittest.TestCase):
 }""")
 
 
+  def testBetweenPredicate1(self):
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    WHERE year BETWEEN 2000 AND 2001
+    """
+    req = self.client.compile(stmt)
+    # print self.client.buildJsonString(req, indent=2)
+    self.assertEqual(self.client.buildJsonString(req, indent=2),
+                     """{
+  "fetchStored": true, 
+  "from": 0, 
+  "selections": [
+    {
+      "range": {
+        "year": {
+          "from": 2000, 
+          "include_lower": true, 
+          "include_upper": true, 
+          "to": 2001
+        }
+      }
+    }
+  ], 
+  "size": 10
+}""")
+
+
 if __name__ == "__main__":
     unittest.main()
 

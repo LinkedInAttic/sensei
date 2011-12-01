@@ -450,8 +450,8 @@ def accumulate_range_pred(field_map, pred):
     new_spec["include_upper"] = include_upper
   field_map[field] = {"range": {field: new_spec} }
 
-def predicate_and_action(s, loc, tok):
-  # print ">>> in predicate_and_action: tok = ", tok
+def and_predicate_action(s, loc, tok):
+  # print ">>> in and_predicate_action: tok = ", tok
   # [[{'term': {'a': 1}}, 'and', {'term': {'b': 2}}, 'and', {'query_string': {'query': 'xxx'}}, 'and', {'term': {'c': 3}}]]
   preds = []
   field_map = {}
@@ -465,8 +465,8 @@ def predicate_and_action(s, loc, tok):
     preds.append(f)
   return {"and": preds}
 
-def predicate_or_action(s, loc, tok):
-  # print ">>> in predicate_or_action: tok = ", tok
+def or_predicate_action(s, loc, tok):
+  print ">>> in or_predicate_action: tok = ", tok
   preds = []
   for i in xrange(0, len(tok[0]), 2):
     if type(tok[0][i]) != dict:
@@ -485,8 +485,7 @@ def prop_list_action(s, loc, tok):
   return props
 
 def in_predicate_action(s, loc, tok):
-  is_not = tok[1] == NOT.match
-  if not is_not:
+  if tok[1] != NOT.match:
     return {"terms":
               {tok[0]:
                  {JSON_PARAM_VALUES: (tok.value_list[:] or []),
@@ -539,6 +538,37 @@ def range_predicate_action(s, loc, tok):
               {tok[0]:
                  {"to": tok[2],
                   "include_upper": tok[1] == "<="
+                  }
+               }
+            }
+
+def between_predicate_action(s, loc, tok):
+  # print ">>> in between_predicate_action: tok = ", tok
+  if tok[1] == NOT.match:
+    # "column NOT BETWEEN x AND y"
+    return {"or": [{"range":
+                      {tok[0]:
+                         {"to": tok[3],
+                          "include_upper": False
+                          }
+                       }
+                    },
+                   {"range":
+                      {tok[0]:
+                         {"from": tok[3],
+                          "include_lower": False
+                          }
+                       }
+                    }
+                   ]
+            }
+  else:
+    return {"range":
+              {tok[0]:
+                 {"from": tok[2],
+                  "to": tok[4],
+                  "include_lower": True,
+                  "include_upper": True
                   }
                }
             }
@@ -732,7 +762,8 @@ query_predicate = (QUERY + IS + quotedString
                    ).setResultsName("query_pred").setParseAction(query_predicate_action)
 
 between_predicate = (column_name + Optional(NOT) +
-                     BETWEEN + value + AND + value).setResultsName("between_pred")
+                     BETWEEN + value + AND + value
+                     ).setResultsName("between_pred").setParseAction(between_predicate_action)
 
 range_op = oneOf("< <= >= >")
 range_predicate = (column_name + range_op + value
@@ -769,8 +800,8 @@ predicates = predicate + NotAny(OR) + ZeroOrMore(AND + predicate)
 # search_condition = Group(predicates | cumulative_predicates)
 
 search_expr = operatorPrecedence(predicate,
-                                 [(AND, 2, opAssoc.LEFT, predicate_and_action),
-                                  (OR,  2, opAssoc.LEFT, predicate_or_action)
+                                 [(AND, 2, opAssoc.LEFT, and_predicate_action),
+                                  (OR,  2, opAssoc.LEFT, or_predicate_action)
                                   ])
 
 param_type = BOOLEAN | INT | LONG | STRING | BYTEARRAY | DOUBLE
@@ -1156,6 +1187,8 @@ class BQLRequest:
         self.filter = filter_list[0]
       elif filter_list:
         self.filter = {"and": filter_list}
+    elif where.get("or"):
+      self.filter = where
     elif self.__is_facet(pred_field(where)):
       self.selection_list.append(where)
     elif where:
