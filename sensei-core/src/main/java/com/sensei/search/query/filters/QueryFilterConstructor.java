@@ -20,8 +20,7 @@ public class QueryFilterConstructor extends FilterConstructor{
 
 	@Override
 	protected Filter doConstructFilter(Object json) throws Exception {
-		JSONObject queryObj = ((JSONObject)json).getJSONObject(QUERY_PARAM);
-		Query q = QueryConstructor.constructQuery(queryObj, _qparser);
+		Query q = QueryConstructor.constructQuery((JSONObject)json, _qparser);
     if (q == null)
       return null;
 		return new QueryWrapperFilter(q);
