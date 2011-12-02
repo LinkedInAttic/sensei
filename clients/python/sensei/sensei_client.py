@@ -214,6 +214,7 @@ BNF Grammar for BQL
               | <between_predicate>
               | <range_predicate>
               | <time_predicate>
+              | <match_predicate>
               | <same_column_or_pred>
 
 <in_predicate> ::= <column_name> [NOT] IN <value_list> [<except_clause>] [<predicate_props>]
@@ -233,6 +234,8 @@ BNF Grammar for BQL
 
 <time_predicate> ::= <column_name> IN LAST <time_span>
                    | <column_name> ( SINCE | AFTER | BEFORE ) <time_expr>
+
+<match_predicate> ::= MATCH '(' column_name_list ')' AGAINST '(' quoted_string ')'
 
 <same_column_or_pred> ::= '(' <cumulative_predicates> ')'
 
@@ -593,6 +596,16 @@ def between_predicate_action(s, loc, tok):
                }
             }
 
+def match_predicate_action(s, loc, tok):
+  # print ">>> in match_predicate_action: tok = ", tok
+  return {JSON_PARAM_QUERY:
+            {JSON_PARAM_QUERY_STRING:
+               {"fields": tok[1][:],
+                JSON_PARAM_QUERY: tok[3]
+                }
+             }
+          }
+
 limit_once = OnlyOnce(lambda s, loc, tok: tok)
 order_by_once = OnlyOnce(order_by_action)
 group_by_once = OnlyOnce(lambda s, loc, tok: tok)
@@ -648,6 +661,7 @@ def convert_time_span(s, loc, toks):
 #
 ALL = Keyword("all", caseless=True)
 AFTER = Keyword("after", caseless=True)
+AGAINST = Keyword("against", caseless=True)
 AGO = Keyword("ago", caseless=True)
 AND = Keyword("and", caseless=True)
 ASC = Keyword("asc", caseless=True)
@@ -675,6 +689,7 @@ IS = Keyword("is", caseless=True)
 LAST = Keyword("last", caseless=True)
 LIMIT = Keyword("limit", caseless=True)
 LONG = Keyword("long", caseless=True)
+MATCH = Keyword("match", caseless=True)
 NOT = Keyword("not", caseless=True)
 NOW = Keyword("now", caseless=True)
 OR = Keyword("or", caseless=True)
@@ -793,6 +808,10 @@ time_predicate = ((column_name + IN + LAST + time_span)
                   | (column_name + (SINCE | AFTER | BEFORE) + time_expr)
                   ).setResultsName("time_pred")
 
+match_predicate = (MATCH + LPAR + column_name_list + RPAR +
+                   AGAINST + LPAR + quotedString + RPAR
+                   ).setResultsName("match_pred").setParseAction(match_predicate_action)
+
 cumulative_predicate = Group(in_predicate
                              | equal_predicate
                              | between_predicate
@@ -813,6 +832,7 @@ predicate = (in_predicate
              | between_predicate
              | range_predicate
              | time_predicate
+             | match_predicate
              # | same_column_or_pred
              )
 
@@ -1165,11 +1185,7 @@ class BQLRequest:
 
     where = self.tokens.where
     if where:
-      if type(where) == dict:
-        pass
-      else:
-        # Single predicate in where clause
-        where = where.asList()[0]
+      assert type(where) == dict
       self.__extract_query_filter_selections(where)
 
       # if where[0].get(JSON_PARAM_QUERY):

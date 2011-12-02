@@ -1228,6 +1228,31 @@ class TestJsonAPI(unittest.TestCase):
   "size": 10
 }""")
 
+  def testMatchPred(self):
+    stmt = \
+    """
+    SELECT *
+      FROM cars
+     WHERE MATCH(f1, f2) AGAINST("text1 AND text2")
+    """
+    req = self.client.compile(stmt)
+    # print self.client.buildJsonString(req, indent=2),
+    self.assertEqual(self.client.buildJsonString(req, indent=2),
+                     """{
+  "fetchStored": true, 
+  "from": 0, 
+  "query": {
+    "query_string": {
+      "fields": [
+        "f1", 
+        "f2"
+      ], 
+      "query": "text1 AND text2"
+    }
+  }, 
+  "size": 10
+}""")
+
 if __name__ == "__main__":
     unittest.main()
 
