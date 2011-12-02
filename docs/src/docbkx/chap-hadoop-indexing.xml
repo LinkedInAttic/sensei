@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<chapter xmlns="http://docbook.org/ns/docbook"
+         xmlns:xlink="http://www.w3.org/1999/xlink"
+         xmlns:ns5="http://www.w3.org/1998/Math/MathML"
+         xmlns:ns4="http://www.w3.org/2000/svg"
+         xmlns:ns3="http://www.w3.org/1999/xhtml"
+         xmlns:ns="http://docbook.org/ns/docbook">
+  <title>Hadoop Indexing</title>
+
+  <section>
+    <title>Overview</title>
+
+    <para>Hadoop system has been widely adopted for many industrial
+    applications to solve the scalability and fault tolerance requirements. As
+    one of the implementations of Map/Reduce computing framework, it provides
+    a convenient way to handle large data processing in a parallel way. Sensei
+    internally integrates hadoop indexing sub-system since its underlying
+    index files are the same as lucene index files. In this chapter we
+    introduces sensei hadoop indexing functionality, a demo program will also
+    be given.</para>
+  </section>
+
+  <section>
+    <title>Hadoop Indexing Sub-system</title>
+
+    <para>To those who are not interested in the technical details of sensei
+    hadoop indexing, you can skip this section and continue the following demo
+    section.</para>
+
+    <para>File layout of sensei hadoop indexing system source packages:</para>
+
+    <itemizedlist>
+      <listitem>
+        <para>com.sensei.indexing.hadoop.job;</para>
+      </listitem>
+
+      <listitem>
+        <para>com.sensei.indexing.hadoop.keyvalueformat;</para>
+      </listitem>
+
+      <listitem>
+        <para>com.sensei.indexing.hadoop.map;</para>
+      </listitem>
+
+      <listitem>
+        <para>com.sensei.indexing.hadoop.reduce;</para>
+      </listitem>
+
+      <listitem>
+        <para>com.sensei.indexing.hadoop.util;</para>
+      </listitem>
+    </itemizedlist>
+
+    <para>System Workflow:</para>
+
+    <figure>
+      <title>Sensei Hadoop Indexing Workflow</title>
+
+      <mediaobject>
+        <imageobject>
+          <imagedata fileref="figures/sensei-hadoop-index.png"></imagedata>
+        </imageobject>
+      </mediaobject>
+    </figure>
+  </section>
+
+  <section>
+    <title>Demo</title>
+
+    <para>To be consistent, we also use the car demo data to describe our
+    hadoop indexing system.</para>
+
+    <section>
+      <title>Configuration</title>
+
+
+      <programlisting>type=java
+job.class=com.sensei.indexing.hadoop.demo.CarDemo
+
+mapreduce.job.maps=2
+sensei.num.shards=3
+
+mapred.job.name=CarDemoShardedIndexing
+
+# if the output.path already exists, delete it first
+sensei.force.output.overwrite=true
+
+# adjust this to a small one if mapper number is huge. default is 50Mb =  52428800
+sensei.max.ramsize.bytes=52428800
+
+#############   path of schema for interpreter #############
+
+##### TextJSON schema Sample (car demo) absolute path ######
+sensei.schema.file.url=conf/schema.xml
+
+############    Input and Output  ##################
+
+####### Text JSON data (car demo) #####
+read.lock=data/cars.json
+sensei.input.dirs=data/cars.json
+
+######## Output configuration ######
+write.lock=example/hadoop-indexing/output
+sensei.output.dir=example/hadoop-indexing/fileoutput
+
+######## Index output location ######
+sensei.index.path=example/hadoop-indexing/index
+
+############# schemas for mapper input  ################
+
+sensei.input.format=org.apache.hadoop.mapred.TextInputFormat
+
+##############  Sharding strategy  ################
+sensei.distribution.policy=com.sensei.indexing.hadoop.demo.CarShardingStrategy
+
+#############  Converter for mapper input (data conversion and filtering) ##########
+sensei.mapinput.converter=com.sensei.indexing.hadoop.demo.CarMapInputConverter
+
+#############  Analyzer configuration for lucene ###############
+sensei.document.analyzer=org.apache.lucene.analysis.standard.StandardAnalyzer
+sensei.document.analyzer.version=LUCENE_30
+
+</programlisting>
+    </section>
+  </section>
+</chapter>
