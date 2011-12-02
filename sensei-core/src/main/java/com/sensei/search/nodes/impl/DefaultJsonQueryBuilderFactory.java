@@ -71,6 +71,7 @@ public class DefaultJsonQueryBuilderFactory extends
         }
         catch (Exception e)
         {
+          logger.error(e.getMessage(), e);
           throw new ParseException(e.getMessage());
         }
       }

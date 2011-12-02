@@ -93,7 +93,7 @@ public abstract class FilterConstructor {
     if (filterConstructor == null)
       throw new IllegalArgumentException("Filter type '" + type + "' not supported");
 
-    return filterConstructor.doConstructFilter(json.getJSONObject(type));
+    return filterConstructor.doConstructFilter(json.get(type));
   }
 	
 	abstract protected Filter doConstructFilter(Object json/* JSONObject or JSONArray */) throws Exception;
