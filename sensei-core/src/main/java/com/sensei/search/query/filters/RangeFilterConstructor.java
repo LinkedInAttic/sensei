@@ -1,6 +1,9 @@
 package com.sensei.search.query.filters;
 
 import java.io.IOException;
+import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Iterator;
 
 import org.apache.lucene.index.IndexReader;
@@ -12,9 +15,10 @@ import org.json.JSONObject;
 
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.facets.FacetHandler;
-
 import com.browseengine.bobo.facets.filter.FacetRangeFilter;
 import com.browseengine.bobo.query.MatchAllDocIdSetIterator;
+import com.sensei.indexing.api.DefaultSenseiInterpreter;
+import com.sensei.indexing.api.MetaType;
 
 public class RangeFilterConstructor extends FilterConstructor
 {
@@ -23,7 +27,7 @@ public class RangeFilterConstructor extends FilterConstructor
   @Override
   protected Filter doConstructFilter(Object obj) throws Exception
   {
-    JSONObject json = (JSONObject)obj;
+    final JSONObject json = (JSONObject)obj;
 
     Iterator<String> iter = json.keys();
     if (!iter.hasNext())
@@ -36,12 +40,17 @@ public class RangeFilterConstructor extends FilterConstructor
     final String  from, to;
     final boolean include_lower, include_upper;
     final boolean noOptimize = jsonObj.optBoolean(NOOPTIMIZE_PARAM, false);
-
+    final String type;
+    final String dateFormat;
+    
     String gt  = jsonObj.optString(GT_PARAM, null);
     String gte = jsonObj.optString(GTE_PARAM, null);
     String lt  = jsonObj.optString(LT_PARAM, null);
     String lte = jsonObj.optString(LTE_PARAM, null);
-
+    
+    type = jsonObj.optString(RANGE_FIELD_TYPE, null);
+    dateFormat = jsonObj.optString(RANGE_DATE_FORMAT, null);
+    
     if (gt != null && gt.length() != 0)
     {
       from          = gt;
@@ -79,6 +88,7 @@ public class RangeFilterConstructor extends FilterConstructor
       @Override
       public DocIdSet getDocIdSet(final IndexReader reader) throws IOException
       {
+        String fromPadded = from, toPadded = to;
         if (!noOptimize)
         {
           if (reader instanceof BoboIndexReader)
@@ -113,8 +123,57 @@ public class RangeFilterConstructor extends FilterConstructor
             }
           }
         }
-        if (from == null || from.length() == 0)
-          if (to == null || to.length() == 0)
+        
+        if(type == null)
+          throw new IllegalArgumentException("need to specify the type of field in filter json: " + json);
+        
+        if ("int".equals(type)) {
+          MetaType metaType = DefaultSenseiInterpreter.CLASS_METATYPE_MAP.get(int.class);
+          String formatString = DefaultSenseiInterpreter.DEFAULT_FORMAT_STRING_MAP.get(metaType);
+          DecimalFormat formatter = new DecimalFormat(formatString);
+          fromPadded = formatter.format(Integer.parseInt(from));
+          toPadded = formatter.format(Integer.parseInt(to));
+        } 
+        else if ("short".equals(type)) {
+          MetaType metaType = DefaultSenseiInterpreter.CLASS_METATYPE_MAP.get(short.class);
+          String formatString = DefaultSenseiInterpreter.DEFAULT_FORMAT_STRING_MAP.get(metaType);
+          DecimalFormat formatter = new DecimalFormat(formatString);
+          fromPadded = formatter.format(Short.parseShort(from));
+          toPadded = formatter.format(Short.parseShort(to));
+        }
+        else if ("long".equals(type)) {
+          MetaType metaType = DefaultSenseiInterpreter.CLASS_METATYPE_MAP.get(long.class);
+          String formatString = DefaultSenseiInterpreter.DEFAULT_FORMAT_STRING_MAP.get(metaType);
+          DecimalFormat formatter = new DecimalFormat(formatString);
+          fromPadded = formatter.format(Long.parseLong(from));
+          toPadded = formatter.format(Long.parseLong(to));
+        }
+        else if ("date".equals(type)) {
+          if(dateFormat == null)
+            throw new IllegalArgumentException("Date format cannot be empty in filter json when type is date: " + json);
+          else{
+            SimpleDateFormat  formatter = new SimpleDateFormat(dateFormat);
+            fromPadded = formatter.format(new Date(Long.parseLong(from)));
+            toPadded = formatter.format(new Date(Long.parseLong(to)));
+          }
+        }
+        else if ("float".equals(type)) {
+          MetaType metaType = DefaultSenseiInterpreter.CLASS_METATYPE_MAP.get(float.class);
+          String formatString = DefaultSenseiInterpreter.DEFAULT_FORMAT_STRING_MAP.get(metaType);
+          DecimalFormat formatter = new DecimalFormat(formatString);
+          fromPadded = formatter.format(Float.parseFloat(from));
+          toPadded = formatter.format(Float.parseFloat(to));
+        }
+        else if ("double".equals(type)) {
+          MetaType metaType = DefaultSenseiInterpreter.CLASS_METATYPE_MAP.get(double.class);
+          String formatString = DefaultSenseiInterpreter.DEFAULT_FORMAT_STRING_MAP.get(metaType);
+          DecimalFormat formatter = new DecimalFormat(formatString);
+          fromPadded = formatter.format(Double.parseDouble(from));
+          toPadded = formatter.format(Double.parseDouble(to));
+        }
+        
+        if (fromPadded == null || fromPadded.length() == 0)
+          if (toPadded == null || toPadded.length() == 0)
             return new DocIdSet()
             {
               @Override
@@ -130,11 +189,11 @@ public class RangeFilterConstructor extends FilterConstructor
               }
             };
           else
-            return new TermRangeFilter(field, from, to, false, include_upper).getDocIdSet(reader);
-        else if (to == null|| to.length() == 0)
-          return new TermRangeFilter(field, from, to, include_lower, false).getDocIdSet(reader);
+            return new TermRangeFilter(field, fromPadded, toPadded, false, include_upper).getDocIdSet(reader);
+        else if (toPadded == null|| toPadded.length() == 0)
+          return new TermRangeFilter(field, fromPadded, toPadded, include_lower, false).getDocIdSet(reader);
 
-        return new TermRangeFilter(field, from, to, include_lower, include_upper).getDocIdSet(reader);
+        return new TermRangeFilter(field, fromPadded, toPadded, include_lower, include_upper).getDocIdSet(reader);
       }
     };
   }
