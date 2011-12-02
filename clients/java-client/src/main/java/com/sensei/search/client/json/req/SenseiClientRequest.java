@@ -6,18 +6,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.junit.Assert;
+import com.sensei.search.client.json.req.filter.FilterRoot;
+import com.sensei.search.client.json.req.query.QueryRoot;
+
 
 
 public class SenseiClientRequest {
-    private ClientQuery query;
     private Paging paging;
    
     
     private GroupBy groupBy;
-    private List<SelectionContainer> selections = new ArrayList<SelectionContainer>();
+    private List<Selection> selections = new ArrayList<Selection>();
+    private QueryRoot query;
     private Map<String, Map<String, FacetInit>> facetInit = new HashMap<String, Map<String, FacetInit>>();
     private List<Sort> sorts = new ArrayList<Sort>();
     private Map<String, Facet> facets = new HashMap<String, Facet>();
@@ -25,16 +25,14 @@ public class SenseiClientRequest {
     private List<String> termVectors = new ArrayList<String>();
     private List<Integer> partitions = new ArrayList<Integer>();
     private boolean explain;
-    private boolean routeParam;
-    
+    private String routeParam;
+    private FilterRoot filter;
     public static class Builder {
         private SenseiClientRequest request = new SenseiClientRequest();
         public Builder paging(int count, int offset) {
             request.paging = new Paging(count, offset);
             return this;
-        }
-       
-       
+        }     
         
         public Builder fetchStored(boolean fetchStored) {
             request.fetchStored = fetchStored;
@@ -48,19 +46,13 @@ public class SenseiClientRequest {
             request.explain = explain;
             return this;
         }
+       
+        public Builder queryRoot(QueryRoot query) {
+                request.query = query;
+            
+            return this;
+        }
         
-        public Builder query(String query) {
-            try {
-                request.query = new ClientQuery(new JSONObject(query));
-            } catch (JSONException e) {
-                throw new RuntimeException(e);
-            }
-            return this;
-        }
-        public Builder query(JSONObject query) {
-            request.query = new ClientQuery(query);
-            return this;
-        }
         public Builder groupBy(int top, String... columns) {
             request.groupBy = new GroupBy(Arrays.asList(columns), top);
             return this;
@@ -69,7 +61,7 @@ public class SenseiClientRequest {
             request.groupBy = new GroupBy(columns, top);
             return this;
         }
-        public Builder addSelection(SelectionContainer selection) {
+        public Builder addSelection(Selection selection) {
             if (selection == null) {
                 throw new IllegalArgumentException("The selectionContainer should be not null");
             }
@@ -102,6 +94,14 @@ public class SenseiClientRequest {
             request.facets.put(name, facet);
             return this;
         }
+        public Builder routeParam(String routeParam) {
+            request.routeParam = routeParam;
+            return this;
+        }
+        public Builder filterRoot(FilterRoot rootFilter) {
+            request.filter = rootFilter;
+            return this;
+        }
         public SenseiClientRequest build() {
             return request;
         }
@@ -109,16 +109,14 @@ public class SenseiClientRequest {
     public static Builder builder() {
         return new Builder();
     }
-    public ClientQuery getQuery() {
-        return query;
-    }
+    
     public Paging getPaging() {
         return paging;
     }
     public GroupBy getGroupBy() {
         return groupBy;
     }
-    public List<SelectionContainer> getSelections() {
+    public List<Selection> getSelections() {
         return selections;
     }
     public Map<String, Map<String, FacetInit>> getFacetInit() {
@@ -142,10 +140,10 @@ public class SenseiClientRequest {
     public boolean isExplain() {
         return explain;
     }
-    public boolean isRouteParam() {
+    public String getRouteParam() {
         return routeParam;
     }
-
+    
     
     
 }

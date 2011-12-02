@@ -1,19 +1,15 @@
 package com.sensei.search.client.json;
 
 
-import junit.framework.TestCase;
-
 import org.json.JSONObject;
+import org.junit.Assert;
 import org.junit.Test;
 
-import com.sensei.search.client.json.JsonDeserializer;
-import com.sensei.search.client.json.req.Facet;
 import com.sensei.search.client.json.req.FacetInit;
-import com.sensei.search.client.json.req.SelectionContainer;
 import com.sensei.search.client.json.req.SenseiClientRequest;
 import com.sensei.search.client.json.res.SenseiResult;
 
-public class JsonSerializationTest extends TestCase {
+public class JsonSerializationTest extends Assert {
     
     @Test
     public void test1Deserialization() throws Exception {
@@ -24,8 +20,9 @@ public class JsonSerializationTest extends TestCase {
     }
     @Test
     public void test2Serialization() throws Exception {       
-        SenseiClientRequest senseiRequest = Main.createSenseiRequest();
+        SenseiClientRequest senseiRequest = Examples.basicWithSelections(SenseiClientRequest.builder()).build();
        String strRepresentation = JsonSerializer.serialize(senseiRequest).toString();
+       System.out.println(strRepresentation);
        SenseiClientRequest senseiRequest2 = JsonDeserializer.deserialize(SenseiClientRequest.class, new JSONObject(strRepresentation));
        assertEquals(senseiRequest2.getFacets().size(), 1);
        System.out.println(senseiRequest2.toString());
@@ -44,5 +41,17 @@ public class JsonSerializationTest extends TestCase {
        System.out.println(strRepresentation2);
        assertEquals(strRepresentation2, strRepresentation);
        
+    }
+    @Test
+    public void test4FiltersSerialization() throws Exception {       
+        SenseiClientRequest senseiRequest =  Examples.filters(SenseiClientRequest.builder()).build();
+       JSONObject json = (JSONObject) JsonSerializer.serialize(senseiRequest);
+       System.out.println(json.toString(3));        
+    }
+    @Test
+    public void test5QueriesSerialization() throws Exception {       
+        SenseiClientRequest senseiRequest =  Examples.queries(SenseiClientRequest.builder()).build();
+       JSONObject json = (JSONObject) JsonSerializer.serialize(senseiRequest);
+       System.out.println(json.toString(3));        
     }
 }

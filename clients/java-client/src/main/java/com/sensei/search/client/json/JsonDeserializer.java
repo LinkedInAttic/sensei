@@ -14,7 +14,27 @@ import org.json.JSONObject;
 
 public class JsonDeserializer {
     public static <T> T deserialize(Class<T> cls, JSONObject jsonObject) {
+        return deserialize(cls, jsonObject, true);
+    }
+    
+    
+    public static <T> T deserialize(Class<T> cls, JSONObject jsonObject, boolean handleCustomJsonHandler) {
         try {
+            if (jsonObject == null) {
+                return null;
+            }
+           
+            CustomJsonHandler customJsonHandler = (CustomJsonHandler) ReflectionUtil.getAnnotation(cls, CustomJsonHandler.class);
+            if (customJsonHandler != null && handleCustomJsonHandler) {
+                CustomJsonHandler annotation = cls.getAnnotation(CustomJsonHandler.class);
+                JsonHandler jsonHandler;
+               try {
+                  jsonHandler = customJsonHandler.value().newInstance();
+               } catch (Exception e) {
+                   throw new RuntimeException(e);
+               }
+               return (T) jsonHandler.deserialize(jsonObject);
+           }
             T obj = cls.newInstance();
             for (Field field : cls.getDeclaredFields()) {
                 field.setAccessible(true);
@@ -25,6 +45,9 @@ public class JsonDeserializer {
                 }
                 Type genericType = field.getGenericType();
                 Object value = null;
+                if (jsonObject.opt(name) == null) {
+                    continue;
+                }
                 if (type == Integer.class) {
                     value = jsonObject.optInt(name);
                 } else if (type.isPrimitive()) {
@@ -67,10 +90,8 @@ public class JsonDeserializer {
                     		value = deserialize(type, propObj);
                     	}
                     }
-                
                 field.set(obj, value);
             }
-            
             return obj;
         } catch (Exception ex) {
             throw new RuntimeException(ex.getMessage(), ex);

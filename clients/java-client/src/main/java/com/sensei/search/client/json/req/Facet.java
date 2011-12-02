@@ -2,7 +2,7 @@ package com.sensei.search.client.json.req;
 
 
 public class Facet {
-    int max;int minCount; boolean expand; OrderBy orderBy;
+    int max;int minCount; boolean expand; OrderBy order;
     public static enum OrderBy {hits, val}
     public static class Builder {
         private Facet facet = new Facet();
@@ -19,11 +19,11 @@ public class Facet {
             return this;
         }
         public Builder orderByHits() {
-            facet.orderBy = OrderBy.hits;
+            facet.order = OrderBy.hits;
             return this;
         }
         public Builder orderByVal() {
-            facet.orderBy = OrderBy.val;
+            facet.order = OrderBy.val;
             return this;
         }
         public Facet build() {
