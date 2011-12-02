@@ -751,13 +751,6 @@ public class TestSensei extends AbstractSenseiTestCase
     assertEquals("numhits is wrong", 2160, res.getInt("numhits"));
   }
   
-//  public void testSpanFirstQuery2() throws Exception
-//  {
-//    logger.info("executing test case testSpanFirstQuery2");
-//    String req = "{\"query\":{\"span_first\":{\"match\":{\"span_term\":{\"contents\":\"red compact favorite\"}},\"end\":0}}}";
-//    JSONObject res = search(new JSONObject(req));
-//    assertEquals("numhits is wrong", 63, res.getInt("numhits"));
-//  }
   
   public void testUIDFilter() throws Exception
   {
