@@ -769,35 +769,46 @@ public class TestSensei extends AbstractSenseiTestCase
     assertEquals("the second uid is wrong", 3, res.getJSONArray("hits").getJSONObject(1).getInt("uid"));
   }
   
-//  public void testAndFilter() throws Exception
-//  {
-//    logger.info("executing test case testAndFilter");
-//    String req = "{\"filter\": {\"ids\": {\"values\": [\"1\", \"2\", \"3\"], \"excludes\": [\"2\"]}}}";
-//    JSONObject res = search(new JSONObject(req));
-//    assertEquals("numhits is wrong", 2, res.getInt("numhits"));
-//    assertEquals("the first uid is wrong", 1, res.getJSONArray("hits").getJSONObject(0).getInt("uid"));
-//    assertEquals("the second uid is wrong", 3, res.getJSONArray("hits").getJSONObject(1).getInt("uid"));
-//  }
-//  
-//  public void testOrFilter() throws Exception
-//  {
-//    logger.info("executing test case testOrFilter");
-//    String req = "{\"filter\": {\"ids\": {\"values\": [\"1\", \"2\", \"3\"], \"excludes\": [\"2\"]}}}";
-//    JSONObject res = search(new JSONObject(req));
-//    assertEquals("numhits is wrong", 2, res.getInt("numhits"));
-//    assertEquals("the first uid is wrong", 1, res.getJSONArray("hits").getJSONObject(0).getInt("uid"));
-//    assertEquals("the second uid is wrong", 3, res.getJSONArray("hits").getJSONObject(1).getInt("uid"));
-//  }
-//  
-//  public void testBooleanFilter() throws Exception
-//  {
-//    logger.info("executing test case testBooleanFilter");
-//    String req = "{\"filter\": {\"ids\": {\"values\": [\"1\", \"2\", \"3\"], \"excludes\": [\"2\"]}}}";
-//    JSONObject res = search(new JSONObject(req));
-//    assertEquals("numhits is wrong", 2, res.getInt("numhits"));
-//    assertEquals("the first uid is wrong", 1, res.getJSONArray("hits").getJSONObject(0).getInt("uid"));
-//    assertEquals("the second uid is wrong", 3, res.getJSONArray("hits").getJSONObject(1).getInt("uid"));
-//  }
+  public void testAndFilter() throws Exception
+  {
+    logger.info("executing test case testAndFilter");
+    String req = "{\"filter\":{\"and\":[{\"term\":{\"tags\":\"mp3\",\"_noOptimize\":false}},{\"term\":{\"color\":\"red\",\"_noOptimize\":false}}]}}";
+    JSONObject res = search(new JSONObject(req));
+    assertEquals("numhits is wrong", 439, res.getInt("numhits"));
+  }
+
+  public void testOrFilter() throws Exception
+  {
+    logger.info("executing test case testOrFilter");
+    String req = "{\"filter\":{\"or\":[{\"term\":{\"color\":\"blue\",\"_noOptimize\":true}},{\"term\":{\"color\":\"red\",\"_noOptimize\":true}}]}}";
+    JSONObject res = search(new JSONObject(req));
+    assertEquals("numhits is wrong", 3264, res.getInt("numhits"));  
+  }
+  
+  public void testOrFilter2() throws Exception
+  {
+    logger.info("executing test case testOrFilter2");
+    String req = "{\"filter\":{\"or\":[{\"term\":{\"color\":\"blue\",\"_noOptimize\":false}},{\"term\":{\"color\":\"red\",\"_noOptimize\":false}}]}}";
+    JSONObject res = search(new JSONObject(req));
+    assertEquals("numhits is wrong", 3264, res.getInt("numhits"));  
+  }
+  
+  public void testOrFilter3() throws Exception
+  {
+    logger.info("executing test case testOrFilter3");
+    String req = "{\"filter\":{\"or\":[{\"term\":{\"color\":\"blue\",\"_noOptimize\":true}},{\"term\":{\"color\":\"red\",\"_noOptimize\":false}}]}}";
+    JSONObject res = search(new JSONObject(req));
+    assertEquals("numhits is wrong", 3264, res.getInt("numhits"));  
+  }
+  
+  
+  public void testBooleanFilter() throws Exception
+  {
+    logger.info("executing test case testBooleanFilter");
+    String req = "{\"filter\":{\"bool\":{\"must_not\":{\"term\":{\"category\":\"compact\"}},\"should\":[{\"term\":{\"color\":\"red\"}},{\"term\":{\"color\":\"green\"}}],\"must\":{\"term\":{\"color\":\"red\"}}}}}";
+    JSONObject res = search(new JSONObject(req));
+    assertEquals("numhits is wrong", 1652, res.getInt("numhits"));
+  }
   
   public void testQueryFilter() throws Exception
   {
@@ -807,6 +818,44 @@ public class TestSensei extends AbstractSenseiTestCase
     assertEquals("numhits is wrong", 3015, res.getInt("numhits"));
   }
 
+  /* Need to fix the bug in bobo and kamikazi, for details see the following two test cases:*/
+  
+//  public void testAndFilter() throws Exception
+//  {
+//    logger.info("executing test case testAndFilter");
+//    String req = "{\"filter\":{\"and\":[{\"term\":{\"color\":\"blue\",\"_noOptimize\":false}},{\"query\":{\"term\":{\"category\":\"compact\"}}}]}}";
+//    JSONObject res = search(new JSONObject(req));
+//    assertEquals("numhits is wrong", 508, res.getInt("numhits"));
+//  }
+//  
+//  public void testQueryFilter2() throws Exception
+//  {
+//    logger.info("executing test case testQueryFilter2");
+//    String req = "{\"filter\": {\"query\":{\"term\":{\"category\":\"compact\"}}}}";
+//    JSONObject res = search(new JSONObject(req));
+//    assertEquals("numhits is wrong", 1104, res.getInt("numhits"));
+//  }
+  
+  
+  /*  another weird bug may exist somewhere in bobo or kamikazi.*/
+  /*  In the following two test cases, when modifying the first one by changing "tags" to "tag", it is supposed that 
+   *  Only the first test case is not correct, but the second one also throw one NPE, which is weird.
+   * */
+//  public void testAndFilter() throws Exception
+//  {
+//    logger.info("executing test case testAndFilter");
+//    String req = "{\"filter\":{\"and\":[{\"term\":{\"tag\":\"mp3\",\"_noOptimize\":false}},{\"query\":{\"term\":{\"color\":\"red\"}}}]}}";
+//    JSONObject res = search(new JSONObject(req));
+//    assertEquals("numhits is wrong", 439, res.getInt("numhits"));
+//  }
+//
+//  public void testOrFilter() throws Exception
+//  {
+//    logger.info("executing test case testOrFilter");
+//    String req = "{\"filter\":{\"or\":[{\"term\":{\"color\":\"blue\",\"_noOptimize\":false}},{\"query\":{\"term\":{\"color\":\"red\"}}}]}}";
+//    JSONObject res = search(new JSONObject(req));
+//    assertEquals("numhits is wrong", 3264, res.getInt("numhits"));  
+  
   
   public void testTermFilter() throws Exception
   {
