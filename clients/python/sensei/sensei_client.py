@@ -519,8 +519,10 @@ def contains_all_predicate_action(s, loc, tok):
           }
 
 def query_predicate_action(s, loc, tok):
-  return {JSON_PARAM_QUERY_STRING:
-            {JSON_PARAM_QUERY: tok[2]}
+  return {JSON_PARAM_QUERY:
+            {JSON_PARAM_QUERY_STRING:
+               {JSON_PARAM_QUERY: tok[2]}
+             }
           }
 
 def equal_predicate_action(s, loc, tok):
@@ -1190,13 +1192,13 @@ class BQLRequest:
     """Extract the query and filter information from the where clause."""
 
     filter_list = []
-    if where.get(JSON_PARAM_QUERY_STRING):
+    if where.get(JSON_PARAM_QUERY):
       self.query_pred = where
       self.filter = None
     elif where.get("and"):
       preds = where.get("and")
       for pred in preds:
-        if pred.get(JSON_PARAM_QUERY_STRING):
+        if pred.get(JSON_PARAM_QUERY):
           self.query_pred = pred
         elif pred.get("or") or pred.get("and") or pred.get("bool"):
           # XXX Need to clear this part
@@ -2203,7 +2205,7 @@ class SenseiClient:
       output_json[JSON_PARAM_FILTER] = req.filter
 
     if req.query_pred:
-      output_json[JSON_PARAM_QUERY] = req.query_pred
+      output_json[JSON_PARAM_QUERY] = req.query_pred[JSON_PARAM_QUERY]
 
     if req.selections:
       output_json[JSON_PARAM_SELECTIONS] = req.selections

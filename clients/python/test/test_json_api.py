@@ -1142,6 +1142,91 @@ class TestJsonAPI(unittest.TestCase):
   "size": 10
 }""")
 
+  def testSelectionConflict(self):
+    # XXX To be supported later
+    return
+
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    WHERE color = "red"
+      AND color = "blue"
+    """
+    error = None
+    try:
+      req = SenseiRequest(stmt)
+    except SenseiClientError as err:
+      error = str(err)
+    self.assertEqual(error, repr("There is conflict in selection(s) for column 'color'"))
+
+  def testSelectionMerge(self):
+    # XXX
+    return
+
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    WHERE color <> "red" AND color <> "blue"
+    """
+
+  def testMultipleQueries(self):
+    stmt = \
+    """
+    SELECT tags, color
+      FROM cars
+     WHERE (color = "red" AND query is "hybrid AND cool")
+        OR (color = "blue" AND query is "moon-roof AND navigation")
+    """
+    req = self.client.compile(stmt)
+    # print self.client.buildJsonString(req, indent=2),
+    self.assertEqual(self.client.buildJsonString(req, indent=2),
+                     """{
+  "fetchStored": true, 
+  "filter": {
+    "or": [
+      {
+        "and": [
+          {
+            "term": {
+              "color": {
+                "value": "red"
+              }
+            }
+          }, 
+          {
+            "query": {
+              "query_string": {
+                "query": "hybrid AND cool"
+              }
+            }
+          }
+        ]
+      }, 
+      {
+        "and": [
+          {
+            "term": {
+              "color": {
+                "value": "blue"
+              }
+            }
+          }, 
+          {
+            "query": {
+              "query_string": {
+                "query": "moon-roof AND navigation"
+              }
+            }
+          }
+        ]
+      }
+    ]
+  }, 
+  "from": 0, 
+  "size": 10
+}""")
 
 if __name__ == "__main__":
     unittest.main()
