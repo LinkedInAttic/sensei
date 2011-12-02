@@ -519,10 +519,16 @@ def contains_all_predicate_action(s, loc, tok):
           }
 
 def query_predicate_action(s, loc, tok):
-  return {JSON_PARAM_QUERY_STRING: {JSON_PARAM_QUERY: tok[2]}}
+  return {JSON_PARAM_QUERY_STRING:
+            {JSON_PARAM_QUERY: tok[2]}
+          }
 
 def equal_predicate_action(s, loc, tok):
-  return {"term": {tok[0]: {"value": tok[2]}}}
+  return {"term":
+            {tok[0]:
+               {"value": tok[2]}
+             }
+          }
 
 def not_equal_predicate_action(s, loc, tok):
   return {"terms":
@@ -794,6 +800,7 @@ cumulative_predicate = Group(in_predicate
 cumulative_predicates = (cumulative_predicate +
                          OneOrMore(OR + cumulative_predicate))
 
+# XXX To be removed
 same_column_or_pred = (LPAR + cumulative_predicates + RPAR).setResultsName("same_column_or_pred")
 
 predicate = (in_predicate
@@ -804,7 +811,7 @@ predicate = (in_predicate
              | between_predicate
              | range_predicate
              | time_predicate
-             | same_column_or_pred
+             # | same_column_or_pred
              )
 
 predicates = predicate + NotAny(OR) + ZeroOrMore(AND + predicate)

@@ -397,7 +397,7 @@ class TestJsonAPI(unittest.TestCase):
 }""")
 
 
-  def testRangePredicate1(self):
+  def testRangePred1(self):
     stmt = \
     """
     SELECT *
@@ -424,7 +424,7 @@ class TestJsonAPI(unittest.TestCase):
   "size": 10
 }""")
 
-  def testRangePredicate2(self):
+  def testRangePred2(self):
     stmt = \
     """
     SELECT *
@@ -453,7 +453,7 @@ class TestJsonAPI(unittest.TestCase):
   "size": 10
 }""")
 
-  def testRangePredicate3(self):
+  def testRangePred3(self):
     stmt = \
     """
     SELECT *
@@ -788,7 +788,7 @@ class TestJsonAPI(unittest.TestCase):
     """
     req = self.client.compile(stmt)
     # XXX
-    print self.client.buildJsonString(req, indent=2)
+    # print self.client.buildJsonString(req, indent=2)
     # self.assertEqual(self.client.buildJsonString(req, indent=2),
     
 
@@ -973,7 +973,7 @@ class TestJsonAPI(unittest.TestCase):
   "size": 10
 }""")
 
-  def testOrPredicate(self):
+  def testOrPred(self):
     stmt = \
     """
     SELECT *
@@ -1007,7 +1007,78 @@ class TestJsonAPI(unittest.TestCase):
   "size": 10
 }""")
 
-  def testBetweenPredicate1(self):
+  def testAndOrPred(self):
+    stmt = \
+    """
+    SELECT color, year, tags
+    FROM cars
+    WHERE (color = "red" or color = "blue")
+       OR (color = "black" AND tags contains all ("hybrid", "moon-roof", "leather"))
+    GROUP BY color
+    """
+    req = self.client.compile(stmt)
+    # print self.client.buildJsonString(req, indent=2)
+    self.assertEqual(self.client.buildJsonString(req, indent=2),
+                     """{
+  "fetchStored": true, 
+  "filter": {
+    "or": [
+      {
+        "or": [
+          {
+            "term": {
+              "color": {
+                "value": "red"
+              }
+            }
+          }, 
+          {
+            "term": {
+              "color": {
+                "value": "blue"
+              }
+            }
+          }
+        ]
+      }, 
+      {
+        "and": [
+          {
+            "term": {
+              "color": {
+                "value": "black"
+              }
+            }
+          }, 
+          {
+            "terms": {
+              "tags": {
+                "_noOptimize": false, 
+                "excludes": [], 
+                "operator": "and", 
+                "values": [
+                  "hybrid", 
+                  "moon-roof", 
+                  "leather"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    ]
+  }, 
+  "from": 0, 
+  "groupBy": [
+    {
+      "column": "color", 
+      "top": 10
+    }
+  ], 
+  "size": 10
+}""")
+    
+  def testBetweenPred1(self):
     stmt = \
     """
     SELECT *
@@ -1035,7 +1106,7 @@ class TestJsonAPI(unittest.TestCase):
   "size": 10
 }""")
 
-  def testBetweenPredicate2(self):
+  def testBetweenPred2(self):
     stmt = \
     """
     SELECT *
