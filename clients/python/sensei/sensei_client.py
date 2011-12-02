@@ -466,7 +466,7 @@ def and_predicate_action(s, loc, tok):
   return {"and": preds}
 
 def or_predicate_action(s, loc, tok):
-  print ">>> in or_predicate_action: tok = ", tok
+  # print ">>> in or_predicate_action: tok = ", tok
   preds = []
   for i in xrange(0, len(tok[0]), 2):
     if type(tok[0][i]) != dict:
@@ -505,6 +505,18 @@ def in_predicate_action(s, loc, tok):
                   }
                }
             }
+
+def contains_all_predicate_action(s, loc, tok):
+  return {"terms":
+            {tok[0]:
+               {JSON_PARAM_VALUES: (tok.value_list[:] or []),
+                JSON_PARAM_EXCLUDES: (tok.except_values[:] or []),
+                JSON_PARAM_OPERATOR: PARAM_SELECT_OP_AND,
+                # XXX Need to check this based on facet info
+                JSON_PARAM_NO_OPTIMIZE: False
+                }
+             }
+          }
 
 def query_predicate_action(s, loc, tok):
   return {JSON_PARAM_QUERY_STRING: {JSON_PARAM_QUERY: tok[2]}}
@@ -746,7 +758,7 @@ contains_all_predicate = (column_name +
                           CONTAINS + ALL + value_list.setResultsName("value_list") +
                           Optional(EXCEPT + value_list.setResultsName("except_values")) +
                           Optional(predicate_props)
-                          ).setResultsName("contains_all_pred")
+                          ).setResultsName("contains_all_pred").setParseAction(contains_all_predicate_action)
 
 equal_predicate = (column_name +
                    EQUAL + value +
@@ -1179,6 +1191,9 @@ class BQLRequest:
       for pred in preds:
         if pred.get(JSON_PARAM_QUERY_STRING):
           self.query_pred = pred
+        elif pred.get("or") or pred.get("and") or pred.get("bool"):
+          # XXX Need to clear this part
+          filter_list.append(pred)
         elif self.__is_facet(pred_field(pred)):
           self.selection_list.append(pred)
         else:

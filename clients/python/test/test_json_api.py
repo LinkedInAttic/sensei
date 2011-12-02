@@ -747,6 +747,38 @@ class TestJsonAPI(unittest.TestCase):
   "size": 10
 }""")
 
+  def testContainsAllPred(self):
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    WHERE tags CONTAINS ALL ("hybrid", "moon-roof", "leather")
+    """
+    req = self.client.compile(stmt)
+    # print self.client.buildJsonString(req, indent=2)
+    self.assertEqual(self.client.buildJsonString(req, indent=2),
+                     """{
+  "fetchStored": true, 
+  "from": 0, 
+  "selections": [
+    {
+      "terms": {
+        "tags": {
+          "_noOptimize": false, 
+          "excludes": [], 
+          "operator": "and", 
+          "values": [
+            "hybrid", 
+            "moon-roof", 
+            "leather"
+          ]
+        }
+      }
+    }
+  ], 
+  "size": 10
+}""")
+
   def testPathPred(self):
     stmt = \
     """
@@ -941,6 +973,39 @@ class TestJsonAPI(unittest.TestCase):
   "size": 10
 }""")
 
+  def testOrPredicate(self):
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    WHERE color = "red" OR color = "blue"
+    """
+    req = self.client.compile(stmt)
+    # print self.client.buildJsonString(req, indent=2)
+    self.assertEqual(self.client.buildJsonString(req, indent=2),
+                     """{
+  "fetchStored": true, 
+  "filter": {
+    "or": [
+      {
+        "term": {
+          "color": {
+            "value": "red"
+          }
+        }
+      }, 
+      {
+        "term": {
+          "color": {
+            "value": "blue"
+          }
+        }
+      }
+    ]
+  }, 
+  "from": 0, 
+  "size": 10
+}""")
 
   def testBetweenPredicate1(self):
     stmt = \
@@ -967,6 +1032,42 @@ class TestJsonAPI(unittest.TestCase):
       }
     }
   ], 
+  "size": 10
+}""")
+
+  def testBetweenPredicate2(self):
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    WHERE year NOT BETWEEN 2000 AND 2001
+    """
+    req = self.client.compile(stmt)
+    # print self.client.buildJsonString(req, indent=2)
+    self.assertEqual(self.client.buildJsonString(req, indent=2),
+                     """{
+  "fetchStored": true, 
+  "filter": {
+    "or": [
+      {
+        "range": {
+          "year": {
+            "include_upper": false, 
+            "to": 2000
+          }
+        }
+      }, 
+      {
+        "range": {
+          "year": {
+            "from": 2000, 
+            "include_lower": false
+          }
+        }
+      }
+    ]
+  }, 
+  "from": 0, 
   "size": 10
 }""")
 
