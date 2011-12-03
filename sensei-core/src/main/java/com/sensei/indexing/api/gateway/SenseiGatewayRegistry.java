@@ -10,23 +10,16 @@ import com.sensei.indexing.api.gateway.kafka.KafkaDataProviderBuilder;
 
 public class SenseiGatewayRegistry {
 	
-	static Map<String,SenseiGateway<?>> registry = new HashMap<String,SenseiGateway<?>>();
+	static Map<String,Class> registry = new HashMap<String,Class>();
 	
 	static{
-		LinedFileDataProviderBuilder lineProvider = new LinedFileDataProviderBuilder();
-		registry.put(lineProvider.getName(), lineProvider);
-		
-		KafkaDataProviderBuilder kafkaProvider = new KafkaDataProviderBuilder();
-		registry.put(kafkaProvider.getName(), kafkaProvider);
-		
-		JmsDataProviderBuilder jmsProvider = new JmsDataProviderBuilder();
-		registry.put(jmsProvider.getName(), jmsProvider);
-		
-		JdbcDataProviderBuilder jdbcProvider = new JdbcDataProviderBuilder();
-		registry.put(jdbcProvider.getName(), jdbcProvider);
+		registry.put(LinedFileDataProviderBuilder.name, LinedFileDataProviderBuilder.class);
+		registry.put(KafkaDataProviderBuilder.name, KafkaDataProviderBuilder.class);
+		registry.put(JmsDataProviderBuilder.name, JmsDataProviderBuilder.class);
+		registry.put(JdbcDataProviderBuilder.name, JdbcDataProviderBuilder.class);
 	}
 	
-	public static SenseiGateway<?> getDataProviderBuilder(String name){
+	public static Class getGatewayClass(String name){
 		return registry.get(name);
 	}
 }

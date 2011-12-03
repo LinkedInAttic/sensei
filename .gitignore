@@ -13,9 +13,11 @@ lib/master/lucene-core.jar
 lib/master/protobuf-java.jar
 lib/master/spring.jar
 lib/master/zookeeper.jar
-
+`
 MANIFEST.MF
 .settings
+.classpath
+.project
 *~
 TAGS
 cscope.*

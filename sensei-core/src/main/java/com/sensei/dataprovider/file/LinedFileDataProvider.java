@@ -1,8 +1,11 @@
 package com.sensei.dataprovider.file;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.RandomAccessFile;
+import java.io.InputStreamReader;
+import java.nio.charset.Charset;
 import java.util.Comparator;
 
 import org.apache.log4j.Logger;
@@ -18,12 +21,14 @@ public abstract class LinedFileDataProvider<D> extends StreamDataProvider<D> {
 	private long _startingOffset;
 	private long _offset;
 	
-	private RandomAccessFile _rad;
+	private BufferedReader _reader;
+	
+	private static Charset UTF8 = Charset.forName("UTF-8");
 	
 	public LinedFileDataProvider(Comparator<String> versionComparator, File file,long startingOffset){
       super(versionComparator);
 	  _file = file;
-	  _rad = null;
+	  _reader = null;
 	  _startingOffset = startingOffset;
 	}
 	
@@ -32,13 +37,13 @@ public abstract class LinedFileDataProvider<D> extends StreamDataProvider<D> {
 	@Override
 	public DataEvent<D> next() {
 		DataEvent<D> event = null;
-		if (_rad!=null){
+		if (_reader!=null){
 		  try{
-			String line = _rad.readLine();
+			String line = _reader.readLine();
 			if (line == null) return null;
 			D dataObj = convertLine(line);
 			String version = String.valueOf(_offset);
-			_offset = _rad.getFilePointer();
+			_offset++;
 			event = new DataEvent<D>(dataObj,version);
 		  }
 		  catch(IOException ioe){
@@ -57,10 +62,12 @@ public abstract class LinedFileDataProvider<D> extends StreamDataProvider<D> {
 
 	@Override
 	public void reset() {
-	  if (_rad!=null){
+	  if (_reader!=null){
 		  try {
 			_offset = _startingOffset;
-			_rad.seek(_offset);
+			for (int i=0;i<_offset;++i){
+        _reader.readLine();
+      }
 		} catch (IOException e) {
 			logger.error(e.getMessage(),e);
 		}
@@ -71,9 +78,9 @@ public abstract class LinedFileDataProvider<D> extends StreamDataProvider<D> {
 	public void start() {
 		super.start();
 		try{
-		  _rad = new RandomAccessFile(_file,"r");
+		  _reader = new BufferedReader(new InputStreamReader(new FileInputStream(_file), UTF8),1024);
 		  _offset = _startingOffset;
-		  _rad.seek(_offset);
+		  reset();
 		}
 		catch(IOException ioe){
 		  logger.error(ioe.getMessage(),ioe);
@@ -84,15 +91,15 @@ public abstract class LinedFileDataProvider<D> extends StreamDataProvider<D> {
 	public void stop() {
 		try{
 		  try{
-		    if (_rad!=null){
-		    	_rad.close();
+		    if (_reader!=null){
+		      _reader.close();
 		    }
 		  }
 		  catch(IOException ioe){
 			logger.error(ioe.getMessage(),ioe);
 		  }
 		  finally{
-		    _rad = null;
+		    _reader = null;
 		  }
 		}
 		finally{
