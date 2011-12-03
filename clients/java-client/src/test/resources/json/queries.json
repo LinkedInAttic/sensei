@@ -1,0 +1,194 @@
+// default field names:
+// _all : default field
+// _uid: uid field
+
+// match all docs query
+{
+
+  "match_all" : {
+    "boost" : 1.2                  // boost, optional, if not specified, Lucene default will be used
+  },
+
+// id query
+  "ids" : {
+    "values" : ["1","4","100"],
+    "excludes" : ["5"],
+    "boost" : 1.0    
+  },
+
+// query string
+// constructs a Lucene QueryParser and parses the query text
+  "query_string" : {
+    "default_field" : "contents",       // if not specified, defaults to: _all
+    "query" : "this AND that OR thus",  // if null, defaults to match all docs query, all other parameters are ignored
+    "default_operator" : "AND",         // default operator, default: OR
+    "allow_leading_wildcard" : false,   // default: false
+    "lowercase_expanded_terms" : false,  // default: false
+    "enable_position_increments" : false, // default: false
+    "fuzzy_prefix_length" : 0,              // default: 0
+    "fuzzy_min_sim" : 0.5,                  // default: 0.5f
+    "phrase_slop" : 0,                      // default: 0
+    "boost" : 1.0,                          // default: 1.0
+    "auto_generate_phrase_queries": false,   // default: false,
+
+    // multi field
+    "fields" : ["content","name^5"],
+    "use_dis_max": true,
+    "tie_breaker": 0
+  },
+
+// text query
+  "text" : {
+    "message" : "this is a test",   // field: "message", query: "this is a test"
+    "operator" : "or",              // operator, possible values: "and", "or"
+    "type" : "phrase"               // query type, can be "phrase", "phrase_prefix"
+  },
+
+// term query
+  "term" : {
+    "color" : "red"
+
+    // or "color" : {"term" : "red", "boost": 2.0}
+  },
+
+// boolean query
+  "bool" : {
+    "must" : {
+      "term" : { "color" : "red" }
+    },
+    "must_not" : {
+      "range" : {
+        "age" : { "from" : 10, "to" : 20 }
+      }
+    },
+    "should" : [
+      {
+        "term" : { "tag" : "wow", "noOptimize" : false}
+      },
+      {
+        "term" : { "tag" : "search"}
+      }
+    ],
+    "minimum_number_should_match" : 1,
+    "boost" : 1.0,
+    "disable_coord" : false            // optional: default = false
+  },
+
+// dist max
+  "dis_max" : {
+    "tie_breaker" : 0.7,
+    "boost" : 1.2,
+    "queries" : [
+      {
+        "term" : { "age" : 34 }
+      },
+      {
+        "term" : { "age" : 35 }
+      }
+    ]
+  },
+
+// prefix
+  "prefix" : { 
+    "user" : "ki" 
+
+    // or
+    // "user" : {"value" : "ki", "boost" : 2.0 } 
+  },
+
+// wildcard
+  "wildcard" : { 
+    "user" : "ki*y" 
+
+    // or 
+    //"user" : { "value" : "ki*y", "boost" : 2.0 } 
+  },
+// range
+  "range" : {
+    "age" : { 
+      "from" : 10, 
+      "to" : 20, 
+      "boost" : 2.0,
+      "_noOptimize" : false
+    }
+  },
+// filtered
+
+  "filtered" : {
+      // any query object
+    "query" : {
+      "term" : { "tag" : "wow" }
+    },
+       // any filter defined in the filters.json
+    "filter" : {
+      "range" : {
+        "age" : { "from" : 10, "to" : 20 }
+      }
+    }
+  },
+
+// terms
+
+  "terms" : {
+    "tags" : {
+      "values" : [ "blue", "pill" ],
+      "excludes" : ["red"],
+      "minimum_match" : 1,
+      "operator" : "or"}
+  },
+
+// span term
+  "span_term" : { 
+    "color" : "red" 
+
+    //or
+    // "user" : { "value" : "kimchy", "boost" : 2.0 } 
+  },
+// span or
+  "span_or" : {
+    "clauses" : [
+      { "span_term" : { "field" : "value1" } },
+      { "span_term" : { "field" : "value2" } },
+      { "span_term" : { "field" : "value3" } }
+    ]
+  },
+// span not
+  "span_not" : {
+    "include" : {
+      "span_term" : { "field1" : "value1" }
+    },
+    "exclude" : {
+      "span_term" : { "field2" : "value2" }
+    }
+  },
+// span near
+  "span_near" : {
+    "clauses" : [
+      { "span_term" : { "field" : "value1" } },
+      { "span_term" : { "field" : "value2" } },
+      { "span_term" : { "field" : "value3" } }
+    ],
+    "slop" : 12,
+    "in_order" : false,
+    "collect_payloads" : false
+  },
+
+// span first
+
+  "span_first" : {
+    "match" : {
+      "span_term" : { "color" : "red" }
+    },
+    "end" : 3
+  },
+
+// custom
+  "custom" : {
+    "class" : "com.sensidb.query.TestQuery",
+    "params":{
+      
+    },
+    "boost" : 2.0
+  }
+}
+

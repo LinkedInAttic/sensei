@@ -1,0 +1,71 @@
+[
+    {
+        "term":{
+			"category":{
+			    "value":"sedan"
+			}            
+        }
+    },
+    
+    {
+        "term":{
+			"color":{
+			    "value":"red"
+			}            
+        }
+    },
+    
+    {
+        "terms":{
+            "tags":{
+                "values" : [ "blue", "pill" ],
+                "excludes" : ["red"],
+                "operator" : "or"
+            }
+        }
+    },
+    
+    {
+        "range":{
+			"year":{
+			    "upper":"2009",   //if there is no such key (upper, or lower), it returns "*";   
+			    "lower":"2000"
+			}         
+        }
+    },
+    
+    {
+        "path":{
+			"city":{            
+                "value":"a/b/c",
+                "strict":false,
+                "depth":1
+            }
+        }
+    },
+    
+    {
+        "custom":{
+            "network":{
+                "values":["0","1"],
+                "runtime-params":{
+                    "srcId":{
+                        "type":"int",
+                        "values":["$member"]
+                        
+                    }
+                }
+            }
+        }
+    },
+    
+    {
+        "default":{
+            "color":{
+                "values":[],
+                "not":[],
+                "params":{ }
+            }
+        }
+    }
+]
