@@ -2,8 +2,8 @@ package com.sensei.search.query;
 
 import org.apache.lucene.queryParser.ParseException;
 import org.apache.lucene.queryParser.QueryParser;
+import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Query;
-import org.apache.lucene.util.Version;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -17,11 +17,15 @@ public class QueryStringQueryConstructor extends QueryConstructor {
   {
     _qparser = qparser;
   }
-  
+
   @Override
   protected Query doConstructQuery(JSONObject jsonQuery) throws JSONException
   {
-    String queryText = jsonQuery.getString(QUERY_PARAM);
+    String queryText = jsonQuery.optString(QUERY_PARAM);
+    if (queryText.length() == 0)
+    {
+      return new MatchAllDocsQuery();
+    }
     try
     {
       synchronized(_qparser)

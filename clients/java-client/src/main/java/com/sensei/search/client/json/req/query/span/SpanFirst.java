@@ -13,14 +13,16 @@ import com.sensei.search.client.json.req.query.QueryJsonHandler;
  */
 @CustomJsonHandler(QueryJsonHandler.class)
 public class SpanFirst implements Query {
-    
+
     SpanTerm match;
     int end;
-    public SpanFirst(SpanTerm match, int end) {
+    private double boost;
+    public SpanFirst(SpanTerm match, int end,  double boost) {
         super();
         this.match = match;
         this.end = end;
+        this.boost = boost;
     }
-    
-    
+
+
 }

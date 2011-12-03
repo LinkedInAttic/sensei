@@ -49,16 +49,17 @@ public class TextQuery  implements Query {
     private String message;
     private Operator operator;
     private Type type;
-    
+    private double boost;
     public static enum Type {
         phrase_prefix, phrase;
     }
 
-    public TextQuery(String message, Operator operator, Type type) {
+    public TextQuery(String message, Operator operator, Type type, double boost) {
         super();
         this.message = message;
         this.operator = operator;
         this.type = type;
+        this.boost = boost;
     }
-    
+
 }

@@ -6,8 +6,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.sensei.search.client.json.req.filter.FilterRoot;
-import com.sensei.search.client.json.req.query.QueryRoot;
+import com.sensei.search.client.json.CustomJsonHandler;
+import com.sensei.search.client.json.req.filter.Filter;
+import com.sensei.search.client.json.req.filter.FilterJsonHandler;
+import com.sensei.search.client.json.req.query.Query;
+import com.sensei.search.client.json.req.query.QueryJsonHandler;
 
 
 
@@ -17,7 +20,8 @@ public class SenseiClientRequest {
     
     private GroupBy groupBy;
     private List<Selection> selections = new ArrayList<Selection>();
-    private QueryRoot query;
+    @CustomJsonHandler(value = QueryJsonHandler.class)
+    private Query query;
     private Map<String, Map<String, FacetInit>> facetInit = new HashMap<String, Map<String, FacetInit>>();
     private List<Sort> sorts = new ArrayList<Sort>();
     private Map<String, Facet> facets = new HashMap<String, Facet>();
@@ -26,7 +30,8 @@ public class SenseiClientRequest {
     private List<Integer> partitions = new ArrayList<Integer>();
     private boolean explain;
     private String routeParam;
-    private FilterRoot filter;
+    @CustomJsonHandler(value = FilterJsonHandler.class)
+    private Filter filter;
     public static class Builder {
         private SenseiClientRequest request = new SenseiClientRequest();
         public Builder paging(int count, int offset) {
@@ -47,7 +52,7 @@ public class SenseiClientRequest {
             return this;
         }
        
-        public Builder queryRoot(QueryRoot query) {
+        public Builder query(Query query) {
                 request.query = query;
             
             return this;
@@ -98,8 +103,8 @@ public class SenseiClientRequest {
             request.routeParam = routeParam;
             return this;
         }
-        public Builder filterRoot(FilterRoot rootFilter) {
-            request.filter = rootFilter;
+        public Builder filter(Filter filter) {
+            request.filter = filter;
             return this;
         }
         public SenseiClientRequest build() {

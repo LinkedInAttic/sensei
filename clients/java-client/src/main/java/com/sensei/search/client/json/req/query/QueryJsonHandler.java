@@ -8,6 +8,9 @@ import org.json.JSONObject;
 
 import com.sensei.search.client.json.JsonHandler;
 import com.sensei.search.client.json.JsonSerializer;
+import com.sensei.search.client.json.req.Term;
+import com.sensei.search.client.json.req.Terms;
+import com.sensei.search.client.json.req.filter.Ids;
 import com.sensei.search.client.json.req.query.span.SpanFirst;
 import com.sensei.search.client.json.req.query.span.SpanNear;
 import com.sensei.search.client.json.req.query.span.SpanNot;
@@ -27,11 +30,15 @@ public class QueryJsonHandler implements JsonHandler<Query>{
         typeNames.put(SpanTerm.class, "span_term");
         typeNames.put(SpanNear.class, "span_near");
         typeNames.put(SpanNot.class, "span_not");
-        typeNames.put(SpanOr.class, "span_or"); 
-        typeNames.put(CustomQuery.class, "custom"); 
-        typeNames.put(TextQuery.class, "text"); 
-        typeNames.put(FilteredQuery.class, "filtered"); 
+        typeNames.put(SpanOr.class, "span_or");
+        typeNames.put(CustomQuery.class, "custom");
+        typeNames.put(TextQuery.class, "text");
+        typeNames.put(FilteredQuery.class, "filtered");
         typeNames.put(PathQuery.class, "path");
+        typeNames.put(BoolQuery.class, "bool");
+        typeNames.put(Term.class, "term");
+        typeNames.put(Terms.class, "terms");
+        typeNames.put(Ids.class, "ids");
     }
     @Override
     public JSONObject serialize(Query bean) throws JSONException {
@@ -41,12 +48,12 @@ public class QueryJsonHandler implements JsonHandler<Query>{
         if (!typeNames.containsKey(bean.getClass())) {
             throw new UnsupportedOperationException("Class " + bean.getClass() + " is not supported for serialization by the QueryJsonHandler");
         }
-        
+
         return new JSONObject().put(typeNames.get(bean.getClass()), JsonSerializer.serialize(bean, false));
     }
     @Override
     public Query deserialize(JSONObject json) throws JSONException {
-       
+
         return null;
     }
 }

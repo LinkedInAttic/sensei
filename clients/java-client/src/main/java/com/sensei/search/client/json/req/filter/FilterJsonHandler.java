@@ -38,8 +38,8 @@ public class FilterJsonHandler implements JsonHandler<Filter>{
             List<JSONObject> filters = convertToJson(andOr.filters);
             return new JSONObject().put(operation, new JSONArray(filters));
         }
-        if (bean instanceof Bool) {
-            Bool bool = (Bool) bean;
+        if (bean instanceof BoolFilter) {
+            BoolFilter bool = (BoolFilter) bean;
             JSONObject ret = new JSONObject();
             if (bool.getMust() != null) {
                 ret.put("must", new JSONArray(convertToJson(bool.getMust())));
