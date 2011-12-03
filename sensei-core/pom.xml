@@ -235,10 +235,10 @@
 		</dependency>
 		
 		<dependency>
-			<groupId>com.yammer.metrics</groupId>
-			<artifactId>metrics-core</artifactId>
-			<version>2.0.0-BETA18-SNAPSHOT</version>
-		</dependency>
+           <groupId>com.yammer.metrics</groupId>
+           <artifactId>metrics-core</artifactId>
+           <version>2.0.0-BETA18-SNAPSHOT</version>
+        </dependency>
 		
 		<dependency>
 			<groupId>org.apache.avro</groupId>
