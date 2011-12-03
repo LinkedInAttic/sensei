@@ -18,7 +18,7 @@
                     "value":"red",
                     "_noOptimize":false
                 }
-            },
+            }
             
         },
         {
@@ -110,7 +110,11 @@
         "age":{
             "from":10,
             "to":20,
-            "_noOptimize":false
+            "_noOptimize":false,
+            "_type":"int",    //when _noOptimize is true and the data of 'from' and 'to' field fit into the following types,
+            				// we have to specify the type here.
+            				// currently these types have to be specified: "int","short","long","float","double", "date".
+			"_date_format":"yyyyMMdd-kk:mm"   // if the type is date, format needs to be specified, "from" "to" are long;            				 
         }
     },
     "selection":{
