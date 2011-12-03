@@ -41,7 +41,7 @@ public class SpanNearQueryConstructor extends QueryConstructor {
               fieldCheck = field;
             else if( !fieldCheck.equals(field))
               throw new IllegalArgumentException("Clauses must have same field: " + jsonQuery);
-			
+
 			String value = (String)json.get(field);
 			clausesList.add(new SpanTermQuery(new Term(field, value)));
 		}

@@ -24,6 +24,7 @@ public class RequestConverter {
 		breq.setCount(req.getCount());
 		breq.setSort(req.getSort());
 		breq.setFetchStoredFields(req.isFetchStoredFields());
+		breq.setFetchStoredValue(req.isFetchStoredValue());
 		breq.setShowExplanation(req.isShowExplanation());
 		breq.setTermVectorsToFetch(req.getTermVectorsToFetch());
     breq.setGroupBy(req.getGroupBy());

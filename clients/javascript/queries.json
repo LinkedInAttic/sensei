@@ -158,10 +158,17 @@
 // span not
   "span_not" : {
     "include" : {
+<<<<<<< HEAD
+      "span_term" : { "field1" : "value1" }
+    },
+    "exclude" : {
+      "span_term" : { "field2" : "value2" }
+=======
       "span_term" : { "field" : "value1" }
     },
     "exclude" : {
       "span_term" : { "field" : "value2" }
+>>>>>>> json-api
     }
   },
 // span near
@@ -177,6 +184,10 @@
   },
 
 // span first
+<<<<<<< HEAD
+
+=======
+>>>>>>> json-api
   "span_first" : {
     "match" : {
       "span_term" : { "color" : "red" }
