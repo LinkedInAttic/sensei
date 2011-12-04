@@ -1,0 +1,55 @@
+---
+layout: default
+title: SenseiDB - Contribute
+---
+<div class="hero-unit">
+	<p>
+		<h2>Architecture Diagram</h2>
+		<p style="margin-top:20px">
+			<img border="1" src="images/sensei-architect.png">
+		</p>
+	</p>
+	<hr/>
+	<p>
+		<h2>Design considerations</h2>
+		<p>
+		<ul>
+			<li>data:
+				<ul>
+					<li>Fault tolerance - when one replication is down, data is still accessible</li>
+					<li>Durability - N copies of data is stored</li>
+					<li>Through-put - Parallelizable request-handling on different nodes/data replicas, designed to handle web-scale traffic</li>
+					<li>Consistency - Eventual consistent</li>
+					<li>Data recovery - each shared/replica is noted with a watermark for data recovery</li>
+					<li>Large dataset - designed to handle 100s millions - billions of rows</li>
+				</ul>
+			</li>
+			<li>horizontally scalable:
+				<ul>
+					<li>Data is partitioned - so work-load is also distributed</li>
+					<li>Elasticity - Nodes can be added to accommodate data growth</li>
+					<li>Online expansion - Cluster can grow while handling online requests</li>
+					<li>Online cluster management - Cluster topology can change while handling online requests</li>
+					<li>Low operational/maintenance costs - Push it, leave it and forget it.</li>
+				</ul>
+			</li>
+			<li>performance:
+				<ul>
+					<li>low indexing latency - real-time update</li>
+					<li>low search latency - millisecond query response time</li>
+					<li>low volatility - low variance in both indexing and search latency</li>
+				</ul>
+			</li>
+			<li>customizability:
+				<ul>
+					<li>plug-in framework - custom query handling logic</li>
+					<li>routing factory - custom routing logic, default: round-robin</li>
+					<li>index sharding strategy - different sharding strategy for different applications, e.g. time, mod etc.</li>
+					<li>relevance model</li>
+				</ul>
+			</li>
+		</ul>
+		</p>
+	</p>
+	<hr/>
+</div>

@@ -1,0 +1,49 @@
+---
+layout: default
+title: SenseiDB - Contribute
+---
+<div class="hero-unit">
+	<p>
+		<h2>Getting the code</h2>
+		<p>
+			Sensei is hosted on <a href="http://github.com/senseidb/sensei">Github</a> using the Git version control system. You can get the code with:
+			<pre><code>git clone git://github.com/senseidb/sensei.git</code></pre>
+		</p>
+	</p>
+	<hr/>
+
+
+<h2>Building the code</h2>
+<p>
+	SenseiDB uses Apache Maven for building.
+</p>
+<p>
+	Go into top-level directory for Sensei and do:
+	<pre><code>ant</code></pre> or
+	<pre><code>mvn package</code></pre>
+</p>
+	<hr/>
+	<h2>Testing</h2>
+	<p>
+		First start Zookeeper by going to Zookeeper install directory and do:
+		<pre><code>./bin/zkServer.sh start</code></pre>
+	</p>
+	<p>
+	You can run the unit test with the following command: (Make sure Zookeeper is running):
+		<pre><code>mvn test</code></pre>
+	</p>
+
+	<hr/>
+<p>
+	<h2>Reporting Bugs</h2>
+	<p>
+	We use <a href="http://linkedin.jira.com/browse/SENSEI">Jira</a> as issue tracker.
+	</p>
+	<p>
+		Bug reports are incredibly helpful, so take time to report bugs and request features in our ticket tracker. We are always grateful for patches to Sensei’s code.
+	</p>
+	<p>
+		Bug reports with attached patches will get fixed far quicker than those without any.
+	</p>
+</p>
+</div>

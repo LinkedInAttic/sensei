@@ -1,155 +1,98 @@
-<html> 
-    <head> 
-        <title>Sensei - Home</title> 
-        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"> 
-        <link rel="icon" type="image/jpg" href="images/sensei_black.jpg"/>
-        <meta name="description" content="sensei is a distributed elastic realtime searchable database"/>
-        <meta name="keywords" content="search,realtime,zoie,bobo,districuted,elastic,bobo,elastic,database,indexing,opensource,lucene" />
-        <meta http-equiv='Content-Type' content='text/html;charset=utf-8' />
-        <meta property="og:title" value="sensei" />
-        <meta property="og:image" value="images/sensei_black.jpg" />
-        <meta property="og:description" value="sensei is a distributed elastic realtime searchable database" />
-        <meta property="og:site_name" value="senseidb" />
-        <meta property="og:type" value="website" />
-        <link rel="stylesheet" type="text/css" media="screen" href="styles/main.css"> 
-        <link rel="stylesheet" type="text/css" media="screen" href="styles/wiki.css">
-    </head>
-	<body class="home">
-		
-		<div id="header"> 
-			<a href="http://github.com/javasoze/sensei"><img style="position: absolute; top: 0; right: 0; border: 0;" src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub" /></a>
-			
-		   <div class="wrapper">   
-		     <h1 id="logo">
-			<span style="display:block;float:left;position:relative;color:white;left:150px;top:50px;font-size:50px">Sensei</span>
-			 <div></div>			  
-			  
-			 </h1>   
+---
+layout: default
+title: SenseiDB - Home
+---
+
+  	<!-- Main hero unit for a primary marketing message or call to action -->
+    <div class="hero-unit">
+      <h1>SenseiDB</h1>
+      <p>Open-source, distributed, realtime, semi-structured database</p>
+      <p>Some Features:
+	    <ul>
+		  <li>Full-text search</li>
+		  <li>Fast realtime updates</li>
+		  <li>Structured and faceted search</li>
+		  <li>Fast key-value lookup</li>
+		  <li>Hadoop integration</li>
+		  <li>...</li>
+		</ul>
+	  </p>
+      <p><a class="btn primary large" href="">Learn more &raquo;</a></p>
+    </div>
+
+    <!-- Example row of columns -->
+    <div class="row">
+		<div class="span5">
+	        <h2>License</h2>
+	         <p>
+			Sensei source code is released under the Apache Public License v. 2.0 (APL 2.0).
+			</p>
+	        <p><a class="btn" href="http://www.apache.org/licenses/LICENSE-2.0.html">View details &raquo;</a></p>
+	     </div>
 	
-		       <ul id="menu"> 
-		         <li class="selected"> 
-		           <a href="index2.html">Home</a><span>&gt;</span> 
-		         </li> 
-		         <li class=""> 
-		                        <a href="docs.html">Learn</a><span>&gt;</span> 
-		                    </li> 
-		                    <li class=""> 
-		                        <a href="download.html">Download</a><span>&gt;</span> 
-		                    </li> 
-		                    <li class=""> 
-		                        <a href="community.html">Community</a><span>&gt;</span> 
-		                    </li> 
-		                    <li class=""> 
-		                        <a href="code.html">Contribute</a><span>&gt;</span> 
-		                    </li>
-		                </ul> 
-		            </div>      
-		        </div>
-					<div id="top">
-							<p class="category">
-								Sensei, a distributed, searchable database
-						    </p> 				
-					</div>
-					
-					<div class="wrapper">
-						<div class="wrapped wikistyle"> 
-							Sensei is a distributed database that is designed to handle the following type of query: 
+      <div class="span5">
+        <h2>Sensei the Name</h2>
+        <p>
+	     Sensei (先生) means teacher or professor in Japanese (<a href="http://en.wikipedia.org/wiki/Sensei">http://en.wikipedia.org/wiki/Sensei</a>).
+	 	</p>
+		<p>It shares the same pronunciation and writing with the Chinese word that has the same meaning. This name indicates that the system can be used in place of Oracle database in many applications.
+        </p>
+      </div>
 
-							<pre><code>
-<b>SELECT</b> f1,f2...fn <b>FROM</b> members 
-<b>WHERE</b> c1 AND c2 AND c3..
-<b>MATCH</b> (fulltext query, e.g. "java engineer")
-<b>GROUP BY</b> fx,fy,fz...
-<b>ORDER BY</b> fa,fb...
-<b>LIMIT</b> offset,count
-							</code></pre>
-							<h2>Architecture:</h2>
-							<p>
-								<img src="docs/src/docbkx/figures/sensei-architect.png" />
-							</p>
-							<h2>Some Features</h2>
-							<ul>
-								<li>Full-text search</li>
-								<li>Faceted Search</li>
-								<li>Dynamic Sorting</li>
-								<li>Streaming index</li>
-								<li>Fast realtime update</li>
-								<li>Distributed - sharded</li>
-								<li>Dynamic cluster support</li>
-								<li>...</li>
-
-							</ul>
-							<h2>Design considerations</h2>
-							<ul>
-							 <li>data:<ul>
-								<li>Fault tolerance - when one replication is down, data is still accessible</li>
-								<li>Durability - N copies of data is stored</li>
-								<li>Through-put - Parallelizable request-handling on different nodes/data replicas, designed to handle internet traffic</li>
-								<li>Consistency - Eventally consistent</li>
-								<li>Data recovery - each shared/replica is noted with a watermark for data recovery</li>
-								<li>Large dataset - designed to handle 100s millions - billions of rows</li>
-								</ul>
-								<li>horizontally scalable:<ul>
-								<li>Data is partitioned - so work-load is also distributed</li>
-								<li>Elasticity - Nodes can be added to accomodate data growth</li>
-								<li>Online expansion - Cluster can grow while handling online requests</li>
-								<li>Online cluster management - Cluster topology can change while handling online requests</li>
-								<li>Low operational/maintenance costs - Push it, leave it and forget it.</li>
-								</ul>
-							</li>
-							<li>performance:<ul>
-							<li>low indexing latency - real-time update</li>
-							<li>low search latency - millisecond query response time</li>
-							<li>low volatility - low variance in both indexing and search latency</li>
-							</ul>
-							<li>customizability:<ul>
-							<li>plug-in framework - custom query handling logic</li>
-							<li>routing factory - custom routing logic, default: round-robin</li>
-							<li>index sharding strategy - different sharding strategy for different applications, e.g. time, mod etc.</li>
-							</ul>
-							<h2>Comparing to a traditional RDBMS</h2>
-							<h3>RDBMS:</h3>
-							<ul>
-								<li>scales vertically</li>
-								<li>strong ACID guarantee</li>
-								<li>relational support</li>
-								<li>performance cost with full-text integration</li>
-								<li>high query latency with large dataset, esp. Group By</li>
-								<li>indexes needs to be built for all sort possibilities offline</li>
-							</ul>
-							<h3>Sensei:</h3>
-							<ul>
-								<li>scales horizontally</li>
-								<li>relaxed Consistency with high durability guarantees</li>
-								<li>data is streamed in, so Atomicity and Isolation is to be handled by the data producer</li>
-								<li>full-text support</li>
-								<li>low query latency with arbitrarily large dataset</li>
-								<li>dynamic sorting, index is already built for all sortable fields and their combinations</li>
-							</ul>
-							<table>
-						</div>
-					</div>
-					
-					<div id="footer"> 
-					            <div class="wrapper">
-					                <p class="licence"> 
-					                    Sensei is brought to you by <a href="http://www.linkedin.com">LinkedIn.com</a>
-					                    Distributed under <a href="http://www.apache.org/licenses/LICENSE-2.0.html">Apache 2 license</a> - Hosted on <a href="http://www.senseidb.com">senseidb.com</a> 
-					                </p> 
-					            </div> 
-					        </div>
-							<script type="text/javascript">
-
-							  var _gaq = _gaq || [];
-							  _gaq.push(['_setAccount', 'UA-26994893-1']);
-							  _gaq.push(['_trackPageview']);
-
-							  (function() {
-							    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-							    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-							    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-							  })();
-
-							</script>
-	</body>
-</html>
+	<div class="span5">
+        <h2>Data Guarantees</h2>
+        <p>
+	      Sensei provides a high-level guarantee of durability so your data is safe.
+        </p>
+		<p>
+	      Sensei also provides eventual consistency between data replicas while not compromising on performance.
+        </p>
+       <p><a class="btn" href="#">View details &raquo;</a></p>
+      </div>
+	</div>
+	
+	<div class="row">
+	<div class="span5">
+        <h2>BQL</h2>
+        <p>
+        	Browse Query Language (BQL) is an SQL-like language used to to interface with Sensei.
+        </p>
+		<p>
+			Example BQL:
+			<pre><code>SELECT _uid,color,_score FROM members
+WHERE color="red" AND category in ("van","exotic") AND
+QUERY IS "cool leather seats"
+GROUP BY color TOP 3
+BROWSE BY color,category
+ORDER BY RELEVANCE
+LIMIT 0,10</code></pre>
+		</p>
+        <p><a class="btn" href="#">View details &raquo;</a></p>
+      </div>
+	
+	  <div class="span5">
+        <h2>Clients</h2>
+        <p>
+        	Client libraries to interact with SenseiDB programmatically. e.g.:
+ 			<ul>
+				<li>Java</li> 
+				<li>Python</li> 
+				<li>Rest</li>
+			</ul>
+        </p>
+        <p><a class="btn" href="#">View details &raquo;</a></p>
+      </div>
+	  <div class="span5">
+        <h2>Gateways</h2>
+        <p>
+        	Data can be streamed in to Sensei via different Gateways e.g.:
+ 			<ul>
+				<li>File</li> 
+				<li>JDBC</li> 
+				<li>JMS</li> 
+				<li><a href="http://incubator.apache.org/kafka/">Apache Kafka</a></li>
+			</ul>
+        </p>
+        <p><a class="btn" href="#">View details &raquo;</a></p>
+      </div>
+	</div>
