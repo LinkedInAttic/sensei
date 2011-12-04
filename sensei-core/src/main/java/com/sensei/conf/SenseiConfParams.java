@@ -63,7 +63,11 @@ public interface SenseiConfParams {
 	
 	public static final String SENSEI_INDEX_PRUNER = "sensei.index.pruner";
 
-	public static final String SENSEI_ZOIE_RETENTION_DAYS = "sensei.index.zoie.retentionDays";
+	public static final String SENSEI_ZOIE_RETENTION_DAYS = "sensei.indexing.retention.days";
+  public static final String SENSEI_ZOIE_RETENTION_CLASS = "sensei.indexing.retention.class";
+
+  public static final String SENSEI_ZOIE_RETENTION_COLUMN = "sensei.indexing.retention.column";
+  public static final String SENSEI_ZOIE_RETENTION_TIMEUNIT = "sensei.index.retention.column.timeunit";
 
 	public static final String SENSEI_MX4J_PORT = "sensei.mx4j.port";
 	

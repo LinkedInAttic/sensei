@@ -13,6 +13,7 @@ public interface SenseiSearchServletParams {
 	public static final String PARAM_SORT_DOC = "doc";
 	public static final String PARAM_SORT_DOC_REVERSE = "docrev";
 	public static final String PARAM_FETCH_STORED = "fetchstored";
+	public static final String PARAM_FETCH_STORED_VALUE = "fetchstoredvalue";
     public static final String PARAM_FETCH_TERMVECTOR = "fetchtermvector";
 	public static final String PARAM_SHOW_EXPLAIN = "showexplain";
 	public static final String PARAM_ROUTE_PARAM = "routeparam";
