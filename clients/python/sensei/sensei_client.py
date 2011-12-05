@@ -214,6 +214,7 @@ BNF Grammar for BQL
               | <between_predicate>
               | <range_predicate>
               | <time_predicate>
+              | <match_predicate>
               | <same_column_or_pred>
 
 <in_predicate> ::= <column_name> [NOT] IN <value_list> [<except_clause>] [<predicate_props>]
@@ -233,6 +234,8 @@ BNF Grammar for BQL
 
 <time_predicate> ::= <column_name> IN LAST <time_span>
                    | <column_name> ( SINCE | AFTER | BEFORE ) <time_expr>
+
+<match_predicate> ::= MATCH '(' column_name_list ')' AGAINST '(' quoted_string ')'
 
 <same_column_or_pred> ::= '(' <cumulative_predicates> ')'
 
@@ -386,7 +389,7 @@ def accumulate_range_pred(field_map, pred):
   "1999 < year <= 2003".
   """
 
-  def __max(n1, include1, n2, include2):
+  def _max(n1, include1, n2, include2):
     """Find the larger of the two lower bounds."""
 
     if n1 == None:
@@ -401,7 +404,7 @@ def accumulate_range_pred(field_map, pred):
       else:
         return n2, include2
 
-  def __min(n1, include1, n2, include2):
+  def _min(n1, include1, n2, include2):
     """Find the smaller of the two upper bounds."""
 
     if n1 == None:
@@ -434,8 +437,8 @@ def accumulate_range_pred(field_map, pred):
   cur_include_upper = cur_spec.get("include_upper") or False
 
   new_spec = {}
-  lower, include_lower = __max(old_from, old_include_lower, cur_from, cur_include_lower)
-  upper, include_upper = __min(old_to, old_include_upper, cur_to, cur_include_upper)
+  lower, include_lower = _max(old_from, old_include_lower, cur_from, cur_include_lower)
+  upper, include_upper = _min(old_to, old_include_upper, cur_to, cur_include_upper)
 
   if lower and upper:
     if (lower > upper or
@@ -450,9 +453,8 @@ def accumulate_range_pred(field_map, pred):
     new_spec["include_upper"] = include_upper
   field_map[field] = {"range": {field: new_spec} }
 
-def predicate_and_action(s, loc, tok):
-  # print ">>> in predicate_and_action: tok = ", tok
-  # [[{'term': {'a': 1}}, 'and', {'term': {'b': 2}}, 'and', {'query_string': {'query': 'xxx'}}, 'and', {'term': {'c': 3}}]]
+def and_predicate_action(s, loc, tok):
+  # print ">>> in and_predicate_action: tok = ", tok
   preds = []
   field_map = {}
   for i in xrange(0, len(tok[0]), 2):
@@ -465,8 +467,8 @@ def predicate_and_action(s, loc, tok):
     preds.append(f)
   return {"and": preds}
 
-def predicate_or_action(s, loc, tok):
-  # print ">>> in predicate_or_action: tok = ", tok
+def or_predicate_action(s, loc, tok):
+  # print ">>> in or_predicate_action: tok = ", tok
   preds = []
   for i in xrange(0, len(tok[0]), 2):
     if type(tok[0][i]) != dict:
@@ -485,8 +487,7 @@ def prop_list_action(s, loc, tok):
   return props
 
 def in_predicate_action(s, loc, tok):
-  is_not = tok[1] == NOT.match
-  if not is_not:
+  if tok[1] != NOT.match:
     return {"terms":
               {tok[0]:
                  {JSON_PARAM_VALUES: (tok.value_list[:] or []),
@@ -507,11 +508,31 @@ def in_predicate_action(s, loc, tok):
                }
             }
 
+def contains_all_predicate_action(s, loc, tok):
+  return {"terms":
+            {tok[0]:
+               {JSON_PARAM_VALUES: (tok.value_list[:] or []),
+                JSON_PARAM_EXCLUDES: (tok.except_values[:] or []),
+                JSON_PARAM_OPERATOR: PARAM_SELECT_OP_AND,
+                # XXX Need to check this based on facet info
+                JSON_PARAM_NO_OPTIMIZE: False
+                }
+             }
+          }
+
 def query_predicate_action(s, loc, tok):
-  return {JSON_PARAM_QUERY_STRING: {JSON_PARAM_QUERY: tok[2]}}
+  return {JSON_PARAM_QUERY:
+            {JSON_PARAM_QUERY_STRING:
+               {JSON_PARAM_QUERY: tok[2]}
+             }
+          }
 
 def equal_predicate_action(s, loc, tok):
-  return {"term": {tok[0]: {"value": tok[2]}}}
+  return {"term":
+            {tok[0]:
+               {"value": tok[2]}
+             }
+          }
 
 def not_equal_predicate_action(s, loc, tok):
   return {"terms":
@@ -542,6 +563,47 @@ def range_predicate_action(s, loc, tok):
                   }
                }
             }
+
+def between_predicate_action(s, loc, tok):
+  # print ">>> in between_predicate_action: tok = ", tok
+  if tok[1] == NOT.match:
+    # "column NOT BETWEEN x AND y"
+    return {"or": [{"range":
+                      {tok[0]:
+                         {"to": tok[3],
+                          "include_upper": False
+                          }
+                       }
+                    },
+                   {"range":
+                      {tok[0]:
+                         {"from": tok[3],
+                          "include_lower": False
+                          }
+                       }
+                    }
+                   ]
+            }
+  else:
+    return {"range":
+              {tok[0]:
+                 {"from": tok[2],
+                  "to": tok[4],
+                  "include_lower": True,
+                  "include_upper": True
+                  }
+               }
+            }
+
+def match_predicate_action(s, loc, tok):
+  # print ">>> in match_predicate_action: tok = ", tok
+  return {JSON_PARAM_QUERY:
+            {JSON_PARAM_QUERY_STRING:
+               {"fields": tok[1][:],
+                JSON_PARAM_QUERY: tok[3]
+                }
+             }
+          }
 
 limit_once = OnlyOnce(lambda s, loc, tok: tok)
 order_by_once = OnlyOnce(order_by_action)
@@ -598,6 +660,7 @@ def convert_time_span(s, loc, toks):
 #
 ALL = Keyword("all", caseless=True)
 AFTER = Keyword("after", caseless=True)
+AGAINST = Keyword("against", caseless=True)
 AGO = Keyword("ago", caseless=True)
 AND = Keyword("and", caseless=True)
 ASC = Keyword("asc", caseless=True)
@@ -625,6 +688,7 @@ IS = Keyword("is", caseless=True)
 LAST = Keyword("last", caseless=True)
 LIMIT = Keyword("limit", caseless=True)
 LONG = Keyword("long", caseless=True)
+MATCH = Keyword("match", caseless=True)
 NOT = Keyword("not", caseless=True)
 NOW = Keyword("now", caseless=True)
 OR = Keyword("or", caseless=True)
@@ -716,7 +780,7 @@ contains_all_predicate = (column_name +
                           CONTAINS + ALL + value_list.setResultsName("value_list") +
                           Optional(EXCEPT + value_list.setResultsName("except_values")) +
                           Optional(predicate_props)
-                          ).setResultsName("contains_all_pred")
+                          ).setResultsName("contains_all_pred").setParseAction(contains_all_predicate_action)
 
 equal_predicate = (column_name +
                    EQUAL + value +
@@ -732,7 +796,8 @@ query_predicate = (QUERY + IS + quotedString
                    ).setResultsName("query_pred").setParseAction(query_predicate_action)
 
 between_predicate = (column_name + Optional(NOT) +
-                     BETWEEN + value + AND + value).setResultsName("between_pred")
+                     BETWEEN + value + AND + value
+                     ).setResultsName("between_pred").setParseAction(between_predicate_action)
 
 range_op = oneOf("< <= >= >")
 range_predicate = (column_name + range_op + value
@@ -741,6 +806,10 @@ range_predicate = (column_name + range_op + value
 time_predicate = ((column_name + IN + LAST + time_span)
                   | (column_name + (SINCE | AFTER | BEFORE) + time_expr)
                   ).setResultsName("time_pred")
+
+match_predicate = (MATCH + LPAR + column_name_list + RPAR +
+                   AGAINST + LPAR + quotedString + RPAR
+                   ).setResultsName("match_pred").setParseAction(match_predicate_action)
 
 cumulative_predicate = Group(in_predicate
                              | equal_predicate
@@ -751,6 +820,7 @@ cumulative_predicate = Group(in_predicate
 cumulative_predicates = (cumulative_predicate +
                          OneOrMore(OR + cumulative_predicate))
 
+# XXX To be removed
 same_column_or_pred = (LPAR + cumulative_predicates + RPAR).setResultsName("same_column_or_pred")
 
 predicate = (in_predicate
@@ -761,7 +831,8 @@ predicate = (in_predicate
              | between_predicate
              | range_predicate
              | time_predicate
-             | same_column_or_pred
+             | match_predicate
+             # | same_column_or_pred
              )
 
 predicates = predicate + NotAny(OR) + ZeroOrMore(AND + predicate)
@@ -769,8 +840,8 @@ predicates = predicate + NotAny(OR) + ZeroOrMore(AND + predicate)
 # search_condition = Group(predicates | cumulative_predicates)
 
 search_expr = operatorPrecedence(predicate,
-                                 [(AND, 2, opAssoc.LEFT, predicate_and_action),
-                                  (OR,  2, opAssoc.LEFT, predicate_or_action)
+                                 [(AND, 2, opAssoc.LEFT, and_predicate_action),
+                                  (OR,  2, opAssoc.LEFT, or_predicate_action)
                                   ])
 
 param_type = BOOLEAN | INT | LONG | STRING | BYTEARRAY | DOUBLE
@@ -860,7 +931,7 @@ def and_ranges(range1, range2):
   Return the intersection of two ranges if there is overlap; None otherwise.
 
   """
-  def __max(n1, n2):
+  def _max(n1, n2):
     if n1 == '*':
       return n2
     elif n2 == '*':
@@ -877,7 +948,7 @@ def and_ranges(range1, range2):
         val2 = float(n2)
       return str(max(val1, val2))
 
-  def __min(n1, n2):
+  def _min(n1, n2):
     if n1 == '*':
       return n2
     elif n2 == '*':
@@ -899,8 +970,8 @@ def and_ranges(range1, range2):
   m2 = RANGE_REGEX.match(range2)
   (low2, _, high2, _) = m2.groups()
 
-  low = __max(low1, low2)
-  high = __min(high1, high2)
+  low = _max(low1, low2)
+  high = _min(high1, high2)
 
   if (low != '*' and high != '*'
       and float(low) > float(high)):
@@ -1113,11 +1184,7 @@ class BQLRequest:
 
     where = self.tokens.where
     if where:
-      if type(where) == dict:
-        pass
-      else:
-        # Single predicate in where clause
-        where = where.asList()[0]
+      assert type(where) == dict
       self.__extract_query_filter_selections(where)
 
       # if where[0].get(JSON_PARAM_QUERY):
@@ -1140,14 +1207,17 @@ class BQLRequest:
     """Extract the query and filter information from the where clause."""
 
     filter_list = []
-    if where.get(JSON_PARAM_QUERY_STRING):
+    if where.get(JSON_PARAM_QUERY):
       self.query_pred = where
       self.filter = None
     elif where.get("and"):
       preds = where.get("and")
       for pred in preds:
-        if pred.get(JSON_PARAM_QUERY_STRING):
+        if pred.get(JSON_PARAM_QUERY):
           self.query_pred = pred
+        elif pred.get("or") or pred.get("and") or pred.get("bool"):
+          # XXX Need to clear this part
+          filter_list.append(pred)
         elif self.__is_facet(pred_field(pred)):
           self.selection_list.append(pred)
         else:
@@ -1156,6 +1226,8 @@ class BQLRequest:
         self.filter = filter_list[0]
       elif filter_list:
         self.filter = {"and": filter_list}
+    elif where.get("or"):
+      self.filter = where
     elif self.__is_facet(pred_field(where)):
       self.selection_list.append(where)
     elif where:
@@ -1410,6 +1482,28 @@ def test(str):
     pass
   finally:
     reset_all()
+
+
+#
+# Utilities for result display
+#
+def print_line(keys, max_lens, char='-', sep_char='+'):
+  sys.stdout.write(sep_char)
+  for key in keys:
+    sys.stdout.write(char * (max_lens[key] + 2) + sep_char)
+  sys.stdout.write('\n')
+
+def print_header(keys, max_lens, char='-', sep_char='+'):
+  print_line(keys, max_lens, char=char, sep_char=sep_char)
+  sys.stdout.write('|')
+  for key in keys:
+    sys.stdout.write(' %s%s |' % (key, ' ' * (max_lens[key] - len(key))))
+  sys.stdout.write('\n')
+  print_line(keys, max_lens, char=char, sep_char=sep_char)
+
+def print_footer(keys, max_lens, char='-', sep_char='+'):
+  print_line(keys, max_lens, char=char, sep_char=sep_char)
+
 
 class SenseiClientError(Exception):
   """Exception raised for all errors related to Sensei client."""
@@ -1738,25 +1832,8 @@ class SenseiSystemInfo:
           max_lens["depends"] = tmp_len
       return max_lens
 
-    def print_line(char='-', sep_char='+'):
-      sys.stdout.write(sep_char)
-      for key in keys:
-        sys.stdout.write(char * (max_lens[key] + 2) + sep_char)
-      sys.stdout.write('\n')
-
-    def print_header():
-      print_line('-', '+')
-      sys.stdout.write('|')
-      for key in keys:
-        sys.stdout.write(' %s%s |' % (key, ' ' * (max_lens[key] - len(key))))
-      sys.stdout.write('\n')
-      print_line('-', '+')
-
-    def print_footer():
-      print_line('-', '+')
-      
     max_lens = get_max_lens(keys)
-    print_header()
+    print_header(keys, max_lens)
 
     for facet_info in self.facet_infos:
       props = facet_info.get_props()
@@ -1781,7 +1858,7 @@ class SenseiSystemInfo:
 
       sys.stdout.write('\n')
 
-    print_footer()
+    print_footer(keys, max_lens)
 
   def get_num_docs(self):
     return self.num_docs
@@ -1971,43 +2048,6 @@ class SenseiResult:
               max_lens[col] = min(value_len, max_col_width)
       return max_lens, has_group_hits
 
-    def print_line(char='-', sep_char='+'):
-      sys.stdout.write(sep_char)
-      for key in keys:
-        sys.stdout.write(char * (max_lens[key] + 2) + sep_char)
-      sys.stdout.write('\n')
-
-    def print_header():
-      if has_group_hits:
-        print_line('=', '=')
-      else:
-        print_line('-', '+')
-      sys.stdout.write('|')
-      for key in keys:
-        sys.stdout.write(' %s%s |' % (key, ' ' * (max_lens[key] - len(key))))
-      sys.stdout.write('\n')
-      if has_group_hits:
-        print_line('=', '=')
-      else:
-        print_line('-', '+')
-
-    def print_footer():
-      if has_group_hits:
-        print_line('=', '=')
-      else:
-        print_line('-', '+')
-      sys.stdout.write('%s %s%s in set, %s hit%s, %s total doc%s (server: %sms, total: %sms)\n' %
-                       (len(self.hits),
-                        has_group_hits and 'group' or 'row',
-                        len(self.hits) > 1 and 's' or '',
-                        self.numHits,
-                        self.numHits > 1 and 's' or '',
-                        self.totalDocs,
-                        self.totalDocs > 1 and 's' or '',
-                        self.time,
-                        self.total_time
-                        ))
-
     if not self.hits:
       print "No hit is found."
       return
@@ -2028,7 +2068,9 @@ class SenseiResult:
 
     max_lens, has_group_hits = get_max_lens(keys)
 
-    print_header()
+    print_header(keys, max_lens,
+                 has_group_hits and '=' or '-',
+                 has_group_hits and '=' or '+')
 
     # Print the results
     for hit in self.hits:
@@ -2054,10 +2096,23 @@ class SenseiResult:
           sys.stdout.write(' %s%s |' % (v, ' ' * (max_lens[key] - len(v))))
         sys.stdout.write('\n')
       if has_group_hits:
-        print_line()
+        print_line(keys, max_lens)
 
-    # Print the result footer
-    print_footer()
+    print_footer(keys, max_lens,
+                 has_group_hits and '=' or '-',
+                 has_group_hits and '=' or '+')
+
+    sys.stdout.write('%s %s%s in set, %s hit%s, %s total doc%s (server: %sms, total: %sms)\n' %
+                     (len(self.hits),
+                      has_group_hits and 'group' or 'row',
+                      len(self.hits) > 1 and 's' or '',
+                      self.numHits,
+                      self.numHits > 1 and 's' or '',
+                      self.totalDocs,
+                      self.totalDocs > 1 and 's' or '',
+                      self.time,
+                      self.total_time
+                      ))
 
     # Print facet information
     for facet, values in self.jsonMap.get(PARAM_RESULT_FACETS).iteritems():
@@ -2148,7 +2203,7 @@ class SenseiClient:
       output_json[JSON_PARAM_FILTER] = req.filter
 
     if req.query_pred:
-      output_json[JSON_PARAM_QUERY] = req.query_pred
+      output_json[JSON_PARAM_QUERY] = req.query_pred[JSON_PARAM_QUERY]
 
     if req.selections:
       output_json[JSON_PARAM_SELECTIONS] = req.selections

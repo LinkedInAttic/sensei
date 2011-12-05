@@ -397,7 +397,7 @@ class TestJsonAPI(unittest.TestCase):
 }""")
 
 
-  def testRangePredicate1(self):
+  def testRangePred1(self):
     stmt = \
     """
     SELECT *
@@ -424,7 +424,7 @@ class TestJsonAPI(unittest.TestCase):
   "size": 10
 }""")
 
-  def testRangePredicate2(self):
+  def testRangePred2(self):
     stmt = \
     """
     SELECT *
@@ -453,7 +453,7 @@ class TestJsonAPI(unittest.TestCase):
   "size": 10
 }""")
 
-  def testRangePredicate3(self):
+  def testRangePred3(self):
     stmt = \
     """
     SELECT *
@@ -621,7 +621,7 @@ class TestJsonAPI(unittest.TestCase):
       AND last_name = "Cui"
     """
     req = self.client.compile(stmt)
-    # print self.client.buildJsonString(req, indent=2),
+    # print self.client.buildJsonString(req, indent=2)
     self.assertEqual(self.client.buildJsonString(req, indent=2),
                      """{
   "fetchStored": true, 
@@ -662,7 +662,7 @@ class TestJsonAPI(unittest.TestCase):
     ORDER BY year desc, price
     """
     req = self.client.compile(stmt)
-    # print self.client.buildJsonString(req, indent=2),
+    # print self.client.buildJsonString(req, indent=2)
     self.assertEqual(self.client.buildJsonString(req, indent=2),
                      """{
   "fetchStored": true, 
@@ -686,7 +686,7 @@ class TestJsonAPI(unittest.TestCase):
     ORDER BY relevance
     """
     req = self.client.compile(stmt)
-    # print self.client.buildJsonString(req, indent=2),
+    # print self.client.buildJsonString(req, indent=2)
     self.assertEqual(self.client.buildJsonString(req, indent=2),
                      """{
   "fetchStored": true, 
@@ -722,7 +722,7 @@ class TestJsonAPI(unittest.TestCase):
     WHERE color IN ("red", "blue") EXCEPT("black")
     """
     req = self.client.compile(stmt)
-    # print self.client.buildJsonString(req, indent=2),
+    # print self.client.buildJsonString(req, indent=2)
     self.assertEqual(self.client.buildJsonString(req, indent=2),
                      """{
   "fetchStored": true, 
@@ -747,6 +747,38 @@ class TestJsonAPI(unittest.TestCase):
   "size": 10
 }""")
 
+  def testContainsAllPred(self):
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    WHERE tags CONTAINS ALL ("hybrid", "moon-roof", "leather")
+    """
+    req = self.client.compile(stmt)
+    # print self.client.buildJsonString(req, indent=2)
+    self.assertEqual(self.client.buildJsonString(req, indent=2),
+                     """{
+  "fetchStored": true, 
+  "from": 0, 
+  "selections": [
+    {
+      "terms": {
+        "tags": {
+          "_noOptimize": false, 
+          "excludes": [], 
+          "operator": "and", 
+          "values": [
+            "hybrid", 
+            "moon-roof", 
+            "leather"
+          ]
+        }
+      }
+    }
+  ], 
+  "size": 10
+}""")
+
   def testPathPred(self):
     stmt = \
     """
@@ -755,7 +787,8 @@ class TestJsonAPI(unittest.TestCase):
     WHERE city IN ("china/hongkong") WITH ("strict":false, "depth":1)
     """
     req = self.client.compile(stmt)
-    print self.client.buildJsonString(req, indent=2),
+    # XXX
+    # print self.client.buildJsonString(req, indent=2)
     # self.assertEqual(self.client.buildJsonString(req, indent=2),
     
 
@@ -773,8 +806,452 @@ class TestJsonAPI(unittest.TestCase):
 #     LIMIT 5, 20
 #     """
 #     req = self.client.compile(stmt)
-#     print self.client.buildJsonString(req, indent=2),
+#     print self.client.buildJsonString(req, indent=2)
 #     # self.assertEqual(self.client.buildJsonString(req, indent=2),
+
+  def testGroupBy1(self):
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    GROUP BY color
+    """
+    req = self.client.compile(stmt)
+    # print self.client.buildJsonString(req, indent=2)
+    self.assertEqual(self.client.buildJsonString(req, indent=2),
+                     """{
+  "fetchStored": true, 
+  "from": 0, 
+  "groupBy": [
+    {
+      "column": "color", 
+      "top": 10
+    }
+  ], 
+  "size": 10
+}""")
+
+  def testGroupBy2(self):
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    GROUP     BY color top 3
+    """
+    req = self.client.compile(stmt)
+    # print self.client.buildJsonString(req, indent=2)
+    self.assertEqual(self.client.buildJsonString(req, indent=2),
+                     """{
+  "fetchStored": true, 
+  "from": 0, 
+  "groupBy": [
+    {
+      "column": "color", 
+      "top": 3
+    }
+  ], 
+  "size": 10
+}""")
+    
+
+  def testBrowseBy1(self):
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    BROWSE BY color(false, 1, 10, hits), price(true, 1, 20, value)
+    """
+    req = self.client.compile(stmt)
+    # print self.client.buildJsonString(req, indent=2)
+    self.assertEqual(self.client.buildJsonString(req, indent=2),
+                     """{
+  "facets": {
+    "color": {
+      "expand": false, 
+      "max": 10, 
+      "minhit": 1, 
+      "order": "hits"
+    }, 
+    "price": {
+      "expand": true, 
+      "max": 20, 
+      "minhit": 1, 
+      "order": "val"
+    }
+  }, 
+  "fetchStored": true, 
+  "from": 0, 
+  "size": 10
+}""")
+
+  def testBrowseBy2(self):
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    BROWSE BY color, price(true, 1, 20, value), year
+    """
+    req = self.client.compile(stmt)
+    # print self.client.buildJsonString(req, indent=2)
+    self.assertEqual(self.client.buildJsonString(req, indent=2),
+                     """{
+  "facets": {
+    "color": {
+      "expand": false, 
+      "max": 10, 
+      "minhit": 1, 
+      "order": "hits"
+    }, 
+    "price": {
+      "expand": true, 
+      "max": 20, 
+      "minhit": 1, 
+      "order": "val"
+    }, 
+    "year": {
+      "expand": false, 
+      "max": 10, 
+      "minhit": 1, 
+      "order": "hits"
+    }
+  }, 
+  "fetchStored": true, 
+  "from": 0, 
+  "size": 10
+}""")
+
+  def testGivenClause1(self):
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    GIVEN FACET PARAM (My-Network, "srcid", int, 8233570)
+    """
+    req = self.client.compile(stmt)
+    # print self.client.buildJsonString(req, indent=2)
+    self.assertEqual(self.client.buildJsonString(req, indent=2),
+                     """{
+  "facetInit": {
+    "My-Network": {
+      "srcid": {
+        "type": "int", 
+        "values": [
+          "8233570"
+        ]
+      }
+    }
+  }, 
+  "fetchStored": true, 
+  "from": 0, 
+  "size": 10
+}""")
+
+  def testGivenClause2(self):
+    # XXX
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    GIVEN FACET PARAM (My-Network, "srcid", int, 8233570),
+                      (time, "now", long, "999999"),   -- Accept string too
+                      (member, "last_name", string, "Cui"),
+                      (member, "age", int, 25)
+    """
+
+  def testFetchingStored(self):
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    FETCHING STORED FALSE
+    """
+    req = self.client.compile(stmt)
+    # print self.client.buildJsonString(req, indent=2)
+    self.assertEqual(self.client.buildJsonString(req, indent=2),
+                     """{
+  "from": 0, 
+  "size": 10
+}""")
+
+  def testOrPred(self):
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    WHERE color = "red" OR color = "blue"
+    """
+    req = self.client.compile(stmt)
+    # print self.client.buildJsonString(req, indent=2)
+    self.assertEqual(self.client.buildJsonString(req, indent=2),
+                     """{
+  "fetchStored": true, 
+  "filter": {
+    "or": [
+      {
+        "term": {
+          "color": {
+            "value": "red"
+          }
+        }
+      }, 
+      {
+        "term": {
+          "color": {
+            "value": "blue"
+          }
+        }
+      }
+    ]
+  }, 
+  "from": 0, 
+  "size": 10
+}""")
+
+  def testAndOrPred(self):
+    stmt = \
+    """
+    SELECT color, year, tags
+    FROM cars
+    WHERE (color = "red" or color = "blue")
+       OR (color = "black" AND tags contains all ("hybrid", "moon-roof", "leather"))
+    GROUP BY color
+    """
+    req = self.client.compile(stmt)
+    # print self.client.buildJsonString(req, indent=2)
+    self.assertEqual(self.client.buildJsonString(req, indent=2),
+                     """{
+  "fetchStored": true, 
+  "filter": {
+    "or": [
+      {
+        "or": [
+          {
+            "term": {
+              "color": {
+                "value": "red"
+              }
+            }
+          }, 
+          {
+            "term": {
+              "color": {
+                "value": "blue"
+              }
+            }
+          }
+        ]
+      }, 
+      {
+        "and": [
+          {
+            "term": {
+              "color": {
+                "value": "black"
+              }
+            }
+          }, 
+          {
+            "terms": {
+              "tags": {
+                "_noOptimize": false, 
+                "excludes": [], 
+                "operator": "and", 
+                "values": [
+                  "hybrid", 
+                  "moon-roof", 
+                  "leather"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    ]
+  }, 
+  "from": 0, 
+  "groupBy": [
+    {
+      "column": "color", 
+      "top": 10
+    }
+  ], 
+  "size": 10
+}""")
+    
+  def testBetweenPred1(self):
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    WHERE year BETWEEN 2000 AND 2001
+    """
+    req = self.client.compile(stmt)
+    # print self.client.buildJsonString(req, indent=2)
+    self.assertEqual(self.client.buildJsonString(req, indent=2),
+                     """{
+  "fetchStored": true, 
+  "from": 0, 
+  "selections": [
+    {
+      "range": {
+        "year": {
+          "from": 2000, 
+          "include_lower": true, 
+          "include_upper": true, 
+          "to": 2001
+        }
+      }
+    }
+  ], 
+  "size": 10
+}""")
+
+  def testBetweenPred2(self):
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    WHERE year NOT BETWEEN 2000 AND 2001
+    """
+    req = self.client.compile(stmt)
+    # print self.client.buildJsonString(req, indent=2)
+    self.assertEqual(self.client.buildJsonString(req, indent=2),
+                     """{
+  "fetchStored": true, 
+  "filter": {
+    "or": [
+      {
+        "range": {
+          "year": {
+            "include_upper": false, 
+            "to": 2000
+          }
+        }
+      }, 
+      {
+        "range": {
+          "year": {
+            "from": 2000, 
+            "include_lower": false
+          }
+        }
+      }
+    ]
+  }, 
+  "from": 0, 
+  "size": 10
+}""")
+
+  def testSelectionConflict(self):
+    # XXX To be supported later
+    return
+
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    WHERE color = "red"
+      AND color = "blue"
+    """
+    error = None
+    try:
+      req = SenseiRequest(stmt)
+    except SenseiClientError as err:
+      error = str(err)
+    self.assertEqual(error, repr("There is conflict in selection(s) for column 'color'"))
+
+  def testSelectionMerge(self):
+    # XXX
+    return
+
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    WHERE color <> "red" AND color <> "blue"
+    """
+
+  def testMultipleQueries(self):
+    stmt = \
+    """
+    SELECT tags, color
+      FROM cars
+     WHERE (color = "red" AND query is "hybrid AND cool")
+        OR (color = "blue" AND query is "moon-roof AND navigation")
+    """
+    req = self.client.compile(stmt)
+    # print self.client.buildJsonString(req, indent=2),
+    self.assertEqual(self.client.buildJsonString(req, indent=2),
+                     """{
+  "fetchStored": true, 
+  "filter": {
+    "or": [
+      {
+        "and": [
+          {
+            "term": {
+              "color": {
+                "value": "red"
+              }
+            }
+          }, 
+          {
+            "query": {
+              "query_string": {
+                "query": "hybrid AND cool"
+              }
+            }
+          }
+        ]
+      }, 
+      {
+        "and": [
+          {
+            "term": {
+              "color": {
+                "value": "blue"
+              }
+            }
+          }, 
+          {
+            "query": {
+              "query_string": {
+                "query": "moon-roof AND navigation"
+              }
+            }
+          }
+        ]
+      }
+    ]
+  }, 
+  "from": 0, 
+  "size": 10
+}""")
+
+  def testMatchPred(self):
+    stmt = \
+    """
+    SELECT *
+      FROM cars
+     WHERE MATCH(f1, f2) AGAINST("text1 AND text2")
+    """
+    req = self.client.compile(stmt)
+    # print self.client.buildJsonString(req, indent=2),
+    self.assertEqual(self.client.buildJsonString(req, indent=2),
+                     """{
+  "fetchStored": true, 
+  "from": 0, 
+  "query": {
+    "query_string": {
+      "fields": [
+        "f1", 
+        "f2"
+      ], 
+      "query": "text1 AND text2"
+    }
+  }, 
+  "size": 10
+}""")
 
 if __name__ == "__main__":
     unittest.main()
