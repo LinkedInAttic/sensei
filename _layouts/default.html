@@ -8,6 +8,14 @@
     <meta name="description" content="open source, distributed, realtime, semi-structured database">
     <meta name="author" content="">
 
+    <script src="http://code.jquery.com/jquery-1.4.4.js"></script>
+
+    <script type="text/javascript">
+       var pageid = "_page_{{page.name}}"
+	 
+    </script>
+	<script type="text/javascript" src="js/app.js"></script>
+
     <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
     <!--[if lt IE 9]>
       <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
@@ -32,11 +40,11 @@
         <div class="container-fluid">
           <a class="brand" href="/index.html">SenseiDB</a>
           <ul class="nav">
-            <li class="active"><a href="/index.html">Home</a></li>
+            <li><a id="_page_home" href="/index.html">Home</a></li>
             <li><a href="https://github.com/senseidb/sensei/downloads">Download</a></li>
             <li><a href="#about">Getting Started</a></li>
             <li><a href="http://linkedin.jira.com/wiki/display/SENSEI/Home">Wiki</a></li>
-            <li><a href="/contribute.html">Contribute</a></li>
+            <li><a id="_page_contribute" href="/contribute.html">Contribute</a></li>
           </ul>
         </div>
       </div>
