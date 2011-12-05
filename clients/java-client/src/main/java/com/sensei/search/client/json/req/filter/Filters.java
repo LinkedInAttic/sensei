@@ -22,12 +22,12 @@ public class Filters {
     public static AndOr or(Filter... filters) {
         return new AndOr(Arrays.asList(filters), Operator.or);
     }
-   
-    public static Query query(Query query) {
-        return query;
-        
+
+    public static QueryFilter query(Query query) {
+        return new QueryFilter(query);
+
     }
-   
+
     public static BoolFilter bool(List<Filter> must, List<Filter> must_not, List<Filter> should) {
         return new BoolFilter(must, must_not, should);
     }
@@ -41,18 +41,21 @@ public class Filters {
         return new BoolFilter( null, null, Arrays.asList(should));
     }
     public static Term term(String field, String value) {
-        return (Term)new Term(value).setField(field);       
+        return (Term)new Term(value).setField(field);
     }
     public static Selection terms(String field, List<String> values, List<String> excludes, Operator op) {
-        return (Terms)new Terms(values,excludes, op).setField(field);
+        return new Terms(values,excludes, op).setField(field);
     }
-    public static Selection range(String field, String upper, String lower,boolean includeUpper, boolean includeLower) {
-         return (Selection.Range) new Range(upper, lower, includeUpper, includeLower).setField(field);
+    public static Selection range(String field, String lower, String upper,boolean includeUpper, boolean includeLower) {
+         return new Range(lower, upper, includeUpper, includeLower).setField(field);
     }
-    public static Selection range(String field, String upper, String lower) {
-        return (Selection.Range) new Range(upper, lower, true, true).setField(field);
+    public static Selection range(String field, String lower, String upper) {
+        return new Range(lower, upper, true, true).setField(field);
    }
+    public static Range range(String field, String from, String to, boolean includeLower, boolean includeUpper, boolean noOptimize, String type) {
+      return (Range) new Range(from, to, includeLower, includeUpper, (Double) null, noOptimize).setField(field);
+  }
     public static Selection path(String field, String value, boolean strict, int depth) {
-        return (Selection.Path) new Path(value, strict, depth).setField(field);
+        return new Path(value, strict, depth).setField(field);
     }
 }

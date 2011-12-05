@@ -23,6 +23,8 @@ public class SpanNot implements Query  {
     public SpanNot(SpanTerm include, SpanTerm exclude, double boost) {
         super();
         this.include = include;
+        include.setBoost(null);
+        exclude.setBoost(null);
         this.exclude = exclude;
         this.boost = boost;
     }

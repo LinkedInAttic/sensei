@@ -1,6 +1,9 @@
 package com.sensei.search.client.json.req.query.span;
 
+import java.util.List;
+
 import com.sensei.search.client.json.CustomJsonHandler;
+import com.sensei.search.client.json.req.query.FieldAware;
 import com.sensei.search.client.json.req.query.Query;
 import com.sensei.search.client.json.req.query.QueryJsonHandler;
 
@@ -18,14 +21,31 @@ import com.sensei.search.client.json.req.query.QueryJsonHandler;
  *
  */
 @CustomJsonHandler(QueryJsonHandler.class)
-public class SpanTerm implements Query  {
+public class SpanTerm extends FieldAware implements Query  {
     private String value;
-    private double boost;
-    public SpanTerm(String value, double boost) {
+    private Double boost;
+    public SpanTerm(String field,  String value, Double boost) {
         super();
         this.value = value;
         this.boost = boost;
+        this.field = field;
     }
-    
-    
+    public String getValue() {
+      return value;
+    }
+    public void setValue(String value) {
+      this.value = value;
+    }
+    public Double getBoost() {
+      return boost;
+    }
+    public void setBoost(Double boost) {
+      this.boost = boost;
+    }
+    public static void cleanBoosts(List<SpanTerm> spanTerms) {
+      for (SpanTerm spanTerm : spanTerms) {
+        spanTerm.setBoost(null);
+      }
+    }
+
 }

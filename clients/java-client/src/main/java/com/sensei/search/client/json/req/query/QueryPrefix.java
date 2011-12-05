@@ -17,13 +17,14 @@ import com.sensei.search.client.json.CustomJsonHandler;
  *
  */
 @CustomJsonHandler(QueryJsonHandler.class)
-public class QueryPrefix  implements Query {
+public class QueryPrefix extends FieldAware implements Query {
     private String value;
     private double boost;
-    public QueryPrefix(String value, double boost) {
+    public QueryPrefix(String field, String value, double boost) {
         super();
         this.value = value;
         this.boost = boost;
+        this.field = field;
     }
-    
+
 }

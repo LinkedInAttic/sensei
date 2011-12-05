@@ -203,6 +203,10 @@ public class StringQuery implements Filter, Query {
             query.tieBreaker= tieBreaker;
             return this;
         }
+        public Builder query(String queryParam) {
+          this.query.query= queryParam;
+          return this;
+      }
         public StringQuery build() {
             return query;
         }

@@ -23,7 +23,7 @@ public class Examples {
         SenseiClientRequest senseiRequest = filters(queries(basicWithSelections(SenseiClientRequest.builder()))).build();
         Object serialized = JsonSerializer.serialize(senseiRequest);
         System.out.println(serialized);
-        SenseiResult senseiResult = new SenseiServiceProxy().sendRequest("http://localhost:8080/sensei/", senseiRequest);
+        SenseiResult senseiResult = new SenseiServiceProxy("http://localhost:8080/sensei/").sendRequest(senseiRequest);
         System.out.println(senseiResult.toString());
     }
     public static SenseiClientRequest.Builder basicWithSelections(SenseiClientRequest.Builder builder) {
@@ -67,15 +67,15 @@ public class Examples {
 	                    Queries.disMax(2.0, 1.0, Queries.term("field1", "value1", 1.0)),
 	                    Queries.ids(Arrays.asList("val2", "val3"), Arrays.asList("ExcludedValue"), 1.0),
 	                    Queries.matchAllQuery(3.0),
-	                    Queries.path("/path1/path2", 1.0),
-	                    Queries.queryPrefix("prefix", 2.0),
-	                    Queries.queryWildcard("wildcard", 3.0),
-	                    Queries.spanFirst(Queries.spanTerm("val", 3.5), 3, 1.0),
-	                    Queries.spanNear(Arrays.asList(Queries.spanTerm("val", 3.5)), 3, true, true, 1.0),
-	                    Queries.spanNot(Queries.spanTerm("val", 3.5), Queries.spanTerm("val2", 3.5), 1.0),
-	                    Queries.spanOr( 1.0, Queries.spanTerm("val", 3.5)),
-	                    Queries.spanTerm("val", 3.5),
-	                    Queries.textQuery("text", Operator.or, Type.phrase, 1.0),
+	                    Queries.path("field", "/path1/path2", 1.0),
+	                    Queries.prefix("field", "prefix", 2.0),
+	                    Queries.wildcard("field", "wildcard", 3.0),
+	                    Queries.spanFirst(Queries.spanTerm("field", "val", 3.5), 3, 1.0),
+	                    Queries.spanNear(Arrays.asList(Queries.spanTerm("field", "val", 3.5)), 3, true, true, 1.0),
+	                    Queries.spanNot(Queries.spanTerm("field", "val", 3.5), Queries.spanTerm("field", "val2", 3.5), 1.0),
+	                    Queries.spanOr( 1.0, Queries.spanTerm("field", "val", 3.5)),
+	                    Queries.spanTerm("field", "val", 3.5),
+	                    Queries.textQuery("column","text", Operator.or, Type.phrase, 1.0),
 
 	                            Queries.stringQueryBuilder().autoGeneratePhraseQueries(true).defaultField("field").defaultOperator(Operator.and).fields("field1","field2").tieBreaker(2).build()
 	              );

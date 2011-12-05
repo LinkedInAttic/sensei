@@ -7,6 +7,7 @@ import org.json.JSONObject;
 import com.sensei.search.client.json.CustomJsonHandler;
 import com.sensei.search.client.json.JsonField;
 import com.sensei.search.client.json.req.filter.Filter;
+import com.sensei.search.client.json.req.query.Query;
 
 @CustomJsonHandler(SelectionJsonHandler.class)
 public abstract class Selection implements Filter {
@@ -72,25 +73,50 @@ public abstract class Selection implements Filter {
 
      *
      */
-    public static class Range extends Selection {
+    public static class Range extends Selection implements Query{
 
-        private String upper;
-        private String lower;
+      private String from;
+        private String to;
         @JsonField("include_lower")
         private boolean includeLower;
         @JsonField("include_upper")
         private boolean includeUpper;
+
+        private Double boost;
+        @JsonField("_noOptimize")
+        private Boolean notOptimize;
+        private String type;
        public Range() {
        }
-    public Range(String upper, String lower, boolean includeUpper, boolean includeLower) {
+    public Range(String from, String to, boolean includeLower, boolean includeUpper) {
         super();
 
-        this.upper = upper;
-        this.lower = lower;
-        this.includeUpper = includeUpper;
+        this.from = from;
+        this.to = to;
         this.includeLower = includeLower;
+        this.includeUpper = includeUpper;
     }
+    public Range(String from, String to, boolean includeLower, boolean includeUpper, double Doost, boolean noOptimize) {
+      super();
 
+      this.from = from;
+      this.to = to;
+      this.includeLower = includeLower;
+      this.includeUpper = includeUpper;
+      this.boost = boost;
+      notOptimize = noOptimize;
+  }
+    public Range(String from, String to, boolean includeLower, boolean includeUpper, Double boost, boolean noOptimize, String type) {
+      super();
+
+      this.from = from;
+      this.to = to;
+      this.includeLower = includeLower;
+      this.includeUpper = includeUpper;
+      this.boost = boost;
+      notOptimize = noOptimize;
+      this.type = type;
+  }
     }
     public static class Custom extends Selection {
         private JSONObject custom;
@@ -112,11 +138,11 @@ public abstract class Selection implements Filter {
     public static Selection terms(String field, List<String> values, List<String> excludes, Operator op) {
         return new Terms(values,excludes, op).setField(field);
     }
-    public static Selection range(String field, String upper, String lower, boolean includeUpper, boolean includeLower) {
-         return new Range(upper, lower, includeUpper, includeLower).setField(field);
+    public static Selection range(String field, String from, String to, boolean includeLower, boolean includeUpper) {
+         return new Range(from, to, includeLower, includeUpper).setField(field);
     }
-    public static Selection range(String field, String upper, String lower) {
-        return new Range(upper, lower, true, true).setField(field);
+    public static Selection range(String field, String from , String to) {
+        return new Range(from, to, true, true).setField(field);
    }
     public static Selection path(String field, String value, boolean strict, int depth) {
         return new Path(value, strict, depth).setField(field);

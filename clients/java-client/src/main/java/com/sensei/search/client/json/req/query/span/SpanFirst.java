@@ -22,6 +22,7 @@ public class SpanFirst implements Query {
         this.match = match;
         this.end = end;
         this.boost = boost;
+        match.setBoost(null);
     }
 
 

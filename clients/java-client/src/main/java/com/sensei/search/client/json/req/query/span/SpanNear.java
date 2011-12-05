@@ -30,6 +30,7 @@ public class SpanNear implements Query  {
         this.inOrder = inOrder;
         this.collectPayloads = collectPayloads;
         this.boost = boost;
+        SpanTerm.cleanBoosts(clauses);
     }
 
 }

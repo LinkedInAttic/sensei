@@ -16,8 +16,8 @@ import com.sensei.search.client.json.req.query.QueryJsonHandler;
 
 public class SenseiClientRequest {
     private Paging paging;
-   
-    
+
+
     private GroupBy groupBy;
     private List<Selection> selections = new ArrayList<Selection>();
     @CustomJsonHandler(value = QueryJsonHandler.class)
@@ -37,8 +37,8 @@ public class SenseiClientRequest {
         public Builder paging(int count, int offset) {
             request.paging = new Paging(count, offset);
             return this;
-        }     
-        
+        }
+
         public Builder fetchStored(boolean fetchStored) {
             request.fetchStored = fetchStored;
             return this;
@@ -51,13 +51,13 @@ public class SenseiClientRequest {
             request.explain = explain;
             return this;
         }
-       
+
         public Builder query(Query query) {
                 request.query = query;
-            
+
             return this;
         }
-        
+
         public Builder groupBy(int top, String... columns) {
             request.groupBy = new GroupBy(Arrays.asList(columns), top);
             return this;
@@ -114,7 +114,7 @@ public class SenseiClientRequest {
     public static Builder builder() {
         return new Builder();
     }
-    
+
     public Paging getPaging() {
         return paging;
     }
@@ -148,7 +148,7 @@ public class SenseiClientRequest {
     public String getRouteParam() {
         return routeParam;
     }
-    
-    
-    
+
+
+
 }

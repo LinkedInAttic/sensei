@@ -2,6 +2,7 @@ package com.sensei.search.client.json.req;
 
 import java.util.List;
 
+import com.sensei.search.client.json.JsonField;
 import com.sensei.search.client.json.req.query.Query;
 
 /**
@@ -17,7 +18,9 @@ import com.sensei.search.client.json.req.query.Query;
         List<String> values;
         List<String> excludes;
         Operator op;
-         double boost;
+         Double boost;
+         @JsonField("minimum_match")
+         Integer minimumMatch;
         public Terms() {
 
         }
@@ -27,12 +30,13 @@ import com.sensei.search.client.json.req.query.Query;
             this.excludes = excludes;
             this.op = op;
         }
-        public Terms(List<String> values, List<String> excludes, Operator op, double boost) {
+        public Terms(List<String> values, List<String> excludes, Operator op, int minimumMatch, double boost) {
           super();
           this.values = values;
           this.excludes = excludes;
           this.op = op;
           this.boost = boost;
+          this.minimumMatch = minimumMatch;
         }
 
     }

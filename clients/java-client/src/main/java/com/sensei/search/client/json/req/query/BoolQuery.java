@@ -10,13 +10,13 @@ public class BoolQuery implements Query {
     List<Query> must_not;
     List<Query> should;
     @JsonField("minimum_number_should_match")
-    int minimumNumberShouldMatch;
+    Integer minimumNumberShouldMatch;
     double boost;
-    boolean disableCoord;
+    Boolean disableCoord;
 
 
-    public BoolQuery(List<Query> must, List<Query> must_not, List<Query> should, int minimumNumberShouldMatch,
-            double boost, boolean disableCoord) {
+    public BoolQuery(List<Query> must, List<Query> must_not, List<Query> should, Integer minimumNumberShouldMatch,
+            double boost, Boolean disableCoord) {
         super();
         this.must = must;
         this.must_not = must_not;
@@ -25,6 +25,7 @@ public class BoolQuery implements Query {
         this.boost = boost;
         this.disableCoord = disableCoord;
     }
+
 
 
 }
