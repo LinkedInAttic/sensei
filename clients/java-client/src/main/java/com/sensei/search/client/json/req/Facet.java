@@ -11,7 +11,7 @@ public class Facet {
   /**
    * Minimum hits parameter
    */
-  int minCount;
+  int minHit;
   /**
    * Selection-expand parameter
    */
@@ -35,8 +35,8 @@ public class Facet {
       return this;
     }
 
-    public Builder minCount(int minCount) {
-      facet.minCount = minCount;
+    public Builder minHit(int minCount) {
+      facet.minHit = minCount;
       return this;
     }
 

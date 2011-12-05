@@ -16,10 +16,10 @@ public class JsonSerializationTest extends Assert {
         String response = new String(IOUtils.getBytes(getClass().getClassLoader().getResourceAsStream("json/senseiresult.json")), "UTF-8");
         System.out.println(new JSONObject(response).toString(2));
         SenseiResult senseiResult = JsonDeserializer.deserialize(SenseiResult.class, new JSONObject(response));
-        assertEquals(senseiResult.getFacets().size(), 3);
+        assertEquals(senseiResult.getFacets().size(), 2);
         System.out.println(senseiResult);
     }
-   // @Test
+    @Test
     public void test2Serialization() throws Exception {
         SenseiClientRequest senseiRequest = Examples.basicWithSelections(SenseiClientRequest.builder()).build();
        String strRepresentation = JsonSerializer.serialize(senseiRequest).toString();

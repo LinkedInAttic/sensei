@@ -17,10 +17,11 @@ import com.sensei.search.client.json.req.query.Query;
 
         List<String> values;
         List<String> excludes;
-        Operator op;
+        Operator operator;
          Double boost;
          @JsonField("minimum_match")
          Integer minimumMatch;
+         boolean _noOptimize = false;
         public Terms() {
 
         }
@@ -28,13 +29,13 @@ import com.sensei.search.client.json.req.query.Query;
             super();
             this.values = values;
             this.excludes = excludes;
-            this.op = op;
+            this.operator = op;
         }
         public Terms(List<String> values, List<String> excludes, Operator op, int minimumMatch, double boost) {
           super();
           this.values = values;
           this.excludes = excludes;
-          this.op = op;
+          this.operator = op;
           this.boost = boost;
           this.minimumMatch = minimumMatch;
         }

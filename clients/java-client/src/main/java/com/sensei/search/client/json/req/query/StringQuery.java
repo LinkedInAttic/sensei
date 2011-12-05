@@ -171,26 +171,26 @@ public class StringQuery implements Filter, Query {
   @JsonField("default_operator")
   private Operator defaultOperator;
   @JsonField("allow_leading_wildCard")
-  private boolean allowLeadingWildCard;
+  private Boolean allowLeadingWildCard;
   @JsonField("lowercase_expanded_terms")
-  private boolean lowercaseExpandedTerms;
+  private Boolean lowercaseExpandedTerms;
 
   @JsonField("enable_position_increments")
-  private boolean enablePositionIncrements;
+  private Boolean enablePositionIncrements;
   @JsonField("fuzzy_prefix_length")
   private String fuzzyPrefixLength;
   @JsonField("fuzzy_min_sim")
-  private double fuzzyMinSim;
+  private Double fuzzyMinSim;
   @JsonField("phrase_slop")
-  private int phraseSlop;
-  private double boost = 1.0;
+  private Integer phraseSlop;
+  private Double boost = 1.0;
   @JsonField("auto_generate_phrase_queries")
-  private boolean autoGeneratePhraseQueries;
+  private Boolean autoGeneratePhraseQueries;
   private List<String> fields;
   @JsonField("use_dis_max")
-  private boolean useDisMax;
+  private Boolean useDisMax;
   @JsonField("tie_breaker")
-  private int tieBreaker;
+  private Integer tieBreaker;
 
   public static Builder builder() {
     return new Builder();

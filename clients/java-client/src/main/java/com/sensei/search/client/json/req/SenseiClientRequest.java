@@ -19,11 +19,12 @@ import com.sensei.search.client.json.req.query.QueryJsonHandler;
  *
  */
 public class SenseiClientRequest {
-    /**
+   /* *//**
      * @see com.sensei.search.client.json.req.Paging
-     */
-    private Paging paging;
-
+     *//*
+    private Paging paging;*/
+    private Integer count;
+    private Integer from;
 
     /**
      *
@@ -64,7 +65,8 @@ by all runtime facet handlers
     public static class Builder {
         private SenseiClientRequest request = new SenseiClientRequest();
         public Builder paging(int count, int offset) {
-            request.paging = new Paging(count, offset);
+            request.count = count;
+            request.from = offset;
             return this;
         }
 
@@ -145,7 +147,7 @@ by all runtime facet handlers
     }
 
     public Paging getPaging() {
-        return paging;
+        return new Paging(count, from);
     }
     public GroupBy getGroupBy() {
         return groupBy;
