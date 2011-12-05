@@ -22,12 +22,15 @@ public class SpanNear implements Query  {
     private boolean inOrder;
     @JsonField("collect_payloads")
     private boolean collectPayloads;
-    public SpanNear(List<SpanTerm> clauses, int slop, boolean inOrder, boolean collectPayloads) {
+    private final double boost;
+    public SpanNear(List<SpanTerm> clauses, int slop, boolean inOrder, boolean collectPayloads, double boost) {
         super();
         this.clauses = clauses;
         this.slop = slop;
         this.inOrder = inOrder;
         this.collectPayloads = collectPayloads;
+        this.boost = boost;
+        SpanTerm.cleanBoosts(clauses);
     }
-    
+
 }

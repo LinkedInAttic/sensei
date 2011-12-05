@@ -18,6 +18,7 @@ import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_F
 import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_FACET_ORDER_HITS;
 import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_FACET_ORDER_VAL;
 import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_FETCH_STORED;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_FETCH_STORED_VALUE;
 import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_FETCH_TERMVECTOR;
 import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_GROUP_BY;
 import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_MAX_PER_GROUP;
@@ -482,6 +483,7 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
     senseiReq.setCount(params.getInt(PARAM_COUNT, 10));
     senseiReq.setShowExplanation(params.getBoolean(PARAM_SHOW_EXPLAIN, false));
     senseiReq.setFetchStoredFields(params.getBoolean(PARAM_FETCH_STORED, false));
+    senseiReq.setFetchStoredValue(params.getBoolean(PARAM_FETCH_STORED_VALUE, false));
     
 
     String[] fetchTVs= params.getStringArray(PARAM_FETCH_TERMVECTOR);

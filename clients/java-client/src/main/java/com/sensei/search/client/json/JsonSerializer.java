@@ -4,7 +4,6 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -27,12 +26,7 @@ public class JsonSerializer {
         }
         CustomJsonHandler customJsonHandler = getCustomJsonHandlerByType(object.getClass());
         if (customJsonHandler != null && handleCustomJsonHandler) {
-            JsonHandler jsonHandler;
-            try {
-                jsonHandler = customJsonHandler.value().newInstance();
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
+          JsonHandler jsonHandler = instantiate(customJsonHandler.value());
             return jsonHandler.serialize(object);
         }
         if (object.getClass().isEnum()) {
@@ -61,14 +55,15 @@ public class JsonSerializer {
             String name = field.getName();
             if (field.isAnnotationPresent(JsonField.class)) {
                 name = field.getAnnotation(JsonField.class).value();
-            }           
+            }
             try {
                 CustomJsonHandler customJsonHandlerAnnotation = getCustomJsonHandlerByField(field);
+                Object fieldValue = field.get(object);
                 if (customJsonHandlerAnnotation == null) {
-                    ret.put(name, serialize(field.get(object)));
+                    ret.put(name, serialize(fieldValue));
                 } else {
                     JsonHandler jsonHandler = instantiate(customJsonHandlerAnnotation.value());
-                    Object fieldJson =  jsonHandler.serialize(field.get(object));
+                    Object fieldJson =  jsonHandler.serialize(fieldValue);
                     if (customJsonHandlerAnnotation.flatten() && fieldJson != null) {
                         String[] names = JSONObject.getNames((JSONObject)fieldJson);
                         if (names == null || names.length != 1) {
@@ -94,20 +89,20 @@ public class JsonSerializer {
     private static CustomJsonHandler getCustomJsonHandlerByType(Class<?> cls) {
         if (!jsonHandlersByType.containsKey(cls)) {
             CustomJsonHandler customJsonHandler = (CustomJsonHandler) ReflectionUtil.getAnnotation(cls, CustomJsonHandler.class);
-            jsonHandlersByType.put(cls, customJsonHandler); 
+            jsonHandlersByType.put(cls, customJsonHandler);
         }
         return jsonHandlersByType.get(cls);
     }
     private static CustomJsonHandler getCustomJsonHandlerByField(Field field) {
         if (!jsonHandlersByField.containsKey(field)) {
             CustomJsonHandler customJsonHandler = field.getAnnotation(CustomJsonHandler.class);
-            jsonHandlersByField.put(field, customJsonHandler); 
+            jsonHandlersByField.put(field, customJsonHandler);
         }
         return jsonHandlersByField.get(field);
     }
     private static JsonHandler instantiate(Class<? extends JsonHandler> cls) {
         if (!jsonHandlers.containsKey(cls)) {
-            
+
             try {
                 jsonHandlers.put(cls, cls.newInstance());
             } catch (Exception e) {
@@ -115,5 +110,5 @@ public class JsonSerializer {
             }
         }
         return jsonHandlers.get(cls);
-    } 
+    }
 }

@@ -121,13 +121,13 @@ public class StringQuery implements Filter, Query {
     private String defaultField;
     private String query;
     @JsonField("default_operator")
-    private Operator defaultOperator; 
+    private Operator defaultOperator;
     @JsonField("allow_leading_wildCard")
-    private boolean allowLeadingWildCard; 
+    private boolean allowLeadingWildCard;
     @JsonField("lowercase_expanded_terms")
     private boolean lowercaseExpandedTerms;
-    
-  
+
+
     @JsonField("enable_position_increments")
     private boolean enablePositionIncrements;
     @JsonField("fuzzy_prefix_length")
@@ -135,10 +135,10 @@ public class StringQuery implements Filter, Query {
     @JsonField("fuzzy_min_sim")
     private double fuzzyMinSim;
     @JsonField("phrase_slop")
-    private int phraseSlop;     
-    private double boost;            
+    private int phraseSlop;
+    private double boost = 1.0;
     @JsonField("auto_generate_phrase_queries")
-    private   boolean autoGeneratePhraseQueries;            
+    private   boolean autoGeneratePhraseQueries;
     private List<String> fields;
     @JsonField("use_dis_max")
     private boolean useDisMax;
@@ -157,12 +157,12 @@ public class StringQuery implements Filter, Query {
             query.allowLeadingWildCard= allowLeadingWildCard;
             return this;
         }
-      
+
         public Builder defaultOperator(Operator op) {
             query.defaultOperator= op;
             return this;
-        } 
-       
+        }
+
         public Builder lowercaseExpandedTerms(boolean lowercaseExpandedTerms) {
             query.lowercaseExpandedTerms= lowercaseExpandedTerms;
             return this;
@@ -182,15 +182,15 @@ public class StringQuery implements Filter, Query {
         public Builder phraseSlop(int phraseSlop) {
             query.phraseSlop= phraseSlop;
             return this;
-        }    
+        }
         public Builder boost(double boost) {
             query.boost= boost;
             return this;
-        }           
+        }
         public Builder  autoGeneratePhraseQueries( boolean autoGeneratePhraseQueries) {
             query.autoGeneratePhraseQueries= autoGeneratePhraseQueries;
             return this;
-        }            
+        }
         public Builder fields(String... fields) {
             query.fields= Arrays.asList(fields);
             return this;
@@ -203,6 +203,10 @@ public class StringQuery implements Filter, Query {
             query.tieBreaker= tieBreaker;
             return this;
         }
+        public Builder query(String queryParam) {
+          this.query.query= queryParam;
+          return this;
+      }
         public StringQuery build() {
             return query;
         }

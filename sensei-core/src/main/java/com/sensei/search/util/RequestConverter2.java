@@ -77,6 +77,8 @@ public class RequestConverter2 {
   public static final String SORT_SCORE = "_score";
 
   public static final String FETCH_STORED = "fetchStored";
+
+  public static final String FETCH_STORED_VALUE = "fetchStoredValue";
   
   public static final String TERM_VECTORS = "termVectors";
   
@@ -294,6 +296,9 @@ public class RequestConverter2 {
 		  
 		boolean fetchStored = json.optBoolean(RequestConverter2.FETCH_STORED);
 		req.setFetchStoredFields(fetchStored);
+
+		boolean fetchStoredValue = json.optBoolean(RequestConverter2.FETCH_STORED_VALUE);
+		req.setFetchStoredValue(fetchStoredValue);
 		  
 		String[] termVectors = getStrings(json,RequestConverter2.TERM_VECTORS);
 		if (termVectors!=null && termVectors.length>0){

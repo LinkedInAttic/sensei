@@ -13,14 +13,15 @@ import com.sensei.search.client.json.req.filter.FilterJsonHandler;
  */
 @CustomJsonHandler(value = QueryJsonHandler.class)
 public class FilteredQuery implements Query {
-    
+
     private Query query;
     @CustomJsonHandler(value = FilterJsonHandler.class, flatten = false)
     private Filter filter;
-    public FilteredQuery(Query query, Filter filter) {
+    private double boost;
+    public FilteredQuery(Query query, Filter filter, double boost) {
         super();
         this.query = query;
         this.filter = filter;
     }
-    
+
 }

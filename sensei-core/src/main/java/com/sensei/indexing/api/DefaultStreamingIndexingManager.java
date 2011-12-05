@@ -252,7 +252,7 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
         throw new ZoieException(e.getMessage(),e);
       }
     }
-      
+
     @Override
     public String getVersion()
     {

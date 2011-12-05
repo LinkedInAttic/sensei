@@ -14,12 +14,15 @@ import com.sensei.search.client.json.req.query.QueryJsonHandler;
  *
  */
 @CustomJsonHandler(QueryJsonHandler.class)
-public class SpanOr implements Query  {
+public class SpanOr  implements Query  {
     List<SpanTerm> clauses;
+    private final Double boost;
 
-    public SpanOr(List<SpanTerm> clauses) {
+    public SpanOr(List<SpanTerm> clauses, Double boost) {
         super();
         this.clauses = clauses;
+        SpanTerm.cleanBoosts(clauses);
+        this.boost = boost;
     }
-    
+
 }

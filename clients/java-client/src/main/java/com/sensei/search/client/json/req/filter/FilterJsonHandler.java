@@ -34,12 +34,12 @@ public class FilterJsonHandler implements JsonHandler<Filter>{
         if (bean instanceof AndOr) {
             AndOr andOr = (AndOr) bean;
             String operation = andOr.getOperation().name();
-            
+
             List<JSONObject> filters = convertToJson(andOr.filters);
             return new JSONObject().put(operation, new JSONArray(filters));
         }
-        if (bean instanceof Bool) {
-            Bool bool = (Bool) bean;
+        if (bean instanceof BoolFilter) {
+            BoolFilter bool = (BoolFilter) bean;
             JSONObject ret = new JSONObject();
             if (bool.getMust() != null) {
                 ret.put("must", new JSONArray(convertToJson(bool.getMust())));
@@ -61,14 +61,17 @@ public class FilterJsonHandler implements JsonHandler<Filter>{
             if (ids.getExcludes() != null) {
                 ret.put("excludes", new JSONArray(ids.getExcludes() ));
             }
-            
+
             return new JSONObject().put("ids", ret);
-        } 
+        }
         if (bean instanceof Query) {
             return queryJsonHandler.serialize((Query) bean);
         }
+        if (bean instanceof QueryFilter) {
+          return new JSONObject().put("query", queryJsonHandler.serialize(((QueryFilter) bean).getQuery()));
+        }
         throw new UnsupportedOperationException(bean.getClass() + " is not supported");
-        
+
     }
 
     private List<JSONObject> convertToJson(List<Filter> filters2) throws JSONException {
@@ -80,7 +83,7 @@ public class FilterJsonHandler implements JsonHandler<Filter>{
     }
 
     @Override
-    public Filter deserialize(JSONObject json) throws JSONException {        
+    public Filter deserialize(JSONObject json) throws JSONException {
         return null;
     }
 

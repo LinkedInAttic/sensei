@@ -60,9 +60,9 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
       {
         try
         {
-          Document doc = hit.getStoredFields();
-          byte[] dataBytes = doc.getBinaryValue(SenseiSchema.SRC_DATA_COMPRESSED_FIELD_NAME);
-          if (dataBytes!=null && dataBytes.length>0){
+          byte[] dataBytes = hit.getStoredValue();
+          if (dataBytes!=null && dataBytes.length>0)
+          {
             ByteArrayOutputStream bout = new ByteArrayOutputStream();
             byte[] buf = new byte[1024];  // 1k buffer
             ByteArrayInputStream bin = new ByteArrayInputStream(dataBytes);
@@ -77,14 +77,6 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
             byte[] uncompressed = bout.toByteArray();
             hit.setSrcData(new String(uncompressed,"UTF-8"));
           }
-          else {
-            dataBytes = doc.getBinaryValue(SenseiSchema.SRC_DATA_FIELD_NAME);
-            if (dataBytes!=null && dataBytes.length>0) {
-              hit.setSrcData(new String(dataBytes,"UTF-8"));
-            }
-          }
-          doc.removeFields(SenseiSchema.SRC_DATA_COMPRESSED_FIELD_NAME);
-          doc.removeFields(SenseiSchema.SRC_DATA_FIELD_NAME);
         }
         catch(Exception e)
         {
@@ -101,9 +93,8 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
     request.restoreState();
     SenseiResult res = ResultMerger.merge(request, resultList, false);
 
-    if (request.isFetchStoredFields()) {  // Decompress binary data.
+    if (request.isFetchStoredFields() || request.isFetchStoredValue())
       recoverSrcData(res.getSenseiHits());
-    }
 
     return res;
   }

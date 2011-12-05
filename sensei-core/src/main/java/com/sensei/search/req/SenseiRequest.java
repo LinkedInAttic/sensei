@@ -43,6 +43,7 @@ private long   tid           =          -1;
   private int _origOffset;
   private int _origCount;
   private boolean _fetchStoredFields;
+  private boolean _fetchStoredValue;
   private Map<String,FacetHandlerInitializerParam> _facetInitParamMap;
   private Set<Integer> _partitions;
   private boolean _showExplanation;
@@ -58,6 +59,7 @@ private long   tid           =          -1;
     _sortSpecs=new ArrayList<SortField>();
     _facetSpecMap=new HashMap<String,FacetSpec>();
     _fetchStoredFields = false;
+    _fetchStoredValue = false;
     _partitions = null;
     _showExplanation = false;
     _routeParam = null;
@@ -245,6 +247,14 @@ private long   tid           =          -1;
     _fetchStoredFields = fetchStoredFields;
   }
   
+  public boolean isFetchStoredValue(){
+    return _fetchStoredValue;
+  }
+  
+  public void setFetchStoredValue(boolean fetchStoredValue){
+    _fetchStoredValue = fetchStoredValue;
+  }
+
   /**
    * Sets a facet spec
    * @param name field name
@@ -427,8 +437,9 @@ private long   tid           =          -1;
       buf.append("route param: ").append(_routeParam).append('\n');
     if (_groupBy != null)
       buf.append("group by: ").append(_groupBy).append('\n');
-    buf.append("max per group: ").append(_maxPerGroup);
-    buf.append("fetch stored fields: ").append(_fetchStoredFields);
+    buf.append("max per group: ").append(_maxPerGroup).append('\n');
+    buf.append("fetch stored fields: ").append(_fetchStoredFields).append('\n');
+    buf.append("fetch stored value: ").append(_fetchStoredValue);
     return buf.toString();
   }
   
