@@ -389,7 +389,7 @@ def accumulate_range_pred(field_map, pred):
   "1999 < year <= 2003".
   """
 
-  def __max(n1, include1, n2, include2):
+  def _max(n1, include1, n2, include2):
     """Find the larger of the two lower bounds."""
 
     if n1 == None:
@@ -404,7 +404,7 @@ def accumulate_range_pred(field_map, pred):
       else:
         return n2, include2
 
-  def __min(n1, include1, n2, include2):
+  def _min(n1, include1, n2, include2):
     """Find the smaller of the two upper bounds."""
 
     if n1 == None:
@@ -437,8 +437,8 @@ def accumulate_range_pred(field_map, pred):
   cur_include_upper = cur_spec.get("include_upper") or False
 
   new_spec = {}
-  lower, include_lower = __max(old_from, old_include_lower, cur_from, cur_include_lower)
-  upper, include_upper = __min(old_to, old_include_upper, cur_to, cur_include_upper)
+  lower, include_lower = _max(old_from, old_include_lower, cur_from, cur_include_lower)
+  upper, include_upper = _min(old_to, old_include_upper, cur_to, cur_include_upper)
 
   if lower and upper:
     if (lower > upper or
@@ -455,7 +455,6 @@ def accumulate_range_pred(field_map, pred):
 
 def and_predicate_action(s, loc, tok):
   # print ">>> in and_predicate_action: tok = ", tok
-  # [[{'term': {'a': 1}}, 'and', {'term': {'b': 2}}, 'and', {'query_string': {'query': 'xxx'}}, 'and', {'term': {'c': 3}}]]
   preds = []
   field_map = {}
   for i in xrange(0, len(tok[0]), 2):
@@ -932,7 +931,7 @@ def and_ranges(range1, range2):
   Return the intersection of two ranges if there is overlap; None otherwise.
 
   """
-  def __max(n1, n2):
+  def _max(n1, n2):
     if n1 == '*':
       return n2
     elif n2 == '*':
@@ -949,7 +948,7 @@ def and_ranges(range1, range2):
         val2 = float(n2)
       return str(max(val1, val2))
 
-  def __min(n1, n2):
+  def _min(n1, n2):
     if n1 == '*':
       return n2
     elif n2 == '*':
@@ -971,8 +970,8 @@ def and_ranges(range1, range2):
   m2 = RANGE_REGEX.match(range2)
   (low2, _, high2, _) = m2.groups()
 
-  low = __max(low1, low2)
-  high = __min(high1, high2)
+  low = _max(low1, low2)
+  high = _min(high1, high2)
 
   if (low != '*' and high != '*'
       and float(low) > float(high)):
@@ -1484,6 +1483,28 @@ def test(str):
   finally:
     reset_all()
 
+
+#
+# Utilities for result display
+#
+def print_line(keys, max_lens, char='-', sep_char='+'):
+  sys.stdout.write(sep_char)
+  for key in keys:
+    sys.stdout.write(char * (max_lens[key] + 2) + sep_char)
+  sys.stdout.write('\n')
+
+def print_header(keys, max_lens, char='-', sep_char='+'):
+  print_line(keys, max_lens, char=char, sep_char=sep_char)
+  sys.stdout.write('|')
+  for key in keys:
+    sys.stdout.write(' %s%s |' % (key, ' ' * (max_lens[key] - len(key))))
+  sys.stdout.write('\n')
+  print_line(keys, max_lens, char=char, sep_char=sep_char)
+
+def print_footer(keys, max_lens, char='-', sep_char='+'):
+  print_line(keys, max_lens, char=char, sep_char=sep_char)
+
+
 class SenseiClientError(Exception):
   """Exception raised for all errors related to Sensei client."""
 
@@ -1811,25 +1832,8 @@ class SenseiSystemInfo:
           max_lens["depends"] = tmp_len
       return max_lens
 
-    def print_line(char='-', sep_char='+'):
-      sys.stdout.write(sep_char)
-      for key in keys:
-        sys.stdout.write(char * (max_lens[key] + 2) + sep_char)
-      sys.stdout.write('\n')
-
-    def print_header():
-      print_line('-', '+')
-      sys.stdout.write('|')
-      for key in keys:
-        sys.stdout.write(' %s%s |' % (key, ' ' * (max_lens[key] - len(key))))
-      sys.stdout.write('\n')
-      print_line('-', '+')
-
-    def print_footer():
-      print_line('-', '+')
-      
     max_lens = get_max_lens(keys)
-    print_header()
+    print_header(keys, max_lens)
 
     for facet_info in self.facet_infos:
       props = facet_info.get_props()
@@ -1854,7 +1858,7 @@ class SenseiSystemInfo:
 
       sys.stdout.write('\n')
 
-    print_footer()
+    print_footer(keys, max_lens)
 
   def get_num_docs(self):
     return self.num_docs
@@ -2044,43 +2048,6 @@ class SenseiResult:
               max_lens[col] = min(value_len, max_col_width)
       return max_lens, has_group_hits
 
-    def print_line(char='-', sep_char='+'):
-      sys.stdout.write(sep_char)
-      for key in keys:
-        sys.stdout.write(char * (max_lens[key] + 2) + sep_char)
-      sys.stdout.write('\n')
-
-    def print_header():
-      if has_group_hits:
-        print_line('=', '=')
-      else:
-        print_line('-', '+')
-      sys.stdout.write('|')
-      for key in keys:
-        sys.stdout.write(' %s%s |' % (key, ' ' * (max_lens[key] - len(key))))
-      sys.stdout.write('\n')
-      if has_group_hits:
-        print_line('=', '=')
-      else:
-        print_line('-', '+')
-
-    def print_footer():
-      if has_group_hits:
-        print_line('=', '=')
-      else:
-        print_line('-', '+')
-      sys.stdout.write('%s %s%s in set, %s hit%s, %s total doc%s (server: %sms, total: %sms)\n' %
-                       (len(self.hits),
-                        has_group_hits and 'group' or 'row',
-                        len(self.hits) > 1 and 's' or '',
-                        self.numHits,
-                        self.numHits > 1 and 's' or '',
-                        self.totalDocs,
-                        self.totalDocs > 1 and 's' or '',
-                        self.time,
-                        self.total_time
-                        ))
-
     if not self.hits:
       print "No hit is found."
       return
@@ -2101,7 +2068,9 @@ class SenseiResult:
 
     max_lens, has_group_hits = get_max_lens(keys)
 
-    print_header()
+    print_header(keys, max_lens,
+                 has_group_hits and '=' or '-',
+                 has_group_hits and '=' or '+')
 
     # Print the results
     for hit in self.hits:
@@ -2127,10 +2096,23 @@ class SenseiResult:
           sys.stdout.write(' %s%s |' % (v, ' ' * (max_lens[key] - len(v))))
         sys.stdout.write('\n')
       if has_group_hits:
-        print_line()
+        print_line(keys, max_lens)
 
-    # Print the result footer
-    print_footer()
+    print_footer(keys, max_lens,
+                 has_group_hits and '=' or '-',
+                 has_group_hits and '=' or '+')
+
+    sys.stdout.write('%s %s%s in set, %s hit%s, %s total doc%s (server: %sms, total: %sms)\n' %
+                     (len(self.hits),
+                      has_group_hits and 'group' or 'row',
+                      len(self.hits) > 1 and 's' or '',
+                      self.numHits,
+                      self.numHits > 1 and 's' or '',
+                      self.totalDocs,
+                      self.totalDocs > 1 and 's' or '',
+                      self.time,
+                      self.total_time
+                      ))
 
     # Print facet information
     for facet, values in self.jsonMap.get(PARAM_RESULT_FACETS).iteritems():
