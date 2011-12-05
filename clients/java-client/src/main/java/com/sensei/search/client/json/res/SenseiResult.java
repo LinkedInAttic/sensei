@@ -20,7 +20,7 @@ public class SenseiResult {
     @Override
     public String toString() {
         return "SenseiResult [tid=" + tid + ", totaldocs=" + totaldocs + ", numhits=" + numhits + ", numgroups="
-                + numgroups + ", hits=" + hits + ", parsedQuery=" + parsedQuery + ", time=" + time + ", facets="
+                + numgroups + ", \nhits=" + hits + ",\n parsedQuery=" + parsedQuery + ", time=" + time + ", \nfacets="
                 + facets + "]";
     }
     public Long getTid() {
@@ -71,6 +71,6 @@ public class SenseiResult {
     public void setFacets(Map<String, List<FacetResult>> facets) {
         this.facets = facets;
     }
-    
+
 
 }

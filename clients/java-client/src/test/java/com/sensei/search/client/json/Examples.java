@@ -61,9 +61,7 @@ public class Examples {
 
 	public static SenseiClientRequest.Builder queries(SenseiClientRequest.Builder builder) {
 	    List<Query> innerQueries = Arrays.asList(
-
 	                    Queries.matchAllQuery(3),
-
 	                    Queries.disMax(2.0, 1.0, Queries.term("field1", "value1", 1.0)),
 	                    Queries.ids(Arrays.asList("val2", "val3"), Arrays.asList("ExcludedValue"), 1.0),
 	                    Queries.matchAllQuery(3.0),
@@ -76,8 +74,7 @@ public class Examples {
 	                    Queries.spanOr( 1.0, Queries.spanTerm("field", "val", 3.5)),
 	                    Queries.spanTerm("field", "val", 3.5),
 	                    Queries.textQuery("column","text", Operator.or, Type.phrase, 1.0),
-
-	                            Queries.stringQueryBuilder().autoGeneratePhraseQueries(true).defaultField("field").defaultOperator(Operator.and).fields("field1","field2").tieBreaker(2).build()
+	                            Queries.stringQueryBuilder().query("").autoGeneratePhraseQueries(true).defaultField("field").defaultOperator(Operator.and).fields("field1","field2").tieBreaker(2).build()
 	              );
 	    builder.query(Queries.bool(innerQueries, null, null, 2, 2.0, true));
 
