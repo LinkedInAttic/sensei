@@ -5,7 +5,6 @@ import java.util.Arrays;
 import org.json.JSONObject;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.sensei.search.client.json.req.Operator;
@@ -16,7 +15,7 @@ import com.sensei.search.client.json.req.filter.Filters;
 import com.sensei.search.client.json.req.query.Queries;
 import com.sensei.search.client.json.req.query.Query;
 import com.sensei.search.client.json.res.SenseiResult;
-@Ignore
+//@Ignore
 public class JavaClientIntegrationTest extends Assert {
   private SenseiServiceProxy senseiServiceProxy;
   @Before
@@ -363,12 +362,16 @@ public class JavaClientIntegrationTest extends Assert {
 
   }
   @Test
-  public void testRangeFilter() throws Exception
+  public void testTemplateMapping() throws Exception
   {
     SenseiClientRequest request = SenseiClientRequest.builder().filter(
-       Filters.range("year", "1999", "2000")
+       Filters.range("year", "$from", "$to")
 
-   ).explain(true).build();
+   )
+   .explain(true)
+   .addTemplateMapping("from", "1999")
+   .addTemplateMapping("to", "2000")
+   .build();
     System.out.println(JsonSerializer.serialize(request));
     SenseiResult res = senseiServiceProxy.sendRequest( request);
     //System.out.println(res);

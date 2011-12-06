@@ -62,6 +62,26 @@ by all runtime facet handlers
     private String routeParam;
     @CustomJsonHandler(value = FilterJsonHandler.class)
     private Filter filter;
+
+    /**
+     * Allows template substitution on the server. The template occurrence in other places should begin with the dollar sign<br>
+     * Example: <br>
+     * {
+     *  { "query_string" : {    "query" : "$color1 or $color2", boost : $customBoost },
+     *  { templateMapping {color1:"red", color2:"blue", customBoost : 1.0}}
+     * }
+     * <br>will produce<br>
+     * {
+     *  { "query_string" : {    "query" : "red or blue, boost : 1.0 }
+     *
+     * }
+     * on the server
+     */
+    private Map<String, Object> templateMapping;
+    /**
+     * @author vzhabiuk
+     *
+     */
     public static class Builder {
         private SenseiClientRequest request = new SenseiClientRequest();
         public Builder paging(int count, int offset) {
@@ -108,6 +128,17 @@ by all runtime facet handlers
             request.facetInit.put(name, facetInits);
             return this;
         }
+
+        /**
+         * @see com.sensei.search.client.json.req.SenseiClientRequest#templateMapping
+         */
+        public Builder addTemplateMapping(String name, Object value) {
+          if (request.templateMapping == null) {
+            request.templateMapping = new HashMap<String, Object>();
+          }
+          request.templateMapping.put(name, value);
+          return this;
+      }
         public Builder addSort(Sort sort) {
             if (sort == null) {
                 throw new IllegalArgumentException("The sort should be not null");
