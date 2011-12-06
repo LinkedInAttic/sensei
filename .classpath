@@ -48,7 +48,6 @@
 	<classpathentry kind="var" path="M2_REPO/junit/junit/4.5/junit-4.5.jar" sourcepath="M2_REPO/junit/junit/4.5/junit-4.5-sources.jar"/>
 	<classpathentry kind="var" path="M2_REPO/com/sna-projects/kafka/kafka/0.5-SNAPSHOT/kafka-0.5-SNAPSHOT.jar"/>
 	<classpathentry kind="var" path="M2_REPO/com/linkedin/kamikaze/kamikaze/3.0.4/kamikaze-3.0.4.jar"/>
-	<classpathentry kind="var" path="M2_REPO/com/sna-projects/kamikaze/kamikaze/3.0.3/kamikaze-3.0.3.jar"/>
 	<classpathentry kind="var" path="M2_REPO/log4j/log4j/1.2.14/log4j-1.2.14.jar"/>
 	<classpathentry kind="var" path="M2_REPO/org/apache/lucene/lucene-core/3.4.0/lucene-core-3.4.0.jar"/>
 	<classpathentry kind="var" path="M2_REPO/com/yammer/metrics_2.8.1/2.0.0-BETA11/metrics_2.8.1-2.0.0-BETA11.jar"/>

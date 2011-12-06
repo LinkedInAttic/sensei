@@ -296,6 +296,7 @@ public class SenseiShell {
 		    BrowseSelection[] _selections = req.getSelections();
 		    Map _facetSpecMap = req.getFacetSpecs();
 		    boolean _fetchStoredFields = req.isFetchStoredFields();
+		    boolean _fetchStoredValue = req.isFetchStoredValue();
 		    if(_query != null){
 		      try
           {
@@ -308,7 +309,8 @@ public class SenseiShell {
               buf.append("\t- selections: ").append(arrayToString(_selections)).append('\n');
             if(_facetSpecMap != null)
               buf.append("\t- facet spec: ").append(facetMapToString(_facetSpecMap)).append('\n');
-            buf.append("\t- fetch stored fields: ").append(_fetchStoredFields);
+            buf.append("\t- fetch stored fields: ").append(_fetchStoredFields).append('\n');
+            buf.append("\t- fetch stored value: ").append(_fetchStoredValue);
             System.out.println(buf.toString());
           } catch (JSONException e)
           {

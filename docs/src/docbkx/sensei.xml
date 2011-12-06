@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE book [
 <!ENTITY chap-introduction SYSTEM "chap-introduction.xml">
+<!ENTITY chap-consistency-model SYSTEM "chap-consistency-model.xml">
 <!ENTITY chap-getting-started SYSTEM "chap-getting-started.xml">
 <!ENTITY chap-demo SYSTEM "chap-demo.xml">
 <!ENTITY chap-indexing SYSTEM "chap-indexing.xml">
@@ -36,6 +37,8 @@
   </info>
 
   &chap-introduction;
+
+  &chap-consistency-model;
 
   &chap-getting-started;
 
