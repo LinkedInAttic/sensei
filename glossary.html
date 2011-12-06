@@ -1,0 +1,64 @@
+---
+layout: default
+title: SenseiDB - Data Guarantees
+---
+<div class="hero-unit">
+	<h2>Glossary</h2>
+	<p>
+		A list of Sensei vocabularies...
+	</p>
+</div>
+
+
+<h2>Broker</h2>
+<p>
+	A Sensei node is a Java process performing indexing work as handling query requests. A node can be configured to query over N shards.
+</p>
+<hr/>
+
+<h2>Data Stream</h2>
+<p>
+  Stream of data events that Sensei consumes from via Gateways.
+</p>
+<p>
+  Some properties of Data Streams:
+<ul>
+	<li>Versioned - each event on the stream has a monotonically increasing value indicating a unique point in the stream</li>
+	<li>Ordered - ordering of all events should reflect the semantics of the application</li>
+</ul> 	
+</p>
+<hr/>
+
+<h2>Gateway</h2>
+<p>
+  Gateways are how Sensei consumes from a data stream. The following are some built-in gateways:
+<ul>
+	<li>File - Streaming of a text file where each line is a json representation of a data event, with each line number as the version. (<a href="https://raw.github.com/senseidb/sensei/master/data/cars.json">Example</a>)</li>
+	<li>JMS - Data stream abstraction over a JMS queue.</li>
+	<li>JDBC - Data stream abstraction over a <a href="http://docs.oracle.com/javase/1.4.2/docs/api/java/sql/ResultSet.html">ResultSet</a> via a defined <a href="http://docs.oracle.com/javase/1.4.2/docs/api/java/sql/PreparedStatement.html">PreparedStatement</a></li>
+	<li><a href="http://incubator.apache.org/kafka/">Apache Kafka</a> - Kafka is a fast distributed messaging system. A Kafka data-stream is versioned by offsets, and each message is a data event.</li>
+</ul>	
+</p>
+<p>
+  You can write your own Gateway implementation by simply implementing the <a href="#">SenseiGateway</a> interface. And configure it via the <b>sensei.gateway</b> properties. Details <a href="#">here</a>.
+</p>
+<hr/>
+
+<h2>Node</h2>
+<p>
+	A Sensei node is a Java process performing indexing work as handling query requests. A node can be configured to query over N shards.
+</p>
+<hr/>
+
+
+<h2>Shard</h2>
+<p>
+	A partition or slice of the data corpus.
+</p>
+<hr/>
+
+<h2>Sharding Strategy</h2>
+<p>
+	<a href="#">ShardingStrategy</a> interface defines how a data event defined by a JSON object is mapped to a shard.
+</p>
+<hr/>

@@ -1,0 +1,51 @@
+---
+layout: default
+title: SenseiDB - Data Guarantees
+---
+<div class="hero-unit">
+	<h2>Data guarantees</h2>
+	<p>
+		Things we promised on how we manage your data
+	</p>
+</div>
+
+<h2>ACID-ity</h2>
+
+<h3>Atomicity &amp; Isolation</h3>
+<p>
+	Each Sensei cluster talks to a single data stream. And properties of a data stream guarantees versioning and ordering, atomicity and isolation concerns are left to the data event producers when writing into the data stream. 
+</p>
+
+<h3>Durability</h3>
+<p>
+	Sensei provides a high-level of durability by maintaining N replicas of each shard to guarantee a level of availability and fault-tolerance. Which means your data has N replications or backups. 
+</p>
+
+
+<h3>Consistency</h3>
+<p>
+	Each Sensei node consumes from the data stream independently without a quorum to maintain a high-level of indexing performance. As a trade-off, consistency between replicas are relaxed, but the eventual consistency is still guaranteed via the semantic of the data stream being versioned and ordered.
+</p>
+<p>
+	To prevent from subsequent queries in one search session (e.g. result paging) to produce inconsistent results, a <b>routing parameter</b> indicating a search session can be set on the request, and the request routing logic will route to the same replica via consistent hashing thus guarantee consistency of results in a given search session.
+</p>
+
+<h2>Some comparisons with a traditional RDBMS</h2>
+<h3>RDBMS:</h3>
+	<ul>
+		<li>scales vertically</li>
+		<li>strong ACID guarantee</li>
+		<li>relational support</li>
+		<li>performance cost with full-text integration</li>
+		<li>high query latency with large dataset, e.g. Group By</li>
+		<li>indexes needs to be built for all sort possibilities offline</li>
+	</ul>
+<h3>Sensei:</h3>
+	<ul>
+		<li>scales horizontally</li>
+		<li>relaxed Consistency with high durability guarantees</li>
+		<li>data is streamed in, so Atomicity and Isolation is to be handled by the data producer</li>
+		<li>deep full-text integration</li>
+		<li>low query latency with arbitrarily large dataset</li>
+		<li>dynamic sorting, index is already built for all sortable fields and their combinations</li>
+	</ul>
