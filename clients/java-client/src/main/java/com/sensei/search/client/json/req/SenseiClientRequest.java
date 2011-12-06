@@ -63,6 +63,7 @@ by all runtime facet handlers
     @CustomJsonHandler(value = FilterJsonHandler.class)
     private Filter filter;
 
+
     /**
      * Allows template substitution on the server. The template occurrence in other places should begin with the dollar sign<br>
      * Example: <br>
@@ -82,6 +83,7 @@ by all runtime facet handlers
      * @author vzhabiuk
      *
      */
+
     public static class Builder {
         private SenseiClientRequest request = new SenseiClientRequest();
         public Builder paging(int count, int offset) {
@@ -129,9 +131,11 @@ by all runtime facet handlers
             return this;
         }
 
+
         /**
          * @see com.sensei.search.client.json.req.SenseiClientRequest#templateMapping
          */
+
         public Builder addTemplateMapping(String name, Object value) {
           if (request.templateMapping == null) {
             request.templateMapping = new HashMap<String, Object>();
