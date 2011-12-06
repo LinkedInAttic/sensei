@@ -1154,7 +1154,7 @@ class BQLRequest:
 
   """
 
-  def __init__(self, bql_stmt, facet_map=None):
+  def __init__(self, bql_stmt, facet_map):
     try:
       time_now = int(time.time() * 1000)
       self.tokens = BQLstmt.parseString(bql_stmt, parseAll=True)
@@ -1185,7 +1185,10 @@ class BQLRequest:
     where = self.tokens.where
     if where:
       assert type(where) == dict
-      self.__extract_query_filter_selections(where)
+      ok, msg = self._validate_where(where)
+      if not ok:
+        raise ParseFatalException(msg)
+      self._extract_query_filter_selections(where)
 
       # if where[0].get(JSON_PARAM_QUERY):
       #   self.query_pred = where[0].get(JSON_PARAM_QUERY)
@@ -1203,7 +1206,101 @@ class BQLRequest:
       #   selection = collapse_cumulative_preds(where.cumulative_preds)
       #   self.selection_list.append(selection)
 
-  def __extract_query_filter_selections(self, where):
+  def _verify_value_type(self, value, column_type):
+    """Verify value type."""
+
+    if column_type in ["int", "short"]:
+      if type(value) == float:
+        return False, 'Value, %s, is not of type "%s"' % (value, column_type)
+      elif type(value) == str:
+        return False, 'Value, "%s", is not of type "%s"' % (value, column_type)
+      elif type(value) == bool:
+        return False, 'Value, %s, is not of type "%s"' % (value and "true" or "false", column_type)
+      else:
+        return True, None
+    elif column_type in ["float", "double"]:
+      if type(value) == str:
+        return False, 'Value, "%s", is not of type "%s"' % (value, column_type)
+      elif type(value) == bool:
+        return False, 'Value, %s, is not of type "%s"' % (value and "true" or "false", column_type)
+      else:
+        return True, None
+    elif column_type in ["string", "path"]:
+      if type(value) in [int, float]:
+        return False, 'Value, %s, is not of type "%s"' % (value, column_type)
+      elif type(value) == bool:
+        return False, 'Value, %s, is not of type "%s"' % (value and "true" or "false", column_type)
+      else:
+        return True, None
+    elif column_type in ["boolean"]:
+      # XXX Need to test this
+      if value not in [True, False]:
+        return False, 'Value, %s, is not of type "%s"' % (value, column_type)
+      else:
+        return True, None
+
+  def _validate_where(self, where):
+    """Validate facet name and data types."""
+
+    if where.get("term"):
+      term = where.get("term")
+      field = term.keys()[0]
+      if self._is_facet(field):
+        value = term.get(field).get("value")
+        facet_info = self.facet_map[field]
+        column_type = facet_info.get_props()["column_type"]
+        ok, msg = self._verify_value_type(value, column_type)
+        if not ok:
+          return ok, msg + ' (for facet "%s")' % field
+      return True, None
+    elif where.get("terms"):
+      terms = where.get("terms")
+      field = terms.keys()[0]
+      if self._is_facet(field):
+        values = terms.get(field).get("values")
+        facet_info = self.facet_map[field]
+        column_type = facet_info.get_props()["column_type"]
+        for value in values:
+          ok, msg = self._verify_value_type(value, column_type)
+          if not ok:
+            return ok, msg + ' (for facet "%s")' % field
+        excludes = terms.get(field).get("excludes")
+        for value in excludes:
+          ok, msg = self._verify_value_type(value, column_type)
+          if not ok:
+            return ok, msg + ' (for facet "%s")' % field
+      return True, None
+    elif where.get("range"):
+      pred = where.get("range")
+      field = pred.keys()[0]
+      if self._is_facet(field):
+        values = []
+        facet_info = self.facet_map[field]
+        column_type = facet_info.get_props()["column_type"]
+        from_value = pred.get(field).get("from")
+        if from_value:
+          values.append(from_value)
+        to_value = pred.get(field).get("to")
+        if to_value:
+          values.append(to_value)
+        for value in values:
+          ok, msg = self._verify_value_type(value, column_type)
+          if not ok:
+            return ok, msg + ' (for facet "%s")' % field
+      return True, None
+    elif where.get("query"):
+      # Query predicate should be ok because we know a string has to be
+      # provided based on BQL syntax.
+      return True, None
+    elif where.get("and") or where.get("or"):
+      preds = where.values()[0]
+      for pred in preds:
+        ok, msg = self._validate_where(pred)
+        if not ok:
+          return ok, msg
+      return True, None
+
+  def _extract_query_filter_selections(self, where):
     """Extract the query and filter information from the where clause."""
 
     filter_list = []
@@ -1218,7 +1315,7 @@ class BQLRequest:
         elif pred.get("or") or pred.get("and") or pred.get("bool"):
           # XXX Need to clear this part
           filter_list.append(pred)
-        elif self.__is_facet(pred_field(pred)):
+        elif self._is_facet(pred_field(pred)):
           self.selection_list.append(pred)
         else:
           filter_list.append(pred)
@@ -1228,7 +1325,7 @@ class BQLRequest:
         self.filter = {"and": filter_list}
     elif where.get("or"):
       self.filter = where
-    elif self.__is_facet(pred_field(where)):
+    elif self._is_facet(pred_field(where)):
       self.selection_list.append(where)
     elif where:
       self.filter = where
@@ -1236,12 +1333,10 @@ class BQLRequest:
     # XXX Do merging, etc. on self.selection_list
     self.selections = self.selection_list
 
-  def __is_facet(self, pred_field):
-    if self.facet_map == None:
-      # All fields are facets
-      return True
-    else:
-      return self.facet_map.has_key(pred_field)
+  def _is_facet(self, pred_field):
+    """Check if a field is a facet."""
+
+    return self.facet_map.has_key(pred_field)
 
   def get_stmt_type(self):
     """Get the statement type."""
@@ -1537,14 +1632,14 @@ class SenseiSelection:
             (self.field, self.operation,
              ','.join(self.values), ','.join(self.excludes)))
 
-  def __get_type(self, value):
+  def _get_type(self, value):
     if isinstance(value, basestring) and RANGE_REGEX.match(value):
       return SELECTION_TYPE_RANGE
     else:
       return SELECTION_TYPE_SIMPLE
     
   def addSelection(self, value, isNot=False):
-    val_type = self.__get_type(value)
+    val_type = self._get_type(value)
     if not self.type:
       self.type = val_type
     elif self.type != val_type:
@@ -1907,8 +2002,9 @@ class SenseiRequest:
     self.stmt_type = "unknown"
 
     if bql_stmt != None:
+      assert(facet_map)
       time1 = datetime.now()
-      bql_req = BQLRequest(bql_stmt, facet_map=facet_map)
+      bql_req = BQLRequest(bql_stmt, facet_map)
 
       # ok, msg = bql_req.merge_selections()
       # if not ok:
