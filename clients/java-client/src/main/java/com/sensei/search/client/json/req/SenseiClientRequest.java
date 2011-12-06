@@ -62,6 +62,8 @@ by all runtime facet handlers
     private String routeParam;
     @CustomJsonHandler(value = FilterJsonHandler.class)
     private Filter filter;
+
+    private Map<String, Object> templateMapping;
     public static class Builder {
         private SenseiClientRequest request = new SenseiClientRequest();
         public Builder paging(int count, int offset) {
@@ -108,6 +110,13 @@ by all runtime facet handlers
             request.facetInit.put(name, facetInits);
             return this;
         }
+        public Builder addTemplateMapping(String name, Object value) {
+          if (request.templateMapping == null) {
+            request.templateMapping = new HashMap<String, Object>();
+          }
+          request.templateMapping.put(name, value);
+          return this;
+      }
         public Builder addSort(Sort sort) {
             if (sort == null) {
                 throw new IllegalArgumentException("The sort should be not null");
