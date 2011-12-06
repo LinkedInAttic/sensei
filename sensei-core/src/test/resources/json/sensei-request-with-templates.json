@@ -1,17 +1,17 @@
-{  
-  "count": $max,
+{
+  "count": "$max",
   "explain": false,
   "facetInit": {},
   "facets": {
     "color": {
       "expand": true,
-      "max": $max,
+      "max": "$max",
       "minHit": 1,
       "order": "hits"
     },
     "year": {
       "expand": true,
-      "max": $max,
+      "max": "$max",
       "minHit": 1,
       "order": "val"
     }
@@ -20,7 +20,7 @@
   "from": 0,
   "partitions": [],
   "query": {"query_string": {
-    "boost": $boost,
+    "boost": "$boost",
     "query": "cool"
   }},
   "selections": [
@@ -44,18 +44,18 @@
     "field": "price",
     "order": "desc"
   }],
-  "boost": $boost,
+  "boost": "$boost",
   "routeParam" : "$routeParam",
   "termVectors": [],
-		
 
-	templateMapping : {
-		boost: 1.0,
-		max : 10,
-		routeParam : "substitutedParam",
-		color : "red"
-	}
-	
+
+    templateMapping : {
+    boost: 1.0,
+    max : 10,
+    routeParam : "substitutedParam",
+    color : "red"
+    }
+
 }
 
 
