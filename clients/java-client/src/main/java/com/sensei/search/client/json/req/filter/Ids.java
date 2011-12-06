@@ -2,7 +2,9 @@ package com.sensei.search.client.json.req.filter;
 
 import java.util.List;
 
+import com.sensei.search.client.json.CustomJsonHandler;
 import com.sensei.search.client.json.req.query.Query;
+import com.sensei.search.client.json.req.query.QueryJsonHandler;
 
 /**
  *  <p>Filters documents that only have the provided ids. Note, this filter does not require the <code>_id</code> field to be indexed since it works using the <code>_uid</code> field.</p>
@@ -12,19 +14,27 @@ import com.sensei.search.client.json.req.query.Query;
 
  *
  */
+@CustomJsonHandler(QueryJsonHandler.class)
 public class Ids implements Filter, Query {
     List<String> values;
     List<String> excludes;
+    private double boost;
     public Ids(List<String> values, List<String> excludes) {
         super();
         this.values = values;
         this.excludes = excludes;
     }
+    public Ids(List<String> values, List<String> excludes, double boost) {
+      super();
+      this.values = values;
+      this.excludes = excludes;
+      this.boost = boost;
+  }
     public List<String> getValues() {
         return values;
     }
     public List<String> getExcludes() {
         return excludes;
     }
-    
+
 }

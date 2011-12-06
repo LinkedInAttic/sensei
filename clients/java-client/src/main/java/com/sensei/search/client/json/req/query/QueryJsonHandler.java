@@ -8,6 +8,11 @@ import org.json.JSONObject;
 
 import com.sensei.search.client.json.JsonHandler;
 import com.sensei.search.client.json.JsonSerializer;
+import com.sensei.search.client.json.req.Selection;
+import com.sensei.search.client.json.req.Selection.Range;
+import com.sensei.search.client.json.req.Term;
+import com.sensei.search.client.json.req.Terms;
+import com.sensei.search.client.json.req.filter.Ids;
 import com.sensei.search.client.json.req.query.span.SpanFirst;
 import com.sensei.search.client.json.req.query.span.SpanNear;
 import com.sensei.search.client.json.req.query.span.SpanNot;
@@ -27,11 +32,16 @@ public class QueryJsonHandler implements JsonHandler<Query>{
         typeNames.put(SpanTerm.class, "span_term");
         typeNames.put(SpanNear.class, "span_near");
         typeNames.put(SpanNot.class, "span_not");
-        typeNames.put(SpanOr.class, "span_or"); 
-        typeNames.put(CustomQuery.class, "custom"); 
-        typeNames.put(TextQuery.class, "text"); 
-        typeNames.put(FilteredQuery.class, "filtered"); 
+        typeNames.put(SpanOr.class, "span_or");
+        typeNames.put(CustomQuery.class, "custom");
+        typeNames.put(TextQuery.class, "text");
+        typeNames.put(FilteredQuery.class, "filtered");
         typeNames.put(PathQuery.class, "path");
+        typeNames.put(BoolQuery.class, "bool");
+        typeNames.put(Term.class, "term");
+        typeNames.put(Terms.class, "terms");
+        typeNames.put(Ids.class, "ids");
+        typeNames.put(Range.class, "range");
     }
     @Override
     public JSONObject serialize(Query bean) throws JSONException {
@@ -41,12 +51,25 @@ public class QueryJsonHandler implements JsonHandler<Query>{
         if (!typeNames.containsKey(bean.getClass())) {
             throw new UnsupportedOperationException("Class " + bean.getClass() + " is not supported for serialization by the QueryJsonHandler");
         }
-        
-        return new JSONObject().put(typeNames.get(bean.getClass()), JsonSerializer.serialize(bean, false));
+        JSONObject defaultSerialization = (JSONObject) JsonSerializer.serialize(bean, false);
+        if (bean instanceof FieldAware) {
+          defaultSerialization.remove("field");
+          if (bean instanceof SpanTerm  && ((SpanTerm) bean).getBoost() == null) {
+            SpanTerm spanTerm = (SpanTerm) bean;
+            defaultSerialization = new JSONObject().put(spanTerm.getField(), spanTerm.getValue());
+          } else {
+            defaultSerialization = new JSONObject().put(((FieldAware) bean).getField(), defaultSerialization);
+          }
+        }
+        if (bean instanceof Selection) {
+          defaultSerialization.remove("field");
+          defaultSerialization = new JSONObject().put(((Selection) bean).getField(), defaultSerialization);
+        }
+        return new JSONObject().put(typeNames.get(bean.getClass()), defaultSerialization);
     }
     @Override
     public Query deserialize(JSONObject json) throws JSONException {
-       
+
         return null;
     }
 }

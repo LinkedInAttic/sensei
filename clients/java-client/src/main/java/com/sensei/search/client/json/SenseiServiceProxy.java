@@ -11,7 +11,6 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
-import java.util.logging.Logger;
 import java.util.zip.GZIPInputStream;
 
 import org.apache.commons.logging.Log;
@@ -24,25 +23,33 @@ import com.sensei.search.client.json.res.SenseiResult;
 
 public class SenseiServiceProxy {
     private static Log LOG = LogFactory.getLog(SenseiServiceProxy.class);
-	public SenseiResult sendRequest(String urlStr, SenseiClientRequest request) throws IOException, JSONException {
+
+    private String url;
+
+
+   public SenseiServiceProxy(String url) {
+      super();
+      this.url = url;
+    }
+  public SenseiResult sendRequest( SenseiClientRequest request) throws IOException, JSONException {
     	String requestStr = JsonSerializer.serialize(request).toString();
-        String output = sendPost(urlStr, requestStr);
+        String output = sendPost( requestStr);
         //System.out.println("Output from Server = " + output);
         return JsonDeserializer.deserialize(SenseiResult.class, jsonResponse(output));
     }
-	public String sendPost(String urlStr, String requestStr)
+	public String sendPost(String requestStr)
 			throws MalformedURLException, IOException, ProtocolException,
 			UnsupportedEncodingException {
 		HttpURLConnection conn = null;
         try {
-        LOG.info("Sending a post request to the server - " + urlStr);
+        LOG.info("Sending a post request to the server - " + this.url);
         LOG.debug("The request is - " + requestStr);
-        URL url = new URL(urlStr);
+        URL url = new URL(this.url);
          conn = (HttpURLConnection) url.openConnection();
         conn.setDoOutput(true);
         conn.setRequestMethod("POST");
         conn.setRequestProperty("Content-Type", "application/json; charset=utf-8");
-     
+
         conn.setRequestProperty("Accept-Encoding", "gzip");
 		String string = requestStr;
         byte[] requestBytes = string.getBytes("UTF-8");
@@ -76,7 +83,7 @@ public class SenseiServiceProxy {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
                 while ((len = inputStream.read(buf)) > 0) {
                     byteArrayOutputStream.write(buf, 0, len);
-                }      
+                }
         return byteArrayOutputStream.toByteArray();
         } finally {
             inputStream.close();

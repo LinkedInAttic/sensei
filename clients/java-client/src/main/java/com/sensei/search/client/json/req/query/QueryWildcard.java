@@ -11,12 +11,13 @@ import com.sensei.search.client.json.CustomJsonHandler;
  *
  */
 @CustomJsonHandler(QueryJsonHandler.class)
-public class QueryWildcard  implements Query {
+public class QueryWildcard extends FieldAware implements Query {
     private String value;
     private double boost;
-    public QueryWildcard(String value, double boost) {
+    public QueryWildcard(String field, String value, double boost) {
         super();
         this.value = value;
         this.boost = boost;
+        this.field = field;
     }
 }

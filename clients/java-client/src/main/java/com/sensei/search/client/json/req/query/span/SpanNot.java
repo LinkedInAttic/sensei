@@ -13,15 +13,20 @@ import com.sensei.search.client.json.req.query.QueryJsonHandler;
  */
 @CustomJsonHandler(QueryJsonHandler.class)
 public class SpanNot implements Query  {
-   
+
     SpanTerm include;
-    
+
     SpanTerm exclude;
 
-    public SpanNot(SpanTerm include, SpanTerm exclude) {
+    private final double boost;
+
+    public SpanNot(SpanTerm include, SpanTerm exclude, double boost) {
         super();
         this.include = include;
+        include.setBoost(null);
+        exclude.setBoost(null);
         this.exclude = exclude;
+        this.boost = boost;
     }
-    
+
 }

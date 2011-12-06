@@ -7,11 +7,12 @@ import org.json.JSONObject;
 import com.sensei.search.client.json.CustomJsonHandler;
 import com.sensei.search.client.json.JsonField;
 import com.sensei.search.client.json.req.filter.Filter;
+import com.sensei.search.client.json.req.query.Query;
 
 @CustomJsonHandler(SelectionJsonHandler.class)
 public abstract class Selection implements Filter {
     private String field;
-    
+
     public String getField() {
         return field;
     }
@@ -19,68 +20,21 @@ public abstract class Selection implements Filter {
         this.field = field;
         return this;
     }
-    /**
-     *   <p>Matches documents that have fields that contain a term (<strong>not analyzed</strong>). The term query maps to Sensei <code>TermQuery</code>. The following matches documents where the user field contains the term <code>kimchy</code>:</p>
-<pre class="prettyprint lang-js"><span class="pun">{</span><span class="pln"><br>&nbsp; &nbsp; </span><span class="str">"term"</span><span class="pln"> </span><span class="pun">:</span><span class="pln"> </span><span class="pun">{</span><span class="pln"> </span><span class="str">"user"</span><span class="pln"> </span><span class="pun">:</span><span class="pln"> </span><span class="str">"kimchy"</span><span class="pln"> </span><span class="pun">}</span><span class="pln"><br></span><span class="pun">}</span><span class="pln"> &nbsp; &nbsp;</span></pre>
-
-<p>A boost can also be associated with the query:</p>
-<pre class="prettyprint lang-js"><span class="pun">{</span><span class="pln"><br>&nbsp; &nbsp; </span><span class="str">"term"</span><span class="pln"> </span><span class="pun">:</span><span class="pln"> </span><span class="pun">{</span><span class="pln"> </span><span class="str">"user"</span><span class="pln"> </span><span class="pun">:</span><span class="pln"> </span><span class="pun">{</span><span class="pln"> </span><span class="str">"value"</span><span class="pln"> </span><span class="pun">:</span><span class="pln"> </span><span class="str">"kimchy"</span><span class="pun">,</span><span class="pln"> </span><span class="str">"boost"</span><span class="pln"> </span><span class="pun">:</span><span class="pln"> </span><span class="lit">2.0</span><span class="pln"> </span><span class="pun">}</span><span class="pln"> </span><span class="pun">}</span><span class="pln"><br></span><span class="pun">}</span><span class="pln"> &nbsp; &nbsp;</span></pre>
-
-<p>Or :</p>
-<pre class="prettyprint lang-js"><span class="pun">{</span><span class="pln"><br>&nbsp; &nbsp; </span><span class="str">"term"</span><span class="pln"> </span><span class="pun">:</span><span class="pln"> </span><span class="pun">{</span><span class="pln"> </span><span class="str">"user"</span><span class="pln"> </span><span class="pun">:</span><span class="pln"> </span><span class="pun">{</span><span class="pln"> </span><span class="str">"term"</span><span class="pln"> </span><span class="pun">:</span><span class="pln"> </span><span class="str">"kimchy"</span><span class="pun">,</span><span class="pln"> </span><span class="str">"boost"</span><span class="pln"> </span><span class="pun">:</span><span class="pln"> </span><span class="lit">2.0</span><span class="pln"> </span><span class="pun">}</span><span class="pln"> </span><span class="pun">}</span><span class="pln"><br></span><span class="pun">}</span><span class="pln"> &nbsp; &nbsp;</span></pre>
-
-
-     *
-     */
-    public static class Term extends Selection {      
-        private String value;
-        public Term(String value) {
-            super();           
-            this.value = value;
-        }
-        public Term() {
-           
-        }
-    }
-    /**
-     * <p>A query that match on any (configurable) of the provided terms. This is a simpler syntax query for using a <code>bool</code> query with several <code>term</code> queries in the <code>should</code> clauses. For example:</p>
-<pre class="prettyprint lang-js"><span class="pun">{</span><span class="pln"><br>&nbsp; &nbsp; </span><span class="str">"terms"</span><span class="pln"> </span><span class="pun">:</span><span class="pln"> </span><span class="pun">{</span><span class="pln"><br>&nbsp; &nbsp; &nbsp; &nbsp; </span><span class="str">"tags"</span><span class="pln"> </span><span class="pun">:</span><span class="pln"> </span><span class="pun">[</span><span class="pln"> </span><span class="str">"blue"</span><span class="pun">,</span><span class="pln"> </span><span class="str">"pill"</span><span class="pln"> </span><span class="pun">],</span><span class="pln"><br>&nbsp; &nbsp; &nbsp; &nbsp; </span><span class="str">"minimum_match"</span><span class="pln"> </span><span class="pun">:</span><span class="pln"> </span><span class="lit">1</span><span class="pln"><br>&nbsp; &nbsp; </span><span class="pun">}</span><span class="pln"><br></span><span class="pun">}</span></pre>
-
-<p>The <code>terms</code> query is also aliased with <code>in</code> as the query name for simpler usage.</p>
-
-     *
-     */
-    public static class Terms extends Selection {
-      
-        List<String> values; 
-        List<String> excludes; 
-        Operator op; 
-        public Terms() {
-            
-        }
-        public Terms( List<String> values, List<String> excludes, Operator op) {
-            super();           
-            this.values = values;
-            this.excludes = excludes;
-            this.op = op;
-        }
-        
-    }
     public static class Path extends Selection {
-       
+
         private String value;
-        private boolean strict; 
+        private boolean strict;
         private int depth;
         public Path(String value, boolean strict, int depth) {
             super();
-           
+
             this.value = value;
             this.strict = strict;
             this.depth = depth;
         }
 
         public Path() {
-           
+
         }
     }
     /**
@@ -114,30 +68,55 @@ public abstract class Selection implements Filter {
         <td> Should the last to (if set) be inclusive or not. Defaults to <code>true</code>. </td>
     </tr>
 
-    
-    
+
+
 
      *
      */
-    public static class Range extends Selection {
-       
-        private String upper;
-        private String lower;
+    public static class Range extends Selection implements Query{
+
+      private String from;
+        private String to;
         @JsonField("include_lower")
         private boolean includeLower;
         @JsonField("include_upper")
         private boolean includeUpper;
+
+        private Double boost;
+        @JsonField("_noOptimize")
+        private Boolean notOptimize;
+        private String type;
        public Range() {
        }
-    public Range(String upper, String lower, boolean includeUpper, boolean includeLower) {
+    public Range(String from, String to, boolean includeLower, boolean includeUpper) {
         super();
-        
-        this.upper = upper;
-        this.lower = lower;
-        this.includeUpper = includeUpper;
+
+        this.from = from;
+        this.to = to;
         this.includeLower = includeLower;
+        this.includeUpper = includeUpper;
     }
-    
+    public Range(String from, String to, boolean includeLower, boolean includeUpper, double Doost, boolean noOptimize) {
+      super();
+
+      this.from = from;
+      this.to = to;
+      this.includeLower = includeLower;
+      this.includeUpper = includeUpper;
+      this.boost = boost;
+      notOptimize = noOptimize;
+  }
+    public Range(String from, String to, boolean includeLower, boolean includeUpper, Double boost, boolean noOptimize, String type) {
+      super();
+
+      this.from = from;
+      this.to = to;
+      this.includeLower = includeLower;
+      this.includeUpper = includeUpper;
+      this.boost = boost;
+      notOptimize = noOptimize;
+      this.type = type;
+  }
     }
     public static class Custom extends Selection {
         private JSONObject custom;
@@ -154,22 +133,22 @@ public abstract class Selection implements Filter {
         }
     }
     public static Selection term(String field, String value) {
-        return new Term(value).setField(field);       
+        return new Term(value).setField(field);
     }
     public static Selection terms(String field, List<String> values, List<String> excludes, Operator op) {
         return new Terms(values,excludes, op).setField(field);
     }
-    public static Selection range(String field, String upper, String lower, boolean includeUpper, boolean includeLower) {
-         return new Range(upper, lower, includeUpper, includeLower).setField(field);
+    public static Selection range(String field, String from, String to, boolean includeLower, boolean includeUpper) {
+         return new Range(from, to, includeLower, includeUpper).setField(field);
     }
-    public static Selection range(String field, String upper, String lower) {
-        return new Range(upper, lower, true, true).setField(field);
+    public static Selection range(String field, String from , String to) {
+        return new Range(from, to, true, true).setField(field);
    }
     public static Selection path(String field, String value, boolean strict, int depth) {
         return new Path(value, strict, depth).setField(field);
     }
     public static Selection custom(JSONObject custom) {
-       
+
         return new Custom(custom);
     }
 }

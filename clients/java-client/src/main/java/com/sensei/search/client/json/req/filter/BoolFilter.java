@@ -11,7 +11,7 @@ import com.sensei.search.client.json.JsonField;
  *
  */
 @CustomJsonHandler(FilterJsonHandler.class)
-    public class Bool implements Filter {
+    public class BoolFilter implements Filter {
         List<Filter> must;
         List<Filter> must_not;
         List<Filter> should;
@@ -19,23 +19,14 @@ import com.sensei.search.client.json.JsonField;
         Boolean minimumNumberShouldMatch;
         Double boost;
         Boolean disableCoord;
-        public Bool(List<Filter> must, List<Filter> must_not, List<Filter> should) {
+        public BoolFilter(List<Filter> must, List<Filter> must_not, List<Filter> should) {
             super();
             this.must = must;
             this.must_not = must_not;
             this.should = should;
         }
-        
-        public Bool(List<Filter> must, List<Filter> must_not, List<Filter> should, Boolean minimumNumberShouldMatch,
-                Double boost, Boolean disableCoord) {
-            super();
-            this.must = must;
-            this.must_not = must_not;
-            this.should = should;
-            this.minimumNumberShouldMatch = minimumNumberShouldMatch;
-            this.boost = boost;
-            this.disableCoord = disableCoord;
-        }
+
+
 
         public List<Filter> getMust() {
             return must;
@@ -55,5 +46,5 @@ import com.sensei.search.client.json.JsonField;
         public void setShould(List<Filter> should) {
             this.should = should;
         }
-        
+
    }
