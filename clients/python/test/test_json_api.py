@@ -1155,7 +1155,7 @@ class TestJsonAPI(unittest.TestCase):
     """
     error = None
     try:
-      req = SenseiRequest(stmt)
+      req = self.client.compile(stmt)
     except SenseiClientError as err:
       error = str(err)
     self.assertEqual(error, repr("There is conflict in selection(s) for column 'color'"))
@@ -1252,6 +1252,36 @@ class TestJsonAPI(unittest.TestCase):
   }, 
   "size": 10
 }""")
+
+  def testColumnType1(self):
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    WHERE color = 1
+    """
+    error = None
+    try:
+      req = self.client.compile(stmt)
+    except ParseFatalException as err:
+      error = err.msg
+    self.assertEqual(error, """Value, 1, is not of type "string" (for facet "color")""")
+
+  def testColumnType2(self):
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    WHERE mileage = 111
+       OR (color IN ("red", "blue") AND year > "bbb")
+    """
+    error = None
+    try:
+      req = self.client.compile(stmt)
+    except ParseFatalException as err:
+      error = err.msg
+    self.assertEqual(error, """Value, "bbb", is not of type "int" (for facet "year")""")
+
 
 if __name__ == "__main__":
     unittest.main()

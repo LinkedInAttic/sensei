@@ -6,7 +6,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.Map.Entry;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.lucene.search.SortField;
@@ -15,22 +14,22 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.browseengine.bobo.api.BrowseSelection;
-import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.api.BrowseSelection.ValueOperation;
+import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.facets.DefaultFacetHandlerInitializerParam;
 import com.browseengine.bobo.facets.impl.PathFacetHandler;
 import com.sensei.search.req.SenseiJSONQuery;
 import com.sensei.search.req.SenseiRequest;
 
 public class RequestConverter2 {
-  
+
   public static final String PAGING_SIZE = "size";
   public static final String PAGING_FROM = "from";
-  
+
   public static final String GROUPBY = "groupBy";
   public static final String GROUPBY_COLUMN = "column";
   public static final String GROUPBY_TOP = "top";
-  
+
   public static final String SELECTIONS = "selections";
   public static final String SELECTIONS_TERM = "term";
   public static final String SELECTIONS_TERM_VALUE = "value";
@@ -51,7 +50,7 @@ public class RequestConverter2 {
   public static final String SELECTIONS_PATH_DEPTH = "depth";
   public static final String SELECTIONS_CUSTOM = "custom";
   public static final String SELECTIONS_DEFAULT = "default";
-  
+
   public static final String FACETS = "facets";
   public static final String FACETS_MAX = "max";
   public static final String FACETS_MINCOUNT = "minCount";
@@ -69,8 +68,8 @@ public class RequestConverter2 {
   public static final String FACETINIT_TYPE_BYTES = "bytes";
   public static final String FACETINIT_TYPE_DOUBLE = "double";
   public static final String FACETINIT_VALUES = "values";
-  
-  
+
+
   public static final String SORT = "sort";
   public static final String SORT_ASC = "asc";
   public static final String SORT_DESC = "desc";
@@ -79,18 +78,18 @@ public class RequestConverter2 {
   public static final String FETCH_STORED = "fetchStored";
 
   public static final String FETCH_STORED_VALUE = "fetchStoredValue";
-  
+
   public static final String TERM_VECTORS = "termVectors";
-  
+
   public static final String PARTITIONS = "partitions";
-  
+
   public static final String EXPLAIN = "explain";
-  
+
   public static final String ROUTEPARAM = "routeParam";
-  
+
   public static final String MAPPINGS = "mappings";
-  
-  
+
+  private static JsonTemplateProcessor jsonTemplateProcessor = new JsonTemplateProcessor();
 
 	public static String[] getStrings(JSONObject obj,String field){
 		  String[] strArray = null;
@@ -104,7 +103,7 @@ public class RequestConverter2 {
 		  }
 		  return strArray;
 	  }
-	  
+
 	  private static int[] getInts(JSONObject obj,String field,int defaultVal){
 		  int[] intArray = null;
 		  JSONArray array = obj.optJSONArray(field);
@@ -117,7 +116,7 @@ public class RequestConverter2 {
 		  }
 		  return intArray;
 	  }
-	  
+
 	  private static Set<Integer> getIntSet(JSONObject obj,String field,int defaultVal){
 		  HashSet<Integer> intSet = null;
 		  JSONArray array = obj.optJSONArray(field);
@@ -130,7 +129,7 @@ public class RequestConverter2 {
 		  }
 		  return intSet;
 	  }
-	  
+
 	  public static String[] getStrings(JSONArray jsonArray) throws Exception{
       if (jsonArray == null)
         return null;
@@ -141,21 +140,24 @@ public class RequestConverter2 {
 		  }
 		  return vals;
 	  }
-	  
+
 	public static SenseiRequest fromJSON(JSONObject json) throws Exception{
-		SenseiRequest req = new SenseiRequest();
-		
+	  json =  jsonTemplateProcessor.substituteTemplates(json);
+
+
+	  SenseiRequest req = new SenseiRequest();
+
 	    // query
 	    req.setQuery(new SenseiJSONQuery(json));
-		
+
 		// paging params
 
 	    int  count = json.optInt(RequestConverter2.PAGING_SIZE, 10);
 	    int  offset = json.optInt(RequestConverter2.PAGING_FROM, 0);
 	    req.setCount(count);
 	    req.setOffset(offset);
-		
-		
+
+
 	    // group by
 	    JSONArray groupBy = json.optJSONArray(RequestConverter2.GROUPBY);
 	    if(groupBy != null)
@@ -171,11 +173,11 @@ public class RequestConverter2 {
 	        }
 	      }
 	    }
-		
+
 		// selections
         JSONArray selections = json.optJSONArray(RequestConverter2.SELECTIONS);
         if(selections != null)
-        {  
+        {
           for(int i=0; i<selections.length(); i++)
           {
             JSONObject selItem = selections.optJSONObject(i);
@@ -204,19 +206,19 @@ public class RequestConverter2 {
 					 facetSpec.setMaxCount(facetObj.optInt(RequestConverter2.FACETS_MAX, 10));
 					 facetSpec.setMinHitCount(facetObj.optInt(RequestConverter2.FACETS_MINCOUNT, 1));
 					 facetSpec.setExpandSelection(facetObj.optBoolean(RequestConverter2.FACETS_EXPAND, false));
-					 
+
 					 String orderBy = facetObj.optString(RequestConverter2.FACETS_ORDER, RequestConverter2.FACETS_ORDER_HITS);
 					 FacetSpec.FacetSortSpec facetOrder = FacetSpec.FacetSortSpec.OrderHitsDesc;
 					 if (RequestConverter2.FACETS_ORDER_VAL.equals(orderBy)){
 						 facetOrder = FacetSpec.FacetSortSpec.OrderValueAsc;
 					 }
-					 
+
 					 facetSpec.setOrderBy(facetOrder);
 					 req.setFacetSpec(field, facetSpec);
 				  }
 			  }
 		  }
-		  
+
 		  //facet init;
           JSONObject facetInitParams = json.optJSONObject(RequestConverter2.FACETINIT);
           if (facetInitParams != null)
@@ -228,7 +230,7 @@ public class RequestConverter2 {
               String facetName = keyIter.next();
               DefaultFacetHandlerInitializerParam param =
                   new DefaultFacetHandlerInitializerParam();
-      
+
               JSONObject jsonParams = facetInitParams.getJSONObject(facetName);
               if (jsonParams != null && jsonParams.length() > 0)
               {
@@ -258,12 +260,12 @@ public class RequestConverter2 {
                 }
                 req.setFacetHandlerInitializerParam(facetName, param);
               }
-      
+
             }
           }
-          
+
 		// sorts
-		  
+
           JSONArray sortArray = json.optJSONArray(RequestConverter2.SORT);
           if (sortArray!=null && sortArray.length()>0){
             ArrayList<SortField> sortFieldList = new ArrayList<SortField>(sortArray.length());
@@ -285,42 +287,42 @@ public class RequestConverter2 {
                 }
               }
             }
-            
-            
+
+
             if (sortFieldList.size()>0){
               req.setSort(sortFieldList.toArray(new SortField[sortFieldList.size()]));
             }
           }
-		
+
 		// other
-		  
+
 		boolean fetchStored = json.optBoolean(RequestConverter2.FETCH_STORED);
 		req.setFetchStoredFields(fetchStored);
 
 		boolean fetchStoredValue = json.optBoolean(RequestConverter2.FETCH_STORED_VALUE);
 		req.setFetchStoredValue(fetchStoredValue);
-		  
+
 		String[] termVectors = getStrings(json,RequestConverter2.TERM_VECTORS);
 		if (termVectors!=null && termVectors.length>0){
 		  req.setTermVectorsToFetch(new HashSet<String>(Arrays.asList(termVectors)));
 		}
-		  
+
 
 		req.setPartitions(getIntSet(json, RequestConverter2.PARTITIONS,0));
-		  
+
 		req.setShowExplanation(json.optBoolean(RequestConverter2.EXPLAIN,false));
-		  
+
 		String routeParam = json.optString(RequestConverter2.ROUTEPARAM,null);
 		req.setRouteParam(routeParam);
-		  
+
 		return req;
 	}
 
   private static void addSelection(String type, JSONObject jsonSel, SenseiRequest req) throws Exception
   {
  // we process "term", "terms", "range", "path", "custom" selection types;
-    
-    
+
+
     if(RequestConverter2.SELECTIONS_TERM.equals(type))
     {
       Iterator<String> iter = jsonSel.keys();
@@ -353,15 +355,15 @@ public class RequestConverter2 {
           ValueOperation op = ValueOperation.ValueOperationOr;
           if(RequestConverter2.SELECTIONS_TERMS_OPERATOR_AND.equals(operator))
             op = ValueOperation.ValueOperationAnd;
-          
+
           if(values != null && values.length()>0){
-            sel.setValues(getStrings(values));  
+            sel.setValues(getStrings(values));
           }
 
           if(excludes != null && excludes.length()>0){
-            sel.setNotValues(getStrings(excludes));  
+            sel.setNotValues(getStrings(excludes));
           }
-          
+
           sel.setSelectionOperation(op);
           req.addSelection(sel);
         }
@@ -373,7 +375,7 @@ public class RequestConverter2 {
       if(iter.hasNext()){
         String facet = iter.next();
         JSONObject jsonParams = jsonSel.optJSONObject(facet);
-        
+
         String upper = jsonParams.optString(RequestConverter2.SELECTIONS_RANGE_TO, "*");
         String lower = jsonParams.optString(RequestConverter2.SELECTIONS_RANGE_FROM, "*");
         boolean includeUpper = jsonParams.optBoolean(RequestConverter2.SELECTIONS_RANGE_INCLUDE_UPPER, true);
@@ -383,7 +385,7 @@ public class RequestConverter2 {
           left = "(";
         if(includeUpper == false)
           right = ")";
-        
+
         String range = left + lower + " TO " + upper + right;
         if(facet!= null )
         {
@@ -401,7 +403,7 @@ public class RequestConverter2 {
       if(iter.hasNext()){
         String facet = iter.next();
         JSONObject jsonParams = jsonSel.optJSONObject(facet);
-        
+
         String value = jsonParams.optString(RequestConverter2.SELECTIONS_PATH_VALUE, null);
 
         if(facet != null && value != null){
@@ -409,17 +411,17 @@ public class RequestConverter2 {
           String[] vals = new String[1];
           vals[0] = value;
           sel.setValues(vals);
-          
+
           if(jsonParams.has(RequestConverter2.SELECTIONS_PATH_STRICT)){
             boolean strict = jsonParams.optBoolean(RequestConverter2.SELECTIONS_PATH_STRICT, false);
             sel.getSelectionProperties().setProperty(PathFacetHandler.SEL_PROP_NAME_STRICT, String.valueOf(strict));
           }
-          
+
           if(jsonParams.has(RequestConverter2.SELECTIONS_PATH_DEPTH)){
             int depth = jsonParams.optInt(RequestConverter2.SELECTIONS_PATH_DEPTH, 1);
             sel.getSelectionProperties().setProperty(PathFacetHandler.SEL_PROP_NAME_DEPTH, String.valueOf(depth));
           }
-          
+
           req.addSelection(sel);
         }
       }
@@ -455,7 +457,7 @@ public class RequestConverter2 {
   /**
    * @param jsonValues
    * @return
-   * @throws Exception 
+   * @throws Exception
    */
   private static byte[] convertJSONToByteArray(JSONArray jsonArray) throws Exception
   {
