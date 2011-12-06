@@ -13,9 +13,14 @@ import com.sensei.indexing.api.DataSourceFilter;
 
 public abstract class SenseiGateway<V>{
 	abstract public String getName();
+	protected Configuration _conf;
 	
-	final public DataSourceFilter<V> getDataSourceFilter(Configuration conf,SenseiSchema senseiSchema,ApplicationContext pluginCtx){
-		String filter = conf.getString("filter",null);
+	public SenseiGateway(Configuration conf){
+	  _conf = conf;
+	}
+	
+	final public DataSourceFilter<V> getDataSourceFilter(SenseiSchema senseiSchema,ApplicationContext pluginCtx){
+		String filter = _conf.getString("filter",null);
 		if (filter!=null){
 			DataSourceFilter<V> dataSourceFilter = (DataSourceFilter<V>)pluginCtx.getBean(filter);
     dataSourceFilter.setSrcDataStore(senseiSchema.getSrcDataStore());
@@ -25,12 +30,13 @@ public abstract class SenseiGateway<V>{
 		return null;
 	}
 	
-	final public StreamDataProvider<JSONObject> buildDataProvider(Configuration conf,SenseiSchema senseiSchema,
-    Comparator<String> versionComparator,String oldSinceKey,ApplicationContext plugin) throws Exception{
-		DataSourceFilter<V> filter = getDataSourceFilter(conf,senseiSchema,plugin);
-		return buildDataProvider(conf,filter,versionComparator,oldSinceKey,plugin);
+	final public StreamDataProvider<JSONObject> buildDataProvider(SenseiSchema senseiSchema,String oldSinceKey,ApplicationContext plugin) throws Exception{
+		DataSourceFilter<V> filter = getDataSourceFilter(senseiSchema,plugin);
+		return buildDataProvider(filter,oldSinceKey,plugin);
 	}
 	
-	abstract public StreamDataProvider<JSONObject> buildDataProvider(Configuration conf,DataSourceFilter<V> dataFilter,Comparator<String> versionComparator,
+	abstract public StreamDataProvider<JSONObject> buildDataProvider(DataSourceFilter<V> dataFilter,
 			String oldSinceKey,ApplicationContext plugin) throws Exception;
+	
+	abstract public Comparator<String> getVersionComparator();
 }

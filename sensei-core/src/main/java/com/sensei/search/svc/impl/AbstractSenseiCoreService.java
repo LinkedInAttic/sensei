@@ -20,37 +20,41 @@ import proj.zoie.api.ZoieIndexReader;
 
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.linkedin.norbert.network.Serializer;
+import com.sensei.metrics.MetricsConstants;
 import com.sensei.search.jmx.JmxUtil;
 import com.sensei.search.nodes.SenseiCore;
 import com.sensei.search.nodes.SenseiQueryBuilderFactory;
 import com.sensei.search.req.AbstractSenseiRequest;
 import com.sensei.search.req.AbstractSenseiResult;
+import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.CounterMetric;
+import com.yammer.metrics.core.MeterMetric;
+import com.yammer.metrics.core.MetricName;
 import com.yammer.metrics.core.TimerMetric;
 
 public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiRequest,Res extends AbstractSenseiResult>{
   private final static Logger logger = Logger.getLogger(AbstractSenseiCoreService.class);
   
 
-  private final static TimerMetric GetReaderTimer = new TimerMetric(TimeUnit.MILLISECONDS,TimeUnit.SECONDS);
-  private final static TimerMetric SearchTimer = new TimerMetric(TimeUnit.MILLISECONDS,TimeUnit.SECONDS);
-  private final static TimerMetric MergeTimer = new TimerMetric(TimeUnit.MILLISECONDS,TimeUnit.SECONDS);
-  private final static CounterMetric SearchCounter = new CounterMetric();
+  private static TimerMetric GetReaderTimer = null;
+  private static TimerMetric SearchTimer = null;
+  private static TimerMetric MergeTimer = null;
+  private static MeterMetric SearchCounter = null;
 	
   static{
 	  // register jmx monitoring for timers
 	  try{
-	    ObjectName getReaderMBeanName = new ObjectName(JmxUtil.Domain+".node","name","getreader-time");
-	    JmxUtil.registerMBean(GetReaderTimer, getReaderMBeanName);
+	    MetricName getReaderMetricName = new MetricName(MetricsConstants.Domain,"timer","getreader-time","node");
+	    GetReaderTimer = Metrics.newTimer(getReaderMetricName,TimeUnit.MILLISECONDS,TimeUnit.SECONDS);
 	    
-	    ObjectName searchMBeanName = new ObjectName(JmxUtil.Domain+".node","name","search-time");
-	    JmxUtil.registerMBean(SearchTimer, searchMBeanName);
+	    MetricName searchMetricName = new MetricName(MetricsConstants.Domain,"timer","search-time","node");
+	    SearchTimer = Metrics.newTimer(searchMetricName,TimeUnit.MILLISECONDS,TimeUnit.SECONDS);
 
-	    ObjectName mergeMBeanName = new ObjectName(JmxUtil.Domain+".node","name","merge-time");
-	    JmxUtil.registerMBean(MergeTimer, mergeMBeanName); 
+	    MetricName mergeMetricName = new MetricName(MetricsConstants.Domain,"timer","merge-time","node");
+	    MergeTimer = Metrics.newTimer(mergeMetricName,TimeUnit.MILLISECONDS,TimeUnit.SECONDS);
 	    
-	    ObjectName searchCounterMBeanName = new ObjectName(JmxUtil.Domain + ".node", "name", "search-count");
-	    JmxUtil.registerMBean(SearchCounter, searchCounterMBeanName);
+	    MetricName searchCounterMetricName = new MetricName(MetricsConstants.Domain,"meter","search-count","node");
+	    SearchCounter = Metrics.newMeter(searchCounterMetricName, "requets", TimeUnit.SECONDS);
 	  }
 	  catch(Exception e){
 		logger.error(e.getMessage(),e);
@@ -67,7 +71,7 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
 	}
 	
 	public final Res execute(final Req senseiReq){
-		SearchCounter.inc();
+		SearchCounter.mark();
 		Set<Integer> partitions = senseiReq==null ? null : senseiReq.getPartitions();
 		if (partitions==null){
 			partitions = new HashSet<Integer>();

@@ -1,16 +1,13 @@
 package com.sensei.indexing.api;
 
-import java.lang.management.ManagementFactory;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
-import javax.management.MBeanServer;
-import javax.management.ObjectName;
 import javax.management.StandardMBean;
 
 import org.apache.commons.configuration.Configuration;
@@ -32,8 +29,13 @@ import com.browseengine.bobo.api.BoboIndexReader;
 import com.sensei.conf.SenseiSchema;
 import com.sensei.indexing.api.gateway.SenseiGateway;
 import com.sensei.indexing.api.gateway.SenseiGatewayRegistry;
+import com.sensei.metrics.MetricsConstants;
 import com.sensei.search.jmx.JmxUtil;
 import com.sensei.search.nodes.SenseiIndexingManager;
+import com.yammer.metrics.Metrics;
+import com.yammer.metrics.core.CounterMetric;
+import com.yammer.metrics.core.MeterMetric;
+import com.yammer.metrics.core.MetricName;
 
 public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JSONObject> {
 
@@ -43,13 +45,31 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 	
 	private static final String MAX_PARTITION_ID = "maxpartition.id";
 	
-	private static final String PROVIDER_TYPE = "type";
-	
 	private static final String EVTS_PER_MIN = "eventsPerMin";
 	
 	private static final String BATCH_SIZE = "batchSize";
 	
 	private static final String SHARDING_STRATEGY = "shardingStrategy";
+	
+  private static MeterMetric ProviderBatchSizeMeter = null;
+  private static MeterMetric EventMeter = null;
+  private static MeterMetric UpdateBatchSizeMeter = null;
+  
+  static{
+    try{
+      MetricName providerBatchSizeMetricName = new MetricName(MetricsConstants.Domain,"meter","provider-batch-size","indexing-manager");
+      ProviderBatchSizeMeter = Metrics.newMeter(providerBatchSizeMetricName,"provide-batch-size", TimeUnit.SECONDS);
+      
+      MetricName updateBatchSizeMetricName = new MetricName(MetricsConstants.Domain,"meter","update-batch-size","indexing-manager");
+      UpdateBatchSizeMeter = Metrics.newMeter(updateBatchSizeMetricName,"update-batch-size", TimeUnit.SECONDS);
+      
+      MetricName eventMeterMetricName = new MetricName(MetricsConstants.Domain,"meter","indexing-events","indexing-manager");
+      EventMeter = Metrics.newMeter(eventMeterMetricName, "indexing-events", TimeUnit.SECONDS);
+    }
+    catch(Exception e){
+    logger.error(e.getMessage(),e);
+    }
+  }
 	
 	
 	private StreamDataProvider<JSONObject> _dataProvider;
@@ -60,10 +80,13 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 	
 	private Map<Integer, Zoie<BoboIndexReader, JSONObject>> _zoieSystemMap;
 	private final LinkedHashMap<Integer, Collection<DataEvent<JSONObject>>> _dataCollectorMap;
+
+	private final SenseiGateway<?> _gateway;
+  private final ShardingStrategy _shardingStrategy;
   private final Comparator<String> _versionComparator;
-    private final ShardingStrategy _shardingStrategy;
+  
 	
-	public DefaultStreamingIndexingManager(SenseiSchema schema,Configuration senseiConfig, ApplicationContext pluginContext, Comparator<String> versionComparator){
+	public DefaultStreamingIndexingManager(SenseiSchema schema,Configuration senseiConfig, ApplicationContext pluginContext, SenseiGateway<?> gateway){
 	  _dataProvider = null;
 	  _myconfig = senseiConfig.subset(CONFIG_PREFIX);
     _pluginContext = pluginContext;
@@ -71,7 +94,9 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 	  _senseiSchema = schema;
 	  _zoieSystemMap = null;
 	  _dataCollectorMap = new LinkedHashMap<Integer, Collection<DataEvent<JSONObject>>>();
-    _versionComparator = versionComparator;
+	  _gateway = gateway;
+	  
+	  _versionComparator = _gateway.getVersionComparator();
     
       String shardingStrategyName = _myconfig.getString(SHARDING_STRATEGY);
     
@@ -127,21 +152,10 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
   }
 	
 	private StreamDataProvider<JSONObject> buildDataProvider() throws ConfigurationException{
-		String type = _myconfig.getString(PROVIDER_TYPE);
 		StreamDataProvider<JSONObject> dataProvider = null;
 
-		Configuration conf = _myconfig.subset(type);
-		
-		SenseiGateway<?> builder = SenseiGatewayRegistry.getDataProviderBuilder(type);
-		if (builder==null){
-			builder = (SenseiGateway<?>)_pluginContext.getBean(type);
-			if (builder == null){
-			  throw new ConfigurationException("unsupported provider type: "+type);
-			}
-		}
-
 		try{
-		  dataProvider = builder.buildDataProvider(conf, _senseiSchema, _versionComparator, _oldestSinceKey, _pluginContext);
+		  dataProvider = _gateway.buildDataProvider(_senseiSchema, _oldestSinceKey, _pluginContext);
       long maxEventsPerMin = _myconfig.getLong(EVTS_PER_MIN,40000);
       dataProvider.setMaxEventsPerMinute(maxEventsPerMin);
       int batchSize = _myconfig.getInt(BATCH_SIZE,1);
@@ -203,6 +217,10 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
     @Override
     public void consume(Collection<proj.zoie.api.DataConsumer.DataEvent<JSONObject>> data) throws ZoieException
     {
+      UpdateBatchSizeMeter.mark(data.size());
+      ProviderBatchSizeMeter.mark(DefaultStreamingIndexingManager.this._dataProvider.getBatchSize());
+      EventMeter.mark(DefaultStreamingIndexingManager.this._dataProvider.getEventCount());
+      
       try{
         for(DataEvent<JSONObject> dataEvt : data){
           JSONObject obj = dataEvt.getData();
