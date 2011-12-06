@@ -12,7 +12,7 @@ title: SenseiDB - Data Guarantees
 
 <h2>Broker</h2>
 <p>
-	A Sensei node is a Java process performing indexing work as handling query requests. A node can be configured to query over N shards.
+	A Sensei broker performs scatter-gather logic on query requests. The broker also listens to events from ZooKeeper and maintains a view of partition to node list map which is used to route and scatter query requests. Every node process has a broker co-located.
 </p>
 <hr/>
 
