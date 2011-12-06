@@ -1,0 +1,82 @@
+---
+layout: default
+title: SenseiDB - Getting Started
+name: getting-started
+---
+<div class="hero-unit">
+	<h2>Getting Started</h2>
+	<p>
+		The 1,2,3 of getting rockin&apos; with Sensei!
+	</p>
+</div>
+
+<div class="row">
+	<div class="span6">
+		<h3>Start Zookeeper</h3>
+		<p>
+		Zookeeper manages Sensei&apos;s network topology or cluster.
+		</p>
+	</div>
+	<div class="span8">
+		<p>
+		Start your ZooKeeper instance: (detailed instruction <a href="http://zookeeper.apache.org/doc/trunk/zookeeperStarted.html">here</a>)
+		<pre><code>$ZK_HOME/bin/zkServer.sh start</code></pre>
+		</p>
+	</div>
+</div>
+
+<div class="row">
+	<div class="span6">
+		<h3>Create &amp; configure an app</h3>
+		<p>
+		 Putting together some configuration. (Example: <a href="https://github.com/senseidb/sensei/tree/master/conf">Cars</a>)
+		</p>
+		<p>
+			<a class="btn" href="#">Details &raquo;</a>
+		</p>
+	</div>
+	<div class="span8">
+		<p>
+		Start your Sensei node by pointing to your configuration directory (the following example starts the car example application):
+		<pre><code>$SENSEI_HOME/bin/start-sensei-node.sh conf</code></pre>
+		</p>
+	</div>
+</div>
+
+<hr/>
+<h2>Voila! That&apos; it!</h2>
+<p>
+	You can now interact with your Sensei node with either the Sensei Web-console or the Sensei Shell!
+</p>
+<br/>
+<div class="row">
+	<div class="span6">
+		<h3>Web-console</h3>
+		<p>
+		 Sensei comes with a web-console (written using Sensei&apos;s Javascript API) to help you interact with your Sensei cluster.
+		</p>
+	</div>
+	<div class="span8">
+		<p>
+		Point your favorite browser to: <a href="http://localhost:8080">http://localhost:8080</a>
+		</p>
+		<p>
+		Learn details of the Javascript API <a href="#">here</a>.
+		</p>
+	</div>
+</div>
+
+<div class="row">
+	<div class="span6">
+		<h3>Shell</h3>
+		<p>
+		 You can also query your Sensei cluster with <a href="http://linkedin.jira.com/wiki/display/SENSEI/BQL+Syntax+and+Query+Examples">BQL</a> using the Sensei Shell.
+		</p>
+	</div>
+	<div class="span8">
+		<p>
+		 Start the Sensei Shell: host/port information optional, defaults to localhost:8080
+		 <pre><code>$SENSEI_HOME/bin/sensei-shell.sh</code></pre>
+		</p>
+	</div>
+</div>

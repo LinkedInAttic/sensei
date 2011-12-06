@@ -1,0 +1,55 @@
+---
+layout: default
+title: SenseiDB - Maven
+name: maven
+version: 1.0.0-SNAPSHOT
+---
+<div class="hero-unit">
+	<p>
+		<h2>Maven</h2>
+		<p>
+			Sensei artifacts are mavenized for your development pleasure.
+		</p>
+	</p>
+	<p><a class="btn primary large" href="">Maven Repository &raquo;</a></p>
+</div>
+
+<div class="row">
+	<div class="span6">
+		<h3>Java Client</h3>
+		<p>Java client library</p>
+	</div>
+	<div class="span7">
+		<pre><code><dependency>&lt;groupId&gt;com.senseidb&lt;/groupId&gt;
+&lt;artifactId>sensei-java-client&lt;/artifactId&gt;
+&lt;version>{{page.version}}&lt;/version&gt;
+&lt;/depedency&gt;</code></pre>
+	</div>
+</div>
+
+<div class="row">
+	<div class="span6">
+		<h3>Sensei Core</h3>
+		<p>Core library, where all the goodies live.</p>
+	</div>
+	<div class="span7">
+		<pre><code><dependency>&lt;groupId&gt;com.senseidb&lt;/groupId&gt;
+&lt;artifactId>sensei-core&lt;/artifactId&gt;
+&lt;version>{{page.version}}&lt;/version&gt;
+&lt;/depedency&gt;</code></pre>
+	</div>
+</div>
+
+<div class="row">
+	<div class="span6">
+		<h3>Hadoop indexer</h3>
+		<p>Map-reduce job to build indexes from Hadoop.</p>
+		<p>Depends on Sensei Core.</p>
+	</div>
+	<div class="span7">
+		<pre><code><dependency>&lt;groupId&gt;com.senseidb&lt;/groupId&gt;
+&lt;artifactId>sensei-hadoop-indexing&lt;/artifactId&gt;
+&lt;version>{{page.version}}&lt;/version&gt;
+&lt;/depedency&gt;</code></pre>
+	</div>
+</div>

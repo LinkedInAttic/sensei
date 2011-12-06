@@ -1,26 +1,40 @@
 ---
 layout: default
-title: SenseiDB - Contribute
+title: SenseiDB - Overview
 name: overview
 ---
 <div class="hero-unit">
 	<p>
-		<h2>Architecture Diagram</h2>
-		<p style="margin-top:20px">
+		<h2>Introduction</h2>
+		<p>
+			Sensei is a distributed data system that was built to support many product initiatives at <a href="http://www.linkedin.com">LinkedIn.com</a>, e.g. <a href="http://www.linkedin.com/signal">LinkedIn Signal</a> and the LinkedIn Homepage. It is foundation to the LinkedIn's search and data infrastructure.
+		</p>
+		<p>
+			Sensei is both a search engine and a database. Sensei is designed to query and navigate through documents with parts that contain text and are unstructured, as well as parts containing meta information that have well-formed structures.
+		</p>
+	</p>
+	
+	<p><a class="btn primary large" href="#">Learn more &raquo;</a>
+	
+</div>
+<div>
+	<p>
+		<h3>Architecture Diagram</h3>
+		<p>
 			<img border="1" src="images/sensei-architect.png">
 		</p>
 	</p>
 	<hr/>
 	<p>
-		<h2>Design considerations</h2>
+		<h3>Design considerations</h3>
 		<p>
 		<ul>
 			<li>data:
 				<ul>
-					<li>Fault tolerance - when one replication is down, data is still accessible</li>
-					<li>Durability - N copies of data is stored</li>
+					<li>Fault tolerance/Availability - when one replication is down, data is still accessible via other replicas</li>
+					<li>Durability - N copies of data is stored so you have N backups</li>
 					<li>Through-put - Parallelizable request-handling on different nodes/data replicas, designed to handle web-scale traffic</li>
-					<li>Consistency - Eventual consistent</li>
+					<li>Consistency - Eventual consistent, your data replicas will never go outta wack!</li>
 					<li>Data recovery - each shared/replica is noted with a watermark for data recovery</li>
 					<li>Large dataset - designed to handle 100s millions - billions of rows</li>
 				</ul>
@@ -36,7 +50,7 @@ name: overview
 			</li>
 			<li>performance:
 				<ul>
-					<li>low indexing latency - real-time update</li>
+					<li>low indexing latency - real-time update supported, e.g. when data are added to the system, they become part of the query-able corpus right away.</li>
 					<li>low search latency - millisecond query response time</li>
 					<li>low volatility - low variance in both indexing and search latency</li>
 				</ul>
