@@ -68,7 +68,7 @@ by all runtime facet handlers
      * Allows template substitution on the server. The template occurrence in other places should begin with the dollar sign<br>
      * Example: <br>
      * {
-     *  { "query_string" : {    "query" : "$color1 or $color2", boost : $customBoost },
+     *  { "query_string" : {    "query" : "$color1 or $color2", boost : "$customBoost" },
      *  { templateMapping {color1:"red", color2:"blue", customBoost : 1.0}}
      * }
      * <br>will produce<br>
