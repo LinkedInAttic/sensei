@@ -14,28 +14,59 @@ import com.sensei.search.client.json.req.query.QueryJsonHandler;
 
 
 
+/**
+ * The sensei request object, that is used to send the Sensei query to the server
+ *
+ */
 public class SenseiClientRequest {
-    private Paging paging;
+   /* *//**
+     * @see com.sensei.search.client.json.req.Paging
+     *//*
+    private Paging paging;*/
+    private Integer count;
+    private Integer from;
 
-
+    /**
+     *
+     * @see com.sensei.search.client.json.req.GroupBy
+     *
+     */
     private GroupBy groupBy;
     private List<Selection> selections = new ArrayList<Selection>();
     @CustomJsonHandler(value = QueryJsonHandler.class)
     private Query query;
+    /**
+     * Initializing parameters for runtime facet handlers: a map that contains the initializing parameters that are needed
+by all runtime facet handlers
+
+     */
     private Map<String, Map<String, FacetInit>> facetInit = new HashMap<String, Map<String, FacetInit>>();
     private List<Sort> sorts = new ArrayList<Sort>();
     private Map<String, Facet> facets = new HashMap<String, Facet>();
+    /**
+     * Flag indicating whether stored fields are to be fetched
+     */
     private boolean fetchStored;
     private List<String> termVectors = new ArrayList<String>();
+    /**
+     * shards of the index to be searched
+     */
     private List<Integer> partitions = new ArrayList<Integer>();
+    /**
+     * Flag indicating whether explanation information should be returned
+     */
     private boolean explain;
+    /**
+     * the field value used for routing
+     */
     private String routeParam;
     @CustomJsonHandler(value = FilterJsonHandler.class)
     private Filter filter;
     public static class Builder {
         private SenseiClientRequest request = new SenseiClientRequest();
         public Builder paging(int count, int offset) {
-            request.paging = new Paging(count, offset);
+            request.count = count;
+            request.from = offset;
             return this;
         }
 
@@ -116,7 +147,7 @@ public class SenseiClientRequest {
     }
 
     public Paging getPaging() {
-        return paging;
+        return new Paging(count, from);
     }
     public GroupBy getGroupBy() {
         return groupBy;

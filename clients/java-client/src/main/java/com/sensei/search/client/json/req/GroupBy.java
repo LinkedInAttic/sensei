@@ -2,6 +2,10 @@ package com.sensei.search.client.json.req;
 
 import java.util.List;
 
+/**
+ * Group-by field: the field name used for the group-by operation (also called field collapsing )
+ *
+ */
 public class GroupBy {
     private List<String> columns;
     private int top;

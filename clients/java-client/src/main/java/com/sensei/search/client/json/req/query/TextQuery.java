@@ -149,6 +149,7 @@ public class TextQuery extends FieldAware implements Query {
     phrase_prefix, phrase;
   }
 
+  @Override
   public String getField() {
     return field;
   }
