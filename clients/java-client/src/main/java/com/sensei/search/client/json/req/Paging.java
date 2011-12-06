@@ -1,7 +1,21 @@
 package com.sensei.search.client.json.req;
 
+/**
+ * Represents result pagination.
+ * Contains :
+    - the number of search results to return
+      the starting offset of search results
+ */
 public class Paging {
+    /**
+     * the number of search results to return
+
+     */
     private int count;
+    /**
+     * the starting offset of search results
+
+     */
     private int offset;
     public Paging() {
         // TODO Auto-generated constructor stub
@@ -11,5 +25,5 @@ public class Paging {
         this.count = count;
         this.offset = offset;
     }
-    
+
 }

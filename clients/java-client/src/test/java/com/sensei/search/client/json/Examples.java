@@ -1,7 +1,10 @@
 package com.sensei.search.client.json;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import org.json.JSONObject;
 
 import com.sensei.search.client.json.req.Facet;
 import com.sensei.search.client.json.req.FacetInit;
@@ -17,21 +20,33 @@ import com.sensei.search.client.json.res.SenseiResult;
 
 public class Examples {
     public static void main(String[] args) throws Exception {
-        System.out.println(Selection.class.isAnnotationPresent(CustomJsonHandler.class));
-        System.out.println(Arrays.asList(Selection.Path.class.getDeclaredAnnotations()));
-        System.out.println(Selection.Path.class.isAnnotationPresent(CustomJsonHandler.class));
-        SenseiClientRequest senseiRequest = filters(queries(basicWithSelections(SenseiClientRequest.builder()))).build();
-        Object serialized = JsonSerializer.serialize(senseiRequest);
-        System.out.println(serialized);
+      //Equivalent to
+      //SELECT color, year, tags, price FROM cars WHERE QUERY IS "cool" AND tags
+      //CONTAINS ALL ("cool", "hybrid") EXCEPT ("favorite") AND color in ("red")
+      //ORDER BY price desc LIMIT 0,10 BROWSE BY color(true, 1, 10, hits), year(true, 1, 10, value), price
+
+      SenseiClientRequest senseiRequest = SenseiClientRequest.builder()
+            .addFacet("color", Facet.builder().minHit(1).expand(true).orderByHits().max(10).build())
+            //.addFacet("price", Facet.builder().minHit(1).expand(false).orderByHits().max(10).build())
+            .addFacet("year", Facet.builder().minHit(1).expand(true).orderByVal().max(10).build())
+            .query(Queries.stringQuery("cool"))
+            .addSelection(Selection.terms("tags", Arrays.asList("cool", "hybrid"), Arrays.asList("favorite"), Operator.and))
+            .addSelection(Selection.terms("color", Arrays.asList("red"), new ArrayList<String>(), Operator.or))
+            .paging(10, 0)
+            .fetchStored(true)
+            .addSort(Sort.desc("price"))
+        .build();
+        JSONObject serialized = (JSONObject) JsonSerializer.serialize(senseiRequest);
+        System.out.println(serialized.toString(2));
         SenseiResult senseiResult = new SenseiServiceProxy("http://localhost:8080/sensei/").sendRequest(senseiRequest);
-        System.out.println(senseiResult.toString());
+        System.out.println(senseiResult);
     }
     public static SenseiClientRequest.Builder basicWithSelections(SenseiClientRequest.Builder builder) {
         builder.paging(5, 2)
         .groupBy(7, "car", "year")
         .addSelection(Selection.path("field", "value", true, 1))
         .addSelection(Selection.range("color", "*", "*"))
-        .addFacet("facet1", Facet.builder().max(2).minCount(1).orderByVal().build())
+        .addFacet("facet1", Facet.builder().max(2).minHit(1).orderByVal().build())
         .addFacetInit("name", "parameter", FacetInit.build("string", "val1", "val2"))
         .addSort(Sort.desc("color"))
         .addSort(Sort.asc("year"))
@@ -61,9 +76,7 @@ public class Examples {
 
 	public static SenseiClientRequest.Builder queries(SenseiClientRequest.Builder builder) {
 	    List<Query> innerQueries = Arrays.asList(
-
 	                    Queries.matchAllQuery(3),
-
 	                    Queries.disMax(2.0, 1.0, Queries.term("field1", "value1", 1.0)),
 	                    Queries.ids(Arrays.asList("val2", "val3"), Arrays.asList("ExcludedValue"), 1.0),
 	                    Queries.matchAllQuery(3.0),
@@ -76,8 +89,7 @@ public class Examples {
 	                    Queries.spanOr( 1.0, Queries.spanTerm("field", "val", 3.5)),
 	                    Queries.spanTerm("field", "val", 3.5),
 	                    Queries.textQuery("column","text", Operator.or, Type.phrase, 1.0),
-
-	                            Queries.stringQueryBuilder().autoGeneratePhraseQueries(true).defaultField("field").defaultOperator(Operator.and).fields("field1","field2").tieBreaker(2).build()
+	                            Queries.stringQueryBuilder().query("").autoGeneratePhraseQueries(true).defaultField("field").defaultOperator(Operator.and).fields("field1","field2").tieBreaker(2).build()
 	              );
 	    builder.query(Queries.bool(innerQueries, null, null, 2, 2.0, true));
 

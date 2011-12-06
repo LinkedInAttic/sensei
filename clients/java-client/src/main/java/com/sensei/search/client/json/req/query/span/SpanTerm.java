@@ -8,44 +8,60 @@ import com.sensei.search.client.json.req.query.Query;
 import com.sensei.search.client.json.req.query.QueryJsonHandler;
 
 /**
- *     <p>Matches spans containing a term. The span term query maps to Sensei <code>SpanTermQuery</code>. Here is an example:</p>
-<pre class="prettyprint lang-js"><span class="pun">{</span><span class="pln"><br>&nbsp; &nbsp; </span><span class="str">"span_term"</span><span class="pln"> </span><span class="pun">:</span><span class="pln"> </span><span class="pun">{</span><span class="pln"> </span><span class="str">"user"</span><span class="pln"> </span><span class="pun">:</span><span class="pln"> </span><span class="str">"kimchy"</span><span class="pln"> </span><span class="pun">}</span><span class="pln"><br></span><span class="pun">}</span><span class="pln"> &nbsp; &nbsp;</span></pre>
-
-<p>A boost can also be associated with the query:</p>
-<pre class="prettyprint lang-js"><span class="pun">{</span><span class="pln"><br>&nbsp; &nbsp; </span><span class="str">"span_term"</span><span class="pln"> </span><span class="pun">:</span><span class="pln"> </span><span class="pun">{</span><span class="pln"> </span><span class="str">"user"</span><span class="pln"> </span><span class="pun">:</span><span class="pln"> </span><span class="pun">{</span><span class="pln"> </span><span class="str">"value"</span><span class="pln"> </span><span class="pun">:</span><span class="pln"> </span><span class="str">"kimchy"</span><span class="pun">,</span><span class="pln"> </span><span class="str">"boost"</span><span class="pln"> </span><span class="pun">:</span><span class="pln"> </span><span class="lit">2.0</span><span class="pln"> </span><span class="pun">}</span><span class="pln"> </span><span class="pun">}</span><span class="pln"><br></span><span class="pun">}</span><span class="pln"> &nbsp; &nbsp;</span></pre>
-
-<p>Or :</p>
-<pre class="prettyprint lang-js"><span class="pun">{</span><span class="pln"><br>&nbsp; &nbsp; </span><span class="str">"span_term"</span><span class="pln"> </span><span class="pun">:</span><span class="pln"> </span><span class="pun">{</span><span class="pln"> </span><span class="str">"user"</span><span class="pln"> </span><span class="pun">:</span><span class="pln"> </span><span class="pun">{</span><span class="pln"> </span><span class="str">"term"</span><span class="pln"> </span><span class="pun">:</span><span class="pln"> </span><span class="str">"kimchy"</span><span class="pun">,</span><span class="pln"> </span><span class="str">"boost"</span><span class="pln"> </span><span class="pun">:</span><span class="pln"> </span><span class="lit">2.0</span><span class="pln"> </span><span class="pun">}</span><span class="pln"> </span><span class="pun">}</span><span class="pln"><br></span><span class="pun">}</span><span class="pln"> &nbsp; &nbsp;</span></pre>
-
-
+ * <p>
+ * Matches spans containing a term. The span term query maps to Sensei
+ * <code>SpanTermQuery</code>. Here is an example:
+ * </p>
+ *
+ * <pre class="prettyprint lang-js">
+ * <span class="pun">{</span><span class="pln"><br>&nbsp; &nbsp; </span><span class="str">"span_term"</span><span class="pln"> </span><span class="pun">:</span><span class="pln"> </span><span class="pun">{</span><span class="pln"> </span><span class="str">"user"</span><span class="pln"> </span><span class="pun">:</span><span class="pln"> </span><span class="str">"kimchy"</span><span class="pln"> </span><span class="pun">}</span><span class="pln"><br></span><span class="pun">}</span><span class="pln"> &nbsp; &nbsp;</span>
+ * </pre>
+ *
+ * <p>
+ * A boost can also be associated with the query:
+ * </p>
+ *
+ *
+ * <p>
+ * Or :
+ * </p>
+ *
+ *
+ *
  *
  */
 @CustomJsonHandler(QueryJsonHandler.class)
-public class SpanTerm extends FieldAware implements Query  {
-    private String value;
-    private Double boost;
-    public SpanTerm(String field,  String value, Double boost) {
-        super();
-        this.value = value;
-        this.boost = boost;
-        this.field = field;
+public class SpanTerm extends FieldAware implements Query {
+  private String value;
+  private Double boost;
+
+  public SpanTerm(String field, String value, Double boost) {
+    super();
+    this.value = value;
+    this.boost = boost;
+    this.field = field;
+  }
+
+  public String getValue() {
+    return value;
+  }
+
+  public void setValue(String value) {
+    this.value = value;
+  }
+
+  public Double getBoost() {
+    return boost;
+  }
+
+  public void setBoost(Double boost) {
+    this.boost = boost;
+  }
+
+  public static void cleanBoosts(List<SpanTerm> spanTerms) {
+    for (SpanTerm spanTerm : spanTerms) {
+      spanTerm.setBoost(null);
     }
-    public String getValue() {
-      return value;
-    }
-    public void setValue(String value) {
-      this.value = value;
-    }
-    public Double getBoost() {
-      return boost;
-    }
-    public void setBoost(Double boost) {
-      this.boost = boost;
-    }
-    public static void cleanBoosts(List<SpanTerm> spanTerms) {
-      for (SpanTerm spanTerm : spanTerms) {
-        spanTerm.setBoost(null);
-      }
-    }
+  }
 
 }

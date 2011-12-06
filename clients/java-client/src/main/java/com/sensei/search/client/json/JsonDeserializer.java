@@ -16,14 +16,14 @@ public class JsonDeserializer {
     public static <T> T deserialize(Class<T> cls, JSONObject jsonObject) {
         return deserialize(cls, jsonObject, true);
     }
-    
-    
+
+
     public static <T> T deserialize(Class<T> cls, JSONObject jsonObject, boolean handleCustomJsonHandler) {
         try {
             if (jsonObject == null) {
                 return null;
             }
-           
+
             CustomJsonHandler customJsonHandler = (CustomJsonHandler) ReflectionUtil.getAnnotation(cls, CustomJsonHandler.class);
             if (customJsonHandler != null && handleCustomJsonHandler) {
                 CustomJsonHandler annotation = cls.getAnnotation(CustomJsonHandler.class);
@@ -66,15 +66,15 @@ public class JsonDeserializer {
                     if (value != null) {
                     	value = Enum.valueOf((Class)type, value.toString());
                     }
-                } else if (type == List.class) { 
+                } else if (type == List.class) {
                     JSONArray jsonArray = jsonObject.optJSONArray(name);
                     if (jsonArray == null) {
                         continue;
                     }
-                    boolean isParameterizedType = ((Type) genericType)  instanceof ParameterizedType;
+                    boolean isParameterizedType = genericType  instanceof ParameterizedType;
                     value = deserializeArray((isParameterizedType ? getGenericType(genericType, 0) : null), jsonArray);
-                }  else if (type == Map.class) { 
-                        
+                }  else if (type == Map.class) {
+
                 		value = deserializeMap(genericType, jsonObject.getJSONObject(name));
                 		if (value == null) {
                 			continue;
@@ -95,12 +95,12 @@ public class JsonDeserializer {
             return obj;
         } catch (Exception ex) {
             throw new RuntimeException(ex.getMessage(), ex);
-        }    
+        }
     }
     @SuppressWarnings({ "rawtypes", "unchecked" })
     private static Map deserializeMap(Type genericType,  JSONObject mapJson ) throws Exception {
         Map map = new HashMap();
-       
+
         if (mapJson == null) {
             return null;
         }
@@ -114,13 +114,13 @@ public class JsonDeserializer {
             if (mapValue == null) {
                 map.put(paramName, null);
             } else if (mapValue instanceof JSONArray) {
-                if (((Type)valueType) instanceof ParameterizedType) {
+                if (valueType instanceof ParameterizedType) {
                     map.put(paramName, deserializeArray(getGenericType(valueType, 0), (JSONArray) mapValue));
                 } else {
                     map.put(paramName, deserializeArray(null, (JSONArray) mapValue));
                 }
             } else if (valueType instanceof ParameterizedType && Map.class.isAssignableFrom(((Class)((ParameterizedType)valueType).getRawType()))) {
-                
+
                 map.put(paramName, deserializeMap(valueType, (JSONObject)mapValue));
             }  else if (mapValue instanceof JSONObject) {
                 map.put(paramName, deserialize((Class)valueType, (JSONObject) mapValue));
@@ -145,10 +145,10 @@ public class JsonDeserializer {
 
     private static Type getGenericType(Field field) {
         ParameterizedType paramType = (ParameterizedType) field.getGenericType();
-        return (Type) paramType.getActualTypeArguments()[0];
+        return paramType.getActualTypeArguments()[0];
     }
     private static Type getGenericType(Type cls, int paramIndex) {
-        return ((ParameterizedType) (Type)cls).getActualTypeArguments()[paramIndex];
-       
+        return ((ParameterizedType) cls).getActualTypeArguments()[paramIndex];
+
     }
 }
