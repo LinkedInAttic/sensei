@@ -32,22 +32,36 @@
     <itemizedlist>
       <listitem>
         <para>com.sensei.indexing.hadoop.job;</para>
+
+        <para>This package contains the job configuration file loading
+        classes.</para>
       </listitem>
 
       <listitem>
         <para>com.sensei.indexing.hadoop.keyvalueformat;</para>
+
+        <para>This package specifies the data format (key, value) used in
+        hadoop-indexing system.</para>
       </listitem>
 
       <listitem>
         <para>com.sensei.indexing.hadoop.map;</para>
+
+        <para>This package contains underlying Sensei Hadoop Mapper file and
+        also a dummy Converter to deal with preprocess of input record.</para>
       </listitem>
 
       <listitem>
         <para>com.sensei.indexing.hadoop.reduce;</para>
+
+        <para>This package contains Hadoop Reduer and Combiner files.</para>
       </listitem>
 
       <listitem>
         <para>com.sensei.indexing.hadoop.util;</para>
+
+        <para>Util package has all kinds of naming configuration files and
+        utility tools.</para>
       </listitem>
     </itemizedlist>
 
@@ -62,17 +76,39 @@
         </imageobject>
       </mediaobject>
     </figure>
+
+    <para>As we can see from the system workflow above, Sensei Hadoop indexer
+    is relatively independent from other Sensei components. Users can sepicfy
+    how many shards as the system output, and also the sharding strategy,
+    input data converter, etc. The generated index can be directly used by
+    Sensei to bootstrap.</para>
   </section>
 
   <section>
     <title>Demo</title>
 
     <para>To be consistent, we also use the car demo data to describe our
-    hadoop indexing system.</para>
+    hadoop indexing system. Sensei package comes with a car demo
+    hadoop-indexing example and it mainly has four simple files. The first one
+    "CarDemo.java" is a simple main class providing a starting point for
+    running the program. "CarMapInputConverter.java" is a sample converter
+    class to convert the input data record for map job.
+    "CarShardingStrategy.java" is another class to provide a user-specified
+    sharding strategy. Also we need a configuration file to help Sensei Hadoop
+    indexer to configure all the rest properties, a sample configuration file
+    can be found at "example/hadoop-indexing/conf/JobCarDemo.job".</para>
+
+    <para>To run the demo, simple compile and package the project into an
+    excutable jar file called CarDemo.jar. Then run "hadoop jar
+    CarDemo.jar".</para>
+
+    <para>(You need to specify the job configuration file location in
+    CarDemo.java, and upload the schema file into the HDFS system before
+    running, and also the location of the schema file should be set in the
+    configuration file)</para>
 
     <section>
-      <title>Configuration</title>
-
+      <title>Car Demo Configuration</title>
 
       <programlisting>type=java
 job.class=com.sensei.indexing.hadoop.demo.CarDemo

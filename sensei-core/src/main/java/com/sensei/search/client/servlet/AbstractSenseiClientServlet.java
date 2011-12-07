@@ -14,17 +14,22 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import com.linkedin.norbert.javacompat.cluster.ClusterClient;
 import com.linkedin.norbert.javacompat.cluster.ZooKeeperClusterClient;
 import com.linkedin.norbert.javacompat.network.NetworkClientConfig;
+import com.browseengine.bobo.api.BrowseSelection;
+import com.sensei.conf.SenseiFacetHandlerBuilder;
 import com.sensei.search.cluster.client.SenseiNetworkClient;
 import com.sensei.search.nodes.SenseiBroker;
 import com.sensei.search.nodes.SenseiSysBroker;
 import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.req.SenseiResult;
+import com.sensei.search.req.SenseiHit;
 import com.sensei.search.req.SenseiSystemInfo;
+import com.sensei.search.util.RequestConverter2;
 
 public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableServlet {
 
@@ -71,34 +76,99 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
   protected abstract SenseiRequest buildSenseiRequest(HttpServletRequest req) throws Exception;
 
   private void handleSenseiRequest(HttpServletRequest req, HttpServletResponse resp)
-    throws ServletException, IOException {
-	SenseiRequest senseiReq;
-    try {
-      if ("post".equalsIgnoreCase(req.getMethod())){
-    	BufferedReader reader = req.getReader();
-    	String content = readContent(reader);
-    	JSONObject jsonObj = new JSONObject(content);
-    	senseiReq = SenseiRequest.fromJSON(jsonObj);
+      throws ServletException, IOException {
+    SenseiRequest senseiReq;
+    try
+    {
+      if ("post".equalsIgnoreCase(req.getMethod()))
+      {
+        BufferedReader reader = req.getReader();
+        String content = readContent(reader);
+        JSONObject jsonObj = new JSONObject(content);
+        senseiReq = SenseiRequest.fromJSON(jsonObj);
       }
-      else{
-    	String jsonString = req.getParameter("json");
-    	if (jsonString!=null){
-    	  JSONObject jsonObj = new JSONObject(jsonString);
+      else
+      {
+        String jsonString = req.getParameter("json");
+        if (jsonString != null)
+        {
+          JSONObject jsonObj = new JSONObject(jsonString);
           senseiReq = SenseiRequest.fromJSON(jsonObj);
-    	}
-    	else{
+        }
+        else
           senseiReq = buildSenseiRequest(req);
-    	}
       }
       SenseiResult res = _senseiBroker.browse(senseiReq);
       OutputStream ostream = resp.getOutputStream();
       convertResult(senseiReq,res,ostream);
       ostream.flush();
-    } catch (Exception e) {
+    }
+    catch (Exception e)
+    {
       throw new ServletException(e.getMessage(),e);
     }
   }
-  
+
+  private void handleStoreGetRequest(HttpServletRequest req, HttpServletResponse resp)
+      throws ServletException, IOException {
+    SenseiRequest senseiReq = null;
+    try
+    {
+      JSONArray ids = null;
+      if ("post".equalsIgnoreCase(req.getMethod()))
+      {
+        BufferedReader reader = req.getReader();
+        ids = new JSONArray(readContent(reader));
+      }
+      else
+      {
+        String jsonString = req.getParameter("json");
+        if (jsonString != null)
+          ids = new JSONArray(jsonString);
+      }
+
+      String[] vals = RequestConverter2.getStrings(ids);
+      if (vals != null && vals.length != 0)
+      {
+        senseiReq = new SenseiRequest();
+        senseiReq.setFetchStoredValue(true);
+        senseiReq.setCount(vals.length);
+        BrowseSelection sel = new BrowseSelection(SenseiFacetHandlerBuilder.UID_FACET_NAME);
+        sel.setValues(vals);
+        senseiReq.addSelection(sel);
+      }
+
+      SenseiResult res = null;
+      if (senseiReq != null)
+        res =_senseiBroker.browse(senseiReq);
+
+      JSONArray array = new JSONArray();
+      if (res != null && res.getSenseiHits() != null)
+      {
+        for (SenseiHit hit : res.getSenseiHits())
+        {
+          JSONObject obj = null;
+          try
+          {
+            obj = new JSONObject(hit.getSrcData());
+            array.put(obj);
+          }
+          catch(Exception ex)
+          {
+            logger.warn(ex.getMessage(), ex);
+          }
+        }
+      }
+      OutputStream ostream = resp.getOutputStream();
+      ostream.write(array.toString().getBytes("UTF-8"));
+      ostream.flush();
+    }
+    catch (Exception e)
+    {
+      throw new ServletException(e.getMessage(),e);
+    }
+  }
+
   private void handleSystemInfoRequest(HttpServletRequest req, HttpServletResponse resp)
     throws ServletException, IOException {
     try {
@@ -193,6 +263,10 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
     if (null == req.getPathInfo() || "/".equalsIgnoreCase(req.getPathInfo()))
     {
       handleSenseiRequest(req, resp);
+    }
+    else if ("/get".equalsIgnoreCase(req.getPathInfo()))
+    {
+      handleStoreGetRequest(req, resp);
     }
     else if ("/sysinfo".equalsIgnoreCase(req.getPathInfo()))
     {

@@ -144,6 +144,7 @@ public class TestRequestConverter2
     
     //test fetchStored;
     assertTrue("fetchStored is not correct", req.isFetchStoredFields() == false);
+    assertTrue("fetchStoredValue is not correct", req.isFetchStoredValue() == false);
     
     //test fetchTermVectors;
 //    assertTrue("fetchTermVectors is not correct", req.getTermVectorsToFetch().size() ==0);

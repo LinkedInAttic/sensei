@@ -26,21 +26,30 @@ public class JdbcDataProviderBuilder extends SenseiGateway<ResultSet>{
 
 	public static final String name = "jdbc";
 	
+	private Comparator<String> _versionComparator;
+	
+	public JdbcDataProviderBuilder(Configuration conf) throws Exception{
+	  super(conf);
+	  String versionComparatorClassString = _conf.getString("versionComparator");
+	  Class versionComparatorClass = Class.forName(versionComparatorClassString);
+	  _versionComparator = (Comparator<String>)versionComparatorClass.newInstance();
+	}
+	
 	@Override
 	public String getName() {
 		return name;
 	}
 
 	@Override
-	public StreamDataProvider<JSONObject> buildDataProvider(
-			Configuration conf,final DataSourceFilter<ResultSet> dataFilter,Comparator<String> versionComparator,
+	public StreamDataProvider<JSONObject> buildDataProvider(final DataSourceFilter<ResultSet> dataFilter,
 			String oldSinceKey,ApplicationContext plugin) throws Exception{
 		   
-	       final String url = conf.getString("url");
-	       final String username = conf.getString("username",null);
-	       final String password = conf.getString("password",null);
-	       final String driver = conf.getString("driver");
-	       final String adaptor = conf.getString("adaptor");
+	    Configuration myConf = _conf.subset(name);
+	       final String url = myConf.getString("url");
+	       final String username = myConf.getString("username",null);
+	       final String password = myConf.getString("password",null);
+	       final String driver = myConf.getString("driver");
+	       final String adaptor = myConf.getString("adaptor");
 	       
 	       final SenseiJDBCAdaptor senseiAdaptor = (SenseiJDBCAdaptor)plugin.getBean(adaptor);
 	       if (senseiAdaptor==null){
@@ -96,7 +105,13 @@ public class JdbcDataProviderBuilder extends SenseiGateway<ResultSet>{
 				}
 			};
 		
-	      	return new JDBCStreamDataProvider<JSONObject>(connFactory, stmtBuilder, versionComparator);
+	    return new JDBCStreamDataProvider<JSONObject>(connFactory, stmtBuilder, _versionComparator);
 	}
+
+
+  @Override
+  public Comparator<String> getVersionComparator() {
+    return _versionComparator;
+  }
 	
 }

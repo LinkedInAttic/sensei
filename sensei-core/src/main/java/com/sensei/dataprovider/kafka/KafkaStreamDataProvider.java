@@ -64,7 +64,16 @@ public abstract class KafkaStreamDataProvider<D> extends StreamDataProvider<D> {
       if (_offset==-1){
         time = -OffsetRequest.LATEST_TIME();
       }
-      _offset = _kafkaConsumer.getOffsetsBefore(_topic, 0, time, 1)[0];
+      try
+      {
+        _offset = _kafkaConsumer.getOffsetsBefore(_topic, 0, time, 1)[0];
+      }
+      catch(Exception e)
+      {
+        logger.error(e.getMessage(), e);
+        return null;
+      }
+
     }
     return new FetchRequest(_topic, 0, _offset,DEFAULT_MAX_MSG_SIZE );
   }
@@ -87,8 +96,17 @@ public abstract class KafkaStreamDataProvider<D> extends StreamDataProvider<D> {
         logger.debug("fetching new batch from offset: "+_offset);
       }
       FetchRequest req = buildReq();
-      ByteBufferMessageSet msgSet = _kafkaConsumer.fetch(req);
-      _msgIter = msgSet.iterator();
+      if (req == null) return null;
+      try
+      {
+        ByteBufferMessageSet msgSet = _kafkaConsumer.fetch(req);
+        _msgIter = msgSet.iterator();
+      }
+      catch(Exception e)
+      {
+        logger.error(e.getMessage(), e);
+        return null;
+      }
     }
     
     if (_msgIter==null || !_msgIter.hasNext() ) {

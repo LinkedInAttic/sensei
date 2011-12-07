@@ -18,6 +18,7 @@ import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_F
 import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_FACET_ORDER_HITS;
 import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_FACET_ORDER_VAL;
 import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_FETCH_STORED;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_FETCH_STORED_VALUE;
 import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_FETCH_TERMVECTOR;
 import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_GROUP_BY;
 import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_MAX_PER_GROUP;
@@ -71,13 +72,13 @@ import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_S
 import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_SYSINFO_CLUSTERINFO_ID;
 import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_SYSINFO_CLUSTERINFO_NODELINK;
 import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_SYSINFO_CLUSTERINFO_PARTITIONS;
-import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_SYSINFO_SCHEMA;
 import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_SYSINFO_FACETS;
 import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_SYSINFO_FACETS_NAME;
 import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_SYSINFO_FACETS_PROPS;
 import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_SYSINFO_FACETS_RUNTIME;
 import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_SYSINFO_LASTMODIFIED;
 import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_SYSINFO_NUMDOCS;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_SYSINFO_SCHEMA;
 import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_SYSINFO_VERSION;
 
 import java.io.UnsupportedEncodingException;
@@ -357,7 +358,7 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
         }
         hitObj.put(PARAM_RESULT_HIT_STORED_FIELDS, new JSONArray(storedData));
       }
-      
+
       Map<String,BrowseHit.TermFrequencyVector> tvMap = hit.getTermFreqMap();
       if (tvMap!=null && tvMap.size()>0){
         JSONObject tvObj = new JSONObject();
@@ -433,7 +434,7 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
       for (String qparam : qparams)
       {
         qparam = qparam.trim();
-        if (qparam.length() == 0) 
+        if (qparam.length() == 0)
           continue;
         String[] parts = qparam.split(":", 2);
         if (parts.length == 2)
@@ -482,7 +483,8 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
     senseiReq.setCount(params.getInt(PARAM_COUNT, 10));
     senseiReq.setShowExplanation(params.getBoolean(PARAM_SHOW_EXPLAIN, false));
     senseiReq.setFetchStoredFields(params.getBoolean(PARAM_FETCH_STORED, false));
-    
+    senseiReq.setFetchStoredValue(params.getBoolean(PARAM_FETCH_STORED_VALUE, false));
+
 
     String[] fetchTVs= params.getStringArray(PARAM_FETCH_TERMVECTOR);
     if (fetchTVs!=null && fetchTVs.length>0){

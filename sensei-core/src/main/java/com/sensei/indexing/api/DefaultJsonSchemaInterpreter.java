@@ -1,6 +1,7 @@
 package com.sensei.indexing.api;
 
 import java.io.ByteArrayOutputStream;
+import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
@@ -17,6 +18,7 @@ import org.apache.log4j.Logger;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.Field.Index;
 import org.apache.lucene.document.Field.Store;
+import org.apache.lucene.index.FieldInfo.IndexOptions;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -38,13 +40,13 @@ public class DefaultJsonSchemaInterpreter extends
   private final String _uidField;
   private final String _delField;
   private final String _skipField;
-  private final String _srcDataStore;
-  private final String _srcDataField;
   private final boolean _compressSrcData;
   
   private final Map<String,JsonValExtractor> _dateExtractorMap;
   
   private JsonFilter _jsonFilter = null;
+  
+  private static Charset UTF8 = Charset.forName("UTF-8");
   
   private CustomIndexingPipeline _customIndexingPipeline = null;
   
@@ -54,8 +56,6 @@ public class DefaultJsonSchemaInterpreter extends
      _uidField = _schema.getUidField();
      _delField = _schema.getDeleteField();
      _skipField = _schema.getSkipField();
-     _srcDataStore = _schema.getSrcDataStore();
-     _srcDataField = _schema.getSrcDataField();
      _compressSrcData = _schema.isCompressSrcData();
      _dateExtractorMap = new HashMap<String,JsonValExtractor>();
      for (Entry<String,FieldDefinition> entry : entries){
@@ -89,7 +89,17 @@ public class DefaultJsonSchemaInterpreter extends
 
       @Override
       public Object extract(String val) {
-        return (val == null || val.length()==0) ? 0 : Integer.parseInt(val);
+        if (val == null || val.length()==0){
+          return 0;
+        }
+        else{
+          int num = Integer.parseInt(val);
+          if (num<0){
+            logger.error("we don't yet support negative values, skipping.");
+            return null;
+          }
+          return num;
+        }
       }
       
     });
@@ -98,7 +108,17 @@ public class DefaultJsonSchemaInterpreter extends
       @Override
       public Object extract(String val) {
 
-        return (val == null || val.length()==0) ? 0 : Double.parseDouble(val);
+        if (val == null || val.length()==0){
+          return 0.0;
+        }
+        else{
+          double num = Double.parseDouble(val);
+          if (num<0.0){
+            logger.error("we don't yet support negative values, skipping.");
+            return null;
+          }
+          return num;
+        }
       }
       
     });
@@ -106,8 +126,17 @@ public class DefaultJsonSchemaInterpreter extends
 
       @Override
       public Object extract(String val) {
-
-        return (val == null || val.length()==0) ? 0 : Long.parseLong(val);
+        if (val == null || val.length()==0){
+          return 0.0;
+        }
+        else{
+          long num = Long.parseLong(val);
+          if (num<0){
+            logger.error("we don't yet support negative values, skipping.");
+            return null;
+          }
+          return num;
+        }
       }
       
     });
@@ -172,6 +201,7 @@ public class DefaultJsonSchemaInterpreter extends
             if (filtered.has(fldDef.fromField))
             {
               List<Object> vals = new LinkedList<Object>();
+              if (filtered.isNull(fldDef.fromField)) continue;
               if (fldDef.isMulti){
                 String val = filtered.optString(fldDef.fromField);
 
@@ -179,15 +209,24 @@ public class DefaultJsonSchemaInterpreter extends
                   StringTokenizer strtok = new StringTokenizer(val,fldDef.delim);
                   while(strtok.hasMoreTokens()){
                     String token = strtok.nextToken();
-                    vals.add(extractor.extract(token));
+                    Object obj = extractor.extract(token);
+                    if (obj!=null){
+                      vals.add(obj);
+                    }
                   }
                 }
               }
               else{
-                vals.add(extractor.extract(filtered.optString(fldDef.fromField)));
+                String val = filtered.optString(fldDef.fromField);
+                if (val == null) continue;
+                Object obj = extractor.extract(filtered.optString(fldDef.fromField));
+                if (obj!=null){
+                  vals.add(obj);
+                }
               }
                       
               for (Object val : vals){
+                if (val==null) continue;
                 String strVal = null;
                 if (fldDef.formatter!=null){
                   strVal = fldDef.formatter.format(val);
@@ -196,7 +235,8 @@ public class DefaultJsonSchemaInterpreter extends
                   strVal = String.valueOf(val);
                 }
                 Field metaField = new Field(name,strVal,Store.NO,Index.NOT_ANALYZED_NO_NORMS);
-                metaField.setOmitTermFreqAndPositions(true);
+                metaField.setOmitNorms(true);
+                metaField.setIndexOptions(IndexOptions.DOCS_ONLY);
                 luceneDoc.add(metaField);
               }
             }
@@ -210,40 +250,6 @@ public class DefaultJsonSchemaInterpreter extends
           catch(Exception e){
             logger.error("Problem extracting data for field: "+name,e);
             throw new RuntimeException(e);
-          }
-        }
-        if (_srcDataStore != null) {
-          if ("lucene".equals(_srcDataStore)) {
-            String data;
-            if (_srcDataField != null && _srcDataField.length() != 0 && src.has(_srcDataField))
-              data = src.optString(_srcDataField);
-            else
-              data = src.toString();
-
-            try{
-              byte[] origBytes = data.getBytes("UTF-8");
-              if (_compressSrcData) {
-                ByteArrayOutputStream bout = new ByteArrayOutputStream();
-                GZIPOutputStream gzipStream = new GZIPOutputStream(bout);
-
-                gzipStream.write(origBytes);
-                gzipStream.flush();
-                gzipStream.close();
-                bout.flush();
-
-                byte[] compressedBytes = bout.toByteArray();
-                Field storedData = new Field(SenseiSchema.SRC_DATA_COMPRESSED_FIELD_NAME, compressedBytes,Store.YES);
-                luceneDoc.add(storedData);
-              }
-              else {
-                Field storedData = new Field(SenseiSchema.SRC_DATA_FIELD_NAME, origBytes,Store.YES);
-                luceneDoc.add(storedData);
-              }
-            }
-            catch(Exception e)
-            {
-              logger.error("problem writing to store data: "+data,e);
-            }
           }
         }
         
@@ -271,6 +277,42 @@ public class DefaultJsonSchemaInterpreter extends
       public boolean isSkip() {
         return filtered.optBoolean(_skipField);
       }
+
+      @Override
+      public byte[] getStoreValue() {
+        byte[] data = null;
+        if (src!=null){
+          String strData = src.toString();
+          if (strData!=null){
+            try{
+              data = strData.getBytes("UTF-8");
+              if (_compressSrcData) {
+                ByteArrayOutputStream bout = new ByteArrayOutputStream();
+                GZIPOutputStream gzipStream = new GZIPOutputStream(bout);
+
+                gzipStream.write(data);
+                gzipStream.flush();
+                gzipStream.close();
+                bout.flush();
+
+                data = bout.toByteArray();
+              }
+            }
+            catch(Exception e){
+              logger.error(e.getMessage(),e);
+            }
+          }
+        }
+        
+        return data;
+      }
+
+      @Override
+      public boolean isStorable() {
+        return true;
+      }
+      
+      
       
     };
   }
