@@ -45,6 +45,18 @@ public abstract class QueryConstructor
   public static final String QUERIES_PARAM                     = "queries";
   public static final String TERM_PARAM                        = "term";
   public static final String TIE_BREAKER_PARAM                 = "tie_breaker";
+  public static final String DEFAULT_FIELD_PARAM                 = "default_field";
+  public static final String FIELDS_PARAM                 = "fields";
+  public static final String DEFAULT_OPERATOR_PARAM                 = "default_operator";
+  public static final String ALLOW_LEADING_WILDCARD_PARAM                 = "allow_leading_wildcard";
+  public static final String LOWERCASE_EXPANDED_TERMS_PARAM                 = "lowercase_expanded_terms";
+  public static final String ENABLE_POSITION_INCREMENTS_PARAM                 = "enable_position_increments";
+  public static final String FUZZY_PREFIX_LENGTH_PARAM                 = "fuzzy_prefix_length";
+  public static final String FUZZY_MIN_SIM_PARAM                 = "fuzzy_min_sim";
+  public static final String PHRASE_SLOP_PARAM                 = "phrase_slop";
+  public static final String ANALYZE_WILDCARD_PARAM                 = "analyze_wildcard";
+  public static final String AUTO_GENERATE_PHRASE_QUERIES_PARAM                 = "auto_generate_phrase_queries";
+  public static final String USE_DIS_MAX_PARAM                 = "use_dis_max";
 
   private static final Map<String,QueryConstructor> QUERY_CONSTRUCTOR_MAP = new HashMap<String,QueryConstructor>();
 

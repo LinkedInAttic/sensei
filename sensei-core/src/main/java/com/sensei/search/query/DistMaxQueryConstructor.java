@@ -36,8 +36,8 @@ public class DistMaxQueryConstructor extends QueryConstructor {
 	      ar.add(termQueryConstructor.doConstructQuery(json));
 	    }
 
-	    float tieBreakerMultiplier = (float) jsonQuery.optDouble(TIE_BREAKER_PARAM, 0.7);
-	    float boost = (float) jsonQuery.optDouble(BOOST_PARAM, 1.2);
+	    float tieBreakerMultiplier = (float) jsonQuery.optDouble(TIE_BREAKER_PARAM, .0);
+	    float boost = (float) jsonQuery.optDouble(BOOST_PARAM, 1.0);
 	    Query dmq = new DisjunctionMaxQuery(ar, tieBreakerMultiplier);
 	    dmq.setBoost(boost);
 
