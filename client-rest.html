@@ -1,0 +1,82 @@
+---
+layout: api
+title: SenseiDB - Rest API
+---
+<div class="hero-unit">
+  <h2>Rest API</h2>
+  <p><a href="#">Sensei requests</a> are JSON objects sent to an end-point via HTTP POST</p>
+<h4>References</h4>
+<p>
+	<ul>
+		<li><a href="/client-rest-query.html">Queries</a></li>
+		<li><a href="/client-rest-filter.html">Filters</a></li>
+		<li><a href="/client-rest-req.html">Request</a></li>
+		<li><a href="#">Result</a></li>
+	</ul>
+</p>
+</div>
+
+<h2>Rest end-point</h2>
+<p>
+Every Sensei node has a rest end-point at the <code>/query</code> path listening on the broker port, specified in the <code>sensei.properties</code> file, e.g.
+<pre><code>sensei.broker.port = 8080</code></pre>
+An example of the end-point is <a href="http://localhost:8080/query">http://localhost:8080/query</a>
+</p>
+
+<h2>Sensei Request</h2>
+<p>
+	A Sensei Request is represented as a JSON object, see <a href="#">reference</a>:
+	<pre class="prettyprint" id="javascript">
+	{
+		  "query" : {
+		    "query_string" : { 
+		      "query" : "cool car"
+		    }
+		  },  
+
+		  "selections" : [
+		    {
+		      "term" : "color",
+		      "value" : "red"
+		    }
+		  ]
+	}
+	</pre>
+	and can be POSTed to the Rest end-point, e.g.
+	<p><code>curl -X -POST -d '{"query":{"query_string" : {"query":"cool car"}},"selections": [{"term":"color","value":"red"}]}' 'http://localhost:8080/query'</code></p>
+</p>
+<p>
+	
+</p>
+
+<h2>Example</h2>
+<p>
+	The following example shows how to make an ajax call to a Sensei rest end-point in a web page using jquery.
+</p>
+<pre class="prettyprint" id="xhtml">
+  &lt;!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"&gt; 
+  &lt;html xmlns="http://www.w3.org/1999/xhtml"&gt;
+
+	&lt;head&gt;
+		&lt;meta http-equiv="Content-Type" content="text/html; charset=utf-8"/&gt;
+		&lt;script src="http://code.jquery.com/jquery-1.4.4.js">&lt;/script&gt;
+	&lt;/head&gt;
+	&lt;body&gt;
+		&lt;script type="text/javascript"&gt;
+		  var url = "http://localhost:8080/query"
+		  var senseiReq = {};
+		  senseiReq.query = {};
+		  senseiReq.query.query_string = {"query" : "cool car"};
+		
+		  senseiReq.selections = [{"term":"color","value":"red"}];
+		
+		  // cross-domain is allowed by the Sensei Rest end-point
+		  $.post("http://localhost:8080/query", JSON.stringify(senseiReq),
+		   function(result) {
+			console.log(result);
+		   });
+	    &lt;/script&gt;
+	&lt;/body&gt;
+  &lt;/html&gt;
+</pre>
+

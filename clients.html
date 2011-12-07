@@ -1,5 +1,5 @@
 ---
-layout: default
+layout: api
 title: SenseiDB - Clients
 ---
 
@@ -8,31 +8,20 @@ title: SenseiDB - Clients
   <p>You can interact with Sensei in various ways</p>
 </div>
 
-<a name="client-rest"><h2>Rest API</h2></a>
-<p>
-TBD
-</p>
-
-<a name="client-java"><h2>Java API</h2></a>
-<p>
- The Java API is a wrapper around the Rest API.
-</p>
-<p>
-  Example:
-  <pre class="prettyprint" id="java">
-   SenseiClientRequest senseiRequest  =  SenseiClientRequest.Builder.paging(0,10).
-                                         .addSelection(Selection.terms("color","red"))
-                                         .addSelection(Selection.range("price","*","2000"))
-                                         .addSort(Sort.desc("color"))
-                                         .addFacet("category",Facet.builder().max(5).build())
-                                         .query(Queries.stringQuery("cool"))
-                                         .build();
-                                           
-   SenseiResult senseiResult = new SenseiServiceProxy().sendRequest("http://localhost:8079/sensei/", senseiRequest);
-  </pre>
-</p>
-
-<a name="client-python"><h2>Python API</h2></a>
-<p>
-TBD
-</p>
+<div class="row">
+	<div class="span5">
+		<h2>Rest/JSON</h2>
+		<p>Rest API over HTTP POST</p>
+		<p><a class="btn" href="/client-rest.html">Details &raquo;</a></p>
+	</div>
+	<div class="span5">
+		<h2>Java</h2>
+		<p>Java client API wrapping Rest API</p>
+		<p><a class="btn" href="/client-java.html">Details &raquo;</a></p>
+	</div>
+	<div class="span5">
+		<h2>Python</h2>
+		<p>Python client API wrapping Rest API</p>
+		<p><a class="btn" href="#">Details &raquo;</a></p>
+	</div>
+</div>
