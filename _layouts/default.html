@@ -14,7 +14,6 @@
        var pageid = "_page_{{page.name}}"
 	 
     </script>
-	<script type="text/javascript" src="js/app.js"></script>
 
     <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
     <!--[if lt IE 9]>
@@ -22,18 +21,23 @@
     <![endif]-->
 
     <!-- Le styles -->
-    <link rel="stylesheet" href="/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="/css/prettify.css">
     <style type="text/css">
       body {
         padding-top: 60px;
       }
     </style>
 
+
+    <script type="text/javascript" src="js/app.js"></script>
+    <script type="text/javascript" src="js/prettify.js"></script>
+
     <!-- Le fav and touch icons -->
     <link rel="shortcut icon" href="images/sensei_black.jpg">
   </head>
 
-  <body>
+  <body onload="prettyPrint()">
 
     <div class="topbar">
       <div class="topbar-inner">
@@ -61,7 +65,7 @@
 	        <li>Twitter: <a href="http://twitter.com/#!/sensei_db">@sensei_db</a></li>
 	        <li><a href="http://groups.google.com/group/sensei-search">Mailing List</a></li>
 			<li><a href="mailto:admin@senseidb.com">Feedback</a></li>
-			<li><a href="#">FAQ</a></li>
+			<li><a href="/faq.html">FAQ</a></li>
           </ul>
 
           <h5>Documetation</h5>

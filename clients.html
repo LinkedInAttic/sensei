@@ -1,0 +1,38 @@
+---
+layout: default
+title: SenseiDB - Clients
+---
+
+<div class="hero-unit">
+  <h2>Client libraries</h2>
+  <p>You can interact with Sensei in various ways</p>
+</div>
+
+<a name="client-rest"><h2>Rest API</h2></a>
+<p>
+TBD
+</p>
+
+<a name="client-java"><h2>Java API</h2></a>
+<p>
+ The Java API is a wrapper around the Rest API.
+</p>
+<p>
+  Example:
+  <pre class="prettyprint" id="java">
+   SenseiClientRequest senseiRequest  =  SenseiClientRequest.Builder.paging(0,10).
+                                         .addSelection(Selection.terms("color","red"))
+                                         .addSelection(Selection.range("price","*","2000"))
+                                         .addSort(Sort.desc("color"))
+                                         .addFacet("category",Facet.builder().max(5).build())
+                                         .query(Queries.stringQuery("cool"))
+                                         .build();
+                                           
+   SenseiResult senseiResult = new SenseiServiceProxy().sendRequest("http://localhost:8079/sensei/", senseiRequest);
+  </pre>
+</p>
+
+<a name="client-python"><h2>Python API</h2></a>
+<p>
+TBD
+</p>
