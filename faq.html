@@ -14,16 +14,35 @@ title: SenseiDB - FAQ
   We have been engaging in dialogs with the ElasticSearch team in standardizing on a common API.
 </p>
 
+<hr/>
 <h2>Why is Sensei use a pull-model for indexing instead of a push model like many other data systems, e.g. Solr, HBase, Cassandra, MongoDB etc.?</h2>
 <p>
-  
+  One requirement for Sensei is to have extremely fast update rate (thousands per second) while not compromising on search performance. Having a push-model while maintaining data consistency between replications implies a cost per udpate event. Furthermore, this is an anti-scaling pattern as number of replications grows to accomodate high avalability, the cost for update increases. So as you add more machines to handle more traffic, this slows down udpate rate. 
+</p>
+<p>
+  Therefore, it is a conscious design decision to avoid this cost. Though each replication is consuming from the data stream at presumablly different rates, each at Consistency is resolved a query time by consistent hashing on the <b><i>routing parameter</i></b> specified on the request.
+</p>
+<p>
+  By having a data stream for consumption also provides the benefit of have a replaying mechanism which is very helpful in the cases of data re-balancing and re-indexing.
 </p>
 
+<hr/>
 <h2>Are there plans to support dynamic schema like MongoDB or ElasticSearch?</h2>
 <p>
+ Yes. We are planning for early 2012 to have design in place.
 </p>
 
+<hr/>
 <h2>Is Sensei being developed outside of LinkedIn?</h2>
+<p>
+  Sensei is mostly under actively development within LinkedIn although we have been working with the community for quite a while, and there are some deployements outside of LinkedIn.
+</p>
+<p>
+  While driving the project within LinkedIn benefits from traffic and data resources, we do believe letting the community drive and planning the roadmap is beneficial in the long run. So if you have passion and energy, visit <a href="/contribute.html">Contribute</a> page and contribute.
+</p>
 
-
-<h2>?</h2>
+<hr/>
+<h2>Seems indexing has stopped for no reason, what is wrong?</h2>
+<p>
+  It is possible one of the data events is erroneous, and by default Sensei stops indexing to maintain a consistent view. Look in the logs and see if you see an indexing exception.
+</p>
