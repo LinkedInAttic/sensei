@@ -30,6 +30,13 @@ title: SenseiDB - Data Guarantees
 	To prevent from subsequent queries in one search session (e.g. result paging) to produce inconsistent results, a <b>routing parameter</b> indicating a search session can be set on the request, and the request routing logic will route to the same replica via consistent hashing thus guarantee consistency of results in a given search session.
 </p>
 
+<h2>Elasticity</h2>
+<p>Elasticity is a scalability measurement on how easily a data system grows to accomodate data volume.</p>
+<p>In single-shard systems, dealing with growing request load is typically handled by adding replications to the cluster.</p>
+<p>As data size grows, there comes a point to shard data and adding shards to the system poses a challenging problem, and is a typical concern for data elasticity.</p>
+<p>In some sharding strategies like by recency on time intervals, or on continuous primary id ranges, new shard can just be added to the Sensei cluster, and Zookeeper events are propagated, resulting in partition to node list maps in brokers all being updated dynamically. Scatter-gather logic would immediately route to the new shards and the cluster expands in a seemless fashion.</p>
+<p>The above scenario is possible because the sharding strategy assumes no data re-balancing is needed, and it is not necessarily true for all applications. In situations where data needs to be re-balanced when new shards are introduced, e.g. sharding by mod some id or key, and rebalancing step needs to be applied to the entire cluster. This is currently not supported in this version of Sensei, but the functionality will be avaiable in future releases.</p>
+
 <h2>Some comparisons with a traditional RDBMS</h2>
 <h3>RDBMS:</h3>
 	<ul>

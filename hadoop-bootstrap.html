@@ -1,0 +1,39 @@
+---
+layout: default
+title: SenseiDB - Hadoop Bootstrap
+---
+<div class="hero-unit">
+  <h2>Sensei &amp; Hadoop</h2>
+  <p>Batch indexing on Hadoop, load into Sensei and run queries.</p>
+
+  <p><a class="btn primary large" href="#">Details &raquo;</a></p>
+</div>
+
+<h2>Hadoop</h2>
+<p>
+  <a href="http://hadoop.apache.org/">Apache Hadoop</a> has become an important part of data infrastructure solutions in the industry. In enterprises, Hadoop is where large amounts of data are stored, aggregated and transformed via Map-Reduce jobs. 
+</p>
+<p>
+  For convenience and efficiency, it is a good idea to let Hadoop perform batch-indexing by leveraging its storage and parallelized computation capacities. 
+</p>
+
+<h2>Sensei Hadoop integration</h2>
+<p>
+  We have written a fast Map-Reduce job by taking data from Hadoop and batch build indexes given a Sensei schema and sharding strategy.
+</p>
+<p>The following diagram illustrates this indexing process:</p>
+<img src="images/sensei-hadoop-index.png" />
+
+<h2>Data warehousing</h2>
+<p>
+  Other than this conveninence, there are some other immediate benefits, for example: data-warehousing.
+</p>
+<p>
+  Traditionally, data-warehousing solutions are built on the RDBMS. In the curret era of information explosion, traditional solutions are no longer feasible given the amount of data.
+</p>
+<p>
+  Recently, technologies such as Apache's <a href="http://pig.apache.org/">Pig</a> and <a href="http://hive.apache.org/">Hive</a> projects have been developed in solving this problem by translation a SQL-like query language into Map-Reduce jobs over Hadoop. This made data-warehousing on large datasets possible.
+</p>
+<p>
+  In scenarios where data-scientists work on a set of data files for some project, the underlying dataset do not change between queries issued by subsequent Pig/Hive scripts into Hadoop, which means much of the work is redundant and wasteful. It would make sense by writing a data-preparation job by aggregating all parts of data of interest, and launch the batch indexing job to produce Sensei shards. Once loaded into Sensei, fast queries over BQL can be executed and this avoids paying a Map-Reduce cost per query.
+</p>

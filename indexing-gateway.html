@@ -1,0 +1,101 @@
+---
+layout: default
+title: SenseiDB - Indexing &amp; Gateway
+---
+<div class="hero-unit">
+  <h2>Indexing &amp; Gateway</h2>
+  <p>This section describes how data are inserted into Sensei.</p>
+</div>
+
+<h2>Data Events</h2>
+<p>
+  Data events are units of indexing activities. Each data event is a tuple of (type,data,version). (versions are interpreted by Gateway semantics)
+</p>
+<p>
+  Types of data events:
+  <ul>
+    <li>add (default) - inserts data into Sensei</li>
+    <li>delete - deletes data from Sensei</li>
+    <li>update - update partially on an existing event</li>
+  </ul>
+</p>
+
+<h2>Examples of data events</h2>
+<p>
+<h4>Add event:</h4>
+<pre class="prettyprint" id="javascript">
+{"type":"add","data":{"id":1,"contents":"sensei is cool","attrib":"opensource"}}
+</pre>
+<p>since add is the default event type, this is equivalent to:</p>
+<pre class="prettyprint" id="javascript">
+{"id":1,"contents":"sensei is cool","attrib":"opensource"}
+</pre>
+<p>for add events with the same id, newer events overwrite existing events</p>
+</p>
+
+<p>
+<h4>Update event:</h4>
+<pre class="prettyprint" id="javascript">
+{"type":"update","data":{"id":1,"attrib":"data system"}}
+</pre>
+<p>update events assume there is an existing event with the same id in the system. If no such event exists, this event will result in an error.</p>
+</p>
+
+
+<p>
+<h4>Delete event:</h4>
+<pre class="prettyprint" id="javascript">
+{"type":"delete","id":1}
+</pre>
+<p>If no such event exists, this event is a no-op.</p>
+</p>
+
+<h2>Data Stream</h2>
+<p>
+  Stream of data events that Sensei consumes from via Gateways.
+</p>
+<p>
+  Some properties of Data Streams:
+<ul>
+	<li>Versioned - each event on the stream has a monotonically increasing value indicating a unique point in the stream</li>
+	<li>Ordered - ordering of all events should reflect the semantics of the application</li>
+</ul> 	
+</p>
+
+<p>
+  Some examples of data streams:
+  <ul>
+    <li>Twitter stream</li>
+    <li>Activity tracking data, e.g. LinkedIn profile creation and update events</li>
+    <li>Server logs</li>
+  </ul>
+</p>
+
+<h2>Gateway</h2>
+<p>
+  Gateways are integration components between Sensei and Data Streams. Gateways serve the following purposes:
+  <ul>
+    <li>Read data events from data streams and proxy between Sensei and the data stream</li>
+    <li>Interpret version semantics of data events read from the data stream</li>
+  </ul>
+</p>
+<p>The following diagram illustrates how gateways fit into Sensei:</p>
+<img src="images/sensei-gateway.png"/>
+<p>
+  Sensei comes with the following pre-written gateways:
+  <ul>
+    <li>File - each line is a data event, and line number is the version</li>
+    <li>JMS - each message is a data event</li>
+    <li>JDBC - each element in the ResultSet is a data event, developer implements version semantics</li>
+    <li>Kafka - each message is a data event, and offset is the version</li>
+  </ul>
+</p>
+
+<h2>Batch indexing</h2>
+<p>Batch indexing over Hadoop is supported by Sensei. Details <a href="/hadoop-bootstrap.html">here</a>.</p>
+
+
+<h2>Now that we know how to get data into Sensei...</h2>
+<p>
+  Let&apos; learn how to query Sensei:  <a class="btn primary" href="/clients.html">Clients &amp; APIs &raquo;</a>
+ </p>

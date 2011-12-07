@@ -1,0 +1,68 @@
+---
+layout: default
+title: SenseiDB - Configuration
+---
+<div class="hero-unit">
+  <h2>Configuration</h2>
+  <p>Guide to configure your application.</p>
+  <p><a class="btn primary large" href="#">References &raquo;</a></p>
+</div>
+
+<h2>Configuration files</h2>
+
+<p>
+  Sensei configuration is a directory containing a couple of files:
+  <ul>
+    <li>sensei.properties - settings for a Sensei node or process</li>
+    <li>schema.xml - data schema declaration</li>
+  </ul>
+</p>
+
+
+<h2>Sensei Properties</h2>
+<p>
+  The Sensei properties configures different parts of the system, from server settings, to indexing gateways.
+</p>
+<p><a class="btn" href="#">View details &raquo;</a></p>
+
+<h2>Schema</h2>
+<p>
+  The Sensei schema describes the data-model of a Sensei application. It is broken into 2 parts:
+  <ul>
+    <li><b>table</b> - describes how data is being persisted, can think of it as the <b><i>indexing</i></b> part of the schema.</li>
+    <li><b>facets</b> - descrbies how data is being viewed or queried, can think of it as the <b><i>query</i></b> part of the schema.</li>
+  </u>
+</p>
+<p>
+  Below is an example schema for the Twitter feed:
+</p>
+<pre class="prettyprint" id="xml">
+<?xml version="1.0" encoding="UTF-8"?>
+&lt;schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://javasoze.github.com/sensei/schema/sensei-schema.xsd"&gt;
+
+&lt;table uid="id_str"&gt;
+  &lt;column name="created-time" type="long" /&gt;
+  &lt;column name="authorname" type="string" /&gt;
+  &lt;column name="text" type="text" /&gt;
+&lt;/table&gt;
+
+&lt;facets&gt;
+  &lt;column name="created-time" type="range" /&gt;
+  &lt;column name="authorname" type="simple" /&gt;
+&lt;/facets&gt;
+
+&lt;/schema&gt;
+</pre>
+<p><a class="btn" href="#">View details &raquo;</a></p>
+
+
+<h2>Example</h2>
+<p>
+  Click <a href="#">here</a> for an example of configuration for the car sample application
+</p>
+
+<h2>What&apos;s next?</h2>
+<p>
+  Now that we have configured our app, let&apos;s learn how to get data into our Sensei instance: <a class="btn primary" href="/indexing-gateway.html">Indexing &amp; Gateway &raquo;</a>
+</p>
