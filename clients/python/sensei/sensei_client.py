@@ -371,11 +371,6 @@ BNF Grammar for BQL
 
 """
 
-def order_by_action(s, loc, tok):
-  for order in tok[1:]:
-    if (order[0] == PARAM_SORT_SCORE and len(order) > 1):
-      raise ParseSyntaxException(ParseException(s, loc, '"ORDER BY %s" should not be followed by %s'
-                                                % (PARAM_SORT_SCORE, order[1])))
 def pred_type(pred):
   return pred.keys()[0]
 
@@ -453,455 +448,490 @@ def accumulate_range_pred(field_map, pred):
     new_spec["include_upper"] = include_upper
   field_map[field] = {"range": {field: new_spec} }
 
-def and_predicate_action(s, loc, tok):
-  # print ">>> in and_predicate_action: tok = ", tok
-  preds = []
-  field_map = {}
-  for i in xrange(0, len(tok[0]), 2):
-    pred = tok[0][i]
-    if pred_type(pred) != "range":
-      preds.append(pred)
+
+class BQLParser:
+  """BQL Parser.
+
+  This BQL parser takes a BQL statement string as input, and return parsed
+  tokens.
+
+  """
+
+  def __init__(self):
+    self.limit_once = OnlyOnce(lambda s, loc, tok: tok)
+    self.order_by_once = OnlyOnce(self.order_by_action)
+    self.group_by_once = OnlyOnce(lambda s, loc, tok: tok)
+    self.browse_by_once = OnlyOnce(lambda s, loc, tok: tok)
+    self.fetching_stored_once = OnlyOnce(lambda s, loc, tok: tok)
+    self.time_now = None
+    self._parser = self._build_parser()
+
+  def parse(self, bql_stmt):
+    tokens = None
+    try:
+      self.time_now = int(time.time() * 1000)
+      tokens = self._parser.parseString(bql_stmt, parseAll=True)
+    except ParseException as err:
+      raise err
+    except ParseSyntaxException as err:
+      raise err
+    except ParseFatalException as err:
+      raise err
+    finally:
+      self.reset_all()
+    return tokens
+
+  def order_by_action(self, s, loc, tok):
+    for order in tok[1:]:
+      if (order[0] == PARAM_SORT_SCORE and len(order) > 1):
+        raise ParseSyntaxException(ParseException(s, loc, '"ORDER BY %s" should not be followed by %s'
+                                                  % (PARAM_SORT_SCORE, order[1])))
+
+  def and_predicate_action(self, s, loc, tok):
+    # print ">>> in and_predicate_action: tok = ", tok
+    preds = []
+    field_map = {}
+    for i in xrange(0, len(tok[0]), 2):
+      pred = tok[0][i]
+      if pred_type(pred) != "range":
+        preds.append(pred)
+      else:
+        accumulate_range_pred(field_map, pred)
+    for f in field_map.values():
+      preds.append(f)
+    return {"and": preds}
+  
+  def or_predicate_action(self, s, loc, tok):
+    # print ">>> in or_predicate_action: tok = ", tok
+    preds = []
+    for i in xrange(0, len(tok[0]), 2):
+      if type(tok[0][i]) != dict:
+        preds = tok[0][i].asList()
+        preds.append(preds[0])
+      else:
+        preds.append(tok[0][i])
+    # print ">>> in predicate_or_action: return ", {"or": preds}
+    return {"or": preds}
+  
+  def prop_list_action(self, s, loc, tok):
+    # print ">>> in prop_list_action: tok = ", tok
+    props = {}
+    for i in xrange(0, len(tok), 2):
+      props[tok[i]] = tok[i+1]
+    return props
+  
+  def in_predicate_action(self, s, loc, tok):
+    if tok[1] != "not":
+      return {"terms":
+                {tok[0]:
+                   {JSON_PARAM_VALUES: (tok.value_list[:] or []),
+                    JSON_PARAM_EXCLUDES: (tok.except_values[:] or []),
+                    JSON_PARAM_OPERATOR: PARAM_SELECT_OP_OR,
+                    JSON_PARAM_NO_OPTIMIZE: False
+                    }
+                 }
+              }
     else:
-      accumulate_range_pred(field_map, pred)
-  for f in field_map.values():
-    preds.append(f)
-  return {"and": preds}
-
-def or_predicate_action(s, loc, tok):
-  # print ">>> in or_predicate_action: tok = ", tok
-  preds = []
-  for i in xrange(0, len(tok[0]), 2):
-    if type(tok[0][i]) != dict:
-      preds = tok[0][i].asList()
-      preds.append(preds[0])
-    else:
-      preds.append(tok[0][i])
-  # print ">>> in predicate_or_action: return ", {"or": preds}
-  return {"or": preds}
-
-def prop_list_action(s, loc, tok):
-  # print ">>> in prop_list_action: tok = ", tok
-  props = {}
-  for i in xrange(0, len(tok), 2):
-    props[tok[i]] = tok[i+1]
-  return props
-
-def in_predicate_action(s, loc, tok):
-  if tok[1] != NOT.match:
+      return {"terms":
+                {tok[0]:
+                   {JSON_PARAM_VALUES: (tok.except_values[:] or []),
+                    JSON_PARAM_EXCLUDES: (tok.value_list[:] or []),
+                    JSON_PARAM_OPERATOR: PARAM_SELECT_OP_OR,
+                    JSON_PARAM_NO_OPTIMIZE: False
+                    }
+                 }
+              }
+  
+  def contains_all_predicate_action(self, s, loc, tok):
     return {"terms":
               {tok[0]:
                  {JSON_PARAM_VALUES: (tok.value_list[:] or []),
                   JSON_PARAM_EXCLUDES: (tok.except_values[:] or []),
-                  JSON_PARAM_OPERATOR: PARAM_SELECT_OP_OR,
+                  JSON_PARAM_OPERATOR: PARAM_SELECT_OP_AND,
+                  # XXX Need to check this based on facet info
                   JSON_PARAM_NO_OPTIMIZE: False
                   }
                }
             }
-  else:
+  
+  def query_predicate_action(self, s, loc, tok):
+    return {JSON_PARAM_QUERY:
+              {JSON_PARAM_QUERY_STRING:
+                 {JSON_PARAM_QUERY: tok[2]}
+               }
+            }
+  
+  def equal_predicate_action(self, s, loc, tok):
+    return {"term":
+              {tok[0]:
+                 {"value": tok[2]}
+               }
+            }
+  
+  def not_equal_predicate_action(self, s, loc, tok):
     return {"terms":
               {tok[0]:
-                 {JSON_PARAM_VALUES: (tok.except_values[:] or []),
-                  JSON_PARAM_EXCLUDES: (tok.value_list[:] or []),
+                 {JSON_PARAM_VALUES: [],
+                  JSON_PARAM_EXCLUDES: [tok[2]],
                   JSON_PARAM_OPERATOR: PARAM_SELECT_OP_OR,
                   JSON_PARAM_NO_OPTIMIZE: False
                   }
                }
             }
-
-def contains_all_predicate_action(s, loc, tok):
-  return {"terms":
-            {tok[0]:
-               {JSON_PARAM_VALUES: (tok.value_list[:] or []),
-                JSON_PARAM_EXCLUDES: (tok.except_values[:] or []),
-                JSON_PARAM_OPERATOR: PARAM_SELECT_OP_AND,
-                # XXX Need to check this based on facet info
-                JSON_PARAM_NO_OPTIMIZE: False
-                }
-             }
-          }
-
-def query_predicate_action(s, loc, tok):
-  return {JSON_PARAM_QUERY:
-            {JSON_PARAM_QUERY_STRING:
-               {JSON_PARAM_QUERY: tok[2]}
-             }
-          }
-
-def equal_predicate_action(s, loc, tok):
-  return {"term":
-            {tok[0]:
-               {"value": tok[2]}
-             }
-          }
-
-def not_equal_predicate_action(s, loc, tok):
-  return {"terms":
-            {tok[0]:
-               {JSON_PARAM_VALUES: [],
-                JSON_PARAM_EXCLUDES: [tok[2]],
-                JSON_PARAM_OPERATOR: PARAM_SELECT_OP_OR,
-                JSON_PARAM_NO_OPTIMIZE: False
-                }
-             }
-          }
-
-def range_predicate_action(s, loc, tok):
-  # print ">>> in range_predicate_action: tok = ", tok
-  if tok[1] == ">" or tok[1] == ">=":
-    return {"range":
-              {tok[0]:
-                 {"from": tok[2],
-                  "include_lower": tok[1] == ">="
-                  }
-               }
-            }
-  else:
-    return {"range":
-              {tok[0]:
-                 {"to": tok[2],
-                  "include_upper": tok[1] == "<="
-                  }
-               }
-            }
-
-def between_predicate_action(s, loc, tok):
-  # print ">>> in between_predicate_action: tok = ", tok
-  if tok[1] == NOT.match:
-    # "column NOT BETWEEN x AND y"
-    return {"or": [{"range":
-                      {tok[0]:
-                         {"to": tok[3],
-                          "include_upper": False
-                          }
-                       }
-                    },
-                   {"range":
-                      {tok[0]:
-                         {"from": tok[3],
-                          "include_lower": False
-                          }
-                       }
-                    }
-                   ]
-            }
-  else:
-    return {"range":
-              {tok[0]:
-                 {"from": tok[2],
-                  "to": tok[4],
-                  "include_lower": True,
-                  "include_upper": True
-                  }
-               }
-            }
-
-def match_predicate_action(s, loc, tok):
-  # print ">>> in match_predicate_action: tok = ", tok
-  return {JSON_PARAM_QUERY:
-            {JSON_PARAM_QUERY_STRING:
-               {"fields": tok[1][:],
-                JSON_PARAM_QUERY: tok[3]
-                }
-             }
-          }
-
-limit_once = OnlyOnce(lambda s, loc, tok: tok)
-order_by_once = OnlyOnce(order_by_action)
-group_by_once = OnlyOnce(lambda s, loc, tok: tok)
-browse_by_once = OnlyOnce(lambda s, loc, tok: tok)
-fetching_stored_once = OnlyOnce(lambda s, loc, tok: tok)
-
-def reset_all():
-  limit_once.reset()
-  order_by_once.reset()
-  group_by_once.reset()
-  browse_by_once.reset()
-  fetching_stored_once.reset()
-
-def convert_time(s, loc, toks):
-  """Convert a time expression into an epoch time."""
-
-  if toks[0] == NOW.match:
-    return time_now
-  elif toks.date_time_regex:
-    mm = DATE_TIME_REGEX.match(toks[0])
-    (_, year, _, month, day, hour, minute, second) = mm.groups()
-    try:
-      time_stamp = datetime.strptime("%s-%s-%s %s:%s:%s" % (year, month, day, hour, minute, second),
-                                     "%Y-%m-%d %H:%M:%S")
-    except ValueError as err:
-      raise ParseSyntaxException(ParseException(s, loc, "Invalid date/time string: %s" % toks[0]))
-    return int(time.mktime(time_stamp.timetuple()) * 1000)
-
-def convert_time_span(s, loc, toks):
-  """Convert a time span expression into an epoch time."""
-
-  total = 0
-  if toks.week_part:
-    total += toks.week_part[0] * 7 * 24 * 60 * 60 * 1000
-  if toks.day_part:
-    total += toks.day_part[0] * 24 * 60 * 60 * 1000
-  if toks.hour_part:
-    total += toks.hour_part[0] * 60 * 60 * 1000
-  if toks.minute_part:
-    total += toks.minute_part[0] * 60 * 1000
-  if toks.second_part:
-    total += toks.second_part[0] * 1000
-  if toks.millisecond_part:
-    total += toks.millisecond_part[0]
   
-  return time_now - total
+  def range_predicate_action(self, s, loc, tok):
+    # print ">>> in range_predicate_action: tok = ", tok
+    if tok[1] == ">" or tok[1] == ">=":
+      return {"range":
+                {tok[0]:
+                   {"from": tok[2],
+                    "include_lower": tok[1] == ">="
+                    }
+                 }
+              }
+    else:
+      return {"range":
+                {tok[0]:
+                   {"to": tok[2],
+                    "include_upper": tok[1] == "<="
+                    }
+                 }
+              }
+  
+  def between_predicate_action(self, s, loc, tok):
+    # print ">>> in between_predicate_action: tok = ", tok
+    if tok[1] == "not":
+      # "column NOT BETWEEN x AND y"
+      return {"or": [{"range":
+                        {tok[0]:
+                           {"to": tok[3],
+                            "include_upper": False
+                            }
+                         }
+                      },
+                     {"range":
+                        {tok[0]:
+                           {"from": tok[3],
+                            "include_lower": False
+                            }
+                         }
+                      }
+                     ]
+              }
+    else:
+      return {"range":
+                {tok[0]:
+                   {"from": tok[2],
+                    "to": tok[4],
+                    "include_lower": True,
+                    "include_upper": True
+                    }
+                 }
+              }
+  
+  def match_predicate_action(self, s, loc, tok):
+    # print ">>> in match_predicate_action: tok = ", tok
+    return {JSON_PARAM_QUERY:
+              {JSON_PARAM_QUERY_STRING:
+                 {"fields": tok[1][:],
+                  JSON_PARAM_QUERY: tok[3]
+                  }
+               }
+            }
+  
+  def reset_all(self):
+    self.limit_once.reset()
+    self.order_by_once.reset()
+    self.group_by_once.reset()
+    self.browse_by_once.reset()
+    self.fetching_stored_once.reset()
+  
+  def convert_time(self, s, loc, toks):
+    """Convert a time expression into an epoch time."""
+  
+    if toks[0] == "now":
+      return self.time_now
+    elif toks.date_time_regex:
+      mm = DATE_TIME_REGEX.match(toks[0])
+      (_, year, _, month, day, hour, minute, second) = mm.groups()
+      try:
+        time_stamp = datetime.strptime("%s-%s-%s %s:%s:%s" % (year, month, day, hour, minute, second),
+                                       "%Y-%m-%d %H:%M:%S")
+      except ValueError as err:
+        raise ParseSyntaxException(ParseException(s, loc, "Invalid date/time string: %s" % toks[0]))
+      return int(time.mktime(time_stamp.timetuple()) * 1000)
+  
+  def convert_time_span(self, s, loc, toks):
+    """Convert a time span expression into an epoch time."""
+  
+    total = 0
+    if toks.week_part:
+      total += toks.week_part[0] * 7 * 24 * 60 * 60 * 1000
+    if toks.day_part:
+      total += toks.day_part[0] * 24 * 60 * 60 * 1000
+    if toks.hour_part:
+      total += toks.hour_part[0] * 60 * 60 * 1000
+    if toks.minute_part:
+      total += toks.minute_part[0] * 60 * 1000
+    if toks.second_part:
+      total += toks.second_part[0] * 1000
+    if toks.millisecond_part:
+      total += toks.millisecond_part[0]
+    
+    return self.time_now - total
 
-#
-# BQL tokens
-#
-# Remember to use lower case in the definition because we use
-# Keyword.match to do comparison at other places in the code.
-#
-ALL = Keyword("all", caseless=True)
-AFTER = Keyword("after", caseless=True)
-AGAINST = Keyword("against", caseless=True)
-AGO = Keyword("ago", caseless=True)
-AND = Keyword("and", caseless=True)
-ASC = Keyword("asc", caseless=True)
-BEFORE = Keyword("before", caseless=True)
-BETWEEN = Keyword("between", caseless=True)
-BOOLEAN = Keyword("boolean", caseless=True)
-BROWSE = Keyword("browse", caseless=True)
-BY = Keyword("by", caseless=True)
-BYTEARRAY = Keyword("bytearray", caseless=True)
-CONTAINS = Keyword("contains", caseless=True)
-DESC = Keyword("desc", caseless=True)
-DESCRIBE = Keyword("describe", caseless=True)
-DOUBLE = Keyword("double", caseless=True)
-EXCEPT = Keyword("except", caseless=True)
-FACET = Keyword("facet", caseless=True)
-FALSE = Keyword("false", caseless=True)
-FETCHING = Keyword("fetching", caseless=True)
-FROM = Keyword("from", caseless=True)
-GROUP = Keyword("group", caseless=True)
-GIVEN = Keyword("given", caseless=True)
-HITS = Keyword("hits", caseless=True)
-IN = Keyword("in", caseless=True)
-INT = Keyword("int", caseless=True)
-IS = Keyword("is", caseless=True)
-LAST = Keyword("last", caseless=True)
-LIMIT = Keyword("limit", caseless=True)
-LONG = Keyword("long", caseless=True)
-MATCH = Keyword("match", caseless=True)
-NOT = Keyword("not", caseless=True)
-NOW = Keyword("now", caseless=True)
-OR = Keyword("or", caseless=True)
-ORDER = Keyword("order", caseless=True)
-PARAM = Keyword("param", caseless=True)
-QUERY = Keyword("query", caseless=True)
-SELECT = Keyword("select", caseless=True)
-SINCE = Keyword("since", caseless=True)
-STORED = Keyword("stored", caseless=True)
-STRING = Keyword("string", caseless=True)
-TOP = Keyword("top", caseless=True)
-TRUE = Keyword("true", caseless=True)
-VALUE = Keyword("value", caseless=True)
-WHERE = Keyword("where", caseless=True)
-WITH = Keyword("with", caseless=True)
-
-keyword = MatchFirst((ALL, AND, ASC, BETWEEN, BOOLEAN, BROWSE, BY, BYTEARRAY,
-                      CONTAINS, DESC, DESCRIBE, DOUBLE, EXCEPT,
-                      FACET, FALSE, FETCHING, FROM, GROUP, GIVEN,
-                      HITS, IN, INT, IS, LIMIT, LONG, NOT,
-                      OR, ORDER, PARAM, QUERY,
-                      SELECT, STORED, STRING, TOP, TRUE,
-                      VALUE, WHERE, WITH
-                      ))
-
-LPAR, RPAR, COMMA, COLON, SEMICOLON = map(Suppress,"(),:;")
-EQUAL = "="
-NOT_EQUAL = "<>"
-
-select_stmt = Forward()
-
-ident = Word(alphas, alphanums + "_-.$")
-column_name = ~keyword + Word(alphas, alphanums + "_-.")
-facet_name = column_name.copy()
-column_name_list = Group(delimitedList(column_name))
-
-integer = Word(nums).setParseAction(lambda t: int(t[0]))
-real = Combine(Word(nums) + "." + Word(nums)).setParseAction(lambda t: float(t[0]))
-quotedString.setParseAction(removeQuotes)
-
-# Time expression
-CL = CaselessLiteral
-week = Combine(CL("week") + Optional(CL("s")))
-day = Combine(CL("day") + Optional(CL("s")))
-hour = Combine(CL("hour") + Optional(CL("s")))
-minute = Combine((CL("minute") | CL("min")) + Optional(CL("s")))
-second = Combine((CL("second") | CL("sec")) + Optional(CL("s")))
-millisecond = Combine((CL("millisecond") | CL("msec")) + Optional(CL("s")))
-
-time_week_part = (integer + week).setResultsName("week_part")
-time_day_part = (integer + day).setResultsName("day_part")
-time_hour_part = (integer + hour).setResultsName("hour_part")
-time_minute_part = (integer + minute).setResultsName("minute_part")
-time_second_part = (integer + second).setResultsName("second_part")
-time_millisecond_part = (integer + millisecond).setResultsName("millisecond_part")
-
-time_span = (Optional(time_week_part) +
-             Optional(time_day_part) +
-             Optional(time_hour_part) +
-             Optional(time_minute_part) +
-             Optional(time_second_part) +
-             Optional(time_millisecond_part)).setParseAction(convert_time_span)
-
-date_time_string = Regex(DATE_TIME).setResultsName("date_time_regex").setParseAction(convert_time)
-
-time_expr = ((time_span + AGO)
-             | date_time_string
-             | NOW.setParseAction(convert_time))
-
-number = (real | integer)       # Put real before integer to avoid ambiguity
-numeric = (time_expr | number)
-
-boolean_constant = (TRUE | FALSE).setParseAction(lambda t: t[0] == "true")
-
-value = (numeric | quotedString | boolean_constant)
-value_list = LPAR + delimitedList(value) + RPAR
-
-prop_pair = (quotedString + COLON + value)
-predicate_props = (WITH + LPAR + delimitedList(prop_pair).
-                   setResultsName("prop_list").setParseAction(prop_list_action) + RPAR)
-
-in_predicate = (column_name + Optional(NOT) +
-                IN + value_list.setResultsName("value_list") +
-                Optional(EXCEPT + value_list.setResultsName("except_values")) +
-                Optional(predicate_props)
-                ).setResultsName("in_pred").setParseAction(in_predicate_action)
-
-contains_all_predicate = (column_name +
-                          CONTAINS + ALL + value_list.setResultsName("value_list") +
-                          Optional(EXCEPT + value_list.setResultsName("except_values")) +
-                          Optional(predicate_props)
-                          ).setResultsName("contains_all_pred").setParseAction(contains_all_predicate_action)
-
-equal_predicate = (column_name +
-                   EQUAL + value +
-                   Optional(predicate_props)
-                   ).setResultsName("equal_pred").setParseAction(equal_predicate_action)
-
-not_equal_predicate = (column_name +
-                       NOT_EQUAL + value +
+  def _build_parser(self):
+    """Build a BQL parser.
+    """
+    #
+    # BQL tokens
+    #
+    # Remember to use lower case in the definition because we use
+    # Keyword.match to do comparison at other places in the code.
+    #
+    ALL = Keyword("all", caseless=True)
+    AFTER = Keyword("after", caseless=True)
+    AGAINST = Keyword("against", caseless=True)
+    AGO = Keyword("ago", caseless=True)
+    AND = Keyword("and", caseless=True)
+    ASC = Keyword("asc", caseless=True)
+    BEFORE = Keyword("before", caseless=True)
+    BETWEEN = Keyword("between", caseless=True)
+    BOOLEAN = Keyword("boolean", caseless=True)
+    BROWSE = Keyword("browse", caseless=True)
+    BY = Keyword("by", caseless=True)
+    BYTEARRAY = Keyword("bytearray", caseless=True)
+    CONTAINS = Keyword("contains", caseless=True)
+    DESC = Keyword("desc", caseless=True)
+    DESCRIBE = Keyword("describe", caseless=True)
+    DOUBLE = Keyword("double", caseless=True)
+    EXCEPT = Keyword("except", caseless=True)
+    FACET = Keyword("facet", caseless=True)
+    FALSE = Keyword("false", caseless=True)
+    FETCHING = Keyword("fetching", caseless=True)
+    FROM = Keyword("from", caseless=True)
+    GROUP = Keyword("group", caseless=True)
+    GIVEN = Keyword("given", caseless=True)
+    HITS = Keyword("hits", caseless=True)
+    IN = Keyword("in", caseless=True)
+    INT = Keyword("int", caseless=True)
+    IS = Keyword("is", caseless=True)
+    LAST = Keyword("last", caseless=True)
+    LIMIT = Keyword("limit", caseless=True)
+    LONG = Keyword("long", caseless=True)
+    MATCH = Keyword("match", caseless=True)
+    NOT = Keyword("not", caseless=True)
+    NOW = Keyword("now", caseless=True)
+    OR = Keyword("or", caseless=True)
+    ORDER = Keyword("order", caseless=True)
+    PARAM = Keyword("param", caseless=True)
+    QUERY = Keyword("query", caseless=True)
+    SELECT = Keyword("select", caseless=True)
+    SINCE = Keyword("since", caseless=True)
+    STORED = Keyword("stored", caseless=True)
+    STRING = Keyword("string", caseless=True)
+    TOP = Keyword("top", caseless=True)
+    TRUE = Keyword("true", caseless=True)
+    VALUE = Keyword("value", caseless=True)
+    WHERE = Keyword("where", caseless=True)
+    WITH = Keyword("with", caseless=True)
+    
+    keyword = MatchFirst((ALL, AND, ASC, BETWEEN, BOOLEAN, BROWSE, BY, BYTEARRAY,
+                          CONTAINS, DESC, DESCRIBE, DOUBLE, EXCEPT,
+                          FACET, FALSE, FETCHING, FROM, GROUP, GIVEN,
+                          HITS, IN, INT, IS, LIMIT, LONG, NOT,
+                          OR, ORDER, PARAM, QUERY,
+                          SELECT, STORED, STRING, TOP, TRUE,
+                          VALUE, WHERE, WITH
+                          ))
+    
+    LPAR, RPAR, COMMA, COLON, SEMICOLON = map(Suppress,"(),:;")
+    EQUAL = "="
+    NOT_EQUAL = "<>"
+    
+    select_stmt = Forward()
+    
+    ident = Word(alphas, alphanums + "_-.$")
+    column_name = ~keyword + Word(alphas, alphanums + "_-.")
+    facet_name = column_name.copy()
+    column_name_list = Group(delimitedList(column_name))
+    
+    integer = Word(nums).setParseAction(lambda t: int(t[0]))
+    real = Combine(Word(nums) + "." + Word(nums)).setParseAction(lambda t: float(t[0]))
+    quotedString.setParseAction(removeQuotes)
+    
+    # Time expression
+    CL = CaselessLiteral
+    week = Combine(CL("week") + Optional(CL("s")))
+    day = Combine(CL("day") + Optional(CL("s")))
+    hour = Combine(CL("hour") + Optional(CL("s")))
+    minute = Combine((CL("minute") | CL("min")) + Optional(CL("s")))
+    second = Combine((CL("second") | CL("sec")) + Optional(CL("s")))
+    millisecond = Combine((CL("millisecond") | CL("msec")) + Optional(CL("s")))
+    
+    time_week_part = (integer + week).setResultsName("week_part")
+    time_day_part = (integer + day).setResultsName("day_part")
+    time_hour_part = (integer + hour).setResultsName("hour_part")
+    time_minute_part = (integer + minute).setResultsName("minute_part")
+    time_second_part = (integer + second).setResultsName("second_part")
+    time_millisecond_part = (integer + millisecond).setResultsName("millisecond_part")
+    
+    time_span = (Optional(time_week_part) +
+                 Optional(time_day_part) +
+                 Optional(time_hour_part) +
+                 Optional(time_minute_part) +
+                 Optional(time_second_part) +
+                 Optional(time_millisecond_part)).setParseAction(self.convert_time_span)
+    
+    date_time_string = Regex(DATE_TIME).setResultsName("date_time_regex").setParseAction(self.convert_time)
+    
+    time_expr = ((time_span + AGO)
+                 | date_time_string
+                 | NOW.setParseAction(self.convert_time))
+    
+    number = (real | integer)       # Put real before integer to avoid ambiguity
+    numeric = (time_expr | number)
+    
+    boolean_constant = (TRUE | FALSE).setParseAction(lambda t: t[0] == "true")
+    
+    value = (numeric | quotedString | boolean_constant)
+    value_list = LPAR + delimitedList(value) + RPAR
+    
+    prop_pair = (quotedString + COLON + value)
+    predicate_props = (WITH + LPAR + delimitedList(prop_pair).
+                       setResultsName("prop_list").setParseAction(self.prop_list_action) + RPAR)
+    
+    in_predicate = (column_name + Optional(NOT) +
+                    IN + value_list.setResultsName("value_list") +
+                    Optional(EXCEPT + value_list.setResultsName("except_values")) +
+                    Optional(predicate_props)
+                    ).setResultsName("in_pred").setParseAction(self.in_predicate_action)
+    
+    contains_all_predicate = (column_name +
+                              CONTAINS + ALL + value_list.setResultsName("value_list") +
+                              Optional(EXCEPT + value_list.setResultsName("except_values")) +
+                              Optional(predicate_props)
+                              ).setResultsName("contains_all_pred").setParseAction(self.contains_all_predicate_action)
+    
+    equal_predicate = (column_name +
+                       EQUAL + value +
                        Optional(predicate_props)
-                       ).setResultsName("not_equal_pred").setParseAction(not_equal_predicate_action)
-
-query_predicate = (QUERY + IS + quotedString
-                   ).setResultsName("query_pred").setParseAction(query_predicate_action)
-
-between_predicate = (column_name + Optional(NOT) +
-                     BETWEEN + value + AND + value
-                     ).setResultsName("between_pred").setParseAction(between_predicate_action)
-
-range_op = oneOf("< <= >= >")
-range_predicate = (column_name + range_op + value
-                   ).setResultsName("range_pred").setParseAction(range_predicate_action)
-
-time_predicate = ((column_name + IN + LAST + time_span)
-                  | (column_name + (SINCE | AFTER | BEFORE) + time_expr)
-                  ).setResultsName("time_pred")
-
-match_predicate = (MATCH + LPAR + column_name_list + RPAR +
-                   AGAINST + LPAR + quotedString + RPAR
-                   ).setResultsName("match_pred").setParseAction(match_predicate_action)
-
-cumulative_predicate = Group(in_predicate
-                             | equal_predicate
-                             | between_predicate
-                             | range_predicate
-                             ).setResultsName("cumulative_preds", listAllMatches=True)
-
-cumulative_predicates = (cumulative_predicate +
-                         OneOrMore(OR + cumulative_predicate))
-
-# XXX To be removed
-same_column_or_pred = (LPAR + cumulative_predicates + RPAR).setResultsName("same_column_or_pred")
-
-predicate = (in_predicate
-             | contains_all_predicate
-             | equal_predicate
-             | not_equal_predicate
-             | query_predicate
-             | between_predicate
-             | range_predicate
-             | time_predicate
-             | match_predicate
-             # | same_column_or_pred
-             )
-
-predicates = predicate + NotAny(OR) + ZeroOrMore(AND + predicate)
-
-# search_condition = Group(predicates | cumulative_predicates)
-
-search_expr = operatorPrecedence(predicate,
-                                 [(AND, 2, opAssoc.LEFT, and_predicate_action),
-                                  (OR,  2, opAssoc.LEFT, or_predicate_action)
-                                  ])
-
-param_type = BOOLEAN | INT | LONG | STRING | BYTEARRAY | DOUBLE
-facet_param = Group(LPAR + facet_name + COMMA + quotedString + COMMA +
-                    param_type + COMMA + value + RPAR).setResultsName("facet_param", listAllMatches=True)
-given_clause = (GIVEN + FACET + PARAM + delimitedList(facet_param))
-
-orderseq = ASC | DESC
-
-order_by_expression = Forward()
-order_by_spec = Group(column_name + Optional(orderseq)).setResultsName("orderby_spec", listAllMatches=True)
-order_by_expression << (order_by_spec + ZeroOrMore(COMMA + order_by_expression))
-order_by_clause = (ORDER + BY + order_by_expression).setResultsName("orderby").setParseAction(order_by_once)
-
-limit_clause = (LIMIT + Group(Optional(integer + COMMA) + integer)).setResultsName("limit").setParseAction(limit_once)
-
-expand_flag = TRUE | FALSE
-facet_order_by = HITS | VALUE
-facet_spec = Group(column_name +
-                   Optional(LPAR + expand_flag + COMMA + integer  + COMMA + integer + COMMA + facet_order_by + RPAR))
-
-group_by_clause = (GROUP + BY +
-                   column_name.setResultsName("groupby") +
-                   Optional(TOP + integer.setResultsName("max_per_group"))).setParseAction(group_by_once)
-
-browse_by_clause = (BROWSE + BY +
-                    delimitedList(facet_spec).setResultsName("facet_specs")).setParseAction(browse_by_once)
-
-fetching_flag = TRUE | FALSE
-fetching_stored_clause = (FETCHING + STORED +
-                          Optional(fetching_flag)).setResultsName("fetching_stored").setParseAction(fetching_stored_once)
-
-additional_clause = (order_by_clause
-                     | limit_clause
-                     | group_by_clause
-                     | browse_by_clause
-                     | fetching_stored_clause
-                     )
-
-additional_clauses = ZeroOrMore(additional_clause)
-
-from_clause = (FROM + ident.setResultsName("index"))
-
-select_stmt << (SELECT + 
-                ('*' | column_name_list).setResultsName("columns") + 
-                Optional(from_clause) +
-                Optional(WHERE + search_expr.setResultsName("where")) +
-                Optional(given_clause.setResultsName("given")) +
-                additional_clauses
-                )
-
-describe_stmt = (DESC | DESCRIBE).setResultsName("describe") + ident.setResultsName("index")
-
-time_now = int(time.time() * 1000)
-BQLstmt = (select_stmt | describe_stmt) + Optional(SEMICOLON) + stringEnd
-
-# Define comment format, and ignore them
-sql_comment = "--" + restOfLine
-BQLstmt.ignore(sql_comment)
-
+                       ).setResultsName("equal_pred").setParseAction(self.equal_predicate_action)
+    
+    not_equal_predicate = (column_name +
+                           NOT_EQUAL + value +
+                           Optional(predicate_props)
+                           ).setResultsName("not_equal_pred").setParseAction(self.not_equal_predicate_action)
+    
+    query_predicate = (QUERY + IS + quotedString
+                       ).setResultsName("query_pred").setParseAction(self.query_predicate_action)
+    
+    between_predicate = (column_name + Optional(NOT) +
+                         BETWEEN + value + AND + value
+                         ).setResultsName("between_pred").setParseAction(self.between_predicate_action)
+    
+    range_op = oneOf("< <= >= >")
+    range_predicate = (column_name + range_op + value
+                       ).setResultsName("range_pred").setParseAction(self.range_predicate_action)
+    
+    time_predicate = ((column_name + IN + LAST + time_span)
+                      | (column_name + (SINCE | AFTER | BEFORE) + time_expr)
+                      ).setResultsName("time_pred")
+    
+    match_predicate = (MATCH + LPAR + column_name_list + RPAR +
+                       AGAINST + LPAR + quotedString + RPAR
+                       ).setResultsName("match_pred").setParseAction(self.match_predicate_action)
+    
+    cumulative_predicate = Group(in_predicate
+                                 | equal_predicate
+                                 | between_predicate
+                                 | range_predicate
+                                 ).setResultsName("cumulative_preds", listAllMatches=True)
+    
+    cumulative_predicates = (cumulative_predicate +
+                             OneOrMore(OR + cumulative_predicate))
+    
+    # XXX To be removed
+    same_column_or_pred = (LPAR + cumulative_predicates + RPAR).setResultsName("same_column_or_pred")
+    
+    predicate = (in_predicate
+                 | contains_all_predicate
+                 | equal_predicate
+                 | not_equal_predicate
+                 | query_predicate
+                 | between_predicate
+                 | range_predicate
+                 | time_predicate
+                 | match_predicate
+                 # | same_column_or_pred
+                 )
+    
+    predicates = predicate + NotAny(OR) + ZeroOrMore(AND + predicate)
+    
+    # search_condition = Group(predicates | cumulative_predicates)
+    
+    search_expr = operatorPrecedence(predicate,
+                                     [(AND, 2, opAssoc.LEFT, self.and_predicate_action),
+                                      (OR,  2, opAssoc.LEFT, self.or_predicate_action)
+                                      ])
+    
+    param_type = BOOLEAN | INT | LONG | STRING | BYTEARRAY | DOUBLE
+    facet_param = Group(LPAR + facet_name + COMMA + quotedString + COMMA +
+                        param_type + COMMA + value + RPAR).setResultsName("facet_param", listAllMatches=True)
+    given_clause = (GIVEN + FACET + PARAM + delimitedList(facet_param))
+    
+    orderseq = ASC | DESC
+    
+    order_by_expression = Forward()
+    order_by_spec = Group(column_name + Optional(orderseq)).setResultsName("orderby_spec", listAllMatches=True)
+    order_by_expression << (order_by_spec + ZeroOrMore(COMMA + order_by_expression))
+    order_by_clause = (ORDER + BY + order_by_expression).setResultsName("orderby").setParseAction(self.order_by_once)
+    
+    limit_clause = (LIMIT + Group(Optional(integer + COMMA) + integer)).setResultsName("limit").setParseAction(self.limit_once)
+    
+    expand_flag = TRUE | FALSE
+    facet_order_by = HITS | VALUE
+    facet_spec = Group(column_name +
+                       Optional(LPAR + expand_flag + COMMA + integer  + COMMA + integer + COMMA + facet_order_by + RPAR))
+    
+    group_by_clause = (GROUP + BY +
+                       column_name.setResultsName("groupby") +
+                       Optional(TOP + integer.setResultsName("max_per_group"))).setParseAction(self.group_by_once)
+    
+    browse_by_clause = (BROWSE + BY +
+                        delimitedList(facet_spec).setResultsName("facet_specs")).setParseAction(self.browse_by_once)
+    
+    fetching_flag = TRUE | FALSE
+    fetching_stored_clause = (FETCHING + STORED +
+                              Optional(fetching_flag)).setResultsName("fetching_stored").setParseAction(self.fetching_stored_once)
+    
+    additional_clause = (order_by_clause
+                         | limit_clause
+                         | group_by_clause
+                         | browse_by_clause
+                         | fetching_stored_clause
+                         )
+    
+    additional_clauses = ZeroOrMore(additional_clause)
+    
+    from_clause = (FROM + ident.setResultsName("index"))
+    
+    select_stmt << (SELECT + 
+                    ('*' | column_name_list).setResultsName("columns") + 
+                    Optional(from_clause) +
+                    Optional(WHERE + search_expr.setResultsName("where")) +
+                    Optional(given_clause.setResultsName("given")) +
+                    additional_clauses
+                    )
+    
+    describe_stmt = (DESC | DESCRIBE).setResultsName("describe") + ident.setResultsName("index")
+    
+    BQLstmt = (select_stmt | describe_stmt) + Optional(SEMICOLON) + stringEnd
+    
+    # Define comment format, and ignore them
+    sql_comment = "--" + restOfLine
+    BQLstmt.ignore(sql_comment)
+    return BQLstmt
 
 def safe_str(obj):
   """Return the byte string representation of obj."""
@@ -1028,7 +1058,7 @@ def build_selection(predicate):
   selection = None
   if predicate.in_pred:
     selection = SenseiSelection(predicate[0], PARAM_SELECT_OP_OR)
-    is_not = predicate[1] == NOT.match
+    is_not = predicate[1] == "not"
     for val in predicate.value_list:
       selection.addSelection(val, is_not)
     for val in predicate.except_values:
@@ -1058,7 +1088,7 @@ def build_selection(predicate):
       selection.addProperty(predicate.prop_list[i], predicate.prop_list[i+1])
   
   elif predicate.between_pred:
-    if predicate[1] == BETWEEN.match:
+    if predicate[1] == "between":
       selection = SenseiSelection(predicate[0], PARAM_SELECT_OP_AND)
       selection.addSelection("[%s TO %s]" % (predicate[2], predicate[4]))
     else:
@@ -1082,11 +1112,11 @@ def build_selection(predicate):
 
   elif predicate.time_pred:
     selection = SenseiSelection(predicate[0], PARAM_SELECT_OP_AND)
-    if predicate[1] == IN.match and predicate[2] == LAST.match:
+    if predicate[1] == "in" and predicate[2] == "last":
       selection.addSelection("[%s TO %s]" % (predicate[3], "*"))
-    elif predicate[1] == SINCE.match or predicate[1] == AFTER.match:
+    elif predicate[1] == "since" or predicate[1] == "after":
       selection.addSelection("[%s TO %s]" % (predicate[2] + 1, "*"))
-    elif predicate[1] == BEFORE.match:
+    elif predicate[1] == "before":
       selection.addSelection("[%s TO %s]" % ("*", predicate[2] - 1))
   
   elif predicate.same_column_or_pred:
@@ -1100,7 +1130,7 @@ def build_filter(predicate):
 
   filter = None
   if predicate.in_pred:
-    is_not = predicate[1] == NOT.match
+    is_not = predicate[1] == "not"
     if not is_not:
       return {"facetSelection":
                 {predicate[0]: {
@@ -1154,19 +1184,8 @@ class BQLRequest:
 
   """
 
-  def __init__(self, bql_stmt, facet_map):
-    try:
-      time_now = int(time.time() * 1000)
-      self.tokens = BQLstmt.parseString(bql_stmt, parseAll=True)
-    except ParseException as err:
-      raise err
-    except ParseSyntaxException as err:
-      raise err
-    except ParseFatalException as err:
-      raise err
-    finally:
-      reset_all()
-
+  def __init__(self, tokens, facet_map):
+    self.tokens = tokens
     self.facet_map = facet_map
     self.query = ""
     self.selections = None
@@ -1538,46 +1557,48 @@ class BQLRequest:
 
 
 def test(str):
-  try:
-    tokens = BQLstmt.parseString(str)
-    print "tokens =",        tokens
-    print "tokens.columns =", tokens.columns
-    print "tokens.index =",  tokens.index
-    print "tokens.where =", tokens.where
-    if tokens.where:
-      pass
-      # print "tokens.where.predicates =", tokens.where.predicates
-      # print "tokens.where.cumulative_preds =", tokens.where.cumulative_preds
-      # for predicate in tokens.where.predicates:
-      #   print "--------------------------------------"
-      #   print "predicate.value_list =", predicate.value_list
-      #   print "predicate.except_values =", predicate.except_values
-      #   print "predicate.prop_list =", predicate.prop_list
-      #   if predicate.cumulative_preds:
-      #     print "predicate.cumulative_preds =", predicate.cumulative_preds
-    print "tokens.orderby =", tokens.orderby
-    if tokens.orderby:
-      print "tokens.orderby.orderby_spec =", tokens.orderby.orderby_spec
-    print "tokens.limit =", tokens.limit
-    print "tokens.facet_specs =", tokens.facet_specs
-    print "tokens.groupby =", tokens.groupby
-    print "tokens.max_per_group =", tokens.max_per_group
-    print "tokens.given =", tokens.given
-    if tokens.given:
-      print "tokens.given.facet_param =", tokens.given.facet_param
-    print "tokens.fetching_stored =", tokens.fetching_stored
-  except ParseException as err:
-    # print " " * (err.loc + 2) + "^\n" + err.msg
-    pass
-  except ParseSyntaxException as err:
-    # print " " * (err.loc + 2) + "^\n" + err.msg
-    pass
-  except ParseFatalException as err:
-    # print " " * (err.loc + 2) + "^\n" + err.msg
-    pass
-  finally:
-    reset_all()
+  return
 
+# def test(str):
+#   try:
+#     tokens = BQLstmt.parseString(str)
+#     print "tokens =",        tokens
+#     print "tokens.columns =", tokens.columns
+#     print "tokens.index =",  tokens.index
+#     print "tokens.where =", tokens.where
+#     if tokens.where:
+#       pass
+#       # print "tokens.where.predicates =", tokens.where.predicates
+#       # print "tokens.where.cumulative_preds =", tokens.where.cumulative_preds
+#       # for predicate in tokens.where.predicates:
+#       #   print "--------------------------------------"
+#       #   print "predicate.value_list =", predicate.value_list
+#       #   print "predicate.except_values =", predicate.except_values
+#       #   print "predicate.prop_list =", predicate.prop_list
+#       #   if predicate.cumulative_preds:
+#       #     print "predicate.cumulative_preds =", predicate.cumulative_preds
+#     print "tokens.orderby =", tokens.orderby
+#     if tokens.orderby:
+#       print "tokens.orderby.orderby_spec =", tokens.orderby.orderby_spec
+#     print "tokens.limit =", tokens.limit
+#     print "tokens.facet_specs =", tokens.facet_specs
+#     print "tokens.groupby =", tokens.groupby
+#     print "tokens.max_per_group =", tokens.max_per_group
+#     print "tokens.given =", tokens.given
+#     if tokens.given:
+#       print "tokens.given.facet_param =", tokens.given.facet_param
+#     print "tokens.fetching_stored =", tokens.fetching_stored
+#   except ParseException as err:
+#     # print " " * (err.loc + 2) + "^\n" + err.msg
+#     pass
+#   except ParseSyntaxException as err:
+#     # print " " * (err.loc + 2) + "^\n" + err.msg
+#     pass
+#   except ParseFatalException as err:
+#     # print " " * (err.loc + 2) + "^\n" + err.msg
+#     pass
+#   finally:
+#     reset_all()
 
 #
 # Utilities for result display
@@ -1989,7 +2010,7 @@ class SenseiSystemInfo:
 class SenseiRequest:
 
   def __init__(self,
-               bql_stmt=None,
+               bql_req=None,
                offset=DEFAULT_REQUEST_OFFSET,
                count=DEFAULT_REQUEST_COUNT,
                max_per_group=DEFAULT_REQUEST_MAX_PER_GROUP,
@@ -1997,14 +2018,12 @@ class SenseiRequest:
     self.qParam = {}
     self.explain = False
     self.route_param = None
-    self.bql_stmt = bql_stmt
     self.prepare_time = 0       # Statement prepare time in milliseconds
     self.stmt_type = "unknown"
 
-    if bql_stmt != None:
+    if bql_req != None:
       assert(facet_map)
-      time1 = datetime.now()
-      bql_req = BQLRequest(bql_stmt, facet_map)
+      time1 = datetime.now()    # XXX need to move to SenseiClient
 
       # ok, msg = bql_req.merge_selections()
       # if not ok:
@@ -2255,11 +2274,16 @@ class SenseiClient:
     for facet_info in self.sysinfo.get_facet_infos():
       self.facet_map[facet_info.get_name()] = facet_info
 
-  def compile(self, bql_stmt):
-    """Compile a BQL statement into a SenseiRequest."""
+    self.parser = BQLParser()
 
-    return SenseiRequest(bql_stmt, facet_map=self.facet_map)
-    
+  def compile(self, bql_stmt):
+    tokens = self.parser.parse(bql_stmt)
+    if tokens:
+      logger.debug("tokens: %s" % tokens)
+      bql_req = BQLRequest(tokens, self.facet_map)
+      return SenseiRequest(bql_req, facet_map=self.facet_map)
+    return None
+
   def buildJsonString(self, req, sort_keys=True, indent=None):
     """Build a Sensei request in JSON format.
 
@@ -2494,8 +2518,8 @@ def main(argv):
       stmt = raw_input('> ')
       if stmt == "exit":
         break
-      if options.verbose:
-        test(stmt)
+      # if options.verbose:
+      #   test(stmt)
       req = client.compile(stmt)
       if req.stmt_type == "select":
         res = client.doQuery(req)
@@ -2503,8 +2527,6 @@ def main(argv):
       elif req.stmt_type == "desc":
         sysinfo = client.get_sysinfo()
         sysinfo.display()
-      else:
-        pass
     except EOFError:
       break
     except ParseException as err:
