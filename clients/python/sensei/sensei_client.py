@@ -371,84 +371,6 @@ BNF Grammar for BQL
 
 """
 
-def pred_type(pred):
-  return pred.keys()[0]
-
-def pred_field(pred):
-  return pred.values()[0].keys()[0]
-
-def accumulate_range_pred(field_map, pred):
-  """Try to merge ANDed range predicates.
-
-  For example, "year > 1999 AND year <= 2003" can be accumulated into
-  "1999 < year <= 2003".
-  """
-
-  def _max(n1, include1, n2, include2):
-    """Find the larger of the two lower bounds."""
-
-    if n1 == None:
-      return n2, include2
-    elif n2 == None:
-      return n1, include1
-    else:
-      if n1 > n2:
-        return n1, include1
-      elif n1 == n2:
-        return n1, (include1 and include2)
-      else:
-        return n2, include2
-
-  def _min(n1, include1, n2, include2):
-    """Find the smaller of the two upper bounds."""
-
-    if n1 == None:
-      return n2, include2
-    elif n2 == None:
-      return n1, include1
-    else:
-      if n1 > n2:
-        return n2, include2
-      elif n1 == n2:
-        return n1, (include1 and include2)
-      else:
-        return n1, include1
-
-  field = pred_field(pred)
-  old_range = field_map.get(field)
-  if not old_range:
-    field_map[field] = pred
-    return
-  old_spec = old_range.values()[0].values()[0]
-  old_from = old_spec.get("from")
-  old_include_lower = old_spec.get("include_lower") or False
-  old_to = old_spec.get("to")
-  old_include_upper = old_spec.get("include_upper") or False
-
-  cur_spec = pred.values()[0].values()[0]
-  cur_from = cur_spec.get("from")
-  cur_include_lower = cur_spec.get("include_lower") or False
-  cur_to = cur_spec.get("to")
-  cur_include_upper = cur_spec.get("include_upper") or False
-
-  new_spec = {}
-  lower, include_lower = _max(old_from, old_include_lower, cur_from, cur_include_lower)
-  upper, include_upper = _min(old_to, old_include_upper, cur_to, cur_include_upper)
-
-  if lower and upper:
-    if (lower > upper or
-        (lower == upper and (not include_lower or not include_upper))):
-      raise ParseSyntaxException(ParseException("", 0, "Conflict range predicates for column '%s'"
-                                                % field))
-  if lower:
-    new_spec["from"] = lower
-    new_spec["include_lower"] = include_lower
-  if upper:
-    new_spec["to"] = upper
-    new_spec["include_upper"] = include_upper
-  field_map[field] = {"range": {field: new_spec} }
-
-
 class BQLParser:
   """BQL Parser.
 
@@ -457,13 +379,14 @@ class BQLParser:
 
   """
 
-  def __init__(self):
+  def __init__(self, facet_map):
     self.limit_once = OnlyOnce(lambda s, loc, tok: tok)
     self.order_by_once = OnlyOnce(self.order_by_action)
     self.group_by_once = OnlyOnce(lambda s, loc, tok: tok)
     self.browse_by_once = OnlyOnce(lambda s, loc, tok: tok)
     self.fetching_stored_once = OnlyOnce(lambda s, loc, tok: tok)
     self.time_now = None
+    self.facet_map = facet_map
     self._parser = self._build_parser()
 
   def parse(self, bql_stmt):
@@ -481,6 +404,77 @@ class BQLParser:
       self.reset_all()
     return tokens
 
+  def accumulate_range_pred(self, field_map, pred):
+    """Try to merge ANDed range predicates.
+  
+    For example, "year > 1999 AND year <= 2003" can be accumulated into
+    "1999 < year <= 2003".
+    """
+  
+    def _max(n1, include1, n2, include2):
+      """Find the larger of the two lower bounds."""
+  
+      if n1 == None:
+        return n2, include2
+      elif n2 == None:
+        return n1, include1
+      else:
+        if n1 > n2:
+          return n1, include1
+        elif n1 == n2:
+          return n1, (include1 and include2)
+        else:
+          return n2, include2
+  
+    def _min(n1, include1, n2, include2):
+      """Find the smaller of the two upper bounds."""
+  
+      if n1 == None:
+        return n2, include2
+      elif n2 == None:
+        return n1, include1
+      else:
+        if n1 > n2:
+          return n2, include2
+        elif n1 == n2:
+          return n1, (include1 and include2)
+        else:
+          return n1, include1
+  
+    field = pred_field(pred)
+    old_range = field_map.get(field)
+    if not old_range:
+      field_map[field] = pred
+      return
+    old_spec = old_range.values()[0].values()[0]
+    old_from = old_spec.get("from")
+    old_include_lower = old_spec.get("include_lower") or False
+    old_to = old_spec.get("to")
+    old_include_upper = old_spec.get("include_upper") or False
+  
+    cur_spec = pred.values()[0].values()[0]
+    cur_from = cur_spec.get("from")
+    cur_include_lower = cur_spec.get("include_lower") or False
+    cur_to = cur_spec.get("to")
+    cur_include_upper = cur_spec.get("include_upper") or False
+  
+    new_spec = {}
+    lower, include_lower = _max(old_from, old_include_lower, cur_from, cur_include_lower)
+    upper, include_upper = _min(old_to, old_include_upper, cur_to, cur_include_upper)
+  
+    if lower and upper:
+      if (lower > upper or
+          (lower == upper and (not include_lower or not include_upper))):
+        raise ParseSyntaxException(ParseException("", 0, "Conflict range predicates for column '%s'"
+                                                  % field))
+    if lower:
+      new_spec["from"] = lower
+      new_spec["include_lower"] = include_lower
+    if upper:
+      new_spec["to"] = upper
+      new_spec["include_upper"] = include_upper
+    field_map[field] = {"range": {field: new_spec} }
+
   def order_by_action(self, s, loc, tok):
     for order in tok[1:]:
       if (order[0] == PARAM_SORT_SCORE and len(order) > 1):
@@ -496,7 +490,7 @@ class BQLParser:
       if pred_type(pred) != "range":
         preds.append(pred)
       else:
-        accumulate_range_pred(field_map, pred)
+        self.accumulate_range_pred(field_map, pred)
     for f in field_map.values():
       preds.append(f)
     return {"and": preds}
@@ -562,11 +556,24 @@ class BQLParser:
             }
   
   def equal_predicate_action(self, s, loc, tok):
-    return {"term":
-              {tok[0]:
-                 {"value": tok[2]}
-               }
-            }
+    field = tok[0]
+    facet_info = self.facet_map.get(field)
+    if facet_info and facet_info.get_props()["type"] == "range":
+      return {"range":
+                {field:
+                   {"from": tok[2],
+                    "to": tok[2],
+                    "include_lower": True,
+                    "include_upper": True,
+                    }
+                 }
+              }
+    else:
+      return {"term":
+                {field:
+                   {"value": tok[2]}
+                 }
+              }
   
   def not_equal_predicate_action(self, s, loc, tok):
     return {"terms":
@@ -933,6 +940,19 @@ class BQLParser:
     BQLstmt.ignore(sql_comment)
     return BQLstmt
 
+# End of class BQLParser
+
+
+#
+# Some functions that will be shared by BQL Parser and BQLRequest, etc.
+#
+
+def pred_type(pred):
+  return pred.keys()[0]
+
+def pred_field(pred):
+  return pred.values()[0].keys()[0]
+
 def safe_str(obj):
   """Return the byte string representation of obj."""
   try:
@@ -1123,56 +1143,6 @@ def build_selection(predicate):
     selection = collapse_cumulative_preds(predicate.cumulative_preds)
 
   return selection
-
-
-def build_filter(predicate):
-  """Build a filter based on a predicate."""
-
-  filter = None
-  if predicate.in_pred:
-    is_not = predicate[1] == "not"
-    if not is_not:
-      return {"facetSelection":
-                {predicate[0]: {
-                   "value": predicate.value_list,
-                   "excludes": predicate.except_values,
-                   "operator": PARAM_SELECT_OP_OR,
-                   "params": predicate.prop_list
-                   }
-                 }
-              }
-    else:
-      return {"facetSelection":
-                {predicate[0]: {
-                   "value": predicate.except_values,
-                   "excludes": predicate.value_list,
-                   "operator": PARAM_SELECT_OP_OR,
-                   "params": predicate.prop_list
-                   }
-                 }
-              }
-
-  elif predicate.contains_all_pred:
-    selection = SenseiSelection(predicate[0], PARAM_SELECT_OP_AND)
-    for val in predicate.value_list:
-      selection.addSelection(val)
-    for val in predicate.except_values:
-      selection.addSelection(val, True)
-    for i in xrange(0, len(predicate.prop_list), 2):
-      selection.addProperty(predicate.prop_list[i], predicate.prop_list[i+1])
-
-  elif predicate.equal_pred:
-    return {"facetSelection":
-              {predicate[0]: {
-                 "value": [predicate[2]],
-                 "excludes": {},
-                 "operator": PARAM_SELECT_OP_AND,
-                 "params": predicate.prop_list
-                 }
-               }
-            }
-
-  return filter
 
 class BQLRequest:
   """A Sensei request with a BQL statement.
@@ -2274,7 +2244,7 @@ class SenseiClient:
     for facet_info in self.sysinfo.get_facet_infos():
       self.facet_map[facet_info.get_name()] = facet_info
 
-    self.parser = BQLParser()
+    self.parser = BQLParser(self.facet_map)
 
   def compile(self, bql_stmt):
     tokens = self.parser.parse(bql_stmt)

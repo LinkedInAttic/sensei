@@ -223,7 +223,7 @@ class TestJsonAPI(unittest.TestCase):
     FROM cars
     WHERE QUERY IS "cool AND moon-roof"
       AND color = "red"
-      AND year = 1995
+      AND category = "sedan"
     """
     req = sensei_client.compile(stmt)
     # print sensei_client.buildJsonString(req, indent=2)
@@ -246,8 +246,8 @@ class TestJsonAPI(unittest.TestCase):
     }, 
     {
       "term": {
-        "year": {
-          "value": 1995
+        "category": {
+          "value": "sedan"
         }
       }
     }
@@ -1281,6 +1281,33 @@ class TestJsonAPI(unittest.TestCase):
       error = err.msg
     self.assertEqual(error, """Value, "bbb", is not of type "int" (for facet "year")""")
 
+  def testRangePredCreation(self):
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    WHERE year = 1999
+    """
+    req = sensei_client.compile(stmt)
+    # print sensei_client.buildJsonString(req, indent=2),
+    self.assertEqual(sensei_client.buildJsonString(req, indent=2),
+                     """{
+  "fetchStored": true, 
+  "from": 0, 
+  "selections": [
+    {
+      "range": {
+        "year": {
+          "from": 1999, 
+          "include_lower": true, 
+          "include_upper": true, 
+          "to": 1999
+        }
+      }
+    }
+  ], 
+  "size": 10
+}""")
 
 if __name__ == "__main__":
     unittest.main()
