@@ -50,13 +50,13 @@ name: home
         </p>
 		<p>
 			Example BQL:
-			<pre><code>SELECT _uid,color,_score FROM members
-WHERE color="red" AND category in ("van","exotic") AND
+			<pre class="prettyprint lang-bql">SELECT _uid,color,_score FROM members
+WHERE color="red" AND category IN ("van","exotic") AND
 QUERY IS "cool leather seats"
 GROUP BY color TOP 3
 BROWSE BY color,category
 ORDER BY RELEVANCE
-LIMIT 0,10</code></pre>
+LIMIT 0,10</pre>
 		</p>
         <p><a class="btn" href="http://linkedin.jira.com/wiki/display/SENSEI/BQL+Syntax+and+Query+Examples">View details &raquo;</a></p>
       </div>
