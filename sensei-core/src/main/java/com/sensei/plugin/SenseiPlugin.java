@@ -1,7 +1,9 @@
 package com.sensei.plugin;
 
-import org.json.JSONObject;
+import java.util.Map;
 
-public abstract class SenseiPlugin {
-	abstract public void initialize(JSONObject config) throws Exception;
+public interface SenseiPlugin {
+	 public void init(Map<String, String> config);
+	 public void start();
+	 public void stop();
 }
