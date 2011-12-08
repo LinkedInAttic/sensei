@@ -237,6 +237,8 @@ BNF Grammar for BQL
 
 <match_predicate> ::= MATCH '(' column_name_list ')' AGAINST '(' quoted_string ')'
 
+<like_predicate> ::= <column_name> LIKE <quoted_string>
+
 <same_column_or_pred> ::= '(' <cumulative_predicates> ')'
 
 <cumulative_predicates> ::= <cumulative_predicate> ( OR <cumulative_predicate> )*
@@ -371,84 +373,6 @@ BNF Grammar for BQL
 
 """
 
-def pred_type(pred):
-  return pred.keys()[0]
-
-def pred_field(pred):
-  return pred.values()[0].keys()[0]
-
-def accumulate_range_pred(field_map, pred):
-  """Try to merge ANDed range predicates.
-
-  For example, "year > 1999 AND year <= 2003" can be accumulated into
-  "1999 < year <= 2003".
-  """
-
-  def _max(n1, include1, n2, include2):
-    """Find the larger of the two lower bounds."""
-
-    if n1 == None:
-      return n2, include2
-    elif n2 == None:
-      return n1, include1
-    else:
-      if n1 > n2:
-        return n1, include1
-      elif n1 == n2:
-        return n1, (include1 and include2)
-      else:
-        return n2, include2
-
-  def _min(n1, include1, n2, include2):
-    """Find the smaller of the two upper bounds."""
-
-    if n1 == None:
-      return n2, include2
-    elif n2 == None:
-      return n1, include1
-    else:
-      if n1 > n2:
-        return n2, include2
-      elif n1 == n2:
-        return n1, (include1 and include2)
-      else:
-        return n1, include1
-
-  field = pred_field(pred)
-  old_range = field_map.get(field)
-  if not old_range:
-    field_map[field] = pred
-    return
-  old_spec = old_range.values()[0].values()[0]
-  old_from = old_spec.get("from")
-  old_include_lower = old_spec.get("include_lower") or False
-  old_to = old_spec.get("to")
-  old_include_upper = old_spec.get("include_upper") or False
-
-  cur_spec = pred.values()[0].values()[0]
-  cur_from = cur_spec.get("from")
-  cur_include_lower = cur_spec.get("include_lower") or False
-  cur_to = cur_spec.get("to")
-  cur_include_upper = cur_spec.get("include_upper") or False
-
-  new_spec = {}
-  lower, include_lower = _max(old_from, old_include_lower, cur_from, cur_include_lower)
-  upper, include_upper = _min(old_to, old_include_upper, cur_to, cur_include_upper)
-
-  if lower and upper:
-    if (lower > upper or
-        (lower == upper and (not include_lower or not include_upper))):
-      raise ParseSyntaxException(ParseException("", 0, "Conflict range predicates for column '%s'"
-                                                % field))
-  if lower:
-    new_spec["from"] = lower
-    new_spec["include_lower"] = include_lower
-  if upper:
-    new_spec["to"] = upper
-    new_spec["include_upper"] = include_upper
-  field_map[field] = {"range": {field: new_spec} }
-
-
 class BQLParser:
   """BQL Parser.
 
@@ -457,13 +381,14 @@ class BQLParser:
 
   """
 
-  def __init__(self):
+  def __init__(self, facet_map):
     self.limit_once = OnlyOnce(lambda s, loc, tok: tok)
     self.order_by_once = OnlyOnce(self.order_by_action)
     self.group_by_once = OnlyOnce(lambda s, loc, tok: tok)
     self.browse_by_once = OnlyOnce(lambda s, loc, tok: tok)
     self.fetching_stored_once = OnlyOnce(lambda s, loc, tok: tok)
     self.time_now = None
+    self.facet_map = facet_map or {}
     self._parser = self._build_parser()
 
   def parse(self, bql_stmt):
@@ -481,6 +406,77 @@ class BQLParser:
       self.reset_all()
     return tokens
 
+  def accumulate_range_pred(self, field_map, pred):
+    """Try to merge ANDed range predicates.
+  
+    For example, "year > 1999 AND year <= 2003" can be accumulated into
+    "1999 < year <= 2003".
+    """
+  
+    def _max(n1, include1, n2, include2):
+      """Find the larger of the two lower bounds."""
+  
+      if n1 == None:
+        return n2, include2
+      elif n2 == None:
+        return n1, include1
+      else:
+        if n1 > n2:
+          return n1, include1
+        elif n1 == n2:
+          return n1, (include1 and include2)
+        else:
+          return n2, include2
+  
+    def _min(n1, include1, n2, include2):
+      """Find the smaller of the two upper bounds."""
+  
+      if n1 == None:
+        return n2, include2
+      elif n2 == None:
+        return n1, include1
+      else:
+        if n1 > n2:
+          return n2, include2
+        elif n1 == n2:
+          return n1, (include1 and include2)
+        else:
+          return n1, include1
+  
+    field = pred_field(pred)
+    old_range = field_map.get(field)
+    if not old_range:
+      field_map[field] = pred
+      return
+    old_spec = old_range.values()[0].values()[0]
+    old_from = old_spec.get("from")
+    old_include_lower = old_spec.get("include_lower") or False
+    old_to = old_spec.get("to")
+    old_include_upper = old_spec.get("include_upper") or False
+  
+    cur_spec = pred.values()[0].values()[0]
+    cur_from = cur_spec.get("from")
+    cur_include_lower = cur_spec.get("include_lower") or False
+    cur_to = cur_spec.get("to")
+    cur_include_upper = cur_spec.get("include_upper") or False
+  
+    new_spec = {}
+    lower, include_lower = _max(old_from, old_include_lower, cur_from, cur_include_lower)
+    upper, include_upper = _min(old_to, old_include_upper, cur_to, cur_include_upper)
+  
+    if lower and upper:
+      if (lower > upper or
+          (lower == upper and (not include_lower or not include_upper))):
+        raise ParseSyntaxException(ParseException("", 0, "Conflict range predicates for column '%s'"
+                                                  % field))
+    if lower:
+      new_spec["from"] = lower
+      new_spec["include_lower"] = include_lower
+    if upper:
+      new_spec["to"] = upper
+      new_spec["include_upper"] = include_upper
+    field_map[field] = {"range": {field: new_spec} }
+
   def order_by_action(self, s, loc, tok):
     for order in tok[1:]:
       if (order[0] == PARAM_SORT_SCORE and len(order) > 1):
@@ -496,7 +492,7 @@ class BQLParser:
       if pred_type(pred) != "range":
         preds.append(pred)
       else:
-        accumulate_range_pred(field_map, pred)
+        self.accumulate_range_pred(field_map, pred)
     for f in field_map.values():
       preds.append(f)
     return {"and": preds}
@@ -510,7 +506,6 @@ class BQLParser:
         preds.append(preds[0])
       else:
         preds.append(tok[0][i])
-    # print ">>> in predicate_or_action: return ", {"or": preds}
     return {"or": preds}
   
   def prop_list_action(self, s, loc, tok):
@@ -521,9 +516,27 @@ class BQLParser:
     return props
   
   def in_predicate_action(self, s, loc, tok):
+    field = tok[0]
+
+    facet_info = self.facet_map.get(field)
+    facet_type = None
+    pred = None
+    if facet_info:
+      facet_type = facet_info.get_props()["type"]
+    if facet_type == "range":
+      raise ParseSyntaxException(ParseException(
+          s, loc, 'Column "%s" is a range facet (cannot be in an IN-predicate)'))
+
+    ok, msg = self._verify_field_data_type(field, tok.value_list)
+    if not ok:
+      raise ParseSyntaxException(ParseException(s, loc, msg))
+    ok, msg = self._verify_field_data_type(field, tok.except_values)
+    if not ok:
+      raise ParseSyntaxException(ParseException(s, loc, msg))
+
     if tok[1] != "not":
       return {"terms":
-                {tok[0]:
+                {field:
                    {JSON_PARAM_VALUES: (tok.value_list[:] or []),
                     JSON_PARAM_EXCLUDES: (tok.except_values[:] or []),
                     JSON_PARAM_OPERATOR: PARAM_SELECT_OP_OR,
@@ -533,7 +546,7 @@ class BQLParser:
               }
     else:
       return {"terms":
-                {tok[0]:
+                {field:
                    {JSON_PARAM_VALUES: (tok.except_values[:] or []),
                     JSON_PARAM_EXCLUDES: (tok.value_list[:] or []),
                     JSON_PARAM_OPERATOR: PARAM_SELECT_OP_OR,
@@ -543,8 +556,16 @@ class BQLParser:
               }
   
   def contains_all_predicate_action(self, s, loc, tok):
+    field = tok[0]
+    ok, msg = self._verify_field_data_type(field, tok.value_list)
+    if not ok:
+      raise ParseSyntaxException(ParseException(s, loc, msg))
+    ok, msg = self._verify_field_data_type(field, tok.except_values)
+    if not ok:
+      raise ParseSyntaxException(ParseException(s, loc, msg))
+
     return {"terms":
-              {tok[0]:
+              {field:
                  {JSON_PARAM_VALUES: (tok.value_list[:] or []),
                   JSON_PARAM_EXCLUDES: (tok.except_values[:] or []),
                   JSON_PARAM_OPERATOR: PARAM_SELECT_OP_AND,
@@ -562,17 +583,56 @@ class BQLParser:
             }
   
   def equal_predicate_action(self, s, loc, tok):
-    return {"term":
-              {tok[0]:
-                 {"value": tok[2]}
-               }
-            }
+    field = tok[0]
+    value = tok[2]
+    ok, msg = self._verify_field_data_type(field, [value])
+    if not ok:
+      raise ParseSyntaxException(ParseException(s, loc, msg))
+
+    facet_info = self.facet_map.get(field)
+    facet_type = None
+    if facet_info:
+      facet_type = facet_info.get_props()["type"]
+
+    if facet_type == "range":
+      return {"range":
+                {field:
+                   {"from": value,
+                    "to": value,
+                    "include_lower": True,
+                    "include_upper": True,
+                    }
+                 }
+              }
+    elif facet_type == "path":
+      path_spec = {"value": value}
+      if tok.prop_list:
+        for k,v in tok.prop_list.iteritems():
+          if k in ["strict", "depth"]:
+            path_spec[k] = v
+          else:
+            raise ParseSyntaxException(ParseException(
+                s, loc, 'Property, "%s", is not supported for facet "%s"' % (k, field)))
+      return {"path":
+                {field: path_spec}
+              }
+    else:
+      return {"term":
+                {field:
+                   {"value": value}
+                 }
+              }
   
   def not_equal_predicate_action(self, s, loc, tok):
+    field = tok[0]
+    value = tok[2]
+    ok, msg = self._verify_field_data_type(field, [value])
+    if not ok:
+      raise ParseSyntaxException(ParseException(s, loc, msg))
     return {"terms":
-              {tok[0]:
+              {field:
                  {JSON_PARAM_VALUES: [],
-                  JSON_PARAM_EXCLUDES: [tok[2]],
+                  JSON_PARAM_EXCLUDES: [value],
                   JSON_PARAM_OPERATOR: PARAM_SELECT_OP_OR,
                   JSON_PARAM_NO_OPTIMIZE: False
                   }
@@ -581,10 +641,19 @@ class BQLParser:
   
   def range_predicate_action(self, s, loc, tok):
     # print ">>> in range_predicate_action: tok = ", tok
+    field = tok[0]
+    value = tok[2]
+    ok, msg = self._verify_facet_type(field, "range")
+    if not ok:
+      raise ParseSyntaxException(ParseException(s, loc, msg))
+    ok, msg = self._verify_field_data_type(field, [value])
+    if not ok:
+      raise ParseSyntaxException(ParseException(s, loc, msg))
+
     if tok[1] == ">" or tok[1] == ">=":
       return {"range":
-                {tok[0]:
-                   {"from": tok[2],
+                {field:
+                   {"from": value,
                     "include_lower": tok[1] == ">="
                     }
                  }
@@ -592,7 +661,7 @@ class BQLParser:
     else:
       return {"range":
                 {tok[0]:
-                   {"to": tok[2],
+                   {"to": value,
                     "include_upper": tok[1] == "<="
                     }
                  }
@@ -600,18 +669,28 @@ class BQLParser:
   
   def between_predicate_action(self, s, loc, tok):
     # print ">>> in between_predicate_action: tok = ", tok
+    field = tok[0]
+    ok, msg = self._verify_facet_type(field, "range")
+    if not ok:
+      raise ParseSyntaxException(ParseException(s, loc, msg))
+
     if tok[1] == "not":
       # "column NOT BETWEEN x AND y"
+      from_value = tok[3]
+      to_value = tok[5]
+      ok, msg = self._verify_field_data_type(field, [from_value, to_value])
+      if not ok:
+        raise ParseSyntaxException(ParseException(s, loc, msg))
       return {"or": [{"range":
                         {tok[0]:
-                           {"to": tok[3],
+                           {"to": to_value,
                             "include_upper": False
                             }
                          }
                       },
                      {"range":
                         {tok[0]:
-                           {"from": tok[3],
+                           {"from": from_value,
                             "include_lower": False
                             }
                          }
@@ -619,16 +698,56 @@ class BQLParser:
                      ]
               }
     else:
+      from_value = tok[2]
+      to_value = tok[4]
+      ok, msg = self._verify_field_data_type(field, [from_value, to_value])
+      if not ok:
+        raise ParseSyntaxException(ParseException(s, loc, msg))
       return {"range":
                 {tok[0]:
-                   {"from": tok[2],
-                    "to": tok[4],
+                   {"from": from_value,
+                    "to": to_value,
                     "include_lower": True,
                     "include_upper": True
                     }
                  }
               }
   
+  def time_in_last_action(self, s, loc, tok):
+    field = tok[0]
+    ok, msg = self._verify_facet_type(field, "range")
+    if not ok:
+      raise ParseSyntaxException(ParseException(s, loc, msg))
+    return {"range":
+              {field:
+                 {"from": tok[3],
+                  "include_lower": False
+                  }
+               }
+            }
+
+  def time_since_action(self, s, loc, tok):
+    field = tok[0]
+    ok, msg = self._verify_facet_type(field, "range")
+    if not ok:
+      raise ParseSyntaxException(ParseException(s, loc, msg))
+    if tok[1] in ["since", "after"]:
+      return {"range":
+                {field:
+                   {"from": tok[2],
+                    "include_lower": False
+                    }
+                 }
+              }
+    elif tok[1] in ["before"]:
+      return {"range":
+                {field:
+                   {"to": tok[2],
+                    "include_upper": False
+                    }
+                 }
+              }
+
   def match_predicate_action(self, s, loc, tok):
     # print ">>> in match_predicate_action: tok = ", tok
     return {JSON_PARAM_QUERY:
@@ -636,6 +755,22 @@ class BQLParser:
                  {"fields": tok[1][:],
                   JSON_PARAM_QUERY: tok[3]
                   }
+               }
+            }
+  
+  def like_predicate_action(self, s, loc, tok):
+    field = tok[0]
+    if self.facet_map.has_key(field):
+      facet_info = self.facet_map[field]
+      column_type = facet_info.get_props()["column_type"]
+      if column_type != "string":
+        raise ParseSyntaxException(
+          ParseException(s, loc, 'Column, "%s", is not a string type' % field))
+    # Convert % and _ in SQL syntax to Lucene's * and .
+    value = tok[2].replace("%", "*").replace("_", ".")
+    return {"query":
+              {"wildcard":
+                 {field: value}
                }
             }
   
@@ -680,6 +815,60 @@ class BQLParser:
     
     return self.time_now - total
 
+  def _verify_value_type(self, value, column_type):
+    """Verify value type."""
+
+    if column_type in ["int", "short"]:
+      if type(value) == float:
+        return False, 'Value, %s, is not of type "%s"' % (value, column_type)
+      elif type(value) == str:
+        return False, 'Value, "%s", is not of type "%s"' % (value, column_type)
+      elif type(value) == bool:
+        return False, 'Value, %s, is not of type "%s"' % (value and "true" or "false", column_type)
+      else:
+        return True, None
+    elif column_type in ["float", "double"]:
+      if type(value) == str:
+        return False, 'Value, "%s", is not of type "%s"' % (value, column_type)
+      elif type(value) == bool:
+        return False, 'Value, %s, is not of type "%s"' % (value and "true" or "false", column_type)
+      else:
+        return True, None
+    elif column_type in ["string"]:
+      if type(value) in [int, float]:
+        return False, 'Value, %s, is not of type "%s"' % (value, column_type)
+      elif type(value) == bool:
+        return False, 'Value, %s, is not of type "%s"' % (value and "true" or "false", column_type)
+      else:
+        return True, None
+    elif column_type in ["boolean"]:
+      # XXX Need to test this
+      if value not in [True, False]:
+        return False, 'Value, %s, is not of type "%s"' % (value, column_type)
+      else:
+        return True, None
+
+  def _verify_field_data_type(self, field, values):
+    """Validate data type for a list of values for a given field."""
+    
+    if self.facet_map.has_key(field):
+      facet_info = self.facet_map[field]
+      column_type = facet_info.get_props()["column_type"]
+      for value in values:
+        ok, msg = self._verify_value_type(value, column_type)
+        if not ok:
+          return ok, msg + ' (for facet "%s")' % field
+    return True, None
+
+  def _verify_facet_type(self, field, expected_type):
+    """Validate facet type given a field."""
+
+    facet_info = self.facet_map.get(field)
+    if facet_info and facet_info.get_props()["type"] != expected_type:
+      return False, 'Column, "%s", is not %s facet' % (field, expected_type)
+    else:
+      return True, None
+    
   def _build_parser(self):
     """Build a BQL parser.
     """
@@ -717,6 +906,7 @@ class BQLParser:
     INT = Keyword("int", caseless=True)
     IS = Keyword("is", caseless=True)
     LAST = Keyword("last", caseless=True)
+    LIKE = Keyword("like", caseless=True)
     LIMIT = Keyword("limit", caseless=True)
     LONG = Keyword("long", caseless=True)
     MATCH = Keyword("match", caseless=True)
@@ -834,14 +1024,17 @@ class BQLParser:
     range_predicate = (column_name + range_op + value
                        ).setResultsName("range_pred").setParseAction(self.range_predicate_action)
     
-    time_predicate = ((column_name + IN + LAST + time_span)
-                      | (column_name + (SINCE | AFTER | BEFORE) + time_expr)
+    time_predicate = ((column_name + IN + LAST + time_span).setParseAction(self.time_in_last_action)
+                      | (column_name + (SINCE | AFTER | BEFORE) + time_expr).setParseAction(self.time_since_action)
                       ).setResultsName("time_pred")
     
     match_predicate = (MATCH + LPAR + column_name_list + RPAR +
                        AGAINST + LPAR + quotedString + RPAR
                        ).setResultsName("match_pred").setParseAction(self.match_predicate_action)
-    
+
+    like_predicate = (column_name + LIKE + quotedString
+                      ).setResultsName("like_pred").setParseAction(self.like_predicate_action)
+
     cumulative_predicate = Group(in_predicate
                                  | equal_predicate
                                  | between_predicate
@@ -863,6 +1056,7 @@ class BQLParser:
                  | range_predicate
                  | time_predicate
                  | match_predicate
+                 | like_predicate
                  # | same_column_or_pred
                  )
     
@@ -932,6 +1126,19 @@ class BQLParser:
     sql_comment = "--" + restOfLine
     BQLstmt.ignore(sql_comment)
     return BQLstmt
+
+# End of class BQLParser
+
+
+#
+# Some functions that will be shared by BQL Parser and BQLRequest, etc.
+#
+
+def pred_type(pred):
+  return pred.keys()[0]
+
+def pred_field(pred):
+  return pred.values()[0].keys()[0]
 
 def safe_str(obj):
   """Return the byte string representation of obj."""
@@ -1124,56 +1331,6 @@ def build_selection(predicate):
 
   return selection
 
-
-def build_filter(predicate):
-  """Build a filter based on a predicate."""
-
-  filter = None
-  if predicate.in_pred:
-    is_not = predicate[1] == "not"
-    if not is_not:
-      return {"facetSelection":
-                {predicate[0]: {
-                   "value": predicate.value_list,
-                   "excludes": predicate.except_values,
-                   "operator": PARAM_SELECT_OP_OR,
-                   "params": predicate.prop_list
-                   }
-                 }
-              }
-    else:
-      return {"facetSelection":
-                {predicate[0]: {
-                   "value": predicate.except_values,
-                   "excludes": predicate.value_list,
-                   "operator": PARAM_SELECT_OP_OR,
-                   "params": predicate.prop_list
-                   }
-                 }
-              }
-
-  elif predicate.contains_all_pred:
-    selection = SenseiSelection(predicate[0], PARAM_SELECT_OP_AND)
-    for val in predicate.value_list:
-      selection.addSelection(val)
-    for val in predicate.except_values:
-      selection.addSelection(val, True)
-    for i in xrange(0, len(predicate.prop_list), 2):
-      selection.addProperty(predicate.prop_list[i], predicate.prop_list[i+1])
-
-  elif predicate.equal_pred:
-    return {"facetSelection":
-              {predicate[0]: {
-                 "value": [predicate[2]],
-                 "excludes": {},
-                 "operator": PARAM_SELECT_OP_AND,
-                 "params": predicate.prop_list
-                 }
-               }
-            }
-
-  return filter
-
 class BQLRequest:
   """A Sensei request with a BQL statement.
 
@@ -1204,9 +1361,6 @@ class BQLRequest:
     where = self.tokens.where
     if where:
       assert type(where) == dict
-      ok, msg = self._validate_where(where)
-      if not ok:
-        raise ParseFatalException(msg)
       self._extract_query_filter_selections(where)
 
       # if where[0].get(JSON_PARAM_QUERY):
@@ -1225,100 +1379,6 @@ class BQLRequest:
       #   selection = collapse_cumulative_preds(where.cumulative_preds)
       #   self.selection_list.append(selection)
 
-  def _verify_value_type(self, value, column_type):
-    """Verify value type."""
-
-    if column_type in ["int", "short"]:
-      if type(value) == float:
-        return False, 'Value, %s, is not of type "%s"' % (value, column_type)
-      elif type(value) == str:
-        return False, 'Value, "%s", is not of type "%s"' % (value, column_type)
-      elif type(value) == bool:
-        return False, 'Value, %s, is not of type "%s"' % (value and "true" or "false", column_type)
-      else:
-        return True, None
-    elif column_type in ["float", "double"]:
-      if type(value) == str:
-        return False, 'Value, "%s", is not of type "%s"' % (value, column_type)
-      elif type(value) == bool:
-        return False, 'Value, %s, is not of type "%s"' % (value and "true" or "false", column_type)
-      else:
-        return True, None
-    elif column_type in ["string", "path"]:
-      if type(value) in [int, float]:
-        return False, 'Value, %s, is not of type "%s"' % (value, column_type)
-      elif type(value) == bool:
-        return False, 'Value, %s, is not of type "%s"' % (value and "true" or "false", column_type)
-      else:
-        return True, None
-    elif column_type in ["boolean"]:
-      # XXX Need to test this
-      if value not in [True, False]:
-        return False, 'Value, %s, is not of type "%s"' % (value, column_type)
-      else:
-        return True, None
-
-  def _validate_where(self, where):
-    """Validate facet name and data types."""
-
-    if where.get("term"):
-      term = where.get("term")
-      field = term.keys()[0]
-      if self._is_facet(field):
-        value = term.get(field).get("value")
-        facet_info = self.facet_map[field]
-        column_type = facet_info.get_props()["column_type"]
-        ok, msg = self._verify_value_type(value, column_type)
-        if not ok:
-          return ok, msg + ' (for facet "%s")' % field
-      return True, None
-    elif where.get("terms"):
-      terms = where.get("terms")
-      field = terms.keys()[0]
-      if self._is_facet(field):
-        values = terms.get(field).get("values")
-        facet_info = self.facet_map[field]
-        column_type = facet_info.get_props()["column_type"]
-        for value in values:
-          ok, msg = self._verify_value_type(value, column_type)
-          if not ok:
-            return ok, msg + ' (for facet "%s")' % field
-        excludes = terms.get(field).get("excludes")
-        for value in excludes:
-          ok, msg = self._verify_value_type(value, column_type)
-          if not ok:
-            return ok, msg + ' (for facet "%s")' % field
-      return True, None
-    elif where.get("range"):
-      pred = where.get("range")
-      field = pred.keys()[0]
-      if self._is_facet(field):
-        values = []
-        facet_info = self.facet_map[field]
-        column_type = facet_info.get_props()["column_type"]
-        from_value = pred.get(field).get("from")
-        if from_value:
-          values.append(from_value)
-        to_value = pred.get(field).get("to")
-        if to_value:
-          values.append(to_value)
-        for value in values:
-          ok, msg = self._verify_value_type(value, column_type)
-          if not ok:
-            return ok, msg + ' (for facet "%s")' % field
-      return True, None
-    elif where.get("query"):
-      # Query predicate should be ok because we know a string has to be
-      # provided based on BQL syntax.
-      return True, None
-    elif where.get("and") or where.get("or"):
-      preds = where.values()[0]
-      for pred in preds:
-        ok, msg = self._validate_where(pred)
-        if not ok:
-          return ok, msg
-      return True, None
-
   def _extract_query_filter_selections(self, where):
     """Extract the query and filter information from the where clause."""
 
@@ -1330,7 +1390,12 @@ class BQLRequest:
       preds = where.get("and")
       for pred in preds:
         if pred.get(JSON_PARAM_QUERY):
-          self.query_pred = pred
+          # If there is no query yet, use predicate as a query; otherwise,
+          # treat this predicate as a regular filter.
+          if not self.query_pred:
+            self.query_pred = pred
+          else:
+            filter_list.append(pred)
         elif pred.get("or") or pred.get("and") or pred.get("bool"):
           # XXX Need to clear this part
           filter_list.append(pred)
@@ -2274,7 +2339,7 @@ class SenseiClient:
     for facet_info in self.sysinfo.get_facet_infos():
       self.facet_map[facet_info.get_name()] = facet_info
 
-    self.parser = BQLParser()
+    self.parser = BQLParser(self.facet_map)
 
   def compile(self, bql_stmt):
     tokens = self.parser.parse(bql_stmt)
