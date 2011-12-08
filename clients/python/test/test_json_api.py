@@ -778,18 +778,47 @@ class TestJsonAPI(unittest.TestCase):
   "size": 10
 }""")
 
-  def testPathPred(self):
+  def testPathPred1(self):
     stmt = \
     """
     SELECT *
     FROM cars
-    WHERE city IN ("china/hongkong") WITH ("strict":false, "depth":1)
+    WHERE city = "china/hongkong" WITH ("strict":false, "depth":1)
     """
     req = sensei_client.compile(stmt)
-    # XXX
     # print sensei_client.buildJsonString(req, indent=2)
-    # self.assertEqual(sensei_client.buildJsonString(req, indent=2),
-    
+    self.assertEqual(sensei_client.buildJsonString(req, indent=2),
+                     """{
+  "fetchStored": true, 
+  "from": 0, 
+  "selections": [
+    {
+      "path": {
+        "city": {
+          "depth": 1, 
+          "strict": false, 
+          "value": "china/hongkong"
+        }
+      }
+    }
+  ], 
+  "size": 10
+}""")
+
+  def testPathPred2(self):
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    WHERE city = "china/hongkong" WITH ("strict":false, "ddd":1)
+    """
+    error = None
+    try:
+      req = sensei_client.compile(stmt)
+    except ParseFatalException as err:
+      error = err.msg
+    # print error
+    self.assertEqual(error, 'Property, "ddd", is not supported for facet "city"')
 
 
 #   def testWhereConditions(self):
@@ -1123,7 +1152,7 @@ class TestJsonAPI(unittest.TestCase):
         "range": {
           "year": {
             "include_upper": false, 
-            "to": 2000
+            "to": 2001
           }
         }
       }, 
@@ -1344,6 +1373,21 @@ class TestJsonAPI(unittest.TestCase):
     SELECT *
     FROM cars
     WHERE color > "red"
+    """
+    error = None
+    try:
+      req = sensei_client.compile(stmt)
+    except ParseFatalException as err:
+      error = err.msg
+    # print error
+    self.assertEqual(error, """Column, "color", is not range facet""")
+
+  def testFacetType2(self):
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    WHERE color BETWEEN "red" AND "yellow"
     """
     error = None
     try:

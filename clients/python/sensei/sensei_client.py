@@ -515,6 +515,16 @@ class BQLParser:
   
   def in_predicate_action(self, s, loc, tok):
     field = tok[0]
+
+    facet_info = self.facet_map.get(field)
+    facet_type = None
+    pred = None
+    if facet_info:
+      facet_type = facet_info.get_props()["type"]
+    if facet_type == "range":
+      raise ParseSyntaxException(ParseException(
+          s, loc, 'Column "%s" is a range facet (cannot be in an IN-predicate)'))
+
     ok, msg = self._verify_field_data_type(field, tok.value_list)
     if not ok:
       raise ParseSyntaxException(ParseException(s, loc, msg))
@@ -593,10 +603,16 @@ class BQLParser:
                  }
               }
     elif facet_type == "path":
+      path_spec = {"value": value}
+      if tok.prop_list:
+        for k,v in tok.prop_list.iteritems():
+          if k in ["strict", "depth"]:
+            path_spec[k] = v
+          else:
+            raise ParseSyntaxException(ParseException(
+                s, loc, 'Property, "%s", is not supported for facet "%s"' % (k, field)))
       return {"path":
-                {field:
-                   {"value": value}
-                 }
+                {field: path_spec}
               }
     else:
       return {"term":
@@ -651,18 +667,28 @@ class BQLParser:
   
   def between_predicate_action(self, s, loc, tok):
     # print ">>> in between_predicate_action: tok = ", tok
+    field = tok[0]
+    ok, msg = self._verify_facet_type(field, "range")
+    if not ok:
+      raise ParseSyntaxException(ParseException(s, loc, msg))
+
     if tok[1] == "not":
       # "column NOT BETWEEN x AND y"
+      from_value = tok[3]
+      to_value = tok[5]
+      ok, msg = self._verify_field_data_type(field, [from_value, to_value])
+      if not ok:
+        raise ParseSyntaxException(ParseException(s, loc, msg))
       return {"or": [{"range":
                         {tok[0]:
-                           {"to": tok[3],
+                           {"to": to_value,
                             "include_upper": False
                             }
                          }
                       },
                      {"range":
                         {tok[0]:
-                           {"from": tok[3],
+                           {"from": from_value,
                             "include_lower": False
                             }
                          }
@@ -670,10 +696,15 @@ class BQLParser:
                      ]
               }
     else:
+      from_value = tok[2]
+      to_value = tok[4]
+      ok, msg = self._verify_field_data_type(field, [from_value, to_value])
+      if not ok:
+        raise ParseSyntaxException(ParseException(s, loc, msg))
       return {"range":
                 {tok[0]:
-                   {"from": tok[2],
-                    "to": tok[4],
+                   {"from": from_value,
+                    "to": to_value,
                     "include_lower": True,
                     "include_upper": True
                     }
@@ -1272,9 +1303,6 @@ class BQLRequest:
     where = self.tokens.where
     if where:
       assert type(where) == dict
-      ok, msg = self._validate_where(where)
-      if not ok:
-        raise ParseFatalException(msg)
       self._extract_query_filter_selections(where)
 
       # if where[0].get(JSON_PARAM_QUERY):
@@ -1292,103 +1320,6 @@ class BQLRequest:
       # elif where.cumulative_preds:
       #   selection = collapse_cumulative_preds(where.cumulative_preds)
       #   self.selection_list.append(selection)
-
-  def _verify_value_type(self, value, column_type):
-    """Verify value type."""
-
-    if column_type in ["int", "short"]:
-      if type(value) == float:
-        return False, 'Value, %s, is not of type "%s"' % (value, column_type)
-      elif type(value) == str:
-        return False, 'Value, "%s", is not of type "%s"' % (value, column_type)
-      elif type(value) == bool:
-        return False, 'Value, %s, is not of type "%s"' % (value and "true" or "false", column_type)
-      else:
-        return True, None
-    elif column_type in ["float", "double"]:
-      if type(value) == str:
-        return False, 'Value, "%s", is not of type "%s"' % (value, column_type)
-      elif type(value) == bool:
-        return False, 'Value, %s, is not of type "%s"' % (value and "true" or "false", column_type)
-      else:
-        return True, None
-    elif column_type in ["string", "path"]:
-      if type(value) in [int, float]:
-        return False, 'Value, %s, is not of type "%s"' % (value, column_type)
-      elif type(value) == bool:
-        return False, 'Value, %s, is not of type "%s"' % (value and "true" or "false", column_type)
-      else:
-        return True, None
-    elif column_type in ["boolean"]:
-      # XXX Need to test this
-      if value not in [True, False]:
-        return False, 'Value, %s, is not of type "%s"' % (value, column_type)
-      else:
-        return True, None
-
-  def _validate_where(self, where):
-    """Validate facet name and data types."""
-
-    if where.get("term"):
-      term = where.get("term")
-      field = term.keys()[0]
-      if self._is_facet(field):
-        value = term.get(field).get("value")
-        facet_info = self.facet_map[field]
-        column_type = facet_info.get_props()["column_type"]
-        ok, msg = self._verify_value_type(value, column_type)
-        if not ok:
-          return ok, msg + ' (for facet "%s")' % field
-      return True, None
-    elif where.get("terms"):
-      terms = where.get("terms")
-      field = terms.keys()[0]
-      if self._is_facet(field):
-        values = terms.get(field).get("values")
-        facet_info = self.facet_map[field]
-        column_type = facet_info.get_props()["column_type"]
-        for value in values:
-          ok, msg = self._verify_value_type(value, column_type)
-          if not ok:
-            return ok, msg + ' (for facet "%s")' % field
-        excludes = terms.get(field).get("excludes")
-        for value in excludes:
-          ok, msg = self._verify_value_type(value, column_type)
-          if not ok:
-            return ok, msg + ' (for facet "%s")' % field
-      return True, None
-    elif where.get("range"):
-      pred = where.get("range")
-      field = pred.keys()[0]
-      if self._is_facet(field):
-        values = []
-        facet_info = self.facet_map[field]
-        column_type = facet_info.get_props()["column_type"]
-        from_value = pred.get(field).get("from")
-        if from_value:
-          values.append(from_value)
-        to_value = pred.get(field).get("to")
-        if to_value:
-          values.append(to_value)
-        for value in values:
-          ok, msg = self._verify_value_type(value, column_type)
-          if not ok:
-            return ok, msg + ' (for facet "%s")' % field
-      return True, None
-    elif where.get("query"):
-      # Query predicate should be ok because we know a string has to be
-      # provided based on BQL syntax.
-      return True, None
-    elif where.get("path"):
-      # XXX
-      return True, None
-    elif where.get("and") or where.get("or"):
-      preds = where.values()[0]
-      for pred in preds:
-        ok, msg = self._validate_where(pred)
-        if not ok:
-          return ok, msg
-      return True, None
 
   def _extract_query_filter_selections(self, where):
     """Extract the query and filter information from the where clause."""
