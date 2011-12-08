@@ -724,10 +724,18 @@ class BQLParser:
             }
   
   def like_predicate_action(self, s, loc, tok):
-    # print ">>> in like_predicate_action: tok = ", tok
+    field = tok[0]
+    if self.facet_map.has_key(field):
+      facet_info = self.facet_map[field]
+      column_type = facet_info.get_props()["column_type"]
+      if column_type != "string":
+        raise ParseSyntaxException(
+          ParseException(s, loc, 'Column, "%s", is not a string type' % field))
+    # Convert % and _ in SQL syntax to Lucene's * and .
+    value = tok[2].replace("%", "*").replace("_", ".")
     return {"query":
               {"wildcard":
-                 {tok[0]: tok[2]}
+                 {field: value}
                }
             }
   
@@ -791,7 +799,7 @@ class BQLParser:
         return False, 'Value, %s, is not of type "%s"' % (value and "true" or "false", column_type)
       else:
         return True, None
-    elif column_type in ["string", "path"]:
+    elif column_type in ["string"]:
       if type(value) in [int, float]:
         return False, 'Value, %s, is not of type "%s"' % (value, column_type)
       elif type(value) == bool:

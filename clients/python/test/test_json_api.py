@@ -1402,7 +1402,7 @@ class TestJsonAPI(unittest.TestCase):
     """
     SELECT *
     FROM cars
-    WHERE category LIKE "sed*"
+    WHERE category LIKE "s_d%"  -- Notice the SQL syntax
     """
     req = sensei_client.compile(stmt)
     # print sensei_client.buildJsonString(req, indent=2),
@@ -1412,7 +1412,7 @@ class TestJsonAPI(unittest.TestCase):
   "from": 0, 
   "query": {
     "wildcard": {
-      "category": "sed*"
+      "category": "s.d*"
     }
   }, 
   "size": 10
@@ -1424,7 +1424,7 @@ class TestJsonAPI(unittest.TestCase):
     SELECT *
     FROM cars
     WHERE MATCH(contents) AGAINST("cool")
-      AND category LIKE "sed*"
+      AND category LIKE "sed*"  -- Also accepts Lucene syntax
     """
     req = sensei_client.compile(stmt)
     # print sensei_client.buildJsonString(req, indent=2),
@@ -1449,6 +1449,21 @@ class TestJsonAPI(unittest.TestCase):
   }, 
   "size": 10
 }""")
+
+  def testLikePredicate3(self):
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    WHERE price LIKE "123%"
+    """
+    error = None
+    try:
+      req = sensei_client.compile(stmt)
+    except ParseFatalException as err:
+      error = err.msg
+    # print error
+    self.assertEqual(error, """Column, "price", is not a string type""")
 
   def testTmp(self):
     stmt = """select color,category, tags from cars where QUERY IS "cool AND moon-roof AND hybrid" and color = "blue"
