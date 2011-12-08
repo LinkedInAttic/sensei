@@ -1397,6 +1397,27 @@ class TestJsonAPI(unittest.TestCase):
     # print error
     self.assertEqual(error, """Column, "color", is not range facet""")
 
+  def testLikePredicate(self):
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    WHERE category LIKE "sed*"
+    """
+    req = sensei_client.compile(stmt)
+    # print sensei_client.buildJsonString(req, indent=2),
+    self.assertEqual(sensei_client.buildJsonString(req, indent=2),
+                     """{
+  "fetchStored": true, 
+  "from": 0, 
+  "query": {
+    "wildcard": {
+      "category": "sed*"
+    }
+  }, 
+  "size": 10
+}""")
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -237,6 +237,8 @@ BNF Grammar for BQL
 
 <match_predicate> ::= MATCH '(' column_name_list ')' AGAINST '(' quoted_string ')'
 
+<like_predicate> ::= <column_name> LIKE <quoted_string>
+
 <same_column_or_pred> ::= '(' <cumulative_predicates> ')'
 
 <cumulative_predicates> ::= <cumulative_predicate> ( OR <cumulative_predicate> )*
@@ -721,6 +723,14 @@ class BQLParser:
                }
             }
   
+  def like_predicate_action(self, s, loc, tok):
+    # print ">>> in like_predicate_action: tok = ", tok
+    return {"query":
+              {"wildcard":
+                 {tok[0]: tok[2]}
+               }
+            }
+  
   def reset_all(self):
     self.limit_once.reset()
     self.order_by_once.reset()
@@ -853,6 +863,7 @@ class BQLParser:
     INT = Keyword("int", caseless=True)
     IS = Keyword("is", caseless=True)
     LAST = Keyword("last", caseless=True)
+    LIKE = Keyword("like", caseless=True)
     LIMIT = Keyword("limit", caseless=True)
     LONG = Keyword("long", caseless=True)
     MATCH = Keyword("match", caseless=True)
@@ -977,7 +988,10 @@ class BQLParser:
     match_predicate = (MATCH + LPAR + column_name_list + RPAR +
                        AGAINST + LPAR + quotedString + RPAR
                        ).setResultsName("match_pred").setParseAction(self.match_predicate_action)
-    
+
+    like_predicate = (column_name + LIKE + quotedString
+                      ).setResultsName("like_pred").setParseAction(self.like_predicate_action)
+
     cumulative_predicate = Group(in_predicate
                                  | equal_predicate
                                  | between_predicate
@@ -999,6 +1013,7 @@ class BQLParser:
                  | range_predicate
                  | time_predicate
                  | match_predicate
+                 | like_predicate
                  # | same_column_or_pred
                  )
     
