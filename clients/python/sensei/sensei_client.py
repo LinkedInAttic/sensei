@@ -713,6 +713,41 @@ class BQLParser:
                  }
               }
   
+  def time_in_last_action(self, s, loc, tok):
+    field = tok[0]
+    ok, msg = self._verify_facet_type(field, "range")
+    if not ok:
+      raise ParseSyntaxException(ParseException(s, loc, msg))
+    return {"range":
+              {field:
+                 {"from": tok[3],
+                  "include_lower": False
+                  }
+               }
+            }
+
+  def time_since_action(self, s, loc, tok):
+    field = tok[0]
+    ok, msg = self._verify_facet_type(field, "range")
+    if not ok:
+      raise ParseSyntaxException(ParseException(s, loc, msg))
+    if tok[1] in ["since", "after"]:
+      return {"range":
+                {field:
+                   {"from": tok[2],
+                    "include_lower": False
+                    }
+                 }
+              }
+    elif tok[1] in ["before"]:
+      return {"range":
+                {field:
+                   {"to": tok[2],
+                    "include_upper": False
+                    }
+                 }
+              }
+
   def match_predicate_action(self, s, loc, tok):
     # print ">>> in match_predicate_action: tok = ", tok
     return {JSON_PARAM_QUERY:
@@ -989,8 +1024,8 @@ class BQLParser:
     range_predicate = (column_name + range_op + value
                        ).setResultsName("range_pred").setParseAction(self.range_predicate_action)
     
-    time_predicate = ((column_name + IN + LAST + time_span)
-                      | (column_name + (SINCE | AFTER | BEFORE) + time_expr)
+    time_predicate = ((column_name + IN + LAST + time_span).setParseAction(self.time_in_last_action)
+                      | (column_name + (SINCE | AFTER | BEFORE) + time_expr).setParseAction(self.time_since_action)
                       ).setResultsName("time_pred")
     
     match_predicate = (MATCH + LPAR + column_name_list + RPAR +
