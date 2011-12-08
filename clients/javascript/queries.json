@@ -22,9 +22,9 @@
     "default_field" : "contents",       // if not specified, defaults to: _all
     "query" : "this AND that OR thus",  // if null, defaults to match all docs query, all other parameters are ignored
     "default_operator" : "AND",         // default operator, default: OR
-    "allow_leading_wildcard" : false,   // default: false
-    "lowercase_expanded_terms" : false,  // default: false
-    "enable_position_increments" : false, // default: false
+    "allow_leading_wildcard" : false,   // default: ture
+    "lowercase_expanded_terms" : false,  // default: true
+    "enable_position_increments" : false, // default: true
     "fuzzy_prefix_length" : 0,              // default: 0
     "fuzzy_min_sim" : 0.5,                  // default: 0.5f
     "phrase_slop" : 0,                      // default: 0

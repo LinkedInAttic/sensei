@@ -1,7 +1,6 @@
 package com.sensei.indexing.api.gateway.jms;
 
 import java.util.Comparator;
-import java.util.concurrent.atomic.AtomicLong;
 
 import javax.jms.JMSException;
 import javax.jms.Message;
@@ -26,8 +25,10 @@ public class JmsDataProviderBuilder extends SenseiGateway<Message>{
 
 	public static final String name = "jms";
   private final Comparator<String> _versionComparator;
+
   private SenseiPluginRegistry pluginRegistry;
-	private final AtomicLong _version = new AtomicLong();
+
+
 
 	public JmsDataProviderBuilder(Configuration conf){
 	  super(conf);
@@ -45,7 +46,6 @@ public class JmsDataProviderBuilder extends SenseiGateway<Message>{
 			String oldSinceKey) throws Exception{
 
 	    Configuration myConf = _conf.subset(name);
-		  _version.set(Long.parseLong(oldSinceKey));
 	    final String topic = myConf.getString("topic");
 	    final String clientID = myConf.getString("clientId",null);
 	    final String topicFac = myConf.getString("topicFactory");
@@ -69,7 +69,7 @@ public class JmsDataProviderBuilder extends SenseiGateway<Message>{
 					throws JMSException {
 
 				try {
-					return new DataEvent<JSONObject>(filter.filter(message), String.valueOf(_version.incrementAndGet()));
+					return new DataEvent<JSONObject>(filter.filter(message), String.valueOf(System.nanoTime()));
 				} catch (Exception e) {
 					throw new JMSException(e.getMessage());
 				}
