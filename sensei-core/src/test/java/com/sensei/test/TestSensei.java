@@ -1,24 +1,20 @@
 package com.sensei.test;
 
-import java.io.InputStreamReader;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.OutputStreamWriter;
 import java.io.File;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
-import java.net.URL;
-import java.net.URLConnection;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
-import org.apache.lucene.queryParser.QueryParser;
 import org.apache.lucene.search.DefaultSimilarity;
 import org.apache.lucene.util.Version;
 import org.json.JSONObject;
@@ -40,17 +36,10 @@ import com.browseengine.bobo.facets.data.FacetDataCache;
 import com.browseengine.bobo.facets.data.FacetDataFetcher;
 import com.linkedin.norbert.NorbertException;
 import com.linkedin.norbert.cluster.ClusterShutdownException;
-import com.linkedin.norbert.javacompat.cluster.ClusterClient;
-import com.linkedin.norbert.javacompat.cluster.ZooKeeperClusterClient;
-import com.linkedin.norbert.javacompat.network.NetworkClientConfig;
 import com.sensei.conf.SenseiServerBuilder;
-import com.sensei.search.cluster.client.SenseiNetworkClient;
 import com.sensei.search.nodes.SenseiBroker;
 import com.sensei.search.nodes.SenseiIndexReaderDecorator;
-import com.sensei.search.nodes.SenseiQueryBuilderFactory;
 import com.sensei.search.nodes.SenseiServer;
-import com.sensei.search.nodes.impl.NoopIndexingManager;
-import com.sensei.search.nodes.impl.SimpleQueryBuilderFactory;
 import com.sensei.search.req.SenseiHit;
 import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.req.SenseiResult;
@@ -889,6 +878,14 @@ public class TestSensei extends AbstractSenseiTestCase
     String req = "{\"filter\":{\"range\":{\"year\":{\"to\":\"2000\",\"boost\":2,\"from\":\"1999\",\"_noOptimize\":true,\"_type\":\"int\"}}}}";
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 3015, res.getInt("numhits"));
+  }
+  
+  public void testRangeFilter3() throws Exception
+  {
+    logger.info("executing test case testRangeFilter3");
+    String req = "{\"fetchStored\":true,\"selections\":[{\"term\":{\"color\":{\"value\":\"red\"}}}],\"from\":0,\"filter\":{\"query\":{\"query_string\":{\"query\":\"cool AND moon-roof AND hybrid\"}}},\"size\":10}";
+    JSONObject res = search(new JSONObject(req));
+    assertEquals("numhits is wrong", 19, res.getInt("numhits"));
   }
   
   /**
