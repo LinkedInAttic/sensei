@@ -386,7 +386,7 @@ class BQLParser:
     self.browse_by_once = OnlyOnce(lambda s, loc, tok: tok)
     self.fetching_stored_once = OnlyOnce(lambda s, loc, tok: tok)
     self.time_now = None
-    self.facet_map = facet_map
+    self.facet_map = facet_map or {}
     self._parser = self._build_parser()
 
   def parse(self, bql_stmt):
@@ -504,7 +504,6 @@ class BQLParser:
         preds.append(preds[0])
       else:
         preds.append(tok[0][i])
-    # print ">>> in predicate_or_action: return ", {"or": preds}
     return {"or": preds}
   
   def prop_list_action(self, s, loc, tok):
@@ -515,9 +514,17 @@ class BQLParser:
     return props
   
   def in_predicate_action(self, s, loc, tok):
+    field = tok[0]
+    ok, msg = self._verify_field_data_type(field, tok.value_list)
+    if not ok:
+      raise ParseSyntaxException(ParseException(s, loc, msg))
+    ok, msg = self._verify_field_data_type(field, tok.except_values)
+    if not ok:
+      raise ParseSyntaxException(ParseException(s, loc, msg))
+
     if tok[1] != "not":
       return {"terms":
-                {tok[0]:
+                {field:
                    {JSON_PARAM_VALUES: (tok.value_list[:] or []),
                     JSON_PARAM_EXCLUDES: (tok.except_values[:] or []),
                     JSON_PARAM_OPERATOR: PARAM_SELECT_OP_OR,
@@ -527,7 +534,7 @@ class BQLParser:
               }
     else:
       return {"terms":
-                {tok[0]:
+                {field:
                    {JSON_PARAM_VALUES: (tok.except_values[:] or []),
                     JSON_PARAM_EXCLUDES: (tok.value_list[:] or []),
                     JSON_PARAM_OPERATOR: PARAM_SELECT_OP_OR,
@@ -537,8 +544,16 @@ class BQLParser:
               }
   
   def contains_all_predicate_action(self, s, loc, tok):
+    field = tok[0]
+    ok, msg = self._verify_field_data_type(field, tok.value_list)
+    if not ok:
+      raise ParseSyntaxException(ParseException(s, loc, msg))
+    ok, msg = self._verify_field_data_type(field, tok.except_values)
+    if not ok:
+      raise ParseSyntaxException(ParseException(s, loc, msg))
+
     return {"terms":
-              {tok[0]:
+              {field:
                  {JSON_PARAM_VALUES: (tok.value_list[:] or []),
                   JSON_PARAM_EXCLUDES: (tok.except_values[:] or []),
                   JSON_PARAM_OPERATOR: PARAM_SELECT_OP_AND,
@@ -557,29 +572,49 @@ class BQLParser:
   
   def equal_predicate_action(self, s, loc, tok):
     field = tok[0]
+    value = tok[2]
+    ok, msg = self._verify_field_data_type(field, [value])
+    if not ok:
+      raise ParseSyntaxException(ParseException(s, loc, msg))
+
     facet_info = self.facet_map.get(field)
-    if facet_info and facet_info.get_props()["type"] == "range":
+    facet_type = None
+    if facet_info:
+      facet_type = facet_info.get_props()["type"]
+
+    if facet_type == "range":
       return {"range":
                 {field:
-                   {"from": tok[2],
-                    "to": tok[2],
+                   {"from": value,
+                    "to": value,
                     "include_lower": True,
                     "include_upper": True,
                     }
                  }
               }
+    elif facet_type == "path":
+      return {"path":
+                {field:
+                   {"value": value}
+                 }
+              }
     else:
       return {"term":
                 {field:
-                   {"value": tok[2]}
+                   {"value": value}
                  }
               }
   
   def not_equal_predicate_action(self, s, loc, tok):
+    field = tok[0]
+    value = tok[2]
+    ok, msg = self._verify_field_data_type(field, [value])
+    if not ok:
+      raise ParseSyntaxException(ParseException(s, loc, msg))
     return {"terms":
-              {tok[0]:
+              {field:
                  {JSON_PARAM_VALUES: [],
-                  JSON_PARAM_EXCLUDES: [tok[2]],
+                  JSON_PARAM_EXCLUDES: [value],
                   JSON_PARAM_OPERATOR: PARAM_SELECT_OP_OR,
                   JSON_PARAM_NO_OPTIMIZE: False
                   }
@@ -588,10 +623,19 @@ class BQLParser:
   
   def range_predicate_action(self, s, loc, tok):
     # print ">>> in range_predicate_action: tok = ", tok
+    field = tok[0]
+    value = tok[2]
+    ok, msg = self._verify_facet_type(field, "range")
+    if not ok:
+      raise ParseSyntaxException(ParseException(s, loc, msg))
+    ok, msg = self._verify_field_data_type(field, [value])
+    if not ok:
+      raise ParseSyntaxException(ParseException(s, loc, msg))
+
     if tok[1] == ">" or tok[1] == ">=":
       return {"range":
-                {tok[0]:
-                   {"from": tok[2],
+                {field:
+                   {"from": value,
                     "include_lower": tok[1] == ">="
                     }
                  }
@@ -599,7 +643,7 @@ class BQLParser:
     else:
       return {"range":
                 {tok[0]:
-                   {"to": tok[2],
+                   {"to": value,
                     "include_upper": tok[1] == "<="
                     }
                  }
@@ -687,6 +731,60 @@ class BQLParser:
     
     return self.time_now - total
 
+  def _verify_value_type(self, value, column_type):
+    """Verify value type."""
+
+    if column_type in ["int", "short"]:
+      if type(value) == float:
+        return False, 'Value, %s, is not of type "%s"' % (value, column_type)
+      elif type(value) == str:
+        return False, 'Value, "%s", is not of type "%s"' % (value, column_type)
+      elif type(value) == bool:
+        return False, 'Value, %s, is not of type "%s"' % (value and "true" or "false", column_type)
+      else:
+        return True, None
+    elif column_type in ["float", "double"]:
+      if type(value) == str:
+        return False, 'Value, "%s", is not of type "%s"' % (value, column_type)
+      elif type(value) == bool:
+        return False, 'Value, %s, is not of type "%s"' % (value and "true" or "false", column_type)
+      else:
+        return True, None
+    elif column_type in ["string", "path"]:
+      if type(value) in [int, float]:
+        return False, 'Value, %s, is not of type "%s"' % (value, column_type)
+      elif type(value) == bool:
+        return False, 'Value, %s, is not of type "%s"' % (value and "true" or "false", column_type)
+      else:
+        return True, None
+    elif column_type in ["boolean"]:
+      # XXX Need to test this
+      if value not in [True, False]:
+        return False, 'Value, %s, is not of type "%s"' % (value, column_type)
+      else:
+        return True, None
+
+  def _verify_field_data_type(self, field, values):
+    """Validate data type for a list of values for a given field."""
+    
+    if self.facet_map.has_key(field):
+      facet_info = self.facet_map[field]
+      column_type = facet_info.get_props()["column_type"]
+      for value in values:
+        ok, msg = self._verify_value_type(value, column_type)
+        if not ok:
+          return ok, msg + ' (for facet "%s")' % field
+    return True, None
+
+  def _verify_facet_type(self, field, expected_type):
+    """Validate facet type given a field."""
+
+    facet_info = self.facet_map.get(field)
+    if facet_info and facet_info.get_props()["type"] != expected_type:
+      return False, 'Column, "%s", is not %s facet' % (field, expected_type)
+    else:
+      return True, None
+    
   def _build_parser(self):
     """Build a BQL parser.
     """
@@ -1280,6 +1378,9 @@ class BQLRequest:
     elif where.get("query"):
       # Query predicate should be ok because we know a string has to be
       # provided based on BQL syntax.
+      return True, None
+    elif where.get("path"):
+      # XXX
       return True, None
     elif where.get("and") or where.get("or"):
       preds = where.values()[0]

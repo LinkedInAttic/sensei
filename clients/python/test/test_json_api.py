@@ -185,7 +185,7 @@ class TestJsonAPI(unittest.TestCase):
       }
     }, 
     {
-      "term": {
+      "path": {
         "makemodel": {
           "value": "honda"
         }
@@ -1281,6 +1281,35 @@ class TestJsonAPI(unittest.TestCase):
       error = err.msg
     self.assertEqual(error, """Value, "bbb", is not of type "int" (for facet "year")""")
 
+  def testColumnType3(self):
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    WHERE color IN ("red", 123)
+    """
+    error = None
+    try:
+      req = sensei_client.compile(stmt)
+    except ParseFatalException as err:
+      error = err.msg
+    self.assertEqual(error, """Value, 123, is not of type "string" (for facet "color")""")
+
+  def testColumnType4(self):
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    WHERE tags CONTAINS ALL ("cool", 999)
+    """
+    error = None
+    try:
+      req = sensei_client.compile(stmt)
+    except ParseFatalException as err:
+      error = err.msg
+    # print error
+    self.assertEqual(error, """Value, 999, is not of type "string" (for facet "tags")""")
+
   def testRangePredCreation(self):
     stmt = \
     """
@@ -1308,6 +1337,22 @@ class TestJsonAPI(unittest.TestCase):
   ], 
   "size": 10
 }""")
+
+  def testFacetType1(self):
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    WHERE color > "red"
+    """
+    error = None
+    try:
+      req = sensei_client.compile(stmt)
+    except ParseFatalException as err:
+      error = err.msg
+    # print error
+    self.assertEqual(error, """Column, "color", is not range facet""")
+
 
 if __name__ == "__main__":
     unittest.main()
