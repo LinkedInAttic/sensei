@@ -2733,4 +2733,22 @@ select tags, publicShareFlag, userid, country, updateType from signal where coun
 select * from cars where color = "red" OR year = 1995 AND color in ("blue", "black")
 select * from cars where (color = "red" OR color = "blue") OR year = 1995
 
+> select color,category, tags from cars where color like "bl%" and match(contents) against ("cool AND moon-roof") and category like "%an"
++-------+----------+---------------------------+
+| color | category | tags                      |
++-------+----------+---------------------------+
+| blue  | sedan    | cool,moon-roof,reliable   |
+| blue  | sedan    | cool,moon-roof,navigation |
+| black | sedan    | cool,moon-roof,reliable   |
+| blue  | van      | cool,moon-roof,reliable   |
+| blue  | sedan    | cool,moon-roof,navigation |
+| blue  | sedan    | cool,moon-roof,reliable   |
+| blue  | sedan    | cool,moon-roof,reliable   |
+| blue  | sedan    | cool,moon-roof,reliable   |
+| black | sedan    | cool,moon-roof,reliable   |
+| blue  | sedan    | cool,moon-roof,reliable   |
++-------+----------+---------------------------+
+10 rows in set, 51 hits, 15001 total docs (server: 17ms, total: 450ms)
+
+
 """
