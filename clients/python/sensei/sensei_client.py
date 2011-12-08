@@ -1347,7 +1347,12 @@ class BQLRequest:
       preds = where.get("and")
       for pred in preds:
         if pred.get(JSON_PARAM_QUERY):
-          self.query_pred = pred
+          # If there is no query yet, use predicate as a query; otherwise,
+          # treat this predicate as a regular filter.
+          if not self.query_pred:
+            self.query_pred = pred
+          else:
+            filter_list.append(pred)
         elif pred.get("or") or pred.get("and") or pred.get("bool"):
           # XXX Need to clear this part
           filter_list.append(pred)

@@ -216,7 +216,7 @@ class TestJsonAPI(unittest.TestCase):
   "size": 10
 }""")
 
-  def testQueryAndSelections(self):
+  def testQueryAndSelections1(self):
     stmt = \
     """
     SELECT *
@@ -1397,7 +1397,7 @@ class TestJsonAPI(unittest.TestCase):
     # print error
     self.assertEqual(error, """Column, "color", is not range facet""")
 
-  def testLikePredicate(self):
+  def testLikePredicate1(self):
     stmt = \
     """
     SELECT *
@@ -1417,6 +1417,46 @@ class TestJsonAPI(unittest.TestCase):
   }, 
   "size": 10
 }""")
+
+  def testLikePredicate2(self):
+    stmt = \
+    """
+    SELECT *
+    FROM cars
+    WHERE MATCH(contents) AGAINST("cool")
+      AND category LIKE "sed*"
+    """
+    req = sensei_client.compile(stmt)
+    # print sensei_client.buildJsonString(req, indent=2),
+    self.assertEqual(sensei_client.buildJsonString(req, indent=2),
+                     """{
+  "fetchStored": true, 
+  "filter": {
+    "query": {
+      "wildcard": {
+        "category": "sed*"
+      }
+    }
+  }, 
+  "from": 0, 
+  "query": {
+    "query_string": {
+      "fields": [
+        "contents"
+      ], 
+      "query": "cool"
+    }
+  }, 
+  "size": 10
+}""")
+
+  def testTmp(self):
+    stmt = """select color,category, tags from cars where QUERY IS "cool AND moon-roof AND hybrid" and color = "blue"
+"""
+    req = sensei_client.compile(stmt)
+    # XXX Bug in query filter???
+    # print sensei_client.buildJsonString(req, indent=2),
+    # self.assertEqual(sensei_client.buildJsonString(req, indent=2),
 
 
 if __name__ == "__main__":
