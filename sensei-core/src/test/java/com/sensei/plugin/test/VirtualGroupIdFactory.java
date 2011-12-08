@@ -19,12 +19,12 @@ public class VirtualGroupIdFactory implements SenseiPluginFactory<VirtualSimpleF
     //the decision also can be made by the full prefix
     if ("default".equals(initProperties.get("typeProp"))) {
       HashSet<String> depends = new HashSet<String>();
-      depends.add("groupId");
+      depends.add("groupid");
       return new VirtualSimpleFacetHandler("virtual_groupid", new PredefinedTermListFactory(Long.class, "00000000000000000000000000000000000"), facetDataFetcher, depends);
     }
     if ("fixedlengthlongarray".equals(initProperties.get("typeProp"))) {
       HashSet<String> depends = new HashSet<String>();
-      depends.add("groupId");
+      depends.add("groupid");
       return new VirtualSimpleFacetHandler("virtual_groupid_fixedlengthlongarray", new TermFixedLengthLongArrayListFactory(2), facetDataFetcherFixedLengthLongArray, depends);
     }
     return null;

@@ -14,7 +14,6 @@ import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
-import org.springframework.context.ApplicationContext;
 
 import proj.zoie.api.DataConsumer;
 import proj.zoie.api.DataConsumer.DataEvent;
@@ -28,12 +27,11 @@ import proj.zoie.mbean.DataProviderAdminMBean;
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.sensei.conf.SenseiSchema;
 import com.sensei.indexing.api.gateway.SenseiGateway;
-import com.sensei.indexing.api.gateway.SenseiGatewayRegistry;
 import com.sensei.metrics.MetricsConstants;
+import com.sensei.plugin.SenseiPluginRegistry;
 import com.sensei.search.jmx.JmxUtil;
 import com.sensei.search.nodes.SenseiIndexingManager;
 import com.yammer.metrics.Metrics;
-import com.yammer.metrics.core.CounterMetric;
 import com.yammer.metrics.core.MeterMetric;
 import com.yammer.metrics.core.MetricName;
 
@@ -41,28 +39,28 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 
 	private static final Logger logger = Logger.getLogger(DefaultStreamingIndexingManager.class);
 
-	private static final String CONFIG_PREFIX = "sensei.index.manager.default";
-	
+	public static final String CONFIG_PREFIX = "sensei.index.manager.default";
+
 	private static final String MAX_PARTITION_ID = "maxpartition.id";
-	
+
 	private static final String EVTS_PER_MIN = "eventsPerMin";
-	
+
 	private static final String BATCH_SIZE = "batchSize";
-	
+
 	private static final String SHARDING_STRATEGY = "shardingStrategy";
-	
+
   private static MeterMetric ProviderBatchSizeMeter = null;
   private static MeterMetric EventMeter = null;
   private static MeterMetric UpdateBatchSizeMeter = null;
-  
+
   static{
     try{
       MetricName providerBatchSizeMetricName = new MetricName(MetricsConstants.Domain,"meter","provider-batch-size","indexing-manager");
       ProviderBatchSizeMeter = Metrics.newMeter(providerBatchSizeMetricName,"provide-batch-size", TimeUnit.SECONDS);
-      
+
       MetricName updateBatchSizeMetricName = new MetricName(MetricsConstants.Domain,"meter","update-batch-size","indexing-manager");
       UpdateBatchSizeMeter = Metrics.newMeter(updateBatchSizeMetricName,"update-batch-size", TimeUnit.SECONDS);
-      
+
       MetricName eventMeterMetricName = new MetricName(MetricsConstants.Domain,"meter","indexing-events","indexing-manager");
       EventMeter = Metrics.newMeter(eventMeterMetricName, "indexing-events", TimeUnit.SECONDS);
     }
@@ -70,45 +68,46 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
     logger.error(e.getMessage(),e);
     }
   }
-	
-	
+
+
 	private StreamDataProvider<JSONObject> _dataProvider;
 	private String _oldestSinceKey;
 	private final SenseiSchema _senseiSchema;
 	private final Configuration _myconfig;
-  private final ApplicationContext _pluginContext;
-	
+
 	private Map<Integer, Zoie<BoboIndexReader, JSONObject>> _zoieSystemMap;
 	private final LinkedHashMap<Integer, Collection<DataEvent<JSONObject>>> _dataCollectorMap;
 
 	private final SenseiGateway<?> _gateway;
   private final ShardingStrategy _shardingStrategy;
   private final Comparator<String> _versionComparator;
-  
-	
-	public DefaultStreamingIndexingManager(SenseiSchema schema,Configuration senseiConfig, ApplicationContext pluginContext, SenseiGateway<?> gateway){
+
+  private SenseiPluginRegistry pluginRegistry;
+
+
+	public DefaultStreamingIndexingManager(SenseiSchema schema,Configuration senseiConfig, SenseiPluginRegistry pluginRegistry, SenseiGateway<?> gateway){
 	  _dataProvider = null;
 	  _myconfig = senseiConfig.subset(CONFIG_PREFIX);
-    _pluginContext = pluginContext;
+     this.pluginRegistry = pluginRegistry;
 	  _oldestSinceKey = null;
 	  _senseiSchema = schema;
 	  _zoieSystemMap = null;
 	  _dataCollectorMap = new LinkedHashMap<Integer, Collection<DataEvent<JSONObject>>>();
 	  _gateway = gateway;
-	  
+
 	  _versionComparator = _gateway.getVersionComparator();
-    
+
       String shardingStrategyName = _myconfig.getString(SHARDING_STRATEGY);
-    
+
       ShardingStrategy strategy = null;
-      
+
       if (shardingStrategyName!=null){
-        strategy = (ShardingStrategy)pluginContext.getBean(shardingStrategyName);
+        strategy = pluginRegistry.getBeanByFullPrefix(CONFIG_PREFIX + "." + SHARDING_STRATEGY, ShardingStrategy.class);
       }
       if (strategy == null){
     	  strategy = new ShardingStrategy.FieldModShardingStrategy(_senseiSchema.getUidField());
       }
-      
+
       _shardingStrategy = strategy;
 	}
 
@@ -120,7 +119,7 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 	      _oldestSinceKey = sinceKey;
 	    }
 	}
-	
+
 	@Override
 	public void initialize(
 			Map<Integer, Zoie<BoboIndexReader, JSONObject>> zoieSystemMap)
@@ -129,9 +128,9 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 		int maxPartitionId = _myconfig.getInt(MAX_PARTITION_ID)+1;
 		String uidField = _senseiSchema.getUidField();
 		DataDispatcher consumer = new DataDispatcher(maxPartitionId,uidField);
-		
+
 		_zoieSystemMap = zoieSystemMap;
-		
+
 	    Iterator<Integer> it = zoieSystemMap.keySet().iterator();
 	    while(it.hasNext()){
 	      int part = it.next();
@@ -139,23 +138,23 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 	      updateOldestSinceKey(zoie.getVersion());
 	      _dataCollectorMap.put(part, new LinkedList<DataEvent<JSONObject>>());
 	    }
-	    
-	    
+
+
 	    _dataProvider = buildDataProvider();
 	    _dataProvider.setDataConsumer(consumer);
 	}
-  
+
   @Override
   public DataProvider<JSONObject> getDataProvider()
   {
     return _dataProvider;
   }
-	
+
 	private StreamDataProvider<JSONObject> buildDataProvider() throws ConfigurationException{
 		StreamDataProvider<JSONObject> dataProvider = null;
 
 		try{
-		  dataProvider = _gateway.buildDataProvider(_senseiSchema, _oldestSinceKey, _pluginContext);
+		  dataProvider = _gateway.buildDataProvider(_senseiSchema, _oldestSinceKey, pluginRegistry);
       long maxEventsPerMin = _myconfig.getLong(EVTS_PER_MIN,40000);
       dataProvider.setMaxEventsPerMinute(maxEventsPerMin);
       int batchSize = _myconfig.getInt(BATCH_SIZE,1);
@@ -164,13 +163,13 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 		catch(Exception e){
 			throw new ConfigurationException(e.getMessage(),e);
 		}
-		
+
 		try {
 		   StandardMBean dataProviderMbean = new StandardMBean(new DataProviderAdmin(dataProvider), DataProviderAdminMBean.class);
 		   JmxUtil.registerMBean(dataProviderMbean, "indexing-manager","stream-data-provider");
 		} catch (Exception e) {
 		  logger.error(e.getMessage(),e);
-		} 
+		}
 		return dataProvider;
 	}
 
@@ -207,20 +206,20 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
     int _maxPartitionId;  // the total number of partitions over all the nodes;
     private final String _uidField;
     private volatile String _currentVersion;
-      
+
     public DataDispatcher(int maxPartitionId,String uidField){
       _maxPartitionId = maxPartitionId;
       _uidField = uidField;
       _currentVersion = null;
     }
-      
+
     @Override
     public void consume(Collection<proj.zoie.api.DataConsumer.DataEvent<JSONObject>> data) throws ZoieException
     {
       UpdateBatchSizeMeter.mark(data.size());
       ProviderBatchSizeMeter.mark(DefaultStreamingIndexingManager.this._dataProvider.getBatchSize());
       EventMeter.mark(DefaultStreamingIndexingManager.this._dataProvider.getEventCount());
-      
+
       try{
         for(DataEvent<JSONObject> dataEvt : data){
           JSONObject obj = dataEvt.getData();
@@ -235,10 +234,10 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
             Collection<DataEvent<JSONObject>> partDataSet = DefaultStreamingIndexingManager.this._dataCollectorMap.get(routeToPart);
             if (partDataSet!=null){
               partDataSet.add(dataEvt);
-            }           
+            }
           }
         }
-        
+
         Iterator<Integer> it = DefaultStreamingIndexingManager.this._zoieSystemMap.keySet().iterator();
         while(it.hasNext()){
           int part_num = it.next();

@@ -19,7 +19,10 @@ public class SenseiConfigurationTest extends Assert {
   private SenseiPluginRegistry pluginRegistry;
   @Before
   public void setUp() throws Exception {
-    configuration = new PropertiesConfiguration(getClass().getClassLoader().getResource("refactored-configuration/sensei.properties"));
+    configuration = new PropertiesConfiguration();
+    configuration.setDelimiterParsingDisabled(true);
+    //configuration.setListDelimiter(';');
+    configuration.load(getClass().getClassLoader().getResource("refactored-configuration/sensei.properties"));
     pluginRegistry = SenseiPluginRegistry.build(configuration);
     pluginRegistry.start();
 
@@ -48,5 +51,17 @@ public class SenseiConfigurationTest extends Assert {
    assertEquals(5, customFacets.size());
    assertTrue(customFacets.get(0) instanceof VirtualSimpleFacetHandler);
    assertTrue(customFacets.get(4) instanceof SimpleFacetHandler);
+  }
+  @Test
+  public void test5GetEmptyBeanList() {
+   List<Object> beans = pluginRegistry.resolveBeansByListKey("sensei.plugin.services", Object.class);
+   assertEquals(0, beans.size());
+  }
+  @Test
+  public void test6GetFacet() {
+
+   assertEquals("virtual_groupid", pluginRegistry.getFacet("virtual_groupid").getName());
+   assertEquals("virtual_groupid_fixedlengthlongarray", pluginRegistry.getFacet("virtual_groupid_fixedlengthlongarray").getName());
+
   }
 }

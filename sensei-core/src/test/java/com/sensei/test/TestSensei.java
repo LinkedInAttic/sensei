@@ -1,24 +1,20 @@
 package com.sensei.test;
 
-import java.io.InputStreamReader;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.OutputStreamWriter;
 import java.io.File;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
-import java.net.URL;
-import java.net.URLConnection;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
-import org.apache.lucene.queryParser.QueryParser;
 import org.apache.lucene.search.DefaultSimilarity;
 import org.apache.lucene.util.Version;
 import org.json.JSONObject;
@@ -40,17 +36,10 @@ import com.browseengine.bobo.facets.data.FacetDataCache;
 import com.browseengine.bobo.facets.data.FacetDataFetcher;
 import com.linkedin.norbert.NorbertException;
 import com.linkedin.norbert.cluster.ClusterShutdownException;
-import com.linkedin.norbert.javacompat.cluster.ClusterClient;
-import com.linkedin.norbert.javacompat.cluster.ZooKeeperClusterClient;
-import com.linkedin.norbert.javacompat.network.NetworkClientConfig;
 import com.sensei.conf.SenseiServerBuilder;
-import com.sensei.search.cluster.client.SenseiNetworkClient;
 import com.sensei.search.nodes.SenseiBroker;
 import com.sensei.search.nodes.SenseiIndexReaderDecorator;
-import com.sensei.search.nodes.SenseiQueryBuilderFactory;
 import com.sensei.search.nodes.SenseiServer;
-import com.sensei.search.nodes.impl.NoopIndexingManager;
-import com.sensei.search.nodes.impl.SimpleQueryBuilderFactory;
 import com.sensei.search.req.SenseiHit;
 import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.req.SenseiResult;
@@ -68,12 +57,14 @@ public class TestSensei extends AbstractSenseiTestCase
 
   public static FacetDataFetcher facetDataFetcher = new FacetDataFetcher()
   {
+    @Override
     public Object fetch(BoboIndexReader reader, int doc)
     {
       FacetDataCache dataCache = (FacetDataCache)reader.getFacetData("groupid");
       return dataCache.valArray.getRawValue(dataCache.orderArray.get(doc));
     }
 
+    @Override
     public void cleanup(BoboIndexReader reader)
     {
     }
@@ -83,6 +74,7 @@ public class TestSensei extends AbstractSenseiTestCase
   {
     private int counter = 0;
 
+    @Override
     public Object fetch(BoboIndexReader reader, int doc)
     {
       FacetDataCache dataCache = (FacetDataCache)reader.getFacetData("groupid");
@@ -97,6 +89,7 @@ public class TestSensei extends AbstractSenseiTestCase
       return val;
     }
 
+    @Override
     public void cleanup(BoboIndexReader reader)
     {
       counter = 0;
@@ -113,7 +106,7 @@ public class TestSensei extends AbstractSenseiTestCase
     super(testName);
   }
 
-  
+
   public static <T> IndexReaderFactory<ZoieIndexReader<BoboIndexReader>> buildReaderFactory(File file,ZoieIndexableInterpreter<T> interpreter){
     ZoieConfig config = new ZoieConfig();
     config.setAnalyzer(new StandardAnalyzer(Version.LUCENE_34));
@@ -121,25 +114,25 @@ public class TestSensei extends AbstractSenseiTestCase
     config.setBatchSize(1000);
     config.setBatchDelay(300000);
     config.setRtIndexing(true);
-    
+
     ZoieSystem<BoboIndexReader,T> zoieSystem = new ZoieSystem<BoboIndexReader,T>(file,interpreter,new SenseiIndexReaderDecorator(),config);
     //ZoieSystem<BoboIndexReader,T> zoieSystem = new ZoieSystem<BoboIndexReader,T>(file,interpreter,new SenseiIndexReaderDecorator(),new StandardAnalyzer(Version.LUCENE_34),new DefaultSimilarity(),1000,300000,true,ZoieConfig.DEFAULT_VERSION_COMPARATOR,false);
     zoieSystem.getAdminMBean().setFreshness(50);
     zoieSystem.start();
     return zoieSystem;
   }
-  
+
   public static Map<Integer,IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>> buildZoieFactoryMap(ZoieIndexableInterpreter<?> interpreter,Map<Integer,File> partFileMap){
     Map<Integer,IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>> partReaderMap = new HashMap<Integer,IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>>();
     Set<Entry<Integer,File>> entrySet = partFileMap.entrySet();
-  
+
     for (Entry<Integer,File> entry : entrySet){
       partReaderMap.put(entry.getKey(), buildReaderFactory(entry.getValue(), interpreter));
     }
-  
+
     return partReaderMap;
   }
-  
+
   static SenseiBroker broker = null;
   static SenseiService httpRestSenseiService = null;
   static SenseiServer node1;
@@ -213,7 +206,7 @@ public class TestSensei extends AbstractSenseiTestCase
     SenseiServerBuilder senseiServerBuilder2 = null;
     try
     {
-      senseiServerBuilder1 = new SenseiServerBuilder(ConfDir1);
+      senseiServerBuilder1 = new SenseiServerBuilder(ConfDir1, null);
       node1 = senseiServerBuilder1.buildServer();
       httpServer1 = senseiServerBuilder1.buildHttpRestServer();
       logger.info("Node 1 created.");
@@ -225,7 +218,7 @@ public class TestSensei extends AbstractSenseiTestCase
 
     try
     {
-      senseiServerBuilder2 = new SenseiServerBuilder(ConfDir2);
+      senseiServerBuilder2 = new SenseiServerBuilder(ConfDir2, null);
       node2 = senseiServerBuilder2.buildServer();
       httpServer2 = senseiServerBuilder2.buildHttpRestServer();
       logger.info("Node 2 created.");
@@ -260,6 +253,7 @@ public class TestSensei extends AbstractSenseiTestCase
     logger.info("Cluster client started");
 
     Runtime.getRuntime().addShutdownHook(new Thread(){
+        @Override
         public void run(){
           try{
             broker.shutdown();
@@ -345,7 +339,7 @@ public class TestSensei extends AbstractSenseiTestCase
       e.printStackTrace();
     }
   }
-  
+
 
   private void setspec(SenseiRequest req, FacetSpec spec)
   {
@@ -528,7 +522,7 @@ public class TestSensei extends AbstractSenseiTestCase
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 2160, res.getInt("numhits"));
   }
-  
+
   public void testSelectionTerms() throws Exception
   {
     logger.info("executing test case Selection terms");
@@ -536,7 +530,7 @@ public class TestSensei extends AbstractSenseiTestCase
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 4483, res.getInt("numhits"));
   }
-  
+
   public void testSelectionRange() throws Exception
   {
     //2000 1548;
@@ -552,30 +546,30 @@ public class TestSensei extends AbstractSenseiTestCase
       JSONObject res = search(new JSONObject(req));
       assertEquals("numhits is wrong", 4455, res.getInt("numhits"));
     }
-    
+
     {
       logger.info("executing test case Selection range (2000 TO 2002)");
       String req = "{\"selections\":[{\"range\":{\"year\":{\"to\":\"2002\",\"include_lower\":false,\"include_upper\":false,\"from\":\"2000\"}}}]}";
       JSONObject res = search(new JSONObject(req));
       assertEquals("numhits is wrong", 1443, res.getInt("numhits"));
     }
-    
+
     {
       logger.info("executing test case Selection range (2000 TO 2002]");
       String req = "{\"selections\":[{\"range\":{\"year\":{\"to\":\"2002\",\"include_lower\":false,\"include_upper\":true,\"from\":\"2000\"}}}]}";
       JSONObject res = search(new JSONObject(req));
       assertEquals("numhits is wrong", 2907, res.getInt("numhits"));
     }
-    
+
     {
       logger.info("executing test case Selection range [2000 TO 2002)");
       String req = "{\"selections\":[{\"range\":{\"year\":{\"to\":\"2002\",\"include_lower\":true,\"include_upper\":false,\"from\":\"2000\"}}}]}";
       JSONObject res = search(new JSONObject(req));
       assertEquals("numhits is wrong", 2991, res.getInt("numhits"));
     }
-    
+
   }
-  
+
   public void testMatchAllWithBoostQuery() throws Exception
   {
     logger.info("executing test case MatchAllQuery");
@@ -583,7 +577,7 @@ public class TestSensei extends AbstractSenseiTestCase
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 15000, res.getInt("numhits"));
   }
-  
+
   public void testQueryStringQuery() throws Exception
   {
     logger.info("executing test case testQueryStringQuery");
@@ -625,7 +619,7 @@ public class TestSensei extends AbstractSenseiTestCase
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 2160, res.getInt("numhits"));
   }
-  
+
   public void testTermsQuery() throws Exception
   {
     logger.info("executing test case testTermQuery");
@@ -633,8 +627,8 @@ public class TestSensei extends AbstractSenseiTestCase
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 5777, res.getInt("numhits"));
   }
-  
-  
+
+
   public void testBooleanQuery() throws Exception
   {
     logger.info("executing test case testBooleanQuery");
@@ -642,8 +636,8 @@ public class TestSensei extends AbstractSenseiTestCase
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 1652, res.getInt("numhits"));
   }
-  
-  
+
+
   public void testDistMaxQuery() throws Exception
   {
     //color red ==> 2160
@@ -653,7 +647,7 @@ public class TestSensei extends AbstractSenseiTestCase
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 3264, res.getInt("numhits"));
   }
-  
+
   public void testPathQuery() throws Exception
   {
     logger.info("executing test case testPathQuery");
@@ -661,7 +655,7 @@ public class TestSensei extends AbstractSenseiTestCase
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 126, res.getInt("numhits"));
   }
-  
+
   public void testPrefixQuery() throws Exception
   {
     //color blue ==> 1104
@@ -670,8 +664,8 @@ public class TestSensei extends AbstractSenseiTestCase
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 1104, res.getInt("numhits"));
   }
-  
-  
+
+
   public void testWildcardQuery() throws Exception
   {
     //color blue ==> 1104
@@ -680,7 +674,7 @@ public class TestSensei extends AbstractSenseiTestCase
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 1104, res.getInt("numhits"));
   }
-  
+
   public void testRangeQuery() throws Exception
   {
     logger.info("executing test case testRangeQuery");
@@ -688,7 +682,7 @@ public class TestSensei extends AbstractSenseiTestCase
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 3015, res.getInt("numhits"));
   }
-  
+
   public void testRangeQuery2() throws Exception
   {
     logger.info("executing test case testRangeQuery2");
@@ -696,8 +690,8 @@ public class TestSensei extends AbstractSenseiTestCase
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 3015, res.getInt("numhits"));
   }
-  
-  
+
+
   public void testFilteredQuery() throws Exception
   {
     logger.info("executing test case testFilteredQuery");
@@ -705,8 +699,8 @@ public class TestSensei extends AbstractSenseiTestCase
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 447, res.getInt("numhits"));
   }
-  
-  
+
+
   public void testSpanTermQuery() throws Exception
   {
     logger.info("executing test case testSpanTermQuery");
@@ -714,8 +708,8 @@ public class TestSensei extends AbstractSenseiTestCase
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 2160, res.getInt("numhits"));
   }
-  
-  
+
+
   public void testSpanOrQuery() throws Exception
   {
     logger.info("executing test case testSpanOrQuery");
@@ -723,8 +717,8 @@ public class TestSensei extends AbstractSenseiTestCase
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 3264, res.getInt("numhits"));
   }
-  
-  
+
+
   public void testSpanNotQuery() throws Exception
   {
     logger.info("executing test case testSpanNotQuery");
@@ -732,7 +726,7 @@ public class TestSensei extends AbstractSenseiTestCase
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 4596, res.getInt("numhits"));
   }
-  
+
   public void testSpanNearQuery1() throws Exception
   {
     logger.info("executing test case testSpanNearQuery1");
@@ -740,7 +734,7 @@ public class TestSensei extends AbstractSenseiTestCase
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 274, res.getInt("numhits"));
   }
-  
+
   public void testSpanNearQuery2() throws Exception
   {
     logger.info("executing test case testSpanNearQuery2");
@@ -748,7 +742,7 @@ public class TestSensei extends AbstractSenseiTestCase
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 63, res.getInt("numhits"));
   }
-  
+
   public void testSpanFirstQuery() throws Exception
   {
     logger.info("executing test case testSpanFirstQuery");
@@ -756,8 +750,8 @@ public class TestSensei extends AbstractSenseiTestCase
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 2160, res.getInt("numhits"));
   }
-  
-  
+
+
   public void testUIDFilter() throws Exception
   {
     logger.info("executing test case testUIDFilter");
@@ -767,7 +761,7 @@ public class TestSensei extends AbstractSenseiTestCase
     assertEquals("the first uid is wrong", 1, res.getJSONArray("hits").getJSONObject(0).getInt("uid"));
     assertEquals("the second uid is wrong", 3, res.getJSONArray("hits").getJSONObject(1).getInt("uid"));
   }
-  
+
   public void testAndFilter() throws Exception
   {
     logger.info("executing test case testAndFilter");
@@ -781,26 +775,26 @@ public class TestSensei extends AbstractSenseiTestCase
     logger.info("executing test case testOrFilter");
     String req = "{\"filter\":{\"or\":[{\"term\":{\"color\":\"blue\",\"_noOptimize\":true}},{\"term\":{\"color\":\"red\",\"_noOptimize\":true}}]}}";
     JSONObject res = search(new JSONObject(req));
-    assertEquals("numhits is wrong", 3264, res.getInt("numhits"));  
+    assertEquals("numhits is wrong", 3264, res.getInt("numhits"));
   }
-  
+
   public void testOrFilter2() throws Exception
   {
     logger.info("executing test case testOrFilter2");
     String req = "{\"filter\":{\"or\":[{\"term\":{\"color\":\"blue\",\"_noOptimize\":false}},{\"term\":{\"color\":\"red\",\"_noOptimize\":false}}]}}";
     JSONObject res = search(new JSONObject(req));
-    assertEquals("numhits is wrong", 3264, res.getInt("numhits"));  
+    assertEquals("numhits is wrong", 3264, res.getInt("numhits"));
   }
-  
+
   public void testOrFilter3() throws Exception
   {
     logger.info("executing test case testOrFilter3");
     String req = "{\"filter\":{\"or\":[{\"term\":{\"color\":\"blue\",\"_noOptimize\":true}},{\"term\":{\"color\":\"red\",\"_noOptimize\":false}}]}}";
     JSONObject res = search(new JSONObject(req));
-    assertEquals("numhits is wrong", 3264, res.getInt("numhits"));  
+    assertEquals("numhits is wrong", 3264, res.getInt("numhits"));
   }
-  
-  
+
+
   public void testBooleanFilter() throws Exception
   {
     logger.info("executing test case testBooleanFilter");
@@ -808,7 +802,7 @@ public class TestSensei extends AbstractSenseiTestCase
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 1652, res.getInt("numhits"));
   }
-  
+
   public void testQueryFilter() throws Exception
   {
     logger.info("executing test case testQueryFilter");
@@ -818,7 +812,7 @@ public class TestSensei extends AbstractSenseiTestCase
   }
 
   /* Need to fix the bug in bobo and kamikazi, for details see the following two test cases:*/
-  
+
 //  public void testAndFilter1() throws Exception
 //  {
 //    logger.info("executing test case testAndFilter1");
@@ -826,7 +820,7 @@ public class TestSensei extends AbstractSenseiTestCase
 //    JSONObject res = search(new JSONObject(req));
 //    assertEquals("numhits is wrong", 504, res.getInt("numhits"));
 //  }
-//  
+//
 //  public void testQueryFilter1() throws Exception
 //  {
 //    logger.info("executing test case testQueryFilter1");
@@ -834,10 +828,10 @@ public class TestSensei extends AbstractSenseiTestCase
 //    JSONObject res = search(new JSONObject(req));
 //    assertEquals("numhits is wrong", 4169, res.getInt("numhits"));
 //  }
-  
-  
+
+
   /*  another weird bug may exist somewhere in bobo or kamikazi.*/
-  /*  In the following two test cases, when modifying the first one by changing "tags" to "tag", it is supposed that 
+  /*  In the following two test cases, when modifying the first one by changing "tags" to "tag", it is supposed that
    *  Only the first test case is not correct, but the second one also throw one NPE, which is weird.
    * */
 //  public void testAndFilter2() throws Exception
@@ -855,10 +849,10 @@ public class TestSensei extends AbstractSenseiTestCase
 //    logger.info("executing test case testOrFilter4");
 //    String req = "{\"filter\":{\"or\":[{\"term\":{\"color\":\"blue\",\"_noOptimize\":false}},{\"query\":{\"term\":{\"color\":\"red\"}}}]}}";
 //    JSONObject res = search(new JSONObject(req));
-//    assertEquals("numhits is wrong", 3264, res.getInt("numhits"));  
+//    assertEquals("numhits is wrong", 3264, res.getInt("numhits"));
 //  }
-  
-  
+
+
   public void testTermFilter() throws Exception
   {
     logger.info("executing test case testTermFilter");
@@ -866,7 +860,7 @@ public class TestSensei extends AbstractSenseiTestCase
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 2160, res.getInt("numhits"));
   }
-  
+
   public void testTermsFilter() throws Exception
   {
     logger.info("executing test case testTermsFilter");
@@ -874,7 +868,7 @@ public class TestSensei extends AbstractSenseiTestCase
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 5777, res.getInt("numhits"));
   }
-  
+
   public void testRangeFilter() throws Exception
   {
     logger.info("executing test case testRangeFilter");
@@ -882,7 +876,7 @@ public class TestSensei extends AbstractSenseiTestCase
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 3015, res.getInt("numhits"));
   }
-  
+
   public void testRangeFilter2() throws Exception
   {
     logger.info("executing test case testRangeFilter2");
@@ -890,7 +884,7 @@ public class TestSensei extends AbstractSenseiTestCase
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 3015, res.getInt("numhits"));
   }
-  
+
   /**
    * @param res
    *          result

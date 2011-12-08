@@ -13,7 +13,6 @@ import java.util.List;
 
 import javax.management.StandardMBean;
 
-import com.sensei.search.req.*;
 import org.apache.log4j.Logger;
 import org.mortbay.jetty.Server;
 
@@ -26,6 +25,8 @@ import com.linkedin.norbert.javacompat.network.NetworkServer;
 import com.linkedin.norbert.network.NetworkingException;
 import com.sensei.conf.SenseiServerBuilder;
 import com.sensei.search.jmx.JmxUtil;
+import com.sensei.search.req.AbstractSenseiRequest;
+import com.sensei.search.req.AbstractSenseiResult;
 import com.sensei.search.svc.impl.AbstractSenseiCoreService;
 import com.sensei.search.svc.impl.CoreSenseiServiceImpl;
 import com.sensei.search.svc.impl.SenseiCoreServiceMessageHandler;
@@ -34,11 +35,11 @@ import com.sensei.search.svc.impl.SysSenseiCoreServiceImpl;
 
 public class SenseiServer {
   private static final Logger logger = Logger.getLogger(SenseiServer.class);
-  
+
     private static final String AVAILABLE = "available";
-    private static final String UNAVAILABLE = "unavailable";  
+    private static final String UNAVAILABLE = "unavailable";
     private static final String DUMMY_OUT_IP = "74.125.224.0";
-  
+
     private int _id;
     private int _port;
     private int[] _partitions;
@@ -52,7 +53,7 @@ public class SenseiServer {
     //private Server _adminServer;
 
     protected volatile boolean _available = false;
-    
+
     public SenseiServer(int id, int port, int[] partitions,
                         NetworkServer networkServer,
                         ClusterClient clusterClient,
@@ -63,7 +64,7 @@ public class SenseiServer {
     {
        this(port,networkServer,clusterClient,new SenseiCore(id, partitions,zoieSystemFactory, indexingManager, queryBuilderFactory),externalSvc);
     }
-    
+
     public SenseiServer(int port,
             NetworkServer networkServer,
             ClusterClient clusterClient,
@@ -74,14 +75,14 @@ public class SenseiServer {
         _id = senseiCore.getNodeId();
         _port = port;
         _partitions = senseiCore.getPartitions();
-       
+
         _networkServer = networkServer;
         _clusterClient = clusterClient;
-        
+
         _innerSvc = new CoreSenseiServiceImpl(senseiCore);
         _externalSvc = externalSvc;
    }
-    
+
   private static String help(){
     StringBuffer buffer = new StringBuffer();
     buffer.append("Usage: <conf.dir> [availability]\n");
@@ -91,7 +92,7 @@ public class SenseiServer {
     buffer.append("====================================\n");
     return buffer.toString();
   }
-  
+
   /*
   public Collection<Zoie<BoboIndexReader,?,?>> getZoieSystems(){
     return _core.zoieSystems;
@@ -126,7 +127,7 @@ public class SenseiServer {
     return new SenseiNodeInfo(_id, _partitions, _serverNode.getUrl(), adminLink.toString());
   }
   */
-  
+
   public void shutdown(){
     try {
     	logger.info("shutting down node...");
@@ -150,15 +151,15 @@ public class SenseiServer {
       logger.error(e.getMessage(),e);
     }
   }
-  
-  public void start(boolean available) throws Exception{        
+
+  public void start(boolean available) throws Exception{
         _core.start();
 //        ClusterClient clusterClient = ClusterClientFactory.newInstance().newZookeeperClient();
       String clusterName = _clusterClient.getServiceName();
-   
+
       logger.info("Cluster Name: " + clusterName);
       logger.info("Cluster info: " + _clusterClient.toString());
-    
+
       AbstractSenseiCoreService coreSenseiService = new CoreSenseiServiceImpl(_core);
       AbstractSenseiCoreService sysSenseiCoreService = new SysSenseiCoreServiceImpl(_core);
     // create the zookeeper cluster client
@@ -181,7 +182,7 @@ public class SenseiServer {
     for (int partId : _partitions){
     	partition.add(partId);
     }
-    
+
     boolean nodeExists = false;
     try
     {
@@ -270,24 +271,27 @@ public class SenseiServer {
       }
       throw e;
     }
-    
+
 
 	SenseiServerAdminMBean senseiAdminMBean = getAdminMBean();
 	StandardMBean bean = new StandardMBean(senseiAdminMBean, SenseiServerAdminMBean.class);
 	JmxUtil.registerMBean(bean, "name", "sensei-server-"+_id);
   }
-	
+
 	private SenseiServerAdminMBean getAdminMBean()
 	{
 	  return new SenseiServerAdminMBean(){
-	  public int getId()
+	  @Override
+    public int getId()
       {
         return _id;
       }
+      @Override
       public int getPort()
       {
         return _port;
       }
+      @Override
       public String getPartitions()
       {
         StringBuffer sb = new StringBuffer();
@@ -299,17 +303,19 @@ public class SenseiServer {
          }
         return sb.toString();
       }
+        @Override
         public boolean isAvailable()
         {
           return SenseiServer.this.isAvailable();
         }
+        @Override
         public void setAvailable(boolean available)
         {
           SenseiServer.this.setAvailable(available);
         }
       };
   }
-	
+
   public void setAvailable(boolean available){
     if (available)
     {
@@ -348,21 +354,22 @@ public class SenseiServer {
 
     return _available;
   }
-  
+
   private static void loadJars(File extDir)
   {
     File[] jarfiles = extDir.listFiles(new FilenameFilter(){
+        @Override
         public boolean accept(File dir, String name) {
             return name.endsWith(".jar");
         }
     });
-      
+
     if (jarfiles!=null && jarfiles.length > 0){
     try{
         URL[] jarURLs = new URL[jarfiles.length];
           ClassLoader parentLoader = Thread.currentThread().getContextClassLoader();
           for (int i=0;i<jarfiles.length;++i){
-            jarURLs[i] = new URL("jar:file://" + jarfiles[i].getAbsolutePath() + "!/");  
+            jarURLs[i] = new URL("jar:file://" + jarfiles[i].getAbsolutePath() + "!/");
           }
           URLClassLoader classloader = new URLClassLoader(jarURLs,parentLoader);
           Thread.currentThread().setContextClassLoader(classloader);
@@ -378,9 +385,9 @@ public class SenseiServer {
       System.out.println(help());
       System.exit(1);
     }
-    
+
     File confDir = null;
-    
+
     try {
       confDir = new File(args[0]);
     }
@@ -404,26 +411,26 @@ public class SenseiServer {
         }
       }
     }
-    
+
     File extDir = new File(confDir,"ext");
-	  
+
     if (extDir.exists()){
     	logger.info("loading extension jars...");
         loadJars(extDir);
     	logger.info("finished loading extension jars");
     }
-    
-    
-    SenseiServerBuilder senseiServerBuilder = new SenseiServerBuilder(confDir);
+
+
+    SenseiServerBuilder senseiServerBuilder = new SenseiServerBuilder(confDir, null);
 
     final SenseiServer server = senseiServerBuilder.buildServer();
-    
-    final Server jettyServer = senseiServerBuilder.getJettyServer();
-    
-    /*final HttpAdaptor httpAdaptor = senseiServerBuilder.buildJMXAdaptor();
-    
 
-    final ObjectName httpAdaptorName = new ObjectName("mx4j:class=mx4j.tools.adaptor.http.HttpAdaptor,id=1"); 
+    final Server jettyServer = senseiServerBuilder.getJettyServer();
+
+    /*final HttpAdaptor httpAdaptor = senseiServerBuilder.buildJMXAdaptor();
+
+
+    final ObjectName httpAdaptorName = new ObjectName("mx4j:class=mx4j.tools.adaptor.http.HttpAdaptor,id=1");
 	 if (httpAdaptor!=null){
 		  try{
 			server.mbeanServer.registerMBean(httpAdaptor, httpAdaptorName);
@@ -437,8 +444,9 @@ public class SenseiServer {
 	  }
 */
     Runtime.getRuntime().addShutdownHook(new Thread(){
+      @Override
       public void run(){
-    	 
+
     	try{
     	  jettyServer.stop();
     	} catch (Exception e) {
@@ -464,11 +472,11 @@ public class SenseiServer {
     	}
       }
     });
-   
-   
-    
+
+
+
     server.start(available);
     jettyServer.start();
   }
-  
+
 }

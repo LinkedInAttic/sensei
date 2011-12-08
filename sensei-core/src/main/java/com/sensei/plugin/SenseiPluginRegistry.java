@@ -9,7 +9,10 @@ import java.util.Map;
 
 import org.apache.commons.configuration.Configuration;
 
+import com.browseengine.bobo.facets.FacetHandler;
+
 public class SenseiPluginRegistry {
+  public static final String FACET_CONF_PREFIX = "sensei.custom.facets";
   private Map<String, SenseiPluginRegistry.PluginHolder> pluginsByPrefix = new LinkedHashMap<String, SenseiPluginRegistry.PluginHolder>();
   private Map<String, PluginHolder> pluginsByNames = new LinkedHashMap<String, SenseiPluginRegistry.PluginHolder>();
   private List<PluginHolder> plugins = new ArrayList<PluginHolder>();
@@ -125,7 +128,14 @@ public class SenseiPluginRegistry {
     }
     return ret;
   }
-
+  public FacetHandler<?> getFacet(String name) {
+    for (FacetHandler handler : resolveBeansByListKey(FACET_CONF_PREFIX, FacetHandler.class)) {
+      if (handler.getName().equals(name)) {
+        return handler;
+      }
+    }
+    return null;
+  }
   public <T> T getBeanByFullPrefix(String fullPrefix, Class<T> type) {
     PluginHolder holder = pluginsByPrefix.get(fullPrefix);
     if (holder == null) {
@@ -140,11 +150,18 @@ public class SenseiPluginRegistry {
     }
 
     List<T> ret = new ArrayList<T>();
-    String[] keys = configuration.getStringArray(paramKey);
-    if (keys == null) {
+    String strList = configuration.getString(paramKey);
+    if (strList == null) {
+      return null;
+    }
+    String[] keys = strList.split(",");
+    if (keys == null || keys.length == 0) {
       return null;
     }
     for (String key : keys) {
+      if (key.trim().length() == 0) {
+        continue;
+      }
       Object bean = getBeanByName(key.trim(), Object.class);
       if (bean == null) {
         bean = getBeanByFullPrefix(key.trim(), Object.class);
