@@ -85,7 +85,7 @@ title: SenseiDB - Indexing &amp; Gateway
   Sensei comes with the following pre-written gateways:
   <ul>
     <li>File - each line is a data event, and line number is the version</li>
-    <li>JMS - each message is a data event</li>
+    <li>JMS - each message is a data event, <code>System.nanoTime()</code> is used as version</li>
     <li>JDBC - each element in the ResultSet is a data event, developer implements version semantics</li>
     <li>Kafka - each message is a data event, and offset is the version</li>
   </ul>
