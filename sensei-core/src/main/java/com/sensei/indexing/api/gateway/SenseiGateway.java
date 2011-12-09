@@ -6,6 +6,7 @@ import org.apache.commons.configuration.Configuration;
 import org.json.JSONObject;
 
 import proj.zoie.impl.indexing.StreamDataProvider;
+import proj.zoie.impl.indexing.ZoieConfig;
 
 import com.sensei.conf.SenseiSchema;
 import com.sensei.indexing.api.DataSourceFilter;
@@ -13,9 +14,10 @@ import com.sensei.indexing.api.DefaultStreamingIndexingManager;
 import com.sensei.plugin.SenseiPluginRegistry;
 
 public abstract class SenseiGateway<V>{
-	abstract public String getName();
 	protected Configuration _conf;
   protected SenseiPluginRegistry pluginRegistry;
+  
+  public static Comparator<String> DEFAULT_VERSION_COMPARATOR = ZoieConfig.DEFAULT_VERSION_COMPARATOR;
 
 	public SenseiGateway(Configuration conf){
 	  _conf = conf;

@@ -306,9 +306,10 @@ public class SenseiServerBuilder implements SenseiConfParams{
     Class gatewayClass = null;
     try{
       String type = subConf.getString("type");
+
+      Configuration myConf = subConf.subset(type);
       if ("custom".equals(type)){
-        Configuration customConf = subConf.subset("custom");
-        String clz = customConf.getString("class");
+        String clz = myConf.getString("class");
         gatewayClass = Class.forName(clz);
       }
       else{
@@ -319,7 +320,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
       }
 
       Constructor constructor = gatewayClass.getConstructor(Configuration.class);
-      SenseiGateway gateway = (SenseiGateway)(constructor.newInstance(subConf));
+      SenseiGateway gateway = (SenseiGateway)(constructor.newInstance(myConf));
       return gateway;
     }
     catch(Exception e){

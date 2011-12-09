@@ -355,7 +355,7 @@ public class SenseiServer {
     return _available;
   }
 
-  private static void loadJars(File extDir)
+  /*private static void loadJars(File extDir)
   {
     File[] jarfiles = extDir.listFiles(new FilenameFilter(){
         @Override
@@ -369,16 +369,19 @@ public class SenseiServer {
         URL[] jarURLs = new URL[jarfiles.length];
           ClassLoader parentLoader = Thread.currentThread().getContextClassLoader();
           for (int i=0;i<jarfiles.length;++i){
-            jarURLs[i] = new URL("jar:file://" + jarfiles[i].getAbsolutePath() + "!/");
+            String jarFile = jarfiles[i].getAbsolutePath();
+            logger.info("loading jar: "+jarFile);
+            jarURLs[i] = new URL("jar:file://" + jarFile + "!/");
           }
           URLClassLoader classloader = new URLClassLoader(jarURLs,parentLoader);
+          logger.info("url classloader: "+classloader);
           Thread.currentThread().setContextClassLoader(classloader);
     }
     catch(MalformedURLException e){
       logger.error("problem loading extension: "+e.getMessage(),e);
     }
-    }
-}
+  }
+}*/
 
   public  static void main(String[] args) throws Exception {
     if (args.length<1){
@@ -412,13 +415,13 @@ public class SenseiServer {
       }
     }
 
-    File extDir = new File(confDir,"ext");
+    /*File extDir = new File(confDir,"ext");
 
     if (extDir.exists()){
     	logger.info("loading extension jars...");
         loadJars(extDir);
     	logger.info("finished loading extension jars");
-    }
+    }*/
 
 
     SenseiServerBuilder senseiServerBuilder = new SenseiServerBuilder(confDir, null);

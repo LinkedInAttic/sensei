@@ -38,11 +38,6 @@ public  class LinedFileDataProviderBuilder extends SenseiGateway<String>{
 		return provider;
 	}
 
-	@Override
-	public String getName() {
-		return name;
-	}
-
   @Override
   public Comparator<String> getVersionComparator() {
     return _versionComparator;

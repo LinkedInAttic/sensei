@@ -37,11 +37,6 @@ public class JmsDataProviderBuilder extends SenseiGateway<Message>{
 	}
 
 	@Override
-	public String getName() {
-		return name;
-	}
-
-	@Override
 	public StreamDataProvider<JSONObject> buildDataProvider(final DataSourceFilter<Message> dataFilter,
 			String oldSinceKey) throws Exception{
 

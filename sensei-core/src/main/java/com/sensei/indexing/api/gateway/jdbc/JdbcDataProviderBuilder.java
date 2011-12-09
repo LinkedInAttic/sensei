@@ -34,12 +34,6 @@ public class JdbcDataProviderBuilder extends SenseiGateway<ResultSet>{
     _versionComparator = pluginRegistry.getBeanByName("versionComparator", Comparator.class);
 	}
 
-
-	@Override
-	public String getName() {
-		return name;
-	}
-
 	@Override
 	public StreamDataProvider<JSONObject> buildDataProvider(final DataSourceFilter<ResultSet> dataFilter,
 			String oldSinceKey) throws Exception{

@@ -23,11 +23,6 @@ public class KafkaDataProviderBuilder extends SenseiGateway<byte[]>{
 	}
 
 	@Override
-	public String getName() {
-		return name;
-	}
-
-	@Override
 	public StreamDataProvider<JSONObject> buildDataProvider(DataSourceFilter<byte[]> dataFilter,
 			String oldSinceKey) throws Exception{
 	  Configuration myConf = _conf.subset(name);
