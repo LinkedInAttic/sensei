@@ -7,14 +7,19 @@ import java.io.OutputStream;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLDecoder;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.configuration.DataConfiguration;
+import org.apache.commons.configuration.MapConfiguration;
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.linkedin.norbert.javacompat.cluster.ClusterClient;
@@ -75,17 +80,42 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
   
   protected abstract SenseiRequest buildSenseiRequest(HttpServletRequest req) throws Exception;
 
+  public static Map<String, String> getParameters(String query)
+      throws Exception {
+    Map<String, String> params = new HashMap<String, String>();
+    for (String param : query.split("&")) {
+      String pair[] = param.split("=");
+      String key = URLDecoder.decode(pair[0], "UTF-8");
+      String value = "";
+      if (pair.length > 1) {
+        value = URLDecoder.decode(pair[1], "UTF-8");
+      }
+      params.put(key, value);
+    }
+    return params;
+  }
+
   private void handleSenseiRequest(HttpServletRequest req, HttpServletResponse resp)
       throws ServletException, IOException {
-    SenseiRequest senseiReq;
+    SenseiRequest senseiReq = null;
     try
     {
       if ("post".equalsIgnoreCase(req.getMethod()))
       {
         BufferedReader reader = req.getReader();
         String content = readContent(reader);
-        JSONObject jsonObj = new JSONObject(content);
-        senseiReq = SenseiRequest.fromJSON(jsonObj);
+        JSONObject jsonObj = null;
+        try
+        {
+          jsonObj = new JSONObject(content);
+        }
+        catch(JSONException jse)
+        {
+          senseiReq = DefaultSenseiJSONServlet.convertSenseiRequest(
+                        new DataConfiguration(new MapConfiguration(getParameters(content))));
+        }
+        if (jsonObj != null)
+          senseiReq = SenseiRequest.fromJSON(jsonObj);
       }
       else
       {
