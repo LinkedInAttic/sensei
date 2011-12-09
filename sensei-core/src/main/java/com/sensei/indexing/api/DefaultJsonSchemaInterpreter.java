@@ -89,7 +89,17 @@ public class DefaultJsonSchemaInterpreter extends
 
       @Override
       public Object extract(String val) {
-        return (val == null || val.length()==0) ? 0 : Integer.parseInt(val);
+        if (val == null || val.length()==0){
+          return 0;
+        }
+        else{
+          int num = Integer.parseInt(val);
+          if (num<0){
+            logger.error("we don't yet support negative values, skipping.");
+            return null;
+          }
+          return num;
+        }
       }
       
     });
@@ -98,7 +108,17 @@ public class DefaultJsonSchemaInterpreter extends
       @Override
       public Object extract(String val) {
 
-        return (val == null || val.length()==0) ? 0 : Double.parseDouble(val);
+        if (val == null || val.length()==0){
+          return 0.0;
+        }
+        else{
+          double num = Double.parseDouble(val);
+          if (num<0.0){
+            logger.error("we don't yet support negative values, skipping.");
+            return null;
+          }
+          return num;
+        }
       }
       
     });
@@ -106,8 +126,17 @@ public class DefaultJsonSchemaInterpreter extends
 
       @Override
       public Object extract(String val) {
-
-        return (val == null || val.length()==0) ? 0 : Long.parseLong(val);
+        if (val == null || val.length()==0){
+          return 0.0;
+        }
+        else{
+          long num = Long.parseLong(val);
+          if (num<0){
+            logger.error("we don't yet support negative values, skipping.");
+            return null;
+          }
+          return num;
+        }
       }
       
     });
@@ -172,6 +201,7 @@ public class DefaultJsonSchemaInterpreter extends
             if (filtered.has(fldDef.fromField))
             {
               List<Object> vals = new LinkedList<Object>();
+              if (filtered.isNull(fldDef.fromField)) continue;
               if (fldDef.isMulti){
                 String val = filtered.optString(fldDef.fromField);
 
@@ -179,15 +209,24 @@ public class DefaultJsonSchemaInterpreter extends
                   StringTokenizer strtok = new StringTokenizer(val,fldDef.delim);
                   while(strtok.hasMoreTokens()){
                     String token = strtok.nextToken();
-                    vals.add(extractor.extract(token));
+                    Object obj = extractor.extract(token);
+                    if (obj!=null){
+                      vals.add(obj);
+                    }
                   }
                 }
               }
               else{
-                vals.add(extractor.extract(filtered.optString(fldDef.fromField)));
+                String val = filtered.optString(fldDef.fromField);
+                if (val == null) continue;
+                Object obj = extractor.extract(filtered.optString(fldDef.fromField));
+                if (obj!=null){
+                  vals.add(obj);
+                }
               }
                       
               for (Object val : vals){
+                if (val==null) continue;
                 String strVal = null;
                 if (fldDef.formatter!=null){
                   strVal = fldDef.formatter.format(val);
