@@ -38,12 +38,11 @@ public class JdbcDataProviderBuilder extends SenseiGateway<ResultSet>{
 	public StreamDataProvider<JSONObject> buildDataProvider(final DataSourceFilter<ResultSet> dataFilter,
 			String oldSinceKey) throws Exception{
 
-	    Configuration myConf = _conf.subset(name);
-	       final String url = myConf.getString("url");
-	       final String username = myConf.getString("username",null);
-	       final String password = myConf.getString("password",null);
-	       final String driver = myConf.getString("driver");
-	       final String adaptor = myConf.getString("adaptor");
+	       final String url = _conf.getString("url");
+	       final String username = _conf.getString("username",null);
+	       final String password = _conf.getString("password",null);
+	       final String driver = _conf.getString("driver");
+	       final String adaptor = _conf.getString("adaptor");
 
 	       final SenseiJDBCAdaptor senseiAdaptor =  pluginRegistry.getBeanByFullPrefix("jdbc.adaptor", SenseiJDBCAdaptor.class);
 	       if (senseiAdaptor==null){

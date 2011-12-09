@@ -25,13 +25,12 @@ public class KafkaDataProviderBuilder extends SenseiGateway<byte[]>{
 	@Override
 	public StreamDataProvider<JSONObject> buildDataProvider(DataSourceFilter<byte[]> dataFilter,
 			String oldSinceKey) throws Exception{
-	  Configuration myConf = _conf.subset(name);
 
-		String host = myConf.getString("host");
-		int port = myConf.getInt("port");
-		String topic = myConf.getString("topic");
-		int timeout = myConf.getInt("timeout",10000);
-		int batchsize = myConf.getInt("batchsize");
+		String host = _conf.getString("host");
+		int port = _conf.getInt("port");
+		String topic = _conf.getString("topic");
+		int timeout = _conf.getInt("timeout",10000);
+		int batchsize = _conf.getInt("batchsize");
 		long offset = oldSinceKey == null ? 0L : Long.parseLong(oldSinceKey);
 		KafkaJsonStreamDataProvider provider = new KafkaJsonStreamDataProvider(_versionComparator, host,port,timeout,batchsize,topic,offset);
 		if (dataFilter!=null){
