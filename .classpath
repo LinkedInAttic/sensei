@@ -50,7 +50,7 @@
 	<classpathentry kind="var" path="M2_REPO/com/linkedin/kamikaze/kamikaze/3.0.4/kamikaze-3.0.4.jar"/>
 	<classpathentry kind="var" path="M2_REPO/log4j/log4j/1.2.14/log4j-1.2.14.jar"/>
 	<classpathentry kind="var" path="M2_REPO/org/apache/lucene/lucene-core/3.4.0/lucene-core-3.4.0.jar"/>
-	<classpathentry kind="var" path="M2_REPO/com/yammer/metrics_2.8.1/2.0.0-BETA11/metrics_2.8.1-2.0.0-BETA11.jar"/>
+	<classpathentry kind="var" path="M2_REPO/com/yammer/metrics/metrics-core/2.0.0-BETA18-SNAPSHOT/metrics-core-2.0.0-BETA18-SNAPSHOT.jar"/>
 	<classpathentry kind="var" path="M2_REPO/org/jboss/netty/netty/3.2.3.Final/netty-3.2.3.Final.jar"/>
 	<classpathentry kind="var" path="M2_REPO/com/linkedin/norbert_2.8.1/0.6.12/norbert_2.8.1-0.6.12.jar"/>
 	<classpathentry kind="var" path="M2_REPO/org/objenesis/objenesis/1.2/objenesis-1.2.jar"/>

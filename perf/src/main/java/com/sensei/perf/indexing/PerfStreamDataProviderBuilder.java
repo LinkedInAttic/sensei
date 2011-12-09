@@ -15,6 +15,8 @@ import com.sensei.indexing.api.gateway.SenseiGateway;
 public class PerfStreamDataProviderBuilder extends SenseiGateway<JSONObject> {
 
 	private final PerfJsonFilter _perfFilter;
+	private final Comparator<String> _versionComparator;
+	  
 	public PerfStreamDataProviderBuilder(PerfJsonFilter perfFilter){
 		_perfFilter = perfFilter;
 	}
@@ -37,4 +39,8 @@ public class PerfStreamDataProviderBuilder extends SenseiGateway<JSONObject> {
 		return provider;
 	}
 
+	  @Override
+	  public Comparator<String> getVersionComparator() {
+	    return _versionComparator;
+	  }
 }
