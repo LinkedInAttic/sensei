@@ -1465,14 +1465,49 @@ class TestJsonAPI(unittest.TestCase):
     # print error
     self.assertEqual(error, """Column, "price", is not a string type""")
 
-  def testTmp(self):
-    stmt = """select color,category, tags from cars where QUERY IS "cool AND moon-roof AND hybrid" and color = "blue"
-"""
+  def testQueryAndLike(self):
+    stmt = \
+    """
+    SELECT color, category, tags
+    FROM cars
+    WHERE color LIKE "bl%"
+      AND MATCH(contents) AGAINST("cool AND moon-roof")
+      AND category LIKE "%an"
+    """
     req = sensei_client.compile(stmt)
-    # XXX Bug in query filter???
     # print sensei_client.buildJsonString(req, indent=2),
-    # self.assertEqual(sensei_client.buildJsonString(req, indent=2),
-
+    self.assertEqual(sensei_client.buildJsonString(req, indent=2),
+                     """{
+  "fetchStored": true, 
+  "filter": {
+    "and": [
+      {
+        "query": {
+          "query_string": {
+            "fields": [
+              "contents"
+            ], 
+            "query": "cool AND moon-roof"
+          }
+        }
+      }, 
+      {
+        "query": {
+          "wildcard": {
+            "category": "*an"
+          }
+        }
+      }
+    ]
+  }, 
+  "from": 0, 
+  "query": {
+    "wildcard": {
+      "color": "bl*"
+    }
+  }, 
+  "size": 10
+}""")
 
 if __name__ == "__main__":
     unittest.main()
