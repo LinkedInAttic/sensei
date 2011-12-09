@@ -265,18 +265,6 @@ public class SenseiServerBuilder implements SenseiConfParams{
 
 
 
-  //public SenseiServerBuilder(Resource confDir, Map<String, Object> properties, ApplicationContext customFacetContext) throws Exception {
-    //this(confDir, properties, customFacetContext, null);
-  //}
-
-  //public SenseiServerBuilder(Resource confDir, Map<String, Object> properties) throws Exception {
-    //this(confDir, properties, null, null);
-  //}
-
-  //public SenseiServerBuilder(Resource confDir) throws Exception {
-    //this(confDir, null, null, null);
-  //}
-
   static final Pattern PARTITION_PATTERN = Pattern.compile("[\\d]+||[\\d]+-[\\d]+");
 
   public static int[] buildPartitions(String[] partitionArray) throws ConfigurationException{
@@ -339,30 +327,23 @@ public class SenseiServerBuilder implements SenseiConfParams{
     }
   }
 
-  public SenseiCore buildCore() throws ConfigurationException{
+  public SenseiCore buildCore() throws ConfigurationException {
     int nodeid = _senseiConf.getInt(NODE_ID);
     String partStr = _senseiConf.getString(PARTITIONS);
     String[] partitionArray = partStr.split("[,\\s]+");
     int[] partitions = buildPartitions(partitionArray);
     logger.info("partitions to serve: "+Arrays.toString(partitions));
-
   // Analyzer from configuration:
       Analyzer analyzer = pluginRegistry.getBeanByFullPrefix(SENSEI_INDEX_ANALYZER, Analyzer.class);
-
       if (analyzer == null) {
         analyzer = new StandardAnalyzer(Version.LUCENE_34);
       }
-
-
       // Similarity from configuration:
       Similarity similarity = pluginRegistry.getBeanByFullPrefix(SENSEI_INDEX_SIMILARITY, Similarity.class);
       if (similarity == null) {
         similarity = new DefaultSimilarity();
       }
-
-
       ZoieConfig zoieConfig = new ZoieConfig(_gateway.getVersionComparator());
-
       zoieConfig.setAnalyzer(analyzer);
       zoieConfig.setSimilarity(similarity);
       zoieConfig.setBatchSize(_senseiConf.getInt(SENSEI_INDEX_BATCH_SIZE,ZoieConfig.DEFAULT_SETTING_BATCHSIZE));
@@ -370,7 +351,6 @@ public class SenseiServerBuilder implements SenseiConfParams{
       zoieConfig.setMaxBatchSize(_senseiConf.getInt(SENSEI_INDEX_BATCH_MAXSIZE, ZoieConfig.DEFAULT_MAX_BATCH_SIZE));
       zoieConfig.setRtIndexing(_senseiConf.getBoolean(SENSEI_INDEX_REALTIME, ZoieConfig.DEFAULT_SETTING_REALTIME));
       zoieConfig.setFreshness(_senseiConf.getLong(SENSEI_INDEX_FRESHNESS, 500));
-
 
       List<FacetHandler<?>> facetHandlers = new LinkedList<FacetHandler<?>>();
       List<RuntimeFacetHandlerFactory<?,?>> runtimeFacetHandlerFactories = new LinkedList<RuntimeFacetHandlerFactory<?,?>>();
@@ -422,105 +402,11 @@ public class SenseiServerBuilder implements SenseiConfParams{
           }
         }
       }
-      String indexerType = _senseiConf.getString(SENSEI_INDEXER_TYPE,"zoie");
-      SenseiIndexReaderDecorator decorator = new SenseiIndexReaderDecorator(facetHandlers,runtimeFacetHandlerFactories);
-      File idxDir = new File(_senseiConf.getString(SENSEI_INDEX_DIR));
-      SenseiZoieFactory<?> zoieSystemFactory = null;
-      if (SENSEI_INDEXER_TYPE_ZOIE.equals(indexerType)){
-        SenseiZoieSystemFactory senseiZoieFactory = new SenseiZoieSystemFactory(idxDir,interpreter,decorator,
-                zoieConfig);
-
-        int retentionDays = _senseiConf.getInt(SENSEI_ZOIE_RETENTION_DAYS,-1);
-        if (retentionDays>0){
-          String retentionClass = _senseiConf.getString(SENSEI_ZOIE_RETENTION_CLASS,null);
-          Filter purgeFilter = null;
-          if (retentionClass!=null){
-            try{
-              Class cls = Class.forName(retentionClass);
-              RetentionFilterFactory retentionFilterFactory = (RetentionFilterFactory)cls.newInstance();
-              purgeFilter = retentionFilterFactory.buildRetentionFilter(retentionDays);
-            }
-            catch(Exception e){
-              throw new ConfigurationException("unable constructing retention filter", e);
-            }
-          }
-          else{
-        	  String timeColumn = _senseiConf.getString(SENSEI_ZOIE_RETENTION_COLUMN, null);
-        	  if (timeColumn==null){
-        	    throw new ConfigurationException("Retention specified without a time column");
-        	  }
-
-        	  String unitString = _senseiConf.getString(SENSEI_ZOIE_RETENTION_TIMEUNIT,"seconds");
-        	  TimeUnit unit =TIMEUNIT_MAP.get(unitString.toLowerCase());
-
-        	  if (unit == null){
-        	    throw new ConfigurationException("Invalid timeunit for retention: "+unitString);
-        	  }
-          }
-          senseiZoieFactory.setPurgeFilter(purgeFilter);
-        }
-        zoieSystemFactory = senseiZoieFactory;
-      }
-      else if (SENSEI_INDEXER_TYPE_HOURGLASS.equals(indexerType)){
-
-        String schedule = _senseiConf.getString(SENSEI_HOURGLASS_SCHEDULE,"");
-        int trimThreshold = _senseiConf.getInt(SENSEI_HOURGLASS_TRIMTHRESHOLD,14);
-        String frequencyString = _senseiConf.getString(SENSEI_HOURGLASS_FREQUENCY,"day");
-
-        FREQUENCY frequency;
-
-        if (SENSEI_HOURGLASS_FREQUENCY_MIN.equals(frequencyString)){
-          frequency = FREQUENCY.MINUTELY;
-        }
-        else if (SENSEI_HOURGLASS_FREQUENCY_HOUR.equals(frequencyString)){
-          frequency = FREQUENCY.HOURLY;
-        }
-        else if (SENSEI_HOURGLASS_FREQUENCY_DAY.equals(frequencyString)){
-          frequency = FREQUENCY.DAILY;
-        }
-        else{
-          throw new ConfigurationException("unsupported frequency setting: "+frequencyString);
-        }
-        zoieSystemFactory = new SenseiHourglassFactory(idxDir,interpreter,decorator,
-              zoieConfig,schedule,trimThreshold,frequency);
-      }
-      else{
-        ZoieFactoryFactory zoieFactoryFactory= pluginRegistry.getBeanByFullPrefix(indexerType, ZoieFactoryFactory.class);
-        if (zoieFactoryFactory==null){
-          throw new ConfigurationException(indexerType+" not defined");
-        }
-        zoieSystemFactory = zoieFactoryFactory.getZoieFactory(idxDir, interpreter, decorator, zoieConfig);
-      }
-
-      String indexerCopier = _senseiConf.getString(SENSEI_INDEXER_COPIER);
-      IndexCopier copier = pluginRegistry.getBeanByFullPrefix(SENSEI_INDEXER_COPIER, IndexCopier.class);
-      if (indexerCopier != null) {
-        zoieSystemFactory = new SenseiPairFactory(idxDir, copier, interpreter, decorator, zoieConfig, zoieSystemFactory);
-
-      }
-      else if (SENSEI_INDEXER_COPIER_HDFS.equals(indexerCopier))
-      {
-        zoieSystemFactory = new SenseiPairFactory(idxDir,
-                                                  new HDFSIndexCopier(),
-                                                  interpreter,
-                                                  decorator,
-                                                  zoieConfig,
-                                                  zoieSystemFactory);
-      }
-      else
-      {
-        // do not support bootstrap index from other sources.
-
-      }
-
-
+      SenseiZoieFactory<?> zoieSystemFactory = constructZoieFactory(zoieConfig, facetHandlers, runtimeFacetHandlerFactories, interpreter);
       SenseiIndexingManager<?> indexingManager = pluginRegistry.getBeanByFullPrefix(SENSEI_INDEX_MANAGER, SenseiIndexingManager.class);
-
       if (indexingManager == null){
-        String uidField = _senseiSchema.getUidField();
         indexingManager = new DefaultStreamingIndexingManager(_senseiSchema,_senseiConf, pluginRegistry, _gateway);
       }
-
       SenseiQueryBuilderFactory queryBuilderFactory = pluginRegistry.getBeanByFullPrefix(SENSEI_QUERY_BUILDER_FACTORY, SenseiQueryBuilderFactory.class);
       if (queryBuilderFactory == null){
         QueryParser queryParser = new QueryParser(Version.LUCENE_34,"contents", analyzer);
@@ -530,12 +416,87 @@ public class SenseiServerBuilder implements SenseiConfParams{
       senseiCore.setSystemInfo(sysInfo);
 
       SenseiIndexPruner indexPruner = pluginRegistry.getBeanByFullPrefix(SENSEI_INDEX_PRUNER, SenseiIndexPruner.class);
-      String senseiPrunerClass = _senseiConf.getString(SENSEI_INDEX_PRUNER,"");
       if (indexPruner != null){
     	  senseiCore.setIndexPruner(indexPruner);
       }
 
       return senseiCore;
+  }
+
+  @SuppressWarnings({ "rawtypes", "unchecked" })
+  private SenseiZoieFactory<?> constructZoieFactory(ZoieConfig zoieConfig, List<FacetHandler<?>> facetHandlers,
+      List<RuntimeFacetHandlerFactory<?, ?>> runtimeFacetHandlerFactories, ZoieIndexableInterpreter interpreter)
+      throws ConfigurationException {
+    String indexerType = _senseiConf.getString(SENSEI_INDEXER_TYPE,"zoie");
+    SenseiIndexReaderDecorator decorator = new SenseiIndexReaderDecorator(facetHandlers,runtimeFacetHandlerFactories);
+    File idxDir = new File(_senseiConf.getString(SENSEI_INDEX_DIR));
+    SenseiZoieFactory<?> zoieSystemFactory = null;
+    if (SENSEI_INDEXER_TYPE_ZOIE.equals(indexerType)){
+      SenseiZoieSystemFactory senseiZoieFactory = new SenseiZoieSystemFactory(idxDir,interpreter,decorator,
+              zoieConfig);
+      int retentionDays = _senseiConf.getInt(SENSEI_ZOIE_RETENTION_DAYS,-1);
+      if (retentionDays>0){
+        RetentionFilterFactory retentionFilterFactory = pluginRegistry.getBeanByFullPrefix(SENSEI_ZOIE_RETENTION_CLASS, RetentionFilterFactory.class);
+        Filter purgeFilter = null;
+        if (retentionFilterFactory!=null){
+            purgeFilter = retentionFilterFactory.buildRetentionFilter(retentionDays);
+        }
+        else{
+      	  String timeColumn = _senseiConf.getString(SENSEI_ZOIE_RETENTION_COLUMN, null);
+      	  if (timeColumn==null){
+      	    throw new ConfigurationException("Retention specified without a time column");
+      	  }
+      	  String unitString = _senseiConf.getString(SENSEI_ZOIE_RETENTION_TIMEUNIT,"seconds");
+      	  TimeUnit unit =TIMEUNIT_MAP.get(unitString.toLowerCase());
+      	  if (unit == null){
+      	    throw new ConfigurationException("Invalid timeunit for retention: "+unitString);
+      	  }
+        }
+        senseiZoieFactory.setPurgeFilter(purgeFilter);
+      }
+      zoieSystemFactory = senseiZoieFactory;
+    }
+    else if (SENSEI_INDEXER_TYPE_HOURGLASS.equals(indexerType)){
+
+      String schedule = _senseiConf.getString(SENSEI_HOURGLASS_SCHEDULE,"");
+      int trimThreshold = _senseiConf.getInt(SENSEI_HOURGLASS_TRIMTHRESHOLD,14);
+      String frequencyString = _senseiConf.getString(SENSEI_HOURGLASS_FREQUENCY,"day");
+
+      FREQUENCY frequency;
+
+      if (SENSEI_HOURGLASS_FREQUENCY_MIN.equals(frequencyString)){
+        frequency = FREQUENCY.MINUTELY;
+      } else if (SENSEI_HOURGLASS_FREQUENCY_HOUR.equals(frequencyString)){
+        frequency = FREQUENCY.HOURLY;
+      }
+      else if (SENSEI_HOURGLASS_FREQUENCY_DAY.equals(frequencyString)){
+        frequency = FREQUENCY.DAILY;
+      }
+      else {
+        throw new ConfigurationException("unsupported frequency setting: "+frequencyString);
+      }
+      zoieSystemFactory = new SenseiHourglassFactory(idxDir,interpreter,decorator,
+            zoieConfig,schedule,trimThreshold,frequency);
+    }  else{
+      ZoieFactoryFactory zoieFactoryFactory= pluginRegistry.getBeanByFullPrefix(indexerType, ZoieFactoryFactory.class);
+      if (zoieFactoryFactory==null){
+        throw new ConfigurationException(indexerType+" not defined");
+      }
+      zoieSystemFactory = zoieFactoryFactory.getZoieFactory(idxDir, interpreter, decorator, zoieConfig);
+    }
+    String indexerCopier = _senseiConf.getString(SENSEI_INDEXER_COPIER);
+    IndexCopier copier = pluginRegistry.getBeanByFullPrefix(SENSEI_INDEXER_COPIER, IndexCopier.class);
+    if (indexerCopier != null) {
+      zoieSystemFactory = new SenseiPairFactory(idxDir, copier, interpreter, decorator, zoieConfig, zoieSystemFactory);
+    }  else if (SENSEI_INDEXER_COPIER_HDFS.equals(indexerCopier))
+    {
+      zoieSystemFactory = new SenseiPairFactory(idxDir, new HDFSIndexCopier(), interpreter, decorator, zoieConfig, zoieSystemFactory);
+    } else
+    {
+      // do not support bootstrap index from other sources.
+
+    }
+    return zoieSystemFactory;
   }
 
   public Server getJettyServer(){

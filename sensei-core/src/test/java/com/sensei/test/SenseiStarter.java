@@ -26,7 +26,7 @@ import com.sensei.search.svc.api.SenseiService;
 import com.sensei.search.svc.impl.HttpRestSenseiServiceImpl;
 
 /**
- * Embeds all the logic for startin the test Sensei instance
+ * Embeds all the logic for starting the test Sensei instance
  *
  */
 public class SenseiStarter {
@@ -51,6 +51,10 @@ public class SenseiStarter {
   protected static final String SENSEI_TEST_CONF_FILE="sensei-test.spring";
   protected static SenseiZoieFactory<?> _zoieFactory;
   private static boolean started = false;
+
+  /**
+   * Will start the new Sensei instance once per process
+   */
   public static synchronized void start() {
     if (started) {
       logger.warn("The server had been already started");

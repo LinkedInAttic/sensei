@@ -2,6 +2,7 @@ package com.sensei.plugin;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -13,58 +14,19 @@ import com.browseengine.bobo.facets.FacetHandler;
 
 public class SenseiPluginRegistry {
   public static final String FACET_CONF_PREFIX = "sensei.custom.facets";
-  private Map<String, SenseiPluginRegistry.PluginHolder> pluginsByPrefix = new LinkedHashMap<String, SenseiPluginRegistry.PluginHolder>();
-  private Map<String, PluginHolder> pluginsByNames = new LinkedHashMap<String, SenseiPluginRegistry.PluginHolder>();
+  private Map<String, PluginHolder> pluginsByPrefix = new LinkedHashMap<String, PluginHolder>();
+  private Map<String, PluginHolder> pluginsByNames = new LinkedHashMap<String, PluginHolder>();
   private List<PluginHolder> plugins = new ArrayList<PluginHolder>();
   private Configuration configuration;
+  private static Map<Configuration, SenseiPluginRegistry> cachedRegistries = new IdentityHashMap<Configuration, SenseiPluginRegistry>();
   private SenseiPluginRegistry() {
 
   }
-  private class PluginHolder {
-    String pluginCLass;
-    String pluginName;
-    String fullPrefix;
-    Object instance;
-    private Object factoryCreatedInstance;
-    Map<String, String> properties = new LinkedHashMap<String, String>();
-
-    public PluginHolder(String pluginCLass, String pluginName, String fullPrefix) {
-      super();
-      this.pluginCLass = pluginCLass;
-      this.pluginName = pluginName;
-      this.fullPrefix = fullPrefix;
-    }
-
-    public Object getInstance() {
-      if (instance == null) {
-        synchronized (this) {
-          try {
-            instance = Class.forName(pluginCLass).newInstance();
-          } catch (Exception ex) {
-            throw new RuntimeException(ex);
-          }
-        }
-      }
-      if (instance instanceof SenseiPlugin) {
-        ((SenseiPlugin) instance).init(properties);
-        ((SenseiPlugin) instance).start();
-      }
-      if (instance instanceof SenseiPluginFactory) {
-        if (factoryCreatedInstance == null) {
-          synchronized (instance) {
-            factoryCreatedInstance = ((SenseiPluginFactory) instance).getBean(properties, fullPrefix,
-                SenseiPluginRegistry.this);
-
-          }
-        }
-        return factoryCreatedInstance;
-      }
-      return instance;
-    }
-
-  }
-
   public static synchronized SenseiPluginRegistry build(Configuration conf) {
+    if (cachedRegistries.containsKey(conf)) {
+      return cachedRegistries.get(conf);
+    }
+
     SenseiPluginRegistry ret = new SenseiPluginRegistry();
     ret.configuration = conf;
     Iterator keysIterator = conf.getKeys();
@@ -77,7 +39,7 @@ public class SenseiPluginRegistry {
           pluginName = prefix.substring(prefix.lastIndexOf(".") + 1);
         }
         String pluginCLass = conf.getString(key);
-        ret.plugins.add(ret.new PluginHolder(pluginCLass, pluginName, prefix));
+        ret.plugins.add(new PluginHolder(ret, pluginCLass, pluginName, prefix));
       }
     }
     for (PluginHolder pluginHolder : ret.plugins) {
@@ -98,6 +60,7 @@ public class SenseiPluginRegistry {
 
       }
     }
+    cachedRegistries.put(conf, ret);
     return ret;
   }
 
