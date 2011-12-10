@@ -233,7 +233,7 @@ public class SenseiPerfClient {
 				builder.append(searchTimer.min()).append(",");
 				builder.append(searchTimer.max()).append(",");
 				builder.append(searchTimer.mean()).append(",");
-				double[] percents = searchTimer.percentiles(0.90,0.95,0.99);
+				Double[] percents = searchTimer.percentiles(0.90,0.95,0.99);
 				builder.append(percents[0]).append(",");
 				builder.append(percents[1]).append(",");
 				builder.append(percents[2]);
