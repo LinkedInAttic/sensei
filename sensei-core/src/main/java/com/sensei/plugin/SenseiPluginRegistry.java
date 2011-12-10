@@ -142,7 +142,11 @@ public class SenseiPluginRegistry {
   }
 
   public synchronized void start() {
-
+    for (PluginHolder pluginHolder : plugins) {
+      if (pluginHolder.instance instanceof SenseiPlugin) {
+        ((SenseiPlugin) pluginHolder.instance).start();
+      }
+    }
   }
 
   public synchronized void stop() {

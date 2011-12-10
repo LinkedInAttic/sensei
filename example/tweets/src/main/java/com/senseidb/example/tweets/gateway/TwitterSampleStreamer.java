@@ -29,7 +29,7 @@ public class TwitterSampleStreamer extends StreamDataProvider<JSONObject> {
     URLConnection uc = url.openConnection();
     
     String userPassword = username+":"+password;
-    logger.info("user/pass: "+userPassword);
+    
     String encoding = new sun.misc.BASE64Encoder().encode (userPassword.getBytes());
     uc.setRequestProperty ("Authorization", "Basic " + encoding);
     
