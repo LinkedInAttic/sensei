@@ -48,11 +48,11 @@ title: SenseiDB - Request JSON Reference
 	    {
 	      //details of this part see the selections.json
 	      "terms" : {
-		   "tags" :{
+	        "tags" :{
 	          "values" : [ "blue", "pill" ],
 	          "excludes" : ["red"],
 	          "operator" : "or"
-            }
+	        }
 	      }
 	    },
 	    {
@@ -83,8 +83,8 @@ title: SenseiDB - Request JSON Reference
 
 	  // sort parameters
 	 "sort":[
-		{"color":"desc"},            // sort by color in reverse order
-		"_score"                     // secondary sort by relevance, reverse  parameter is ignored
+	    {"color":"desc"},            // sort by color in reverse order
+	    "_score"                     // secondary sort by relevance, reverse  parameter is ignored
 	  ],
 
 	  // fetch stored fields
