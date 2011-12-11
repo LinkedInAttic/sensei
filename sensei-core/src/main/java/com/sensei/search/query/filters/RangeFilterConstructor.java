@@ -2,9 +2,11 @@ package com.sensei.search.query.filters;
 
 import java.io.IOException;
 import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.Locale;
 
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.search.DocIdSet;
@@ -130,21 +132,21 @@ public class RangeFilterConstructor extends FilterConstructor
         if ("int".equals(type)) {
           MetaType metaType = DefaultSenseiInterpreter.CLASS_METATYPE_MAP.get(int.class);
           String formatString = DefaultSenseiInterpreter.DEFAULT_FORMAT_STRING_MAP.get(metaType);
-          DecimalFormat formatter = new DecimalFormat(formatString);
+          DecimalFormat formatter = new DecimalFormat(formatString, new DecimalFormatSymbols(Locale.US));
           fromPadded = formatter.format(Integer.parseInt(from));
           toPadded = formatter.format(Integer.parseInt(to));
         } 
         else if ("short".equals(type)) {
           MetaType metaType = DefaultSenseiInterpreter.CLASS_METATYPE_MAP.get(short.class);
           String formatString = DefaultSenseiInterpreter.DEFAULT_FORMAT_STRING_MAP.get(metaType);
-          DecimalFormat formatter = new DecimalFormat(formatString);
+          DecimalFormat formatter = new DecimalFormat(formatString, new DecimalFormatSymbols(Locale.US));
           fromPadded = formatter.format(Short.parseShort(from));
           toPadded = formatter.format(Short.parseShort(to));
         }
         else if ("long".equals(type)) {
           MetaType metaType = DefaultSenseiInterpreter.CLASS_METATYPE_MAP.get(long.class);
           String formatString = DefaultSenseiInterpreter.DEFAULT_FORMAT_STRING_MAP.get(metaType);
-          DecimalFormat formatter = new DecimalFormat(formatString);
+          DecimalFormat formatter = new DecimalFormat(formatString, new DecimalFormatSymbols(Locale.US));
           fromPadded = formatter.format(Long.parseLong(from));
           toPadded = formatter.format(Long.parseLong(to));
         }
@@ -160,14 +162,14 @@ public class RangeFilterConstructor extends FilterConstructor
         else if ("float".equals(type)) {
           MetaType metaType = DefaultSenseiInterpreter.CLASS_METATYPE_MAP.get(float.class);
           String formatString = DefaultSenseiInterpreter.DEFAULT_FORMAT_STRING_MAP.get(metaType);
-          DecimalFormat formatter = new DecimalFormat(formatString);
+          DecimalFormat formatter = new DecimalFormat(formatString, new DecimalFormatSymbols(Locale.US));
           fromPadded = formatter.format(Float.parseFloat(from));
           toPadded = formatter.format(Float.parseFloat(to));
         }
         else if ("double".equals(type)) {
           MetaType metaType = DefaultSenseiInterpreter.CLASS_METATYPE_MAP.get(double.class);
           String formatString = DefaultSenseiInterpreter.DEFAULT_FORMAT_STRING_MAP.get(metaType);
-          DecimalFormat formatter = new DecimalFormat(formatString);
+          DecimalFormat formatter = new DecimalFormat(formatString, new DecimalFormatSymbols(Locale.US));
           fromPadded = formatter.format(Double.parseDouble(from));
           toPadded = formatter.format(Double.parseDouble(to));
         }
