@@ -1,27 +1,59 @@
 var host="localhost";
 var port=8080;
 
-var queryString = {"query" : ""};
-var senseiReq = {"query":{"query_string":queryString}};
+var tweeterSel={"values":[]};
+var hashtagSel={"values":[]};
+
+var selmap = {"tweeter":tweeterSel,"hashtags":hashtagSel};
+
+var senseiReq = {};
 
 senseiReq.fetchStored = true;
 
 senseiReq.sort = [{"time":"desc"},"_score"];
 
-senseiReq.selections = [];
+senseiReq.selections = [
+{
+  "terms":{
+    "tweeter":tweeterSel
+  }
+},
+{
+  "terms":{
+    "hashtags":hashtagSel
+  }
+}
+];
+
 senseiReq.facets = {};
 
-senseiReq.facets.time={};
+senseiReq.facets.time={"expand":true};
 
-senseiReq.facets.tweeter={};
+senseiReq.facets.tweeter={"expand":true};
 
-senseiReq.facets.hashtags={};
+senseiReq.facets.hashtags={"expand":true};
 
+setSenseiQueryString(senseiReq,"");
 
-var senseiClient = new SenseiClient(host,port)
+var repVal = function(arr,s){
+  var found =false;
+  for (var i=0;i<arr.length;++i){
+    if (s==arr[i]){
+        arr.splice(i,1);
+        found = true;
+        break;
+    }
+  }
+  if (!found){
+    arr.push(s);
+  }
+}
 
 function handleSelected(name,facetVal){
-	console.log(name+','+facetVal.value);
+	var sel = selmap[name];
+	var valArray = sel["values"];
+	repVal(valArray,facetVal.value);
+	doSearch();
 }
 
 function renderFacet(name,facet){
@@ -58,26 +90,26 @@ function renderHits(hits){
 
 		html += '<div class="span3">'+hit.score+"</div>"
 
-        var date = new Date(hit.time);
-		html += '<div class="span3">'+date+"</div>"
+    var date = new Date(hit.time);
+		html += '<div class="span3">'+date+'</div>'
 
-    	var srcdata = eval('('+hit.srcdata+')');
+    var srcdata = eval('('+hit.srcdata+')');
 
-        var tweet = srcdata.tweet;
-        var user = tweet.user;
-        var imgUrl = user.profile_image_url_https;
-        var text = tweet.text;
+    var tweet = srcdata.tweet;
+    var user = tweet.user;
+    var imgUrl = user.profile_image_url_https;
+    var text = tweet.text;
 
 
-        var tweeter = srcdata.tweeter;
+    var tweeter = srcdata.tweeter;
 
-        html += '<div class="span3"><a href="'+imgUrl+'"><img src="'+imgUrl+'"/></a></div>';
+    html += '<div class="span3"><a href="'+imgUrl+'"><img src="'+imgUrl+'"/></a></div>';
 
-        html += '<div class="span6">'+tweeter+'<br/>'+text+'</div>';
+    html += '<div class="span6">'+tweeter+'<br/>'+text+'</div>';
 		html += '</div>';
-    	$('#results').append(html);
-    	console.log(srcdata.tweet);
-    }
+    $('#results').append(html);
+    console.log(srcdata.tweet);
+  }
 }
 
 function renderPage(senseiResult){
@@ -96,24 +128,25 @@ function renderPage(senseiResult){
 		renderFacet(name,facets[name])
 	}
 
-    renderHits(senseiResult.hits);
+  renderHits(senseiResult.hits);
     
 }
 
 function doSearch(){
-	senseiClient.doQuery(senseiReq,renderPage);
+  console.log("req: "+senseiReq);
+	executeSenseiReq(host,port,senseiReq,renderPage);
 }
 
 
 function updateTextQuery(){
 	var q = $('#qbox').val();
-	queryString['query'] = q;
+	setSenseiQueryString(senseiReq,q);
 	doSearch();
 }
 
 function resetAll(){
 	$('#qbox').val("");
-    queryString['query'] = "";
-    senseiReq.selections = [];
-    doSearch();
+  senseiReq.selections = [];
+  setSenseiQueryString(senseiReq,"");
+  doSearch();
 }

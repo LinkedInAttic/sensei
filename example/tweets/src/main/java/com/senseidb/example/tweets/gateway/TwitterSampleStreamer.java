@@ -98,8 +98,8 @@ public class TwitterSampleStreamer extends StreamDataProvider<JSONObject> {
         List<String> hashtags = extractHashtags(textString);
         
         StringBuilder contentBuilder = new StringBuilder();
-        contentBuilder.append(textString);
-        contentBuilder.append("\n");
+        contentBuilder.append(textString).append("\n");
+        contentBuilder.append(screenName).append("\n");
         if(hashtags!=null && hashtags.size()>0){
           StringBuilder buf = new StringBuilder();
           boolean first = true;
