@@ -1,6 +1,6 @@
 ---
 layout: default
-title: SenseiDB - Getting Started
+title: SenseiDB - Getting Started, Part One
 name: getting-started
 ---
 <div class="hero-unit">
@@ -10,9 +10,14 @@ name: getting-started
 	</p>
 </div>
 
+<h2>Running the Car example</h2>
+<p>
+	Sensei comes with a few examples to help you getting started. Let&apos;s first take a look at the <code>Cars example</code>, and get that running.
+</p>
+
 <div class="row">
 	<div class="span6">
-		<h3>Start Zookeeper</h3>
+		<h3>Step 1: Start Zookeeper</h3>
 		<p>
 		Zookeeper manages Sensei&apos;s network topology or cluster.
 		</p>
@@ -27,62 +32,145 @@ name: getting-started
 
 <div class="row">
 	<div class="span6">
-		<h3>Create &amp; configure an app</h3>
+		<h3>Step 2: Start Sensei Node</h3>
 		<p>
-		 Putting together some configuration. (Example: <a href="https://github.com/senseidb/sensei/tree/master/conf">Cars</a>)
-		</p>
-		<p>
-			<a class="btn" href="/configuration.html">Details &raquo;</a>
+		 With Zookeeper running, we can start a Sensei node serving Car example listening on port 8080:
 		</p>
 	</div>
 	<div class="span8">
 		<p>
-		Start your Sensei node by pointing to your configuration directory (the following example starts the car example application):
-		<pre><code>$SENSEI_HOME/bin/start-sensei-node.sh conf</code></pre>
+		In <code>$SENSEI_HOME</code>, start your Sensei node by pointing to the <a href="#">Car example configuration directory</a>:
+		<pre><code>./bin/start-sensei-node.sh example/cars/conf</code></pre>
+		</p>
+	</div>
+</div>
+
+<div class="row">
+	<div class="span6">
+		<h3>Step 3: Run the Car example application</h3>
+		<p>
+		 You can open the Car example application with your browser (no need to start any other servers.)
+		</p>
+	</div>
+	<div class="span8">
+		<p>
+	Open <code>index.html</code> file located at with your browser: <pre><code>$SENSEI_HOME/example/cars/webapp/index.html</code></pre>
 		</p>
 	</div>
 </div>
 
 <hr/>
-<h2>Voila! That&apos;s it!</h2>
+<h2>Using the Sensei Shell</h2>
 <p>
-	You can now interact with your Sensei node with either the <code>Sensei Web-console</code> or the <code>Sensei Shell</code>!
+	We can also query this Sensei node with <a href="#">BQL</a> via the Sensei Shell:
 </p>
-<br/>
-<div class="row">
-	<div class="span6">
-		<h3>Web-console</h3>
-		<p>
-		 Sensei comes with a web-console (written using Sensei&apos;s Javascript API) to help you interact with your Sensei cluster.
-		</p>
-	</div>
-	<div class="span8">
-		<p>
-		Point your favorite browser to: <a href="http://localhost:8080">http://localhost:8080</a>
-		</p>
-		<p>
-		Learn details of the Javascript API <a href="/client-rest.html">here</a>.
-		</p>
-	</div>
-</div>
-
-<div class="row">
-	<div class="span6">
-		<h3>Shell</h3>
-		<p>
-		 You can also query your Sensei cluster with <a href="http://linkedin.jira.com/wiki/display/SENSEI/BQL+Syntax+and+Query+Examples">BQL</a> using the Sensei Shell.
-		</p>
-	</div>
-	<div class="span8">
-		<p>
-		 Start the Sensei Shell: host/port information optional, defaults to localhost:8080
-		 <pre><code>$SENSEI_HOME/bin/sensei-shell.sh</code></pre>
-		</p>
-	</div>
-</div>
-
-
-<h2>Hook me up with Sensei!</h2>
+<pre><code>./bin/sensei-shell.sh</code></pre>
+<p>Output:</p>
+<pre class="prettyprint">
+$ ./bin/sensei-shell.sh localhost 8080 
+Welcome to Sensei Shell
+Url specified, host: localhost, port: 8080
+&gt; desc cars;
++------------+------------+---------+-----------+-------------+---------+
+| facet_name | facet_type | runtime | column    | column_type | depends |
++------------+------------+---------+-----------+-------------+---------+
+| year       | range      | false   | year      | int         | []      |
+| color      | simple     | false   | color     | string      | []      |
+| makemodel  | path       | false   | makemodel | string      | []      |
+| groupid    | simple     | false   | groupid   | long        | []      |
+| city       | path       | false   | city      | string      | []      |
+| tags       | multi      | false   | tags      | string      | []      |
+| category   | simple     | false   | category  | string      | []      |
+| mileage    | range      | false   | mileage   | int         | []      |
+| price      | range      | false   | price     | float       | []      |
++------------+------------+---------+-----------+-------------+---------+
+&gt; select uid,color,category where color in ('red','green') and query is "cool" order by category browse by color,category limit 10;
++-------+-------+----------+
+| uid   | color | category |
++-------+-------+----------+
+| 11099 | green | compact  |
+| 11101 | green | compact  |
+| 14929 | green | compact  |
+| 15    | green | compact  |
+| 105   | green | compact  |
+| 133   | green | compact  |
+| 149   | green | compact  |
+| 195   | green | compact  |
+| 1071  | green | compact  |
+| 1107  | red   | compact  |
++-------+-------+----------+
+10 rows in set, 1626 hits, 15129 total docs (server: 14ms, total: 87ms)
++---------------------+
+| category            |
++---------------------+
+| compact       (506) |
+| sports car    (265) |
+| exotic        (253) |
+| suv           (199) |
+| sedan         (123) |
+| mini-van      (109) |
+| truck         (75)  |
+| sub-compact   (59)  |
+| van           (22)  |
+| station wagon (15)  |
++---------------------+
++--------------+
+| color        |
++--------------+
+| red   (1070) |
+| green (556)  |
++--------------+
+&gt; exit
+</pre>
+<h2>Using the Web-console</h2>
 <p>
-  Now that you have the demo running, let&apos;s setup your app to work with Sensei: <a class="btn primary" href="/configuration.html">Configuration &raquo;</a>
+ Sensei comes with a web-console (written using Sensei&apos;s Javascript API) to help you interact with your Sensei cluster.
+</p>
+<p>
+  Simply point your favorite browser to: <a href="http://localhost:8080">http://localhost:8080</a>
+</p>
+<p>
+	Learn details of the Javascript API <a href="/client-rest.html">here</a>.
+</p>
+<h2>Shutting down the Sensei node</h2>
+<p>
+	In $SENSEI_HOME, do:
+	<pre><code>./bin/kill.sh</code></pre>
+</p>
+<hr/>
+
+<h2>Understanding the Car Example</h2>
+	<h4>Cars data</h4>
+	<p>
+		We have cooked up some data in the form of json objects for 15,000 cars.
+	</p>
+	<p>
+		Data is stored in text file containing a json string on each-line. Each json string contains information of a car.
+	</p>
+	<p>
+		Full dataset can be found <a href='#'>here</a>. See the following example:
+	</p>
+<pre class="prettyprint" id="javascript">
+{
+  "id":0,
+  "groupid":"0",
+  "tags":"hybrid,leather,moon-roof,reliable",
+  "category":"compact",
+  "mileage":14900,
+  "price":7500,
+  "contents":"yellow compact hybrid leather moon-roof reliable u.s.a. florida tampa asian acura 1.6el",
+  "color":"yellow",
+  "year":1994,
+  "makemodel":"asian/acura/1.6el",
+  "city":"u.s.a./florida/tampa"
+}
+</pre>
+<p>
+  This <a href="#">example&apos;s configuration</a> contains schema and server settings for the Cars store.
+</p>
+
+
+<h2>Tweets example</h2>
+<p>
+  If you think this cool, move on to the <a class="btn primary" href="/gettingStarted2.html">Tweets Example &raquo;</a>
 </p>

@@ -1,0 +1,184 @@
+---
+layout: default
+title: SenseiDB - Getting Started, Part Two
+name: getting-started2
+---
+<div class="hero-unit">
+	<h2>Getting Started Continued</h2>
+	<p>
+		So are you ready for more?
+	</p>
+</div>
+
+<h2>Build the Tweets extension</h2>
+<p>
+	The Tweets example builds a special Gateway to stream from Twitter, we need to build it and plug it into Sensei.
+</p>
+<h4>Code</h4>
+<p>
+	Read the <a href="#">source code</a> for TwitterSampleGateway.
+</p>
+<h4>Build</h4>
+<p>
+	Go to <code>$SENSEI_HOME/example/tweets</code>, compile and build:
+	<pre><code>mvn package</code></pre>
+</p>
+<h4>Install</h4>
+<p>
+	Created a directory with name: <code>ext</code>, under <code>$SENSEI_HOME/example/tweets/conf</code>
+	<pre><code>mkdir conf/ext</code></pre>
+	and copy to built artifact there:
+	<pre><code>cp target/tweet-example-*.jar conf/ext</code></pre>
+</p>
+
+<h2>Running the Tweets example</h2>
+<p>
+	This example queries against the Twitter stream directly from Twitter via Twitter&apos;s Streaming API (Sample)
+</p>
+
+<div class="row">
+	<div class="span6">
+		<h3>Step 1: Start Zookeeper</h3>
+		<p>
+		Zookeeper manages Sensei&apos;s network topology or cluster.
+		</p>
+	</div>
+	<div class="span8">
+		<p>
+		Start your ZooKeeper instance: (detailed instruction <a href="http://zookeeper.apache.org/doc/trunk/zookeeperStarted.html">here</a>)
+		<pre><code>$ZK_HOME/bin/zkServer.sh start</code></pre>
+		</p>
+	</div>
+</div>
+
+<div class="row">
+	<div class="span6">
+		<h3>Step 2: Set Twitter credentials</h3>
+		<p>
+		 You need your credentials to talk to Twitter to get data.
+		</p>
+	</div>
+	<div class="span8">
+		<p>
+		Edit the file:
+		<pre><code>$SENSEI_HOME/example/tweets/conf/sensei.properties</code></pre>
+		</p>
+		<p>
+			And fill out the properties:
+			<pre class="prettyprint">
+sensei.gateway.custom.username = &lt;YOUR TWITTER USERNAME&gt;
+sensei.gateway.custom.password = &lt;YOUR TWITTER PASSWORD&gt;
+			</pre>
+		</p>
+	</div>
+</div>
+
+<div class="row">
+	<div class="span6">
+		<h3>Step 3: Start Sensei Node</h3>
+		<p>
+		 With Zookeeper running, we can start a Sensei node serving Tweets example listening on port 8080:
+		</p>
+	</div>
+	<div class="span8">
+		<p>
+		In <code>$SENSEI_HOME</code>, start your Sensei node by pointing to the <a href="#">Tweets example configuration directory</a>:
+		<pre><code>./bin/start-sensei-node.sh example/tweets/conf</code></pre>
+		</p>
+	</div>
+</div>
+
+<div class="row">
+	<div class="span6">
+		<h3>Step 4: Run the Tweets example application</h3>
+		<p>
+		 You can open the Tweets example application with your browser (no need to start any other servers.)
+		</p>
+	</div>
+	<div class="span8">
+		<p>
+	Open <code>index.html</code> file located at with your browser: <pre><code>$SENSEI_HOME/example/tweets/webapp/index.html</code></pre>
+	and client <b><i>Refresh</i></b> button and see data streaming!
+		</p>
+	</div>
+</div>
+<hr/>
+<h2>Using the Sensei Shell</h2>
+<p>
+	Of course, we can also query this Sensei node with <a href="#">BQL</a> via the Sensei Shell:
+</p>
+<pre><code>./bin/sensei-shell.sh</code></pre>
+<p>Output:</p>
+<pre class="prettyprint">
+$ ./bin/sensei-shell.sh localhost 8080 
+Welcome to Sensei Shell
+Url specified, host: localhost, port: 8080
+&gt; desc tweets
++------------+------------+---------+----------+-------------+---------+
+| facet_name | facet_type | runtime | column   | column_type | depends |
++------------+------------+---------+----------+-------------+---------+
+| time       | range      | false   | time     | long        | []      |
+| hashtags   | multi      | false   | hashtags | string      | []      |
+| tweeter    | simple     | false   | tweeter  | string      | []      |
++------------+------------+---------+----------+-------------+---------+
+&gt; select time,tweeter,hashtags browse by tweeter,hashtags limit 5
++------------------------------------------+-----------------+----------------+
+| time                                     | tweeter         | hashtags       |
++------------------------------------------+-----------------+----------------+
+| 0000000000000000000000000001323586320000 | _cupcakemafia   | likeagujjuboss |
+| 0000000000000000000000000001323586320000 | Gorgeous_Biotch |                |
+| 0000000000000000000000000001323586320000 | AeroNews        |                |
+| 0000000000000000000000000001323586320000 | alaanjerezano   |                |
+| 0000000000000000000000000001323586320000 | Wanji_Aswandi   |                |
++------------------------------------------+-----------------+----------------+
+5 rows in set, 1082 hits, 1082 total docs (server: 70ms, total: 149ms)
++----------------+
+| hashtags       |
++----------------+
+| pickone    (3) |
+| Aquarius   (2) |
+| Gemini     (2) |
+| nowplaying (2) |
+| tellme     (2) |
+| 2PM,JYP    (1) |
+| Atletics   (1) |
+| BMT        (1) |
+| CBT        (1) |
+| Cancer     (1) |
++----------------+
++---------------------+
+| tweeter             |
++---------------------+
+| CaptainShankAHo (2) |
+| ahy_ch          (2) |
+| alexiasantana_  (2) |
+| kartalint       (2) |
+| 000CashMoney000 (1) |
+| 0Q27            (1) |
+| 106andParkfans  (1) |
+| 1205FZYJYJC     (1) |
+| 14kakeru        (1) |
+| 16956384        (1) |
++---------------------+
+&gt; exit
+</pre>
+<h2>Using the Web-console</h2>
+<p>
+ Same with the Car Example, we can use the web-console to interact with Sensei.
+</p>
+<p>
+  Simply point your favorite browser to: <a href="http://localhost:8080">http://localhost:8080</a>
+</p>
+<p>
+	Learn details of the Javascript API <a href="/client-rest.html">here</a>.
+</p>
+<h2>Shutting down the Sensei node</h2>
+<p>
+	In $SENSEI_HOME, do:
+	<pre><code>./bin/kill.sh</code></pre>
+</p>
+<hr/>
+<h2>Hook me up with Sensei</h2>
+<p>
+  Now that you have the demos running, let&apos;s setup your app to work with Sensei by learning about the: <a class="btn primary" href="/configuration.html">Configuration &raquo;</a>
+</p>
