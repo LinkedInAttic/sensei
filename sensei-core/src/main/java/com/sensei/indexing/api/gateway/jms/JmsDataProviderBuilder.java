@@ -32,7 +32,7 @@ public class JmsDataProviderBuilder extends SenseiGateway<Message>{
 
 	public JmsDataProviderBuilder(Configuration conf){
 	  super(conf);
-	  pluginRegistry = SenseiPluginRegistry.build(conf);
+	  pluginRegistry = SenseiPluginRegistry.get(conf);
 	  _versionComparator = ZoieConfig.DEFAULT_VERSION_COMPARATOR;
 	}
 

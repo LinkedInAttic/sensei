@@ -22,6 +22,10 @@ public class SenseiPluginRegistry {
   private SenseiPluginRegistry() {
 
   }
+  public static synchronized SenseiPluginRegistry get(Configuration conf) {
+    return cachedRegistries.get(conf);
+  }
+
   public static synchronized SenseiPluginRegistry build(Configuration conf) {
     if (cachedRegistries.containsKey(conf)) {
       return cachedRegistries.get(conf);
@@ -142,14 +146,24 @@ public class SenseiPluginRegistry {
   }
 
   public synchronized void start() {
-
+    for (PluginHolder pluginHolder : plugins) {
+      if (pluginHolder.getInstance() instanceof SenseiPlugin) {
+        ((SenseiPlugin) pluginHolder.getInstance()).start();
+      }
+    }
   }
 
   public synchronized void stop() {
     for (PluginHolder pluginHolder : plugins) {
-      if (pluginHolder.instance instanceof SenseiPlugin) {
-        ((SenseiPlugin) pluginHolder.instance).stop();
+      Object instance = pluginHolder.getInstance();
+      if (instance instanceof SenseiPlugin) {
+        ((SenseiPlugin) instance).stop();
       }
     }
+    pluginsByPrefix.clear();
+    pluginsByNames.clear();
+    plugins.clear();
+    cachedRegistries.remove(configuration);
+    configuration = null;
   }
 }

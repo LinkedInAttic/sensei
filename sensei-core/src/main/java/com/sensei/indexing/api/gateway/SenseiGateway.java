@@ -15,11 +15,10 @@ import com.sensei.plugin.SenseiPluginRegistry;
 public abstract class SenseiGateway<V>{
 	abstract public String getName();
 	protected Configuration _conf;
-  protected SenseiPluginRegistry pluginRegistry;
 
 	public SenseiGateway(Configuration conf){
 	  _conf = conf;
-    this.pluginRegistry = SenseiPluginRegistry.build(conf);
+
 	}
 
 	final public DataSourceFilter<V> getDataSourceFilter(SenseiSchema senseiSchema, SenseiPluginRegistry pluginRegistry){

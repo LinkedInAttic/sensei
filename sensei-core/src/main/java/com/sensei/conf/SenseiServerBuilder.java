@@ -519,7 +519,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
 
     List<AbstractSenseiCoreService<AbstractSenseiRequest, AbstractSenseiResult>> svcList = (List)pluginRegistry.resolveBeansByListKey(SENSEI_PLUGIN_SVCS, AbstractSenseiCoreService.class);
 
-  return new SenseiServer(port,networkServer,clusterClient,core,svcList);
+  return new SenseiServer(port,networkServer,clusterClient,core,svcList, pluginRegistry);
   }
   /*
   public HttpAdaptor buildJMXAdaptor(){

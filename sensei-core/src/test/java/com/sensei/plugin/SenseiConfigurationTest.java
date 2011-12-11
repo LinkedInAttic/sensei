@@ -6,6 +6,7 @@ import junit.framework.Assert;
 
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.lucene.analysis.Analyzer;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -27,7 +28,10 @@ public class SenseiConfigurationTest extends Assert {
     pluginRegistry.start();
 
   }
-
+  @After
+  public void tearDown() {
+    pluginRegistry.stop();
+  }
   @Test
   public void test1GetBeanByFullPrefix() {
     Analyzer analyzer = pluginRegistry.getBeanByFullPrefix("sensei.index.analyzer", Analyzer.class);

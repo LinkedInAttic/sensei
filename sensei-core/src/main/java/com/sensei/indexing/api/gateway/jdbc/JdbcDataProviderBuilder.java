@@ -30,7 +30,7 @@ public class JdbcDataProviderBuilder extends SenseiGateway<ResultSet>{
 
 	public JdbcDataProviderBuilder(Configuration conf) throws Exception{
 	  super(conf);
-	   pluginRegistry = SenseiPluginRegistry.build(conf);
+	   pluginRegistry = SenseiPluginRegistry.get(conf);
     _versionComparator = pluginRegistry.getBeanByName("versionComparator", Comparator.class);
 	}
 

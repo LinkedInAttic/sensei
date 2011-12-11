@@ -24,6 +24,7 @@ import com.linkedin.norbert.javacompat.cluster.Node;
 import com.linkedin.norbert.javacompat.network.NetworkServer;
 import com.linkedin.norbert.network.NetworkingException;
 import com.sensei.conf.SenseiServerBuilder;
+import com.sensei.plugin.SenseiPluginRegistry;
 import com.sensei.search.jmx.JmxUtil;
 import com.sensei.search.req.AbstractSenseiRequest;
 import com.sensei.search.req.AbstractSenseiResult;
@@ -54,24 +55,27 @@ public class SenseiServer {
 
     protected volatile boolean _available = false;
 
+    private final SenseiPluginRegistry pluginRegistry;
+
     public SenseiServer(int id, int port, int[] partitions,
                         NetworkServer networkServer,
                         ClusterClient clusterClient,
                         SenseiZoieFactory<?> zoieSystemFactory,
                         SenseiIndexingManager indexingManager,
                         SenseiQueryBuilderFactory queryBuilderFactory,
-                        List<AbstractSenseiCoreService<AbstractSenseiRequest, AbstractSenseiResult>> externalSvc)
+                        List<AbstractSenseiCoreService<AbstractSenseiRequest, AbstractSenseiResult>> externalSvc, SenseiPluginRegistry pluginRegistry)
     {
-       this(port,networkServer,clusterClient,new SenseiCore(id, partitions,zoieSystemFactory, indexingManager, queryBuilderFactory),externalSvc);
+       this(port,networkServer,clusterClient,new SenseiCore(id, partitions,zoieSystemFactory, indexingManager, queryBuilderFactory),externalSvc, pluginRegistry);
     }
 
     public SenseiServer(int port,
             NetworkServer networkServer,
             ClusterClient clusterClient,
             SenseiCore senseiCore,
-            List<AbstractSenseiCoreService<AbstractSenseiRequest, AbstractSenseiResult>> externalSvc)
+            List<AbstractSenseiCoreService<AbstractSenseiRequest, AbstractSenseiResult>> externalSvc, SenseiPluginRegistry pluginRegistry)
    {
         _core = senseiCore;
+        this.pluginRegistry = pluginRegistry;
         _id = senseiCore.getNodeId();
         _port = port;
         _partitions = senseiCore.getPartitions();
@@ -134,6 +138,7 @@ public class SenseiServer {
         try
         {
           _core.shutdown();
+          pluginRegistry.stop();
           _clusterClient.removeNode(_id);
           _clusterClient.shutdown();
           _serverNode = null;
