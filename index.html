@@ -43,20 +43,24 @@ name: home
        <p><a class="btn" href="/data-guarantee.html">View details &raquo;</a></p>
       </div>
 	
-	<div class="span5">
+	<div class="span6">
         <h2>BQL</h2>
         <p>
         	Browse Query Language (BQL) is an SQL-like language used to to interface with Sensei.
         </p>
 		<p>
 			Example BQL:
-			<pre class="prettyprint lang-bql">SELECT _uid,color,_score FROM members
-WHERE color="red" AND category IN ("van","exotic") AND
-QUERY IS "cool leather seats"
-GROUP BY color TOP 3
-BROWSE BY color,category
-ORDER BY RELEVANCE
-LIMIT 0,10</pre>
+			<pre class="prettyprint lang-bql">
+SELECT _uid,_score,color 
+       FROM members
+       WHERE color="red" AND 
+             category IN ("van","exotic") AND 
+             QUERY IS "cool leather seats"
+       GROUP BY color TOP 3
+       BROWSE BY color,category
+       ORDER BY RELEVANCE
+       LIMIT 0,10
+</pre>
 		</p>
         <p><a class="btn" href="http://linkedin.jira.com/wiki/display/SENSEI/BQL+Syntax+and+Query+Examples">View details &raquo;</a></p>
       </div>
@@ -88,7 +92,7 @@ LIMIT 0,10</pre>
         </p>
         <p><a class="btn" href="/indexing-gateway.html">View details &raquo;</a></p>
       </div>
-      <div class="span5">
+      <div class="span6">
         <h2>Hadoop integration</h2>
         <p>
         	ETL data into Hadoop has become more and more of industry standard.

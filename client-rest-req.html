@@ -47,14 +47,22 @@ title: SenseiDB - Request JSON Reference
 	  "selections" : [
 	    {
 	      //details of this part see the selections.json
-	      "tags" : {
-	        "values" : [ "blue", "pill" ],
-	        "excludes" : ["red"],
-	        "operator" : "or"
+	      "terms" : {
+		   "tags" :{
+	          "values" : [ "blue", "pill" ],
+	          "excludes" : ["red"],
+	          "operator" : "or"
+            }
 	      }
 	    },
 	    {
-	      "term":{
+	      "range":{
+		   "year": {
+		     "from" : "2000",
+		     "to" : "2002",
+		     "include_lower" : false,
+		     "include_upper" : true	 
+		   }
 	      },
 	    },
 	  ],
@@ -74,10 +82,10 @@ title: SenseiDB - Request JSON Reference
 	  },
 
 	  // sort parameters
-		"sort":[
-		    {"color":"desc"},       // sort by color in reverse order
-		    "_score"                     // secondary sort by relevance, reverse  parameter is ignored
-		],
+	 "sort":[
+		{"color":"desc"},            // sort by color in reverse order
+		"_score"                     // secondary sort by relevance, reverse  parameter is ignored
+	  ],
 
 	  // fetch stored fields
 	  "fetchStored" : false,
