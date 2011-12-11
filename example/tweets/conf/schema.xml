@@ -5,10 +5,14 @@
 
   <table uid="id">
 	<column name="time" type="long" />
-	<column name="contents" type="text" index="ANALYZED" store="YES" termvector="YES" />
+	<column name="tweeter" type="string" />
+	<column name="hashtags" type="string" delimiter=","/>
+	<column name="contents" type="text" index="ANALYZED" store="NO" termvector="NO"/>
   </table>
 
    <facets>
+	 <facet name="tweeter" type="simple" />
+	 <facet name="hashtags" type="multi" />
 	 <facet name="time" type="range" />
    </facets>
 </schema>

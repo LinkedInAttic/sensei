@@ -25,7 +25,7 @@ public abstract class SenseiGateway<V>{
 	}
 
 	final public DataSourceFilter<V> getDataSourceFilter(SenseiSchema senseiSchema, SenseiPluginRegistry pluginRegistry){
-		DataSourceFilter<V> dataSourceFilter = pluginRegistry.getBeanByFullPrefix(DefaultStreamingIndexingManager.CONFIG_PREFIX + ".filter", DataSourceFilter.class);
+		DataSourceFilter<V> dataSourceFilter = pluginRegistry.getBeanByFullPrefix("sensei.gateway.filter", DataSourceFilter.class);
     if (dataSourceFilter != null) {
 		dataSourceFilter.setSrcDataStore(senseiSchema.getSrcDataStore());
     dataSourceFilter.setSrcDataField(senseiSchema.getSrcDataField());
