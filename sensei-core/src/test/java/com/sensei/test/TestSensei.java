@@ -5,6 +5,7 @@ import java.io.BufferedWriter;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.URLConnection;
+import java.util.ArrayList;
 import java.util.List;
 
 import junit.framework.TestCase;
@@ -572,6 +573,7 @@ public class TestSensei extends TestCase {
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 19, res.getInt("numhits"));
   }
+
   private JSONObject search(JSONObject req) throws Exception  {
     URLConnection conn = SenseiStarter.SenseiUrl.openConnection();
     conn.setDoOutput(true);
@@ -603,6 +605,40 @@ public class TestSensei extends TestCase {
 
 
 
+
+
+
+
+//  public void testSortBy() throws Exception
+//  {
+//    logger.info("executing test case testSortBy");
+//    String req = "{\"sort\":[{\"color\":\"desc\"},\"_score\"],\"from\":0,\"size\":15000}";
+//    JSONObject res = search(new JSONObject(req));
+//    JSONArray jhits = res.optJSONArray("hits");
+//    ArrayList<String> arColors = new ArrayList<String>();
+//    for(int i=0; i<jhits.length(); i++){
+//      JSONObject jhit = jhits.getJSONObject(i);
+//      JSONArray jcolor = jhit.optJSONArray("color");
+//      if(jcolor != null){
+//        String color = jcolor.optString(0);
+//        if(color != null)
+//          arColors.add(color);
+//      }
+//    }
+//    checkColorOrder(arColors);
+//    //    assertEquals("numhits is wrong", 15000, res.getInt("numhits"));
+//  }
+
+  private void checkColorOrder(ArrayList<String> arColors)
+  {
+    assertTrue("must have 15000 results, size is:" + arColors.size(), arColors.size() == 15000);
+    for(int i=0; i< arColors.size()-1; i++){
+      String first = arColors.get(i);
+      String next = arColors.get(i+1);
+      int comp = first.compareTo(next);
+      assertTrue("should >=0 (first= "+ first+"  next= "+ next+")", comp>=0);
+    }
+  }
 
 
   /**
