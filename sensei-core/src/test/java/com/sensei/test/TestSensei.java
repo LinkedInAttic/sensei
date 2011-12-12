@@ -8,7 +8,9 @@ import java.io.OutputStreamWriter;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -596,10 +598,14 @@ public class TestSensei extends AbstractSenseiTestCase
     logger.info("executing test case testUIDQuery");
     String req = "{\"query\": {\"ids\": {\"values\": [\"1\", \"4\", \"3\", \"2\", \"6\"], \"excludes\": [\"2\"]}}}";
     JSONObject res = search(new JSONObject(req));
+
     assertEquals("numhits is wrong", 4, res.getInt("numhits"));
-    assertEquals("the first uid is wrong", 1, res.getJSONArray("hits").getJSONObject(0).getInt("uid"));
-    assertEquals("the second uid is wrong", 3, res.getJSONArray("hits").getJSONObject(1).getInt("uid"));
-    assertEquals("the third uid is wrong", 4, res.getJSONArray("hits").getJSONObject(2).getInt("uid"));
+    Set<Integer> expectedIds = new HashSet(Arrays.asList(new Integer[]{1, 3, 4, 6}));
+    for (int i = 0; i < res.getInt("numhits"); ++i)
+    {
+      int uid = res.getJSONArray("hits").getJSONObject(i).getInt("uid");
+      assertTrue("UID " + uid + " is not expected.", expectedIds.contains(uid));
+    }
   }
 
   public void testTextQuery() throws Exception
@@ -755,9 +761,14 @@ public class TestSensei extends AbstractSenseiTestCase
     logger.info("executing test case testUIDFilter");
     String req = "{\"filter\": {\"ids\": {\"values\": [\"1\", \"2\", \"3\"], \"excludes\": [\"2\"]}}}";
     JSONObject res = search(new JSONObject(req));
+
     assertEquals("numhits is wrong", 2, res.getInt("numhits"));
-    assertEquals("the first uid is wrong", 1, res.getJSONArray("hits").getJSONObject(0).getInt("uid"));
-    assertEquals("the second uid is wrong", 3, res.getJSONArray("hits").getJSONObject(1).getInt("uid"));
+    Set<Integer> expectedIds = new HashSet(Arrays.asList(new Integer[]{1, 3}));
+    for (int i = 0; i < res.getInt("numhits"); ++i)
+    {
+      int uid = res.getJSONArray("hits").getJSONObject(i).getInt("uid");
+      assertTrue("UID " + uid + " is not expected.", expectedIds.contains(uid));
+    }
   }
   
   public void testAndFilter() throws Exception

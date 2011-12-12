@@ -356,14 +356,7 @@ public class ResultMerger
     {
       if (_sortFields.length == 0)
       {
-        long uid1 = o1.getUID();
-        long uid2 = o2.getUID();
-        if (uid1 > uid2)
-          return 1;
-        else if (uid1 == uid2)
-          return 0;
-        else
-          return -1;
+        return o1.getDocid() - o2.getDocid();
       }
       else
       {
