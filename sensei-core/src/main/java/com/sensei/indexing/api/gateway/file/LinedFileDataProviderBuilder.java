@@ -26,8 +26,7 @@ public  class LinedFileDataProviderBuilder extends SenseiGateway<String>{
 	public StreamDataProvider<JSONObject> buildDataProvider(DataSourceFilter<String> dataFilter,
 			String oldSinceKey) throws Exception{
 
-	  Configuration myConf = _conf.subset(name);
-		String path = myConf.getString("path");
+		String path = _conf.getString("path");
 		long offset = oldSinceKey == null ? 0L : Long.parseLong(oldSinceKey);
 
 
@@ -36,11 +35,6 @@ public  class LinedFileDataProviderBuilder extends SenseiGateway<String>{
 		  provider.setFilter(dataFilter);
 		}
 		return provider;
-	}
-
-	@Override
-	public String getName() {
-		return name;
 	}
 
   @Override

@@ -139,7 +139,6 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 	      _dataCollectorMap.put(part, new LinkedList<DataEvent<JSONObject>>());
 	    }
 
-
 	    _dataProvider = buildDataProvider();
 	    _dataProvider.setDataConsumer(consumer);
 	}

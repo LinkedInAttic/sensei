@@ -107,6 +107,8 @@ public class SenseiServerBuilder implements SenseiConfParams{
   private final SenseiSchema  _senseiSchema;
   private final Server _jettyServer;
   private final SenseiGateway _gateway;
+  
+  static final String SENSEI_CONTEXT_PATH = "sensei";
 
   private final static Map<String,TimeUnit> TIMEUNIT_MAP = new HashMap<String,TimeUnit>();
   static{
@@ -119,7 +121,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
   public ClusterClient buildClusterClient()
   {
     String clusterName = _senseiConf.getString(SENSEI_CLUSTER_NAME);
-	  String clusterClientName = _senseiConf.getString(SENSEI_CLUSTER_CLIENT_NAME);
+	  String clusterClientName = _senseiConf.getString(SENSEI_CLUSTER_CLIENT_NAME,clusterName);
     String zkUrl = _senseiConf.getString(SENSEI_CLUSTER_URL);
     int zkTimeout = _senseiConf.getInt(SENSEI_CLUSTER_TIMEOUT, 300000);
     ClusterClient clusterClient =  new ZooKeeperClusterClient(clusterClientName, clusterName, zkUrl, zkTimeout);
@@ -135,6 +137,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
   private static NetworkServer buildNetworkServer(Configuration conf,ClusterClient clusterClient){
     NetworkServerConfig networkConfig = new NetworkServerConfig();
     networkConfig.setClusterClient(clusterClient);
+    
     networkConfig.setRequestThreadCorePoolSize(conf.getInt(SERVER_REQ_THREAD_POOL_SIZE, 20));
     networkConfig.setRequestThreadMaxPoolSize(conf.getInt(SERVER_REQ_THREAD_POOL_MAXSIZE,70));
     networkConfig.setRequestThreadKeepAliveTimeSecs(conf.getInt(SERVER_REQ_THREAD_POOL_KEEPALIVE,300));
@@ -152,7 +155,8 @@ public class SenseiServerBuilder implements SenseiConfParams{
 
   public  Server buildHttpRestServer() throws Exception{
     int port = _senseiConf.getInt(SERVER_BROKER_PORT);
-    String webappPath = _senseiConf.getString(SERVER_BROKER_WEBAPP_PATH);
+    
+    String webappPath = _senseiConf.getString(SERVER_BROKER_WEBAPP_PATH,"sensei-core/src/main/webapp");
 
 
     Server server = new Server();
@@ -180,7 +184,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
     ServletHolder jmxServletHolder = new ServletHolder(jmxServlet);
 
     WebAppContext senseiApp = new WebAppContext();
-    senseiApp.addFilter(GzipFilter.class,"/sensei/*",1);
+    senseiApp.addFilter(GzipFilter.class,"/"+SENSEI_CONTEXT_PATH+"/*",1);
 
     //HashMap<String, String> initParam = new HashMap<String, String>();
     //if (_senseiConfFile != null) {
@@ -202,8 +206,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
     senseiApp.addEventListener(new SenseiConfigServletContextListener());
 
 
-    senseiApp.addServlet(senseiServletHolder,"/sensei/*");
-    //senseiApp.addFilter(new FilterHolder(new GzipFilter()), "/sensei/*", 1);
+    senseiApp.addServlet(senseiServletHolder,"/"+SENSEI_CONTEXT_PATH+"/*");
     senseiApp.setResourceBase(webappPath);
     senseiApp.addServlet(springServletHolder,"/sensei-rpc/SenseiSpringRPCService");
     senseiApp.addServlet(jmxServletHolder,"/admin/jmx/*");
@@ -306,9 +309,10 @@ public class SenseiServerBuilder implements SenseiConfParams{
     Class gatewayClass = null;
     try{
       String type = subConf.getString("type");
+
+      Configuration myConf = subConf.subset(type);
       if ("custom".equals(type)){
-        Configuration customConf = subConf.subset("custom");
-        String clz = customConf.getString("class");
+        String clz = myConf.getString("class");
         gatewayClass = Class.forName(clz);
       }
       else{
@@ -319,7 +323,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
       }
 
       Constructor constructor = gatewayClass.getConstructor(Configuration.class);
-      SenseiGateway gateway = (SenseiGateway)(constructor.newInstance(subConf));
+      SenseiGateway gateway = (SenseiGateway)(constructor.newInstance(myConf));
       return gateway;
     }
     catch(Exception e){
@@ -508,18 +512,19 @@ public class SenseiServerBuilder implements SenseiConfParams{
   }
 
   public SenseiServer buildServer() throws ConfigurationException {
-  int port = _senseiConf.getInt(SERVER_PORT);
+    int port = _senseiConf.getInt(SERVER_PORT);
 
-  ClusterClient clusterClient = buildClusterClient();
+    ClusterClient clusterClient = buildClusterClient();
 
-  NetworkServer networkServer = buildNetworkServer(_senseiConf,clusterClient);
-
+    NetworkServer networkServer = buildNetworkServer(_senseiConf,clusterClient);
 
     SenseiCore core = buildCore();
 
     List<AbstractSenseiCoreService<AbstractSenseiRequest, AbstractSenseiResult>> svcList = (List)pluginRegistry.resolveBeansByListKey(SENSEI_PLUGIN_SVCS, AbstractSenseiCoreService.class);
 
+
   return new SenseiServer(port,networkServer,clusterClient,core,svcList, pluginRegistry);
+
   }
   /*
   public HttpAdaptor buildJMXAdaptor(){

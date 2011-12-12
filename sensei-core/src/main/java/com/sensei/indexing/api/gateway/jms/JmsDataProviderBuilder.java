@@ -37,18 +37,12 @@ public class JmsDataProviderBuilder extends SenseiGateway<Message>{
 	}
 
 	@Override
-	public String getName() {
-		return name;
-	}
-
-	@Override
 	public StreamDataProvider<JSONObject> buildDataProvider(final DataSourceFilter<Message> dataFilter,
 			String oldSinceKey) throws Exception{
 
-	    Configuration myConf = _conf.subset(name);
-	    final String topic = myConf.getString("topic");
-	    final String clientID = myConf.getString("clientId",null);
-	    final String topicFac = myConf.getString("topicFactory");
+	    final String topic = _conf.getString("topic");
+	    final String clientID = _conf.getString("clientId",null);
+	    final String topicFac = _conf.getString("topicFactory");
 
 	    TopicFactory topicFactory = pluginRegistry.getBeanByFullPrefix(name + ".topicFactory", TopicFactory.class);
 

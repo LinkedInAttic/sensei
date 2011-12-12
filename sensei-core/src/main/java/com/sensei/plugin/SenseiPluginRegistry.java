@@ -149,7 +149,7 @@ public class SenseiPluginRegistry {
     for (PluginHolder pluginHolder : plugins) {
       if (pluginHolder.getInstance() instanceof SenseiPlugin) {
         ((SenseiPlugin) pluginHolder.getInstance()).start();
-      }
+      }  
     }
   }
 
