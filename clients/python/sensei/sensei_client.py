@@ -187,7 +187,7 @@ BNF Grammar for BQL
 <select_stmt> ::= SELECT <select_list> <from_clause> [<where_clause>] [<given_clause>]
                   [<additional_clauses>]
 
-<describe_stmt> ::= ( DESC | DESCRIBE ) <index_name>
+<describe_stmt> ::= ( DESC | DESCRIBE ) [<index_name>]
 
 <select_list> ::= '*' | <column_name_list>
 
@@ -1118,7 +1118,7 @@ class BQLParser:
                     additional_clauses
                     )
     
-    describe_stmt = (DESC | DESCRIBE).setResultsName("describe") + ident.setResultsName("index")
+    describe_stmt = (DESC | DESCRIBE).setResultsName("describe") + Optional(ident.setResultsName("index"))
     
     BQLstmt = (select_stmt | describe_stmt) + Optional(SEMICOLON) + stringEnd
     
