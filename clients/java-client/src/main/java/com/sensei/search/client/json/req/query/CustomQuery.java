@@ -7,7 +7,7 @@ import com.sensei.search.client.json.CustomJsonHandler;
 import com.sensei.search.client.json.JsonField;
 
 /**
- * User may supplu his own implementation of the query
+ * User may supply his own implementation of the query
  *
  */
 @CustomJsonHandler(value = QueryJsonHandler.class)
