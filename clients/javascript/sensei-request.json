@@ -13,10 +13,10 @@
   "from" : 0,    //default to 0;   
   
   // group by parameters (currently only support group by one column)
-  "groupBy" : [{
-		"column" : "category",
-		"top" : 3
-	}],
+  "groupBy" : {
+    "columns" : ["category"],
+    "top" : 3
+  },
 
   // filters
   "filter" : {
