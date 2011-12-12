@@ -18,6 +18,7 @@ import java.util.Map.Entry;
 import org.apache.log4j.Logger;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.SortField;
 import org.apache.lucene.util.PriorityQueue;
 
 import proj.zoie.api.ZoieIndexReader;
@@ -344,15 +345,52 @@ public class ResultMerger
 
   private static final class SenseiHitComparator implements Comparator<SenseiHit>
   {
+    SortField[] _sortFields;
+
+    public SenseiHitComparator(SortField[] sortFields)
+    {
+      _sortFields = sortFields;
+    }
+    
     public int compare(SenseiHit o1, SenseiHit o2)
     {
-      Comparable c1 = o1.getComparable();
-      Comparable c2 = o2.getComparable();
-      if (c1 == null || c2 == null)
+      if (_sortFields.length == 0)
       {
-        return o2.getDocid() - o1.getDocid();
+        long uid1 = o1.getUID();
+        long uid2 = o2.getUID();
+        if (uid1 > uid2)
+          return 1;
+        else if (uid1 == uid2)
+          return 0;
+        else
+          return -1;
       }
-      return c1.compareTo(c2);
+      else
+      {
+        for (int i = 0; i < _sortFields.length; ++i)
+        {
+          String field = _sortFields[i].getField();
+          int reverse = _sortFields[i].getReverse() ? -1 : 1;
+          String value1 = o1.getField(field);
+          String value2 = o2.getField(field);
+
+          if (value1 == null && value2 == null)
+            continue;
+          else if (value1 == null)
+            return - reverse;
+          else if (value2 == null)
+            return reverse;
+          else
+          {
+            int comp = value1.compareTo(value2);
+            if (comp != 0)
+            {
+              return comp * reverse;
+            }
+          }
+        }
+        return 0;
+      }
     }
   }
 
@@ -454,7 +492,7 @@ public class ResultMerger
     {
       mergedFacetMap = mergeFacetContainer(facetList, req);
     }
-    Comparator<SenseiHit> comparator = new SenseiHitComparator();
+    Comparator<SenseiHit> comparator = new SenseiHitComparator(req.getSort());
 
     SenseiHit[] hits;
     if (req.getGroupBy() == null || req.getGroupBy().length() == 0)
