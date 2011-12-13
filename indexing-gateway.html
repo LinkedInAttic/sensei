@@ -84,12 +84,96 @@ title: SenseiDB - Indexing &amp; Gateway
 <p>
   Sensei comes with the following pre-written gateways:
   <ul>
-    <li>File - each line is a data event, and line number is the version</li>
-    <li>JMS - each message is a data event, <code>System.nanoTime()</code> is used as version</li>
-    <li>JDBC - each element in the ResultSet is a data event, developer implements version semantics</li>
-    <li>Kafka - each message is a data event, and offset is the version</li>
+    <li>
+       <p>File - each line is a data event, and line number is the version.</p>
+       <p>Configuration:</p>
+       <pre class="prettyprint">
+         sensei.gateway.type=file
+         sensei.gateway.file.path = &lt;file-name&gt;
+       </pre> 
+    </li>
+    <li>
+       <p>JMS - each message is a data event, <code>System.nanoTime()</code> is used as version.</p>
+       <p>Configuration:</p>
+         <pre class="prettyprint">
+         sensei.gateway.type=file
+         sensei.gateway.jms.topic = &lt;topic name&gt;
+         sensei.gateway.jms.clientId = &lt;client id&gt;
+         sensei.gateway.jms.topicFactory = &lt;topic factory class name&gt;
+         sensei.gateway.jms.connectionFactory = &lt;connection factory class name&gt;
+         </pre>
+    </li>
+    <li>
+       <p>JDBC - each element in the ResultSet is a data event, developer implements version semantics.</p>
+       <p>Configuration:</p>
+       <pre class="prettyprint">
+      sensei.gateway.type=jdbc
+    </pre>
+    </li>
+    <li><p>Kafka - each message is a data event, and offset is the version.</p>
+    <p>Configuration:</p>
+    <pre class="prettyprint">
+      sensei.gateway.type=kafka
+    </pre>
+    </li>
   </ul>
 </p>
+
+<h2>Custom Gateways</h2>
+<p>
+  Data comes in from many different sources. While we are busy supporting more sources by writing Gateways, you can write your own custom gateways.
+</p>
+<p>
+  To write your own custom gateway, follow the following steps:
+</p>
+<ol>
+  <li>Implement SenseiGateway interface: 
+     <pre class="prettyprint">
+
+public class MyAwesomeGateway<V> extends SenseiGateway<V> {
+
+  public MyAwesomeGateway(Configuration conf) {
+    super(conf);
+  }
+
+  @Override
+  public StreamDataProvider<JSONObject> buildDataProvider(
+      DataSourceFilter<V> dataFilter, String oldSinceKey,
+      ShardingStrategy shardingStrategy, Set<Integer> partitions)
+      throws Exception {
+      
+      // build a StreamDataProvider instance
+      
+      ...
+  }
+
+  @Override
+  public Comparator<String> getVersionComparator() {
+
+    // tell us versioning semantics
+    
+    ...
+  }
+
+}
+
+     </pre>
+  </li>
+  <li>
+     Like any other extensions to Sensei, build it into a jar and copy it into the <code>conf/ext</code> directory, where <code>conf</code> contains configuration
+     files.
+  </li>
+  <li>
+     Edit <code>sensei.properties</code> to configure your Gateway:
+     <pre class="prettyprint">
+      sensei.gateway.type=custom
+      sensei.gateway.custom.class = &lt;custom gateway class&gt;
+      # paramters set to the gateway
+      sensei.gateway.custom.param1 = &lt;value1&gt;
+      sensei.gateway.custom.param2 = &lt;value2&gt;
+     </pre>
+  </li>
+</ol>
 
 <h2>Batch indexing</h2>
 <p>Batch indexing over Hadoop is supported by Sensei. Go to: <a class="btn primary" href="/hadoop-bootstrap.html">Hadoop Bootstrap &raquo;</a>
