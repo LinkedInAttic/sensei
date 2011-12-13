@@ -13,8 +13,7 @@ import java.net.ProtocolException;
 import java.net.URL;
 import java.util.zip.GZIPInputStream;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -22,7 +21,7 @@ import com.sensei.search.client.json.req.SenseiClientRequest;
 import com.sensei.search.client.json.res.SenseiResult;
 
 public class SenseiServiceProxy {
-    private static Log LOG = LogFactory.getLog(SenseiServiceProxy.class);
+    private static Logger LOG = Logger.getLogger(SenseiServiceProxy.class);
 
     private String url;
 

@@ -170,26 +170,43 @@ public class RequestConverter2 {
           req.setMaxPerGroup(groupBy.optInt("top", groupBy.optInt("count", 1)));
         }
 
-		// selections
-        JSONArray selections = json.optJSONArray(RequestConverter2.SELECTIONS);
-        if(selections != null)
+      // selections
+      Object selections = json.opt(RequestConverter2.SELECTIONS);
+      if (selections == null)
+      {
+        // ignore
+      }
+      else if (selections instanceof JSONArray)
+      {
+        JSONArray selectionArray = (JSONArray)selections;
+        for(int i=0; i<selectionArray.length(); i++)
         {
-          for(int i=0; i<selections.length(); i++)
-          {
-            JSONObject selItem = selections.optJSONObject(i);
-            if(selItem != null){
-              Iterator<String> keyIter = selItem.keys();
-              while(keyIter.hasNext()){
-                String type = keyIter.next();
-                JSONObject jsonSel = selItem.optJSONObject(type);
-                if(jsonSel != null){
-                    addSelection(type, jsonSel, req);
-                }
+          JSONObject selItem = selectionArray.optJSONObject(i);
+          if(selItem != null){
+            Iterator<String> keyIter = selItem.keys();
+            while(keyIter.hasNext()){
+              String type = keyIter.next();
+              JSONObject jsonSel = selItem.optJSONObject(type);
+              if(jsonSel != null){
+                  addSelection(type, jsonSel, req);
               }
             }
           }
-
         }
+      }
+      else if (selections instanceof JSONObject)
+      {
+        JSONObject selectionObject = (JSONObject)selections;
+        Iterator<String> keyIter = selectionObject.keys();
+        while (keyIter.hasNext())
+        {
+          String type = keyIter.next();
+          JSONObject jsonSel = selectionObject.optJSONObject(type);
+          if (jsonSel != null)
+            addSelection(type, jsonSel, req);
+        }
+      }
+
 		 // facets
 		  JSONObject facets = json.optJSONObject(RequestConverter2.FACETS);
 		  if (facets!=null){

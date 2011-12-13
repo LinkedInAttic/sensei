@@ -2,7 +2,9 @@ package com.sensei.search.query;
 
 import java.io.IOException;
 import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.concurrent.TimeUnit;
+import java.util.Locale;
 
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.search.DocIdSet;
@@ -36,7 +38,7 @@ public class TimeRetentionFilter extends Filter {
       FacetHandler facetHandler = boboReader.getFacetHandler(_column);
       
       if (facetHandler!=null){
-        DecimalFormat formatter = new DecimalFormat(DefaultSenseiInterpreter.DEFAULT_FORMAT_STRING_MAP.get(MetaType.Long));
+        DecimalFormat formatter = new DecimalFormat(DefaultSenseiInterpreter.DEFAULT_FORMAT_STRING_MAP.get(MetaType.Long), new DecimalFormatSymbols(Locale.US));
         BrowseSelection sel = new BrowseSelection(_column);
         long duration = _dataUnit.convert(_nDays, TimeUnit.DAYS);
         long now = _dataUnit.convert(System.currentTimeMillis(), TimeUnit.MILLISECONDS);

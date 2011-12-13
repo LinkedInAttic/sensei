@@ -61,7 +61,27 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
         try
         {
           byte[] dataBytes = hit.getStoredValue();
-          if (dataBytes!=null && dataBytes.length>0)
+          if (dataBytes == null || dataBytes.length == 0)
+          {
+            Document doc = hit.getStoredFields();
+            if (doc != null)
+            {
+              dataBytes = doc.getBinaryValue(SenseiSchema.SRC_DATA_COMPRESSED_FIELD_NAME);
+
+              if (dataBytes == null || dataBytes.length == 0)
+              {
+                dataBytes = doc.getBinaryValue(SenseiSchema.SRC_DATA_FIELD_NAME);
+                if (dataBytes != null && dataBytes.length > 0)
+                {
+                  hit.setSrcData(new String(dataBytes,"UTF-8"));
+                  dataBytes = null; // set to null to avoid gunzip.
+                }
+              }
+              doc.removeFields(SenseiSchema.SRC_DATA_COMPRESSED_FIELD_NAME);
+              doc.removeFields(SenseiSchema.SRC_DATA_FIELD_NAME);
+            }
+          }
+          if (dataBytes != null && dataBytes.length > 0)
           {
             ByteArrayOutputStream bout = new ByteArrayOutputStream();
             byte[] buf = new byte[1024];  // 1k buffer
