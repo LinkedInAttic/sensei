@@ -1,6 +1,7 @@
 package com.sensei.indexing.api.gateway.kafka;
 
 import java.util.Comparator;
+import java.util.Set;
 
 import org.apache.commons.configuration.Configuration;
 import org.json.JSONObject;
@@ -10,6 +11,7 @@ import proj.zoie.impl.indexing.ZoieConfig;
 
 import com.sensei.dataprovider.kafka.KafkaJsonStreamDataProvider;
 import com.sensei.indexing.api.DataSourceFilter;
+import com.sensei.indexing.api.ShardingStrategy;
 import com.sensei.indexing.api.gateway.SenseiGateway;
 
 public class KafkaDataProviderBuilder extends SenseiGateway<byte[]>{
@@ -23,9 +25,11 @@ public class KafkaDataProviderBuilder extends SenseiGateway<byte[]>{
 	}
 
 	@Override
-	public StreamDataProvider<JSONObject> buildDataProvider(DataSourceFilter<byte[]> dataFilter,
-			String oldSinceKey) throws Exception{
-
+	public StreamDataProvider<JSONObject> buildDataProvider(final DataSourceFilter<byte[]> dataFilter,
+      String oldSinceKey,
+      ShardingStrategy shardingStrategy,
+      Set<Integer> partitions) throws Exception
+  {
 		String host = _conf.getString("host");
 		int port = _conf.getInt("port");
 		String topic = _conf.getString("topic");
@@ -43,6 +47,4 @@ public class KafkaDataProviderBuilder extends SenseiGateway<byte[]>{
   public Comparator<String> getVersionComparator() {
     return _versionComparator;
   }
-
-
 }

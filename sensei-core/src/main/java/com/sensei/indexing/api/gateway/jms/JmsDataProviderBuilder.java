@@ -1,6 +1,8 @@
 package com.sensei.indexing.api.gateway.jms;
 
+import java.sql.ResultSet;
 import java.util.Comparator;
+import java.util.Set;
 
 import javax.jms.JMSException;
 import javax.jms.Message;
@@ -18,6 +20,7 @@ import proj.zoie.impl.indexing.StreamDataProvider;
 import proj.zoie.impl.indexing.ZoieConfig;
 
 import com.sensei.indexing.api.DataSourceFilter;
+import com.sensei.indexing.api.ShardingStrategy;
 import com.sensei.indexing.api.gateway.SenseiGateway;
 import com.sensei.plugin.SenseiPluginRegistry;
 
@@ -38,7 +41,10 @@ public class JmsDataProviderBuilder extends SenseiGateway<Message>{
 
 	@Override
 	public StreamDataProvider<JSONObject> buildDataProvider(final DataSourceFilter<Message> dataFilter,
-			String oldSinceKey) throws Exception{
+      String oldSinceKey,
+      ShardingStrategy shardingStrategy,
+      Set<Integer> partitions) throws Exception
+  {
 
 	    final String topic = _conf.getString("topic");
 	    final String clientID = _conf.getString("clientId",null);

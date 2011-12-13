@@ -1,6 +1,7 @@
 package com.senseidb.example.tweets.gateway;
 
 import java.util.Comparator;
+import java.util.Set;
 
 import org.apache.commons.configuration.Configuration;
 import org.json.JSONObject;
@@ -8,6 +9,7 @@ import org.json.JSONObject;
 import proj.zoie.impl.indexing.StreamDataProvider;
 
 import com.sensei.indexing.api.DataSourceFilter;
+import com.sensei.indexing.api.ShardingStrategy;
 import com.sensei.indexing.api.gateway.SenseiGateway;
 
 public class TwitterSampleGateway extends SenseiGateway<JSONObject> {
@@ -17,8 +19,10 @@ public class TwitterSampleGateway extends SenseiGateway<JSONObject> {
   }
 
   @Override
-  public StreamDataProvider<JSONObject> buildDataProvider(
-      DataSourceFilter<JSONObject> dataFilter, String oldSinceKey) throws Exception {
+  public StreamDataProvider<JSONObject> buildDataProvider(DataSourceFilter<JSONObject> dataFilter,
+                                                          String oldSinceKey,
+                                                          ShardingStrategy shardingStrategy,
+                                                          Set<Integer> partitions) throws Exception{
     return new TwitterSampleStreamer(_conf, SenseiGateway.DEFAULT_VERSION_COMPARATOR);
   }
 
