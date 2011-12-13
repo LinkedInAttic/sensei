@@ -4,8 +4,8 @@ import time
 from datetime import datetime
 
 sys.path.insert(0, "../sensei")
-import sensei_client
 from sensei_client import *
+from sensei_components import *
 from pyparsing import ParseException
 
 sensei_client = SenseiClient(sysinfo={
