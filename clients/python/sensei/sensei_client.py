@@ -133,7 +133,7 @@ PARAM_RESULT_FACET_INFO_SELECTED = "selected"
 # JSON API parameter constants
 #
 
-JSON_PARAM_COLUMN = "column"
+JSON_PARAM_COLUMNS = "columns"
 JSON_PARAM_EXPLAIN = "explain"
 JSON_PARAM_FACETS = "facets"
 JSON_PARAM_FACET_INIT = "facetInit"
@@ -2431,10 +2431,10 @@ class SenseiClient:
 
     if req.groupby:
       # For now we only support group-by on single column
-      output_json[JSON_PARAM_GROUPBY] = [{
-        JSON_PARAM_COLUMN: req.groupby,
+      output_json[JSON_PARAM_GROUPBY] = {
+        JSON_PARAM_COLUMNS: [req.groupby],
         JSON_PARAM_TOP: req.max_per_group
-        }]
+        }
 
     # print ">>> output_json = ", output_json
     return json.dumps(output_json, sort_keys=sort_keys, indent=indent)

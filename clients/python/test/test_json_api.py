@@ -386,12 +386,12 @@ class TestJsonAPI(unittest.TestCase):
                     """{
   "fetchStored": true, 
   "from": 0, 
-  "groupBy": [
-    {
-      "column": "color", 
-      "top": 10
-    }
-  ], 
+  "groupBy": {
+    "columns": [
+      "color"
+    ], 
+    "top": 10
+  }, 
   "size": 10
 }""")
 
@@ -850,12 +850,12 @@ class TestJsonAPI(unittest.TestCase):
                      """{
   "fetchStored": true, 
   "from": 0, 
-  "groupBy": [
-    {
-      "column": "color", 
-      "top": 10
-    }
-  ], 
+  "groupBy": {
+    "columns": [
+      "color"
+    ], 
+    "top": 10
+  }, 
   "size": 10
 }""")
 
@@ -872,12 +872,12 @@ class TestJsonAPI(unittest.TestCase):
                      """{
   "fetchStored": true, 
   "from": 0, 
-  "groupBy": [
-    {
-      "column": "color", 
-      "top": 3
-    }
-  ], 
+  "groupBy": {
+    "columns": [
+      "color"
+    ], 
+    "top": 3
+  }, 
   "size": 10
 }""")
     
@@ -1097,12 +1097,12 @@ class TestJsonAPI(unittest.TestCase):
     ]
   }, 
   "from": 0, 
-  "groupBy": [
-    {
-      "column": "color", 
-      "top": 10
-    }
-  ], 
+  "groupBy": {
+    "columns": [
+      "color"
+    ], 
+    "top": 10
+  }, 
   "size": 10
 }""")
     
