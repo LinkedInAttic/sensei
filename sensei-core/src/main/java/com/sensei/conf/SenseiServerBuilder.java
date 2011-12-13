@@ -6,7 +6,6 @@ import it.unimi.dsi.fastutil.ints.IntSet;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
-import java.lang.reflect.Constructor;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -66,7 +65,6 @@ import com.sensei.indexing.api.DefaultJsonSchemaInterpreter;
 import com.sensei.indexing.api.DefaultStreamingIndexingManager;
 import com.sensei.indexing.api.SenseiIndexPruner;
 import com.sensei.indexing.api.gateway.SenseiGateway;
-import com.sensei.indexing.api.gateway.SenseiGatewayRegistry;
 import com.sensei.plugin.SenseiPluginRegistry;
 import com.sensei.search.client.servlet.DefaultSenseiJSONServlet;
 import com.sensei.search.client.servlet.SenseiConfigServletContextListener;
@@ -107,7 +105,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
   private final SenseiSchema  _senseiSchema;
   private final Server _jettyServer;
   private final SenseiGateway _gateway;
-  
+
   static final String SENSEI_CONTEXT_PATH = "sensei";
 
   private final static Map<String,TimeUnit> TIMEUNIT_MAP = new HashMap<String,TimeUnit>();
@@ -137,7 +135,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
   private static NetworkServer buildNetworkServer(Configuration conf,ClusterClient clusterClient){
     NetworkServerConfig networkConfig = new NetworkServerConfig();
     networkConfig.setClusterClient(clusterClient);
-    
+
     networkConfig.setRequestThreadCorePoolSize(conf.getInt(SERVER_REQ_THREAD_POOL_SIZE, 20));
     networkConfig.setRequestThreadMaxPoolSize(conf.getInt(SERVER_REQ_THREAD_POOL_MAXSIZE,70));
     networkConfig.setRequestThreadKeepAliveTimeSecs(conf.getInt(SERVER_REQ_THREAD_POOL_KEEPALIVE,300));
@@ -155,7 +153,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
 
   public  Server buildHttpRestServer() throws Exception{
     int port = _senseiConf.getInt(SERVER_BROKER_PORT);
-    
+
     String webappPath = _senseiConf.getString(SERVER_BROKER_WEBAPP_PATH,"sensei-core/src/main/webapp");
 
 
@@ -305,30 +303,9 @@ public class SenseiServerBuilder implements SenseiConfParams{
   }
 
   private SenseiGateway constructGateway(Configuration conf) throws ConfigurationException{
-    Configuration subConf = conf.subset(SENSEI_GATEWAY);
-    Class gatewayClass = null;
-    try{
-      String type = subConf.getString("type");
-
-      Configuration myConf = subConf.subset(type);
-      if ("custom".equals(type)){
-        String clz = myConf.getString("class");
-        gatewayClass = Class.forName(clz);
-      }
-      else{
-        gatewayClass = SenseiGatewayRegistry.getGatewayClass(type);
-      }
-      if (gatewayClass==null){
-        throw new ConfigurationException("unsupported provider type: "+type);
-      }
-
-      Constructor constructor = gatewayClass.getConstructor(Configuration.class);
-      SenseiGateway gateway = (SenseiGateway)(constructor.newInstance(myConf));
+      SenseiGateway gateway = pluginRegistry.getBeanByFullPrefix(SENSEI_GATEWAY, SenseiGateway.class);
       return gateway;
-    }
-    catch(Exception e){
-      throw new ConfigurationException(e.getMessage(),e);
-    }
+
   }
 
   public SenseiCore buildCore() throws ConfigurationException {

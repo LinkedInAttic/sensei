@@ -3,7 +3,6 @@ package com.sensei.indexing.api.gateway.file;
 import java.io.File;
 import java.util.Comparator;
 
-import org.apache.commons.configuration.Configuration;
 import org.json.JSONObject;
 
 import proj.zoie.impl.indexing.StreamDataProvider;
@@ -15,18 +14,14 @@ import com.sensei.indexing.api.gateway.SenseiGateway;
 
 public  class LinedFileDataProviderBuilder extends SenseiGateway<String>{
 
-	public static final String name = "file";
-	private Comparator<String> _versionComparator;
-	public LinedFileDataProviderBuilder(Configuration conf){
-	  super(conf);
-	  _versionComparator = ZoieConfig.DEFAULT_VERSION_COMPARATOR;
-	}
+	private Comparator<String> _versionComparator = ZoieConfig.DEFAULT_VERSION_COMPARATOR;
+
 
 	@Override
 	public StreamDataProvider<JSONObject> buildDataProvider(DataSourceFilter<String> dataFilter,
 			String oldSinceKey) throws Exception{
 
-		String path = _conf.getString("path");
+		String path = config.get("path");
 		long offset = oldSinceKey == null ? 0L : Long.parseLong(oldSinceKey);
 
 

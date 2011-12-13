@@ -57,8 +57,8 @@ public class SenseiPluginRegistry {
           continue;
         }
         String property = propertyName;
-        if (propertyName.contains(".")) {
-          property = propertyName.substring(propertyName.lastIndexOf(".") + 1);
+        if (propertyName.contains(pluginHolder.fullPrefix)) {
+          property = propertyName.substring(pluginHolder.fullPrefix.length() + 1);
         }
         pluginHolder.properties.put(property, conf.getString(propertyName));
 
@@ -149,7 +149,7 @@ public class SenseiPluginRegistry {
     for (PluginHolder pluginHolder : plugins) {
       if (pluginHolder.getInstance() instanceof SenseiPlugin) {
         ((SenseiPlugin) pluginHolder.getInstance()).start();
-      }  
+      }
     }
   }
 
@@ -166,4 +166,8 @@ public class SenseiPluginRegistry {
     cachedRegistries.remove(configuration);
     configuration = null;
   }
+  public Configuration getConfiguration() {
+    return configuration;
+  }
+
 }

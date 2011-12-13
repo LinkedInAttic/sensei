@@ -31,7 +31,7 @@ class PluginHolder {
       }
     }
     if (instance instanceof SenseiPlugin) {
-      ((SenseiPlugin) instance).init(properties);
+      ((SenseiPlugin) instance).init(properties, senseiPluginRegistry);
       //((SenseiPlugin) instance).start();
     }
     if (instance instanceof SenseiPluginFactory) {

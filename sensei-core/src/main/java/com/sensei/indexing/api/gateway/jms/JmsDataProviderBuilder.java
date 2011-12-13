@@ -6,7 +6,6 @@ import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.TopicConnectionFactory;
 
-import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.json.JSONObject;
 
@@ -19,30 +18,22 @@ import proj.zoie.impl.indexing.ZoieConfig;
 
 import com.sensei.indexing.api.DataSourceFilter;
 import com.sensei.indexing.api.gateway.SenseiGateway;
-import com.sensei.plugin.SenseiPluginRegistry;
 
 public class JmsDataProviderBuilder extends SenseiGateway<Message>{
 
 	public static final String name = "jms";
-  private final Comparator<String> _versionComparator;
-
-  private SenseiPluginRegistry pluginRegistry;
+  private final Comparator<String> _versionComparator = ZoieConfig.DEFAULT_VERSION_COMPARATOR;
 
 
 
-	public JmsDataProviderBuilder(Configuration conf){
-	  super(conf);
-	  pluginRegistry = SenseiPluginRegistry.get(conf);
-	  _versionComparator = ZoieConfig.DEFAULT_VERSION_COMPARATOR;
-	}
 
 	@Override
 	public StreamDataProvider<JSONObject> buildDataProvider(final DataSourceFilter<Message> dataFilter,
 			String oldSinceKey) throws Exception{
 
-	    final String topic = _conf.getString("topic");
-	    final String clientID = _conf.getString("clientId",null);
-	    final String topicFac = _conf.getString("topicFactory");
+	    final String topic = config.get("topic");
+	    final String clientID = config.get("clientId");
+	    final String topicFac = config.get("topicFactory");
 
 	    TopicFactory topicFactory = pluginRegistry.getBeanByFullPrefix(name + ".topicFactory", TopicFactory.class);
 
