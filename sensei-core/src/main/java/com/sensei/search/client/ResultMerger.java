@@ -360,29 +360,62 @@ public class ResultMerger
       }
       else
       {
+        int nullCount = 0;
         for (int i = 0; i < _sortFields.length; ++i)
         {
           String field = _sortFields[i].getField();
           int reverse = _sortFields[i].getReverse() ? -1 : 1;
-          String value1 = o1.getField(field);
-          String value2 = o2.getField(field);
 
-          if (value1 == null && value2 == null)
-            continue;
-          else if (value1 == null)
-            return - reverse;
-          else if (value2 == null)
-            return reverse;
-          else
+          if (_sortFields[i].getType() == SortField.SCORE)
           {
-            int comp = value1.compareTo(value2);
-            if (comp != 0)
+            float score1 = o1.getScore();
+            float score2 = o2.getScore();
+            if (score1 == score2)
             {
-              return comp * reverse;
+              continue;
+            }
+            else
+            {
+              return (score1 > score2) ? -reverse : reverse;
             }
           }
+          else if (_sortFields[i].getType() == SortField.DOC)
+          {
+            return o1.getDocid() - o2.getDocid();
+          }
+          else // A regular sort field
+          {
+            String value1 = o1.getField(field);
+            String value2 = o2.getField(field);
+
+            if (value1 == null && value2 == null)
+            {
+              nullCount++;
+              continue;
+            }
+            else if (value1 == null)
+              return -reverse;
+            else if (value2 == null)
+              return reverse;
+            else
+            {
+              int comp = value1.compareTo(value2);
+              if (comp != 0)
+              {
+                return comp * reverse;
+              }
+            }
+          } // A regular sort field
         }
-        return 0;
+
+        if (nullCount == _sortFields.length)
+        {
+          return o1.getDocid() - o2.getDocid();
+        }
+        else
+        {
+          return 0;
+        }
       }
     }
   }
