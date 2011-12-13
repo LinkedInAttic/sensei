@@ -624,6 +624,50 @@ class SenseiRequest:
       self.max_per_group = max_per_group
       self.facet_init_param_map = {}
 
+  def set_offset(self, offset):
+    self.offset = offset
+    
+  def set_count(self, count):
+    self.count = count
+    
+  def set_query(self, query):
+    self.query = query
+    
+  def set_explain(self, explain):
+    self.explain = explain
+    
+  def set_fetch_stored(self, fetch_stored):
+    self.fetch_stored = fetch_stored
+    
+  def set_route_param(self, route_param):
+    self.route_param = route_param
+    
+  def set_sorts(self, sorts):    
+    self.sorts = sorts
+    
+  def append_sort(self, sort):
+    if isinstance(sort, SenseiSort):
+      if self.sorts is None:
+        self.sorts = []
+        self.sorts.append(sort)
+      else:  
+        self.sorts.append(sort)
+    
+  def set_filter(self, filter):
+    self.filter = filter
+    
+  def set_selections(self, selections):
+    self.selections = selections
+    
+  def set_facets(self, facets):
+    self.facets = facets
+    
+  def set_groupby(self, groupby):
+    self.groupby = groupby
+    
+  def set_facet_init_param_map(self, facet_init_param_map):
+    self.facet_init_param_map = facet_init_param_map
+    
   def get_columns(self):
     return self.columns
 

@@ -311,6 +311,17 @@ class SenseiClient:
 
   def get_facet_map(self):
     return self.facet_map
+  
+  def run_example(self):
+    """ a sample sensei request"""
+    req = SenseiRequest();
+    
+    # sort;
+    sort = SenseiSort("color", True)
+    req.append_sort(sort)
+    
+    res = self.doQuery(req)
+    res.display(columns=req.get_columns(), max_col_width=40)
 
 def main(argv):
   print "Welcome to Sensei Shell"
@@ -351,6 +362,9 @@ def main(argv):
         break
       # if options.verbose:
       #   test(stmt)
+      if stmt == "sample request":
+        client.run_example()
+        
       req = client.compile(stmt)
       if req.stmt_type == "select":
         res = client.doQuery(req)
