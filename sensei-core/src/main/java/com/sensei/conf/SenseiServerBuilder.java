@@ -74,8 +74,9 @@ import com.sensei.indexing.api.gateway.SenseiGatewayRegistry;
 import com.sensei.search.client.servlet.DefaultSenseiJSONServlet;
 import com.sensei.search.client.servlet.SenseiConfigServletContextListener;
 import com.sensei.search.client.servlet.SenseiHttpInvokerServiceServlet;
+import com.sensei.search.cluster.routing.MD5HashProvider;
+import com.sensei.search.cluster.routing.RingHashLoadBalancerFactory;
 import com.sensei.search.cluster.routing.SenseiLoadBalancerFactory;
-import com.sensei.search.cluster.routing.UniformPartitionedRoutingFactory;
 import com.sensei.search.nodes.SenseiCore;
 import com.sensei.search.nodes.SenseiHourglassFactory;
 import com.sensei.search.nodes.SenseiIndexReaderDecorator;
@@ -210,7 +211,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
     SenseiLoadBalancerFactory routerFactory = null;
     String routerFactoryName = _senseiConf.getString(SERVER_SEARCH_ROUTER_FACTORY, "");
     if (routerFactoryName == null || routerFactoryName.equals(""))
-      routerFactory = new UniformPartitionedRoutingFactory();
+      routerFactory = new RingHashLoadBalancerFactory(new MD5HashProvider(), 1000);
     else
       routerFactory = (SenseiLoadBalancerFactory) _pluginContext.getBean(routerFactoryName);
 
