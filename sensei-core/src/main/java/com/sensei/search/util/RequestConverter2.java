@@ -158,42 +158,55 @@ public class RequestConverter2 {
 	    req.setOffset(offset);
 
 
-	    // group by
-	    JSONArray groupBy = json.optJSONArray(RequestConverter2.GROUPBY);
-	    if(groupBy != null)
-	    {
-	      for(int i=0; i< groupBy.length(); i++)
-	      {
-	        JSONObject item = groupBy.optJSONObject(i);
-	        if(item != null){
-	          String column = item.optString(RequestConverter2.GROUPBY_COLUMN);
-	          int top = item.optInt(RequestConverter2.GROUPBY_TOP, 1);
-	          req.setGroupBy(column);
-	          req.setMaxPerGroup(top);
-	        }
-	      }
-	    }
-
-		// selections
-        JSONArray selections = json.optJSONArray(RequestConverter2.SELECTIONS);
-        if(selections != null)
+        // group by
+        JSONObject groupBy = json.optJSONObject("groupBy");
+        if (groupBy != null)
         {
-          for(int i=0; i<selections.length(); i++)
+          JSONArray columns = groupBy.optJSONArray("columns");
+          if (columns != null && columns.length() >= 1)
           {
-            JSONObject selItem = selections.optJSONObject(i);
-            if(selItem != null){
-              Iterator<String> keyIter = selItem.keys();
-              while(keyIter.hasNext()){
-                String type = keyIter.next();
-                JSONObject jsonSel = selItem.optJSONObject(type);
-                if(jsonSel != null){
-                    addSelection(type, jsonSel, req);
-                }
+            req.setGroupBy(columns.getString(0));
+          }
+          req.setMaxPerGroup(groupBy.optInt("top", groupBy.optInt("count", 1)));
+        }
+
+      // selections
+      Object selections = json.opt(RequestConverter2.SELECTIONS);
+      if (selections == null)
+      {
+        // ignore
+      }
+      else if (selections instanceof JSONArray)
+      {
+        JSONArray selectionArray = (JSONArray)selections;
+        for(int i=0; i<selectionArray.length(); i++)
+        {
+          JSONObject selItem = selectionArray.optJSONObject(i);
+          if(selItem != null){
+            Iterator<String> keyIter = selItem.keys();
+            while(keyIter.hasNext()){
+              String type = keyIter.next();
+              JSONObject jsonSel = selItem.optJSONObject(type);
+              if(jsonSel != null){
+                  addSelection(type, jsonSel, req);
               }
             }
           }
-
         }
+      }
+      else if (selections instanceof JSONObject)
+      {
+        JSONObject selectionObject = (JSONObject)selections;
+        Iterator<String> keyIter = selectionObject.keys();
+        while (keyIter.hasNext())
+        {
+          String type = keyIter.next();
+          JSONObject jsonSel = selectionObject.optJSONObject(type);
+          if (jsonSel != null)
+            addSelection(type, jsonSel, req);
+        }
+      }
+
 		 // facets
 		  JSONObject facets = json.optJSONObject(RequestConverter2.FACETS);
 		  if (facets!=null){
