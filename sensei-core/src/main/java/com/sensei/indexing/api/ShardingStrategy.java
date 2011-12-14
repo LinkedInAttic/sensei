@@ -3,6 +3,8 @@ package com.sensei.indexing.api;
 import org.json.JSONObject;
 import org.json.JSONException;
 
+import com.sensei.conf.SenseiSchema;
+
 public interface ShardingStrategy {
   int caculateShard(int maxShardId,JSONObject dataObj) throws JSONException;
 
@@ -18,7 +20,13 @@ public interface ShardingStrategy {
     @Override
     public int caculateShard(int maxShardId,JSONObject dataObj) throws JSONException
     {
-      return (int)(dataObj.getLong(_field) % maxShardId);
+      JSONObject event = dataObj.optJSONObject(SenseiSchema.EVENT_FIELD);
+      long uid;
+      if (event == null)
+        uid = dataObj.getLong(_field);
+      else
+        uid = event.getLong(_field);
+      return (int)(uid % maxShardId);
     }
   }
 }

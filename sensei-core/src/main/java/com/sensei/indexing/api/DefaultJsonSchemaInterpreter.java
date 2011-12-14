@@ -1,5 +1,6 @@
 package com.sensei.indexing.api;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
@@ -11,6 +12,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.Map.Entry;
+import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 import org.apache.commons.configuration.ConfigurationException;
@@ -150,6 +152,47 @@ public class DefaultJsonSchemaInterpreter extends
     });
     
   }
+
+  public static byte[] compress(byte[] src) throws Exception
+  {
+    byte[] data = null;
+    if (src != null)
+    {
+      ByteArrayOutputStream bout = new ByteArrayOutputStream();
+      GZIPOutputStream gzipStream = new GZIPOutputStream(bout);
+
+      gzipStream.write(src);
+      gzipStream.flush();
+      gzipStream.close();
+      bout.flush();
+
+      data = bout.toByteArray();
+    }
+
+    return data;
+  }
+
+  public static byte[] decompress(byte[] src) throws Exception
+  {
+    byte[] data = null;
+    if (src != null)
+    {
+      ByteArrayOutputStream bout = new ByteArrayOutputStream();
+      byte[] buf = new byte[1024];  // 1k buffer
+      ByteArrayInputStream bin = new ByteArrayInputStream(src);
+      GZIPInputStream gzipStream = new GZIPInputStream(bin);
+
+      int len;
+      while ((len = gzipStream.read(buf)) > 0) {
+        bout.write(buf, 0, len);
+      }
+      bout.flush();
+
+      data = bout.toByteArray();
+    }
+
+    return data;
+  }
   
   public void setCustomIndexingPipeline(CustomIndexingPipeline customIndexingPipeline){
     _customIndexingPipeline = customIndexingPipeline;
@@ -269,37 +312,69 @@ public class DefaultJsonSchemaInterpreter extends
       }
 
       @Override
-      public boolean isDeleted() {
-        return filtered.optBoolean(_delField);
+      public boolean isDeleted()
+      {
+        try
+        {
+          String type = filtered.optString(SenseiSchema.EVENT_TYPE_FIELD, null);
+          if (type == null)
+            return filtered.optBoolean(_delField);
+          else
+            return SenseiSchema.EVENT_TYPE_DELETE.equalsIgnoreCase(type);
+        }
+        catch(Exception e)
+        {
+          logger.error(e.getMessage(), e);
+          return false;
+        }
       }
 
       @Override
-      public boolean isSkip() {
-        return filtered.optBoolean(_skipField);
+      public boolean isSkip()
+      {
+        try
+        {
+          String type = filtered.optString(SenseiSchema.EVENT_TYPE_FIELD, null);
+          if (type == null)
+            return filtered.optBoolean(_skipField);
+          else
+            return SenseiSchema.EVENT_TYPE_SKIP.equalsIgnoreCase(type);
+        }
+        catch(Exception e)
+        {
+          logger.error(e.getMessage(), e);
+          return false;
+        }
       }
 
       @Override
-      public byte[] getStoreValue() {
+      public byte[] getStoreValue()
+      {
         byte[] data = null;
-        if (src!=null){
-          String strData = src.toString();
-          if (strData!=null){
-            try{
-              data = strData.getBytes("UTF-8");
-              if (_compressSrcData) {
-                ByteArrayOutputStream bout = new ByteArrayOutputStream();
-                GZIPOutputStream gzipStream = new GZIPOutputStream(bout);
+        if (src != null)
+        {
+          Object type = src.remove(SenseiSchema.EVENT_TYPE_FIELD);
+          try
+          {
+            if (_compressSrcData)
+              data = compress(src.toString().getBytes("UTF-8"));
+            else
+              data = src.toString().getBytes("UTF-8");
+          }
+          catch (Exception e)
+          {
+            logger.error(e.getMessage(), e);
+          }
 
-                gzipStream.write(data);
-                gzipStream.flush();
-                gzipStream.close();
-                bout.flush();
-
-                data = bout.toByteArray();
-              }
+          if (type != null)
+          {
+            try
+            {
+              src.put(SenseiSchema.EVENT_TYPE_FIELD, type);
             }
-            catch(Exception e){
-              logger.error(e.getMessage(),e);
+            catch(Exception e)
+            {
+              logger.error("Should never happen", e);
             }
           }
         }
