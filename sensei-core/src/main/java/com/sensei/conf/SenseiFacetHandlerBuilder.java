@@ -1,5 +1,6 @@
 package com.sensei.conf;
 
+import java.text.ParseException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -14,6 +15,7 @@ import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.springframework.util.Assert;
 
 import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.facets.FacetHandler.FacetDataNone;
@@ -23,6 +25,7 @@ import com.browseengine.bobo.facets.RuntimeFacetHandlerFactory;
 import com.browseengine.bobo.facets.data.PredefinedTermListFactory;
 import com.browseengine.bobo.facets.data.TermListFactory;
 import com.browseengine.bobo.facets.impl.CompactMultiValueFacetHandler;
+import com.browseengine.bobo.facets.impl.DynamicTimeRangeFacetHandler;
 import com.browseengine.bobo.facets.impl.HistogramFacetHandler;
 import com.browseengine.bobo.facets.impl.MultiValueFacetHandler;
 import com.browseengine.bobo.facets.impl.PathFacetHandler;
@@ -393,7 +396,11 @@ public class SenseiFacetHandlerBuilder {
 				  // A histogram facet handler is always dynamic
 				  RuntimeFacetHandlerFactory<?, ?> runtimeFacetFactory = getHistogramFacetHandlerFactory(facet, name, paramMap);
 				  runtimeFacets.add(runtimeFacetFactory);
-				} else if (type.equals("custom")) {
+				}  else if (type.equals("dynamicTimeRange")) {
+          // A histogram facet handler is always dynamic
+          RuntimeFacetHandlerFactory<?, ?> runtimeFacetFactory = getDynamicTimeFacetHandlerFactory(name, dependSet, paramMap);
+          runtimeFacets.add(runtimeFacetFactory);
+        } else if (type.equals("custom")) {
 					boolean isDynamic = facet.optBoolean("dynamic");
 					// Load from custom-facets spring configuration.
 					if (isDynamic){
@@ -424,4 +431,27 @@ public class SenseiFacetHandlerBuilder {
 
     return sysInfo;
 	}
+
+  private static RuntimeFacetHandlerFactory<?, ?> getDynamicTimeFacetHandlerFactory(final String name, Set<String> dependSet,
+      final Map<String, List<String>> paramMap) {
+    Assert.isTrue(dependSet.size() == 1, "Facet handler " + name + " should rely only on exactly one another facet handler, but accodring to config the depends set is " + dependSet);
+    final String depends = dependSet.iterator().next();
+    Assert.notEmpty(paramMap.get("range"), "Facet handler " + name + " should have at least one predefined range");
+    return new RuntimeFacetHandlerFactory<FacetHandlerInitializerParam, RuntimeFacetHandler<?>>() {
+      @Override
+      public String getName() {
+        // TODO Auto-generated method stub
+        return name;
+      }
+      @Override
+      public  RuntimeFacetHandler<?> get(FacetHandlerInitializerParam params) {
+
+        try {
+          return new DynamicTimeRangeFacetHandler(name, depends, System.currentTimeMillis(), paramMap.get("range"));
+        } catch (ParseException ex) {
+          throw new RuntimeException(ex);
+        }
+      }
+    };
+  }
 }

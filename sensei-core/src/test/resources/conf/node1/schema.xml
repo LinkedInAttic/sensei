@@ -52,7 +52,12 @@
 	  </params>
 	 </facet>
 	 <facet name="makemodel" type="path" />
-	
+	<facet name="yearSimple" type="simple"/>
+	<facet name="timeRangeFromNow" depends="yearSimple" type="dynamicTimeRange">
+	 <params>
+		  <param name="range" value="000001998" />		  	  
+		</params>
+	 </facet>
 	 <facet name="year" type="range">
 		<params>
 		  <param name="range" value="1993-1994" />

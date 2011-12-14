@@ -11,7 +11,6 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -82,6 +81,7 @@ import com.sensei.search.nodes.SenseiZoieFactory;
 import com.sensei.search.nodes.SenseiZoieSystemFactory;
 import com.sensei.search.nodes.impl.DefaultJsonQueryBuilderFactory;
 import com.sensei.search.query.RetentionFilterFactory;
+import com.sensei.search.query.TimeRetentionFilter;
 import com.sensei.search.req.AbstractSenseiRequest;
 import com.sensei.search.req.AbstractSenseiResult;
 import com.sensei.search.req.SenseiSystemInfo;
@@ -108,12 +108,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
 
   static final String SENSEI_CONTEXT_PATH = "sensei";
 
-  private final static Map<String,TimeUnit> TIMEUNIT_MAP = new HashMap<String,TimeUnit>();
-  static{
-    TIMEUNIT_MAP.put("seconds", TimeUnit.SECONDS);
-    TIMEUNIT_MAP.put("hours", TimeUnit.HOURS);
-    TIMEUNIT_MAP.put("days", TimeUnit.DAYS);
-  }
+
 
 
   public ClusterClient buildClusterClient()
@@ -428,10 +423,11 @@ public class SenseiServerBuilder implements SenseiConfParams{
       	    throw new ConfigurationException("Retention specified without a time column");
       	  }
       	  String unitString = _senseiConf.getString(SENSEI_ZOIE_RETENTION_TIMEUNIT,"seconds");
-      	  TimeUnit unit =TIMEUNIT_MAP.get(unitString.toLowerCase());
+      	  TimeUnit unit = TimeUnit.valueOf(unitString.toUpperCase());
       	  if (unit == null){
       	    throw new ConfigurationException("Invalid timeunit for retention: "+unitString);
       	  }
+      	  purgeFilter = new TimeRetentionFilter(timeColumn, retentionDays, unit);
         }
         senseiZoieFactory.setPurgeFilter(purgeFilter);
       }
