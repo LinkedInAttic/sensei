@@ -192,7 +192,149 @@ class SenseiFacet:
     self.maxCounts = maxCounts
     self.orderBy = orderBy
 
+class SenseiSelections:
+  def __init__(self, type):
+    self.type = type;
+    self.selection = {}
+    
+  def get_type(self):
+    return self.type
+  
+  def get_selection(self):
+    return self.selection
 
+class SenseiQuery:
+  def __init__(self, type):
+    self.type = type
+    self.query = {}
+    
+  def get_type(self):
+    return self.type
+  
+  def get_query(self):
+    return self.query  
+
+class SenseiFilter:
+  def __init__(self, type):
+    self.type = type
+    self.filter = {}
+    
+  def get_type(self):
+    return self.type
+  
+  def get_filter(self):
+    return self.filter  
+  
+    
+class SenseiFilterIDs(SenseiFilter):
+  def __init__(self, values, excludes):
+    SenseiFilter.__init__(self, "ids")
+    self.filter={"ids" : {"values" : [], "excludes":[]}}
+    if isinstance(values, list) and isinstance(excludes, list):
+      self.filter = {"ids" : {"values" : values, "excludes":excludes}}
+
+  def add_values(self, values):
+    if self.filter.has_key("ids"):
+      values_excludes = self.filter["ids"]
+      if values_excludes.has_key("values"):
+        orig_values =  values_excludes["values"]
+        orig_set = set(orig_values)
+        for new_value in values:
+          if new_value not in orig_set:
+            orig_values.append(new_value)
+
+  def add_excludes(self, excludes):
+    if self.filter.has_key("ids"):
+      values_excludes = self.filter["ids"]
+      if values_excludes.has_key("excludes"):
+        orig_excludes =  values_excludes["excludes"]
+        orig_set = set(orig_excludes)
+        for new_value in excludes:
+          if new_value not in orig_set:
+            orig_excludes.append(new_value)
+            
+class SenseiFilterBool(SenseiFilter):
+  def __init__(self, must_filter=None, must_not_filter=None, should_filter=None):            
+    SenseiFilter.__init__(self, "bool");
+    self.filter = {"bool":{"must":{}, "must_not":{}, "should":{}}}
+    if must_filter is not None and isinstance(must_filter, SenseiFilter):
+      target = (self.filter)["bool"]
+      target["must"]=must_filter
+    if must_not_filter is not None and isinstance(must_not_filter, SenseiFilter):
+      target = (self.filter)["bool"]
+      target["must_not"]=must_not_filter  
+    if should_filter is not None and isinstance(should_filter, SenseiFilter):
+      target = (self.filter)["bool"]
+      target["should"]=should_filter
+      
+class SenseiFilterAND(SenseiFilter):
+  def __init__(self, filter_list):
+    SenseiFilter.__init__(self, "and")
+    self.filter={"and":[]}
+    old_filter_list = (self.filter)["and"]
+    if isinstance(filter_list, list):
+      for new_filter in filter_list:
+        if isinstance(new_filter, SenseiFilter):
+          old_filter_list.append(new_filter.get_filter())  
+          
+class SenseiFilterOR(SenseiFilter):
+  def __init__(self, filter_list):
+    SenseiFilter.__init__(self, "or")
+    self.filter={"or":[]}
+    old_filter_list = (self.filter)["or"]
+    if isinstance(filter_list, list):
+      for new_filter in filter_list:
+        if isinstance(new_filter, SenseiFilter):
+          old_filter_list.append(new_filter.get_filter())              
+    
+class SenseiFilterTerm(SenseiFilter):
+  def __init__(self, column, value, noOptimize=False):
+    SenseiFilter.__init__(self, "term")
+    self.filter={"term":{column:{"value": value, "_noOptimize":noOptimize}}} 
+    
+
+class SenseiFilterTerms(SenseiFilter):
+  def __init__(self, column, values=None, excludes=None, operator="or", noOptimize=False):
+    SenseiFilter.__init__(self, "terms")
+    self.filter={"terms":{}}
+    if values is not None and isinstance(values, list):
+      if excludes is  not None and isinstance(excludes, list):
+        # complicated mode
+        self.filter={"terms":{column:{"values":values, "excludes":excludes, "operator":operator, "_noOptimize":noOptimize}}}
+      else:
+        self.filter={"terms":{column:values}}
+        
+class SenseiFilterRange(SenseiFilter):
+  def __init__(self, column, from_val, to_val):
+    SenseiFilter.__init__(self, "range")
+    self.filter={"range":{column:{"from":from_val, "to":to_val, "_noOptimize":False}}}         
+
+  def set_No_optimization(self, type, date_format=None):
+    range = (self.filter)["range"]
+    for key, value in range.items():
+      if value is not None:
+        value["_type"] = type
+        value["_noOptimize"] = True
+        if type == "date" and date_format is not None:
+          value["_date_format"]=date_format
+    
+class SenseiFilterQuery(SenseiFilter):
+  def __init__(self, query):
+    SenseiFilter.__init__(self, "query")
+    self.filter={"query":{}}
+    if isinstance(query, SenseiQuery):
+      self.filter={"query": query.get_query()}
+      
+class SenseiFilterSelection(SenseiFilter):
+  def __init__(self, selection):
+    SenseiFilter.__init__(self, "selection")
+    self.filter = {"selection":{}}
+    if isinstance(selection, SenseiSelections):
+      self.filter={"selection":selection.get_selection()}        
+    
+    
+    
+    
 class SenseiSelection:
   def __init__(self, field, operation=PARAM_SELECT_OP_OR):
     self.field = field

@@ -31,56 +31,6 @@ from pyparsing import ParseException, ParseFatalException, ParseSyntaxException
 
 logger = logging.getLogger("sensei_client")
 
-# TODO:
-#
-# 1. Term vector
-# 2. Section
-
-def test(str):
-  return
-
-# def test(str):
-#   try:
-#     tokens = BQLstmt.parseString(str)
-#     print "tokens =",        tokens
-#     print "tokens.columns =", tokens.columns
-#     print "tokens.index =",  tokens.index
-#     print "tokens.where =", tokens.where
-#     if tokens.where:
-#       pass
-#       # print "tokens.where.predicates =", tokens.where.predicates
-#       # print "tokens.where.cumulative_preds =", tokens.where.cumulative_preds
-#       # for predicate in tokens.where.predicates:
-#       #   print "--------------------------------------"
-#       #   print "predicate.value_list =", predicate.value_list
-#       #   print "predicate.except_values =", predicate.except_values
-#       #   print "predicate.prop_list =", predicate.prop_list
-#       #   if predicate.cumulative_preds:
-#       #     print "predicate.cumulative_preds =", predicate.cumulative_preds
-#     print "tokens.orderby =", tokens.orderby
-#     if tokens.orderby:
-#       print "tokens.orderby.orderby_spec =", tokens.orderby.orderby_spec
-#     print "tokens.limit =", tokens.limit
-#     print "tokens.facet_specs =", tokens.facet_specs
-#     print "tokens.groupby =", tokens.groupby
-#     print "tokens.max_per_group =", tokens.max_per_group
-#     print "tokens.given =", tokens.given
-#     if tokens.given:
-#       print "tokens.given.facet_param =", tokens.given.facet_param
-#     print "tokens.fetching_stored =", tokens.fetching_stored
-#   except ParseException as err:
-#     # print " " * (err.loc + 2) + "^\n" + err.msg
-#     pass
-#   except ParseSyntaxException as err:
-#     # print " " * (err.loc + 2) + "^\n" + err.msg
-#     pass
-#   except ParseFatalException as err:
-#     # print " " * (err.loc + 2) + "^\n" + err.msg
-#     pass
-#   finally:
-#     reset_all()
-
-
 class SenseiClient:
   """Sensei client class."""
 
@@ -235,7 +185,8 @@ class SenseiClient:
       paramMap[selection.getSelectValParam()] = selection.getSelectValParamValues()
       if selection.properties:
         paramMap[selection.getSelectPropParam()] = selection.getSelectPropParamValues()
-
+    
+    
     for facet_name, facet_spec in req.facets.iteritems():
       paramMap["%s.%s.%s" % (PARAM_FACET, facet_name, PARAM_FACET_MAX)] = facet_spec.maxCounts
       paramMap["%s.%s.%s" % (PARAM_FACET, facet_name, PARAM_FACET_ORDER)] = facet_spec.orderBy
@@ -319,13 +270,17 @@ class SenseiClient:
     req = SenseiRequest();
     
     # add paging info;
-    req.set_count(20)
+    req.set_count(50)
     req.set_offset(0)
     
     # add query info;
     
     # add selection info;
     req.append_range_selection("year", "1995", "2000", True, False)  # [1995 TO 2000)
+    
+    # add filter info;
+    range_filter = SenseiFilterRange("price", 7900, 11000)
+    req.set_filter(range_filter.get_filter())
     
     # add group by;
     req.set_groupby("category")
@@ -385,6 +340,7 @@ def main(argv):
       stmt = raw_input('> ')
       if stmt == "exit":
         break
+
       # if options.verbose:
       #   test(stmt)
       if stmt == "sample request":
