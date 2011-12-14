@@ -10,7 +10,6 @@ import java.util.Set;
 
 import javax.naming.ConfigurationException;
 
-import org.apache.commons.configuration.Configuration;
 import org.json.JSONObject;
 
 import proj.zoie.api.DataConsumer.DataEvent;
@@ -26,15 +25,14 @@ import com.sensei.plugin.SenseiPluginRegistry;
 
 public class JdbcDataProviderBuilder extends SenseiGateway<ResultSet>{
 
-	public static final String name = "jdbc";
 	private SenseiPluginRegistry pluginRegistry;
 	private Comparator<String> _versionComparator;
 
-	public JdbcDataProviderBuilder(Configuration conf) throws Exception{
-	  super(conf);
-	   pluginRegistry = SenseiPluginRegistry.build(conf);
-    _versionComparator = pluginRegistry.getBeanByName("versionComparator", Comparator.class);
+	@Override
+	public void start() {
+	  _versionComparator = pluginRegistry.getBeanByName("versionComparator", Comparator.class);
 	}
+
 
 	@Override
 	public StreamDataProvider<JSONObject> buildDataProvider(final DataSourceFilter<ResultSet> dataFilter,
@@ -43,11 +41,11 @@ public class JdbcDataProviderBuilder extends SenseiGateway<ResultSet>{
       Set<Integer> partitions) throws Exception
   {
 
-	       final String url = _conf.getString("url");
-	       final String username = _conf.getString("username",null);
-	       final String password = _conf.getString("password",null);
-	       final String driver = _conf.getString("driver");
-	       final String adaptor = _conf.getString("adaptor");
+	       final String url = config.get("url");
+	       final String username = config.get("username");
+	       final String password = config.get("password");
+	       final String driver = config.get("driver");
+	       final String adaptor = config.get("adaptor");
 
 	       final SenseiJDBCAdaptor senseiAdaptor =  pluginRegistry.getBeanByFullPrefix("jdbc.adaptor", SenseiJDBCAdaptor.class);
 	       if (senseiAdaptor==null){

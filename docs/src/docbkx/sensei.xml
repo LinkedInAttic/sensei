@@ -10,6 +10,7 @@
 <!ENTITY chap-configuration SYSTEM "chap-configuration.xml">
 <!ENTITY chap-bql SYSTEM "chap-bql.xml">
 <!ENTITY chap-faq SYSTEM "chap-faq.xml">
+<!ENTITY chap-appendix SYSTEM "chap-appendix.xml">
 ]>
 
 <book version="5.0" xml:lang="en" xmlns="http://docbook.org/ns/docbook"
@@ -55,6 +56,8 @@
   &chap-bql;
 
   &chap-faq;
+
+  &chap-appendix;
 
   <index/>
 

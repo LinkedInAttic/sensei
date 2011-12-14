@@ -24,11 +24,13 @@ import org.apache.log4j.Logger;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
+import org.apache.lucene.document.Field;
 import org.apache.lucene.util.Version;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import proj.zoie.api.ZoieSegmentReader;
+import proj.zoie.api.indexing.AbstractZoieIndexable;
 import proj.zoie.api.indexing.ZoieIndexable;
 import proj.zoie.api.indexing.ZoieIndexable.IndexingReq;
 
@@ -87,6 +89,13 @@ public class SenseiMapper extends MapReduceBase implements Mapper<Object, Object
     	    	  Document doc = idxReqs[0].getDocument();
     		  	  ZoieSegmentReader.fillDocumentID(doc, indexable.getUID());
     	    	  
+                  if (indexable.isStorable()){
+                    byte[] bytes = indexable.getStoreValue();
+                    if (bytes!=null){
+                      doc.add(new Field(AbstractZoieIndexable.DOCUMENT_STORE_FIELD,bytes));
+                    }
+                  }
+    		  	  
     		  	  //now we have uid and lucene Doc;
 		          IntermediateForm form = new IntermediateForm();
 		          form.configure(_conf);

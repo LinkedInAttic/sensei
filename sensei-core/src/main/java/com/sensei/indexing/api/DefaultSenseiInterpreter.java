@@ -3,11 +3,13 @@ package com.sensei.indexing.api;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -204,7 +206,7 @@ public class DefaultSenseiInterpreter<V> extends
 		    	formatSpec.formatter = new SimpleDateFormat(formatString);
 		      }
 		      else{
-		    	formatSpec.formatter = new DecimalFormat(formatString);
+		    	formatSpec.formatter = new DecimalFormat(formatString, new DecimalFormatSymbols(Locale.US));
 		      }
 		    }
 	    }

@@ -3,7 +3,6 @@ package com.sensei.indexing.api.gateway.kafka;
 import java.util.Comparator;
 import java.util.Set;
 
-import org.apache.commons.configuration.Configuration;
 import org.json.JSONObject;
 
 import proj.zoie.impl.indexing.StreamDataProvider;
@@ -16,25 +15,24 @@ import com.sensei.indexing.api.gateway.SenseiGateway;
 
 public class KafkaDataProviderBuilder extends SenseiGateway<byte[]>{
 
-	public static final String name = "kafka";
-	private final Comparator<String> _versionComparator;
+	private final Comparator<String> _versionComparator = ZoieConfig.DEFAULT_VERSION_COMPARATOR;
 
-	public KafkaDataProviderBuilder(Configuration conf){
-	  super(conf);
-	  _versionComparator = ZoieConfig.DEFAULT_VERSION_COMPARATOR;
-	}
+
+
 
 	@Override
-	public StreamDataProvider<JSONObject> buildDataProvider(final DataSourceFilter<byte[]> dataFilter,
+  public StreamDataProvider<JSONObject> buildDataProvider(final DataSourceFilter<byte[]> dataFilter,
       String oldSinceKey,
       ShardingStrategy shardingStrategy,
       Set<Integer> partitions) throws Exception
   {
-	  String zookeeperUrl = _conf.getString("zookeeperUrl");
-	  String consumerGroupId = _conf.getString("consumerGroupId");
-		String topic = _conf.getString("topic");
-		int timeout = _conf.getInt("timeout",10000);
-		int batchsize = _conf.getInt("batchsize");
+	  String zookeeperUrl = config.get("zookeeperUrl");
+	  String consumerGroupId = config.get("consumerGroupId");
+    String topic = config.get("topic");
+    String timeoutStr = config.get("timeout");
+    int timeout = timeoutStr != null ? Integer.parseInt(timeoutStr) : 10000;
+    int batchsize = Integer.parseInt(config.get("batchsize"));
+
 		long offset = oldSinceKey == null ? 0L : Long.parseLong(oldSinceKey);
 		 KafkaJsonStreamDataProvider provider = new KafkaJsonStreamDataProvider(_versionComparator,zookeeperUrl,timeout,batchsize,consumerGroupId,topic,offset);
 		if (dataFilter!=null){

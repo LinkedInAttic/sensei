@@ -8,7 +8,7 @@ import javax.management.InstanceAlreadyExistsException;
 import org.apache.log4j.Logger;
 import org.mortbay.jetty.Server;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.FileSystemXmlApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 import com.linkedin.norbert.NorbertException;
 import com.linkedin.norbert.javacompat.cluster.ClusterClient;
@@ -32,8 +32,18 @@ import com.sensei.search.svc.impl.HttpRestSenseiServiceImpl;
 public class SenseiStarter {
   private static final Logger logger = Logger.getLogger(SenseiStarter.class);
 
-  public static File ConfDir1 = new File("src/test/conf/node1");
-  public static File ConfDir2 = new File("src/test/conf/node2");
+  public static File ConfDir1 = null;
+  public static File ConfDir2 = null;
+  static {
+    try {
+      ConfDir1 = new File(SenseiStarter.class.getClassLoader().getResource("conf/node1").toURI());
+
+      ConfDir2 = new File(SenseiStarter.class.getClassLoader().getResource("conf/node2").toURI());
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
   public static File IndexDir = new File("index/test");
   public static URL SenseiUrl = null;
   static SenseiBroker broker = null;
@@ -123,17 +133,11 @@ public class SenseiStarter {
   }
 
   private static void loadFromSpringContext() {
-    String confDirName=System.getProperty("test.conf.dir");
-    File confDir = null;
-    if (confDirName == null)
-      confDir = new File("src/test/conf");
-    else
-      confDir = new File(confDirName);
 
     ApplicationContext testSpringCtx = null;
     try
     {
-      testSpringCtx = new FileSystemXmlApplicationContext("file:" + new File(confDir, SENSEI_TEST_CONF_FILE).getAbsolutePath());
+      testSpringCtx = new ClassPathXmlApplicationContext("conf/sensei-test.spring");
     } catch(Throwable e)
     {
       if (e instanceof InstanceAlreadyExistsException)

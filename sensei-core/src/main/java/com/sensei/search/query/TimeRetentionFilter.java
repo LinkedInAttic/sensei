@@ -24,20 +24,20 @@ public class TimeRetentionFilter extends Filter {
   private final String _column;
   private final int _nDays;
   private final TimeUnit _dataUnit;
-  
+
   static{
     DefaultSenseiInterpreter.DEFAULT_FORMAT_STRING_MAP.get(MetaType.Long);
   }
-  
+
   public TimeRetentionFilter(String column,int nDays,TimeUnit dataUnit){
     _column = column;
     _nDays = nDays;
     _dataUnit = dataUnit;
   }
-  
+
   private DocIdSet buildFilterSet(BoboIndexReader boboReader) throws IOException{
     FacetHandler facetHandler = boboReader.getFacetHandler(_column);
-    
+
     if (facetHandler!=null){
       DecimalFormat formatter = new DecimalFormat(DefaultSenseiInterpreter.DEFAULT_FORMAT_STRING_MAP.get(MetaType.Long));
       BrowseSelection sel = new BrowseSelection(_column);
@@ -49,16 +49,18 @@ public class TimeRetentionFilter extends Filter {
     }
     throw new IllegalStateException("no facet handler defined with column: "+_column);
   }
-  
+
   @Override
   public DocIdSet getDocIdSet(IndexReader reader) throws IOException {
     if (reader instanceof ZoieIndexReader){
       ZoieIndexReader<BoboIndexReader> zoieReader = (ZoieIndexReader<BoboIndexReader>)reader;
       List<BoboIndexReader> decorated = zoieReader.getDecoratedReaders();
-      
+
+
       List<DocIdSet> docIdSetList = new ArrayList<DocIdSet>(decorated.size());
       for (BoboIndexReader bobo : decorated){
         docIdSetList.add(buildFilterSet(bobo));
+
       }
       return new OrDocIdSet(docIdSetList);
     }

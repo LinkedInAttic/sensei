@@ -2,12 +2,9 @@ package com.sensei.search.nodes;
 
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.zip.GZIPInputStream;
 
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
@@ -21,6 +18,7 @@ import com.linkedin.norbert.javacompat.cluster.ClusterClient;
 import com.linkedin.norbert.javacompat.cluster.Node;
 import com.linkedin.norbert.javacompat.network.PartitionedNetworkClient;
 import com.sensei.conf.SenseiSchema;
+import com.sensei.indexing.api.DefaultJsonSchemaInterpreter;
 import com.sensei.search.client.ResultMerger;
 import com.sensei.search.cluster.routing.SenseiLoadBalancerFactory;
 import com.sensei.search.req.SenseiHit;
@@ -61,21 +59,38 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
         try
         {
           byte[] dataBytes = hit.getStoredValue();
-          if (dataBytes!=null && dataBytes.length>0)
+          if (dataBytes == null || dataBytes.length == 0)
           {
-            ByteArrayOutputStream bout = new ByteArrayOutputStream();
-            byte[] buf = new byte[1024];  // 1k buffer
-            ByteArrayInputStream bin = new ByteArrayInputStream(dataBytes);
-            GZIPInputStream gzipStream = new GZIPInputStream(bin);
+            Document doc = hit.getStoredFields();
+            if (doc != null)
+            {
+              dataBytes = doc.getBinaryValue(SenseiSchema.SRC_DATA_COMPRESSED_FIELD_NAME);
 
-            int len;
-            while ((len = gzipStream.read(buf)) > 0) {
-              bout.write(buf, 0, len);
+              if (dataBytes == null || dataBytes.length == 0)
+              {
+                dataBytes = doc.getBinaryValue(SenseiSchema.SRC_DATA_FIELD_NAME);
+                if (dataBytes != null && dataBytes.length > 0)
+                {
+                  hit.setSrcData(new String(dataBytes,"UTF-8"));
+                  dataBytes = null; // set to null to avoid gunzip.
+                }
+              }
+              doc.removeFields(SenseiSchema.SRC_DATA_COMPRESSED_FIELD_NAME);
+              doc.removeFields(SenseiSchema.SRC_DATA_FIELD_NAME);
             }
-            bout.flush();
-
-            byte[] uncompressed = bout.toByteArray();
-            hit.setSrcData(new String(uncompressed,"UTF-8"));
+          }
+          if (dataBytes != null && dataBytes.length > 0)
+          {
+            byte[] data;
+            try
+            {
+              data = DefaultJsonSchemaInterpreter.decompress(dataBytes);
+            }
+            catch(Exception ex)
+            {
+              data = dataBytes;
+            }
+            hit.setSrcData(new String(data, "UTF-8"));
           }
         }
         catch(Exception e)
