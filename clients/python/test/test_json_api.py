@@ -1412,7 +1412,7 @@ class TestJsonAPI(unittest.TestCase):
   "from": 0, 
   "query": {
     "wildcard": {
-      "category": "s.d*"
+      "category": "s?d*"
     }
   }, 
   "size": 10
