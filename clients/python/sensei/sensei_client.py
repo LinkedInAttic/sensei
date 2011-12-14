@@ -314,14 +314,37 @@ class SenseiClient:
   
   def run_example(self):
     """ a sample sensei request"""
+    
+    # create a SenseiRequest object firstly;
     req = SenseiRequest();
     
-    # sort;
+    # add paging info;
+    req.set_count(20)
+    req.set_offset(0)
+    
+    # add query info;
+    
+    
+    # add group by;
+    req.set_groupby("category")
+    req.set_max_per_group(4)
+    
+    # add sort;
     sort = SenseiSort("color", True)
     req.append_sort(sort)
     
+    # add fetch_stored
+    req.set_fetch_stored(False)
+    
+    # need explain or not
+    req.set_explain(False)
+    
+    
+    # execute and display results;
     res = self.doQuery(req)
-    res.display(columns=req.get_columns(), max_col_width=40)
+    columns = []
+    columns.append("*")
+    res.display(columns, max_col_width=40)
 
 def main(argv):
   print "Welcome to Sensei Shell"
@@ -364,6 +387,7 @@ def main(argv):
       #   test(stmt)
       if stmt == "sample request":
         client.run_example()
+        continue
         
       req = client.compile(stmt)
       if req.stmt_type == "select":

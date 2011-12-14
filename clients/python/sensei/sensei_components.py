@@ -665,6 +665,9 @@ class SenseiRequest:
   def set_groupby(self, groupby):
     self.groupby = groupby
     
+  def set_max_per_group(self, max_per_group):
+    self.max_per_group = max_per_group
+      
   def set_facet_init_param_map(self, facet_init_param_map):
     self.facet_init_param_map = facet_init_param_map
     
