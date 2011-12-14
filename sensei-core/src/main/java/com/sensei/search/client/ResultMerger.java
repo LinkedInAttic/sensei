@@ -18,6 +18,7 @@ import java.util.Map.Entry;
 import org.apache.log4j.Logger;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.SortField;
 import org.apache.lucene.util.PriorityQueue;
 
 import proj.zoie.api.ZoieIndexReader;
@@ -344,15 +345,78 @@ public class ResultMerger
 
   private static final class SenseiHitComparator implements Comparator<SenseiHit>
   {
+    SortField[] _sortFields;
+
+    public SenseiHitComparator(SortField[] sortFields)
+    {
+      _sortFields = sortFields;
+    }
+    
     public int compare(SenseiHit o1, SenseiHit o2)
     {
-      Comparable c1 = o1.getComparable();
-      Comparable c2 = o2.getComparable();
-      if (c1 == null || c2 == null)
+      if (_sortFields.length == 0)
       {
-        return o2.getDocid() - o1.getDocid();
+        return o1.getDocid() - o2.getDocid();
       }
-      return c1.compareTo(c2);
+      else
+      {
+        int nullCount = 0;
+        for (int i = 0; i < _sortFields.length; ++i)
+        {
+          String field = _sortFields[i].getField();
+          int reverse = _sortFields[i].getReverse() ? -1 : 1;
+
+          if (_sortFields[i].getType() == SortField.SCORE)
+          {
+            float score1 = o1.getScore();
+            float score2 = o2.getScore();
+            if (score1 == score2)
+            {
+              continue;
+            }
+            else
+            {
+              return (score1 > score2) ? -reverse : reverse;
+            }
+          }
+          else if (_sortFields[i].getType() == SortField.DOC)
+          {
+            return o1.getDocid() - o2.getDocid();
+          }
+          else // A regular sort field
+          {
+            String value1 = o1.getField(field);
+            String value2 = o2.getField(field);
+
+            if (value1 == null && value2 == null)
+            {
+              nullCount++;
+              continue;
+            }
+            else if (value1 == null)
+              return -reverse;
+            else if (value2 == null)
+              return reverse;
+            else
+            {
+              int comp = value1.compareTo(value2);
+              if (comp != 0)
+              {
+                return comp * reverse;
+              }
+            }
+          } // A regular sort field
+        }
+
+        if (nullCount == _sortFields.length)
+        {
+          return o1.getDocid() - o2.getDocid();
+        }
+        else
+        {
+          return 0;
+        }
+      }
     }
   }
 
@@ -454,7 +518,7 @@ public class ResultMerger
     {
       mergedFacetMap = mergeFacetContainer(facetList, req);
     }
-    Comparator<SenseiHit> comparator = new SenseiHitComparator();
+    Comparator<SenseiHit> comparator = new SenseiHitComparator(req.getSort());
 
     SenseiHit[] hits;
     if (req.getGroupBy() == null || req.getGroupBy().length() == 0)

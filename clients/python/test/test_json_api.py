@@ -4,8 +4,8 @@ import time
 from datetime import datetime
 
 sys.path.insert(0, "../sensei")
-import sensei_client
 from sensei_client import *
+from sensei_components import *
 from pyparsing import ParseException
 
 sensei_client = SenseiClient(sysinfo={
@@ -386,12 +386,12 @@ class TestJsonAPI(unittest.TestCase):
                     """{
   "fetchStored": true, 
   "from": 0, 
-  "groupBy": [
-    {
-      "column": "color", 
-      "top": 10
-    }
-  ], 
+  "groupBy": {
+    "columns": [
+      "color"
+    ], 
+    "top": 10
+  }, 
   "size": 10
 }""")
 
@@ -850,12 +850,12 @@ class TestJsonAPI(unittest.TestCase):
                      """{
   "fetchStored": true, 
   "from": 0, 
-  "groupBy": [
-    {
-      "column": "color", 
-      "top": 10
-    }
-  ], 
+  "groupBy": {
+    "columns": [
+      "color"
+    ], 
+    "top": 10
+  }, 
   "size": 10
 }""")
 
@@ -872,12 +872,12 @@ class TestJsonAPI(unittest.TestCase):
                      """{
   "fetchStored": true, 
   "from": 0, 
-  "groupBy": [
-    {
-      "column": "color", 
-      "top": 3
-    }
-  ], 
+  "groupBy": {
+    "columns": [
+      "color"
+    ], 
+    "top": 3
+  }, 
   "size": 10
 }""")
     
@@ -1097,12 +1097,12 @@ class TestJsonAPI(unittest.TestCase):
     ]
   }, 
   "from": 0, 
-  "groupBy": [
-    {
-      "column": "color", 
-      "top": 10
-    }
-  ], 
+  "groupBy": {
+    "columns": [
+      "color"
+    ], 
+    "top": 10
+  }, 
   "size": 10
 }""")
     
