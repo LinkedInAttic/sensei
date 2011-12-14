@@ -90,6 +90,7 @@ BNF Grammar for BQL
               | <range_predicate>
               | <time_predicate>
               | <match_predicate>
+              | <like_predicate>
 
 <in_predicate> ::= <column_name> [NOT] IN <value_list> [<except_clause>] [<predicate_props>]
 
@@ -631,7 +632,7 @@ class BQLParser:
         raise ParseSyntaxException(
           ParseException(s, loc, 'Column, "%s", is not a string type' % field))
     # Convert % and _ in SQL syntax to Lucene's * and .
-    value = tok[2].replace("%", "*").replace("_", ".")
+    value = tok[2].replace("%", "*").replace("_", "?")
     return {"query":
               {"wildcard":
                  {field: value}
