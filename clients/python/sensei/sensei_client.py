@@ -185,7 +185,8 @@ class SenseiClient:
       paramMap[selection.getSelectValParam()] = selection.getSelectValParamValues()
       if selection.properties:
         paramMap[selection.getSelectPropParam()] = selection.getSelectPropParamValues()
-
+    
+    
     for facet_name, facet_spec in req.facets.iteritems():
       paramMap["%s.%s.%s" % (PARAM_FACET, facet_name, PARAM_FACET_MAX)] = facet_spec.maxCounts
       paramMap["%s.%s.%s" % (PARAM_FACET, facet_name, PARAM_FACET_ORDER)] = facet_spec.orderBy
@@ -269,13 +270,17 @@ class SenseiClient:
     req = SenseiRequest();
     
     # add paging info;
-    req.set_count(20)
+    req.set_count(50)
     req.set_offset(0)
     
     # add query info;
     
     # add selection info;
     req.append_range_selection("year", "1995", "2000", True, False)  # [1995 TO 2000)
+    
+    # add filter info;
+    range_filter = SenseiFilterRange("price", 7900, 11000)
+    req.set_filter(range_filter.get_filter())
     
     # add group by;
     req.set_groupby("category")
