@@ -324,6 +324,8 @@ class SenseiClient:
     
     # add query info;
     
+    # add selection info;
+    req.append_range_selection("year", "1995", "2000", True, False)  # [1995 TO 2000)
     
     # add group by;
     req.set_groupby("category")

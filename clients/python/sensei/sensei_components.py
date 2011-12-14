@@ -282,7 +282,7 @@ class SenseiSelection:
   def getSelectPropParamValues(self):
     return ",".join(key + ":" + self.properties.get(key)
         for key in self.properties.keys())
-  
+
 
 class SenseiSort:
   def __init__(self, field, reverse=False):
@@ -615,7 +615,7 @@ class SenseiRequest:
       self.count = count
       self.columns = []
       self.sorts = None
-      self.selections = {}
+      self.selections = []
       self.filter = {}
       self.query_pred = {}
       self.facets = {}
@@ -659,6 +659,30 @@ class SenseiRequest:
   def set_selections(self, selections):
     self.selections = selections
     
+  def append_term_selection(self, column, value):
+    if self.selections is None:
+      self.selections = []
+    term_selection = {"term": {column : {"value" : value}}}
+    self.selections.append(term_selection)
+  
+  def append_terms_selection(self, column, values, excludes, operator):
+    if self.selections is None:
+      self.selections = []
+    terms_selection = {"terms": {column : {"value" : value}}}
+    self.selections.append(term_selection)  
+    
+  def append_range_selection(self, column, from_str="*", to_str="*", include_lower=True, include_upper=True):
+    if self.selections is None:
+      self.selections = []
+    range_selection = {"range":{column:{"to":to_str, "from":from_str, "include_lower":include_lower, "include_upper":include_upper}}}
+    self.selections.append(range_selection)
+        
+  def append_path_selection(self, column, value, strict=False, depth=1):
+    if self.selections is None:
+      self.selections = []
+    path_selection = {"path": {column : {"value":value, "strict":strict, "depth":depth}}}
+    self.selections.append(path_selection)      
+        
   def set_facets(self, facets):
     self.facets = facets
     
