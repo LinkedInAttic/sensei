@@ -1,0 +1,59 @@
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+   <title>Details</title><meta name="generator" content="DocBook XSL-NS Stylesheets V1.75.2"><link rel="home" href="sensei.html" title="Sensei"><link rel="up" href="ch03.html" title="Chapter&nbsp;3.&nbsp;Getting Started"><link rel="prev" href="ch03s03.html" title="Embedded Technologies"><link rel="next" href="ch04.html" title="Chapter&nbsp;4.&nbsp;Sensei Demo"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Details</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="ch03s03.html">Prev</a>&nbsp;</td><th width="60%" align="center">Chapter&nbsp;3.&nbsp;Getting Started</th><td width="20%" align="right">&nbsp;<a accesskey="n" href="ch04.html">Next</a></td></tr></table><hr></div><div class="section" title="Details"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="d0e510"></a>Details</h2></div></div></div><div class="section" title="Building Sensei"><div class="titlepage"><div><div><h3 class="title"><a name="d0e513"></a>Building Sensei</h3></div></div></div><p>Getting the Sensei source code and building the entire
+        system is straightforward.  Only two commands are needed:</p><div class="orderedlist"><ol class="orderedlist" type="1" compact><li class="listitem"><p>Checking out the source code from trunk: 
+            </p><pre class="programlisting">  $ git clone git://github.com/javasoze/sensei.git sensei-trunk
+            </pre></li><li class="listitem"><p>Building Sensei using <code class="literal">ant</code>:
+            </p><pre class="programlisting">  $ ant</pre></li></ol></div></div><div class="section" title="Starting ZooKeeper"><div class="titlepage"><div><div><h3 class="title"><a name="d0e532"></a>Starting ZooKeeper<a class="indexterm" name="d0e535"></a> </h3></div></div></div><p>
+          In order to run the sample of Sensei search, you have to run
+          an instance of ZooKeeper first.
+        </p><p>
+          You may download ZooKeeper from <a class="link" href="http://hadoop.apache.org/zookeeper/" target="_top">http://hadoop.apache.org/zookeeper/</a>.
+        </p><p>
+          Using the sample configuration file in <code class="code">zookeeper-3.2.0/conf</code> by copying
+          <code class="code">zookeeper-3.2.0/conf/zoo_sample.cfg</code> to <code class="code">zookeeper-3.2.0/conf/zoo.cfg</code> and
+          start an instance of ZooKeeper by running
+        </p><pre class="programlisting">  $ zookeeper-3.2.0/bin/zkServer.sh start</pre><p>
+          For details, see <a class="link" href="http://hadoop.apache.org/zookeeper/docs/current/zookeeperStarted.html" target="_top">http://hadoop.apache.org/zookeeper/docs/current/zookeeperStarted.html</a>.
+        </p></div><div class="section" title="Starting Sensei Nodes"><div class="titlepage"><div><div><h3 class="title"><a name="d0e564"></a>Starting Sensei Nodes <a class="indexterm" name="d0e567"></a> </h3></div></div></div><p>You can use command
+        <code class="literal">bin/start-sensei-node.sh</code> to start a server
+        node.  This command takes one argument:
+        <code class="literal">conf.dir</code>, which contains all configuration
+        information for a given Sensei node.</p><p>Here is an example command-line that will work to fire up
+        a single sensei node with some sample data:
+        </p><pre class="programlisting">  $ bin/start-sensei-node.sh conf</pre><div class="note" title="Note" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Note</h3><p>Do not expect to see any logs after running this
+          command. If you run it, have ZooKeeper up and running, a REST
+          server (as discussed below) will also be started, and you will
+          be able to get some sample search results. </p></div></div><div class="section" title="Web Application and RESTful End-Point"><div class="titlepage"><div><div><h3 class="title"><a name="d0e586"></a>Web Application and RESTful
+        End-Point<a class="indexterm" name="d0e589"></a></h3></div></div></div><p>When developing applications using Sensei, we found it
+        convenient to have a RESTful end-point that provides data in
+        JSON format.  Having a RESTful end-point allows one to query the
+        Sensei system in an ad-hoc way, and having a JSON formatted
+        output provides a way to investigate the result set without
+        having the need to depend on jars or any other types of code
+        binding.</p><p>When a Sensei node is started, a RESTful end-point along
+        with a web interactive client would be started as well:</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>RESTful end-point:</p><pre class="programlisting">  http://localhost:8080/sensei?q=</pre></li><li class="listitem"><p>Web client</p><pre class="programlisting">  http://localhost:8080</pre></li></ul></div></div><div class="section" title="Starting Clients"><div class="titlepage"><div><div><h3 class="title"><a name="d0e607"></a>Starting Clients<a class="indexterm" name="d0e610"></a> </h3></div></div></div><p>
+          After you start at least one node, you can run
+        </p><pre class="programlisting">  $ bin/sensei-client.sh client-conf</pre><p>to start a client.  You can edit
+        <code class="literal">client-conf/sensei-client.conf</code> to change the
+        properties.</p><p>
+          Type help to see command list:
+        </p><pre class="programlisting">  $ bin/sensei-client.sh client-conf
+  &gt; help
+  help - prints this message
+  exit - quits
+  info - prints system information
+  query &lt;query string&gt; - sets query text
+  facetspec &lt;name&gt;:&lt;minHitCount&gt;:&lt;maxCount&gt;:&lt;sort&gt; - add facet spec
+  page &lt;offset&gt;:&lt;count&gt; - set paging parameters
+  select &lt;name&gt;:&lt;value1&gt;,&lt;value2&gt;... - add selection, with ! in front of value indicates a not
+  sort &lt;name&gt;:&lt;dir&gt;,... - set sort specs
+  showReq: shows current request
+  clear: clears current request
+  clearSelections: clears all selections
+  clearSelection &lt;name&gt;: clear selection specified
+  clearFacetSpecs: clears all facet specs
+  clearFacetSpec &lt;name&gt;: clears specified facetspec
+  browse - executes a search
+  &gt; 
+</pre></div></div><div class="navfooter"><hr><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="ch03s03.html">Prev</a>&nbsp;</td><td width="20%" align="center"><a accesskey="u" href="ch03.html">Up</a></td><td width="40%" align="right">&nbsp;<a accesskey="n" href="ch04.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">Embedded Technologies&nbsp;</td><td width="20%" align="center"><a accesskey="h" href="sensei.html">Home</a></td><td width="40%" align="right" valign="top">&nbsp;Chapter&nbsp;4.&nbsp;Sensei Demo</td></tr></table></div></body></html>

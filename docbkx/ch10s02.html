@@ -1,0 +1,185 @@
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+   <title>BNF Grammar for BQL</title><meta name="generator" content="DocBook XSL-NS Stylesheets V1.75.2"><link rel="home" href="sensei.html" title="Sensei"><link rel="up" href="ch10.html" title="Chapter&nbsp;10.&nbsp;BQL: Browsing Query Language"><link rel="prev" href="ch10.html" title="Chapter&nbsp;10.&nbsp;BQL: Browsing Query Language"><link rel="next" href="ch10s03.html" title="BQL Statement Syntax"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">BNF Grammar for BQL</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="ch10.html">Prev</a>&nbsp;</td><th width="60%" align="center">Chapter&nbsp;10.&nbsp;BQL: Browsing Query Language</th><td width="20%" align="right">&nbsp;<a accesskey="n" href="ch10s03.html">Next</a></td></tr></table><hr></div><div class="section" title="BNF Grammar for BQL"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="d0e3465"></a>BNF Grammar for BQL</h2></div></div></div><div class="section" title="BNF Notation"><div class="titlepage"><div><div><h3 class="title"><a name="d0e3468"></a>BNF Notation</h3></div></div></div><p>
+        We use a modified BNF notation to describe BQL.  The following table
+        lists the meaning of all the meta-symbols we use.
+      </p><table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides" id="d0e3473"><colgroup><col align="left"><col align="left">
+        </colgroup><thead><tr><th align="left">Symbol</th><th align="left">Meaning</th></tr></thead><tbody><tr><td align="left">|</td><td align="left">Or.  Choose one of the items.</td></tr><tr><td align="left">[ ]</td><td align="left">Enclose optional items.</td></tr><tr><td align="left">*</td><td align="left">Flags items that can be repeated 0 or more times.</td></tr><tr><td align="left">( )</td><td align="left">Group items so that they can be marked with one of the symbols: [ ], |, or *.</td></tr></tbody></table></div><div class="section" title="BQL Grammar"><div class="titlepage"><div><div><h3 class="title"><a name="d0e3505"></a>BQL Grammar</h3></div></div></div><p>Below is an overview of the BQL grammar in BNF.  Detailed
+      documentation of statements and clauses can be found in later
+      sections.</p><pre class="programlisting">
+&lt;statement&gt; ::= ( &lt;select_stmt&gt; | &lt;describe_stmt&gt; ) [';']
+
+&lt;select_stmt&gt; ::= SELECT &lt;select_list&gt; [&lt;from_clause&gt;] [&lt;where_clause&gt;] [&lt;given_clause&gt;]
+                  [&lt;additional_clauses&gt;]
+
+&lt;describe_stmt&gt; ::= ( DESC | DESCRIBE ) [&lt;index_name&gt;]
+
+&lt;select_list&gt; ::= '*' | &lt;column_name_list&gt;
+
+&lt;column_name_list&gt; ::= &lt;column_name&gt; ( ',' &lt;column_name&gt; )*
+
+&lt;from_clause&gt; ::= FROM &lt;index_name&gt;
+
+&lt;where_clause&gt; ::= WHERE &lt;search_expr&gt;
+
+&lt;search_expr&gt; ::= &lt;predicate&gt;
+                | &lt;search_expr&gt; (AND | OR) &lt;search_expr&gt;
+                | '(' &lt;search_expr&gt; ')'
+
+&lt;predicates&gt; ::= &lt;predicate&gt; ( AND &lt;predicate&gt; )*
+
+&lt;predicate&gt; ::= &lt;in_predicate&gt;
+              | &lt;contains_all_predicate&gt;
+              | &lt;equal_predicate&gt;
+              | &lt;not_equal_predicate&gt;
+              | &lt;query_predicate&gt;
+              | &lt;between_predicate&gt;
+              | &lt;range_predicate&gt;
+              | &lt;time_predicate&gt;
+              | &lt;match_predicate&gt;
+
+&lt;in_predicate&gt; ::= &lt;column_name&gt; [NOT] IN &lt;value_list&gt; [&lt;except_clause&gt;] [&lt;predicate_props&gt;]
+
+&lt;contains_all_predicate&gt; ::= &lt;column_name&gt; CONTAINS ALL &lt;value_list&gt; [&lt;except_clause&gt;]
+                             [&lt;predicate_props&gt;]
+
+&lt;equal_predicate&gt; ::= &lt;column_name&gt; '=' &lt;value&gt; [&lt;predicate_props&gt;]
+
+&lt;not_equal_predicate&gt; ::= &lt;column_name&gt; '&lt;&gt;' &lt;value&gt; [&lt;predicate_props&gt;]
+
+&lt;query_predicate&gt; ::= QUERY IS &lt;quoted_string&gt;
+
+&lt;between_predicate&gt; ::= &lt;column_name&gt; [NOT] BETWEEN &lt;value&gt; AND &lt;value&gt;
+
+&lt;range_predicate&gt; ::= &lt;column_name&gt; &lt;range_op&gt; &lt;numeric&gt;
+
+&lt;time_predicate&gt; ::= &lt;column_name&gt; IN LAST &lt;time_span&gt;
+                   | &lt;column_name&gt; ( SINCE | AFTER | BEFORE ) &lt;time_expr&gt;
+
+&lt;match_predicate&gt; ::= MATCH '(' column_name_list ')' AGAINST '(' quoted_string ')'
+
+&lt;like_predicate&gt; ::= &lt;column_name&gt; LIKE &lt;quoted_string&gt;
+
+&lt;value_list&gt; ::= '(' &lt;value&gt; ( ',' &lt;value&gt; )* ')'
+
+&lt;value&gt; ::= &lt;quoted_string&gt; | &lt;numeric&gt;
+
+&lt;range_op&gt; ::= '&lt;' | '&lt;=' | '&gt;=' | '&gt;'
+
+&lt;except_clause&gt; ::= EXCEPT &lt;value_list&gt;
+
+&lt;predicate_props&gt; ::= WITH &lt;prop_list&gt;
+
+&lt;prop_list&gt; ::= '(' &lt;key_value_pair&gt; ( ',' &lt;key_value_pair&gt; )* ')'
+
+&lt;key_value_pair&gt; ::= &lt;quoted_string&gt; ':' &lt;quoted_string&gt;
+
+&lt;given_clause&gt; ::= GIVEN FACET PARAM &lt;facet_param_list&gt;
+
+&lt;facet_param_list&gt; ::= &lt;facet_param&gt; ( ',' &lt;facet_param&gt; )*
+
+&lt;facet_param&gt; ::= '(' &lt;facet_name&gt; &lt;facet_param_name&gt; &lt;facet_param_type&gt; &lt;facet_param_value&gt; ')'
+
+&lt;facet_param_name&gt; ::= &lt;quoted_string&gt;
+
+&lt;facet_param_type&gt; ::= BOOLEAN | INT | LONG | STRING | BYTEARRAY | DOUBLE
+
+&lt;facet_param_value&gt; ::= &lt;quoted_string&gt;
+
+&lt;additional_clauses&gt; ::= ( &lt;additional_clause&gt; )+
+
+&lt;additional_clause&gt; ::= &lt;order_by_clause&gt;
+                      | &lt;group_by_clause&gt;
+                      | &lt;limit_clause&gt;
+                      | &lt;browse_by_clause&gt;
+                      | &lt;fetching_stored_clause&gt;
+
+&lt;order_by_clause&gt; ::= ORDER BY &lt;sort_specs&gt;
+
+&lt;sort_specs&gt; ::= &lt;sort_spec&gt; ( ',', &lt;sort_spec&gt; )*
+
+&lt;sort_spec&gt; ::= &lt;column_name&gt; [&lt;ordering_spec&gt;]
+
+&lt;ordering_spec&gt; ::= ASC | DESC
+
+&lt;group_by_clause&gt; ::= GROUP BY &lt;group_spec&gt;
+
+&lt;group_spec&gt; ::= &lt;facet_name&gt; [TOP &lt;max_per_group&gt;]
+
+&lt;limit_clause&gt; ::= LIMIT [&lt;offset&gt; ','] &lt;count&gt;
+
+&lt;offset&gt; ::= ( &lt;digit&gt; )+
+
+&lt;count&gt; ::= ( &lt;digit&gt; )+
+
+&lt;browse_by_clause&gt; ::= BROWSE BY &lt;facet_specs&gt;
+
+&lt;facet_specs&gt; ::= &lt;facet_spec&gt; ( ',' &lt;facet_spec&gt; )*
+
+&lt;facet_spec&gt; ::= &lt;facet_name&gt; [&lt;facet_expression&gt;]
+
+&lt;facet_expression&gt; ::= '(' &lt;expand_flag&gt; &lt;count&gt; &lt;count&gt; &lt;facet_ordering&gt; ')'
+
+&lt;expand_flag&gt; ::= TRUE | FALSE
+
+&lt;facet_ordering&gt; ::= HITS | VALUE
+
+&lt;fetching_stored_clause&gt; ::= FETCHING STORED [&lt;fetching_flag&gt;]
+
+&lt;fetching_flag&gt; ::= TRUE | FALSE
+
+&lt;quoted_string&gt; ::= '"' ( &lt;char&gt; )* '"'
+                  | "'" ( &lt;char&gt; )* "'"
+
+&lt;identifier&gt; ::= &lt;identifier_start&gt; ( &lt;identifier_part&gt; )*
+
+&lt;identifier_start&gt; ::= &lt;alpha&gt; | '-' | '_'
+
+&lt;identifier_part&gt; ::= &lt;identifier_start&gt; | &lt;digit&gt;
+
+&lt;column_name&gt; ::= &lt;identifier&gt;
+
+&lt;facet_name&gt; ::= &lt;identifier&gt;
+
+&lt;alpha&gt; ::= &lt;alpha_lower_case&gt; | &lt;alpha_upper_case&gt;
+
+&lt;alpha_upper_case&gt; ::= A | B | C | D | E | F | G | H | I | J | K | L | M | N | O
+                     | P | Q | R | S | T | U | V | W | X | Y | Z
+
+&lt;alpha_lower_case&gt; ::= a | b | c | d | e | f | g | h | i | j | k | l | m | n | o
+                     | p | q | r | s | t | u | v | w | x | y | z
+
+&lt;digit&gt; ::= 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
+
+&lt;numeric&gt; ::= &lt;time_expr&gt; | &lt;number&gt;
+
+&lt;number&gt; ::= &lt;integer&gt; | &lt;real&gt;
+
+&lt;integer&gt; ::= ( &lt;digit&gt; )+
+
+&lt;real&gt; ::= ( &lt;digit&gt; )+ '.' ( &lt;digit&gt; )+
+
+&lt;time_expr&gt; ::= &lt;time_span&gt; AGO
+              | &lt;date_time_string&gt;
+              | NOW
+
+&lt;time_span&gt; ::= [&lt;time_week_part&gt;] [&lt;time_day_part&gt;] [&lt;time_hour_part&gt;]
+                [&lt;time_minute_part&gt;] [&lt;time_second_part&gt;] [&lt;time_millisecond_part&gt;]
+
+&lt;time_week_part&gt; ::= &lt;integer&gt; ( 'week' | 'weeks' )
+
+&lt;time_day_part&gt;  ::= &lt;integer&gt; ( 'day'  | 'days' )
+
+&lt;time_hour_part&gt; ::= &lt;integer&gt; ( 'hour' | 'hours' )
+
+&lt;time_minute_part&gt; ::= &lt;integer&gt; ( 'minute' | 'minutes' | 'min' | 'mins')
+
+&lt;time_second_part&gt; ::= &lt;integer&gt; ( 'second' | 'seconds' | 'sec' | 'secs')
+
+&lt;time_millisecond_part&gt; ::= &lt;integer&gt; ( 'millisecond' | 'milliseconds' | 'msec' | 'msecs')
+
+&lt;date_time_string&gt; ::= &lt;digit&gt;&lt;digit&gt;&lt;digit&gt;&lt;digit&gt; ('-' | '/' | '.') &lt;digit&gt;&lt;digit&gt;
+                       ('-' | '/' | '.') &lt;digit&gt;&lt;digit&gt;
+                       &lt;digit&gt;&lt;digit&gt; ':' &lt;digit&gt;&lt;digit&gt; ':' &lt;digit&gt;&lt;digit&gt;
+
+</pre></div></div><div class="navfooter"><hr><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="ch10.html">Prev</a>&nbsp;</td><td width="20%" align="center"><a accesskey="u" href="ch10.html">Up</a></td><td width="40%" align="right">&nbsp;<a accesskey="n" href="ch10s03.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">Chapter&nbsp;10.&nbsp;BQL: Browsing Query Language&nbsp;</td><td width="20%" align="center"><a accesskey="h" href="sensei.html">Home</a></td><td width="40%" align="right" valign="top">&nbsp;BQL Statement Syntax</td></tr></table></div></body></html>

@@ -1,0 +1,26 @@
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+   <title>Index Sharding</title><meta name="generator" content="DocBook XSL-NS Stylesheets V1.75.2"><link rel="home" href="sensei.html" title="Sensei"><link rel="up" href="ch05.html" title="Chapter&nbsp;5.&nbsp;Indexing"><link rel="prev" href="ch05.html" title="Chapter&nbsp;5.&nbsp;Indexing"><link rel="next" href="ch05s03.html" title="Index Replication"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Index Sharding</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="ch05.html">Prev</a>&nbsp;</td><th width="60%" align="center">Chapter&nbsp;5.&nbsp;Indexing</th><td width="20%" align="right">&nbsp;<a accesskey="n" href="ch05s03.html">Next</a></td></tr></table><hr></div><div class="section" title="Index Sharding"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="d0e1007"></a>Index Sharding<a class="indexterm" name="d0e1010"></a></h2></div></div></div><p>Index sharding is needed when the amount of data to be indexed
+    is too big for one single machine to handle.  Most of the times
+    sharding is required because the disk space on a single machine is
+    not big enough, but limited memory or limited CPU power can also be
+    the reason.</p><p>Index sharding is controlled by the following two
+    configuration parameters:</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p><code class="literal">sensei.index.manager.&lt;indexing-manager-type&gt;.maxpartition.id</code></p></li><li class="listitem"><p><code class="literal">sensei.node.partitions</code></p></li></ul></div><p>The first parameter tells Sensei how many shards in total the
+    index will be divided into, and the second parameter tells Sensei
+    how many and what shards are handled by the current node.</p><p>For example, if you want to divide the entire index into 10
+    shards (shard 0, shard 1, ..., shard 9), and you want to put the
+    first two shards onto the first Sensei node, then you just need to
+    add the following two lines to your configuration file:</p><pre class="programlisting">  sensei.index.manager.default.maxpartition.id = 9
+  sensei.node.partitions = 0,1</pre><p>How to split your data into different shards is up to the
+    business logic of the application.  Sensei allows you to provide a
+    <span class="emphasis"><em>sharding strategy</em></span> plug-in (see
+    <code class="classname">com.sensei.indexing.api.ShardingStrategy</code>) to
+    let the indexing manager know what data should belong to which
+    shards.</p><p>A simple but common sharding strategy is implemented in
+    <code class="classname">com.sensei.indexing.api.ShardingStrategy</code>:
+    <code class="classname">FieldModShardingStrategy</code>.  This is basically
+    the round-robin style.  To make this sharding strategy work, you
+    need to specify the total number of shards and on which data field
+    the data should be sharded.
+    </p><p>If data that does not belong to any partition on a Sensei node
+    is passed to the indexing manager, it is discarded.</p></div><div class="navfooter"><hr><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="ch05.html">Prev</a>&nbsp;</td><td width="20%" align="center"><a accesskey="u" href="ch05.html">Up</a></td><td width="40%" align="right">&nbsp;<a accesskey="n" href="ch05s03.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">Chapter&nbsp;5.&nbsp;Indexing&nbsp;</td><td width="20%" align="center"><a accesskey="h" href="sensei.html">Home</a></td><td width="40%" align="right" valign="top">&nbsp;Index Replication</td></tr></table></div></body></html>

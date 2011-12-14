@@ -1,0 +1,111 @@
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+   <title>Demo Configuration</title><meta name="generator" content="DocBook XSL-NS Stylesheets V1.75.2"><link rel="home" href="sensei.html" title="Sensei"><link rel="up" href="ch04.html" title="Chapter&nbsp;4.&nbsp;Sensei Demo"><link rel="prev" href="ch04s05.html" title="Diagram"><link rel="next" href="ch05.html" title="Chapter&nbsp;5.&nbsp;Indexing"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Demo Configuration</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="ch04s05.html">Prev</a>&nbsp;</td><th width="60%" align="center">Chapter&nbsp;4.&nbsp;Sensei Demo</th><td width="20%" align="right">&nbsp;<a accesskey="n" href="ch05.html">Next</a></td></tr></table><hr></div><div class="section" title="Demo Configuration"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="d0e739"></a>Demo Configuration</h2></div></div></div><p>The configuration for the demo application can be found at:
+      <a class="link" href="https://github.com/javasoze/sensei/tree/master/conf" target="_top">https://github.com/javasoze/sensei/tree/master/conf</a>,
+      which contains the following files:</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p><code class="filename">sensei.properties</code>: main
+          configuration file, describes the overall configuration of the
+          system (we will dig into that in detail later)
+          </p></li><li class="listitem"><p><code class="filename">schema.xml</code>: this describes the data
+          model and the faceting behavior of the application
+          </p></li><li class="listitem"><p><code class="filename">custom-facets.xml</code>: Spring file for
+          adding custom facets, while Sensei comes with a set of facet
+          types out of the box, this allows user-defined facets to be
+          plugged into the application
+          </p></li><li class="listitem"><p><code class="filename">plugins.xml</code>: any other plug-ins,
+          e.g. Analyzer, Similarity, and Interpreter.
+          </p></li></ul></div><div class="section" title="Data Model"><div class="titlepage"><div><div><h3 class="title"><a name="d0e768"></a>Data Model</h3></div></div></div><p> The data model is described in
+        <code class="filename">schema.xml</code>: </p><pre class="programlisting"> &lt;table uid="id" delete-field="" skip-field=""&gt;
+   &lt;column name="color" type="string" /&gt;
+   &lt;column name="category" type="string" /&gt;
+   &lt;column name="city" type="string" /&gt;
+   &lt;column name="makemodel" type="string" /&gt;
+   &lt;column name="year" type="int" /&gt;
+   &lt;column name="price" type="float" /&gt;
+   &lt;column name="mileage" type="int" /&gt;
+   &lt;column name="tags" type="string" multi="true" delimiter=","/&gt;
+   &lt;column name="contents" type="text" index="ANALYZED" store="NO" termvector="NO" /&gt;  
+ &lt;/table&gt;
+ 
+ &lt;facets&gt;
+   &lt;facet name="color" type="simple" depends=""/&gt;
+   &lt;facet name="category" type="simple" /&gt;
+   &lt;facet name="city" type="path"&gt;
+     &lt;params&gt;
+       &lt;param name="separator" value="/" /&gt;
+     &lt;/params&gt;
+   &lt;/facet&gt;
+   &lt;facet name="makemodel" type="path" /&gt;
+   &lt;facet name="year" type="range"&gt;
+     &lt;params&gt;
+       &lt;param name="range" value="1993-1994" /&gt;
+       &lt;param name="range" value="1995-1996" /&gt;
+       &lt;param name="range" value="1997-1998" /&gt;
+       &lt;param name="range" value="1999-2000" /&gt;
+       &lt;param name="range" value="2001-2002" /&gt;
+     &lt;/params&gt;
+   &lt;/facet&gt;
+   &lt;facet name="mileage" type="range"&gt;
+     &lt;params&gt;
+       &lt;param name="range" value="*-12500" /&gt;
+       &lt;param name="range" value="12501-15000" /&gt;
+       &lt;param name="range" value="15001-17500" /&gt;
+       &lt;param name="range" value="17501-*" /&gt;
+     &lt;/params&gt;
+   &lt;/facet&gt;
+   &lt;facet name="price" type="range"&gt;
+        &lt;params&gt;
+          &lt;param name="range" value="*,6700" /&gt;
+          &lt;param name="range" value="6800,9900" /&gt;
+          &lt;param name="range" value="10000,13100" /&gt;
+          &lt;param name="range" value="13200,17300" /&gt;
+          &lt;param name="range" value="17400,*" /&gt;
+       &lt;/params&gt;
+   &lt;/facet&gt;
+   &lt;facet name="tags" type="multi" /&gt;
+ &lt;/facets&gt;
+</pre><p>This corresponds to the following data table: </p><table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides" id="d0e780"><colgroup><col align="left"><col align="left"><col align="left"><col align="left"><col align="left"><col align="left"><col align="left"><col align="left"><col align="left"><col align="left"><col align="left">
+          </colgroup><thead><tr>
+              <th align="left"></th>
+              <th align="left">color</th>
+              <th align="left">category</th>
+              <th align="left">city</th>
+              <th align="left" colspan="2">makemodel</th>
+              <th align="left">year</th>
+              <th align="left">price</th>
+              <th align="left">mileage</th>
+              <th align="left">tags</th>
+              <th align="left">contents</th>
+            </tr></thead><tbody><tr>
+              <td align="left">meta/structured</td>
+              <td align="left">yes</td>
+              <td align="left">yes</td>
+              <td align="left">yes</td>
+              <td align="left" colspan="2">yes</td>
+              <td align="left">yes</td>
+              <td align="left">yes</td>
+              <td align="left">yes</td>
+              <td align="left">yes</td>
+              <td align="left">no</td>
+            </tr><tr>
+              <td align="left">type</td>
+              <td align="left">string</td>
+              <td align="left">string</td>
+              <td align="left">string</td>
+              <td align="left" colspan="2">string</td>
+              <td align="left">int</td>
+              <td align="left">float</td>
+              <td align="left">int</td>
+              <td align="left">string</td>
+              <td align="left">text</td>
+            </tr><tr>
+              <td align="left">facet</td>
+              <td align="left">simple</td>
+              <td align="left">simple</td>
+              <td align="left">path</td>
+              <td align="left" colspan="2">path</td>
+              <td align="left">range</td>
+              <td align="left">range</td>
+              <td align="left">range</td>
+              <td align="left">multi</td>
+              <td align="left">N/A</td>
+            </tr></tbody></table></div></div><div class="navfooter"><hr><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="ch04s05.html">Prev</a>&nbsp;</td><td width="20%" align="center"><a accesskey="u" href="ch04.html">Up</a></td><td width="40%" align="right">&nbsp;<a accesskey="n" href="ch05.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">Diagram&nbsp;</td><td width="20%" align="center"><a accesskey="h" href="sensei.html">Home</a></td><td width="40%" align="right" valign="top">&nbsp;Chapter&nbsp;5.&nbsp;Indexing</td></tr></table></div></body></html>

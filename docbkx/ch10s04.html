@@ -1,0 +1,364 @@
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+   <title>Query Examples</title><meta name="generator" content="DocBook XSL-NS Stylesheets V1.75.2"><link rel="home" href="sensei.html" title="Sensei"><link rel="up" href="ch10.html" title="Chapter&nbsp;10.&nbsp;BQL: Browsing Query Language"><link rel="prev" href="ch10s03.html" title="BQL Statement Syntax"><link rel="next" href="ch11.html" title="Chapter&nbsp;11.&nbsp;FAQ"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Query Examples</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="ch10s03.html">Prev</a>&nbsp;</td><th width="60%" align="center">Chapter&nbsp;10.&nbsp;BQL: Browsing Query Language</th><td width="20%" align="right">&nbsp;<a accesskey="n" href="ch11.html">Next</a></td></tr></table><hr></div><div class="section" title="Query Examples"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="d0e3779"></a>Query Examples</h2></div></div></div><div class="section" title="Basic Query"><div class="titlepage"><div><div><h3 class="title"><a name="d0e3782"></a>Basic Query</h3></div></div></div><p><span class="bold"><strong>Find the first 10 cars in the
+      index:</strong></span></p><pre class="programlisting">SELECT *
+FROM cars;</pre><p>This query searches for the top 10 cars, sorted by time,
+      from index cars.  All columns are selected.  Number 10 is the
+      default number of results to be returned, and time is the default
+      order-by column.</p><p><span class="bold"><strong>Results:</strong></span></p><pre class="programlisting">+---------------+---------------------------------+ ... +-------+
+| category      | city                            |     | uid   |
++---------------+---------------------------------+ ... +-------+
+| station wagon | u.s.a./florida/tampa            |     | 14999 |
+| compact       | u.s.a./florida/tampa            |     | 0     |
+| exotic        | u.s.a./florida/tampa            |     | 242   |
+| compact       | u.s.a./texas/houston            |     | 1     |
+| compact       | u.s.a./california/sunnyvale     |     | 241   |
+| compact       | u.s.a./texas/houston            |     | 2     |
+| exotic        | u.s.a./california/san francisco |     | 244   |
+| compact       | u.s.a./california/san francisco |     | 243   |
+| compact       | u.s.a./california/sacramento    |     | 3     |
+| compact       | u.s.a./california/san diego     |     | 4     |
++---------------+---------------------------------+ ... +-------+
+10 rows in set, 15000 hits, 15000 total docs (server: 20ms, total: 68ms)</pre></div><div class="section" title="Queries with Limited Number of Results"><div class="titlepage"><div><div><h3 class="title"><a name="d0e3797"></a>Queries with Limited Number of Results</h3></div></div></div><p>You can use the limit clause in a query to specify the
+      starting offset and number of documents to be returned in the
+      results. By default, the starting offset is 0, and number of
+      results to be returned is 10. If only one number is specified in
+      the limit clause, then it is treated the number of results.</p><p>The limit clause is mainly used for pagination on search
+      result age.</p><div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem"><p><span class="bold"><strong>Find the next 10 cars
+          starting from offset 5:</strong></span></p><pre class="programlisting">SELECT *
+FROM cars
+LIMIT 5, 10</pre><p><span class="bold"><strong>Results:</strong></span></p><pre class="programlisting">+----------+---------------------------------+ ... +-----+
+| category | city                            |     | uid |
++----------+---------------------------------+ ... +-----+
+| compact  | u.s.a./texas/houston            |     | 2   |
+| exotic   | u.s.a./california/san francisco |     | 244 |
+| compact  | u.s.a./california/sacramento    |     | 3   |
+| exotic   | china/beijing                   |     | 245 |
+| compact  | u.s.a./california/san diego     |     | 4   |
+| exotic   | u.s.a./new york/rochester       |     | 246 |
+| compact  | china/shanghai                  |     | 5   |
+| exotic   | u.s.a./new york/binghamton      |     | 247 |
+| compact  | u.s.a./utah/salt lake city      |     | 6   |
+| exotic   | china/shanghai                  |     | 248 |
++----------+---------------------------------+ ... +-----+
+10 rows in set, 15000 hits, 15000 total docs (server: 10ms, total: 60ms)</pre></li><li class="listitem"><p><span class="bold"><strong>Just get the top 3
+          results:</strong></span></p><pre class="programlisting">SELECT *
+FROM cars
+LIMIT 3</pre><p><span class="bold"><strong>Results:</strong></span></p><pre class="programlisting">+----------+-----------------------------+ ... +-----+
+| category | city                        |     | uid |
++----------+-----------------------------+ ... +-----+
+| compact  | u.s.a./california/sunnyvale |     | 1   |
+| compact  | u.s.a./florida/tampa        |     | 0   |
+| exotic   | u.s.a./florida/tampa        |     | 242 |
++----------+-----------------------------+ ... +-----+
+3 rows in set, 15001 hits, 15001 total docs (server: 7ms, total: 27ms)</pre></li></ol></div></div><div class="section" title="Queries with Basic Conditions"><div class="titlepage"><div><div><h3 class="title"><a name="d0e3827"></a>Queries with Basic Conditions</h3></div></div></div><div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem"><p><span class="bold"><strong>Find all red
+          cars:</strong></span></p><pre class="programlisting">  SELECT color, year, makemodel
+  FROM cars
+  WHERE color = "red"</pre><p><span class="bold"><strong>Results:</strong></span></p><pre class="programlisting">+-------+----------------------+------------------------+
+| color | year                 | makemodel              |
++-------+----------------------+------------------------+
+| red   | 00000000000000001996 | european/bentley/azure |
+| red   | 00000000000000001995 | european/bentley/azure |
+| red   | 00000000000000002000 | european/bentley/azure |
+| red   | 00000000000000001995 | european/bentley/azure |
+| red   | 00000000000000001994 | european/bentley/azure |
+| red   | 00000000000000001995 | asian/acura/3.2tl      |
+| red   | 00000000000000001996 | asian/acura/3.2tl      |
+| red   | 00000000000000001999 | european/bentley/azure |
+| red   | 00000000000000002002 | european/bentley/azure |
+| red   | 00000000000000001996 | asian/acura/integra    |
++-------+----------------------+------------------------+
+10 rows in set, 2160 hits, 15000 total docs (server: 5ms, total: 41ms)</pre></li><li class="listitem"><p><span class="bold"><strong>Find all red and blue
+          cars:</strong></span></p><pre class="programlisting">SELECT color, year, makemodel
+FROM cars
+WHERE color in ("red", "blue")
+</pre><p><span class="bold"><strong>Results:</strong></span></p><pre class="programlisting">+-------+----------------------+------------------------+
+| color | year                 | makemodel              |
++-------+----------------------+------------------------+
+| blue  | 00000000000000001999 | asian/acura/tl         |
+| red   | 00000000000000001996 | european/bentley/azure |
+| blue  | 00000000000000001998 | asian/acura/tl         |
+| red   | 00000000000000001995 | european/bentley/azure |
+| blue  | 00000000000000001995 | asian/acura/1.6el      |
+| red   | 00000000000000002000 | european/bentley/azure |
+| blue  | 00000000000000001993 | asian/acura/3.2tl      |
+| blue  | 00000000000000001998 | asian/acura/tl         |
+| red   | 00000000000000001995 | european/bentley/azure |
+| red   | 00000000000000001994 | european/bentley/azure |
++-------+----------------------+------------------------+
+10 rows in set, 3264 hits, 15000 total docs (server: 4ms, total: 33ms)
+</pre></li><li class="listitem"><p><span class="bold"><strong>Find all 1999 or 2000 cars
+          that are not black nor red:</strong></span></p><pre class="programlisting">SELECT color, year, makemodel
+FROM cars
+WHERE color not in ("black", "red")
+  AND year BETWEEN 1999 AND 2000</pre><p><span class="bold"><strong>Results:</strong></span></p><pre class="programlisting">+--------+----------------------+------------------------+
+| color  | year                 | makemodel              |
++--------+----------------------+------------------------+
+| blue   | 00000000000000001999 | asian/acura/tl         |
+| white  | 00000000000000001999 | asian/acura/1.6el      |
+| yellow | 00000000000000001999 | asian/acura/3.2tl      |
+| silver | 00000000000000002000 | asian/acura/3.5rl      |
+| silver | 00000000000000002000 | asian/acura/3.5rl      |
+| yellow | 00000000000000002000 | asian/acura/integra    |
+| yellow | 00000000000000002000 | asian/acura/integra    |
+| yellow | 00000000000000002000 | european/bentley/azure |
+| yellow | 00000000000000002000 | european/bentley/azure |
+| yellow | 00000000000000002000 | asian/acura/tl         |
++--------+----------------------+------------------------+
+10 rows in set, 1934 hits, 15000 total docs (server: 4ms, total: 35ms)</pre></li><li class="listitem"><p><span class="bold"><strong>Find all cars in New York
+          state:</strong></span></p><pre class="programlisting">SELECT color, city, price
+FROM cars
+WHERE city in ("u.s.a./new york")</pre><p><span class="bold"><strong>Results:</strong></span></p><pre class="programlisting">+--------+----------------------------+-------------------------+
+| color  | city                       | price                   |
++--------+----------------------------+-------------------------+
+| white  | u.s.a./new york/albany     | 00000000000000007500.00 |
+| red    | u.s.a./new york/rochester  | 00000000000000014500.00 |
+| green  | u.s.a./new york/syracuse   | 00000000000000009500.00 |
+| yellow | u.s.a./new york/binghamton | 00000000000000007200.00 |
+| blue   | u.s.a./new york/new york   | 00000000000000009300.00 |
+| yellow | u.s.a./new york/new york   | 00000000000000015400.00 |
+| yellow | u.s.a./new york/new york   | 00000000000000015200.00 |
+| black  | u.s.a./new york/albany     | 00000000000000009200.00 |
+| gold   | u.s.a./new york/new york   | 00000000000000011100.00 |
+| red    | u.s.a./new york/rochester  | 00000000000000009500.00 |
++--------+----------------------------+-------------------------+
+10 rows in set, 2781 hits, 15000 total docs (server: 5ms, total: 37ms)</pre></li></ol></div></div><div class="section" title="Queries with AND, OR, and NOT Logic in Value Selections"><div class="titlepage"><div><div><h3 class="title"><a name="d0e3875"></a>Queries with AND, OR, and NOT Logic in Value Selections</h3></div></div></div><div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem"><p><span class="bold"><strong>Find all cars tagged with
+          both <code class="literal">"cool"</code> and <code class="literal">"hybrid"</code>
+          but not <code class="literal">"favorite"</code>:</strong></span></p><pre class="programlisting">SELECT tags, price from cars
+WHERE tags CONTAINS ALL ("cool", "hybrid") EXCEPT("favorite")
+LIMIT 5</pre><p><span class="bold"><strong>Results:</strong></span></p><pre class="programlisting">+----------------------------------+-------------------------+
+| tags                             | price                   |
++----------------------------------+-------------------------+
+| automatic,cool,hybrid,reliable   | 00000000000000009400.00 |
+| cool,hybrid,moon-roof,navigation | 00000000000000011500.00 |
+| automatic,cool,hybrid,reliable   | 00000000000000006300.00 |
+| cool,hybrid,moon-roof,reliable   | 00000000000000006500.00 |
+| cool,hybrid,moon-roof,reliable   | 00000000000000007100.00 |
++----------------------------------+-------------------------+
+5 rows in set, 491 hits, 15000 total docs (server: 9ms, total: 28ms)</pre></li><li class="listitem"><p><span class="bold"><strong>Find all cars tagged with
+          either <code class="literal">"cool"</code> or
+          <code class="literal">"hybrid"</code> but not
+          <code class="literal">"mp3"</code></strong></span>:</p><pre class="programlisting">SELECT tags, price
+FROM cars
+WHERE tags IN ("cool", "hybrid") EXCEPT ("mp3")
+LIMIT 5</pre><p><span class="bold"><strong>Results:</strong></span></p><pre class="programlisting">+----------------------------------------------+-------------------------+
+| tags                                         | price                   |
++----------------------------------------------+-------------------------+
+| hybrid,leather,moon-roof,reliable            | 00000000000000007500.00 |
+| automatic,chick magnet,cool,highend,reliable | 00000000000000014200.00 |
+| cool,electric,favorite,navigation            | 00000000000000007300.00 |
+| cool,electric,favorite,reliable              | 00000000000000007200.00 |
+| automatic,hybrid,leather,reliable            | 00000000000000007100.00 |
++----------------------------------------------+-------------------------+
+5 rows in set, 8176 hits, 15000 total docs (server: 6ms, total: 25ms)</pre></li></ol></div></div><div class="section" title="Having Search Results Sorted"><div class="titlepage"><div><div><h3 class="title"><a name="d0e3919"></a>Having Search Results Sorted</h3></div></div></div><p>You can sort the search result based on one or more columns,
+      in either ascending (the default) or descending order.</p><div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem"><p><span class="bold"><strong>Find the top 5 cheapest
+          but newest cars.</strong></span></p><pre class="programlisting">SELECT year, makemodel, price
+FROM cars
+ORDER BY year desc, price
+LIMIT 5</pre><p><span class="bold"><strong>Results:</strong></span></p><pre class="programlisting">+----------------------+-------------------------------+-------------------------+
+| year                 | makemodel                     | price                   |
++----------------------+-------------------------------+-------------------------+
+| 00000000000000002002 | asian/subaru/justy            | 00000000000000002100.00 |
+| 00000000000000002002 | asian/subaru/justy            | 00000000000000002100.00 |
+| 00000000000000002002 | north american/dodge/colt     | 00000000000000002400.00 |
+| 00000000000000002002 | north american/mercury/tracer | 00000000000000002400.00 |
+| 00000000000000002002 | north american/mercury/tracer | 00000000000000002500.00 |
++----------------------+-------------------------------+-------------------------+
+5 rows in set, 15000 hits, 15000 total docs (server: 22ms, total: 50ms)</pre></li><li class="listitem"><p><span class="bold"><strong>Find the top 5 most
+          expensive but oldest cars:</strong></span></p><pre class="programlisting">SELECT year, makemodel, price
+FROM cars
+ORDER BY year asc, price desc
+LIMIT 5</pre><p><span class="bold"><strong>Results:</strong></span></p><pre class="programlisting">+----------------------+-----------------------------+-------------------------+
+| year                 | makemodel                   | price                   |
++----------------------+-----------------------------+-------------------------+
+| 00000000000000001993 | european/ferrari/360 modena | 00000000000000019500.00 |
+| 00000000000000001993 | asian/acura/nsx             | 00000000000000019500.00 |
+| 00000000000000001993 | european/aston martin/db7   | 00000000000000019500.00 |
+| 00000000000000001993 | european/ferrari/360 modena | 00000000000000019500.00 |
+| 00000000000000001993 | asian/acura/nsx             | 00000000000000019500.00 |
++----------------------+-----------------------------+-------------------------+
+5 rows in set, 15000 hits, 15000 total docs (server: 5ms, total: 27ms)</pre></li></ol></div></div><div class="section" title="Queries with Full Text Search"><div class="titlepage"><div><div><h3 class="title"><a name="d0e3947"></a>Queries with Full Text Search</h3></div></div></div><p>In the WHERE clause, you can add a condition for full text
+      search, which is called a (text) query. This condition is to find
+      the documents that contain matching text. You can use Lucene Query
+      Syntax in the text string that you search on.</p><div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem"><p><span class="bold"><strong>Find all the cars that are
+          tagged with "hybrid" and "navigation":</strong></span></p><pre class="programlisting">SELECT tags, makemodel
+FROM cars
+WHERE QUERY IS "hybrid AND navigation"</pre><p><span class="bold"><strong>Results:</strong></span></p><pre class="programlisting">+-------------------------------------+----------------------------+
+| tags                                | makemodel                  |
++-------------------------------------+----------------------------+
+| hybrid,leather,moon-roof,navigation | asian/acura/tl             |
+| favorite,hybrid,mp3,navigation      | asian/acura/tl             |
+| favorite,hybrid,mp3,navigation      | asian/acura/3.2tl          |
+| favorite,hybrid,mp3,navigation      | asian/acura/tl             |
+| cool,hybrid,moon-roof,navigation    | asian/acura/tl             |
+| cool,favorite,hybrid,navigation     | asian/acura/vigor          |
+| automatic,cool,hybrid,navigation    | asian/acura/vigor          |
+| cool,hybrid,moon-roof,navigation    | asian/acura/vigor          |
+| cool,hybrid,moon-roof,navigation    | north american/asuna/se/gt |
+| automatic,hybrid,leather,navigation | european/saab/900          |
++-------------------------------------+----------------------------+
+10 rows in set, 778 hits, 15000 total docs (server: 186ms, total: 209ms)</pre></li><li class="listitem"><p><span class="bold"><strong>A more complicated
+          example:</strong></span></p><pre class="programlisting">SELECT color, tags, city
+FROM cars
+WHERE QUERY IS "(hybrid OR mooon-roof) AND mp3 NOT cool NOT navigation"
+  AND city in ("u.s.a./new york")
+  AND color = "red"</pre><p><span class="bold"><strong>Results:</strong></span></p><pre class="programlisting">+-------+-------------------------------+----------------------------+
+| color | tags                          | city                       |
++-------+-------------------------------+----------------------------+
+| red   | automatic,hybrid,mp3,reliable | u.s.a./new york/new york   |
+| red   | hybrid,moon-roof,mp3,reliable | u.s.a./new york/buffalo    |
+| red   | favorite,hybrid,mp3,reliable  | u.s.a./new york/syracuse   |
+| red   | favorite,hybrid,mp3,reliable  | u.s.a./new york/buffalo    |
+| red   | automatic,hybrid,mp3,reliable | u.s.a./new york/syracuse   |
+| red   | favorite,hybrid,mp3,reliable  | u.s.a./new york/binghamton |
+| red   | automatic,hybrid,mp3,reliable | u.s.a./new york/syracuse   |
++-------+-------------------------------+----------------------------+
+7 rows in set, 7 hits, 15000 total docs (server: 17ms, total: 44ms)</pre></li></ol></div></div><div class="section" title="Queries with Group By"><div class="titlepage"><div><div><h3 class="title"><a name="d0e3975"></a>Queries with Group By</h3></div></div></div><div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem"><p>You can group the search results of a query by one
+          facet, which can be a simple column or a facet built upon a
+          group of columns. You can also specify how many hits you want
+          to keep in each group (the default is 10).</p><p><span class="bold"><strong>Find the first 10 groups
+          of cars, with 2 hits in each group:</strong></span></p><pre class="programlisting">SELECT category, city, makemodel
+FROM cars
+GROUP BY category TOP 2</pre><p><span class="bold"><strong>Results:</strong></span></p><pre class="programlisting">========================================================================================
+| category      | city                            | makemodel                          |
+========================================================================================
+| compact       | u.s.a./texas/houston            | asian/acura/tl                     |
+| compact       | u.s.a./florida/tampa            | asian/acura/1.6el                  |
++---------------+---------------------------------+------------------------------------+
+| exotic        | u.s.a./florida/tampa            | european/bentley/azure             |
+| exotic        | u.s.a./california/san francisco | european/bentley/azure             |
++---------------+---------------------------------+------------------------------------+
+| luxury        | u.s.a./florida/orlando          | asian/acura/3.5rl                  |
+| luxury        | u.s.a./new york/rochester       | asian/acura/3.5rl                  |
++---------------+---------------------------------+------------------------------------+
+| sports car    | u.s.a./california/sunnyvale     | asian/acura/integra                |
+| sports car    | u.s.a./texas/austin             | asian/acura/integra                |
++---------------+---------------------------------+------------------------------------+
+| sedan         | china/beijing                   | north american/eagle/vision        |
+| sedan         | australia/perth                 | north american/eagle/vision        |
++---------------+---------------------------------+------------------------------------+
+| suv           | china/shanghai                  | north american/ford/bronco         |
+| suv           | u.s.a./california/sacramento    | north american/ford/bronco         |
++---------------+---------------------------------+------------------------------------+
+| van           | u.s.a./florida/palm beach       | north american/ford/club wagon     |
+| van           | u.s.a./new york/albany          | north american/ford/club wagon     |
++---------------+---------------------------------+------------------------------------+
+| truck         | u.s.a./utah/provo               | asian/mazda/b-series               |
+| truck         | australia/melbourn              | asian/isuzu/pickup                 |
++---------------+---------------------------------+------------------------------------+
+| station wagon | u.s.a./texas/dallas             | north american/saturn/sw           |
+| station wagon | u.s.a./california/san jose      | north american/saturn/sw           |
++---------------+---------------------------------+------------------------------------+
+| mini-van      | u.s.a./texas/austin             | north american/chevrolet/astro van |
+| mini-van      | u.s.a./california/san jose      | north american/chevrolet/astro van |
++---------------+---------------------------------+------------------------------------+
+========================================================================================
+10 groups in set, 15000 hits, 15000 total docs (server: 55ms, total: 130ms)</pre></li><li class="listitem"><p><span class="bold"><strong>Find the numbers of cars
+          in different categories:</strong></span></p><pre class="programlisting">SELECT category, grouphitscount
+FROM cars
+GROUP BY category top 1</pre><p><span class="bold"><strong>Results:</strong></span></p><pre class="programlisting">+---------------+----------------+
+| category      | grouphitscount |
++---------------+----------------+
+| compact       | 4169           |
+| exotic        | 1902           |
+| luxury        | 2735           |
+| sports car    | 1494           |
+| sedan         | 990            |
+| suv           | 1449           |
+| van           | 168            |
+| truck         | 611            |
+| station wagon | 186            |
+| mini-van      | 869            |
++---------------+----------------+
+10 rows in set, 15000 hits, 15000 total docs (server: 3ms, total: 38ms)</pre></li></ol></div></div><div class="section" title="Getting Facet Information Using Browse By Clause"><div class="titlepage"><div><div><h3 class="title"><a name="d0e4003"></a>Getting Facet Information Using Browse By Clause</h3></div></div></div><p>BQL is designed to support faceted search, so we have to
+      make it possible to get facet information along with the search
+      results. This can be done using the Browse By clause, where you
+      can specify one or more facets for which you want to get the facet
+      count information. For each facet in the Browse By clause, you can
+      optionally include</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>whether the selection is expanded (default false)</p></li><li class="listitem"><p>the minimum number of hit counts (default 1)</p></li><li class="listitem"><p>the maximum number of hit counts (default 10)</p></li><li class="listitem"><p>facet ordering method ("hits" or "value") (default
+          "hits")</p></li></ul></div><p>Here is an example:</p><p><span class="bold"><strong>Query:</strong></span></p><pre class="programlisting">SELECT color, year, tags, price
+FROM cars
+WHERE QUERY IS "cool"
+  AND tags CONTAINS ALL ("cool", "hybrid") EXCEPT ("favorite")
+  AND color in ("red")
+ORDER BY price desc
+LIMIT 0,10
+BROWSE BY color(true, 1, 10, hits), year(true, 1, 10, value), price</pre><p><span class="bold"><strong>Results:</strong></span></p><pre class="programlisting">+-------+----------------------+----------------------------------+-------------------------+
+| color | year                 | tags                             | price                   |
++-------+----------------------+----------------------------------+-------------------------+
+| red   | 00000000000000002000 | cool,hybrid,moon-roof,navigation | 00000000000000014500.00 |
+| red   | 00000000000000001993 | cool,hybrid,moon-roof,navigation | 00000000000000014400.00 |
+| red   | 00000000000000002002 | automatic,cool,hybrid,navigation | 00000000000000014200.00 |
+| red   | 00000000000000001998 | automatic,cool,hybrid,navigation | 00000000000000012100.00 |
+| red   | 00000000000000002002 | automatic,cool,hybrid,reliable   | 00000000000000011500.00 |
+| red   | 00000000000000002002 | automatic,cool,hybrid,reliable   | 00000000000000011400.00 |
+| red   | 00000000000000001998 | automatic,cool,hybrid,reliable   | 00000000000000011400.00 |
+| red   | 00000000000000001996 | automatic,cool,hybrid,reliable   | 00000000000000011200.00 |
+| red   | 00000000000000001999 | automatic,cool,hybrid,reliable   | 00000000000000011100.00 |
+| red   | 00000000000000002001 | cool,hybrid,moon-roof,reliable   | 00000000000000010500.00 |
++-------+----------------------+----------------------------------+-------------------------+
+10 rows in set, 59 hits, 15000 total docs (server: 337ms, total: 372ms)
++-------------+
+| color       |
++-------------+
+| white  (73) |
+| yellow (73) |
+| blue   (62) |
+| silver (61) |
+| red    (59) |
+| green  (58) |
+| gold   (53) |
+| black  (52) |
++-------------+
++-----------------------+
+| price                 |
++-----------------------+
+| [6800 TO 9900]   (27) |
+| [* TO 6700]      (21) |
+| [10000 TO 13100] (8)  |
+| [13200 TO 17300] (3)  |
++-----------------------+
++---------------------+
+| year                |
++---------------------+
+| [1993 TO 1994] (16) |
+| [1995 TO 1996] (13) |
+| [1997 TO 1998] (10) |
+| [1999 TO 2000] (9)  |
+| [2001 TO 2002] (11) |
++---------------------+</pre></div><div class="section" title="Queries with Run-Time Facet Handler Initialization Parameters"><div class="titlepage"><div><div><h3 class="title"><a name="d0e4033"></a>Queries with Run-Time Facet Handler Initialization
+      Parameters</h3></div></div></div><p>In a faceted search system, a run-time facet handler usually
+      requires initialization parameter(s) to be provided at search time
+      for each query. For example, in a search system that searches
+      LinkedIn shares or Twitter tweets, one or more run-time facets
+      usually require the searcher to provide his/her user Id (or user
+      name) and the time when the search is performed.</p><p>One run-time facet may need multiple initialization
+      parameters, each of which has a different name and/or a different
+      data type. These parameters can be specified in the SELECT
+      statement using the GIVEN FACET PARAM clause. Every parameter is
+      specified in the clause as a 4-tuple,
+      (<span class="emphasis"><em>facet-name</em></span>, <span class="emphasis"><em>param-name</em></span>,
+      <span class="emphasis"><em>param-type</em></span>,
+      <span class="emphasis"><em>param-value</em></span>).</p><div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem"><p><span class="bold"><strong>On a search system for LinkedIn
+          shares, find recent updates from member 12345678 himself
+          (i.e. value 0 for the Network facet) and all his first degree
+          connections (i.e. value 1 for the Network facet) in US:
+          </strong></span></p><pre class="programlisting">SELECT uid, Network, userid, country
+FROM shares
+WHERE country = "us"
+  AND Network in (0, 1)
+GIVEN FACET PARAM (Network, "member_id", int, 12345678)</pre><p><span class="bold"><strong>Results:</strong></span></p><pre class="programlisting">+---------------------+---------+----------------------+---------+
+| uid                 | Network | userid               | country |
++---------------------+---------+----------------------+---------+
+| 5527797854963249152 | 0       | 00000000000012345678 | us      |
+| 5527805402646839296 | 1       | 00000000000042593551 | us      |
+| 5527816561408086016 | 0       | 00000000000012345678 | us      |
+| 5527825082430267392 | 1       | 00000000000022593551 | us      |
+| 5527829323551084544 | 0       | 00000000000012345678 | us      |
+| 5527848889647902720 | 1       | 00000000000004730909 | us      |
+| 5527853965330358272 | 1       | 00000000000004730909 | us      |
+| 5527884781573898240 | 1       | 00000000000026325826 | us      |
+| 5527487070454427648 | 0       | 00000000000012345678 | us      |
+| 5527488521884930048 | 0       | 00000000000012345678 | us      |
++---------------------+---------+----------------------+---------+
+10 rows in set, 14 hits, 10749644 total docs (server: 432ms, total: 472ms)</pre></li></ol></div></div></div><div class="navfooter"><hr><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="ch10s03.html">Prev</a>&nbsp;</td><td width="20%" align="center"><a accesskey="u" href="ch10.html">Up</a></td><td width="40%" align="right">&nbsp;<a accesskey="n" href="ch11.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">BQL Statement Syntax&nbsp;</td><td width="20%" align="center"><a accesskey="h" href="sensei.html">Home</a></td><td width="40%" align="right" valign="top">&nbsp;Chapter&nbsp;11.&nbsp;FAQ</td></tr></table></div></body></html>
