@@ -11,110 +11,172 @@ title: SenseiDB - Result JSON Reference
 </div>
 <pre class="prettyprint" id="javascript">
 	{
-	    "time": 3,                     // server-side latency
+		// server-side latency
+	    "time": 54,
 	
 	    // hits array
 	    "hits": [
 	    {
-	        "uid": "3201",
-	        "tags": ["favorite", "leather", "reliable", "towing"],
-	        "mileage": ["00000000000000013400"],
-	        "score": "0.0",
+	        "tags": ["chick magnet", "cool", "highend", "moon-roof", "reliable"],
+	        "mileage": ["00000000000000011000"],
+	
+	        // stored fields
+	        "_stored": [
+	        {
+	            "val": "red exotic chick magnet cool highend moon-roof reliable china shanghai european bmw m-5 ",
+	            "name": "contents"
+	        }, {
+	            "name": "_STORE"
+	        }, {
+	            "val": "reliable",
+	            "name": "tags"
+	        }, {
+	            "val": "cool",
+	            "name": "tags"
+	        }, {
+	            "val": "highend",
+	            "name": "tags"
+	        }, {
+	            "val": "chick magnet",
+	            "name": "tags"
+	        }, {
+	            "val": "moon-roof",
+	            "name": "tags"
+	        }, {
+	            "val": "exotic",
+	            "name": "category"
+	        }, {
+	            "val": "00000000000000019400.00",
+	            "name": "price"
+	        }, {
+	            "val": "00000000000000011000",
+	            "name": "mileage"
+	        }, {
+	            "val": "red",
+	            "name": "color"
+	        }, {
+	            "val": "00000000000000001996",
+	            "name": "year"
+	        }, {
+	            "val": "10065",
+	            "name": "_uid"
+	        }, {
+	            "val": "0000000000000000000000000000000000010060",
+	            "name": "groupid"
+	        }, {
+	            "val": "european/bmw/m-5",
+	            "name": "makemodel"
+	        }, {
+	            "val": "china/shanghai",
+	            "name": "city"
+	        }],
+	        "_explanation": {
+	            "details": [
+	            {
+	                "description": "tf(termFreq(contents:red)=1)",
+	                "value": 1
+	            }, {
+	                "description": "idf(docFreq=1011, maxDocs=7500)",
+	                "value": 3.002974510192871
+	            }, {
+	                "description": "fieldNorm(field=contents, doc=2)",
+	                "value": 0.25
+	            }],
+	            "description": "fieldWeight(contents:red in 2), product of:",
+	            "value": 0.7507436275482178
+	        },
 	        "grouphitscount": 0,
-	        "_uid": ["3201"],
-	        "city": ["australia/sydney"],
-	        "docid": "0",
-	        "category": ["suv"],
-	        "price": ["00000000000000011900.00"],
-	        "color": ["red"],
-	        "srcdata": "",
-	        "year": ["00000000000000001994"],
-	        "groupid": ["0000000000000000000000000000000000003200"],
-	        "makemodel": ["asian/infiniti/qx4"]
-	    }, {
-	        "uid": "502",
-	        "tags": ["automatic", "chick magnet", "cool", "expensive", "reliable"],
-	        "mileage": ["00000000000000014700"],
-	        "score": "0.0",
-	        "grouphitscount": 0,
-	        "_uid": ["502"],
-	        "city": ["china/beijing"],
-	        "docid": "107",
+	        "_uid": "10065",
+	        "_score": "0.7507436",
+	        "city": ["china/shanghai"],
+	        "_termvectors": {
+	            "contents": [
+	            {
+	                "term": "5",
+	                "freq": 1
+	            }, {
+	                "term": "bmw",
+	                "freq": 1
+	            }, {
+	                "term": "chick",
+	                "freq": 1
+	            }, {
+	                "term": "china",
+	                "freq": 1
+	            }, {
+	                "term": "cool",
+	                "freq": 1
+	            }, {
+	                "term": "european",
+	                "freq": 1
+	            }, {
+	                "term": "exotic",
+	                "freq": 1
+	            }, {
+	                "term": "highend",
+	                "freq": 1
+	            }, {
+	                "term": "m",
+	                "freq": 1
+	            }, {
+	                "term": "magnet",
+	                "freq": 1
+	            }, {
+	                "term": "moon",
+	                "freq": 1
+	            }, {
+	                "term": "red",
+	                "freq": 1
+	            }, {
+	                "term": "reliable",
+	                "freq": 1
+	            }, {
+	                "term": "roof",
+	                "freq": 1
+	            }, {
+	                "term": "shanghai",
+	                "freq": 1
+	            }]
+	        },
+	        "_docid": 2,
 	        "category": ["exotic"],
-	        "price": ["00000000000000015100.00"],
-	        "color": ["black"],
-	        "srcdata": "",
-	        "year": ["00000000000000001995"],
-	        "groupid": ["0000000000000000000000000000000000000500"],
-	        "makemodel": ["european/ferrari/355"]
-	    }, {
-	        "uid": "4820",
-	        "tags": ["cool", "hybrid", "moon-roof", "reliable"],
-	        "mileage": ["00000000000000012000"],
-	        "score": "0.0",
-	        "grouphitscount": 0,
-	        "_uid": ["4820"],
-	        "city": ["australia/brisbane"],
-	        "docid": "108",
-	        "category": ["compact"],
-	        "price": ["00000000000000012500.00"],
-	        "color": ["white"],
-	        "srcdata": "",
-	        "year": ["00000000000000002002"],
-	        "groupid": ["0000000000000000000000000000000000004820"],
-	        "makemodel": ["asian/suzuki/grand vitara"]
+	        "price": ["00000000000000019400.00"],
+	        "color": ["red"],
+	 
+	        // original document
+	        "_srcdata": "{\"tags\":\"chick magnet,cool,highend,moon-roof,reliable\",\"id\":10065,\"category\":\"exotic\",\"price\":19400,\"mileage\":11000,\"color\":\"red\",\"contents\":\"red exotic chick magnet cool highend moon-roof reliable china shanghai european bmw m-5 \",\"year\":1996,\"groupid\":\"10060\",\"makemodel\":\"european/bmw/m-5\",\"city\":\"china/shanghai\"}",
+	        "year": ["00000000000000001996"],
+	        "groupid": ["0000000000000000000000000000000000010060"],
+	        "makemodel": ["european/bmw/m-5"]
 	    }],
 	
-	    // facets array
+	     // facet information
 	    "facets": {
 	        "category": [
 	        {
 	            "selected": false,
-	            "count": 58,
-	            "value": "compact"
+	            "count": 554,
+	            "value": "exotic"
 	        }, {
 	            "selected": false,
-	            "count": 41,
+	            "count": 509,
 	            "value": "sports car"
 	        }, {
 	            "selected": false,
-	            "count": 37,
-	            "value": "truck"
-	        }, {
-	            "selected": false,
-	            "count": 33,
-	            "value": "suv"
-	        }, {
-	            "selected": false,
-	            "count": 29,
-	            "value": "luxury"
+	            "count": 508,
+	            "value": "compact"
 	        }],
 	        "color": [
 	        {
 	            "selected": false,
-	            "count": 46,
-	            "value": "black"
-	        }, {
-	            "selected": false,
-	            "count": 40,
-	            "value": "white"
-	        }, {
-	            "selected": false,
-	            "count": 33,
-	            "value": "yellow"
-	        }, {
-	            "selected": false,
-	            "count": 28,
+	            "count": 2160,
 	            "value": "red"
-	        }, {
-	            "selected": false,
-	            "count": 21,
-	            "value": "silver"
 	        }]
 	    },
-	    "totaldocs": 15000,           // total number of docs on the index
-	    "numhits": 15000,             // total number of hits
-	    "numgroups": 0,               // number of groups
-	    "parsedquery": "*:*"          // parsed query
+	    "totaldocs": 15000,                     // total index size
+	    "numhits": 2160,                        // number of hits
+	    "numgroups": 0,                         
+	    "parsedquery": "contents:red",         // parsed query
+	    "tid": -1
 	}
 </pre>
