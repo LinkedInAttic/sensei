@@ -109,6 +109,7 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<sensei.version>1.0.0-SNAPSHOT</sensei.version>
 	</properties>
 
 	<dependencies>
@@ -142,6 +143,12 @@
         <name>ConSol* Labs Repository (Releases)</name>
         <url>http://labs.consol.de/maven/repository</url>
       </repository>
+      <repository>
+        <id>releases</id>
+        <name>Releases</name>
+        <url>https://oss.sonatype.org/content/repositories/releases</url>
+      </repository>
+
 	  </repositories>
 
 	<distributionManagement>

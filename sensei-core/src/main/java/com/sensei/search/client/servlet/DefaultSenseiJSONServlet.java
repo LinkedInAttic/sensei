@@ -311,9 +311,9 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
       Map<String, String[]> fieldMap = hit.getFieldValues();
 
       JSONObject hitObj = new JSONObject();
-      hitObj.put(PARAM_RESULT_HIT_UID, Long.toString(hit.getUID()));
-      hitObj.put(PARAM_RESULT_HIT_DOCID, Integer.toString(hit.getDocid()));
-      hitObj.put(PARAM_RESULT_HIT_SCORE, Float.toString(hit.getScore()));
+      hitObj.put(PARAM_RESULT_HIT_UID, hit.getUID());
+      hitObj.put(PARAM_RESULT_HIT_DOCID, hit.getDocid());
+      hitObj.put(PARAM_RESULT_HIT_SCORE, hit.getScore());
       hitObj.put(PARAM_RESULT_HIT_GROUPVALUE, hit.getGroupValue());
       hitObj.put(PARAM_RESULT_HIT_GROUPHITSCOUNT, hit.getGroupHitsCount());
       if (hit.getGroupHits() != null && hit.getGroupHits().length > 0)

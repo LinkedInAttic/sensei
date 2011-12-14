@@ -14,7 +14,6 @@ import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.springframework.context.ApplicationContext;
 
 import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.facets.FacetHandler.FacetDataNone;
@@ -30,6 +29,7 @@ import com.browseengine.bobo.facets.impl.PathFacetHandler;
 import com.browseengine.bobo.facets.impl.RangeFacetHandler;
 import com.browseengine.bobo.facets.impl.SimpleFacetHandler;
 import com.sensei.indexing.api.DefaultSenseiInterpreter;
+import com.sensei.plugin.SenseiPluginRegistry;
 import com.sensei.search.facet.UIDFacetHandler;
 import com.sensei.search.req.SenseiSystemInfo;
 
@@ -37,7 +37,7 @@ public class SenseiFacetHandlerBuilder {
 
 	private static Logger logger = Logger
 			.getLogger(SenseiFacetHandlerBuilder.class);
-			
+
 	public static String UID_FACET_NAME = "_uid";
 
 	private static Map<String, TermListFactory<?>> getPredefinedTermListFactoryMap(JSONObject schemaObj) throws JSONException,ConfigurationException {
@@ -52,9 +52,9 @@ public class SenseiFacetHandlerBuilder {
     if (columns!=null){
       count = columns.length();
     }
-	    
+
     for (int i = 0; i < count; ++i) {
-      JSONObject column = columns.getJSONObject(i);  
+      JSONObject column = columns.getJSONObject(i);
 			try {
 				String n = column.getString("name");
 				String t = column.getString("type");
@@ -98,7 +98,7 @@ public class SenseiFacetHandlerBuilder {
 					else
 						factory = new PredefinedTermListFactory<Date>(Date.class, f);
 				}
-				
+
 				if (factory!=null){
 				  retMap.put(n, factory);
 				}
@@ -110,20 +110,20 @@ public class SenseiFacetHandlerBuilder {
 		}
 		return retMap;
 	}
-	
+
 	static SimpleFacetHandler buildSimpleFacetHandler(String name,String fieldName,Set<String> depends,TermListFactory<?> termListFactory){
 		return new SimpleFacetHandler(name, fieldName, termListFactory, depends);
 	}
-	
+
 	static CompactMultiValueFacetHandler buildCompactMultiHandler(String name,String fieldName,Set<String> depends,TermListFactory<?> termListFactory){
 		// compact multi should honor depends
 		return new CompactMultiValueFacetHandler(name, fieldName, termListFactory);
 	}
-	
+
 	static MultiValueFacetHandler buildMultiHandler(String name,String fieldName,TermListFactory<?> termListFactory,Set<String> depends){
 		return new MultiValueFacetHandler(name, fieldName, termListFactory,null,depends);
 	}
-	
+
 	static PathFacetHandler buildPathHandler(String name,String fieldName, Map<String,List<String>> paramMap){
 		PathFacetHandler handler = new PathFacetHandler(name, fieldName, false);	// path does not support multi value yet
 		String sep = null;
@@ -138,7 +138,7 @@ public class SenseiFacetHandlerBuilder {
 		}
 		return handler;
 	}
-	
+
 	static RangeFacetHandler buildRangeHandler(String name,String fieldName,TermListFactory<?> termListFactory,Map<String,List<String>> paramMap){
 		LinkedList<String> predefinedRanges = new LinkedList<String>();
 		if (paramMap!=null){
@@ -148,7 +148,7 @@ public class SenseiFacetHandlerBuilder {
 				if (!range.matches("\\[.* TO .*\\]")){
 					range = "["
 							+ range.replaceFirst("[-,]", " TO ")
-							+ "]";	
+							+ "]";
 				}
 				predefinedRanges.add(range);
 			  }
@@ -156,7 +156,7 @@ public class SenseiFacetHandlerBuilder {
 		}
 		return new RangeFacetHandler(name,fieldName,termListFactory,predefinedRanges);
 	}
-	
+
 	static Map<String,List<String>> parseParams(JSONArray paramList) throws JSONException{
 		HashMap<String,List<String>> retmap = new HashMap<String,List<String>>();
 		if (paramList!=null){
@@ -165,7 +165,7 @@ public class SenseiFacetHandlerBuilder {
 		    JSONObject param = paramList.getJSONObject(j);
 			String paramName = param.getString("name");
 			String paramValue = param.getString("value");
-			
+
 			List<String>list = retmap.get(paramName);
 			if (list==null){
 				list = new LinkedList<String>();
@@ -173,7 +173,7 @@ public class SenseiFacetHandlerBuilder {
 			}
 
 			list.add(paramValue);
-			
+
 			/*if (paramName.equals("range")) {
 				if (!paramValue.matches("\\[.* TO .*\\]"))
 					paramValue = "["
@@ -199,7 +199,7 @@ public class SenseiFacetHandlerBuilder {
 			*/
 		  }
 		}
-		
+
 		return retmap;
 	}
 
@@ -225,8 +225,8 @@ public class SenseiFacetHandlerBuilder {
     }
   }
 
-  private static RuntimeFacetHandlerFactory<?, ?> getHistogramFacetHandlerFactory(JSONObject facet, 
-                                                                                  String name, 
+  private static RuntimeFacetHandlerFactory<?, ?> getHistogramFacetHandlerFactory(JSONObject facet,
+                                                                                  String name,
                                                                                   Map<String,List<String>> paramMap)
     throws ConfigurationException
   {
@@ -268,26 +268,26 @@ public class SenseiFacetHandlerBuilder {
     {
       double start = Double.parseDouble(startParam);
       double end = Double.parseDouble(endParam);
-      double unit = Double.parseDouble(unitParam); 
+      double unit = Double.parseDouble(unitParam);
       return buildHistogramFacetHandlerFactory(name, dataHandler, start, end, unit);
     }
     return null;
   }
-	  
-	private static <T extends Number> RuntimeFacetHandlerFactory<?,?> buildHistogramFacetHandlerFactory(final String name, 
-	                                                                                                    final String dataHandler, 
-	                                                                                                    final T start, 
-	                                                                                                    final T end, 
+
+	private static <T extends Number> RuntimeFacetHandlerFactory<?,?> buildHistogramFacetHandlerFactory(final String name,
+	                                                                                                    final String dataHandler,
+	                                                                                                    final T start,
+	                                                                                                    final T end,
 	                                                                                                    final T unit)
 	{
 	  return new RuntimeFacetHandlerFactory<FacetHandlerInitializerParam, RuntimeFacetHandler<FacetDataNone>>()
 	  {
 	    @Override
-	    public RuntimeFacetHandler<FacetDataNone> get(FacetHandlerInitializerParam params) 
+	    public RuntimeFacetHandler<FacetDataNone> get(FacetHandlerInitializerParam params)
 	    {
-	      return new HistogramFacetHandler<T>(name, dataHandler, start, end, unit); 
+	      return new HistogramFacetHandler<T>(name, dataHandler, start, end, unit);
 	    };
-	    
+
 	    @Override
 	    public String getName()
 	    {
@@ -295,24 +295,24 @@ public class SenseiFacetHandlerBuilder {
 	    }
 	  };
 	}
-	
-	public static SenseiSystemInfo buildFacets(JSONObject schemaObj,
-			ApplicationContext customFacetContext,List<FacetHandler<?>> facets,List<RuntimeFacetHandlerFactory<?,?>> runtimeFacets)
+
+	public static SenseiSystemInfo buildFacets(JSONObject schemaObj, SenseiPluginRegistry pluginRegistry,
+			List<FacetHandler<?>> facets,List<RuntimeFacetHandlerFactory<?,?>> runtimeFacets)
     throws JSONException,ConfigurationException {
 
     SenseiSystemInfo sysInfo = new SenseiSystemInfo();
     JSONArray facetsList = schemaObj.optJSONArray("facets");
-		
+
 		int count = 0;
-		
+
 		if (facetsList!=null){
 		  count = facetsList.length();
 		}
-		
+
 		if (count <= 0) {
 			return sysInfo;
 		}
-		
+
     JSONObject table = schemaObj.optJSONObject("table");
     if (table == null)
     {
@@ -368,9 +368,9 @@ public class SenseiFacetHandlerBuilder {
         facetProps.put("depends", dependSet.toString());
 
 				JSONArray paramList = facet.optJSONArray("params");
-				
+
 				Map<String,List<String>> paramMap = parseParams(paramList);
-				
+
         for (Entry<String,List<String>> entry : paramMap.entrySet()) {
           facetProps.put(entry.getKey(), entry.getValue().toString());
         }
@@ -397,18 +397,18 @@ public class SenseiFacetHandlerBuilder {
 					boolean isDynamic = facet.optBoolean("dynamic");
 					// Load from custom-facets spring configuration.
 					if (isDynamic){
-            RuntimeFacetHandlerFactory<?,?> runtimeFacetFactory = (RuntimeFacetHandlerFactory<?,?>)customFacetContext.getBean(name);
+            RuntimeFacetHandlerFactory<?,?> runtimeFacetFactory = (RuntimeFacetHandlerFactory<?,?>) pluginRegistry.getFacet(name);
             runtimeFacets.add(runtimeFacetFactory);
             facetInfo.setRunTime(true);
 					}
 					else{
-						facetHandler = (FacetHandler<?>) customFacetContext.getBean(name);
+						facetHandler = pluginRegistry.getFacet(name);
 					}
 				}
 				else{
 					throw new IllegalArgumentException("type not supported: "+type);
 				}
-				
+
 				if (facetHandler!=null){
 				  facets.add(facetHandler);
 				}

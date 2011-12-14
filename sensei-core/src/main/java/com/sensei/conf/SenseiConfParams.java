@@ -10,7 +10,7 @@ public interface SenseiConfParams {
 	public static final String SERVER_REQ_THREAD_POOL_SIZE = "sensei.server.requestThreadCorePoolSize";
 	public static final String SERVER_REQ_THREAD_POOL_MAXSIZE = "sensei.server.requestThreadMaxPoolSize";
 	public static final String SERVER_REQ_THREAD_POOL_KEEPALIVE = "sensei.server.requestThreadKeepAliveTimeSecs";
-	
+
 	public static final String SENSEI_CLUSTER_CLIENT_NAME = "sensei.cluster.client-name";
 	public static final String SENSEI_CLUSTER_NAME = "sensei.cluster.name";
 	public static final String SENSEI_CLUSTER_URL = "sensei.cluster.url";
@@ -23,7 +23,7 @@ public interface SenseiConfParams {
 	public static final String SENSEI_INDEX_BATCH_MAXSIZE = "sensei.index.maxBatchSize";
 	public static final String SENSEI_INDEX_REALTIME = "sensei.index.realtime";
 	public static final String SENSEI_INDEX_FRESHNESS = "sensei.index.freshness";
-	
+
 
 	public static final String SENSEI_INDEXER_TYPE = "sensei.indexer.type";
 	public static final String SENSEI_INDEXER_TYPE_HOURGLASS = "hourglass";
@@ -39,20 +39,20 @@ public interface SenseiConfParams {
 	public static final String SENSEI_QUERY_BUILDER_FACTORY = "sensei.query.builder.factory";
 	public static final String SENSEI_INDEX_MANAGER = "sensei.index.manager";
 	public static final String SENSEI_INDEX_MANAGER_FILTER = "sensei.index.manager.default.filter";
-	
+
 	public static final String SENSEI_GATEWAY = "sensei.gateway";
 
 	public static final String SENSEI_VERSION_COMPARATOR = "sensei.version.comparator";
 
 	public static final String SENSEI_PLUGIN_SVCS = "sensei.plugin.services";
-	
+
 	public static final String SENSEI_HOURGLASS_SCHEDULE = "sensei.indexer.hourglass.schedule";
 	public static final String SENSEI_HOURGLASS_TRIMTHRESHOLD = "sensei.indexer.hourglass.trimthreshold";
 	public static final String SENSEI_HOURGLASS_FREQUENCY = "sensei.indexer.hourglass.frequency";
 	public static final String SENSEI_HOURGLASS_FREQUENCY_MIN = "minute";
 	public static final String SENSEI_HOURGLASS_FREQUENCY_HOUR = "hour";
 	public static final String SENSEI_HOURGLASS_FREQUENCY_DAY = "day";
-	
+
 
 	public static final String SERVER_BROKER_PORT = "sensei.broker.port";
 	public static final String SERVER_BROKER_WEBAPP_PATH = "sensei.broker.webapp.path";
@@ -60,19 +60,19 @@ public interface SenseiConfParams {
 	public static final String SERVER_BROKER_MINTHREAD = "sensei.broker.minThread";
 	public static final String SERVER_BROKER_MAXTHREAD = "sensei.broker.maxThread";
 	public static final String SERVER_BROKER_MAXWAIT = "sensei.broker.maxWaittime";
-	
+
 	public static final String SERVER_SEARCH_ROUTER_FACTORY = "sensei.search.router.factory";
-	
+
 	public static final String SENSEI_INDEX_PRUNER = "sensei.index.pruner";
 
 	public static final String SENSEI_ZOIE_RETENTION_DAYS = "sensei.indexing.retention.days";
-  public static final String SENSEI_ZOIE_RETENTION_CLASS = "sensei.indexing.retention.class";
+  public static final String SENSEI_ZOIE_RETENTION_CLASS = "sensei.indexing.retention";
 
   public static final String SENSEI_ZOIE_RETENTION_COLUMN = "sensei.indexing.retention.column";
   public static final String SENSEI_ZOIE_RETENTION_TIMEUNIT = "sensei.index.retention.column.timeunit";
 
 	public static final String SENSEI_MX4J_PORT = "sensei.mx4j.port";
-	
+
 	public static final Comparator<String> DEFAULT_VERSION_STRING_COMPARATOR = new Comparator<String>(){
 		@Override
 	    public int compare(String o1, String o2) {
@@ -82,9 +82,9 @@ public interface SenseiConfParams {
 		  if (o1==null) return -1;
 	      if (o2==null) return 1;
 		  return o1.compareTo(o2);
-		}  
+		}
 	  };
-	  
+
 	  public static final Comparator<String> DEFAULT_VERSION_LONG_COMPARATOR = new Comparator<String>(){
 		@Override
 		public int compare(String o1, String o2) {
@@ -102,6 +102,6 @@ public interface SenseiConfParams {
 			l2=Long.parseLong(o2);
 		  }
 		  return Long.valueOf(l1).compareTo(Long.valueOf(l2));
-		}  
+		}
 	  };
 }

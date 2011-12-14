@@ -1,11 +1,8 @@
 package com.sensei.search.query;
 
 import org.apache.lucene.search.Query;
-
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import com.sensei.plugin.SenseiPlugin;
 
 public class CustomQueryConstructor extends QueryConstructor
 {
@@ -13,7 +10,7 @@ public class CustomQueryConstructor extends QueryConstructor
 
   // "term" : {
   //   "color" : "red"
-  // 
+  //
   //   // or "color" : {"term" : "red", "boost": 2.0}
   // },
 
@@ -26,7 +23,8 @@ public class CustomQueryConstructor extends QueryConstructor
       Class queryClass = Class.forName(className);
 
       Object q = queryClass.newInstance();
-      ((SenseiPlugin)q).initialize(jsonQuery.optJSONObject(PARAMS_PARAM));
+      //TODO add initialization
+      //((SenseiPlugin)q).initialize(jsonQuery.optJSONObject(PARAMS_PARAM));
 
       ((Query)q).setBoost((float)jsonQuery.optDouble(BOOST_PARAM, 1.0));
       return (Query)q;

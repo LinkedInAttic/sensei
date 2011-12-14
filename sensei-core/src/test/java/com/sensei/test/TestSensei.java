@@ -2,354 +2,43 @@ package com.sensei.test;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
+import junit.framework.TestCase;
+
 import org.apache.log4j.Logger;
-import org.apache.lucene.analysis.standard.StandardAnalyzer;
-import org.apache.lucene.search.DefaultSimilarity;
-import org.apache.lucene.util.Version;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.mortbay.jetty.Server;
 
-import proj.zoie.api.IndexReaderFactory;
-import proj.zoie.api.ZoieIndexReader;
-import proj.zoie.api.indexing.ZoieIndexableInterpreter;
-import proj.zoie.impl.indexing.ZoieConfig;
-import proj.zoie.impl.indexing.ZoieSystem;
-
-import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.BrowseSelection;
 import com.browseengine.bobo.api.FacetAccessible;
 import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
-import com.browseengine.bobo.facets.data.FacetDataCache;
-import com.browseengine.bobo.facets.data.FacetDataFetcher;
-import com.linkedin.norbert.NorbertException;
-import com.linkedin.norbert.cluster.ClusterShutdownException;
-import com.sensei.conf.SenseiServerBuilder;
 import com.sensei.search.nodes.SenseiBroker;
-import com.sensei.search.nodes.SenseiIndexReaderDecorator;
-import com.sensei.search.nodes.SenseiServer;
 import com.sensei.search.req.SenseiHit;
 import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.req.SenseiResult;
 import com.sensei.search.svc.api.SenseiService;
-import com.sensei.search.svc.impl.HttpRestSenseiServiceImpl;
 
-public class TestSensei extends AbstractSenseiTestCase
-{
-  static File ConfDir1 = new File("src/test/conf/node1");
-  static File ConfDir2 = new File("src/test/conf/node2");
-  static File IndexDir = new File("index/test");
-  static URL SenseiUrl = null;
+public class TestSensei extends TestCase {
 
   private static final Logger logger = Logger.getLogger(TestSensei.class);
 
-  public static FacetDataFetcher facetDataFetcher = new FacetDataFetcher()
-  {
-    public Object fetch(BoboIndexReader reader, int doc)
-    {
-      FacetDataCache dataCache = (FacetDataCache)reader.getFacetData("groupid");
-      return dataCache.valArray.getRawValue(dataCache.orderArray.get(doc));
-    }
+  private static SenseiBroker broker;
+  private static SenseiService httpRestSenseiService;
+  static {
+    SenseiStarter.start();
+    broker = SenseiStarter.broker;
+    httpRestSenseiService = SenseiStarter.httpRestSenseiService;
 
-    public void cleanup(BoboIndexReader reader)
-    {
-    }
-  };
-
-  public static FacetDataFetcher facetDataFetcherFixedLengthLongArray = new FacetDataFetcher()
-  {
-    private int counter = 0;
-
-    public Object fetch(BoboIndexReader reader, int doc)
-    {
-      FacetDataCache dataCache = (FacetDataCache)reader.getFacetData("groupid");
-      long[] val = new long[2];
-      val[0] = counter%5;
-      ++counter;
-      Long groupId = (Long)dataCache.valArray.getRawValue(dataCache.orderArray.get(doc));
-      if (groupId == null)
-        val[1] = 0;
-      else
-        val[1] = groupId;
-      return val;
-    }
-
-    public void cleanup(BoboIndexReader reader)
-    {
-      counter = 0;
-    }
-  };
-
-  public TestSensei()
-  {
-    super();
-  }
-
-  public TestSensei(String testName)
-  {
-    super(testName);
-  }
-
-  
-  public static <T> IndexReaderFactory<ZoieIndexReader<BoboIndexReader>> buildReaderFactory(File file,ZoieIndexableInterpreter<T> interpreter){
-    ZoieConfig config = new ZoieConfig();
-    config.setAnalyzer(new StandardAnalyzer(Version.LUCENE_34));
-    config.setSimilarity(new DefaultSimilarity());
-    config.setBatchSize(1000);
-    config.setBatchDelay(300000);
-    config.setRtIndexing(true);
-    
-    ZoieSystem<BoboIndexReader,T> zoieSystem = new ZoieSystem<BoboIndexReader,T>(file,interpreter,new SenseiIndexReaderDecorator(),config);
-    //ZoieSystem<BoboIndexReader,T> zoieSystem = new ZoieSystem<BoboIndexReader,T>(file,interpreter,new SenseiIndexReaderDecorator(),new StandardAnalyzer(Version.LUCENE_34),new DefaultSimilarity(),1000,300000,true,ZoieConfig.DEFAULT_VERSION_COMPARATOR,false);
-    zoieSystem.getAdminMBean().setFreshness(50);
-    zoieSystem.start();
-    return zoieSystem;
-  }
-  
-  public static Map<Integer,IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>> buildZoieFactoryMap(ZoieIndexableInterpreter<?> interpreter,Map<Integer,File> partFileMap){
-    Map<Integer,IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>> partReaderMap = new HashMap<Integer,IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>>();
-    Set<Entry<Integer,File>> entrySet = partFileMap.entrySet();
-  
-    for (Entry<Integer,File> entry : entrySet){
-      partReaderMap.put(entry.getKey(), buildReaderFactory(entry.getValue(), interpreter));
-    }
-  
-    return partReaderMap;
-  }
-  
-  static SenseiBroker broker = null;
-  static SenseiService httpRestSenseiService = null;
-  static SenseiServer node1;
-  static SenseiServer node2;
-  static Server httpServer1;
-  static Server httpServer2;
-
-  static boolean rmrf(File f)
-  {
-    if (f != null)
-    {
-      if (f.isDirectory())
-      {
-        for (File sub : f.listFiles())
-        {
-          if (!rmrf(sub))
-            return false;
-        }
-      }
-      else
-        return f.delete();
-    }
-    return true;
-  }
-
-  static JSONObject search(JSONObject req) throws Exception
-  {
-    URLConnection conn = SenseiUrl.openConnection();
-    conn.setDoOutput(true);
-
-    BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(conn.getOutputStream(), "UTF-8"));
-
-    String reqStr = req.toString();
-    System.out.println("req: " + reqStr);
-    writer.write(reqStr, 0, reqStr.length());
-    writer.flush();
-
-    BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream(), "UTF-8"));
-
-    StringBuilder sb = new StringBuilder();
-    String line = null;
-    while((line = reader.readLine()) != null)
-      sb.append(line);
-
-    String res = sb.toString();
-    // System.out.println("res: " + res);
-
-    return new JSONObject(res);
-  }
-
-  static
-  {
-    // Try to remove pre-existing test index files:
-    try
-    {
-      SenseiUrl = new URL("http://localhost:8079/sensei");
-    }
-    catch (Exception e)
-    {
-      e.printStackTrace();
-    }
-    try
-    {
-      rmrf(IndexDir);
-    }
-    catch (Exception e)
-    {
-      // Ignore.
-    }
-    SenseiServerBuilder senseiServerBuilder1 = null;
-    SenseiServerBuilder senseiServerBuilder2 = null;
-    try
-    {
-      senseiServerBuilder1 = new SenseiServerBuilder(ConfDir1);
-      node1 = senseiServerBuilder1.buildServer();
-      httpServer1 = senseiServerBuilder1.buildHttpRestServer();
-      logger.info("Node 1 created.");
-    }
-    catch (Exception e)
-    {
-      e.printStackTrace();
-    }
-
-    try
-    {
-      senseiServerBuilder2 = new SenseiServerBuilder(ConfDir2);
-      node2 = senseiServerBuilder2.buildServer();
-      httpServer2 = senseiServerBuilder2.buildHttpRestServer();
-      logger.info("Node 2 created.");
-    }
-    catch (Exception e)
-    {
-      e.printStackTrace();
-    }
-
-    // register the request-response messages
-    broker = null;
-    try
-    {
-      broker = new SenseiBroker(networkClient, clusterClient, loadBalancerFactory);
-      broker.setTimeoutMillis(0);
-    } catch (NorbertException ne)
-    {
-      logger.info("shutting down cluster...", ne);
-      try
-      {
-        clusterClient.shutdown();
-      } catch (ClusterShutdownException e)
-      {
-        logger.info(e.getMessage(), e);
-      } finally
-      {
-      }
-    }
-
-    httpRestSenseiService = new HttpRestSenseiServiceImpl("http", "localhost", 8079, "/sensei");
-
-    logger.info("Cluster client started");
-
-    Runtime.getRuntime().addShutdownHook(new Thread(){
-        public void run(){
-          try{
-            broker.shutdown();
-          }
-          catch(Throwable t){}
-          try{
-            httpRestSenseiService.shutdown();
-          }
-          catch(Throwable t){}
-          try{
-            node1.shutdown();
-          }
-          catch(Throwable t){}
-          try{
-            httpServer1.stop();
-          }
-          catch(Throwable t){}
-          try{
-            node2.shutdown();
-          }
-          catch(Throwable t){}
-          try{
-            httpServer2.stop();
-          }
-          catch(Throwable t){}
-          try{
-            networkClient.shutdown();
-          }
-          catch(Throwable t){}
-          try{
-            clusterClient.shutdown();
-          }
-          catch(Throwable t){}
-        }
-      });
-
-    try
-    {
-      node1.start(true);
-    } catch (Exception e)
-    {
-      e.printStackTrace();
-    }
-    try
-    {
-      httpServer1.start();
-    } catch (Exception e)
-    {
-      e.printStackTrace();
-    }
-    logger.info("Node 1 started");
-    try
-    {
-      node2.start(true);
-    } catch (Exception e)
-    {
-      e.printStackTrace();
-    }
-    try
-    {
-      httpServer2.start();
-    } catch (Exception e)
-    {
-      e.printStackTrace();
-    }
-    logger.info("Node 2 started");
-
-    try
-    {
-      SenseiRequest req = new SenseiRequest();
-      SenseiResult res = null;
-      int count = 0;
-      do
-      {
-        Thread.sleep(5000);
-        res = broker.browse(req);
-        System.out.println(""+res.getNumHits()+" loaded...");
-        ++count;
-      } while (count < 20 && res.getNumHits() < 15000);
-      // Thread.sleep(500000);
-    } catch (Exception e)
-    {
-      e.printStackTrace();
-    }
-  }
-  
-
-  private void setspec(SenseiRequest req, FacetSpec spec)
-  {
-    req.setFacetSpec("color", spec);
-    req.setFacetSpec("category", spec);
-    req.setFacetSpec("city", spec);
-    req.setFacetSpec("makemodel", spec);
-    req.setFacetSpec("year", spec);
-    req.setFacetSpec("price", spec);
-    req.setFacetSpec("mileage", spec);
-    req.setFacetSpec("tags", spec);
   }
 
   public void testTotalCount() throws Exception
@@ -521,7 +210,7 @@ public class TestSensei extends AbstractSenseiTestCase
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 2160, res.getInt("numhits"));
   }
-  
+
   public void testSelectionTerms() throws Exception
   {
     logger.info("executing test case Selection terms");
@@ -529,7 +218,7 @@ public class TestSensei extends AbstractSenseiTestCase
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 4483, res.getInt("numhits"));
   }
-  
+
   public void testSelectionRange() throws Exception
   {
     //2000 1548;
@@ -545,30 +234,30 @@ public class TestSensei extends AbstractSenseiTestCase
       JSONObject res = search(new JSONObject(req));
       assertEquals("numhits is wrong", 4455, res.getInt("numhits"));
     }
-    
+
     {
       logger.info("executing test case Selection range (2000 TO 2002)");
       String req = "{\"selections\":[{\"range\":{\"year\":{\"to\":\"2002\",\"include_lower\":false,\"include_upper\":false,\"from\":\"2000\"}}}]}";
       JSONObject res = search(new JSONObject(req));
       assertEquals("numhits is wrong", 1443, res.getInt("numhits"));
     }
-    
+
     {
       logger.info("executing test case Selection range (2000 TO 2002]");
       String req = "{\"selections\":[{\"range\":{\"year\":{\"to\":\"2002\",\"include_lower\":false,\"include_upper\":true,\"from\":\"2000\"}}}]}";
       JSONObject res = search(new JSONObject(req));
       assertEquals("numhits is wrong", 2907, res.getInt("numhits"));
     }
-    
+
     {
       logger.info("executing test case Selection range [2000 TO 2002)");
       String req = "{\"selections\":[{\"range\":{\"year\":{\"to\":\"2002\",\"include_lower\":true,\"include_upper\":false,\"from\":\"2000\"}}}]}";
       JSONObject res = search(new JSONObject(req));
       assertEquals("numhits is wrong", 2991, res.getInt("numhits"));
     }
-    
+
   }
-  
+
   public void testMatchAllWithBoostQuery() throws Exception
   {
     logger.info("executing test case MatchAllQuery");
@@ -576,7 +265,7 @@ public class TestSensei extends AbstractSenseiTestCase
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 15000, res.getInt("numhits"));
   }
-  
+
   public void testQueryStringQuery() throws Exception
   {
     logger.info("executing test case testQueryStringQuery");
@@ -603,8 +292,8 @@ public class TestSensei extends AbstractSenseiTestCase
     Set<Integer> expectedIds = new HashSet(Arrays.asList(new Integer[]{1, 3, 4, 6}));
     for (int i = 0; i < res.getInt("numhits"); ++i)
     {
-      int uid = res.getJSONArray("hits").getJSONObject(i).getInt("uid");
-      assertTrue("UID " + uid + " is not expected.", expectedIds.contains(uid));
+      int uid = res.getJSONArray("hits").getJSONObject(i).getInt("_uid");
+      assertTrue("_UID " + uid + " is not expected.", expectedIds.contains(uid));
     }
   }
 
@@ -623,7 +312,7 @@ public class TestSensei extends AbstractSenseiTestCase
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 2160, res.getInt("numhits"));
   }
-  
+
   public void testTermsQuery() throws Exception
   {
     logger.info("executing test case testTermQuery");
@@ -631,8 +320,8 @@ public class TestSensei extends AbstractSenseiTestCase
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 5777, res.getInt("numhits"));
   }
-  
-  
+
+
   public void testBooleanQuery() throws Exception
   {
     logger.info("executing test case testBooleanQuery");
@@ -640,8 +329,8 @@ public class TestSensei extends AbstractSenseiTestCase
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 1652, res.getInt("numhits"));
   }
-  
-  
+
+
   public void testDistMaxQuery() throws Exception
   {
     //color red ==> 2160
@@ -651,7 +340,7 @@ public class TestSensei extends AbstractSenseiTestCase
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 3264, res.getInt("numhits"));
   }
-  
+
   public void testPathQuery() throws Exception
   {
     logger.info("executing test case testPathQuery");
@@ -659,7 +348,7 @@ public class TestSensei extends AbstractSenseiTestCase
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 126, res.getInt("numhits"));
   }
-  
+
   public void testPrefixQuery() throws Exception
   {
     //color blue ==> 1104
@@ -668,8 +357,8 @@ public class TestSensei extends AbstractSenseiTestCase
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 1104, res.getInt("numhits"));
   }
-  
-  
+
+
   public void testWildcardQuery() throws Exception
   {
     //color blue ==> 1104
@@ -678,7 +367,7 @@ public class TestSensei extends AbstractSenseiTestCase
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 1104, res.getInt("numhits"));
   }
-  
+
   public void testRangeQuery() throws Exception
   {
     logger.info("executing test case testRangeQuery");
@@ -686,7 +375,7 @@ public class TestSensei extends AbstractSenseiTestCase
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 3015, res.getInt("numhits"));
   }
-  
+
   public void testRangeQuery2() throws Exception
   {
     logger.info("executing test case testRangeQuery2");
@@ -694,8 +383,8 @@ public class TestSensei extends AbstractSenseiTestCase
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 3015, res.getInt("numhits"));
   }
-  
-  
+
+
   public void testFilteredQuery() throws Exception
   {
     logger.info("executing test case testFilteredQuery");
@@ -703,8 +392,8 @@ public class TestSensei extends AbstractSenseiTestCase
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 447, res.getInt("numhits"));
   }
-  
-  
+
+
   public void testSpanTermQuery() throws Exception
   {
     logger.info("executing test case testSpanTermQuery");
@@ -712,8 +401,8 @@ public class TestSensei extends AbstractSenseiTestCase
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 2160, res.getInt("numhits"));
   }
-  
-  
+
+
   public void testSpanOrQuery() throws Exception
   {
     logger.info("executing test case testSpanOrQuery");
@@ -721,8 +410,8 @@ public class TestSensei extends AbstractSenseiTestCase
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 3264, res.getInt("numhits"));
   }
-  
-  
+
+
   public void testSpanNotQuery() throws Exception
   {
     logger.info("executing test case testSpanNotQuery");
@@ -730,7 +419,7 @@ public class TestSensei extends AbstractSenseiTestCase
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 4596, res.getInt("numhits"));
   }
-  
+
   public void testSpanNearQuery1() throws Exception
   {
     logger.info("executing test case testSpanNearQuery1");
@@ -738,7 +427,7 @@ public class TestSensei extends AbstractSenseiTestCase
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 274, res.getInt("numhits"));
   }
-  
+
   public void testSpanNearQuery2() throws Exception
   {
     logger.info("executing test case testSpanNearQuery2");
@@ -746,7 +435,7 @@ public class TestSensei extends AbstractSenseiTestCase
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 63, res.getInt("numhits"));
   }
-  
+
   public void testSpanFirstQuery() throws Exception
   {
     logger.info("executing test case testSpanFirstQuery");
@@ -754,8 +443,8 @@ public class TestSensei extends AbstractSenseiTestCase
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 2160, res.getInt("numhits"));
   }
-  
-  
+
+
   public void testUIDFilter() throws Exception
   {
     logger.info("executing test case testUIDFilter");
@@ -766,11 +455,11 @@ public class TestSensei extends AbstractSenseiTestCase
     Set<Integer> expectedIds = new HashSet(Arrays.asList(new Integer[]{1, 3}));
     for (int i = 0; i < res.getInt("numhits"); ++i)
     {
-      int uid = res.getJSONArray("hits").getJSONObject(i).getInt("uid");
-      assertTrue("UID " + uid + " is not expected.", expectedIds.contains(uid));
+      int uid = res.getJSONArray("hits").getJSONObject(i).getInt("_uid");
+      assertTrue("_UID " + uid + " is not expected.", expectedIds.contains(uid));
     }
   }
-  
+
   public void testAndFilter() throws Exception
   {
     logger.info("executing test case testAndFilter");
@@ -784,26 +473,26 @@ public class TestSensei extends AbstractSenseiTestCase
     logger.info("executing test case testOrFilter");
     String req = "{\"filter\":{\"or\":[{\"term\":{\"color\":\"blue\",\"_noOptimize\":true}},{\"term\":{\"color\":\"red\",\"_noOptimize\":true}}]}}";
     JSONObject res = search(new JSONObject(req));
-    assertEquals("numhits is wrong", 3264, res.getInt("numhits"));  
+    assertEquals("numhits is wrong", 3264, res.getInt("numhits"));
   }
-  
+
   public void testOrFilter2() throws Exception
   {
     logger.info("executing test case testOrFilter2");
     String req = "{\"filter\":{\"or\":[{\"term\":{\"color\":\"blue\",\"_noOptimize\":false}},{\"term\":{\"color\":\"red\",\"_noOptimize\":false}}]}}";
     JSONObject res = search(new JSONObject(req));
-    assertEquals("numhits is wrong", 3264, res.getInt("numhits"));  
+    assertEquals("numhits is wrong", 3264, res.getInt("numhits"));
   }
-  
+
   public void testOrFilter3() throws Exception
   {
     logger.info("executing test case testOrFilter3");
     String req = "{\"filter\":{\"or\":[{\"term\":{\"color\":\"blue\",\"_noOptimize\":true}},{\"term\":{\"color\":\"red\",\"_noOptimize\":false}}]}}";
     JSONObject res = search(new JSONObject(req));
-    assertEquals("numhits is wrong", 3264, res.getInt("numhits"));  
+    assertEquals("numhits is wrong", 3264, res.getInt("numhits"));
   }
-  
-  
+
+
   public void testBooleanFilter() throws Exception
   {
     logger.info("executing test case testBooleanFilter");
@@ -811,7 +500,7 @@ public class TestSensei extends AbstractSenseiTestCase
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 1652, res.getInt("numhits"));
   }
-  
+
   public void testQueryFilter() throws Exception
   {
     logger.info("executing test case testQueryFilter");
@@ -821,7 +510,7 @@ public class TestSensei extends AbstractSenseiTestCase
   }
 
   /* Need to fix the bug in bobo and kamikazi, for details see the following two test cases:*/
-  
+
 //  public void testAndFilter1() throws Exception
 //  {
 //    logger.info("executing test case testAndFilter1");
@@ -829,7 +518,7 @@ public class TestSensei extends AbstractSenseiTestCase
 //    JSONObject res = search(new JSONObject(req));
 //    assertEquals("numhits is wrong", 504, res.getInt("numhits"));
 //  }
-//  
+//
 //  public void testQueryFilter1() throws Exception
 //  {
 //    logger.info("executing test case testQueryFilter1");
@@ -837,10 +526,10 @@ public class TestSensei extends AbstractSenseiTestCase
 //    JSONObject res = search(new JSONObject(req));
 //    assertEquals("numhits is wrong", 4169, res.getInt("numhits"));
 //  }
-  
-  
+
+
   /*  another weird bug may exist somewhere in bobo or kamikazi.*/
-  /*  In the following two test cases, when modifying the first one by changing "tags" to "tag", it is supposed that 
+  /*  In the following two test cases, when modifying the first one by changing "tags" to "tag", it is supposed that
    *  Only the first test case is not correct, but the second one also throw one NPE, which is weird.
    * */
 //  public void testAndFilter2() throws Exception
@@ -858,10 +547,10 @@ public class TestSensei extends AbstractSenseiTestCase
 //    logger.info("executing test case testOrFilter4");
 //    String req = "{\"filter\":{\"or\":[{\"term\":{\"color\":\"blue\",\"_noOptimize\":false}},{\"query\":{\"term\":{\"color\":\"red\"}}}]}}";
 //    JSONObject res = search(new JSONObject(req));
-//    assertEquals("numhits is wrong", 3264, res.getInt("numhits"));  
+//    assertEquals("numhits is wrong", 3264, res.getInt("numhits"));
 //  }
-  
-  
+
+
   public void testTermFilter() throws Exception
   {
     logger.info("executing test case testTermFilter");
@@ -869,7 +558,7 @@ public class TestSensei extends AbstractSenseiTestCase
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 2160, res.getInt("numhits"));
   }
-  
+
   public void testTermsFilter() throws Exception
   {
     logger.info("executing test case testTermsFilter");
@@ -877,7 +566,7 @@ public class TestSensei extends AbstractSenseiTestCase
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 5777, res.getInt("numhits"));
   }
-  
+
   public void testRangeFilter() throws Exception
   {
     logger.info("executing test case testRangeFilter");
@@ -885,7 +574,7 @@ public class TestSensei extends AbstractSenseiTestCase
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 3015, res.getInt("numhits"));
   }
-  
+
   public void testRangeFilter2() throws Exception
   {
     logger.info("executing test case testRangeFilter2");
@@ -893,7 +582,6 @@ public class TestSensei extends AbstractSenseiTestCase
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 3015, res.getInt("numhits"));
   }
-  
   public void testRangeFilter3() throws Exception
   {
     logger.info("executing test case testRangeFilter3");
@@ -901,8 +589,77 @@ public class TestSensei extends AbstractSenseiTestCase
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 19, res.getInt("numhits"));
   }
-  
+
+
+  private JSONObject search(JSONObject req) throws Exception  {
+    URLConnection conn = SenseiStarter.SenseiUrl.openConnection();
+    conn.setDoOutput(true);
+    BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(conn.getOutputStream(), "UTF-8"));
+    String reqStr = req.toString();
+    System.out.println("req: " + reqStr);
+    writer.write(reqStr, 0, reqStr.length());
+    writer.flush();
+    BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream(), "UTF-8"));
+    StringBuilder sb = new StringBuilder();
+    String line = null;
+    while((line = reader.readLine()) != null)
+      sb.append(line);
+    String res = sb.toString();
+    System.out.println("res: " + res);
+    return new JSONObject(res);
+  }
+
+  private void setspec(SenseiRequest req, FacetSpec spec) {
+    req.setFacetSpec("color", spec);
+    req.setFacetSpec("category", spec);
+    req.setFacetSpec("city", spec);
+    req.setFacetSpec("makemodel", spec);
+    req.setFacetSpec("year", spec);
+    req.setFacetSpec("price", spec);
+    req.setFacetSpec("mileage", spec);
+    req.setFacetSpec("tags", spec);
+  }
+
+
+
+
+
+
+
+//  public void testSortBy() throws Exception
+//  {
+//    logger.info("executing test case testSortBy");
+//    String req = "{\"sort\":[{\"color\":\"desc\"},\"_score\"],\"from\":0,\"size\":15000}";
+//    JSONObject res = search(new JSONObject(req));
+//    JSONArray jhits = res.optJSONArray("hits");
+//    ArrayList<String> arColors = new ArrayList<String>();
+//    for(int i=0; i<jhits.length(); i++){
+//      JSONObject jhit = jhits.getJSONObject(i);
+//      JSONArray jcolor = jhit.optJSONArray("color");
+//      if(jcolor != null){
+//        String color = jcolor.optString(0);
+//        if(color != null)
+//          arColors.add(color);
+//      }
+//    }
+//    checkColorOrder(arColors);
+//    //    assertEquals("numhits is wrong", 15000, res.getInt("numhits"));
+//  }
+
+  private void checkColorOrder(ArrayList<String> arColors)
+  {
+    assertTrue("must have 15000 results, size is:" + arColors.size(), arColors.size() == 15000);
+    for(int i=0; i< arColors.size()-1; i++){
+      String first = arColors.get(i);
+      String next = arColors.get(i+1);
+      int comp = first.compareTo(next);
+      assertTrue("should >=0 (first= "+ first+"  next= "+ next+")", comp>=0);
+    }
+  }
+
+
   public void testSortByDesc() throws Exception
+
   {
     logger.info("executing test case testSortByDesc");
     String req = "{\"selections\": [{\"range\": {\"mileage\": {\"from\": 16000, \"include_lower\": false}}}, {\"range\": {\"year\": {\"from\": 2002, \"include_lower\": true, \"include_upper\": true, \"to\": 2002}}}], \"sort\":[{\"color\":\"desc\"}, {\"category\":\"asc\"}],\"from\":0,\"size\":15000}";

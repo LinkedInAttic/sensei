@@ -261,6 +261,42 @@ class SenseiClient:
 
   def get_facet_map(self):
     return self.facet_map
+  
+  def run_example(self):
+    """ a sample sensei request"""
+    
+    # create a SenseiRequest object firstly;
+    req = SenseiRequest();
+    
+    # add paging info;
+    req.set_count(20)
+    req.set_offset(0)
+    
+    # add query info;
+    
+    # add selection info;
+    req.append_range_selection("year", "1995", "2000", True, False)  # [1995 TO 2000)
+    
+    # add group by;
+    req.set_groupby("category")
+    req.set_max_per_group(4)
+    
+    # add sort;
+    sort = SenseiSort("color", True)
+    req.append_sort(sort)
+    
+    # add fetch_stored
+    req.set_fetch_stored(False)
+    
+    # need explain or not
+    req.set_explain(False)
+    
+    
+    # execute and display results;
+    res = self.doQuery(req)
+    columns = []
+    columns.append("*")
+    res.display(columns, max_col_width=40)
 
 def main(argv):
   print "Welcome to Sensei Shell"
@@ -299,6 +335,13 @@ def main(argv):
       stmt = raw_input('> ')
       if stmt == "exit":
         break
+
+      # if options.verbose:
+      #   test(stmt)
+      if stmt == "sample request":
+        client.run_example()
+        continue
+        
       req = client.compile(stmt)
       if req.stmt_type == "select":
         res = client.doQuery(req)

@@ -6,12 +6,11 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Comparator;
+import java.util.Set;
 
 import javax.naming.ConfigurationException;
 
-import org.apache.commons.configuration.Configuration;
 import org.json.JSONObject;
-import org.springframework.context.ApplicationContext;
 
 import proj.zoie.api.DataConsumer.DataEvent;
 import proj.zoie.dataprovider.jdbc.JDBCConnectionFactory;
@@ -20,55 +19,52 @@ import proj.zoie.dataprovider.jdbc.PreparedStatementBuilder;
 import proj.zoie.impl.indexing.StreamDataProvider;
 
 import com.sensei.indexing.api.DataSourceFilter;
+import com.sensei.indexing.api.ShardingStrategy;
 import com.sensei.indexing.api.gateway.SenseiGateway;
+import com.sensei.plugin.SenseiPluginRegistry;
 
 public class JdbcDataProviderBuilder extends SenseiGateway<ResultSet>{
 
-	public static final String name = "jdbc";
-	
+	private SenseiPluginRegistry pluginRegistry;
 	private Comparator<String> _versionComparator;
-	
-	public JdbcDataProviderBuilder(Configuration conf) throws Exception{
-	  super(conf);
-	  String versionComparatorClassString = _conf.getString("versionComparator");
-	  Class versionComparatorClass = Class.forName(versionComparatorClassString);
-	  _versionComparator = (Comparator<String>)versionComparatorClass.newInstance();
-	}
-	
+
 	@Override
-	public String getName() {
-		return name;
+	public void start() {
+	  _versionComparator = pluginRegistry.getBeanByName("versionComparator", Comparator.class);
 	}
+
 
 	@Override
 	public StreamDataProvider<JSONObject> buildDataProvider(final DataSourceFilter<ResultSet> dataFilter,
-			String oldSinceKey,ApplicationContext plugin) throws Exception{
-		   
-	    Configuration myConf = _conf.subset(name);
-	       final String url = myConf.getString("url");
-	       final String username = myConf.getString("username",null);
-	       final String password = myConf.getString("password",null);
-	       final String driver = myConf.getString("driver");
-	       final String adaptor = myConf.getString("adaptor");
-	       
-	       final SenseiJDBCAdaptor senseiAdaptor = (SenseiJDBCAdaptor)plugin.getBean(adaptor);
+      String oldSinceKey,
+      ShardingStrategy shardingStrategy,
+      Set<Integer> partitions) throws Exception
+  {
+
+	       final String url = config.get("url");
+	       final String username = config.get("username");
+	       final String password = config.get("password");
+	       final String driver = config.get("driver");
+	       final String adaptor = config.get("adaptor");
+
+	       final SenseiJDBCAdaptor senseiAdaptor =  pluginRegistry.getBeanByFullPrefix("jdbc.adaptor", SenseiJDBCAdaptor.class);
 	       if (senseiAdaptor==null){
 	    	   throw new ConfigurationException("adaptor not found: "+adaptor);
 	       }
-	       
-		
+
+
 		   JDBCConnectionFactory connFactory = new JDBCConnectionFactory() {
-			
+
 
 			 private Connection _conn = null;
-				
+
 			 @Override
 			 public void showndown() throws SQLException {
 				 if (_conn!=null){
 					_conn.close();
 				 }
 			 }
-			
+
 			 @Override
 			 public Connection getConnection() throws SQLException {
 				if (_conn == null){
@@ -82,7 +78,7 @@ public class JdbcDataProviderBuilder extends SenseiGateway<ResultSet>{
 				return _conn;
 			 }
 		    };
-		    
+
 		    PreparedStatementBuilder<JSONObject> stmtBuilder = new PreparedStatementBuilder<JSONObject>() {
 
 		    	private final DataSourceFilter<ResultSet> filter = dataFilter;
@@ -104,7 +100,7 @@ public class JdbcDataProviderBuilder extends SenseiGateway<ResultSet>{
 					}
 				}
 			};
-		
+
 	    return new JDBCStreamDataProvider<JSONObject>(connFactory, stmtBuilder, _versionComparator);
 	}
 
@@ -113,5 +109,5 @@ public class JdbcDataProviderBuilder extends SenseiGateway<ResultSet>{
   public Comparator<String> getVersionComparator() {
     return _versionComparator;
   }
-	
+
 }

@@ -282,7 +282,7 @@ class SenseiSelection:
   def getSelectPropParamValues(self):
     return ",".join(key + ":" + self.properties.get(key)
         for key in self.properties.keys())
-  
+
 
 class SenseiSort:
   def __init__(self, field, reverse=False):
@@ -615,7 +615,7 @@ class SenseiRequest:
       self.count = count
       self.columns = []
       self.sorts = None
-      self.selections = {}
+      self.selections = []
       self.filter = {}
       self.query_pred = {}
       self.facets = {}
@@ -624,6 +624,77 @@ class SenseiRequest:
       self.max_per_group = max_per_group
       self.facet_init_param_map = {}
 
+  def set_offset(self, offset):
+    self.offset = offset
+    
+  def set_count(self, count):
+    self.count = count
+    
+  def set_query(self, query):
+    self.query = query
+    
+  def set_explain(self, explain):
+    self.explain = explain
+    
+  def set_fetch_stored(self, fetch_stored):
+    self.fetch_stored = fetch_stored
+    
+  def set_route_param(self, route_param):
+    self.route_param = route_param
+    
+  def set_sorts(self, sorts):    
+    self.sorts = sorts
+    
+  def append_sort(self, sort):
+    if isinstance(sort, SenseiSort):
+      if self.sorts is None:
+        self.sorts = []
+        self.sorts.append(sort)
+      else:  
+        self.sorts.append(sort)
+    
+  def set_filter(self, filter):
+    self.filter = filter
+    
+  def set_selections(self, selections):
+    self.selections = selections
+    
+  def append_term_selection(self, column, value):
+    if self.selections is None:
+      self.selections = []
+    term_selection = {"term": {column : {"value" : value}}}
+    self.selections.append(term_selection)
+  
+  def append_terms_selection(self, column, values, excludes, operator):
+    if self.selections is None:
+      self.selections = []
+    terms_selection = {"terms": {column : {"value" : value}}}
+    self.selections.append(term_selection)  
+    
+  def append_range_selection(self, column, from_str="*", to_str="*", include_lower=True, include_upper=True):
+    if self.selections is None:
+      self.selections = []
+    range_selection = {"range":{column:{"to":to_str, "from":from_str, "include_lower":include_lower, "include_upper":include_upper}}}
+    self.selections.append(range_selection)
+        
+  def append_path_selection(self, column, value, strict=False, depth=1):
+    if self.selections is None:
+      self.selections = []
+    path_selection = {"path": {column : {"value":value, "strict":strict, "depth":depth}}}
+    self.selections.append(path_selection)      
+        
+  def set_facets(self, facets):
+    self.facets = facets
+    
+  def set_groupby(self, groupby):
+    self.groupby = groupby
+    
+  def set_max_per_group(self, max_per_group):
+    self.max_per_group = max_per_group
+      
+  def set_facet_init_param_map(self, facet_init_param_map):
+    self.facet_init_param_map = facet_init_param_map
+    
   def get_columns(self):
     return self.columns
 

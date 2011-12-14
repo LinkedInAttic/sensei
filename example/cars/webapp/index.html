@@ -1,0 +1,97 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-us">
+  <head>
+    <meta http-equiv="content-type" content="text/html;charset=utf-8">
+    <title>Sensei Demo - Cars</title>
+
+    <script src="http://code.jquery.com/jquery-1.4.4.js"></script>
+
+    <script type="text/javascript">
+	 
+    </script>
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+    <script type="text/javascript" src="js/sensei-client-1.0.0.js"></script>
+    <script type="text/javascript" src="js/cardemo.js"></script>
+  </head>
+
+ <body>
+    <div class="topbar">
+      <div class="topbar-inner">
+        <div class="container-fluid">
+          <a class="brand" href="#">Sensei Demo - Cars </a>
+          <ul class="nav">
+            <li class="active"><a href="#">Home</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <br/>
+    <br/>
+    <div class="container-fluid">
+      <div class="sidebar">
+        <div class="well">
+          <h4>Facets</h4>
+          <hr/>
+          <h5>Color</h5>
+            <div id="color">
+            </div>
+          <h5>Category</h5>
+            <div id="category">
+            </div>
+          <h5>Price</h5>
+            <div id="price">
+            </div>
+          <h5>Year</h5>
+            <div id="year">
+            </div>
+        </div>
+      </div>
+      <div class="content">
+        <!-- Main hero unit for a primary marketing message or call to action -->
+        <div class="hero-unit">
+
+        <input id="qbox" style="width:500px;height:30px" type="text" height="20" size="50" />
+        <input type="button" class="btn primary" onclick="updateTextQuery()" value="Search" />
+        
+          
+        </div>
+
+        <!-- Example row of columns -->
+        <div class="row">
+          <div class="span10">
+            <h2>MakeModel</h2>
+            <div id="makemodel">
+            </div>
+          </div>
+          <div class="span10">
+            <h2>City</h2>
+             <div id="city">
+             </div>
+         </div>
+        </div>
+
+        <div class="row">
+          <div class="span16">
+            <h2>tags</h2>
+          </div>
+        </div>
+        <hr>
+        <h2>Hits</h2>
+        <div id="results">
+        </div>
+        <footer>
+          <p>&copy; SenseiDB.com 2011</p>
+        </footer>
+      </div>
+    </div>
+
+  </body>
+
+</html>

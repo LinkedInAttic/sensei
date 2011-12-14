@@ -118,16 +118,21 @@
       <version>0.90</version>
     </dependency>
 
+   <dependency>
+      <groupId>com.github.sgroschupf</groupId>
+      <artifactId>zkclient</artifactId>
+      <version>0.1</version>
+    </dependency>
+
 		<dependency>
-			<groupId>com.sna-projects.kafka</groupId>
+			<groupId>org.apache.kafka</groupId>
 			<artifactId>kafka</artifactId>
-			<version>0.5-SNAPSHOT</version>
+			<version>0.7.6</version>
 			<exclusions>
-			  <exclusion>  <!-- declare the exclusion here -->
-			    <groupId>zkclient</groupId>
-			    <artifactId>zkclient</artifactId>
-			  </exclusion>
-			</exclusions>
+              <exclusion>  <!-- declare the exclusion here -->
+                <groupId>zkclient</groupId>
+              </exclusion>
+            </exclusions>
 		</dependency>
 		<dependency>
 			<groupId>com.linkedin.kamikaze</groupId>

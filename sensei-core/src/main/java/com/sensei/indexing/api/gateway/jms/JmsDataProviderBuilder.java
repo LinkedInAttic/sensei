@@ -1,15 +1,15 @@
 package com.sensei.indexing.api.gateway.jms;
 
+import java.sql.ResultSet;
 import java.util.Comparator;
+import java.util.Set;
 
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.TopicConnectionFactory;
 
-import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.json.JSONObject;
-import org.springframework.context.ApplicationContext;
 
 import proj.zoie.api.DataConsumer.DataEvent;
 import proj.zoie.dataprovider.jms.DataEventBuilder;
@@ -19,59 +19,55 @@ import proj.zoie.impl.indexing.StreamDataProvider;
 import proj.zoie.impl.indexing.ZoieConfig;
 
 import com.sensei.indexing.api.DataSourceFilter;
+import com.sensei.indexing.api.ShardingStrategy;
 import com.sensei.indexing.api.gateway.SenseiGateway;
 
 public class JmsDataProviderBuilder extends SenseiGateway<Message>{
 
 	public static final String name = "jms";
-  private final Comparator<String> _versionComparator;
-	
-	public JmsDataProviderBuilder(Configuration conf){
-	  super(conf);
-	  _versionComparator = ZoieConfig.DEFAULT_VERSION_COMPARATOR;
-	}
-	
-	@Override
-	public String getName() {
-		return name;
-	}
+  private final Comparator<String> _versionComparator = ZoieConfig.DEFAULT_VERSION_COMPARATOR;
+
+
+
 
 	@Override
 	public StreamDataProvider<JSONObject> buildDataProvider(final DataSourceFilter<Message> dataFilter,
-			String oldSinceKey,ApplicationContext plugin) throws Exception{
+      String oldSinceKey,
+      ShardingStrategy shardingStrategy,
+      Set<Integer> partitions) throws Exception
+  {
 
-	    Configuration myConf = _conf.subset(name);
-	    final String topic = myConf.getString("topic");
-	    final String clientID = myConf.getString("clientId",null);
-	    final String topicFac = myConf.getString("topicFactory");
-	    
-	    TopicFactory topicFactory = (TopicFactory)plugin.getBean(topicFac);
-	    
+	    final String topic = config.get("topic");
+	    final String clientID = config.get("clientId");
+	    final String topicFac = config.get("topicFactory");
+
+	    TopicFactory topicFactory = pluginRegistry.getBeanByFullPrefix(name + ".topicFactory", TopicFactory.class);
+
 	    if (topicFactory == null){
 	    	throw new ConfigurationException("topicFactory not defined: "+topicFac);
 	    }
-	    
-	    TopicConnectionFactory connectionFactory = (TopicConnectionFactory)plugin.getBean("connectionFactory");
-	    
+
+	    TopicConnectionFactory connectionFactory = pluginRegistry.getBeanByFullPrefix(name + ".connectionFactory", TopicConnectionFactory.class);
+
 	    if (connectionFactory == null){
 	    	throw new ConfigurationException("topic connection factory not defined.");
 	    }
-	    
+
 	    DataEventBuilder<JSONObject> dataEventBuilder = new DataEventBuilder<JSONObject>() {
 	    	final DataSourceFilter<Message> filter = dataFilter;
 			@Override
 			public DataEvent<JSONObject> buildDataEvent(Message message)
 					throws JMSException {
-				
+
 				try {
 					return new DataEvent<JSONObject>(filter.filter(message), String.valueOf(System.nanoTime()));
 				} catch (Exception e) {
 					throw new JMSException(e.getMessage());
 				}
 			}
-	    	
+
 		};
-	    
+
 		JMSStreamDataProvider<JSONObject> provider = new JMSStreamDataProvider<JSONObject>(topic, clientID, connectionFactory, topicFactory, dataEventBuilder, _versionComparator);
 		return provider;
 	}
@@ -80,7 +76,7 @@ public class JmsDataProviderBuilder extends SenseiGateway<Message>{
   public Comparator<String> getVersionComparator() {
     return _versionComparator;
   }
-	
-	
-	
+
+
+
 }

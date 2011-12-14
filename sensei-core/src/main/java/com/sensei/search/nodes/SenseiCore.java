@@ -188,13 +188,12 @@ public class SenseiCore{
       _indexManager.shutdown();
     logger.info("index manager shutdown...");
       
-        // shutdown the zoieSystems
-        for(Zoie<BoboIndexReader,?> zoieSystem : zoieSystems)
-        {
-          zoieSystem.shutdown();
-        }
-        zoieSystems.clear();
-        _started =false;
+    // shutdown the zoieSystems
+    for(Zoie<BoboIndexReader,?> zoieSystem : zoieSystems){
+      zoieSystem.shutdown();
+    }
+    zoieSystems.clear();
+    _started =false;
   }
 
   public DataProvider getDataProvider()

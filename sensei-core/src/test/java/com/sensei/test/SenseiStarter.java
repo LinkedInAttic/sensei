@@ -1,0 +1,181 @@
+package com.sensei.test;
+
+import java.io.File;
+import java.net.URL;
+
+import javax.management.InstanceAlreadyExistsException;
+
+import org.apache.log4j.Logger;
+import org.mortbay.jetty.Server;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+import com.linkedin.norbert.NorbertException;
+import com.linkedin.norbert.javacompat.cluster.ClusterClient;
+import com.linkedin.norbert.javacompat.network.NetworkServer;
+import com.sensei.conf.SenseiServerBuilder;
+import com.sensei.search.cluster.client.SenseiNetworkClient;
+import com.sensei.search.cluster.routing.SenseiLoadBalancerFactory;
+import com.sensei.search.nodes.SenseiBroker;
+import com.sensei.search.nodes.SenseiRequestScatterRewriter;
+import com.sensei.search.nodes.SenseiServer;
+import com.sensei.search.nodes.SenseiZoieFactory;
+import com.sensei.search.req.SenseiRequest;
+import com.sensei.search.req.SenseiResult;
+import com.sensei.search.svc.api.SenseiService;
+import com.sensei.search.svc.impl.HttpRestSenseiServiceImpl;
+
+/**
+ * Embeds all the logic for starting the test Sensei instance
+ *
+ */
+public class SenseiStarter {
+  private static final Logger logger = Logger.getLogger(SenseiStarter.class);
+
+  public static File ConfDir1 = null;
+  public static File ConfDir2 = null;
+  static {
+    try {
+      ConfDir1 = new File(SenseiStarter.class.getClassLoader().getResource("conf/node1").toURI());
+
+      ConfDir2 = new File(SenseiStarter.class.getClassLoader().getResource("conf/node2").toURI());
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public static File IndexDir = new File("index/test");
+  public static URL SenseiUrl = null;
+  static SenseiBroker broker = null;
+  static SenseiService httpRestSenseiService = null;
+  static SenseiServer node1;
+  static SenseiServer node2;
+  static Server httpServer1;
+  static Server httpServer2;
+  protected static SenseiNetworkClient networkClient;
+  protected static ClusterClient clusterClient;
+  protected static SenseiRequestScatterRewriter requestRewriter;
+  protected static SenseiLoadBalancerFactory loadBalancerFactory;
+  protected static NetworkServer networkServer1;
+  protected static NetworkServer networkServer2;
+  protected static final String SENSEI_TEST_CONF_FILE="sensei-test.spring";
+  protected static SenseiZoieFactory<?> _zoieFactory;
+  private static boolean started = false;
+
+  /**
+   * Will start the new Sensei instance once per process
+   */
+  public static synchronized void start() {
+    if (started) {
+      logger.warn("The server had been already started");
+      return;
+    }
+    try {
+    org.apache.log4j.PropertyConfigurator.configure("resources/log4j.properties");
+    loadFromSpringContext();
+    rmrf(IndexDir);
+    SenseiServerBuilder senseiServerBuilder1 = null;
+    senseiServerBuilder1 = new SenseiServerBuilder(ConfDir1, null);
+    node1 = senseiServerBuilder1.buildServer();
+    httpServer1 = senseiServerBuilder1.buildHttpRestServer();
+    logger.info("Node 1 created.");
+    SenseiServerBuilder senseiServerBuilder2 = null;
+    senseiServerBuilder2 = new SenseiServerBuilder(ConfDir2, null);
+    node2 = senseiServerBuilder2.buildServer();
+    httpServer2 = senseiServerBuilder2.buildHttpRestServer();
+    logger.info("Node 2 created.");
+    broker = null;
+    try
+    {
+      broker = new SenseiBroker(networkClient, clusterClient, loadBalancerFactory);
+      broker.setTimeoutMillis(0);
+    } catch (NorbertException ne) {
+      logger.info("shutting down cluster...", ne);
+        clusterClient.shutdown();
+        throw ne;
+    }
+    httpRestSenseiService = new HttpRestSenseiServiceImpl("http", "localhost", 8079, "/sensei");
+    logger.info("Cluster client started");
+    Runtime.getRuntime().addShutdownHook(new Thread(){
+      @Override
+      public void run(){
+        shutdownSensei();
+    }});
+    node1.start(true);
+    httpServer1.start();
+    logger.info("Node 1 started");
+    node2.start(true);
+    httpServer2.start();
+    logger.info("Node 2 started");
+    SenseiUrl =  new URL("http://localhost:8079/sensei");
+    waitTillServerStarts();
+    } catch (Exception ex) {
+      logger.error("Could not start the sensei");
+      throw new RuntimeException(ex);
+    }finally {
+      started = true;
+    }
+  }
+
+  private static void waitTillServerStarts() throws Exception {
+
+    SenseiRequest req = new SenseiRequest();
+    SenseiResult res = null;
+    int count = 0;
+    do
+    {
+      Thread.sleep(5000);
+      res = broker.browse(req);
+      System.out.println(""+res.getNumHits()+" loaded...");
+      ++count;
+    } while (count < 20 && res.getNumHits() < 15000);
+
+  }
+
+  private static void loadFromSpringContext() {
+
+    ApplicationContext testSpringCtx = null;
+    try
+    {
+      testSpringCtx = new ClassPathXmlApplicationContext("conf/sensei-test.spring");
+    } catch(Throwable e)
+    {
+      if (e instanceof InstanceAlreadyExistsException)
+        logger.warn("norbert JMX InstanceAlreadyExistsException");
+      else
+        logger.error("Unexpected Exception", e.getCause());
+    }
+    networkClient = (SenseiNetworkClient)testSpringCtx.getBean("network-client");
+    clusterClient = (ClusterClient)testSpringCtx.getBean("cluster-client");
+    requestRewriter = (SenseiRequestScatterRewriter)testSpringCtx.getBean("request-rewriter");
+    loadBalancerFactory = (SenseiLoadBalancerFactory)testSpringCtx.getBean("router-factory");
+    networkServer1 = (NetworkServer)testSpringCtx.getBean("network-server-1");
+    networkServer2 = (NetworkServer)testSpringCtx.getBean("network-server-2");
+    _zoieFactory = (SenseiZoieFactory<?>)testSpringCtx.getBean("zoie-system-factory");
+  }
+
+  private static boolean rmrf(File f)
+  {
+    if (f != null) {
+      if (f.isDirectory()) {
+        for (File sub : f.listFiles()) {
+          if (!rmrf(sub)) return false;
+        }
+      }
+      else return f.delete();
+    }
+    return true;
+  }
+
+  private static void shutdownSensei() {
+    try{ broker.shutdown();}catch(Throwable t){}
+    try{ httpRestSenseiService.shutdown();}catch(Throwable t){}
+    try{node1.shutdown();}catch(Throwable t){}
+    try{httpServer1.stop();}catch(Throwable t){}
+    try{node2.shutdown();}catch(Throwable t){}
+    try{httpServer2.stop();}catch(Throwable t){}
+    try{networkClient.shutdown();}catch(Throwable t){}
+    try{clusterClient.shutdown();}catch(Throwable t){}
+  }
+
+}
