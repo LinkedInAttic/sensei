@@ -142,6 +142,12 @@
         <name>ConSol* Labs Repository (Releases)</name>
         <url>http://labs.consol.de/maven/repository</url>
       </repository>
+      <repository>
+        <id>releases</id>
+        <name>Releases</name>
+        <url>https://oss.sonatype.org/content/repositories/releases</url>
+      </repository>
+
 	  </repositories>
 
 	<distributionManagement>

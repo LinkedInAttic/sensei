@@ -30,13 +30,13 @@ public class KafkaDataProviderBuilder extends SenseiGateway<byte[]>{
       ShardingStrategy shardingStrategy,
       Set<Integer> partitions) throws Exception
   {
-		String host = _conf.getString("host");
-		int port = _conf.getInt("port");
+	  String zookeeperUrl = _conf.getString("zookeeperUrl");
+	  String consumerGroupId = _conf.getString("consumerGroupId");
 		String topic = _conf.getString("topic");
 		int timeout = _conf.getInt("timeout",10000);
 		int batchsize = _conf.getInt("batchsize");
 		long offset = oldSinceKey == null ? 0L : Long.parseLong(oldSinceKey);
-		KafkaJsonStreamDataProvider provider = new KafkaJsonStreamDataProvider(_versionComparator, host,port,timeout,batchsize,topic,offset);
+		 KafkaJsonStreamDataProvider provider = new KafkaJsonStreamDataProvider(_versionComparator,zookeeperUrl,timeout,batchsize,consumerGroupId,topic,offset);
 		if (dataFilter!=null){
 		  provider.setFilter(dataFilter);
 		}

@@ -6,6 +6,7 @@ import java.util.Set;
 import org.apache.commons.configuration.Configuration;
 import org.json.JSONObject;
 
+import proj.zoie.api.indexing.IndexingEventListener;
 import proj.zoie.impl.indexing.StreamDataProvider;
 import proj.zoie.impl.indexing.ZoieConfig;
 
