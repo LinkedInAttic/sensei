@@ -13,9 +13,9 @@ public class KafkaAvroStreamDataProvider<D> extends KafkaStreamDataProvider<D> {
 	private final SpecificDatumReader<D> reader;
 	private final Class<D> _cls;
 	
-	public KafkaAvroStreamDataProvider(Comparator<String> versionComparator, String kafkaHost, int kafkaPort,
-			int soTimeout, int batchSize, String topic, long startingOffset,Class<D> cls) {
-		super(versionComparator, kafkaHost, kafkaPort, soTimeout, batchSize, topic, startingOffset);
+	public KafkaAvroStreamDataProvider(Comparator<String> versionComparator, String zookeeperUrl,
+			int soTimeout, int batchSize,String consumerGroupId, String topic, long startingOffset,Class<D> cls) {
+		super(versionComparator, zookeeperUrl, soTimeout, batchSize,consumerGroupId, topic, startingOffset);
 		binDecoder = null;
 		_cls = cls;
 		reader = new SpecificDatumReader<D>(_cls);

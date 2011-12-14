@@ -131,6 +131,8 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 
 		_zoieSystemMap = zoieSystemMap;
 
+    _dataProvider = buildDataProvider();
+    
 	    Iterator<Integer> it = zoieSystemMap.keySet().iterator();
 	    while(it.hasNext()){
 	      int part = it.next();
@@ -139,7 +141,6 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 	      _dataCollectorMap.put(part, new LinkedList<DataEvent<JSONObject>>());
 	    }
 
-	    _dataProvider = buildDataProvider();
 	    _dataProvider.setDataConsumer(consumer);
 	}
 
@@ -153,7 +154,7 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 		StreamDataProvider<JSONObject> dataProvider = null;
 
 		try{
-		  dataProvider = _gateway.buildDataProvider(_senseiSchema, _oldestSinceKey, pluginRegistry);
+		  dataProvider = _gateway.buildDataProvider(_senseiSchema, _oldestSinceKey, pluginRegistry,_shardingStrategy,_dataCollectorMap.keySet());
       long maxEventsPerMin = _myconfig.getLong(EVTS_PER_MIN,40000);
       dataProvider.setMaxEventsPerMinute(maxEventsPerMin);
       int batchSize = _myconfig.getInt(BATCH_SIZE,1);

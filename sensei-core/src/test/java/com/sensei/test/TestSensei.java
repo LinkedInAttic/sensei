@@ -292,8 +292,8 @@ public class TestSensei extends TestCase {
     Set<Integer> expectedIds = new HashSet(Arrays.asList(new Integer[]{1, 3, 4, 6}));
     for (int i = 0; i < res.getInt("numhits"); ++i)
     {
-      int uid = res.getJSONArray("hits").getJSONObject(i).getInt("uid");
-      assertTrue("UID " + uid + " is not expected.", expectedIds.contains(uid));
+      int uid = res.getJSONArray("hits").getJSONObject(i).getInt("_uid");
+      assertTrue("_UID " + uid + " is not expected.", expectedIds.contains(uid));
     }
   }
 
@@ -455,8 +455,8 @@ public class TestSensei extends TestCase {
     Set<Integer> expectedIds = new HashSet(Arrays.asList(new Integer[]{1, 3}));
     for (int i = 0; i < res.getInt("numhits"); ++i)
     {
-      int uid = res.getJSONArray("hits").getJSONObject(i).getInt("uid");
-      assertTrue("UID " + uid + " is not expected.", expectedIds.contains(uid));
+      int uid = res.getJSONArray("hits").getJSONObject(i).getInt("_uid");
+      assertTrue("_UID " + uid + " is not expected.", expectedIds.contains(uid));
     }
   }
 
