@@ -5,6 +5,7 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -21,6 +22,7 @@ import proj.zoie.api.DataConsumer.DataEvent;
 import proj.zoie.api.DataProvider;
 import proj.zoie.api.Zoie;
 import proj.zoie.api.ZoieException;
+import proj.zoie.api.ZoieIndexReader;
 import proj.zoie.impl.indexing.StreamDataProvider;
 import proj.zoie.mbean.DataProviderAdmin;
 import proj.zoie.mbean.DataProviderAdminMBean;
@@ -213,13 +215,97 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
       _uidField = uidField;
       _currentVersion = null;
     }
+
+    private JSONObject rewriteData(JSONObject obj, int partNum)
+    {
+      String type = obj.optString(SenseiSchema.EVENT_TYPE_FIELD, null);
+
+      JSONObject event = obj.optJSONObject(SenseiSchema.EVENT_FIELD);
+      if (event == null)
+        event = obj;
+      else if (type != null)
+      {
+        try
+        {
+          event.put(SenseiSchema.EVENT_TYPE_FIELD, type);
+        }
+        catch(Exception e)
+        {
+          logger.error("Should never happen", e);
+        }
+      }
+
+      if (SenseiSchema.EVENT_TYPE_UPDATE.equalsIgnoreCase(type))
+      {
+        Zoie<BoboIndexReader, JSONObject> zoie = _zoieSystemMap.get(partNum);
+        List<ZoieIndexReader<BoboIndexReader>> readers;
+        try
+        {
+          readers = zoie.getIndexReaders();
+        }
+        catch(Exception e)
+        {
+          logger.error(e.getMessage(), e);
+          return null;
+        }
+
+        if (readers == null)
+        {
+          logger.error("Cannot found original doc for and update event: " + obj);
+          return null;
+        }
+        try
+        {
+          byte[] src = null;
+          long uid = event.getLong(_senseiSchema.getUidField());
+          for (ZoieIndexReader<BoboIndexReader> reader : readers)
+          {
+            src = reader.getStoredValue(uid);
+            if (src != null)
+              break;
+          }
+          byte[] data = null;
+
+          if (_senseiSchema.isCompressSrcData())
+            data = DefaultJsonSchemaInterpreter.decompress(src);
+          else
+            data = src;
+
+          if (data == null)
+          {
+            logger.error("Cannot found original doc for and update event: " + obj);
+            return null;
+          }
+
+          JSONObject newEvent = new JSONObject(new String(data, "UTF-8"));
+          Iterator<String> keys = event.keys();
+          while(keys.hasNext())
+          {
+            String key = keys.next();
+            newEvent.put(key, event.get(key));
+          }
+          event = newEvent;
+        }
+        catch (Exception e)
+        {
+          logger.error(e.getMessage(), e);
+          return null;
+        }
+        finally
+        {
+          zoie.returnIndexReaders(readers);
+        }
+      }
+
+      return event;
+    }
       
     @Override
     public void consume(Collection<proj.zoie.api.DataConsumer.DataEvent<JSONObject>> data) throws ZoieException
     {
       UpdateBatchSizeMeter.mark(data.size());
-      ProviderBatchSizeMeter.mark(DefaultStreamingIndexingManager.this._dataProvider.getBatchSize());
-      EventMeter.mark(DefaultStreamingIndexingManager.this._dataProvider.getEventCount());
+      ProviderBatchSizeMeter.mark(_dataProvider.getBatchSize());
+      EventMeter.mark(_dataProvider.getEventCount());
       
       try{
         for(DataEvent<JSONObject> dataEvt : data){
@@ -231,27 +317,33 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
           _currentVersion = dataEvt.getVersion();
 
           int routeToPart = _shardingStrategy.caculateShard(_maxPartitionId, obj);
-          if(DefaultStreamingIndexingManager.this._dataCollectorMap.containsKey(routeToPart)){
-            Collection<DataEvent<JSONObject>> partDataSet = DefaultStreamingIndexingManager.this._dataCollectorMap.get(routeToPart);
-            if (partDataSet!=null){
+          Collection<DataEvent<JSONObject>> partDataSet = _dataCollectorMap.get(routeToPart);
+          if (partDataSet != null)
+          {
+            JSONObject rewrited = rewriteData(obj, routeToPart);
+            if (rewrited != null)
+            {
+              if (rewrited != obj)
+                dataEvt = new DataEvent<JSONObject>(rewrited, dataEvt.getVersion());
               partDataSet.add(dataEvt);
-            }           
+            }
           }
         }
         
-        Iterator<Integer> it = DefaultStreamingIndexingManager.this._zoieSystemMap.keySet().iterator();
+        Iterator<Integer> it = _zoieSystemMap.keySet().iterator();
         while(it.hasNext()){
           int part_num = it.next();
-          Zoie<BoboIndexReader,JSONObject> dataConsumer = DefaultStreamingIndexingManager.this._zoieSystemMap.get(part_num);
+          Zoie<BoboIndexReader,JSONObject> dataConsumer = _zoieSystemMap.get(part_num);
           if (dataConsumer!=null){
             LinkedList<DataEvent<JSONObject>> partDataSet =
-              (LinkedList<DataEvent<JSONObject>>) DefaultStreamingIndexingManager.this._dataCollectorMap.get(part_num);
+              (LinkedList<DataEvent<JSONObject>>) _dataCollectorMap.get(part_num);
             if (partDataSet != null)
             {
               if (partDataSet.size() == 0)
               {
                 JSONObject markerObj = new JSONObject();
-                markerObj.put(DefaultStreamingIndexingManager.this._senseiSchema.getSkipField(), "true");
+                //markerObj.put(_senseiSchema.getSkipField(), "true");
+                markerObj.put(SenseiSchema.EVENT_TYPE_FIELD, SenseiSchema.EVENT_TYPE_SKIP);
                 markerObj.put(_uidField, 0L); // Add a dummy uid
                 partDataSet.add(new DataEvent<JSONObject>(markerObj, _currentVersion));
               }
@@ -263,7 +355,7 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
               dataConsumer.consume(partDataSet);
             }
           }
-          DefaultStreamingIndexingManager.this._dataCollectorMap.put(part_num, new LinkedList<DataEvent<JSONObject>>());
+          _dataCollectorMap.put(part_num, new LinkedList<DataEvent<JSONObject>>());
         }
       }
       catch(Exception e){
@@ -279,7 +371,7 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 
     @Override
     public Comparator<String> getVersionComparator() {
-      return DefaultStreamingIndexingManager.this._versionComparator;
+      return _versionComparator;
     }
   }
 }
