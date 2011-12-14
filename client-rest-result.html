@@ -1,0 +1,120 @@
+---
+layout: api
+title: SenseiDB - Result JSON Reference
+---
+<div class="hero-unit">
+	<h2>Sensei Result Reference</h2>
+	<p>
+		Checkout <a href="/client-rest-req.html">Request</a>, <a href="/client-rest-query.html">Query</a>, and <a href="/client-rest-filter.html">Filter</a> sections for detailed references.
+	</p>
+	<p><a class="btn primary large" href="/client-rest.html">Back to Overview &raquo;</a></p>
+</div>
+<pre class="prettyprint" id="javascript">
+	{
+	    "time": 3,                     // server-side latency
+	
+	    // hits array
+	    "hits": [
+	    {
+	        "uid": "3201",
+	        "tags": ["favorite", "leather", "reliable", "towing"],
+	        "mileage": ["00000000000000013400"],
+	        "score": "0.0",
+	        "grouphitscount": 0,
+	        "_uid": ["3201"],
+	        "city": ["australia/sydney"],
+	        "docid": "0",
+	        "category": ["suv"],
+	        "price": ["00000000000000011900.00"],
+	        "color": ["red"],
+	        "srcdata": "",
+	        "year": ["00000000000000001994"],
+	        "groupid": ["0000000000000000000000000000000000003200"],
+	        "makemodel": ["asian/infiniti/qx4"]
+	    }, {
+	        "uid": "502",
+	        "tags": ["automatic", "chick magnet", "cool", "expensive", "reliable"],
+	        "mileage": ["00000000000000014700"],
+	        "score": "0.0",
+	        "grouphitscount": 0,
+	        "_uid": ["502"],
+	        "city": ["china/beijing"],
+	        "docid": "107",
+	        "category": ["exotic"],
+	        "price": ["00000000000000015100.00"],
+	        "color": ["black"],
+	        "srcdata": "",
+	        "year": ["00000000000000001995"],
+	        "groupid": ["0000000000000000000000000000000000000500"],
+	        "makemodel": ["european/ferrari/355"]
+	    }, {
+	        "uid": "4820",
+	        "tags": ["cool", "hybrid", "moon-roof", "reliable"],
+	        "mileage": ["00000000000000012000"],
+	        "score": "0.0",
+	        "grouphitscount": 0,
+	        "_uid": ["4820"],
+	        "city": ["australia/brisbane"],
+	        "docid": "108",
+	        "category": ["compact"],
+	        "price": ["00000000000000012500.00"],
+	        "color": ["white"],
+	        "srcdata": "",
+	        "year": ["00000000000000002002"],
+	        "groupid": ["0000000000000000000000000000000000004820"],
+	        "makemodel": ["asian/suzuki/grand vitara"]
+	    }],
+	
+	    // facets array
+	    "facets": {
+	        "category": [
+	        {
+	            "selected": false,
+	            "count": 58,
+	            "value": "compact"
+	        }, {
+	            "selected": false,
+	            "count": 41,
+	            "value": "sports car"
+	        }, {
+	            "selected": false,
+	            "count": 37,
+	            "value": "truck"
+	        }, {
+	            "selected": false,
+	            "count": 33,
+	            "value": "suv"
+	        }, {
+	            "selected": false,
+	            "count": 29,
+	            "value": "luxury"
+	        }],
+	        "color": [
+	        {
+	            "selected": false,
+	            "count": 46,
+	            "value": "black"
+	        }, {
+	            "selected": false,
+	            "count": 40,
+	            "value": "white"
+	        }, {
+	            "selected": false,
+	            "count": 33,
+	            "value": "yellow"
+	        }, {
+	            "selected": false,
+	            "count": 28,
+	            "value": "red"
+	        }, {
+	            "selected": false,
+	            "count": 21,
+	            "value": "silver"
+	        }]
+	    },
+	    "totaldocs": 15000,           // total number of docs on the index
+	    "numhits": 15000,             // total number of hits
+	    "numgroups": 0,               // number of groups
+	    "parsedquery": "*:*"          // parsed query
+	}
+</pre>
