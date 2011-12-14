@@ -46,128 +46,6 @@ SELECTION_TYPE_TIME = 3
 # 2. Section
 
 #
-# REST API parameter constants
-#
-PARAM_OFFSET = "start"
-PARAM_COUNT = "rows"
-PARAM_QUERY = "q"
-PARAM_QUERY_PARAM = "qparam"
-PARAM_SORT = "sort"
-PARAM_SORT_ASC = "asc"
-PARAM_SORT_DESC = "desc"
-PARAM_SORT_SCORE = "relevance"
-PARAM_SORT_SCORE_REVERSE = "relrev"
-PARAM_SORT_DOC = "doc"
-PARAM_SORT_DOC_REVERSE = "docrev"
-PARAM_FETCH_STORED = "fetchstored"
-PARAM_SHOW_EXPLAIN = "showexplain"
-PARAM_ROUTE_PARAM = "routeparam"
-PARAM_GROUP_BY = "groupby"
-PARAM_MAX_PER_GROUP = "maxpergroup"
-PARAM_SELECT = "select"
-PARAM_SELECT_VAL = "val"
-PARAM_SELECT_NOT = "not"
-PARAM_SELECT_OP = "op"
-PARAM_SELECT_OP_AND = "and"
-PARAM_SELECT_OP_OR = "or"
-PARAM_SELECT_PROP = "prop"
-PARAM_FACET = "facet"
-PARAM_DYNAMIC_INIT = "dyn"
-PARAM_PARTITIONS = "partitions"
-
-PARAM_FACET_EXPAND = "expand"
-PARAM_FACET_MAX = "max"
-PARAM_FACET_MINHIT = "minhit"
-PARAM_FACET_ORDER = "order"
-PARAM_FACET_ORDER_HITS = "hits"
-PARAM_FACET_ORDER_VAL = "val"
-
-PARAM_DYNAMIC_TYPE = "type"
-PARAM_DYNAMIC_TYPE_STRING = "string"
-PARAM_DYNAMIC_TYPE_BYTEARRAY = "bytearray"
-PARAM_DYNAMIC_TYPE_BOOL = "boolean"
-PARAM_DYNAMIC_TYPE_INT = "int"
-PARAM_DYNAMIC_TYPE_LONG = "long"
-PARAM_DYNAMIC_TYPE_DOUBLE = "double"
-PARAM_DYNAMIC_VAL = "vals"
-
-PARAM_RESULT_PARSEDQUERY = "parsedquery"
-PARAM_RESULT_HIT_STORED_FIELDS = "stored"
-PARAM_RESULT_HIT_STORED_FIELDS_NAME = "name"
-PARAM_RESULT_HIT_STORED_FIELDS_VALUE = "val"
-PARAM_RESULT_HIT_EXPLANATION = "explanation"
-PARAM_RESULT_FACETS = "facets"
-
-PARAM_RESULT_TID = "tid"
-PARAM_RESULT_TOTALDOCS = "totaldocs"
-PARAM_RESULT_NUMHITS = "numhits"
-PARAM_RESULT_HITS = "hits"
-PARAM_RESULT_HIT_UID = "uid"
-PARAM_RESULT_HIT_DOCID = "docid"
-PARAM_RESULT_HIT_SCORE = "score"
-PARAM_RESULT_HIT_SRC_DATA = "srcdata"
-PARAM_RESULT_TIME = "time"
-
-PARAM_SYSINFO_NUMDOCS = "numdocs"
-PARAM_SYSINFO_LASTMODIFIED = "lastmodified"
-PARAM_SYSINFO_VERSION = "version"
-PARAM_SYSINFO_FACETS = "facets"
-PARAM_SYSINFO_FACETS_NAME = "name"
-PARAM_SYSINFO_FACETS_RUNTIME = "runtime"
-PARAM_SYSINFO_FACETS_PROPS = "props"
-PARAM_SYSINFO_CLUSTERINFO = "clusterinfo"
-PARAM_SYSINFO_CLUSTERINFO_ID = "id"
-PARAM_SYSINFO_CLUSTERINFO_PARTITIONS = "partitions"
-PARAM_SYSINFO_CLUSTERINFO_NODELINK = "nodelink"
-PARAM_SYSINFO_CLUSTERINFO_ADMINLINK = "adminlink"
-
-PARAM_RESULT_HITS_EXPL_VALUE = "value"
-PARAM_RESULT_HITS_EXPL_DESC = "description"
-PARAM_RESULT_HITS_EXPL_DETAILS = "details"
-
-PARAM_RESULT_FACET_INFO_VALUE = "value"
-PARAM_RESULT_FACET_INFO_COUNT = "count"
-PARAM_RESULT_FACET_INFO_SELECTED = "selected"
-
-#
-# JSON API parameter constants
-#
-
-JSON_PARAM_COLUMNS = "columns"
-JSON_PARAM_EXPLAIN = "explain"
-JSON_PARAM_FACETS = "facets"
-JSON_PARAM_FACET_INIT = "facetInit"
-JSON_PARAM_FETCH_STORED = "fetchStored"
-JSON_PARAM_FETCH_TERM_VECTORS = "fetchTermVectors"
-JSON_PARAM_FILTER = "filter"
-JSON_PARAM_FROM = "from"
-JSON_PARAM_GROUPBY = "groupBy"
-JSON_PARAM_PARTITIONS = "partitions"
-JSON_PARAM_QUERY = "query"
-JSON_PARAM_QUERY_STRING = "query_string"
-JSON_PARAM_ROUTEPARAM = "routeParam"
-JSON_PARAM_SELECTIONS = "selections"
-JSON_PARAM_SIZE = "size"
-JSON_PARAM_SORT = "sort"
-JSON_PARAM_TOP = "top"
-JSON_PARAM_VALUES = "values"
-JSON_PARAM_EXCLUDES = "excludes"
-JSON_PARAM_OPERATOR = "operator"
-JSON_PARAM_NO_OPTIMIZE = "_noOptimize"
-
-# Group by related column names
-GROUP_VALUE = "groupvalue"
-GROUP_HITS = "grouphits"
-
-# Default constants
-DEFAULT_REQUEST_OFFSET = 0
-DEFAULT_REQUEST_COUNT = 10
-DEFAULT_REQUEST_MAX_PER_GROUP = 10
-DEFAULT_FACET_MINHIT = 1
-DEFAULT_FACET_MAXHIT = 10
-DEFAULT_FACET_ORDER = PARAM_FACET_ORDER_HITS
-
-#
 # Definition of the BQL statement grammar
 #
 
@@ -184,7 +62,7 @@ BNF Grammar for BQL
 
 <statement> ::= ( <select_stmt> | <describe_stmt> ) [';']
 
-<select_stmt> ::= SELECT <select_list> <from_clause> [<where_clause>] [<given_clause>]
+<select_stmt> ::= SELECT <select_list> [<from_clause>] [<where_clause>] [<given_clause>]
                   [<additional_clauses>]
 
 <describe_stmt> ::= ( DESC | DESCRIBE ) [<index_name>]
@@ -197,9 +75,6 @@ BNF Grammar for BQL
 
 <where_clause> ::= WHERE <search_expr>
 
-# <search_expr> ::= <predicates>
-#                 | <cumulative_predicates>
-# 
 <search_expr> ::= <predicate>
                 | <search_expr> (AND | OR) <search_expr>
                 | '(' <search_expr> ')'
@@ -215,7 +90,7 @@ BNF Grammar for BQL
               | <range_predicate>
               | <time_predicate>
               | <match_predicate>
-              | <same_column_or_pred>
+              | <like_predicate>
 
 <in_predicate> ::= <column_name> [NOT] IN <value_list> [<except_clause>] [<predicate_props>]
 
@@ -238,16 +113,6 @@ BNF Grammar for BQL
 <match_predicate> ::= MATCH '(' column_name_list ')' AGAINST '(' quoted_string ')'
 
 <like_predicate> ::= <column_name> LIKE <quoted_string>
-
-<same_column_or_pred> ::= '(' <cumulative_predicates> ')'
-
-<cumulative_predicates> ::= <cumulative_predicate> ( OR <cumulative_predicate> )*
-
-<cumulative_predicate> ::= <in_predicate>
-                         | <equal_predicate>
-                         | <between_predicate>
-                         | <range_predicate>
-                         | <time_predicate>
 
 <value_list> ::= '(' <value> ( ',' <value> )* ')'
 
@@ -767,7 +632,7 @@ class BQLParser:
         raise ParseSyntaxException(
           ParseException(s, loc, 'Column, "%s", is not a string type' % field))
     # Convert % and _ in SQL syntax to Lucene's * and .
-    value = tok[2].replace("%", "*").replace("_", ".")
+    value = tok[2].replace("%", "*").replace("_", "?")
     return {"query":
               {"wildcard":
                  {field: value}
@@ -1035,18 +900,6 @@ class BQLParser:
     like_predicate = (column_name + LIKE + quotedString
                       ).setResultsName("like_pred").setParseAction(self.like_predicate_action)
 
-    cumulative_predicate = Group(in_predicate
-                                 | equal_predicate
-                                 | between_predicate
-                                 | range_predicate
-                                 ).setResultsName("cumulative_preds", listAllMatches=True)
-    
-    cumulative_predicates = (cumulative_predicate +
-                             OneOrMore(OR + cumulative_predicate))
-    
-    # XXX To be removed
-    same_column_or_pred = (LPAR + cumulative_predicates + RPAR).setResultsName("same_column_or_pred")
-    
     predicate = (in_predicate
                  | contains_all_predicate
                  | equal_predicate
@@ -1057,12 +910,9 @@ class BQLParser:
                  | time_predicate
                  | match_predicate
                  | like_predicate
-                 # | same_column_or_pred
                  )
     
     predicates = predicate + NotAny(OR) + ZeroOrMore(AND + predicate)
-    
-    # search_condition = Group(predicates | cumulative_predicates)
     
     search_expr = operatorPrecedence(predicate,
                                      [(AND, 2, opAssoc.LEFT, self.and_predicate_action),
@@ -1220,108 +1070,6 @@ def and_range_list(range_list, range0):
       return []
   return new_list
 
-# def collapse_cumulative_preds(cumulative_preds):
-#   """Collapse cumulative predicates into one selection."""
-# 
-#   # XXX Need to consider props here too
-#   selection = None
-#   selection_list = []
-#   field = None
-#   for pred in cumulative_preds:
-#     tmp = build_selection(pred)
-#     if not field and tmp:
-#       field = tmp.field
-#     elif tmp.field != field:
-#       raise SenseiClientError("A different column '%s' appeared in cumulative predicates"
-#                               % tmp.field)
-#     elif tmp.excludes:
-#       raise SenseiClientError("Negative predicate for column '%s' appeared in cumulative predicates"
-#                               % tmp.field)
-#     selection_list.append(tmp)
-# 
-#   if not selection_list:
-#     selection = None
-#   elif len(selection_list) == 1:
-#     selection = selection_list[0]
-#   else:
-#     values = selection_list[0].getValues()
-#     selection = SenseiSelection(field, PARAM_SELECT_OP_OR)
-#     for i in xrange(1, len(selection_list)):
-#       values = merge_values(values, selection_list[i].getValues())
-#     selection.setValues(values)
-#   return selection
-# 
-# def build_selection(predicate):
-#   """Build a SenseiSelection based on a predicate."""
-# 
-#   selection = None
-#   if predicate.in_pred:
-#     selection = SenseiSelection(predicate[0], PARAM_SELECT_OP_OR)
-#     is_not = predicate[1] == "not"
-#     for val in predicate.value_list:
-#       selection.addSelection(val, is_not)
-#     for val in predicate.except_values:
-#       selection.addSelection(val, not is_not)
-#     for i in xrange(0, len(predicate.prop_list), 2):
-#       selection.addProperty(predicate.prop_list[i], predicate.prop_list[i+1])
-# 
-#   elif predicate.contains_all_pred:
-#     selection = SenseiSelection(predicate[0], PARAM_SELECT_OP_AND)
-#     for val in predicate.value_list:
-#       selection.addSelection(val)
-#     for val in predicate.except_values:
-#       selection.addSelection(val, True)
-#     for i in xrange(0, len(predicate.prop_list), 2):
-#       selection.addProperty(predicate.prop_list[i], predicate.prop_list[i+1])
-# 
-#   elif predicate.equal_pred:
-#     selection = SenseiSelection(predicate[0], PARAM_SELECT_OP_AND)
-#     selection.addSelection(predicate[2])
-#     for i in xrange(0, len(predicate.prop_list), 2):
-#       selection.addProperty(predicate.prop_list[i], predicate.prop_list[i+1])
-#   
-#   elif predicate.not_equal_pred:
-#     selection = SenseiSelection(predicate[0], PARAM_SELECT_OP_OR)
-#     selection.addSelection(predicate[2], True)
-#     for i in xrange(0, len(predicate.prop_list), 2):
-#       selection.addProperty(predicate.prop_list[i], predicate.prop_list[i+1])
-#   
-#   elif predicate.between_pred:
-#     if predicate[1] == "between":
-#       selection = SenseiSelection(predicate[0], PARAM_SELECT_OP_AND)
-#       selection.addSelection("[%s TO %s]" % (predicate[2], predicate[4]))
-#     else:
-#       selection = SenseiSelection(predicate[0], PARAM_SELECT_OP_AND)
-#       selection.addSelection("[%s TO %s]" % (predicate[3], predicate[5]), True)
-# 
-#   elif predicate.range_pred:
-#     low = "*"
-#     high = "*"
-#     delta = isinstance(predicate[2], int) and 1 or EPSILON
-#     if predicate[1] == "<":
-#       high = max(predicate[2] - delta, 0)
-#     elif predicate[1] == "<=":
-#       high = predicate[2]
-#     elif predicate[1] == ">=":
-#       low = predicate[2]
-#     else:
-#       low = predicate[2] + delta
-#     selection = SenseiSelection(predicate[0], PARAM_SELECT_OP_AND)
-#     selection.addSelection("[%s TO %s]" % (low, high))
-# 
-#   elif predicate.time_pred:
-#     selection = SenseiSelection(predicate[0], PARAM_SELECT_OP_AND)
-#     if predicate[1] == "in" and predicate[2] == "last":
-#       selection.addSelection("[%s TO %s]" % (predicate[3], "*"))
-#     elif predicate[1] == "since" or predicate[1] == "after":
-#       selection.addSelection("[%s TO %s]" % (predicate[2] + 1, "*"))
-#     elif predicate[1] == "before":
-#       selection.addSelection("[%s TO %s]" % ("*", predicate[2] - 1))
-#   
-#   elif predicate.same_column_or_pred:
-#     selection = collapse_cumulative_preds(predicate.cumulative_preds)
-# 
-#   return selection
 
 class BQLRequest:
   """A Sensei request with a BQL statement.
