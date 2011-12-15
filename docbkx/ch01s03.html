@@ -1,0 +1,45 @@
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+   <title>Architecture</title><meta name="generator" content="DocBook XSL-NS Stylesheets V1.75.2"><link rel="home" href="sensei.html" title="Sensei"><link rel="up" href="ch01.html" title="Chapter&nbsp;1.&nbsp;Introduction"><link rel="prev" href="ch01s02.html" title="Comparing to Traditional RDBMS"><link rel="next" href="ch01s04.html" title="Architectural Diagram"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Architecture</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="ch01s02.html">Prev</a>&nbsp;</td><th width="60%" align="center">Chapter&nbsp;1.&nbsp;Introduction</th><td width="20%" align="right">&nbsp;<a accesskey="n" href="ch01s04.html">Next</a></td></tr></table><hr></div><div class="section" title="Architecture"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="d0e229"></a>Architecture</h2></div></div></div><p>At a high level, a Sensei system consists of two parts: a
+      cluster of Sensei <span class="emphasis"><em>servers</em></span>
+      <a class="indexterm" name="d0e237"></a>
+      (a.k.a. <span class="emphasis"><em>search nodes</em></span>) and a cluster of Sensei
+      <span class="emphasis"><em>brokers</em></span><a class="indexterm" name="d0e246"></a>.</p><div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem"><p>The cluster of Sensei servers</p><p>Each server covers one or more
+          <span class="emphasis"><em>partitions</em></span> (or
+          <span class="emphasis"><em>shards</em></span> <a class="indexterm" name="d0e262"></a>) of the entire index space, and is
+          responsible for real-time indexing and searching on the
+          partition(s) belonging to the node.</p><div class="sidebar" title="Partition and Shard"><p class="title"><b>Partition and Shard</b></p><p>A partition or shard is just a slice of the index
+            served by the entire Sense cluster.  Each partition may have
+            multiple replicas handled by different Sensei search nodes.
+            How data is partitioned (or sharded) is up to the business
+            logic of the application, and the sharding strategy can be
+            passed to Sensei as a plug-in.</p></div></li><li class="listitem"><p>The cluster of Sensei brokers</p><p>Brokers receive search requests from clients, pass them
+          to selected servers in the Sensei search cluster, and then
+          merge/return search results back to the clients.</p></li></ol></div><p>Sensei brokers are relatively simple and lightweight.  Most
+      of the work is done at Sensei servers.  A Sensei server plays two
+      roles: indexer and searcher, both of which are implemented by Zoie
+      and Bobo embedded in the node.</p><p>Conceptually, a Sensei node consists of the following four
+      components:</p><div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem"><p>Data Gateway<a class="indexterm" name="d0e286"></a></p><p>This is also simply called <span class="emphasis"><em>gateway</em></span>,
+          which is the component responsible for getting data from
+          external sources and passing them to the indexer after an
+          optional conversion.  The input data to the gateway
+          can be in different formats, while the output of the gateway
+          has to be in the format acceptable by Zoie's streaming data
+          provider.  (By default, JSON is the format used by Sensei to
+          communicate with Zoie.)  The output data from the gateway also
+          needs to match the table schema definition.</p><p>Several types of built-in gateway are available in
+          Sensei.  They can be used to get data from common data sources
+          including:</p><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Line-based text file containing JSON objects.</p></li><li class="listitem"><p>Kafka (<a class="link" href="http://sna-projects.com/kafka/" target="_top">http://sna-projects.com/kafka/</a>)</p></li><li class="listitem"><p>JMS</p></li><li class="listitem"><p>JDBC</p></li></ul></div><p>For each built-in data gateway, a filter can be plugged
+          in to convert the original source data into the format defined
+          by the table schema.  (See <a class="xref" href="ch01s03.html#sensei-gateway" title="Figure&nbsp;1.2.&nbsp;Sensei Data Gateway">Figure&nbsp;1.2, &#8220;Sensei Data Gateway&#8221;</a>.)</p><div class="figure"><a name="sensei-gateway"></a><p class="title"><b>Figure&nbsp;1.2.&nbsp;Sensei Data Gateway</b></p><div class="figure-contents"><div class="mediaobject" align="center"><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0"><tr><td align="center" valign="middle"><img src="figures/sensei-gateway.png" align="middle" alt="Sensei Data Gateway"></td></tr></table></div></div></div><br class="figure-break"></li><li class="listitem"><p>Indexing Manager<a class="indexterm" name="d0e329"></a></p><p>Indexing manager acts as the bridge between the gateway
+          and the Zoie system.  It is responsible for passing data from
+          the gateway to Zoie, controlling the pace of data consumption,
+          and maintaining the index versions on the Sensei node.</p></li><li class="listitem"><p>Zoie System<a class="indexterm" name="d0e337"></a></p><p>This is the underlying system powering real-time
+          indexing and search.  Two types of Zoie systems are supported
+          by Sensei today: regular Zoie and Hourglass.</p><p>Hourglass (<a class="link" href="http://linkedin.jira.com/wiki/display/ZOIE/HourGlass+-+Forward-Rolling+Indexing" target="_top">http://linkedin.jira.com/wiki/display/ZOIE/HourGlass+-+Forward-Rolling+Indexing</a>)
+          <a class="indexterm" name="d0e347"></a>is a
+          forward-rolling, append-only indexing system based on Zoie.
+          It is used to power LinkedIn Signal <a class="indexterm" name="d0e351"></a> (<a class="link" href="http://www.linkedin.com/signal" target="_top">http://www.linkedin.com/signal</a>).</p></li><li class="listitem"><p>Facet Handlers<a class="indexterm" name="d0e361"></a></p><p>Facet handlers are a key component in a Sensei server.
+          They are the way we do faceted searches with Bobo.  Without
+          facet handlers, none of the column-based queries can be
+          done in Sensei.</p></li></ol></div></div><div class="navfooter"><hr><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="ch01s02.html">Prev</a>&nbsp;</td><td width="20%" align="center"><a accesskey="u" href="ch01.html">Up</a></td><td width="40%" align="right">&nbsp;<a accesskey="n" href="ch01s04.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">Comparing to Traditional RDBMS&nbsp;</td><td width="20%" align="center"><a accesskey="h" href="sensei.html">Home</a></td><td width="40%" align="right" valign="top">&nbsp;Architectural Diagram</td></tr></table></div></body></html>

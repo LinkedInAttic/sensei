@@ -18,7 +18,7 @@ name: home
 		  <li>...</li>
 		</ul>
 	  </p>
-      <p><a class="btn primary large" href="/gettingStarted.html">Get started &raquo;</a></p>
+      <p><a class="btn primary large" href="gettingStarted.html">Get started &raquo;</a></p>
     </div>
 
     <!-- Example row of columns -->
@@ -40,7 +40,7 @@ name: home
 		<p>
 	      Sensei also provides eventual consistency between data replicas while not compromising on performance.
         </p>
-       <p><a class="btn" href="/data-guarantee.html">View details &raquo;</a></p>
+       <p><a class="btn" href="data-guarantee.html">View details &raquo;</a></p>
       </div>
 	
 	<div class="span6">
@@ -51,18 +51,19 @@ name: home
 		<p>
 			Example BQL:
 			<pre class="prettyprint lang-bql">
-SELECT _uid,_score,color 
-       FROM members
-       WHERE color="red" AND 
-             category IN ("van","exotic") AND 
-             QUERY IS "cool leather seats"
-       GROUP BY color TOP 3
-       BROWSE BY color,category
-       ORDER BY RELEVANCE
-       LIMIT 0,10
+  SELECT _uid,_score,color 
+  FROM members
+  WHERE color="red" AND 
+        category IN ("van","exotic") AND 
+        MATCH(contents) 
+        AGAINST("cool leather seats")
+  GROUP BY color TOP 3
+  BROWSE BY color,category
+  ORDER BY RELEVANCE
+  LIMIT 0,10
 </pre>
 		</p>
-        <p><a class="btn" href="http://linkedin.jira.com/wiki/display/SENSEI/BQL+Syntax+and+Query+Examples">View details &raquo;</a></p>
+        <p><a class="btn" href="docbkx/ch10.html" target="_blank">View details &raquo;</a></p>
       </div>
 	</div>
 	
@@ -72,12 +73,12 @@ SELECT _uid,_score,color
         <p>
         	Client libraries to interact with SenseiDB programmatically. e.g.:
  			<ul>
-				<li><a href="/client-rest.html">Rest</a></li>
-				<li><a href="/client-java.html">Java</a></li> 
+				<li><a href="client-rest.html">Rest</a></li>
+				<li><a href="client-java.html">Java</a></li> 
 				<li><a href="#">Python</a></li> 
 			</ul>
         </p>
-        <p><a class="btn" href="/clients.html">View details &raquo;</a></p>
+        <p><a class="btn" href="clients.html">View details &raquo;</a></p>
       </div>
 	  <div class="span5">
         <h2>Gateways</h2>
@@ -90,7 +91,7 @@ SELECT _uid,_score,color
 				<li><a href="http://incubator.apache.org/kafka/">Apache Kafka</a></li>
 			</ul>
         </p>
-        <p><a class="btn" href="/indexing-gateway.html">View details &raquo;</a></p>
+        <p><a class="btn" href="indexing-gateway.html">View details &raquo;</a></p>
       </div>
       <div class="span6">
         <h2>Hadoop integration</h2>
@@ -100,6 +101,6 @@ SELECT _uid,_score,color
         <p>
             Sensei offers the ability to bootstrap from data in HDFS via a built-in Map-reduce indexing job. This can be a very appealing for a wide-variety of data-warehousing applications. 
         </p>
-        <p><a class="btn" href="/hadoop-bootstrap.html">View details &raquo;</a></p>
+        <p><a class="btn" href="hadoop-bootstrap.html">View details &raquo;</a></p>
       </div>
 	</div>

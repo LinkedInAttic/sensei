@@ -1,0 +1,67 @@
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+   <title>BQL Statement Syntax</title><meta name="generator" content="DocBook XSL-NS Stylesheets V1.75.2"><link rel="home" href="sensei.html" title="Sensei"><link rel="up" href="ch10.html" title="Chapter&nbsp;10.&nbsp;BQL: Browsing Query Language"><link rel="prev" href="ch10s02.html" title="BNF Grammar for BQL"><link rel="next" href="ch10s04.html" title="Query Examples"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">BQL Statement Syntax</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="ch10s02.html">Prev</a>&nbsp;</td><th width="60%" align="center">Chapter&nbsp;10.&nbsp;BQL: Browsing Query Language</th><td width="20%" align="right">&nbsp;<a accesskey="n" href="ch10s04.html">Next</a></td></tr></table><hr></div><div class="section" title="BQL Statement Syntax"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="d0e3512"></a>BQL Statement Syntax</h2></div></div></div><div class="section" title="DESCRIBE Statement"><div class="titlepage"><div><div><h3 class="title"><a name="d0e3515"></a>DESCRIBE Statement</h3></div></div></div><p>DESCRIBE statement provides the information about the index
+      (or table in RDBM terminology).  In Sensei, the index name is
+      optional because when a Sensei client talks to one Sensei broker,
+      only one index is accessible on this broker.  Essentially, the
+      index name in a DESCRIBE statement is ignored.</p><p><span class="bold"><strong>Example Statement:</strong></span></p><pre class="programlisting">DESCRIBE cars;</pre><p><span class="bold"><strong>Results:</strong></span></p><pre class="programlisting">+------------+------------+---------+-----------+-------------+---------+
+| facet_name | facet_type | runtime | column    | column_type | depends |
++------------+------------+---------+-----------+-------------+---------+
+| category   | simple     | false   | category  | string      | []      |
+| groupid    | simple     | false   | groupid   | long        | []      |
+| city       | path       | false   | city      | string      | []      |
+| color      | simple     | false   | color     | string      | []      |
+| tags       | multi      | false   | tags      | string      | []      |
+| price      | range      | false   | price     | float       | []      |
+| makemodel  | path       | false   | makemodel | string      | []      |
+| mileage    | range      | false   | mileage   | int         | []      |
+| year       | range      | false   | year      | int         | []      |
++------------+------------+---------+-----------+-------------+---------+</pre></div><div class="section" title="SELECT Statement"><div class="titlepage"><div><div><h3 class="title"><a name="d0e3530"></a>SELECT Statement</h3></div></div></div><div class="section" title="Select List"><div class="titlepage"><div><div><h4 class="title"><a name="d0e3533"></a>Select List</h4></div></div></div><p>The select list in a SELECT statement can simply be a
+        <code class="literal">*</code>, which means all columns are
+        selected.</p><p>If the select list is not a <code class="literal">*</code>, each
+        item, often called a <span class="emphasis"><em>column</em></span>, in the select
+        list is either a facet name or a field name in the index.  If a
+        column is unknown to Sensei server, then <code class="literal">&lt;NOT
+        FOUND&gt;</code> is displayed in the results.</p></div><div class="section" title="FROM Clause"><div class="titlepage"><div><div><h4 class="title"><a name="d0e3552"></a>FROM Clause</h4></div></div></div><p>Just like the index name in a DESCRIBE statement is
+        optional, the FROM clause in a SELECT statement is also
+        optional.</p></div><div class="section" title="WHERE Clause"><div class="titlepage"><div><div><h4 class="title"><a name="d0e3557"></a>WHERE Clause</h4></div></div></div><p>The WHERE clause, if given, specifies the search condition
+        or conditions that documents must satisfy to be selected. Each
+        condition is a Boolean expression consisting of one or more
+        predicates.  Current the following predicates are supported in
+        BQL:</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>IN predicate</p><p>This predicate is used to specify the values of one
+            column in search results.  For example:</p><div class="itemizedlist"><ul class="itemizedlist" type="circle"><li class="listitem"><p><code class="literal">color IN ("red", "blue")</code></p></li><li class="listitem"><p><code class="literal">category IN ("sedan", "compact")</code></p></li><li class="listitem"><p><code class="literal">age in (10, 20, 30)</code></p></li></ul></div></li><li class="listitem"><p>CONTAINS ALL predicate</p><p>This predicate is used to specify that a multi-value
+            column has to contain <span class="emphasis"><em>all</em></span> the
+            values.  For example:</p><div class="itemizedlist"><ul class="itemizedlist" type="circle"><li class="listitem"><p><code class="literal">tags CONTAINS ALL ("cool", "hybrid") EXCEPT("favorite")</code></p></li></ul></div></li><li class="listitem"><p>Equal predicate</p><p>This predicate is used to specify a single value that
+            a column needs to contain.  For example:</p><div class="itemizedlist"><ul class="itemizedlist" type="circle"><li class="listitem"><p><code class="literal">color = "red"</code></p></li></ul></div></li><li class="listitem"><p>Not equal predicate</p><p>This predicate is used to specify a single value that
+            a column cannot contain.  For example:</p><div class="itemizedlist"><ul class="itemizedlist" type="circle"><li class="listitem"><p><code class="literal">color &lt;&gt; "red"</code></p></li></ul></div></li><li class="listitem"><p>Query predicate</p><p>This is used to do full text search on the internal
+            <span class="emphasis"><em>contents</em></span> column.  All Lucene query
+            syntax is supported.  For example:</p><div class="itemizedlist"><ul class="itemizedlist" type="circle"><li class="listitem"><p><code class="literal">QUERY IS "hybrid AND (cool or moon-roof)"</code></p></li></ul></div></li><li class="listitem"><p>Range predicate</p><p>This predicate is used to specify a value range for a
+            range facet.  For example:</p><div class="itemizedlist"><ul class="itemizedlist" type="circle"><li class="listitem"><p><code class="literal">year &gt; 1999</code></p></li><li class="listitem"><p><code class="literal">year &lt;= 2002</code></p></li><li class="listitem"><p><code class="literal">price &lt; 17500</code></p></li><li class="listitem"><p><code class="literal">time &gt;= "2011-10-20 15:30:00"</code></p></li><li class="listitem"><p><code class="literal">time &lt; "2011/12/31 10:00:00"</code></p></li></ul></div></li><li class="listitem"><p>BETWEEN predicate</p><p>This predicate is used to specify both the lower and
+            upper bounds for a range facet at the same time. For
+            example:</p><div class="itemizedlist"><ul class="itemizedlist" type="circle"><li class="listitem"><p><code class="literal">year BETWEEN 1995 AND 2000</code></p></li></ul></div><div class="note" title="Note" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Note</h3><p>Note that, when a BETWEEN predicate is used, both
+              lower and upper bounds are included in the range
+              selection.</p></div></li><li class="listitem"><p>Time predicate</p><p>This predicate is used on a column that contains time
+            stamp values (and the column should be a range facet too).
+            This is useful to search documents that are indexed in
+            real-time.  For example:</p><div class="itemizedlist"><ul class="itemizedlist" type="circle"><li class="listitem"><p><code class="literal">time IN LAST 2 hours 10 mins 30 secs 100 msecs</code></p></li><li class="listitem"><p><code class="literal">time SINCE 2 weeks AGO</code></p></li><li class="listitem"><p><code class="literal">time BEFORE 2 weeks AGO</code></p></li><li class="listitem"><p><code class="literal">time AFTER "2011-10-20 15:30:00"</code></p></li></ul></div></li><li class="listitem"><p>MATCH AGAINST predicate</p><p>This predicate is used to perform full text searches
+            on one or more columns that have a string data type.  When
+            more than one columns are given in the predicate, then any
+            column in the list that contains specified searched string
+            would make a document satisfy this condition.  For example:
+            </p><div class="itemizedlist"><ul class="itemizedlist" type="circle"><li class="listitem"><p><code class="literal">MATCH(color) AGAINST("bl*")</code></p><p>All cars that have a "black" or "blue" color would
+                satisfy this predicate.</p></li><li class="listitem"><p><code class="literal">MATCH(category) AGAINST("*van")</code></p><p>All cars in the category of "van" or "mini-van"
+                would satisfy this predicate.</p></li><li class="listitem"><p><code class="literal">MATCH(color, category) AGAINST("*ac*")</code></p><p>A car with a "black" or "blue" color, or with a
+                category of "compact" would satisfy this
+                condition.</p></li></ul></div></li><li class="listitem"><p>LIKE predicate</p><p>This is a predicate to do wildcard text match.  Two
+            wildcards are supported: <code class="literal">%</code> and
+            <code class="literal">_</code>.  Wildcard <code class="literal">%</code> matches
+            zero or more characters, while <code class="literal">_</code> matches
+            exactly one character.  For example:</p><div class="itemizedlist"><ul class="itemizedlist" type="circle"><li class="listitem"><p><code class="literal">color LIKE "bl%"</code></p><p>All cars that have a "black" or "blue" color would
+                satisfy this predicate.</p></li><li class="listitem"><p><code class="literal">color LIKE "bl__"</code></p><p>All cars with a "blue" color would satisfy this
+                condition, but the cars with a "black" color would
+                not.</p></li></ul></div><div class="note" title="Note" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Note</h3><p>Note that wildcards <code class="literal">%</code> and
+              <code class="literal">_</code>, not Lucene's <code class="literal">*</code>
+              and <code class="literal">?</code> are used in BQL.  This is mainly
+              to make BQL more compatible with SQL.  However, if
+              <code class="literal">*</code> or <code class="literal">?</code> is used, it
+              is also accepted.</p></div></li></ul></div></div><div class="section" title="GROUP BY Clause"><div class="titlepage"><div><div><h4 class="title"><a name="d0e3763"></a>GROUP BY Clause</h4></div></div></div><p></p></div><div class="section" title="BROWSE BY Clause"><div class="titlepage"><div><div><h4 class="title"><a name="d0e3767"></a>BROWSE BY Clause</h4></div></div></div><p></p></div><div class="section" title="GIVEN FACET PARAM Clause"><div class="titlepage"><div><div><h4 class="title"><a name="d0e3771"></a>GIVEN FACET PARAM Clause</h4></div></div></div><p></p></div><div class="section" title="FETCHING STORED Clause"><div class="titlepage"><div><div><h4 class="title"><a name="d0e3775"></a>FETCHING STORED Clause</h4></div></div></div><p></p></div></div></div><div class="navfooter"><hr><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="ch10s02.html">Prev</a>&nbsp;</td><td width="20%" align="center"><a accesskey="u" href="ch10.html">Up</a></td><td width="40%" align="right">&nbsp;<a accesskey="n" href="ch10s04.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">BNF Grammar for BQL&nbsp;</td><td width="20%" align="center"><a accesskey="h" href="sensei.html">Home</a></td><td width="40%" align="right" valign="top">&nbsp;Query Examples</td></tr></table></div></body></html>

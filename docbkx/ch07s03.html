@@ -1,0 +1,66 @@
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+   <title>RESTful API</title><meta name="generator" content="DocBook XSL-NS Stylesheets V1.75.2"><link rel="home" href="sensei.html" title="Sensei"><link rel="up" href="ch07.html" title="Chapter&nbsp;7.&nbsp;Searching"><link rel="prev" href="ch07s02.html" title="Load Balancing"><link rel="next" href="ch08.html" title="Chapter&nbsp;8.&nbsp;Sensei Clients and APIs"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">RESTful API</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="ch07s02.html">Prev</a>&nbsp;</td><th width="60%" align="center">Chapter&nbsp;7.&nbsp;Searching</th><td width="20%" align="right">&nbsp;<a accesskey="n" href="ch08.html">Next</a></td></tr></table><hr></div><div class="section" title="RESTful API"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="d0e1194"></a>RESTful API</h2></div></div></div><div class="section" title="Scalar Parameters"><div class="titlepage"><div><div><h3 class="title"><a name="d0e1197"></a>Scalar Parameters</h3></div></div></div><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p><span class="bold"><strong>Query parameter:</strong></span>
+          <code class="literal">q</code></p><p>The <code class="literal">q</code> parameter specifies the query string.</p></li><li class="listitem"><p><span class="bold"><strong>Fetch stored fields:</strong></span>
+          <code class="literal">fetchstored</code></p><p>This is a boolean parameter that specifies whether
+          stored fields should be fetched or not.</p></li><li class="listitem"><p><span class="bold"><strong>Show explanation:</strong></span>
+          <code class="literal">showexplain</code></p><p>This is a boolean parameter that specifies whether query
+          explanation information should be returned in the search
+          result.</p></li><li class="listitem"><p><span class="bold"><strong>Starting offset:</strong></span>
+          <code class="literal">start</code></p><p>This is the offset value used for search result
+          pagination.</p></li><li class="listitem"><p><span class="bold"><strong>Number of result:</strong></span>
+          <code class="literal">rows</code></p><p>This parameter specifies how many results should be
+          returned for this query.</p></li><li class="listitem"><p><span class="bold"><strong>Routing parameter:</strong></span>
+          <code class="literal">routeparam</code></p><p>This parameter specifies the value of the field used for
+          routing (i.e. load balancing).</p></li><li class="listitem"><p><span class="bold"><strong>Group-by parameter:</strong></span>
+          <code class="literal">groupby</code></p><p>This parameter specifies the field name used to do the
+          group-by operation.</p></li></ul></div><div class="example"><a name="d0e1267"></a><p class="title"><b>Example&nbsp;7.1.&nbsp;Scalar Parameters</b></p><div class="example-contents"><pre class="programlisting">  q=ipad 2&amp;fetchstored=true&amp;showexplain=false&amp;start=0&amp;rows=10
+  q=linkedin&amp;start=0&amp;rows=10&amp;routeparam=12345&amp;groupby=userid
+</pre></div></div><br class="example-break"></div><div class="section" title="Sort Fields Parameter"><div class="titlepage"><div><div><h3 class="title"><a name="d0e1272"></a>Sort Fields Parameter</h3></div></div></div><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p><span class="bold"><strong>Sort fields parameter:</strong></span>
+          <code class="literal">sort</code></p><p>This parameter specifies how the search results should
+          be sorted.  The results can be sorted based on one or multiple
+          fields, in either ascending or descending order.  The value of
+          this parameter consists of a list of comma separated strings,
+          each of which can be one of the following values:</p><div class="itemizedlist"><ul class="itemizedlist" type="circle"><li class="listitem"><p><code class="literal">relevance</code>: this means that the
+              results should be sorted by scores in descending
+              order.</p></li><li class="listitem"><p><code class="literal">relrev</code>: this means that the
+              results should be sorted by scores in ascending
+              order.</p></li><li class="listitem"><p><code class="literal">doc</code>: this means that the results
+              should be sorted by doc ids in ascending order.</p></li><li class="listitem"><p><code class="literal">docrev</code>: this means that the
+              results should be sorted by doc ids in descending
+              order.</p></li><li class="listitem"><p><code class="literal">&lt;field-name&gt;:&lt;direction&gt;</code>:
+              this means that the results should be sorted by field
+              <code class="literal">&lt;field-name&gt;</code> in the direction of
+              <code class="literal">&lt;direction&gt;</code>, which can be either
+              <code class="literal">asc</code> or <code class="literal">desc</code>.</p></li></ul></div></li></ul></div><div class="example"><a name="d0e1323"></a><p class="title"><b>Example&nbsp;7.2.&nbsp;Sort Fields Parameters</b></p><div class="example-contents"><pre class="programlisting">  sort=relevance
+  sort=docrev
+  sort=price:desc,color=asc
+</pre></div></div><br class="example-break"></div><div class="section" title="Query Parameters"><div class="titlepage"><div><div><h3 class="title"><a name="d0e1328"></a>Query Parameters</h3></div></div></div><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p><span class="bold"><strong>Query Parameters:</strong></span>
+          <code class="literal">qparam</code></p><p>This parameter specifies a list of arbitrary query
+          parameters in the form of name-value pairs, separated by
+          commas.  Each pair is formatted as
+          <code class="literal">&lt;name&gt;:&lt;value&gt;</code>.</p><p>This parameter is commonly used to pass query-level
+          parameters to dynamic runtime facet handlers.</p></li></ul></div><div class="example"><a name="d0e1346"></a><p class="title"><b>Example&nbsp;7.3.&nbsp;Query Parameters</b></p><div class="example-contents"><pre class="programlisting">  qparam=arg1:123,arg2:abc
+</pre></div></div><br class="example-break"></div><div class="section" title="Selection Parameters"><div class="titlepage"><div><div><h3 class="title"><a name="d0e1351"></a>Selection Parameters</h3></div></div></div><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p><span class="bold"><strong>Not-value parameter:</strong></span>
+          <code class="literal">select.&lt;field-name&gt;.no</code></p><p>This parameter specifies what values for a field should be excluded
+          from the search results.</p></li><li class="listitem"><p><span class="bold"><strong>Value parameter:</strong></span>
+          <code class="literal">select.&lt;field-name&gt;.val</code></p><p>This parameter specifies what values for a field should
+          be included in the search results.</p></li><li class="listitem"><p><span class="bold"><strong>Operator parameter:</strong></span>
+          <code class="literal">select.&lt;field-name&gt;.op</code></p><p>This parameter specifies the operator used for selection
+          values: <code class="literal">and</code> or
+          <code class="literal">or</code>.</p></li><li class="listitem"><p><span class="bold"><strong>Property parameter:</strong></span>
+          <code class="literal">select.&lt;field-name&gt;.prop</code></p><p>This parameter specifies the additional properties if a
+          selection is on a field with the <span class="emphasis"><em>path</em></span>
+          type.</p></li></ul></div><div class="example"><a name="d0e1400"></a><p class="title"><b>Example&nbsp;7.4.&nbsp;Selection Parameters</b></p><div class="example-contents"><pre class="programlisting">  select.color.val=red,yellow&amp;select.color.op=or&amp;start=0&amp;select.color.not=black
+</pre></div></div><br class="example-break"></div><div class="section" title="Facet Specification Parameters"><div class="titlepage"><div><div><h3 class="title"><a name="d0e1405"></a>Facet Specification Parameters</h3></div></div></div><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p><span class="bold"><strong>Maximum count parameter:</strong></span>
+          <code class="literal">facet.&lt;facet-name&gt;.max</code>
+          </p><p>This parameter specifies the maximum count value for a
+          facet with name <code class="literal">fact-name</code>.</p></li><li class="listitem"><p><span class="bold"><strong>Order-by parameter:</strong></span>
+          <code class="literal">facet.&lt;facet-name&gt;.order</code>
+          </p><p>This parameter specifies how facet values should be
+          ordered:</p><div class="itemizedlist"><ul class="itemizedlist" type="circle"><li class="listitem"><p><code class="literal">hits</code>: order-by hits</p></li><li class="listitem"><p><code class="literal">val</code>: order-by values</p></li></ul></div></li><li class="listitem"><p><span class="bold"><strong>Selection-expand parameter:</strong></span>
+          <code class="literal">facet.&lt;facet-name&gt;.expand</code>
+          </p><p></p></li><li class="listitem"><p><span class="bold"><strong>Minimum hits parameter:</strong></span>
+          <code class="literal">facet.&lt;facet-name&gt;.minhit</code>
+          </p><p></p></li></ul></div><div class="example"><a name="d0e1461"></a><p class="title"><b>Example&nbsp;7.5.&nbsp;Facet Specification Parameters</b></p><div class="example-contents"><pre class="programlisting">  facet.color.minhit=1&amp;facet.color.max=3&amp;facet.color.order=val&amp;facet.color.expand=True
+</pre></div></div><br class="example-break"></div></div><div class="navfooter"><hr><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="ch07s02.html">Prev</a>&nbsp;</td><td width="20%" align="center"><a accesskey="u" href="ch07.html">Up</a></td><td width="40%" align="right">&nbsp;<a accesskey="n" href="ch08.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">Load Balancing&nbsp;</td><td width="20%" align="center"><a accesskey="h" href="sensei.html">Home</a></td><td width="40%" align="right" valign="top">&nbsp;Chapter&nbsp;8.&nbsp;Sensei Clients and APIs</td></tr></table></div></body></html>

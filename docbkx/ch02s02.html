@@ -1,0 +1,19 @@
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+   <title>Eventually Consistency</title><meta name="generator" content="DocBook XSL-NS Stylesheets V1.75.2"><link rel="home" href="sensei.html" title="Sensei"><link rel="up" href="ch02.html" title="Chapter&nbsp;2.&nbsp;Consistency Model"><link rel="prev" href="ch02.html" title="Chapter&nbsp;2.&nbsp;Consistency Model"><link rel="next" href="ch03.html" title="Chapter&nbsp;3.&nbsp;Getting Started"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Eventually Consistency</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="ch02.html">Prev</a>&nbsp;</td><th width="60%" align="center">Chapter&nbsp;2.&nbsp;Consistency Model</th><td width="20%" align="right">&nbsp;<a accesskey="n" href="ch03.html">Next</a></td></tr></table><hr></div><div class="section" title="Eventually Consistency"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="d0e398"></a>Eventually Consistency</h2></div></div></div><p>As proved in Seth Gilbert and Nancy Lynch's paper, it is impossible
+    to provide all three properties above in a distributed service. However,
+    any two of them could be satisfied at some conditions. In a practical
+    distributed system, partition tolerance is normally a must, which means
+    system failure and network partitions always exist. Under this
+    circumstance, we have to choose which one to sacrifice, consistency or
+    availability (either CP, or AP). On the other hand, a practical real life
+    system normally fits the partially synchronous model, sometimes stale data
+    is allowed, as long as we have a time limit of the inconsistency status
+    and some conflict resolution strategies (Weak Consistency). As a special
+    case of weak consistency, eventual consistency means eventually the system
+    will be consistent if no new update comes into the system.</p><p>
+    As we can see
+    in the following table, some systems like HBase, MongoDB fall into the CP
+    spectrum, consistence is more important here, others like Cassandra or
+    CounchDB prefers high availability, which means when messages are lost,
+    returning stale data is allowed. </p><div class="table"><a name="d0e405"></a><p class="title"><b>Table&nbsp;2.1.&nbsp;CAP theorem with examples (of default configuration)</b></p><div class="table-contents"><table summary="CAP theorem with examples (of default configuration)" border="1"><colgroup><col align="center"><col></colgroup><thead><tr><th align="center">&nbsp;</th><th align="center">Example Systems</th></tr></thead><tbody><tr><td align="center">CA</td><td>LAN systems, RDBMSs such as MySQL, Postgres, etc.</td></tr><tr><td align="center">CP</td><td>HBase, MongoDB, BigTable, etc.</td></tr><tr><td align="center">AP</td><td>Cassandra, CounchDB, Dynamo, Voldemort, etc.</td></tr></tbody></table></div></div><br class="table-break"><p></p></div><div class="navfooter"><hr><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="ch02.html">Prev</a>&nbsp;</td><td width="20%" align="center"><a accesskey="u" href="ch02.html">Up</a></td><td width="40%" align="right">&nbsp;<a accesskey="n" href="ch03.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">Chapter&nbsp;2.&nbsp;Consistency Model&nbsp;</td><td width="20%" align="center"><a accesskey="h" href="sensei.html">Home</a></td><td width="40%" align="right" valign="top">&nbsp;Chapter&nbsp;3.&nbsp;Getting Started</td></tr></table></div></body></html>

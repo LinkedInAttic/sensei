@@ -1,0 +1,58 @@
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+   <title>Chapter&nbsp;5.&nbsp;Indexing</title><meta name="generator" content="DocBook XSL-NS Stylesheets V1.75.2"><link rel="home" href="sensei.html" title="Sensei"><link rel="up" href="sensei.html" title="Sensei"><link rel="prev" href="ch04s06.html" title="Demo Configuration"><link rel="next" href="ch05s02.html" title="Index Sharding"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Chapter&nbsp;5.&nbsp;Indexing</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="ch04s06.html">Prev</a>&nbsp;</td><th width="60%" align="center">&nbsp;</th><td width="20%" align="right">&nbsp;<a accesskey="n" href="ch05s02.html">Next</a></td></tr></table><hr></div><div class="chapter" title="Chapter&nbsp;5.&nbsp;Indexing"><div class="titlepage"><div><div><h2 class="title"><a name="d0e923"></a>Chapter&nbsp;5.&nbsp;Indexing</h2></div></div></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><span class="section"><a href="ch05.html#d0e942">Data Acquisition</a></span></dt><dt><span class="section"><a href="ch05s02.html">Index Sharding</a></span></dt><dt><span class="section"><a href="ch05s03.html">Index Replication</a></span></dt><dt><span class="section"><a href="ch05s04.html">Sensei Cluster Overview</a></span></dt></dl></div><p>Before it can be searched, all data has to be indexed first.
+  Depending on where you get the source data from, you can use different
+  data gateways to get the data converted to the format required by
+  Sensei.  No matter what gateway is used, you need to define the data
+  model in file <code class="filename">schema.xml</code> (see <a class="xref" href="ch09s02.html" title="Data Modeling">the section called &#8220;Data Modeling&#8221;</a> for more details), which is equivalent
+  to the table definition in a RDBMS.</p><p>If the amount of data is small, and the run-time indexing and
+  search rates are not high, then a single Sensei node may be all you
+  need.  If the amount of data is large and you cannot fit them into one
+  box, however, you have to split them into multiple shards and store
+  them on a cluster of Sensei nodes, each serving one or multiple
+  shards.  When a user query comes in, Sensei performs the search on all
+  shards and merges the search results from all shards for you
+  automatically.</p><p>If the run-time indexing or search rate is high, network
+  bandwidth, memory or CPU may become the bottleneck on a Sensei server.
+  In this case, sharding the index only is not enough.  You have to
+  <span class="emphasis"><em>replicate</em></span> the index onto different nodes, and
+  have multiple nodes share the indexing/search workload on the same
+  shard(s).</p><p>In this chapter, we explain how to get the data indexed, and how
+  to get the data sharded and replicated.</p><div class="section" title="Data Acquisition"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="d0e942"></a>Data Acquisition</h2></div></div></div><p>To get data indexed, the first thing to set up is the indexing
+    manager (see
+    <code class="literal">com.sensei.search.nodes.SenseiIndexingManager</code>).
+    An indexing manager is responsible for:
+    </p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>Initializing the Zoie system(s): one Zoie system is needed
+        for every shard of index on one Sensei node.</p></li><li class="listitem"><p>Building the data provider: a data provider needs to be
+        built for the chosen data gateway.</p></li><li class="listitem"><p>Starting and shutting down the data gateway.</p></li></ul></div><p>For most of the cases you can simply use the default indexing
+    manger provided by Sensei:
+    <code class="literal">com.sensei.indexing.api.DefaultStreamingIndexingManager</code>.
+    However you can always write your own version when it is
+    needed.</p><p>The type of indexing manager is specified via configuration
+    parameter <code class="literal">sensei.index.manager</code>, which is the bean
+    ID of the indexing manager object that you use.  When
+    <code class="literal">sensei.index.manager</code> is not set, Sensei just uses
+    <code class="classname">DefaultStreamingIndexingManager</code>.</p><p>Once the indexing manager is selected, the next thing to set
+    up is the data gateway.  What data gateway to use depends on how
+    your original source data is stored.  Sensei provides four types of
+    built-in data gateways to cover the most common data sources (see
+    <a class="xref" href="ch01s03.html#sensei-gateway" title="Figure&nbsp;1.2.&nbsp;Sensei Data Gateway">Figure&nbsp;1.2, &#8220;Sensei Data Gateway&#8221;</a>), however you can also write
+    your own version if needed.
+    </p><p>The data gateway type is specified via configuration parameter
+    <code class="literal">sensei.index.manager.&lt;indexing-manager-type&gt;.type</code>.
+    Here <code class="literal">&lt;indexing-manager-type&gt;</code> is the bean ID
+    of your indexing manager.  If you use the default indexing manager,
+    <code class="classname">DefaultStreamingIndexingManager</code>,
+    <code class="literal">&lt;indexing-manager-type&gt;</code> should be
+    <code class="literal">default</code>.</p><p>Additional configuration parameters may be needed for the data
+    gateway you choose.  These configuration parameters are named with
+    the following prefix:</p><pre class="programlisting">  sensei.index.manager.&lt;indexing-manager-type&gt;.&lt;data-gateway-type&gt;</pre><p>For example, if you use the default indexing manager and the
+    Kafka data gateway, the following configuration parameters need to
+    be specified:</p><pre class="programlisting">  sensei.index.manager.default.type = kafka
+  sensei.index.manager.default.kafka.host = my-kafka-host
+  sensei.index.manager.default.kafka.port = 1234
+  sensei.index.manager.default.kafka.topic = log-data
+  sensei.index.manager.default.kafka.batchsize = 10000
+  sensei.index.manager.default.kafka.filter = my-kafka-filter</pre><p>In the rest of the document, we will use the default indexing
+    manager in most of the examples, unless a different indexing manager
+    type is specified explicitly.</p></div></div><div class="navfooter"><hr><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="ch04s06.html">Prev</a>&nbsp;</td><td width="20%" align="center">&nbsp;</td><td width="40%" align="right">&nbsp;<a accesskey="n" href="ch05s02.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">Demo Configuration&nbsp;</td><td width="20%" align="center"><a accesskey="h" href="sensei.html">Home</a></td><td width="40%" align="right" valign="top">&nbsp;Index Sharding</td></tr></table></div></body></html>

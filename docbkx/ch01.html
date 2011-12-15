@@ -1,0 +1,47 @@
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+   <title>Chapter&nbsp;1.&nbsp;Introduction</title><meta name="generator" content="DocBook XSL-NS Stylesheets V1.75.2"><link rel="home" href="sensei.html" title="Sensei"><link rel="up" href="sensei.html" title="Sensei"><link rel="prev" href="sensei.html" title="Sensei"><link rel="next" href="ch01s02.html" title="Comparing to Traditional RDBMS"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Chapter&nbsp;1.&nbsp;Introduction</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="sensei.html">Prev</a>&nbsp;</td><th width="60%" align="center">&nbsp;</th><td width="20%" align="right">&nbsp;<a accesskey="n" href="ch01s02.html">Next</a></td></tr></table><hr></div><div class="chapter" title="Chapter&nbsp;1.&nbsp;Introduction"><div class="titlepage"><div><div><h2 class="title"><a name="d0e13"></a>Chapter&nbsp;1.&nbsp;Introduction</h2></div></div></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><span class="section"><a href="ch01.html#d0e89">Design Considerations</a></span></dt><dt><span class="section"><a href="ch01s02.html">Comparing to Traditional RDBMS</a></span></dt><dt><span class="section"><a href="ch01s03.html">Architecture</a></span></dt><dt><span class="section"><a href="ch01s04.html">Architectural Diagram</a></span></dt></dl></div><p>Sensei is an open-source, real-time, full-text searchable
+    distributed database that is designed to handle the following type
+    of queries:</p><pre class="programlisting">    SELECT f1,f2...fn FROM members
+    WHERE c1 AND c2 AND c3..
+    MATCH (fulltext query, e.g. "java engineer")
+    GROUP BY fx,fy,fz...
+    ORDER BY fa,fb...
+    LIMIT offset,count</pre><p>Sensei is written in Java and is built on top of several other
+    open-source software systems (see <a class="xref" href="ch01.html#sensei-foundation" title="Figure&nbsp;1.1.&nbsp;Sensei and Its Foundation">Figure&nbsp;1.1, &#8220;Sensei and Its Foundation&#8221;</a>):</p><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Bobo <a class="indexterm" name="d0e28"></a>
+          (<a class="link" href="http://sna-projects.com/bobo/" target="_top">http://sna-projects.com/bobo/</a>):
+          a faceted search implementation written in Java, using Lucene
+          as the underlying search and indexing engine.
+          </p></li><li class="listitem"><p>Zoie <a class="indexterm" name="d0e38"></a>(<a class="link" href="http://sna-projects.com/zoie/" target="_top">http://sna-projects.com/zoie/</a>):
+          a real-time search and indexing system built on Lucene.
+          </p></li><li class="listitem"><p>Lucene
+          <a class="indexterm" name="d0e48"></a>(<a class="link" href="http://lucene.apache.org/" target="_top">http://lucene.apache.org/</a>):
+          a high-performance, full-featured text search engine library
+          written entirely in Java. </p></li><li class="listitem"><p>Norbert
+          <a class="indexterm" name="d0e60"></a>(<a class="link" href="http://sna-projects.com/norbert/" target="_top">http://sna-projects.com/norbert/</a>):
+          a library that provides easy cluster management and workload
+          distribution.  Norbert is built on ZooKeeper
+          <a class="indexterm" name="d0e67"></a> (<a class="link" href="http://zookeeper.apache.org/" target="_top">http://zookeeper.apache.org/</a>)
+          and Netty <a class="indexterm" name="d0e74"></a>
+          (<a class="link" href="http://www.jboss.org/netty" target="_top">http://www.jboss.org/netty</a>).
+          </p></li></ul></div><div class="figure"><a name="sensei-foundation"></a><p class="title"><b>Figure&nbsp;1.1.&nbsp;Sensei and Its Foundation</b></p><div class="figure-contents"><div class="mediaobject" align="center"><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0"><tr><td align="center" valign="middle"><img src="figures/sensei-stack.png" align="middle" alt="Sensei and Its Foundation"></td></tr></table></div></div></div><br class="figure-break"><div class="section" title="Design Considerations"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="d0e89"></a>Design Considerations</h2></div></div></div><p>As another NoSQL<a class="indexterm" name="d0e94"></a> system (http://nosql-database.org/), Sensei
+      is designed and built with the following considerations:</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>
+            <span class="bold"><strong>Data</strong></span>
+          </p><div class="itemizedlist"><ul class="itemizedlist" type="circle" compact><li class="listitem"><p>Fault tolerance - when one replication is down, data is
+              still accessible</p></li><li class="listitem"><p>Durability - N copies of data is stored</p></li><li class="listitem"><p>Through-put - Parallelizable request-handling on different
+              nodes/data replicas, designed to handle internet traffic</p></li><li class="listitem"><p>Consistency - Eventally consistent</p></li><li class="listitem"><p>Data recovery - each shared/replica is noted with a
+              watermark for data recovery</p></li><li class="listitem"><p>Large dataset - designed to handle 100s millions -
+              billions of rows</p></li></ul></div></li><li class="listitem"><p><span class="bold"><strong>Horizontally Scalable</strong></span></p><div class="itemizedlist"><ul class="itemizedlist" type="circle" compact><li class="listitem"><p>Data is partitioned - so work-load is also
+              distributed</p></li><li class="listitem"><p>Elasticity - Nodes can be added to accomodate data
+              growth</p></li><li class="listitem"><p>Online expansion - Cluster can grow while handling online
+              requests</p></li><li class="listitem"><p>Online cluster management - Cluster topology can change
+              while handling online requests</p></li><li class="listitem"><p>Low operational/maintenance costs - Push it, leave it and
+              forget it</p></li></ul></div></li><li class="listitem"><p>
+            <span class="bold"><strong>Performance</strong></span>
+          </p><div class="itemizedlist"><ul class="itemizedlist" type="circle" compact><li class="listitem"><p>Low indexing latency - real-time update</p></li><li class="listitem"><p>Low search latency - millisecond query response
+              time</p></li><li class="listitem"><p>Low volatility - low variance in both indexing and search
+              latency</p></li></ul></div></li><li class="listitem"><p>
+            <span class="bold"><strong>Customizability</strong></span>
+          </p><div class="itemizedlist"><ul class="itemizedlist" type="circle" compact><li class="listitem"><p>Plug-in framework - custom query handling logic</p></li><li class="listitem"><p>Routing factory - custom routing logic, default:
+              round-robin</p></li><li class="listitem"><p>Index sharding strategy <a class="indexterm" name="d0e176"></a> - different sharding strategy for
+              different applications, e.g. time, mod etc.</p></li></ul></div></li></ul></div></div></div><div class="navfooter"><hr><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="sensei.html">Prev</a>&nbsp;</td><td width="20%" align="center">&nbsp;</td><td width="40%" align="right">&nbsp;<a accesskey="n" href="ch01s02.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">Sensei&nbsp;</td><td width="20%" align="center"><a accesskey="h" href="sensei.html">Home</a></td><td width="40%" align="right" valign="top">&nbsp;Comparing to Traditional RDBMS</td></tr></table></div></body></html>

@@ -1,0 +1,63 @@
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+   <title>Demo</title><meta name="generator" content="DocBook XSL-NS Stylesheets V1.75.2"><link rel="home" href="sensei.html" title="Sensei"><link rel="up" href="ch06.html" title="Chapter&nbsp;6.&nbsp;Hadoop Indexing"><link rel="prev" href="ch06s02.html" title="Hadoop Indexing Sub-system"><link rel="next" href="ch07.html" title="Chapter&nbsp;7.&nbsp;Searching"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Demo</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="ch06s02.html">Prev</a>&nbsp;</td><th width="60%" align="center">Chapter&nbsp;6.&nbsp;Hadoop Indexing</th><td width="20%" align="right">&nbsp;<a accesskey="n" href="ch07.html">Next</a></td></tr></table><hr></div><div class="section" title="Demo"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="d0e1129"></a>Demo</h2></div></div></div><p>To be consistent, we also use the car demo data to describe our
+    hadoop indexing system. Sensei package comes with a car demo
+    hadoop-indexing example and it mainly has four simple files. The first one
+    "CarDemo.java" is a simple main class providing a starting point for
+    running the program. "CarMapInputConverter.java" is a sample converter
+    class to convert the input data record for map job.
+    "CarShardingStrategy.java" is another class to provide a user-specified
+    sharding strategy. Also we need a configuration file to help Sensei Hadoop
+    indexer to configure all the rest properties, a sample configuration file
+    can be found at "example/hadoop-indexing/conf/JobCarDemo.job".</p><p>To run the demo, simple compile and package the project into an
+    excutable jar file called CarDemo.jar. Then run "hadoop jar
+    CarDemo.jar".</p><p>(You need to specify the job configuration file location in
+    CarDemo.java, and upload the schema file into the HDFS system before
+    running, and also the location of the schema file should be set in the
+    configuration file)</p><div class="section" title="Car Demo Configuration"><div class="titlepage"><div><div><h3 class="title"><a name="d0e1138"></a>Car Demo Configuration</h3></div></div></div><pre class="programlisting">type=java
+job.class=com.sensei.indexing.hadoop.demo.CarDemo
+
+mapreduce.job.maps=2
+sensei.num.shards=3
+
+mapred.job.name=CarDemoShardedIndexing
+
+# if the output.path already exists, delete it first
+sensei.force.output.overwrite=true
+
+# adjust this to a small one if mapper number is huge. default is 50Mb =  52428800
+sensei.max.ramsize.bytes=52428800
+
+#############   path of schema for interpreter #############
+
+##### TextJSON schema Sample (car demo) absolute path ######
+sensei.schema.file.url=conf/schema.xml
+
+############    Input and Output  ##################
+
+####### Text JSON data (car demo) #####
+read.lock=data/cars.json
+sensei.input.dirs=data/cars.json
+
+######## Output configuration ######
+write.lock=example/hadoop-indexing/output
+sensei.output.dir=example/hadoop-indexing/fileoutput
+
+######## Index output location ######
+sensei.index.path=example/hadoop-indexing/index
+
+############# schemas for mapper input  ################
+
+sensei.input.format=org.apache.hadoop.mapred.TextInputFormat
+
+##############  Sharding strategy  ################
+sensei.distribution.policy=com.sensei.indexing.hadoop.demo.CarShardingStrategy
+
+#############  Converter for mapper input (data conversion and filtering) ##########
+sensei.mapinput.converter=com.sensei.indexing.hadoop.demo.CarMapInputConverter
+
+#############  Analyzer configuration for lucene ###############
+sensei.document.analyzer=org.apache.lucene.analysis.standard.StandardAnalyzer
+sensei.document.analyzer.version=LUCENE_30
+
+</pre></div></div><div class="navfooter"><hr><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="ch06s02.html">Prev</a>&nbsp;</td><td width="20%" align="center"><a accesskey="u" href="ch06.html">Up</a></td><td width="40%" align="right">&nbsp;<a accesskey="n" href="ch07.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">Hadoop Indexing Sub-system&nbsp;</td><td width="20%" align="center"><a accesskey="h" href="sensei.html">Home</a></td><td width="40%" align="right" valign="top">&nbsp;Chapter&nbsp;7.&nbsp;Searching</td></tr></table></div></body></html>

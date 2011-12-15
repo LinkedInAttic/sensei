@@ -1,0 +1,239 @@
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+   <title>System Configuration</title><meta name="generator" content="DocBook XSL-NS Stylesheets V1.75.2"><link rel="home" href="sensei.html" title="Sensei"><link rel="up" href="ch09.html" title="Chapter&nbsp;9.&nbsp;Sensei Configuration"><link rel="prev" href="ch09s02.html" title="Data Modeling"><link rel="next" href="ch10.html" title="Chapter&nbsp;10.&nbsp;BQL: Browsing Query Language"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">System Configuration</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="ch09s02.html">Prev</a>&nbsp;</td><th width="60%" align="center">Chapter&nbsp;9.&nbsp;Sensei Configuration</th><td width="20%" align="right">&nbsp;<a accesskey="n" href="ch10.html">Next</a></td></tr></table><hr></div><div class="section" title="System Configuration"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="d0e2036"></a>System Configuration</h2></div></div></div><p>A Sensei node is configured via the
+      <code class="filename">sensei.properties</code>, which uses the format
+      supported by Apache Commons Configuration
+      (http:/commons.apache.org/).  This file consists of the following
+      five parts:</p><div class="orderedlist"><ol class="orderedlist" type="1" compact><li class="listitem"><p><span class="bold"><strong>server</strong></span>: port to listen
+          on, rpc parameters, etc.</p></li><li class="listitem"><p><span class="bold"><strong>cluster</strong></span>: cluster
+          manager, sharding, request routing, etc.</p></li><li class="listitem"><p><span class="bold"><strong>indexing</strong></span>: data
+          interpretation, tokenization, indexer type, etc.</p></li><li class="listitem"><p><span class="bold"><strong>broker and client</strong></span>: e.g. entry into
+          Sensei system</p></li><li class="listitem"><p><span class="bold"><strong>plugins</strong></span>:
+          e.g. customized facet handlers</p></li></ol></div><p>Below is the configuration file for the demo (available from
+      <a class="link" href="https://github.com/javasoze/sensei/blob/master/conf/sensei.properties" target="_top">https://github.com/javasoze/sensei/blob/master/conf/sensei.properties</a>):</p><div class="programlistingco"><pre class="programlisting"># sensei node parameters
+sensei.node.id=1
+sensei.node.partitions=0,1
+
+# sensei network server parameters
+sensei.server.port=1234
+sensei.server.requestThreadCorePoolSize=20
+sensei.server.requestThreadMaxPoolSize=70
+sensei.server.requestThreadKeepAliveTimeSecs=300
+
+# sensei cluster parameters
+sensei.cluster.name=sensei
+sensei.cluster.url=localhost:2181
+sensei.cluster.timeout=30000
+
+# sensei indexing parameters
+sensei.index.directory = index/cardata
+
+sensei.index.batchSize = 10000
+sensei.index.batchDelay = 300000
+sensei.index.maxBatchSize = 10000
+sensei.index.realtime = true
+sensei.index.freshness = 10000
+
+# index manager parameters
+
+sensei.index.manager.default.maxpartition.id = 1
+sensei.index.manager.default.type = file
+sensei.index.manager.default.file.path = data/cars.json
+
+# plugins: from plugins.xml
+
+# analyzer, default: StandardAnalyzer
+# sensei.index.analyzer = myanalyzer
+
+# similarity, default: DefaultSimilarity
+# sensei.index.similarity = mysimilarity
+
+# indexer type, zoie/hourglass/&lt;custom name&gt;
+
+sensei.indexer.type=zoie
+
+#extra parameters for hourglass
+
+#sensei.indexer.hourglass.schedule
+
+# retention
+#sensei.indexer.hourglass.trimthreshold
+
+# frequency for a roll, minute/hour/day
+#sensei.indexer.hourglass.frequency
+
+# sensei
+# version comparator, default: ZoieConfig.DefaultVersionComparator
+# sensei.version.comparator = myVersionComparator
+
+# extra services
+sensei.plugin.services =
+
+# broker properties
+sensei.broker.port = 8080
+sensei.broker.minThread = 50
+sensei.broker.maxThread = 100
+sensei.broker.maxWaittime = 2000
+
+sensei.broker.webapp.path=src/main/webapp
+sensei.search.cluster.name = sensei
+sensei.search.cluster.zookeeper.url = localhost:2181
+sensei.search.cluster.zookeeper.conn.timeout = 30000
+sensei.search.cluster.network.conn.timeout = 1000
+sensei.search.cluster.network.write.timeout = 150
+sensei.search.cluster.network.max.conn.per.node = 5
+sensei.search.cluster.network.stale.timeout.mins = 10
+sensei.search.cluster.network.stale.cleanup.freq.mins = 10
+
+# custom router factory
+# sensei.search.router.factory = myRouterFactory
+</pre><div class="calloutlist"><table border="0" summary="Callout list"><tr><td width="5%" valign="top" align="left"><p><img src="images/callouts/1.png" alt="1" border="0"></p></td><td valign="top" align="left"><p>This lines starts the server configurations.</p></td></tr><tr><td width="5%" valign="top" align="left"><p><img src="images/callouts/2.png" alt="2" border="0"></p></td><td valign="top" align="left"><p>This lines starts the cluster configurations.</p></td></tr><tr><td width="5%" valign="top" align="left"><p><img src="images/callouts/3.png" alt="3" border="0"></p></td><td valign="top" align="left"><p>This lines starts the indexing configurations.</p></td></tr><tr><td width="5%" valign="top" align="left"><p><img src="images/callouts/4.png" alt="4" border="0"></p></td><td valign="top" align="left"><p>This lines starts the plugins configurations.</p></td></tr><tr><td width="5%" valign="top" align="left"><p><img src="images/callouts/5.png" alt="5" border="0"></p></td><td valign="top" align="left"><p>This lines starts the broker and client configurations.</p></td></tr></table></div></div><p>In the following sections, we are going to explain every
+      configuration property in each part: what the property type is,
+      whether it is required, what the default value is, and how it is
+      used, etc.</p><div class="section" title="Server Properties"><div class="titlepage"><div><div><h3 class="title"><a name="d0e2102"></a>Server Properties</h3></div></div></div><div class="variablelist"><dl><dt><span class="term"><span class="bold"><strong>sensei.node.id</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: int</p></li><li class="listitem"><p>Required: Yes</p></li><li class="listitem"><p>Default: None</p></li></ul></div><p>This is the node ID of the Sensei node in a
+              cluster.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.node.partitions</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: String (comma separated integers or ranges)</p></li><li class="listitem"><p>Required: Yes </p></li><li class="listitem"><p>Default: None</p></li></ul></div><p>This specifies the partitions IDs this the Sensei
+              server is going to handle.  Partition IDs can be given as
+              either integer numbers or ranges, separated by commas.
+              For example, the following line 
+              denotes that the Sensei server has six partitions:
+              1,4,5,6,7,10.</p><pre class="programlisting">  sensei.node.partitions=1,4-7,10</pre></dd><dt><span class="term"><span class="bold"><strong>sensei.server.port</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: int</p></li><li class="listitem"><p>Required: Yes</p></li><li class="listitem"><p>Default: None</p></li></ul></div><p>This is the Sensei server port number.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.server.requestThreadCorePoolSize</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: int</p></li><li class="listitem"><p>Required: No</p></li><li class="listitem"><p>Default: 20</p></li></ul></div><p>This is the core size of thread pool used to execute
+              requests.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.server.requestThreadKeepAliveTimeSecs</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: int</p></li><li class="listitem"><p>Required: No</p></li><li class="listitem"><p>Default: 300</p></li></ul></div><p>This is the length of time in seconds to keep an
+              idle request thread alive.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.server.requestThreadMaxPoolSize</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: int</p></li><li class="listitem"><p>Required: No</p></li><li class="listitem"><p>Default: 70</p></li></ul></div><p>This is the maximum size of thread pool used to
+              execute requests.</p></dd></dl></div></div><div class="section" title="Cluster Properties"><div class="titlepage"><div><div><h3 class="title"><a name="d0e2211"></a>Cluster Properties</h3></div></div></div><div class="variablelist"><dl><dt><span class="term"><span class="bold"><strong>sensei.cluster.name</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: String</p></li><li class="listitem"><p>Required: Yes</p></li><li class="listitem"><p>Default: None</p></li></ul></div><p>This is the name of the Sensei server cluster.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.cluster.timeout</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: int</p></li><li class="listitem"><p>Required: No</p></li><li class="listitem"><p>Default: 300000</p></li></ul></div><p>This is the session timeout value, in milliseconds,
+              that is passed to ZooKeeper.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.cluster.url</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: String</p></li><li class="listitem"><p>Required: Yes</p></li><li class="listitem"><p>Default: None</p></li></ul></div><p>This is the ZooKeeper URL for the Sensei
+              cluster.</p></dd></dl></div></div><div class="section" title="Indexing Properties"><div class="titlepage"><div><div><h3 class="title"><a name="d0e2268"></a>Indexing Properties</h3></div></div></div><div class="variablelist"><dl><dt><span class="term"><span class="bold"><strong>sensei.index.analyzer</strong></span></span></dt><dd><p>See <span class="bold"><strong>sensei.index.analyzer</strong></span> in <a class="xref" href="ch09s03.html#sect-plugin-props" title="Plug-in Properties">the section called &#8220;Plug-in Properties&#8221;</a>.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.index.batchDelay</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: int</p></li><li class="listitem"><p>Required: No</p></li><li class="listitem"><p>Default: 300000</p></li></ul></div><p>This is the maximum time to wait in milliseconds
+              before flushing index events to disk.  The default value
+              is 300000 (i.e. 5 minutes).</p></dd><dt><span class="term"><span class="bold"><strong>sensei.index.batchSize</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: int</p></li><li class="listitem"><p>Required: No</p></li><li class="listitem"><p>Default: 10000</p></li></ul></div><p>This is the batch size to control the pace of data
+              event consumption on the back-end.  It is the
+              <span class="emphasis"><em>soft</em></span> size limit of each event batch.
+              If the events come in too fast and the limit is already
+              reached, then the indexer will block the incoming events
+              until the number of buffered events drop below this limit
+              after some of the events are sent to the background data
+              consumer.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.index.custom</strong></span></span></dt><dd><p>See <span class="bold"><strong>sensei.index.custom</strong></span> in <a class="xref" href="ch09s03.html#sect-plugin-props" title="Plug-in Properties">the section called &#8220;Plug-in Properties&#8221;</a>.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.index.directory</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: String</p></li><li class="listitem"><p>Required: Yes</p></li><li class="listitem"><p>Default: None</p></li></ul></div><p>This is the directory used to save the index.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.index.freshness</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: long</p></li><li class="listitem"><p>Required: No</p></li><li class="listitem"><p>Default: 500</p></li></ul></div><p>This controls the freshness of entries in the index
+              reader cache.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.index.interpreter</strong></span></span></dt><dd><p>See <span class="bold"><strong>sensei.index.interpreter</strong></span> in <a class="xref" href="ch09s03.html#sect-plugin-props" title="Plug-in Properties">the section called &#8220;Plug-in Properties&#8221;</a>.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.index.manager</strong></span></span></dt><dd><p>See <span class="bold"><strong>sensei.index.manager</strong></span> in <a class="xref" href="ch09s03.html#sect-plugin-props" title="Plug-in Properties">the section called &#8220;Plug-in Properties&#8221;</a>.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.index.manager.default.batchSize</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: int</p></li><li class="listitem"><p>Required: No</p></li><li class="listitem"><p>Default: 1</p></li></ul></div><p>This is the batch size to control when data events
+              accumulated in the default index manger should be consumed
+              by the data consumer.  The default value is 1.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.index.manager.default.eventsPerMin</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: int</p></li><li class="listitem"><p>Required: No</p></li><li class="listitem"><p>Default: 40000</p></li></ul></div><p>This is the maximum number of data events that the
+              indexer can consume per minute.  If this threshold is
+              exceeded, the indexer will pause for a short period of
+              time before continuing to consume incoming data
+              events.</p><p>This property is helpful in preventing the indexer
+              from being overloaded.  The default value is
+              40,000.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.index.manager.default.maxpartition.id</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: int</p></li><li class="listitem"><p>Required: Yes, if the default indexing manager
+                  is chosen; No, otherwise.</p></li><li class="listitem"><p>Default: None</p></li></ul></div><p>This is the maximum partition ID number served by
+              this Sensei cluster if the default Sensei indexing manager
+              is used.</p><div class="warning" title="Warning" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Warning</h3><p>This property is different from the total number
+                of partitions in a Sensei cluster.  For example, if a
+                cluster contains 4 partitions, 0, 1, 2, and 3, then
+                <span class="bold"><strong>sensei.index.manager.default.maxpartition.id</strong></span>
+                should be set to 3.</p></div></dd><dt><span class="term"><span class="bold"><strong>sensei.index.manager.default.shardingStrategy</strong></span></span></dt><dd><p>See <span class="bold"><strong>sensei.index.manager.default.shardingStrategy</strong></span>
+              in <a class="xref" href="ch09s03.html#sect-plugin-props" title="Plug-in Properties">the section called &#8220;Plug-in Properties&#8221;</a>.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.index.manager.default.type</strong></span></span></dt><dd><p>See <span class="bold"><strong>sensei.index.manager.default.type</strong></span> in <a class="xref" href="ch09s03.html#sect-plugin-props" title="Plug-in Properties">the section called &#8220;Plug-in Properties&#8221;</a>.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.index.maxBatchSize</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: int</p></li><li class="listitem"><p>Required: No</p></li><li class="listitem"><p>Default: 10000</p></li></ul></div><p>This is the maximum number of incoming data events
+              that can be held by the indexer in a batch before they are
+              flushed to disk.  If this number is exceeded, the indexer
+              will stop processing the data events for one
+              minute.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.index.realtime</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: boolean</p></li><li class="listitem"><p>Required: No</p></li><li class="listitem"><p>Default: true</p></li></ul></div><p>This specifies whether the indexing mode is
+              real-time or not.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.index.similarity</strong></span></span></dt><dd><p>See <span class="bold"><strong>sensei.index.similarity</strong></span> in <a class="xref" href="ch09s03.html#sect-plugin-props" title="Plug-in Properties">the section called &#8220;Plug-in Properties&#8221;</a>.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.indexer.type</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: String</p></li><li class="listitem"><p>Required: Yes</p></li><li class="listitem"><p>Default: None</p></li></ul></div><p>This is the internal indexer type used by the Sensei
+              cluster.  Currently only two options are supported:
+              <code class="literal">zoie</code> and <code class="literal">hourglass</code>.  If
+              <code class="literal">hourglass</code> is used, three more properties need
+              to be set too:</p><div class="orderedlist"><ol class="orderedlist" type="1" compact><li class="listitem"><p><span class="bold"><strong>sensei.indexer.hourglass.schedule</strong></span></p></li><li class="listitem"><p><span class="bold"><strong>sensei.indexer.hourglass.trimthreshold</strong></span></p></li><li class="listitem"><p><span class="bold"><strong>sensei.indexer.hourglass.frequency</strong></span></p></li></ol></div></dd><dt><span class="term"><span class="bold"><strong>sensei.indexer.hourglass.frequency</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: String</p></li><li class="listitem"><p>Required: No</p></li><li class="listitem"><p>Default: "<code class="literal">day</code>"</p></li></ul></div><p>This is the rolling forward frequency.  It has to be
+              one of the following three values:</p><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p><code class="literal">day</code></p></li><li class="listitem"><p><code class="literal">hour</code></p></li><li class="listitem"><p><code class="literal">minute</code></p></li></ul></div></dd><dt><span class="term"><span class="bold"><strong>sensei.indexer.hourglass.schedule</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: String</p></li><li class="listitem"><p>Required: Yes, if property <span class="bold"><strong>sensei.indexer.type</strong></span> is set to
+                  "<code class="literal">hourglass</code>"; No, otherwise.</p></li><li class="listitem"><p>Default: None</p></li></ul></div><p>This is a string that specifies Hourglass rolling
+              forward schedule.  The format of this string is "<code class="literal">ss
+              mm hh</code>", meaning at <code class="literal">hh:mm:ss time</code> of
+              the day that we roll forward for
+              <span class="emphasis"><em>daily</em></span> rolling.  If it is
+              <span class="emphasis"><em>hourly</em></span> rolling, we roll forward at
+              <code class="literal">mm:ss</code> time of the hour.  If it is
+              <span class="emphasis"><em>minutely</em></span> rolling, we roll forward at
+              <code class="literal">ss</code> seond of the minute.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.indexer.hourglass.trimthreshold</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: int</p></li><li class="listitem"><p>Required: No</p></li><li class="listitem"><p>Default: 14</p></li></ul></div><p>This is the retention period for how long we are
+              going to keep the events in the index.  The unit is the
+              rolling period.</p></dd></dl></div></div><div class="section" title="Broker and Client Properties"><div class="titlepage"><div><div><h3 class="title"><a name="d0e2655"></a>Broker and Client Properties</h3></div></div></div><div class="variablelist"><dl><dt><span class="term"><span class="bold"><strong>sensei.broker.maxThread</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: int</p></li><li class="listitem"><p>Required: No</p></li><li class="listitem"><p>Default: 50</p></li></ul></div><p>This is the maximum size of thread pool used by a
+              broker to execute requests.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.broker.maxWaittime</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: int</p></li><li class="listitem"><p>Required: No</p></li><li class="listitem"><p>Default: 2000</p></li></ul></div><p>This is the maximum idle time in milliseconds for a
+              thread on a broker.  Threads that are idle for longer than
+              this period may be stopped.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.broker.minThread</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: int</p></li><li class="listitem"><p>Required: No</p></li><li class="listitem"><p>Default: 20</p></li></ul></div><p>This is the core size of thread pool used by the
+              broker to execute requests.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.broker.port</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: int</p></li><li class="listitem"><p>Required: Yes</p></li><li class="listitem"><p>Default: None</p></li></ul></div><p>This is the port number of the Sensei broker.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.broker.webapp.path</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: String</p></li><li class="listitem"><p>Required: Yes</p></li><li class="listitem"><p>Default: None</p></li></ul></div><p>This is the resource base of the broker web
+              application.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.search.cluster.zookeeper.url</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: String</p></li><li class="listitem"><p>Required: Yes</p></li><li class="listitem"><p>Default: None</p></li></ul></div><p>This is the ZooKeeper URL for the Sensei search
+              cluster that a broker talks to.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.search.cluster.name</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: String</p></li><li class="listitem"><p>Required: Yes</p></li><li class="listitem"><p>Default: None</p></li></ul></div><p>This is the Sensei cluster name, i.e. the service
+              name for the network clients and brokers.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.search.cluster.zookeeper.conn.timeout</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: int</p></li><li class="listitem"><p>Required: No</p></li><li class="listitem"><p>Default: 10000</p></li></ul></div><p>This is the ZooKeeper network client session timeout
+              value in milliseconds.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.search.cluster.network.conn.timeout</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: int</p></li><li class="listitem"><p>Required: No</p></li><li class="listitem"><p>Default: 1000</p></li></ul></div><p>This is the maximum number of milliseconds to allow
+              a connection attempt to take.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.search.cluster.network.write.timeout</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: int</p></li><li class="listitem"><p>Required: No</p></li><li class="listitem"><p>Default: 150</p></li></ul></div><p>This is the number of milliseconds a request can be
+              queued for write before it is considered stale.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.search.cluster.network.max.conn.per.node</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: int</p></li><li class="listitem"><p>Required: No</p></li><li class="listitem"><p>Default: 5</p></li></ul></div><p>This is the maximum number of open connections to a
+              node.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.search.cluster.network.stale.timeout.mins</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: int</p></li><li class="listitem"><p>Required: No</p></li><li class="listitem"><p>Default: 10</p></li></ul></div><p>This is the number of minutes to keep a request that
+              is waiting for a response.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.search.cluster.network.stale.cleanup.freq.mins</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: int</p></li><li class="listitem"><p>Required: No</p></li><li class="listitem"><p>Default: 10</p></li></ul></div><p>This is the frequency to clean up stale requests.</p></dd></dl></div></div><div class="section" title="Plug-in Properties"><div class="titlepage"><div><div><h3 class="title"><a name="sect-plugin-props"></a>Plug-in Properties</h3></div></div></div><div class="variablelist"><dl><dt><span class="term"><span class="bold"><strong>sensei.index.analyzer</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: String</p></li><li class="listitem"><p>Required: No</p></li><li class="listitem"><p>Default: ""</p></li></ul></div><p>This specifies the bean ID of the analyzer plug-in
+              for analyzing text.  If not specified,
+              <code class="literal">org.apache.lucene.analysis.standard.StandardAnalyzer</code>
+              will be used.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.index.similarity</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: String</p></li><li class="listitem"><p>Required: No</p></li><li class="listitem"><p>Default: ""</p></li></ul></div><p>This specifies the bean ID of similarity plug-in for
+              Lucene scoring.  If not specified,
+              <code class="literal">org.apache.lucene.search.DefaultSimilarity</code> is
+              used.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.index.custom</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: String</p></li><li class="listitem"><p>Required: No</p></li><li class="listitem"><p>Default: ""</p></li></ul></div><p>This specifies the bean ID of the custom indexing
+              pipeline <a class="indexterm" name="d0e2944"></a> implementation.  A custom indexing pipeline can
+              be plugged into the indexing process to allow users to
+              modify generated Lucene documents at the last step before
+              they are indexed.</p><p>A custom indexing pipeline has to implement
+              interface
+              <code class="classname">com.sensei.indexing.api.CustomIndexingPipeline</code>.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.index.interpreter</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: String</p></li><li class="listitem"><p>Required: No</p></li><li class="listitem"><p>Default: ""</p></li></ul></div><p>This specifies the bean ID of the interpretor of
+              Zoie indexables.  If not specified,
+              <code class="literal">com.sensei.indexing.api.DefaultJsonSchemaInterpreter</code>
+              is used.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.index.manager</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: String</p></li><li class="listitem"><p>Required: No</p></li><li class="listitem"><p>Default: ""</p></li></ul></div><p>This specifies the bean ID of the indexing manager
+              object implementing
+              <code class="literal">com.sensei.search.nodes.SenseiIndexingManager</code>.
+              If not specified,
+              <code class="literal">com.sensei.indexing.api.DefaultStreamingIndexingManager</code>
+              is used.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.index.manager.default.type</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: String</p></li><li class="listitem"><p>Required: Yes if <span class="bold"><strong>sensei.index.manager</strong></span> is not
+                  specified, i.e. the default indexing manager is
+                  used.</p></li><li class="listitem"><p>Default: None</p></li></ul></div><p>This specifies the type of gateway that will be used
+              by the default indexing manager.  The value identifies the
+              bean ID of an object of
+              <code class="literal">com.sensei.indexing.api.gateway.SenseiGateway</code>.</p><p>Several built-in gateways are provided by Sensei,
+              but you can always define your own based on your need.  No
+              matter a built-in gateway or a custom gateway is used,
+              additional parameters can be specified under the names
+              with prefix <span class="bold"><strong>sensei.index.manager.default.<span class="emphasis"><em>&lt;gateway-type&gt;</em></span></strong></span>.</p><p>Currently the following built-in gateway types are
+              supported:</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p><code class="literal">file</code>:</p><p>This type of gateway takes a regular text file
+                  as the input.  Each line in the file contains a data
+                  entry in JSON format.</p><p>Only one property needs to be set for this
+                  gateway type.  See <a class="xref" href="ch09s03.html#sect-file-gateway-props" title="File Gateway Properties">the section called &#8220;File Gateway Properties&#8221;</a> </p></li><li class="listitem"><p><code class="literal">kafka</code>: </p><p>This type of gateway takes Kafka messages as
+                  input.</p><p>See <a class="xref" href="ch09s03.html#sect-kafka-gateway-props" title="Kafka Gateway Properties">the section called &#8220;Kafka Gateway Properties&#8221;</a> for
+                  additional property information.</p></li><li class="listitem"><p><code class="literal">jms</code>:</p><p>This type of gateway takes JMS (Java Messages
+                  Service) messages as input.  The publish-and-subscribe
+                  messaging model is used by Sensei, so parameters like
+                  topic need to be provided.</p><p>See <a class="xref" href="ch09s03.html#sect-jms-gateway-props" title="JMS Gateway Properties">the section called &#8220;JMS Gateway Properties&#8221;</a> for
+                  additional property information.</p></li><li class="listitem"><p><code class="literal">jdbc</code>:</p><p>This type of gateway takes JDBC data as
+                  input.</p><p>See <a class="xref" href="ch09s03.html#sect-jdbc-gateway-props" title="JDBC Gateway Properties">the section called &#8220;JDBC Gateway Properties&#8221;</a> for
+                  additional property information.</p></li></ul></div></dd><dt><span class="term"><span class="bold"><strong>sensei.index.manager.default.<span class="emphasis"><em>&lt;gateway-type&gt;</em></span>.filter</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: String</p></li><li class="listitem"><p>Required: No</p></li><li class="listitem"><p>Default: None</p></li></ul></div><p>This is the bean ID of
+              <code class="literal">com.sensei.indexing.api.DataSourceFilter</code>
+              object.  No matter what gateway type the indexing managers
+              uses, a filter can be plugged in to get the original
+              source data converted to the JSON format defined by the
+              table schema.  If the input data is already in the right
+              format, then this filter is not needed.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.index.manager.default.shardingStrategy</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: String</p></li><li class="listitem"><p>Required: No</p></li><li class="listitem"><p>Default: ""</p></li></ul></div><p>This is the bean ID of the sharding strategy.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.search.router.factory</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: String</p></li><li class="listitem"><p>Required: No</p></li><li class="listitem"><p>Default: ""</p></li></ul></div><p>This is the bean ID of the Sensei request router
+              factory.  This factory builds the load balancer that is
+              used by Sensei brokers to route incoming requests to
+              different Sensei nodes.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.version.comparator</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: String</p></li><li class="listitem"><p>Required: No</p></li><li class="listitem"><p>Default: ""</p></li></ul></div><p>This specifies the bean ID of version comparator
+              plug-in to be used by the indexer.  If not specified,
+              Zoie's default version comparator is used.</p></dd></dl></div><div class="section" title="File Gateway Properties"><div class="titlepage"><div><div><h4 class="title"><a name="sect-file-gateway-props"></a>File Gateway Properties</h4></div></div></div><p>For <code class="literal">file</code> gateway, the following
+          property has to be specified:</p><div class="variablelist"><dl><dt><span class="term"><span class="bold"><strong>sensei.index.manager.default.file.path</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: String</p></li><li class="listitem"><p>Required: Yes</p></li><li class="listitem"><p>Default: None</p></li></ul></div><p>This is the path to the input data file.</p></dd></dl></div></div><div class="section" title="Kafka Gateway Properties"><div class="titlepage"><div><div><h4 class="title"><a name="sect-kafka-gateway-props"></a>Kafka Gateway Properties</h4></div></div></div><p>For <code class="literal">kafka</code> gateway, the
+          following properties should/can be specified: <sup>[<a name="d0e3182" href="#ftn.d0e3182" class="footnote">2</a>]</sup></p><div class="variablelist"><dl><dt><span class="term"><span class="bold"><strong>sensei.index.manager.default.kafka.batchsize</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: String</p></li><li class="listitem"><p>Required: Yes</p></li><li class="listitem"><p>Default: None</p></li></ul></div><p>This is the batch size for each pull request.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.index.manager.default.kafka.host</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: String</p></li><li class="listitem"><p>Required: Yes</p></li><li class="listitem"><p>Default: None</p></li></ul></div><p>This is the host name of the Kafka server.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.index.manager.default.kafka.port</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: int</p></li><li class="listitem"><p>Required: Yes</p></li><li class="listitem"><p>Default: None</p></li></ul></div><p>This is the port number on which the Kafka
+                server is listening for connections.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.index.manager.default.kafka.timeout</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: int</p></li><li class="listitem"><p>Required: Yes</p></li><li class="listitem"><p>Default: 10000</p></li></ul></div><p>This is the socket timeout in milliseconds.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.index.manager.default.kafka.topic</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: String</p></li><li class="listitem"><p>Required: Yes</p></li><li class="listitem"><p>Default: None</p></li></ul></div><p>The topic of the messages to be fetched.</p></dd></dl></div></div><div class="section" title="JMS Gateway Properties"><div class="titlepage"><div><div><h4 class="title"><a name="sect-jms-gateway-props"></a>JMS Gateway Properties</h4></div></div></div><p>For <code class="literal">jms</code> gateway, the following
+          properties should/can be specified:</p><div class="variablelist"><dl><dt><span class="term"><span class="bold"><strong>sensei.index.manager.default.jms.clientId</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: String</p></li><li class="listitem"><p>Required: Yes</p></li><li class="listitem"><p>Default: None</p></li></ul></div><p>This is the client identifier used to connect to
+                the JMS provider.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.index.manager.default.jms.topic</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: String</p></li><li class="listitem"><p>Required: Yes</p></li><li class="listitem"><p>Default: None</p></li></ul></div><p>This is the topic name that the JMS client
+                subscribes to.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.index.manager.default.jms.topicFactory</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: String</p></li><li class="listitem"><p>Required: Yes</p></li><li class="listitem"><p>Default: None</p></li></ul></div><p>This is the bean ID of the
+                <code class="literal">proj.zoie.dataprovider.jms.TopicFactory</code>
+                object.  This object is used to generate a topic object
+                based on the given topic name.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.index.manager.default.jms.connectionFactory</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: String</p></li><li class="listitem"><p>Required: Yes</p></li><li class="listitem"><p>Default: None</p></li></ul></div><p>This is the bean ID of the
+                <code class="literal">javax.jms.TopicConnectionFactory</code>
+                object, which is used by the JMS client to create a
+                <code class="literal">javax.jms.TopicConnection</code> object with
+                the JMS provider.</p></dd></dl></div></div><div class="section" title="JDBC Gateway Properties"><div class="titlepage"><div><div><h4 class="title"><a name="sect-jdbc-gateway-props"></a>JDBC Gateway Properties</h4></div></div></div><p>For <code class="literal">jdbc</code> gateway, the following
+          properties should/can be specified:</p><div class="variablelist"><dl><dt><span class="term"><span class="bold"><strong>sensei.index.manager.default.jdbc.adaptor</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: String</p></li><li class="listitem"><p>Required: Yes</p></li><li class="listitem"><p>Default: None</p></li></ul></div><p>This is the bean ID of the
+                <code class="literal">com.sensei.indexing.api.jdbc.SenseiJDBCAdaptor</code>
+                object.  This object is used to build a
+                <code class="literal">proj.zoie.dataprovider.jdbc.PreparedStatementBuilder</code>
+                object, which is required by
+                <code class="literal">proj.zoie.dataprovider.jdbc.JDBCStreamDataProvider</code>.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.index.manager.default.jms.driver</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: String</p></li><li class="listitem"><p>Required: Yes</p></li><li class="listitem"><p>Default: None</p></li></ul></div><p>This is the class name of the JDBC driver that you
+                want to use.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.index.manager.default.jms.password</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: String</p></li><li class="listitem"><p>Required: Yes</p></li><li class="listitem"><p>Default: None</p></li></ul></div><p>This is the password for the user name that you
+                use to connect to the database.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.index.manager.default.jms.username</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: String</p></li><li class="listitem"><p>Required: Yes</p></li><li class="listitem"><p>Default: None</p></li></ul></div><p>This is the user name that you use to connect to
+                the database.</p></dd></dl></div></div></div><div class="footnotes"><br><hr width="100" align="left"><div class="footnote"><p><sup>[<a name="ftn.d0e3182" href="#d0e3182" class="para">2</a>] </sup>These properties are basically the parameters needed
+          by the Kafka consumer API.  The Simple Consumer API from
+          Kafka is used by Sensei.</p></div></div></div><div class="navfooter"><hr><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="ch09s02.html">Prev</a>&nbsp;</td><td width="20%" align="center"><a accesskey="u" href="ch09.html">Up</a></td><td width="40%" align="right">&nbsp;<a accesskey="n" href="ch10.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">Data Modeling&nbsp;</td><td width="20%" align="center"><a accesskey="h" href="sensei.html">Home</a></td><td width="40%" align="right" valign="top">&nbsp;Chapter&nbsp;10.&nbsp;BQL: Browsing Query Language</td></tr></table></div></body></html>

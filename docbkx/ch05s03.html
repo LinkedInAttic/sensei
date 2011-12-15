@@ -1,0 +1,19 @@
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+   <title>Index Replication</title><meta name="generator" content="DocBook XSL-NS Stylesheets V1.75.2"><link rel="home" href="sensei.html" title="Sensei"><link rel="up" href="ch05.html" title="Chapter&nbsp;5.&nbsp;Indexing"><link rel="prev" href="ch05s02.html" title="Index Sharding"><link rel="next" href="ch05s04.html" title="Sensei Cluster Overview"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Index Replication</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="ch05s02.html">Prev</a>&nbsp;</td><th width="60%" align="center">Chapter&nbsp;5.&nbsp;Indexing</th><td width="20%" align="right">&nbsp;<a accesskey="n" href="ch05s04.html">Next</a></td></tr></table><hr></div><div class="section" title="Index Replication"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="d0e1050"></a>Index Replication</h2></div></div></div><p>There are two reasons for index replication.  First, index
+    replication improves the reliability and fault-tolerance of the
+    search service that you build.  Second, by replicating the index and
+    having multiple Sensei nodes handle the same shards of index, you
+    can reduce the workload every Sensei node takes and thus improve the
+    performance of the search service.</p><p>In Sensei, failovers of replicas are achieved by ZooKeeper and
+    the built-in load balancer implemented based on consistent hashing.
+    If one replica is down, the load balancer will be notified by
+    ZooKeeper, and it will update the replica information maintained
+    internally and route new search requests to a different
+    replica.</p><p>It is very easy to add a Sensei node to an existing Sensei
+    cluster and make it a replica of one or more index shards.  Suppose
+    you want to add one replica for a Sensei node, node 2, that contains
+    two shards, all you need to do is copy over the config file
+    <code class="filename">sensei.properties</code> on node 2 and change the node
+    ID setting (<code class="literal">sensei.node.id</code>) to the node ID that
+    you are going to assign to the newly added node.</p></div><div class="navfooter"><hr><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="ch05s02.html">Prev</a>&nbsp;</td><td width="20%" align="center"><a accesskey="u" href="ch05.html">Up</a></td><td width="40%" align="right">&nbsp;<a accesskey="n" href="ch05s04.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">Index Sharding&nbsp;</td><td width="20%" align="center"><a accesskey="h" href="sensei.html">Home</a></td><td width="40%" align="right" valign="top">&nbsp;Sensei Cluster Overview</td></tr></table></div></body></html>
