@@ -327,6 +327,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
       zoieConfig.setMaxBatchSize(_senseiConf.getInt(SENSEI_INDEX_BATCH_MAXSIZE, ZoieConfig.DEFAULT_MAX_BATCH_SIZE));
       zoieConfig.setRtIndexing(_senseiConf.getBoolean(SENSEI_INDEX_REALTIME, ZoieConfig.DEFAULT_SETTING_REALTIME));
       zoieConfig.setFreshness(_senseiConf.getLong(SENSEI_INDEX_FRESHNESS, 500));
+      zoieConfig.setSkipBadRecord(_senseiConf.getBoolean(SENSEI_SKIP_BAD_RECORDS, false));
 
       List<FacetHandler<?>> facetHandlers = new LinkedList<FacetHandler<?>>();
       List<RuntimeFacetHandlerFactory<?,?>> runtimeFacetHandlerFactories = new LinkedList<RuntimeFacetHandlerFactory<?,?>>();
