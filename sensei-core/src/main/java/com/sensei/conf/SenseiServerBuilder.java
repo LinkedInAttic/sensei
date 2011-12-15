@@ -462,7 +462,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
     }
     String indexerCopier = _senseiConf.getString(SENSEI_INDEXER_COPIER);
     IndexCopier copier = pluginRegistry.getBeanByFullPrefix(SENSEI_INDEXER_COPIER, IndexCopier.class);
-    if (indexerCopier != null) {
+    if (copier != null) {
       zoieSystemFactory = new SenseiPairFactory(idxDir, copier, interpreter, decorator, zoieConfig, zoieSystemFactory);
     }  else if (SENSEI_INDEXER_COPIER_HDFS.equals(indexerCopier))
     {
