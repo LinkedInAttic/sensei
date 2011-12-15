@@ -93,3 +93,12 @@ title: SenseiDB - FAQ
 <p>
 	This is a known <a href="http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6302954">Java 1.6 bug</a> found in earlier builds. Upgrade your JDK to a more recent version.
 </p>
+<hr/>
+
+<h2>Got compilation errors with Maven not able to find Kafka, what is wrong?</h2>
+<p>
+	Apache Kafka is not yet mavenized. You would have to deploy that into your local maven repository before compiling Sensei. To do this:
+	<pre class="prettyprint">
+	./bin/mvn-install.sh
+	</pre>
+</p>
