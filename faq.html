@@ -54,12 +54,35 @@ title: SenseiDB - FAQ
 <p>
   While driving the project within LinkedIn benefits from traffic and data resources, we do believe letting the community drive and planning the roadmap is beneficial in the long run. So if you have passion and energy, visit <a href="/contribute.html">Contribute</a> page and contribute.
 </p>
+<hr/>
 
+<h2>How mature is Sensei?</h2>
+<p>
+  Sensei is powering LinkedIn&apos;s homepage and the Signal application for the past year in production. Sensei components also have been powering many LinkedIn&apos;s Search properties, e.g. People, Jobs, Company etc. for years.
+</p>
+<p>
+  We are interested in your help with other usages and deployments to make Sensei even more stable and performant! 
+</p>
 <hr/>
 <h2>Seems indexing has stopped for no reason, what is wrong?</h2>
 <p>
   It is possible one of the data events is erroneous, and by default Sensei stops indexing to maintain a consistent view. Look in the logs and see if you see an indexing exception.
 </p>
+<p>In applications where it is ok to skip bad records, you can set the <code>sensei.index.skipBadRecords</code> property in your <code>sensei.properties</code>, e.g.: 
+</p>
+<pre class="prettyprint">
+	sensei.index.skipBadRecords = true  # default false
+</pre>
+<p>Be very careful with this setting because this may potentially cause inconsistency between node replicas</p>
+<hr/>
+
+<h2>After running a while, Sensei throws OOM (OutOfMemoryError), what is going on?</h2>
+<p>
+	By default, Sensei only allocates 1GB if heap space. As you accumulate documents and grow your corpus size, you need to configure the <code>HEAP_OPTS</code> in the <code>sensei.properties</code> file accordingly.
+</p>
+<pre class="prettyprint">
+	HEAP_OPTS="-Xmx1g -Xms1g -XX:NewSize=256m"
+</pre>
 <hr/>
 
 <h2>Got following compilation error, what is wrong?</h2>
