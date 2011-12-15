@@ -1,0 +1,73 @@
+#!/usr/bin/env python
+import json, logging, os, re, sys, threading, urllib2
+from optparse import OptionParser
+
+class Client:
+  def __init__(self, endpoint):
+    self.endpoint = endpoint
+
+  def request(self, data):
+    req = urllib2.Request(self.endpoint)
+    req.add_header('Content-Type', 'text/json')
+
+    res = urllib2.urlopen(req, json.dumps(data))
+    doc = res.read()
+    return json.loads(doc)
+
+def main(argv):
+  usage = "usage: %prog [options] <index uri>"
+  parser = OptionParser(usage=usage)
+  parser.add_option("-s", "--server", type="string", dest="host",
+                    default="localhost", help="The host sensei is running on.")
+  parser.add_option("-p", "--port", type="int", dest="port",
+                    default=8080, help="The port sensei broker is running on.")
+  (options, args) = parser.parse_args()
+  if len(args) != 1:
+    parser.error("Please give me a index uri (hdfs://host:port/path example).")
+
+  uri = args[0]
+
+  client = Client('http://%s:%d/sensei/sysinfo' % (options.host, options.port))
+  sysinfo = client.request(None)
+
+  class RequestThread(threading.Thread):
+    def __init__(self, node, part, *args, **kwargs):
+      super(RequestThread, self).__init__(*args, **kwargs)
+      self.node = node
+      self.part = part
+
+    def run(self):
+      client = Client(os.path.join(self.node['adminlink'], 'admin/jmx'))
+      res = client.request({
+        "type"        : "exec",
+        "mbean"       : "com.senseidb:zoie-name=pair-admin-%s-%s" % (self.node['id'], self.part),
+        "operation"   : "loadIndex",
+        "arguments"   : [os.path.join(uri, str(self.part))]
+      })
+      if not res.get('value'):
+        if res.get('status') == 404:
+          print 'Loading index failed for node "%s" partition "%s": index copier not defined, please put for example "sensei.indexer.copier=hdfs" inside your sensei.properties' % (self.node['adminlink'], self.part)
+        else:
+          print 'Loading index failed for node "%s" partition "%s": %s' % (self.node['adminlink'], self.part, json.dumps(res))
+          stacktrace = res.get('stacktrace')
+          if stacktrace:
+            print stacktrace
+      else:
+        print 'Successfully loaded index for node "%s" partition "%s": %s' % (self.node['adminlink'], self.part, json.dumps(res))
+
+  threads = []
+  for node in sysinfo['clusterinfo']:
+    for part in node['partitions']:
+      t = RequestThread(node, part)
+      t.setDaemon(True)
+      threads.append(t)
+      t.start()
+
+  for t in threads:
+    t.join()
+
+def target(*args):
+  return main, None
+
+if __name__ == '__main__':
+  main(sys.argv)
