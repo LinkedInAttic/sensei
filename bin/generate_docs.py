@@ -2,9 +2,12 @@
 
 import os
 
-SENSEI_HOME = os.path.normpath(os.path.join(os.path.normpath(__file__), '../..'))
+SENSEI_HOME = os.path.abspath(os.path.join(os.path.normpath(__file__), '../..'))
 
 # print SENSEI_HOME
+
+os.chdir(SENSEI_HOME + "/docs/src/docbkx/figures/BQL")
+os.system("wish BQL-diagrams.tcl")
 
 os.chdir(SENSEI_HOME + "/docs")
 os.system("mvn docbkx:generate-html")
