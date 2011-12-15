@@ -6,7 +6,7 @@ title: SenseiDB - Hadoop Bootstrap
   <h2>Sensei &amp; Hadoop</h2>
   <p>Batch indexing on Hadoop, load into Sensei and run queries.</p>
 
-  <p><a class="btn primary large" href="#">Details &raquo;</a></p>
+  <p><a class="btn primary large" href="docbkx/ch06.html" target="_blank">Details &raquo;</a></p>
 </div>
 
 <h2>Hadoop</h2>
@@ -37,3 +37,7 @@ title: SenseiDB - Hadoop Bootstrap
 <p>
   In scenarios where data-scientists work on a set of data files for some project, the underlying dataset do not change between queries issued by subsequent Pig/Hive scripts into Hadoop, which means much of the work is redundant and wasteful. It would make sense by writing a data-preparation job by aggregating all parts of data of interest, and launch the batch indexing job to produce Sensei shards. Once loaded into Sensei, fast queries over BQL can be executed and this avoids paying a Map-Reduce cost per query.
 </p>
+
+
+<h2>Javadoc</h2>
+<p>For Javadoc reference, go to: <a class="btn primary" href="javadoc/sensei-hadoop-indexing/apidocs/index.html" target="_blank">Javadoc &raquo;</a>

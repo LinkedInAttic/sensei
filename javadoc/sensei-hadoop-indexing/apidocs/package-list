@@ -1,0 +1,6 @@
+com.sensei.indexing.hadoop.job
+com.sensei.indexing.hadoop.keyvalueformat
+com.sensei.indexing.hadoop.map
+com.sensei.indexing.hadoop.reduce
+com.sensei.indexing.hadoop.util
+org.apache.lucene.store
