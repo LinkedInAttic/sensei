@@ -23,7 +23,7 @@ def main(argv):
                     default=8080, help="The port sensei broker is running on.")
   (options, args) = parser.parse_args()
   if len(args) != 1:
-    parser.error("Please give me a index uri (hdfs://host:port/path example).")
+    parser.error("Please give me a index uri (hdfs://host:port/path for example).")
 
   uri = args[0]
 
