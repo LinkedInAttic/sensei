@@ -22,6 +22,7 @@ import com.browseengine.bobo.api.BrowseSelection;
 import com.browseengine.bobo.api.FacetAccessible;
 import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
+import com.browseengine.bobo.facets.DefaultFacetHandlerInitializerParam;
 import com.sensei.search.nodes.SenseiBroker;
 import com.sensei.search.req.SenseiHit;
 import com.sensei.search.req.SenseiRequest;
@@ -94,7 +95,27 @@ public class TestSensei extends TestCase {
     verifyFacetCount(res, selName, selVal, 2907);
     verifyFacetCount(res, "year", "[1993 TO 1994]", 3090);
   }
+  public void testSelectionDynamicTimeRange() throws Exception
+  {
+    logger.info("executing test case testSelection");
 
+
+    SenseiRequest req = new SenseiRequest();
+    DefaultFacetHandlerInitializerParam initParam = new DefaultFacetHandlerInitializerParam();
+    initParam.putLongParam("time", new long[]{15000L});
+    req.setFacetHandlerInitializerParam("timeRange", initParam);
+    //req.setFacetHandlerInitializerParam("timeRange_internal", new DefaultFacetHandlerInitializerParam());
+    req.setCount(3);
+    //setspec(req, facetSpecall);
+    BrowseSelection sel = new BrowseSelection("timeRange");
+    String selVal = "000000013";
+    sel.addValue(selVal);
+    req.addSelection(sel);
+     SenseiResult res = broker.browse(req);
+    logger.info("request:" + req + "\nresult:" + res);
+    assertEquals(12990, res.getNumHits());
+
+  }
   public void testSelectionNot() throws Exception
   {
     logger.info("executing test case testSelectionNot");
@@ -218,7 +239,16 @@ public class TestSensei extends TestCase {
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 4483, res.getInt("numhits"));
   }
-
+  public void testSelectionDynamicTimeRangeJson() throws Exception
+  {
+    logger.info("executing test case Selection terms");
+    String req = "{\"selections\":[{\"term\":{\"timeRange\":{\"value\":\"000000013\"}}}]" +
+    		", \"facetInit\":{    \"timeRange\":{\"time\" :{  \"type\" : \"long\",\"values\" : [15000] }}}" +
+    		"}";
+    System.out.println(req);
+    JSONObject res = search(new JSONObject(req));
+    assertEquals("numhits is wrong", 12990, res.getInt("numhits"));
+  }
   public void testSelectionRange() throws Exception
   {
     //2000 1548;

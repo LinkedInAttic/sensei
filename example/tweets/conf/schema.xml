@@ -14,5 +14,10 @@
 	 <facet name="tweeter" type="simple" />
 	 <facet name="hashtags" type="multi" />
 	 <facet name="time" type="range" />
+	 <facet name="timeRange"  type="dynamicTimeRange" column="time" dynamic="true">
+	 <params>	
+		     <param name="range" value="000120000" /> 	  	  
+		</params>
+	 </facet>
    </facets>
 </schema>
