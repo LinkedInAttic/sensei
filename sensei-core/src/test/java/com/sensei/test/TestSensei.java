@@ -18,7 +18,9 @@ import com.browseengine.bobo.api.BrowseSelection;
 import com.browseengine.bobo.api.FacetAccessible;
 import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
+import com.browseengine.bobo.facets.DefaultFacetHandlerInitializerParam;
 import com.sensei.search.nodes.SenseiBroker;
+import com.sensei.search.req.SenseiHit;
 import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.req.SenseiResult;
 import com.sensei.search.svc.api.SenseiService;
@@ -34,7 +36,7 @@ public class TestSensei extends TestCase {
     httpRestSenseiService = SenseiStarter.httpRestSenseiService;
   }
 
-  /*public void testTotalCount() throws Exception
+  public void testTotalCount() throws Exception
   {
     logger.info("executing test case testTotalCount");
     SenseiRequest req = new SenseiRequest();
@@ -61,8 +63,8 @@ public class TestSensei extends TestCase {
     logger.info("request:" + req + "\nresult:" + res);
     verifyFacetCount(res, "year", "[1993 TO 1994]", 3090);
   }
-*/
-  public void ntestSelection() throws Exception
+
+  public void testSelection() throws Exception
   {
     logger.info("executing test case testSelection");
     FacetSpec facetSpecall = new FacetSpec();
@@ -87,7 +89,7 @@ public class TestSensei extends TestCase {
     verifyFacetCount(res, selName, selVal, 2907);
     verifyFacetCount(res, "year", "[1993 TO 1994]", 3090);
   }
-  public void testSelection1() throws Exception
+  public void testSelectionDynamicTimeRange() throws Exception
   {
     logger.info("executing test case testSelection");
     FacetSpec facetSpecall = new FacetSpec();
@@ -95,24 +97,25 @@ public class TestSensei extends TestCase {
     facetSpecall.setExpandSelection(true);
     facetSpecall.setMinHitCount(0);
     facetSpecall.setOrderBy(FacetSortSpec.OrderHitsDesc);
-    FacetSpec facetSpec = new FacetSpec();
-    facetSpec.setMaxCount(5);
+
     SenseiRequest req = new SenseiRequest();
+    DefaultFacetHandlerInitializerParam initParam = new DefaultFacetHandlerInitializerParam();
+    initParam.putLongParam("time", new long[]{15000L});
+    req.setFacetHandlerInitializerParam("timeRange", initParam);
+    //req.setFacetHandlerInitializerParam("timeRange_internal", new DefaultFacetHandlerInitializerParam());
     req.setCount(3);
     facetSpecall.setMaxCount(3);
-    setspec(req, facetSpecall);
-    BrowseSelection sel = new BrowseSelection("timeRangeFromNow");
-    String selVal = "000001998";
+    //setspec(req, facetSpecall);
+    BrowseSelection sel = new BrowseSelection("timeRange");
+    String selVal = "000000013";
     sel.addValue(selVal);
     req.addSelection(sel);
-    SenseiResult res = broker.browse(req);
+     SenseiResult res = broker.browse(req);
     logger.info("request:" + req + "\nresult:" + res);
-    assertEquals(2907, res.getNumHits());
-    String selName = "year";
-    verifyFacetCount(res, selName, selVal, 2907);
-    verifyFacetCount(res, "year", "[1993 TO 1994]", 3090);
+    assertEquals(12990, res.getNumHits());
+
   }
-  /*public void testSelectionNot() throws Exception
+  public void testSelectionNot() throws Exception
   {
     logger.info("executing test case testSelectionNot");
     FacetSpec facetSpecall = new FacetSpec();
@@ -235,7 +238,16 @@ public class TestSensei extends TestCase {
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 4483, res.getInt("numhits"));
   }
-
+  public void testSelectionDynamicTimeRangeJson() throws Exception
+  {
+    logger.info("executing test case Selection terms");
+    String req = "{\"selections\":[{\"term\":{\"timeRange\":{\"value\":\"000000013\"}}}]" +
+    		", \"facetInit\":{    \"timeRange\":{\"time\" :{  \"type\" : \"long\",\"values\" : [15000] }}}" +
+    		"}";
+    System.out.println(req);
+    JSONObject res = search(new JSONObject(req));
+    assertEquals("numhits is wrong", 12990, res.getInt("numhits"));
+  }
   public void testSelectionRange() throws Exception
   {
     //2000 1548;
@@ -558,7 +570,7 @@ public class TestSensei extends TestCase {
 //  }
 
 
- /* public void testTermFilter() throws Exception
+  public void testTermFilter() throws Exception
   {
     logger.info("executing test case testTermFilter");
     String req = "{\"filter\":{\"term\":{\"color\":\"red\"}}}";
@@ -595,7 +607,7 @@ public class TestSensei extends TestCase {
     String req = "{\"fetchStored\":true,\"selections\":[{\"term\":{\"color\":{\"value\":\"red\"}}}],\"from\":0,\"filter\":{\"query\":{\"query_string\":{\"query\":\"cool AND moon-roof AND hybrid\"}}},\"size\":10}";
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 19, res.getInt("numhits"));
-  }*/
+  }
 
   private JSONObject search(JSONObject req) throws Exception  {
     URLConnection conn = SenseiStarter.SenseiUrl.openConnection();

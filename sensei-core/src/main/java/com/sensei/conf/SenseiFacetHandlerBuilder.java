@@ -396,10 +396,18 @@ public class SenseiFacetHandlerBuilder {
 				  // A histogram facet handler is always dynamic
 				  RuntimeFacetHandlerFactory<?, ?> runtimeFacetFactory = getHistogramFacetHandlerFactory(facet, name, paramMap);
 				  runtimeFacets.add(runtimeFacetFactory);
+				  facetInfo.setRunTime(true);
 				}  else if (type.equals("dynamicTimeRange")) {
-          // A histogram facet handler is always dynamic
-          RuntimeFacetHandlerFactory<?, ?> runtimeFacetFactory = getDynamicTimeFacetHandlerFactory(name, dependSet, paramMap);
+				  if (dependSet.isEmpty()) {
+			      Assert.isTrue(fieldName != null && fieldName.length() > 0, "Facet handler " + name + " requires either depends or column attributes");
+			      RangeFacetHandler internalFacet = new RangeFacetHandler(name + "_internal", fieldName, new PredefinedTermListFactory(Long.class, DynamicTimeRangeFacetHandler.NUMBER_FORMAT), null);
+			      facets.add(internalFacet);
+			      dependSet.add(internalFacet.getName());
+				  }
+          RuntimeFacetHandlerFactory<?, ?> runtimeFacetFactory = getDynamicTimeFacetHandlerFactory(name, fieldName, dependSet, paramMap);
           runtimeFacets.add(runtimeFacetFactory);
+          facetInfo.setRunTime(true);
+
         } else if (type.equals("custom")) {
 					boolean isDynamic = facet.optBoolean("dynamic");
 					// Load from custom-facets spring configuration.
@@ -432,8 +440,9 @@ public class SenseiFacetHandlerBuilder {
     return sysInfo;
 	}
 
-  private static RuntimeFacetHandlerFactory<?, ?> getDynamicTimeFacetHandlerFactory(final String name, Set<String> dependSet,
+  private static RuntimeFacetHandlerFactory<?, ?> getDynamicTimeFacetHandlerFactory(final String name, String fieldName, Set<String> dependSet,
       final Map<String, List<String>> paramMap) {
+
     Assert.isTrue(dependSet.size() == 1, "Facet handler " + name + " should rely only on exactly one another facet handler, but accodring to config the depends set is " + dependSet);
     final String depends = dependSet.iterator().next();
     Assert.notEmpty(paramMap.get("range"), "Facet handler " + name + " should have at least one predefined range");
@@ -447,7 +456,14 @@ public class SenseiFacetHandlerBuilder {
       public  RuntimeFacetHandler<?> get(FacetHandlerInitializerParam params) {
 
         try {
-          return new DynamicTimeRangeFacetHandler(name, depends, System.currentTimeMillis(), paramMap.get("range"));
+          long time;
+          long[] longParam = params.getLongParam("time");
+          if (longParam !=null && longParam.length > 0) {
+            time = longParam[0];
+          } else {
+            time = System.currentTimeMillis();
+          }
+          return new DynamicTimeRangeFacetHandler(name, depends, time, paramMap.get("range"));
         } catch (ParseException ex) {
           throw new RuntimeException(ex);
         }
