@@ -1039,7 +1039,7 @@ class SenseiResult:
   
 
 
-class SenseiClientLib:
+class SenseiServiceProxy:
   """Sensei client class."""
 
   def __init__(self, host='localhost', port=8080, path='sensei', sysinfo=None):
@@ -1250,112 +1250,54 @@ class SenseiClientLib:
   def get_facet_map(self):
     return self.facet_map
   
-  def run_example(self):
-    """ a sample sensei request"""
-    
-    # create a SenseiRequest object firstly;
-    req = SenseiRequest();
-    
-    # add paging info;
-    req.set_count(50)
-    req.set_offset(0)
-    
-    # add query info;
-    term_query = SenseiQueryTerm("tags", "automatic")
-    req.set_query(term_query)
-    
-    # add selection info;
-    req.append_range_selection("year", "1995", "2000", True, False)  # [1995 TO 2000)
-    
-    # add filter info;
-    range_filter = SenseiFilterRange("price", 7900, 11000)
-    req.set_filter(range_filter)
-    
-    # add group by;
-    req.set_groupby("category")
-    req.set_max_per_group(4)
-    
-    # add sort;
-    sort = SenseiSort("color", True)
-    req.append_sort(sort)
-    
-    # add fetch_stored
-    req.set_fetch_stored(False)
-    
-    # need explain or not
-    req.set_explain(False)
-    
-    # add facets information
-    facets = SenseiFacets()
-    facets.add_facet("color", False, 1, 10, "hits")
-    facets.add_facet("year")
-    req.set_facets(facets)
-    
-    # execute and display results;
-    res = self.doQuery(req)
-    columns = ["*"]
-    res.display(columns, max_col_width=40)
-
-
-
 
 
 def main(argv):
-  print "Welcome to Sensei Client Lib Shell"
-  from optparse import OptionParser
-  usage = "usage: %prog [options]"
-  parser = OptionParser(usage=usage)
-  parser.add_option("-w", "--column-width", dest="max_col_width",
-                    default=100, help="Set the max column width")
-  parser.add_option("-v", "--verbose", action="store_true", dest="verbose",
-                    default=False, help="Turn on verbose mode")
-  (options, args) = parser.parse_args()
 
-  if options.verbose:
-    logger.setLevel(logging.DEBUG)
-  else:
-    logger.setLevel(logging.INFO)
-
-  formatter = logging.Formatter("%(asctime)s %(filename)s:%(lineno)d - %(message)s")
-  stream_handler = logging.StreamHandler()
-  stream_handler.setFormatter(formatter)
-  logger.addHandler(stream_handler)
-
-  if len(args) <= 1:
-    client = SenseiClientLib()
-    print "using default host=localhost, port=8080"
-  else:
-    host = args[0]
-    port = int(args[1])
-    print "Url specified, host: %s, port: %d" % (host,port)
-    client = SenseiClientLib(host, port, 'sensei')
-
-  import readline
-  readline.parse_and_bind("tab: complete")
-  while 1:
-    try:
-      stmt = raw_input('> ')
-      if stmt == "exit":
-        break
-
-      # if options.verbose:
-      #   test(stmt)
-      if stmt == "sample request":
-        client.run_example()
-        continue
-      elif stmt == "desc":
-        sysinfo = client.get_sysinfo()
-        sysinfo.display()
-    except EOFError:
-      break
-    except ParseException as err:
-      print " " * (err.loc + 2) + "^\n" + err.msg
-    except ParseSyntaxException as err:
-      print " " * (err.loc + 2) + "^\n" + err.msg
-    except ParseFatalException as err:
-      print " " * (err.loc + 2) + "^\n" + err.msg
-    except SenseiClientError as err:
-      print err
+  # create a sample sensei request
+    
+  req = SenseiRequest();
+    
+  # add paging info;
+  req.set_count(50)
+  req.set_offset(0)
+    
+  # add query info;
+  term_query = SenseiQueryTerm("tags", "automatic")
+  req.set_query(term_query)
+    
+  # add selection info;
+  req.append_range_selection("year", "1995", "2000", True, False)  # [1995 TO 2000)
+    
+  # add filter info;
+  range_filter = SenseiFilterRange("price", 7900, 11000)
+  req.set_filter(range_filter)
+    
+  # add group by;
+  req.set_groupby("category")
+  req.set_max_per_group(4)
+    
+  # add sort;
+  sort = SenseiSort("color", True)
+  req.append_sort(sort)
+    
+  # add fetch_stored
+  req.set_fetch_stored(False)
+    
+  # need explain or not
+  req.set_explain(False)
+    
+  # add facets information
+  facets = SenseiFacets()
+  facets.add_facet("color", False, 1, 10, "hits")
+  facets.add_facet("year")
+  req.set_facets(facets)
+    
+  # execute and display results;
+  proxy = SenseiServiceProxy()
+  sensei_results = proxy.doQuery(req)
+  sensei_results.display(["*"], max_col_width=40)
+  
 
 if __name__ == "__main__":
   main(sys.argv)
