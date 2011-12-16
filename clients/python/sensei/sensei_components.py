@@ -214,6 +214,122 @@ class SenseiQuery:
   def get_query(self):
     return self.query  
 
+class SenseiQueryMatchAll(SenseiQuery):
+  def __init__(self):
+    SenseiQuery.__init__(self, "match_all")
+    self.query={"match_all":{"boost":1.0}}
+    
+  def set_boost(self, boost):
+    target = (self.query)["match_all"]
+    target["boost"]=boost
+      
+class SenseiQueryIDs(SenseiQuery):
+  def __init__(self, values, excludes):
+    SenseiQuery.__init__(self, "ids")
+    self.query={"ids" : {"values" : [], "excludes":[], "boost":1.0}}
+    if isinstance(values, list) and isinstance(excludes, list):
+      self.query = {"ids" : {"values" : values, "excludes":excludes, "boost":1.0}}
+
+  def add_values(self, values):
+    if self.query.has_key("ids"):
+      values_excludes = self.query["ids"]
+      if values_excludes.has_key("values"):
+        orig_values =  values_excludes["values"]
+        orig_set = set(orig_values)
+        for new_value in values:
+          if new_value not in orig_set:
+            orig_values.append(new_value)
+
+  def add_excludes(self, excludes):
+    if self.query.has_key("ids"):
+      values_excludes = self.query["ids"]
+      if values_excludes.has_key("excludes"):
+        orig_excludes = values_excludes["excludes"]
+        orig_set = set(orig_excludes)
+        for new_value in excludes:
+          if new_value not in orig_set:
+            orig_excludes.append(new_value)
+            
+  def set_boost(self, boost):
+    target = (self.query)["ids"]
+    target["boost"]=boost
+
+class SenseiQueryString(SenseiQuery):
+  def __init__(self, query):
+    SenseiQuery.__init__(self, "query_string")
+    self.query={"query_string":{"query":query, 
+                                "default_field":"contents", 
+                                "default_operator":"OR",
+                                "allow_leading_wildcard":True,
+                                "lowercase_expanded_terms":True,
+                                "enable_position_increments":True,
+                                "fuzzy_prefix_length":0,
+                                "fuzzy_min_sim":0.5,
+                                "phrase_slop":0,
+                                "boost":1.0,
+                                "auto_generate_phrase_queries":False,
+                                "fields":[],
+                                "use_dis_max":True,
+                                "tie_breaker":0 
+                                 }}
+  
+  def set_field(self, field):
+    self.query["query_string"]["default_field"]=field
+    
+  def set_operator(self, operator):
+    self.query["query_string"]["default_operator"]=operator
+
+  def set_allow_leading_wildcard(self, allow_leading_wildcard):
+    self.query["query_string"]["allow_leading_wildcard"]=allow_leading_wildcard
+    
+  def set_lowercase_expanded_terms(self, lowercase_expanded_terms):
+    self.query["query_string"]["lowercase_expanded_terms"]=lowercase_expanded_terms
+        
+  def set_enable_position_increments(self, enable_position_increments):
+    self.query["query_string"]["enable_position_increments"]=enable_position_increments
+    
+  def set_fuzzy_prefix_length(self, fuzzy_prefix_length):
+    self.query["query_string"]["fuzzy_prefix_length"]=fuzzy_prefix_length
+    
+  def set_fuzzy_min_sim(self, fuzzy_min_sim):
+    self.query["query_string"]["fuzzy_min_sim"]=fuzzy_min_sim
+        
+  def set_phrase_slop(self, phrase_slop):
+    self.query["query_string"]["phrase_slop"]=phrase_slop
+    
+  def set_boost(self, boost):
+    self.query["query_string"]["boost"]=boost
+    
+  def set_auto_generate_phrase_queries(self, auto_generate_phrase_queries):
+    self.query["query_string"]["auto_generate_phrase_queries"]=auto_generate_phrase_queries
+    
+  def set_fields(self, fields):
+    if isinstance(fields, list):
+      self.query["query_string"]["fields"]=fields
+    
+  def set_use_dis_max(self, use_dis_max):
+    self.query["query_string"]["use_dis_max"]=use_dis_max
+        
+  def set_tie_breaker(self, tie_breaker):
+    self.query["query_string"]["tie_breaker"]=tie_breaker
+                                
+   
+class SenseiQueryText(SenseiQuery):
+  def __init__(self, message, operator, type):
+    SenseiQuery.__init__(self, "text")
+    self.query={"text":{"message":message, "operator":operator, "type":type}}   
+    
+class SenseiQueryTerm(SenseiQuery):
+  def __init__(self, column, value):
+    SenseiQuery.__init__(self, "term")
+    self.query={"term":{column:{"value":value, "boost":1.0}}}
+  
+  def set_boost(self, boost):
+    target = (self.query)["term"]
+    for column, desc in target.iterms():
+      desc["boost"]=boost
+        
+                  
 class SenseiFilter:
   def __init__(self, type):
     self.type = type

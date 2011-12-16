@@ -19,7 +19,7 @@
 // query string
 // constructs a Lucene QueryParser and parses the query text
   "query_string" : {
-    "default_field" : "contents",       // if not specified, defaults to: _all
+    "default_field" : "contents",       // if not specified, defaults to: contents
     "query" : "this AND that OR thus",  // if null, defaults to match all docs query, all other parameters are ignored
     "default_operator" : "AND",         // default operator, default: OR
     "allow_leading_wildcard" : false,   // default: ture

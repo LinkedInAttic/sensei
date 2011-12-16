@@ -274,6 +274,8 @@ class SenseiClient:
     req.set_offset(0)
     
     # add query info;
+#    term_query = SenseiQueryTerm("tags", "automatic")
+#    req.set_query(term_query.get_query())
     
     # add selection info;
     req.append_range_selection("year", "1995", "2000", True, False)  # [1995 TO 2000)
