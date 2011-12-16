@@ -252,6 +252,7 @@ class SenseiClient:
     res = self.opener.open(urlReq)
     line = res.read()
     jsonObj = json.loads(line)
+    logger.debug("Result jsonObj = " + json.dumps(jsonObj))
     res = SenseiResult(jsonObj)
     delta = datetime.now() - time1
     res.total_time = delta.seconds * 1000 + delta.microseconds / 1000
