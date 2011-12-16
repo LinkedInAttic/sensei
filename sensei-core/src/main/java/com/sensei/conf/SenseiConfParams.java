@@ -23,6 +23,7 @@ public interface SenseiConfParams {
 	public static final String SENSEI_INDEX_BATCH_MAXSIZE = "sensei.index.maxBatchSize";
 	public static final String SENSEI_INDEX_REALTIME = "sensei.index.realtime";
 	public static final String SENSEI_INDEX_FRESHNESS = "sensei.index.freshness";
+	public static final String SENSEI_SKIP_BAD_RECORDS = "sensei.index.skipBadRecords";
 
 
 	public static final String SENSEI_INDEXER_TYPE = "sensei.indexer.type";
