@@ -108,6 +108,10 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
         try
         {
           jsonObj = new JSONObject(content);
+          Logger log = Logger.getLogger("com.sensei.querylog");
+          if (log.isInfoEnabled()){
+            log.info("query="+content);
+          }
         }
         catch(JSONException jse)
         {
@@ -122,8 +126,13 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
         String jsonString = req.getParameter("json");
         if (jsonString != null)
         {
+          
           JSONObject jsonObj = new JSONObject(jsonString);
           senseiReq = SenseiRequest.fromJSON(jsonObj);
+          Logger log = Logger.getLogger("com.sensei.querylog");
+          if (log.isInfoEnabled()){
+            log.info("query="+jsonString);
+          }
         }
         else
           senseiReq = buildSenseiRequest(req);
@@ -155,6 +164,11 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
         String jsonString = req.getParameter("json");
         if (jsonString != null)
           ids = new JSONArray(jsonString);
+      }
+      
+      Logger log = Logger.getLogger("com.sensei.querylog");
+      if (log.isInfoEnabled()){
+        log.info("get="+String.valueOf(ids));
       }
 
       String[] vals = RequestConverter2.getStrings(ids);
