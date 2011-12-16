@@ -583,92 +583,24 @@ class SenseiSort:
     else:
       return self.field
 
-class SenseiFacetInitParams:
-  """FacetHandler initialization parameters."""
-
+class SenseiFacetInits:
   def __init__(self):
-    self.bool_map = {}
-    self.int_map = {}
-    self.long_map = {}
-    self.string_map = {}
-    self.byte_map = {}
-    self.double_map = {}
-
-  # Getters for param names for different types
-  def get_bool_param_names(self):
-    return self.bool_map.keys()
-
-  def get_int_param_names(self):
-    return self.int_map.keys()
-
-  def get_long_param_names(self):
-    return self.long_map.keys()
-
-  def get_string_param_names(self):
-    return self.string_map.keys()
-
-  def get_byte_param_names(self):
-    return self.byte_map.keys()
-  
-  def get_double_param_names(self):
-    return self.double_map.keys()
-
-  # Add param name, values
-  def put_bool_param(self, key, value):
-    if isinstance(value, list):
-      self.bool_map[key] = value
-    else:
-      self.bool_map[key] = [value]
-
-  def put_int_param(self, key, value):
-    if isinstance(value, list):
-      self.int_map[key] = value
-    else:
-      self.int_map[key] = [value]
-
-  def put_long_param(self, key, value):
-    if isinstance(value, list):
-      self.long_map[key] = value
-    else:
-      self.long_map[key] = [value]
-
-  def put_string_param(self, key, value):
-    if isinstance(value, list):
-      self.string_map[key] = value
-    else:
-      self.string_map[key] = [value]
-
-  def put_byte_param(self, key, value):
-    if isinstance(value, list):
-      self.byte_map[key] = value
-    else:
-      self.byte_map[key] = [value]
-
-  def put_double_param(self, key, value):
-    if isinstance(value, list):
-      self.double_map[key] = value
-    else:
-      self.double_map[key] = [value]
-
-  # Getters of param value(s) based on param names
-  def get_bool_param(self, key):
-    return self.bool_map.get(key)
-
-  def get_int_param(self, key):
-    return self.int_map.get(key)
-
-  def get_long_param(self, key):
-    return self.long_map.get(key)
-
-  def get_string_param(self, key):
-    return self.string_map.get(key)
-
-  def get_byte_param(self, key):
-    return self.byte_map.get(key)
-
-  def get_double_param(self, key):
-    return self.double_map.get(key)
-
+    self.facet_init={}
+    
+  def add_facet_init(self, facet_name, param_name, param_values, param_type="string"):
+    if isinstance(param_values, list):
+      #  parameter type, valid values are: "int","string","boolean","long","bytes","double", default: "string"
+      if facet_name in self.facet_init:
+        params = self.facet_init[facet_name]
+        params[param_name]={"type":param_type, "values":param_values}
+      else:
+        (self.facet_init)[facet_name]={}
+        params = self.facet_init[facet_name]
+        params[param_name]={"type":param_type, "values":param_values} 
+        
+  def get_facet_inits(self):
+    return self.facet_init
+           
 
 class SenseiFacetInfo:
 
@@ -841,57 +773,19 @@ class SenseiRequest:
     self.qParam = {}
     self.explain = False
     self.route_param = None
-    self.prepare_time = 0       # Statement prepare time in milliseconds
-    self.stmt_type = "unknown"
-
-    if bql_req != None:
-      assert(facet_map)
-      time1 = datetime.now()    # XXX need to move to SenseiClient
-
-      # ok, msg = bql_req.merge_selections()
-      # if not ok:
-      #   raise SenseiClientError(msg)
-
-      self.stmt_type = bql_req.get_stmt_type()
-      if self.stmt_type == "desc":
-        self.index = bql_req.get_index()
-      else:
-        self.query = bql_req.get_query()
-        self.offset = bql_req.get_offset() or offset
-        self.count = bql_req.get_count() or count
-        self.columns = bql_req.get_columns()
-        self.sorts = bql_req.get_sorts()
-        self.selections = bql_req.get_selections()
-        self.filter = bql_req.get_filter()
-        self.query_pred = bql_req.get_query_pred()
-        self.facets = bql_req.get_facets()
-        # PARAM_RESULT_HIT_STORED_FIELDS is a reserved column name.  If this
-        # column is selected, turn on fetch_stored flag automatically.
-        if (PARAM_RESULT_HIT_STORED_FIELDS in self.columns or
-            bql_req.get_fetching_stored()):
-          self.fetch_stored = True
-        else:
-          self.fetch_stored = False
-        self.groupby = bql_req.get_groupby()
-        self.max_per_group = bql_req.get_max_per_group() or max_per_group
-        self.facet_init_param_map = bql_req.get_facet_init_param_map()
-        delta = datetime.now() - time1
-        self.prepare_time = delta.seconds * 1000 + delta.microseconds / 1000
-        logger.debug("Prepare time: %sms" % self.prepare_time)
-    else:
-      self.query = None
-      self.offset = offset
-      self.count = count
-      self.columns = []
-      self.sorts = None
-      self.selections = []
-      self.filter = {}
-      self.query_pred = {}
-      self.facets = {}
-      self.fetch_stored = False
-      self.groupby = None
-      self.max_per_group = max_per_group
-      self.facet_init_param_map = {}
+    self.query = None
+    self.offset = offset
+    self.count = count
+    self.columns = []
+    self.sorts = None
+    self.selections = []
+    self.filter = {}
+    self.query_pred = {}
+    self.facets = {}
+    self.fetch_stored = False
+    self.groupby = None
+    self.max_per_group = max_per_group
+    self.facet_init_param_map = {}
 
   def set_offset(self, offset):
     self.offset = offset
@@ -1212,17 +1106,6 @@ class SenseiClientLib:
 
     if req.facets:
       output_json[JSON_PARAM_FACETS]=req.facets
-
-#    facet_spec_map = {}
-#    for facet_name, facet_spec in req.facets.iteritems():
-#      facet_spec_map[facet_name] = {
-#        PARAM_FACET_MAX: facet_spec.maxCounts,
-#        PARAM_FACET_ORDER: facet_spec.orderBy,
-#        PARAM_FACET_EXPAND: facet_spec.expand,
-#        PARAM_FACET_MINHIT: facet_spec.minHits
-#        }
-#    if facet_spec_map:
-#      output_json[JSON_PARAM_FACETS] = facet_spec_map
       
     facet_init_map = {}
     for facet_name, initParams in req.facet_init_param_map.iteritems():
