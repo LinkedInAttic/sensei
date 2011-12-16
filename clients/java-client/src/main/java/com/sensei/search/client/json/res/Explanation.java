@@ -11,4 +11,14 @@ public class Explanation {
   public String toString() {
     return "Explanation [value=" + value + ", description=" + description + ", details=" + details + "]";
   }
+  public Double getValue() {
+    return value;
+  }
+  public String getDescription() {
+    return description;
+  }
+  public List<Explanation> getDetails() {
+    return details;
+  }
+
 }
