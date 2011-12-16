@@ -430,13 +430,16 @@ class SenseiFilterBool(SenseiFilter):
     self.filter = {"bool":{"must":{}, "must_not":{}, "should":{}}}
     if must_filter is not None and isinstance(must_filter, SenseiFilter):
       target = (self.filter)["bool"]
-      target["must"]=must_filter
+      target["must"]=must_filter.get_filter()
     if must_not_filter is not None and isinstance(must_not_filter, SenseiFilter):
       target = (self.filter)["bool"]
-      target["must_not"]=must_not_filter  
-    if should_filter is not None and isinstance(should_filter, SenseiFilter):
+      target["must_not"]=must_not_filter.get_filter()  
+    if should_filter is not None and isinstance(should_filter, list):
+      should_filters_json=[]
+      for should_item in should_filter:
+        should_filters_json.append(should_item.get_filter())
       target = (self.filter)["bool"]
-      target["should"]=should_filter
+      target["should"]=should_filters_json
       
 class SenseiFilterAND(SenseiFilter):
   def __init__(self, filter_list):
