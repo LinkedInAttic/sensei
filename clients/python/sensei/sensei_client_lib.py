@@ -204,7 +204,7 @@ class SenseiFacets:
     return self.facets
   
   
-class SenseiSelections:
+class SenseiSelection:
   def __init__(self, type):
     self.type = type;
     self.selection = {}
@@ -214,6 +214,29 @@ class SenseiSelections:
   
   def get_selection(self):
     return self.selection
+
+class SenseiSelectionTerm(SenseiSelection):
+  def __init__(self, column, value):
+    SenseiSelection.__init__(self, "term")
+    self.selection = {"term": {column : {"value" : value}}}
+
+
+class SenseiSelectionTerms(SenseiSelection):
+  def __init__(self, column, values, excludes, operator):
+    SenseiSelection.__init__(self, "terms")
+    self.selection={"terms": {column : {"values" : values, "excludes":excludes, "operator":operator}}}
+    
+
+class SenseiSelectionRange(SenseiSelection):
+  def __init__(self, column, from_str="*", to_str="*", include_lower=True, include_upper=True):
+    SenseiSelection.__init__(self, "range")
+    self.selection={"range":{column:{"to":to_str, "from":from_str, "include_lower":include_lower, "include_upper":include_upper}}}
+    
+class SenseiSelectionPath(SenseiSelection):
+  def __init__(self, column, value, strict=False, depth=1):
+    SenseiSelection.__init__(self, "path")
+    self.selection={"path": {column : {"value":value, "strict":strict, "depth":depth}}}
+    
 
 class SenseiQuery:
   def __init__(self, type):
@@ -234,6 +257,7 @@ class SenseiQueryMatchAll(SenseiQuery):
   def set_boost(self, boost):
     target = (self.query)["match_all"]
     target["boost"]=boost
+    return self
       
 class SenseiQueryIDs(SenseiQuery):
   def __init__(self, values, excludes):
@@ -251,6 +275,7 @@ class SenseiQueryIDs(SenseiQuery):
         for new_value in values:
           if new_value not in orig_set:
             orig_values.append(new_value)
+    return self
 
   def add_excludes(self, excludes):
     if self.query.has_key("ids"):
@@ -261,10 +286,12 @@ class SenseiQueryIDs(SenseiQuery):
         for new_value in excludes:
           if new_value not in orig_set:
             orig_excludes.append(new_value)
+    return self
             
   def set_boost(self, boost):
     target = (self.query)["ids"]
     target["boost"]=boost
+    return self
 
 class SenseiQueryString(SenseiQuery):
   def __init__(self, query):
@@ -287,43 +314,56 @@ class SenseiQueryString(SenseiQuery):
   
   def set_field(self, field):
     self.query["query_string"]["default_field"]=field
+    return self
     
   def set_operator(self, operator):
     self.query["query_string"]["default_operator"]=operator
+    return self
 
   def set_allow_leading_wildcard(self, allow_leading_wildcard):
     self.query["query_string"]["allow_leading_wildcard"]=allow_leading_wildcard
+    return self
     
   def set_lowercase_expanded_terms(self, lowercase_expanded_terms):
     self.query["query_string"]["lowercase_expanded_terms"]=lowercase_expanded_terms
+    return self
         
   def set_enable_position_increments(self, enable_position_increments):
     self.query["query_string"]["enable_position_increments"]=enable_position_increments
+    return self
     
   def set_fuzzy_prefix_length(self, fuzzy_prefix_length):
     self.query["query_string"]["fuzzy_prefix_length"]=fuzzy_prefix_length
+    return self
     
   def set_fuzzy_min_sim(self, fuzzy_min_sim):
     self.query["query_string"]["fuzzy_min_sim"]=fuzzy_min_sim
+    return self
         
   def set_phrase_slop(self, phrase_slop):
     self.query["query_string"]["phrase_slop"]=phrase_slop
+    return self
     
   def set_boost(self, boost):
     self.query["query_string"]["boost"]=boost
+    return self
     
   def set_auto_generate_phrase_queries(self, auto_generate_phrase_queries):
     self.query["query_string"]["auto_generate_phrase_queries"]=auto_generate_phrase_queries
+    return self
     
   def set_fields(self, fields):
     if isinstance(fields, list):
       self.query["query_string"]["fields"]=fields
+      return self
     
   def set_use_dis_max(self, use_dis_max):
     self.query["query_string"]["use_dis_max"]=use_dis_max
+    return self
         
   def set_tie_breaker(self, tie_breaker):
     self.query["query_string"]["tie_breaker"]=tie_breaker
+    return self
                                 
    
 class SenseiQueryText(SenseiQuery):
@@ -340,6 +380,7 @@ class SenseiQueryTerm(SenseiQuery):
     target = (self.query)["term"]
     for column, desc in target.iterms():
       desc["boost"]=boost
+    return self  
         
                   
 class SenseiFilter:
@@ -370,6 +411,7 @@ class SenseiFilterIDs(SenseiFilter):
         for new_value in values:
           if new_value not in orig_set:
             orig_values.append(new_value)
+    return self
 
   def add_excludes(self, excludes):
     if self.filter.has_key("ids"):
@@ -380,6 +422,7 @@ class SenseiFilterIDs(SenseiFilter):
         for new_value in excludes:
           if new_value not in orig_set:
             orig_excludes.append(new_value)
+    return self
             
 class SenseiFilterBool(SenseiFilter):
   def __init__(self, must_filter=None, must_not_filter=None, should_filter=None):            
@@ -445,7 +488,8 @@ class SenseiFilterRange(SenseiFilter):
         value["_noOptimize"] = True
         if type == "date" and date_format is not None:
           value["_date_format"]=date_format
-    
+    return self
+  
 class SenseiFilterQuery(SenseiFilter):
   def __init__(self, query):
     SenseiFilter.__init__(self, "query")
@@ -457,103 +501,10 @@ class SenseiFilterSelection(SenseiFilter):
   def __init__(self, selection):
     SenseiFilter.__init__(self, "selection")
     self.filter = {"selection":{}}
-    if isinstance(selection, SenseiSelections):
+    if isinstance(selection, SenseiSelection):
       self.filter={"selection":selection.get_selection()}        
     
     
-    
-    
-class SenseiSelection:
-  def __init__(self, field, operation=PARAM_SELECT_OP_OR):
-    self.field = field
-    self.operation = operation
-    self.type = None
-    self.values = []
-    self.excludes = []
-    self.properties = {}
-
-  def __str__(self):
-    return ("Selection:%s:%s:%s:%s" %
-            (self.field, self.operation,
-             ','.join(self.values), ','.join(self.excludes)))
-
-  def _get_type(self, value):
-    if isinstance(value, basestring) and RANGE_REGEX.match(value):
-      return SELECTION_TYPE_RANGE
-    else:
-      return SELECTION_TYPE_SIMPLE
-    
-  def addSelection(self, value, isNot=False):
-    val_type = self._get_type(value)
-    if not self.type:
-      self.type = val_type
-    elif self.type != val_type:
-      raise SenseiClientError("Value (%s) type mismatch for facet %s: "
-                              % (value, self.field))
-    if isNot:
-      self.excludes.append(safe_str(value))
-    else:
-      self.values.append(safe_str(value))
-  
-  def removeSelection(self, value, isNot=False):
-    if isNot:
-      self.excludes.remove(safe_str(value))
-    else:
-      self.values.remove(safe_str(value))
-  
-  def addProperty(self, name, value):
-    self.properties[name] = value
-  
-  def removeProperty(self, name):
-    del self.properties[name]
-
-  def getValues(self):
-    return self.values
-
-  def setValues(self, values):
-    self.values = []
-    if len(values) > 0:
-      for value in values:
-        self.addSelection(value)
-
-  def getExcludes(self):
-    return self.excludes
-
-  def setExcludes(self, excludes):
-    self.excludes = []
-    if len(excludes) > 0:
-      for value in excludes:
-        self.addSelection(value, True)
-
-  def getType(self):
-    return self.type
-
-  def setType(self, val_type):
-    self.type = val_type
-
-  def getSelectNotParam(self):
-    return "%s.%s.%s" % (PARAM_SELECT, self.field, PARAM_SELECT_NOT)
-
-  def getSelectNotParamValues(self):
-    return ",".join(self.excludes)
-
-  def getSelectOpParam(self):
-    return "%s.%s.%s" % (PARAM_SELECT, self.field, PARAM_SELECT_OP)
-
-  def getSelectValParam(self):
-    return "%s.%s.%s" % (PARAM_SELECT, self.field, PARAM_SELECT_VAL)
-
-  def getSelectValParamValues(self):
-    return ",".join(self.values)
-
-  def getSelectPropParam(self):
-    return "%s.%s.%s" % (PARAM_SELECT, self.field, PARAM_SELECT_PROP)
-
-  def getSelectPropParamValues(self):
-    return ",".join(key + ":" + self.properties.get(key)
-        for key in self.properties.keys())
-
-
 class SenseiSort:
   def __init__(self, field, reverse=False):
     self.field = field
@@ -598,7 +549,8 @@ class SenseiFacetInits:
         (self.facet_init)[facet_name]={}
         params = self.facet_init[facet_name]
         params[param_name]={"type":param_type, "values":param_values} 
-        
+    return self
+      
   def get_facet_inits(self):
     return self.facet_init
            
@@ -829,37 +781,13 @@ class SenseiRequest:
     self.filter = filter.get_filter()
     return self
     
-  def set_selections(self, selections):
-    self.selections = selections
-    return self
-    
-  def append_term_selection(self, column, value):
+  def append_selection(self, selection):
     if self.selections is None:
       self.selections = []
-    term_selection = {"term": {column : {"value" : value}}}
-    self.selections.append(term_selection)
+    if isinstance(selection, SenseiSelection):
+      self.selections.append(selection.get_selection())
     return self
   
-  def append_terms_selection(self, column, values, excludes, operator):
-    if self.selections is None:
-      self.selections = []
-    terms_selection = {"terms": {column : {"value" : value}}}
-    self.selections.append(term_selection)
-    return self  
-    
-  def append_range_selection(self, column, from_str="*", to_str="*", include_lower=True, include_upper=True):
-    if self.selections is None:
-      self.selections = []
-    range_selection = {"range":{column:{"to":to_str, "from":from_str, "include_lower":include_lower, "include_upper":include_upper}}}
-    self.selections.append(range_selection)
-    return self
-        
-  def append_path_selection(self, column, value, strict=False, depth=1):
-    if self.selections is None:
-      self.selections = []
-    path_selection = {"path": {column : {"value":value, "strict":strict, "depth":depth}}}
-    self.selections.append(path_selection)
-    return self      
         
   def set_facets(self, facets):
     self.facets = facets.get_facets()
@@ -1285,7 +1213,8 @@ def main(argv):
   req.set_query(SenseiQueryTerm("tags", "automatic"))
     
   # add selection info;
-  req.append_range_selection("year", "1995", "2000", True, False)  # [1995 TO 2000)
+  range_selection = SenseiSelectionRange("year", "1995", "2000", True, False)  # [1995 TO 2000)
+  req.append_selection(range_selection)
     
   # add filter info;
   req.set_filter(SenseiFilterRange("price", 7900, 11000))
