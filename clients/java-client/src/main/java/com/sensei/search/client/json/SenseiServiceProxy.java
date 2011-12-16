@@ -30,19 +30,26 @@ public class SenseiServiceProxy {
       super();
       this.url = url;
     }
-  public SenseiResult sendRequest( SenseiClientRequest request) throws IOException, JSONException {
+   
+    public SenseiResult sendRequest( SenseiClientRequest request) throws IOException, JSONException {
     	String requestStr = JsonSerializer.serialize(request).toString();
         String output = sendPost( requestStr);
         //System.out.println("Output from Server = " + output);
         return JsonDeserializer.deserialize(SenseiResult.class, jsonResponse(output));
     }
-	public String sendPost(String requestStr)
+    
+	  public String sendPost(String requestStr)
 			throws MalformedURLException, IOException, ProtocolException,
 			UnsupportedEncodingException {
-		HttpURLConnection conn = null;
+		  HttpURLConnection conn = null;
         try {
-        LOG.info("Sending a post request to the server - " + this.url);
-        LOG.debug("The request is - " + requestStr);
+        if (LOG.isInfoEnabled()){
+          LOG.info("Sending a post request to the server - " + this.url);
+        }
+        
+        if (LOG.isDebugEnabled()){
+          LOG.debug("The request is - " + requestStr);
+        }
         URL url = new URL(this.url);
          conn = (HttpURLConnection) url.openConnection();
         conn.setDoOutput(true);
@@ -50,7 +57,7 @@ public class SenseiServiceProxy {
         conn.setRequestProperty("Content-Type", "application/json; charset=utf-8");
 
         conn.setRequestProperty("Accept-Encoding", "gzip");
-		String string = requestStr;
+		   String string = requestStr;
         byte[] requestBytes = string.getBytes("UTF-8");
         conn.setRequestProperty("Content-Length", String.valueOf(requestBytes.length));
         //GZIPOutputStream zippedOutputStream = new GZIPOutputStream(conn.getOutputStream());
@@ -59,14 +66,20 @@ public class SenseiServiceProxy {
         os.flush();
         os.close();
         int responseCode = conn.getResponseCode();
-		LOG.info("The http response code is " + responseCode);
+		
+        if (LOG.isInfoEnabled()){
+          LOG.info("The http response code is " + responseCode);
+        }
         if (responseCode != HttpURLConnection.HTTP_OK) {
-            throw new RuntimeException("Failed : HTTP error code : "
+            throw new IOException("Failed : HTTP error code : "
                 + responseCode);
         }
         byte[] bytes = drain(new GZIPInputStream(new BufferedInputStream( conn.getInputStream())));
+        
         String output = new String(bytes, "UTF-8");
-        LOG.debug("The response from the server is - " + output);
+        if (LOG.isDebugEnabled()){
+          LOG.debug("The response from the server is - " + output);
+        }
         return output;
         } finally {
         	if (conn != null) conn.disconnect();

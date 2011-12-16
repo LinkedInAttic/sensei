@@ -2,12 +2,9 @@ package com.sensei.search.nodes;
 
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.zip.GZIPInputStream;
 
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
@@ -21,6 +18,7 @@ import com.linkedin.norbert.javacompat.cluster.ClusterClient;
 import com.linkedin.norbert.javacompat.cluster.Node;
 import com.linkedin.norbert.javacompat.network.PartitionedNetworkClient;
 import com.sensei.conf.SenseiSchema;
+import com.sensei.indexing.api.DefaultJsonSchemaInterpreter;
 import com.sensei.search.client.ResultMerger;
 import com.sensei.search.cluster.routing.SenseiLoadBalancerFactory;
 import com.sensei.search.req.SenseiHit;
@@ -83,19 +81,16 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
           }
           if (dataBytes != null && dataBytes.length > 0)
           {
-            ByteArrayOutputStream bout = new ByteArrayOutputStream();
-            byte[] buf = new byte[1024];  // 1k buffer
-            ByteArrayInputStream bin = new ByteArrayInputStream(dataBytes);
-            GZIPInputStream gzipStream = new GZIPInputStream(bin);
-
-            int len;
-            while ((len = gzipStream.read(buf)) > 0) {
-              bout.write(buf, 0, len);
+            byte[] data;
+            try
+            {
+              data = DefaultJsonSchemaInterpreter.decompress(dataBytes);
             }
-            bout.flush();
-
-            byte[] uncompressed = bout.toByteArray();
-            hit.setSrcData(new String(uncompressed,"UTF-8"));
+            catch(Exception ex)
+            {
+              data = dataBytes;
+            }
+            hit.setSrcData(new String(data, "UTF-8"));
           }
         }
         catch(Exception e)

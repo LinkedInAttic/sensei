@@ -3,48 +3,49 @@ package com.sensei.dataprovider.kafka;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 
-import kafka.api.FetchRequest;
-import kafka.api.OffsetRequest;
-import kafka.consumer.SimpleConsumer;
-import kafka.message.ByteBufferMessageSet;
+import kafka.consumer.Consumer;
+import kafka.consumer.ConsumerConfig;
+import kafka.consumer.ConsumerIterator;
+import kafka.consumer.KafkaMessageStream;
+import kafka.javaapi.consumer.ConsumerConnector;
 import kafka.message.Message;
-import kafka.message.MessageSet;
 
 import org.apache.log4j.Logger;
 
 import proj.zoie.api.DataConsumer.DataEvent;
 import proj.zoie.impl.indexing.StreamDataProvider;
-import scala.collection.Iterator;
 
-public abstract class KafkaStreamDataProvider<D> extends StreamDataProvider<D> {
+public abstract class KafkaStreamDataProvider<D> extends StreamDataProvider<D>{
+
   private final String _topic;
-  private long _offset;
-  private long _startingOffset;
-  private SimpleConsumer _kafkaConsumer;
-  
-  private Iterator<Message> _msgIter;
+  private final String _consumerGroupId;
+  private ConsumerConnector _consumerConnector;
+  private ConsumerIterator<Message> _consumerIterator;
+
   private ThreadLocal<byte[]> bytesFactory;
-  
+
   private static Logger logger = Logger.getLogger(KafkaStreamDataProvider.class);
   
     public static final int DEFAULT_MAX_MSG_SIZE = 5*1024*1024;
-    private final String _kafkaHost;
-    private final int _kafkaPort;
+    private final String _zookeeperUrl;
     private final int _kafkaSoTimeout;
     private volatile boolean _started = false;
   
-  public KafkaStreamDataProvider(Comparator<String> versionComparator, String kafkaHost,int kafkaPort,int soTimeout,int batchSize,String topic,long startingOffset){
+  public KafkaStreamDataProvider(Comparator<String> versionComparator,String zookeeperUrl,int soTimeout,int batchSize,
+                                 String consumerGroupId,String topic,long startingOffset){
     super(versionComparator);
+    _consumerGroupId = consumerGroupId;
     _topic = topic;
-    _startingOffset = startingOffset;
-    _offset = startingOffset;
     super.setBatchSize(batchSize);
-    _kafkaHost = kafkaHost;
-    _kafkaPort = kafkaPort;
+    _zookeeperUrl = zookeeperUrl;
     _kafkaSoTimeout = soTimeout;
-    _kafkaConsumer = null;
-    _msgIter = null;
+    _consumerConnector = null;
+    _consumerIterator = null;
     bytesFactory = new ThreadLocal<byte[]>(){
       @Override
       protected byte[] initialValue() {
@@ -55,27 +56,6 @@ public abstract class KafkaStreamDataProvider<D> extends StreamDataProvider<D> {
   
   @Override
   public void setStartingOffset(String version){
-      _offset = Long.parseLong(version);
-  }
-  
-  private FetchRequest buildReq(){
-    if (_offset<=0){
-      long time = OffsetRequest.EARLIEST_TIME();
-      if (_offset==-1){
-        time = -OffsetRequest.LATEST_TIME();
-      }
-      try
-      {
-        _offset = _kafkaConsumer.getOffsetsBefore(_topic, 0, time, 1)[0];
-      }
-      catch(Exception e)
-      {
-        logger.error(e.getMessage(), e);
-        return null;
-      }
-
-    }
-    return new FetchRequest(_topic, 0, _offset,DEFAULT_MAX_MSG_SIZE );
   }
   
   protected D convertMessage(long msgStreamOffset,Message msg) throws IOException{
@@ -91,37 +71,23 @@ public abstract class KafkaStreamDataProvider<D> extends StreamDataProvider<D> {
   @Override
   public DataEvent<D> next() {
     if (!_started) return null;
-    if(_msgIter==null || !_msgIter.hasNext()){
-      if (logger.isDebugEnabled()){
-        logger.debug("fetching new batch from offset: "+_offset);
-      }
-      FetchRequest req = buildReq();
-      if (req == null) return null;
-      try
-      {
-        ByteBufferMessageSet msgSet = _kafkaConsumer.fetch(req);
-        _msgIter = msgSet.iterator();
-      }
-      catch(Exception e)
-      {
-        logger.error(e.getMessage(), e);
+
+    try
+    {
+      if (!_consumerIterator.hasNext())
         return null;
-      }
     }
-    
-    if (_msgIter==null || !_msgIter.hasNext() ) {
-      if (logger.isDebugEnabled()){
-        logger.debug("no more data, msgIter: "+_msgIter);
-      }
+    catch (Exception e)
+    {
+      // Most likely timeout exception - ok to ignore
       return null;
     }
-    
-    Message msg = _msgIter.next();
+
+    Message msg = _consumerIterator.next();
     if (logger.isDebugEnabled()){
       logger.debug("got new message: "+msg);
     }
-    long version = _offset;
-    _offset += MessageSet.entrySize(msg);
+    long version = System.currentTimeMillis();
 
     D data;
     try {
@@ -138,12 +104,26 @@ public abstract class KafkaStreamDataProvider<D> extends StreamDataProvider<D> {
 
   @Override
   public void reset() {
-    _offset = _startingOffset;
   }
 
   @Override
   public void start() {
-    _kafkaConsumer = new SimpleConsumer(_kafkaHost, _kafkaPort, _kafkaSoTimeout, DEFAULT_MAX_MSG_SIZE);
+    Properties props = new Properties();
+    props.put("zk.connect", _zookeeperUrl);
+    //props.put("consumer.timeout.ms", _kafkaSoTimeout);
+    props.put("groupid", _consumerGroupId);
+
+    ConsumerConfig consumerConfig = new ConsumerConfig(props);
+    _consumerConnector = Consumer.createJavaConsumerConnector(consumerConfig);
+
+    Map<String, Integer> topicCountMap = new HashMap<String, Integer>();
+    topicCountMap.put(_topic, 1);
+    Map<String, List<KafkaMessageStream<Message>>> topicMessageStreams =
+        _consumerConnector.createMessageStreams(topicCountMap);
+    List<KafkaMessageStream<Message>> streams = topicMessageStreams.get(_topic);
+    KafkaMessageStream<Message> kafkaMessageStream = streams.iterator().next();
+    _consumerIterator = kafkaMessageStream.iterator();
+
     super.start();
     _started = true;
   }
@@ -155,10 +135,9 @@ public abstract class KafkaStreamDataProvider<D> extends StreamDataProvider<D> {
       super.stop();
     }
     finally{
-      if (_kafkaConsumer!=null){
-      _kafkaConsumer.close();
+      if (_consumerConnector!=null){
+      _consumerConnector.shutdown();
       }
     }
-  }
+  }  
 }
-

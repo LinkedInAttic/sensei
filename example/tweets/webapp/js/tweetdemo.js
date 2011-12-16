@@ -88,13 +88,13 @@ function renderHits(hits){
 
 		html += '<div class="span3">'+hit._uid+"</div>"
 
-		html += '<div class="span3">'+hit.score+"</div>"
+		html += '<div class="span3">'+hit._score+"</div>"
 
     var date = new Date(hit.time);
 		html += '<div class="span3">'+date+'</div>'
 
-    var srcdata = eval('('+hit.srcdata+')');
-
+    var srcdata = extractSrcData(hit);
+    
     var tweet = srcdata.tweet;
     var user = tweet.user;
     var imgUrl = user.profile_image_url_https;

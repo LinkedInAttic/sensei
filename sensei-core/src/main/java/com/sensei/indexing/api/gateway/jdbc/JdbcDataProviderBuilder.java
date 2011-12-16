@@ -6,6 +6,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Comparator;
+import java.util.Set;
 
 import javax.naming.ConfigurationException;
 
@@ -18,6 +19,7 @@ import proj.zoie.dataprovider.jdbc.PreparedStatementBuilder;
 import proj.zoie.impl.indexing.StreamDataProvider;
 
 import com.sensei.indexing.api.DataSourceFilter;
+import com.sensei.indexing.api.ShardingStrategy;
 import com.sensei.indexing.api.gateway.SenseiGateway;
 import com.sensei.plugin.SenseiPluginRegistry;
 
@@ -34,7 +36,10 @@ public class JdbcDataProviderBuilder extends SenseiGateway<ResultSet>{
 
 	@Override
 	public StreamDataProvider<JSONObject> buildDataProvider(final DataSourceFilter<ResultSet> dataFilter,
-			String oldSinceKey) throws Exception{
+      String oldSinceKey,
+      ShardingStrategy shardingStrategy,
+      Set<Integer> partitions) throws Exception
+  {
 
 	       final String url = config.get("url");
 	       final String username = config.get("username");

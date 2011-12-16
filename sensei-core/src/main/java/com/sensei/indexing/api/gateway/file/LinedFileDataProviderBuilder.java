@@ -2,6 +2,7 @@ package com.sensei.indexing.api.gateway.file;
 
 import java.io.File;
 import java.util.Comparator;
+import java.util.Set;
 
 import org.json.JSONObject;
 
@@ -10,6 +11,7 @@ import proj.zoie.impl.indexing.ZoieConfig;
 
 import com.sensei.dataprovider.file.LinedJsonFileDataProvider;
 import com.sensei.indexing.api.DataSourceFilter;
+import com.sensei.indexing.api.ShardingStrategy;
 import com.sensei.indexing.api.gateway.SenseiGateway;
 
 public  class LinedFileDataProviderBuilder extends SenseiGateway<String>{
@@ -19,7 +21,10 @@ public  class LinedFileDataProviderBuilder extends SenseiGateway<String>{
 
 	@Override
 	public StreamDataProvider<JSONObject> buildDataProvider(DataSourceFilter<String> dataFilter,
-			String oldSinceKey) throws Exception{
+      String oldSinceKey,
+      ShardingStrategy shardingStrategy,
+      Set<Integer> partitions) throws Exception
+  {
 
 		String path = config.get("path");
 		long offset = oldSinceKey == null ? 0L : Long.parseLong(oldSinceKey);

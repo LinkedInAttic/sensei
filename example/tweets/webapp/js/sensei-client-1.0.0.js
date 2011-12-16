@@ -4,7 +4,7 @@ function executeSenseiReq(host,port,req,callback){
 }
 
 function extractSrcData(senseiHit){
-  return eval('('+senseiHit.srcdata+')');
+  return eval('('+senseiHit._srcdata+')');
 }
 
 function setSenseiQueryString(req,queryString){

@@ -3,11 +3,20 @@
 
   <title>BQL: Browsing Query Language</title>  
 
-  <para>BQL stands for <emphasis>Browsing Query Language</emphasis>.  It
-  was originally proposed as a query language for <link
-  xlink:href="http://sna-projects.com/bobo/">Bobo</link>.  Now it is
-  being developed and bundled with Sensei, and used by both Sensei and
-  Sin.</para>
+  <section>
+    <title>What is BQL?</title>
+
+    <para>BQL stands for <emphasis>Browsing Query Language</emphasis>.
+    It is an SQL-like language that provides Sensei users easy access to
+    the database if they have experience using traditional relational
+    databases.</para>
+    
+    <para>BQL was originally proposed as a query language for <link
+    xlink:href="http://sna-projects.com/bobo/">Bobo</link>.  Now it is
+    being developed and bundled with Sensei, and used by both Sensei and
+    Sin.</para>
+
+  </section>
 
   <section>
     <title>BNF Grammar for BQL</title>
@@ -38,13 +47,17 @@
     <section>
       <title>BQL Grammar</title>
 
+      <para>Below is an overview of the BQL grammar in BNF.  Detailed
+      documentation of statements and clauses can be found in later
+      sections.</para>
+
       <programlisting><![CDATA[
 <statement> ::= ( <select_stmt> | <describe_stmt> ) [';']
 
-<select_stmt> ::= SELECT <select_list> <from_clause> [<where_clause>] [<given_clause>]
+<select_stmt> ::= SELECT <select_list> [<from_clause>] [<where_clause>] [<given_clause>]
                   [<additional_clauses>]
 
-<describe_stmt> ::= ( DESC | DESCRIBE ) <index_name>
+<describe_stmt> ::= ( DESC | DESCRIBE ) [<index_name>]
 
 <select_list> ::= '*' | <column_name_list>
 
@@ -52,10 +65,11 @@
 
 <from_clause> ::= FROM <index_name>
 
-<where_clause> ::= WHERE <search_condition>
+<where_clause> ::= WHERE <search_expr>
 
-<search_condition> ::= <predicates>
-                     | <cumulative_predicates>
+<search_expr> ::= <predicate>
+                | <search_expr> (AND | OR) <search_expr>
+                | '(' <search_expr> ')'
 
 <predicates> ::= <predicate> ( AND <predicate> )*
 
@@ -67,7 +81,7 @@
               | <between_predicate>
               | <range_predicate>
               | <time_predicate>
-              | <same_column_or_pred>
+              | <match_predicate>
 
 <in_predicate> ::= <column_name> [NOT] IN <value_list> [<except_clause>] [<predicate_props>]
 
@@ -87,15 +101,9 @@
 <time_predicate> ::= <column_name> IN LAST <time_span>
                    | <column_name> ( SINCE | AFTER | BEFORE ) <time_expr>
 
-<same_column_or_pred> ::= '(' <cumulative_predicates> ')'
+<match_predicate> ::= MATCH '(' column_name_list ')' AGAINST '(' quoted_string ')'
 
-<cumulative_predicates> ::= <cumulative_predicate> ( OR <cumulative_predicate> )*
-
-<cumulative_predicate> ::= <in_predicate>
-                         | <equal_predicate>
-                         | <between_predicate>
-                         | <range_predicate>
-                         | <time_predicate>
+<like_predicate> ::= <column_name> LIKE <quoted_string>
 
 <value_list> ::= '(' <value> ( ',' <value> )* ')'
 
@@ -218,434 +226,26 @@
 <date_time_string> ::= <digit><digit><digit><digit> ('-' | '/' | '.') <digit><digit>
                        ('-' | '/' | '.') <digit><digit>
                        <digit><digit> ':' <digit><digit> ':' <digit><digit>
+
 ]]></programlisting>
 
     </section>
 
-
-    
   </section>
 
-
   <section>
-    <title>Syntax Diagrams</title>
-
-    <section>
-      <title>Top Level Statement</title>
-
-      <mediaobject>
-        <imageobject role="fo">
-          <imagedata format="PDF" fileref="figures/BQL/statement.pdf"
-                     align="left" valign="middle" scale="70"/>
-        </imageobject>
-
-        <imageobject role="html">
-          <imagedata format="PNG" fileref="figures/BQL/statement.png"
-                     align="left" valign="middle" scale="100"/>
-        </imageobject>
-      </mediaobject>
-
-    </section>
+    <title>BQL Statement Syntax</title>
 
     <section>
       <title>DESCRIBE Statement</title>
 
-      <mediaobject>
-        <imageobject role="fo">
-          <imagedata format="PDF" fileref="figures/BQL/describe_stmt.pdf"
-                     align="left" valign="middle" scale="70"/>
-        </imageobject>
-
-        <imageobject role="html">
-          <imagedata format="PNG" fileref="figures/BQL/describe_stmt.png"
-                     align="left" valign="middle" scale="100"/>
-        </imageobject>
-      </mediaobject>
-
-    </section>
-
-    <section>
-      <title>SELECT Statement</title>
-
-      <mediaobject>
-        <imageobject role="fo">
-          <imagedata format="PDF" fileref="figures/BQL/select_stmt.pdf"
-                     align="left" valign="middle" scale="70"/>
-        </imageobject>
-
-        <imageobject role="html">
-          <imagedata format="PNG" fileref="figures/BQL/select_stmt.png"
-                     align="left" valign="middle" scale="100"/>
-        </imageobject>
-      </mediaobject>
-
-    </section>
-
-    <section>
-      <title>WHERE Clause</title>
-
-      <mediaobject>
-        <imageobject role="fo">
-          <imagedata format="PDF" fileref="figures/BQL/where_clause.pdf"
-                     align="left" valign="middle" scale="70"/>
-        </imageobject>
-
-        <imageobject role="html">
-          <imagedata format="PNG" fileref="figures/BQL/where_clause.png"
-                     align="left" valign="middle" scale="100"/>
-        </imageobject>
-      </mediaobject>
-
-    </section>
-
-    <section>
-      <title>Predicates</title>
-
-      <mediaobject>
-        <imageobject role="fo">
-          <imagedata format="PDF" fileref="figures/BQL/predicates.pdf"
-                     align="left" valign="middle" scale="70"/>
-        </imageobject>
-
-        <imageobject role="html">
-          <imagedata format="PNG" fileref="figures/BQL/predicates.png"
-                     align="left" valign="middle" scale="100"/>
-        </imageobject>
-      </mediaobject>
-
-    </section>
-
-    <section>
-      <title>Cumulative Predicates</title>
-
-      <mediaobject>
-        <imageobject role="fo">
-          <imagedata format="PDF" fileref="figures/BQL/cumulative_predicates.pdf"
-                     align="left" valign="middle" scale="70"/>
-        </imageobject>
-
-        <imageobject role="html">
-          <imagedata format="PNG" fileref="figures/BQL/cumulative_predicates.png"
-                     align="left" valign="middle" scale="100"/>
-        </imageobject>
-      </mediaobject>
-
-    </section>
-
-    <section>
-      <title>IN Predicate</title>
-
-      <mediaobject>
-        <imageobject role="fo">
-          <imagedata format="PDF" fileref="figures/BQL/in_predicate.pdf"
-                     align="left" valign="middle" scale="70"/>
-        </imageobject>
-
-        <imageobject role="html">
-          <imagedata format="PNG" fileref="figures/BQL/in_predicate.png"
-                     align="left" valign="middle" scale="100"/>
-        </imageobject>
-      </mediaobject>
-
-    </section>
-
-    <section>
-      <title>CONTAINS ALL Predicate</title>
-
-      <mediaobject>
-        <imageobject role="fo">
-          <imagedata format="PDF" fileref="figures/BQL/contains_all_predicate.pdf"
-                     align="left" valign="middle" scale="70"/>
-        </imageobject>
-
-        <imageobject role="html">
-          <imagedata format="PNG" fileref="figures/BQL/contains_all_predicate.png"
-                     align="left" valign="middle" scale="100"/>
-        </imageobject>
-      </mediaobject>
-
-    </section>
-
-    <section>
-      <title>Equal Predicate</title>
-
-      <mediaobject>
-        <imageobject role="fo">
-          <imagedata format="PDF" fileref="figures/BQL/equal_predicate.pdf"
-                     align="left" valign="middle" scale="70"/>
-        </imageobject>
-
-        <imageobject role="html">
-          <imagedata format="PNG" fileref="figures/BQL/equal_predicate.png"
-                     align="left" valign="middle" scale="100"/>
-        </imageobject>
-      </mediaobject>
-
-    </section>
-
-    <section>
-      <title>NOT equal Predicate</title>
-
-      <mediaobject>
-        <imageobject role="fo">
-          <imagedata format="PDF" fileref="figures/BQL/not_equal_predicate.pdf"
-                     align="left" valign="middle" scale="70"/>
-        </imageobject>
-
-        <imageobject role="html">
-          <imagedata format="PNG" fileref="figures/BQL/not_equal_predicate.png"
-                     align="left" valign="middle" scale="100"/>
-        </imageobject>
-      </mediaobject>
-
-    </section>
-
-    <section>
-      <title>Query Predicate</title>
-
-      <mediaobject>
-        <imageobject role="fo">
-          <imagedata format="PDF" fileref="figures/BQL/query_predicate.pdf"
-                     align="left" valign="middle" scale="70"/>
-        </imageobject>
-
-        <imageobject role="html">
-          <imagedata format="PNG" fileref="figures/BQL/query_predicate.png"
-                     align="left" valign="middle" scale="100"/>
-        </imageobject>
-      </mediaobject>
-
-    </section>
-
-    <section>
-      <title>BETWEEN Predicate</title>
-
-      <mediaobject>
-        <imageobject role="fo">
-          <imagedata format="PDF" fileref="figures/BQL/between_predicate.pdf"
-                     align="left" valign="middle" scale="70"/>
-        </imageobject>
-
-        <imageobject role="html">
-          <imagedata format="PNG" fileref="figures/BQL/between_predicate.png"
-                     align="left" valign="middle" scale="100"/>
-        </imageobject>
-      </mediaobject>
-
-    </section>
-
-    <section>
-      <title>Range Predicate</title>
-
-      <mediaobject>
-        <imageobject role="fo">
-          <imagedata format="PDF" fileref="figures/BQL/range_predicate.pdf"
-                     align="left" valign="middle" scale="70"/>
-        </imageobject>
-
-        <imageobject role="html">
-          <imagedata format="PNG" fileref="figures/BQL/range_predicate.png"
-                     align="left" valign="middle" scale="100"/>
-        </imageobject>
-      </mediaobject>
-
-    </section>
-
-    <section>
-      <title>Time Predicate</title>
-
-      <mediaobject>
-        <imageobject role="fo">
-          <imagedata format="PDF" fileref="figures/BQL/time_predicate.pdf"
-                     align="left" valign="middle" scale="70"/>
-        </imageobject>
-
-        <imageobject role="html">
-          <imagedata format="PNG" fileref="figures/BQL/time_predicate.png"
-                     align="left" valign="middle" scale="100"/>
-        </imageobject>
-      </mediaobject>
-
-    </section>
-
-    <section>
-      <title>EXCEPT Clause</title>
-
-      <mediaobject>
-        <imageobject role="fo">
-          <imagedata format="PDF" fileref="figures/BQL/except_clause.pdf"
-                     align="left" valign="middle" scale="70"/>
-        </imageobject>
-
-        <imageobject role="html">
-          <imagedata format="PNG" fileref="figures/BQL/except_clause.png"
-                     align="left" valign="middle" scale="100"/>
-        </imageobject>
-      </mediaobject>
-
-    </section>
-    <section>
-      <title>Predicate Properties</title>
-
-      <mediaobject>
-        <imageobject role="fo">
-          <imagedata format="PDF" fileref="figures/BQL/predicate_props.pdf"
-                     align="left" valign="middle" scale="70"/>
-        </imageobject>
-
-        <imageobject role="html">
-          <imagedata format="PNG" fileref="figures/BQL/predicate_props.png"
-                     align="left" valign="middle" scale="100"/>
-        </imageobject>
-      </mediaobject>
-
-    </section>
-
-    <section>
-      <title>GIVEN Clause</title>
-
-      <mediaobject>
-        <imageobject role="fo">
-          <imagedata format="PDF" fileref="figures/BQL/given_clause.pdf"
-                     align="left" valign="middle" scale="70"/>
-        </imageobject>
-
-        <imageobject role="html">
-          <imagedata format="PNG" fileref="figures/BQL/given_clause.png"
-                     align="left" valign="middle" scale="100"/>
-        </imageobject>
-      </mediaobject>
-
-    </section>
-
-    <section>
-      <title>Additional Clauses</title>
-
-      <mediaobject>
-        <imageobject role="fo">
-          <imagedata format="PDF" fileref="figures/BQL/additional_clauses.pdf"
-                     align="left" valign="middle" scale="70"/>
-        </imageobject>
-
-        <imageobject role="html">
-          <imagedata format="PNG" fileref="figures/BQL/additional_clauses.png"
-                     align="left" valign="middle" scale="100"/>
-        </imageobject>
-      </mediaobject>
-
-    </section>
-
-    <section>
-      <title>ORDER BY Clause</title>
-
-      <mediaobject>
-        <imageobject role="fo">
-          <imagedata format="PDF" fileref="figures/BQL/order_by_clause.pdf"
-                     align="left" valign="middle" scale="70"/>
-        </imageobject>
-
-        <imageobject role="html">
-          <imagedata format="PNG" fileref="figures/BQL/order_by_clause.png"
-                     align="left" valign="middle" scale="100"/>
-        </imageobject>
-      </mediaobject>
-
-    </section>
-
-    <section>
-      <title>GROUP BY Clause</title>
-
-      <mediaobject>
-        <imageobject role="fo">
-          <imagedata format="PDF" fileref="figures/BQL/group_by_clause.pdf"
-                     align="left" valign="middle" scale="70"/>
-        </imageobject>
-
-        <imageobject role="html">
-          <imagedata format="PNG" fileref="figures/BQL/group_by_clause.png"
-                     align="left" valign="middle" scale="100"/>
-        </imageobject>
-      </mediaobject>
-
-    </section>
-
-    <section>
-      <title>LIMIT Clause</title>
-
-      <mediaobject>
-        <imageobject role="fo">
-          <imagedata format="PDF" fileref="figures/BQL/limit_clause.pdf"
-                     align="left" valign="middle" scale="70"/>
-        </imageobject>
-
-        <imageobject role="html">
-          <imagedata format="PNG" fileref="figures/BQL/limit_clause.png"
-                     align="left" valign="middle" scale="100"/>
-        </imageobject>
-      </mediaobject>
-
-    </section>
-
-    <section>
-      <title>BROWSE BY Clause</title>
-
-      <mediaobject>
-        <imageobject role="fo">
-          <imagedata format="PDF" fileref="figures/BQL/browse_by_clause.pdf"
-                     align="left" valign="middle" scale="70"/>
-        </imageobject>
-
-        <imageobject role="html">
-          <imagedata format="PNG" fileref="figures/BQL/browse_by_clause.png"
-                     align="left" valign="middle" scale="100"/>
-        </imageobject>
-      </mediaobject>
-
-    </section>
-
-    <section>
-      <title>Facet Specification</title>
-
-      <mediaobject>
-        <imageobject role="fo">
-          <imagedata format="PDF" fileref="figures/BQL/facet_spec.pdf"
-                     align="left" valign="middle" scale="70"/>
-        </imageobject>
-
-        <imageobject role="html">
-          <imagedata format="PNG" fileref="figures/BQL/facet_spec.png"
-                     align="left" valign="middle" scale="100"/>
-        </imageobject>
-      </mediaobject>
-
-    </section>
-
-    <section>
-      <title>FETCHING STORED Clause</title>
-
-      <mediaobject>
-        <imageobject role="fo">
-          <imagedata format="PDF" fileref="figures/BQL/fetching_stored_clause.pdf"
-                     align="left" valign="middle" scale="70"/>
-        </imageobject>
-
-        <imageobject role="html">
-          <imagedata format="PNG" fileref="figures/BQL/fetching_stored_clause.png"
-                     align="left" valign="middle" scale="100"/>
-        </imageobject>
-      </mediaobject>
-
-    </section>
-
-  </section>
-
-  <section>
-    <title>Query Examples</title>
-
-    <section>
-      <title>DESCRIBE Statement</title>
-
-      <para><emphasis role="bold">Statement:</emphasis></para>
+      <para>DESCRIBE statement provides the information about the index
+      (or table in RDBM terminology).  In Sensei, the index name is
+      optional because when a Sensei client talks to one Sensei broker,
+      only one index is accessible on this broker.  Essentially, the
+      index name in a DESCRIBE statement is ignored.</para>
+
+      <para><emphasis role="bold">Example Statement:</emphasis></para>
 
       <programlisting>DESCRIBE cars;</programlisting>
 
@@ -663,10 +263,281 @@
 | makemodel  | path       | false   | makemodel | string      | []      |
 | mileage    | range      | false   | mileage   | int         | []      |
 | year       | range      | false   | year      | int         | []      |
-+------------+------------+---------+-----------+-------------+---------+
-</programlisting>
++------------+------------+---------+-----------+-------------+---------+</programlisting>
+    </section>
+
+    <section>
+      <title>SELECT Statement</title>
+
+      <section>
+        <title>Select List</title>
+
+        <para>The select list in a SELECT statement can simply be a
+        <literal>*</literal>, which means all columns are
+        selected.</para>
+
+        <para>If the select list is not a <literal>*</literal>, each
+        item, often called a <emphasis>column</emphasis>, in the select
+        list is either a facet name or a field name in the index.  If a
+        column is unknown to Sensei server, then <literal>&lt;NOT
+        FOUND&gt;</literal> is displayed in the results.</para>
+      </section>
+
+      <section>
+        <title>FROM Clause</title>
+
+        <para>Just like the index name in a DESCRIBE statement is
+        optional, the FROM clause in a SELECT statement is also
+        optional.</para>
+      </section>
+
+      <section>
+        <title>WHERE Clause</title>
+
+        <para>The WHERE clause, if given, specifies the search condition
+        or conditions that documents must satisfy to be selected. Each
+        condition is a Boolean expression consisting of one or more
+        predicates.  Current the following predicates are supported in
+        BQL:</para>
+
+        <itemizedlist>
+          <listitem>
+            <para>IN predicate</para>
+
+            <para>This predicate is used to specify the values of one
+            column in search results.  For example:</para>
+
+            <itemizedlist>
+              <listitem>
+                <para><literal>color IN ("red", "blue")</literal></para>
+              </listitem>
+              <listitem>
+                <para><literal>category IN ("sedan", "compact")</literal></para>
+              </listitem>
+              <listitem>
+                <para><literal>age in (10, 20, 30)</literal></para>
+              </listitem>
+            </itemizedlist>
+
+          </listitem>
+          <listitem>
+            <para>CONTAINS ALL predicate</para>
+
+            <para>This predicate is used to specify that a multi-value
+            column has to contain <emphasis>all</emphasis> the
+            values.  For example:</para>
+
+            <itemizedlist>
+              <listitem>
+                <para><literal>tags CONTAINS ALL ("cool", "hybrid") EXCEPT("favorite")</literal></para>
+              </listitem>
+            </itemizedlist>
+
+          </listitem>
+          <listitem>
+            <para>Equal predicate</para>
+            <para>This predicate is used to specify a single value that
+            a column needs to contain.  For example:</para>
+
+            <itemizedlist>
+              <listitem>
+                <para><literal>color = "red"</literal></para>
+              </listitem>
+            </itemizedlist>
+          </listitem>
+          <listitem>
+            <para>Not equal predicate</para>
+            <para>This predicate is used to specify a single value that
+            a column cannot contain.  For example:</para>
+
+            <itemizedlist>
+              <listitem>
+                <para><literal>color &lt;&gt; "red"</literal></para>
+              </listitem>
+            </itemizedlist>
+          </listitem>
+
+          <listitem>
+            <para>Query predicate</para>
+
+            <para>This is used to do full text search on the internal
+            <emphasis>contents</emphasis> column.  All Lucene query
+            syntax is supported.  For example:</para>
+
+            <itemizedlist>
+              <listitem>
+                <para><literal>QUERY IS "hybrid AND (cool or moon-roof)"</literal></para>
+              </listitem>
+            </itemizedlist>
+          </listitem>
+
+          <listitem>
+            <para>Range predicate</para>
+
+            <para>This predicate is used to specify a value range for a
+            range facet.  For example:</para>
+
+            <itemizedlist>
+              <listitem>
+                <para><literal>year &gt; 1999</literal></para>
+              </listitem>
+              <listitem>
+                <para><literal>year &lt;= 2002</literal></para>
+              </listitem>
+              <listitem>
+                <para><literal>price &lt; 17500</literal></para>
+              </listitem>
+              <listitem>
+                <para><literal>time &gt;= "2011-10-20 15:30:00"</literal></para>
+              </listitem>
+              <listitem>
+                <para><literal>time &lt; "2011/12/31 10:00:00"</literal></para>
+              </listitem>
+            </itemizedlist>
+          </listitem>
+
+          <listitem>
+            <para>BETWEEN predicate</para>
+
+            <para>This predicate is used to specify both the lower and
+            upper bounds for a range facet at the same time. For
+            example:</para>
+
+            <itemizedlist>
+              <listitem>
+                <para><literal>year BETWEEN 1995 AND 2000</literal></para>
+              </listitem>
+            </itemizedlist>
+
+            <note>
+              <para>Note that, when a BETWEEN predicate is used, both
+              lower and upper bounds are included in the range
+              selection.</para>
+            </note>
+
+          </listitem>
+
+          <listitem>
+            <para>Time predicate</para>
+
+            <para>This predicate is used on a column that contains time
+            stamp values (and the column should be a range facet too).
+            This is useful to search documents that are indexed in
+            real-time.  For example:</para>
+
+            <itemizedlist>
+              <listitem>
+                <para><literal>time IN LAST 2 hours 10 mins 30 secs 100 msecs</literal></para>
+              </listitem>
+              <listitem>
+                <para><literal>time SINCE 2 weeks AGO</literal></para>
+              </listitem>
+              <listitem>
+                <para><literal>time BEFORE 2 weeks AGO</literal></para>
+              </listitem>
+              <listitem>
+                <para><literal>time AFTER "2011-10-20 15:30:00"</literal></para>
+              </listitem>
+            </itemizedlist>
+
+          </listitem>
+          <listitem>
+            <para>MATCH AGAINST predicate</para>
+
+            <para>This predicate is used to perform full text searches
+            on one or more columns that have a string data type.  When
+            more than one columns are given in the predicate, then any
+            column in the list that contains specified searched string
+            would make a document satisfy this condition.  For example:
+            </para>
+
+            <itemizedlist>
+              <listitem>
+                <para><literal>MATCH(color) AGAINST("bl*")</literal></para>
+                <para>All cars that have a "black" or "blue" color would
+                satisfy this predicate.</para>
+              </listitem>
+              <listitem>
+                <para><literal>MATCH(category) AGAINST("*van")</literal></para>
+                <para>All cars in the category of "van" or "mini-van"
+                would satisfy this predicate.</para>
+              </listitem>
+              <listitem>
+                <para><literal>MATCH(color, category) AGAINST("*ac*")</literal></para>
+                <para>A car with a "black" or "blue" color, or with a
+                category of "compact" would satisfy this
+                condition.</para>
+              </listitem>
+            </itemizedlist>
+            
+          </listitem>
+          <listitem>
+            <para>LIKE predicate</para>
+
+            <para>This is a predicate to do wildcard text match.  Two
+            wildcards are supported: <literal>%</literal> and
+            <literal>_</literal>.  Wildcard <literal>%</literal> matches
+            zero or more characters, while <literal>_</literal> matches
+            exactly one character.  For example:</para>
+
+            <itemizedlist>
+              <listitem>
+                <para><literal>color LIKE "bl%"</literal></para>
+                <para>All cars that have a "black" or "blue" color would
+                satisfy this predicate.</para>
+              </listitem>
+              <listitem>
+                <para><literal>color LIKE "bl__"</literal></para>
+                <para>All cars with a "blue" color would satisfy this
+                condition, but the cars with a "black" color would
+                not.</para>
+              </listitem>
+            </itemizedlist>
+
+            <note>
+              <para>Note that wildcards <literal>%</literal> and
+              <literal>_</literal>, not Lucene's <literal>*</literal>
+              and <literal>?</literal> are used in BQL.  This is mainly
+              to make BQL more compatible with SQL.  However, if
+              <literal>*</literal> or <literal>?</literal> is used, it
+              is also accepted.</para>
+            </note>
+
+          </listitem>
+        </itemizedlist>
+
+      </section>
+
+      <section>
+        <title>GROUP BY Clause</title>
+
+        <para></para>
+      </section>
+
+      <section>
+        <title>BROWSE BY Clause</title>
+
+        <para></para>
+      </section>
+
+      <section>
+        <title>GIVEN FACET PARAM Clause</title>
+
+        <para></para>
+      </section>
+
+      <section>
+        <title>FETCHING STORED Clause</title>
+
+        <para></para>
+      </section>
 
     </section>
+
+  </section>
+
+  <section>
+    <title>Query Examples</title>
 
     <section>
       <title>Basic Query</title>

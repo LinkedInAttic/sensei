@@ -68,8 +68,9 @@ import com.sensei.plugin.SenseiPluginRegistry;
 import com.sensei.search.client.servlet.DefaultSenseiJSONServlet;
 import com.sensei.search.client.servlet.SenseiConfigServletContextListener;
 import com.sensei.search.client.servlet.SenseiHttpInvokerServiceServlet;
+import com.sensei.search.cluster.routing.MD5HashProvider;
+import com.sensei.search.cluster.routing.RingHashLoadBalancerFactory;
 import com.sensei.search.cluster.routing.SenseiLoadBalancerFactory;
-import com.sensei.search.cluster.routing.UniformPartitionedRoutingFactory;
 import com.sensei.search.nodes.SenseiCore;
 import com.sensei.search.nodes.SenseiHourglassFactory;
 import com.sensei.search.nodes.SenseiIndexReaderDecorator;
@@ -187,18 +188,12 @@ public class SenseiServerBuilder implements SenseiConfParams{
     //senseiApp.setInitParams(initParam);
     senseiApp.setAttribute("sensei.search.configuration", _senseiConf);
     senseiApp.setAttribute("sensei.search.version.comparator", _gateway.getVersionComparator());
-
     SenseiLoadBalancerFactory routerFactory = pluginRegistry.getBeanByFullPrefix(SERVER_SEARCH_ROUTER_FACTORY, SenseiLoadBalancerFactory.class);
-
     if (routerFactory == null) {
-      routerFactory = new UniformPartitionedRoutingFactory();
+      routerFactory = new RingHashLoadBalancerFactory(new MD5HashProvider(), 1000);
     }
-
     senseiApp.setAttribute("sensei.search.router.factory", routerFactory);
-
     senseiApp.addEventListener(new SenseiConfigServletContextListener());
-
-
     senseiApp.addServlet(senseiServletHolder,"/"+SENSEI_CONTEXT_PATH+"/*");
     senseiApp.setResourceBase(webappPath);
     senseiApp.addServlet(springServletHolder,"/sensei-rpc/SenseiSpringRPCService");

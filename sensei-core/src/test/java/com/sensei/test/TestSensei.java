@@ -6,11 +6,15 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import junit.framework.TestCase;
 
 import org.apache.log4j.Logger;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import com.browseengine.bobo.api.BrowseFacet;
@@ -28,12 +32,14 @@ import com.sensei.search.svc.api.SenseiService;
 public class TestSensei extends TestCase {
 
   private static final Logger logger = Logger.getLogger(TestSensei.class);
+
   private static SenseiBroker broker;
   private static SenseiService httpRestSenseiService;
   static {
     SenseiStarter.start();
     broker = SenseiStarter.broker;
     httpRestSenseiService = SenseiStarter.httpRestSenseiService;
+
   }
 
   public void testTotalCount() throws Exception
@@ -92,11 +98,7 @@ public class TestSensei extends TestCase {
   public void testSelectionDynamicTimeRange() throws Exception
   {
     logger.info("executing test case testSelection");
-    FacetSpec facetSpecall = new FacetSpec();
-    facetSpecall.setMaxCount(1000000);
-    facetSpecall.setExpandSelection(true);
-    facetSpecall.setMinHitCount(0);
-    facetSpecall.setOrderBy(FacetSortSpec.OrderHitsDesc);
+
 
     SenseiRequest req = new SenseiRequest();
     DefaultFacetHandlerInitializerParam initParam = new DefaultFacetHandlerInitializerParam();
@@ -104,7 +106,6 @@ public class TestSensei extends TestCase {
     req.setFacetHandlerInitializerParam("timeRange", initParam);
     //req.setFacetHandlerInitializerParam("timeRange_internal", new DefaultFacetHandlerInitializerParam());
     req.setCount(3);
-    facetSpecall.setMaxCount(3);
     //setspec(req, facetSpecall);
     BrowseSelection sel = new BrowseSelection("timeRange");
     String selVal = "000000013";
@@ -314,11 +315,16 @@ public class TestSensei extends TestCase {
   public void testUIDQuery() throws Exception
   {
     logger.info("executing test case testUIDQuery");
-    String req = "{\"query\": {\"ids\": {\"values\": [\"1\", \"2\", \"3\"], \"excludes\": [\"2\"]}}}";
+    String req = "{\"query\": {\"ids\": {\"values\": [\"1\", \"4\", \"3\", \"2\", \"6\"], \"excludes\": [\"2\"]}}}";
     JSONObject res = search(new JSONObject(req));
-    assertEquals("numhits is wrong", 2, res.getInt("numhits"));
-    assertEquals("the first uid is wrong", 1, res.getJSONArray("hits").getJSONObject(0).getInt("uid"));
-    assertEquals("the second uid is wrong", 3, res.getJSONArray("hits").getJSONObject(1).getInt("uid"));
+
+    assertEquals("numhits is wrong", 4, res.getInt("numhits"));
+    Set<Integer> expectedIds = new HashSet(Arrays.asList(new Integer[]{1, 3, 4, 6}));
+    for (int i = 0; i < res.getInt("numhits"); ++i)
+    {
+      int uid = res.getJSONArray("hits").getJSONObject(i).getInt("_uid");
+      assertTrue("_UID " + uid + " is not expected.", expectedIds.contains(uid));
+    }
   }
 
   public void testTextQuery() throws Exception
@@ -474,9 +480,14 @@ public class TestSensei extends TestCase {
     logger.info("executing test case testUIDFilter");
     String req = "{\"filter\": {\"ids\": {\"values\": [\"1\", \"2\", \"3\"], \"excludes\": [\"2\"]}}}";
     JSONObject res = search(new JSONObject(req));
+
     assertEquals("numhits is wrong", 2, res.getInt("numhits"));
-    assertEquals("the first uid is wrong", 1, res.getJSONArray("hits").getJSONObject(0).getInt("uid"));
-    assertEquals("the second uid is wrong", 3, res.getJSONArray("hits").getJSONObject(1).getInt("uid"));
+    Set<Integer> expectedIds = new HashSet(Arrays.asList(new Integer[]{1, 3}));
+    for (int i = 0; i < res.getInt("numhits"); ++i)
+    {
+      int uid = res.getJSONArray("hits").getJSONObject(i).getInt("_uid");
+      assertTrue("_UID " + uid + " is not expected.", expectedIds.contains(uid));
+    }
   }
 
   public void testAndFilter() throws Exception
@@ -609,6 +620,7 @@ public class TestSensei extends TestCase {
     assertEquals("numhits is wrong", 19, res.getInt("numhits"));
   }
 
+
   private JSONObject search(JSONObject req) throws Exception  {
     URLConnection conn = SenseiStarter.SenseiUrl.openConnection();
     conn.setDoOutput(true);
@@ -672,6 +684,108 @@ public class TestSensei extends TestCase {
       String next = arColors.get(i+1);
       int comp = first.compareTo(next);
       assertTrue("should >=0 (first= "+ first+"  next= "+ next+")", comp>=0);
+    }
+  }
+
+
+  public void testSortByDesc() throws Exception
+
+  {
+    logger.info("executing test case testSortByDesc");
+    String req = "{\"selections\": [{\"range\": {\"mileage\": {\"from\": 16000, \"include_lower\": false}}}, {\"range\": {\"year\": {\"from\": 2002, \"include_lower\": true, \"include_upper\": true, \"to\": 2002}}}], \"sort\":[{\"color\":\"desc\"}, {\"category\":\"asc\"}],\"from\":0,\"size\":15000}";
+    JSONObject res = search(new JSONObject(req));
+    JSONArray jhits = res.optJSONArray("hits");
+    ArrayList<String> arColors = new ArrayList<String>();
+    ArrayList<String> arCategories = new ArrayList<String>();
+    for(int i=0; i<jhits.length(); i++){
+      JSONObject jhit = jhits.getJSONObject(i);
+      JSONArray jcolor = jhit.optJSONArray("color");
+      if(jcolor != null){
+        String color = jcolor.optString(0);
+        if(color != null)
+          arColors.add(color);
+      }
+      JSONArray jcategory = jhit.optJSONArray("category");
+      if (jcategory != null)
+      {
+        String category = jcategory.optString(0);
+        if (category != null)
+        {
+          arCategories.add(category);
+        }
+      }
+    }
+    checkOrder(arColors, arCategories, true, false);
+  }
+
+  public void testSortByAsc() throws Exception
+  {
+    logger.info("executing test case testSortByAsc");
+    String req = "{\"selections\": [{\"range\": {\"mileage\": {\"from\": 16000, \"include_lower\": false}}}, {\"range\": {\"year\": {\"from\": 2002, \"include_lower\": true, \"include_upper\": true, \"to\": 2002}}}], \"sort\":[{\"color\":\"asc\"}, {\"category\":\"desc\"}],\"from\":0,\"size\":15000}";
+    JSONObject res = search(new JSONObject(req));
+    JSONArray jhits = res.optJSONArray("hits");
+    ArrayList<String> arColors = new ArrayList<String>();
+    ArrayList<String> arCategories = new ArrayList<String>();
+    for(int i=0; i<jhits.length(); i++){
+      JSONObject jhit = jhits.getJSONObject(i);
+      JSONArray jcolor = jhit.optJSONArray("color");
+      if(jcolor != null){
+        String color = jcolor.optString(0);
+        if(color != null)
+          arColors.add(color);
+      }
+      JSONArray jcategory = jhit.optJSONArray("category");
+      if (jcategory != null)
+      {
+        String category = jcategory.optString(0);
+        if (category != null)
+        {
+          arCategories.add(category);
+        }
+      }
+    }
+    checkOrder(arColors, arCategories, false, true);
+  }
+
+  private void checkOrder(ArrayList<String> arColors,
+                          ArrayList<String> arCategories,
+                          boolean colorDesc,
+                          boolean categoryDesc)
+  {
+    assertEquals("Color array and category array must have same size",
+                 arColors.size(), arCategories.size());
+    assertTrue("must have 3680 results, size is:" + arColors.size(), arColors.size() == 368);
+    for(int i=0; i< arColors.size()-1; i++){
+      String first = arColors.get(i);
+      String next = arColors.get(i+1);
+      String firstCategory = arCategories.get(i);
+      String nextCategory = arCategories.get(i+1);
+
+      // System.out.println(">>> color = " + first + ", category = " + firstCategory);
+
+      int comp = first.compareTo(next);
+      if (colorDesc)
+      {
+        assertTrue("should >=0 (first= "+ first+"  next= "+ next+")", comp>=0);
+      }
+      else
+      {
+        assertTrue("should <=0 (first= "+ first+"  next= "+ next+")", comp<=0);
+      }
+      if (comp == 0)
+      {
+        int compCategory = firstCategory.compareTo(nextCategory);
+        if (categoryDesc)
+        {
+          assertTrue("should >=0 (firstCategory= "+ firstCategory +
+                     ", nextCategory= " + nextCategory +")", compCategory >= 0);
+        }
+        else
+        {
+          assertTrue("should <=0 (firstCategory= "+ firstCategory +
+                     ", nextCategory= "+ nextCategory+")", compCategory <= 0);
+        }
+      }
     }
   }
 

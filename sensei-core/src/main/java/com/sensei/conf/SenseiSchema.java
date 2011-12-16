@@ -26,8 +26,15 @@ import com.sensei.indexing.api.DefaultSenseiInterpreter.IndexSpec;
 import com.sensei.indexing.api.MetaType;
 
 public class SenseiSchema {
-  public static final String SRC_DATA_FIELD_NAME = "__SRC_DATA__";
+  public static final String SRC_DATA_FIELD_NAME            = "__SRC_DATA__";
   public static final String SRC_DATA_COMPRESSED_FIELD_NAME = "stored";
+
+  public static final String EVENT_TYPE_FIELD  = "_type";
+  public static final String EVENT_FIELD       = "event";
+  public static final String EVENT_TYPE_ADD    = "add";
+  public static final String EVENT_TYPE_UPDATE = "update";
+  public static final String EVENT_TYPE_DELETE = "delete";
+  public static final String EVENT_TYPE_SKIP   = "skip";
 
 	private static Logger logger = Logger.getLogger(SenseiSchema.class);
 	
