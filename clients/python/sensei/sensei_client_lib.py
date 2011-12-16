@@ -198,6 +198,7 @@ class SenseiFacets:
 
   def add_facet(self, facet_name, expand=False,minHits=1,maxCounts=10,orderBy=PARAM_FACET_ORDER_HITS):
     self.facets[facet_name]={"max":maxCounts, "minCount":minHits, "expand":expand, "order":orderBy }
+    return self
 
   def get_facets(self):
     return self.facets
@@ -789,24 +790,31 @@ class SenseiRequest:
 
   def set_offset(self, offset):
     self.offset = offset
+    return self
     
   def set_count(self, count):
     self.count = count
+    return self
     
   def set_query(self, query):
     self.query = query.get_query()
+    return self
     
   def set_explain(self, explain):
     self.explain = explain
-    
+    return self
+  
   def set_fetch_stored(self, fetch_stored):
     self.fetch_stored = fetch_stored
+    return self
     
   def set_route_param(self, route_param):
     self.route_param = route_param
+    return self
     
   def set_sorts(self, sorts):    
     self.sorts = sorts
+    return self
     
   def append_sort(self, sort):
     if isinstance(sort, SenseiSort):
@@ -815,48 +823,59 @@ class SenseiRequest:
         self.sorts.append(sort)
       else:  
         self.sorts.append(sort)
+    return self
     
   def set_filter(self, filter):
     self.filter = filter.get_filter()
+    return self
     
   def set_selections(self, selections):
     self.selections = selections
+    return self
     
   def append_term_selection(self, column, value):
     if self.selections is None:
       self.selections = []
     term_selection = {"term": {column : {"value" : value}}}
     self.selections.append(term_selection)
+    return self
   
   def append_terms_selection(self, column, values, excludes, operator):
     if self.selections is None:
       self.selections = []
     terms_selection = {"terms": {column : {"value" : value}}}
-    self.selections.append(term_selection)  
+    self.selections.append(term_selection)
+    return self  
     
   def append_range_selection(self, column, from_str="*", to_str="*", include_lower=True, include_upper=True):
     if self.selections is None:
       self.selections = []
     range_selection = {"range":{column:{"to":to_str, "from":from_str, "include_lower":include_lower, "include_upper":include_upper}}}
     self.selections.append(range_selection)
+    return self
         
   def append_path_selection(self, column, value, strict=False, depth=1):
     if self.selections is None:
       self.selections = []
     path_selection = {"path": {column : {"value":value, "strict":strict, "depth":depth}}}
-    self.selections.append(path_selection)      
+    self.selections.append(path_selection)
+    return self      
         
   def set_facets(self, facets):
     self.facets = facets.get_facets()
+    return self
     
   def set_groupby(self, groupby):
     self.groupby = groupby
+    return self
     
   def set_max_per_group(self, max_per_group):
     self.max_per_group = max_per_group
+    return self
       
   def set_facet_init_param_map(self, facet_init_param_map):
     self.facet_init_param_map = facet_init_param_map
+    return self
     
   def get_columns(self):
     return self.columns
@@ -1256,30 +1275,26 @@ def main(argv):
 
   # create a sample sensei request
     
-  req = SenseiRequest();
+  req = SenseiRequest()
     
   # add paging info;
-  req.set_count(50)
-  req.set_offset(0)
+  req.set_count(50)    \
+  .set_offset(0)
     
   # add query info;
-  term_query = SenseiQueryTerm("tags", "automatic")
-  req.set_query(term_query)
+  req.set_query(SenseiQueryTerm("tags", "automatic"))
     
   # add selection info;
   req.append_range_selection("year", "1995", "2000", True, False)  # [1995 TO 2000)
     
   # add filter info;
-  range_filter = SenseiFilterRange("price", 7900, 11000)
-  req.set_filter(range_filter)
+  req.set_filter(SenseiFilterRange("price", 7900, 11000))
     
   # add group by;
-  req.set_groupby("category")
-  req.set_max_per_group(4)
+  req.set_groupby("category").set_max_per_group(4)
     
   # add sort;
-  sort = SenseiSort("color", True)
-  req.append_sort(sort)
+  req.append_sort(SenseiSort("color", True))
     
   # add fetch_stored
   req.set_fetch_stored(False)
@@ -1288,9 +1303,8 @@ def main(argv):
   req.set_explain(False)
     
   # add facets information
-  facets = SenseiFacets()
-  facets.add_facet("color", False, 1, 10, "hits")
-  facets.add_facet("year")
+  facets = SenseiFacets().add_facet("color", False, 1, 10, "hits")  \
+                         .add_facet("year")
   req.set_facets(facets)
     
   # execute and display results;
