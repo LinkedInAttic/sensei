@@ -16,7 +16,8 @@ title: SenseiDB - Indexing &amp; Gateway
   <ul>
     <li>add (default) - inserts data into Sensei</li>
     <li>delete - deletes data from Sensei</li>
-    <li>update - update partially on an existing event</li>
+<!--
+    <li>update - update partially on an existing event</li>-->
   </ul>
 </p>
 
@@ -32,7 +33,7 @@ title: SenseiDB - Indexing &amp; Gateway
 </pre>
 <p>for add events with the same id, newer events overwrite existing events</p>
 </p>
-
+<!--
 <p>
 <h4>Update event:</h4>
 <pre class="prettyprint" id="javascript">
@@ -40,7 +41,7 @@ title: SenseiDB - Indexing &amp; Gateway
 </pre>
 <p>update events assume there is an existing event with the same id in the system. If no such event exists, this event will result in an error.</p>
 </p>
-
+-->
 
 <p>
 <h4>Delete event:</h4>
@@ -48,6 +49,9 @@ title: SenseiDB - Indexing &amp; Gateway
 {"type":"delete","id":1}
 </pre>
 <p>If no such event exists, this event is a no-op.</p>
+</p>
+<p>
+	We will be supporting partial updates in the next release.
 </p>
 
 <h2>Data Stream</h2>
