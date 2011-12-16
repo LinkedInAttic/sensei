@@ -1,0 +1,49 @@
+---
+layout: default
+title: SenseiDB - Building Sensei
+---
+<div class="hero-unit">
+	<h2>So you want to build from source</h2>
+</div>
+
+<h2>Get the code</h2>
+<p>
+	Check out the code:
+	<pre><code>git clone git://github.com/senseidb/sensei.git</code></pre>
+</p>
+
+<h2>Build</h2>
+<p>
+	Sensei builds using <a href="http://maven.apache.org/" target="_blank">Apache Maven</a>.
+</p>
+<p>
+	The Sensei Kafka gateway uses the latest build of Kafka. Since Kafka is not yet mavenized, we will have to install it manually to our local repository. To do this, simply do: <code>./bin/mvn-install.sh</code>
+</p>
+<p>
+	Now we can build, with: <code>./bin/build.sh</code>
+</p>
+
+<h2>Code structure</h2>
+<p>
+The following is a quick overview of important directories in the Sensei repository:
+</p>
+<ul>
+	<li>bin - shell scripts</li>
+	<li>example - Sensei examples
+		<ul>
+			<li>cars - cars example</li>
+			<li>hadoop-indexing - example for hadoop indexing</li>
+			<li>tweets - tweets example</li>
+		</ul>
+	</li>
+	<li>docs - documentation, docbook sources</li>
+	<li>clients - client libraries
+		<ul>
+			<li>java-client</li>
+			<li>javascript</li>
+			<li>python</li>
+		</ul>
+	</li>
+	<li>sensei-core - source code the real guts of Sensei</li>
+	<li>sensei-hadoop-indexing - hadoop indexing support</li>
+</ul>
