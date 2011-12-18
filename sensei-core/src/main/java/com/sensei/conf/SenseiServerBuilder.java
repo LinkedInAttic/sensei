@@ -63,6 +63,7 @@ import com.sensei.indexing.api.CustomIndexingPipeline;
 import com.sensei.indexing.api.DefaultJsonSchemaInterpreter;
 import com.sensei.indexing.api.DefaultStreamingIndexingManager;
 import com.sensei.indexing.api.SenseiIndexPruner;
+import com.sensei.indexing.api.ShardingStrategy;
 import com.sensei.indexing.api.gateway.SenseiGateway;
 import com.sensei.plugin.SenseiPluginRegistry;
 import com.sensei.search.client.servlet.DefaultSenseiJSONServlet;
@@ -376,8 +377,14 @@ public class SenseiServerBuilder implements SenseiConfParams{
       }
       SenseiZoieFactory<?> zoieSystemFactory = constructZoieFactory(zoieConfig, facetHandlers, runtimeFacetHandlerFactories, interpreter);
       SenseiIndexingManager<?> indexingManager = pluginRegistry.getBeanByFullPrefix(SENSEI_INDEX_MANAGER, SenseiIndexingManager.class);
+      
+      ShardingStrategy strategy = pluginRegistry.getBeanByFullPrefix(SENSEI_SHARDING_STRATEGY, ShardingStrategy.class);
+      if (strategy == null){
+        strategy = new ShardingStrategy.FieldModShardingStrategy(_senseiSchema.getUidField());
+      }
+
       if (indexingManager == null){
-        indexingManager = new DefaultStreamingIndexingManager(_senseiSchema,_senseiConf, pluginRegistry, _gateway);
+        indexingManager = new DefaultStreamingIndexingManager(_senseiSchema,_senseiConf, pluginRegistry, _gateway,strategy);
       }
       SenseiQueryBuilderFactory queryBuilderFactory = pluginRegistry.getBeanByFullPrefix(SENSEI_QUERY_BUILDER_FACTORY, SenseiQueryBuilderFactory.class);
       if (queryBuilderFactory == null){

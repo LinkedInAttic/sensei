@@ -49,8 +49,6 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 
 	private static final String BATCH_SIZE = "batchSize";
 
-	private static final String SHARDING_STRATEGY = "shardingStrategy";
-
   private static MeterMetric ProviderBatchSizeMeter = null;
   private static MeterMetric EventMeter = null;
   private static MeterMetric UpdateBatchSizeMeter = null;
@@ -87,7 +85,8 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
   private SenseiPluginRegistry pluginRegistry;
 
 
-	public DefaultStreamingIndexingManager(SenseiSchema schema,Configuration senseiConfig, SenseiPluginRegistry pluginRegistry, SenseiGateway<?> gateway){
+	public DefaultStreamingIndexingManager(SenseiSchema schema,Configuration senseiConfig, 
+	    SenseiPluginRegistry pluginRegistry, SenseiGateway<?> gateway,ShardingStrategy shardingStrategy){
 	  _dataProvider = null;
 	  _myconfig = senseiConfig.subset(CONFIG_PREFIX);
      this.pluginRegistry = pluginRegistry;
@@ -98,19 +97,7 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 	  _gateway = gateway;
 
 	  _versionComparator = _gateway.getVersionComparator();
-
-      String shardingStrategyName = _myconfig.getString(SHARDING_STRATEGY);
-
-      ShardingStrategy strategy = null;
-
-      if (shardingStrategyName!=null){
-        strategy = pluginRegistry.getBeanByFullPrefix(CONFIG_PREFIX + "." + SHARDING_STRATEGY, ShardingStrategy.class);
-      }
-      if (strategy == null){
-    	  strategy = new ShardingStrategy.FieldModShardingStrategy(_senseiSchema.getUidField());
-      }
-
-      _shardingStrategy = strategy;
+    _shardingStrategy = shardingStrategy;
 	}
 
 	public void updateOldestSinceKey(String sinceKey){
