@@ -1,0 +1,96 @@
+---
+layout: default
+title: SenseiDB - Cluster Overview
+---
+<div class="hero-unit">
+	<h2>Cluster Overview</h2>
+	<p>How Sensei scales horizontally</p>
+</div>
+
+
+<h2>Replications</h2>
+<p>
+	
+	There are three important reasons for data replication in a distributed data system:
+	<ol>
+		<li>Availability</li>
+		<li>Through-put/request scalability</li>
+		<li>Data Durability</li>
+	</ol>
+</p>
+<h4>Availability:</h4>
+<p>
+   In a high-traffic internet service, what can go wrong will go wrong...very often! In a distributed systems setting, where the system is composed of many physical machines, the likelihood of failure increases with the number of machines.
+</p>
+<p>
+    By having a level of redundancy makes the system tolerant to faults, because at times of system failures, a replication can take over handling the request.
+</p>
+
+<h4>Through-put/request scalability</h4>
+<p>
+    Having replications not only helps at times of failures, while serving normal traffic, replicas divide up the requests and share the workload. For example, if the system can handle 100 requests per second, having 3 replications would be able to handle 300 requests per second.
+</p>
+
+<h4>Data Durability</h4>
+<p>
+	This is perhaps the most important guarantee any data system must provide: data cannot be lost.
+</p>
+<p>
+	Having replications of the actual data provides N copies of your data (N - number of replications).
+</p>
+
+<h2>Sharding</h2>
+<p>
+	Shards are also called <code>partitions</code>. As size of the data corpus increases, so does query latency. This is a fairly easy assertion to understand. In designing large data systems, we must assume there is no upper-bound for the number of documents in corpus.
+</p>
+<p>
+	By dividing the corpus into smaller <code>shards</code>, we are able to divide query-time computation cost into smaller and parallel work units via a <code>scatter-gather</code> pattern. For example, we can reduce the problem of querying against a corpus with 100 million documents into 10 queries against 10 shards, each containing 10 million docs in parallel (scatter), and the merge the result set (gather).
+</p>
+
+<h2>Sensei cluster</h2>
+<p>
+	A Sensei cluster consists of nodes and shards. Both nodes and shards are identified by an unique integer. Each Sensei node can consist N shards. 
+</p>
+<p>
+	For example, given 3 Sensei nodes: {N<sub>1</sub>, N<sub>2</sub>, N<sub>3</sub>}, and 3 shards: {S<sub>1, S<sub>2</sub>, S<sub>3</sub>}, with the following cluster topology:
+	<ul>
+		<li>N<sub>1</sub> - {S<sub>1, S<sub>2</sub>}</li>
+		<li>N<sub>2</sub> - {S<sub>2, S<sub>3</sub>}</li>
+		<li>N<sub>3</sub> - {S<sub>1, S<sub>3</sub>}</li>
+	</ul>
+	We have a Sensei cluster with 3 shards and a replications factor of 2.
+</p>
+<p>
+	See the following diagram for an example of a large Sensei cluster:
+	<p>
+		<img src="images/index-sharding.png" />
+	</p>
+</p>
+
+<h2>Cluster configuration</h2>
+<p>
+	In <code>sensei.properties</code> file, edit the following properties:
+	<pre class="prettyprint">
+	# node id
+	sensei.node.id=1
+	
+	# comma separated list of partitions this node works with
+	sensei.node.partitions=0,1	
+	</pre>
+</p>
+<p>
+	More information on Sensei configuration, go to <a class="btn" href="configuration.html">Sensei Configuration &raquo;</a>
+</p>
+
+<h2>Under the hood</h2>
+<p>
+	Each Sensei node reports to Zookeeper, our cluster manager, its state and which shards it has. Zookeeper propagates this information through-out the entire cluster, especially to the brokers. The brokers maintains an inverse map of shard id to node id list. This list is kept up to date with cluster topology changes from newly introduced nodes and/or node failures.
+</p>
+<h4>Sharding Strategy</h4>
+<p>
+	At indexing time, the <a href="javadoc/sensei-core/apidocs/com/sensei/indexing/api/ShardingStrategy.html">ShardingStrategy</a> is applied from the data events streamed-in from the gateway for each node. So only data-events belong to a specific shard is added. ShardingStrategy can be configured with <code>sensei.index.manager.default.shardingStrategy</code> setting in the <code>sensei.properties</code> file.
+</p>
+<h4>Load Balancer Factory</h4>
+<p>
+	At query time, the broker uses the <a href="javadoc/sensei-core/apidocs/com/sensei/search/cluster/routing/SenseiLoadBalancerFactory.html">SenseiLoadBalancerFactory</a> to get a <a href="javadoc/sensei-core/apidocs/com/sensei/search/cluster/routing/SenseiLoadBalancer.html">SenseiLoadBalancer</a> and generates a routing map to get a list of nodes to send the requests to. By default, broker uses <a href="http://en.wikipedia.org/wiki/Consistent_hashing" target="_blank">consistent hash</a> on the <code>routing parameter</code> provided by the request. <code>router factory</code> can be configured with <code>sensei.search.router.factory</code> setting in the <code>sensei.properties</code> file.
+</p>
