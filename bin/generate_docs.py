@@ -12,6 +12,16 @@ os.system("wish BQL-diagrams.tcl")
 os.chdir(SENSEI_HOME + "/docs")
 os.system("mvn docbkx:generate-html")
 os.system("cp -frp src/docbkx/figures target/docbkx/")
-os.system("tar czf target/docbkx.tgz target/docbkx")
+
+# Remove unneeded files in figures directory
+os.system("rm -fr target/docbkx/figures/*.graffle")
+os.system("rm -fr target/docbkx/figures/BQL/.gitignore")
+os.system("rm -fr target/docbkx/figures/BQL/*.pdf")
+os.system("rm -fr target/docbkx/figures/BQL/*.ps")
+os.system("rm -fr target/docbkx/figures/BQL/*.tcl")
+os.system("rm -fr target/docbkx/figures/BQL/*.html")
+
+os.chdir(SENSEI_HOME + "/docs/target")
+os.system("tar czf docbkx.tgz docbkx")
 
 print "File docbkx.tgz is now available at %s/docs/target/docbkx.tgz" % SENSEI_HOME
