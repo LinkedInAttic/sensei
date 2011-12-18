@@ -44,7 +44,7 @@ title: SenseiDB - Cluster Overview
 	Shards are also called <code>partitions</code>. As size of the data corpus increases, so does query latency. This is a fairly easy assertion to understand. In designing large data systems, we must assume there is no upper-bound for the number of documents in corpus.
 </p>
 <p>
-	By dividing the corpus into smaller <code>shards</code>, we are able to divide query-time computation cost into smaller and parallel work units via a <code>scatter-gather</code> pattern. For example, we can reduce the problem of querying against a corpus with 100 million documents into 10 queries against 10 shards, each containing 10 million docs in parallel (scatter), and the merge the result set (gather).
+	By dividing the corpus into smaller <code>shards</code>, we are able to divide query-time computation cost into smaller and parallel work units via a <code>scatter-gather</code> pattern. For example, we can reduce the problem of querying against a corpus with 100 million documents into 10 concurrent queries against 10 shards, each containing 10 million docs (scatter), and then merge the result set (gather).
 </p>
 
 <h2>Sensei cluster</h2>
@@ -52,11 +52,11 @@ title: SenseiDB - Cluster Overview
 	A Sensei cluster consists of nodes and shards. Both nodes and shards are identified by an unique integer. Each Sensei node can consist N shards. 
 </p>
 <p>
-	For example, given 3 Sensei nodes: {N<sub>1</sub>, N<sub>2</sub>, N<sub>3</sub>}, and 3 shards: {S<sub>1, S<sub>2</sub>, S<sub>3</sub>}, with the following cluster topology:
+	For example, given 3 Sensei nodes: {N<sub>1</sub>, N<sub>2</sub>, N<sub>3</sub>}, and 3 shards: {S<sub>1</sub>, S<sub>2</sub>, S<sub>3</sub>}, with the following cluster topology:
 	<ul>
-		<li>N<sub>1</sub> - {S<sub>1, S<sub>2</sub>}</li>
-		<li>N<sub>2</sub> - {S<sub>2, S<sub>3</sub>}</li>
-		<li>N<sub>3</sub> - {S<sub>1, S<sub>3</sub>}</li>
+		<li>N<sub>1</sub> - {S<sub>1</sub>, S<sub>2</sub>}</li>
+		<li>N<sub>2</sub> - {S<sub>2</sub>, S<sub>3</sub>}</li>
+		<li>N<sub>3</sub> - {S<sub>1</sub>, S<sub>3</sub>}</li>
 	</ul>
 	We have a Sensei cluster with 3 shards and a replications factor of 2.
 </p>
@@ -92,5 +92,5 @@ title: SenseiDB - Cluster Overview
 </p>
 <h4>Load Balancer Factory</h4>
 <p>
-	At query time, the broker uses the <a href="javadoc/sensei-core/apidocs/com/sensei/search/cluster/routing/SenseiLoadBalancerFactory.html">SenseiLoadBalancerFactory</a> to get a <a href="javadoc/sensei-core/apidocs/com/sensei/search/cluster/routing/SenseiLoadBalancer.html">SenseiLoadBalancer</a> and generates a routing map to get a list of nodes to send the requests to. By default, broker uses <a href="http://en.wikipedia.org/wiki/Consistent_hashing" target="_blank">consistent hash</a> on the <code>routing parameter</code> provided by the request. <code>router factory</code> can be configured with <code>sensei.search.router.factory</code> setting in the <code>sensei.properties</code> file.
+	At query time, the broker uses the <a href="javadoc/sensei-core/apidocs/com/sensei/search/cluster/routing/SenseiLoadBalancerFactory.html">SenseiLoadBalancerFactory</a> to get a <a href="javadoc/sensei-core/apidocs/com/sensei/search/cluster/routing/SenseiLoadBalancer.html">SenseiLoadBalancer</a> and generates a routing map to get a list of nodes to send the requests to. By default, broker uses <a href="http://en.wikipedia.org/wiki/Consistent_hashing" target="_blank">consistent hash</a> on the <code>routing parameter</code> provided by the request. <code>Load balancer factory</code> can be configured with <code>sensei.search.router.factory</code> setting in the <code>sensei.properties</code> file.
 </p>
