@@ -17,7 +17,7 @@ title: SenseiDB - FAQ
 <hr/>
 <h2>Why is Sensei use a pull-model for indexing instead of a push model like many other data systems, e.g. Solr, HBase, Cassandra, MongoDB etc.?</h2>
 <p>
-  One requirement for Sensei is to have extremely fast update rate (thousands per second) while not compromising on search performance. Having a push-model while maintaining data consistency between replications implies a cost per udpate event. Furthermore, this is an anti-scaling pattern as number of replications grows to accomodate high avalability, the cost for update increases. So as you add more machines to handle more traffic, this slows down udpate rate. 
+  One requirement for Sensei is to have extremely fast update rate (thousands per second) while not compromising on search performance. Having a push-model while maintaining data consistency between replications implies a cost per udpate event. Furthermore, this is an anti-scaling pattern as number of replications grows to accomodate high avalability, the cost for update increases. So as you add more machines to handle more traffic, this slows down update rate. 
 </p>
 <p>
   Therefore, it is a conscious design decision to avoid this cost. Though each replication is consuming from the data stream at presumablly different rates, each at Consistency is resolved a query time by consistent hashing on the <b><i>routing parameter</i></b> specified on the request.
