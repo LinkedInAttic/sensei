@@ -1,0 +1,330 @@
+---
+layout: default
+title: SenseiDB - Administration
+---
+<div class="hero-unit">
+  <h2>Administration</h2>
+  <p>Guide to Sensei administration information and metrics.</p>
+</div>
+
+<h2>A: System metrics</h2>
+
+<h3>CPU and OS information</h3>
+<p>
+  <ul>
+    <li><b>Operating System Infomation ( AvailableProcessors, Arch (amd64),etc )</b></li>
+  </ul>
+</p>
+<pre class="prettyprint" id="xml">
+<?xml version="1.0" encoding="UTF-8"?>(ObjectName:java.lang:type=OperatingSystem)
+(InterfaceClassName:com.sun.management.UnixOperatingSystemMXBean)
+</pre>
+
+
+<h3>RAM used/free</h3>
+<p>
+  <ul>
+    <li><b>FreePhysicalMemorySize, TotalPhysicalMemorySize, CommittedVirtualMemorySize;</b></li>
+    <li><b>FreeSwapSpaceSize, TotalSwapSpaceSize;</b></li>
+  </ul>
+</p>
+<pre class="prettyprint" id="xml">
+<?xml version="1.0" encoding="UTF-8"?>(ObjectName:java.lang:type=OperatingSystem)
+(InterfaceClassName:com.sun.management.UnixOperatingSystemMXBean)
+</pre>
+
+
+<h3>System load</h3>
+<p>
+  <ul>
+    <li><b>SystemLoadAverage;</b></li>
+    <li><b>OpenFileDescriptorCount, MaxFileDescriptorCount;</b></li>
+  </ul>
+</p>
+<pre class="prettyprint" id="xml">
+<?xml version="1.0" encoding="UTF-8"?>(ObjectName:java.lang:type=OperatingSystem)
+(InterfaceClassName:com.sun.management.UnixOperatingSystemMXBean)
+</pre>
+
+
+<h3>Disk reads/writes (N/A)</h3>
+<p>
+  <ul>
+  </ul>
+</p>
+
+
+<h3>Network interface traffic (N/A)</h3>
+<p>
+  <ul>
+  </ul>
+</p>
+
+
+<h3>JVM memory usage</h3>
+<p>
+  <ul>
+    <li><b>NonHeapMemoryUsage(max, committed, init, used, etc.);</b></li>
+    <li><b>HeapMemoryUsage (max, committed, init, used, etc.);</b></li>
+  </ul>
+</p>
+<pre class="prettyprint" id="xml">
+<?xml version="1.0" encoding="UTF-8"?>(ObjectName:java.lang:type=Memory)
+(InterfaceClassName:java.lang.management.MemoryMXBean)
+</pre>
+
+<p>
+  <ul>
+    <li><b>Perm Gen info; (PeakUsage, Usage, CollectionUsage );</b></li>
+  </ul>
+</p>
+<pre class="prettyprint" id="xml">
+<?xml version="1.0" encoding="UTF-8"?>(ObjectName:java.lang:type=MemoryPool,name=PS Perm Gen)
+(InterfaceClassName:java.lang.management.MemoryPoolMXBean)
+</pre>
+
+<p>
+  <ul>
+    <li><b>Old Gen info;(PeakUsage, Usage, CollectionUsage );</b></li>
+  </ul>
+</p>
+<pre class="prettyprint" id="xml">
+<?xml version="1.0" encoding="UTF-8"?>(ObjectName:java.lang:type=MemoryPool,name=PS Old Gen)
+(InterfaceClassName:java.lang.management.MemoryPoolMXBean)
+</pre>
+
+<p>
+  <ul>
+    <li><b>Survivor Space;(PeakUsage, Usage, CollectionUsage );</b></li>
+  </ul>
+</p>
+<pre class="prettyprint" id="xml">
+<?xml version="1.0" encoding="UTF-8"?>(ObjectName:java.lang:type=MemoryPool,name=PS Survivor Space)
+(InterfaceClassName:java.lang.management.MemoryPoolMXBean)
+</pre>
+
+<p>
+  <ul>
+    <li><b>Eden Space; (PeakUsage, Usage, CollectionUsage );</b></li>
+  </ul>
+</p>
+<pre class="prettyprint" id="xml">
+<?xml version="1.0" encoding="UTF-8"?>(ObjectName:java.lang:type=MemoryPool,name=PS Eden Space)
+(InterfaceClassName:java.lang.management.MemoryPoolMXBean)
+</pre>
+
+<p>
+  <ul>
+    <li><b>Code Cache; (PeakUsage, Usage, CollectionUsage );</b></li>
+  </ul>
+</p>
+<pre class="prettyprint" id="xml">
+<?xml version="1.0" encoding="UTF-8"?>(ObjectName:java.lang:type=MemoryPool,name=Code Cache)
+(InterfaceClassName:java.lang.management.MemoryPoolMXBean)
+</pre>
+
+
+<h3>JVM garbage collection times and counts</h3>
+<p>
+  <ul>
+    <li><b>LastGcInfo: StartTime, memoryUsageBeforeGc, memoryUsageAfterGc, etc. (PS Survivor Space, PS Eden Space, Code Cache, PS Old Gen, PS Perm Gen );</b></li>
+  </ul>
+</p>
+<pre class="prettyprint" id="xml">
+<?xml version="1.0" encoding="UTF-8"?>(ObjectName:java.lang:type=GarbageCollector,name=PS MarkSweep)
+(InterfaceClassName:com.sun.management.GarbageCollectorMXBean)
+ 
+(ObjectName:java.lang:type=GarbageCollector,name=PS Scavenge)
+(InterfaceClassName:com.sun.management.GarbageCollectorMXBean)
+</pre>
+
+
+<h3>JVM threads/classes</h3>
+<p>
+  <ul>
+    <li><b>LoadedClassCount;</b></li>
+  </ul>
+</p>
+<pre class="prettyprint" id="xml">
+<?xml version="1.0" encoding="UTF-8"?>(ObjectName:java.lang:type=ClassLoading)
+(InterfaceClassName:java.lang.management.ClassLoadingMXBean)
+</pre>
+
+<p>
+  <ul>
+    <li><b>PeakThreadCount; CurrentThreadCpuTime; DaemonThreadCount; TotalStartedThreadCount; etc.;</b></li>
+  </ul>
+</p>
+<pre class="prettyprint" id="xml">
+<?xml version="1.0" encoding="UTF-8"?>(ObjectName:java.lang:type=Threading)
+(InterfaceClassName:com.sun.management.ThreadMXBean)
+</pre>
+
+
+
+
+<h2>Sensei-specific metrics</h2>
+
+<h3>Docs-indexed</h3>
+<p>
+  <ul>
+    <li><b>Number of documents that has been indexed;</b></li>
+  </ul>
+</p>
+<pre class="prettyprint" id="xml">
+<?xml version="1.0" encoding="UTF-8"?>(ObjectName: com.senseidb:type=meter,scope=indexer,name=docs-indexed)
+(InterfaceClassName: com.yammer.metrics.reporting.JmxReporter$MeterMBean)
+</pre>
+
+
+<h3>Docs indexing rate</h3>
+<p>
+  <ul>
+    <li><b>Document indexing rate;</b></li>
+  </ul>
+</p>
+<pre class="prettyprint" id="xml">
+<?xml version="1.0" encoding="UTF-8"?>(com.senseidb:type=meter,scope=indexing-manager,name=indexing-events )
+(InterfaceClassName: com.yammer.metrics.reporting.JmxReporter$MeterMBean)
+</pre>
+
+
+<h3>Sensei server info</h3>
+<p>
+  <ul>
+    <li><b>Sensei server info, e.g., id, port, is_available, partitions;</b></li>
+  </ul>
+</p>
+<pre class="prettyprint" id="xml">
+<?xml version="1.0" encoding="UTF-8"?>(ObjectName: com.senseidb:name=sensei-server-1 )
+(InterfaceClassName: com.sensei.search.nodes.SenseiServerAdminMBean)
+</pre>
+
+
+<h3>Disk Index Info for partition</h3>
+<p>
+  <ul>
+    <li><b>DiskFreeSpaceBytes, DiskIndexSizeBytes, LastOptimizationTime, LastDiskIndexModifiedTime, IndexDir, DiskIndexSegmentCount;</b></li>
+  </ul>
+</p>
+<pre class="prettyprint" id="xml">
+<?xml version="1.0" encoding="UTF-8"?>(ObjectName: com.senseidb:zoie-name=zoie-admin-1-1 )
+(InterfaceClassName: proj.zoie.mbean.ZoieSystemAdminMBean)
+</pre>
+
+<p>
+  <ul>
+    <li><b>LastIndexingBatchSize, LastIndexingBatchDuration, LastIndexingEndTime;</b></li>
+  </ul>
+</p>
+<pre class="prettyprint" id="xml">
+<?xml version="1.0" encoding="UTF-8"?>(ObjectName: com.senseidb:zoie-name=zoie-status-1-1 )
+(InterfaceClassName: proj.zoie.mbean.ZoieIndexingStatusAdminMBean)
+</pre>
+
+
+<h3>Request number, OneMinuteRate</h3>
+<p>
+  <ul>
+    <li><b>Number of requests received, OneMinuteRate;</b></li>
+  </ul>
+</p>
+<pre class="prettyprint" id="xml">
+<?xml version="1.0" encoding="UTF-8"?>(ObjectName: com.senseidb:type=meter,scope=node,name=search-count )
+(InterfaceClassName: com.yammer.metrics.reporting.JmxReporter$MeterMBean)
+</pre>
+
+
+<h3>QPS (can be calculated)</h3>
+<p>
+  <ul>
+  </ul>
+</p>
+
+
+
+<h3>Latency in Senseidb broker level</h3>
+<p>
+  <ul>
+    <li><b>Total search time;</b></li>
+  </ul>
+</p>
+<pre class="prettyprint" id="xml">
+<?xml version="1.0" encoding="UTF-8"?>(ObjectName:com.senseidb:type=timer,scope=broker,name=total-search-time)
+(InterfaceClassName:com.yammer.metrics.reporting.JmxReporter$TimerMBean)
+</pre>
+
+<p>
+  <ul>
+    <li><b>Scatter time;</b></li>
+  </ul>
+</p>
+<pre class="prettyprint" id="xml">
+<?xml version="1.0" encoding="UTF-8"?>(ObjectName:com.com.senseidb:type=timer,scope=broker,name=scatter-time)
+(InterfaceClassName:com.yammer.metrics.reporting.JmxReporter$TimerMBean)
+</pre>
+
+<p>
+  <ul>
+    <li><b>Gather time;</b></li>
+  </ul>
+</p>
+<pre class="prettyprint" id="xml">
+<?xml version="1.0" encoding="UTF-8"?>(ObjectName:com.senseidb:type=timer,scope=broker,name=gather-time)
+(InterfaceClassName:com.yammer.metrics.reporting.JmxReporter$TimerMBean)
+</pre>
+
+
+
+<h3>Latency in Senseidb node level</h3>
+<p>
+  <ul>
+    <li><b>Get reader time;</b></li>
+  </ul>
+</p>
+<pre class="prettyprint" id="xml">
+<?xml version="1.0" encoding="UTF-8"?>(ObjectName:com.senseidb:type=timer,scope=node,name=getreader-time)
+(InterfaceClassName:com.yammer.metrics.reporting.JmxReporter$TimerMBean)
+</pre>
+
+<p>
+  <ul>
+    <li><b>Merge time;</b></li>
+  </ul>
+</p>
+<pre class="prettyprint" id="xml">
+<?xml version="1.0" encoding="UTF-8"?>(ObjectName:com.senseidb:type=timer,scope=node,name=merge-time)
+(InterfaceClassName:com.yammer.metrics.reporting.JmxReporter$TimerMBean)
+</pre>
+
+<p>
+  <ul>
+    <li><b>Prune time;</b></li>
+  </ul>
+</p>
+<pre class="prettyprint" id="xml">
+<?xml version="1.0" encoding="UTF-8"?>(ObjectName:com.senseidb:type=timer,scope=node,name=prune)
+(InterfaceClassName:com.yammer.metrics.reporting.JmxReporter$TimerMBean)
+</pre>
+
+
+<p>
+  <ul>
+    <li><b>Search time in node;</b></li>
+  </ul>
+</p>
+<pre class="prettyprint" id="xml">
+<?xml version="1.0" encoding="UTF-8"?>(ObjectName:com.senseidb:type=timer,scope=node,name=search-time)
+(InterfaceClassName:com.yammer.metrics.reporting.JmxReporter$TimerMBean)
+</pre>
+
+
+<p>
+  <ul>
+    <li><b>Total search time;</b></li>
+  </ul>
+</p>
+<pre class="prettyprint" id="xml">
+<?xml version="1.0" encoding="UTF-8"?>(ObjectName:com.senseidb:type=timer,scope=node,name=total-search-time)
+(InterfaceClassName:com.yammer.metrics.reporting.JmxReporter$TimerMBean)
+</pre>
