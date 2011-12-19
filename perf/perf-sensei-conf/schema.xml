@@ -20,7 +20,7 @@
     lucene - use store in lucene's index
   -->
 
-  <table uid="uid" src-data-store="none" src-data-field="src_data" compress-src-data="true" delete-field="" skip-field="">
+  <table uid="uid">
 	<column name="color" type="string" />
 	<column name="category" type="string" />
 	<column name="city" type="string" />
