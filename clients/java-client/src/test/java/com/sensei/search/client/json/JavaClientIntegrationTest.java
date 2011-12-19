@@ -9,7 +9,6 @@ import java.util.Map;
 import org.json.JSONObject;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.sensei.search.client.json.req.Operator;
@@ -20,7 +19,7 @@ import com.sensei.search.client.json.req.filter.Filters;
 import com.sensei.search.client.json.req.query.Queries;
 import com.sensei.search.client.json.req.query.Query;
 import com.sensei.search.client.json.res.SenseiResult;
-@Ignore
+//@Ignore
 public class JavaClientIntegrationTest extends Assert {
   private SenseiServiceProxy senseiServiceProxy;
   @Before

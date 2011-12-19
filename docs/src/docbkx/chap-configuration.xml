@@ -1446,11 +1446,13 @@ sensei.custom.facets.list= virtual_groupids, my.custom_facets.tags, groupid  </p
 
         <varlistentry>
           <term><emphasis
+
           role="bold">sensei.indexer.type</emphasis></term>
 
           <listitem>
             <itemizedlist spacing="compact">
               <listitem>
+
                 <para>Type: string</para>
               </listitem>
 
