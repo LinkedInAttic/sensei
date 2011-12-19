@@ -41,11 +41,11 @@ public class JdbcDataProviderBuilder extends SenseiGateway<ResultSet>{
       Set<Integer> partitions) throws Exception
   {
 
-	       final String url = config.get("url");
-	       final String username = config.get("username");
-	       final String password = config.get("password");
-	       final String driver = config.get("driver");
-	       final String adaptor = config.get("adaptor");
+	       final String url = config.get("jdbc.url");
+	       final String username = config.get("jdbc.username");
+	       final String password = config.get("jdbc.password");
+	       final String driver = config.get("jdbc.driver");
+	       final String adaptor = config.get("jdbc.adaptor");
 
 	       final SenseiJDBCAdaptor senseiAdaptor =  pluginRegistry.getBeanByFullPrefix("jdbc.adaptor", SenseiJDBCAdaptor.class);
 	       if (senseiAdaptor==null){
