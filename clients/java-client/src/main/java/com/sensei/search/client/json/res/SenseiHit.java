@@ -9,11 +9,15 @@ import com.sensei.search.client.json.CustomJsonHandler;
 import com.sensei.search.client.json.JsonField;
 @CustomJsonHandler(SenseiHitJsonHandler.class)
 public class SenseiHit {
-
+  @JsonField("_uid")
   private Integer uid;
+  @JsonField("_docid")
   private Integer docid;
+  @JsonField("_score")
   private Integer score;
+  @JsonField("_srcdata")
   private String srcdata;
+  @JsonField("_grouphitscount")
   private Integer grouphitscount;
   private List<SenseiHit> groupHits = new ArrayList<SenseiHit>();
   private List<FieldValue> storedFields = new ArrayList<FieldValue>();

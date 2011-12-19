@@ -43,17 +43,23 @@
       custom - custom facet handler, name must be defined in a spring bean in custom-facets.xml
    -->
    <facets>
-	 <facet name="groupid" type="simple" />
-	 <facet name="color" type="simple" depends=""/>
+	 <facet name="groupid" type="simple"/>
+	  <facet name="color" type="simple" depends=""/>
 	 <facet name="category" type="simple" />
 	 <facet name="city" type="path">
 	  <params>
 		<param name="separator" value="/" />
 	  </params>
 	 </facet>
-	 <facet name="makemodel" type="path" />
+	 <facet name="makemodel" type="path" />	
 	
-	 <facet name="year" type="range">
+	
+	<facet name="timeRange"  type="dynamicTimeRange" column="groupid" dynamic="true">
+	 <params>	
+		     <param name="range" value="000000013" /> 	  	  
+		</params>
+	 </facet>
+	  <facet name="year" type="range">
 		<params>
 		  <param name="range" value="1993-1994" />
 		  <param name="range" value="1995-1996" />
@@ -79,8 +85,8 @@
 		  <param name="range" value="17400,*" />
 		</params>
 	 </facet>
-	 <facet name="tags" type="multi" />
-	 <facet name="virtual_groupid" type="custom" />
+	 <facet name="tags" type="multi" /> -->
+	<facet name="virtual_groupid" type="custom" />
 	 <facet name="virtual_groupid_fixedlengthlongarray" type="custom" />
 	 
 	 <!-- example of a custom facet, defined in custom-facets.xml -->

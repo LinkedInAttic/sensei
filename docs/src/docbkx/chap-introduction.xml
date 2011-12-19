@@ -9,10 +9,11 @@
     distributed database that is designed to handle the following type
     of queries:</para>
 
-    <programlisting>    SELECT f1,f2...fn FROM members
-    WHERE c1 AND c2 AND c3..
+    <programlisting>SELECT f1,f2...fn FROM members
+    WHERE c1 AND c2 OR c3..
     MATCH (fulltext query, e.g. "java engineer")
-    GROUP BY fx,fy,fz...
+    BROWSE BY fx,fy
+    GROUP BY fz...
     ORDER BY fa,fb...
     LIMIT offset,count</programlisting>
 
@@ -373,27 +374,11 @@
           <para>Indexing Manager<indexterm><primary>Indexing Manager</primary></indexterm></para>
 
           <para>Indexing manager acts as the bridge between the gateway
-          and the Zoie system.  It is responsible for passing data from
-          the gateway to Zoie, controlling the pace of data consumption,
+          and the Sensei node.  It is responsible for passing data from
+          the gateway to Sensei, controlling the pace of data consumption,
           and maintaining the index versions on the Sensei node.</para>
         </listitem>
 
-        <listitem>
-          <para>Zoie System<indexterm><primary>Zoie System</primary></indexterm></para>
-
-          <para>This is the underlying system powering real-time
-          indexing and search.  Two types of Zoie systems are supported
-          by Sensei today: regular Zoie and Hourglass.</para>
-
-          <para>Hourglass (<link
-          xlink:href="http://linkedin.jira.com/wiki/display/ZOIE/HourGlass+-+Forward-Rolling+Indexing">http://linkedin.jira.com/wiki/display/ZOIE/HourGlass+-+Forward-Rolling+Indexing</link>)
-          <indexterm><primary>Hourglass</primary></indexterm>is a
-          forward-rolling, append-only indexing system based on Zoie.
-          It is used to power LinkedIn Signal <indexterm>
-          <primary>Signal</primary></indexterm> (<link
-          xlink:href="http://www.linkedin.com/signal">http://www.linkedin.com/signal</link>).</para>
-
-        </listitem>
         <listitem>
           <para>Facet Handlers<indexterm><primary>Facet Handler</primary></indexterm></para>
 

@@ -116,7 +116,7 @@ public class SchemaConverter
         }
       }
     }
-    
+
 
     NodeList facets = schemaDoc.getElementsByTagName("facet");
     JSONArray facetArray = new JSONArray();
@@ -129,18 +129,22 @@ public class SchemaConverter
         Element facet = (Element) facets.item(i);
         JSONObject facetObj = new JSONObject();
         facetArray.put(facetObj);
-        
+
         facetObj.put("name", facet.getAttribute("name"));
         facetObj.put("type", facet.getAttribute("type"));
         String depends = facet.getAttribute("depends");
         if (depends!=null){
           facetObj.put("depends", depends);
         }
+        String column = facet.getAttribute("column");
+        if (column!=null && column.length() > 0){
+          facetObj.put("column", column);
+        }
         String dynamic = facet.getAttribute("dynamic");
         if (dynamic!=null){
           facetObj.put("dynamic",dynamic);
         }
-        
+
         NodeList paramList = facet.getElementsByTagName("param");
         if (paramList!=null){
           JSONArray params = new JSONArray();
@@ -163,7 +167,7 @@ public class SchemaConverter
 
     return jsonObj;
   }
-  
+
   public static void main(String[] args) throws Exception
   {
     File xmlSchema = new File("conf/schema.xml");

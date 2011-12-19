@@ -62,8 +62,9 @@
         </dependencies>
 
         <configuration>
-           <targetDirectory>${basedir}/src/docbkx</targetDirectory>
+           <targetDirectory>${basedir}/target/docbkx</targetDirectory>
            <includes>sensei.xml</includes>
+           <chunkedOutput>true</chunkedOutput>
         </configuration>
 
         <executions>

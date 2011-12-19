@@ -127,20 +127,6 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
   }
   
   @Override
-  public SenseiResult browse(SenseiRequest req) throws SenseiException {
-	  try{
-	    List<NameValuePair> queryParams = HttpRestSenseiServiceImpl.convertRequestToQueryParams(req);
-	    String qString = URLEncodedUtils.format(queryParams, "UTF-8");
-		Logger log = Logger.getLogger("com.sensei.querylog");
-		log.info(qString);
-	  }
-	  catch(Exception e){
-		logger.error(e.getMessage(),e);
-	  }
-	  return super.browse(req);
-  }
-
-  @Override
   public SenseiRequest customizeRequest(SenseiRequest request)
   {    // Rewrite offset and count.
     request.setCount(request.getOffset()+request.getCount());
