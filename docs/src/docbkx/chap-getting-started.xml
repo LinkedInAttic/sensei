@@ -88,13 +88,13 @@
 
             <para>Checking out the source code from trunk: 
             </para>
-            <programlisting><![CDATA[  $ git clone git://github.com/javasoze/sensei.git sensei-trunk]]>
+            <programlisting><![CDATA[  $ git clone git://github.com/senseidb/sensei.git sensei-trunk]]>
             </programlisting>
           </listitem>
           <listitem>
             <para>Building Sensei using <literal>ant</literal>:
             </para>
-            <programlisting><![CDATA[  $ ant]]></programlisting>
+            <programlisting><![CDATA[  $ ./bin/build.sh]]></programlisting>
           </listitem>
         </orderedlist>
       </section>
@@ -127,7 +127,7 @@
         <title>Starting Sensei Nodes <indexterm><primary>start Sensei node</primary></indexterm> </title>
 
         <para>You can use command
-        <literal>bin/start-sensei-node.sh</literal> to start a server
+        <literal>./bin/start-sensei-node.sh</literal> to start a server
         node.  This command takes one argument:
         <literal>conf.dir</literal>, which contains all configuration
         information for a given Sensei node.</para>
@@ -136,11 +136,10 @@
         a single sensei node with some sample data:
         </para>
 
-        <programlisting><![CDATA[  $ bin/start-sensei-node.sh conf]]></programlisting>
+        <programlisting><![CDATA[  $ ./bin/start-sensei-node.sh example/cars/conf]]></programlisting>
 
         <note>
-          <para>Do not expect to see any logs after running this
-          command. If you run it, have ZooKeeper up and running, a REST
+          <para>Logs will be generated in the logs/ directory. If you run it, have ZooKeeper up and running, a REST
           server (as discussed below) will also be started, and you will
           be able to get some sample search results. </para>
         </note>
@@ -181,11 +180,7 @@
           After you start at least one node, you can run
         </para>
 
-        <programlisting>  $ bin/sensei-client.sh client-conf</programlisting>
-
-        <para>to start a client.  You can edit
-        <literal>client-conf/sensei-client.conf</literal> to change the
-        properties.</para>
+        <programlisting>  $ ./bin/sensei-shell.sh</programlisting>
 
         <para>
           Type help to see command list:

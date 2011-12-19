@@ -11,7 +11,6 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -64,6 +63,7 @@ import com.sensei.indexing.api.CustomIndexingPipeline;
 import com.sensei.indexing.api.DefaultJsonSchemaInterpreter;
 import com.sensei.indexing.api.DefaultStreamingIndexingManager;
 import com.sensei.indexing.api.SenseiIndexPruner;
+import com.sensei.indexing.api.ShardingStrategy;
 import com.sensei.indexing.api.gateway.SenseiGateway;
 import com.sensei.plugin.SenseiPluginRegistry;
 import com.sensei.search.client.servlet.DefaultSenseiJSONServlet;
@@ -83,6 +83,7 @@ import com.sensei.search.nodes.SenseiZoieFactory;
 import com.sensei.search.nodes.SenseiZoieSystemFactory;
 import com.sensei.search.nodes.impl.DefaultJsonQueryBuilderFactory;
 import com.sensei.search.query.RetentionFilterFactory;
+import com.sensei.search.query.TimeRetentionFilter;
 import com.sensei.search.req.AbstractSenseiRequest;
 import com.sensei.search.req.AbstractSenseiResult;
 import com.sensei.search.req.SenseiSystemInfo;
@@ -109,12 +110,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
 
   static final String SENSEI_CONTEXT_PATH = "sensei";
 
-  private final static Map<String,TimeUnit> TIMEUNIT_MAP = new HashMap<String,TimeUnit>();
-  static{
-    TIMEUNIT_MAP.put("seconds", TimeUnit.SECONDS);
-    TIMEUNIT_MAP.put("hours", TimeUnit.HOURS);
-    TIMEUNIT_MAP.put("days", TimeUnit.DAYS);
-  }
+
 
 
   public ClusterClient buildClusterClient()
@@ -327,6 +323,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
       zoieConfig.setMaxBatchSize(_senseiConf.getInt(SENSEI_INDEX_BATCH_MAXSIZE, ZoieConfig.DEFAULT_MAX_BATCH_SIZE));
       zoieConfig.setRtIndexing(_senseiConf.getBoolean(SENSEI_INDEX_REALTIME, ZoieConfig.DEFAULT_SETTING_REALTIME));
       zoieConfig.setFreshness(_senseiConf.getLong(SENSEI_INDEX_FRESHNESS, 500));
+      zoieConfig.setSkipBadRecord(_senseiConf.getBoolean(SENSEI_SKIP_BAD_RECORDS, false));
 
       List<FacetHandler<?>> facetHandlers = new LinkedList<FacetHandler<?>>();
       List<RuntimeFacetHandlerFactory<?,?>> runtimeFacetHandlerFactories = new LinkedList<RuntimeFacetHandlerFactory<?,?>>();
@@ -380,8 +377,14 @@ public class SenseiServerBuilder implements SenseiConfParams{
       }
       SenseiZoieFactory<?> zoieSystemFactory = constructZoieFactory(zoieConfig, facetHandlers, runtimeFacetHandlerFactories, interpreter);
       SenseiIndexingManager<?> indexingManager = pluginRegistry.getBeanByFullPrefix(SENSEI_INDEX_MANAGER, SenseiIndexingManager.class);
+      
+      ShardingStrategy strategy = pluginRegistry.getBeanByFullPrefix(SENSEI_SHARDING_STRATEGY, ShardingStrategy.class);
+      if (strategy == null){
+        strategy = new ShardingStrategy.FieldModShardingStrategy(_senseiSchema.getUidField());
+      }
+
       if (indexingManager == null){
-        indexingManager = new DefaultStreamingIndexingManager(_senseiSchema,_senseiConf, pluginRegistry, _gateway);
+        indexingManager = new DefaultStreamingIndexingManager(_senseiSchema,_senseiConf, pluginRegistry, _gateway,strategy);
       }
       SenseiQueryBuilderFactory queryBuilderFactory = pluginRegistry.getBeanByFullPrefix(SENSEI_QUERY_BUILDER_FACTORY, SenseiQueryBuilderFactory.class);
       if (queryBuilderFactory == null){
@@ -423,10 +426,11 @@ public class SenseiServerBuilder implements SenseiConfParams{
       	    throw new ConfigurationException("Retention specified without a time column");
       	  }
       	  String unitString = _senseiConf.getString(SENSEI_ZOIE_RETENTION_TIMEUNIT,"seconds");
-      	  TimeUnit unit =TIMEUNIT_MAP.get(unitString.toLowerCase());
+      	  TimeUnit unit = TimeUnit.valueOf(unitString.toUpperCase());
       	  if (unit == null){
       	    throw new ConfigurationException("Invalid timeunit for retention: "+unitString);
       	  }
+      	  purgeFilter = new TimeRetentionFilter(timeColumn, retentionDays, unit);
         }
         senseiZoieFactory.setPurgeFilter(purgeFilter);
       }
