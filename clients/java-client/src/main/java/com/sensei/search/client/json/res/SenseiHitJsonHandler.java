@@ -16,6 +16,8 @@ import com.sensei.search.client.json.JsonHandler;
 
 public class SenseiHitJsonHandler implements JsonHandler<SenseiHit> {
 
+  private static final Set<String> PREDEFINED_FIELDS= new HashSet<String>(Arrays.asList("uid", "docid", "score", "srcdata", "grouphitscount", "groupHits", "stored", "termvectors", "explanation"));
+
   @Override
   public JSONObject serialize(SenseiHit bean) throws JSONException {
     throw new UnsupportedOperationException();
@@ -28,7 +30,7 @@ public class SenseiHitJsonHandler implements JsonHandler<SenseiHit> {
     if (json == null) {
       return null;
     }
-    Set<String> fields = new HashSet<String>(Arrays.asList("uid", "docid", "score", "srcdata", "grouphitscount", "groupHits", "stored", "termvectors", "explanation"));
+
     /*SenseiHit senseiHit = new SenseiHit();
     senseiHit.setDocid(json.optInt("docid"));
     senseiHit.setGrouphitscount(json.optInt("grouphitscount"));
@@ -59,7 +61,7 @@ public class SenseiHitJsonHandler implements JsonHandler<SenseiHit> {
     Iterator iterator = json.keys();
     while (iterator.hasNext()) {
       String field = (String) iterator.next();
-      if (fields.contains(field)) {
+      if (PREDEFINED_FIELDS.contains(field)) {
         continue;
       }
       JSONArray jsonArr = json.optJSONArray(field);

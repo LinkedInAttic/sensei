@@ -19,7 +19,7 @@ public class SendRawQuery {
                 .build();
         String requestStr = JsonSerializer.serialize(senseiRequest).toString();
         System.out.println(requestStr);
-        SenseiResult senseiResult = new SenseiServiceProxy("http://localhost:8080/sensei/").sendRequest(senseiRequest);
+        SenseiResult senseiResult = new SenseiServiceProxy("localhost", "8080").sendSearchRequest(senseiRequest);
         System.out.println(senseiResult.toString());
     }
 }
