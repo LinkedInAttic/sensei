@@ -24,6 +24,97 @@ title: SenseiDB - Hadoop Bootstrap
 <p>The following diagram illustrates this indexing process:</p>
 <img src="images/sensei-hadoop-index.png" />
 
+
+<h3>Layout of source packages</h3>
+<p>
+We explain the functionality of Sensei Hadoop indexing and its workflow through the layout of sensei hadoop indexing source packages:
+  <ul>
+    <li><b>com.sensei.indexing.hadoop.job;</b></li>
+      <p>This package contains the job configuration file loading classes.</p>
+  </ul>
+
+  <ul>
+    <li><b>com.sensei.indexing.hadoop.keyvalueformat;</b></li>
+      <p>This package specifies the data format (key, value) used in hadoop-indexing system.</p>
+  </ul>
+
+  <ul>
+    <li><b>com.sensei.indexing.hadoop.map;</b></li>
+      <p>This package contains underlying Sensei Hadoop Mapper file and also a dummy Converter to deal with preprocess of input record.</p>
+  </ul>
+
+  <ul>
+    <li><b>com.sensei.indexing.hadoop.reduce;</b></li>
+      <p>This package contains Hadoop Reduer and Combiner files.</p>
+  </ul>
+
+  <ul>
+    <li><b>com.sensei.indexing.hadoop.util;</b></li>
+      <p>Util package has all kinds of naming configuration files and utility tools.</p>
+  </ul>
+  
+</p>
+
+
+<h3>Car Demo</h3>
+<p>
+To be consistent, we also use the car demo data to describe our hadoop indexing system. Sensei package comes with a car demo hadoop-indexing example and it mainly has four simple files. The first one "CarDemo.java" is a simple main class providing a starting point for running the program. "CarMapInputConverter.java" is a sample converter class to convert the input data record for map job. "CarShardingStrategy.java" is another class to provide a user-specified sharding strategy. Also we need a configuration file to help Sensei Hadoop indexer to configure all the rest properties, a sample configuration file can be found at "example/hadoop-indexing/conf/JobCarDemo.job".
+
+To run the demo, simple compile and package the project into an excutable jar file called CarDemo.jar. Then run "hadoop jar CarDemo.jar".
+
+(You need to specify the job configuration file location in CarDemo.java, and upload the schema file into the HDFS system before running, and also the location of the schema file should be set in the configuration file)
+</p>
+<p>Car demo configuration:</p>
+<pre class="prettyprint" id="xml">
+<?xml version="1.0" encoding="UTF-8"?>
+type=java
+job.class=com.sensei.indexing.hadoop.demo.CarDemo
+
+mapreduce.job.maps=2
+sensei.num.shards=3
+
+mapred.job.name=CarDemoShardedIndexing
+
+# if the output.path already exists, delete it first
+sensei.force.output.overwrite=true
+
+# adjust this to a small one if mapper number is huge. default is 50Mb =  52428800
+sensei.max.ramsize.bytes=52428800
+
+#############   path of schema for interpreter #############
+
+##### TextJSON schema Sample (car demo) absolute path ######
+sensei.schema.file.url=conf/schema.xml
+
+############    Input and Output  ##################
+
+####### Text JSON data (car demo) #####
+read.lock=data/cars.json
+sensei.input.dirs=data/cars.json
+
+######## Output configuration ######
+write.lock=example/hadoop-indexing/output
+sensei.output.dir=example/hadoop-indexing/fileoutput
+
+######## Index output location ######
+sensei.index.path=example/hadoop-indexing/index
+
+############# schemas for mapper input  ################
+
+sensei.input.format=org.apache.hadoop.mapred.TextInputFormat
+
+##############  Sharding strategy  ################
+sensei.distribution.policy=com.sensei.indexing.hadoop.demo.CarShardingStrategy
+
+#############  Converter for mapper input (data conversion and filtering) ##########
+sensei.mapinput.converter=com.sensei.indexing.hadoop.demo.CarMapInputConverter
+
+#############  Analyzer configuration for lucene ###############
+sensei.document.analyzer=org.apache.lucene.analysis.standard.StandardAnalyzer
+sensei.document.analyzer.version=LUCENE_30
+</pre>
+
+
 <h2>Data warehousing</h2>
 <p>
   Other than this conveninence, there are some other immediate benefits, for example: data-warehousing.

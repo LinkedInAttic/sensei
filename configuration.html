@@ -29,6 +29,42 @@ name: configuration
     a Sensei node in terms of data models, server configuration, indexing
     tuning parameters, customizations, etc.</p>
 
+<h2>Configuration files</h2>
+
+<p>
+  Sensei configuration is a directory containing a couple of files:
+  <ul>
+    <li>sensei.properties - settings for a Sensei node or process</li>
+    <li>schema.xml - data schema declaration</li>
+  </ul>
+</p>
+
+
+<h2>Sensei Properties</h2>
+<p>
+  The Sensei properties configures different parts of the system, from server settings, to indexing gateways.
+</p>
+<p><a class="btn" href="docbkx/ch09s03.html" target="_blank">View details &raquo;</a></p>
+
+<h2>Schema</h2>
+<p>
+  The Sensei schema describes the data-model of a Sensei application. It is broken into 2 parts:
+  <ul>
+    <li><b>table</b> - describes how data is being persisted, can think of it as the <b><i>indexing</i></b> part of the schema.</li>
+    <li><b>facets</b> - descrbies how data is being viewed or queried, can think of it as the <b><i>query</i></b> part of the schema.</li>
+  </ul>
+</p>
+<p>
+  Below is an example schema for the Twitter feed:
+</p>
+<pre class="prettyprint" id="xml">
+
+&lt;table uid="id_str"&gt;
+  &lt;column name="created-time" type="long" /&gt;
+  &lt;column name="authorname" type="string" /&gt;
+  &lt;column name="text" type="text" /&gt;
+&lt;/table&gt;
+</pre>
 
     <div class="section" title="Data Modeling"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="sect-data-modeling"></a>Data Modeling</h2></div></div></div><p>Data models are described in the <code class="filename">schema.xml</code>
     file. The XSD definition of this XML file can be found
