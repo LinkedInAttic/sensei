@@ -799,7 +799,6 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
       if (selectPropStrings != null && selectPropStrings.length > 0)
       {
         Map<String, String> prop = new HashMap<String, String>();
-        sel.setSelectionProperties(prop);
         for (String selProp : selectPropStrings)
         {
           if (selProp.trim().length() == 0) continue;
@@ -814,6 +813,7 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
             throw new IllegalArgumentException("invalid prop string: " + selProp);
           }
         }
+        sel.setSelectionProperties(prop);
       }
 
       senseiReq.addSelection(sel);
