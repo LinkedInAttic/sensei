@@ -1,0 +1,73 @@
+---
+layout: api
+title: SenseiDB - Java Client
+version: 1.0.0-SNAPSHOT
+---
+<div class="hero-unit">
+  <h2>Python Client API</h2>
+  <p>A thin Python wrapper around the <a href="client-rest.html">Rest API</a></p>
+  <p><a class="btn primary large" href="#" target="_blank">Pythondoc &raquo;</a></p>
+</div>
+
+<p>
+ The Sensei Python client API help developers to build a Sensei request object and execute the query.
+</p>
+<p>
+  An example to build request and do the query:
+  <pre class="prettyprint" id="python">
+	
+  # create a sample sensei request
+    
+  req = SenseiRequest()
+    
+  # add paging info;
+  req.set_count(50)    \
+  .set_offset(0)
+    
+  # add query info;
+  req.set_query(SenseiQueryTerm("tags", "automatic"))
+    
+  # add selection info;
+  range_selection = SenseiSelectionRange("year", "1995", "2000", True, False)  # [1995 TO 2000)
+  req.append_selection(range_selection)
+    
+  # add filter info;
+  req.set_filter(SenseiFilterRange("price", 7900, 11000))
+    
+  # add group by;
+  req.set_groupby("category").set_max_per_group(4)
+    
+  # add sort;
+  req.append_sort(SenseiSort("color", True))
+    
+  # add fetch_stored
+  req.set_fetch_stored(False)
+    
+  # need explain or not
+  req.set_explain(False)
+    
+  # add facets information
+  facets = SenseiFacets().add_facet("color", False, 1, 10, "hits")  \
+                         .add_facet("year")
+  req.set_facets(facets)
+    
+  # execute and display results;
+  proxy = SenseiServiceProxy()
+  sensei_results = proxy.doQuery(req)
+  sensei_results.display(["*"], max_col_width=40)
+  </pre>
+  
+  An example to get the stored source data if available:
+  <pre class="prettyprint" id="python">
+  
+  proxy = SenseiServiceProxy()
+  print proxy.get([1,2])
+  print proxy.get(['1','2'])
+  </pre>  
+</p>
+<p><a class="btn" href="https://github.com/javasoze/sensei/tree/json-api/clients/python/sensei" target="_blank">More examples &raquo;</a></p>
+
+<h2>Download</h2>
+<p>
+Click this <a class="btn" href="https://github.com/sguo/sensei/blob/json-api/clients/python/sensei/sensei_client_lib.py" target="_blank">link</a> to download the client file.
+</p>
