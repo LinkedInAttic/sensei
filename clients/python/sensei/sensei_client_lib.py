@@ -1194,6 +1194,25 @@ class SenseiServiceProxy:
     res.total_time = delta.seconds * 1000 + delta.microseconds / 1000
     return res
 
+  def get(self, ids):
+    """Get the source data through a list of document IDs.
+       The input is either a list of ID numbers, or ID strings;
+       The output is a jsonarray string;
+    """
+    ids_str = '['
+    count = 0
+    for id in ids:
+      if count == 0 :
+        ids_str = ids_str + str(id)
+      else:
+        ids_str = ids_str + ',' + str(id)
+    ids_str = ids_str+ ']'
+    ids = '[1,2]'
+    urlReq = urllib2.Request(self.url + '/get', ids_str)
+    res = self.opener.open(urlReq)
+    #print res.read()
+    return res.read()
+
   def get_sysinfo(self):
     return self.sysinfo
 
@@ -1244,6 +1263,9 @@ def main(argv):
   sensei_results = proxy.doQuery(req)
   sensei_results.display(["*"], max_col_width=40)
   
+  print proxy.get([1,2])
+  
+  print proxy.get(['1','2'])
 
 if __name__ == "__main__":
   main(sys.argv)
