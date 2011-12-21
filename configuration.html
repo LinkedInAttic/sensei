@@ -55,22 +55,7 @@ name: configuration
       and many rows. The concept of such table directly correlates to that of
       traditional RDBMS's.</p><p>A table may have the following attributes:</p><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p><span class="bold"><strong>uid</strong></span> (mandatory) - defines the
           name of the primary key field. This must be of type
-          <code class="literal">long</code>.</p></li><li class="listitem"><p><span class="bold"><strong>delete-field</strong></span> (optional) -
-          defines the field that would indicate a delete event (we will get
-          back to this later).</p></li><li class="listitem"><p><span class="bold"><strong>skip-field</strong></span> (optional) -
-          defines the field that would indicate a skipping event (we will get
-          back to this later).</p></li><li class="listitem"><p><span class="bold"><strong>src-data-store</strong></span> (optional) -
-          defines the format of how the source data is saved. Currently the
-          only supported value is "<code class="literal">lucene</code>".</p></li><li class="listitem"><p><span class="bold"><strong>src-data-field</strong></span> (optional) -
-          specifies the field name used to keep the original source data
-          value.</p><div class="note" title="Note" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Note</h3><p>If this attribute is not specified, the default value is set
-            to "<code class="literal">src_data</code>". If this field is not set by the
-            data source filter, the string representation of the original data
-            source is saved in this field by default. If part of the source
-            data or a modified version of the source data is to be saved in
-            the index, then you need to set this field using the value you
-            prefer in the data source filter.</p></div></li><li class="listitem"><p><span class="bold"><strong>compress-src-data</strong></span> (optional)
-          - defines if the source data is compressed.</p></li></ul></div><p>A table is also composed of a set of columns. Each column has a
+          <code class="literal">long</code>.</p></li></ul></div><p>A table is also composed of a set of columns. Each column has a
       name and a type. Below is the list of supported types:</p><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p><span class="bold"><strong>string</strong></span> - value is a string,
           e.g. "<code class="literal">abc</code>"</p></li><li class="listitem"><p><span class="bold"><strong>int</strong></span> - integer value</p></li><li class="listitem"><p><span class="bold"><strong>long</strong></span> - long value</p></li><li class="listitem"><p><span class="bold"><strong>short</strong></span> - short value</p></li><li class="listitem"><p><span class="bold"><strong>float</strong></span> - a floating point
           value</p></li><li class="listitem"><p><span class="bold"><strong>double</strong></span> - double value</p></li><li class="listitem"><p><span class="bold"><strong>char</strong></span> - a character</p></li><li class="listitem"><p><span class="bold"><strong>date</strong></span> - a date value, which
@@ -191,7 +176,7 @@ name: configuration
         <code class="literal">value</code>.</p><p>How parameters are interpreted and used is dependent on the
         facet type.</p><p>Here is an example of a facet with a list of predefined
         ranges:</p><pre class="prettyprint">  
-        &lt;facet name="year" type="range"&gt;
+  &lt;facet name="year" type="range"&gt;
     &lt;params&gt;
       &lt;param name="range" value="1993-1994"/&gt;
       &lt;param name="range" value="1995-1996"/&gt;
