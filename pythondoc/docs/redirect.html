@@ -1,0 +1,38 @@
+<html><head><title>Epydoc Redirect Page</title>
+<meta http-equiv="cache-control" content="no-cache" />
+<meta http-equiv="expires" content="0" />
+<meta http-equiv="pragma" content="no-cache" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+<body>
+<script type="text/javascript">
+<!--
+var pages = ["sensei.sensei_client_lib_test.TestSenseiClientLib-c", "sensei.sensei_client_lib.SenseiFilterSelection-c", "sensei.sensei_client_lib.SenseiSelectionRange-c", "sensei.sensei_client_lib.SenseiSelectionTerms-c", "sensei.sensei_client_lib.SenseiQueryMatchAll-c", "sensei.sensei_client_lib.SenseiSelectionPath-c", "sensei.sensei_client_lib.SenseiSelectionTerm-c", "sensei.sensei_client_lib.SenseiServiceProxy-c", "sensei.sensei_client_lib.SenseiClientError-c", "sensei.sensei_client_lib.SenseiFilterQuery-c", "sensei.sensei_client_lib.SenseiFilterRange-c", "sensei.sensei_client_lib.SenseiFilterTerms-c", "sensei.sensei_client_lib.SenseiQueryString-c", "sensei.sensei_client_lib.SenseiResultFacet-c", "sensei.sensei_client_lib.SenseiFacetInits-c", "sensei.sensei_client_lib.SenseiFilterBool-c", "sensei.sensei_client_lib.SenseiFilterTerm-c", "sensei.sensei_client_lib.SenseiSystemInfo-c", "sensei.sensei_client_lib.SenseiFacetInfo-c", "sensei.sensei_client_lib.SenseiFilterAND-c", "sensei.sensei_client_lib.SenseiFilterIDs-c", "sensei.sensei_client_lib.SenseiQueryTerm-c", "sensei.sensei_client_lib.SenseiQueryText-c", "sensei.sensei_client_lib.SenseiSelection-c", "sensei.sensei_client_lib.SenseiFilterOR-c", "sensei.sensei_client_lib.SenseiNodeInfo-c", "sensei.sensei_client_lib.SenseiQueryIDs-c", "sensei.sensei_client_lib.SenseiRequest-c", "sensei.sensei_client_lib.SenseiFacets-c", "sensei.sensei_client_lib.SenseiFilter-c", "sensei.sensei_client_lib.SenseiResult-c", "sensei.sensei_client_lib.SenseiQuery-c", "sensei.sensei_client_lib.SenseiSort-c", "sensei.sensei_client_lib.SenseiHit-c", "sensei.sensei_client_lib_test-m", "exceptions.AssertionError-c", "sensei.sensei_client_lib-m"];
+var dottedName = get_anchor();
+if (dottedName) {
+    var target = redirect_url(dottedName);
+    if (target) window.location.replace(target);
+}
+// -->
+</script>
+
+<h3>Epydoc Auto-redirect page</h3>
+
+<p>When javascript is enabled, this page will redirect URLs of
+the form <tt>redirect.html#<i>dotted.name</i></tt> to the
+documentation for the object with the given fully-qualified
+dotted name.</p>
+<p><a id="message"> &nbsp; </a></p>
+
+<script type="text/javascript">
+<!--
+if (dottedName) {
+    var msg = document.getElementById("message");
+    msg.innerHTML = "No documentation found for <tt>"+
+                    dottedName+"</tt>";
+}
+// -->
+</script>
+
+</body>
+</html>
