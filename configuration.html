@@ -10,26 +10,10 @@ name: configuration
 	</p>
 </div>
    
-   <p><b>Table of Contents</b></p><br>
-   <a href="#d0e4">1. Sensei Configuration</a><br>
-   <a href="#d0e7">2. Overview</a><br>
-   <a href="#sect-data-modeling">3. Data Modeling</a><br>
-   <a href="#d0e31">4. Table Schema</a><br>
-   <a href="#d0e298">5. Facet Schema</a><br>
-   <a href="#d0e585">6. System Configuration</a><br>
-   <a href="#d0e651">7. Sensei plugin infrastructure</a><br>
-   <a href="#d0e690">8. Server Properties</a><br>
-   <a href="#d0e801">9. Cluster Properties</a><br>
-   <a href="#d0e858">10. Indexing Properties</a><br>
-   <a href="#d0e1245">11. Broker and Client Properties</a><br>
-   <a href="#sect-plugin-props">12. Plug-in Properties</a><br>
-   <a href="#d0e2035">13. Index</a><br>
-   <h2>Configuration files</h2>
+<h2>Configuration files</h2>
 <p>A Sensei node is configured by a set of files. These files describe
     a Sensei node in terms of data models, server configuration, indexing
     tuning parameters, customizations, etc.</p>
-
-<h2>Configuration files</h2>
 
 <p>
   Sensei configuration is a directory containing a couple of files:
@@ -44,7 +28,6 @@ name: configuration
 <p>
   The Sensei properties configures different parts of the system, from server settings, to indexing gateways.
 </p>
-<p><a class="btn" href="docbkx/ch09s03.html" target="_blank">View details &raquo;</a></p>
 
 <h2>Schema</h2>
 <p>
@@ -72,22 +55,7 @@ name: configuration
       and many rows. The concept of such table directly correlates to that of
       traditional RDBMS's.</p><p>A table may have the following attributes:</p><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p><span class="bold"><strong>uid</strong></span> (mandatory) - defines the
           name of the primary key field. This must be of type
-          <code class="literal">long</code>.</p></li><li class="listitem"><p><span class="bold"><strong>delete-field</strong></span> (optional) -
-          defines the field that would indicate a delete event (we will get
-          back to this later).</p></li><li class="listitem"><p><span class="bold"><strong>skip-field</strong></span> (optional) -
-          defines the field that would indicate a skipping event (we will get
-          back to this later).</p></li><li class="listitem"><p><span class="bold"><strong>src-data-store</strong></span> (optional) -
-          defines the format of how the source data is saved. Currently the
-          only supported value is "<code class="literal">lucene</code>".</p></li><li class="listitem"><p><span class="bold"><strong>src-data-field</strong></span> (optional) -
-          specifies the field name used to keep the original source data
-          value.</p><div class="note" title="Note" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Note</h3><p>If this attribute is not specified, the default value is set
-            to "<code class="literal">src_data</code>". If this field is not set by the
-            data source filter, the string representation of the original data
-            source is saved in this field by default. If part of the source
-            data or a modified version of the source data is to be saved in
-            the index, then you need to set this field using the value you
-            prefer in the data source filter.</p></div></li><li class="listitem"><p><span class="bold"><strong>compress-src-data</strong></span> (optional)
-          - defines if the source data is compressed.</p></li></ul></div><p>A table is also composed of a set of columns. Each column has a
+          <code class="literal">long</code>.</p></li></ul></div><p>A table is also composed of a set of columns. Each column has a
       name and a type. Below is the list of supported types:</p><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p><span class="bold"><strong>string</strong></span> - value is a string,
           e.g. "<code class="literal">abc</code>"</p></li><li class="listitem"><p><span class="bold"><strong>int</strong></span> - integer value</p></li><li class="listitem"><p><span class="bold"><strong>long</strong></span> - long value</p></li><li class="listitem"><p><span class="bold"><strong>short</strong></span> - short value</p></li><li class="listitem"><p><span class="bold"><strong>float</strong></span> - a floating point
           value</p></li><li class="listitem"><p><span class="bold"><strong>double</strong></span> - double value</p></li><li class="listitem"><p><span class="bold"><strong>char</strong></span> - a character</p></li><li class="listitem"><p><span class="bold"><strong>date</strong></span> - a date value, which
@@ -161,22 +129,18 @@ name: configuration
               <td align="left">cool, leather</td>
 
               <td align="left">i love this car</td>
-            </tr></tbody></table></div><div class="section" title="Deletes"><div class="titlepage"><div><div><h4 class="title"><a name="d0e246"></a>Deletes<a class="indexterm" name="d0e249"></a></h4></div></div></div><p>To delete a row from Sensei, simply insert a data object with
-        the specified delete-field set to true.</p><p><span class="bold"><strong>Example:</strong></span></p><p>Given the table schema:</p><pre class="prettyprint">  &lt;table uid="id" delete-field="isDelete"&gt;
-  ...
-  &lt;/table&gt;
-</pre><p>The following JSON object would delete the row where
+            </tr></tbody></table></div>
+
+
+<div class="section" title="Deletes"><div class="titlepage"><div><div><h4 class="title"><a name="d0e246"></a>Deletes<a class="indexterm" name="d0e249"></a></h4></div></div></div><p>To delete a row from Sensei, simply insert a data object with
+        the specified delete-field set to true.</p><p><span class="bold"><strong>Example:
+	<p>The following JSON object would delete the row where
         id=5:</p><pre class="prettyprint">  
   {
-    id:5,
-    isDelete:"true"
-  }</pre></div><div class="section" title="Skips"><div class="titlepage"><div><div><h4 class="title"><a name="d0e265"></a>Skips<a class="indexterm" name="d0e268"></a></h4></div></div></div><p>In cases where runtime logic decides whether a data object
-        should be skipped, the skip field can be useful.</p><p><span class="bold"><strong>Example:</strong></span></p><p>Given the table schema:</p><pre class="prettyprint">  &lt;table uid="id" skip-field="isSkip"&gt;
-  ...
-  &lt;/table&gt;</pre><p>The following JSON object would be skipped from indexing:</p><pre class="prettyprint">  {
-    id:7,
-    isSkip:"true"
-  }</pre></div><div class="section" title="Source JSON"><div class="titlepage"><div><div><h4 class="title"><a name="d0e284"></a>Source JSON<a class="indexterm" name="d0e287"></a></h4></div></div></div><p>For many cases, you may want to save the original source data
+    _type:delete,
+    _uid:5
+  }</pre></div>
+<div class="section" title="Source JSON"><div class="titlepage"><div><div><h4 class="title"><a name="d0e284"></a>Source JSON<a class="indexterm" name="d0e287"></a></h4></div></div></div><p>For many cases, you may want to save the original source data
         from which we extract all the fields into the index. You can do this
         by setting the attributes <span class="bold"><strong>src-data-store</strong></span> and <span class="bold"><strong>src-data-field</strong></span>.</p></div></div><div class="section" title="Facet Schema"><div class="titlepage"><div><div><h3 class="title"><a name="d0e298"></a>Facet Schema<a class="indexterm" name="d0e301"></a></h3></div></div></div><p>The second section is the facet schema, which defines how columns
       can be queried.</p><p>If we think of the table section defines how data is added into
@@ -212,7 +176,7 @@ name: configuration
         <code class="literal">value</code>.</p><p>How parameters are interpreted and used is dependent on the
         facet type.</p><p>Here is an example of a facet with a list of predefined
         ranges:</p><pre class="prettyprint">  
-        &lt;facet name="year" type="range"&gt;
+  &lt;facet name="year" type="range"&gt;
     &lt;params&gt;
       &lt;param name="range" value="1993-1994"/&gt;
       &lt;param name="range" value="1995-1996"/&gt;
@@ -263,10 +227,10 @@ name: configuration
         "<code class="literal">custom</code>", and declare a correspodning property
         handler in file <code class="filename">sensei.properties</code>.</p><p>For example, if a customized facet called
         <code class="literal">time</code> is declared in <code class="filename">schema.xml</code>
-        like this:</p><pre class="programlisting">  &lt;facet name="time" type="custom" dynamic="false"/&gt;</pre><p>and the implementation of the facet handler is in class
+        like this:</p><pre class="prettyprint">  &lt;facet name="time" type="custom" dynamic="false"/&gt;</pre><p>and the implementation of the facet handler is in class
         <code class="literal">com.example.facets.TimeFacetHandler</code>, then you
         should include following lines in file
-        <code class="filename">sensei.properties</code>: <sup>[<a name="d0e576" href="#ftn.d0e576" class="footnote">1</a>]</sup></p><pre class="programlisting">  my.custom.facets.time.class = com.example.facets.TimeFacetHandler"
+        <code class="filename">sensei.properties</code>: <sup>[<a name="d0e576" href="#ftn.d0e576" class="footnote">1</a>]</sup></p><pre class="prettyprint">  my.custom.facets.time.class = com.example.facets.TimeFacetHandler"
   sensei.custom.facets.list=..., my.custom.facets.time</pre><p>The property of the bean should match the reference at
         sensei.custom.facets.list.</p></div></div></div><div class="section" title="System Configuration"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="d0e585"></a>System Configuration</h2></div></div></div><p>A Sensei node is configured via the
     <code class="filename">sensei.properties</code>, which uses the format supported by
@@ -276,7 +240,7 @@ name: configuration
         sharding, request routing, etc.</p></li><li class="listitem"><p><span class="bold"><strong>indexing</strong></span>: data interpretation,
         tokenization, indexer type, etc.</p></li><li class="listitem"><p><span class="bold"><strong>broker and client</strong></span>: e.g. entry
         into Sensei system</p></li><li class="listitem"><p><span class="bold"><strong>plugins</strong></span>: e.g. customized facet
-        handlers</p></li></ol></div><p>Below is the configuration file for the demo (available from <a class="link" href="https://github.com/javasoze/sensei/blob/master/conf/sensei.properties" target="_top">https://github.com/javasoze/sensei/blob/master/conf/sensei.properties</a>):</p><div class="programlistingco"><pre class="prettyprint"># sensei node parameters
+        handlers</p></li></ol></div><p>Below is the configuration file for the car demo (available from </p><div class="programlistingco"><pre class="prettyprint"># sensei node parameters
 sensei.node.id=1
 sensei.node.partitions=0,1
 
@@ -503,6 +467,4 @@ sensei.custom.facets.list= virtual_groupids, my.custom_facets.tags, groupid  </p
               <code class="literal">proj.zoie.dataprovider.jdbc.JDBCStreamDataProvider</code>.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.gateway.jdbc.driver</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: String</p></li><li class="listitem"><p>Required: Yes</p></li><li class="listitem"><p>Default: None</p></li></ul></div><p>This is the class name of the JDBC driver that you want to
               use.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.gateway.jdbc.password</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: String</p></li><li class="listitem"><p>Required: Yes</p></li><li class="listitem"><p>Default: None</p></li></ul></div><p>This is the password for the user name that you use to
               connect to the database.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.gateway.jdbc.username</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: String</p></li><li class="listitem"><p>Required: Yes</p></li><li class="listitem"><p>Default: None</p></li></ul></div><p>This is the user name that you use to connect to the
-              database.</p></dd></dl></div></div></div></div><div class="footnotes"><br><hr width="100" align="left"><div class="footnote"><p><sup>[<a name="ftn.d0e576" href="#d0e576" class="para">1</a>] </sup>For the more detailed information see <a class="xref" href="#sect-custom-facets-conf" title="Defining custom facet handlers in the configuration">the section called &#8220;Defining custom facet handlers in the configuration&#8221;</a>.</p></div><div class="footnote"><p><sup>[<a name="ftn.d0e1768" href="#d0e1768" class="para">2</a>] </sup>These properties are basically the parameters needed by the
-            Kafka consumer API. The Simple Consumer API from Kafka is used by
-            Sensei.</p></div></div></div><div class="index" title="Index"><div class="titlepage"><div><div><h2 class="title"><a name="d0e2035"></a>Index</h2></div></div></div><div class="index"><div class="indexdiv"><h3>C</h3><dl><dt>custom indexing pipeline, <a class="indexterm" href="#sect-plugin-props">Plug-in Properties</a></dt></dl></div><div class="indexdiv"><h3>D</h3><dl><dt>delete, <a class="indexterm" href="#d0e246">Deletes</a></dt></dl></div><div class="indexdiv"><h3>F</h3><dl><dt>facet schema, <a class="indexterm" href="#d0e298">Facet Schema</a></dt><dt>facet schema attribute, <a class="indexterm" href="#d0e369">Optional Attributes</a></dt><dd><dl><dt>column, <a class="indexterm" href="#d0e375">Column</a></dt><dt>depends, <a class="indexterm" href="#d0e390">Depends</a></dt><dt>dynamic, <a class="indexterm" href="#d0e407">Dynamic</a></dt></dl></dd></dl></div><div class="indexdiv"><h3>H</h3><dl><dt>histogram facet handler, <a class="indexterm" href="#d0e298">Facet Schema</a></dt></dl></div><div class="indexdiv"><h3>J</h3><dl><dt>JSON, <a class="indexterm" href="#d0e171">JSON</a></dt></dl></div><div class="indexdiv"><h3>S</h3><dl><dt>skip, <a class="indexterm" href="#d0e265">Skips</a></dt><dt>source JSON, <a class="indexterm" href="#d0e284">Source JSON</a></dt></dl></div><div class="indexdiv"><h3>T</h3><dl><dt>table schema, <a class="indexterm" href="#d0e31">Table Schema</a></dt><dt>TimeRange facet handler, <a class="indexterm" href="#d0e298">Facet Schema</a></dt></dl></div></div></div></div>
+              database.</p></dd></dl></div></div></div></div>
