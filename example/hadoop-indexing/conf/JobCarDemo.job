@@ -2,7 +2,7 @@ type=java
 job.class=com.sensei.indexing.hadoop.demo.CarDemo
 
 mapreduce.job.maps=2
-sensei.num.shards=3
+sensei.num.shards=2
 
 mapred.job.name=CarDemoShardedIndexing
 
