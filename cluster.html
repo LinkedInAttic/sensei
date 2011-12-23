@@ -58,7 +58,7 @@ title: SenseiDB - Cluster Overview
 		<li>N<sub>2</sub> - {S<sub>2</sub>, S<sub>3</sub>}</li>
 		<li>N<sub>3</sub> - {S<sub>1</sub>, S<sub>3</sub>}</li>
 	</ul>
-	We have a Sensei cluster with 3 shards and a replications factor of 2.
+	We have a Sensei cluster with 3 shards and a replication factor of 2.
 </p>
 <p>
 	See the following diagram for an example of a large Sensei cluster:
@@ -88,7 +88,7 @@ title: SenseiDB - Cluster Overview
 </p>
 <h4>Sharding Strategy</h4>
 <p>
-	At indexing time, the <a href="javadoc/sensei-core/apidocs/com/sensei/indexing/api/ShardingStrategy.html">ShardingStrategy</a> is applied from the data events streamed-in from the gateway for each node. So only data-events belong to a specific shard is added. ShardingStrategy can be configured with <code>sensei.index.manager.default.shardingStrategy</code> setting in the <code>sensei.properties</code> file.
+	At indexing time, the <a href="javadoc/sensei-core/apidocs/com/sensei/indexing/api/ShardingStrategy.html">ShardingStrategy</a> is applied from the data events streamed-in from the gateway for each node. So only data-events belong to a specific shard is added. ShardingStrategy can be configured with <code>sensei.sharding.strategy</code> setting in the <code>sensei.properties</code> file.
 </p>
 <h4>Load Balancer Factory</h4>
 <p>
