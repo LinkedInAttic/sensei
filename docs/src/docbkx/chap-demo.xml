@@ -19,11 +19,11 @@
 
       <itemizedlist spacing="compact">
         <listitem>
-          <para>Configuration files: <filename>conf/*</filename></para>
+          <para>Configuration files: <filename>example/cars/conf/*</filename></para>
         </listitem>
 
         <listitem>
-          <para>Data file: <filename>data/cars.json</filename></para>
+          <para>Data file: <filename>example/cars/data/cars.json</filename></para>
         </listitem>
 
         <listitem>
@@ -42,7 +42,7 @@
       <orderedlist>
         <listitem>
           <para>Build Sensei:</para>
-          <programlisting>  $ ant</programlisting>
+          <programlisting>  $ ./bin/build.sh</programlisting>
         </listitem>
         <listitem>
           <para>Make sure ZooKeeper is running:</para>
@@ -50,7 +50,7 @@
         </listitem>
         <listitem>
           <para>Run the demo:</para>
-          <programlisting>  $ ./bin/start-sensei-node conf/</programlisting>
+          <programlisting>  $ ./bin/start-sensei-node example/cars/conf/</programlisting>
         </listitem>
       </orderedlist>
     </section>
@@ -168,18 +168,6 @@
         <listitem>
           <para><filename>schema.xml</filename>: this describes the data
           model and the faceting behavior of the application
-          </para>
-        </listitem>
-        <listitem>
-          <para><filename>custom-facets.xml</filename>: Spring file for
-          adding custom facets, while Sensei comes with a set of facet
-          types out of the box, this allows user-defined facets to be
-          plugged into the application
-          </para>
-        </listitem>
-        <listitem>
-          <para><filename>plugins.xml</filename>: any other plug-ins,
-          e.g. Analyzer, Similarity, and Interpreter.
           </para>
         </listitem>
       </itemizedlist>

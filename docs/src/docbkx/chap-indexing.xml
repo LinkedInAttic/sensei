@@ -75,34 +75,19 @@
     your own version if needed.
     </para>
 
-    <para>The data gateway type is specified via configuration parameter
-    <literal>sensei.index.manager.&lt;indexing-manager-type&gt;.type</literal>.
-    Here <literal>&lt;indexing-manager-type&gt;</literal> is the bean ID
-    of your indexing manager.  If you use the default indexing manager,
-    <classname>DefaultStreamingIndexingManager</classname>,
-    <literal>&lt;indexing-manager-type&gt;</literal> should be
-    <literal>default</literal>.</para>
-
     <para>Additional configuration parameters may be needed for the data
     gateway you choose.  These configuration parameters are named with
     the following prefix:</para>
 
-    <programlisting>  sensei.index.manager.&lt;indexing-manager-type&gt;.&lt;data-gateway-type&gt;</programlisting>
+    <programlisting>  sensei.gateway.&lt;data-gateway-type&gt;</programlisting>
 
     <para>For example, if you use the default indexing manager and the
     Kafka data gateway, the following configuration parameters need to
     be specified:</para>
 
-    <programlisting>  sensei.index.manager.default.type = kafka
-  sensei.index.manager.default.kafka.host = my-kafka-host
-  sensei.index.manager.default.kafka.port = 1234
-  sensei.index.manager.default.kafka.topic = log-data
-  sensei.index.manager.default.kafka.batchsize = 10000
-  sensei.index.manager.default.kafka.filter = my-kafka-filter</programlisting>
-
-    <para>In the rest of the document, we will use the default indexing
-    manager in most of the examples, unless a different indexing manager
-    type is specified explicitly.</para>
+    <programlisting>  sensei.gateway.type = file
+  sensei.gateway.file.path = my-data-file
+</programlisting>
 
   </section>
 
