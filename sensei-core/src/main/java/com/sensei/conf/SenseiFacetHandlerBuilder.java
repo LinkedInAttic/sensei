@@ -455,15 +455,22 @@ public class SenseiFacetHandlerBuilder {
       @Override
       public  RuntimeFacetHandler<?> get(FacetHandlerInitializerParam params) {
 
+        long time = System.currentTimeMillis();
         try {
-          long time;
-          long[] longParam = params.getLongParam("time");
-          if (longParam !=null && longParam.length > 0) {
-            time = longParam[0];
-          } else {
-            time = System.currentTimeMillis();
+          if (params!=null){
+            long[] longParam = params.getLongParam("time");
+            if (longParam !=null && longParam.length > 0) {
+              time = longParam[0];
+            } else {
+              List<String> strParam = params.getStringParam("time");
+              if (strParam!=null && strParam.size()>0){
+                time = Long.parseLong(strParam.get(0));
+              }
+            }
           }
-          return new DynamicTimeRangeFacetHandler(name, depends, time, paramMap.get("range"));
+          
+          List<String> ranges = paramMap.get("range");
+          return new DynamicTimeRangeFacetHandler(name, depends, time, ranges);
         } catch (ParseException ex) {
           throw new RuntimeException(ex);
         }
