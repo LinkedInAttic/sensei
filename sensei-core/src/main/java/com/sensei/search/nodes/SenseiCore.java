@@ -170,12 +170,17 @@ public class SenseiCore{
 
         _readerFactoryMap.put(part, zoieSystem);
       }
-
-    logger.info("initializing index manager...");
-      _indexManager.initialize(_readerFactoryMap);
-      logger.info("starting index manager...");
-      _indexManager.start();
-      logger.info("index manager started...");
+      try{
+        logger.info("initializing index manager...");
+        _indexManager.initialize(_readerFactoryMap);
+        logger.info("starting index manager...");
+        _indexManager.start();
+      
+        logger.info("index manager started...");
+      }
+      catch(Exception e){
+        logger.error("Unable to start indexing manager, indexing not started...",e);
+      }
       _started = true;
   }
   
