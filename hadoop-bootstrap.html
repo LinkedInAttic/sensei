@@ -91,10 +91,10 @@ The main steps are as follows,
 <p>Before using the local Hadoop to build the index, we need to upload the schema.xml file and the input data into the local HDFS system:</p>
 <pre class="prettyprint" id="xml">
 <?xml version="1.0" encoding="UTF-8"?>
-[sguo@sguo-ld test/hadoop-0.20.2]$ bin/hadoop fs -mkdir conf
-[sguo@sguo-ld test/hadoop-0.20.2]$ bin/hadoop fs -put /local/Documents/workspace/sensei/example/cars/conf/schema.xml conf/
-[sguo@sguo-ld test/hadoop-0.20.2]$ bin/hadoop fs -mkdir data
-[sguo@sguo-ld test/hadoop-0.20.2]$ bin/hadoop fs -put /local/Documents/workspace/sensei/example/cars/data/cars.json data/
+$SENSEI_HOME/bin/hadoop fs -mkdir conf
+$SENSEI_HOME/bin/hadoop fs -put /local/Documents/workspace/sensei/example/cars/conf/schema.xml conf/
+$SENSEI_HOME/bin/hadoop fs -mkdir data
+$SENSEI_HOME/bin/hadoop fs -put /local/Documents/workspace/sensei/example/cars/data/cars.json data/
  
 </pre>
 <p>After uploaded the schema.xml file and the input data (cars.json), you can go to "http://localhost:50070/nn_browsedfscontent.jsp" to check if there are there in the local HDFS. These files will be used by your Hadoop job in the following steps.</p>
@@ -104,10 +104,10 @@ The main steps are as follows,
 and then package it as a runnable jar file (e.g., example.jar) to execute:</p>
 <pre class="prettyprint" id="xml">
 <?xml version="1.0" encoding="UTF-8"?>
-cd $SENSEI-ROOT/example/hadoop-indexing/
+cd $SENSEI_HOME/example/hadoop-indexing/
 mvn package
 cp target/sensei-example-hadoop-1.0.0-SNAPSHOT-jar-with-dependencies.jar CarDemo.jar
-/local/test/hadoop-0.20.2/bin/hadoop jar CarDemo.jar
+$SENSEI_HOME/bin/hadoop jar CarDemo.jar
  
 </pre>
 
@@ -219,43 +219,44 @@ Total time: 51841
 
 <h4>(3) Bootstrap a running Sensei server from index built by hadoop</h4>
 <p>To bootstrap Sensei index, we firstly start a Sensei server (remember to add "sensei.indexer.copier=hdfs" property in the sensei.properties file):</p>
-<pre class="prettyprint" id="xml">
-<?xml version="1.0" encoding="UTF-8"?>
+<p><code>In $SENSEI_HOME</code>:</p>
+<pre class="prettyprint">
 ./bin/start-sensei-node.sh example/cars/conf/
- 
 </pre>
 
 <p>Now we go to localhost:8080 in web browser, click apply then click execute, we will get the current total doc number in index:</p>
 <pre class="prettyprint" id="xml">
-<?xml version="1.0" encoding="UTF-8"?>
+{
     "facets": {},
     "totaldocs": 15000,
     "numhits": 15000,
     "numgroups": 0,
     "tid": -1,
     "parsedquery": "*:*"
+}
  
 </pre>    
 
 <p>After Sensei is started, we specify the location and port of the running Sensei Server, and also the index location in HDFS built in the first step.
 In this case, the generated index folder is located in hdfs://localhost:9000/user/sguo/example/hadoop-indexing/index .
 We bootstrap this server by doing the folloing:</p>
-<pre class="prettyprint" id="xml">
-<?xml version="1.0" encoding="UTF-8"?>
+<p>In <code>$SENSEI_HOME</code>:</p>
+<pre class="prettyprint">
 ./bin/load-index -s localhost -p 8080 hdfs://localhost:9000/user/sguo/example/hadoop-indexing/index
  
 </pre>
 
 <p>After the boostrap is finished, let's check the localhost:8080 webpage again, and click apply, then click execute to search, we get the following at the bottom of the search result, the number of documents has been doubled from 15000 to 30000 since we "appended" the bootstrapped index into the current one:</p>
-<pre class="prettyprint" id="xml">
-<?xml version="1.0" encoding="UTF-8"?>
+<p>In <code>$SENSEI_HOME</code>:</p>
+<pre class="prettyprint">
+{
     "facets": {},
     "totaldocs": 30000,
     "numhits": 30000,
     "numgroups": 0,
     "tid": -1,
     "parsedquery": "*:*"
- 
+ }
 </pre>  
 
 
