@@ -1,6 +1,5 @@
 package com.sensei.indexing.api.gateway.jms;
 
-import java.sql.ResultSet;
 import java.util.Comparator;
 import java.util.Set;
 
@@ -37,9 +36,9 @@ public class JmsDataProviderBuilder extends SenseiGateway<Message>{
       Set<Integer> partitions) throws Exception
   {
 
-	    final String topic = config.get("topic");
-	    final String clientID = config.get("clientId");
-	    final String topicFac = config.get("topicFactory");
+	    final String topic = config.get("jms.topic");
+	    final String clientID = config.get("jms.clientId");
+	    final String topicFac = config.get("jms.topicFactory");
 
 	    TopicFactory topicFactory = pluginRegistry.getBeanByFullPrefix(name + ".topicFactory", TopicFactory.class);
 

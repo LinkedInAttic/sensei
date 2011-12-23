@@ -25,7 +25,7 @@ public class JavaClientIntegrationTest extends Assert {
   private SenseiServiceProxy senseiServiceProxy;
   @Before
   public void setUp () {
-    senseiServiceProxy = new SenseiServiceProxy("localhost", "8080");
+    senseiServiceProxy = new SenseiServiceProxy("localhost", 8080);
   }
   @Test
   public void testSelectionRange() throws Exception
@@ -73,7 +73,7 @@ public class JavaClientIntegrationTest extends Assert {
   {
     String req = "{\"query\": {\"ids\": {\"values\": [\"1\", \"2\", \"3\"], \"excludes\": [\"2\"]}}}";
     System.out.println(req);
-    JSONObject res =new JSONObject(senseiServiceProxy.sendPost(senseiServiceProxy.getSearchUrl(), req));
+    JSONObject res =new JSONObject(senseiServiceProxy.sendPostRaw(senseiServiceProxy.getSearchUrl(), req));
     assertEquals("numhits is wrong", 2, res.getInt("numhits"));
     assertEquals("the first uid is wrong", 1, res.getJSONArray("hits").getJSONObject(0).getInt("uid"));
     assertEquals("the second uid is wrong", 3, res.getJSONArray("hits").getJSONObject(1).getInt("uid"));
@@ -232,7 +232,7 @@ public class JavaClientIntegrationTest extends Assert {
   {
     String req = "{\"query\":{\"span_or\":{\"clauses\":[{\"span_term\":{\"color\":\"red\"}},{\"span_term\":{\"color\":\"blue\"}}]}}}";
     System.out.println(req);
-    JSONObject res =new JSONObject(senseiServiceProxy.sendPost(senseiServiceProxy.getSearchUrl(), req));
+    JSONObject res =new JSONObject(senseiServiceProxy.sendPostRaw(senseiServiceProxy.getSearchUrl(), req));
     assertEquals("numhits is wrong", 3264, res.getInt("numhits"));
   }
   @Test

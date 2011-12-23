@@ -14,8 +14,12 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 public class JsonSerializer {
-    public static Object serialize(Object object) throws JSONException {
-        return serialize(object,true);
+    public static Object serialize(Object object) {
+        try {
+      return serialize(object,true);
+        } catch (Exception ex) {
+          throw new RuntimeException(ex);
+        }
     }
     public static Object serialize(Object object, boolean handleCustomJsonHandler) throws JSONException {
         if (object == null) {

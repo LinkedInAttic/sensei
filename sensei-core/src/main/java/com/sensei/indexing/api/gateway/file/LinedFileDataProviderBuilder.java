@@ -26,7 +26,7 @@ public  class LinedFileDataProviderBuilder extends SenseiGateway<String>{
       Set<Integer> partitions) throws Exception
   {
 
-		String path = config.get("path");
+		String path = config.get("file.path");
 		long offset = oldSinceKey == null ? 0L : Long.parseLong(oldSinceKey);
 
 
