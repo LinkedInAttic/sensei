@@ -3,6 +3,7 @@ var port=8080;
 
 var tweeterSel={"values":[]};
 var hashtagSel={"values":[]};
+var timeRangeSel={"values":[]};
 
 var selmap = {"tweeter":tweeterSel,"hashtags":hashtagSel};
 
@@ -13,6 +14,11 @@ senseiReq.fetchStored = true;
 senseiReq.sort = [{"time":"desc"},"_score"];
 
 senseiReq.selections = [
+{
+  "terms":{
+    "timeRange":timeRangeSel
+  }
+},
 {
   "terms":{
     "tweeter":tweeterSel
@@ -27,7 +33,7 @@ senseiReq.selections = [
 
 senseiReq.facets = {};
 
-senseiReq.facets.time={"expand":true};
+senseiReq.facets.timeRange={"expand":true};
 
 senseiReq.facets.tweeter={"expand":true};
 
