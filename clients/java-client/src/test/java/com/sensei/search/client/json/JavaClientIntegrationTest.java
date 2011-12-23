@@ -1,6 +1,10 @@
 package com.sensei.search.client.json;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
 
 import org.json.JSONObject;
 import org.junit.Assert;
@@ -21,7 +25,7 @@ public class JavaClientIntegrationTest extends Assert {
   private SenseiServiceProxy senseiServiceProxy;
   @Before
   public void setUp () {
-    senseiServiceProxy = new SenseiServiceProxy("http://localhost:8080/sensei");
+    senseiServiceProxy = new SenseiServiceProxy("localhost", "8080");
   }
   @Test
   public void testSelectionRange() throws Exception
@@ -34,33 +38,33 @@ public class JavaClientIntegrationTest extends Assert {
     // (2000 TO 2002]   ==> 2907
     // [2000 TO 2002)   ==> 2991
       SenseiClientRequest request = SenseiClientRequest.builder().addSelection(Selection.range("year", "2000", "2002")).build();
-      SenseiResult res = senseiServiceProxy.sendRequest(request);
+      SenseiResult res = senseiServiceProxy.sendSearchRequest(request);
       assertEquals("numhits is wrong", 4455, res.getNumhits().intValue());
 
       request = SenseiClientRequest.builder().addSelection(Selection.range("year", "2000", "2002", false, false)).build();
-      res = senseiServiceProxy.sendRequest( request);
+      res = senseiServiceProxy.sendSearchRequest( request);
       assertEquals("numhits is wrong", 1443, res.getNumhits().intValue());
 
       request = SenseiClientRequest.builder().addSelection(Selection.range("year", "2000", "2002", false, true)).build();
-      res = senseiServiceProxy.sendRequest( request);
+      res = senseiServiceProxy.sendSearchRequest( request);
       assertEquals("numhits is wrong", 2907, res.getNumhits().intValue());
 
       request = SenseiClientRequest.builder().addSelection(Selection.range("year", "2000", "2002", true, false)).build();
-      res = senseiServiceProxy.sendRequest( request);
+      res = senseiServiceProxy.sendSearchRequest( request);
       assertEquals("numhits is wrong", 2991, res.getNumhits().intValue());
   }
   @Test
   public void testMatchAllWithBoostQuery() throws Exception
   {
     SenseiClientRequest request = SenseiClientRequest.builder().query(Queries.matchAllQuery(1.2)).build();
-    SenseiResult res = senseiServiceProxy.sendRequest( request);
+    SenseiResult res = senseiServiceProxy.sendSearchRequest( request);
     assertEquals("numhits is wrong", 15000, res.getNumhits().intValue());
   }
   @Test
   public void testQueryStringQuery() throws Exception
   {
     SenseiClientRequest request = SenseiClientRequest.builder().query(Queries.stringQuery("red AND cool")).build();
-    SenseiResult res = senseiServiceProxy.sendRequest( request);
+    SenseiResult res = senseiServiceProxy.sendSearchRequest( request);
     assertEquals("numhits is wrong", 1070, res.getNumhits().intValue());
 
   }
@@ -69,7 +73,7 @@ public class JavaClientIntegrationTest extends Assert {
   {
     String req = "{\"query\": {\"ids\": {\"values\": [\"1\", \"2\", \"3\"], \"excludes\": [\"2\"]}}}";
     System.out.println(req);
-    JSONObject res =new JSONObject(senseiServiceProxy.sendPost(req));
+    JSONObject res =new JSONObject(senseiServiceProxy.sendPost(senseiServiceProxy.getSearchUrl(), req));
     assertEquals("numhits is wrong", 2, res.getInt("numhits"));
     assertEquals("the first uid is wrong", 1, res.getJSONArray("hits").getJSONObject(0).getInt("uid"));
     assertEquals("the second uid is wrong", 3, res.getJSONArray("hits").getJSONObject(1).getInt("uid"));
@@ -79,7 +83,7 @@ public class JavaClientIntegrationTest extends Assert {
   {
     SenseiClientRequest request = SenseiClientRequest.builder().query(Queries.ids(Arrays.asList("1","2", "3"), Arrays.asList("2"), 1.0)).build();
 
-    SenseiResult res = senseiServiceProxy.sendRequest( request);
+    SenseiResult res = senseiServiceProxy.sendSearchRequest( request);
 
 
     assertEquals("numhits is wrong", 2, res.getNumhits().intValue());
@@ -90,7 +94,7 @@ public class JavaClientIntegrationTest extends Assert {
   public void testTextQuery() throws Exception
   {
     SenseiClientRequest request = SenseiClientRequest.builder().query(Queries.textQuery("contents", "red cool", Operator.and, 1.0)).build();
-    SenseiResult res = senseiServiceProxy.sendRequest( request);
+    SenseiResult res = senseiServiceProxy.sendSearchRequest( request);
     assertEquals("numhits is wrong", 1070, res.getNumhits().intValue());
 
   }
@@ -98,7 +102,7 @@ public class JavaClientIntegrationTest extends Assert {
   public void testTermQuery() throws Exception
   {
     SenseiClientRequest request = SenseiClientRequest.builder().query(Queries.term("color", "red", 1.0)).build();
-    SenseiResult res = senseiServiceProxy.sendRequest( request);
+    SenseiResult res = senseiServiceProxy.sendSearchRequest( request);
     assertEquals("numhits is wrong", 2160, res.getNumhits().intValue());
 
   }
@@ -106,7 +110,7 @@ public class JavaClientIntegrationTest extends Assert {
   public void testTermsQuery() throws Exception
   {
     SenseiClientRequest request = SenseiClientRequest.builder().query(Queries.terms("tags", Arrays.asList("leather", "moon-roof"), Arrays.asList("hybrid"), Operator.or, 0, 1.0)).build();
-    SenseiResult res = senseiServiceProxy.sendRequest( request);
+    SenseiResult res = senseiServiceProxy.sendSearchRequest( request);
     assertEquals("numhits is wrong", 5777, res.getNumhits().intValue());
 
   }
@@ -115,7 +119,7 @@ public class JavaClientIntegrationTest extends Assert {
   {
     SenseiClientRequest request = SenseiClientRequest.builder().query(
         Queries.bool(Arrays.asList((Query)Queries.term("color", "red", 1.0)), Arrays.asList((Query)Queries.term("category", "compact", 1.0)), null,  1.0)).build();
-    SenseiResult res = senseiServiceProxy.sendRequest( request);
+    SenseiResult res = senseiServiceProxy.sendSearchRequest( request);
     assertEquals("numhits is wrong", 1652, res.getNumhits().intValue());
 
   }
@@ -126,7 +130,7 @@ public class JavaClientIntegrationTest extends Assert {
         Queries.disMax(0.7, 1.2, Queries.term("color", "red", 1.0), Queries.term("color", "blue", 1.0))
 
    ).build();
-    SenseiResult res = senseiServiceProxy.sendRequest( request);
+    SenseiResult res = senseiServiceProxy.sendSearchRequest( request);
     assertEquals("numhits is wrong", 3264, res.getNumhits().intValue());
 
   }
@@ -137,7 +141,7 @@ public class JavaClientIntegrationTest extends Assert {
         Queries.path("makemodel","asian/acura/3.2tl" , 1.0)
 
    ).build();
-    SenseiResult res = senseiServiceProxy.sendRequest( request);
+    SenseiResult res = senseiServiceProxy.sendSearchRequest( request);
     assertEquals("numhits is wrong", 126, res.getNumhits().intValue());
 
   }
@@ -148,7 +152,7 @@ public class JavaClientIntegrationTest extends Assert {
         Queries.prefix("color","blu" , 2.0)
 
    ).build();
-    SenseiResult res = senseiServiceProxy.sendRequest( request);
+    SenseiResult res = senseiServiceProxy.sendSearchRequest( request);
     assertEquals("numhits is wrong", 1104, res.getNumhits().intValue());
 
   }
@@ -159,7 +163,7 @@ public class JavaClientIntegrationTest extends Assert {
         Queries.wildcard("color","bl*e" , 2.0)
 
    ).build();
-    SenseiResult res = senseiServiceProxy.sendRequest( request);
+    SenseiResult res = senseiServiceProxy.sendSearchRequest( request);
     assertEquals("numhits is wrong", 1104, res.getNumhits().intValue());
 
   }
@@ -170,7 +174,7 @@ public class JavaClientIntegrationTest extends Assert {
         Queries.range("year", "1999", "2000", true, true, 2.0, false)
 
    ).build();
-    SenseiResult res = senseiServiceProxy.sendRequest( request);
+    SenseiResult res = senseiServiceProxy.sendSearchRequest( request);
     assertEquals("numhits is wrong", 3015, res.getNumhits().intValue());
 
   }
@@ -182,7 +186,7 @@ public class JavaClientIntegrationTest extends Assert {
 
    ).build();
     System.out.println(JsonSerializer.serialize(request));
-    SenseiResult res = senseiServiceProxy.sendRequest( request);
+    SenseiResult res = senseiServiceProxy.sendSearchRequest( request);
     assertEquals("numhits is wrong", 3015, res.getNumhits().intValue());
 
   }
@@ -194,7 +198,7 @@ public class JavaClientIntegrationTest extends Assert {
 
    ).build();
     System.out.println(JsonSerializer.serialize(request));
-    SenseiResult res = senseiServiceProxy.sendRequest( request);
+    SenseiResult res = senseiServiceProxy.sendSearchRequest( request);
     assertEquals("numhits is wrong", 447, res.getNumhits().intValue());
 
   }
@@ -206,7 +210,7 @@ public class JavaClientIntegrationTest extends Assert {
 
    ).build();
     System.out.println(JsonSerializer.serialize(request));
-    SenseiResult res = senseiServiceProxy.sendRequest( request);
+    SenseiResult res = senseiServiceProxy.sendSearchRequest( request);
     assertEquals("numhits is wrong", 2160, res.getNumhits().intValue());
 
   }
@@ -218,7 +222,7 @@ public class JavaClientIntegrationTest extends Assert {
 
    ).build();
     System.out.println(JsonSerializer.serialize(request));
-    SenseiResult res = senseiServiceProxy.sendRequest( request);
+    SenseiResult res = senseiServiceProxy.sendSearchRequest( request);
     assertEquals("numhits is wrong", 3264, res.getNumhits().intValue());
 
   }
@@ -228,7 +232,7 @@ public class JavaClientIntegrationTest extends Assert {
   {
     String req = "{\"query\":{\"span_or\":{\"clauses\":[{\"span_term\":{\"color\":\"red\"}},{\"span_term\":{\"color\":\"blue\"}}]}}}";
     System.out.println(req);
-    JSONObject res =new JSONObject(senseiServiceProxy.sendPost(req));
+    JSONObject res =new JSONObject(senseiServiceProxy.sendPost(senseiServiceProxy.getSearchUrl(), req));
     assertEquals("numhits is wrong", 3264, res.getInt("numhits"));
   }
   @Test
@@ -239,7 +243,7 @@ public class JavaClientIntegrationTest extends Assert {
 
    ).build();
     System.out.println(JsonSerializer.serialize(request));
-    SenseiResult res = senseiServiceProxy.sendRequest( request);
+    SenseiResult res = senseiServiceProxy.sendSearchRequest( request);
     assertEquals("numhits is wrong", 4596, res.getNumhits().intValue());
 
   }
@@ -251,7 +255,7 @@ public class JavaClientIntegrationTest extends Assert {
 
    ).build();
     System.out.println(JsonSerializer.serialize(request));
-    SenseiResult res = senseiServiceProxy.sendRequest( request);
+    SenseiResult res = senseiServiceProxy.sendSearchRequest( request);
     assertEquals("numhits is wrong", 274, res.getNumhits().intValue());
 
   }
@@ -263,7 +267,7 @@ public class JavaClientIntegrationTest extends Assert {
 
    ).build();
     System.out.println(JsonSerializer.serialize(request));
-    SenseiResult res = senseiServiceProxy.sendRequest( request);
+    SenseiResult res = senseiServiceProxy.sendSearchRequest( request);
     assertEquals("numhits is wrong", 63, res.getNumhits().intValue());
 
   }
@@ -276,7 +280,7 @@ public class JavaClientIntegrationTest extends Assert {
 
    ).build();
     System.out.println(JsonSerializer.serialize(request));
-    SenseiResult res = senseiServiceProxy.sendRequest( request);
+    SenseiResult res = senseiServiceProxy.sendSearchRequest( request);
     assertEquals("numhits is wrong", 2160, res.getNumhits().intValue());
 
   }
@@ -285,7 +289,7 @@ public class JavaClientIntegrationTest extends Assert {
   {
     SenseiClientRequest request = SenseiClientRequest.builder().filter(Filters.ids(Arrays.asList("1","2", "3"), Arrays.asList("2"))).build();
 
-    SenseiResult res = senseiServiceProxy.sendRequest( request);
+    SenseiResult res = senseiServiceProxy.sendSearchRequest( request);
 
 
     assertEquals("numhits is wrong", 2, res.getNumhits().intValue());
@@ -300,7 +304,7 @@ public class JavaClientIntegrationTest extends Assert {
 
    ).build();
     System.out.println(JsonSerializer.serialize(request));
-    SenseiResult res = senseiServiceProxy.sendRequest( request);
+    SenseiResult res = senseiServiceProxy.sendSearchRequest( request);
     assertEquals("numhits is wrong", 439, res.getNumhits().intValue());
 
   }
@@ -312,7 +316,7 @@ public class JavaClientIntegrationTest extends Assert {
 
    ).build();
     System.out.println(JsonSerializer.serialize(request));
-    SenseiResult res = senseiServiceProxy.sendRequest( request);
+    SenseiResult res = senseiServiceProxy.sendSearchRequest( request);
     assertEquals("numhits is wrong", 3264, res.getNumhits().intValue());
 
   }
@@ -322,7 +326,7 @@ public class JavaClientIntegrationTest extends Assert {
     SenseiClientRequest request = SenseiClientRequest.builder().filter(
         Filters.bool(Arrays.asList((Filter)Filters.term("color", "red")), Arrays.asList((Filter)Filters.term("category", "compact")), Arrays.asList((Filter)Filters.term("color", "red")))
     ).build();
-    SenseiResult res = senseiServiceProxy.sendRequest( request);
+    SenseiResult res = senseiServiceProxy.sendSearchRequest( request);
     assertEquals("numhits is wrong", 1652, res.getNumhits().intValue());
 
   }
@@ -334,7 +338,7 @@ public class JavaClientIntegrationTest extends Assert {
 
    ).build();
     System.out.println(JsonSerializer.serialize(request));
-    SenseiResult res = senseiServiceProxy.sendRequest( request);
+    SenseiResult res = senseiServiceProxy.sendSearchRequest( request);
     assertEquals("numhits is wrong", 3015, res.getNumhits().intValue());
 
   }
@@ -346,7 +350,7 @@ public class JavaClientIntegrationTest extends Assert {
 
    ).build();
     System.out.println(JsonSerializer.serialize(request));
-    SenseiResult res = senseiServiceProxy.sendRequest( request);
+    SenseiResult res = senseiServiceProxy.sendSearchRequest( request);
     assertEquals("numhits is wrong", 2160, res.getNumhits().intValue());
 
   }
@@ -358,7 +362,7 @@ public class JavaClientIntegrationTest extends Assert {
 
    ).build();
     System.out.println(JsonSerializer.serialize(request));
-    SenseiResult res = senseiServiceProxy.sendRequest( request);
+    SenseiResult res = senseiServiceProxy.sendSearchRequest( request);
     assertEquals("numhits is wrong", 5777, res.getNumhits().intValue());
 
   }
@@ -374,31 +378,31 @@ public class JavaClientIntegrationTest extends Assert {
    .addTemplateMapping("to", "2000")
    .build();
     System.out.println(JsonSerializer.serialize(request));
-    SenseiResult res = senseiServiceProxy.sendRequest( request);
+    SenseiResult res = senseiServiceProxy.sendSearchRequest( request);
     //System.out.println(res);
     assertEquals("numhits is wrong", 3015, res.getNumhits().intValue());
 
   }
-  /*
 
-
-
-  public void testRangeFilter() throws Exception
+  @Test
+  public void testGetStoreQuery() throws Exception
   {
-    logger.info("executing test case testRangeFilter");
-    String req = "{\"filter\":{\"range\":{\"year\":{\"to\":2000,\"boost\":2,\"from\":1999,\"_noOptimize\":false}}}}";
-    JSONObject res = search(new JSONObject(req));
-    assertEquals("numhits is wrong", 3015, res.getInt("numhits"));
+
+      List<Map<String, Object>> ret = senseiServiceProxy.sendGetRequest(Arrays.asList("1","2", "3", "5"));
+      Collections.sort(ret, new Comparator<Map>() {
+        @Override
+        public int compare(Map map1, Map map2) {
+          return ((Comparable)map1.get("id")).compareTo(map2.get("id"));
+        }
+      });
+      assertEquals(4, ret.size());
+      assertEquals(Integer.valueOf(1), ret.get(0).get("id"));
+      assertEquals(11, ret.get(0).size());
+      assertEquals(Integer.valueOf(2), ret.get(1).get("id"));
+      assertEquals(Integer.valueOf(3), ret.get(2).get("id"));
+      assertEquals(Integer.valueOf(5), ret.get(3).get("id"));
+      assertEquals("automatic,hybrid,leather,reliable", ret.get(3).get("tags"));
   }
-
-  public void testRangeFilter2() throws Exception
-  {
-    logger.info("executing test case testRangeFilter2");
-    String req = "{\"filter\":{\"range\":{\"year\":{\"to\":\"2000\",\"boost\":2,\"from\":\"1999\",\"_noOptimize\":true,\"_type\":\"int\"}}}}";
-    JSONObject res = search(new JSONObject(req));
-    assertEquals("numhits is wrong", 3015, res.getInt("numhits"));
-  }*/
-  /*
 
 
 

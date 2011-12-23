@@ -1,0 +1,350 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+  <chapter xmlns="http://docbook.org/ns/docbook"
+           xmlns:xlink="http://www.w3.org/1999/xlink">
+
+    <title>Sensei Administration</title>
+	<para>We expose many Sensei metrics through JMX. We list most of them in this chapter, including both the system metrics and Sensei-specific metrics.</para>
+    <section>
+      <title>A: System metrics</title>
+
+	  <varlistentry>
+            <term><emphasis role="bold">CPU usage</emphasis></term>
+            <listitem>
+              <itemizedlist spacing="compact">
+                <listitem>
+                  <para>Operating System Infomation ( AvailableProcessors, Arch (amd64),etc )</para>
+                  <programlisting><![CDATA[
+(ObjectName:java.lang:type=OperatingSystem)
+(InterfaceClassName:com.sun.management.UnixOperatingSystemMXBean)
+                  ]]></programlisting>	
+                </listitem>
+              </itemizedlist>
+            </listitem>
+          </varlistentry>
+          
+	  <varlistentry>
+            <term><emphasis role="bold">RAM used/free</emphasis></term>
+            <listitem>
+              <itemizedlist spacing="compact">
+                <listitem>
+                  <para>(1) FreePhysicalMemorySize, TotalPhysicalMemorySize, CommittedVirtualMemorySize;
+(2) FreeSwapSpaceSize; TotalSwapSpaceSize</para>
+                  <programlisting><![CDATA[
+(ObjectName:java.lang:type=OperatingSystem)
+(InterfaceClassName:com.sun.management.UnixOperatingSystemMXBean)
+                  ]]></programlisting>	
+                </listitem>
+              </itemizedlist>
+            </listitem>
+          </varlistentry>
+          
+ 	  <varlistentry>
+            <term><emphasis role="bold">System load</emphasis></term>
+            <listitem>
+              <itemizedlist spacing="compact">
+                <listitem>
+                  <para>(1) SystemLoadAverage;
+(2) OpenFileDescriptorCount; MaxFileDescriptorCount;</para>
+                  <programlisting><![CDATA[
+(ObjectName:java.lang:type=OperatingSystem)
+(InterfaceClassName:com.sun.management.UnixOperatingSystemMXBean)
+                  ]]></programlisting>	
+                </listitem>
+              </itemizedlist>
+            </listitem>
+          </varlistentry>         
+     
+     
+ 	  <varlistentry>
+            <term><emphasis role="bold">Disk reads/writes (N/A)</emphasis></term>
+            <listitem>
+              <itemizedlist spacing="compact">
+              </itemizedlist>
+            </listitem> 
+          </varlistentry>  
+          
+  	  <varlistentry>
+            <term><emphasis role="bold">Network interface traffic (N/A)</emphasis></term>
+            <listitem>
+              <itemizedlist spacing="compact">
+              </itemizedlist>
+            </listitem>             
+          </varlistentry>  
+          
+ 	  <varlistentry>
+            <term><emphasis role="bold">JVM memory usage</emphasis></term>
+            <listitem>
+              <itemizedlist spacing="compact">
+                <listitem>
+                  <para>(1) NonHeapMemoryUsage(max, committed, init, used, etc.)
+(2) HeapMemoryUsage (max, committed, init, used, etc.)</para>
+                  <programlisting><![CDATA[
+(ObjectName:java.lang:type=Memory)
+(InterfaceClassName:java.lang.management.MemoryMXBean)
+                  ]]></programlisting>	
+                </listitem>
+                
+                <listitem>
+                  <para>(3) Perm Gen info; (PeakUsage, Usage, CollectionUsage )</para>
+                  <programlisting><![CDATA[
+(ObjectName:java.lang:type=MemoryPool,name=PS Perm Gen)
+(InterfaceClassName:java.lang.management.MemoryPoolMXBean)
+                  ]]></programlisting>	
+                </listitem>
+ 
+                <listitem>
+                  <para>(4) Old Gen info;(PeakUsage, Usage, CollectionUsage )</para>
+                  <programlisting><![CDATA[
+(ObjectName:java.lang:type=MemoryPool,name=PS Old Gen)
+(InterfaceClassName:java.lang.management.MemoryPoolMXBean)
+                  ]]></programlisting>	
+                </listitem>
+       
+                <listitem>
+                  <para>(5) Survivor Space;(PeakUsage, Usage, CollectionUsage )</para>
+                  <programlisting><![CDATA[
+(ObjectName:java.lang:type=MemoryPool,name=PS Survivor Space)
+(InterfaceClassName:java.lang.management.MemoryPoolMXBean)
+                  ]]></programlisting>	
+                </listitem>       
+    
+                <listitem>
+                  <para>(6) Eden Space; (PeakUsage, Usage, CollectionUsage )</para>
+                  <programlisting><![CDATA[
+(ObjectName:java.lang:type=MemoryPool,name=PS Eden Space)
+(InterfaceClassName:java.lang.management.MemoryPoolMXBean)
+                  ]]></programlisting>	
+                </listitem>   
+                
+                <listitem>
+                  <para>(7) Code Cache; (PeakUsage, Usage, CollectionUsage )</para>
+                  <programlisting><![CDATA[
+(ObjectName:java.lang:type=MemoryPool,name=Code Cache)
+(InterfaceClassName:java.lang.management.MemoryPoolMXBean)
+                  ]]></programlisting>	
+                </listitem>                      
+                
+              </itemizedlist>
+            </listitem>
+          </varlistentry>  
+          
+ 	  <varlistentry>
+            <term><emphasis role="bold">JVM garbage collection times and counts</emphasis></term>
+            <listitem>
+              <itemizedlist spacing="compact">
+                <listitem>
+                  <para>(1) LastGcInfo: StartTime, memoryUsageBeforeGc, memoryUsageAfterGc, etc. (PS Survivor Space, PS Eden Space, Code Cache, PS Old Gen, PS Perm Gen )</para>
+                  <programlisting><![CDATA[
+(ObjectName:java.lang:type=GarbageCollector,name=PS MarkSweep)
+(InterfaceClassName:com.sun.management.GarbageCollectorMXBean)
+
+(ObjectName:java.lang:type=GarbageCollector,name=PS Scavenge)
+(InterfaceClassName:com.sun.management.GarbageCollectorMXBean)
+                  ]]></programlisting>	
+                </listitem>
+              </itemizedlist>
+            </listitem>
+          </varlistentry>          
+            
+ 	  <varlistentry>
+            <term><emphasis role="bold">JVM threads/classes</emphasis></term>
+            <listitem>
+              <itemizedlist spacing="compact">
+                <listitem>
+                  <para>(1) LoadedClassCount</para>
+                  <programlisting><![CDATA[
+(ObjectName:java.lang:type=ClassLoading)
+(InterfaceClassName:java.lang.management.ClassLoadingMXBean)
+                  ]]></programlisting>	
+                </listitem>
+                
+                <listitem>
+                  <para>(2) PeakThreadCount; CurrentThreadCpuTime; DaemonThreadCount; TotalStartedThreadCount; etc.</para>
+                  <programlisting><![CDATA[
+(ObjectName:java.lang:type=Threading)
+(InterfaceClassName:com.sun.management.ThreadMXBean)
+                  ]]></programlisting>	
+                </listitem>
+                                
+              </itemizedlist>
+            </listitem>
+          </varlistentry>     
+                             
+    </section>
+
+    <section>
+      <title>B: Sensei-specific metrics</title>
+
+	  <varlistentry>
+            <term><emphasis role="bold">docs-indexed</emphasis></term>
+            <listitem>
+              <itemizedlist spacing="compact">
+                <listitem>
+                  <programlisting><![CDATA[
+(ObjectName: com.senseidb:type=meter,scope=indexer,name=docs-indexed)
+(InterfaceClassName: com.yammer.metrics.reporting.JmxReporter$MeterMBean)
+                  ]]></programlisting>	
+                </listitem>
+              </itemizedlist>
+            </listitem>
+          </varlistentry>
+          
+	  <varlistentry>
+            <term><emphasis role="bold">docs indexing rate</emphasis></term>
+            <listitem>
+              <itemizedlist spacing="compact">
+                <listitem>
+                  <programlisting><![CDATA[
+(com.senseidb:type=meter,scope=indexing-manager,name=indexing-events )
+(InterfaceClassName: com.yammer.metrics.reporting.JmxReporter$MeterMBean)
+                  ]]></programlisting>	
+                </listitem>
+              </itemizedlist>
+            </listitem>
+          </varlistentry>
+          
+	  <varlistentry>
+            <term><emphasis role="bold">sensei server info: (id, port, is_available, partitions )</emphasis></term>
+            <listitem>
+              <itemizedlist spacing="compact">
+                <listitem>
+                  <programlisting><![CDATA[
+(ObjectName: com.senseidb:name=sensei-server-1 )
+(InterfaceClassName: com.sensei.search.nodes.SenseiServerAdminMBean)
+                  ]]></programlisting>	
+                </listitem>
+              </itemizedlist>
+            </listitem>
+          </varlistentry>
+          
+ 	  <varlistentry>
+            <term><emphasis role="bold">Disk Index Info for partition</emphasis></term>
+            <listitem>
+              <itemizedlist spacing="compact">
+                <listitem>
+                  <para>DiskFreeSpaceBytes, DiskIndexSizeBytes, LastOptimizationTime, LastDiskIndexModifiedTime, IndexDir, DiskIndexSegmentCount</para>
+                  <programlisting><![CDATA[
+(ObjectName: com.senseidb:zoie-name=zoie-admin-1-1 )
+(InterfaceClassName: proj.zoie.mbean.ZoieSystemAdminMBean)
+                  ]]></programlisting>	
+                </listitem>
+                
+                <listitem>
+                  <para>LastIndexingBatchSize, LastIndexingBatchDuration, LastIndexingEndTime</para>
+                  <programlisting><![CDATA[
+(ObjectName: com.senseidb:zoie-name=zoie-status-1-1 )
+(InterfaceClassName: proj.zoie.mbean.ZoieIndexingStatusAdminMBean)
+                  ]]></programlisting>	
+                </listitem>
+                                
+              </itemizedlist>
+            </listitem>
+          </varlistentry>   
+          
+	  <varlistentry>
+            <term><emphasis role="bold">Request number, OneMinuteRate</emphasis></term>
+            <listitem>
+              <itemizedlist spacing="compact">
+                <listitem>
+                  <programlisting><![CDATA[
+(ObjectName: com.senseidb:type=meter,scope=node,name=search-count )
+(InterfaceClassName: com.yammer.metrics.reporting.JmxReporter$MeterMBean)
+                  ]]></programlisting>	
+                </listitem>
+              </itemizedlist>
+            </listitem>
+          </varlistentry>
+          
+	  <varlistentry>
+            <term><emphasis role="bold">QPS (can be calculated through other metrics)</emphasis></term>
+            <listitem>
+              <itemizedlist spacing="compact">
+              </itemizedlist>
+            </listitem>            
+          </varlistentry>
+          
+      
+ 	  <varlistentry>
+            <term><emphasis role="bold">Broker level latency</emphasis></term>
+            <listitem>
+              <itemizedlist spacing="compact">
+                <listitem>
+                  <para>total-search-time</para>
+                  <programlisting><![CDATA[
+(ObjectName:com.senseidb:type=timer,scope=broker,name=total-search-time)
+(InterfaceClassName:com.yammer.metrics.reporting.JmxReporter$TimerMBean)
+                  ]]></programlisting>	
+                </listitem>
+                
+                <listitem>
+                  <para>scatter-time</para>
+                  <programlisting><![CDATA[
+(ObjectName:com.com.senseidb:type=timer,scope=broker,name=scatter-time)
+(InterfaceClassName:com.yammer.metrics.reporting.JmxReporter$TimerMBean)
+                  ]]></programlisting>	
+                </listitem>
+  
+                <listitem>
+                  <para>gather-time</para>
+                  <programlisting><![CDATA[
+(ObjectName:com.senseidb:type=timer,scope=broker,name=gather-time)
+(InterfaceClassName:com.yammer.metrics.reporting.JmxReporter$TimerMBean)
+                  ]]></programlisting>	
+                </listitem>  
+                                
+              </itemizedlist>
+            </listitem>
+          </varlistentry>       
+      
+ 	  <varlistentry>
+            <term><emphasis role="bold">Node level latency</emphasis></term>
+            <listitem>
+              <itemizedlist spacing="compact">
+                <listitem>
+                  <para>getreader-time</para>
+                  <programlisting><![CDATA[
+(ObjectName:com.senseidb:type=timer,scope=node,name=getreader-time)
+(InterfaceClassName:com.yammer.metrics.reporting.JmxReporter$TimerMBean)
+                  ]]></programlisting>	
+                </listitem>
+                
+                <listitem>
+                  <para>merge-time</para>
+                  <programlisting><![CDATA[
+(ObjectName:com.senseidb:type=timer,scope=node,name=merge-time)
+(InterfaceClassName:com.yammer.metrics.reporting.JmxReporter$TimerMBean)
+                  ]]></programlisting>	
+                </listitem>
+  
+                <listitem>
+                  <para>prune-time</para>
+                  <programlisting><![CDATA[
+(ObjectName:com.senseidb:type=timer,scope=node,name=prune)
+(InterfaceClassName:com.yammer.metrics.reporting.JmxReporter$TimerMBean)
+                  ]]></programlisting>	
+                </listitem>  
+                               
+                <listitem>
+                  <para>search-time in node</para>
+                  <programlisting><![CDATA[
+(ObjectName:com.senseidb:type=timer,scope=node,name=search-time)
+(InterfaceClassName:com.yammer.metrics.reporting.JmxReporter$TimerMBean)
+                  ]]></programlisting>	
+                </listitem> 
+                
+                <listitem>
+                  <para>total-search-time</para>
+                  <programlisting><![CDATA[
+(ObjectName:com.senseidb:type=timer,scope=node,name=total-search-time)
+(InterfaceClassName:com.yammer.metrics.reporting.JmxReporter$TimerMBean)
+                  ]]></programlisting>	
+                </listitem>                                                
+                                
+              </itemizedlist>
+            </listitem>
+          </varlistentry>  
+                                                            
+    </section>      
+
+  </chapter>

@@ -38,7 +38,7 @@ public class Examples {
         .build();
         JSONObject serialized = (JSONObject) JsonSerializer.serialize(senseiRequest);
         System.out.println(serialized.toString(2));
-        SenseiResult senseiResult = new SenseiServiceProxy("http://localhost:8080/sensei/").sendRequest(senseiRequest);
+        SenseiResult senseiResult = new SenseiServiceProxy("localhost", "8080").sendSearchRequest(senseiRequest);
         System.out.println(senseiResult);
     }
     public static SenseiClientRequest.Builder basicWithSelections(SenseiClientRequest.Builder builder) {
