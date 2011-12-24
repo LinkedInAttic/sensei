@@ -63,8 +63,8 @@ To run the demo, simple compile and package the project into an excutable jar fi
 (You need to specify the job configuration file location in CarDemo.java, and upload the schema file into the HDFS system before running, and also the location of the schema file should be set in the configuration file)
 </p>
 
-<h4>(1) Set up a local hadoop running environment</h4>
-<p>Following the <a href="http://hadoop.apache.org/common/docs/current/single_node_setup.html">"Single Node Setup"</a> page in Apache Hadoop project can help to setup a local pseudo hadoop cluster very easily in less than 5 minutes.
+<h4>(1) Set up a local hadoop running environment (pseudo Hadoop cluster)</h4>
+<p>Following this <a href="http://hadoop.apache.org/common/docs/current/single_node_setup.html">page</a> the "pseudo hadoop cluster" part in Apache Hadoop project can help to setup a local pseudo hadoop cluster very easily in less than 5 minutes.
 The main steps are as follows,
   <ul>
     <li><b>Dowload the stable release of hadoop. Be sure to download the <a href="http://mirror.metrocast.net/apache//hadoop/common/hadoop-0.20.2/">0.20.2</a> version, otherwise some compatibility issue may happen; </b></li>
@@ -84,17 +84,17 @@ The main steps are as follows,
 </p>
 
 <p>The dowloaded Hadoop is located in /local/test/hadoop-0.20.2/ </p>
-<p>Now you have a Hadoop cluster running successfully!</p>
+<p>Now you have a Hadoop cluster running successfully! We will use <code>$HADOOP_HOME</code> to refer to the location of the Hadoop you just installed.</p>
 
 
 <h4>(2) Use hadoop to build index</h4>
 <p>Before using the local Hadoop to build the index, we need to upload the schema.xml file and the input data into the local HDFS system:</p>
 <pre class="prettyprint" id="xml">
 <?xml version="1.0" encoding="UTF-8"?>
-$SENSEI_HOME/bin/hadoop fs -mkdir conf
-$SENSEI_HOME/bin/hadoop fs -put /local/Documents/workspace/sensei/example/cars/conf/schema.xml conf/
-$SENSEI_HOME/bin/hadoop fs -mkdir data
-$SENSEI_HOME/bin/hadoop fs -put /local/Documents/workspace/sensei/example/cars/data/cars.json data/
+$HADOOP_HOME/bin/hadoop fs -mkdir conf
+$HADOOP_HOME/bin/hadoop fs -put /local/Documents/workspace/sensei/example/cars/conf/schema.xml conf/
+$HADOOP_HOME/bin/hadoop fs -mkdir data
+$HADOOP_HOME/bin/hadoop fs -put /local/Documents/workspace/sensei/example/cars/data/cars.json data/
  
 </pre>
 <p>After uploaded the schema.xml file and the input data (cars.json), you can go to "http://localhost:50070/nn_browsedfscontent.jsp" to check if there are there in the local HDFS. These files will be used by your Hadoop job in the following steps.</p>
@@ -107,7 +107,7 @@ and then package it as a runnable jar file (e.g., example.jar) to execute:</p>
 cd $SENSEI_HOME/example/hadoop-indexing/
 mvn package
 cp target/sensei-example-hadoop-1.0.0-SNAPSHOT-jar-with-dependencies.jar CarDemo.jar
-$SENSEI_HOME/bin/hadoop jar CarDemo.jar
+$HADOOP_HOME/bin/hadoop jar CarDemo.jar
  
 </pre>
 
@@ -218,21 +218,26 @@ Total time: 51841
 
 
 <h4>(3) Bootstrap a running Sensei server from index built by hadoop</h4>
-<p>To bootstrap Sensei index, we firstly start a Sensei server (remember to add "sensei.indexer.copier=hdfs" property in the sensei.properties file):</p>
+<p>To bootstrap Sensei index, we firstly start a Sensei server with no document indexed.(remember to add "sensei.indexer.copier=hdfs" property in the sensei.properties file):</p>
+<p>To make sure this Sensei server does not index any document, we create an empty file in <code>$SENSEI_HOME/example/cars/data/empty.json</code>, 
+We modify the property file in <code>$SENSEI_HOME/example/cars/conf/sensei.properties</code>, and set <code>sensei.gateway.path = example/cars/data/empty.json</code>, then we start the sensei.
+</p>
 <p><code>In $SENSEI_HOME</code>:</p>
 <pre class="prettyprint">
 ./bin/start-sensei-node.sh example/cars/conf/
 </pre>
 
-<p>Now we go to localhost:8080 in web browser, click apply then click execute, we will get the current total doc number in index:</p>
+<p>Now we go to localhost:8080 in web browser, click apply then click execute, we will get the current total doc number is 0 in index:</p>
 <pre class="prettyprint" id="xml">
 {
+    "time": 5,
+    "hits": [],
     "facets": {},
-    "totaldocs": 15000,
-    "numhits": 15000,
+    "totaldocs": 0,
+    "numhits": 0,
     "numgroups": 0,
     "tid": -1,
-    "parsedquery": "*:*"
+    "parsedquery": ""
 }
  
 </pre>    
@@ -246,13 +251,13 @@ We bootstrap this server by doing the folloing:</p>
  
 </pre>
 
-<p>After the boostrap is finished, let's check the localhost:8080 webpage again, and click apply, then click execute to search, we get the following at the bottom of the search result, the number of documents has been doubled from 15000 to 30000 since we "appended" the bootstrapped index into the current one:</p>
+<p>After the boostrap is finished, let's check the localhost:8080 webpage again, and click apply, then click execute to search, we get the following at the bottom of the search result, the number of documents has been increased from 0 to 15000 since we "appended" the bootstrapped index into the current one:</p>
 <p>In <code>$SENSEI_HOME</code>:</p>
 <pre class="prettyprint">
 {
     "facets": {},
-    "totaldocs": 30000,
-    "numhits": 30000,
+    "totaldocs": 15000,
+    "numhits": 15000,
     "numgroups": 0,
     "tid": -1,
     "parsedquery": "*:*"
