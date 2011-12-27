@@ -32,8 +32,12 @@ name: getting-started
 	</div>
 	<div class="span8">
 		<p>
-		Start your ZooKeeper instance: (detailed instruction <a href="http://zookeeper.apache.org/doc/trunk/zookeeperStarted.html">here</a>)
-		<pre><code>$ZK_HOME/bin/zkServer.sh start</code></pre>
+		Start your Zookeeper instance: (You can start your own Zookeeper cluster by following instructions <a href="http://zookeeper.apache.org/doc/trunk/zookeeperStarted.html">here</a>)
+		<pre><code>$SENSEI_HOME/bin/zookeeper-server-start.sh resources/zookeeper.properties</code></pre>
+		</p>
+		<p>
+			You can shut it down by running:
+			<pre><code>>$SENSEI_HOME/bin/zookeeper-server-stop.sh</code></pre>
 		</p>
 	</div>
 </div>
