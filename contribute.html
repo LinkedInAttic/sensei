@@ -31,14 +31,13 @@ name: contribute
 </p>
 <p>
 	Go into top-level directory for Sensei and do:
-	<pre><code>ant</code></pre> or
-	<pre><code>mvn package</code></pre>
+	<pre><code>$SENSEI_HOME/bin/build.sh</code></pre>
 </p>
 	<hr/>
 	<h3>Testing</h3>
 	<p>
-		First start Zookeeper by going to Zookeeper install directory and do:
-		<pre><code>./bin/zkServer.sh start</code></pre>
+		Start your Zookeeper instance: (You can start your own Zookeeper cluster by following instructions <a href="http://zookeeper.apache.org/doc/trunk/zookeeperStarted.html">here</a>)
+		<pre><code>$SENSEI_HOME/bin/zookeeper-server-start.sh resources/zookeeper.properties</code></pre>
 	</p>
 	<p>
 	You can run the unit test with the following command: (Make sure Zookeeper is running):
