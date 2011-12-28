@@ -1,4 +1,4 @@
-package com.sensei.dataprovider.kafka;
+package com.senseidb.sensei.gateway.kafka;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
