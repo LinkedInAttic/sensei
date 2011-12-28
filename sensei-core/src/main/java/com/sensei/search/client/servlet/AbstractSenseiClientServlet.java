@@ -22,34 +22,34 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.browseengine.bobo.api.BrowseSelection;
 import com.linkedin.norbert.javacompat.cluster.ClusterClient;
 import com.linkedin.norbert.javacompat.cluster.ZooKeeperClusterClient;
 import com.linkedin.norbert.javacompat.network.NetworkClientConfig;
-import com.browseengine.bobo.api.BrowseSelection;
 import com.sensei.conf.SenseiFacetHandlerBuilder;
 import com.sensei.search.cluster.client.SenseiNetworkClient;
 import com.sensei.search.nodes.SenseiBroker;
 import com.sensei.search.nodes.SenseiSysBroker;
+import com.sensei.search.req.SenseiHit;
 import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.req.SenseiResult;
-import com.sensei.search.req.SenseiHit;
 import com.sensei.search.req.SenseiSystemInfo;
 import com.sensei.search.util.RequestConverter2;
 
 public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableServlet {
 
   private static final long serialVersionUID = 1L;
-  
+
   private static final Logger logger = Logger.getLogger(AbstractSenseiClientServlet.class);
 
   private final NetworkClientConfig _networkClientConfig = new NetworkClientConfig();
-  
+
   private ClusterClient _clusterClient = null;
   private SenseiNetworkClient _networkClient = null;
   private SenseiBroker _senseiBroker = null;
   private SenseiSysBroker _senseiSysBroker = null;
   public AbstractSenseiClientServlet() {
-  
+
   }
 
   @Override
@@ -63,21 +63,21 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
     _networkClientConfig.setMaxConnectionsPerNode(maxConnectionsPerNode);
     _networkClientConfig.setStaleRequestTimeoutMins(staleRequestTimeoutMins);
     _networkClientConfig.setStaleRequestCleanupFrequencyMins(staleRequestCleanupFrequencyMins);
-    
+
     _clusterClient = new ZooKeeperClusterClient(clusterName,zkurl,zkTimeout);
-  
+
     _networkClientConfig.setClusterClient(_clusterClient);
-    
+
     _networkClient = new SenseiNetworkClient(_networkClientConfig, null);
     _senseiBroker = new SenseiBroker(_networkClient, _clusterClient, loadBalancerFactory);
     _senseiSysBroker = new SenseiSysBroker(_networkClient, _clusterClient, loadBalancerFactory, versionComparator);
-    
+
     logger.info("Connecting to cluster: "+clusterName+" ...");
     _clusterClient.awaitConnectionUninterruptibly();
 
     logger.info("Cluster: "+clusterName+" successfully connected ");
   }
-  
+
   protected abstract SenseiRequest buildSenseiRequest(HttpServletRequest req) throws Exception;
 
   public static Map<String, String> getParameters(String query)
@@ -126,7 +126,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
         String jsonString = req.getParameter("json");
         if (jsonString != null)
         {
-          
+
           JSONObject jsonObj = new JSONObject(jsonString);
           senseiReq = SenseiRequest.fromJSON(jsonObj);
           Logger log = Logger.getLogger("com.sensei.querylog");
@@ -165,7 +165,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
         if (jsonString != null)
           ids = new JSONArray(jsonString);
       }
-      
+
       Logger log = Logger.getLogger("com.sensei.querylog");
       if (log.isInfoEnabled()){
         log.info("get="+String.valueOf(ids));
@@ -186,16 +186,16 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
       if (senseiReq != null)
         res =_senseiBroker.browse(senseiReq);
 
-      JSONArray array = new JSONArray();
+      JSONObject ret = new JSONObject();
+      JSONObject obj = null;
       if (res != null && res.getSenseiHits() != null)
       {
         for (SenseiHit hit : res.getSenseiHits())
         {
-          JSONObject obj = null;
           try
           {
             obj = new JSONObject(hit.getSrcData());
-            array.put(obj);
+            ret.put(String.valueOf(hit.getUID()), obj);
           }
           catch(Exception ex)
           {
@@ -204,7 +204,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
         }
       }
       OutputStream ostream = resp.getOutputStream();
-      ostream.write(array.toString().getBytes("UTF-8"));
+      ostream.write(ret.toString().getBytes("UTF-8"));
       ostream.flush();
     }
     catch (Exception e)
@@ -216,7 +216,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
   private void handleSystemInfoRequest(HttpServletRequest req, HttpServletResponse resp)
     throws ServletException, IOException {
     try {
-      SenseiSystemInfo res = _senseiSysBroker.browse(new SenseiRequest()); 
+      SenseiSystemInfo res = _senseiSysBroker.browse(new SenseiRequest());
       OutputStream ostream = resp.getOutputStream();
       convertResult(res, ostream);
       ostream.flush();
@@ -285,7 +285,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
         os.close();
     }
   }
-  
+
   private static String readContent(BufferedReader reader) throws IOException{
 	  StringBuilder jb = new StringBuilder();
       String line = null;
@@ -293,7 +293,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
 		jb.append(line);
 	  return jb.toString();
   }
-  
+
   @Override
   protected void doGet(HttpServletRequest req, HttpServletResponse resp)
       throws ServletException, IOException {
@@ -325,14 +325,14 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
       handleSenseiRequest(req, resp);
     }
   }
-  
+
   @Override
   protected void doPost(HttpServletRequest req, HttpServletResponse resp)
       throws ServletException, IOException
   {
     doGet(req, resp);
   }
-  
+
   @Override
   protected void doOptions(HttpServletRequest req, HttpServletResponse resp)
       throws ServletException, IOException
@@ -341,7 +341,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
     resp.setHeader("Access-Control-Allow-Methods", "GET, POST");
     resp.setHeader("Access-Control-Allow-Headers", "Origin, Content-Type, X-Requested-With, Accept");
   }
-  
+
   protected abstract void convertResult(SenseiSystemInfo info, OutputStream ostream) throws Exception;
 
   protected abstract void convertResult(SenseiRequest req,SenseiResult res,OutputStream ostream) throws Exception;
@@ -378,7 +378,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
           }
         }
       }
-      
+
     }
     finally{
       super.destroy();

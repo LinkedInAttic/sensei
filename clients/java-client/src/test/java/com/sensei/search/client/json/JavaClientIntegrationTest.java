@@ -1,9 +1,6 @@
 package com.sensei.search.client.json;
 
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
 import java.util.Map;
 
 import org.json.JSONObject;
@@ -388,20 +385,15 @@ public class JavaClientIntegrationTest extends Assert {
   public void testGetStoreQuery() throws Exception
   {
 
-      List<Map<String, Object>> ret = senseiServiceProxy.sendGetRequest(Arrays.asList("1","2", "3", "5"));
-      Collections.sort(ret, new Comparator<Map>() {
-        @Override
-        public int compare(Map map1, Map map2) {
-          return ((Comparable)map1.get("id")).compareTo(map2.get("id"));
-        }
-      });
+      Map<Long, JSONObject> ret = senseiServiceProxy.sendGetRequest(Arrays.asList(1L,2L, 3L, 5L));
+
       assertEquals(4, ret.size());
-      assertEquals(Integer.valueOf(1), ret.get(0).get("id"));
-      assertEquals(11, ret.get(0).size());
-      assertEquals(Integer.valueOf(2), ret.get(1).get("id"));
-      assertEquals(Integer.valueOf(3), ret.get(2).get("id"));
-      assertEquals(Integer.valueOf(5), ret.get(3).get("id"));
-      assertEquals("automatic,hybrid,leather,reliable", ret.get(3).get("tags"));
+      assertEquals(Integer.valueOf(1), ret.get(1L).get("id"));
+      assertEquals(11, ret.get(1L).names().length());
+      assertEquals(Integer.valueOf(2), ret.get(2L).get("id"));
+      assertEquals(Integer.valueOf(3), ret.get(3L).get("id"));
+      assertEquals(Integer.valueOf(5), ret.get(5L).get("id"));
+      assertEquals("automatic,hybrid,leather,reliable", ret.get(5L).get("tags"));
   }
 
 
