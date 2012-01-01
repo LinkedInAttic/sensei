@@ -21,7 +21,7 @@
     <module>sensei-gateways</module>
     <module>sensei-hadoop-indexing</module>
     <!--<module>example</module>-->
-    <module>clients/java-client</module>
+    <module>clients/java</module>
   </modules>
 
 
