@@ -5,7 +5,9 @@ var tweeterSel={"values":[]};
 var hashtagSel={"values":[]};
 var timeRangeSel={"values":[]};
 
-var selmap = {"tweeter":tweeterSel,"hashtags":hashtagSel};
+var selmap = {"timeRange":timeRangeSel,"tweeter":tweeterSel,"hashtags":hashtagSel};
+
+var valmap = {"timeRange":{"000000100":"Last Minute","000010000":"Last Hour","001000000":"Last Day"}}
 
 var senseiReq = {};
 
@@ -68,8 +70,13 @@ function renderFacet(name,facet){
 		node.empty();
 		for (var i=0;i<facet.length;++i){
 			var html;
+			var facetVal = facet[i].value;
+			var val = valmap[name];
+			if (val !== undefined){
+			  facetVal = val[facetVal]
+			}
 
-			html = '<input type="checkbox"> '+facet[i].value+' ('+facet[i].count+')</input>';
+			html = '<input type="checkbox"> '+facetVal+' ('+facet[i].count+')</input>';
 			node.append(html);
 			var obj = node.children().last().get(0);
 			obj._name = name;
@@ -96,7 +103,7 @@ function renderHits(hits){
 
 		html += '<div class="span3">'+hit._score+"</div>"
 
-    var date = new Date(hit.time);
+    var date = new Date(hit.time*1000);
 		html += '<div class="span3">'+date+'</div>'
 
     var srcdata = extractSrcData(hit);
