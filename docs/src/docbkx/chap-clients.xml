@@ -1,26 +1,418 @@
 <?xml version="1.0" encoding="utf-8"?>
+<chapter xmlns="http://docbook.org/ns/docbook"
+         xmlns:xlink="http://www.w3.org/1999/xlink"
+         xmlns:ns5="http://www.w3.org/1999/xhtml"
+         xmlns:ns4="http://www.w3.org/1998/Math/MathML"
+         xmlns:ns3="http://www.w3.org/2000/svg"
+         xmlns:ns="http://docbook.org/ns/docbook">
+  <title>Sensei Clients and APIs</title>
 
-  <chapter xmlns="http://docbook.org/ns/docbook"
-           xmlns:xlink="http://www.w3.org/1999/xlink">
-
-    <title>Sensei Clients and APIs</title>
+  <section>
+    <title>RESTful API</title>
 
     <section>
-      <title>REST API</title>
+      <title>Overview</title>
 
-      <para></para>
+      <para>Sensei rest API provides a convenient way to call Sensei server
+      through a json-formatted request. In this section, we describe the
+      details of the format of the request json. A sample json is as in the
+      following example, it consists of several components, like query, selection, filter, facets, facet-initial-parameters, and some scalar parameters.</para>
+
+      <programlisting>
+// A Sensei Request JSON example
+{
+  "query" : {
+    "query_string" : { 
+      "query" : "this AND that OR thus"
+    }
+  },
+
+  // paging parameters
+
+  "size" : 10,   // default to 10;
+  "from" : 0,    //default to 0;   
+  
+  // group by parameters (currently only support group by one column)
+  "groupBy" : {
+    "columns" : ["category"],
+    "top" : 3
+  },
+
+  // filters
+  "filter" : {
+    "terms" : {
+      "tags" : {
+        "values" : [ "blue", "pill" ],
+        "excludes" : ["red"],
+        "minimum_match" : 1,
+        "operator" : "or",
+        "_noOptimize" : false
+      }
+    }
+  },
+  
+  "selections" : [
+    {
+      //details of this part see the selections.json
+      "tags" : {
+        "values" : [ "blue", "pill" ],
+        "excludes" : ["red"],
+        "operator" : "or"
+      }
+    },
+    {
+      "term":{
+      },
+    },
+  ],
+
+  // facet parameters
+  "facets":{
+    "category":{
+      // maximum number of facet values to return
+      "max" : 10,
+      // minimum hit count for a given facet value
+      "minCount": 1,
+      // expand sibling facet values
+      "expand" : false,
+      // facet ordering, possible values: "hits", "val", defaults to "hits"
+      "order" : "hits"
+    }
+  },
+  
+      // facet initialization parameters for runtime facets
+ "facetInit":{
+  "network" : {
+   // parameter
+   "srcId" :{
+    // parameter type, valid values are: "int","string","boolean","long","bytes","double", default: "string"
+    "type" : "int",
+    // parameter values
+    "values" : [26609850]  //e.g. "$member"
+   },
+   "timeOut":{
+    "type" : "double",
+    "values" : [2.4]    
+   },
+   "coldStart":{
+    "type" : "boolean",
+    "values" : [true]    
+   },
+   "names":{
+    "type": "string",
+    "values":["a", "b", "c"]
+   },
+   "longId":{
+    "type": "long",
+    "values":[1234567890, 9876543210]
+   },
+   "binary":{
+    "type": "bytes",
+    "values":["SGVsbG8gd29ybGQ="]    
+   }
+  }
+ },
+  
+  // sort parameters
+ "sort":[
+     {"color":"desc"},       // sort by color in reverse order
+     "_score"                     // secondary sort by relevance, reverse  parameter is ignored
+ ],
+
+
+
+  // fetch stored fields
+  "fetchStored" : false,
+
+  // fetch term vectors: array of field names
+  "termVectors" : [],
+
+  // partitions to send request to, empty list or null implies all partitions
+  "partitions":[1,2],
+
+  // send back scoring explanation for each hit
+  "explain" : false,
+
+  // routing parameter, if set, request will be consistent hashed to the same replica for each partition
+  "routeParam": null,
+
+  //Allows template substitution on the server. The template occurrence in other places should begin with the dollar sign. Even for the int values the template needs to be in quotes
+  "templateMapping":{
+    "size" : 10
+  }
+  //"size" : "$size"
+}
+
+</programlisting>
+    </section>
+    
+        <section>
+      <title>Query Parameters</title>
+
+      <itemizedlist>
+        <listitem>
+          <para><emphasis role="bold">Query Parameters:</emphasis>
+          <literal>qparam</literal></para>
+
+          <para>This parameter specifies a list of arbitrary query parameters
+          in the form of name-value pairs, separated by commas. Each pair is
+          formatted as <literal>&lt;name&gt;:&lt;value&gt;</literal>.</para>
+
+          <para>This parameter is commonly used to pass query-level parameters
+          to dynamic runtime facet handlers.</para>
+        </listitem>
+      </itemizedlist>
+
+      <example>
+        <title>Query Parameters</title>
+
+        <programlisting>  qparam=arg1:123,arg2:abc
+</programlisting>
+      </example>
     </section>
 
     <section>
-      <title>Java Client</title>
+      <title>Selection Parameters</title>
 
-      <para></para>
+      <itemizedlist>
+        <listitem>
+          <para><emphasis role="bold">Not-value parameter:</emphasis>
+          <literal>select.&lt;field-name&gt;.no</literal></para>
+
+          <para>This parameter specifies what values for a field should be
+          excluded from the search results.</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">Value parameter:</emphasis>
+          <literal>select.&lt;field-name&gt;.val</literal></para>
+
+          <para>This parameter specifies what values for a field should be
+          included in the search results.</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">Operator parameter:</emphasis>
+          <literal>select.&lt;field-name&gt;.op</literal></para>
+
+          <para>This parameter specifies the operator used for selection
+          values: <literal>and</literal> or <literal>or</literal>.</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">Property parameter:</emphasis>
+          <literal>select.&lt;field-name&gt;.prop</literal></para>
+
+          <para>This parameter specifies the additional properties if a
+          selection is on a field with the <emphasis>path</emphasis>
+          type.</para>
+        </listitem>
+      </itemizedlist>
+
+      <example>
+        <title>Selection Parameters</title>
+
+        <programlisting>  select.color.val=red,yellow&amp;select.color.op=or&amp;start=0&amp;select.color.not=black
+</programlisting>
+      </example>
+    </section>
+    
+    <section>
+     <title>Filter Parameters</title>
+        
     </section>
 
     <section>
-      <title>Python Client</title>
+      <title>Facet Specification Parameters</title>
 
-      <para></para>
+      <itemizedlist>
+        <listitem>
+          <para><emphasis role="bold">Maximum count parameter:</emphasis>
+          <literal>facet.&lt;facet-name&gt;.max</literal></para>
+
+          <para>This parameter specifies the maximum count value for a facet
+          with name <literal>fact-name</literal>.</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">Order-by parameter:</emphasis>
+          <literal>facet.&lt;facet-name&gt;.order</literal></para>
+
+          <para>This parameter specifies how facet values should be
+          ordered:</para>
+
+          <itemizedlist>
+            <listitem>
+              <para><literal>hits</literal>: order-by hits</para>
+            </listitem>
+
+            <listitem>
+              <para><literal>val</literal>: order-by values</para>
+            </listitem>
+          </itemizedlist>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">Selection-expand parameter:</emphasis>
+          <literal>facet.&lt;facet-name&gt;.expand</literal></para>
+
+          <para></para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">Minimum hits parameter:</emphasis>
+          <literal>facet.&lt;facet-name&gt;.minhit</literal></para>
+
+          <para></para>
+        </listitem>
+      </itemizedlist>
+
+      <example>
+        <title>Facet Specification Parameters</title>
+
+        <programlisting>  facet.color.minhit=1&amp;facet.color.max=3&amp;facet.color.order=val&amp;facet.color.expand=True
+</programlisting>
+      </example>
+    </section>    
+    
+    <section>
+      <title>Scalar Parameters</title>
+
+      <itemizedlist>
+        <listitem>
+          <para><emphasis role="bold">Query parameter:</emphasis>
+          <literal>q</literal></para>
+
+          <para>The <literal>q</literal> parameter specifies the query
+          string.</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">Fetch stored fields:</emphasis>
+          <literal>fetchstored</literal></para>
+
+          <para>This is a boolean parameter that specifies whether stored
+          fields should be fetched or not.</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">Show explanation:</emphasis>
+          <literal>showexplain</literal></para>
+
+          <para>This is a boolean parameter that specifies whether query
+          explanation information should be returned in the search
+          result.</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">Starting offset:</emphasis>
+          <literal>start</literal></para>
+
+          <para>This is the offset value used for search result
+          pagination.</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">Number of result:</emphasis>
+          <literal>rows</literal></para>
+
+          <para>This parameter specifies how many results should be returned
+          for this query.</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">Routing parameter:</emphasis>
+          <literal>routeparam</literal></para>
+
+          <para>This parameter specifies the value of the field used for
+          routing (i.e. load balancing).</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">Group-by parameter:</emphasis>
+          <literal>groupby</literal></para>
+
+          <para>This parameter specifies the field name used to do the
+          group-by operation.</para>
+        </listitem>
+      </itemizedlist>
+
+      <example>
+        <title>Scalar Parameters</title>
+
+        <programlisting>  q=ipad 2&amp;fetchstored=true&amp;showexplain=false&amp;start=0&amp;rows=10
+  q=linkedin&amp;start=0&amp;rows=10&amp;routeparam=12345&amp;groupby=userid
+</programlisting>
+      </example>
     </section>
-  </chapter>
 
+    <section>
+      <title>Sort Fields Parameter</title>
+
+      <itemizedlist>
+        <listitem>
+          <para><emphasis role="bold">Sort fields parameter:</emphasis>
+          <literal>sort</literal></para>
+
+          <para>This parameter specifies how the search results should be
+          sorted. The results can be sorted based on one or multiple fields,
+          in either ascending or descending order. The value of this parameter
+          consists of a list of comma separated strings, each of which can be
+          one of the following values:</para>
+
+          <itemizedlist>
+            <listitem>
+              <para><literal>relevance</literal>: this means that the results
+              should be sorted by scores in descending order.</para>
+            </listitem>
+
+            <listitem>
+              <para><literal>relrev</literal>: this means that the results
+              should be sorted by scores in ascending order.</para>
+            </listitem>
+
+            <listitem>
+              <para><literal>doc</literal>: this means that the results should
+              be sorted by doc ids in ascending order.</para>
+            </listitem>
+
+            <listitem>
+              <para><literal>docrev</literal>: this means that the results
+              should be sorted by doc ids in descending order.</para>
+            </listitem>
+
+            <listitem>
+              <para><literal>&lt;field-name&gt;:&lt;direction&gt;</literal>:
+              this means that the results should be sorted by field
+              <literal>&lt;field-name&gt;</literal> in the direction of
+              <literal>&lt;direction&gt;</literal>, which can be either
+              <literal>asc</literal> or <literal>desc</literal>.</para>
+            </listitem>
+          </itemizedlist>
+        </listitem>
+      </itemizedlist>
+
+      <example>
+        <title>Sort Fields Parameters</title>
+
+        <programlisting>  sort=relevance
+  sort=docrev
+  sort=price:desc,color=asc
+</programlisting>
+      </example>
+    </section>
+
+  </section>
+
+  <section>
+    <title>Java Client</title>
+
+    <para></para>
+  </section>
+
+  <section>
+    <title>Python Client</title>
+
+    <para></para>
+  </section>
+</chapter>

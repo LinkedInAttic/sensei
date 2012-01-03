@@ -60,7 +60,7 @@ public class SenseiPluginRegistry {
         if (propertyName.contains(pluginHolder.fullPrefix)) {
           property = propertyName.substring(pluginHolder.fullPrefix.length() + 1);
         }
-        pluginHolder.properties.put(property, conf.getString(propertyName));
+        pluginHolder.properties.put(property, conf.getProperty(propertyName).toString());
 
       }
     }
