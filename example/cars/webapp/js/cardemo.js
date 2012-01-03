@@ -68,17 +68,17 @@ var queryString = {"query" : ""};
 
 senseiReq.facets = {};
 
-senseiReq.facets.color={};
+senseiReq.facets.color={"expand":true};
 
-senseiReq.facets.category={};
+senseiReq.facets.category={"expand":true};
 
-senseiReq.facets.year={};
+senseiReq.facets.year={"expand":true};
 
-senseiReq.facets.price={};
+senseiReq.facets.price={"expand":true};
 
-senseiReq.facets.mileage={};
+senseiReq.facets.mileage={"expand":true};
 
-senseiReq.facets.tags={};
+senseiReq.facets.tags={"expand":true};
 
 senseiReq.facets.city={};
 senseiReq.facets.makemodel={};
