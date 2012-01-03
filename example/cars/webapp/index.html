@@ -20,7 +20,7 @@
     <script type="text/javascript" src="js/cardemo.js"></script>
   </head>
 
- <body>
+ <body onload="doSearch()">
     <div class="topbar">
       <div class="topbar-inner">
         <div class="container-fluid">
@@ -51,6 +51,9 @@
           <h5>Year</h5>
             <div id="year">
             </div>
+          <h5>Tags</h5>
+            <div id="tags">
+            </div>
         </div>
       </div>
       <div class="content">
@@ -59,8 +62,11 @@
 
         <input id="qbox" style="width:500px;height:30px" type="text" height="20" size="50" />
         <input type="button" class="btn primary" onclick="updateTextQuery()" value="Search" />
+        <a href="#" onclick="if(resetAll()||true) return false">reset</a>
         
-          
+        <p>
+        Number of hits: <span id="numhits">0</span> / <span id="totaldocs">0</span>
+        </p>
         </div>
 
         <!-- Example row of columns -->
@@ -76,16 +82,21 @@
              </div>
          </div>
         </div>
-
-        <div class="row">
-          <div class="span16">
-            <h2>tags</h2>
-          </div>
-        </div>
         <hr>
         <h2>Hits</h2>
-        <div id="results">
-        </div>
+        <table class="zebra-striped">
+          <thead>
+            <th>#</th>
+            <th><a href="#" onclick="if(toggleSort('color')||true) return false">Color</a></th>
+            <th><a href="#" onclick="if(toggleSort('category')||true) return false">Category</a></th>
+            <th><a href="#" onclick="if(toggleSort('year')||true) return false">Year</a></th>
+            <th><a href="#" onclick="if(toggleSort('price')||true) return false">Price</a></th>
+            <th><a href="#" onclick="if(toggleSort('mileage')||true) return false">Mileage</a></th>
+            <th>Score</th>
+          </thead>
+          <tbody id="results">
+          </tbody>
+        </table>
         <footer>
           <p>&copy; SenseiDB.com 2011</p>
         </footer>
