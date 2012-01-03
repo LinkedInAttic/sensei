@@ -8,8 +8,8 @@ var priceSel={"values":[]};
 var yearSel={"values":[]};
 var mileageSel={"values":[]};
 var tagsSel={"values":[]};
-var makemodelSel={"values":[]};
-var citySel={"values":[]};
+var makemodelSel={"value":""};
+var citySel={"value":""};
 
 var selmap = {"color":colorSel,"category":categorySel,"price":priceSel,"year":yearSel,"mileage":mileageSel,"tags":tagsSel,"makemodel":makemodelSel,"city":citySel};
 
@@ -48,12 +48,12 @@ senseiReq.selections = [
   }
 },
 {
-  "terms":{
+  "path":{
     "makemodel":makemodelSel
   }
 },
 {
-  "terms":{
+  "path":{
     "city":citySel
   }
 },
@@ -114,7 +114,57 @@ function clearSelection(name){
 }
 
 function renderPath(field, objs) {
-    
+  if (!objs)
+    return;
+
+  var headContainer = $('#'+field+' .ROWHEAD span').empty();
+
+  var div = $('#'+field).get(0);
+  var vals = [];
+  var sel = selmap[field];
+  if (sel["value"].length != 0) {
+    var val = sel["value"];
+    var _vals = val.split('/');
+    for (var i=0; i<_vals.length; ++i) {
+      if (_vals[i] != '') {
+        vals.push([_vals[i]]);
+        var v = [];
+        for (var j=0; j<vals.length; ++j) {
+          v.push(vals[j][0]);
+        }
+        vals[vals.length-1].push(v.join('/'));
+      }
+    }
+  }
+  vals = [['All', '']].concat(vals);
+  for (var i=0; i<vals.length; ++i) {
+    headContainer.append('<a />').find('a:last')
+      .text(vals[i][0])
+      .click(function (e) {
+        sel["value"] = this.value;
+        doSearch();
+      }).get(0).value = vals[i][1];
+    headContainer.append('/');
+  }
+
+  var container = $('#'+field+' table table tr').empty();
+  for (var i=0; i<objs.length; ++i) {
+    var obj = objs[i];
+    if (obj.selected)
+      continue;
+
+    var _v = obj.value.split('/');
+    var v = _v.pop();
+    while (v=='' && _v.length)
+      v = _v.pop();
+    container.append('<td />').find('td:last')
+      .append('<a />').find('a:last')
+      .text(v+' ('+obj.count+')')
+      .click(function (e) {
+        sel["value"] = this.value;
+        doSearch();
+      }).get(0).value = obj.value;
+  }
 }
 
 function renderFacet(name,facet){
