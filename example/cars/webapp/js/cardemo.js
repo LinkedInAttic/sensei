@@ -138,7 +138,7 @@ function renderPath(field, objs) {
   }
   vals = [['All', '']].concat(vals);
   for (var i=0; i<vals.length; ++i) {
-    headContainer.append('<a />').find('a:last')
+    headContainer.append('<a href="#"/>').find('a:last')
       .text(vals[i][0])
       .click(function (e) {
         sel["value"] = this.value;
@@ -158,7 +158,7 @@ function renderPath(field, objs) {
     while (v=='' && _v.length)
       v = _v.pop();
     container.append('<td />').find('td:last')
-      .append('<a />').find('a:last')
+      .append('<a href="#"/>').find('a:last')
       .text(v+' ('+obj.count+')')
       .click(function (e) {
         sel["value"] = this.value;
@@ -275,7 +275,12 @@ function resetAll(){
 	$('#qbox').val("");
     for (var sel in selmap){
     	var selection = selmap[sel];
-    	selection["values"].length = 0;
+    	if (sel=="makemodel" || sel=="city"){
+    	  selection["value"]="";
+    	}
+    	else{
+    	  selection["values"].length = 0;
+  	  }
     }
     setSenseiQueryString(senseiReq,"");
 	doSearch();
