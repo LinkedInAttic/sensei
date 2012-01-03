@@ -8,9 +8,10 @@ var priceSel={"values":[]};
 var yearSel={"values":[]};
 var mileageSel={"values":[]};
 var tagsSel={"values":[]};
+var makemodelSel={"values":[]};
+var citySel={"values":[]};
 
-var selmap = {"color":colorSel,"category":categorySel,"price":priceSel,"year":yearSel,"mileage":mileageSel,"tags":tagsSel};
-
+var selmap = {"color":colorSel,"category":categorySel,"price":priceSel,"year":yearSel,"mileage":mileageSel,"tags":tagsSel,"makemodel":makemodelSel,"city":citySel};
 
 var senseiReq = {"query":{"query_string":queryString}};
 
@@ -48,6 +49,16 @@ senseiReq.selections = [
 },
 {
   "terms":{
+    "makemodel":makemodelSel
+  }
+},
+{
+  "terms":{
+    "city":citySel
+  }
+},
+{
+  "terms":{
     "tags":tagsSel
   }
 }
@@ -57,9 +68,7 @@ var queryString = {"query" : ""};
 
 senseiReq.facets = {};
 
-senseiReq.facets.color={
-	
-};
+senseiReq.facets.color={};
 
 senseiReq.facets.category={};
 
@@ -67,7 +76,12 @@ senseiReq.facets.year={};
 
 senseiReq.facets.price={};
 
+senseiReq.facets.mileage={};
+
 senseiReq.facets.tags={};
+
+senseiReq.facets.city={};
+senseiReq.facets.makemodel={};
 
 var repVal = function(arr,s){
   var found =false;
@@ -99,10 +113,15 @@ function clearSelection(name){
 	doSearch();
 }
 
+function renderPath(field, objs) {
+    
+}
+
 function renderFacet(name,facet){
 	var node = $("#"+name);
 	if (node != null){
 		node.empty();
+		
 		node.append('<input type="checkbox"> All</input>');
 		var allObj = node.children().last().get(0);
 		allObj._name = name;
@@ -181,7 +200,12 @@ function renderPage(senseiResult){
 	var facets = senseiResult.facets;
 
 	for (var name in facets){
-		renderFacet(name,facets[name])
+	  if (name=='makemodel' || name=='city'){
+	    renderPath(name,facets[name]);
+	  }
+	  else{
+		  renderFacet(name,facets[name]);
+	  }
 	}
 
     renderHits(senseiResult.hits);
