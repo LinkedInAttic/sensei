@@ -21,6 +21,8 @@ import com.browseengine.bobo.facets.impl.PathFacetHandler;
 import com.sensei.search.req.SenseiJSONQuery;
 import com.sensei.search.req.SenseiRequest;
 
+import com.sensei.bql.parsers.BQLCompiler;
+
 public class RequestConverter2 {
 
   public static final String PAGING_SIZE = "size";
@@ -141,9 +143,9 @@ public class RequestConverter2 {
 		  return vals;
 	  }
 
-	public static SenseiRequest fromJSON(JSONObject json) throws Exception{
+	public static SenseiRequest fromJSON(JSONObject json) throws Exception
+  {
 	  json =  jsonTemplateProcessor.substituteTemplates(json);
-
 
 	  SenseiRequest req = new SenseiRequest();
 

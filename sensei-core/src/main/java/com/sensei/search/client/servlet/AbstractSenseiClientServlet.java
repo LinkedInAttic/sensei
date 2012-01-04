@@ -8,7 +8,9 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLDecoder;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -36,6 +38,8 @@ import com.sensei.search.req.SenseiResult;
 import com.sensei.search.req.SenseiSystemInfo;
 import com.sensei.search.util.RequestConverter2;
 
+import com.sensei.bql.parsers.BQLCompiler;
+
 public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableServlet {
 
   private static final long serialVersionUID = 1L;
@@ -48,6 +52,8 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
   private SenseiNetworkClient _networkClient = null;
   private SenseiBroker _senseiBroker = null;
   private SenseiSysBroker _senseiSysBroker = null;
+  private BQLCompiler _compiler = null;
+
   public AbstractSenseiClientServlet() {
 
   }
@@ -75,6 +81,47 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
     logger.info("Connecting to cluster: "+clusterName+" ...");
     _clusterClient.awaitConnectionUninterruptibly();
 
+    int count = 0;
+    while (true)
+    {
+      try
+      {
+        count++;
+        logger.info("Trying to get sysinfo");
+        SenseiSystemInfo sysInfo = _senseiSysBroker.browse(new SenseiRequest());
+
+        Map<String, String[]> facetInfoMap = new HashMap<String, String[]>();
+        Iterator<SenseiSystemInfo.SenseiFacetInfo> itr = sysInfo.getFacetInfos().iterator();
+        while (itr.hasNext())
+        {
+          SenseiSystemInfo.SenseiFacetInfo facetInfo = itr.next();
+          Map<String, String> props = facetInfo.getProps();
+          facetInfoMap.put(facetInfo.getName(), new String[]{props.get("type"), props.get("column_type")});
+        }
+        _compiler = new BQLCompiler(facetInfoMap);
+        break;
+      }
+      catch (Exception e)
+      {
+        logger.info("hit exception trying to get sysinfo" + e);
+        if (count > 10) 
+        {
+          logger.info("Give up after 10 tries");
+          throw new ServletException(e.getMessage(), e);
+        }
+        else
+        {
+          try
+          {
+            Thread.sleep(2000);
+          }
+          catch (InterruptedException e2)
+          {
+            e2.printStackTrace();
+          }
+        }
+      }
+    }
     logger.info("Cluster: "+clusterName+" successfully connected ");
   }
 
@@ -118,8 +165,15 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
           senseiReq = DefaultSenseiJSONServlet.convertSenseiRequest(
                         new DataConfiguration(new MapConfiguration(getParameters(content))));
         }
-        if (jsonObj != null)
+        if (jsonObj != null) 
+        {
+          String bqlStmt = jsonObj.optString("bql");
+          if (bqlStmt.length() > 0)
+          {
+            jsonObj = _compiler.compile(bqlStmt);
+          }
           senseiReq = SenseiRequest.fromJSON(jsonObj);
+        }
       }
       else
       {

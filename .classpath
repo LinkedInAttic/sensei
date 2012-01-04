@@ -1,10 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="sensei-core/src/main/java"/>
+<<<<<<< HEAD
 	<classpathentry kind="src" path="clients/java-client/src/main/java"/>
 	<classpathentry kind="src" path="clients/java-client/src/test/java"/>
 	<classpathentry kind="src" path="example/hadoop-indexing/src/main/java"/>
 	<classpathentry kind="src" path="sensei-hadoop-indexing/src/main/java"/>
+=======
+	<classpathentry kind="src" path="sensei-core/target/generated-sources/antlr3"/>
+>>>>>>> Added ANTLR.
 	<classpathentry kind="src" path="perf/src/main/java"/>
 	<classpathentry kind="src" path="sensei-core/src/test/java"/>
 	<classpathentry kind="lib" path="lib/commons-httpclient-3.1.jar"/>
@@ -13,6 +17,9 @@
 	<classpathentry kind="var" path="M2_REPO/javax/servlet/servlet-api/2.5/servlet-api-2.5.jar"/>
 	<classpathentry kind="var" path="M2_REPO/org/apache/ant/ant/1.7.1/ant-1.7.1.jar"/>
 	<classpathentry kind="var" path="M2_REPO/org/apache/ant/ant-launcher/1.7.1/ant-launcher-1.7.1.jar"/>
+	<classpathentry kind="var" path="M2_REPO/org/antlr/antlr/3.4/antlr-3.4.jar"/>
+	<classpathentry kind="var" path="M2_REPO/org/antlr/antlr-runtime/3.4/antlr-runtime-3.4.jar"/>
+	<classpathentry kind="var" path="M2_REPO/org/antlr/antlr3-maven-plugin/3.4/antlr3-maven-plugin-3.4.jar"/>
 	<classpathentry kind="var" path="M2_REPO/aopalliance/aopalliance/1.0/aopalliance-1.0.jar"/>
 	<classpathentry kind="var" path="M2_REPO/asm/asm/3.2/asm-3.2.jar"/>
 	<classpathentry kind="var" path="M2_REPO/org/apache/avro/avro/1.4.0/avro-1.4.0.jar"/>
