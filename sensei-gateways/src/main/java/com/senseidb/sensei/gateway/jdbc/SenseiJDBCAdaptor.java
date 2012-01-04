@@ -1,4 +1,4 @@
-package com.sensei.indexing.api.gateway.jdbc;
+package com.senseidb.sensei.gateway.jdbc;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;

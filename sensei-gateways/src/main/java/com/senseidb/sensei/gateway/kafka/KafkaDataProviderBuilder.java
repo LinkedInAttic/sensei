@@ -1,4 +1,4 @@
-package com.sensei.indexing.api.gateway.kafka;
+package com.senseidb.sensei.gateway.kafka;
 
 import java.util.Comparator;
 import java.util.Set;
@@ -8,7 +8,6 @@ import org.json.JSONObject;
 import proj.zoie.impl.indexing.StreamDataProvider;
 import proj.zoie.impl.indexing.ZoieConfig;
 
-import com.sensei.dataprovider.kafka.KafkaJsonStreamDataProvider;
 import com.sensei.indexing.api.DataSourceFilter;
 import com.sensei.indexing.api.ShardingStrategy;
 import com.sensei.indexing.api.gateway.SenseiGateway;

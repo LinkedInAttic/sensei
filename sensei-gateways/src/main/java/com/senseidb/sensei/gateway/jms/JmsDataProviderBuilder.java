@@ -1,4 +1,4 @@
-package com.sensei.indexing.api.gateway.jms;
+package com.senseidb.sensei.gateway.jms;
 
 import java.util.Comparator;
 import java.util.Set;
