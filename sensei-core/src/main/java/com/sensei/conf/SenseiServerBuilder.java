@@ -49,6 +49,9 @@ import proj.zoie.api.IndexCopier;
 import proj.zoie.api.indexing.ZoieIndexableInterpreter;
 import proj.zoie.hourglass.impl.HourGlassScheduler.FREQUENCY;
 import proj.zoie.impl.HDFSIndexCopier;
+import proj.zoie.impl.indexing.DefaultReaderCache;
+import proj.zoie.impl.indexing.ReaderCacheFactory;
+import proj.zoie.impl.indexing.SimpleReaderCache;
 import proj.zoie.impl.indexing.ZoieConfig;
 import scala.actors.threadpool.Arrays;
 
@@ -322,8 +325,18 @@ public class SenseiServerBuilder implements SenseiConfParams{
       zoieConfig.setBatchDelay(_senseiConf.getLong(SENSEI_INDEX_BATCH_DELAY, ZoieConfig.DEFAULT_SETTING_BATCHDELAY));
       zoieConfig.setMaxBatchSize(_senseiConf.getInt(SENSEI_INDEX_BATCH_MAXSIZE, ZoieConfig.DEFAULT_MAX_BATCH_SIZE));
       zoieConfig.setRtIndexing(_senseiConf.getBoolean(SENSEI_INDEX_REALTIME, ZoieConfig.DEFAULT_SETTING_REALTIME));
-      zoieConfig.setFreshness(_senseiConf.getLong(SENSEI_INDEX_FRESHNESS, 500));
       zoieConfig.setSkipBadRecord(_senseiConf.getBoolean(SENSEI_SKIP_BAD_RECORDS, false));
+      
+      int delay = _senseiConf.getInt(SENSEI_INDEX_FRESHNESS,10);
+      ReaderCacheFactory readercachefactory;
+      if (delay>0){
+        readercachefactory = DefaultReaderCache.FACTORY;
+        zoieConfig.setFreshness(delay*1000);
+      }
+      else{
+        readercachefactory = SimpleReaderCache.FACTORY;
+      }
+      zoieConfig.setReadercachefactory(readercachefactory);
 
       List<FacetHandler<?>> facetHandlers = new LinkedList<FacetHandler<?>>();
       List<RuntimeFacetHandlerFactory<?,?>> runtimeFacetHandlerFactories = new LinkedList<RuntimeFacetHandlerFactory<?,?>>();
