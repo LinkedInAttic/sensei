@@ -138,7 +138,7 @@ function renderPath(field, objs) {
   }
   vals = [['All', '']].concat(vals);
   for (var i=0; i<vals.length; ++i) {
-    headContainer.append('<a />').find('a:last')
+    headContainer.append('<a href="#"/>').find('a:last')
       .text(vals[i][0])
       .click(function (e) {
         sel["value"] = this.value;
@@ -158,53 +158,13 @@ function renderPath(field, objs) {
     while (v=='' && _v.length)
       v = _v.pop();
     container.append('<td />').find('td:last')
-      .append('<a />').find('a:last')
+      .append('<a href="#"/>').find('a:last')
       .text(v+' ('+obj.count+')')
       .click(function (e) {
         sel["value"] = this.value;
         doSearch();
       }).get(0).value = obj.value;
   }
-}
-
-function renderFacet(name,facet){
-	var node = $("#"+name);
-	if (node != null){
-		node.empty();
-		
-		node.append('<input type="checkbox"> All</input>');
-		var allObj = node.children().last().get(0);
-		allObj._name = name;
-
-		var sel = selmap[name];
-	    var valArray = sel["values"];
-	    if (valArray.length==0){
-	    	allObj.checked="checked";
-	    }
-
-		node.children().last().click(function(e){
-				clearSelection(this._name);
-		});
-		node.append('<br/>');
-
-		for (var i=0;i<facet.length;++i){
-			var html;
-
-			html = '<input type="checkbox"> '+facet[i].value+' ('+facet[i].count+')</input>';
-			node.append(html);
-			var obj = node.children().last().get(0);
-			obj._name = name;
-			obj._facetVal = facet[i];
-			if (facet[i].selected){
-				obj.checked ="checked";
-			}
-			node.children().last().click(function(e){
-				handleSelected(this._name,this._facetVal);
-			});
-
-			node.append('<br/>');
-		}
-	}
 }
 
 
@@ -246,6 +206,9 @@ function renderPage(senseiResult){
 	$("#totaldocs").empty();
 	$("#totaldocs").append(senseiResult.totaldocs);
 
+	$("#time").empty();
+	$("#time").append(senseiResult.time/1000);
+
 
 	var facets = senseiResult.facets;
 
@@ -254,7 +217,7 @@ function renderPage(senseiResult){
 	    renderPath(name,facets[name]);
 	  }
 	  else{
-		  renderFacet(name,facets[name]);
+		  renderFacet(name,facets[name],handleSelected,clearSelection);
 	  }
 	}
 
@@ -275,7 +238,12 @@ function resetAll(){
 	$('#qbox').val("");
     for (var sel in selmap){
     	var selection = selmap[sel];
-    	selection["values"].length = 0;
+    	if (sel=="makemodel" || sel=="city"){
+    	  selection["value"]="";
+    	}
+    	else{
+    	  selection["values"].length = 0;
+  	  }
     }
     setSenseiQueryString(senseiReq,"");
 	doSearch();

@@ -41,6 +41,7 @@ senseiReq.facets.tweeter={"expand":true};
 
 senseiReq.facets.hashtags={"expand":true};
 
+
 setSenseiQueryString(senseiReq,"");
 
 var repVal = function(arr,s){
@@ -64,33 +65,12 @@ function handleSelected(name,facetVal){
 	doSearch();
 }
 
-function renderFacet(name,facet){
-	var node = $("#"+name);
-	if (node != null){
-		node.empty();
-		for (var i=0;i<facet.length;++i){
-			var html;
-			var facetVal = facet[i].value;
-			var val = valmap[name];
-			if (val !== undefined){
-			  facetVal = val[facetVal]
-			}
-
-			html = '<input type="checkbox"> '+facetVal+' ('+facet[i].count+')</input>';
-			node.append(html);
-			var obj = node.children().last().get(0);
-			obj._name = name;
-			obj._facetVal = facet[i];
-			if (facet[i].selected){
-				obj.checked ="checked";
-			}
-			node.children().last().click(function(e){
-				handleSelected(this._name,this._facetVal);
-			});
-
-			node.append('<br/>');
-		}
-	}
+function clearSelection(name){
+  console.log("clear: "+name);
+  var sel = selmap[name];
+  var valArray = sel["values"];
+  valArray.length=0;
+  doSearch();
 }
 
 function renderHits(hits){
@@ -135,10 +115,14 @@ function renderPage(senseiResult){
 	$("#totaldocs").empty();
 	$("#totaldocs").append(senseiResult.totaldocs);
 
+	
+	$("#time").empty();
+	$("#time").append(senseiResult.time/1000);
+
 	var facets = senseiResult.facets;
 
 	for (var name in facets){
-		renderFacet(name,facets[name])
+		renderFacet(name,facets[name],handleSelected,clearSelection,valmap);
 	}
 
   renderHits(senseiResult.hits);
@@ -161,5 +145,9 @@ function resetAll(){
 	$('#qbox').val("");
   senseiReq.selections = [];
   setSenseiQueryString(senseiReq,"");
+  for (var sel in selmap){
+    selection["values"].length = 0;
+  }
+
   doSearch();
 }
