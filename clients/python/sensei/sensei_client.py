@@ -353,13 +353,14 @@ def main(argv):
         client.run_example()
         continue
         
-      req = client.compile(stmt)
-      if req.stmt_type == "select":
+      # req = client.compile(stmt)
+      # if req.stmt_type == "select":
+      if True:
         res = client.doQuery(stmt)
-        res.display(columns=req.get_columns(), max_col_width=int(options.max_col_width))
-      elif req.stmt_type == "desc":
-        sysinfo = client.get_sysinfo()
-        sysinfo.display()
+        res.display(columns=["*"], max_col_width=int(options.max_col_width))
+      # elif req.stmt_type == "desc":
+      #   sysinfo = client.get_sysinfo()
+      #   sysinfo.display()
     except EOFError:
       break
     except ParseException as err:

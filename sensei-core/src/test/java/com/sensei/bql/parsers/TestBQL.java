@@ -476,6 +476,43 @@ public class TestBQL extends TestCase
   }
 
   @Test
+  public void testRangePred4() throws Exception
+  {
+    System.out.println("testRangePred4");
+    System.out.println("==================================================");
+
+    JSONObject json = _compiler.compile(
+      "SELECT * " +
+      "FROM cars " +
+      "WHERE name > 'abc' AND name < 'xyz' AND name >= 'ddd'"
+      );
+    JSONObject expected = new JSONObject("{\"filter\":{\"range\":{\"name\":{\"to\":\"xyz\",\"include_lower\":true,\"include_upper\":false,\"from\":\"ddd\"}}}}");
+    assertTrue(_comp.isEquals(json, expected));
+  }
+
+  @Test
+  public void testRangePred5() throws Exception
+  {
+    System.out.println("testRangePred5");
+    System.out.println("==================================================");
+
+    int result = 0;
+    try
+    {
+    JSONObject json = _compiler.compile(
+      "SELECT * " +
+      "FROM cars " +
+      "WHERE year > 1999 AND year < 1995"
+      );
+    }
+    catch (RecognitionException err) 
+    {
+      result = 1;
+    }
+    assertEquals(result, 1);
+  }
+
+  @Test
   public void testOrPred() throws Exception
   {
     System.out.println("testOrPred");

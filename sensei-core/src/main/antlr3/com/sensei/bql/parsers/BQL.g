@@ -283,7 +283,12 @@ import org.json.JSONException;
         Object newTo = result[0];
         Boolean newIncludeUpper = (Boolean) result[1];
 
-        // XXX Check inconsistency
+        if (newFrom != null && newTo != null) {
+            if (compareValues(newFrom, newTo) > 0 ||
+                (compareValues(newFrom, newTo) == 0) && (!newIncludeLower || !newIncludeUpper)) {
+                throw new RecognitionException();
+            }
+        }
         
         JSONObject newSpec = new JSONObject();
         if (newFrom != null) {
