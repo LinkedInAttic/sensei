@@ -461,6 +461,21 @@ public class TestBQL extends TestCase
   }
 
   @Test
+  public void testRangePred3() throws Exception
+  {
+    System.out.println("testRangePred3");
+    System.out.println("==================================================");
+
+    JSONObject json = _compiler.compile(
+      "SELECT year " +
+      "FROM cars " +
+      "WHERE year > 1999 AND year <= 2003 AND year >= 1999"
+      );
+    JSONObject expected = new JSONObject("{\"selections\":[{\"range\":{\"year\":{\"to\":2003,\"include_lower\":true,\"include_upper\":false,\"from\":1999}}}]}");
+    assertTrue(_comp.isEquals(json, expected));
+  }
+
+  @Test
   public void testOrPred() throws Exception
   {
     System.out.println("testOrPred");

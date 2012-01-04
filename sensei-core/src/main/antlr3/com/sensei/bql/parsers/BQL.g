@@ -29,6 +29,7 @@ package com.sensei.bql.parsers;
 @parser::header {
 package com.sensei.bql.parsers;
 
+import java.util.Iterator;
 import java.util.Map;
 import org.json.JSONObject;
 import org.json.JSONArray;
@@ -44,13 +45,13 @@ import org.json.JSONException;
     }
 
     private String predType(JSONObject pred) {
-        return JSONObject.getNames(pred)[0];
+        return (String) pred.keys().next();
     }
 
     private String predField(JSONObject pred) throws JSONException {
-        String type = JSONObject.getNames(pred)[0];
+        String type = (String) pred.keys().next();
         JSONObject fieldSpec = pred.getJSONObject(type);
-        return JSONObject.getNames(fieldSpec)[0];
+        return (String) fieldSpec.keys().next();
     }
 
     private boolean verifyFacetType(final String field, final String expectedType)
@@ -175,6 +176,127 @@ import org.json.JSONException;
         else {
             filter.put("filter", where);
         }
+    }
+
+    private int compareValues(Object v1, Object v2)
+    {
+        if (v1 instanceof String) {
+            return ((String) v1).compareTo((String) v2);
+        }
+        else if (v1 instanceof Integer) {
+            return ((Integer) v1).compareTo((Integer) v2);
+        }
+        else if (v1 instanceof Long) {
+            return ((Long) v1).compareTo((Long) v2);
+        }
+        else if (v1 instanceof Float) {
+            return ((Float) v1).compareTo((Float) v2);
+        }
+        return 0;
+    }
+
+    private Object[] getMax(Object value1, boolean include1, Object value2, boolean include2)
+    {
+        Object value;
+        Boolean include;
+        if (value1 == null) {
+            value = value2;
+            include = include2;
+        }
+        else if (value2 == null) {
+            value = value1;
+            include = include1;
+        }
+        else {
+            int comp = compareValues(value1, value2);
+            if (comp > 0) {
+                value = value1;
+                include = include1;
+            }
+            else if (comp == 0) {
+                value = value1;
+                include = (include1 && include2);
+            }
+            else {
+                System.out.println(">>> in getmax, value2 = " + value2 + ", include2 = " + include2);
+                value = value2;
+                include = include2;
+            }
+        }
+        return new Object[]{value, include2};
+    }
+
+    private Object[] getMin(Object value1, boolean include1, Object value2, boolean include2)
+    {
+        Object value;
+        Boolean include;
+        if (value1 == null) {
+            value = value2;
+            include = include2;
+        }
+        else if (value2 == null) {
+            value = value1;
+            include = include1;
+        }
+        else {
+            int comp = compareValues(value1, value2);
+            if (comp > 0) {
+                value = value2;
+                include = include2;
+            }
+            else if (comp == 0) {
+                value = value1;
+                include = (include1 && include2);
+            }
+            else {
+                value = value1;
+                include = include1;
+            }
+        }
+        return new Object[]{value, include1};
+    }
+
+    private void accumulateRangePred(JSONObject fieldMap, JSONObject pred) throws JSONException, RecognitionException
+    {
+        String field = predField(pred);
+        if (!fieldMap.has(field)) {
+            fieldMap.put(field, pred);
+            return;
+        }
+        JSONObject oldRange = (JSONObject) fieldMap.get(field);
+        JSONObject oldSpec = (JSONObject) ((JSONObject) oldRange.get("range")).get(field);
+        Object oldFrom = (oldSpec.has("from") ? oldSpec.get("from") : null);
+        Object oldTo = (oldSpec.has("to") ? oldSpec.get("to") : null);
+        Boolean oldIncludeLower = (oldSpec.has("include_lower") ? (Boolean) oldSpec.get("include_lower") : false);
+        Boolean oldIncludeUpper = (oldSpec.has("include_upper") ? (Boolean) oldSpec.get("include_upper") : false);
+        
+        JSONObject curSpec = (JSONObject) ((JSONObject) pred.get("range")).get(field);
+        Object curFrom = (curSpec.has("from") ? curSpec.get("from") : null);
+        Object curTo = (curSpec.has("to") ? curSpec.get("to") : null);
+        Boolean curIncludeLower = (curSpec.has("include_lower") ? (Boolean) curSpec.get("include_lower") : false);
+        Boolean curIncludeUpper = (curSpec.has("include_upper") ? (Boolean) curSpec.get("include_upper") : false);
+
+        Object[] result = getMax(oldFrom, oldIncludeLower, curFrom, curIncludeLower);
+        Object newFrom = result[0];
+        Boolean newIncludeLower = (Boolean) result[1];
+        result = getMin(oldTo, oldIncludeUpper, curTo, curIncludeUpper);
+        Object newTo = result[0];
+        Boolean newIncludeUpper = (Boolean) result[1];
+
+        // XXX Check inconsistency
+        
+        JSONObject newSpec = new JSONObject();
+        if (newFrom != null) {
+            newSpec.put("from", newFrom);
+            newSpec.put("include_lower", newIncludeLower);
+        }
+        if (newTo != null) {
+            newSpec.put("to", newTo);
+            newSpec.put("include_upper", newIncludeUpper);
+        }
+
+        fieldMap.put(field, new JSONObject().put("range",
+                                                 new JSONObject().put(field, newSpec)));
     }
 }
 
@@ -545,11 +667,26 @@ term_expr returns [Object json]
         (AND f=factor_expr { array.put($f.json); } )*
         {
             try {
-                if (array.length() == 1) {
-                    $json = array.get(0);
+                JSONArray newArray = new JSONArray();
+                JSONObject fieldMap = new JSONObject();
+                for (int i = 0; i < array.length(); ++i) {
+                    JSONObject pred = (JSONObject) array.get(i);
+                    if (!"range".equals(predType(pred))) {
+                        newArray.put(pred);
+                    }
+                    else {
+                        accumulateRangePred(fieldMap, pred);
+                    }
+                }
+                Iterator<String> itr = fieldMap.keys();
+                while (itr.hasNext()) {
+                    newArray.put(fieldMap.get(itr.next()));
+                }
+                if (newArray.length() == 1) {
+                    $json = newArray.get(0);
                 }
                 else {
-                    $json = new JSONObject().put("and", array);
+                    $json = new JSONObject().put("and", newArray);
                 }
             }
             catch (JSONException err) {
@@ -686,7 +823,9 @@ equal_predicate returns [JSONObject json]
                     valObj.put("value", $value.val);
                     if (props != null) {
                         JSONObject propsJson = $props.json;
-                        for (String key: JSONObject.getNames(propsJson)) {
+                        Iterator<String> itr = propsJson.keys();
+                        while (itr.hasNext()) {
+                            String key = itr.next();
                             if (key.equals("strict") || key.equals("depth")) {
                                 valObj.put(key, propsJson.get(key));
                             }
@@ -933,7 +1072,7 @@ facet_param_list returns [JSONObject json]
                 }
                 else {
                     JSONObject currentParam = (JSONObject) $json.get($p.facet);
-                    String paramName = JSONObject.getNames($p.param)[0];
+                    String paramName = (String) $p.param.keys().next();
                     currentParam.put(paramName, $p.param.get(paramName));
                 }
             }
@@ -949,7 +1088,7 @@ facet_param_list returns [JSONObject json]
                     }
                     else {
                         JSONObject currentParam = (JSONObject) $json.get($p.facet);
-                        String paramName = JSONObject.getNames($p.param)[0];
+                        String paramName = (String) $p.param.keys().next();
                         currentParam.put(paramName, $p.param.get(paramName));
                     }
                 }

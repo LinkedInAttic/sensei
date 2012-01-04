@@ -244,9 +244,12 @@ class SenseiClient:
     time1 = datetime.now()
     query_string = None
     if using_json: # Use JSON format
-      query_string = self.buildJsonString(req)
+      # query_string = self.buildJsonString(req)
+      bql = {"bql": req}
+      query_string = json.dumps(bql)
     else:
       query_string = SenseiClient.buildUrlString(req)
+    print "query_string = %s" % query_string
     logger.debug(query_string)
     urlReq = urllib2.Request(self.url, query_string)
     res = self.opener.open(urlReq)
@@ -352,7 +355,7 @@ def main(argv):
         
       req = client.compile(stmt)
       if req.stmt_type == "select":
-        res = client.doQuery(req)
+        res = client.doQuery(stmt)
         res.display(columns=req.get_columns(), max_col_width=int(options.max_col_width))
       elif req.stmt_type == "desc":
         sysinfo = client.get_sysinfo()

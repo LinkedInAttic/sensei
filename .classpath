@@ -1,14 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="sensei-core/src/main/java"/>
-<<<<<<< HEAD
 	<classpathentry kind="src" path="clients/java-client/src/main/java"/>
 	<classpathentry kind="src" path="clients/java-client/src/test/java"/>
 	<classpathentry kind="src" path="example/hadoop-indexing/src/main/java"/>
 	<classpathentry kind="src" path="sensei-hadoop-indexing/src/main/java"/>
-=======
 	<classpathentry kind="src" path="sensei-core/target/generated-sources/antlr3"/>
->>>>>>> Added ANTLR.
 	<classpathentry kind="src" path="perf/src/main/java"/>
 	<classpathentry kind="src" path="sensei-core/src/test/java"/>
 	<classpathentry kind="lib" path="lib/commons-httpclient-3.1.jar"/>
