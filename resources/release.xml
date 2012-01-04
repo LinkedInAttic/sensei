@@ -15,7 +15,21 @@
         </fileSet> 
 	    <fileSet>
 	      <directory>sensei-core/target</directory>
-	      <outputDirectory>/</outputDirectory>
+	      <outputDirectory>sensei-core/target</outputDirectory>
+	      <includes>
+	        <include>*.jar</include>
+	      </includes>
+	    </fileSet>
+		<fileSet>
+	      <directory>sensei-gateway/target</directory>
+	      <outputDirectory>sensei-gateway/target</outputDirectory>
+	      <includes>
+	        <include>*.jar</include>
+	      </includes>
+	    </fileSet>
+		<fileSet>
+	      <directory>clients/java/target</directory>
+	      <outputDirectory>clients/java/target</outputDirectory>
 	      <includes>
 	        <include>*.jar</include>
 	      </includes>
@@ -39,12 +53,9 @@
 	      <outputDirectory>./</outputDirectory>
 	      <includes>
 	        <include>bin/**/*</include>
-	        <include>conf/**/*</include>
-	        <include>client-conf/**/*</include>
-	        <include>data/**/*</include>
-	        <include>apps/**/*</include>
-	        <include>protobuf/**/*</include>
+	        <include>example/**/*</include>
 	        <include>resources/**/*</include>
+	        <include>clients/**/*</include>
 	      </includes>
 	    </fileSet>
   </fileSets> 
@@ -53,7 +64,8 @@
       <includes> 
         <include>com.senseidb:sensei-core</include> 
         <include>com.senseidb:sensei-hadoop-indexing</include>
-        <include>com.senseidb:sensei-example</include> 
+        <include>com.senseidb:sensei-gateways</include> 
+        <include>com.senseidb:sensei-java-client</include>
       </includes> 
       <binaries> 
         <includeDependencies>true</includeDependencies> 

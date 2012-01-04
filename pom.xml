@@ -45,7 +45,7 @@
 						</goals>
 						<configuration>
 							<descriptors>
-								<descriptor>src/main/assembly/release.xml</descriptor>
+								<descriptor>resources/release.xml</descriptor>
 							</descriptors>
 						</configuration>
 					</execution>
