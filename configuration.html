@@ -63,7 +63,12 @@ name: configuration
           string</p></li><li class="listitem"><p><span class="bold"><strong>text</strong></span> - a searchable text
           segment, standard Lucene indexing specification can also be
           specified here, e.g. <code class="literal">index="ANALYZED"</code>,
-          <code class="literal">termvector="NO"</code>.</p></li></ul></div><p>A column that is not of type "text" is considered a
+
+          <code class="literal">termvector="NO"</code>.</p></li></ul></div>
+<p>
+<span class="label important">For number types, we don&apos;t currently support negative values. This is coming in a future release.</span>
+</p>
+          <p>A column that is not of type "text" is considered a
       <span class="emphasis"><em>meta</em></span> column. Any meta column can be specified to be
       either <span class="emphasis"><em>single</em></span> (default) or
       <span class="emphasis"><em>multi</em></span>. When a column is specified to be
