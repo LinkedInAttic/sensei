@@ -47,8 +47,7 @@ public class SenseiIndexReaderDecorator extends AbstractIndexReaderDecorator<Bob
 	@Override
     public BoboIndexReader redecorate(BoboIndexReader reader, ZoieIndexReader<BoboIndexReader> newReader,boolean withDeletes)
                           throws IOException {
-          reader.rewrap(newReader);
-          return reader;
+          return reader.copy(newReader);
     }
 }
 
