@@ -1,0 +1,72 @@
+[
+  {
+    "term":{
+      "category":{
+        "value":"sedan"
+      }
+    }
+  },
+  
+  {
+    "term":{
+      "color":{
+        "value":"red"
+      }
+    }
+  },
+  
+  {
+    "terms":{
+      "tags":{
+        "values" : [ "mp3", "moon-roof" ],
+        "excludes" : ["leather"],
+        "operator" : "or"
+      }
+    }
+  },
+  
+  {
+    "range":{
+      "year":{
+        "to":"2009",   //if there is no such key (upper, or lower), it returns "*";   
+        "from":"2000",
+        "include_lower":true,  //by default 'include_lower' and 'include_upper' are set to true;
+        "include_upper":false
+      }
+    }
+  },
+  
+  {
+    "path":{
+      "city":{
+        "value":"a/b/c",
+        "strict":false,
+        "depth":1
+      }
+    }
+  },
+  
+  {
+    "custom":{
+      "network":{
+        "values":["0","1"],
+        "runtime-params":{
+          "srcId":{
+            "type":"int",
+            "values":["$member"]
+          }
+        }
+      }
+    }
+  },
+  
+  {
+    "default":{
+      "color":{
+        "values":[],
+        "not":[],
+        "params":{ }
+      }
+    }
+  }
+]

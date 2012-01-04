@@ -1,0 +1,134 @@
+{
+  //id filter
+  "ids":{
+    "values":[
+      "1",
+      "4",
+      "100"
+    ],
+    "excludes":[
+      "5"
+    ]
+  },
+  //and filter
+  "and":[
+    {
+      "term":{
+        "color":{
+          "value":"red",
+          "_noOptimize":false
+        }
+      }
+      
+    },
+    {
+      "query":{
+        "query_string":{
+          "query":"this AND that OR thus"
+        }
+      }
+    }
+  ],
+  //or filter
+  "or":[
+    {
+      "term":{
+        "color":{
+          "value":"red",
+          "_noOptimize":false
+        }
+      }
+    },
+    {
+      "term":{
+        "category":{
+          "value":"van",
+          "_noOptimize":false
+        }
+      }
+    }
+  ],
+  //boolean filter
+  "bool":{
+    "must":{
+      "term":{
+        "tag":"wow"
+      }
+    },
+    "must_not":{
+      "range":{
+        "age":{
+          "from":10,
+          "to":20
+        }
+      }
+    },
+    "should":[
+      {
+        "term":{
+          "tag":"sometag"
+        }
+      },
+      {
+        "term":{
+          "tag":"sometagtag"
+        }
+      }
+    ]
+  },
+  //term filter
+  "term":{
+    "color":{
+      "value":"red",
+      "_noOptimize":false
+    }
+  },
+  //query filter
+  //see queries.json for a list of valid queries
+  "query":{
+    "query_string":{
+      "query":"this AND that OR thus"
+    }
+  },
+  "terms":{
+    "tags":{
+      "values":[
+        "blue",
+        "pill"
+      ],
+      "excludes":[
+        "red"
+      ],
+      "operator":"or",
+      "_noOptimize":false
+    }
+    //or//   "tags":[ "blue","pill"],   default operator or
+  },
+  //range filter
+  //see range query
+  "range":{
+    "age":{
+      "from":10,
+      "to":20,
+      "_noOptimize":false,
+      "_type":"int",  //when _noOptimize is true and the data of 'from' and 'to' field fit into the following types,
+                      // we have to specify the type here.
+                      // currently these types have to be specified: "int","short","long","float","double", "date".
+      "_date_format":"yyyyMMdd-kk:mm"   // if the type is date, format needs to be specified, "from" "to" are long;               
+    }
+  },
+  "selection":{
+    "term":{
+      
+    },
+    "terms":{
+      
+    },
+    "range":{
+      
+    },
+    "path":{
+      
+    }
+  }
+}

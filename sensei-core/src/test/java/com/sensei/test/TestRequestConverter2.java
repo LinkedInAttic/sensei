@@ -72,10 +72,10 @@ public class TestRequestConverter2
   @BeforeClass
   public static void setUpBeforeClass() throws Exception
   {
-    senseiRequestJson = readJSONFromFile("../clients/javascript/sensei-request.json");
-    selectionsJson = readJSONArrayFromFile("../clients/javascript/selections.json");
-    queryJson = readJSONFromFile("../clients/javascript/queries.json");
-    filtersJson = readJSONFromFile("../clients/javascript/filters.json");
+    senseiRequestJson = readJSONFromFile("src/test/json/sensei-request.json");
+    selectionsJson = readJSONArrayFromFile("src/test/json/selections.json");
+    queryJson = readJSONFromFile("src/test/json/queries.json");
+    filtersJson = readJSONFromFile("src/test/json/filters.json");
     
     senseiRequestJson.remove("selections");
     senseiRequestJson.remove("query");
