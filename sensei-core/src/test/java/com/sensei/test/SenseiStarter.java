@@ -124,7 +124,7 @@ public class SenseiStarter {
     int count = 0;
     do
     {
-      Thread.sleep(5000);
+      Thread.sleep(500);
       res = broker.browse(req);
       System.out.println(""+res.getNumHits()+" loaded...");
       ++count;

@@ -8,22 +8,14 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.zip.GZIPInputStream;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.client.HttpClient;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.params.CoreConnectionPNames;
-import org.apache.http.params.CoreProtocolPNames;
-import org.apache.http.params.HttpParams;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -35,7 +27,7 @@ public class SenseiServiceProxy {
     private static Log LOG = LogFactory.getLog(SenseiServiceProxy.class);
     private  String host;
     private  int port;
-    private static HttpClient httpclient;
+    /*private static HttpClient httpclient;
 
     private static synchronized HttpClient getHttpClient() {
       if (httpclient == null) {
@@ -52,7 +44,7 @@ public class SenseiServiceProxy {
 
       }
       return httpclient;
-    }
+    }*/
 
    public SenseiServiceProxy(String host, int port) {
       this.host = host;
@@ -69,29 +61,23 @@ public class SenseiServiceProxy {
     	  throw new RuntimeException(ex);
     	}
     }
-    public List<Map<String, Object>> sendGetRequest(List<String> uids) throws IOException, JSONException {
-      List<Map<String, Object>> ret = new ArrayList<Map<String, Object>>(uids.size());
-      String response = sendPostRaw(getStoreGetUrl(), new JSONArray(uids).toString());
-      if (response == null || response.length() == 0) {
-        return ret;
-      }
-      JSONArray jsonArray = new JSONArray(response);
-      for (int i = 0; i < jsonArray.length(); i++) {
-        Map<String, Object> item = new HashMap<String, Object>();
-        JSONObject jsonItem = jsonArray.optJSONObject(i);
-        if (jsonItem == null) {
-          continue;
-        }
-        Iterator keys = jsonItem.keys();
-        while (keys.hasNext()) {
-          String key = (String) keys.next();
-          item.put(key, jsonItem.opt(key));
-        }
-        ret.add(item);
 
-      }
+  public Map<Long, JSONObject> sendGetRequest(List<Long> uids) throws IOException, JSONException {
+    Map<Long, JSONObject> ret = new LinkedHashMap<Long, JSONObject>(uids.size());
+    String response = sendPostRaw(getStoreGetUrl(), new JSONArray(uids).toString());
+    if (response == null || response.length() == 0) {
       return ret;
     }
+    JSONObject responseJson = new JSONObject(response);
+
+    Iterator keys = responseJson.keys();
+    while (keys.hasNext()) {
+      String key = (String) keys.next();
+      ret.put(Long.parseLong(key), responseJson.optJSONObject(key));
+    }
+
+    return ret;
+  }
     public String getSearchUrl() {
       return "http://" + host + ":" + port + "/sensei";
     }
@@ -154,9 +140,9 @@ public class SenseiServiceProxy {
         }
     }
 
-    public void close() {
+    /*public void close() {
       getHttpClient().getConnectionManager().shutdown();
-    }
+    }*/
     public String sendPostRaw(String urlStr, String requestStr){
         HttpURLConnection conn = null;
           try {
