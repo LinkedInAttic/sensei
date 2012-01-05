@@ -43,6 +43,7 @@ private long   tid           =          -1;
   private int _origOffset;
   private int _origCount;
   private boolean _fetchStoredFields;
+  private boolean _origFetchStoredFields;
   private boolean _fetchStoredValue;
   private Map<String,FacetHandlerInitializerParam> _facetInitParamMap;
   private Set<Integer> _partitions;
@@ -185,6 +186,7 @@ private long   tid           =          -1;
   {
     _origOffset = _offset;
     _origCount = _count;
+    _origFetchStoredFields = _fetchStoredFields;
     if (_origFacetSpecMaxCounts == null && _facetSpecMap != null)
     {
       _origFacetSpecMaxCounts= new HashMap<String, Integer>();
@@ -203,6 +205,7 @@ private long   tid           =          -1;
   {
     _offset = _origOffset;
     _count = _origCount;
+    _fetchStoredFields = _origFetchStoredFields;
     if (_facetSpecMap != null)
     {
       for (Map.Entry<String, FacetSpec> entry : _facetSpecMap.entrySet())

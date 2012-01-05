@@ -98,7 +98,6 @@ public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiReque
 	      senseiHit.setScore(hit.getScore());
 	      senseiHit.setComparable(hit.getComparable());
 	      senseiHit.setFieldValues(hit.getFieldValues());
-	      senseiHit.setStoredValue(hit.getStoredValue());
 	      senseiHit.setStoredFields(hit.getStoredFields());
 	      senseiHit.setExplanation(hit.getExplanation());
 	      senseiHit.setGroupValue(hit.getGroupValue());
