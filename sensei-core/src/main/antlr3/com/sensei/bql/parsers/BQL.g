@@ -400,7 +400,7 @@ VALUE : ('V'|'v')('A'|'a')('L'|'l')('U'|'u')('E'|'e') ;
 WHERE : ('W'|'w')('H'|'h')('E'|'e')('R'|'r')('E'|'e') ;
 WITH : ('W'|'w')('I'|'i')('T'|'t')('H'|'h') ;
 
-// XXX have to define this after the keywords?
+// Have to define this after the keywords?
 IDENT : ALPHA (ALPHA | DIGIT | '-' )* ;
 
 WS : ( ' ' | '\t' | '\r' | '\n' )+ { $channel = HIDDEN; };
@@ -415,7 +415,7 @@ statement returns [Object json]
     ;
 
 select_stmt returns [Object json]
-    :   SELECT ('*' | column_name_list)
+    :   SELECT ('*' | cols=column_name_list)
         (FROM IDENT)?
         w=where?
         given=given_clause?
@@ -432,6 +432,15 @@ select_stmt returns [Object json]
             JSONObject query = new JSONObject();
 
             try {
+                JSONObject selectList = new JSONObject();
+                if (cols == null) {
+                   selectList.put("select_list", new JSONArray().put("*"));
+                }
+                else {
+                   selectList.put("select_list", $cols.json);
+                }
+                jsonObj.put("meta", selectList);
+
                 if (order_by != null) {
                     jsonObj.put("sort", $order_by.json);
                 }
@@ -466,7 +475,7 @@ select_stmt returns [Object json]
                 }
             }
             catch (JSONException err) {
-                // XXX
+                throw new RecognitionException();
             }
             $json = jsonObj;
         }
@@ -535,7 +544,7 @@ sort_spec returns [JSONObject json]
                 }
             }
             catch (JSONException err) {
-                // XXX
+                throw new RecognitionException();
             }
         }
     ;
@@ -566,7 +575,7 @@ group_by_clause returns [JSONObject json]
                 }
             }
             catch (JSONException err) {
-                // XXX
+                throw new RecognitionException();
             }
         }
     ;
@@ -581,7 +590,7 @@ browse_by_clause returns [JSONObject json]
                 $json.put($f.column, $f.spec);
             }
             catch (JSONException err) {
-                // XXX
+                throw new RecognitionException();
             }                    
         }
         (COMMA f=facet_spec
@@ -590,7 +599,7 @@ browse_by_clause returns [JSONObject json]
                     $json.put($f.column, $f.spec);
                 }
                 catch (JSONException err) {
-                    // XXX
+                    throw new RecognitionException();
                 }
             }
         )*
@@ -627,7 +636,7 @@ facet_spec returns [String column, JSONObject spec]
                                         .put("order", orderBy);
             }
             catch (JSONException err) {
-                // XXX
+                throw new RecognitionException();
             }
         }
     ;
@@ -657,7 +666,7 @@ search_expr returns [Object json]
                 }
             }
             catch (JSONException err) {
-                // XXX
+                throw new RecognitionException();
             }
         }
         -> {array.length() > 1}? ^(OR_PRED term_expr+)
@@ -695,7 +704,7 @@ term_expr returns [Object json]
                 }
             }
             catch (JSONException err) {
-                // XXX
+                throw new RecognitionException();
             }
         }
         -> { array.length() > 1}? ^(AND_PRED factor_expr+)
@@ -764,7 +773,7 @@ in_predicate returns [JSONObject json]
                                              new JSONObject().put(col, dict));
             }
             catch (JSONException err) {
-                // XXX
+                throw new RecognitionException();
             }                                         
         }
         -> ^(IN NOT? ^(column_name value_list) except_clause? predicate_props?)
@@ -800,7 +809,7 @@ contains_all_predicate returns [JSONObject json]
                                              new JSONObject().put(col, dict));
             }
             catch (JSONException err) {
-                // XXX
+                throw new RecognitionException();
             }
         }
         -> ^(CONTAINS ^(column_name value_list) except_clause? predicate_props?)
@@ -848,7 +857,7 @@ equal_predicate returns [JSONObject json]
                 }
             }
             catch (JSONException err) {
-                // XXX
+                throw new RecognitionException();
             }
         }
         -> ^(EQUAL column_name value predicate_props?)
@@ -870,7 +879,7 @@ not_equal_predicate returns [JSONObject json]
                                              new JSONObject().put(col, dict));
             }
             catch (JSONException err) {
-                // XXX
+                throw new RecognitionException();
             }                                         
         }
         -> ^(NOT_EQUAL column_name value predicate_props?)
@@ -885,7 +894,7 @@ query_predicate returns [JSONObject json]
                                                                   new JSONObject().put("query", $STRING_LITERAL.text)));
             }
             catch (JSONException err) {
-                // XXX
+                throw new RecognitionException();
             }
         }
         -> ^(QUERY STRING_LITERAL)
@@ -928,7 +937,7 @@ between_predicate returns [JSONObject json]
                 }
             }
             catch (JSONException err) {
-                // XXX
+                throw new RecognitionException();
             }
         }
         -> ^(BETWEEN NOT? $val1 $val2)
@@ -961,7 +970,7 @@ range_predicate returns [JSONObject json]
                 }
             }
             catch (JSONException err) {
-                // XXX
+                throw new RecognitionException();
             }
         }
         -> ^($op column_name value)
@@ -977,7 +986,7 @@ match_predicate returns [JSONObject json]
                                                                                   .put("query", $STRING_LITERAL.text)));
             }
             catch (JSONException err) {
-                // XXX
+                throw new RecognitionException();
             }
         }
     ;
@@ -1033,7 +1042,7 @@ prop_list returns [JSONObject json]
                 $json.put($p.key, $p.value);
             }
             catch (JSONException err) {
-                // XXX
+                throw new RecognitionException();
             }
         }
         (COMMA p=key_value_pair
@@ -1042,7 +1051,7 @@ prop_list returns [JSONObject json]
                     $json.put($p.key, $p.value);
                 }
                 catch (JSONException err) {
-                    // XXX
+                    throw new RecognitionException();
                 }
             }
         )* RPAR
@@ -1082,7 +1091,7 @@ facet_param_list returns [JSONObject json]
                 }
             }
             catch (JSONException err) {
-                // XXX
+                throw new RecognitionException();
             }
         }
         (COMMA p=facet_param
@@ -1098,7 +1107,7 @@ facet_param_list returns [JSONObject json]
                     }
                 }
                 catch (JSONException err) {
-                    // XXX
+                    throw new RecognitionException();
                 }
             }
         )*
@@ -1114,7 +1123,7 @@ facet_param returns [String facet, JSONObject param]
                                                               .put("values", new JSONArray().put($value.val)));
             }
             catch (JSONException err) {
-                // XXX
+                throw new RecognitionException();
             }
         }                                 
     ;

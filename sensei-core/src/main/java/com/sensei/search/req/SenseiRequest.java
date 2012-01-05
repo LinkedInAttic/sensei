@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
@@ -53,6 +54,7 @@ private long   tid           =          -1;
   private String _groupBy;
   private int _maxPerGroup;
   private Set<String> _termVectorsToFetch;
+  private List<String> _selectList; // Select list (mostly used in BQL) 
   
   public SenseiRequest(){
     _facetInitParamMap = new HashMap<String,FacetHandlerInitializerParam>();
@@ -67,6 +69,7 @@ private long   tid           =          -1;
     _groupBy = null;
     _maxPerGroup = 0;
     _termVectorsToFetch = null;
+    _selectList = null;
   }
 
   public Set<String> getTermVectorsToFetch(){
@@ -414,6 +417,24 @@ private long   tid           =          -1;
     for (int i=0;i<sorts.length;++i){
       _sortSpecs.add(sorts[i]);
     }
+  }
+
+  /**
+   * Sets the select list.
+   * @param selectList select list
+   */
+  public void setSelectList(List<String> selectList)
+  {
+    _selectList = selectList;
+  }
+
+  /**
+   * Gets the select list.
+   * @return select list.
+   */
+  public List<String> getSelectList()
+  {
+    return _selectList;
   }
   
   /** Represents sorting by document score (relevancy). */

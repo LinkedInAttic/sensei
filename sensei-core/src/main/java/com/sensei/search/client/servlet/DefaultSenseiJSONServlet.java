@@ -302,23 +302,49 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
     return jsonObj.toString();
   }
 
-  public static JSONArray buildJSONHits(SenseiHit[] hits)
+  public static JSONArray buildJSONHits(SenseiRequest req, SenseiHit[] hits)
       throws Exception
   {
+    Set<String> selectSet = null;
+    List<String> selectList = req.getSelectList();
+    if (selectList != null && !(selectList.size() == 1 && "*".equals(selectList.get(0))))
+    {
+      selectSet = new HashSet<String>(selectList);
+    }
+
     JSONArray hitArray = new JSONArray();
     for (SenseiHit hit : hits)
     {
       Map<String, String[]> fieldMap = hit.getFieldValues();
 
       JSONObject hitObj = new JSONObject();
-      hitObj.put(PARAM_RESULT_HIT_UID, hit.getUID());
-      hitObj.put(PARAM_RESULT_HIT_DOCID, hit.getDocid());
-      hitObj.put(PARAM_RESULT_HIT_SCORE, hit.getScore());
-      hitObj.put(PARAM_RESULT_HIT_GROUPVALUE, hit.getGroupValue());
-      hitObj.put(PARAM_RESULT_HIT_GROUPHITSCOUNT, hit.getGroupHitsCount());
+      if (selectSet == null || selectSet.contains(PARAM_RESULT_HIT_UID))
+      {
+        hitObj.put(PARAM_RESULT_HIT_UID, hit.getUID());
+      }
+      if (selectSet == null || selectSet.contains(PARAM_RESULT_HIT_DOCID))
+      {
+        hitObj.put(PARAM_RESULT_HIT_DOCID, hit.getDocid());
+      }
+      if (selectSet == null || selectSet.contains(PARAM_RESULT_HIT_SCORE))
+      {
+        hitObj.put(PARAM_RESULT_HIT_SCORE, hit.getScore());
+      }
+      if (selectSet == null || selectSet.contains(PARAM_RESULT_HIT_GROUPVALUE))
+      {
+        hitObj.put(PARAM_RESULT_HIT_GROUPVALUE, hit.getGroupValue());
+      }
+      if (selectSet == null || selectSet.contains(PARAM_RESULT_HIT_GROUPHITSCOUNT))
+      {
+        hitObj.put(PARAM_RESULT_HIT_GROUPHITSCOUNT, hit.getGroupHitsCount());
+      }
       if (hit.getGroupHits() != null && hit.getGroupHits().length > 0)
-        hitObj.put(PARAM_RESULT_HIT_GROUPHITS, buildJSONHits(hit.getSenseiGroupHits()));
-      hitObj.put(PARAM_RESULT_HIT_SRC_DATA, hit.getSrcData());
+        hitObj.put(PARAM_RESULT_HIT_GROUPHITS, buildJSONHits(req, hit.getSenseiGroupHits()));
+
+      if (selectSet == null || selectSet.contains(PARAM_RESULT_HIT_SRC_DATA))
+      {
+        hitObj.put(PARAM_RESULT_HIT_SRC_DATA, hit.getSrcData());
+      }
       if (fieldMap != null)
       {
         Set<Entry<String, String[]>> entries = fieldMap.entrySet();
@@ -340,7 +366,10 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
               valArray.put(val);
             }
           }
-          hitObj.put(key, valArray);
+          if (selectSet == null || selectSet.contains(key))
+          {
+            hitObj.put(key, valArray);
+          }
         }
       }
 
@@ -356,13 +385,19 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
           data.put(PARAM_RESULT_HIT_STORED_FIELDS_VALUE, field.stringValue());
           storedData.add(data);
         }
-        hitObj.put(PARAM_RESULT_HIT_STORED_FIELDS, new JSONArray(storedData));
+        if (selectSet == null || selectSet.contains(PARAM_RESULT_HIT_STORED_FIELDS))
+        {
+          hitObj.put(PARAM_RESULT_HIT_STORED_FIELDS, new JSONArray(storedData));
+        }
       }
 
       Map<String,BrowseHit.TermFrequencyVector> tvMap = hit.getTermFreqMap();
       if (tvMap!=null && tvMap.size()>0){
         JSONObject tvObj = new JSONObject();
-        hitObj.put(PARAM_RESULT_HIT_TERMVECTORS, tvObj);
+        if (selectSet == null || selectSet.contains(PARAM_RESULT_HIT_TERMVECTORS))
+        {
+          hitObj.put(PARAM_RESULT_HIT_TERMVECTORS, tvObj);
+        }
         Set<Entry<String,BrowseHit.TermFrequencyVector>> entries = tvMap.entrySet();
         for (Entry<String,BrowseHit.TermFrequencyVector> entry : entries){
           String field = entry.getKey();
@@ -382,7 +417,10 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
       Explanation expl = hit.getExplanation();
       if (expl != null)
       {
-        hitObj.put(PARAM_RESULT_HIT_EXPLANATION, convertExpl(expl));
+        if (selectSet == null || selectSet.contains(PARAM_RESULT_HIT_EXPLANATION))
+        {
+          hitObj.put(PARAM_RESULT_HIT_EXPLANATION, convertExpl(expl));
+        }
       }
 
       hitArray.put(hitObj);
@@ -401,7 +439,7 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
     jsonObj.put(PARAM_RESULT_PARSEDQUERY, res.getParsedQuery());
 
     SenseiHit[] hits = res.getSenseiHits();
-    JSONArray hitArray = buildJSONHits(hits);
+    JSONArray hitArray = buildJSONHits(req, hits);
     jsonObj.put(PARAM_RESULT_HITS, hitArray);
 
     jsonObj.put(PARAM_RESULT_TIME, res.getTime());

@@ -42,7 +42,8 @@ public class TestBQL extends TestCase
       "select category " +
       "from cars "
       );
-    assertTrue(json.length() == 0);
+    JSONObject expected = new JSONObject("{\"meta\":{\"select_list\":[\"category\"]}}");
+    assertTrue(_comp.isEquals(json, expected));
   }
 
   @Test
@@ -55,7 +56,8 @@ public class TestBQL extends TestCase
       "select * " +
       "from cars "
       );
-    assertTrue(json.length() == 0);
+    JSONObject expected = new JSONObject("{\"meta\":{\"select_list\":[\"*\"]}}");
+    assertTrue(_comp.isEquals(json, expected));
   }
 
   @Test
@@ -70,7 +72,7 @@ public class TestBQL extends TestCase
       "ORDER BY color"
       );
 
-    JSONObject expected = new JSONObject("{\"sort\": [{\"color\": \"asc\"}]}");
+    JSONObject expected = new JSONObject("{\"sort\": [{\"color\": \"asc\"}], \"meta\":{\"select_list\":[\"category\"]}}");
     assertTrue(_comp.isEquals(json, expected));
   }
 
@@ -85,7 +87,7 @@ public class TestBQL extends TestCase
       "FROM cars " +
       "ORDER BY color, price DESC, year ASC"
       );
-    JSONObject expected = new JSONObject("{\"sort\": [{\"color\": \"asc\"},{\"price\": \"desc\"},{\"year\": \"asc\"}]}");
+    JSONObject expected = new JSONObject("{\"sort\": [{\"color\": \"asc\"},{\"price\": \"desc\"},{\"year\": \"asc\"}], \"meta\":{\"select_list\":[\"category\"]}}");
     assertTrue(_comp.isEquals(json, expected));
   }
 
@@ -100,7 +102,7 @@ public class TestBQL extends TestCase
       "FROM cars " +
       "LIMIT 123"
       );
-    JSONObject expected = new JSONObject("{\"from\": 0, \"size\": 123}");
+    JSONObject expected = new JSONObject("{\"from\": 0, \"size\": 123, \"meta\":{\"select_list\":[\"category\"]}}");
     assertTrue(_comp.isEquals(json, expected));
   }
 
@@ -115,7 +117,7 @@ public class TestBQL extends TestCase
       "FROM cars " +
       "LIMIT 15, 30"
       );
-    JSONObject expected = new JSONObject("{\"from\": 15, \"size\": 30}");
+    JSONObject expected = new JSONObject("{\"from\": 15, \"size\": 30, \"meta\":{\"select_list\":[\"category\"]}}");
     assertTrue(_comp.isEquals(json, expected));
   }
 
@@ -130,7 +132,7 @@ public class TestBQL extends TestCase
       "FROM cars " +
       "GROUP BY color"
       );
-    JSONObject expected = new JSONObject("{\"groupBy\": {\"columns\": [\"color\"]}}");
+    JSONObject expected = new JSONObject("{\"groupBy\": {\"columns\": [\"color\"]}, \"meta\":{\"select_list\":[\"category\"]}}");
     assertTrue(_comp.isEquals(json, expected));
   }
 
@@ -145,7 +147,7 @@ public class TestBQL extends TestCase
       "FROM cars " +
       "GROUP BY color TOP 5"
       );
-    JSONObject expected = new JSONObject("{\"groupBy\": {\"columns\": [\"color\"], \"top\":5}}");
+    JSONObject expected = new JSONObject("{\"groupBy\": {\"columns\": [\"color\"], \"top\":5}, \"meta\":{\"select_list\":[\"category\"]}}");
     assertTrue(_comp.isEquals(json, expected));
   }
 
@@ -160,7 +162,7 @@ public class TestBQL extends TestCase
       "FROM cars " +
       "WHERE year = 1999"
       );
-    JSONObject expected = new JSONObject("{\"selections\":[{\"range\":{\"year\":{\"to\":1999,\"include_lower\":true,\"include_upper\":true,\"from\":1999}}}]}");
+    JSONObject expected = new JSONObject("{\"selections\":[{\"range\":{\"year\":{\"to\":1999,\"include_lower\":true,\"include_upper\":true,\"from\":1999}}}], \"meta\":{\"select_list\":[\"category\"]}}");
     assertTrue(_comp.isEquals(json, expected));
   }
 
@@ -175,7 +177,7 @@ public class TestBQL extends TestCase
       "FROM cars " +
       "WHERE price = 1500.99"
       );
-    JSONObject expected = new JSONObject("{\"selections\":[{\"range\":{\"price\":{\"to\":1500.99,\"include_lower\":true,\"include_upper\":true,\"from\":1500.99}}}]}");
+    JSONObject expected = new JSONObject("{\"selections\":[{\"range\":{\"price\":{\"to\":1500.99,\"include_lower\":true,\"include_upper\":true,\"from\":1500.99}}}], \"meta\":{\"select_list\":[\"category\"]}}");
     assertTrue(_comp.isEquals(json, expected));
   }
 
@@ -190,7 +192,7 @@ public class TestBQL extends TestCase
       "FROM cars " +
       "WHERE color = 'red'"
       );
-    JSONObject expected = new JSONObject("{\"selections\": [{\"term\": {\"color\": {\"value\": \"red\"}}}]}");
+    JSONObject expected = new JSONObject("{\"selections\": [{\"term\": {\"color\": {\"value\": \"red\"}}}], \"meta\":{\"select_list\":[\"category\"]}}");
     assertTrue(_comp.isEquals(json, expected));
   }
 
@@ -205,7 +207,7 @@ public class TestBQL extends TestCase
       "FROM cars " +
       "WHERE color IN ('red', 'blue', 'yellow')"
       );
-    JSONObject expected = new JSONObject("{\"selections\":[{\"terms\":{\"color\":{\"values\":[\"red\",\"blue\",\"yellow\"],\"excludes\":[],\"operator\":\"or\"}}}]}");
+    JSONObject expected = new JSONObject("{\"selections\":[{\"terms\":{\"color\":{\"values\":[\"red\",\"blue\",\"yellow\"],\"excludes\":[],\"operator\":\"or\"}}}], \"meta\":{\"select_list\":[\"category\"]}}");
     assertTrue(_comp.isEquals(json, expected));
   }
 
@@ -221,7 +223,7 @@ public class TestBQL extends TestCase
       "FROM cars " +
       "WHERE color NOT IN ('red', 'blue', 'yellow') EXCEPT ('black', 'green')"
       );
-    JSONObject expected = new JSONObject("{\"selections\":[{\"terms\":{\"color\":{\"excludes\":[\"red\",\"blue\",\"yellow\"],\"values\":[\"black\", \"green\"],\"operator\":\"or\"}}}]}");
+    JSONObject expected = new JSONObject("{\"selections\":[{\"terms\":{\"color\":{\"excludes\":[\"red\",\"blue\",\"yellow\"],\"values\":[\"black\", \"green\"],\"operator\":\"or\"}}}], \"meta\":{\"select_list\":[\"category\"]}}");
     assertTrue(_comp.isEquals(json, expected));
   }
 
@@ -236,7 +238,7 @@ public class TestBQL extends TestCase
       "FROM cars " +
       "WHERE color CONTAINS ALL ('red', 'blue', 'yellow') EXCEPT ('black', 'green')"
       );
-    JSONObject expected = new JSONObject("{\"selections\":[{\"terms\":{\"color\":{\"values\":[\"red\",\"blue\",\"yellow\"],\"excludes\":[\"black\", \"green\"],\"operator\":\"and\"}}}]}");
+    JSONObject expected = new JSONObject("{\"selections\":[{\"terms\":{\"color\":{\"values\":[\"red\",\"blue\",\"yellow\"],\"excludes\":[\"black\", \"green\"],\"operator\":\"and\"}}}], \"meta\":{\"select_list\":[\"category\"]}}");
     assertTrue(_comp.isEquals(json, expected));
   }
 
@@ -251,7 +253,7 @@ public class TestBQL extends TestCase
       "FROM cars " +
       "WHERE city = 'china/hongkong' WITH ('strict':false, 'depth':1)"
       );
-    JSONObject expected = new JSONObject("{\"selections\":[{\"path\":{\"city\":{\"value\":\"china/hongkong\",\"strict\":false,\"depth\":1}}}]}");
+    JSONObject expected = new JSONObject("{\"selections\":[{\"path\":{\"city\":{\"value\":\"china/hongkong\",\"strict\":false,\"depth\":1}}}], \"meta\":{\"select_list\":[\"*\"]}}");
     assertTrue(_comp.isEquals(json, expected));
   }
 
@@ -265,10 +267,10 @@ public class TestBQL extends TestCase
     try
     {
       JSONObject json = _compiler.compile(
-                                          "SELECT * " +
-                                          "FROM cars " +
-                                          "WHERE city = 'china/hongkong' WITH ('strict':false, 'ddd':1)"
-                                          );
+        "SELECT * " +
+        "FROM cars " +
+        "WHERE city = 'china/hongkong' WITH ('strict':false, 'ddd':1)"
+        );
     }
     catch (RecognitionException err) 
     {
@@ -288,7 +290,7 @@ public class TestBQL extends TestCase
       "FROM cars " +
       "WHERE color <> 'red'"
       );
-    JSONObject expected = new JSONObject("{\"selections\":[{\"terms\":{\"color\":{\"values\":[],\"excludes\":[\"red\"],\"operator\":\"or\"}}}]}");
+    JSONObject expected = new JSONObject("{\"selections\":[{\"terms\":{\"color\":{\"values\":[],\"excludes\":[\"red\"],\"operator\":\"or\"}}}], \"meta\":{\"select_list\":[\"category\"]}}");
     assertTrue(_comp.isEquals(json, expected));
   }
 
@@ -303,7 +305,7 @@ public class TestBQL extends TestCase
       "FROM cars " +
       "WHERE QUERY IS 'cool AND moon-roof'"
       );
-    JSONObject expected = new JSONObject("{\"query\":{\"query_string\":{\"query\":\"cool AND moon-roof\"}}}");
+    JSONObject expected = new JSONObject("{\"query\":{\"query_string\":{\"query\":\"cool AND moon-roof\"}}, \"meta\":{\"select_list\":[\"category\"]}}");
     assertTrue(_comp.isEquals(json, expected));
   }
 
@@ -320,7 +322,7 @@ public class TestBQL extends TestCase
       "AND color = 'red' " +
       "AND category = 'sedan'"
       );
-    JSONObject expected = new JSONObject("{\"query\":{\"query_string\":{\"query\":\"cool AND moon-roof\"}},\"selections\":[{\"term\":{\"color\":{\"value\":\"red\"}}},{\"term\":{\"category\":{\"value\":\"sedan\"}}}]}");
+    JSONObject expected = new JSONObject("{\"query\":{\"query_string\":{\"query\":\"cool AND moon-roof\"}},\"selections\":[{\"term\":{\"color\":{\"value\":\"red\"}}},{\"term\":{\"category\":{\"value\":\"sedan\"}}}], \"meta\":{\"select_list\":[\"category\"]}}");
     assertTrue(_comp.isEquals(json, expected));
   }
 
@@ -336,7 +338,7 @@ public class TestBQL extends TestCase
       "WHERE QUERY IS 'cool AND moon-roof' " +
       "AND age = 12 "
       );
-    JSONObject expected = new JSONObject("{\"query\":{\"query_string\":{\"query\":\"cool AND moon-roof\"}},\"filter\":{\"term\":{\"age\":{\"value\":12}}}}");
+    JSONObject expected = new JSONObject("{\"query\":{\"query_string\":{\"query\":\"cool AND moon-roof\"}},\"filter\":{\"term\":{\"age\":{\"value\":12}}}, \"meta\":{\"select_list\":[\"category\"]}}");
     assertTrue(_comp.isEquals(json, expected));
   }
 
@@ -351,7 +353,7 @@ public class TestBQL extends TestCase
       "FROM cars " +
       "BROWSE BY color"
       );
-    JSONObject expected = new JSONObject("{\"facets\":{\"color\":{\"max\":10,\"order\":\"hits\",\"expand\":false,\"minhit\":0}}}");
+    JSONObject expected = new JSONObject("{\"facets\":{\"color\":{\"max\":10,\"order\":\"hits\",\"expand\":false,\"minhit\":0}}, \"meta\":{\"select_list\":[\"category\"]}}");
     assertTrue(_comp.isEquals(json, expected));
   }
 
@@ -366,7 +368,7 @@ public class TestBQL extends TestCase
       "FROM cars " +
       "BROWSE BY color, price(true, 1, 20, value), year"
       );
-    JSONObject expected = new JSONObject("{\"facets\":{\"price\":{\"max\":20,\"order\":\"val\",\"expand\":true,\"minhit\":1},\"color\":{\"max\":10,\"order\":\"hits\",\"expand\":false,\"minhit\":0},\"year\":{\"max\":10,\"order\":\"hits\",\"expand\":false,\"minhit\":0}}}");
+    JSONObject expected = new JSONObject("{\"facets\":{\"price\":{\"max\":20,\"order\":\"val\",\"expand\":true,\"minhit\":1},\"color\":{\"max\":10,\"order\":\"hits\",\"expand\":false,\"minhit\":0},\"year\":{\"max\":10,\"order\":\"hits\",\"expand\":false,\"minhit\":0}}, \"meta\":{\"select_list\":[\"category\"]}}");
     assertTrue(_comp.isEquals(json, expected));
   }
 
@@ -381,7 +383,7 @@ public class TestBQL extends TestCase
       "FROM cars " +
       "WHERE year BETWEEN 2000 AND 2001"
       );
-    JSONObject expected = new JSONObject("{\"selections\":[{\"range\":{\"year\":{\"to\":2001,\"include_lower\":true,\"include_upper\":true,\"from\":2000}}}]}");
+    JSONObject expected = new JSONObject("{\"selections\":[{\"range\":{\"year\":{\"to\":2001,\"include_lower\":true,\"include_upper\":true,\"from\":2000}}}], \"meta\":{\"select_list\":[\"category\"]}}");
     assertTrue(_comp.isEquals(json, expected));
   }
 
@@ -396,7 +398,7 @@ public class TestBQL extends TestCase
       "FROM cars " +
       "FETCHING STORED FALSE"
       );
-    JSONObject expected = new JSONObject("{}");
+    JSONObject expected = new JSONObject("{\"meta\":{\"select_list\":[\"*\"]}}");
     assertTrue(_comp.isEquals(json, expected));
   }
 
@@ -411,7 +413,7 @@ public class TestBQL extends TestCase
       "FROM cars " +
       "FETCHING STORED true"
       );
-    JSONObject expected = new JSONObject("{\"fetchStored\":true}");
+    JSONObject expected = new JSONObject("{\"fetchStored\":true, \"meta\":{\"select_list\":[\"*\"]}}");
     assertTrue(_comp.isEquals(json, expected));
   }
 
@@ -426,7 +428,7 @@ public class TestBQL extends TestCase
       "FROM cars " +
       "WHERE year NOT BETWEEN 2000 AND 2002"
       );
-    JSONObject expected = new JSONObject("{\"filter\":{\"or\":[{\"range\":{\"year\":{\"to\":2000,\"include_upper\":false}}},{\"range\":{\"year\":{\"include_lower\":false,\"from\":2002}}}]}}");
+    JSONObject expected = new JSONObject("{\"filter\":{\"or\":[{\"range\":{\"year\":{\"to\":2000,\"include_upper\":false}}},{\"range\":{\"year\":{\"include_lower\":false,\"from\":2002}}}]}, \"meta\":{\"select_list\":[\"category\"]}}");
     assertTrue(_comp.isEquals(json, expected));
   }
 
@@ -441,7 +443,7 @@ public class TestBQL extends TestCase
       "FROM cars " +
       "WHERE year > 1999"
       );
-    JSONObject expected = new JSONObject("{\"selections\":[{\"range\":{\"year\":{\"from\":1999,\"include_lower\":false}}}]}");
+    JSONObject expected = new JSONObject("{\"selections\":[{\"range\":{\"year\":{\"from\":1999,\"include_lower\":false}}}], \"meta\":{\"select_list\":[\"year\"]}}");
     assertTrue(_comp.isEquals(json, expected));
   }
 
@@ -456,7 +458,7 @@ public class TestBQL extends TestCase
       "FROM cars " +
       "WHERE year <= 2000"
       );
-    JSONObject expected = new JSONObject("{\"selections\":[{\"range\":{\"year\":{\"to\":2000,\"include_upper\":true}}}]}");
+    JSONObject expected = new JSONObject("{\"selections\":[{\"range\":{\"year\":{\"to\":2000,\"include_upper\":true}}}], \"meta\":{\"select_list\":[\"year\"]}}");
     assertTrue(_comp.isEquals(json, expected));
   }
 
@@ -471,7 +473,7 @@ public class TestBQL extends TestCase
       "FROM cars " +
       "WHERE year > 1999 AND year <= 2003 AND year >= 1999"
       );
-    JSONObject expected = new JSONObject("{\"selections\":[{\"range\":{\"year\":{\"to\":2003,\"include_lower\":true,\"include_upper\":false,\"from\":1999}}}]}");
+    JSONObject expected = new JSONObject("{\"selections\":[{\"range\":{\"year\":{\"to\":2003,\"include_lower\":true,\"include_upper\":false,\"from\":1999}}}], \"meta\":{\"select_list\":[\"year\"]}}");
     assertTrue(_comp.isEquals(json, expected));
   }
 
@@ -486,7 +488,7 @@ public class TestBQL extends TestCase
       "FROM cars " +
       "WHERE name > 'abc' AND name < 'xyz' AND name >= 'ddd'"
       );
-    JSONObject expected = new JSONObject("{\"filter\":{\"range\":{\"name\":{\"to\":\"xyz\",\"include_lower\":true,\"include_upper\":false,\"from\":\"ddd\"}}}}");
+    JSONObject expected = new JSONObject("{\"filter\":{\"range\":{\"name\":{\"to\":\"xyz\",\"include_lower\":true,\"include_upper\":false,\"from\":\"ddd\"}}}, \"meta\":{\"select_list\":[\"*\"]}}");
     assertTrue(_comp.isEquals(json, expected));
   }
 
@@ -523,7 +525,7 @@ public class TestBQL extends TestCase
       "FROM cars " +
       "WHERE color = 'red' OR year > 1995"
       );
-    JSONObject expected = new JSONObject("{\"filter\":{\"or\":[{\"term\":{\"color\":{\"value\":\"red\"}}},{\"range\":{\"year\":{\"include_lower\":false,\"from\":1995}}}]}}");
+    JSONObject expected = new JSONObject("{\"filter\":{\"or\":[{\"term\":{\"color\":{\"value\":\"red\"}}},{\"range\":{\"year\":{\"include_lower\":false,\"from\":1995}}}]}, \"meta\":{\"select_list\":[\"color\"]}}");
     assertTrue(_comp.isEquals(json, expected));
   }
 
@@ -538,7 +540,7 @@ public class TestBQL extends TestCase
       "FROM cars " +
       "WHERE color = 'red' AND year > 1995"
       );
-    JSONObject expected = new JSONObject("{\"selections\":[{\"term\":{\"color\":{\"value\":\"red\"}}},{\"range\":{\"year\":{\"include_lower\":false,\"from\":1995}}}]}");
+    JSONObject expected = new JSONObject("{\"selections\":[{\"term\":{\"color\":{\"value\":\"red\"}}},{\"range\":{\"year\":{\"include_lower\":false,\"from\":1995}}}], \"meta\":{\"select_list\":[\"color\"]}}");
     assertTrue(_comp.isEquals(json, expected));
   }
 
@@ -554,7 +556,7 @@ public class TestBQL extends TestCase
       "WHERE (color = 'red' OR color = 'blue') " +
       "   OR (color = 'black' AND tags CONTAINS ALL ('hybrid', 'moon-roof', 'leather'))"
       );
-    JSONObject expected = new JSONObject("{\"filter\":{\"or\":[{\"or\":[{\"term\":{\"color\":{\"value\":\"red\"}}},{\"term\":{\"color\":{\"value\":\"blue\"}}}]},{\"and\":[{\"term\":{\"color\":{\"value\":\"black\"}}},{\"terms\":{\"tags\":{\"values\":[\"hybrid\",\"moon-roof\",\"leather\"],\"excludes\":[],\"operator\":\"and\"}}}]}]}}");
+    JSONObject expected = new JSONObject("{\"filter\":{\"or\":[{\"or\":[{\"term\":{\"color\":{\"value\":\"red\"}}},{\"term\":{\"color\":{\"value\":\"blue\"}}}]},{\"and\":[{\"term\":{\"color\":{\"value\":\"black\"}}},{\"terms\":{\"tags\":{\"values\":[\"hybrid\",\"moon-roof\",\"leather\"],\"excludes\":[],\"operator\":\"and\"}}}]}]}, \"meta\":{\"select_list\":[\"color\"]}}");
     assertTrue(_comp.isEquals(json, expected));
   }
 
@@ -570,7 +572,7 @@ public class TestBQL extends TestCase
       "FROM cars " +
       "WHERE color = 'red' AND age > 25"
       );
-    JSONObject expected = new JSONObject("{\"selections\":[{\"term\":{\"color\":{\"value\":\"red\"}}}],\"filter\":{\"range\":{\"age\":{\"include_lower\":false,\"from\":25}}}}");
+    JSONObject expected = new JSONObject("{\"selections\":[{\"term\":{\"color\":{\"value\":\"red\"}}}],\"filter\":{\"range\":{\"age\":{\"include_lower\":false,\"from\":25}}}, \"meta\":{\"select_list\":[\"color\"]}}");
     assertTrue(_comp.isEquals(json, expected));
   }
 
@@ -586,7 +588,7 @@ public class TestBQL extends TestCase
       "WHERE (color = 'red' AND query is 'hybrid AND cool') " +
       "   OR (color = 'blue' AND query is 'moon-roof AND navigation')"
       );
-    JSONObject expected = new JSONObject("{\"filter\":{\"or\":[{\"and\":[{\"term\":{\"color\":{\"value\":\"red\"}}},{\"query\":{\"query_string\":{\"query\":\"hybrid AND cool\"}}}]},{\"and\":[{\"term\":{\"color\":{\"value\":\"blue\"}}},{\"query\":{\"query_string\":{\"query\":\"moon-roof AND navigation\"}}}]}]}}");
+    JSONObject expected = new JSONObject("{\"filter\":{\"or\":[{\"and\":[{\"term\":{\"color\":{\"value\":\"red\"}}},{\"query\":{\"query_string\":{\"query\":\"hybrid AND cool\"}}}]},{\"and\":[{\"term\":{\"color\":{\"value\":\"blue\"}}},{\"query\":{\"query_string\":{\"query\":\"moon-roof AND navigation\"}}}]}]}, \"meta\":{\"select_list\":[\"color\"]}}");
     assertTrue(_comp.isEquals(json, expected));
   }
 
@@ -601,7 +603,7 @@ public class TestBQL extends TestCase
       "FROM cars " +
       "WHERE MATCH(f1, f2) AGAINST('text1 AND text2')"
       );
-    JSONObject expected = new JSONObject("{\"query\":{\"query_string\":{\"query\":\"text1 AND text2\",\"fields\":[\"f1\",\"f2\"]}}}");
+    JSONObject expected = new JSONObject("{\"query\":{\"query_string\":{\"query\":\"text1 AND text2\",\"fields\":[\"f1\",\"f2\"]}}, \"meta\":{\"select_list\":[\"color\"]}}");
     assertTrue(_comp.isEquals(json, expected));
   }
 
@@ -705,7 +707,7 @@ public class TestBQL extends TestCase
       "FROM cars " +
       "GIVEN FACET PARAM (My-Network, 'srcid', int, 8233570)"
       );
-    JSONObject expected = new JSONObject("{\"facetInit\":{\"My-Network\":{\"srcid\":{\"values\":[8233570],\"type\":\"int\"}}}}");
+    JSONObject expected = new JSONObject("{\"facetInit\":{\"My-Network\":{\"srcid\":{\"values\":[8233570],\"type\":\"int\"}}}, \"meta\":{\"select_list\":[\"*\"]}}");
     assertTrue(_comp.isEquals(json, expected));
   }
 
@@ -723,7 +725,7 @@ public class TestBQL extends TestCase
       "                  (member, 'last_name', string, 'Cui'), " + 
       "                  (member, 'age', int, 25)"
       );
-    JSONObject expected = new JSONObject("{\"facetInit\":{\"member\":{\"age\":{\"values\":[25],\"type\":\"int\"},\"last_name\":{\"values\":[\"Cui\"],\"type\":\"string\"}},\"time\":{\"now\":{\"values\":[\"999999\"],\"type\":\"long\"}},\"My-Network\":{\"srcid\":{\"values\":[8233570],\"type\":\"int\"}}}}");
+    JSONObject expected = new JSONObject("{\"facetInit\":{\"member\":{\"age\":{\"values\":[25],\"type\":\"int\"},\"last_name\":{\"values\":[\"Cui\"],\"type\":\"string\"}},\"time\":{\"now\":{\"values\":[\"999999\"],\"type\":\"long\"}},\"My-Network\":{\"srcid\":{\"values\":[8233570],\"type\":\"int\"}}}, \"meta\":{\"select_list\":[\"*\"]}}");
     assertTrue(_comp.isEquals(json, expected));
   }
 

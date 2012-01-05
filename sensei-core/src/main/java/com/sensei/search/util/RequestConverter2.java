@@ -145,9 +145,24 @@ public class RequestConverter2 {
 
 	public static SenseiRequest fromJSON(JSONObject json) throws Exception
   {
-	  json =  jsonTemplateProcessor.substituteTemplates(json);
+	  json = jsonTemplateProcessor.substituteTemplates(json);
 
 	  SenseiRequest req = new SenseiRequest();
+
+    JSONObject meta = json.optJSONObject("meta");
+    if (meta != null)
+    {
+      JSONArray array = meta.optJSONArray("select_list");
+      if (array != null)
+      {
+        List<String> list = new ArrayList<String>();
+        for (int i = 0; i < array.length(); ++i)
+        {
+          list.add(array.get(i).toString());
+        }
+        req.setSelectList(list);
+      }
+    }
 
 	    // query
 	    req.setQuery(new SenseiJSONQuery(json));

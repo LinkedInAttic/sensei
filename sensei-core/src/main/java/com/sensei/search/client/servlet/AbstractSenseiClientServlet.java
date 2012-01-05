@@ -165,9 +165,9 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
           senseiReq = DefaultSenseiJSONServlet.convertSenseiRequest(
                         new DataConfiguration(new MapConfiguration(getParameters(content))));
         }
-        if (jsonObj != null) 
+        if (jsonObj != null && jsonObj.has("bql"))
         {
-          String bqlStmt = jsonObj.optString("bql");
+          String bqlStmt = (String) jsonObj.get("bql");
           if (bqlStmt.length() > 0)
           {
             jsonObj = _compiler.compile(bqlStmt);
