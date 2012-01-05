@@ -45,6 +45,7 @@ import org.json.JSONException;
     private static final int DEFAULT_FACET_MAXHIT = 10;
 
     Map<String, String[]> _facetInfoMap;
+    private long _now;
 
     public BQLParser(TokenStream input, Map<String, String[]> facetInfoMap) {
         this(input);
@@ -410,6 +411,16 @@ VALUE : ('V'|'v')('A'|'a')('L'|'l')('U'|'u')('E'|'e') ;
 WHERE : ('W'|'w')('H'|'h')('E'|'e')('R'|'r')('E'|'e') ;
 WITH : ('W'|'w')('I'|'i')('T'|'t')('H'|'h') ;
 
+WEEKS : ('W'|'w')('E'|'e')('E'|'e')('K'|'k')('S'|'s')? ;
+DAYS : ('D'|'d')('A'|'a')('Y'|'y')('S'|'s')? ;
+HOURS : ('H'|'h')('O'|'o')('U'|'u')('R'|'r')('S'|'s')? ;
+MINUTES : ('M'|'m')('I'|'i')('N'|'n')('U'|'u')('T'|'t')('E'|'e')('S'|'s')? ;
+MINS : ('M'|'m')('I'|'i')('N'|'n')('S'|'s')? ;
+SECONDS : ('S'|'s')('E'|'e')('C'|'c')('O'|'o')('N'|'n')('D'|'d')('S'|'s')? ;
+SECS : ('S'|'s')('E'|'e')('C'|'c')('S'|'s')? ;
+MILLISECONDS : ('M'|'m')('I'|'i')('L'|'l')('L'|'l')('I'|'i')('S'|'s')('E'|'e')('C'|'c')('O'|'o')('N'|'n')('D'|'d')('S'|'s')? ;
+MSECS : ('M'|'m')('S'|'s')('E'|'e')('C'|'c')('S'|'s')? ;
+
 // Have to define this after the keywords?
 IDENT : ALPHA (ALPHA | DIGIT | '-' )* ;
 
@@ -425,6 +436,9 @@ statement returns [Object json]
     ;
 
 select_stmt returns [Object json]
+@init {
+    _now = System.currentTimeMillis();
+}
     :   SELECT ('*' | cols=column_name_list)
         (FROM IDENT)?
         w=where?
@@ -741,7 +755,7 @@ predicate returns [JSONObject json]
     |   query_predicate { $json = $query_predicate.json; }
     |   between_predicate { $json = $between_predicate.json; }
     |   range_predicate { $json = $range_predicate.json; }
- // |   time_predicate { $json = $time_predicate.json; }
+    |   time_predicate { $json = $time_predicate.json; }
     |   match_predicate { $json = $match_predicate.json; }
  // |   like_predicate { $json = $like_predicate.json; }
     ;
@@ -989,6 +1003,81 @@ range_predicate returns [JSONObject json]
             }
         }
         -> ^($op column_name value)
+    ;
+
+time_predicate returns [JSONObject json]
+    :   column_name IN LAST time=time_span
+//    |   (column_name (SINCE | AFTER | BEFORE) time_expr
+        {
+            String col = $column_name.text;
+            // XXX verification
+            try {
+                $json = new JSONObject().put("range",
+                                             new JSONObject().put(col,
+                                                                  new JSONObject().put("from", $time.val)
+                                                                                  .put("include_lower", false)));
+            }
+            catch (JSONException err) {
+                throw new RecognitionException();
+            }
+        }
+    ;
+
+time_span returns [long val]
+    :   week=time_week_part? day=time_day_part? hour=time_hour_part? 
+        minute=time_minute_part? second=time_second_part? msec=time_millisecond_part?
+        {
+            $val = 0;
+            if (week != null) $val += $week.val;
+            if (day != null) $val += $day.val;
+            if (hour != null) $val += $hour.val;
+            if (minute != null) $val += $minute.val;
+            if (second != null) $val += $second.val;
+            if (msec != null) $val += $msec.val;
+            $val = _now - $val;
+        }
+    ;
+
+time_week_part returns [long val]
+    :   INTEGER WEEKS
+        {
+            $val = Integer.parseInt($INTEGER.text) * 7 * 24 * 60 * 60 * 1000L;
+        }
+    ;
+
+time_day_part returns [long val]
+    :   INTEGER DAYS
+        {
+          $val = Integer.parseInt($INTEGER.text) * 24 * 60 * 60 * 1000L;
+        }
+    ;
+
+time_hour_part returns [long val]
+    :   INTEGER HOURS
+        {
+          $val = Integer.parseInt($INTEGER.text) * 60 * 60 * 1000L;
+        }
+    ;
+
+time_minute_part returns [long val]
+    :   INTEGER (MINUTES | MINS)
+        {
+          $val = Integer.parseInt($INTEGER.text) * 60 * 1000L;
+        }
+    ;
+
+time_second_part returns [long val]
+    :   INTEGER (SECONDS | SECS)
+        {
+          $val = Integer.parseInt($INTEGER.text) * 1000L;
+        }
+    ;
+
+time_millisecond_part returns [long val] 
+    :   INTEGER (MILLISECONDS | MSECS)
+        {
+          $val = Integer.parseInt($INTEGER.text);
+        }
     ;
 
 match_predicate returns [JSONObject json]

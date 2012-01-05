@@ -730,6 +730,35 @@ public class TestBQL extends TestCase
   }
 
   @Test
+  public void testTimePred1() throws Exception
+  {
+    System.out.println("testTimePred1");
+    System.out.println("==================================================");
+
+    long now = System.currentTimeMillis();
+
+    JSONObject json = _compiler.compile(
+      "SELECT * " +
+      "FROM cars " +
+      "WHERE time IN LAST 1 weeks 2 day 3 hours 4 mins 5 seconds 6 msecs"
+      );
+
+    long timeStamp = json.getJSONObject("filter").getJSONObject("range").getJSONObject("time").getLong("from");
+
+    long timeSpan = 1 * (7 * 24 * 60 * 60 * 1000L) +
+                    2 * (24 * 60 * 60 * 1000L) +
+                    3 * (60 * 60 * 1000L) +
+                    4 * (60 * 1000L) +
+                    5 * 1000L +
+                    6;
+
+    // System.out.println(">>> now - timeStamp = " + (now - timeStamp));
+    // System.out.println(">>> timeSpan = " + timeSpan);
+    // System.out.println(">>> now - timeStamp - timeSpan = " + (now - timeStamp - timeSpan));
+    assertTrue(now - timeStamp - timeSpan < 2); // Should be less than 2 msecs
+  }
+
+  @Test
   public void testCorrectStatement() throws Exception
   {
     System.out.println("\n==================================================");
