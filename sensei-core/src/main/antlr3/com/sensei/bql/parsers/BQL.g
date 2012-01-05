@@ -229,7 +229,6 @@ import org.json.JSONException;
                 include = (include1 && include2);
             }
             else {
-                System.out.println(">>> in getmax, value2 = " + value2 + ", include2 = " + include2);
                 value = value2;
                 include = include2;
             }
@@ -1006,16 +1005,36 @@ range_predicate returns [JSONObject json]
     ;
 
 time_predicate returns [JSONObject json]
-    :   column_name IN LAST time=time_span
-//    |   (column_name (SINCE | AFTER | BEFORE) time_expr
+    :   column_name IN LAST time_span
         {
             String col = $column_name.text;
             // XXX verification
             try {
                 $json = new JSONObject().put("range",
                                              new JSONObject().put(col,
-                                                                  new JSONObject().put("from", $time.val)
+                                                                  new JSONObject().put("from", $time_span.val)
                                                                                   .put("include_lower", false)));
+            }
+            catch (JSONException err) {
+                throw new RecognitionException();
+            }
+        }
+    |   column_name (since=SINCE | since=AFTER | before=BEFORE) time_expr
+        {
+            String col = $column_name.text;
+            try {
+                if (since != null) {
+                    $json = new JSONObject().put("range",
+                                                 new JSONObject().put(col,
+                                                                      new JSONObject().put("from", $time_expr.val)
+                                                                                      .put("include_lower", false)));
+                }
+                else {
+                    $json = new JSONObject().put("range",
+                                                 new JSONObject().put(col,
+                                                                      new JSONObject().put("to", $time_expr.val)
+                                                                                      .put("include_upper", false)));
+                }
             }
             catch (JSONException err) {
                 throw new RecognitionException();
@@ -1078,6 +1097,25 @@ time_millisecond_part returns [long val]
         {
           $val = Integer.parseInt($INTEGER.text);
         }
+    ;
+
+time_expr returns [long val]
+    :   time_span AGO
+        {
+            $val = $time_span.val;
+        }
+    |   date_time_string
+        {
+            $val = $date_time_string.val;
+        }
+    |   NOW
+        {
+            $val = _now;
+        }
+    ;
+
+date_time_string returns [long val]
+    :   'xxx'
     ;
 
 match_predicate returns [JSONObject json]
