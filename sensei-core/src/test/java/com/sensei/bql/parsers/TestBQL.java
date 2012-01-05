@@ -132,7 +132,7 @@ public class TestBQL extends TestCase
       "FROM cars " +
       "GROUP BY color"
       );
-    JSONObject expected = new JSONObject("{\"groupBy\": {\"columns\": [\"color\"]}, \"meta\":{\"select_list\":[\"category\"]}}");
+    JSONObject expected = new JSONObject("{\"groupBy\": {\"columns\": [\"color\"],\"top\":10}, \"meta\":{\"select_list\":[\"category\"]}}");
     assertTrue(_comp.isEquals(json, expected));
   }
 
@@ -353,7 +353,7 @@ public class TestBQL extends TestCase
       "FROM cars " +
       "BROWSE BY color"
       );
-    JSONObject expected = new JSONObject("{\"facets\":{\"color\":{\"max\":10,\"order\":\"hits\",\"expand\":false,\"minhit\":0}}, \"meta\":{\"select_list\":[\"category\"]}}");
+    JSONObject expected = new JSONObject("{\"facets\":{\"color\":{\"max\":10,\"order\":\"hits\",\"expand\":false,\"minhit\":1}}, \"meta\":{\"select_list\":[\"category\"]}}");
     assertTrue(_comp.isEquals(json, expected));
   }
 
@@ -368,7 +368,7 @@ public class TestBQL extends TestCase
       "FROM cars " +
       "BROWSE BY color, price(true, 1, 20, value), year"
       );
-    JSONObject expected = new JSONObject("{\"facets\":{\"price\":{\"max\":20,\"order\":\"val\",\"expand\":true,\"minhit\":1},\"color\":{\"max\":10,\"order\":\"hits\",\"expand\":false,\"minhit\":0},\"year\":{\"max\":10,\"order\":\"hits\",\"expand\":false,\"minhit\":0}}, \"meta\":{\"select_list\":[\"category\"]}}");
+    JSONObject expected = new JSONObject("{\"facets\":{\"price\":{\"max\":20,\"order\":\"val\",\"expand\":true,\"minhit\":1},\"color\":{\"max\":10,\"order\":\"hits\",\"expand\":false,\"minhit\":1},\"year\":{\"max\":10,\"order\":\"hits\",\"expand\":false,\"minhit\":1}}, \"meta\":{\"select_list\":[\"category\"]}}");
     assertTrue(_comp.isEquals(json, expected));
   }
 

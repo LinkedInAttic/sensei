@@ -37,6 +37,13 @@ import org.json.JSONException;
 }
 
 @parser::members {
+
+    private static final int DEFAULT_REQUEST_OFFSET = 0;
+    private static final int DEFAULT_REQUEST_COUNT = 10;
+    private static final int DEFAULT_REQUEST_MAX_PER_GROUP = 10;
+    private static final int DEFAULT_FACET_MINHIT = 1;
+    private static final int DEFAULT_FACET_MAXHIT = 10;
+
     Map<String, String[]> _facetInfoMap;
 
     public BQLParser(TokenStream input, Map<String, String[]> facetInfoMap) {
@@ -270,25 +277,15 @@ import org.json.JSONException;
         JSONObject oldSpec = (JSONObject) ((JSONObject) oldRange.get("range")).get(field);
         Object oldFrom = oldSpec.opt("from");
         Object oldTo = oldSpec.opt("to");
-        Boolean oldIncludeLower = oldSpec.optBoolean("include_lower");
-        if (oldIncludeLower == null) {
-            oldIncludeLower = false;
-        }
-        Boolean oldIncludeUpper = oldSpec.optBoolean("include_upper");
-        if (oldIncludeUpper == null) {
-            oldIncludeUpper = false;
-        }        
+        Boolean oldIncludeLower = oldSpec.optBoolean("include_lower", false);
+        Boolean oldIncludeUpper = oldSpec.optBoolean("include_upper", false);
+
         JSONObject curSpec = (JSONObject) ((JSONObject) pred.get("range")).get(field);
         Object curFrom = curSpec.opt("from");
         Object curTo = curSpec.opt("to");
-        Boolean curIncludeLower = curSpec.optBoolean("include_lower");
-        if (curIncludeLower == null) {
-            curIncludeLower = false;
-        }
-        Boolean curIncludeUpper = curSpec.optBoolean("include_upper");
-        if (curIncludeUpper == null) {
-            curIncludeUpper = false;
-        }
+        Boolean curIncludeLower = curSpec.optBoolean("include_lower", false);
+        Boolean curIncludeUpper = curSpec.optBoolean("include_upper", false);
+
         Object[] result = getMax(oldFrom, oldIncludeLower, curFrom, curIncludeLower);
         Object newFrom = result[0];
         Boolean newIncludeLower = (Boolean) result[1];
@@ -571,7 +568,7 @@ limit_clause returns [int offset, int count]
                 $offset = Integer.parseInt($n1.text);
             }
             else {
-                $offset = 0;
+                $offset = DEFAULT_REQUEST_OFFSET;
             }
             $count = Integer.parseInt($n2.text);
         }
@@ -588,6 +585,9 @@ group_by_clause returns [JSONObject json]
                 if (top != null) {
                     $json.put("top", Integer.parseInt(top.getText()));
                 }
+                else {
+                    $json.put("top", DEFAULT_REQUEST_MAX_PER_GROUP);
+                }                    
             }
             catch (JSONException err) {
                 throw new RecognitionException();
@@ -623,8 +623,8 @@ browse_by_clause returns [JSONObject json]
 facet_spec returns [String column, JSONObject spec]
 @init {
     boolean expand = false;
-    int minhit = 0;
-    int max = 10;
+    int minhit = DEFAULT_FACET_MINHIT;
+    int max = DEFAULT_FACET_MAXHIT;
     String orderBy = "hits";
 }
     :   column_name
