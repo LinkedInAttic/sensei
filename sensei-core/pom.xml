@@ -122,7 +122,13 @@
 		<dependency>
 			<groupId>com.linkedin.kamikaze</groupId>
 			<artifactId>kamikaze</artifactId>
-			<version>3.0.5</version>
+			<version>3.0.6</version>
+		</dependency>
+		
+		<dependency>
+		    <groupId>org.apache.hadoop</groupId>
+		    <artifactId>hadoop-core</artifactId>
+		    <version>0.20.204.0</version>
 		</dependency>
 		
 		<dependency>
@@ -181,12 +187,6 @@
             <artifactId>httpclient</artifactId>
             <version>4.1</version>
         </dependency>
-
-		<dependency>
-			<groupId>org.apache.lucene</groupId>
-			<artifactId>lucene-core</artifactId>
-			<version>3.4.0</version>
-		</dependency>
 
 		<dependency>
 			<groupId>com.browseengine.bobo</groupId>
