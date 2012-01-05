@@ -227,7 +227,7 @@ public class TestSensei extends TestCase {
 
   public void testBQL1() throws Exception
   {
-    logger.info(">>> Executing test case testBQL1");
+    logger.info("Executing test case testBQL1");
     String req = "{\"bql\":\"select * from cars\"}";
     JSONObject res = search(new JSONObject(req));
   }

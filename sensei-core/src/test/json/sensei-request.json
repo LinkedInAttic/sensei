@@ -123,7 +123,8 @@
   //"size" : "$size"
 
   // Meta data: meta information about the request
-  "meta": {
-      "select_list": ["color", "year"]
-  }
+  //
+  // "meta": {
+  //     "select_list": ["color", "year"]
+  // }
 }

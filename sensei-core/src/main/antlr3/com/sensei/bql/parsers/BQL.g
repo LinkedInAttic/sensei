@@ -134,17 +134,20 @@ import org.json.JSONException;
                                       JSONObject filter,
                                       JSONObject query) throws JSONException {
 
-        if (where.has("query")) {
-            query.put("query", where.get("query"));
+        JSONObject queryPred = where.optJSONObject("query");
+        JSONArray andPreds = null;
+
+        if (queryPred != null) {
+            query.put("query", queryPred);
         }
-        else if (where.has("and")) {
-            JSONArray preds = (JSONArray) where.get("and");
+        else if ((andPreds = where.optJSONArray("and")) != null) {
             JSONArray filter_list = new JSONArray();
-            for (int i = 0; i < preds.length(); ++i) {
-                JSONObject pred = preds.getJSONObject(i);
-                if (pred.has("query")) {
+            for (int i = 0; i < andPreds.length(); ++i) {
+                JSONObject pred = andPreds.getJSONObject(i);
+                queryPred = pred.optJSONObject("query");
+                if (queryPred != null) {
                     if (!query.has("query")) {
-                        query.put("query", pred.get("query"));
+                        query.put("query", queryPred);
                     }
                     else {
                         filter_list.put(pred);
@@ -265,17 +268,27 @@ import org.json.JSONException;
         }
         JSONObject oldRange = (JSONObject) fieldMap.get(field);
         JSONObject oldSpec = (JSONObject) ((JSONObject) oldRange.get("range")).get(field);
-        Object oldFrom = (oldSpec.has("from") ? oldSpec.get("from") : null);
-        Object oldTo = (oldSpec.has("to") ? oldSpec.get("to") : null);
-        Boolean oldIncludeLower = (oldSpec.has("include_lower") ? (Boolean) oldSpec.get("include_lower") : false);
-        Boolean oldIncludeUpper = (oldSpec.has("include_upper") ? (Boolean) oldSpec.get("include_upper") : false);
-        
+        Object oldFrom = oldSpec.opt("from");
+        Object oldTo = oldSpec.opt("to");
+        Boolean oldIncludeLower = oldSpec.optBoolean("include_lower");
+        if (oldIncludeLower == null) {
+            oldIncludeLower = false;
+        }
+        Boolean oldIncludeUpper = oldSpec.optBoolean("include_upper");
+        if (oldIncludeUpper == null) {
+            oldIncludeUpper = false;
+        }        
         JSONObject curSpec = (JSONObject) ((JSONObject) pred.get("range")).get(field);
-        Object curFrom = (curSpec.has("from") ? curSpec.get("from") : null);
-        Object curTo = (curSpec.has("to") ? curSpec.get("to") : null);
-        Boolean curIncludeLower = (curSpec.has("include_lower") ? (Boolean) curSpec.get("include_lower") : false);
-        Boolean curIncludeUpper = (curSpec.has("include_upper") ? (Boolean) curSpec.get("include_upper") : false);
-
+        Object curFrom = curSpec.opt("from");
+        Object curTo = curSpec.opt("to");
+        Boolean curIncludeLower = curSpec.optBoolean("include_lower");
+        if (curIncludeLower == null) {
+            curIncludeLower = false;
+        }
+        Boolean curIncludeUpper = curSpec.optBoolean("include_upper");
+        if (curIncludeUpper == null) {
+            curIncludeUpper = false;
+        }
         Object[] result = getMax(oldFrom, oldIncludeLower, curFrom, curIncludeLower);
         Object newFrom = result[0];
         Boolean newIncludeLower = (Boolean) result[1];
@@ -460,14 +473,16 @@ select_stmt returns [Object json]
                 }
                 if (w != null) {
                     extractSelectionInfo((JSONObject) $w.json, selections, filter, query);
-                    if (query.has("query")) {
-                        jsonObj.put("query", query.get("query"));
+                    JSONObject queryPred = query.optJSONObject("query");
+                    if (queryPred != null) {
+                        jsonObj.put("query", queryPred);
                     }
                     if (selections.length() > 0) {
                         jsonObj.put("selections", selections);
                     }
-                    if (filter.has("filter")) {
-                        jsonObj.put("filter", filter.get("filter"));
+                    JSONObject f = filter.optJSONObject("filter");
+                    if (f != null) {
+                        jsonObj.put("filter", f);
                     }
                 }
                 if (given != null) {
