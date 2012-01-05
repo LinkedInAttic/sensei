@@ -1,4 +1,4 @@
-package com.sensei.search.util;
+package com.senseidb.sensei.gateway.kafka;
 
 import java.io.ByteArrayOutputStream;
 

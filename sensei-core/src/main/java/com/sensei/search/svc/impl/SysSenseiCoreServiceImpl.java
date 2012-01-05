@@ -12,16 +12,12 @@ import com.linkedin.norbert.network.JavaSerializer;
 import com.linkedin.norbert.network.Serializer;
 import com.sensei.search.nodes.SenseiCore;
 import com.sensei.search.nodes.SenseiQueryBuilderFactory;
-import com.sensei.search.req.protobuf.SenseiSysReqProtoSerializer;
 import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.req.SenseiSystemInfo;
 
 public class SysSenseiCoreServiceImpl extends AbstractSenseiCoreService<SenseiRequest, SenseiSystemInfo>{
 	public static final Serializer<SenseiRequest, SenseiSystemInfo> SERIALIZER =
 			JavaSerializer.apply("SenseiSysRequest", SenseiRequest.class, SenseiSystemInfo.class);
-
-	public static final Serializer<SenseiRequest, SenseiSystemInfo> PROTO_SERIALIZER =
-			new SenseiSysReqProtoSerializer();
 
   private static final Logger logger = Logger.getLogger(SysSenseiCoreServiceImpl.class);
   

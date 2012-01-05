@@ -41,7 +41,7 @@ public class SenseiSysBroker extends AbstractConsistentHashBroker<SenseiRequest,
   public SenseiSysBroker(PartitionedNetworkClient<Integer> networkClient, ClusterClient clusterClient,
       SenseiLoadBalancerFactory loadBalancerFactory, Comparator<String> versionComparator) throws NorbertException
   {
-    super(networkClient, SysSenseiCoreServiceImpl.PROTO_SERIALIZER);
+    super(networkClient, SysSenseiCoreServiceImpl.SERIALIZER);
     _versionComparator = versionComparator;
     _loadBalancerFactory = loadBalancerFactory;
     clusterClient.addListener(this);
