@@ -48,7 +48,6 @@ import org.w3c.dom.Document;
 import proj.zoie.api.IndexCopier;
 import proj.zoie.api.indexing.ZoieIndexableInterpreter;
 import proj.zoie.hourglass.impl.HourGlassScheduler.FREQUENCY;
-import proj.zoie.impl.HDFSIndexCopier;
 import proj.zoie.impl.indexing.DefaultReaderCache;
 import proj.zoie.impl.indexing.ReaderCacheFactory;
 import proj.zoie.impl.indexing.SimpleReaderCache;
@@ -91,6 +90,7 @@ import com.sensei.search.req.AbstractSenseiRequest;
 import com.sensei.search.req.AbstractSenseiResult;
 import com.sensei.search.req.SenseiSystemInfo;
 import com.sensei.search.svc.impl.AbstractSenseiCoreService;
+import com.sensei.search.util.HDFSIndexCopier;
 
 public class SenseiServerBuilder implements SenseiConfParams{
 
