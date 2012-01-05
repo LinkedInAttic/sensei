@@ -33,7 +33,7 @@ public class SchemaIndexingExample{
     
     FileReader freader = new FileReader(dataFile);
     BufferedReader br = new BufferedReader(freader);
-    IndexWriter idxWriter = new IndexWriter(SimpleFSDirectory.open(idxDir),new StandardAnalyzer(Version.LUCENE_34),MaxFieldLength.UNLIMITED);
+    IndexWriter idxWriter = new IndexWriter(SimpleFSDirectory.open(idxDir),new StandardAnalyzer(Version.LUCENE_CURRENT),MaxFieldLength.UNLIMITED);
     while(true){
       String line = br.readLine();
       if (line==null) break;

@@ -82,7 +82,7 @@ public class QueryStringQueryConstructor extends QueryConstructor {
 
         for (String field : fields)
         {
-          QueryParser qparser = new QueryParser(Version.LUCENE_34, field, _qparser.getAnalyzer());
+          QueryParser qparser = new QueryParser(Version.LUCENE_CURRENT, field, _qparser.getAnalyzer());
           qparser.setAllowLeadingWildcard(allow_leading_wildcard);
           qparser.setEnablePositionIncrements(enable_position_increments);
           qparser.setFuzzyMinSim(fuzzy_min_sim);

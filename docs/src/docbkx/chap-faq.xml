@@ -36,7 +36,7 @@
             xlink:href="http://www.elasticsearch.org/guide/reference/query-dsl/">ElasticSearch's
             Query DSL</link>.  ElasticSearch's Query DSL is very well
             designed in exposing <link
-            xlink:href="http://lucene.apache.org/java/3_4_0/api/core/org/apache/lucene/search/Query.html">Lucene's
+            xlink:href="http://lucene.apache.org/java/3_5_0/api/core/org/apache/lucene/search/Query.html">Lucene's
             query</link> capabilities and features in an elegant way.
             We didn't think it was necessary to create yet another API
             that is completely different.</para>
