@@ -4,7 +4,7 @@ import java.util.Map;
 import java.util.HashMap;
 import junit.framework.TestCase;
 
-import org.antlr.runtime.RecognitionException;
+import org.antlr.runtime.*;
 import org.junit.Test;
 
 import org.json.JSONArray;
@@ -32,6 +32,7 @@ public class TestBQL extends TestCase
     facetInfoMap.put("year", new String[]{"range", "int"});
     facetInfoMap.put("makemodel", new String[]{"path", "string"});
     facetInfoMap.put("city", new String[]{"path", "string"});
+    facetInfoMap.put("time", new String[]{"custom", "long"}); // Mimic a custom facet
     _compiler = new BQLCompiler(facetInfoMap);
   }
 
@@ -227,6 +228,33 @@ public class TestBQL extends TestCase
       );
     JSONObject expected = new JSONObject("{\"filter\":{\"terms\":{\"nonfacet\":{\"values\":[\"red\"],\"excludes\":[],\"operator\":\"or\",\"_noOptimize\":true}}}, \"meta\":{\"select_list\":[\"category\"]}}");
     assertTrue(_comp.isEquals(json, expected));
+  }
+
+  @Test
+  public void testInPred3() throws Exception
+  {
+    System.out.println("testInPred3");
+    System.out.println("==================================================");
+
+    int result = 0;
+    try
+    {
+      JSONObject json = _compiler.compile(
+        "SELECT category \n" +
+        "FROM cars \n" +
+        "WHERE year IN (1995,2000) " +
+        "  AND color = 'red'"
+        );
+    }
+    catch (RecognitionException err)
+    {
+      // System.out.println(">>> hit FailedPredicateException = " + err);
+      // System.out.println(">>> err.line = " + err.line);
+      // System.out.println(">>> err.charPositionInLine = " + err.charPositionInLine);
+      // System.out.println(">>> err.token = " + err.token.getText());
+      result = 1;
+    }
+    assertEquals(result, 1);
   }
 
   @Test
@@ -830,7 +858,8 @@ public class TestBQL extends TestCase
       "WHERE time IN LAST 1 weeks 2 day 3 hours 4 mins 5 seconds 6 msecs"
       );
 
-    long timeStamp = json.getJSONObject("filter").getJSONObject("range").getJSONObject("time").getLong("from");
+    long timeStamp = json.getJSONArray("selections").getJSONObject(0)
+      .getJSONObject("range").getJSONObject("time").getLong("from");
     long timeSpan = 1 * (7 * 24 * 60 * 60 * 1000L) +
                     2 * (24 * 60 * 60 * 1000L) +
                     3 * (60 * 60 * 1000L) +
@@ -858,7 +887,8 @@ public class TestBQL extends TestCase
       "WHERE time SINCE 2 days 3 hours 4 minutes 6 milliseconds AGO"
       );
 
-    long timeStamp = json.getJSONObject("filter").getJSONObject("range").getJSONObject("time").getLong("from");
+    long timeStamp = json.getJSONArray("selections").getJSONObject(0)
+      .getJSONObject("range").getJSONObject("time").getLong("from");
     long timeSpan = 2 * (24 * 60 * 60 * 1000L) +
                     3 * (60 * 60 * 1000L) +
                     4 * (60 * 1000L) +
@@ -880,7 +910,8 @@ public class TestBQL extends TestCase
       "WHERE time BEFORE 3 hours 4 min AGO"
       );
 
-    long timeStamp = json.getJSONObject("filter").getJSONObject("range").getJSONObject("time").getLong("to");
+    long timeStamp = json.getJSONArray("selections").getJSONObject(0)
+      .getJSONObject("range").getJSONObject("time").getLong("to");
     long timeSpan = 3 * (60 * 60 * 1000L) +
                     4 * (60 * 1000L);
     assertTrue(now - timeStamp - timeSpan < 2); // Should be less than 2 msecs
@@ -900,7 +931,8 @@ public class TestBQL extends TestCase
       "WHERE time < 2012-01-02 12:10:30"
       );
 
-    long timeStamp = json.getJSONObject("filter").getJSONObject("range").getJSONObject("time").getLong("to");
+    long timeStamp = json.getJSONArray("selections").getJSONObject(0)
+      .getJSONObject("range").getJSONObject("time").getLong("to");
     long expected = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse("2012-01-02 12:10:30").getTime();
     assertEquals(timeStamp, expected);
   }
@@ -919,7 +951,8 @@ public class TestBQL extends TestCase
       "WHERE time < 2012-01-02"
       );
 
-    long timeStamp = json.getJSONObject("filter").getJSONObject("range").getJSONObject("time").getLong("to");
+    long timeStamp = json.getJSONArray("selections").getJSONObject(0)
+      .getJSONObject("range").getJSONObject("time").getLong("to");
     long expected = new SimpleDateFormat("yyyy-MM-dd").parse("2012-01-02").getTime();
     assertEquals(timeStamp, expected);
   }

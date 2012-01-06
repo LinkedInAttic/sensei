@@ -94,7 +94,7 @@ import java.text.SimpleDateFormat;
     {
         String[] facetInfo = _facetInfoMap.get(field);
         if (facetInfo != null) {
-            return (expectedType.equals(facetInfo[0]));
+            return (expectedType.equals(facetInfo[0]) || "custom".equals(facetInfo[0]));
         }
         else {
             return true;
