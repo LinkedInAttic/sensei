@@ -343,24 +343,29 @@ def main(argv):
   readline.parse_and_bind("tab: complete")
   while 1:
     try:
-      stmt = raw_input('> ')
-      if stmt == "exit":
-        break
+      stmt = raw_input('bql> ')
 
-      # if options.verbose:
-      #   test(stmt)
-      if stmt == "sample request":
-        client.run_example()
-        continue
-        
-      # req = client.compile(stmt)
-      # if req.stmt_type == "select":
-      if True:
+      words = re.split(r'[\s,]+', stmt.strip())
+
+      command = len(words) > 0 and words[0].lower() or None
+
+      if len(words) == 1 and command == "exit":
+        break
+      elif command == "get":
+        if len(words) > 1:
+          stmt = "select * where _uid in (%s)" % ','.join(words[1:])
+          command = "select"
+        else:
+          print "Bad GET command."
+          continue
+
+      if command == "select":
         res = client.doQuery(stmt)
         res.display(columns=["*"], max_col_width=int(options.max_col_width))
-      # elif req.stmt_type == "desc":
-      #   sysinfo = client.get_sysinfo()
-      #   sysinfo.display()
+      elif command in ["desc", "describe"]:
+        sysinfo = client.get_sysinfo()
+        sysinfo.display()
+
     except EOFError:
       break
     except ParseException as err:
@@ -370,6 +375,8 @@ def main(argv):
     except ParseFatalException as err:
       print " " * (err.loc + 2) + "^\n" + err.msg
     except SenseiClientError as err:
+      print err
+    except Exception as err:
       print err
 
 if __name__ == "__main__":

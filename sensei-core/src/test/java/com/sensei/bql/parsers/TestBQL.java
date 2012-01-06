@@ -800,6 +800,23 @@ public class TestBQL extends TestCase
   }
 
   @Test
+  public void testUID() throws Exception
+  {
+    System.out.println("testUID");
+    System.out.println("==================================================");
+
+    long now = System.currentTimeMillis();
+
+    JSONObject json = _compiler.compile(
+      "SELECT * " +
+      "FROM cars " +
+      "WHERE _uid IN (123, 124)"
+      );
+    JSONObject expected = new JSONObject("{\"selections\":[{\"terms\":{\"_uid\":{\"values\":[123,124],\"excludes\":[],\"operator\":\"or\"}}}],\"meta\":{\"select_list\":[\"*\"]}}");
+    assertTrue(_comp.isEquals(json, expected));
+  }
+
+  @Test
   public void testCorrectStatement() throws Exception
   {
     System.out.println("\n==================================================");

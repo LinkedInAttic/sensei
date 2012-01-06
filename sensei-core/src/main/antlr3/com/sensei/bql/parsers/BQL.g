@@ -50,6 +50,7 @@ import org.json.JSONException;
     public BQLParser(TokenStream input, Map<String, String[]> facetInfoMap) {
         this(input);
         _facetInfoMap = facetInfoMap;
+        _facetInfoMap.put("_uid", new String[]{"simple", "long"});
     }
 
     private String predType(JSONObject pred) {
@@ -75,7 +76,7 @@ import org.json.JSONException;
 
     private boolean verifyValueType(Object value, final String columnType)
     {
-        if (columnType.equals("int") || columnType.equals("short")) {
+        if (columnType.equals("long") || columnType.equals("int") || columnType.equals("short")) {
             return !(value instanceof Float || value instanceof String || value instanceof Boolean);
         }
         else if (columnType.equals("float") || columnType.equals("double")) {
@@ -421,7 +422,7 @@ MILLISECONDS : ('M'|'m')('I'|'i')('L'|'l')('L'|'l')('I'|'i')('S'|'s')('E'|'e')('
 MSECS : ('M'|'m')('S'|'s')('E'|'e')('C'|'c')('S'|'s')? ;
 
 // Have to define this after the keywords?
-IDENT : ALPHA (ALPHA | DIGIT | '-' )* ;
+IDENT : (ALPHA | '_') (ALPHA | DIGIT | '-' )* ;
 
 WS : ( ' ' | '\t' | '\r' | '\n' )+ { $channel = HIDDEN; };
 
@@ -802,7 +803,7 @@ in_predicate returns [JSONObject json]
             }
             catch (JSONException err) {
                 throw new RecognitionException();
-            }                                         
+            }
         }
         -> ^(IN NOT? ^(column_name value_list) except_clause? predicate_props?)
     ;
