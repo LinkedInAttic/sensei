@@ -11,6 +11,9 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONException;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+
 public class TestBQL extends TestCase
 {
 
@@ -39,8 +42,8 @@ public class TestBQL extends TestCase
     System.out.println("==================================================");
     // No where clause
     JSONObject json = _compiler.compile(
-      "select category " +
-      "from cars "
+      "select category /* BLOCK COMMENTS */ " +
+      "from cars       -- LINE COMMENTS"
       );
     JSONObject expected = new JSONObject("{\"meta\":{\"select_list\":[\"category\"]}}");
     assertTrue(_comp.isEquals(json, expected));
@@ -334,7 +337,7 @@ public class TestBQL extends TestCase
       "SELECT category " +
       "FROM cars " +
       "WHERE QUERY IS 'cool AND moon-roof' " +
-      "AND color = 'red' " +
+      "AND color = 'red'                                -- LINE COMMENTS\n" +
       "AND category = 'sedan'"
       );
     JSONObject expected = new JSONObject("{\"query\":{\"query_string\":{\"query\":\"cool AND moon-roof\"}},\"selections\":[{\"term\":{\"color\":{\"value\":\"red\"}}},{\"term\":{\"category\":{\"value\":\"sedan\"}}}], \"meta\":{\"select_list\":[\"category\"]}}");
@@ -881,6 +884,44 @@ public class TestBQL extends TestCase
     long timeSpan = 3 * (60 * 60 * 1000L) +
                     4 * (60 * 1000L);
     assertTrue(now - timeStamp - timeSpan < 2); // Should be less than 2 msecs
+  }
+
+  @Test
+  public void testDateTime1() throws Exception
+  {
+    System.out.println("testDateTime1");
+    System.out.println("==================================================");
+
+    long now = System.currentTimeMillis();
+
+    JSONObject json = _compiler.compile(
+      "SELECT * " +
+      "FROM cars " +
+      "WHERE time < 2012-01-02 12:10:30"
+      );
+
+    long timeStamp = json.getJSONObject("filter").getJSONObject("range").getJSONObject("time").getLong("to");
+    long expected = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse("2012-01-02 12:10:30").getTime();
+    assertEquals(timeStamp, expected);
+  }
+
+  @Test
+  public void testDateTime2() throws Exception
+  {
+    System.out.println("testDateTime2");
+    System.out.println("==================================================");
+
+    long now = System.currentTimeMillis();
+
+    JSONObject json = _compiler.compile(
+      "SELECT * " +
+      "FROM cars " +
+      "WHERE time < 2012-01-02"
+      );
+
+    long timeStamp = json.getJSONObject("filter").getJSONObject("range").getJSONObject("time").getLong("to");
+    long expected = new SimpleDateFormat("yyyy-MM-dd").parse("2012-01-02").getTime();
+    assertEquals(timeStamp, expected);
   }
 
   @Test

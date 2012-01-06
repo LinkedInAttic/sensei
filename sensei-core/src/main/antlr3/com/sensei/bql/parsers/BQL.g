@@ -34,6 +34,8 @@ import java.util.Map;
 import org.json.JSONObject;
 import org.json.JSONArray;
 import org.json.JSONException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 }
 
 @parser::members {
@@ -47,17 +49,42 @@ import org.json.JSONException;
     Map<String, String[]> _facetInfoMap;
     private long _now;
 
-    public BQLParser(TokenStream input, Map<String, String[]> facetInfoMap) {
+    public BQLParser(TokenStream input, Map<String, String[]> facetInfoMap)
+    {
         this(input);
         _facetInfoMap = facetInfoMap;
         _facetInfoMap.put("_uid", new String[]{"simple", "long"});
     }
 
-    private String predType(JSONObject pred) {
+    public String getErrorMessage(RecognitionException e, String[] tokenNames) 
+    {
+        List stack = getRuleInvocationStack(e, this.getClass().getName());
+        String msg = null; 
+        if ( e instanceof NoViableAltException ) {
+            NoViableAltException nvae = (NoViableAltException)e;
+            msg = " no viable alt; token=" + e.token +
+                " (decision=" + nvae.decisionNumber +
+                " state "+nvae.stateNumber+")" +
+                " decision=<<" + nvae.grammarDecisionDescription + ">>";
+        } 
+        else {
+            msg = super.getErrorMessage(e, tokenNames); 
+        }
+        return stack+" "+msg;
+    } 
+
+    public String getTokenErrorDisplay(Token t)
+    {
+        return t.toString();
+    }
+
+    private String predType(JSONObject pred)
+    {
         return (String) pred.keys().next();
     }
 
-    private String predField(JSONObject pred) throws JSONException {
+    private String predField(JSONObject pred) throws JSONException
+    {
         String type = (String) pred.keys().next();
         JSONObject fieldSpec = pred.getJSONObject(type);
         return (String) fieldSpec.keys().next();
@@ -359,6 +386,11 @@ STRING_LITERAL
         )
     ;
 
+DATETIME 
+    :   DIGIT DIGIT DIGIT DIGIT '-' DIGIT DIGIT '-' DIGIT DIGIT 
+        (' ' DIGIT DIGIT ':' DIGIT DIGIT ':' DIGIT DIGIT)?
+    ;
+
 //
 // BQL Keywords
 //
@@ -426,6 +458,13 @@ IDENT : (ALPHA | '_') (ALPHA | DIGIT | '-' )* ;
 
 WS : ( ' ' | '\t' | '\r' | '\n' )+ { $channel = HIDDEN; };
 
+COMMENT
+    : '/*' .* '*/' { $channel = HIDDEN; }
+    ;
+
+LINE_COMMENT
+    : '--' ~('\n'|'\r')* '\r'? '\n' { $channel = HIDDEN; }
+    ;
 
 // ***************** parser rules:
 
@@ -433,6 +472,7 @@ statement returns [Object json]
     :   (   select_stmt { $json = $select_stmt.json; }
         |   describe_stmt
         )   SEMI?
+        EOF
     ;
 
 select_stmt returns [Object json]
@@ -1128,7 +1168,16 @@ time_expr returns [long val]
     ;
 
 date_time_string returns [long val]
-    :   'xxx'
+    :   DATETIME
+        {
+            String format = ($DATETIME.text.length() == 10) ? "yyyy-MM-dd" : "yyyy-MM-dd HH:mm:ss";
+            try {
+                $val = new SimpleDateFormat(format).parse($DATETIME.text).getTime();
+            }
+            catch (ParseException err) {
+                throw new RecognitionException();
+            }
+        }
     ;
 
 match_predicate returns [JSONObject json]
@@ -1197,7 +1246,8 @@ value returns [Object val]
     ;
 
 numeric returns [Object val]
-    :   INTEGER { $val = Integer.parseInt($INTEGER.text); }
+    :   time_expr { $val = $time_expr.val; }
+    |   INTEGER { $val = Integer.parseInt($INTEGER.text); }
     |   REAL { $val = Float.parseFloat($REAL.text); }
     ;
 
