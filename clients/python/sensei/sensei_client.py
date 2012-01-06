@@ -310,6 +310,16 @@ class SenseiClient:
     res.display(columns, max_col_width=40)
 
 def main(argv):
+  
+  def help():
+    print """\
+help              Show instructions
+select ...        Execute a BQL statement
+desc | describe   Describe current index schema information
+get <uid_list>    Retrieve documents based on UID list
+exit              Exit
+"""
+
   print "Welcome to Sensei Shell"
   from optparse import OptionParser
   usage = "usage: %prog [options]"
@@ -332,12 +342,14 @@ def main(argv):
 
   if len(args) <= 1:
     client = SenseiClient()
-    print "using default host=localhost, port=8080"
+    print "Using default host=localhost, port=8080"
   else:
     host = args[0]
     port = int(args[1])
     print "Url specified, host: %s, port: %d" % (host,port)
     client = SenseiClient(host, port, 'sensei')
+
+  print 'Enter "help" for instructions'
 
   import readline
   readline.parse_and_bind("tab: complete")
@@ -365,6 +377,10 @@ def main(argv):
       elif command in ["desc", "describe"]:
         sysinfo = client.get_sysinfo()
         sysinfo.display()
+      elif command == "help":
+        help()
+      else:
+        print "Unrecognized command."
 
     except EOFError:
       break
