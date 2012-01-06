@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+  <chapter xmlns="http://docbook.org/ns/docbook"
+           xmlns:xlink="http://www.w3.org/1999/xlink">
+
+    <title>FAQ</title>
+
+    <section>
+      <title>About Sensei</title>
+
+      <qandaset>
+        <qandaentry>
+          <question>
+            <para>Why is it called Sensei?</para>
+          </question>
+          <answer>
+            <para><emphasis>Sensei</emphasis> means
+            <emphasis>teacher</emphasis> or
+            <emphasis>professor</emphasis> in Japanese (<link
+            xlink:href="http://en.wikipedia.org/wiki/Sensei">http://en.wikipedia.org/wiki/Sensei</link>).
+            It shares the same pronunciation and writing with the
+            Chinese word that has the same meaning.  This name indicates
+            that the system can be used in place of Oracle database in
+            many applications.
+            </para>
+          </answer>
+        </qandaentry>
+
+        <qandaentry>
+          <question>
+            <para>Why did Sensei model Rest API after ElasticSearch Query DSL?</para>
+          </question>
+          <answer>
+            <para>Aside from a few differences that are specific to
+            Sensei, the Sensei Rest API is largely inspired by <link
+            xlink:href="http://www.elasticsearch.org/guide/reference/query-dsl/">ElasticSearch's
+            Query DSL</link>.  ElasticSearch's Query DSL is very well
+            designed in exposing <link
+            xlink:href="http://lucene.apache.org/java/3_5_0/api/core/org/apache/lucene/search/Query.html">Lucene's
+            query</link> capabilities and features in an elegant way.
+            We didn't think it was necessary to create yet another API
+            that is completely different.</para>
+          </answer>
+        </qandaentry>
+
+        <qandaentry>
+          <question>
+            <para>Why does Sensei use a pull-model for indexing instead of
+            a push model like many other data systems, e.g. Solr, HBase,
+            Cassandra, MongoDB etc.?</para>
+          </question>
+          <answer>
+            <para>One requirement for Sensei is to have extremely fast
+            update rate (thousands per second) while not compromising on
+            search performance. Having a push-model while maintaining
+            data consistency between replications implies a cost per
+            udpate event. Furthermore, this is an anti-scaling pattern
+            as number of replications grows to accomodate high
+            avalability, the cost for update increases. So as you add
+            more machines to handle more traffic, this slows down update
+            rate. </para>
+
+            <para>Therefore, it is a conscious design decision to avoid
+            this cost. Though each replication is consuming from the
+            data stream at presumablly different rates, each at
+            Consistency is resolved a query time by consistent hashing
+            on the <emphasis>routing parameter</emphasis> specified on
+            the request.</para>
+
+            <para>By having a data stream for consumption also provides
+            the benefit of having a replaying mechanism which is very
+            helpful in the cases of data re-balancing and
+            re-indexing.</para>
+          </answer>
+        </qandaentry>
+
+        <qandaentry>
+          <question>
+            <para>Are there plans to support dynamic schema like MongoDB
+            or ElasticSearch?</para>
+          </question>
+          <answer>
+            <para>Yes. We are planning for early 2012 to have a design
+            in place.</para>
+          </answer>
+        </qandaentry>
+
+        <qandaentry>
+          <question>
+            <para>Is BQL only for illustration purposes or is it a
+            supported method to query Sensei?</para>
+          </question>
+          <answer>
+            <para>No, BQL is not only for illustration purposes, it is
+            real.  We are in the process of finalizing specs for BQL.
+            Our intention is to support BQL as a first-class citizen in
+            querying Sensei.</para>
+          </answer>
+        </qandaentry>
+
+        <qandaentry>
+          <question>
+            <para>Is Sensei being developed outside of LinkedIn?</para>
+          </question>
+          <answer>
+            <para>Sensei is mostly under actively development within
+            LinkedIn although we have been working with the community
+            for quite a while, and there are some deployements outside
+            of LinkedIn.</para>
+
+            <para>While driving the project within LinkedIn benefits
+            from traffic and data resources, we do believe letting the
+            community drive and planning the roadmap is beneficial in
+            the long run. So if you have passion and energy, visit <link
+            xlink:href="/contribute.html">Contribute</link> page and
+            contribute.</para>
+          </answer>
+        </qandaentry>
+
+      </qandaset>
+
+    </section>
+
+    <section>
+      <title>Sensei Configuration</title>
+
+      <para>(To Be Finished)</para>
+
+    </section>
+
+    <section>
+      <title>Problems Running Sensei</title>
+
+      <qandaset>
+        <qandaentry>
+          <question>
+            <para>Got following compilation error, what is wrong?</para>
+
+            <programlisting>sensei-core/src/main/java/com/sensei/search/nodes/AbstractConsistentHashBroker.java:[217,47] type parameters of &lt;T&gt; T cannot be determined; no unique maximal instance exists for type variable T with upper bounds REQUEST,java.lang.Object</programlisting>
+          </question>
+          <answer>
+            <para>This is a known <link
+            xlink:href="http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6302954">Java
+            1.6 bug</link> found in earlier builds. Upgrade your JDK to
+            a more recent version.</para>
+          </answer>
+        </qandaentry>
+
+        <qandaentry>
+          <question>
+            <para>Seems indexing has stopped for no reason, what is
+            wrong?</para>
+          </question>
+          <answer>
+            <para>It is possible one of the data events is erroneous,
+            and by default Sensei stops indexing to maintain a
+            consistent view. Look in the logs and see if you see an
+            indexing exception.</para>
+          </answer>
+        </qandaentry>
+      </qandaset>
+
+    </section>
+
+  </chapter>

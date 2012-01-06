@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<chapter xmlns="http://docbook.org/ns/docbook"
+         xmlns:xlink="http://www.w3.org/1999/xlink">
+
+  <title>Searching</title>  
+
+  <para>Once the indexing process is started and some data has been
+  indexed, you can start to perform searches against the Sensei cluster.
+  A search query is done by building a Sensei request and sending it to
+  a Sensei broker.  You can do this using a native Java Sensei client,
+  or other client APIs that support other languages like Python or
+  JavaScript.</para>
+
+  <para>Upon receiving a request, a Sensei broker passes it to a set of
+  selected Sensei nodes, merges the search results from these nodes, and
+  then returns the merged results back to the requester.  What set of
+  Sensei nodes are selected for a request is decided using load
+  balancer.  Based on the need of the applications, you can plug in
+  different customized load balancers.  By default, Sensei uses a load
+  balancer that distributes work load based on consistent
+  hashing.</para>
+
+  <section>
+    <title>Sensei Request</title>
+
+    <para>A Sensei request contains the following main
+    parameters:</para>
+
+    <itemizedlist>
+      <listitem>
+        <para>Query: the input query string</para>
+      </listitem>
+      <listitem>
+        <para>Offset: the starting offset of search results</para>
+      </listitem>
+      <listitem>
+        <para>Count: the number of search results to return</para>
+      </listitem>
+      <listitem>
+        <para>Initializing parameters for runtime facet handlers: a map
+        that contains the initializing parameters that are needed by all
+        runtime facet handlers</para>
+      </listitem>
+      <listitem>
+        <para>Flag indicating whether stored fields are to be
+        fetched</para>
+      </listitem>
+      <listitem>
+        <para>Partitions: shards of the index to be searched</para>
+      </listitem>
+      <listitem>
+        <para>Flag indicating whether explanation information should be returned</para>
+      </listitem>
+      <listitem>
+        <para>Routing parameter: the field value used for routing</para>
+      </listitem>
+      <listitem>
+        <para>Group-by field: the field name used for the group-by
+        operation (also called <emphasis>field collapsing <indexterm> 
+        <primary>field collapsing</primary>
+        </indexterm></emphasis>)</para>
+      </listitem>
+    </itemizedlist>
+
+  </section>
+
+  <section>
+    <title>Load Balancing</title>
+
+    <para>(To be finished)</para>
+  </section>
+
+</chapter>

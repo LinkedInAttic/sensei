@@ -1,0 +1,295 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+  <chapter xmlns="http://docbook.org/ns/docbook"
+           xmlns:xlink="http://www.w3.org/1999/xlink">
+
+    <title>Sensei Demo</title>
+
+    <section>
+      <title>Overview</title>
+
+      <para>We feel the best way to learn a new system is through
+      examples.</para>
+
+      <para>Sensei comes with a sample application and this page aims to
+      provide an anatomy of the Sensei car demo and to help new-comers in
+      building a Sensei application.</para>
+
+      <para>File layout:</para>
+
+      <itemizedlist spacing="compact">
+        <listitem>
+          <para>Configuration files: <filename>example/cars/conf/*</filename></para>
+        </listitem>
+
+        <listitem>
+          <para>Data file: <filename>example/cars/data/cars.json</filename></para>
+        </listitem>
+
+        <listitem>
+          <para>Output index: <filename>index/</filename></para>
+        </listitem>
+
+        <listitem>
+          <para>Web-app: <filename>src/main/webapp/</filename></para>
+        </listitem>
+      </itemizedlist>
+    </section>
+
+    <section>
+      <title>Run the Demo</title>
+
+      <orderedlist>
+        <listitem>
+          <para>Build Sensei:</para>
+          <programlisting>  $ ./bin/build.sh</programlisting>
+        </listitem>
+        <listitem>
+          <para>Make sure ZooKeeper is running:</para>
+          <programlisting>  $ $ZK_home/bin/zkServer.sh start</programlisting>    
+        </listitem>
+        <listitem>
+          <para>Run the demo:</para>
+          <programlisting>  $ ./bin/start-sensei-node example/cars/conf/</programlisting>
+        </listitem>
+      </orderedlist>
+    </section>
+
+    <section>
+      <title>URLs</title>
+
+      <itemizedlist>
+        <listitem>
+          <para>Sensei Web Client:</para>
+          <programlisting>  http://localhost:8080/</programlisting>
+        </listitem>
+
+        <listitem>
+          <para>Demo Page:</para>
+          <programlisting>  http://localhost:8080/demo.html</programlisting>
+        </listitem>
+
+        <listitem>
+          <para>RESTful End-Point:</para>
+          <programlisting>  http://localhost:8080/sensei</programlisting>
+        </listitem>
+      </itemizedlist>
+    </section>
+
+    <section>
+      <title>Screenshots</title>
+
+      <figure>
+        <title>Sensei Web Client</title>
+
+        <mediaobject>
+          <imageobject role="fo">
+            <imagedata align="center" fileref="figures/sensei-web-client.png"
+                       format="PNG" scale="25" valign="middle" />
+          </imageobject>
+
+          <imageobject role="html">
+            <imagedata align="center" fileref="figures/sensei-web-client.png"
+                       format="PNG" scale="100" valign="middle" />
+          </imageobject>
+        </mediaobject>
+      </figure>
+
+      <figure>
+        <title>Demo</title>
+
+        <mediaobject>
+          <imageobject role="fo">
+            <imagedata align="center" fileref="figures/demo.png" format="PNG"
+                       scale="25" valign="middle" />
+          </imageobject>
+
+          <imageobject role="html">
+            <imagedata align="center" fileref="figures/demo.png" format="PNG"
+                       scale="100" valign="middle" />
+          </imageobject>
+        </mediaobject>
+      </figure>
+
+      <figure>
+        <title>RESTful End-Point<indexterm>
+        <primary>RESTful end-point</primary>
+        </indexterm></title>
+
+        <mediaobject>
+          <imageobject role="fo">
+            <imagedata align="center" fileref="figures/rest-end-point.png"
+                       format="PNG" scale="25" valign="middle" />
+          </imageobject>
+
+          <imageobject role="html">
+            <imagedata align="center" fileref="figures/rest-end-point.png"
+                       format="PNG" scale="100" valign="middle" />
+          </imageobject>
+        </mediaobject>
+      </figure>
+    </section>
+
+    <section>
+      <title>Diagram</title>
+
+      <figure>
+        <title>The Sensei Demo System</title>
+
+        <mediaobject>
+          <imageobject role="fo">
+            <imagedata align="center" fileref="figures/sensei-demo.svg"
+                       format="PNG" scale="80" valign="middle" />
+          </imageobject>
+
+          <imageobject role="html">
+            <imagedata align="center" fileref="figures/sensei-demo.png"
+                       format="PNG" scale="100" valign="middle" />
+          </imageobject>
+        </mediaobject>
+      </figure>
+    </section>
+
+    <section>
+      <title>Demo Configuration</title>
+
+      <para>The configuration for the demo application can be found at:
+      <link
+      xlink:href="https://github.com/javasoze/sensei/tree/master/conf">https://github.com/javasoze/sensei/tree/master/conf</link>,
+      which contains the following files:</para>
+
+      <itemizedlist>
+        <listitem>
+          <para><filename>sensei.properties</filename>: main
+          configuration file, describes the overall configuration of the
+          system (we will dig into that in detail later)
+          </para>
+        </listitem>
+        <listitem>
+          <para><filename>schema.xml</filename>: this describes the data
+          model and the faceting behavior of the application
+          </para>
+        </listitem>
+      </itemizedlist>
+
+      <section>
+        <title>Data Model</title>
+
+        <para> The data model is described in
+        <filename>schema.xml</filename>: </para>
+
+        <programlisting><![CDATA[ <table uid="id" delete-field="" skip-field="">
+   <column name="color" type="string" />
+   <column name="category" type="string" />
+   <column name="city" type="string" />
+   <column name="makemodel" type="string" />
+   <column name="year" type="int" />
+   <column name="price" type="float" />
+   <column name="mileage" type="int" />
+   <column name="tags" type="string" multi="true" delimiter=","/>
+   <column name="contents" type="text" index="ANALYZED" store="NO" termvector="NO" />  
+ </table>
+ 
+ <facets>
+   <facet name="color" type="simple" depends=""/>
+   <facet name="category" type="simple" />
+   <facet name="city" type="path">
+     <params>
+       <param name="separator" value="/" />
+     </params>
+   </facet>
+   <facet name="makemodel" type="path" />
+   <facet name="year" type="range">
+     <params>
+       <param name="range" value="1993-1994" />
+       <param name="range" value="1995-1996" />
+       <param name="range" value="1997-1998" />
+       <param name="range" value="1999-2000" />
+       <param name="range" value="2001-2002" />
+     </params>
+   </facet>
+   <facet name="mileage" type="range">
+     <params>
+       <param name="range" value="*-12500" />
+       <param name="range" value="12501-15000" />
+       <param name="range" value="15001-17500" />
+       <param name="range" value="17501-*" />
+     </params>
+   </facet>
+   <facet name="price" type="range">
+        <params>
+          <param name="range" value="*,6700" />
+          <param name="range" value="6800,9900" />
+          <param name="range" value="10000,13100" />
+          <param name="range" value="13200,17300" />
+          <param name="range" value="17400,*" />
+       </params>
+   </facet>
+   <facet name="tags" type="multi" />
+ </facets>
+]]></programlisting>
+
+        <para>This corresponds to the following data table: </para>
+
+        <informaltable border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+          <colgroup><col align="left" /><col align="left" /><col align="left" /><col align="left" /><col align="left" /><col align="left" /><col align="left" /><col align="left" /><col align="left" /><col align="left" /><col align="left" />
+          </colgroup>
+          <thead>
+            <tr>
+              <th scope="col" align="left"></th>
+              <th scope="col" align="left">color</th>
+              <th scope="col" align="left">category</th>
+              <th scope="col" align="left">city</th>
+              <th scope="col" align="left" colspan="2">makemodel</th>
+              <th scope="col" align="left">year</th>
+              <th scope="col" align="left">price</th>
+              <th scope="col" align="left">mileage</th>
+              <th scope="col" align="left">tags</th>
+              <th scope="col" align="left">contents</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td align="left">meta/structured</td>
+              <td align="left">yes</td>
+              <td align="left">yes</td>
+              <td align="left">yes</td>
+              <td align="left" colspan="2">yes</td>
+              <td align="left">yes</td>
+              <td align="left">yes</td>
+              <td align="left">yes</td>
+              <td align="left">yes</td>
+              <td align="left">no</td>
+            </tr>
+            <tr>
+              <td align="left">type</td>
+              <td align="left">string</td>
+              <td align="left">string</td>
+              <td align="left">string</td>
+              <td align="left" colspan="2">string</td>
+              <td align="left">int</td>
+              <td align="left">float</td>
+              <td align="left">int</td>
+              <td align="left">string</td>
+              <td align="left">text</td>
+            </tr>
+            <tr>
+              <td align="left">facet</td>
+              <td align="left">simple</td>
+              <td align="left">simple</td>
+              <td align="left">path</td>
+              <td align="left" colspan="2">path</td>
+              <td align="left">range</td>
+              <td align="left">range</td>
+              <td align="left">range</td>
+              <td align="left">multi</td>
+              <td align="left">N/A</td>
+            </tr>
+          </tbody>
+        </informaltable>
+
+      </section>
+    </section>
+
+  </chapter>
+  

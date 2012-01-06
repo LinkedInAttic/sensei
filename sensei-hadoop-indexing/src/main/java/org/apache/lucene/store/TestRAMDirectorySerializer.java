@@ -29,7 +29,7 @@ public class TestRAMDirectorySerializer {
 	    try
 	    {
 	      // Make an writer to create the index
-	      IndexWriter writer = new IndexWriter(idx, new StandardAnalyzer(Version.LUCENE_30), true, IndexWriter.MaxFieldLength.UNLIMITED);
+	      IndexWriter writer = new IndexWriter(idx, new StandardAnalyzer(Version.LUCENE_CURRENT), true, IndexWriter.MaxFieldLength.UNLIMITED);
 
 	      // Add some Document objects containing quotes
 	      writer.addDocument(createDocument("Steve Jobs",  "You should not sell apple stock."));
@@ -85,7 +85,7 @@ public class TestRAMDirectorySerializer {
 	  {
 
 	    // Build a Query object
-	    QueryParser parser = new QueryParser(Version.LUCENE_30, "content", new StandardAnalyzer(Version.LUCENE_30));
+	    QueryParser parser = new QueryParser(Version.LUCENE_CURRENT, "content", new StandardAnalyzer(Version.LUCENE_CURRENT));
 	    Query query = parser.parse(queryString);
 
 	    int numHits = 100;

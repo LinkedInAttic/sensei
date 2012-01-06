@@ -13,6 +13,7 @@ public interface SenseiSearchServletParams {
 	public static final String PARAM_SORT_DOC = "doc";
 	public static final String PARAM_SORT_DOC_REVERSE = "docrev";
 	public static final String PARAM_FETCH_STORED = "fetchstored";
+	public static final String PARAM_FETCH_STORED_VALUE = "fetchstoredvalue";
     public static final String PARAM_FETCH_TERMVECTOR = "fetchtermvector";
 	public static final String PARAM_SHOW_EXPLAIN = "showexplain";
 	public static final String PARAM_ROUTE_PARAM = "routeparam";
@@ -46,13 +47,13 @@ public interface SenseiSearchServletParams {
 	public static final String PARAM_DYNAMIC_VAL = "vals";
 
 	public static final String PARAM_RESULT_PARSEDQUERY = "parsedquery";
-	public static final String PARAM_RESULT_HIT_STORED_FIELDS = "stored";
-    public static final String PARAM_RESULT_HIT_TERMVECTORS = "termvectors";
+	public static final String PARAM_RESULT_HIT_STORED_FIELDS = "_stored";
+    public static final String PARAM_RESULT_HIT_TERMVECTORS = "_termvectors";
 	public static final String PARAM_RESULT_HIT_STORED_FIELDS_NAME = "name";
 	public static final String PARAM_RESULT_HIT_STORED_FIELDS_VALUE = "val";
-	public static final String PARAM_RESULT_HIT_EXPLANATION = "explanation";
+	public static final String PARAM_RESULT_HIT_EXPLANATION = "_explanation";
 	public static final String PARAM_RESULT_HIT_GROUPVALUE = "groupvalue";
-	public static final String PARAM_RESULT_HIT_GROUPHITSCOUNT = "grouphitscount";
+	public static final String PARAM_RESULT_HIT_GROUPHITSCOUNT = "_grouphitscount";
 	public static final String PARAM_RESULT_HIT_GROUPHITS = "grouphits";
 	public static final String PARAM_RESULT_FACETS = "facets";
 
@@ -62,15 +63,16 @@ public interface SenseiSearchServletParams {
 	public static final String PARAM_RESULT_NUMHITS = "numhits";
 	public static final String PARAM_RESULT_NUMGROUPS = "numgroups";
 	public static final String PARAM_RESULT_HITS = "hits";
-	public static final String PARAM_RESULT_HIT_UID = "uid";
-	public static final String PARAM_RESULT_HIT_DOCID = "docid";
-	public static final String PARAM_RESULT_HIT_SCORE = "score";
-	public static final String PARAM_RESULT_HIT_SRC_DATA = "srcdata";
+	public static final String PARAM_RESULT_HIT_UID = "_uid";
+	public static final String PARAM_RESULT_HIT_DOCID = "_docid";
+	public static final String PARAM_RESULT_HIT_SCORE = "_score";
+	public static final String PARAM_RESULT_HIT_SRC_DATA = "_srcdata";
 	public static final String PARAM_RESULT_TIME = "time";
 
 	public static final String PARAM_SYSINFO_NUMDOCS = "numdocs";
 	public static final String PARAM_SYSINFO_LASTMODIFIED = "lastmodified";
 	public static final String PARAM_SYSINFO_VERSION = "version";
+	public static final String PARAM_SYSINFO_SCHEMA = "schema";
 	public static final String PARAM_SYSINFO_FACETS = "facets";
 	public static final String PARAM_SYSINFO_FACETS_NAME = "name";
 	public static final String PARAM_SYSINFO_FACETS_RUNTIME = "runtime";

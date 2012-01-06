@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://javasoze.github.com/sensei/schema/sensei-schema.xsd">
+
+  <table uid="id">
+	<column name="time" type="long" />
+	<column name="tweeter" type="string" />
+	<column name="hashtags" type="string" delimiter=","/>
+	<column name="contents" type="text" index="ANALYZED" store="NO" termvector="NO"/>
+  </table>
+
+   <facets>
+	 <facet name="tweeter" type="simple" />
+	 <facet name="hashtags" type="multi" />
+	 <facet name="time" type="range" />
+	 <facet name="timeRange"  type="dynamicTimeRange" depends="time">
+	    <params>	
+		     <param name="range" value="000000100" />
+			 <param name="range" value="000010000" />
+			 <param name="range" value="001000000" /> 
+		</params>
+	 </facet>
+   </facets>
+</schema>

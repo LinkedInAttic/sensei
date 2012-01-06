@@ -14,6 +14,7 @@ import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -30,6 +31,7 @@ import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.queryParser.QueryParser;
 import org.apache.lucene.search.DefaultSimilarity;
+import org.apache.lucene.search.Filter;
 import org.apache.lucene.search.Similarity;
 import org.apache.lucene.util.Version;
 import org.jolokia.http.AgentServlet;
@@ -41,13 +43,14 @@ import org.mortbay.jetty.servlet.ServletHolder;
 import org.mortbay.jetty.webapp.WebAppContext;
 import org.mortbay.servlet.GzipFilter;
 import org.mortbay.thread.QueuedThreadPool;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.FileSystemXmlApplicationContext;
-import org.springframework.core.io.Resource;
 import org.w3c.dom.Document;
 
+import proj.zoie.api.IndexCopier;
 import proj.zoie.api.indexing.ZoieIndexableInterpreter;
 import proj.zoie.hourglass.impl.HourGlassScheduler.FREQUENCY;
+import proj.zoie.impl.indexing.DefaultReaderCache;
+import proj.zoie.impl.indexing.ReaderCacheFactory;
+import proj.zoie.impl.indexing.SimpleReaderCache;
 import proj.zoie.impl.indexing.ZoieConfig;
 import scala.actors.threadpool.Arrays;
 
@@ -62,82 +65,83 @@ import com.sensei.indexing.api.CustomIndexingPipeline;
 import com.sensei.indexing.api.DefaultJsonSchemaInterpreter;
 import com.sensei.indexing.api.DefaultStreamingIndexingManager;
 import com.sensei.indexing.api.SenseiIndexPruner;
+import com.sensei.indexing.api.ShardingStrategy;
+import com.sensei.indexing.api.gateway.SenseiGateway;
+import com.sensei.plugin.SenseiPluginRegistry;
 import com.sensei.search.client.servlet.DefaultSenseiJSONServlet;
 import com.sensei.search.client.servlet.SenseiConfigServletContextListener;
 import com.sensei.search.client.servlet.SenseiHttpInvokerServiceServlet;
+import com.sensei.search.cluster.routing.MD5HashProvider;
+import com.sensei.search.cluster.routing.RingHashLoadBalancerFactory;
 import com.sensei.search.cluster.routing.SenseiLoadBalancerFactory;
-import com.sensei.search.cluster.routing.UniformPartitionedRoutingFactory;
 import com.sensei.search.nodes.SenseiCore;
 import com.sensei.search.nodes.SenseiHourglassFactory;
 import com.sensei.search.nodes.SenseiIndexReaderDecorator;
 import com.sensei.search.nodes.SenseiIndexingManager;
+import com.sensei.search.nodes.SenseiPairFactory;
 import com.sensei.search.nodes.SenseiQueryBuilderFactory;
 import com.sensei.search.nodes.SenseiServer;
 import com.sensei.search.nodes.SenseiZoieFactory;
 import com.sensei.search.nodes.SenseiZoieSystemFactory;
 import com.sensei.search.nodes.impl.DefaultJsonQueryBuilderFactory;
+import com.sensei.search.query.RetentionFilterFactory;
+import com.sensei.search.query.TimeRetentionFilter;
 import com.sensei.search.req.AbstractSenseiRequest;
 import com.sensei.search.req.AbstractSenseiResult;
 import com.sensei.search.req.SenseiSystemInfo;
 import com.sensei.search.svc.impl.AbstractSenseiCoreService;
+import com.sensei.search.util.HDFSIndexCopier;
 
 public class SenseiServerBuilder implements SenseiConfParams{
 
   private static Logger logger = Logger.getLogger(SenseiServerBuilder.class);
   private static final String DUMMY_OUT_IP = "74.125.224.0";
   public static final String SENSEI_PROPERTIES = "sensei.properties";
-  public static final String CUSTOM_FACETS = "custom-facets.xml";
+
   public static final String SCHEMA_FILE_XML = "schema.xml";
   public static final String SCHEMA_FILE_JSON = "schema.json";
-  public static final String PLUGINS = "plugins.xml";
-  
+
+
   private final File _senseiConfFile;
   private final Configuration _senseiConf;
-  private final ApplicationContext _pluginContext;
-  private final ApplicationContext _customFacetContext;
+  private SenseiPluginRegistry pluginRegistry;
+
   private final JSONObject _schemaDoc;
   private final SenseiSchema  _senseiSchema;
   private final Server _jettyServer;
-  private final Comparator<String> _versionComparator;
-  
-  private static ApplicationContext loadSpringContext(File[] confFiles, ApplicationContext parent){
-    ApplicationContext springCtx = null;
-    List<String> confList = new ArrayList<String>(confFiles.length);
-    for(File confFile : confFiles)
-    {
-      if (confFile.exists())
-        confList.add("file:"+confFile.getAbsolutePath());
-    }
-    if (confList.size() > 0){
-      springCtx = new FileSystemXmlApplicationContext(confList.toArray(new String[confList.size()]), parent);
-    }
-    return springCtx;
-  }
+  private final SenseiGateway _gateway;
+
+  static final String SENSEI_CONTEXT_PATH = "sensei";
+
+
+
 
   public ClusterClient buildClusterClient()
   {
     String clusterName = _senseiConf.getString(SENSEI_CLUSTER_NAME);
+	  String clusterClientName = _senseiConf.getString(SENSEI_CLUSTER_CLIENT_NAME,clusterName);
     String zkUrl = _senseiConf.getString(SENSEI_CLUSTER_URL);
     int zkTimeout = _senseiConf.getInt(SENSEI_CLUSTER_TIMEOUT, 300000);
-    ClusterClient clusterClient =  new ZooKeeperClusterClient(clusterName, zkUrl, zkTimeout);
+    ClusterClient clusterClient =  new ZooKeeperClusterClient(clusterClientName, clusterName, zkUrl, zkTimeout);
 
     logger.info("Connecting to cluster: "+clusterName+" ...");
     clusterClient.awaitConnectionUninterruptibly();
 
     logger.info("Cluster: "+clusterName+" successfully connected ");
-    
+
     return clusterClient;
   }
-  
+
   private static NetworkServer buildNetworkServer(Configuration conf,ClusterClient clusterClient){
     NetworkServerConfig networkConfig = new NetworkServerConfig();
     networkConfig.setClusterClient(clusterClient);
+
     networkConfig.setRequestThreadCorePoolSize(conf.getInt(SERVER_REQ_THREAD_POOL_SIZE, 20));
     networkConfig.setRequestThreadMaxPoolSize(conf.getInt(SERVER_REQ_THREAD_POOL_MAXSIZE,70));
     networkConfig.setRequestThreadKeepAliveTimeSecs(conf.getInt(SERVER_REQ_THREAD_POOL_KEEPALIVE,300));
     return new NettyNetworkServer(networkConfig);
   }
-  
+
   static{
   try{
     org.mortbay.log.Log.setLog(new org.mortbay.log.Slf4jLog());
@@ -146,14 +150,15 @@ public class SenseiServerBuilder implements SenseiConfParams{
       logger.error(t.getMessage(),t);
   }
   }
-  
+
   public  Server buildHttpRestServer() throws Exception{
     int port = _senseiConf.getInt(SERVER_BROKER_PORT);
-    String webappPath = _senseiConf.getString(SERVER_BROKER_WEBAPP_PATH);
-    
-    
+
+    String webappPath = _senseiConf.getString(SERVER_BROKER_WEBAPP_PATH,"sensei-core/src/main/webapp");
+
+
     Server server = new Server();
-    
+
     QueuedThreadPool threadPool = new QueuedThreadPool();
     threadPool.setName("Sensei Broker(jetty) threads");
     threadPool.setMinThreads(_senseiConf.getInt(SERVER_BROKER_MINTHREAD,20));
@@ -166,7 +171,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
     SelectChannelConnector connector = new SelectChannelConnector();
     connector.setPort(port);
       server.addConnector(connector);
-    
+
     DefaultSenseiJSONServlet senseiServlet = new DefaultSenseiJSONServlet();
     ServletHolder senseiServletHolder = new ServletHolder(senseiServlet);
 
@@ -177,8 +182,8 @@ public class SenseiServerBuilder implements SenseiConfParams{
     ServletHolder jmxServletHolder = new ServletHolder(jmxServlet);
 
     WebAppContext senseiApp = new WebAppContext();
-    senseiApp.addFilter(GzipFilter.class,"/sensei/*",1);
-    
+    senseiApp.addFilter(GzipFilter.class,"/"+SENSEI_CONTEXT_PATH+"/*",1);
+
     //HashMap<String, String> initParam = new HashMap<String, String>();
     //if (_senseiConfFile != null) {
       //logger.info("Broker Configuration file: "+_senseiConfFile.getAbsolutePath());
@@ -186,32 +191,24 @@ public class SenseiServerBuilder implements SenseiConfParams{
     //}
     //senseiApp.setInitParams(initParam);
     senseiApp.setAttribute("sensei.search.configuration", _senseiConf);
-    senseiApp.setAttribute("sensei.search.version.comparator", _versionComparator);
-
-    SenseiLoadBalancerFactory routerFactory = null;
-    String routerFactoryName = _senseiConf.getString(SERVER_SEARCH_ROUTER_FACTORY, "");
-    if (routerFactoryName == null || routerFactoryName.equals(""))
-      routerFactory = new UniformPartitionedRoutingFactory();
-    else
-      routerFactory = (SenseiLoadBalancerFactory) _pluginContext.getBean(routerFactoryName);
-
+    senseiApp.setAttribute("sensei.search.version.comparator", _gateway.getVersionComparator());
+    SenseiLoadBalancerFactory routerFactory = pluginRegistry.getBeanByFullPrefix(SERVER_SEARCH_ROUTER_FACTORY, SenseiLoadBalancerFactory.class);
+    if (routerFactory == null) {
+      routerFactory = new RingHashLoadBalancerFactory(new MD5HashProvider(), 1000);
+    }
     senseiApp.setAttribute("sensei.search.router.factory", routerFactory);
-
     senseiApp.addEventListener(new SenseiConfigServletContextListener());
-    
-    
-    senseiApp.addServlet(senseiServletHolder,"/sensei/*");
-    //senseiApp.addFilter(new FilterHolder(new GzipFilter()), "/sensei/*", 1);
+    senseiApp.addServlet(senseiServletHolder,"/"+SENSEI_CONTEXT_PATH+"/*");
     senseiApp.setResourceBase(webappPath);
     senseiApp.addServlet(springServletHolder,"/sensei-rpc/SenseiSpringRPCService");
     senseiApp.addServlet(jmxServletHolder,"/admin/jmx/*");
-    
+
         server.setHandler(senseiApp);
-        server.setStopAtShutdown(true);  
-    
+        server.setStopAtShutdown(true);
+
     return server;
   }
-  
+
   public static JSONObject loadSchema(File confDir) throws Exception{
     File jsonSchema = new File(confDir,SCHEMA_FILE_JSON);
     if (jsonSchema.exists()){
@@ -232,11 +229,10 @@ public class SenseiServerBuilder implements SenseiConfParams{
       schemaXml.getDocumentElement().normalize();
       return SchemaConverter.convert(schemaXml);
     }
-    
+
   }
-  
-  public SenseiServerBuilder(File confDir, Map<String, Object> properties, ApplicationContext customFacetContext,
-      ApplicationContext pluginContext) throws Exception {
+
+  public SenseiServerBuilder(File confDir, Map<String, Object> properties) throws Exception {
     if (properties != null) {
       _senseiConfFile = null;
       _senseiConf = new MapConfiguration(properties);
@@ -250,99 +246,22 @@ public class SenseiServerBuilder implements SenseiConfParams{
       _senseiConf = new PropertiesConfiguration();
       ((PropertiesConfiguration)_senseiConf).setDelimiterParsingDisabled(true);
       ((PropertiesConfiguration)_senseiConf).load(_senseiConfFile);
+      pluginRegistry = SenseiPluginRegistry.build(_senseiConf);
+      pluginRegistry.start();
     }
 
-    if (pluginContext != null)
-      _pluginContext = pluginContext;
-    else
-      _pluginContext = loadSpringContext(new File[] {new File(confDir,PLUGINS), new File(confDir,CUSTOM_FACETS)}, null);
+    _gateway = constructGateway(_senseiConf);
 
-    String versionComparatorName = _senseiConf.getString(SENSEI_VERSION_COMPARATOR, "");
-    if (versionComparatorName == null || versionComparatorName.equals(""))
-      _versionComparator = ZoieConfig.DEFAULT_VERSION_COMPARATOR;
-    else
-      _versionComparator = (Comparator<String>) _pluginContext.getBean(versionComparatorName);
-
-    if (customFacetContext != null)
-      _customFacetContext = customFacetContext;
-    else if (pluginContext != null)
-      _customFacetContext = loadSpringContext(new File[] {new File(confDir,CUSTOM_FACETS)}, _pluginContext);
-    else
-      _customFacetContext = _pluginContext;
-    
     _schemaDoc = loadSchema(confDir);
     _senseiSchema = SenseiSchema.build(_schemaDoc);
 
     _jettyServer = buildHttpRestServer();
   }
 
-  public SenseiServerBuilder(File confDir, Map<String, Object> properties, ApplicationContext customFacetContext) throws Exception {
-    this(confDir, properties, customFacetContext, null);
-  }
 
-  public SenseiServerBuilder(File confDir, Map<String, Object> properties) throws Exception {
-    this(confDir, properties, null, null);
-  }
-
-  public SenseiServerBuilder(File confDir) throws Exception {
-    this(confDir, null, null, null);
-  }
-
-  public SenseiServerBuilder(Resource confDir, Map<String, Object> properties, ApplicationContext customFacetContext,
-      ApplicationContext pluginContext) throws Exception {
-    _senseiConfFile = null;
-
-    _senseiConf = new MapConfiguration(properties);
-    ((MapConfiguration) _senseiConf).setDelimiterParsingDisabled(true);
-
-    //TODO: conditionally load other contexts.
-    _pluginContext = pluginContext;
-
-    String versionComparatorName = _senseiConf.getString(SENSEI_VERSION_COMPARATOR, "");
-    if (versionComparatorName == null || versionComparatorName.equals(""))
-      _versionComparator = ZoieConfig.DEFAULT_VERSION_COMPARATOR;
-    else
-      _versionComparator = (Comparator<String>) _pluginContext.getBean(versionComparatorName);
-
-    _customFacetContext = customFacetContext;
-    
-    DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-    dbf.setIgnoringComments(true);
-    DocumentBuilder db = dbf.newDocumentBuilder();
-    if (confDir.createRelative(SCHEMA_FILE_JSON).exists()){
-      String json = IOUtils.toString(confDir.createRelative(SCHEMA_FILE_JSON).getInputStream());
-      _schemaDoc = new JSONObject(json);
-    }
-    else{
-      if (confDir.createRelative(SCHEMA_FILE_XML).exists()){
-        Document schemaXml = db.parse(confDir.createRelative(SCHEMA_FILE_XML).getInputStream());
-        schemaXml.getDocumentElement().normalize();
-        _schemaDoc = SchemaConverter.convert(schemaXml);
-      }
-      else{
-        throw new Exception("no schema found.");
-      }
-    }
-    
-    _senseiSchema = SenseiSchema.build(_schemaDoc);
-
-    _jettyServer = buildHttpRestServer();
-  }
-
-  //public SenseiServerBuilder(Resource confDir, Map<String, Object> properties, ApplicationContext customFacetContext) throws Exception {
-    //this(confDir, properties, customFacetContext, null);
-  //}
-
-  //public SenseiServerBuilder(Resource confDir, Map<String, Object> properties) throws Exception {
-    //this(confDir, properties, null, null);
-  //}
-
-  //public SenseiServerBuilder(Resource confDir) throws Exception {
-    //this(confDir, null, null, null);
-  //}
 
   static final Pattern PARTITION_PATTERN = Pattern.compile("[\\d]+||[\\d]+-[\\d]+");
-  
+
   public static int[] buildPartitions(String[] partitionArray) throws ConfigurationException{
     IntSet partitions = new IntOpenHashSet();
     try {
@@ -363,7 +282,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
         else{
           end = start;
         }
-        
+
         for (int k=start;k<=end;++k){
           partitions.add(k);
         }
@@ -376,51 +295,56 @@ public class SenseiServerBuilder implements SenseiConfParams{
 
     return partitions.toIntArray();
   }
-  
-  public SenseiCore buildCore() throws ConfigurationException{
+
+  private SenseiGateway constructGateway(Configuration conf) throws ConfigurationException{
+      SenseiGateway gateway = pluginRegistry.getBeanByFullPrefix(SENSEI_GATEWAY, SenseiGateway.class);
+      return gateway;
+
+  }
+
+  public SenseiCore buildCore() throws ConfigurationException {
     int nodeid = _senseiConf.getInt(NODE_ID);
     String partStr = _senseiConf.getString(PARTITIONS);
     String[] partitionArray = partStr.split("[,\\s]+");
     int[] partitions = buildPartitions(partitionArray);
     logger.info("partitions to serve: "+Arrays.toString(partitions));
-    
   // Analyzer from configuration:
-      Analyzer analyzer = null;
-      String analyzerName = _senseiConf.getString(SENSEI_INDEX_ANALYZER, "");
-      if (analyzerName == null || analyzerName.equals("")) {
-        analyzer = new StandardAnalyzer(Version.LUCENE_30);
+      Analyzer analyzer = pluginRegistry.getBeanByFullPrefix(SENSEI_INDEX_ANALYZER, Analyzer.class);
+      if (analyzer == null) {
+        analyzer = new StandardAnalyzer(Version.LUCENE_CURRENT);
       }
-      else {
-        analyzer = (Analyzer)_pluginContext.getBean(analyzerName);
-      }
-
       // Similarity from configuration:
-      Similarity similarity = null;
-      String similarityName = _senseiConf.getString(SENSEI_INDEX_SIMILARITY, "");
-      if (similarityName == null || similarityName.equals("")) {
+      Similarity similarity = pluginRegistry.getBeanByFullPrefix(SENSEI_INDEX_SIMILARITY, Similarity.class);
+      if (similarity == null) {
         similarity = new DefaultSimilarity();
       }
-      else {
-        similarity = (Similarity)_pluginContext.getBean(similarityName);
-      }
-      ZoieConfig zoieConfig = new ZoieConfig(_versionComparator);
-      
+      ZoieConfig zoieConfig = new ZoieConfig(_gateway.getVersionComparator());
       zoieConfig.setAnalyzer(analyzer);
       zoieConfig.setSimilarity(similarity);
       zoieConfig.setBatchSize(_senseiConf.getInt(SENSEI_INDEX_BATCH_SIZE,ZoieConfig.DEFAULT_SETTING_BATCHSIZE));
       zoieConfig.setBatchDelay(_senseiConf.getLong(SENSEI_INDEX_BATCH_DELAY, ZoieConfig.DEFAULT_SETTING_BATCHDELAY));
       zoieConfig.setMaxBatchSize(_senseiConf.getInt(SENSEI_INDEX_BATCH_MAXSIZE, ZoieConfig.DEFAULT_MAX_BATCH_SIZE));
       zoieConfig.setRtIndexing(_senseiConf.getBoolean(SENSEI_INDEX_REALTIME, ZoieConfig.DEFAULT_SETTING_REALTIME));
-      zoieConfig.setFreshness(_senseiConf.getLong(SENSEI_INDEX_FRESHNESS, 500));
-
+      zoieConfig.setSkipBadRecord(_senseiConf.getBoolean(SENSEI_SKIP_BAD_RECORDS, false));
       
+      int delay = _senseiConf.getInt(SENSEI_INDEX_FRESHNESS,10);
+      ReaderCacheFactory readercachefactory;
+      if (delay>0){
+        readercachefactory = DefaultReaderCache.FACTORY;
+        zoieConfig.setFreshness(delay*1000);
+      }
+      else{
+        readercachefactory = SimpleReaderCache.FACTORY;
+      }
+      zoieConfig.setReadercachefactory(readercachefactory);
+
       List<FacetHandler<?>> facetHandlers = new LinkedList<FacetHandler<?>>();
       List<RuntimeFacetHandlerFactory<?,?>> runtimeFacetHandlerFactories = new LinkedList<RuntimeFacetHandlerFactory<?,?>>();
-      
+
       SenseiSystemInfo sysInfo = null;
-      
-      try{
-        sysInfo = SenseiFacetHandlerBuilder.buildFacets(_schemaDoc,_customFacetContext, facetHandlers, runtimeFacetHandlerFactories);
+
+      try {
+        sysInfo = SenseiFacetHandlerBuilder.buildFacets(_schemaDoc, pluginRegistry, facetHandlers, runtimeFacetHandlerFactories);
       }
       catch(JSONException jse){
         throw new ConfigurationException(jse.getMessage(),jse);
@@ -428,6 +352,8 @@ public class SenseiServerBuilder implements SenseiConfParams{
 
       if (sysInfo != null)
       {
+        sysInfo.setSchema(_schemaDoc.toString());
+
         try
         {
           List<SenseiSystemInfo.SenseiNodeInfo> clusterInfo = new ArrayList(1);
@@ -447,19 +373,14 @@ public class SenseiServerBuilder implements SenseiConfParams{
           throw new ConfigurationException(e.getMessage(), e);
         }
       }
-      
-      String indexerType = _senseiConf.getString(SENSEI_INDEXER_TYPE);
-      
-      String interpreterType = _senseiConf.getString(SENSEI_INDEX_INTERPRETER,"");
-      
-      ZoieIndexableInterpreter interpreter;
-      if (interpreterType.length()==0){
+
+      ZoieIndexableInterpreter interpreter =  pluginRegistry.getBeanByFullPrefix(SENSEI_INDEX_INTERPRETER, ZoieIndexableInterpreter.class);
+      if (interpreter == null) {
         DefaultJsonSchemaInterpreter defaultInterpreter = new DefaultJsonSchemaInterpreter(_senseiSchema);
         interpreter = defaultInterpreter;
-        String customIndexingName = _senseiConf.getString(SENSEI_INDEX_CUSTOM,"");
-        if (customIndexingName.length()>0){
+        CustomIndexingPipeline customIndexingPipeline = pluginRegistry.getBeanByFullPrefix(SENSEI_INDEX_CUSTOM, CustomIndexingPipeline.class);
+        if (customIndexingPipeline != null){
           try{
-            CustomIndexingPipeline customIndexingPipeline = (CustomIndexingPipeline)_pluginContext.getBean(customIndexingName);
             defaultInterpreter.setCustomIndexingPipeline(customIndexingPipeline);
           }
           catch(Exception e){
@@ -467,133 +388,138 @@ public class SenseiServerBuilder implements SenseiConfParams{
           }
         }
       }
-      else{
-        interpreter = (ZoieIndexableInterpreter)_pluginContext.getBean(interpreterType);  
-      } 
+      SenseiZoieFactory<?> zoieSystemFactory = constructZoieFactory(zoieConfig, facetHandlers, runtimeFacetHandlerFactories, interpreter);
+      SenseiIndexingManager<?> indexingManager = pluginRegistry.getBeanByFullPrefix(SENSEI_INDEX_MANAGER, SenseiIndexingManager.class);
       
-      SenseiIndexReaderDecorator decorator = new SenseiIndexReaderDecorator(facetHandlers,runtimeFacetHandlerFactories);
-      File idxDir = new File(_senseiConf.getString(SENSEI_INDEX_DIR));
+      ShardingStrategy strategy = pluginRegistry.getBeanByFullPrefix(SENSEI_SHARDING_STRATEGY, ShardingStrategy.class);
+      if (strategy == null){
+        strategy = new ShardingStrategy.FieldModShardingStrategy(_senseiSchema.getUidField());
+      }
 
-    
-      SenseiZoieFactory<?> zoieSystemFactory = null;
-      
-      if (SENSEI_INDEXER_TYPE_ZOIE.equals(indexerType)){
-        zoieSystemFactory = new SenseiZoieSystemFactory(idxDir,interpreter,decorator,
-                zoieConfig);
-
-        int retentionDays = _senseiConf.getInt(SENSEI_ZOIE_RETENTION_DAYS,-1);
-        if (retentionDays>0){
-        	
-        }
+      if (indexingManager == null){
+        indexingManager = new DefaultStreamingIndexingManager(_senseiSchema,_senseiConf, pluginRegistry, _gateway,strategy);
       }
-      else if (SENSEI_INDEXER_TYPE_HOURGLASS.equals(indexerType)){
-        
-        String schedule = _senseiConf.getString(SENSEI_HOURGLASS_SCHEDULE,"");
-        int trimThreshold = _senseiConf.getInt(SENSEI_HOURGLASS_TRIMTHRESHOLD,14);
-        String frequencyString = _senseiConf.getString(SENSEI_HOURGLASS_FREQUENCY,"day");
-        
-        FREQUENCY frequency;
-        
-        if (SENSEI_HOURGLASS_FREQUENCY_MIN.equals(frequencyString)){
-          frequency = FREQUENCY.MINUTELY;
-        }
-        else if (SENSEI_HOURGLASS_FREQUENCY_HOUR.equals(frequencyString)){
-          frequency = FREQUENCY.HOURLY;
-        }
-        else if (SENSEI_HOURGLASS_FREQUENCY_DAY.equals(frequencyString)){
-          frequency = FREQUENCY.DAILY;
-        }
-        else{
-          throw new ConfigurationException("unsupported frequency setting: "+frequencyString);
-        }
-        zoieSystemFactory = new SenseiHourglassFactory(idxDir,interpreter,decorator,
-              zoieConfig,schedule,trimThreshold,frequency);
-      }
-      else{
-        ZoieFactoryFactory zoieFactoryFactory= (ZoieFactoryFactory)_pluginContext.getBean(indexerType);
-        if (zoieFactoryFactory==null){
-          throw new ConfigurationException(indexerType+" not defined");
-        }
-        zoieSystemFactory = zoieFactoryFactory.getZoieFactory(idxDir, interpreter, decorator, zoieConfig);
-      }
-      
-      String idxMgrType = _senseiConf.getString(SENSEI_INDEX_MANAGER,"");
-      SenseiIndexingManager<?> indexingManager;
-      
-      if (idxMgrType.length()==0){
-        String uidField = _senseiSchema.getUidField();
-        indexingManager = new DefaultStreamingIndexingManager(_senseiSchema,_senseiConf, _pluginContext, _versionComparator);
-      }
-      else{
-        indexingManager = (SenseiIndexingManager)_pluginContext.getBean(idxMgrType);  
-      } 
-      
-      
-      SenseiQueryBuilderFactory queryBuilderFactory = null;
-      String qbuilderFactory = _senseiConf.getString(SENSEI_QUERY_BUILDER_FACTORY,"");
-      
-      if (qbuilderFactory.length()==0){
-        QueryParser queryParser = new QueryParser(Version.LUCENE_30,"contents", analyzer);
+      SenseiQueryBuilderFactory queryBuilderFactory = pluginRegistry.getBeanByFullPrefix(SENSEI_QUERY_BUILDER_FACTORY, SenseiQueryBuilderFactory.class);
+      if (queryBuilderFactory == null){
+        QueryParser queryParser = new QueryParser(Version.LUCENE_CURRENT,"contents", analyzer);
         queryBuilderFactory = new DefaultJsonQueryBuilderFactory(queryParser);
       }
-      else{
-      queryBuilderFactory = (SenseiQueryBuilderFactory)_pluginContext.getBean(qbuilderFactory);
-      }
-      
       SenseiCore senseiCore = new SenseiCore(nodeid,partitions,zoieSystemFactory,indexingManager,queryBuilderFactory);
       senseiCore.setSystemInfo(sysInfo);
-      
-      
-      String senseiPrunerClass = _senseiConf.getString(SENSEI_INDEX_PRUNER,"");
-      if (senseiPrunerClass.length()>0){
-    	  SenseiIndexPruner pruner = (SenseiIndexPruner)_pluginContext.getBean(senseiPrunerClass);
-    	  senseiCore.setIndexPruner(pruner);
+
+      SenseiIndexPruner indexPruner = pluginRegistry.getBeanByFullPrefix(SENSEI_INDEX_PRUNER, SenseiIndexPruner.class);
+      if (indexPruner != null){
+    	  senseiCore.setIndexPruner(indexPruner);
       }
-      
+
       return senseiCore;
   }
-  
+
+  @SuppressWarnings({ "rawtypes", "unchecked" })
+  private SenseiZoieFactory<?> constructZoieFactory(ZoieConfig zoieConfig, List<FacetHandler<?>> facetHandlers,
+      List<RuntimeFacetHandlerFactory<?, ?>> runtimeFacetHandlerFactories, ZoieIndexableInterpreter interpreter)
+      throws ConfigurationException {
+    String indexerType = _senseiConf.getString(SENSEI_INDEXER_TYPE,"zoie");
+    SenseiIndexReaderDecorator decorator = new SenseiIndexReaderDecorator(facetHandlers,runtimeFacetHandlerFactories);
+    File idxDir = new File(_senseiConf.getString(SENSEI_INDEX_DIR));
+    SenseiZoieFactory<?> zoieSystemFactory = null;
+    if (SENSEI_INDEXER_TYPE_ZOIE.equals(indexerType)){
+      SenseiZoieSystemFactory senseiZoieFactory = new SenseiZoieSystemFactory(idxDir,interpreter,decorator,
+              zoieConfig);
+      int retentionDays = _senseiConf.getInt(SENSEI_ZOIE_RETENTION_DAYS,-1);
+      if (retentionDays>0){
+        RetentionFilterFactory retentionFilterFactory = pluginRegistry.getBeanByFullPrefix(SENSEI_ZOIE_RETENTION_CLASS, RetentionFilterFactory.class);
+        Filter purgeFilter = null;
+        if (retentionFilterFactory!=null){
+            purgeFilter = retentionFilterFactory.buildRetentionFilter(retentionDays);
+        }
+        else{
+      	  String timeColumn = _senseiConf.getString(SENSEI_ZOIE_RETENTION_COLUMN, null);
+      	  if (timeColumn==null){
+      	    throw new ConfigurationException("Retention specified without a time column");
+      	  }
+      	  String unitString = _senseiConf.getString(SENSEI_ZOIE_RETENTION_TIMEUNIT,"seconds");
+      	  TimeUnit unit = TimeUnit.valueOf(unitString.toUpperCase());
+      	  if (unit == null){
+      	    throw new ConfigurationException("Invalid timeunit for retention: "+unitString);
+      	  }
+      	  purgeFilter = new TimeRetentionFilter(timeColumn, retentionDays, unit);
+        }
+        senseiZoieFactory.setPurgeFilter(purgeFilter);
+      }
+      zoieSystemFactory = senseiZoieFactory;
+    }
+    else if (SENSEI_INDEXER_TYPE_HOURGLASS.equals(indexerType)){
+
+      String schedule = _senseiConf.getString(SENSEI_HOURGLASS_SCHEDULE,"");
+      int trimThreshold = _senseiConf.getInt(SENSEI_HOURGLASS_TRIMTHRESHOLD,14);
+      String frequencyString = _senseiConf.getString(SENSEI_HOURGLASS_FREQUENCY,"day");
+
+      FREQUENCY frequency;
+
+      if (SENSEI_HOURGLASS_FREQUENCY_MIN.equals(frequencyString)){
+        frequency = FREQUENCY.MINUTELY;
+      } else if (SENSEI_HOURGLASS_FREQUENCY_HOUR.equals(frequencyString)){
+        frequency = FREQUENCY.HOURLY;
+      }
+      else if (SENSEI_HOURGLASS_FREQUENCY_DAY.equals(frequencyString)){
+        frequency = FREQUENCY.DAILY;
+      }
+      else {
+        throw new ConfigurationException("unsupported frequency setting: "+frequencyString);
+      }
+      zoieSystemFactory = new SenseiHourglassFactory(idxDir,interpreter,decorator,
+            zoieConfig,schedule,trimThreshold,frequency);
+    }  else{
+      ZoieFactoryFactory zoieFactoryFactory= pluginRegistry.getBeanByFullPrefix(indexerType, ZoieFactoryFactory.class);
+      if (zoieFactoryFactory==null){
+        throw new ConfigurationException(indexerType+" not defined");
+      }
+      zoieSystemFactory = zoieFactoryFactory.getZoieFactory(idxDir, interpreter, decorator, zoieConfig);
+    }
+    String indexerCopier = _senseiConf.getString(SENSEI_INDEXER_COPIER);
+    IndexCopier copier = pluginRegistry.getBeanByFullPrefix(SENSEI_INDEXER_COPIER, IndexCopier.class);
+    if (copier != null) {
+      zoieSystemFactory = new SenseiPairFactory(idxDir, copier, interpreter, decorator, zoieConfig, zoieSystemFactory);
+    }  else if (SENSEI_INDEXER_COPIER_HDFS.equals(indexerCopier))
+    {
+      zoieSystemFactory = new SenseiPairFactory(idxDir, new HDFSIndexCopier(), interpreter, decorator, zoieConfig, zoieSystemFactory);
+    } else
+    {
+      // do not support bootstrap index from other sources.
+
+    }
+    return zoieSystemFactory;
+  }
+
   public Server getJettyServer(){
     return _jettyServer;
   }
 
   public Comparator<String> getVersionComparator() {
-    return _versionComparator;
+    return _gateway.getVersionComparator();
   }
-  
-  public SenseiServer buildServer() throws ConfigurationException { 
-  int port = _senseiConf.getInt(SERVER_PORT);
-    
-  ClusterClient clusterClient = buildClusterClient();
-    
-  NetworkServer networkServer = buildNetworkServer(_senseiConf,clusterClient);
-  
+
+  public SenseiServer buildServer() throws ConfigurationException {
+    int port = _senseiConf.getInt(SERVER_PORT);
+
+    ClusterClient clusterClient = buildClusterClient();
+
+    NetworkServer networkServer = buildNetworkServer(_senseiConf,clusterClient);
 
     SenseiCore core = buildCore();
 
-    String externalServices = _senseiConf.getString(SENSEI_PLUGIN_SVCS);
-    String[] externalServicList = externalServices.split("[,\\s]+");
-    List<AbstractSenseiCoreService<AbstractSenseiRequest, AbstractSenseiResult>> svcList = new LinkedList<AbstractSenseiCoreService<AbstractSenseiRequest, AbstractSenseiResult>>();
-    if (externalServicList!=null){
-      for (String svcName : externalServicList){
-        if (svcName!=null && svcName.trim().length()>0){
-          try{
-          AbstractSenseiCoreService<AbstractSenseiRequest, AbstractSenseiResult> svc = (AbstractSenseiCoreService<AbstractSenseiRequest, AbstractSenseiResult>)_pluginContext.getBean(svcName);
-          svcList.add(svc);
-          }
-          catch(Exception e){
-          throw new ConfigurationException(e.getMessage(),e);
-          }
-        }
-      }
-    }
-  return new SenseiServer(port,networkServer,clusterClient,core,svcList);
+    List<AbstractSenseiCoreService<AbstractSenseiRequest, AbstractSenseiResult>> svcList = (List)pluginRegistry.resolveBeansByListKey(SENSEI_PLUGIN_SVCS, AbstractSenseiCoreService.class);
+
+
+  return new SenseiServer(port,networkServer,clusterClient,core,svcList, pluginRegistry);
+
   }
   /*
   public HttpAdaptor buildJMXAdaptor(){
    int jmxport = _senseiConf.getInt(SENSEI_MX4J_PORT,15555);
    HttpAdaptor httpAdaptor = new HttpAdaptor(jmxport);
-     httpAdaptor.setHost("0.0.0.0");   
+     httpAdaptor.setHost("0.0.0.0");
      return httpAdaptor;
   }
   */

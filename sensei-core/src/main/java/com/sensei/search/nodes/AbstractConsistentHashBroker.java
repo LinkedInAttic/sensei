@@ -13,63 +13,61 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import javax.management.ObjectName;
-
 import org.apache.log4j.Logger;
 
-import com.google.protobuf.Message;
 import com.linkedin.norbert.NorbertException;
 import com.linkedin.norbert.javacompat.cluster.Node;
 import com.linkedin.norbert.javacompat.network.PartitionedNetworkClient;
+import com.linkedin.norbert.network.Serializer;
+import com.sensei.metrics.MetricsConstants;
 import com.sensei.search.cluster.routing.RoutingInfo;
 import com.sensei.search.cluster.routing.SenseiLoadBalancer;
-import com.sensei.search.jmx.JmxUtil;
-import com.sensei.search.jmx.JmxUtil.Timer;
 import com.sensei.search.req.AbstractSenseiRequest;
 import com.sensei.search.req.AbstractSenseiResult;
 import com.sensei.search.svc.api.SenseiException;
-import com.yammer.metrics.core.CounterMetric;
+import com.yammer.metrics.Metrics;
+import com.yammer.metrics.core.MeterMetric;
+import com.yammer.metrics.core.MetricName;
 import com.yammer.metrics.core.TimerMetric;
-import com.yammer.metrics.reporting.JmxReporter.Counter;
 
 /**
  * @author "Xiaoyang Gu<xgu@linkedin.com>"
  *
  * @param <REQUEST>
  * @param <RESULT>
- * @param <REQMSG>
- * @param <RESMSG>
  */
-public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSenseiRequest, RESULT extends AbstractSenseiResult, REQMSG extends Message, RESMSG extends Message>
-    extends AbstractSenseiBroker<REQUEST, RESULT, REQMSG, RESMSG>
+public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSenseiRequest, RESULT extends AbstractSenseiResult>
+    extends AbstractSenseiBroker<REQUEST, RESULT>
 {
   private final static Logger logger = Logger.getLogger(AbstractConsistentHashBroker.class);
+
   protected long _timeout = 8000;
+  protected final Serializer<REQUEST, RESULT> _serializer;
   protected volatile SenseiLoadBalancer _loadBalancer;
   
-  private final static TimerMetric ScatterTimer = new TimerMetric(TimeUnit.MILLISECONDS,TimeUnit.SECONDS);
-  private final static TimerMetric GatherTimer = new TimerMetric(TimeUnit.MILLISECONDS,TimeUnit.SECONDS);
-  private final static TimerMetric TotalTimer = new TimerMetric(TimeUnit.MILLISECONDS,TimeUnit.SECONDS);
-  private final static CounterMetric ErrorCounter = new CounterMetric();
-  private final static CounterMetric EmptyCounter = new CounterMetric();
+  private static TimerMetric ScatterTimer = null;
+  private static TimerMetric GatherTimer = null;
+  private static TimerMetric TotalTimer = null;
+  private static MeterMetric ErrorMeter = null;
+  private static MeterMetric EmptyMeter = null;
   
   static{
-	  // register jmx monitoring for timers
+	  // register metrics monitoring for timers
 	  try{
-	    ObjectName scatterMBeanName = new ObjectName(JmxUtil.Domain+".broker","name","scatter-time");
-	    JmxUtil.registerMBean(ScatterTimer, scatterMBeanName);
+	    MetricName scatterMetricName = new MetricName(MetricsConstants.Domain,"timer","scatter-time","broker");
+	    ScatterTimer = Metrics.newTimer(scatterMetricName, TimeUnit.MILLISECONDS,TimeUnit.SECONDS);
 	    
-	    ObjectName gatherMBeanName = new ObjectName(JmxUtil.Domain+".broker","name","gather-time");
-	    JmxUtil.registerMBean(GatherTimer, gatherMBeanName);
+	    MetricName gatherMetricName = new MetricName(MetricsConstants.Domain,"timer","gather-time","broker");
+	    GatherTimer = Metrics.newTimer(gatherMetricName, TimeUnit.MILLISECONDS,TimeUnit.SECONDS);
 
-	    ObjectName totalMBeanName = new ObjectName(JmxUtil.Domain+".broker","name","total-time");
-	    JmxUtil.registerMBean(TotalTimer, totalMBeanName); 
+	    MetricName totalMetricName = new MetricName(MetricsConstants.Domain,"timer","total-time","broker");
+	    TotalTimer = Metrics.newTimer(totalMetricName, TimeUnit.MILLISECONDS,TimeUnit.SECONDS);
 	    
-	    ObjectName errorCounterMBeanName = new ObjectName(JmxUtil.Domain+".broker","name","error-count");
-	    JmxUtil.registerMBean(ErrorCounter, errorCounterMBeanName); 
+	    MetricName errorMetricName = new MetricName(MetricsConstants.Domain,"meter","error-meter","broker");
+	    ErrorMeter = Metrics.newMeter(errorMetricName, "errors",TimeUnit.SECONDS);
 	    
-	    ObjectName emptyCounterMBeanName = new ObjectName(JmxUtil.Domain+".broker","name","empty-count");
-	    JmxUtil.registerMBean(EmptyCounter, emptyCounterMBeanName); 
+	    MetricName emptyMetricName = new MetricName(MetricsConstants.Domain,"meter","empty-meter","broker");
+	    EmptyMeter = Metrics.newMeter(emptyMetricName, "null-hits", TimeUnit.SECONDS);
 	  }
 	  catch(Exception e){
 		logger.error(e.getMessage(),e);
@@ -81,27 +79,29 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
   /**
    * @param networkClient
    * @param clusterClient
-   * @param defaultrequest
-   *          a default instance of request message object for protobuf
-   *          registration
-   * @param defaultresult
-   *          a default instance of result message object for protobuf
-   *          registration
    * @param routerFactory
+   * @param serializer
+   *          The serializer used to serialize/deserialize request/response pairs
    * @param scatterGatherHandler
    * @throws NorbertException
    */
-  public AbstractConsistentHashBroker(PartitionedNetworkClient<Integer> networkClient, REQMSG defaultrequest, RESMSG defaultresult)
+  public AbstractConsistentHashBroker(PartitionedNetworkClient<Integer> networkClient, Serializer<REQUEST, RESULT> serializer)
       throws NorbertException
   {
-    super(networkClient, defaultrequest, defaultresult);
+    super(networkClient);
     _loadBalancer = null;
+    _serializer = serializer;
   }
 
-  public abstract REQMSG requestToMessage(REQUEST request);
+	public <T> T customizeRequest(REQUEST request)
+	{
+		return null;
+	}
+	
+	public <T> T restoreRequest(REQUEST request,T state){
+		return state;
+	}
 
-  public abstract RESULT messageToResult(RESMSG message);
-  
   protected IntSet getPartitions(Set<Node> nodes)
   {
 	    IntSet partitionSet = new IntOpenHashSet();
@@ -128,7 +128,7 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
   public RESULT browse(final REQUEST req) throws SenseiException
   {
     if (_partitions == null){
-      ErrorCounter.inc();
+      ErrorMeter.mark();
       throw new SenseiException("Browse called before cluster is connected!");
     }
     try
@@ -142,7 +142,7 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
     } 
     catch (Exception e)
     {
-      ErrorCounter.inc();
+      ErrorMeter.mark();
       throw new SenseiException(e.getMessage(), e);
     }
   }
@@ -178,7 +178,7 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
     if (partArray == null)
     {
       logger.info("No search nodes to handle request...");
-      EmptyCounter.inc();
+      EmptyMeter.mark();
       return getEmptyResultInstance();
     }
     
@@ -188,7 +188,7 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
     final List<RESULT> resultlist = new ArrayList<RESULT>(parts.length);
     final Map<Integer, Set<Integer>> partsMap = new HashMap<Integer, Set<Integer>>();
     final Map<Integer, Node> nodeMap = new HashMap<Integer, Node>();
-    final Map<Integer, Future<RESMSG>> futureMap = new HashMap<Integer, Future<RESMSG>>();
+    final Map<Integer, Future<RESULT>> futureMap = new HashMap<Integer, Future<RESULT>>();
     
     try{
       ScatterTimer.time(new Callable<Object>(){
@@ -211,29 +211,29 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
 			    for (Map.Entry<Integer, Node> entry : nodeMap.entrySet())
 			    {
 			      req.setPartitions(partsMap.get(entry.getKey()));
-			      REQMSG msg = requestToMessage(req);
-			      if (logger.isDebugEnabled())
-			      {
+			      req.saveState();
+			      REQUEST thisRequest = customizeRequest(req);
+				  if (logger.isDebugEnabled()){
 			        logger.debug("broker sending req part: " + partsMap.get(entry.getKey()) + " on node: " + entry.getValue());
 			      }
-			      futureMap.put(entry.getKey(), (Future<RESMSG>)_networkClient.sendMessageToNode(msg, entry.getValue()));
+			      futureMap.put(entry.getKey(), (Future<RESULT>)_networkClient.sendRequestToNode(thisRequest, entry.getValue(), _serializer));
+			      req.restoreState();
 			    }
-			    for(Map.Entry<Integer, Future<RESMSG>> entry : futureMap.entrySet())
+			    for(Map.Entry<Integer, Future<RESULT>> entry : futureMap.entrySet())
 			    { 
-			      RESMSG resp;
+			      RESULT resp;
 			      try
 			      {
 			        resp = entry.getValue().get(_timeout,TimeUnit.MILLISECONDS);
-			        RESULT res = messageToResult(resp);
-			        resultlist.add(res);
+			        resultlist.add(resp);
 			        if (logger.isDebugEnabled())
 			        {
 			          logger.debug("broker receiving res part: " + partsMap.get(entry.getKey()) + " on node: " + nodeMap.get(entry.getKey())
-			              + " node time: " + res.getTime() +"ms remote time: " + (System.currentTimeMillis() - time) + "ms");
+			              + " node time: " + resp.getTime() +"ms remote time: " + (System.currentTimeMillis() - time) + "ms");
 			        }
 			      } catch (Exception e)
 			      {
-			    	ErrorCounter.inc();
+			    	ErrorMeter.mark();
 			        logger.error("broker receiving res part: " + partsMap.get(entry.getKey()) + " on node: " + nodeMap.get(entry.getKey())
 			            + e +" remote time: " + (System.currentTimeMillis() - time) + "ms");
 			      }
@@ -245,14 +245,14 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
     }
     catch(Exception e){
       logger.error(e.getMessage(),e);
-      ErrorCounter.inc();
+      ErrorMeter.mark();
     }
     
    
     if (resultlist.size() == 0)
     {
       logger.error("no result received at all return empty result");
-      EmptyCounter.inc();
+      EmptyMeter.mark();
       return getEmptyResultInstance();
     }
     
@@ -270,8 +270,8 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
     catch(Exception e){
     	logger.error(e.getMessage(),e);
     	result = getEmptyResultInstance();
-    	EmptyCounter.inc();
-    	ErrorCounter.inc();
+    	EmptyMeter.mark();
+    	ErrorMeter.mark();
     }
     
     if (logger.isDebugEnabled()){

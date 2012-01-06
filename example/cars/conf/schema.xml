@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://javasoze.github.com/sensei/schema/sensei-schema.xsd">
+
+  <!-- valid types:
+    uid - only 1 column can be of type uid
+    int - integer
+    short - short 
+    char - character
+    long - long 
+    float - float
+    double - double
+    string - string (default)
+    date - date, format string must be provided
+    text - searchable
+  -->
+
+  <table uid="id">
+	<column name="groupid" type="long" />
+	<column name="color" type="string" />
+	<column name="category" type="string" />
+	<column name="city" type="string" />
+	<column name="makemodel" type="string" />
+	<column name="year" type="int" />
+	<column name="price" type="float" />
+	<column name="mileage" type="int" />
+	<!-- multi is default to be false, if set to true, delimiter is used to break the values,
+	     default delimiter is ","
+	 -->
+	<column name="tags" type="string" multi="true" delimiter=","/>
+	<!-- attributes: indexed,store,termvector are only used when type is text -->
+	<column name="contents" type="text" index="ANALYZED" store="YES" termvector="YES" />
+  </table>
+
+   <!-- 
+     valid types are:
+      simple - corresponds to com.browseengine.bobo.facets.impl.SimpleFacetHandler
+      path - corresponds to com.browseengine.bobo.facets.impl.PathFacetHandler
+      range - corresponds to com.browseengine.bobo.facets.impl.RangeFacetHandler
+      multi - corresponds to com.browseengine.bobo.facets.impl.MultiFacetHandler
+      compact-multi - corresponds to com.browseengine.bobo.facets.impl.CompactMultiFacetHandler
+      custom - custom facet handler, name must be defined in a spring bean in custom-facets.xml
+   -->
+   <facets>
+	 <facet name="groupid" type="simple" />
+	 <facet name="color" type="simple" depends=""/>
+	 <facet name="category" type="simple" />
+	 <facet name="city" type="path">
+	  <params>
+		<param name="separator" value="/" />
+	  </params>
+	 </facet>
+	 <facet name="makemodel" type="path" />
+	
+	 <facet name="year" type="range">
+		<params>
+		  <param name="range" value="1993-1994" />
+		  <param name="range" value="1995-1996" />
+		  <param name="range" value="1997-1998" />
+		  <param name="range" value="1999-2000" />
+		  <param name="range" value="2001-2002" />
+		</params>
+	 </facet>
+	 <facet name="mileage" type="range">
+		<params>
+		  <param name="range" value="*-12500" />
+		  <param name="range" value="12501-15000" />
+		  <param name="range" value="15001-17500" />
+		  <param name="range" value="17501-*" />
+		</params>
+	 </facet>
+	 <facet name="price" type="range">
+		<params>
+		  <param name="range" value="*,6700" />
+		  <param name="range" value="6800,9900" />
+		  <param name="range" value="10000,13100" />
+		  <param name="range" value="13200,17300" />
+		  <param name="range" value="17400,*" />
+		</params>
+	 </facet>
+	 <facet name="tags" type="multi" />
+	 
+	 <!-- example of a custom facet, defined in custom-facets.xml -->
+	 <!-- 
+	     a bean with name "foobar" must be defined
+	   <facet name="foobar" type="custom" dynamic="false"/>  
+	  -->
+   </facets>
+</schema>

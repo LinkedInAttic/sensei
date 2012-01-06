@@ -2,12 +2,9 @@ package com.sensei.search.nodes;
 
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.zip.GZIPInputStream;
 
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
@@ -16,22 +13,22 @@ import org.apache.lucene.document.Document;
 
 import com.browseengine.bobo.api.FacetSpec;
 import com.linkedin.norbert.NorbertException;
+import com.linkedin.norbert.network.Serializer;
 import com.linkedin.norbert.javacompat.cluster.ClusterClient;
 import com.linkedin.norbert.javacompat.cluster.Node;
 import com.linkedin.norbert.javacompat.network.PartitionedNetworkClient;
 import com.sensei.conf.SenseiSchema;
+import com.sensei.indexing.api.DefaultJsonSchemaInterpreter;
 import com.sensei.search.client.ResultMerger;
 import com.sensei.search.cluster.routing.SenseiLoadBalancerFactory;
 import com.sensei.search.req.SenseiHit;
 import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.req.SenseiResult;
-import com.sensei.search.req.protobuf.SenseiRequestBPO;
-import com.sensei.search.req.protobuf.SenseiRequestBPO.Request;
-import com.sensei.search.req.protobuf.SenseiRequestBPOConverter;
-import com.sensei.search.req.protobuf.SenseiResultBPO;
-import com.sensei.search.req.protobuf.SenseiResultBPO.Result;
 import com.sensei.search.svc.api.SenseiException;
+import com.sensei.search.svc.impl.CoreSenseiServiceImpl;
 import com.sensei.search.svc.impl.HttpRestSenseiServiceImpl;
+
+import proj.zoie.api.indexing.AbstractZoieIndexable;
 
 /**
  * This SenseiBroker routes search(browse) request using the routers created by
@@ -39,22 +36,23 @@ import com.sensei.search.svc.impl.HttpRestSenseiServiceImpl;
  * mechanism to handle distributed search, which does not support request based
  * context sensitive routing.
  */
-public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, SenseiResult, SenseiRequestBPO.Request, SenseiResultBPO.Result>
+public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, SenseiResult>
 {
   private final static Logger logger = Logger.getLogger(SenseiBroker.class);
   private final static long TIMEOUT_MILLIS = 8000L;
   private long _timeoutMillis = TIMEOUT_MILLIS;
   private final SenseiLoadBalancerFactory _loadBalancerFactory;
 
-  public SenseiBroker(PartitionedNetworkClient<Integer> networkClient, ClusterClient clusterClient, SenseiLoadBalancerFactory loadBalancerFactory) throws NorbertException
+  public SenseiBroker(PartitionedNetworkClient<Integer> networkClient, ClusterClient clusterClient,
+                      SenseiLoadBalancerFactory loadBalancerFactory) throws NorbertException
   {
-    super(networkClient,SenseiRequestBPO.Request.getDefaultInstance(), SenseiResultBPO.Result.getDefaultInstance());
+    super(networkClient, CoreSenseiServiceImpl.SERIALIZER);
     _loadBalancerFactory = loadBalancerFactory;
     clusterClient.addListener(this);
     logger.info("created broker instance " + networkClient + " " + clusterClient + " " + loadBalancerFactory);
   }
 
-  private void recoverSrcData(SenseiHit[] hits)
+  private void recoverSrcData(SenseiHit[] hits, boolean isFetchStoredFields)
   {
     if (hits != null)
     {
@@ -62,37 +60,56 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
       {
         try
         {
-          Document doc = hit.getStoredFields();
-          byte[] dataBytes = doc.getBinaryValue(SenseiSchema.SRC_DATA_COMPRESSED_FIELD_NAME);
-          if (dataBytes!=null && dataBytes.length>0){
-            ByteArrayOutputStream bout = new ByteArrayOutputStream();
-            byte[] buf = new byte[1024];  // 1k buffer
-            ByteArrayInputStream bin = new ByteArrayInputStream(dataBytes);
-            GZIPInputStream gzipStream = new GZIPInputStream(bin);
+          byte[] dataBytes = hit.getStoredValue();
+          if (dataBytes == null || dataBytes.length == 0)
+          {
+            Document doc = hit.getStoredFields();
+            if (doc != null)
+            {
+              dataBytes = doc.getBinaryValue(AbstractZoieIndexable.DOCUMENT_STORE_FIELD);
 
-            int len;
-            while ((len = gzipStream.read(buf)) > 0) {
-              bout.write(buf, 0, len);
-            }
-            bout.flush();
+              if (dataBytes == null || dataBytes.length == 0)
+              {
+                dataBytes = doc.getBinaryValue(SenseiSchema.SRC_DATA_COMPRESSED_FIELD_NAME);
 
-            byte[] uncompressed = bout.toByteArray();
-            hit.setSrcData(new String(uncompressed,"UTF-8"));
-          }
-          else {
-            dataBytes = doc.getBinaryValue(SenseiSchema.SRC_DATA_FIELD_NAME);
-            if (dataBytes!=null && dataBytes.length>0) {
-              hit.setSrcData(new String(dataBytes,"UTF-8"));
+                if (dataBytes == null || dataBytes.length == 0)
+                {
+                  dataBytes = doc.getBinaryValue(SenseiSchema.SRC_DATA_FIELD_NAME);
+                  if (dataBytes != null && dataBytes.length > 0)
+                  {
+                    hit.setSrcData(new String(dataBytes,"UTF-8"));
+                    dataBytes = null; // set to null to avoid gunzip.
+                  }
+                }
+                doc.removeFields(SenseiSchema.SRC_DATA_COMPRESSED_FIELD_NAME);
+                doc.removeFields(SenseiSchema.SRC_DATA_FIELD_NAME);
+              }
             }
           }
-          doc.removeFields(SenseiSchema.SRC_DATA_COMPRESSED_FIELD_NAME);
-          doc.removeFields(SenseiSchema.SRC_DATA_FIELD_NAME);
+          if (dataBytes != null && dataBytes.length > 0)
+          {
+            byte[] data;
+            try
+            {
+              data = DefaultJsonSchemaInterpreter.decompress(dataBytes);
+            }
+            catch(Exception ex)
+            {
+              data = dataBytes;
+            }
+            hit.setSrcData(new String(data, "UTF-8"));
+          }
         }
         catch(Exception e)
         {
           logger.error(e.getMessage(),e);
         }
-        recoverSrcData(hit.getSenseiGroupHits());
+
+        recoverSrcData(hit.getSenseiGroupHits(), isFetchStoredFields);
+
+        // Remove stored fields since the user is not requesting:
+        if (!isFetchStoredFields)
+          hit.setStoredFields(null);
       }
     }
   }
@@ -103,9 +120,8 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
     request.restoreState();
     SenseiResult res = ResultMerger.merge(request, resultList, false);
 
-    if (request.isFetchStoredFields()) {  // Decompress binary data.
-      recoverSrcData(res.getSenseiHits());
-    }
+    if (request.isFetchStoredFields() || request.isFetchStoredValue())
+      recoverSrcData(res.getSenseiHits(), request.isFetchStoredFields());
 
     return res;
   }
@@ -121,35 +137,10 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
   {
     return new SenseiResult();
   }
-
-  @Override
-  public SenseiResult messageToResult(Result message)
-  {
-    return SenseiRequestBPOConverter.convert(message);
-  }
   
-  
-
   @Override
-  public SenseiResult browse(SenseiRequest req) throws SenseiException {
-	  try{
-	    List<NameValuePair> queryParams = HttpRestSenseiServiceImpl.convertRequestToQueryParams(req);
-	    String qString = URLEncodedUtils.format(queryParams, "UTF-8");
-		Logger log = Logger.getLogger("com.sensei.querylog");
-		log.info(qString);
-	  }
-	  catch(Exception e){
-		logger.error(e.getMessage(),e);
-	  }
-	  return super.browse(req);
-  }
-
-@Override
-  public Request requestToMessage(SenseiRequest request)
-  {
-    request.saveState();
-
-    // Rewrite offset and count.
+  public SenseiRequest customizeRequest(SenseiRequest request)
+  {    // Rewrite offset and count.
     request.setCount(request.getOffset()+request.getCount());
     request.setOffset(0);
 
@@ -163,7 +154,11 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
       }
     }
 
-    return SenseiRequestBPOConverter.convert(request);
+    // Rewrite fetchStoredFields for zoie store.
+    if (!request.isFetchStoredFields())
+      request.setFetchStoredFields(request.isFetchStoredValue());
+
+    return request;
   }
 
   @Override

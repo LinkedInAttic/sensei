@@ -1,12 +1,14 @@
 package com.sensei.test;
 
 import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 import junit.framework.TestCase;
@@ -186,7 +188,7 @@ public class TestIndexingAPI extends TestCase {
 		assertTrue(isMeta(ageField));
 		String ageString = ageField.stringValue();
 		String formatString = DefaultSenseiInterpreter.DEFAULT_FORMAT_STRING_MAP.get(MetaType.Integer);
-		Format formatter = new DecimalFormat(formatString);
+		Format formatter = new DecimalFormat(formatString, new DecimalFormatSymbols(Locale.US));
 		assertEquals(formatter.format(11),ageString);
 		
 		Field shortField = doc.getField("shortie");

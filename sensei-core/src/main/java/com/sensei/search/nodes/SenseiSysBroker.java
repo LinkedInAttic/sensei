@@ -17,20 +17,18 @@ import java.util.Set;
 
 import org.apache.log4j.Logger;
 
-import com.google.protobuf.Message;
 import com.linkedin.norbert.NorbertException;
 import com.linkedin.norbert.javacompat.cluster.ClusterClient;
 import com.linkedin.norbert.javacompat.cluster.Node;
 import com.linkedin.norbert.javacompat.network.PartitionedNetworkClient;
+import com.linkedin.norbert.network.Serializer;
 import com.sensei.search.cluster.routing.RoutingInfo;
 import com.sensei.search.cluster.routing.SenseiLoadBalancerFactory;
 import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.req.SenseiSystemInfo;
-import com.sensei.search.req.protobuf.SenseiSysRequestBPO;
-import com.sensei.search.req.protobuf.SenseiSysRequestBPOConverter;
-import com.sensei.search.req.protobuf.SenseiSysResultBPO;
+import com.sensei.search.svc.impl.SysSenseiCoreServiceImpl;
 
-public class SenseiSysBroker extends AbstractConsistentHashBroker<SenseiRequest, SenseiSystemInfo, SenseiSysRequestBPO.SysRequest, SenseiSysResultBPO.SysResult>
+public class SenseiSysBroker extends AbstractConsistentHashBroker<SenseiRequest, SenseiSystemInfo>
 {
   private final static Logger logger = Logger.getLogger(SenseiSysBroker.class);
   private final static long TIMEOUT_MILLIS = 8000L;
@@ -43,7 +41,7 @@ public class SenseiSysBroker extends AbstractConsistentHashBroker<SenseiRequest,
   public SenseiSysBroker(PartitionedNetworkClient<Integer> networkClient, ClusterClient clusterClient,
       SenseiLoadBalancerFactory loadBalancerFactory, Comparator<String> versionComparator) throws NorbertException
   {
-    super(networkClient, SenseiSysRequestBPO.SysRequest.getDefaultInstance(), SenseiSysResultBPO.SysResult.getDefaultInstance());
+    super(networkClient, SysSenseiCoreServiceImpl.SERIALIZER);
     _versionComparator = versionComparator;
     _loadBalancerFactory = loadBalancerFactory;
     clusterClient.addListener(this);
@@ -60,6 +58,7 @@ public class SenseiSysBroker extends AbstractConsistentHashBroker<SenseiRequest,
     for (SenseiSystemInfo res : resultList)
     {
       result.setNumDocs(result.getNumDocs()+res.getNumDocs());
+      result.setSchema(res.getSchema());
       if (result.getLastModified() < res.getLastModified())
         result.setLastModified(res.getLastModified());
       if (result.getVersion() == null || _versionComparator.compare(result.getVersion(), res.getVersion()) < 0)
@@ -102,7 +101,7 @@ public class SenseiSysBroker extends AbstractConsistentHashBroker<SenseiRequest,
     List<SenseiSystemInfo> resultlist = new ArrayList<SenseiSystemInfo>(parts.length);
     Map<Integer, Set<Integer>> partsMap = new HashMap<Integer, Set<Integer>>();
     Map<Integer, Node> nodeMap = new HashMap<Integer, Node>();
-    Map<Integer, Future<Message>> futureMap = new HashMap<Integer, Future<Message>>();
+    Map<Integer, Future<SenseiSystemInfo>> futureMap = new HashMap<Integer, Future<SenseiSystemInfo>>();
     for(int ni = 0; ni < parts.length; ni++)
     {
       Node node = searchNodes.nodelist[ni].get(searchNodes.nodegroup[ni]);
@@ -121,20 +120,18 @@ public class SenseiSysBroker extends AbstractConsistentHashBroker<SenseiRequest,
         req.setPartitions(partsMap.get(node.getId()));
       else
         req.setPartitions(node.getPartitionIds());
-      SenseiSysRequestBPO.SysRequest msg = requestToMessage(req);
       if (logger.isDebugEnabled())
       {
         logger.debug("DEBUG: broker sending req part: " + req.getPartitions() + " on node: " + node);
       }
-      futureMap.put(node.getId(), (Future<Message>)_networkClient.sendMessageToNode(msg, node));
+      futureMap.put(node.getId(), (Future<SenseiSystemInfo>)_networkClient.sendRequestToNode(req, node, _serializer));
     }
-    for(Map.Entry<Integer, Future<Message>> entry : futureMap.entrySet())
+    for(Map.Entry<Integer, Future<SenseiSystemInfo>> entry : futureMap.entrySet())
     { 
-      SenseiSysResultBPO.SysResult resp;
+      SenseiSystemInfo res;
       try
       {
-        resp = (SenseiSysResultBPO.SysResult)entry.getValue().get(_timeout,TimeUnit.MILLISECONDS);
-        SenseiSystemInfo res = messageToResult(resp);
+        res = entry.getValue().get(_timeout,TimeUnit.MILLISECONDS);
         if (!nodeMap.containsKey(entry.getKey()))  // Do not count.
           res.setNumDocs(0);
         resultlist.add(res);
@@ -171,18 +168,6 @@ public class SenseiSysBroker extends AbstractConsistentHashBroker<SenseiRequest,
   public SenseiSystemInfo getEmptyResultInstance()
   {
     return new SenseiSystemInfo();
-  }
-
-  @Override
-  public SenseiSystemInfo messageToResult(SenseiSysResultBPO.SysResult message)
-  {
-    return SenseiSysRequestBPOConverter.convert(message);
-  }
-
-  @Override
-  public SenseiSysRequestBPO.SysRequest requestToMessage(SenseiRequest request)
-  {
-    return SenseiSysRequestBPOConverter.convert(request);
   }
 
   @Override

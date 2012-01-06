@@ -6,8 +6,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import javax.management.MBeanServer;
-
 import org.apache.log4j.Logger;
 
 import proj.zoie.api.DataProvider;
@@ -172,12 +170,17 @@ public class SenseiCore{
 
         _readerFactoryMap.put(part, zoieSystem);
       }
-
-    logger.info("initializing index manager...");
-      _indexManager.initialize(_readerFactoryMap);
-      logger.info("starting index manager...");
-      _indexManager.start();
-      logger.info("index manager started...");
+      try{
+        logger.info("initializing index manager...");
+        _indexManager.initialize(_readerFactoryMap);
+        logger.info("starting index manager...");
+        _indexManager.start();
+      
+        logger.info("index manager started...");
+      }
+      catch(Exception e){
+        logger.error("Unable to start indexing manager, indexing not started...",e);
+      }
       _started = true;
   }
   
@@ -190,13 +193,12 @@ public class SenseiCore{
       _indexManager.shutdown();
     logger.info("index manager shutdown...");
       
-        // shutdown the zoieSystems
-        for(Zoie<BoboIndexReader,?> zoieSystem : zoieSystems)
-        {
-          zoieSystem.shutdown();
-        }
-        zoieSystems.clear();
-        _started =false;
+    // shutdown the zoieSystems
+    for(Zoie<BoboIndexReader,?> zoieSystem : zoieSystems){
+      zoieSystem.shutdown();
+    }
+    zoieSystems.clear();
+    _started =false;
   }
 
   public DataProvider getDataProvider()

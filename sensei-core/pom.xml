@@ -75,6 +75,28 @@
 		       </execution>
 		       </executions>
 		    </plugin>
+		    
+            <plugin>
+                <groupId>pl.project13.maven</groupId>
+                <artifactId>git-commit-id-plugin</artifactId>
+                <version>1.9</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>revision</goal>
+                         </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <prefix>git</prefix>
+                    <dateFormat>dd.MM.yyyy '@' HH:mm:ss z</dateFormat>
+                    <verbose>true</verbose>
+                    <dotGitDirectory>${project.basedir}/../.git</dotGitDirectory>
+                    <generateGitPropertiesFile>true</generateGitPropertiesFile>
+                    <generateGitPropertiesFilename>src/main/resources/git.properties</generateGitPropertiesFilename>
+                </configuration>
+            </plugin>
+		    
 		</plugins>
 	</build>
 
@@ -84,51 +106,53 @@
 	</properties>
 
 	<dependencies>
-		<dependency>
-			<groupId>org.jboss.netty</groupId>
-			<artifactId>netty</artifactId>
-			<version>3.2.3.Final</version>
-		</dependency>
-		
+	
     <dependency>
       <groupId>org.jolokia</groupId>
       <artifactId>jolokia-core</artifactId>
       <version>0.90</version>
     </dependency>
+    
+        <dependency>
+			<groupId>com.google.protobuf</groupId>
+			<artifactId>protobuf-java</artifactId>
+			<version>2.4.0a</version>
+		</dependency>
 
 		<dependency>
-			<groupId>com.sna-projects.kafka</groupId>
-			<artifactId>kafka</artifactId>
-			<version>0.5-SNAPSHOT</version>
-			<exclusions>
-			  <exclusion>  <!-- declare the exclusion here -->
-			    <groupId>zkclient</groupId>
-			    <artifactId>zkclient</artifactId>
-			  </exclusion>
-			</exclusions>
-		</dependency>
-		<dependency>
-			<groupId>com.linkedin.kamikaze</groupId>
-			<artifactId>kamikaze</artifactId>
-			<version>3.0.4</version>
-		</dependency>
-		
-		<dependency>
-			<groupId>org.scala-lang</groupId>
-			<artifactId>scala-library</artifactId>
-			<version>2.8.1</version>
+		    <groupId>org.apache.hadoop</groupId>
+		    <artifactId>hadoop-core</artifactId>
+		    <version>0.20.204.0</version>
+        <exclusions>
+          <exclusion>
+            <groupId>tomcat</groupId>
+            <artifactId>jasper-runtime</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>tomcat</groupId>
+            <artifactId>jasper-compiler</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.mortbay.jetty</groupId>
+            <artifactId>jsp-api-2.1</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.mortbay.jetty</groupId>
+            <artifactId>jsp-2.1</artifactId>
+          </exclusion>
+        </exclusions> 
 		</dependency>
 		
 		<dependency>
 			<groupId>com.linkedin.zoie</groupId>
 			<artifactId>zoie-core</artifactId>
-			<version>3.0.0</version>
+			<version>3.1.0-SNAPSHOT</version>
 		</dependency>
 		
 		<dependency>
 			<groupId>com.linkedin.zoie</groupId>
 			<artifactId>zoie-jms</artifactId>
-			<version>3.0.0</version>
+			<version>3.1.0-SNAPSHOT</version>
 		</dependency>
 		
 		<dependency>
@@ -177,12 +201,6 @@
         </dependency>
 
 		<dependency>
-			<groupId>org.apache.lucene</groupId>
-			<artifactId>lucene-core</artifactId>
-			<version>3.0.2</version>
-		</dependency>
-
-		<dependency>
 			<groupId>com.browseengine.bobo</groupId>
 			<artifactId>bobo-browse</artifactId>
 			<version>3.0.0-SNAPSHOT</version>
@@ -202,44 +220,17 @@
 		</dependency>
 
 		<dependency>
-			<groupId>com.sna-projects.norbert</groupId>
-			<artifactId>norbert-java-cluster</artifactId>
-			<version>1.0.0-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>com.sna-projects.norbert</groupId>
-			<artifactId>norbert-java-network</artifactId>
-			<version>1.0.0-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>com.sna-projects.norbert</groupId>
-			<artifactId>norbert-network</artifactId>
-			<version>1.0.0-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>com.sna-projects.norbert</groupId>
-			<artifactId>norbert-cluster</artifactId>
-			<version>1.0.0-SNAPSHOT</version>
-		</dependency>
-
-		<dependency>
-			<groupId>com.google.protobuf</groupId>
-			<artifactId>protobuf-java</artifactId>
-			<version>2.3.0</version>
+			<groupId>com.linkedin</groupId>
+			<artifactId>norbert_2.8.1</artifactId>
+			<version>0.6.12</version>
 		</dependency>
 		
 		<dependency>
-			<groupId>com.yammer</groupId>
-			<artifactId>metrics_2.8.1</artifactId>
-			<version>2.0.0-BETA11</version>
-		</dependency>
+           <groupId>com.yammer.metrics</groupId>
+           <artifactId>metrics-core</artifactId>
+           <version>2.0.0-BETA18-SNAPSHOT</version>
+        </dependency>
 		
-		<dependency>
-			<groupId>org.apache.avro</groupId>
-			<artifactId>avro</artifactId>
-			<version>1.4.0</version>
-		</dependency>
-
 		<dependency>
 			<groupId>javax.servlet</groupId>
 			<artifactId>servlet-api</artifactId>
@@ -251,7 +242,6 @@
 			<artifactId>jetty</artifactId>
 			<version>6.1.26</version>
 		</dependency>
-		
 		<dependency>
 			<groupId>org.apache.zookeeper</groupId>
 			<artifactId>zookeeper</artifactId>

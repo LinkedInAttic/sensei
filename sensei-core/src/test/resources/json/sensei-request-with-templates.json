@@ -1,0 +1,62 @@
+{
+  "count": "$max",
+  "explain": false,
+  "facetInit": {},
+  "facets": {
+    "color": {
+      "expand": true,
+      "max": "$max",
+      "minHit": 1,
+      "order": "hits"
+    },
+    "year": {
+      "expand": true,
+      "max": "$max",
+      "minHit": 1,
+      "order": "val"
+    }
+  },
+  "fetchStored": true,
+  "from": 0,
+  "partitions": [],
+  "query": {"query_string": {
+    "boost": "$boost",
+    "query": "cool"
+  }},
+  "selections": [
+    {"terms": {"tags": {
+      "_noOptimize": false,
+      "excludes": ["favorite"],
+      "operator": "and",
+      "values": [
+        "cool",
+        "hybrid"
+      ]
+    }}},
+    {"terms": {"color": {
+      "_noOptimize": false,
+      "excludes": [],
+      "operator": "or",
+      "values": ["$color"]
+    }}}
+  ],
+  "sorts": [{
+    "field": "price",
+    "order": "desc"
+  }],
+  "boost": "$boost",
+  "routeParam" : "$routeParam",
+  "termVectors": [],
+
+
+    templateMapping : {
+    boost: 1.0,
+    max : 10,
+    routeParam : "substitutedParam",
+    color : "red"
+    }
+
+}
+
+
+

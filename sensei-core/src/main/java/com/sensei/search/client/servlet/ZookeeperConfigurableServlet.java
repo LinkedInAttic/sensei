@@ -7,9 +7,10 @@ import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 
-import com.sensei.search.cluster.routing.SenseiLoadBalancerFactory;
-
 import org.apache.commons.configuration.Configuration;
+
+import com.sensei.conf.SenseiConfParams;
+import com.sensei.search.cluster.routing.SenseiLoadBalancerFactory;
 
 public class ZookeeperConfigurableServlet extends HttpServlet {
   
@@ -18,6 +19,7 @@ public class ZookeeperConfigurableServlet extends HttpServlet {
    */
   private static final long serialVersionUID = 1L;
   protected String zkurl;
+	protected String clusterClientName;
   protected String clusterName;
   protected int zkTimeout;
   protected int connectTimeoutMillis;
@@ -33,11 +35,18 @@ public class ZookeeperConfigurableServlet extends HttpServlet {
     super.init(config);
     
     ServletContext ctx = config.getServletContext();
-    
     Configuration senseiConf = (Configuration)ctx.getAttribute(SenseiConfigServletContextListener.SENSEI_CONF_OBJ);
-    zkurl = senseiConf.getString(SenseiConfigServletContextListener.SENSEI_CONF_ZKURL);
-    clusterName = senseiConf.getString(SenseiConfigServletContextListener.SENSEI_CONF_CLUSTER_NAME);
-    zkTimeout = senseiConf.getInt(SenseiConfigServletContextListener.SENSEI_CONF_ZKTIMEOUT,10000);
+    
+    clusterName = senseiConf.getString(SenseiConfParams.SENSEI_CLUSTER_NAME);
+    clusterClientName = senseiConf.getString(SenseiConfParams.SENSEI_CLUSTER_CLIENT_NAME,clusterName);
+    zkurl = senseiConf.getString(SenseiConfParams.SENSEI_CLUSTER_URL);
+    zkTimeout = senseiConf.getInt(SenseiConfParams.SENSEI_CLUSTER_TIMEOUT, 300000);
+    
+    zkurl = senseiConf.getString(SenseiConfigServletContextListener.SENSEI_CONF_ZKURL,zkurl);
+	  clusterClientName = senseiConf.getString(SenseiConfigServletContextListener.SENSEI_CONF_CLUSTER_CLIENT_NAME,clusterClientName);
+    clusterName = senseiConf.getString(SenseiConfigServletContextListener.SENSEI_CONF_CLUSTER_NAME,clusterName);
+    zkTimeout = senseiConf.getInt(SenseiConfigServletContextListener.SENSEI_CONF_ZKTIMEOUT,zkTimeout);
+    
     connectTimeoutMillis = senseiConf.getInt(SenseiConfigServletContextListener.SENSEI_CONF_NC_CONN_TIMEOUT, 1000);
     writeTimeoutMillis = senseiConf.getInt(SenseiConfigServletContextListener.SENSEI_CONF_NC_WRITE_TIMEOUT, 150);
     maxConnectionsPerNode = senseiConf.getInt(SenseiConfigServletContextListener.SENSEI_CONF_NC_MAX_CONN_PER_NODE, 5);

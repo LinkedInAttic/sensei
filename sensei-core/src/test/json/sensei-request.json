@@ -1,0 +1,123 @@
+// example Sensei Request
+{
+  "query" : {
+    "query_string" : { 
+      "query" : "this AND that OR thus"
+    }
+  },
+
+  // paging parameters
+
+  "size" : 10,   // default to 10;
+  "from" : 0,    //default to 0;   
+  
+  // group by parameters (currently only support group by one column)
+  "groupBy" : {
+    "columns" : ["category"],
+    "top" : 3
+  },
+
+  // filters
+  "filter" : {
+    "terms" : {
+      "tags" : {
+        "values" : [ "blue", "pill" ],
+        "excludes" : ["red"],
+        "minimum_match" : 1,
+        "operator" : "or",
+        "_noOptimize" : false
+      }
+    }
+  },
+  
+  "selections" : [
+    {
+      //details of this part see the selections.json
+      "tags" : {
+        "values" : [ "blue", "pill" ],
+        "excludes" : ["red"],
+        "operator" : "or"
+      }
+    },
+    {
+      "term":{
+      },
+    },
+  ],
+
+  // facet parameters
+  "facets":{
+    "category":{
+      // maximum number of facet values to return
+      "max" : 10,
+      // minimum hit count for a given facet value
+      "minCount": 1,
+      // expand sibling facet values
+      "expand" : false,
+      // facet ordering, possible values: "hits", "val", defaults to "hits"
+      "order" : "hits"
+    }
+  },
+  
+      // facet initialization parameters for runtime facets
+  "facetInit":{
+    "network" : {
+      // parameter
+      "srcId" :{
+        // parameter type, valid values are: "int","string","boolean","long","bytes","double", default: "string"
+        "type" : "int",
+        // parameter values
+        "values" : [26609850]  //e.g. "$member"
+      },
+      "timeOut":{
+        "type" : "double",
+        "values" : [2.4]
+      },
+      "coldStart":{
+        "type" : "boolean",
+        "values" : [true]
+      },
+      "names":{
+        "type": "string",
+        "values":["a", "b", "c"]
+      },
+      "longId":{
+        "type": "long",
+        "values":[1234567890, 9876543210]
+      },
+      "binary":{
+        "type": "bytes",
+        "values":["SGVsbG8gd29ybGQ="]
+      }
+    }
+  },
+  
+  // sort parameters
+  "sort":[
+      {"color":"desc"},       // sort by color in reverse order
+      "_score"                     // secondary sort by relevance, reverse  parameter is ignored
+  ],
+
+
+
+  // fetch stored fields
+  "fetchStored" : false,
+
+  // fetch term vectors: array of field names
+  "termVectors" : [],
+
+  // partitions to send request to, empty list or null implies all partitions
+  "partitions":[1,2],
+
+  // send back scoring explanation for each hit
+  "explain" : false,
+
+  // routing parameter, if set, request will be consistent hashed to the same replica for each partition
+  "routeParam": null,
+
+  //Allows template substitution on the server. The template occurrence in other places should begin with the dollar sign. Even for the int values the template needs to be in quotes
+  "templateMapping":{
+    "size" : 10
+  }
+  //"size" : "$size"
+}

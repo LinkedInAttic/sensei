@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<chapter xmlns="http://docbook.org/ns/docbook"
+         xmlns:xlink="http://www.w3.org/1999/xlink"
+         xmlns:ns5="http://www.w3.org/1998/Math/MathML"
+         xmlns:ns4="http://www.w3.org/2000/svg"
+         xmlns:ns3="http://www.w3.org/1999/xhtml"
+         xmlns:ns="http://docbook.org/ns/docbook">
+  <title>Consistency Model</title>
+
+  <section>
+     
+
+    <title>CAP theorem</title>
+
+     
+
+    <para>The CAP conjecture was firstly proposed by Eric Brewer and formally
+    proved by Seth Gilbert and Nancy Lynch later. The theorem states the
+    following three properties can not be guaranteed at the same time:
+    <itemizedlist>
+        <listitem>
+          <para>Consistency: The consistency guarantees the total order on all
+          operations, which means the whole system looks like a single
+          instance to the outside world, and all the read/writer operations
+          are handled in an atomic consistent way.</para>
+        </listitem>
+
+        <listitem>
+          <para>Availability: Every non-failing node in the system must give a
+          response when it receives a request and every request must
+          terminate.</para>
+        </listitem>
+
+        <listitem>
+          <para>Partition Tolerance: A partitioned network means messages
+          could be dropped when sent from one partition to another one in the
+          network.</para>
+        </listitem>
+      </itemizedlist></para>
+  </section>
+
+  <section>
+    <title>Eventually Consistency</title>
+
+    <para>As proved in Seth Gilbert and Nancy Lynch's paper, it is impossible
+    to provide all three properties above in a distributed service. However,
+    any two of them could be satisfied at some conditions. In a practical
+    distributed system, partition tolerance is normally a must, which means
+    system failure and network partitions always exist. Under this
+    circumstance, we have to choose which one to sacrifice, consistency or
+    availability (either CP, or AP). On the other hand, a practical real life
+    system normally fits the partially synchronous model, sometimes stale data
+    is allowed, as long as we have a time limit of the inconsistency status
+    and some conflict resolution strategies (Weak Consistency). As a special
+    case of weak consistency, eventual consistency means eventually the system
+    will be consistent if no new update comes into the system.</para> 
+    
+    <para>
+    As we can see
+    in the following table, some systems like HBase, MongoDB fall into the CP
+    spectrum, consistence is more important here, others like Cassandra or
+    CounchDB prefers high availability, which means when messages are lost,
+    returning stale data is allowed. </para>
+
+    <table>
+      <title>CAP theorem with examples (of default configuration)</title>
+
+      <tgroup cols="2">
+        <colspec align="center" />
+
+        <thead>
+          <row>
+            <entry align="center"></entry>
+
+            <entry align="center">Example Systems</entry>
+          </row>
+        </thead>
+
+        <tbody>
+          <row>
+            <entry>CA</entry>
+
+            <entry>LAN systems, RDBMSs such as MySQL, Postgres, etc.</entry>
+          </row>
+
+          <row>
+            <entry>CP</entry>
+
+            <entry>HBase, MongoDB, BigTable, etc.</entry>
+          </row>
+          
+          <row>
+            <entry>AP</entry>
+
+            <entry>Cassandra, CounchDB, Dynamo, Voldemort, etc.</entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+
+    <para></para>
+  </section>
+</chapter>

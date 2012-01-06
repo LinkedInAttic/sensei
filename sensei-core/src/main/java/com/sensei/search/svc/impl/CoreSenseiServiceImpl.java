@@ -3,12 +3,9 @@ package com.sensei.search.svc.impl;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import javax.management.ObjectName;
 
 import org.apache.log4j.Logger;
 import org.apache.lucene.search.Query;
@@ -23,35 +20,36 @@ import com.browseengine.bobo.api.BrowseException;
 import com.browseengine.bobo.api.BrowseHit;
 import com.browseengine.bobo.api.BrowseRequest;
 import com.browseengine.bobo.api.BrowseResult;
-import com.browseengine.bobo.api.FacetAccessible;
 import com.browseengine.bobo.api.MultiBoboBrowser;
-import com.google.protobuf.Message;
+import com.linkedin.norbert.network.JavaSerializer;
+import com.linkedin.norbert.network.Serializer;
 import com.sensei.indexing.api.SenseiIndexPruner;
 import com.sensei.indexing.api.SenseiIndexPruner.IndexReaderSelector;
+import com.sensei.metrics.MetricsConstants;
 import com.sensei.search.client.ResultMerger;
-import com.sensei.search.jmx.JmxUtil;
-import com.sensei.search.jmx.JmxUtil.Timer;
 import com.sensei.search.nodes.SenseiCore;
 import com.sensei.search.nodes.SenseiQueryBuilderFactory;
 import com.sensei.search.req.SenseiHit;
 import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.req.SenseiResult;
-import com.sensei.search.req.protobuf.SenseiRequestBPO;
-import com.sensei.search.req.protobuf.SenseiRequestBPOConverter;
 import com.sensei.search.util.RequestConverter;
+import com.yammer.metrics.Metrics;
+import com.yammer.metrics.core.MetricName;
 import com.yammer.metrics.core.TimerMetric;
 
 public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiRequest, SenseiResult>{
+	public static final Serializer<SenseiRequest, SenseiResult> SERIALIZER =
+			JavaSerializer.apply("SenseiRequest", SenseiRequest.class, SenseiResult.class);
+
 
 	private static final Logger logger = Logger.getLogger(CoreSenseiServiceImpl.class);
 	
-
-	private final static TimerMetric PruneTimer = new TimerMetric(TimeUnit.MILLISECONDS,TimeUnit.SECONDS);
+	private static TimerMetric timerMetric = null;
 	static{
-		  // register jmx monitoring for timers
+		  // register prune time metric
 		  try{
-		    ObjectName pruneMBeanName = new ObjectName(JmxUtil.Domain+".node","name","prune-time");
-		    JmxUtil.registerMBean(PruneTimer, pruneMBeanName);
+		    MetricName metricName = new MetricName(MetricsConstants.Domain, "timer", "prune", "node");
+		    timerMetric = Metrics.newTimer(metricName, TimeUnit.MILLISECONDS,TimeUnit.SECONDS);
 		  }
 		  catch(Exception e){
 				logger.error(e.getMessage(),e);
@@ -143,35 +141,33 @@ public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiReque
 			List<BoboIndexReader> readerList,SenseiQueryBuilderFactory queryBuilderFactory) throws Exception {
 		SubReaderAccessor<BoboIndexReader> subReaderAccessor = ZoieIndexReader.getSubReaderAccessor(readerList);
 	    MultiBoboBrowser browser = null;
-	    
-	    
-	    
+
 	    try
 	    {
           final List<BoboIndexReader> segmentReaders = BoboBrowser.gatherSubReaders(readerList);
           if (segmentReaders!=null && segmentReaders.size()>0){
         	final AtomicInteger skipDocs = new AtomicInteger(0);
-        	List<BoboIndexReader> validatedSegmentReaders = PruneTimer.time(new Callable<List<BoboIndexReader>>(){
 
-				@Override
-				public List<BoboIndexReader> call() throws Exception {
-					SenseiIndexPruner pruner = _core.getIndexPruner();
+        	List<BoboIndexReader> validatedSegmentReaders = timerMetric.time(new Callable<List<BoboIndexReader>>(){
+
+				     @Override
+				     public List<BoboIndexReader> call() throws Exception {
+					      SenseiIndexPruner pruner = _core.getIndexPruner();
 
 		  	        IndexReaderSelector readerSelector = pruner.getReaderSelector(request);
 		  	        List<BoboIndexReader> validatedReaders = new ArrayList<BoboIndexReader>(segmentReaders.size());
-		        	for (BoboIndexReader segmentReader : segmentReaders){
-		        		if (readerSelector.isSelected(segmentReader)){
-		        			validatedReaders.add(segmentReader);
-		        		}
-		        		else{
-		        			skipDocs.addAndGet(segmentReader.numDocs());
-		        		}
-		        	}
-		        	return validatedReaders;
-				}
+		        	  for (BoboIndexReader segmentReader : segmentReaders){
+		        		  if (readerSelector.isSelected(segmentReader)){
+		        			  validatedReaders.add(segmentReader);
+		        		  }
+		        		  else{
+		        			  skipDocs.addAndGet(segmentReader.numDocs());
+		        		  }
+		        	  }
+		        	  return validatedReaders;
+				      }
         		
         	});
-        	
         	
 	        browser = new MultiBoboBrowser(BoboBrowser.createBrowsables(validatedSegmentReaders));
 	        BrowseRequest breq = RequestConverter.convert(request, queryBuilderFactory);
@@ -211,20 +207,10 @@ public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiReque
 	@Override
 	public SenseiResult getEmptyResultInstance(Throwable error) {
 		return new SenseiResult();
-	} 
-	  
-	@Override
-	public Message resultToMessage(SenseiResult result) {
-		return SenseiRequestBPOConverter.convert(result);
 	}
 
 	@Override
-	public SenseiRequest reqFromMessage(Message req) {
-		return SenseiRequestBPOConverter.convert((SenseiRequestBPO.Request)req);
-	}
-
-	@Override
-	public Message getEmptyRequestInstance() {
-		return SenseiRequestBPO.Request.getDefaultInstance(); 
+	public Serializer<SenseiRequest, SenseiResult> getSerializer() {
+		 return SERIALIZER;
 	}
 }

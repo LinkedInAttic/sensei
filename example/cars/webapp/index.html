@@ -1,0 +1,137 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-us">
+  <head>
+    <meta http-equiv="content-type" content="text/html;charset=utf-8">
+    <title>Sensei Demo - Cars</title>
+
+    <script src="http://code.jquery.com/jquery-1.4.4.js"></script>
+
+    <script type="text/javascript">
+	 
+    </script>
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+    <script type="text/javascript" src="sensei-js/sensei-client-1.0.0.js"></script>
+    <script type="text/javascript" src="js/cardemo.js"></script>
+  </head>
+
+ <body onload="doSearch()">
+    <div class="topbar">
+      <div class="topbar-inner">
+        <div class="container-fluid">
+          <a class="brand" href="#">Sensei Demo - Cars </a>
+          <ul class="nav">
+            <li class="active"><a href="#">Home</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <br/>
+    <br/>
+    <div class="container-fluid">
+      <div class="sidebar">
+        <div class="well">
+          <h4>Facets</h4>
+          <hr/>
+          <h5>Color</h5>
+            <div id="color">
+            </div>
+          <h5>Category</h5>
+            <div id="category">
+            </div>
+          <h5>Price</h5>
+            <div id="price">
+            </div>
+          <h5>Year</h5>
+            <div id="year">
+            </div>
+		  <h5>Mileage</h5>
+	            <div id="mileage">
+	            </div>
+          <h5>Tags</h5>
+            <div id="tags">
+            </div>
+        </div>
+      </div>
+      <div class="content">
+        <!-- Main hero unit for a primary marketing message or call to action -->
+        <div class="hero-unit">
+
+        <input id="qbox" style="width:500px;height:30px" type="text" height="20" size="50" />
+        <input type="button" class="btn primary" onclick="updateTextQuery()" value="Search" />
+        <a href="#" onclick="if(resetAll()||true) return false">reset</a>
+        
+        <p>
+        Number of hits: <span id="numhits">0</span> / <span id="totaldocs">0</span>, (took  <span id="time">0</span> seconds)
+        </p>
+        </div>
+
+        <!-- Example row of columns -->
+        <div class="row">
+          <div class="span9">
+            <h2>MakeModel</h2>
+            <div id="makemodel">
+			      <table width="150">
+			        <tr>
+			          <td align="left" class="ROWHEAD">makemodel: <span><a>All</a>/</span></td>
+			        </tr>
+			        <tr>
+			          <td>
+			            <table>
+			              <tr>
+			              </tr>
+			            </table>
+			          </td>
+			        </tr>
+			      </table>
+            </div>
+          </div>
+          <div class="span9">
+            <h2>City</h2>
+             <div id="city">
+				<table width="150">
+			        <tr>
+			          <td align="left" class="ROWHEAD">city: <span><a>All</a>/</span></td>
+			        </tr>
+			        <tr>
+			          <td>
+			            <table>
+			              <tr>
+			              </tr>
+			            </table>
+			          </td>
+			        </tr>
+			      </table>
+             </div>
+         </div>
+        </div>
+        <hr>
+        <h2>Hits</h2>
+        <table class="zebra-striped">
+          <thead>
+            <th>#</th>
+            <th><a href="#" onclick="if(toggleSort('color')||true) return false">Color</a></th>
+            <th><a href="#" onclick="if(toggleSort('category')||true) return false">Category</a></th>
+            <th><a href="#" onclick="if(toggleSort('year')||true) return false">Year</a></th>
+            <th><a href="#" onclick="if(toggleSort('price')||true) return false">Price</a></th>
+            <th><a href="#" onclick="if(toggleSort('mileage')||true) return false">Mileage</a></th>
+            <th>Score</th>
+          </thead>
+          <tbody id="results">
+          </tbody>
+        </table>
+        <footer>
+          <p>&copy; SenseiDB.com 2011</p>
+        </footer>
+      </div>
+    </div>
+
+  </body>
+
+</html>

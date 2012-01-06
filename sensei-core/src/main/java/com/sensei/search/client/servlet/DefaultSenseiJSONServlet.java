@@ -18,6 +18,7 @@ import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_F
 import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_FACET_ORDER_HITS;
 import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_FACET_ORDER_VAL;
 import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_FETCH_STORED;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_FETCH_STORED_VALUE;
 import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_FETCH_TERMVECTOR;
 import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_GROUP_BY;
 import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_MAX_PER_GROUP;
@@ -77,6 +78,7 @@ import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_S
 import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_SYSINFO_FACETS_RUNTIME;
 import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_SYSINFO_LASTMODIFIED;
 import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_SYSINFO_NUMDOCS;
+import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_SYSINFO_SCHEMA;
 import static com.sensei.search.client.servlet.SenseiSearchServletParams.PARAM_SYSINFO_VERSION;
 
 import java.io.UnsupportedEncodingException;
@@ -309,9 +311,9 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
       Map<String, String[]> fieldMap = hit.getFieldValues();
 
       JSONObject hitObj = new JSONObject();
-      hitObj.put(PARAM_RESULT_HIT_UID, Long.toString(hit.getUID()));
-      hitObj.put(PARAM_RESULT_HIT_DOCID, Integer.toString(hit.getDocid()));
-      hitObj.put(PARAM_RESULT_HIT_SCORE, Float.toString(hit.getScore()));
+      hitObj.put(PARAM_RESULT_HIT_UID, hit.getUID());
+      hitObj.put(PARAM_RESULT_HIT_DOCID, hit.getDocid());
+      hitObj.put(PARAM_RESULT_HIT_SCORE, hit.getScore());
       hitObj.put(PARAM_RESULT_HIT_GROUPVALUE, hit.getGroupValue());
       hitObj.put(PARAM_RESULT_HIT_GROUPHITSCOUNT, hit.getGroupHitsCount());
       if (hit.getGroupHits() != null && hit.getGroupHits().length > 0)
@@ -356,7 +358,7 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
         }
         hitObj.put(PARAM_RESULT_HIT_STORED_FIELDS, new JSONArray(storedData));
       }
-      
+
       Map<String,BrowseHit.TermFrequencyVector> tvMap = hit.getTermFreqMap();
       if (tvMap!=null && tvMap.size()>0){
         JSONObject tvObj = new JSONObject();
@@ -432,7 +434,7 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
       for (String qparam : qparams)
       {
         qparam = qparam.trim();
-        if (qparam.length() == 0) 
+        if (qparam.length() == 0)
           continue;
         String[] parts = qparam.split(":", 2);
         if (parts.length == 2)
@@ -481,7 +483,8 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
     senseiReq.setCount(params.getInt(PARAM_COUNT, 10));
     senseiReq.setShowExplanation(params.getBoolean(PARAM_SHOW_EXPLAIN, false));
     senseiReq.setFetchStoredFields(params.getBoolean(PARAM_FETCH_STORED, false));
-    
+    senseiReq.setFetchStoredValue(params.getBoolean(PARAM_FETCH_STORED_VALUE, false));
+
 
     String[] fetchTVs= params.getStringArray(PARAM_FETCH_TERMVECTOR);
     if (fetchTVs!=null && fetchTVs.length>0){
@@ -796,7 +799,6 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
       if (selectPropStrings != null && selectPropStrings.length > 0)
       {
         Map<String, String> prop = new HashMap<String, String>();
-        sel.setSelectionProperties(prop);
         for (String selProp : selectPropStrings)
         {
           if (selProp.trim().length() == 0) continue;
@@ -811,6 +813,7 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
             throw new IllegalArgumentException("invalid prop string: " + selProp);
           }
         }
+        sel.setSelectionProperties(prop);
       }
 
       senseiReq.addSelection(sel);
@@ -823,6 +826,11 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
     jsonObj.put(PARAM_SYSINFO_NUMDOCS, info.getNumDocs());
     jsonObj.put(PARAM_SYSINFO_LASTMODIFIED, info.getLastModified());
     jsonObj.put(PARAM_SYSINFO_VERSION, info.getVersion());
+
+    if (info.getSchema() != null && info.getSchema().length() != 0)
+    {
+      jsonObj.put(PARAM_SYSINFO_SCHEMA, new JSONObject(info.getSchema()));
+    }
 
     JSONArray jsonArray = new JSONArray();
     jsonObj.put(PARAM_SYSINFO_FACETS, jsonArray);

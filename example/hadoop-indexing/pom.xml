@@ -2,21 +2,41 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	
 	<modelVersion>4.0.0</modelVersion>
-	<parent>
-		<groupId>com.senseidb</groupId>
-		<artifactId>sensei-parent</artifactId>
-		<version>1.0.0-SNAPSHOT</version>
-		<relativePath>../../sensei-parent/pom.xml</relativePath>
-	</parent>
 	
+	<groupId>com.senseidb</groupId>
 	<artifactId>sensei-example-hadoop</artifactId>
 	<packaging>jar</packaging>
 	<name>sensei example hadoop indexing</name>
+	<version>1.0.0-SNAPSHOT</version>
 	<description>sensei hadoop indexer example</description>
 
 	<!-- Set the compiler to java6 -->
 	<build>
 		<plugins>
+			<plugin>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<configuration>
+					<appendAssemblyId>true</appendAssemblyId>
+					<descriptorRefs>
+						<descriptorRef>jar-with-dependencies</descriptorRef>
+					</descriptorRefs>
+					 <archive>
+		            <manifest>
+		              <mainClass>com.sensei.indexing.hadoop.demo.CarDemo</mainClass>
+		            </manifest>
+		            </archive>
+				</configuration>
+				<executions>
+					<execution>
+						<id>make-assembly</id>
+						<phase>package</phase>
+						<goals>
+							<goal>assembly</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
@@ -45,7 +65,7 @@
 	
 	<dependencies>
 		<dependency>
-		  <groupId>${project.groupId}</groupId>
+		  <groupId>com.senseidb</groupId>
 		  <artifactId>sensei-hadoop-indexing</artifactId>
 		  <version>${project.version}</version>
 		</dependency>

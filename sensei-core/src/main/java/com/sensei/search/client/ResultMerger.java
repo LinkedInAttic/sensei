@@ -16,6 +16,7 @@ import java.util.Set;
 import java.util.Map.Entry;
 
 import org.apache.log4j.Logger;
+import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.SortField;
 import org.apache.lucene.util.PriorityQueue;
@@ -58,20 +59,37 @@ public class ResultMerger
       this.reader = reader;
     }
 
-    SenseiHit getSenseiHit(boolean fetchStoredFields)
+    SenseiHit getSenseiHit(boolean fetchStoredFields, boolean fetchStoredValue)
     {
       SenseiHit hit = new SenseiHit();
-      if (fetchStoredFields)
+      if (fetchStoredFields || fetchStoredValue)
       {
+        if (fetchStoredFields)
+        {
+          try
+          {
+            hit.setStoredFields(reader.document(doc));
+          }
+          catch(Exception e)
+          {
+            logger.error(e.getMessage(),e);
+          }
+        }
         try
         {
-          hit.setStoredFields(reader.document(doc));
+          IndexReader innerReader = reader.getInnerReader();
+          if (innerReader instanceof ZoieIndexReader)
+          { 
+            hit.setStoredValue(
+              ((ZoieIndexReader)innerReader).getStoredValue(
+                ((ZoieIndexReader)innerReader).getUID(doc)));
+          }
         }
         catch(Exception e)
         {
-          logger.error(e.getMessage(),e);
         }
       }
+
       Collection<FacetHandler<?>> facetHandlers= reader.getFacetHandlerMap().values();
       Map<String,String[]> map = new HashMap<String,String[]>();
       Map<String,Object[]> rawMap = new HashMap<String,Object[]>();
@@ -762,7 +780,8 @@ public class ResultMerger
               SenseiHit[] groupHits = new SenseiHit[index+1];
               while (index >=0)
               {
-                groupHits[index] = hwg.queue.pop().getSenseiHit(req.isFetchStoredFields());
+                groupHits[index] = hwg.queue.pop().getSenseiHit(req.isFetchStoredFields(),
+                                                                req.isFetchStoredValue());
                 --index;
               }
               hwg.hit.setGroupHits(groupHits);

@@ -1,0 +1,26 @@
+{
+  "fetchStored": true, 
+ 
+  "selections": [
+    {
+      "terms": {
+        "color": {
+          "_noOptimize": false, 
+          "excludes": [], 
+          "operator": "or", 
+          "values": [
+            "red", 
+            "blue"
+          ]
+        }
+      }
+    }
+  ], 
+ "paging":{
+  	"count" : 10,
+  	"offset" : 0
+  },
+  
+}
+
+
