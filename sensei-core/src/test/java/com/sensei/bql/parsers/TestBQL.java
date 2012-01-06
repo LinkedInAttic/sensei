@@ -608,6 +608,75 @@ public class TestBQL extends TestCase
   }
 
   @Test
+  public void testLikePredicate1() throws Exception
+  {
+    System.out.println("testLikePredicate1");
+    System.out.println("==================================================");
+
+    JSONObject json = _compiler.compile(
+      "SELECT * " +
+      "FROM cars " +
+      "WHERE category LIKE 's_d%'"
+      );
+    JSONObject expected = new JSONObject("{\"query\":{\"wildcard\":{\"category\":\"s?d*\"}},\"meta\":{\"select_list\":[\"*\"]}}");
+    assertTrue(_comp.isEquals(json, expected));
+  }
+
+  @Test
+  public void testLikePredicate2() throws Exception
+  {
+    System.out.println("testLikePredicate2");
+    System.out.println("==================================================");
+
+    JSONObject json = _compiler.compile(
+      "SELECT * " +
+      "FROM cars " +
+      "WHERE category LIKE 'sed*'"
+      );
+    JSONObject expected = new JSONObject("{\"query\":{\"wildcard\":{\"category\":\"sed*\"}},\"meta\":{\"select_list\":[\"*\"]}}");
+    assertTrue(_comp.isEquals(json, expected));
+  }
+
+  @Test
+  public void testLikePredicate3() throws Exception
+  {
+    System.out.println("testLikePredicate3");
+    System.out.println("==================================================");
+
+    int result = 0;
+    try 
+    {
+      JSONObject json = _compiler.compile(
+        "SELECT * " +
+        "FROM cars " +
+        "WHERE price LIKE '123%'"
+        );
+    }
+    catch (RecognitionException err)
+    {
+      result = 1;
+    }
+    assertEquals(result, 1);
+  }
+
+  @Test
+  public void testQueryAndLike() throws Exception
+  {
+    System.out.println("testQueryAndLike");
+    System.out.println("==================================================");
+
+    JSONObject json = _compiler.compile(
+      "SELECT color, category, tags " +
+      "FROM cars " +
+      "WHERE color LIKE 'bl%' " +
+      "  AND MATCH(contents) AGAINST('cool AND moon-roof') " +
+      "  AND category LIKE '%an'"
+      );
+    JSONObject expected = new JSONObject("{\"query\":{\"wildcard\":{\"color\":\"bl*\"}},\"filter\":{\"and\":[{\"query\":{\"query_string\":{\"query\":\"cool AND moon-roof\",\"fields\":[\"contents\"]}}},{\"query\":{\"wildcard\":{\"category\":\"*an\"}}}]},\"meta\":{\"select_list\":[\"color\",\"category\",\"tags\"]}}");
+    assertTrue(_comp.isEquals(json, expected));
+  }
+
+  @Test
   public void testColumnType1() throws Exception
   {
     System.out.println("testColumnType1");

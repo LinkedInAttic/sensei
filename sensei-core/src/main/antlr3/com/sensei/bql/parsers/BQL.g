@@ -757,7 +757,7 @@ predicate returns [JSONObject json]
     |   range_predicate { $json = $range_predicate.json; }
     |   time_predicate { $json = $time_predicate.json; }
     |   match_predicate { $json = $match_predicate.json; }
- // |   like_predicate { $json = $like_predicate.json; }
+    |   like_predicate { $json = $like_predicate.json; }
     ;
 
 in_predicate returns [JSONObject json]
@@ -1123,10 +1123,38 @@ match_predicate returns [JSONObject json]
     :   MATCH LPAR column_name_list RPAR AGAINST LPAR STRING_LITERAL RPAR
         {
             try {
+                JSONArray cols = $column_name_list.json;
+                for (int i = 0; i < cols.length(); ++i) {
+                    String col = cols.getString(i);
+                    String[] facetInfo = _facetInfoMap.get(col);
+                    if (facetInfo != null && !facetInfo[1].equals("string")) {
+                        throw new RecognitionException();
+                    }
+                }
                 $json = new JSONObject().put("query",
                                              new JSONObject().put("query_string",
-                                                                  new JSONObject().put("fields", $column_name_list.json)
+                                                                  new JSONObject().put("fields", cols)
                                                                                   .put("query", $STRING_LITERAL.text)));
+            }
+            catch (JSONException err) {
+                throw new RecognitionException();
+            }
+        }
+    ;
+
+like_predicate returns [JSONObject json]
+    :   column_name LIKE STRING_LITERAL
+        {
+            String col = $column_name.text;
+            String[] facetInfo = _facetInfoMap.get(col);
+            if (facetInfo != null && !facetInfo[1].equals("string")) {
+                throw new RecognitionException();
+            }
+            String likeString = $STRING_LITERAL.text.replace('\%', '*').replace('_', '?');
+            try {
+                $json = new JSONObject().put("query",
+                                             new JSONObject().put("wildcard",
+                                                                  new JSONObject().put(col, likeString)));
             }
             catch (JSONException err) {
                 throw new RecognitionException();
