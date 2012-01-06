@@ -5,7 +5,7 @@
   <formats> 
     <format>tar.gz</format> 
   </formats> 
-  <includeBaseDirectory>false</includeBaseDirectory> 
+  <includeBaseDirectory>true</includeBaseDirectory> 
   <fileSets> 
         <fileSet> 
           <includes> 
@@ -16,6 +16,13 @@
 	    <fileSet>
 	      <directory>sensei-core/target</directory>
 	      <outputDirectory>sensei-core/target</outputDirectory>
+	      <includes>
+	        <include>*.jar</include>
+	      </includes>
+	    </fileSet>
+	    <fileSet>
+	      <directory>sensei-core/target/lib</directory>
+	      <outputDirectory>sensei-core/target/lib</outputDirectory>
 	      <includes>
 	        <include>*.jar</include>
 	      </includes>
