@@ -197,9 +197,9 @@ public class TestBQL extends TestCase
   }
 
   @Test
-  public void testInPred() throws Exception
+  public void testInPred1() throws Exception
   {
-    System.out.println("testInPred");
+    System.out.println("testInPred1");
     System.out.println("==================================================");
 
     JSONObject json = _compiler.compile(
@@ -208,6 +208,21 @@ public class TestBQL extends TestCase
       "WHERE color IN ('red', 'blue', 'yellow')"
       );
     JSONObject expected = new JSONObject("{\"selections\":[{\"terms\":{\"color\":{\"values\":[\"red\",\"blue\",\"yellow\"],\"excludes\":[],\"operator\":\"or\"}}}], \"meta\":{\"select_list\":[\"category\"]}}");
+    assertTrue(_comp.isEquals(json, expected));
+  }
+
+  @Test
+  public void testInPred2() throws Exception
+  {
+    System.out.println("testInPred2");
+    System.out.println("==================================================");
+
+    JSONObject json = _compiler.compile(
+      "SELECT category " +
+      "FROM cars " +
+      "WHERE nonfacet IN ('red')"
+      );
+    JSONObject expected = new JSONObject("{\"filter\":{\"terms\":{\"nonfacet\":{\"values\":[\"red\"],\"excludes\":[],\"operator\":\"or\",\"_noOptimize\":true}}}, \"meta\":{\"select_list\":[\"category\"]}}");
     assertTrue(_comp.isEquals(json, expected));
   }
 
@@ -338,7 +353,7 @@ public class TestBQL extends TestCase
       "WHERE QUERY IS 'cool AND moon-roof' " +
       "AND age = 12 "
       );
-    JSONObject expected = new JSONObject("{\"query\":{\"query_string\":{\"query\":\"cool AND moon-roof\"}},\"filter\":{\"term\":{\"age\":{\"value\":12}}}, \"meta\":{\"select_list\":[\"category\"]}}");
+    JSONObject expected = new JSONObject("{\"query\":{\"query_string\":{\"query\":\"cool AND moon-roof\"}},\"filter\":{\"term\":{\"age\":{\"value\":12,\"_noOptimize\":true}}}, \"meta\":{\"select_list\":[\"category\"]}}");
     assertTrue(_comp.isEquals(json, expected));
   }
 

@@ -797,7 +797,10 @@ in_predicate returns [JSONObject json]
                     else {
                         dict.put("values", new JSONArray());
                     }
-                }                    
+                }
+                if (_facetInfoMap.get(col) == null) {
+                    dict.put("_noOptimize", true);
+                }
                 $json = new JSONObject().put("terms",
                                              new JSONObject().put(col, dict));
             }
@@ -833,6 +836,9 @@ contains_all_predicate returns [JSONObject json]
                 }
                 else {
                     dict.put("excludes", new JSONArray());
+                }
+                if (_facetInfoMap.get(col) == null) {
+                    dict.put("_noOptimize", true);
                 }
                 $json = new JSONObject().put("terms",
                                              new JSONObject().put(col, dict));
@@ -880,9 +886,12 @@ equal_predicate returns [JSONObject json]
                     $json = new JSONObject().put("path", new JSONObject().put(col, valObj));
                 }
                 else {
+                    JSONObject valSpec = new JSONObject().put("value", $value.val);
+                    if (_facetInfoMap.get(col) == null) {
+                        valSpec.put("_noOptimize", true);
+                    }
                     $json = new JSONObject().put("term", 
-                                                 new JSONObject().put(col, 
-                                                                      new JSONObject().put("value", $value.val)));
+                                                 new JSONObject().put(col, valSpec));
                 }
             }
             catch (JSONException err) {
@@ -904,6 +913,9 @@ not_equal_predicate returns [JSONObject json]
                 dict.put("operator", "or");
                 dict.put("values", new JSONArray());
                 dict.put("excludes", new JSONArray().put($value.val));
+                if (_facetInfoMap.get(col) == null) {
+                    dict.put("_noOptimize", true);
+                }
                 $json = new JSONObject().put("terms",
                                              new JSONObject().put(col, dict));
             }
