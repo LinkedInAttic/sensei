@@ -108,7 +108,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
         logger.info("hit exception trying to get sysinfo" + e);
         if (count > 10) 
         {
-          logger.info("Give up after 10 tries");
+          logger.error("Give up after 10 tries to get sysinfo");
           throw new ServletException(e.getMessage(), e);
         }
         else
@@ -164,15 +164,45 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
         }
         catch(JSONException jse)
         {
+          // Fall back to the old REST API.  In the future, we should
+          // consider reporting JSON exceptions here.
           senseiReq = DefaultSenseiJSONServlet.convertSenseiRequest(
                         new DataConfiguration(new MapConfiguration(getParameters(content))));
         }
+
         if (jsonObj != null)
         {
           String bqlStmt = jsonObj.optString("bql");
           if (bqlStmt.length() > 0)
           {
-            jsonObj = _compiler.compile(bqlStmt);
+            try 
+            {
+              jsonObj = _compiler.compile(bqlStmt);
+            }
+            catch (RecognitionException e)
+            {
+              String errMsg = _compiler.getErrorMessage(e);
+              if (errMsg == null) 
+              {
+                errMsg = "Unknown parsing error.";
+              }
+              logger.error("BQL parsing error: " + errMsg + ", BQL: " + bqlStmt);
+              OutputStream ostream = resp.getOutputStream();
+              try
+              {
+                JSONObject errResp = new JSONObject().put("error",
+                                                          new JSONObject().put("code", BQL_PARSING_ERROR)
+                                                                          .put("msg", errMsg));
+                ostream.write(errResp.toString().getBytes("UTF-8"));
+                ostream.flush();
+                return;
+              }
+              catch (JSONException err)
+              {
+                logger.error(err.getMessage());
+                throw new ServletException(err.getMessage(), err);
+              }
+            }
           }
           senseiReq = SenseiRequest.fromJSON(jsonObj);
         }
@@ -197,28 +227,6 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
       OutputStream ostream = resp.getOutputStream();
       convertResult(senseiReq,res,ostream);
       ostream.flush();
-    }
-    catch (RecognitionException e)
-    {
-      String errMsg = _compiler.getErrorMessage(e);
-      if (errMsg == null) 
-      {
-        errMsg = "BQL Parsing error.";
-      }
-
-      OutputStream ostream = resp.getOutputStream();
-      try
-      {
-        JSONObject errResp = new JSONObject().put("error",
-                                                  new JSONObject().put("code", BQL_PARSING_ERROR).put("msg", errMsg));
-        ostream.write(errResp.toString().getBytes("UTF-8"));
-        ostream.flush();
-      }
-      catch (JSONException err)
-      {
-        logger.info(err.getMessage());
-        throw new ServletException(err.getMessage(), err);
-      }
     }
     catch (Exception e)
     {
