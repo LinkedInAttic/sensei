@@ -531,7 +531,7 @@ public class TestErrorHandling extends TestCase
     }
     catch (RecognitionException err)
     {
-      assertEquals("[line:4, col:2] Date string contains invalid date and/or time: \"2011-16-20 55:10:10\". (token=AND)",
+      assertEquals("[line:4, col:2] Date string contains invalid date/time: \"2011-16-20 55:10:10\". (token=AND)",
                    _compiler.getErrorMessage(err));
       caughtException = true;
     }
@@ -619,4 +619,29 @@ public class TestErrorHandling extends TestCase
     }
   }
 
+  // @Test
+  // public void testConflictSelections() throws Exception
+  // {
+  //   System.out.println("testConflictSelections");
+  //   System.out.println("==================================================");
+
+  //   boolean caughtException = false;
+  //   try
+  //   {
+  //     JSONObject json = _compiler.compile(
+  //       "SELECT color FROM cars WHERE color = 'red' AND color = 'blue'"
+  //       );
+  //   }
+  //   catch (RecognitionException err)
+  //   {
+  //     assertEquals("[line:1, col:14] Expecting IDENT (token=from)",
+  //                  _compiler.getErrorMessage(err));
+  //     caughtException = true;
+  //   }
+  //   finally 
+  //   {
+  //     assertTrue(caughtException);
+  //   }
+  // }
+  
 }

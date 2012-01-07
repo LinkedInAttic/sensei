@@ -24,6 +24,15 @@ tokens
 package com.sensei.bql.parsers;
 }
 
+@lexer::members {
+
+  // @Override
+  // public void reportError(RecognitionException e) {
+  //   throw new IllegalArgumentException(e);
+  // }
+
+}
+
 // As the generated parser will reside in com.sensei.bql.parsers
 // package, we have to add package declaration on top of it
 @parser::header {
@@ -58,20 +67,24 @@ import java.text.SimpleDateFormat;
         _facetInfoMap.put("_uid", new String[]{"simple", "long"});
     }
 
-    // The following three overridden methods are used to force ANTLR to
+    // The following two overridden methods are used to force ANTLR to
     // stop parsing upon the very first error.
-    protected void mismatch(IntStream input, int ttype, BitSet follow)
-        throws RecognitionException
-    {
-        throw new MismatchedTokenException(ttype, input);
-    }
 
+    // @Override
+    // protected void mismatch(IntStream input, int ttype, BitSet follow)
+    //     throws RecognitionException
+    // {
+    //     throw new MismatchedTokenException(ttype, input);
+    // }
+
+    @Override
     protected Object recoverFromMismatchedToken(IntStream input, int ttype, BitSet follow)
         throws RecognitionException
     {
         throw new MismatchedTokenException(ttype, input);
     }
 
+    @Override
     public Object recoverFromMismatchedSet(IntStream input,
                                            RecognitionException e,
                                            BitSet follow)
@@ -80,6 +93,7 @@ import java.text.SimpleDateFormat;
         throw e;
     }
 
+    @Override
     public String getErrorMessage(RecognitionException err, String[] tokenNames) 
     {
         // List stack = getRuleInvocationStack(err, this.getClass().getName());
@@ -95,7 +109,7 @@ import java.text.SimpleDateFormat;
         }
         else if (err instanceof MismatchedTokenException) {
             MismatchedTokenException mte = (MismatchedTokenException) err;
-            String tokenName = (mte.expecting == -1) ? "EOF" : tokenNames[mte.expecting];
+            String tokenName = (mte.expecting == Token.EOF) ? "EOF" : tokenNames[mte.expecting];
             msg = "[line:" + mte.line + ", col:" + mte.charPositionInLine + "] " +
                 "Expecting " + tokenName +
                 " (token=" + err.token.getText() + ")";
@@ -112,6 +126,7 @@ import java.text.SimpleDateFormat;
         return msg;
     } 
 
+    @Override
     public String getTokenErrorDisplay(Token t)
     {
         return t.toString();
@@ -301,7 +316,7 @@ import java.text.SimpleDateFormat;
                 include = include2;
             }
         }
-        return new Object[]{value, include2};
+        return new Object[]{value, include};
     }
 
     private Object[] getMin(Object value1, boolean include1, Object value2, boolean include2)
@@ -331,7 +346,7 @@ import java.text.SimpleDateFormat;
                 include = include1;
             }
         }
-        return new Object[]{value, include1};
+        return new Object[]{value, include};
     }
 
     private void accumulateRangePred(TokenStream input, JSONObject fieldMap, JSONObject pred) 
@@ -515,7 +530,7 @@ LINE_COMMENT
 statement returns [Object json]
     :   (   select_stmt { $json = $select_stmt.json; }
         |   describe_stmt
-        )   SEMI?
+        )   SEMI? EOF
     ;
 
 select_stmt returns [Object json]
@@ -531,7 +546,7 @@ select_stmt returns [Object json]
         |   group_by = group_by_clause
         |   browse_by = browse_by_clause
         |   fetch_stored = fetching_stored_clause
-        )* EOF
+        )*
         {
             JSONObject jsonObj = new JSONObject();
             JSONArray selections = new JSONArray();
@@ -1280,7 +1295,7 @@ date_time_string returns [long val]
                 if (!$DATETIME.text.equals(format.format($val))) {
                     throw new FailedPredicateException(input,
                                                        "date_time_string", 
-                                                       "Date string contains invalid date and/or time: \"" + $DATETIME.text + "\".");
+                                                       "Date string contains invalid date/time: \"" + $DATETIME.text + "\".");
                 }
             }
             catch (ParseException err) {

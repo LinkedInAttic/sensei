@@ -314,7 +314,7 @@ def main(argv):
     print """\
 help              Show instructions
 select ...        Execute a BQL statement
-desc | describe   Describe current index schema information
+desc | describe   Describe current index schema
 get <uid_list>    Retrieve documents based on UID list
 exit              Exit
 """

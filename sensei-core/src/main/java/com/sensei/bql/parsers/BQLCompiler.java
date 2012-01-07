@@ -42,7 +42,7 @@ public class BQLCompiler extends AbstractCompiler
     JSONObject json = (JSONObject) ret.json;
     // XXX To be removed
     // printTree(ast);
-    System.out.println(">>> json = " + json.toString());
+    // System.out.println(">>> json = " + json.toString());
     return json;
   }
 

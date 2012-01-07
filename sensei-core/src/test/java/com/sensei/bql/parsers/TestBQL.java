@@ -536,7 +536,7 @@ public class TestBQL extends TestCase
       "FROM cars " +
       "WHERE year > 1999 AND year <= 2003 AND year >= 1999"
       );
-    JSONObject expected = new JSONObject("{\"selections\":[{\"range\":{\"year\":{\"to\":2003,\"include_lower\":true,\"include_upper\":false,\"from\":1999}}}], \"meta\":{\"select_list\":[\"year\"]}}");
+    JSONObject expected = new JSONObject("{\"selections\":[{\"range\":{\"year\":{\"to\":2003,\"include_lower\":false,\"include_upper\":true,\"from\":1999}}}], \"meta\":{\"select_list\":[\"year\"]}}");
     assertTrue(_comp.isEquals(json, expected));
   }
 
