@@ -1,3 +1,56 @@
+function _void (){}
+// Cookie set and get functions.
+function now(){return (new Date).getTime();}
+
+function setCookie(name, value, expires, path, domain)
+{
+    if(!expires) expires = -1;
+    if(!path) path = "/";
+    var d = "" + name + "=" + value;
+
+    var e;
+    if (expires < 0) {
+        e = "";
+    }
+    else if (expires == 0) {
+        var f = new Date(1970, 1, 1);
+        e = ";expires=" + f.toUTCString();
+    }
+    else {
+        var f = new Date(now() + expires * 1000);
+        e = ";expires=" + f.toUTCString();
+    }
+    var dm;
+    if(!domain){
+        dm = "";
+    }
+    else{
+        dm = ";domain=" + domain;
+    }
+
+    document.cookie = name + "=" + value + ";path=" + path + e + dm;
+};
+
+function getCookie(a)
+{
+    var b = String(document.cookie);
+    var c = b.indexOf(a + "=");
+
+    if (c != -1) {
+        var d = b.indexOf(";", c);
+        d = d == -1 ? b.length : d;
+        c = c + a.length + 1;
+        if(b.charAt(c)=='"'&&b.charAt(d-1)=='"'){
+            c+=1;d-=1;
+        }
+        if(c>=d)
+            return "";
+        return b.substring(c, d);
+    }
+
+    return "";
+};
+
 function removeAllChildren(elem){
 	if ( elem.hasChildNodes() ){
 	    while (elem.childNodes.length >= 1 )
@@ -357,10 +410,13 @@ var default_js_beautify_settings = {
 };
 
 function runQuery(){
+  if (reqTextMirror == null)
+    return;
+
   var jobj = $('#runquery');
   jobj.attr('disabled', 'disabled');
-  $.post("sensei", $('#reqtext').val(), function (text) {
-    $('#content').val(js_beautify(text, default_js_beautify_settings));
+  $.post("sensei", reqTextMirror.getValue(), function (text) {
+    contentMirror.setValue(js_beautify(text, default_js_beautify_settings));
   }, 'text')
   .complete(function(){
     jobj.removeAttr('disabled');
@@ -519,6 +575,6 @@ function buildQuery(){
     break;
   }
 
-  $('#reqtext').val(js_beautify($.toJSON(req), default_js_beautify_settings));
+  reqTextMirror.setValue(js_beautify($.toJSON(req), default_js_beautify_settings));
 }
 
