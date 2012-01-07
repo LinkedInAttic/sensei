@@ -39,6 +39,7 @@ import com.sensei.search.req.SenseiSystemInfo;
 import com.sensei.search.util.RequestConverter2;
 
 import com.sensei.bql.parsers.BQLCompiler;
+import org.antlr.runtime.RecognitionException;
 
 public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableServlet {
 
@@ -195,6 +196,27 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
       OutputStream ostream = resp.getOutputStream();
       convertResult(senseiReq,res,ostream);
       ostream.flush();
+    }
+    catch (RecognitionException e)
+    {
+      String msg = _compiler.getErrorMessage(e);
+      if (msg == null) 
+      {
+        msg = "BQL Parsing error.";
+      }
+      System.out.println(">>> e.getMessage() = " + e.getMessage());
+      OutputStream ostream = resp.getOutputStream();
+      try
+      {
+        JSONObject errResp = new JSONObject().put("error", msg);
+        ostream.write(errResp.toString().getBytes("UTF-8"));
+        ostream.flush();
+      }
+      catch (JSONException err)
+      {
+        logger.info(err.getMessage());
+        throw new ServletException(err.getMessage(), err);
+      }
     }
     catch (Exception e)
     {

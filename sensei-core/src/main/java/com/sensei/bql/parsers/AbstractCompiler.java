@@ -12,6 +12,7 @@ public abstract class AbstractCompiler {
   }
 
   public abstract JSONObject compile(String expression) throws RecognitionException;
+  public abstract String getErrorMessage(RecognitionException error);
 
   protected void printTree(CommonTree ast)
   {

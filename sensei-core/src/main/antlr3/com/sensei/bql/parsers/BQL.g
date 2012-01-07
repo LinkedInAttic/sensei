@@ -48,6 +48,8 @@ import java.text.SimpleDateFormat;
 
     Map<String, String[]> _facetInfoMap;
     private long _now;
+    private SimpleDateFormat _format1 = null;
+    private SimpleDateFormat _format2 = null;
 
     public BQLParser(TokenStream input, Map<String, String[]> facetInfoMap)
     {
@@ -56,21 +58,36 @@ import java.text.SimpleDateFormat;
         _facetInfoMap.put("_uid", new String[]{"simple", "long"});
     }
 
-    public String getErrorMessage(RecognitionException e, String[] tokenNames) 
+    public String getErrorMessage(RecognitionException err, String[] tokenNames) 
     {
-        List stack = getRuleInvocationStack(e, this.getClass().getName());
+        // List stack = getRuleInvocationStack(err, this.getClass().getName());
         String msg = null; 
-        if ( e instanceof NoViableAltException ) {
-            NoViableAltException nvae = (NoViableAltException)e;
-            msg = " no viable alt; token=" + e.token +
-                " (decision=" + nvae.decisionNumber +
-                " state "+nvae.stateNumber+")" +
-                " decision=<<" + nvae.grammarDecisionDescription + ">>";
-        } 
-        else {
-            msg = super.getErrorMessage(e, tokenNames); 
+        if (err instanceof NoViableAltException) {
+            NoViableAltException nvae = (NoViableAltException) err;
+            // msg = "No viable alt; token=" + err.token.getText() +
+            //     " (decision=" + nvae.decisionNumber +
+            //     " state "+nvae.stateNumber+")" +
+            //     " decision=<<" + nvae.grammarDecisionDescription + ">>";
+            msg = "[line:" + err.line + ", col:" + err.charPositionInLine + "] " +
+                "No viable alternative (token=" + err.token.getText() + ")";
         }
-        return stack+" "+msg;
+        else if (err instanceof MismatchedTokenException) {
+            MismatchedTokenException mte = (MismatchedTokenException) err;
+            msg = "[line:" + mte.line + ", col:" + mte.charPositionInLine + "] " +
+                "Expecting " + tokenNames[mte.expecting] +
+                " (token=" + err.token.getText() + ")";
+        }
+        else if (err instanceof FailedPredicateException) {
+            FailedPredicateException fpe = (FailedPredicateException) err;
+            msg = "[line:" + fpe.line + ", col:" + fpe.charPositionInLine + "] " +
+                fpe.predicateText +
+                " (token=" + fpe.token.getText() + ")";
+        }
+        else {
+            System.out.println(">>> err.class = " + err.getClass().getName());
+            msg = super.getErrorMessage(err, tokenNames); 
+        }
+        return msg;
     } 
 
     public String getTokenErrorDisplay(Token t)
@@ -147,6 +164,7 @@ import java.text.SimpleDateFormat;
     }
 
     private boolean verifyFieldDataType(final String field, JSONArray values)
+        throws FailedPredicateException
     {
         String[] facetInfo = _facetInfoMap.get(field);
         try {
@@ -161,7 +179,7 @@ import java.text.SimpleDateFormat;
             return true;
         }
         catch (JSONException err) {
-            return false;
+            throw new FailedPredicateException(input, "verifyFieldDataType", "JSONException: " + err.getMessage());
         }
     }
 
@@ -294,7 +312,8 @@ import java.text.SimpleDateFormat;
         return new Object[]{value, include1};
     }
 
-    private void accumulateRangePred(JSONObject fieldMap, JSONObject pred) throws JSONException, RecognitionException
+    private void accumulateRangePred(TokenStream input, JSONObject fieldMap, JSONObject pred) 
+        throws JSONException, RecognitionException
     {
         String field = predField(pred);
         if (!fieldMap.has(field)) {
@@ -324,7 +343,10 @@ import java.text.SimpleDateFormat;
         if (newFrom != null && newTo != null) {
             if (compareValues(newFrom, newTo) > 0 ||
                 (compareValues(newFrom, newTo) == 0) && (!newIncludeLower || !newIncludeUpper)) {
-                throw new RecognitionException();
+                // This error is in general detected late, so the token
+                // can be a little off, but hopefully the col index info
+                // is good enough.
+                throw new FailedPredicateException(input, "", "Inconsistent ranges detected for column: " + field);
             }
         }
         
@@ -344,8 +366,8 @@ import java.text.SimpleDateFormat;
 }
 
 @rulecatch {
-    catch (RecognitionException e) {
-        throw e;
+    catch (RecognitionException err) {
+        throw err;
     }
 }
 
@@ -541,7 +563,7 @@ select_stmt returns [Object json]
                 }
             }
             catch (JSONException err) {
-                throw new RecognitionException();
+                throw new FailedPredicateException(input, "select_stmt", "JSONException: " + err.getMessage());
             }
             $json = jsonObj;
         }
@@ -610,7 +632,7 @@ sort_spec returns [JSONObject json]
                 }
             }
             catch (JSONException err) {
-                throw new RecognitionException();
+                throw new FailedPredicateException(input, "sort_spec", "JSONException: " + err.getMessage());
             }
         }
     ;
@@ -644,7 +666,7 @@ group_by_clause returns [JSONObject json]
                 }                    
             }
             catch (JSONException err) {
-                throw new RecognitionException();
+                throw new FailedPredicateException(input, "group_by_clause", "JSONException: " + err.getMessage());
             }
         }
     ;
@@ -659,7 +681,7 @@ browse_by_clause returns [JSONObject json]
                 $json.put($f.column, $f.spec);
             }
             catch (JSONException err) {
-                throw new RecognitionException();
+                throw new FailedPredicateException(input, "browse_by_clause", "JSONException: " + err.getMessage());
             }                    
         }
         (COMMA f=facet_spec
@@ -668,7 +690,7 @@ browse_by_clause returns [JSONObject json]
                     $json.put($f.column, $f.spec);
                 }
                 catch (JSONException err) {
-                    throw new RecognitionException();
+                    throw new FailedPredicateException(input, "browse_by_clause", "JSONException: " + err.getMessage());
                 }
             }
         )*
@@ -705,7 +727,7 @@ facet_spec returns [String column, JSONObject spec]
                                         .put("order", orderBy);
             }
             catch (JSONException err) {
-                throw new RecognitionException();
+                throw new FailedPredicateException(input, "facet_spec", "JSONException: " + err.getMessage());
             }
         }
     ;
@@ -735,7 +757,7 @@ search_expr returns [Object json]
                 }
             }
             catch (JSONException err) {
-                throw new RecognitionException();
+                throw new FailedPredicateException(input, "search_expr", "JSONException: " + err.getMessage());
             }
         }
         -> {array.length() > 1}? ^(OR_PRED term_expr+)
@@ -758,7 +780,7 @@ term_expr returns [Object json]
                         newArray.put(pred);
                     }
                     else {
-                        accumulateRangePred(fieldMap, pred);
+                        accumulateRangePred(input, fieldMap, pred);
                     }
                 }
                 Iterator<String> itr = fieldMap.keys();
@@ -773,7 +795,7 @@ term_expr returns [Object json]
                 }
             }
             catch (JSONException err) {
-                throw new RecognitionException();
+                throw new FailedPredicateException(input, "term_expr", "JSONException: " + err.getMessage());
             }
         }
         -> { array.length() > 1}? ^(AND_PRED factor_expr+)
@@ -807,14 +829,20 @@ in_predicate returns [JSONObject json]
             String[] facetInfo = _facetInfoMap.get(col);
 
             if (facetInfo != null && facetInfo[0].equals("range")) {
-                throw new RecognitionException();
+                throw new FailedPredicateException(input, 
+                                                   "in_predicate",
+                                                   "Range facet \"" + col + "\" cannot be used in IN predicates.");
             }
             if (!verifyFieldDataType(col, $value_list.json)) {
-                throw new RecognitionException();
+                throw new FailedPredicateException(input,
+                                                   "in_predicate",
+                                                   "Value list for IN predicate of facet \"" + col + "\" contains incompatible value(s).");
             }
 
             if (except != null && !verifyFieldDataType(col, $except_clause.json)) {
-                throw new RecognitionException();
+                throw new FailedPredicateException(input,
+                                                   "in_predicate",
+                                                   "EXCEPT value list for IN predicate of facet \"" + col + "\" contains incompatible value(s).");
             }
 
             try {
@@ -845,7 +873,7 @@ in_predicate returns [JSONObject json]
                                              new JSONObject().put(col, dict));
             }
             catch (JSONException err) {
-                throw new RecognitionException();
+                throw new FailedPredicateException(input, "in_predicate", "JSONException: " + err.getMessage());
             }
         }
         -> ^(IN NOT? ^(column_name value_list) except_clause? predicate_props?)
@@ -857,14 +885,20 @@ contains_all_predicate returns [JSONObject json]
             String col = $column_name.text;
             String[] facetInfo = _facetInfoMap.get(col);
             if (facetInfo != null && facetInfo[0].equals("range")) {
-                throw new RecognitionException();
+                throw new FailedPredicateException(input, 
+                                                   "contains_all_predicate", 
+                                                   "Range facet column \"" + col + "\" cannot be used in CONTAINS ALL predicates.");
             }
             if (!verifyFieldDataType(col, $value_list.json)) {
-                throw new RecognitionException();
+                throw new FailedPredicateException(input,
+                                                   "contains_all_predicate",
+                                                   "Value list for CONTAINS ALL predicate of facet \"" + col + "\" contains incompatible value(s).");
             }
 
             if (except != null && !verifyFieldDataType(col, $except_clause.json)) {
-                throw new RecognitionException();
+                throw new FailedPredicateException(input,
+                                                   "contains_all_predicate",
+                                                   "EXCEPT value list for CONTAINS ALL predicate of facet \"" + col + "\" contains incompatible value(s).");
             }
 
             try {
@@ -884,7 +918,7 @@ contains_all_predicate returns [JSONObject json]
                                              new JSONObject().put(col, dict));
             }
             catch (JSONException err) {
-                throw new RecognitionException();
+                throw new FailedPredicateException(input, "contains_all_predicate", "JSONException: " + err.getMessage());
             }
         }
         -> ^(CONTAINS ^(column_name value_list) except_clause? predicate_props?)
@@ -895,7 +929,9 @@ equal_predicate returns [JSONObject json]
         {
             String col = $column_name.text;
             if (!verifyFieldDataType(col, $value.val)) {
-                throw new RecognitionException();
+                throw new FailedPredicateException(input, 
+                                                   "equal_predicate", 
+                                                   "Incompatible data type was found in an EQUAL predicate for column \"" + col + "\".");
             }
             try {
                 String[] facetInfo = _facetInfoMap.get(col);
@@ -919,7 +955,9 @@ equal_predicate returns [JSONObject json]
                                 valObj.put(key, propsJson.get(key));
                             }
                             else {
-                                throw new RecognitionException();
+                                throw new FailedPredicateException(input,
+                                                                   "equal_predicate", 
+                                                                   "Unsupported property was found in an EQUAL predicate for path facet column \"" + col + "\": " + key + ".");
                             }
                         }
                     }
@@ -935,7 +973,7 @@ equal_predicate returns [JSONObject json]
                 }
             }
             catch (JSONException err) {
-                throw new RecognitionException();
+                throw new FailedPredicateException(input, "equal_predicate", "JSONException: " + err.getMessage());
             }
         }
         -> ^(EQUAL column_name value predicate_props?)
@@ -946,21 +984,42 @@ not_equal_predicate returns [JSONObject json]
         {
             String col = $column_name.text;
             if (!verifyFieldDataType(col, $value.val)) {
-                throw new RecognitionException();
+                throw new FailedPredicateException(input, 
+                                                   "not_equal_predicate", 
+                                                   "Incompatible data type was found in a NOT EQUAL predicate for column \"" + col + "\".");
             }
             try {
-                JSONObject dict = new JSONObject();
-                dict.put("operator", "or");
-                dict.put("values", new JSONArray());
-                dict.put("excludes", new JSONArray().put($value.val));
-                if (_facetInfoMap.get(col) == null) {
-                    dict.put("_noOptimize", true);
+                String[] facetInfo = _facetInfoMap.get(col);
+                if (facetInfo != null && facetInfo[0].equals("range")) {
+                    JSONObject left = new JSONObject().put("range",
+                                                           new JSONObject().put(col,
+                                                                                new JSONObject().put("to", $value.val)
+                                                                                                .put("include_upper", false)));
+                    JSONObject right = new JSONObject().put("range",
+                                                            new JSONObject().put(col,
+                                                                                 new JSONObject().put("from", $value.val)
+                                                                                                 .put("include_lower", false)));
+                    $json = new JSONObject().put("or", new JSONArray().put(left).put(right));
                 }
-                $json = new JSONObject().put("terms",
-                                             new JSONObject().put(col, dict));
+                else if (facetInfo != null && facetInfo[0].equals("path")) {
+                    throw new FailedPredicateException(input, 
+                                                       "not_equal_predicate",
+                                                       "NOT EQUAL predicate is not supported for path facets (column \"" + col + "\").");
+                }
+                else {
+                    JSONObject valObj = new JSONObject();
+                    valObj.put("operator", "or");
+                    valObj.put("values", new JSONArray());
+                    valObj.put("excludes", new JSONArray().put($value.val));
+                    if (_facetInfoMap.get(col) == null) {
+                        valObj.put("_noOptimize", true);
+                    }
+                    $json = new JSONObject().put("terms",
+                                                 new JSONObject().put(col, valObj));
+                }
             }
             catch (JSONException err) {
-                throw new RecognitionException();
+                throw new FailedPredicateException(input, "not_equal_predicate", "JSONException: " + err.getMessage());
             }                                         
         }
         -> ^(NOT_EQUAL column_name value predicate_props?)
@@ -975,7 +1034,7 @@ query_predicate returns [JSONObject json]
                                                                   new JSONObject().put("query", $STRING_LITERAL.text)));
             }
             catch (JSONException err) {
-                throw new RecognitionException();
+                throw new FailedPredicateException(input, "query_predicate", "JSONException: " + err.getMessage());
             }
         }
         -> ^(QUERY STRING_LITERAL)
@@ -986,11 +1045,15 @@ between_predicate returns [JSONObject json]
         {
             String col = $column_name.text;
             if (!verifyFacetType(col, "range")) {
-                throw new RecognitionException();
+                throw new FailedPredicateException(input, 
+                                                   "between_predicate",
+                                                   "Non-range facet column \"" + col + "\" cannot be used in BETWEEN predicates.");
             }
 
-            if (!verifyFieldDataType(col, new Object[]{val1, val2})) {
-                throw new RecognitionException();
+            if (!verifyFieldDataType(col, new Object[]{$val1.val, $val2.val})) {
+                throw new FailedPredicateException(input,
+                                                   "between_predicate", 
+                                                   "Incompatible data type was found in a BETWEEN predicate for column \"" + col + "\".");
             }
 
             try {
@@ -1018,7 +1081,7 @@ between_predicate returns [JSONObject json]
                 }
             }
             catch (JSONException err) {
-                throw new RecognitionException();
+                throw new FailedPredicateException(input, "between_predicate", "JSONException: " + err.getMessage());
             }
         }
         -> ^(BETWEEN NOT? $val1 $val2)
@@ -1029,11 +1092,15 @@ range_predicate returns [JSONObject json]
         {
             String col = $column_name.text;
             if (!verifyFacetType(col, "range")) {
-                throw new RecognitionException();
+                throw new FailedPredicateException(input, 
+                                                   "range_predicate",
+                                                   "Non-range facet column \"" + col + "\" cannot be used in RANGE predicates.");
             }
 
             if (!verifyFieldDataType(col, $val.val)) {
-                throw new RecognitionException();
+                throw new FailedPredicateException(input,
+                                                   "range_predicate", 
+                                                   "Incompatible data type was found in a RANGE predicate for column \"" + col + "\".");
             }
 
             try {
@@ -1051,7 +1118,7 @@ range_predicate returns [JSONObject json]
                 }
             }
             catch (JSONException err) {
-                throw new RecognitionException();
+                throw new FailedPredicateException(input, "range_predicate", "JSONException: " + err.getMessage());
             }
         }
         -> ^($op column_name value)
@@ -1069,7 +1136,7 @@ time_predicate returns [JSONObject json]
                                                                                   .put("include_lower", false)));
             }
             catch (JSONException err) {
-                throw new RecognitionException();
+                throw new FailedPredicateException(input, "time_predicate", "JSONException: " + err.getMessage());
             }
         }
     |   column_name (since=SINCE | since=AFTER | before=BEFORE) time_expr
@@ -1090,7 +1157,7 @@ time_predicate returns [JSONObject json]
                 }
             }
             catch (JSONException err) {
-                throw new RecognitionException();
+                throw new FailedPredicateException(input, "time_predicate", "JSONException: " + err.getMessage());
             }
         }
     ;
@@ -1170,12 +1237,36 @@ time_expr returns [long val]
 date_time_string returns [long val]
     :   DATETIME
         {
-            String format = ($DATETIME.text.length() == 10) ? "yyyy-MM-dd" : "yyyy-MM-dd HH:mm:ss";
+            SimpleDateFormat format;
+            if ($DATETIME.text.length() == 10) {
+                if (_format1 != null) {
+                    format = _format1;
+                }
+                else {
+                    format = _format1 = new SimpleDateFormat("yyyy-MM-dd");
+                }
+            }
+            else {
+                if (_format2 != null) {
+                    format = _format2;
+                }
+                else {
+                    format = _format2 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                }
+            }
             try {
-                $val = new SimpleDateFormat(format).parse($DATETIME.text).getTime();
+                $val = format.parse($DATETIME.text).getTime();
+                if (!$DATETIME.text.equals(format.format($val))) {
+                    throw new FailedPredicateException(input,
+                                                       "date_time_string", 
+                                                       "Date string contains invalid date and/or time: \"" + $DATETIME.text + "\".");
+                }
             }
             catch (ParseException err) {
-                throw new RecognitionException();
+                throw new FailedPredicateException(input,
+                                                   "date_time_string", 
+                                                   "ParseException happened for \"" + $DATETIME.text + "\": " + 
+                                                   err.getMessage() + ".");
             }
         }
     ;
@@ -1189,7 +1280,9 @@ match_predicate returns [JSONObject json]
                     String col = cols.getString(i);
                     String[] facetInfo = _facetInfoMap.get(col);
                     if (facetInfo != null && !facetInfo[1].equals("string")) {
-                        throw new RecognitionException();
+                        throw new FailedPredicateException(input, 
+                                                           "match_predicate", 
+                                                           "Non-string type column \"" + col + "\" cannot be used in MATCH AGAINST predicates.");
                     }
                 }
                 $json = new JSONObject().put("query",
@@ -1198,7 +1291,7 @@ match_predicate returns [JSONObject json]
                                                                                   .put("query", $STRING_LITERAL.text)));
             }
             catch (JSONException err) {
-                throw new RecognitionException();
+                throw new FailedPredicateException(input, "match_predicate", "JSONException: " + err.getMessage());
             }
         }
     ;
@@ -1209,7 +1302,9 @@ like_predicate returns [JSONObject json]
             String col = $column_name.text;
             String[] facetInfo = _facetInfoMap.get(col);
             if (facetInfo != null && !facetInfo[1].equals("string")) {
-                throw new RecognitionException();
+                throw new FailedPredicateException(input, 
+                                                   "match_predicate", 
+                                                   "Non-string type column \"" + col + "\" cannot be used in LIKE predicates.");
             }
             String likeString = $STRING_LITERAL.text.replace('\%', '*').replace('_', '?');
             try {
@@ -1218,7 +1313,7 @@ like_predicate returns [JSONObject json]
                                                                   new JSONObject().put(col, likeString)));
             }
             catch (JSONException err) {
-                throw new RecognitionException();
+                throw new FailedPredicateException(input, "like_predicate", "JSONException: " + err.getMessage());
             }
         }
     ;
@@ -1275,7 +1370,7 @@ prop_list returns [JSONObject json]
                 $json.put($p.key, $p.value);
             }
             catch (JSONException err) {
-                throw new RecognitionException();
+                throw new FailedPredicateException(input, "prop_list", "JSONException: " + err.getMessage());
             }
         }
         (COMMA p=key_value_pair
@@ -1284,7 +1379,7 @@ prop_list returns [JSONObject json]
                     $json.put($p.key, $p.value);
                 }
                 catch (JSONException err) {
-                    throw new RecognitionException();
+                    throw new FailedPredicateException(input, "prop_list", "JSONException: " + err.getMessage());
                 }
             }
         )* RPAR
@@ -1324,7 +1419,7 @@ facet_param_list returns [JSONObject json]
                 }
             }
             catch (JSONException err) {
-                throw new RecognitionException();
+                throw new FailedPredicateException(input, "facet_param_list", "JSONException: " + err.getMessage());
             }
         }
         (COMMA p=facet_param
@@ -1340,7 +1435,7 @@ facet_param_list returns [JSONObject json]
                     }
                 }
                 catch (JSONException err) {
-                    throw new RecognitionException();
+                    throw new FailedPredicateException(input, "facet_param_list", "JSONException: " + err.getMessage());
                 }
             }
         )*
@@ -1356,7 +1451,7 @@ facet_param returns [String facet, JSONObject param]
                                                               .put("values", new JSONArray().put($value.val)));
             }
             catch (JSONException err) {
-                throw new RecognitionException();
+                throw new FailedPredicateException(input, "facet_param", "JSONException: " + err.getMessage());
             }
         }                                 
     ;

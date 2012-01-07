@@ -341,6 +341,23 @@ public class TestBQL extends TestCase
   }
 
   @Test
+  public void testNotEqualForRange() throws Exception
+  {
+    System.out.println("testNotEqualForRange");
+    System.out.println("==================================================");
+
+    long now = System.currentTimeMillis();
+
+    JSONObject json = _compiler.compile(
+      "SELECT * " +
+      "FROM cars " +
+      "WHERE year <> 2000"
+      );
+    JSONObject expected = new JSONObject("{\"filter\":{\"or\":[{\"range\":{\"year\":{\"to\":2000,\"include_upper\":false}}},{\"range\":{\"year\":{\"include_lower\":false,\"from\":2000}}}]},\"meta\":{\"select_list\":[\"*\"]}}");
+    assertTrue(_comp.isEquals(json, expected));
+  }
+
+  @Test
   public void testQueryIs() throws Exception
   {
     System.out.println("testQueryIs");
