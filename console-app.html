@@ -1,0 +1,35 @@
+---
+layout: default
+title: SenseiDB - Console App
+---
+<div class="hero-unit">
+  <h2>Console Application</h2>
+  <p>A useful tool to interact with Sensei</p>
+</div>
+
+<h2>Getting to the console application:</h2>
+<p>
+	Sensei comes with a web application for you to interact with your Sensei cluster.
+</p>
+
+<p>
+	Each Sensei node embeds the console application running on the port specified by sensei.broker.port  the setting, e.g.:
+	<pre><code>sensei.broker.port = 8080</code></pre>
+	After you start a node on the local machine, you can get to the application via the url: <a href="http://localhost:8080">http://localhost:8080</a>
+</p>
+
+<h2>Using the console application:</h2>
+<p>
+	The application splits into 3 panels:
+	<ol>
+		<li>The left panel contains various parameters needed to build a Sensei request.</li>
+		<li>The middle panel displays the request to be sent to the cluster</li>
+		<li>The right panel displays the results after clicking on the <code>execute</code> button</li>
+	</ol>
+	<span class="label notice">The upper-right-hand corner contains the edit mode links. This allows you set edit mode (default, vi, emacs) used to edit the request.</span>
+</p>
+
+<h2>Production use:</h2>
+<p>
+	We found this tool to be very useful in debugging production systems. In situations where we want to reproduce a problem by replay a certain query (e.g. unexpected results, 0 hits, long latency etc.), we can grab the request from the <code>sensei-query.log</code> file and paste to the console application and tweak the request.
+</p>
