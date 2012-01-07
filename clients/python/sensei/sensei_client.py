@@ -249,7 +249,6 @@ class SenseiClient:
       query_string = json.dumps(bql)
     else:
       query_string = SenseiClient.buildUrlString(req)
-    print "query_string = %s" % query_string
     logger.debug(query_string)
     urlReq = urllib2.Request(self.url, query_string)
     res = self.opener.open(urlReq)
@@ -373,7 +372,18 @@ exit              Exit
 
       if command == "select":
         res = client.doQuery(stmt)
-        res.display(columns=["*"], max_col_width=int(options.max_col_width))
+        error = res.error
+        if error:
+          err_code = error.get("code")
+          err_msg = error.get("msg")
+          if err_code == 499:
+            err_match = re.match(r'^\[line:(\d+), col:(\d+)\].*', err_msg)
+            print '%s^' % (' ' * (5 + int(err_match.group(2))))
+            print err_msg
+          else:
+            print "Unknown error happened!"
+        else:
+          res.display(columns=["*"], max_col_width=int(options.max_col_width))
       elif command in ["desc", "describe"]:
         sysinfo = client.get_sysinfo()
         sysinfo.display()

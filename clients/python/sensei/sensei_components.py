@@ -1002,6 +1002,7 @@ class SenseiResult:
     self.total_time = 0
     self.numHits = json_data.get(PARAM_RESULT_NUMHITS, 0)
     self.hits = json_data.get(PARAM_RESULT_HITS)
+    self.error = json_data.get("error")
     map = json_data.get(PARAM_RESULT_FACETS)
     self.facetMap = {}
     if map:

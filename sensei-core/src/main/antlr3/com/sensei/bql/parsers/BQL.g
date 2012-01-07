@@ -73,8 +73,9 @@ import java.text.SimpleDateFormat;
         }
         else if (err instanceof MismatchedTokenException) {
             MismatchedTokenException mte = (MismatchedTokenException) err;
+            String tokenName = (mte.expecting == -1) ? "EOF" : tokenNames[mte.expecting];
             msg = "[line:" + mte.line + ", col:" + mte.charPositionInLine + "] " +
-                "Expecting " + tokenNames[mte.expecting] +
+                "Expecting " + tokenName +
                 " (token=" + err.token.getText() + ")";
         }
         else if (err instanceof FailedPredicateException) {
@@ -84,7 +85,6 @@ import java.text.SimpleDateFormat;
                 " (token=" + fpe.token.getText() + ")";
         }
         else {
-            System.out.println(">>> err.class = " + err.getClass().getName());
             msg = super.getErrorMessage(err, tokenNames); 
         }
         return msg;
@@ -494,7 +494,6 @@ statement returns [Object json]
     :   (   select_stmt { $json = $select_stmt.json; }
         |   describe_stmt
         )   SEMI?
-        EOF
     ;
 
 select_stmt returns [Object json]
@@ -510,7 +509,7 @@ select_stmt returns [Object json]
         |   group_by = group_by_clause
         |   browse_by = browse_by_clause
         |   fetch_stored = fetching_stored_clause
-        )*
+        )* EOF
         {
             JSONObject jsonObj = new JSONObject();
             JSONArray selections = new JSONArray();

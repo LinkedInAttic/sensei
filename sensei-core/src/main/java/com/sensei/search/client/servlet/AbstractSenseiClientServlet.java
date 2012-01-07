@@ -43,6 +43,7 @@ import org.antlr.runtime.RecognitionException;
 
 public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableServlet {
 
+  public static final int BQL_PARSING_ERROR = 499;
   private static final long serialVersionUID = 1L;
 
   private static final Logger logger = Logger.getLogger(AbstractSenseiClientServlet.class);
@@ -199,16 +200,17 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
     }
     catch (RecognitionException e)
     {
-      String msg = _compiler.getErrorMessage(e);
-      if (msg == null) 
+      String errMsg = _compiler.getErrorMessage(e);
+      if (errMsg == null) 
       {
-        msg = "BQL Parsing error.";
+        errMsg = "BQL Parsing error.";
       }
-      System.out.println(">>> e.getMessage() = " + e.getMessage());
+
       OutputStream ostream = resp.getOutputStream();
       try
       {
-        JSONObject errResp = new JSONObject().put("error", msg);
+        JSONObject errResp = new JSONObject().put("error",
+                                                  new JSONObject().put("code", BQL_PARSING_ERROR).put("msg", errMsg));
         ostream.write(errResp.toString().getBytes("UTF-8"));
         ostream.flush();
       }

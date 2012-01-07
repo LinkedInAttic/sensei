@@ -569,4 +569,29 @@ public class TestErrorHandling extends TestCase
     }
   }
 
+  @Test
+  public void testEOF() throws Exception
+  {
+    System.out.println("testEOF");
+    System.out.println("==================================================");
+
+    boolean caughtException = false;
+    try
+    {
+      JSONObject json = _compiler.compile(
+        "select color, year from where year > 1"
+        );
+    }
+    catch (RecognitionException err)
+    {
+      assertEquals("[line:1, col:35] Expecting EOF (token=>)",
+                   _compiler.getErrorMessage(err));
+      caughtException = true;
+    }
+    finally 
+    {
+      assertTrue(caughtException);
+    }
+  }
+
 }
