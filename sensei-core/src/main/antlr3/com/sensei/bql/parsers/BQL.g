@@ -536,16 +536,61 @@ statement returns [Object json]
 select_stmt returns [Object json]
 @init {
     _now = System.currentTimeMillis();
+    boolean seenOrderBy = false;
+    boolean seenLimit = false;
+    boolean seenGroupBy = false;
+    boolean seenBrowseBy = false;
+    boolean seenFetchStored = false;
 }
     :   SELECT ('*' | cols=column_name_list)
         (FROM IDENT)?
         w=where?
         given=given_clause?
-        (   order_by = order_by_clause
+        (   order_by = order_by_clause 
+            { 
+                if (seenOrderBy) {
+                    throw new FailedPredicateException(input, "select_stmt", "ORDER BY clause can only appear once.");
+                }
+                else {
+                    seenOrderBy = true;
+                }
+            }
         |   limit = limit_clause
+            { 
+                if (seenLimit) {
+                    throw new FailedPredicateException(input, "select_stmt", "LIMIT clause can only appear once.");
+                }
+                else {
+                    seenLimit = true;
+                }
+            }
         |   group_by = group_by_clause
+            { 
+                if (seenGroupBy) {
+                    throw new FailedPredicateException(input, "select_stmt", "GROUP BY clause can only appear once.");
+                }
+                else {
+                    seenGroupBy = true;
+                }
+            }
         |   browse_by = browse_by_clause
+            { 
+                if (seenBrowseBy) {
+                    throw new FailedPredicateException(input, "select_stmt", "BROWSE BY clause can only appear once.");
+                }
+                else {
+                    seenBrowseBy = true;
+                }
+            }
         |   fetch_stored = fetching_stored_clause
+            { 
+                if (seenFetchStored) {
+                    throw new FailedPredicateException(input, "select_stmt", "FETCHING STORED clause can only appear once.");
+                }
+                else {
+                    seenFetchStored = true;
+                }
+            }
         )*
         {
             JSONObject jsonObj = new JSONObject();

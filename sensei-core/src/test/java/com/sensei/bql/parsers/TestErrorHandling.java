@@ -619,6 +619,65 @@ public class TestErrorHandling extends TestCase
     }
   }
 
+  @Test
+  public void testOrderByOnce() throws Exception
+  {
+    System.out.println("testOrderByOnce");
+    System.out.println("==================================================");
+
+    boolean caughtException = false;
+    try
+    {
+      JSONObject json = _compiler.compile(
+        "select category \n" +
+        "from cars \n" +
+        "order by color \n" +
+        "order by year \n" +
+        "limit 10"
+        );
+    }
+    catch (RecognitionException err)
+    {
+      assertEquals("[line:5, col:0] ORDER BY clause can only appear once. (token=limit)",
+                   _compiler.getErrorMessage(err));
+      caughtException = true;
+    }
+    finally 
+    {
+      assertTrue(caughtException);
+    }
+  }
+
+  @Test
+  public void testLimitOnce() throws Exception
+  {
+    System.out.println("testLimitOnce");
+    System.out.println("==================================================");
+
+    boolean caughtException = false;
+    try
+    {
+      JSONObject json = _compiler.compile(
+        "select category \n" +
+        "from cars \n" +
+        "limit 10, 20 \n" +
+        "limit 10 \n" +
+        "order by color \n"
+        );
+    }
+    catch (RecognitionException err)
+    {
+      System.out.println(">>> _compiler.getErrorMessage(err) = " + _compiler.getErrorMessage(err));
+      assertEquals("[line:5, col:0] LIMIT clause can only appear once. (token=order)",
+                   _compiler.getErrorMessage(err));
+      caughtException = true;
+    }
+    finally 
+    {
+      assertTrue(caughtException);
+    }
+  }
+
   // @Test
   // public void testConflictSelections() throws Exception
   // {
