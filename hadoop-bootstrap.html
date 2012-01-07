@@ -56,9 +56,9 @@ We explain the functionality of Sensei Hadoop indexing and its workflow through 
 
 <h3>Car Demo</h3>
 <p>
-To be consistent, we also use the car demo data to describe our hadoop indexing system. Sensei package comes with a car demo hadoop-indexing example and it mainly has four simple files. The first one "CarDemo.java" is a simple main class providing a starting point for running the program. "CarMapInputConverter.java" is a sample converter class to convert the input data record for map job. "CarShardingStrategy.java" is another class to provide a user-specified sharding strategy. Also we need a configuration file to help Sensei Hadoop indexer to configure all the rest properties, a sample configuration file can be found at "example/hadoop-indexing/conf/JobCarDemo.job".
+To be consistent, we also use the car demo data to describe our hadoop indexing system. Sensei package comes with a car demo hadoop-indexing example and it mainly has four simple files. The first one "CarDemo.java" is a simple main class providing a starting point for running the program. "CarMapInputConverter.java" is a sample converter class to convert the input data record for map job. "CarShardingStrategy.java" is another class to provide a user-specified sharding strategy. Also we need a configuration file to help Sensei Hadoop indexer to configure all the rest properties, a sample configuration file can be found at "$SENSEI_HOME/example/hadoop-indexing/conf/JobCarDemo.job".
 
-To run the demo, simple compile and package the project into an excutable jar file called CarDemo.jar. Then run "hadoop jar CarDemo.jar".
+To run the demo, simple compile and package the project into an executable jar file called CarDemo.jar. Then run "hadoop jar CarDemo.jar".
 
 (You need to specify the job configuration file location in CarDemo.java, and upload the schema file into the HDFS system before running, and also the location of the schema file should be set in the configuration file)
 </p>
@@ -92,15 +92,15 @@ The main steps are as follows,
 <pre class="prettyprint" id="xml">
 <?xml version="1.0" encoding="UTF-8"?>
 $SENSEI_HOME/bin/hadoop fs -mkdir conf
-$SENSEI_HOME/bin/hadoop fs -put /local/Documents/workspace/sensei/example/cars/conf/schema.xml conf/
+$SENSEI_HOME/bin/hadoop fs -put $SENSEI_HOME/example/cars/conf/schema.xml conf/
 $SENSEI_HOME/bin/hadoop fs -mkdir data
-$SENSEI_HOME/bin/hadoop fs -put /local/Documents/workspace/sensei/example/cars/data/cars.json data/
+$SENSEI_HOME/bin/hadoop fs -put $SENSEI_HOME/example/cars/data/cars.json data/
  
 </pre>
 <p>After uploaded the schema.xml file and the input data (cars.json), you can go to "http://localhost:50070/nn_browsedfscontent.jsp" to check if there are there in the local HDFS. These files will be used by your Hadoop job in the following steps.</p>
 
 
-<p>To build index through Sensei-hadoop-indexer, simply write your own job files just as the <a href="https://github.com/javasoze/sensei/tree/json-api/example/hadoop-indexing/src/main/java/com/sensei/indexing/hadoop/demo">car demo files</a> (java files with main function as entry point, and also specifying where the configuration file is, sharding strategy, etc.), 
+<p>To build index through Sensei-hadoop-indexer, simply write your own job files just as the <a href="https://github.com/senseidb/sensei/tree/json-api/example/hadoop-indexing/src/main/java/com/sensei/indexing/hadoop/demo">car demo files</a> (java files with main function as entry point, and also specifying where the configuration file is, sharding strategy, etc.), 
 and then package it as a runnable jar file (e.g., example.jar) to execute:</p>
 <pre class="prettyprint" id="xml">
 <?xml version="1.0" encoding="UTF-8"?>
@@ -238,11 +238,11 @@ Total time: 51841
 </pre>    
 
 <p>After Sensei is started, we specify the location and port of the running Sensei Server, and also the index location in HDFS built in the first step.
-In this case, the generated index folder is located in hdfs://localhost:9000/user/sguo/example/hadoop-indexing/index .
+In this case, the generated index folder is located in hdfs://localhost:9000/sensei-app/example/hadoop-indexing/index .
 We bootstrap this server by doing the folloing:</p>
 <p>In <code>$SENSEI_HOME</code>:</p>
 <pre class="prettyprint">
-./bin/load-index -s localhost -p 8080 hdfs://localhost:9000/user/sguo/example/hadoop-indexing/index
+./bin/load-index -s localhost -p 8080 hdfs://localhost:9000/sensei-app/example/hadoop-indexing/index
  
 </pre>
 
@@ -262,10 +262,10 @@ We bootstrap this server by doing the folloing:</p>
 
 <h2>Data warehousing</h2>
 <p>
-  Other than this conveninence, there are some other immediate benefits, for example: data-warehousing.
+  Other than this convenience, there are some other immediate benefits, for example: data-warehousing.
 </p>
 <p>
-  Traditionally, data-warehousing solutions are built on the RDBMS. In the curret era of information explosion, traditional solutions are no longer feasible given the amount of data.
+  Traditionally, data-warehousing solutions are built on the RDBMS. In the current era of information explosion, traditional solutions are no longer feasible given the amount of data.
 </p>
 <p>
   Recently, technologies such as Apache's <a href="http://pig.apache.org/">Pig</a> and <a href="http://hive.apache.org/">Hive</a> projects have been developed in solving this problem by translation a SQL-like query language into Map-Reduce jobs over Hadoop. This made data-warehousing on large datasets possible.
