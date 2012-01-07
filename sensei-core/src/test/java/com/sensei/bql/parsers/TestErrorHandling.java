@@ -584,7 +584,32 @@ public class TestErrorHandling extends TestCase
     }
     catch (RecognitionException err)
     {
-      assertEquals("[line:1, col:35] Expecting EOF (token=>)",
+      assertEquals("[line:1, col:24] Expecting IDENT (token=where)",
+                   _compiler.getErrorMessage(err));
+      caughtException = true;
+    }
+    finally 
+    {
+      assertTrue(caughtException);
+    }
+  }
+
+  @Test
+  public void testBadSelectList() throws Exception
+  {
+    System.out.println("testBadSelectList");
+    System.out.println("==================================================");
+
+    boolean caughtException = false;
+    try
+    {
+      JSONObject json = _compiler.compile(
+        "select color, from aa where color  = 'red'"
+        );
+    }
+    catch (RecognitionException err)
+    {
+      assertEquals("[line:1, col:14] Expecting IDENT (token=from)",
                    _compiler.getErrorMessage(err));
       caughtException = true;
     }

@@ -58,6 +58,28 @@ import java.text.SimpleDateFormat;
         _facetInfoMap.put("_uid", new String[]{"simple", "long"});
     }
 
+    // The following three overridden methods are used to force ANTLR to
+    // stop parsing upon the very first error.
+    protected void mismatch(IntStream input, int ttype, BitSet follow)
+        throws RecognitionException
+    {
+        throw new MismatchedTokenException(ttype, input);
+    }
+
+    protected Object recoverFromMismatchedToken(IntStream input, int ttype, BitSet follow)
+        throws RecognitionException
+    {
+        throw new MismatchedTokenException(ttype, input);
+    }
+
+    public Object recoverFromMismatchedSet(IntStream input,
+                                           RecognitionException e,
+                                           BitSet follow)
+        throws RecognitionException
+    {
+        throw e;
+    }
+
     public String getErrorMessage(RecognitionException err, String[] tokenNames) 
     {
         // List stack = getRuleInvocationStack(err, this.getClass().getName());
