@@ -4,6 +4,7 @@ import java.io.File;
 
 import org.apache.log4j.Logger;
 
+import proj.zoie.api.DirectoryManager.DIRECTORY_MODE;
 import proj.zoie.api.indexing.ZoieIndexableInterpreter;
 import proj.zoie.hourglass.impl.HourGlassScheduler;
 import proj.zoie.hourglass.impl.HourGlassScheduler.FREQUENCY;
@@ -35,13 +36,13 @@ public class SenseiHourglassFactory<T> extends SenseiZoieFactory<T>
    * @param trimThreshold the number of units of rolling periods to keep (for DAILY rolling, we keep trimThreshold number of days of data)
    * @param frequency rolling frequency
    */
-  public SenseiHourglassFactory(File idxDir, ZoieIndexableInterpreter<T> interpreter, SenseiIndexReaderDecorator indexReaderDecorator,
+  public SenseiHourglassFactory(File idxDir, DIRECTORY_MODE dirMode,ZoieIndexableInterpreter<T> interpreter, SenseiIndexReaderDecorator indexReaderDecorator,
                                  ZoieConfig zoieConfig,
                                  String schedule,
                                  int trimThreshold,
                                  FREQUENCY frequency)
   {
-    super(idxDir,interpreter,indexReaderDecorator,zoieConfig);
+    super(idxDir,dirMode,interpreter,indexReaderDecorator,zoieConfig);
     this.schedule = schedule;
     this.trimThreshold = trimThreshold;
     this.frequency = frequency;
@@ -62,7 +63,7 @@ public class SenseiHourglassFactory<T> extends SenseiZoieFactory<T>
     // if it is hourly rolling, it means at mm:ss time of the hour, we roll forward
     // if it is MINUTELY, it means at ss seond of the minute, we roll forward.
     HourGlassScheduler scheduler = new HourGlassScheduler(frequency, schedule, trimThreshold);
-    HourglassDirectoryManagerFactory dirmgr = new HourglassDirectoryManagerFactory(partDir, scheduler);
+    HourglassDirectoryManagerFactory dirmgr = new HourglassDirectoryManagerFactory(partDir, scheduler,_dirMode);
     log.info("creating Hourglass for nodeId: " + nodeId + " partition: " + partitionId);
     return new Hourglass<BoboIndexReader,T>(dirmgr, _interpreter, _indexReaderDecorator, _zoieConfig);
   }

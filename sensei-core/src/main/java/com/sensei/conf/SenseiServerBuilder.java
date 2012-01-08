@@ -45,6 +45,7 @@ import org.mortbay.servlet.GzipFilter;
 import org.mortbay.thread.QueuedThreadPool;
 import org.w3c.dom.Document;
 
+import proj.zoie.api.DirectoryManager.DIRECTORY_MODE;
 import proj.zoie.api.IndexCopier;
 import proj.zoie.api.indexing.ZoieIndexableInterpreter;
 import proj.zoie.hourglass.impl.HourGlassScheduler.FREQUENCY;
@@ -423,8 +424,25 @@ public class SenseiServerBuilder implements SenseiConfParams{
     SenseiIndexReaderDecorator decorator = new SenseiIndexReaderDecorator(facetHandlers,runtimeFacetHandlerFactories);
     File idxDir = new File(_senseiConf.getString(SENSEI_INDEX_DIR));
     SenseiZoieFactory<?> zoieSystemFactory = null;
+    
+    DIRECTORY_MODE dirMode;
+    String modeValue = _senseiConf.getString(SENSEI_INDEXER_MODE, "SIMPLE");
+    if ("SIMPLE".equalsIgnoreCase(modeValue)){
+      dirMode = DIRECTORY_MODE.SIMPLE;
+    }
+    else if ("NIO".equalsIgnoreCase(modeValue)){
+      dirMode = DIRECTORY_MODE.NIO;
+    }
+    else if ("MMAP".equalsIgnoreCase(modeValue)){
+      dirMode = DIRECTORY_MODE.MMAP;
+    }
+    else{
+      logger.error("directory mode "+modeValue+" is not supported, SIMPLE is used.");
+      dirMode = DIRECTORY_MODE.SIMPLE;
+    }
+
     if (SENSEI_INDEXER_TYPE_ZOIE.equals(indexerType)){
-      SenseiZoieSystemFactory senseiZoieFactory = new SenseiZoieSystemFactory(idxDir,interpreter,decorator,
+      SenseiZoieSystemFactory senseiZoieFactory = new SenseiZoieSystemFactory(idxDir,dirMode,interpreter,decorator,
               zoieConfig);
       int retentionDays = _senseiConf.getInt(SENSEI_ZOIE_RETENTION_DAYS,-1);
       if (retentionDays>0){
@@ -468,7 +486,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
       else {
         throw new ConfigurationException("unsupported frequency setting: "+frequencyString);
       }
-      zoieSystemFactory = new SenseiHourglassFactory(idxDir,interpreter,decorator,
+      zoieSystemFactory = new SenseiHourglassFactory(idxDir,dirMode,interpreter,decorator,
             zoieConfig,schedule,trimThreshold,frequency);
     }  else{
       ZoieFactoryFactory zoieFactoryFactory= pluginRegistry.getBeanByFullPrefix(indexerType, ZoieFactoryFactory.class);
@@ -480,10 +498,10 @@ public class SenseiServerBuilder implements SenseiConfParams{
     String indexerCopier = _senseiConf.getString(SENSEI_INDEXER_COPIER);
     IndexCopier copier = pluginRegistry.getBeanByFullPrefix(SENSEI_INDEXER_COPIER, IndexCopier.class);
     if (copier != null) {
-      zoieSystemFactory = new SenseiPairFactory(idxDir, copier, interpreter, decorator, zoieConfig, zoieSystemFactory);
+      zoieSystemFactory = new SenseiPairFactory(idxDir, dirMode,copier, interpreter, decorator, zoieConfig, zoieSystemFactory);
     }  else if (SENSEI_INDEXER_COPIER_HDFS.equals(indexerCopier))
     {
-      zoieSystemFactory = new SenseiPairFactory(idxDir, new HDFSIndexCopier(), interpreter, decorator, zoieConfig, zoieSystemFactory);
+      zoieSystemFactory = new SenseiPairFactory(idxDir, dirMode,new HDFSIndexCopier(), interpreter, decorator, zoieConfig, zoieSystemFactory);
     } else
     {
       // do not support bootstrap index from other sources.
