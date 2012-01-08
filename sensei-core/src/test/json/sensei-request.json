@@ -119,5 +119,12 @@
   "templateMapping":{
     "size" : 10
   }
+
   //"size" : "$size"
+
+  // Meta data: meta information about the request
+  //
+  // "meta": {
+  //     "select_list": ["color", "year"]
+  // }
 }

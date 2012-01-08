@@ -21,6 +21,8 @@ import com.browseengine.bobo.facets.impl.PathFacetHandler;
 import com.sensei.search.req.SenseiJSONQuery;
 import com.sensei.search.req.SenseiRequest;
 
+import com.sensei.bql.parsers.BQLCompiler;
+
 public class RequestConverter2 {
 
   public static final String PAGING_SIZE = "size";
@@ -141,11 +143,26 @@ public class RequestConverter2 {
 		  return vals;
 	  }
 
-	public static SenseiRequest fromJSON(JSONObject json) throws Exception{
-	  json =  jsonTemplateProcessor.substituteTemplates(json);
-
+	public static SenseiRequest fromJSON(JSONObject json) throws Exception
+  {
+	  json = jsonTemplateProcessor.substituteTemplates(json);
 
 	  SenseiRequest req = new SenseiRequest();
+
+    JSONObject meta = json.optJSONObject("meta");
+    if (meta != null)
+    {
+      JSONArray array = meta.optJSONArray("select_list");
+      if (array != null)
+      {
+        List<String> list = new ArrayList<String>();
+        for (int i = 0; i < array.length(); ++i)
+        {
+          list.add(array.get(i).toString());
+        }
+        req.setSelectList(list);
+      }
+    }
 
 	    // query
 	    req.setQuery(new SenseiJSONQuery(json));

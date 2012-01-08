@@ -244,7 +244,9 @@ class SenseiClient:
     time1 = datetime.now()
     query_string = None
     if using_json: # Use JSON format
-      query_string = self.buildJsonString(req)
+      # query_string = self.buildJsonString(req)
+      bql = {"bql": req}
+      query_string = json.dumps(bql)
     else:
       query_string = SenseiClient.buildUrlString(req)
     logger.debug(query_string)
@@ -307,6 +309,16 @@ class SenseiClient:
     res.display(columns, max_col_width=40)
 
 def main(argv):
+  
+  def help():
+    print """\
+help              Show instructions
+select ...        Execute a BQL statement
+desc | describe   Describe current index schema
+get <uid_list>    Retrieve documents based on UID list
+exit              Exit
+"""
+
   print "Welcome to Sensei Shell"
   from optparse import OptionParser
   usage = "usage: %prog [options]"
@@ -329,34 +341,57 @@ def main(argv):
 
   if len(args) <= 1:
     client = SenseiClient()
-    print "using default host=localhost, port=8080"
+    print "Using default host=localhost, port=8080"
   else:
     host = args[0]
     port = int(args[1])
     print "Url specified, host: %s, port: %d" % (host,port)
     client = SenseiClient(host, port, 'sensei')
 
+  print 'Enter "help" for instructions'
+
   import readline
   readline.parse_and_bind("tab: complete")
   while 1:
     try:
-      stmt = raw_input('> ')
-      if stmt == "exit":
-        break
+      stmt = raw_input('bql> ')
 
-      # if options.verbose:
-      #   test(stmt)
-      if stmt == "sample request":
-        client.run_example()
-        continue
-        
-      req = client.compile(stmt)
-      if req.stmt_type == "select":
-        res = client.doQuery(req)
-        res.display(columns=req.get_columns(), max_col_width=int(options.max_col_width))
-      elif req.stmt_type == "desc":
+      words = re.split(r'[\s,]+', stmt.strip())
+
+      command = len(words) > 0 and words[0].lower() or None
+
+      if len(words) == 1 and command == "exit":
+        break
+      elif command == "get":
+        if len(words) > 1:
+          stmt = "select * where _uid in (%s)" % ','.join(words[1:])
+          command = "select"
+        else:
+          print "Bad GET command."
+          continue
+
+      if command == "select":
+        res = client.doQuery(stmt)
+        error = res.error
+        if error:
+          err_code = error.get("code")
+          err_msg = error.get("msg")
+          if err_code == 499:
+            err_match = re.match(r'^\[line:(\d+), col:(\d+)\].*', err_msg)
+            print '%s^' % (' ' * (5 + int(err_match.group(2))))
+            print err_msg
+          else:
+            print "Unknown error happened!"
+        else:
+          res.display(columns=["*"], max_col_width=int(options.max_col_width))
+      elif command in ["desc", "describe"]:
         sysinfo = client.get_sysinfo()
         sysinfo.display()
+      elif command == "help":
+        help()
+      else:
+        print "Unrecognized command."
+
     except EOFError:
       break
     except ParseException as err:
@@ -366,6 +401,8 @@ def main(argv):
     except ParseFatalException as err:
       print " " * (err.loc + 2) + "^\n" + err.msg
     except SenseiClientError as err:
+      print err
+    except Exception as err:
       print err
 
 if __name__ == "__main__":

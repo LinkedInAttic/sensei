@@ -225,6 +225,13 @@ public class TestSensei extends TestCase {
     assertTrue(hit.getSenseiGroupHits().length > 0);
   }
 
+  public void testBQL1() throws Exception
+  {
+    logger.info("Executing test case testBQL1");
+    String req = "{\"bql\":\"select * from cars\"}";
+    JSONObject res = search(new JSONObject(req));
+  }
+
   public void testSelectionTerm() throws Exception
   {
     logger.info("executing test case Selection term");
@@ -651,7 +658,7 @@ public class TestSensei extends TestCase {
     while((line = reader.readLine()) != null)
       sb.append(line);
     String res = sb.toString();
-    System.out.println("res: " + res);
+    // System.out.println("res: " + res);
     return new JSONObject(res);
   }
 
