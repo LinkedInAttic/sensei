@@ -63,7 +63,12 @@ name: configuration
           string</p></li><li class="listitem"><p><span class="bold"><strong>text</strong></span> - a searchable text
           segment, standard Lucene indexing specification can also be
           specified here, e.g. <code class="literal">index="ANALYZED"</code>,
-          <code class="literal">termvector="NO"</code>.</p></li></ul></div><p>A column that is not of type "text" is considered a
+
+          <code class="literal">termvector="NO"</code>.</p></li></ul></div>
+<p>
+<span class="label important">For number types, we don&apos;t currently support negative values. This is coming in a future release.</span>
+</p>
+          <p>A column that is not of type "text" is considered a
       <span class="emphasis"><em>meta</em></span> column. Any meta column can be specified to be
       either <span class="emphasis"><em>single</em></span> (default) or
       <span class="emphasis"><em>multi</em></span>. When a column is specified to be
@@ -262,15 +267,19 @@ sensei.index.batchSize = 10000
 sensei.index.batchDelay = 300000
 sensei.index.maxBatchSize = 10000
 sensei.index.realtime = true
-sensei.index.freshness = 10000
 
-# gateway information
-
-sensei.gateway.type = file
-sensei.gateway.file.path = data/cars.json
+# indicator of freshness of data, in seconds, a number &lt;=0 implies as fast as possible
+sensei.index.freshness = 5
 
 # index manager parameters
 
+sensei.index.manager.default.maxpartition.id = 1
+
+# gateway information
+sensei.gateway.class=com.sensei.indexing.api.gateway.file.LinedFileDataProviderBuilder
+sensei.gateway.file.path = example/cars/data/cars.json
+
+# index manager parameters
 sensei.index.manager.default.maxpartition.id = 1
 
 
@@ -423,7 +432,7 @@ sensei.custom.facets.list= virtual_groupids, my.custom_facets.tags, groupid  </p
             <code class="literal">com.sensei.indexing.api.gateway.SenseiGateway</code>.</p><p>Several built-in gateways are provided by Sensei, but you
             can always define your own based on your need. No matter a
             built-in gateway or a custom gateway is used, additional
-            parameters can be specified under the names with prefix <span class="bold"><strong>sensei.index.manager.class.<span class="emphasis"><em>&lt;gateway-type&gt;</em></span></strong></span>.</p><p>Currently the following built-in gateway types are
+            parameters can be specified under the names with prefix <span class="bold"><strong>sensei.gateway<span class="emphasis"><em>&lt;gateway-type&gt;</em></span></strong></span>.</p><p>Currently the following built-in gateway types are
             supported:</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p><code class="literal">file</code>:</p><p>This type of gateway takes a regular text file as the
                 input. Each line in the file contains a data entry in JSON
                 format.</p><p>Only one property needs to be set for this gateway type.
@@ -446,7 +455,7 @@ sensei.custom.facets.list= virtual_groupids, my.custom_facets.tags, groupid  </p
             nodes.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.version.comparator.class</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: Class</p></li><li class="listitem"><p>Required: No</p></li><li class="listitem"><p>Default: ""</p></li></ul></div><p>This specifies the class name of version comparator plug-in
             to be used by the indexer. If not specified, Zoie's default
             version comparator is used.</p></dd></dl></div><div class="section" title="File Gateway Properties"><div class="titlepage"><div><div><h4 class="title"><a name="sect-file-gateway-props"></a>File Gateway Properties</h4></div></div></div><p>For <code class="literal">file</code> gateway, the following property has
-        to be specified:</p><div class="variablelist"><dl><dt><span class="term"><span class="bold"><strong>sensei.gateway.path</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: String</p></li><li class="listitem"><p>Required: Yes</p></li><li class="listitem"><p>Default: None</p></li></ul></div><p>This is the path to the input data file.</p></dd></dl></div></div><div class="section" title="Kafka Gateway Properties"><div class="titlepage"><div><div><h4 class="title"><a name="sect-kafka-gateway-props"></a>Kafka Gateway Properties</h4></div></div></div><p>For <code class="literal">kafka</code> gateway, the following properties
+        to be specified:</p><div class="variablelist"><dl><dt><span class="term"><span class="bold"><strong>sensei.gateway.file.path</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: String</p></li><li class="listitem"><p>Required: Yes</p></li><li class="listitem"><p>Default: None</p></li></ul></div><p>This is the path to the input data file.</p></dd></dl></div></div><div class="section" title="Kafka Gateway Properties"><div class="titlepage"><div><div><h4 class="title"><a name="sect-kafka-gateway-props"></a>Kafka Gateway Properties</h4></div></div></div><p>For <code class="literal">kafka</code> gateway, the following properties
         should/can be specified: <sup>[<a name="d0e1768" href="#ftn.d0e1768" class="footnote">2</a>]</sup></p><div class="variablelist"><dl><dt><span class="term"><span class="bold"><strong>sensei.gateway.kafka.batchsize</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: String</p></li><li class="listitem"><p>Required: Yes</p></li><li class="listitem"><p>Default: None</p></li></ul></div><p>This is the batch size for each pull request.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.gateway.kafka.host</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: String</p></li><li class="listitem"><p>Required: Yes</p></li><li class="listitem"><p>Default: None</p></li></ul></div><p>This is the host name of the Kafka server.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.gateway.kafka.port</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: int</p></li><li class="listitem"><p>Required: Yes</p></li><li class="listitem"><p>Default: None</p></li></ul></div><p>This is the port number on which the Kafka server is
               listening for connections.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.gateway.kafka.timeout</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: int</p></li><li class="listitem"><p>Required: Yes</p></li><li class="listitem"><p>Default: 10000</p></li></ul></div><p>This is the socket timeout in milliseconds.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.gateway.kafka.topic</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: String</p></li><li class="listitem"><p>Required: Yes</p></li><li class="listitem"><p>Default: None</p></li></ul></div><p>The topic of the messages to be fetched.</p></dd></dl></div></div><div class="section" title="JMS Gateway Properties"><div class="titlepage"><div><div><h4 class="title"><a name="sect-jms-gateway-props"></a>JMS Gateway Properties</h4></div></div></div><p>For <code class="literal">jms</code> gateway, the following properties
         should/can be specified:</p><div class="variablelist"><dl><dt><span class="term"><span class="bold"><strong>sensei.gateway.jms.clientId</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: String</p></li><li class="listitem"><p>Required: Yes</p></li><li class="listitem"><p>Default: None</p></li></ul></div><p>This is the client identifier used to connect to the JMS
