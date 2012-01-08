@@ -49,7 +49,7 @@ public class SenseiPairFactory<T> extends SenseiZoieFactory<T>
                " does not exist, directory created.");
     }
     Zoie<BoboIndexReader, T> zoieTwo = _zoieTwoFactory.getZoieInstance(nodeId, partitionId);
-    Pair<BoboIndexReader, T> zoie = new Pair<BoboIndexReader, T>(zoieOneDir,
+    Pair<BoboIndexReader, T> zoie = new Pair<BoboIndexReader, T>(zoieOneDir,_dirMode,
                                                                  _indexCopier,
                                                                  _interpreter,
                                                                  _indexReaderDecorator,
