@@ -25,9 +25,14 @@ version: 1.0.0-SNAPSHOT
                                            
   SenseiResult senseiResult = new SenseiServiceProxy()
                               .sendRequest("http://localhost:8079/sensei/", senseiRequest);  // perform query
+
+  // getting documents from a list of uids
+
+  Map&lt;Long,JSONObject&gt; docs = new SenseiServiceProxy().sendGetRequest(13,12,15);
+
   </pre>
 </p>
-<p><a class="btn" href="https://github.com/javasoze/sensei/blob/json-api/clients/java-client/src/test/java/com/sensei/search/client/json/Examples.java" target="_blank">More examples &raquo;</a></p>
+<p><a class="btn" href="https://github.com/senseidb/sensei/tree/master/clients/java/src/test/java/com/sensei/search/client/json/Examples.java" target="_blank">More examples &raquo;</a></p>
 
 <h2>Download</h2>
 <p>
