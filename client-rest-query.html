@@ -145,15 +145,17 @@ title: SenseiDB - Query JSON Reference
 	      }
 	    }
 	  },
-
+	  
 	// terms
 	  "terms" : {
 	    "tags" : {
 	      "values" : [ "blue", "pill" ],
 	      "excludes" : ["red"],
 	      "minimum_match" : 1,
-	      "operator" : "or"}
-	  },
+	      "operator" : "or",
+	      "boost": 1.0     //  optional, 1.0 as default value;
+	      }
+	  },	  
 
 	// span term
 	  "span_term" : { 
