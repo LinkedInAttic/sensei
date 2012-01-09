@@ -44,6 +44,7 @@
 							<goal>single</goal>
 						</goals>
 						<configuration>
+							<finalName>sensei-${project.version}</finalName>
 							<descriptors>
 								<descriptor>resources/release.xml</descriptor>
 							</descriptors>
