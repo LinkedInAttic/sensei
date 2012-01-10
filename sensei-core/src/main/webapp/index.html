@@ -23,7 +23,16 @@
         border: 0;
         padding: 0;
       }
-      .CodeMirror-scroll {
+
+      #bql .CodeMirror-scroll {
+        height: 200px;
+      }
+
+      #reqtext .CodeMirror-scroll {
+        height: 700px;
+      }
+
+      #content .CodeMirror-scroll {
         height: 960px;
       }
 
@@ -42,6 +51,7 @@
     <script type="text/javascript" src="js/mustache.js" ></script>
     <script type="text/javascript" src="js/codemirror.js" ></script>
     <script type="text/javascript" src="js/mode/ruby/ruby.js" ></script>
+    <script type="text/javascript" src="js/mode/mysql/mysql.js" ></script>
     <script type="text/javascript" src="js/keymap/emacs.js" ></script>
     <script type="text/javascript" src="js/keymap/vim.js" ></script>
     <script type="text/javascript" src="js/sensei-client.js" ></script>
@@ -50,6 +60,7 @@
     <script type="text/javascript">
     // <![CDATA[
     var reqTextMirror = null;
+    var bqlMirror = null;
     var contentMirror = null;
 
     var updateKeyMap = function(keyMap) {
@@ -72,6 +83,21 @@
       else {
         $('#keyMapDefault').addClass('selected');
       }
+
+      var bql = '';
+      if (bqlMirror != null)
+        bql = bqlMirror.getValue();
+
+      $('#bql').empty();
+
+      bqlMirror = CodeMirror($('#bql').get(0), {
+        mode         : 'mysql',
+        value        : bql,
+        indentUnit   : 4,
+        lineWrapping : true,
+        lineNumbers  : true,
+        keyMap       : keyMap
+      });
 
       var reqText = '';
       if (reqTextMirror != null)
@@ -112,6 +138,7 @@
         updateKeyMap(jobj.attr('_keymap'));
       });
 
+      $('#bql').width($('#bql').width());
       $('#reqtext').width($('#reqtext').width());
       $('#content').width($('#content').width());
 
@@ -150,6 +177,10 @@
 
       $('#buildQueryButton').click(function (e) {
         buildQuery();
+      });
+
+      $('#runbql').click(function (e) {
+        runBql();
       });
 
       $('#runquery').click(function (e) {
@@ -279,15 +310,21 @@
             <tr>
               <td style="width: 50%">
                 <h2>
-                  <input type="button" style="float: left; margin-right: 20px;" id="buildQueryButton" value="Apply >>" class="btn primary" />
+                  <!--input type="button" style="float: left; margin-right: 20px;" id="buildQueryButton" value="Apply >>" class="btn primary" /-->
                   request:
                 </h2>
-                <div id="reqtext" class="uneditable-input" style="width:100%; height: 960px; padding: 0px;"></div>
+                <div id="bql" class="uneditable-input" style="width:100%; height: 200px; padding: 0px;"></div>
+                <div style="text-align: right;">
+                  <input type="button" id="runbql" class="run btn primary" value="execute" />
+                </div>
+                <div id="reqtext" class="uneditable-input" style="width:100%; height: 700px; padding: 0px;"></div>
+                <div style="text-align: right;">
+                  <input type="button" id="runquery" class="run btn primary" value="execute" />
+                </div>
                 <!--textarea style="width:100%" rows="50" cols="100" id="reqtext"></textarea-->
               </td>
               <td style="width: 50%">
                 <h2>
-                  <input type="button" id="runquery" class="btn primary" style="float: left; margin-right: 20px;" value="execute" />
                   result: 
                 </h2>
                 <div id="content" class="uneditable-input" style="width:100%; height: 960px; padding: 0px;"></div>
