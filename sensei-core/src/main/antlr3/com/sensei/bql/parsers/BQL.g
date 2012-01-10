@@ -1387,7 +1387,7 @@ match_predicate returns [JSONObject json]
     ;
 
 like_predicate returns [JSONObject json]
-    :   column_name LIKE STRING_LITERAL
+    :   column_name (NOT)? LIKE STRING_LITERAL
         {
             String col = $column_name.text;
             String[] facetInfo = _facetInfoMap.get(col);
@@ -1401,6 +1401,10 @@ like_predicate returns [JSONObject json]
                 $json = new JSONObject().put("query",
                                              new JSONObject().put("wildcard",
                                                                   new JSONObject().put(col, likeString)));
+                if ($NOT != null) {
+                    $json = new JSONObject().put("bool",
+                                                 new JSONObject().put("must_not", $json));
+                }
             }
             catch (JSONException err) {
                 throw new FailedPredicateException(input, "like_predicate", "JSONException: " + err.getMessage());

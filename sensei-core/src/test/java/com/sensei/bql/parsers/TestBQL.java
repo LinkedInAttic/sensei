@@ -723,6 +723,21 @@ public class TestBQL extends TestCase
   }
 
   @Test
+  public void testNotLikePredicate() throws Exception
+  {
+    System.out.println("testNotLikePredicate");
+    System.out.println("==================================================");
+
+    JSONObject json = _compiler.compile(
+      "SELECT * " +
+      "FROM cars " +
+      "WHERE color NOT LIKE 'bl%'"
+      );
+    JSONObject expected = new JSONObject("{\"filter\":{\"bool\":{\"must_not\":{\"query\":{\"wildcard\":{\"color\":\"bl*\"}}}}},\"meta\":{\"select_list\":[\"*\"]}}");
+    assertTrue(_comp.isEquals(json, expected));
+  }
+
+  @Test
   public void testQueryAndLike() throws Exception
   {
     System.out.println("testQueryAndLike");
