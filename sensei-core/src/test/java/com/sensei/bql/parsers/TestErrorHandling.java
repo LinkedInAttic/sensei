@@ -667,8 +667,36 @@ public class TestErrorHandling extends TestCase
     }
     catch (RecognitionException err)
     {
-      System.out.println(">>> _compiler.getErrorMessage(err) = " + _compiler.getErrorMessage(err));
       assertEquals("[line:5, col:0] LIMIT clause can only appear once. (token=order)",
+                   _compiler.getErrorMessage(err));
+      caughtException = true;
+    }
+    finally 
+    {
+      assertTrue(caughtException);
+    }
+  }
+
+  @Test
+  public void testBadGroupBy() throws Exception
+  {
+    System.out.println("testBadGroupBy");
+    System.out.println("==================================================");
+
+    boolean caughtException = false;
+    try
+    {
+      JSONObject json = _compiler.compile(
+        "select category, tags \n" +
+        "from cars \n" +
+        "group by tags \n" +
+        "order by color \n"
+        );
+    }
+    catch (RecognitionException err)
+    {
+      System.out.println(">>>  = " + _compiler.getErrorMessage(err));
+      assertEquals("[line:4, col:0] Range/multi/path facet, \"tags\", cannot be used in the GROUP BY clause. (token=order)",
                    _compiler.getErrorMessage(err));
       caughtException = true;
     }

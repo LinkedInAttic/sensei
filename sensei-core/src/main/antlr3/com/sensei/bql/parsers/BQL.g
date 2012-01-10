@@ -737,7 +737,16 @@ group_by_clause returns [JSONObject json]
             $json = new JSONObject();
             try {
                 JSONArray cols = new JSONArray();
-                cols.put($column_name.text);
+                String col = $column_name.text;
+                String[] facetInfo = _facetInfoMap.get(col);
+                if (facetInfo != null && (facetInfo[0].equals("range") ||
+                                          facetInfo[0].equals("multi") ||
+                                          facetInfo[0].equals("path"))) {
+                    throw new FailedPredicateException(input, 
+                                                       "group_by_clause",
+                                                       "Range/multi/path facet, \"" + col + "\", cannot be used in the GROUP BY clause.");
+                }
+                cols.put(col);
                 $json.put("columns", cols);
                 if (top != null) {
                     $json.put("top", Integer.parseInt(top.getText()));
@@ -1378,7 +1387,7 @@ match_predicate returns [JSONObject json]
     ;
 
 like_predicate returns [JSONObject json]
-    :   column_name LIKE STRING_LITERAL
+    :   column_name (NOT)? LIKE STRING_LITERAL
         {
             String col = $column_name.text;
             String[] facetInfo = _facetInfoMap.get(col);
@@ -1392,6 +1401,10 @@ like_predicate returns [JSONObject json]
                 $json = new JSONObject().put("query",
                                              new JSONObject().put("wildcard",
                                                                   new JSONObject().put(col, likeString)));
+                if ($NOT != null) {
+                    $json = new JSONObject().put("bool",
+                                                 new JSONObject().put("must_not", $json));
+                }
             }
             catch (JSONException err) {
                 throw new FailedPredicateException(input, "like_predicate", "JSONException: " + err.getMessage());
