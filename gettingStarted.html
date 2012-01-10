@@ -30,7 +30,7 @@ name: getting-started
 		Zookeeper manages Sensei&apos;s network topology or cluster.
 		</p>
 	</div>
-	<div class="span8">
+	<div class="span10">
 		<p>
 		Start your Zookeeper instance: (You can start your own Zookeeper cluster by following instructions <a href="http://zookeeper.apache.org/doc/trunk/zookeeperStarted.html">here</a>)
 		<pre><code>$SENSEI_HOME/bin/zookeeper-server-start.sh \ <br/>resources/zookeeper.properties</code></pre>
@@ -49,9 +49,9 @@ name: getting-started
 		 With Zookeeper running, we can start a Sensei node serving Car example listening on port 8080:
 		</p>
 	</div>
-	<div class="span8">
+	<div class="span10">
 		<p>
-		In <code>$SENSEI_HOME</code>, start your Sensei node by pointing to the <a href="https://github.com/javasoze/sensei/tree/json-api/example/cars/conf" target="_blank">Car example configuration directory</a>:
+		In <code>$SENSEI_HOME</code>, start your Sensei node by pointing to the <a href="https://github.com/senseidb/sensei/tree/master/example/cars/conf" target="_blank">Car example configuration directory</a>:
 		<pre><code>./bin/start-sensei-node.sh example/cars/conf</code></pre>
 		</p>
 		<p>This starts a Sensei node with 2 partitions. (click <a href="cluster.html">here</a> to learn more about Sensei Clusters)</p> 
@@ -65,7 +65,7 @@ name: getting-started
 		 You can open the Car example application with your browser (no need to start any other servers.)
 		</p>
 	</div>
-	<div class="span8">
+	<div class="span10">
 		<p>
 	Open <code>index.html</code> file with your browser located at: <pre><code>$SENSEI_HOME/example/cars/webapp/index.html</code></pre>
 		</p>
@@ -161,7 +161,7 @@ Url specified, host: localhost, port: 8080
 		Data is stored in text file containing a json string on each-line. Each json string contains information of a car.
 	</p>
 	<p>
-		Full dataset can be found <a href='https://github.com/javasoze/sensei/tree/json-api/example/cars/data' target="_blank">here</a>. See the following example:
+		Full dataset can be found <a href='https://github.com/senseidb/sensei/tree/master/example/cars/data' target="_blank">here</a>. See the following example:
 	</p>
 <pre class="prettyprint" id="javascript">
 {
@@ -179,7 +179,7 @@ Url specified, host: localhost, port: 8080
 }
 </pre>
 <p>
-  This <a href="https://github.com/javasoze/sensei/blob/json-api/example/cars/conf/sensei.properties" target="_blank">example&apos;s configuration</a> contains schema and server settings for the Cars store.
+  This <a href="https://github.com/senseidb/sensei/tree/master/example/cars/conf/sensei.properties" target="_blank">example&apos;s configuration</a> contains schema and server settings for the Cars store.
 </p>
 
 

@@ -16,7 +16,7 @@ name: getting-started2
 </p>
 <h4>Code</h4>
 <p>
-	Read the <a href="https://github.com/javasoze/sensei/tree/json-api/example/tweets" target="_blank">source code</a> for TwitterSampleGateway.
+	Read the <a href="https://github.com/senseidb/sensei/tree/master/example/tweets" target="_blank">source code</a> for TwitterSampleGateway.
 </p>
 <h4>Build</h4>
 <p>
@@ -37,7 +37,7 @@ name: getting-started2
 		Zookeeper manages Sensei&apos;s network topology or cluster.
 		</p>
 	</div>
-	<div class="span8">
+	<div class="span10">
 		<p>
 		Start your Zookeeper instance: (You can start your own Zookeeper cluster by following instructions <a href="http://zookeeper.apache.org/doc/trunk/zookeeperStarted.html">here</a>)
 		<pre><code>$SENSEI_HOME/bin/zookeeper-server-start.sh \ <br/>resources/zookeeper.properties</code></pre>
@@ -56,7 +56,7 @@ name: getting-started2
 		 You need your credentials to talk to Twitter to get data.
 		</p>
 	</div>
-	<div class="span8">
+	<div class="span10">
 		<p>
 		Edit the file:
 		<pre><code>$SENSEI_HOME/example/tweets/conf/sensei.properties</code></pre>
@@ -78,9 +78,9 @@ sensei.gateway.custom.password = &lt;YOUR TWITTER PASSWORD&gt;
 		 With Zookeeper running, we can start a Sensei node serving Tweets example listening on port 8080:
 		</p>
 	</div>
-	<div class="span8">
+	<div class="span10">
 		<p>
-		In <code>$SENSEI_HOME</code>, start your Sensei node by pointing to the <a href="https://github.com/javasoze/sensei/tree/json-api/example/tweets/conf" target="_blank">Tweets example configuration directory</a>:
+		In <code>$SENSEI_HOME</code>, start your Sensei node by pointing to the <a href="https://github.com/senseidb/sensei/tree/master/example/tweets/conf" target="_blank">Tweets example configuration directory</a>:
 		<pre><code>./bin/start-sensei-node.sh example/tweets/conf</code></pre>
 		</p>
 		<p>This starts a Sensei node with 2 partitions. (click <a href="cluster.html">here</a> to learn more about Sensei Clusters)</p>
@@ -94,7 +94,7 @@ sensei.gateway.custom.password = &lt;YOUR TWITTER PASSWORD&gt;
 		 You can open the Tweets example application with your browser (no need to start any other servers.)
 		</p>
 	</div>
-	<div class="span8">
+	<div class="span10">
 		<p>
 	Open <code>index.html</code> file with your browser located at : <pre><code>$SENSEI_HOME/example/tweets/webapp/index.html</code></pre>
 	and click the <b><i>Refresh</i></b> button and see data streaming!
