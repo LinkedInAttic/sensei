@@ -31,6 +31,7 @@ import com.browseengine.bobo.facets.impl.MultiValueFacetHandler;
 import com.browseengine.bobo.facets.impl.PathFacetHandler;
 import com.browseengine.bobo.facets.impl.RangeFacetHandler;
 import com.browseengine.bobo.facets.impl.SimpleFacetHandler;
+import com.sensei.facet.attribute.AttributesFacetHandler;
 import com.sensei.indexing.api.DefaultSenseiInterpreter;
 import com.sensei.plugin.SenseiPluginRegistry;
 import com.sensei.search.facet.UIDFacetHandler;
@@ -392,7 +393,9 @@ public class SenseiFacetHandlerBuilder {
 					facetHandler = buildMultiHandler(name, fieldName,  termListFactoryMap.get(fieldName), dependSet);
 				} else if (type.equals("compact-multi")) {
 					facetHandler = buildCompactMultiHandler(name, fieldName, dependSet,  termListFactoryMap.get(fieldName));
-				} else if (type.equals("histogram")) {
+				} else if (type.equals("attribute")) {
+          facetHandler = new AttributesFacetHandler(name, fieldName,  termListFactoryMap.get(fieldName), null , dependSet, facetProps);
+        } else if (type.equals("histogram")) {
 				  // A histogram facet handler is always dynamic
 				  RuntimeFacetHandlerFactory<?, ?> runtimeFacetFactory = getHistogramFacetHandlerFactory(facet, name, paramMap);
 				  runtimeFacets.add(runtimeFacetFactory);

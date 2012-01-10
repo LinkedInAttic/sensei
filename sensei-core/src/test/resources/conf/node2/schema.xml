@@ -87,6 +87,12 @@
 		</params>
 	 </facet>
 	 <facet name="tags" type="multi" />
+	<facet name="tags_attributes" type="attribute" column="tags">
+	  <params>
+		<param name="numFacetsPerKey" value="2" />
+		<param name="separator" value="=" />
+	  </params>
+	  </facet>
 	 <facet name="virtual_groupid" type="custom" />
 	 <facet name="virtual_groupid_fixedlengthlongarray" type="custom" />
 	 
