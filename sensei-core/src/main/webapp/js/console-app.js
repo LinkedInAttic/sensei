@@ -438,7 +438,7 @@ function runQuery(){
 }
 
 function buildQuery(){
-  var bql = "SELECT * FROM SENSEI";
+  var bql = 'SELECT * FROM SENSEI';
   var and = [];
   var req = {};
 
@@ -449,7 +449,7 @@ function buildQuery(){
   };
 
   if (req.query.query_string.query) {
-    and.push('QUERY IS "' + req.query.query_string.query + '"');
+    and.push('QUERY IS "' + req.query.query_string.query.replace(/"/g, '""') + '"');
   }
 
   req.from = parseInt($('#start').val());
@@ -483,8 +483,8 @@ function buildQuery(){
     }
   }
 
-	var groupBy = $('#groupBy').val();
-	var maxPerGroup = parseInt($('#maxpergroup').val());
+  var groupBy = $('#groupBy').val();
+  var maxPerGroup = parseInt($('#maxpergroup').val());
   if (groupBy != null && groupBy.length != 0) {
     if (isNaN(maxPerGroup))
       maxPerGroup = 0;
@@ -549,16 +549,24 @@ function buildQuery(){
       selections.push(o);
 
       var bql = field;
+      var values = [];
+      $.each(oo.values, function (ii, vv) {
+        values.push(vv.replace(/"/g, '""'));
+      });
+      var excludes = [];
+      $.each(oo.excludes, function (ii, vv) {
+        excludes.push(vv.replace(/"/g, '""'));
+      });
       if ('and' == oo.operator) {
-        if (oo.values.length != 0)
-          bql += ' CONTAINS ALL ("' + oo.values.join('", "') + '")';
+        if (values.length != 0)
+          bql += ' CONTAINS ALL ("' + values.join('", "') + '")';
       }
       else {
-        if (oo.values.length != 0)
-          bql += ' IN ("' + oo.values.join('", "') + '")';
+        if (values.length != 0)
+          bql += ' IN ("' + values.join('", "') + '")';
       }
-      if (oo.excludes.length != 0)
-        bql += ' EXCEPT ("' + oo.excludes.join('", "') + '")';
+      if (excludes.length != 0)
+        bql += ' EXCEPT ("' + excludes.join('", "') + '")';
       if (bql != field)
         and.push(bql);
     }
@@ -617,7 +625,7 @@ function buildQuery(){
               oo.values.push(vv);
           });
 
-          given.push('(' + field + ', "' + param + '", ' + oo.type + ', "' + values + '")');
+          given.push('(' + field + ', "' + param.replace(/"/g, '""') + '", ' + oo.type + ', "' + values.replace(/"/g, '""') + '")');
         }
       }
     }
