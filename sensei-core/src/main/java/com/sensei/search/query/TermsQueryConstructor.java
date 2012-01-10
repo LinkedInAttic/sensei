@@ -49,6 +49,7 @@ public class TermsQueryConstructor extends QueryConstructor
       excludes        = ((JSONObject)obj).optJSONArray(EXCLUDES_PARAM);
       op              = ((JSONObject)obj).optString(OPERATOR_PARAM);
       minimum_match   = ((JSONObject)obj).optInt(MINIMUM_MATCH_PARAM, 0);
+      boost           = (float) ((JSONObject)obj).optDouble(BOOST_PARAM, 1.0);
     }
     else if (obj instanceof JSONArray)
     {
