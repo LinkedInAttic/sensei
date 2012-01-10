@@ -737,7 +737,16 @@ group_by_clause returns [JSONObject json]
             $json = new JSONObject();
             try {
                 JSONArray cols = new JSONArray();
-                cols.put($column_name.text);
+                String col = $column_name.text;
+                String[] facetInfo = _facetInfoMap.get(col);
+                if (facetInfo != null && (facetInfo[0].equals("range") ||
+                                          facetInfo[0].equals("multi") ||
+                                          facetInfo[0].equals("path"))) {
+                    throw new FailedPredicateException(input, 
+                                                       "group_by_clause",
+                                                       "Range/multi/path facet, \"" + col + "\", cannot be used in the GROUP BY clause.");
+                }
+                cols.put(col);
                 $json.put("columns", cols);
                 if (top != null) {
                     $json.put("top", Integer.parseInt(top.getText()));
