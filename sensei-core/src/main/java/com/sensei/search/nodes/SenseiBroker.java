@@ -28,6 +28,8 @@ import com.sensei.search.svc.api.SenseiException;
 import com.sensei.search.svc.impl.CoreSenseiServiceImpl;
 import com.sensei.search.svc.impl.HttpRestSenseiServiceImpl;
 
+import proj.zoie.api.indexing.AbstractZoieIndexable;
+
 /**
  * This SenseiBroker routes search(browse) request using the routers created by
  * the supplied router factory. It uses Norbert's scatter-gather handling
@@ -44,13 +46,13 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
   public SenseiBroker(PartitionedNetworkClient<Integer> networkClient, ClusterClient clusterClient,
                       SenseiLoadBalancerFactory loadBalancerFactory) throws NorbertException
   {
-    super(networkClient, CoreSenseiServiceImpl.PROTO_SERIALIZER); //TODO: Switch to the java serializer after upgrade
+    super(networkClient, CoreSenseiServiceImpl.SERIALIZER);
     _loadBalancerFactory = loadBalancerFactory;
     clusterClient.addListener(this);
     logger.info("created broker instance " + networkClient + " " + clusterClient + " " + loadBalancerFactory);
   }
 
-  private void recoverSrcData(SenseiHit[] hits)
+  private void recoverSrcData(SenseiHit[] hits, boolean isFetchStoredFields)
   {
     if (hits != null)
     {
@@ -64,19 +66,24 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
             Document doc = hit.getStoredFields();
             if (doc != null)
             {
-              dataBytes = doc.getBinaryValue(SenseiSchema.SRC_DATA_COMPRESSED_FIELD_NAME);
+              dataBytes = doc.getBinaryValue(AbstractZoieIndexable.DOCUMENT_STORE_FIELD);
 
               if (dataBytes == null || dataBytes.length == 0)
               {
-                dataBytes = doc.getBinaryValue(SenseiSchema.SRC_DATA_FIELD_NAME);
-                if (dataBytes != null && dataBytes.length > 0)
+                dataBytes = doc.getBinaryValue(SenseiSchema.SRC_DATA_COMPRESSED_FIELD_NAME);
+
+                if (dataBytes == null || dataBytes.length == 0)
                 {
-                  hit.setSrcData(new String(dataBytes,"UTF-8"));
-                  dataBytes = null; // set to null to avoid gunzip.
+                  dataBytes = doc.getBinaryValue(SenseiSchema.SRC_DATA_FIELD_NAME);
+                  if (dataBytes != null && dataBytes.length > 0)
+                  {
+                    hit.setSrcData(new String(dataBytes,"UTF-8"));
+                    dataBytes = null; // set to null to avoid gunzip.
+                  }
                 }
+                doc.removeFields(SenseiSchema.SRC_DATA_COMPRESSED_FIELD_NAME);
+                doc.removeFields(SenseiSchema.SRC_DATA_FIELD_NAME);
               }
-              doc.removeFields(SenseiSchema.SRC_DATA_COMPRESSED_FIELD_NAME);
-              doc.removeFields(SenseiSchema.SRC_DATA_FIELD_NAME);
             }
           }
           if (dataBytes != null && dataBytes.length > 0)
@@ -97,7 +104,12 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
         {
           logger.error(e.getMessage(),e);
         }
-        recoverSrcData(hit.getSenseiGroupHits());
+
+        recoverSrcData(hit.getSenseiGroupHits(), isFetchStoredFields);
+
+        // Remove stored fields since the user is not requesting:
+        if (!isFetchStoredFields)
+          hit.setStoredFields(null);
       }
     }
   }
@@ -109,7 +121,7 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
     SenseiResult res = ResultMerger.merge(request, resultList, false);
 
     if (request.isFetchStoredFields() || request.isFetchStoredValue())
-      recoverSrcData(res.getSenseiHits());
+      recoverSrcData(res.getSenseiHits(), request.isFetchStoredFields());
 
     return res;
   }
@@ -141,6 +153,10 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
           spec.setMaxCount(50);
       }
     }
+
+    // Rewrite fetchStoredFields for zoie store.
+    if (!request.isFetchStoredFields())
+      request.setFetchStoredFields(request.isFetchStoredValue());
 
     return request;
   }

@@ -32,7 +32,6 @@ import com.sensei.search.nodes.SenseiQueryBuilderFactory;
 import com.sensei.search.req.SenseiHit;
 import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.req.SenseiResult;
-import com.sensei.search.req.protobuf.SenseiReqProtoSerializer;
 import com.sensei.search.util.RequestConverter;
 import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.MetricName;
@@ -42,8 +41,6 @@ public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiReque
 	public static final Serializer<SenseiRequest, SenseiResult> SERIALIZER =
 			JavaSerializer.apply("SenseiRequest", SenseiRequest.class, SenseiResult.class);
 
-	public static final Serializer<SenseiRequest, SenseiResult> PROTO_SERIALIZER =
-			new SenseiReqProtoSerializer();
 
 	private static final Logger logger = Logger.getLogger(CoreSenseiServiceImpl.class);
 	
@@ -98,7 +95,6 @@ public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiReque
 	      senseiHit.setScore(hit.getScore());
 	      senseiHit.setComparable(hit.getComparable());
 	      senseiHit.setFieldValues(hit.getFieldValues());
-	      senseiHit.setStoredValue(hit.getStoredValue());
 	      senseiHit.setStoredFields(hit.getStoredFields());
 	      senseiHit.setExplanation(hit.getExplanation());
 	      senseiHit.setGroupValue(hit.getGroupValue());

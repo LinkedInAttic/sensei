@@ -1152,14 +1152,14 @@ class TestJsonAPI(unittest.TestCase):
         "range": {
           "year": {
             "include_upper": false, 
-            "to": 2001
+            "to": 2000
           }
         }
       }, 
       {
         "range": {
           "year": {
-            "from": 2000, 
+            "from": 2001, 
             "include_lower": false
           }
         }

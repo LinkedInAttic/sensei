@@ -5,6 +5,7 @@ import java.io.File;
 import org.apache.log4j.Logger;
 
 import proj.zoie.api.indexing.ZoieIndexableInterpreter;
+import proj.zoie.api.DirectoryManager.DIRECTORY_MODE;
 import proj.zoie.api.IndexCopier;
 import proj.zoie.api.Zoie;
 import proj.zoie.impl.indexing.ZoieConfig;
@@ -23,13 +24,14 @@ public class SenseiPairFactory<T> extends SenseiZoieFactory<T>
   private SenseiZoieFactory _zoieTwoFactory;
 
   public SenseiPairFactory(File                        idxDir,
+                           DIRECTORY_MODE              dirMode,
                            IndexCopier                 indexCopier,
                            ZoieIndexableInterpreter<T> interpreter,
                            SenseiIndexReaderDecorator  indexReaderDecorator,
                            ZoieConfig                  zoieConfig,
                            SenseiZoieFactory<T>        zoieTwoFactory)
   {
-    super(idxDir, interpreter, indexReaderDecorator, zoieConfig);
+    super(idxDir, dirMode,interpreter, indexReaderDecorator, zoieConfig);
 
     _zoieOneRoot      = new File(idxDir, ZOIEONE_DIR);
     _indexCopier      = indexCopier;
@@ -47,7 +49,7 @@ public class SenseiPairFactory<T> extends SenseiZoieFactory<T>
                " does not exist, directory created.");
     }
     Zoie<BoboIndexReader, T> zoieTwo = _zoieTwoFactory.getZoieInstance(nodeId, partitionId);
-    Pair<BoboIndexReader, T> zoie = new Pair<BoboIndexReader, T>(zoieOneDir,
+    Pair<BoboIndexReader, T> zoie = new Pair<BoboIndexReader, T>(zoieOneDir,_dirMode,
                                                                  _indexCopier,
                                                                  _interpreter,
                                                                  _indexReaderDecorator,

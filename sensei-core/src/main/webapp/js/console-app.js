@@ -1,3 +1,56 @@
+function _void (){}
+// Cookie set and get functions.
+function now(){return (new Date).getTime();}
+
+function setCookie(name, value, expires, path, domain)
+{
+    if(!expires) expires = -1;
+    if(!path) path = "/";
+    var d = "" + name + "=" + value;
+
+    var e;
+    if (expires < 0) {
+        e = "";
+    }
+    else if (expires == 0) {
+        var f = new Date(1970, 1, 1);
+        e = ";expires=" + f.toUTCString();
+    }
+    else {
+        var f = new Date(now() + expires * 1000);
+        e = ";expires=" + f.toUTCString();
+    }
+    var dm;
+    if(!domain){
+        dm = "";
+    }
+    else{
+        dm = ";domain=" + domain;
+    }
+
+    document.cookie = name + "=" + value + ";path=" + path + e + dm;
+};
+
+function getCookie(a)
+{
+    var b = String(document.cookie);
+    var c = b.indexOf(a + "=");
+
+    if (c != -1) {
+        var d = b.indexOf(";", c);
+        d = d == -1 ? b.length : d;
+        c = c + a.length + 1;
+        if(b.charAt(c)=='"'&&b.charAt(d-1)=='"'){
+            c+=1;d-=1;
+        }
+        if(c>=d)
+            return "";
+        return b.substring(c, d);
+    }
+
+    return "";
+};
+
 function removeAllChildren(elem){
 	if ( elem.hasChildNodes() ){
 	    while (elem.childNodes.length >= 1 )
@@ -87,6 +140,23 @@ function addFacet(){
 	removeButton.setAttribute('onclick','removeFacet(this.parentNode)');
   
 	divNode.appendChild(removeButton);
+
+  var jDivNode = $(divNode);
+  jDivNode.find('input[type="text"]').keyup(function (e) {
+    buildQuery();
+  });
+
+  jDivNode.find('input[type="checkbox"]').change(function (e) {
+    buildQuery();
+  });
+
+  jDivNode.find('select').change(function (e) {
+    buildQuery();
+  });
+
+  $(removeButton).click(function (e) {
+    buildQuery();
+  });
 }
 
 function addQueryParam() {
@@ -105,6 +175,7 @@ function addInitParam(){
 	nameTextNode.setAttribute('type','text');
 	nameTextNode.setAttribute('name','facetName');
   nameTextNode.setAttribute('style','width:150px;margin-bottom:10px');
+	nameTextNode.setAttribute('value',$('#initParamsFacets').val());
 	divNode.appendChild(nameTextNode);
 	divNode.appendChild(document.createElement('br'));
 
@@ -170,45 +241,23 @@ function addInitParam(){
   removeButton.setAttribute('class','btn error');
 	removeButton.setAttribute('onclick','removeInitParam(this.parentNode)');
 	divNode.appendChild(removeButton);
-}
 
-function buildSelectionReqString(selectionNode,prefix,paramNames){
-	var reqString = "";
-	var selName = null;
-	var firsttime=true;
-	for(var i=0; i<selectionNode.childNodes.length; i++){
-		var node = selectionNode.childNodes[i];
-		var nodeName = node.name;
-		if (nodeName == null ) continue;
-		if ("name" == nodeName){
-			selName = node.value;
-		}
-		else{
-			if (!selName) continue;
-			if (nodeName in paramNames){
-				if (!firsttime) {
-				  reqString+="&";
-				}
-				
-				var val;
-				if (node.type == 'checkbox'){
-					if (node.value=='on'){
-						val = 'true';
-					}
-					else{
-						val = 'false';
-					}
-				}
-				else{
-					val = node.value;
-				}
-				reqString += prefix+"."+selName+"."+paramNames[nodeName]+"="+val;
-				firsttime=false;
-			}
-	    }
-	}
-	
-	return reqString;
+  var jDivNode = $(divNode);
+  jDivNode.find('input[type="text"]').keyup(function (e) {
+    buildQuery();
+  });
+
+  jDivNode.find('input[type="checkbox"]').change(function (e) {
+    buildQuery();
+  });
+
+  jDivNode.find('select').change(function (e) {
+    buildQuery();
+  });
+
+  $(removeButton).click(function (e) {
+    buildQuery();
+  });
 }
 
 function addSelection(){
@@ -261,53 +310,23 @@ function addSelection(){
 	removeButton.setAttribute('onclick','removeSelection(this.parentNode)');
   removeButton.setAttribute('class','btn error');
 	divNode.appendChild(removeButton);
-}
 
-function buildSortString(){
-	var reqString = "sort=";
-	var firsttime=true;
-	var sortNodes = document.getElementsByName('sort');
-	if (sortNodes!=null){
-	  for (var i=0;i<sortNodes.length;++i){
-		
-		var reqSubString = null;
-		var field = null;
-		var dir = null;
-		
-		for(var k=0; k<sortNodes[i].childNodes.length; k++){
-			var node = sortNodes[i].childNodes[k];
-			var nodeName = node.name;
-			if (nodeName == null ) continue;
-			
-			if ("field" == nodeName){
-				field = node.value;
-			}
-			else if ("dir"==nodeName){
-				dir = node.value;
-			}
-		}
-		
-		if (field!=null){
-			if ("relevance" == field){
-				reqSubString=field;
-			}
-			else{
-				reqSubString=field+":"+dir;
-			}
-		}
-		
-		if (reqSubString!=null){
-			if (!firsttime){
-				reqString+=",";
-			}
-			else{
-				firsttime=false;
-			}
-			reqString+=reqSubString;
-		}
-	  }
-    }
-	return reqString;
+  var jDivNode = $(divNode);
+  jDivNode.find('input[type="text"]').keyup(function (e) {
+    buildQuery();
+  });
+
+  jDivNode.find('input[type="checkbox"]').change(function (e) {
+    buildQuery();
+  });
+
+  jDivNode.find('select').change(function (e) {
+    buildQuery();
+  });
+
+  $(removeButton).click(function (e) {
+    buildQuery();
+  });
 }
 
 function addSort(){
@@ -342,6 +361,23 @@ function addSort(){
 	removeButton.setAttribute('onclick','removeSort(this.parentNode)');
   removeButton.setAttribute('class','btn error');
 	divNode.appendChild(removeButton);
+
+  var jDivNode = $(divNode);
+  jDivNode.find('input[type="text"]').keyup(function (e) {
+    buildQuery();
+  });
+
+  jDivNode.find('input[type="checkbox"]').change(function (e) {
+    buildQuery();
+  });
+
+  jDivNode.find('select').change(function (e) {
+    buildQuery();
+  });
+
+  $(removeButton).click(function (e) {
+    buildQuery();
+  });
 }
 
 function clearSorts(){
@@ -364,117 +400,250 @@ function clearInputParams(){
 	removeAllChildren(el);
 }
 
-function runQuery(){
-	document.getElementById('runquery').disable=true;
-	var reqString = document.getElementById('reqtext').value;
-	$.get("sensei?"+reqString,renderResult);
-	document.getElementById('runquery').disable=false;
+var default_js_beautify_settings = {
+  indent_size               : 4,
+  indent_char               : ' ',
+  preserve_newlines         : true,
+  braces_on_own_line        : true,
+  keep_array_indentation    : false,
+  space_after_anon_function : true
+};
+
+function runBql(){
+  if (bqlMirror == null)
+    return;
+
+  var jobj = $('.run');
+  jobj.attr('disabled', 'disabled');
+  $.post("sensei", $.toJSON({bql:bqlMirror.getValue()}), function (text) {
+    contentMirror.setValue(js_beautify(text, default_js_beautify_settings));
+  }, 'text')
+  .complete(function(){
+    jobj.removeAttr('disabled');
+  });
 }
 
-function buildreqString(){
-	document.getElementById('buildReqButton').disable=true;
-	
-	var qstring = document.getElementById('query').value;
-	
-	var start = document.getElementById('start').value;
-	var rows = document.getElementById('rows').value;
-	var routeparam = document.getElementById('routeparam').value;
-	
-	var explain = document.getElementById('explain').checked;
-	
-	var fetchStore = document.getElementById('fetchstore').checked;
-	
-	var fetchTV = document.getElementById('fetchTermVector').checked;
-	
-	var groupBy = document.getElementById('groupBy').value;
-	var maxPerGroup = document.getElementById('maxpergroup').value;
-	
-  var reqString="q=" + qstring +"&start=" + start + "&rows=" + rows + "&routeparam=" + routeparam;
-  var queryParamNames = $('#queryParams').find('.name-input');
-  var queryParamValues = $('#queryParams').find('.value-input');
-  var qparams = [];
-  queryParamNames.each(function(index, obj) {
-    var jobj = $(obj);
-    if(jobj.val()) {
-      qparams.push(jobj.val() + ":" + $(queryParamValues.get(index)).val());
+function runQuery(){
+  if (reqTextMirror == null)
+    return;
+
+  var jobj = $('.run');
+  jobj.attr('disabled', 'disabled');
+  $.post("sensei", reqTextMirror.getValue(), function (text) {
+    contentMirror.setValue(js_beautify(text, default_js_beautify_settings));
+  }, 'text')
+  .complete(function(){
+    jobj.removeAttr('disabled');
+  });
+}
+
+function buildQuery(){
+  var bql = "SELECT * FROM SENSEI";
+  var and = [];
+  var req = {};
+
+  req.query = {
+    query_string : {
+      query : $('#query').val()
+    }
+  };
+
+  if (req.query.query_string.query) {
+    and.push('QUERY IS "' + req.query.query_string.query + '"');
+  }
+
+  req.from = parseInt($('#start').val());
+  if (isNaN(req.from))
+    req.from = 0;
+  req.size = parseInt($('#rows').val());
+  if (isNaN(req.size))
+    req.size = 10;
+
+  var limit = req.from + ', ' + req.size;
+
+  routeParam = $('#routeparam').val();
+  if (routeParam != null && routeParam.length != 0)
+    req.routeParam = routeParam;
+
+  req.explain = $('#explain').prop('checked');
+  req.fetchStored = $('#fetchstore').prop('checked');
+
+  var fetchStored = req.fetchStored;
+
+  if ($('#fetchTermVector').prop('checked')) {
+    var val = $('#tvFields').val();
+    if (val != null) {
+      var tvFields = val.split(/,/);
+      req.termVectors = [];
+      $.each(tvFields, function (i, v) {
+        v = v.trim();
+        if (v.length != 0)
+          req.termVectors.push(v);
+      });
+    }
+  }
+
+	var groupBy = $('#groupBy').val();
+	var maxPerGroup = parseInt($('#maxpergroup').val());
+  if (groupBy != null && groupBy.length != 0) {
+    if (isNaN(maxPerGroup))
+      maxPerGroup = 0;
+
+    req.groupBy = {
+      columns : [groupBy],
+      top     : maxPerGroup
+    };
+
+    groupBy = groupBy + ' TOP ' + maxPerGroup;
+  }
+
+  var orderBy = [];
+  var sort = [];
+  $('[name="sort"]').each(function (i, v) {
+    var jobj = $(v);
+    var field = jobj.find('[name="field"]').val();
+    if (field == '_score') {
+      sort.push(field);
+      orderBy.push(field);
+    }
+    else {
+      var o = {};
+      o[field] = jobj.find('[name="dir"]').val();
+      sort.push(o);
+      orderBy.push(field + ' ' + o[field]);
     }
   });
+  orderBy = orderBy.join(', ');
+  if (sort.length != 0)
+    req.sort = sort;
 
-  if (qparams.length > 0) {
-    reqString += ("&qparam=" + encodeURIComponent(qparams.join(',')));
-  }
+  var selections = [];
+  $('[name="selection"]').each(function (i, v) {
+    var jobj = $(v);
+    var field = jobj.find('[name="name"]').val();
+    if (field != null && field.length != 0) {
+      var o = {terms : {}};
+      var oo = o.terms[field] = {
+        values   : [],
+        excludes : [],
+        operator : jobj.find('[name="op"]').val()
+      };
 
-	if (explain){
-		reqString += "&showexplain=true";
-	}
-	
-	if (fetchStore){
-		reqString += "&fetchstored=true";
-	}
-	
-	if (fetchTV){
-	  var tvFields = document.getElementById('tvFields').value;
-	  reqString += "&fetchtermvector="+tvFields;
-	}
+      var values   = jobj.find('[name="val"]').val();
+      if (values != null) {
+        $.each(values.split(/,/), function (ii, vv) {
+          vv = vv.trim();
+          if (vv.length != 0)
+            oo.values.push(vv);
+        });
+      }
+      var excludes = jobj.find('[name="not"]').val();
+      if (excludes != null) {
+        $.each(excludes.split(/,/), function (ii, vv) {
+          vv = vv.trim();
+          if (vv.length != 0)
+            oo.excludes.push(vv);
+        });
+      }
 
-  if (groupBy) {
-		reqString += "&groupby=" + encodeURIComponent(groupBy);
-  }
-  if (maxPerGroup != '') {
-    reqString += "&maxpergroup=" + encodeURIComponent(maxPerGroup);
-  }
-	
-	var selectionNodes = document.getElementsByName('selection');
-	var params = {not:"not",val:"val",op:"op"};
-	for (var i=0;i<selectionNodes.length;++i){
-		reqString+="&"+buildSelectionReqString(selectionNodes[i],"select",params);	
-	}
-	
-	var facetNodes = document.getElementsByName('facet');
-	var facetparams = {expand:"expand",max:"max",minhit:"minhit",order:"order"};
-	for (var i=0;i<facetNodes.length;++i){
-		reqString+="&"+buildSelectionReqString(facetNodes[i],"facet",facetparams);	
-	}
+      selections.push(o);
 
-    var initParams = document.getElementsByName('inputParam');
-    params = {vals:"vals", type:'type'};
-    for (var i = 0; i < initParams.length;i++) {
-        var facetName = null;
-        for(var j=0; j<initParams[i].childNodes.length; j++){
-            var node = initParams[i].childNodes[j];
-            var nodeName = node.name;
-            if (nodeName == null ) continue;
-            if ("facetName" == nodeName){
-                facetName = node.value;
-            }
-        }
-        if (facetName == null) continue;
-        reqString += "&" + buildSelectionReqString(initParams[i], 'dyn.'+facetName, params);
+      var bql = field;
+      if ('and' == oo.operator) {
+        if (oo.values.length != 0)
+          bql += ' CONTAINS ALL ("' + oo.values.join('", "') + '")';
+      }
+      else {
+        if (oo.values.length != 0)
+          bql += ' IN ("' + oo.values.join('", "') + '")';
+      }
+      if (oo.excludes.length != 0)
+        bql += ' EXCEPT ("' + oo.excludes.join('", "') + '")';
+      if (bql != field)
+        and.push(bql);
     }
+  });
+  if (selections.length != 0)
+    req.selections = selections;
 
-	reqString += "&"+buildSortString();
-	
-	document.getElementById('reqtext').value=reqString;
-	document.getElementById('buildReqButton').disable=false;
-}
+  var facets = {};
+  var browseBy = [];
+  $('[name="facet"]').each(function (i, v) {
+    var jobj = $(v);
+    var field = jobj.find('[name="name"]').val();
+    if (field != null && field.length != 0) {
+      var o = facets[field] = {
+        max      : parseInt(jobj.find('[name="max"]').val()),
+        minCount : parseInt(jobj.find('[name="minhit"]').val()),
+        expand   : jobj.find('[name="expand"]').prop('checked'),
+        order    : jobj.find('[name="order"]').val()
+      };
+      if (isNaN(o.max))
+        o.max = 10;
+      if (isNaN(o.minCount))
+        o.minCount = 1;
 
+      browseBy.push(field + '(' + o.expand + ', ' + o.minCount + ', ' + o.max + ', ' + o.order + ')');
+    }
+  });
+  browseBy = browseBy.join(', ');
+  for (var key in facets) {
+    req.facets = facets;
+    break;
+  }
 
-function renderResult(content){
-  var js_source = $.toJSON(content);
-	var indent_size = 4;
-    var indent_char = ' ';
-    var preserve_newlines = true;
-    var keep_array_indentation = false;
-    var braces_on_own_line = true;
+  var facetInit = {};
+  var given = [];
+  $('[name="inputParam"]').each(function (i, v) {
+    var jobj = $(v);
+    var field = jobj.find('[name="facetName"]').val();
+    if (field != null && field.length != 0) {
+      var o = facetInit[field];
+      if (o == null)
+        o = facetInit[field] = {};
 
-	document.getElementById('content').value = 
-  js_beautify(js_source, {
-        indent_size: indent_size,
-        indent_char: indent_char,
-        preserve_newlines:preserve_newlines,
-        braces_on_own_line: braces_on_own_line,
-        keep_array_indentation:keep_array_indentation,
-        space_after_anon_function:true});
-  
+      var param = jobj.find('[name="name"]').val();
+      if (param != null && param.length != 0) {
+        var oo = o[param] = {
+          values : [],
+          type   : jobj.find('[name="type"]').val()
+        };
+
+        var values = jobj.find('[name="vals"]').val();
+        if (values != null) {
+          $.each(values.split(/,/), function (ii, vv) {
+            vv = vv.trim();
+            if (vv.length != 0)
+              oo.values.push(vv);
+          });
+
+          given.push('(' + field + ', "' + param + '", ' + oo.type + ', "' + values + '")');
+        }
+      }
+    }
+  });
+  given = given.join(', ');
+  for (var key in facetInit) {
+    req.facetInit = facetInit;
+    break;
+  }
+
+  if (and.length)
+    bql += ' WHERE ' + and.join(' AND ');
+  if (given)
+    bql += ' GIVEN FACET PARAM ' + given;
+  if (fetchStored)
+    bql += ' FETCHING STORED';
+  if (orderBy)
+    bql += ' ORDER BY ' + orderBy;
+  if (browseBy)
+    bql += ' BROWSE BY ' + browseBy;
+  if (groupBy)
+    bql += ' GROUP BY ' + groupBy;
+  if (limit)
+    bql += ' LIMIT ' + limit;
+
+  bqlMirror.setValue(bql);
+  reqTextMirror.setValue(js_beautify($.toJSON(req), default_js_beautify_settings));
 }
 

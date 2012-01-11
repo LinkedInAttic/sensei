@@ -385,7 +385,7 @@ public class JavaClientIntegrationTest extends Assert {
   public void testGetStoreQuery() throws Exception
   {
 
-      Map<Long, JSONObject> ret = senseiServiceProxy.sendGetRequest(Arrays.asList(1L,2L, 3L, 5L));
+      Map<Long, JSONObject> ret = senseiServiceProxy.sendGetRequest(1L,2L, 3L, 5L);
 
       assertEquals(4, ret.size());
       assertEquals(Integer.valueOf(1), ret.get(1L).get("id"));

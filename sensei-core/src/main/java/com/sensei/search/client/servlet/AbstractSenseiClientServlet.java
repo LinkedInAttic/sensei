@@ -8,7 +8,9 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLDecoder;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -36,8 +38,12 @@ import com.sensei.search.req.SenseiResult;
 import com.sensei.search.req.SenseiSystemInfo;
 import com.sensei.search.util.RequestConverter2;
 
+import com.sensei.bql.parsers.BQLCompiler;
+import org.antlr.runtime.RecognitionException;
+
 public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableServlet {
 
+  public static final int BQL_PARSING_ERROR = 499;
   private static final long serialVersionUID = 1L;
 
   private static final Logger logger = Logger.getLogger(AbstractSenseiClientServlet.class);
@@ -48,6 +54,8 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
   private SenseiNetworkClient _networkClient = null;
   private SenseiBroker _senseiBroker = null;
   private SenseiSysBroker _senseiSysBroker = null;
+  private BQLCompiler _compiler = null;
+
   public AbstractSenseiClientServlet() {
 
   }
@@ -75,6 +83,47 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
     logger.info("Connecting to cluster: "+clusterName+" ...");
     _clusterClient.awaitConnectionUninterruptibly();
 
+    int count = 0;
+    while (true)
+    {
+      try
+      {
+        count++;
+        logger.info("Trying to get sysinfo");
+        SenseiSystemInfo sysInfo = _senseiSysBroker.browse(new SenseiRequest());
+
+        Map<String, String[]> facetInfoMap = new HashMap<String, String[]>();
+        Iterator<SenseiSystemInfo.SenseiFacetInfo> itr = sysInfo.getFacetInfos().iterator();
+        while (itr.hasNext())
+        {
+          SenseiSystemInfo.SenseiFacetInfo facetInfo = itr.next();
+          Map<String, String> props = facetInfo.getProps();
+          facetInfoMap.put(facetInfo.getName(), new String[]{props.get("type"), props.get("column_type")});
+        }
+        _compiler = new BQLCompiler(facetInfoMap);
+        break;
+      }
+      catch (Exception e)
+      {
+        logger.info("hit exception trying to get sysinfo" + e);
+        if (count > 10) 
+        {
+          logger.error("Give up after 10 tries to get sysinfo");
+          throw new ServletException(e.getMessage(), e);
+        }
+        else
+        {
+          try
+          {
+            Thread.sleep(2000);
+          }
+          catch (InterruptedException e2)
+          {
+            e2.printStackTrace();
+          }
+        }
+      }
+    }
     logger.info("Cluster: "+clusterName+" successfully connected ");
   }
 
@@ -115,11 +164,48 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
         }
         catch(JSONException jse)
         {
+          // Fall back to the old REST API.  In the future, we should
+          // consider reporting JSON exceptions here.
           senseiReq = DefaultSenseiJSONServlet.convertSenseiRequest(
                         new DataConfiguration(new MapConfiguration(getParameters(content))));
         }
+
         if (jsonObj != null)
+        {
+          String bqlStmt = jsonObj.optString("bql");
+          if (bqlStmt.length() > 0)
+          {
+            try 
+            {
+              jsonObj = _compiler.compile(bqlStmt);
+            }
+            catch (RecognitionException e)
+            {
+              String errMsg = _compiler.getErrorMessage(e);
+              if (errMsg == null) 
+              {
+                errMsg = "Unknown parsing error.";
+              }
+              logger.error("BQL parsing error: " + errMsg + ", BQL: " + bqlStmt);
+              OutputStream ostream = resp.getOutputStream();
+              try
+              {
+                JSONObject errResp = new JSONObject().put("error",
+                                                          new JSONObject().put("code", BQL_PARSING_ERROR)
+                                                                          .put("msg", errMsg));
+                ostream.write(errResp.toString().getBytes("UTF-8"));
+                ostream.flush();
+                return;
+              }
+              catch (JSONException err)
+              {
+                logger.error(err.getMessage());
+                throw new ServletException(err.getMessage(), err);
+              }
+            }
+          }
           senseiReq = SenseiRequest.fromJSON(jsonObj);
+        }
       }
       else
       {

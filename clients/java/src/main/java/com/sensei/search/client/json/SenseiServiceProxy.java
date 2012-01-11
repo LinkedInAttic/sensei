@@ -62,8 +62,8 @@ public class SenseiServiceProxy {
     	}
     }
 
-  public Map<Long, JSONObject> sendGetRequest(List<Long> uids) throws IOException, JSONException {
-    Map<Long, JSONObject> ret = new LinkedHashMap<Long, JSONObject>(uids.size());
+  public Map<Long, JSONObject> sendGetRequest(long... uids) throws IOException, JSONException {
+    Map<Long, JSONObject> ret = new LinkedHashMap<Long, JSONObject>(uids.length);
     String response = sendPostRaw(getStoreGetUrl(), new JSONArray(uids).toString());
     if (response == null || response.length() == 0) {
       return ret;

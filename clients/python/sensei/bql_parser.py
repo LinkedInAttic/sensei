@@ -548,14 +548,14 @@ class BQLParser:
         raise ParseSyntaxException(ParseException(s, loc, msg))
       return {"or": [{"range":
                         {tok[0]:
-                           {"to": to_value,
+                           {"to": from_value,
                             "include_upper": False
                             }
                          }
                       },
                      {"range":
                         {tok[0]:
-                           {"from": from_value,
+                           {"from": to_value,
                             "include_lower": False
                             }
                          }

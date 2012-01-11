@@ -25,6 +25,7 @@ public interface SenseiConfParams {
 	public static final String SENSEI_INDEX_FRESHNESS = "sensei.index.freshness";
 	public static final String SENSEI_SKIP_BAD_RECORDS = "sensei.index.skipBadRecords";
 
+  public static final String SENSEI_INDEXER_MODE   = "sensei.indexer.mode";
 
 	public static final String SENSEI_INDEXER_TYPE = "sensei.indexer.type";
 	public static final String SENSEI_INDEXER_TYPE_HOURGLASS = "hourglass";

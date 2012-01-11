@@ -45,10 +45,13 @@ import org.mortbay.servlet.GzipFilter;
 import org.mortbay.thread.QueuedThreadPool;
 import org.w3c.dom.Document;
 
+import proj.zoie.api.DirectoryManager.DIRECTORY_MODE;
 import proj.zoie.api.IndexCopier;
 import proj.zoie.api.indexing.ZoieIndexableInterpreter;
 import proj.zoie.hourglass.impl.HourGlassScheduler.FREQUENCY;
-import proj.zoie.impl.HDFSIndexCopier;
+import proj.zoie.impl.indexing.DefaultReaderCache;
+import proj.zoie.impl.indexing.ReaderCacheFactory;
+import proj.zoie.impl.indexing.SimpleReaderCache;
 import proj.zoie.impl.indexing.ZoieConfig;
 import scala.actors.threadpool.Arrays;
 
@@ -88,6 +91,7 @@ import com.sensei.search.req.AbstractSenseiRequest;
 import com.sensei.search.req.AbstractSenseiResult;
 import com.sensei.search.req.SenseiSystemInfo;
 import com.sensei.search.svc.impl.AbstractSenseiCoreService;
+import com.sensei.search.util.HDFSIndexCopier;
 
 public class SenseiServerBuilder implements SenseiConfParams{
 
@@ -308,7 +312,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
   // Analyzer from configuration:
       Analyzer analyzer = pluginRegistry.getBeanByFullPrefix(SENSEI_INDEX_ANALYZER, Analyzer.class);
       if (analyzer == null) {
-        analyzer = new StandardAnalyzer(Version.LUCENE_34);
+        analyzer = new StandardAnalyzer(Version.LUCENE_CURRENT);
       }
       // Similarity from configuration:
       Similarity similarity = pluginRegistry.getBeanByFullPrefix(SENSEI_INDEX_SIMILARITY, Similarity.class);
@@ -322,8 +326,18 @@ public class SenseiServerBuilder implements SenseiConfParams{
       zoieConfig.setBatchDelay(_senseiConf.getLong(SENSEI_INDEX_BATCH_DELAY, ZoieConfig.DEFAULT_SETTING_BATCHDELAY));
       zoieConfig.setMaxBatchSize(_senseiConf.getInt(SENSEI_INDEX_BATCH_MAXSIZE, ZoieConfig.DEFAULT_MAX_BATCH_SIZE));
       zoieConfig.setRtIndexing(_senseiConf.getBoolean(SENSEI_INDEX_REALTIME, ZoieConfig.DEFAULT_SETTING_REALTIME));
-      zoieConfig.setFreshness(_senseiConf.getLong(SENSEI_INDEX_FRESHNESS, 500));
       zoieConfig.setSkipBadRecord(_senseiConf.getBoolean(SENSEI_SKIP_BAD_RECORDS, false));
+      
+      int delay = _senseiConf.getInt(SENSEI_INDEX_FRESHNESS,10);
+      ReaderCacheFactory readercachefactory;
+      if (delay>0){
+        readercachefactory = DefaultReaderCache.FACTORY;
+        zoieConfig.setFreshness(delay*1000);
+      }
+      else{
+        readercachefactory = SimpleReaderCache.FACTORY;
+      }
+      zoieConfig.setReadercachefactory(readercachefactory);
 
       List<FacetHandler<?>> facetHandlers = new LinkedList<FacetHandler<?>>();
       List<RuntimeFacetHandlerFactory<?,?>> runtimeFacetHandlerFactories = new LinkedList<RuntimeFacetHandlerFactory<?,?>>();
@@ -388,7 +402,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
       }
       SenseiQueryBuilderFactory queryBuilderFactory = pluginRegistry.getBeanByFullPrefix(SENSEI_QUERY_BUILDER_FACTORY, SenseiQueryBuilderFactory.class);
       if (queryBuilderFactory == null){
-        QueryParser queryParser = new QueryParser(Version.LUCENE_34,"contents", analyzer);
+        QueryParser queryParser = new QueryParser(Version.LUCENE_CURRENT,"contents", analyzer);
         queryBuilderFactory = new DefaultJsonQueryBuilderFactory(queryParser);
       }
       SenseiCore senseiCore = new SenseiCore(nodeid,partitions,zoieSystemFactory,indexingManager,queryBuilderFactory);
@@ -410,8 +424,25 @@ public class SenseiServerBuilder implements SenseiConfParams{
     SenseiIndexReaderDecorator decorator = new SenseiIndexReaderDecorator(facetHandlers,runtimeFacetHandlerFactories);
     File idxDir = new File(_senseiConf.getString(SENSEI_INDEX_DIR));
     SenseiZoieFactory<?> zoieSystemFactory = null;
+    
+    DIRECTORY_MODE dirMode;
+    String modeValue = _senseiConf.getString(SENSEI_INDEXER_MODE, "SIMPLE");
+    if ("SIMPLE".equalsIgnoreCase(modeValue)){
+      dirMode = DIRECTORY_MODE.SIMPLE;
+    }
+    else if ("NIO".equalsIgnoreCase(modeValue)){
+      dirMode = DIRECTORY_MODE.NIO;
+    }
+    else if ("MMAP".equalsIgnoreCase(modeValue)){
+      dirMode = DIRECTORY_MODE.MMAP;
+    }
+    else{
+      logger.error("directory mode "+modeValue+" is not supported, SIMPLE is used.");
+      dirMode = DIRECTORY_MODE.SIMPLE;
+    }
+
     if (SENSEI_INDEXER_TYPE_ZOIE.equals(indexerType)){
-      SenseiZoieSystemFactory senseiZoieFactory = new SenseiZoieSystemFactory(idxDir,interpreter,decorator,
+      SenseiZoieSystemFactory senseiZoieFactory = new SenseiZoieSystemFactory(idxDir,dirMode,interpreter,decorator,
               zoieConfig);
       int retentionDays = _senseiConf.getInt(SENSEI_ZOIE_RETENTION_DAYS,-1);
       if (retentionDays>0){
@@ -455,7 +486,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
       else {
         throw new ConfigurationException("unsupported frequency setting: "+frequencyString);
       }
-      zoieSystemFactory = new SenseiHourglassFactory(idxDir,interpreter,decorator,
+      zoieSystemFactory = new SenseiHourglassFactory(idxDir,dirMode,interpreter,decorator,
             zoieConfig,schedule,trimThreshold,frequency);
     }  else{
       ZoieFactoryFactory zoieFactoryFactory= pluginRegistry.getBeanByFullPrefix(indexerType, ZoieFactoryFactory.class);
@@ -467,10 +498,10 @@ public class SenseiServerBuilder implements SenseiConfParams{
     String indexerCopier = _senseiConf.getString(SENSEI_INDEXER_COPIER);
     IndexCopier copier = pluginRegistry.getBeanByFullPrefix(SENSEI_INDEXER_COPIER, IndexCopier.class);
     if (copier != null) {
-      zoieSystemFactory = new SenseiPairFactory(idxDir, copier, interpreter, decorator, zoieConfig, zoieSystemFactory);
+      zoieSystemFactory = new SenseiPairFactory(idxDir, dirMode,copier, interpreter, decorator, zoieConfig, zoieSystemFactory);
     }  else if (SENSEI_INDEXER_COPIER_HDFS.equals(indexerCopier))
     {
-      zoieSystemFactory = new SenseiPairFactory(idxDir, new HDFSIndexCopier(), interpreter, decorator, zoieConfig, zoieSystemFactory);
+      zoieSystemFactory = new SenseiPairFactory(idxDir, dirMode,new HDFSIndexCopier(), interpreter, decorator, zoieConfig, zoieSystemFactory);
     } else
     {
       // do not support bootstrap index from other sources.

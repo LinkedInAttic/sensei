@@ -37,7 +37,7 @@ public class TestSensei extends TestCase {
   private static SenseiBroker broker;
   private static SenseiService httpRestSenseiService;
   static {
-    SenseiStarter.start();
+    SenseiStarter.start("test-conf/node1","test-conf/node2");
     broker = SenseiStarter.broker;
     httpRestSenseiService = SenseiStarter.httpRestSenseiService;
 
@@ -223,6 +223,13 @@ public class TestSensei extends TestCase {
     SenseiHit hit = res.getSenseiHits()[0];
     assertTrue(hit.getGroupHitsCount() > 0);
     assertTrue(hit.getSenseiGroupHits().length > 0);
+  }
+
+  public void testBQL1() throws Exception
+  {
+    logger.info("Executing test case testBQL1");
+    String req = "{\"bql\":\"select * from cars\"}";
+    JSONObject res = search(new JSONObject(req));
   }
 
   public void testSelectionTerm() throws Exception
@@ -651,7 +658,7 @@ public class TestSensei extends TestCase {
     while((line = reader.readLine()) != null)
       sb.append(line);
     String res = sb.toString();
-    System.out.println("res: " + res);
+    // System.out.println("res: " + res);
     return new JSONObject(res);
   }
 

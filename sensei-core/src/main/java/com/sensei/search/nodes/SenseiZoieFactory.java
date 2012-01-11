@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.Comparator;
 
 import proj.zoie.api.Zoie;
+import proj.zoie.api.DirectoryManager.DIRECTORY_MODE;
 import proj.zoie.api.indexing.ZoieIndexableInterpreter;
 import proj.zoie.impl.indexing.ZoieConfig;
 
@@ -16,12 +17,14 @@ public abstract class SenseiZoieFactory<D>
   protected final ZoieIndexableInterpreter<D> _interpreter;
   protected final SenseiIndexReaderDecorator _indexReaderDecorator;
   protected final ZoieConfig _zoieConfig;
+  protected final DIRECTORY_MODE _dirMode; 
   
-  public SenseiZoieFactory(File idxDir,ZoieIndexableInterpreter<D> interpreter,SenseiIndexReaderDecorator indexReaderDecorator,ZoieConfig zoieConfig){
+  public SenseiZoieFactory(File idxDir,DIRECTORY_MODE dirMode,ZoieIndexableInterpreter<D> interpreter,SenseiIndexReaderDecorator indexReaderDecorator,ZoieConfig zoieConfig){
 	  _idxDir = idxDir;
 	  _interpreter = interpreter;
 	  _indexReaderDecorator = indexReaderDecorator;
 	  _zoieConfig = zoieConfig;
+	  _dirMode = dirMode;
   }
   
   public static File getPath(File idxDir,int nodeId,int partitionId){

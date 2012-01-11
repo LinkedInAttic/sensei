@@ -34,15 +34,7 @@ public class SenseiStarter {
 
   public static File ConfDir1 = null;
   public static File ConfDir2 = null;
-  static {
-    try {
-      ConfDir1 = new File(SenseiStarter.class.getClassLoader().getResource("conf/node1").toURI());
-
-      ConfDir2 = new File(SenseiStarter.class.getClassLoader().getResource("conf/node2").toURI());
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
-  }
+ 
 
   public static File IndexDir = new File("index/test");
   public static URL SenseiUrl = null;
@@ -65,12 +57,16 @@ public class SenseiStarter {
   /**
    * Will start the new Sensei instance once per process
    */
-  public static synchronized void start() {
+  public static synchronized void start(String confDir1, String confDir2) {
+    
     if (started) {
       logger.warn("The server had been already started");
       return;
     }
     try {
+    ConfDir1 = new File(SenseiStarter.class.getClassLoader().getResource(confDir1).toURI());
+
+    ConfDir2 = new File(SenseiStarter.class.getClassLoader().getResource(confDir2).toURI());
     org.apache.log4j.PropertyConfigurator.configure("resources/log4j.properties");
     loadFromSpringContext();
     rmrf(IndexDir);
@@ -137,7 +133,7 @@ public class SenseiStarter {
     ApplicationContext testSpringCtx = null;
     try
     {
-      testSpringCtx = new ClassPathXmlApplicationContext("conf/sensei-test.spring");
+      testSpringCtx = new ClassPathXmlApplicationContext("test-conf/sensei-test.spring");
     } catch(Throwable e)
     {
       if (e instanceof InstanceAlreadyExistsException)

@@ -7,6 +7,7 @@ import java.io.OutputStreamWriter;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.List;
 
 import junit.framework.TestCase;
 
@@ -14,7 +15,9 @@ import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.FacetSpec;
+import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
 import com.sensei.search.nodes.SenseiBroker;
 import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.req.SenseiResult;
@@ -27,22 +30,24 @@ public class TestSenseiAttributesHandler extends TestCase {
   private static SenseiBroker broker;
   private static SenseiService httpRestSenseiService;
   static {
-    SenseiStarter.start();
+    SenseiStarter.start("test-conf/node1","test-conf/node2");
     broker = SenseiStarter.broker;
     httpRestSenseiService = SenseiStarter.httpRestSenseiService;
 
   }
 
-  public void ntestSelectionDynamicTimeRangeJson() throws Exception
+  public void testSelectionDynamicTimeRangeJson() throws Exception
   {
+   // Thread.sleep(2000);
     logger.info("executing test case Selection terms");
     String req = "{"+
-        "\"facets\":{    \"tags_attributes\":{\"minHit\":1 }}" +
+        "\"facets\":{    \"object_properties\":{\"minHit\":1 }}" +
         "}";
     System.out.println(req);
     JSONObject res = search(new JSONObject(req));
     System.out.println(res.toString(1));
-    assertEquals("numhits is wrong", 12990, res.getInt("numhits"));
+    assertEquals("numhits is wrong", 15000, res.getInt("numhits"));
+    assertTrue(res.getJSONObject("facets").getJSONArray("object_properties").length() > 5);
   }
   public void testTotalCountWithFacetSpec() throws Exception
   {
@@ -51,34 +56,30 @@ public class TestSenseiAttributesHandler extends TestCase {
     
     FacetSpec facetSpec = new FacetSpec();
     facetSpec.setMaxCount(30);
+    facetSpec.setOrderBy(FacetSortSpec.OrderHitsDesc);
     setspec(req, facetSpec);
     req.setCount(5);
-    req.setFacetSpec("tags_attributes", facetSpec);
+    req.setFacetSpec("object_properties", facetSpec);
     //setspec(req, facetSpecall);
     SenseiResult res = broker.browse(req);
-    System.out.println("!!!" + res.toString());
+    List<BrowseFacet> facets = res.getFacetAccessor("object_properties").getFacets();
+    assertEquals(facets.size(), 30);
+    
   
-  }
-  public void testAttributesFacetHandlerWithTwoTerms() throws Exception
-  {
-    logger.info("executing test case Selection terms");
-    String req = "{\"selections\":[{\"terms\":{\"tags_attributes\":{\"values\":[\"automatic\",\"cool\"],\"operator\":\"or\"}}}]" +
-    		",\"facets\":{    \"tags_attributes\":{\"minHit\":1 }}}";
-    JSONObject res = search(new JSONObject(req));
-   
-   
-    System.out.println("!!!" + res.toString(1));
   }
   public void testAttributesFacetHandlerTwoTermsAndOneExcluded() throws Exception
   {
+   //Thread.sleep(1000L);
     logger.info("executing test case Selection terms");
-    String req = "{\"selections\":[{\"terms\":{\"tags_attributes\":{\"values\":[\"electric\",\"cool\"],\"excludes\":[\"automatic\"],\"operator\":\"or\"}}}]" +
-        ",\"facets\":{    \"tags_attributes\":{\"minHit\":1 }}}";
+    String req = "{\"selections\":[{\"terms\":{\"object_properties\":{\"values\":[\"key1\"],\"operator\":\"or\"}}}]" +
+    		//",\"facets\":{    \"object_properties\":{\"minHit\":1 }}" +
+    		"}";
+    assertEquals(broker.browse(new SenseiRequest()).getNumHits(), 15000);
     JSONObject res = search(new JSONObject(req));
-   
-   
-    System.out.println("!!!" + res.toString(1));
+    assertEquals("numhits is wrong", 5420, res.getInt("numhits"));
   }
+   
+  
   private JSONObject search(JSONObject req) throws Exception  {
     return  search(SenseiStarter.SenseiUrl, req.toString());
   }

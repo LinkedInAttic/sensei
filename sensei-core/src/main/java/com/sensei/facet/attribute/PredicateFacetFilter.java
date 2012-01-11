@@ -23,12 +23,14 @@ public class PredicateFacetFilter extends RandomAccessFilter {
   
   @Override
   public RandomAccessDocIdSet getRandomAccessDocIdSet(BoboIndexReader reader) throws IOException {
-    final FacetDataCache facetDataCache = dataCacheBuilder.build(reader);
-    facetPredicate.init(facetDataCache);
+    final FacetDataCache facetDataCache = dataCacheBuilder.build(reader);    
     int startDocIdTemp = Integer.MAX_VALUE;
     int endDocIdTemp = -1;
-    for (int i = facetPredicate.valueStartIndex(); i < facetPredicate.valueEndIndex(); i++) {
+    for (int i = facetPredicate.valueStartIndex(facetDataCache); i < facetPredicate.valueEndIndex(facetDataCache); i++) {
       if (facetPredicate.evaluateValue(facetDataCache, i)) {
+        if (!facetPredicate.evaluateValue(facetDataCache, i)) {
+          continue;
+        }
         if (startDocIdTemp > facetDataCache.minIDs[i]) {
           startDocIdTemp = facetDataCache.minIDs[i];
         }
@@ -39,6 +41,7 @@ public class PredicateFacetFilter extends RandomAccessFilter {
     }
     final int startDocId = startDocIdTemp;
     final int endDocId = endDocIdTemp;
+   
     if (startDocId > endDocId) {
       return EmptyDocIdSet.getInstance();
     } 
@@ -57,11 +60,15 @@ public class PredicateFacetFilter extends RandomAccessFilter {
   }  
   @Override
   public double getFacetSelectivity(BoboIndexReader reader) {  
-    int[] frequencies = dataCacheBuilder.build(reader).freqs;
+    FacetDataCache dataCache = dataCacheBuilder.build(reader);
+    int[] frequencies = dataCache.freqs;
     double selectivity = 0;
     int accumFreq = 0;
     int total = reader.maxDoc();  
-    for (int i = facetPredicate.valueStartIndex(); i < facetPredicate.valueEndIndex(); i++) {
+    for (int i = facetPredicate.valueStartIndex(dataCache); i < facetPredicate.valueEndIndex(dataCache); i++) {
+      if (!facetPredicate.evaluateValue(dataCache, i)) {
+        continue;
+      }
       accumFreq += frequencies[i];      
     }
     selectivity = (double) accumFreq / (double) total;

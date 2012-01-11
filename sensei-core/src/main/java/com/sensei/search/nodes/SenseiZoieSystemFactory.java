@@ -8,6 +8,9 @@ import java.util.concurrent.TimeUnit;
 import org.apache.log4j.Logger;
 import org.apache.lucene.search.Filter;
 
+import proj.zoie.api.DefaultDirectoryManager;
+import proj.zoie.api.DirectoryManager;
+import proj.zoie.api.DirectoryManager.DIRECTORY_MODE;
 import proj.zoie.api.indexing.IndexingEventListener;
 import proj.zoie.api.indexing.ZoieIndexableInterpreter;
 import proj.zoie.impl.indexing.IndexUpdatedEvent;
@@ -28,10 +31,10 @@ public class SenseiZoieSystemFactory<T> extends SenseiZoieFactory<T>
   
   private Map<Integer,IndexingMetrics> metricsMap = new HashMap<Integer,IndexingMetrics>(); 
   
-  public SenseiZoieSystemFactory(File idxDir, ZoieIndexableInterpreter<T> interpreter, SenseiIndexReaderDecorator indexReaderDecorator,
+  public SenseiZoieSystemFactory(File idxDir,DIRECTORY_MODE dirMode, ZoieIndexableInterpreter<T> interpreter, SenseiIndexReaderDecorator indexReaderDecorator,
                                  ZoieConfig zoieConfig)
   {
-    super(idxDir,interpreter,indexReaderDecorator,zoieConfig);
+    super(idxDir,dirMode,interpreter,indexReaderDecorator,zoieConfig);
   }
   
   public void setPurgeFilter(Filter purgeFilter){
@@ -47,7 +50,9 @@ public class SenseiZoieSystemFactory<T> extends SenseiZoieFactory<T>
       partDir.mkdirs();
       log.info("nodeId="+nodeId+", partition=" + partitionId + " does not exist, directory created.");
     }
-    ZoieSystem<BoboIndexReader,T> zoie = new ZoieSystem<BoboIndexReader,T>(partDir, _interpreter, _indexReaderDecorator, _zoieConfig);
+    
+    DirectoryManager dirMgr = new DefaultDirectoryManager(partDir, _dirMode);
+    ZoieSystem<BoboIndexReader,T> zoie = new ZoieSystem<BoboIndexReader,T>(dirMgr, _interpreter, _indexReaderDecorator, _zoieConfig);
     if (_purgeFilter!=null){
       zoie.setPurgeFilter(_purgeFilter);
     }
