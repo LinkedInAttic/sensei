@@ -1026,6 +1026,43 @@ public class TestBQL extends TestCase
   }
 
   @Test
+  public void testDateTime3() throws Exception
+  {
+    System.out.println("testDateTime3");
+    System.out.println("==================================================");
+
+    long now = System.currentTimeMillis();
+
+    JSONObject json = _compiler.compile(
+      "SELECT * \n" +
+      "FROM cars \n" +
+      "WHERE time > 2012-01-02 AND time <= 2012/01/31 \n" +
+      "  AND color = 'red'"
+      );
+
+    JSONArray selections = json.getJSONArray("selections");
+    JSONObject timeRange = null;
+    for (int i = 0; i < selections.length(); ++i)
+    {
+      timeRange = selections.getJSONObject(i).optJSONObject("range");
+      if (timeRange != null)
+      {
+        break;
+      }
+    }
+
+    long fromTime = timeRange.getJSONObject("time").getLong("from");
+    long expectedFromTime = new SimpleDateFormat("yyyy-MM-dd").parse("2012-01-02").getTime();
+    assertEquals(fromTime, expectedFromTime);
+    assertFalse(timeRange.getJSONObject("time").getBoolean("include_lower"));
+
+    long toTime = timeRange.getJSONObject("time").getLong("from");
+    long expectedToTime = new SimpleDateFormat("yyyy/MM/dd").parse("2012/01/31").getTime();
+    assertEquals(fromTime, expectedFromTime);
+    assertTrue(timeRange.getJSONObject("time").getBoolean("include_upper"));
+  }
+
+  @Test
   public void testUID() throws Exception
   {
     System.out.println("testUID");

@@ -514,9 +514,9 @@ public class TestErrorHandling extends TestCase
   }
 
   @Test
-  public void testBadDatetime() throws Exception
+  public void testBadDatetime1() throws Exception
   {
-    System.out.println("testBadDatetime");
+    System.out.println("testBadDatetime1");
     System.out.println("==================================================");
 
     boolean caughtException = false;
@@ -532,6 +532,34 @@ public class TestErrorHandling extends TestCase
     catch (RecognitionException err)
     {
       assertEquals("[line:4, col:2] Date string contains invalid date/time: \"2011-16-20 55:10:10\". (token=AND)",
+                   _compiler.getErrorMessage(err));
+      caughtException = true;
+    }
+    finally 
+    {
+      assertTrue(caughtException);
+    }
+  }
+
+  @Test
+  public void testBadDatetime2() throws Exception
+  {
+    System.out.println("testBadDatetime2");
+    System.out.println("==================================================");
+
+    boolean caughtException = false;
+    try 
+    {
+      JSONObject json = _compiler.compile(
+        "SELECT category \n" +
+        "FROM cars \n" +
+        "WHERE time > 2011-10/20 \n" +
+        "  AND price < 1750.00"
+        );
+    }
+    catch (RecognitionException err)
+    {
+      assertEquals("[line:4, col:2] ParseException happened for \"2011-10/20\": Unparseable date: \"2011-10/20\". (token=AND)",
                    _compiler.getErrorMessage(err));
       caughtException = true;
     }

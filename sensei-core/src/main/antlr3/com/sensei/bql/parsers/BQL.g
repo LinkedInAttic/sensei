@@ -57,8 +57,8 @@ import java.text.SimpleDateFormat;
 
     Map<String, String[]> _facetInfoMap;
     private long _now;
-    private SimpleDateFormat _format1 = null;
-    private SimpleDateFormat _format2 = null;
+    private SimpleDateFormat[] _format1 = new SimpleDateFormat[2];
+    private SimpleDateFormat[] _format2 = new SimpleDateFormat[2];
 
     public BQLParser(TokenStream input, Map<String, String[]> facetInfoMap)
     {
@@ -445,9 +445,13 @@ STRING_LITERAL
         )
     ;
 
-DATETIME 
-    :   DIGIT DIGIT DIGIT DIGIT '-' DIGIT DIGIT '-' DIGIT DIGIT 
-        (' ' DIGIT DIGIT ':' DIGIT DIGIT ':' DIGIT DIGIT)?
+DATE
+    :   DIGIT DIGIT DIGIT DIGIT ('-'|'/') DIGIT DIGIT ('-'|'/') DIGIT DIGIT 
+    ;
+
+TIME
+    :
+        DIGIT DIGIT ':' DIGIT DIGIT ':' DIGIT DIGIT
     ;
 
 //
@@ -1345,37 +1349,44 @@ time_expr returns [long val]
     ;
 
 date_time_string returns [long val]
-    :   DATETIME
+    :   DATE TIME?
         {
             SimpleDateFormat format;
-            if ($DATETIME.text.length() == 10) {
-                if (_format1 != null) {
-                    format = _format1;
+            String dateTimeStr = $DATE.text;
+            char separator = dateTimeStr.charAt(4);
+            if ($TIME != null) {
+                dateTimeStr = dateTimeStr + " " + $TIME.text;
+            }
+            int formatIdx = (separator == '-' ? 0 : 1);
+
+            if ($TIME == null) {
+                if (_format1[formatIdx] != null) {
+                    format = _format1[formatIdx];
                 }
                 else {
-                    format = _format1 = new SimpleDateFormat("yyyy-MM-dd");
+                    format = _format1[formatIdx] = new SimpleDateFormat("yyyy" + separator + "MM" + separator + "dd");
                 }
             }
             else {
-                if (_format2 != null) {
-                    format = _format2;
+                if (_format2[formatIdx] != null) {
+                    format = _format2[formatIdx];
                 }
                 else {
-                    format = _format2 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                    format = _format2[formatIdx] = new SimpleDateFormat("yyyy" + separator + "MM" + separator + "dd HH:mm:ss");
                 }
             }
             try {
-                $val = format.parse($DATETIME.text).getTime();
-                if (!$DATETIME.text.equals(format.format($val))) {
+                $val = format.parse(dateTimeStr).getTime();
+                if (!dateTimeStr.equals(format.format($val))) {
                     throw new FailedPredicateException(input,
                                                        "date_time_string", 
-                                                       "Date string contains invalid date/time: \"" + $DATETIME.text + "\".");
+                                                       "Date string contains invalid date/time: \"" + dateTimeStr + "\".");
                 }
             }
             catch (ParseException err) {
                 throw new FailedPredicateException(input,
                                                    "date_time_string", 
-                                                   "ParseException happened for \"" + $DATETIME.text + "\": " + 
+                                                   "ParseException happened for \"" + dateTimeStr + "\": " + 
                                                    err.getMessage() + ".");
             }
         }
