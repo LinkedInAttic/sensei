@@ -1215,25 +1215,45 @@ range_predicate returns [JSONObject json]
     ;
 
 time_predicate returns [JSONObject json]
-    :   column_name IN LAST time_span
+    :   column_name (NOT)? IN LAST time_span
         {
             String col = $column_name.text;
-            // XXX verification
+            if (!verifyFacetType(col, "range")) {
+                throw new FailedPredicateException(input, 
+                                                   "range_predicate",
+                                                   "Non-range facet column \"" + col + "\" cannot be used in TIME predicates.");
+            }
+
             try {
-                $json = new JSONObject().put("range",
-                                             new JSONObject().put(col,
-                                                                  new JSONObject().put("from", $time_span.val)
-                                                                                  .put("include_lower", false)));
+                if ($NOT == null) {
+                    $json = new JSONObject().put("range",
+                                                 new JSONObject().put(col,
+                                                                      new JSONObject().put("from", $time_span.val)
+                                                                                      .put("include_lower", false)));
+                }
+                else {
+                    $json = new JSONObject().put("range",
+                                                 new JSONObject().put(col,
+                                                                      new JSONObject().put("to", $time_span.val)
+                                                                                      .put("include_upper", true)));
+                }
             }
             catch (JSONException err) {
                 throw new FailedPredicateException(input, "time_predicate", "JSONException: " + err.getMessage());
             }
         }
-    |   column_name (since=SINCE | since=AFTER | before=BEFORE) time_expr
+    |   column_name (NOT)? (since=SINCE | since=AFTER | before=BEFORE) time_expr
         {
             String col = $column_name.text;
+            if (!verifyFacetType(col, "range")) {
+                throw new FailedPredicateException(input, 
+                                                   "range_predicate",
+                                                   "Non-range facet column \"" + col + "\" cannot be used in TIME predicates.");
+            }
+
             try {
-                if (since != null) {
+                if (since != null && $NOT == null ||
+                    since == null && $NOT != null) {
                     $json = new JSONObject().put("range",
                                                  new JSONObject().put(col,
                                                                       new JSONObject().put("from", $time_expr.val)
@@ -1362,7 +1382,7 @@ date_time_string returns [long val]
     ;
 
 match_predicate returns [JSONObject json]
-    :   MATCH LPAR column_name_list RPAR AGAINST LPAR STRING_LITERAL RPAR
+    :   (NOT)? MATCH LPAR column_name_list RPAR AGAINST LPAR STRING_LITERAL RPAR
         {
             try {
                 JSONArray cols = $column_name_list.json;
@@ -1379,6 +1399,10 @@ match_predicate returns [JSONObject json]
                                              new JSONObject().put("query_string",
                                                                   new JSONObject().put("fields", cols)
                                                                                   .put("query", $STRING_LITERAL.text)));
+                if ($NOT != null) {
+                    $json = new JSONObject().put("bool",
+                                                 new JSONObject().put("must_not", $json));
+                }
             }
             catch (JSONException err) {
                 throw new FailedPredicateException(input, "match_predicate", "JSONException: " + err.getMessage());

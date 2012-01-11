@@ -671,6 +671,21 @@ public class TestBQL extends TestCase
   }
 
   @Test
+  public void testNotMatchPred() throws Exception
+  {
+    System.out.println("testNotMatchPred");
+    System.out.println("==================================================");
+
+    JSONObject json = _compiler.compile(
+      "SELECT color " +
+      "FROM cars " +
+      "WHERE NOT MATCH(color) AGAINST('red')"
+      );
+    JSONObject expected = new JSONObject("{\"filter\":{\"bool\":{\"must_not\":{\"query\":{\"query_string\":{\"query\":\"red\",\"fields\":[\"color\"]}}}}},\"meta\":{\"select_list\":[\"color\"]}}");
+    assertTrue(_comp.isEquals(json, expected));
+  }
+
+  @Test
   public void testLikePredicate1() throws Exception
   {
     System.out.println("testLikePredicate1");
@@ -944,6 +959,27 @@ public class TestBQL extends TestCase
 
     long timeStamp = json.getJSONArray("selections").getJSONObject(0)
       .getJSONObject("range").getJSONObject("time").getLong("to");
+    long timeSpan = 3 * (60 * 60 * 1000L) +
+                    4 * (60 * 1000L);
+    assertTrue(now - timeStamp - timeSpan < 2); // Should be less than 2 msecs
+  }
+
+  @Test
+  public void testNotTimePred1() throws Exception
+  {
+    System.out.println("testNotTimePred1");
+    System.out.println("==================================================");
+
+    long now = System.currentTimeMillis();
+
+    JSONObject json = _compiler.compile(
+      "SELECT * " +
+      "FROM cars " +
+      "WHERE time NOT BEFORE 3 hours 4 min AGO"
+      );
+
+    long timeStamp = json.getJSONArray("selections").getJSONObject(0)
+      .getJSONObject("range").getJSONObject("time").getLong("from");
     long timeSpan = 3 * (60 * 60 * 1000L) +
                     4 * (60 * 1000L);
     assertTrue(now - timeStamp - timeSpan < 2); // Should be less than 2 msecs

@@ -695,7 +695,6 @@ public class TestErrorHandling extends TestCase
     }
     catch (RecognitionException err)
     {
-      System.out.println(">>>  = " + _compiler.getErrorMessage(err));
       assertEquals("[line:4, col:0] Range/multi/path facet, \"tags\", cannot be used in the GROUP BY clause. (token=order)",
                    _compiler.getErrorMessage(err));
       caughtException = true;
@@ -731,4 +730,31 @@ public class TestErrorHandling extends TestCase
   //   }
   // }
   
+  @Test
+  public void testBadTimePredicate() throws Exception
+  {
+    System.out.println("testBadTimePredicate");
+    System.out.println("==================================================");
+
+    boolean caughtException = false;
+    try
+    {
+      JSONObject json = _compiler.compile(
+        "select category \n" +
+        "from cars \n" +
+        "where color IN LAST 2 days"
+        );
+    }
+    catch (RecognitionException err)
+    {
+      assertEquals("[line:3, col:26] Non-range facet column \"color\" cannot be used in TIME predicates. (token=<EOF>)",
+                   _compiler.getErrorMessage(err));
+      caughtException = true;
+    }
+    finally 
+    {
+      assertTrue(caughtException);
+    }
+  }
+
 }
