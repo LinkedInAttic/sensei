@@ -37,7 +37,7 @@ public class TestSensei extends TestCase {
   private static SenseiBroker broker;
   private static SenseiService httpRestSenseiService;
   static {
-    SenseiStarter.start();
+    SenseiStarter.start("test-conf/node1","test-conf/node2");
     broker = SenseiStarter.broker;
     httpRestSenseiService = SenseiStarter.httpRestSenseiService;
 
