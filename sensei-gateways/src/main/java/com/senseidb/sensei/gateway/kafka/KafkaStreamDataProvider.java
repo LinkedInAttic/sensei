@@ -131,13 +131,16 @@ public abstract class KafkaStreamDataProvider<D> extends StreamDataProvider<D>{
   @Override
   public void stop() {
     _started = false;
-    try{
-      super.stop();
-    }
-    finally{
+
+    try
+    {
       if (_consumerConnector!=null){
-      _consumerConnector.shutdown();
+        _consumerConnector.shutdown();
       }
+    }
+    finally
+    {
+      super.stop();
     }
   }  
 }
