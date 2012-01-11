@@ -31,4 +31,9 @@ public class Range {
       }
       return new Range(start, end);
     }
+    @Override
+    public String toString() {
+      return "[start=" + start + ", end=" + end + "]";
+    }
+    
 }

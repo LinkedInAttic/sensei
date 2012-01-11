@@ -1,5 +1,6 @@
 package com.sensei.facet.attribute;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.WeakHashMap;
 
@@ -27,7 +28,7 @@ public class RangePredicate implements  FacetPredicate {
     RangeHolder holder = holders.get(cache);
     if (holder == null) {
       holder = createRange(cache);
-      holders.put(cache, holder);
+      //holders.put(cache, holder);
     }
     lastDataCache = cache;
     lastHolder = holder;
@@ -128,6 +129,7 @@ public class RangePredicate implements  FacetPredicate {
       if (ret.startIndex > range.start) ret.startIndex = range.start;
       if (ret.endIndex < range.end) ret.endIndex = range.end;       
     }
+    System.out.println(ret);
    return ret;
 
 }
@@ -136,6 +138,12 @@ public class RangePredicate implements  FacetPredicate {
     public Range[] excludes;
     public int startIndex = Integer.MAX_VALUE;
     public int endIndex = Integer.MIN_VALUE;
+    @Override
+    public String toString() {
+      return "RangeHolder [includes=" + Arrays.toString(includes) + ", excludes=" + Arrays.toString(excludes)
+          + ", startIndex=" + startIndex + ", endIndex=" + endIndex + "]";
+    }
+    
   }
   
   

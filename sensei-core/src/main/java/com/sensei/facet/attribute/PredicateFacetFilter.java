@@ -38,7 +38,8 @@ public class PredicateFacetFilter extends RandomAccessFilter {
           endDocIdTemp = facetDataCache.maxIDs[i];
         }
       }
-    }
+    } 
+    
     final int startDocId = startDocIdTemp;
     final int endDocId = endDocIdTemp;
    

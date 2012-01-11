@@ -2,7 +2,6 @@ package com.sensei.facet.attribute;
 
 import java.io.IOException;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 
 import org.apache.lucene.index.Term;
@@ -65,14 +64,7 @@ public class AttributesFacetHandler extends MultiValueFacetHandler {
       return new RandomAccessNotFilter(new PredicateFacetFilter(new SimpleDataCacheBuilder(getName()), new RangePredicate(notValues, values, operation, getSeparator(browseSelection))));
     } else  return new PredicateFacetFilter(new SimpleDataCacheBuilder(getName()), new RangePredicate(values, notValues, operation, getSeparator(browseSelection)));
   } 
-    @Override
-    public RandomAccessFilter buildRandomAccessAndFilter(String[] vals, Properties prop) throws IOException {
-      throw new UnsupportedOperationException();
-    }
-  @Override
-  public RandomAccessFilter buildRandomAccessOrFilter(String[] vals, Properties prop, boolean isNot) throws IOException {
-    throw new UnsupportedOperationException();
-  }
+  
   @Override
   public FacetCountCollectorSource getFacetCountCollectorSource(final BrowseSelection browseSelection, final FacetSpec ospec){
   return new FacetCountCollectorSource(){

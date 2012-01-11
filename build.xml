@@ -10,7 +10,7 @@
 
 	<target name="dist" depends="init" description="--> build .jar and sources into dist">
 		<exec executable="mvn">
-			<arg line="-Dmaven.test.skip=true package"/>
+			<arg line="--no-snapshot-updates -Dmaven.test.skip=true package"/>
 		</exec>
 	</target>
 	
