@@ -46,6 +46,17 @@ public class VirtualGroupIdFactory implements SenseiPluginFactory<VirtualSimpleF
     {
     }
   };
+
+  public static class GroupIdFetcherFactory implements SenseiPluginFactory<FacetDataFetcher>
+  {
+    public FacetDataFetcher getBean(Map<String, String> initProperties,
+                                    String fullPrefix,
+                                    SenseiPluginRegistry pluginRegistry)
+    {
+      return VirtualGroupIdFactory.facetDataFetcher;
+    }
+  }
+
   public static FacetDataFetcher facetDataFetcherFixedLengthLongArray = new FacetDataFetcher()
   {
     private int counter = 0;
