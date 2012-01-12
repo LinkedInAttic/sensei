@@ -16,6 +16,8 @@ public class SenseiConfigServletContextListener implements
 	private static final Logger logger = Logger.getLogger(SenseiConfigServletContextListener.class);
 	
 	public static final String SENSEI_CONF_FILE_PARAM = "config.file";
+
+  public static final String SENSEI_CONF_DIR_PARAM = "config.dir";
 	
 	public static final String SENSEI_CONF_ZKURL = "sensei.search.cluster.zookeeper.url";
 	public static final String SENSEI_CONF_CLUSTER_CLIENT_NAME = "sensei.search.cluster.client-name";
@@ -39,9 +41,20 @@ public class SenseiConfigServletContextListener implements
 	public void contextInitialized(ServletContextEvent ctxEvt) {
 		ServletContext ctx = ctxEvt.getServletContext();
 		String confFileName = ctx.getInitParameter(SENSEI_CONF_FILE_PARAM);
+		
 
-    if (confFileName != null) {
-      File confFile = new File(confFileName);
+    File confFile = null;
+		if (confFileName==null){
+		  String confDirName = ctx.getInitParameter(SENSEI_CONF_DIR_PARAM);
+		  if (confDirName!=null){
+		    confFile = new File(confDirName,"sensei.properties");
+		  }
+		}
+		else{
+		  confFile = new File(confFileName);
+		}
+
+    if (confFile != null) {
       try {
         PropertiesConfiguration conf = new PropertiesConfiguration();
         conf.setDelimiterParsingDisabled(true);
@@ -53,7 +66,7 @@ public class SenseiConfigServletContextListener implements
       }
     }
     else {
-      logger.warn("\""+SENSEI_CONF_FILE_PARAM+"\" is not set.");
+      logger.warn("configuration is not set.");
     }
 	}
 

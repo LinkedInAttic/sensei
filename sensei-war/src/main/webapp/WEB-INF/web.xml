@@ -5,8 +5,8 @@
 <web-app>
 
   <context-param>
-		<param-name>config.file</param-name>
-		<param-value>/conf</param-value>
+		<param-name>config.dir</param-name>
+		<param-value>sensei-conf</param-value>
 	</context-param>
 	<listener>
 		<listener-class>com.sensei.search.client.servlet.SenseiConfigServletContextListener</listener-class>
@@ -19,7 +19,7 @@
   <servlet>
  
   	<servlet-name>SenseiBroker</servlet-name>
-  	<servlet-class>com.sensei.search.client.servlet.DefaultSenseiJSONServlet</servlet-class>
+  	<servlet-class>com.senseidb.servlet.SenseiNodeServlet</servlet-class>
   	<init-param>
     	<param-name>debug</param-name>
     	<param-value>true</param-value>
@@ -33,6 +33,6 @@
   
   <servlet-mapping>
   	<servlet-name>SenseiBroker</servlet-name>
-  	<url-pattern>/sensei-broker/*</url-pattern>
+  	<url-pattern>/sensei/*</url-pattern>
   </servlet-mapping>
 </web-app>
