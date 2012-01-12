@@ -559,10 +559,11 @@ public class ResultMerger
             primitiveLongArrayWrapperTmp.data = (long[])rawGroupValue;
             rawGroupValue = primitiveLongArrayWrapperTmp;
           }
-          if (groupHitMap.containsKey(rawGroupValue))
+
+          SenseiHit pre = groupHitMap.get(rawGroupValue);
+          if (pre != null)
           {
             if (offsetLeft <= 0) {
-              SenseiHit pre = groupHitMap.get(rawGroupValue);
               pre.setGroupHitsCount(pre.getGroupHitsCount()+hit.getGroupHitsCount());
             }
           }
