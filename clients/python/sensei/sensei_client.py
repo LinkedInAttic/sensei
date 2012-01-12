@@ -355,7 +355,6 @@ exit              Exit
   while 1:
     try:
       stmt = raw_input('bql> ')
-
       words = re.split(r'[\s,]+', stmt.strip())
 
       command = len(words) > 0 and words[0].lower() or None
@@ -389,8 +388,8 @@ exit              Exit
         sysinfo.display()
       elif command == "help":
         help()
-      else:
-        print "Unrecognized command."
+      elif len(words) > 0 and len(words[0]) > 0:
+        print "Unrecognized command:", words[0]
 
     except EOFError:
       break
