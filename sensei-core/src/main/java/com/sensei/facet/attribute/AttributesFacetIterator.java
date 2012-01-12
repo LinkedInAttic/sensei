@@ -32,6 +32,7 @@ public class AttributesFacetIterator extends FacetIterator {
     if (next == null) {
       return null;
     }
+    count = next.getFacetValueHitCount();
     facet = next.getValue();
     return next.getValue();
   }

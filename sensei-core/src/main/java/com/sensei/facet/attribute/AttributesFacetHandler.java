@@ -2,16 +2,18 @@ package com.sensei.facet.attribute;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 
 import org.apache.lucene.index.Term;
+import org.apache.lucene.util.OpenBitSet;
 
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.api.BrowseSelection;
-import com.browseengine.bobo.api.BrowseSelection.ValueOperation;
 import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.facets.FacetCountCollector;
 import com.browseengine.bobo.facets.FacetCountCollectorSource;
+import com.browseengine.bobo.facets.data.FacetDataCache;
 import com.browseengine.bobo.facets.data.MultiValueFacetDataCache;
 import com.browseengine.bobo.facets.data.TermListFactory;
 import com.browseengine.bobo.facets.filter.EmptyFilter;
@@ -24,7 +26,7 @@ public class AttributesFacetHandler extends MultiValueFacetHandler {
   private char separator;
   private int numFacetsPerKey = 7;
   public static final String SEPARATOR_PROP_NAME = "separator";
-  public static final String NUM_FACETS_PER_KEY_PROP_NAME = "numFacetsPerKey";
+  public static final String MAX_FACETS_PER_KEY_PROP_NAME = "maxFacetsPerKey";
   
   public AttributesFacetHandler(String name, String indexFieldName, TermListFactory termListFactory, Term sizePayloadTerm, Set<String> depends, Map<String, String> facetProps) {
     super(name, indexFieldName, termListFactory, sizePayloadTerm, depends);
@@ -33,8 +35,8 @@ public class AttributesFacetHandler extends MultiValueFacetHandler {
     } else {
       this.separator = DEFAULT_SEPARATOR;
     }
-    if (facetProps.containsKey(NUM_FACETS_PER_KEY_PROP_NAME)) {
-      this.numFacetsPerKey = Integer.parseInt(narrow(facetProps.get(NUM_FACETS_PER_KEY_PROP_NAME))); 
+    if (facetProps.containsKey(MAX_FACETS_PER_KEY_PROP_NAME)) {
+      this.numFacetsPerKey = Integer.parseInt(narrow(facetProps.get(MAX_FACETS_PER_KEY_PROP_NAME))); 
     }
   }
   private String narrow(String string) {   
@@ -46,34 +48,71 @@ public class AttributesFacetHandler extends MultiValueFacetHandler {
     }
     return browseSelection.getSelectionProperties().get(SEPARATOR_PROP_NAME).toString().charAt(0);
   }
-  public int getFacetsPerKey(BrowseSelection browseSelection) {
-    if (browseSelection == null || !browseSelection.getSelectionProperties().containsKey(NUM_FACETS_PER_KEY_PROP_NAME)) {
-      return numFacetsPerKey;
-    }
-    return Integer.valueOf(browseSelection.getSelectionProperties().get(NUM_FACETS_PER_KEY_PROP_NAME).toString());
-  }
-  @Override
-  public RandomAccessFilter buildFilter(final BrowseSelection browseSelection) throws IOException {    
-    final String[] values = browseSelection.getValues();
-    final String[] notValues = browseSelection.getNotValues();
-    final ValueOperation operation = browseSelection.getSelectionOperation();   
-    
-    if (values.length ==0 && notValues.length == 0) {
-      return EmptyFilter.getInstance();
-    } else if (values.length ==0 && notValues.length  > 0) {
-      return new RandomAccessNotFilter(new PredicateFacetFilter(new SimpleDataCacheBuilder(getName()), new RangePredicate(notValues, values, operation, getSeparator(browseSelection))));
-    } else  return new PredicateFacetFilter(new SimpleDataCacheBuilder(getName()), new RangePredicate(values, notValues, operation, getSeparator(browseSelection)));
-  } 
   
   @Override
+  public RandomAccessFilter buildRandomAccessFilter(String value, Properties prop) throws IOException {    
+    return new PredicateFacetFilter(new SimpleDataCacheBuilder(getName()), new RangePredicate(value, separator));
+  }
+  
+  @Override
+  public RandomAccessFilter buildRandomAccessOrFilter(final String[] vals, Properties prop, boolean isNot) throws IOException {
+    if (vals.length == 0) {
+      return EmptyFilter.getInstance();
+    }
+    RandomAccessFilter filter;
+    if (vals.length == 1) {
+      filter = buildRandomAccessFilter(vals[0], prop);
+    } else {   
+       filter =  new BitSetFilter(new BitSetBuilder() {
+        @Override
+        public OpenBitSet bitSet(FacetDataCache dataCache) {
+          return buildBitSet(dataCache, vals);
+        }
+      }, new SimpleDataCacheBuilder(getName()));
+    }
+    if (!isNot) {
+      return filter;
+    } else {
+      return new RandomAccessNotFilter(filter);
+    }
+  }
+  
+  
+  
+  public int getFacetsPerKey(BrowseSelection browseSelection) {
+    if (browseSelection == null || !browseSelection.getSelectionProperties().containsKey(MAX_FACETS_PER_KEY_PROP_NAME)) {
+      return numFacetsPerKey;
+    }
+    return Integer.valueOf(browseSelection.getSelectionProperties().get(MAX_FACETS_PER_KEY_PROP_NAME).toString());
+  }
+  
+  public OpenBitSet buildBitSet(FacetDataCache facetDataCache, String[] values) {
+    MultiValueFacetDataCache multiCache = (MultiValueFacetDataCache) facetDataCache;
+    Range[] includes = Range.getRanges(multiCache, values, separator);
+    int max = -1;
+    
+    OpenBitSet openBitSet = new OpenBitSet(facetDataCache.valArray.size()); 
+    for(Range range : includes) {
+      for (int i = range.start; i < range.end; i++) {
+        openBitSet.fastSet(i);
+      }
+    }
+    return openBitSet;
+  }
+  @Override
   public FacetCountCollectorSource getFacetCountCollectorSource(final BrowseSelection browseSelection, final FacetSpec ospec){
-  return new FacetCountCollectorSource(){
-
+   
+    return new FacetCountCollectorSource(){
+    
     @Override
     public FacetCountCollector getFacetCountCollector(
         BoboIndexReader reader, int docBase) {
+      int facetsPerKey = getFacetsPerKey(browseSelection);
+      if (ospec.getProperties() != null && ospec.getProperties().containsKey(MAX_FACETS_PER_KEY_PROP_NAME)) {
+        facetsPerKey = Integer.parseInt(ospec.getProperties().get(MAX_FACETS_PER_KEY_PROP_NAME));
+      }
       MultiValueFacetDataCache dataCache = (MultiValueFacetDataCache) reader.getFacetData(_name);
-      return new AttributesFacetCountCollector(AttributesFacetHandler.this, _name,dataCache,docBase,browseSelection, ospec, getFacetsPerKey(browseSelection), getSeparator(browseSelection));
+      return new AttributesFacetCountCollector(AttributesFacetHandler.this, _name,dataCache,docBase,browseSelection, ospec, facetsPerKey, getSeparator(browseSelection));
     }
   };
   }

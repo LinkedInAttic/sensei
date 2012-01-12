@@ -2,9 +2,11 @@ package com.sensei.search.util;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.codec.binary.Base64;
@@ -20,8 +22,6 @@ import com.browseengine.bobo.facets.DefaultFacetHandlerInitializerParam;
 import com.browseengine.bobo.facets.impl.PathFacetHandler;
 import com.sensei.search.req.SenseiJSONQuery;
 import com.sensei.search.req.SenseiRequest;
-
-import com.sensei.bql.parsers.BQLCompiler;
 
 public class RequestConverter2 {
 
@@ -242,7 +242,7 @@ public class RequestConverter2 {
 					 if (RequestConverter2.FACETS_ORDER_VAL.equals(orderBy)){
 						 facetOrder = FacetSpec.FacetSortSpec.OrderValueAsc;
 					 }
-
+					 facetSpec.setProperties(createFacetProperties(facetObj));
 					 facetSpec.setOrderBy(facetOrder);
 					 req.setFacetSpec(field, facetSpec);
 				  }
@@ -351,7 +351,7 @@ public class RequestConverter2 {
   private static void addSelection(String type, JSONObject jsonSel, SenseiRequest req) throws Exception
   {
  // we process "term", "terms", "range", "path", "custom" selection types;
-
+    
 
     if(RequestConverter2.SELECTIONS_TERM.equals(type))
     {
@@ -464,6 +464,24 @@ public class RequestConverter2 {
     {
       ;
     }
+  }
+
+  private static Map<String, String> createFacetProperties(JSONObject facetJson) {
+    Map<String, String> ret = new HashMap<String, String>();
+    JSONObject params = facetJson.optJSONObject("properties");
+    if (params == null) {
+      return ret;
+    }
+    Iterator<String> iter = params.keys();
+    if(iter.hasNext()){
+      String key = iter.next();
+      Object val = params.opt(key);
+      if (val != null) {
+        ret.put(key, val.toString());
+      }
+    }
+    return ret;
+    
   }
 
   /**

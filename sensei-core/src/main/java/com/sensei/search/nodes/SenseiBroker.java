@@ -6,14 +6,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.http.NameValuePair;
-import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.log4j.Logger;
 import org.apache.lucene.document.Document;
 
+import proj.zoie.api.indexing.AbstractZoieIndexable;
+
 import com.browseengine.bobo.api.FacetSpec;
 import com.linkedin.norbert.NorbertException;
-import com.linkedin.norbert.network.Serializer;
 import com.linkedin.norbert.javacompat.cluster.ClusterClient;
 import com.linkedin.norbert.javacompat.cluster.Node;
 import com.linkedin.norbert.javacompat.network.PartitionedNetworkClient;
@@ -24,11 +23,7 @@ import com.sensei.search.cluster.routing.SenseiLoadBalancerFactory;
 import com.sensei.search.req.SenseiHit;
 import com.sensei.search.req.SenseiRequest;
 import com.sensei.search.req.SenseiResult;
-import com.sensei.search.svc.api.SenseiException;
 import com.sensei.search.svc.impl.CoreSenseiServiceImpl;
-import com.sensei.search.svc.impl.HttpRestSenseiServiceImpl;
-
-import proj.zoie.api.indexing.AbstractZoieIndexable;
 
 /**
  * This SenseiBroker routes search(browse) request using the routers created by
@@ -149,7 +144,7 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
     if (facetSpecs != null) {
       for (Map.Entry<String, FacetSpec> entry : facetSpecs.entrySet()) {
         FacetSpec spec = entry.getValue();
-        if (spec != null)
+        if (spec != null && spec.getMaxCount() < 50)
           spec.setMaxCount(50);
       }
     }

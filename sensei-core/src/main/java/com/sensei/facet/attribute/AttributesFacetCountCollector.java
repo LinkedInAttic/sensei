@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.lucene.util.OpenBitSet;
+
 import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.BrowseSelection;
 import com.browseengine.bobo.api.FacetIterator;
@@ -17,43 +19,38 @@ import com.browseengine.bobo.util.BigNestedIntArray;
 public  final class AttributesFacetCountCollector extends DefaultFacetCountCollector {
   private final AttributesFacetHandler attributesFacetHandler;
   public final BigNestedIntArray _array;
-  private RangePredicate rangePredicate;
   private int[] buffer;   
   private List<BrowseFacet> cachedFacets;
   private final int numFacetsPerKey;
   private final char separator;
+  private OpenBitSet excludes;
+  private OpenBitSet includes;
+  private final MultiValueFacetDataCache dataCache;
+  
   @SuppressWarnings("rawtypes")
   public AttributesFacetCountCollector(AttributesFacetHandler attributesFacetHandler, String name, MultiValueFacetDataCache dataCache, int docBase, BrowseSelection browseSelection, FacetSpec ospec, int numFacetsPerKey, char separator){
     super(name,dataCache,docBase,browseSelection,ospec);
     this.attributesFacetHandler = attributesFacetHandler;
+    this.dataCache = dataCache;
     this.numFacetsPerKey = numFacetsPerKey;
     this.separator = separator;
     _array = dataCache._nestedArray;
      buffer = new int[10];
     if (browseSelection != null) {
-      rangePredicate = new RangePredicate(browseSelection.getValues(), browseSelection.getNotValues(), browseSelection.getSelectionOperation(), separator);
+      if (browseSelection.getValues().length > 0) includes = attributesFacetHandler.buildBitSet(dataCache, browseSelection.getValues());
+      if (browseSelection.getNotValues().length > 0) excludes = attributesFacetHandler.buildBitSet(dataCache, browseSelection.getNotValues());
     }
   }
 
   @Override
   public final void collect(int docid) {
-    if (rangePredicate != null) {
-      if (buffer.length < _array.getNumItems(docid)) {
-        buffer = new int[_array.getNumItems(docid) + 10];
-      }
-     int count = _array.getData(docid, buffer);
-     if (count == 1) {
-      if (rangePredicate.evaluateValue(_dataCache, buffer[0])) {
-        _count[buffer[0]]++;
-      }
-     }
-     for (int i = 0; i < count; i++) {
-       if (rangePredicate.evaluateValue(_dataCache, buffer[i])) {
-         _count[buffer[i]]++;
-       }
-     }        
+    if (excludes != null && dataCache._nestedArray.contains(docid, excludes)) {
+      return;
+    }
+    if (includes != null) {
+      dataCache._nestedArray.countNoReturnWithFilter(docid, _count, includes);
     } else {
-      _array.countNoReturn(docid, _count);
+      dataCache._nestedArray.countNoReturn(docid, _count);
     }
   }
 
@@ -66,7 +63,7 @@ public  final class AttributesFacetCountCollector extends DefaultFacetCountColle
   public List<BrowseFacet> getFacets() {
     if (cachedFacets == null) {
     int max = _ospec.getMaxCount();
-    _ospec.setMaxCount(-1);
+    _ospec.setMaxCount(max * 10);
     List<BrowseFacet> facets = super.getFacets();
     _ospec.setMaxCount(max);
     filterByKeys(facets,  separator, numFacetsPerKey);

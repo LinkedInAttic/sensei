@@ -381,6 +381,7 @@ public class TestSensei extends TestCase {
 
   public void testPathQuery() throws Exception
   {
+   
     logger.info("executing test case testPathQuery");
     String req = "{\"query\":{\"path\":{\"makemodel\":\"asian/acura/3.2tl\"}}}";
     JSONObject res = search(new JSONObject(req));
@@ -407,7 +408,7 @@ public class TestSensei extends TestCase {
   }
 
   public void testRangeQuery() throws Exception
-  {
+  {   
     logger.info("executing test case testRangeQuery");
     String req = "{\"query\":{\"range\":{\"year\":{\"to\":2000,\"boost\":2,\"from\":1999,\"_noOptimize\":false}}}}";
     JSONObject res = search(new JSONObject(req));

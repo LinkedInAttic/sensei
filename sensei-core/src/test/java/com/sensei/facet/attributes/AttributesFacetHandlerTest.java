@@ -111,7 +111,40 @@ public class AttributesFacetHandlerTest extends TestCase {
     req.setFacetSpec(AttributeHandlerName, fs);
     return req;
   }
-  
+  public void test10ModifiedNumberOfFacetsPerKeyInSelection() throws Exception {
+    modifiedSetup();
+    selectionProperties.put(AttributesFacetHandler.MAX_FACETS_PER_KEY_PROP_NAME, "2");
+    BrowseRequest request = createRequest(1, ValueOperation.ValueOperationOr, "prop1", "prop2", "prop3", "prop4", "prop5", "prop6", "prop7");
+    request.getFacetSpec(AttributeHandlerName).setOrderBy(FacetSortSpec.OrderHitsDesc);
+    BrowseResult res = browser.browse(request);   
+    System.out.println(res);    
+    List<BrowseFacet> facets = res.getFacetAccessor(AttributeHandlerName).getFacets();
+    assertEquals(facets.size(), 9);
+    assertEquals(facets.get(0).getValue(), "prop1=val1");
+    assertEquals(facets.get(0).getFacetValueHitCount(), 4);    
+    assertEquals(facets.get(1).getValue(), "prop2=val1");
+    assertEquals(facets.get(1).getFacetValueHitCount(), 4);
+    assertEquals(facets.get(2).getValue(), "prop1=val2");
+    assertEquals(facets.get(2).getFacetValueHitCount(), 2);
+    assertEquals(facets.get(3).getValue(), "prop3=val1");
+    assertEquals(facets.get(3).getFacetValueHitCount(), 1);  
+  }
+  public void test8AndPropertiesPlsExclusion() throws Exception {
+    BrowseRequest request = createRequest(1, ValueOperation.ValueOperationAnd, "prop1", "prop3");
+    request.getSelection(AttributeHandlerName).addNotValue("prop7");
+    BrowseResult res = browser.browse(request);   
+    System.out.println(res);
+    assertEquals(res.getNumHits(), 1);
+    assertEquals(res.getHits()[0].getDocid(), 2);
+    List<BrowseFacet> facets = res.getFacetAccessor(AttributeHandlerName).getFacets();
+    assertEquals(facets.size(), 3);
+    assertEquals(facets.get(0).getValue(), "prop1=val2");
+    assertEquals(facets.get(0).getFacetValueHitCount(), 1);    
+    assertEquals(facets.get(1).getValue(), "prop3=val2");
+    assertEquals(facets.get(1).getFacetValueHitCount(), 1);  
+    assertEquals(facets.get(2).getValue(), "prop3=val3");
+    assertEquals(facets.get(2).getFacetValueHitCount(), 1);  
+  }
   
   
  
@@ -210,22 +243,7 @@ public class AttributesFacetHandlerTest extends TestCase {
     assertEquals(facets.get(1).getValue(), "prop3=val1");
     assertEquals(facets.get(1).getFacetValueHitCount(), 1);  
   }
-  public void test8AndPropertiesPlsExclusion() throws Exception {
-    BrowseRequest request = createRequest(1, ValueOperation.ValueOperationAnd, "prop1", "prop3");
-    request.getSelection(AttributeHandlerName).addNotValue("prop7");
-    BrowseResult res = browser.browse(request);   
-    System.out.println(res);
-    assertEquals(res.getNumHits(), 1);
-    assertEquals(res.getHits()[0].getDocid(), 2);
-    List<BrowseFacet> facets = res.getFacetAccessor(AttributeHandlerName).getFacets();
-    assertEquals(facets.size(), 3);
-    assertEquals(facets.get(0).getValue(), "prop1=val2");
-    assertEquals(facets.get(0).getFacetValueHitCount(), 1);    
-    assertEquals(facets.get(1).getValue(), "prop3=val2");
-    assertEquals(facets.get(1).getFacetValueHitCount(), 1);  
-    assertEquals(facets.get(2).getValue(), "prop3=val3");
-    assertEquals(facets.get(2).getFacetValueHitCount(), 1);  
-  }
+  
   public void test9ModifiedNumberOfFacetsPerKey() throws Exception {
     modifiedSetup();
     BrowseRequest request = createRequest(1, ValueOperation.ValueOperationOr);
@@ -241,24 +259,7 @@ public class AttributesFacetHandlerTest extends TestCase {
     assertEquals(facets.get(2).getValue(), "prop3=val1");
     assertEquals(facets.get(2).getFacetValueHitCount(), 1);  
   }
-  public void test10ModifiedNumberOfFacetsPerKeyInSelection() throws Exception {
-    modifiedSetup();
-    selectionProperties.put(AttributesFacetHandler.NUM_FACETS_PER_KEY_PROP_NAME, "2");
-    BrowseRequest request = createRequest(1, ValueOperation.ValueOperationOr, "prop1", "prop2", "prop3", "prop4", "prop5", "prop6", "prop7");
-    request.getFacetSpec(AttributeHandlerName).setOrderBy(FacetSortSpec.OrderHitsDesc);
-    BrowseResult res = browser.browse(request);   
-    System.out.println(res);    
-    List<BrowseFacet> facets = res.getFacetAccessor(AttributeHandlerName).getFacets();
-    assertEquals(facets.size(), 9);
-    assertEquals(facets.get(0).getValue(), "prop1=val1");
-    assertEquals(facets.get(0).getFacetValueHitCount(), 4);    
-    assertEquals(facets.get(1).getValue(), "prop2=val1");
-    assertEquals(facets.get(1).getFacetValueHitCount(), 4);
-    assertEquals(facets.get(2).getValue(), "prop1=val2");
-    assertEquals(facets.get(2).getFacetValueHitCount(), 2);
-    assertEquals(facets.get(3).getValue(), "prop3=val1");
-    assertEquals(facets.get(3).getFacetValueHitCount(), 1);  
-  }
+  
 
   private void modifiedSetup() throws CorruptIndexException, LockObtainFailedException, IOException {
     directory = new RAMDirectory();
@@ -274,7 +275,7 @@ public class AttributesFacetHandlerTest extends TestCase {
     writer.commit();
 
     HashMap<String, String> facetProps = new HashMap<String, String>();
-    facetProps.put(AttributesFacetHandler.NUM_FACETS_PER_KEY_PROP_NAME, "1");
+    facetProps.put(AttributesFacetHandler.MAX_FACETS_PER_KEY_PROP_NAME, "1");
     attributesFacetHandler = new AttributesFacetHandler(AttributeHandlerName, AttributeHandlerName, null, null,
         Collections.EMPTY_SET, facetProps);
     facetHandlers.add(attributesFacetHandler);

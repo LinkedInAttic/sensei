@@ -29,7 +29,6 @@
 	     default delimiter is ","
 	 -->
 	<column name="tags" type="string" multi="true" delimiter=","/>
-	<column name="object_properties" type="string" multi="true" delimiter=","/>
 	<!-- attributes: indexed,store,termvector are only used when type is text -->
 	<column name="contents" type="text" index="ANALYZED" store="YES" termvector="YES" />
   </table>
@@ -81,12 +80,7 @@
 		</params>
 	 </facet>
 	 <facet name="tags" type="multi" />
-	  <facet name="object_properties" type="attribute" column="object_properties">
-	  <params>
-		<param name="numFacetsPerKey" value="5" />
-		<param name="separator" value="=" />
-	  </params>
-	  </facet>
+	 
 	 <!-- example of a custom facet, defined in custom-facets.xml -->
 	 <!-- 
 	     a bean with name "foobar" must be defined
