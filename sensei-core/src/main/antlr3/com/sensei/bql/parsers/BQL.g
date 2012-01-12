@@ -57,8 +57,8 @@ import java.text.SimpleDateFormat;
 
     Map<String, String[]> _facetInfoMap;
     private long _now;
-    private SimpleDateFormat _format1 = null;
-    private SimpleDateFormat _format2 = null;
+    private SimpleDateFormat[] _format1 = new SimpleDateFormat[2];
+    private SimpleDateFormat[] _format2 = new SimpleDateFormat[2];
 
     public BQLParser(TokenStream input, Map<String, String[]> facetInfoMap)
     {
@@ -445,9 +445,13 @@ STRING_LITERAL
         )
     ;
 
-DATETIME 
-    :   DIGIT DIGIT DIGIT DIGIT '-' DIGIT DIGIT '-' DIGIT DIGIT 
-        (' ' DIGIT DIGIT ':' DIGIT DIGIT ':' DIGIT DIGIT)?
+DATE
+    :   DIGIT DIGIT DIGIT DIGIT ('-'|'/') DIGIT DIGIT ('-'|'/') DIGIT DIGIT 
+    ;
+
+TIME
+    :
+        DIGIT DIGIT ':' DIGIT DIGIT ':' DIGIT DIGIT
     ;
 
 //
@@ -737,7 +741,16 @@ group_by_clause returns [JSONObject json]
             $json = new JSONObject();
             try {
                 JSONArray cols = new JSONArray();
-                cols.put($column_name.text);
+                String col = $column_name.text;
+                String[] facetInfo = _facetInfoMap.get(col);
+                if (facetInfo != null && (facetInfo[0].equals("range") ||
+                                          facetInfo[0].equals("multi") ||
+                                          facetInfo[0].equals("path"))) {
+                    throw new FailedPredicateException(input, 
+                                                       "group_by_clause",
+                                                       "Range/multi/path facet, \"" + col + "\", cannot be used in the GROUP BY clause.");
+                }
+                cols.put(col);
                 $json.put("columns", cols);
                 if (top != null) {
                     $json.put("top", Integer.parseInt(top.getText()));
@@ -1206,25 +1219,45 @@ range_predicate returns [JSONObject json]
     ;
 
 time_predicate returns [JSONObject json]
-    :   column_name IN LAST time_span
+    :   column_name (NOT)? IN LAST time_span
         {
             String col = $column_name.text;
-            // XXX verification
+            if (!verifyFacetType(col, "range")) {
+                throw new FailedPredicateException(input, 
+                                                   "range_predicate",
+                                                   "Non-range facet column \"" + col + "\" cannot be used in TIME predicates.");
+            }
+
             try {
-                $json = new JSONObject().put("range",
-                                             new JSONObject().put(col,
-                                                                  new JSONObject().put("from", $time_span.val)
-                                                                                  .put("include_lower", false)));
+                if ($NOT == null) {
+                    $json = new JSONObject().put("range",
+                                                 new JSONObject().put(col,
+                                                                      new JSONObject().put("from", $time_span.val)
+                                                                                      .put("include_lower", false)));
+                }
+                else {
+                    $json = new JSONObject().put("range",
+                                                 new JSONObject().put(col,
+                                                                      new JSONObject().put("to", $time_span.val)
+                                                                                      .put("include_upper", true)));
+                }
             }
             catch (JSONException err) {
                 throw new FailedPredicateException(input, "time_predicate", "JSONException: " + err.getMessage());
             }
         }
-    |   column_name (since=SINCE | since=AFTER | before=BEFORE) time_expr
+    |   column_name (NOT)? (since=SINCE | since=AFTER | before=BEFORE) time_expr
         {
             String col = $column_name.text;
+            if (!verifyFacetType(col, "range")) {
+                throw new FailedPredicateException(input, 
+                                                   "range_predicate",
+                                                   "Non-range facet column \"" + col + "\" cannot be used in TIME predicates.");
+            }
+
             try {
-                if (since != null) {
+                if (since != null && $NOT == null ||
+                    since == null && $NOT != null) {
                     $json = new JSONObject().put("range",
                                                  new JSONObject().put(col,
                                                                       new JSONObject().put("from", $time_expr.val)
@@ -1316,44 +1349,51 @@ time_expr returns [long val]
     ;
 
 date_time_string returns [long val]
-    :   DATETIME
+    :   DATE TIME?
         {
             SimpleDateFormat format;
-            if ($DATETIME.text.length() == 10) {
-                if (_format1 != null) {
-                    format = _format1;
+            String dateTimeStr = $DATE.text;
+            char separator = dateTimeStr.charAt(4);
+            if ($TIME != null) {
+                dateTimeStr = dateTimeStr + " " + $TIME.text;
+            }
+            int formatIdx = (separator == '-' ? 0 : 1);
+
+            if ($TIME == null) {
+                if (_format1[formatIdx] != null) {
+                    format = _format1[formatIdx];
                 }
                 else {
-                    format = _format1 = new SimpleDateFormat("yyyy-MM-dd");
+                    format = _format1[formatIdx] = new SimpleDateFormat("yyyy" + separator + "MM" + separator + "dd");
                 }
             }
             else {
-                if (_format2 != null) {
-                    format = _format2;
+                if (_format2[formatIdx] != null) {
+                    format = _format2[formatIdx];
                 }
                 else {
-                    format = _format2 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                    format = _format2[formatIdx] = new SimpleDateFormat("yyyy" + separator + "MM" + separator + "dd HH:mm:ss");
                 }
             }
             try {
-                $val = format.parse($DATETIME.text).getTime();
-                if (!$DATETIME.text.equals(format.format($val))) {
+                $val = format.parse(dateTimeStr).getTime();
+                if (!dateTimeStr.equals(format.format($val))) {
                     throw new FailedPredicateException(input,
                                                        "date_time_string", 
-                                                       "Date string contains invalid date/time: \"" + $DATETIME.text + "\".");
+                                                       "Date string contains invalid date/time: \"" + dateTimeStr + "\".");
                 }
             }
             catch (ParseException err) {
                 throw new FailedPredicateException(input,
                                                    "date_time_string", 
-                                                   "ParseException happened for \"" + $DATETIME.text + "\": " + 
+                                                   "ParseException happened for \"" + dateTimeStr + "\": " + 
                                                    err.getMessage() + ".");
             }
         }
     ;
 
 match_predicate returns [JSONObject json]
-    :   MATCH LPAR column_name_list RPAR AGAINST LPAR STRING_LITERAL RPAR
+    :   (NOT)? MATCH LPAR column_name_list RPAR AGAINST LPAR STRING_LITERAL RPAR
         {
             try {
                 JSONArray cols = $column_name_list.json;
@@ -1370,6 +1410,10 @@ match_predicate returns [JSONObject json]
                                              new JSONObject().put("query_string",
                                                                   new JSONObject().put("fields", cols)
                                                                                   .put("query", $STRING_LITERAL.text)));
+                if ($NOT != null) {
+                    $json = new JSONObject().put("bool",
+                                                 new JSONObject().put("must_not", $json));
+                }
             }
             catch (JSONException err) {
                 throw new FailedPredicateException(input, "match_predicate", "JSONException: " + err.getMessage());
@@ -1378,7 +1422,7 @@ match_predicate returns [JSONObject json]
     ;
 
 like_predicate returns [JSONObject json]
-    :   column_name LIKE STRING_LITERAL
+    :   column_name (NOT)? LIKE STRING_LITERAL
         {
             String col = $column_name.text;
             String[] facetInfo = _facetInfoMap.get(col);
@@ -1392,6 +1436,10 @@ like_predicate returns [JSONObject json]
                 $json = new JSONObject().put("query",
                                              new JSONObject().put("wildcard",
                                                                   new JSONObject().put(col, likeString)));
+                if ($NOT != null) {
+                    $json = new JSONObject().put("bool",
+                                                 new JSONObject().put("must_not", $json));
+                }
             }
             catch (JSONException err) {
                 throw new FailedPredicateException(input, "like_predicate", "JSONException: " + err.getMessage());

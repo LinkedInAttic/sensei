@@ -67,11 +67,14 @@
 
 <where_clause> ::= WHERE <search_expr>
 
-<search_expr> ::= <predicate>
-                | <search_expr> (AND | OR) <search_expr>
-                | '(' <search_expr> ')'
+<search_expr> ::= <boolean_expression>
 
-<predicates> ::= <predicate> ( AND <predicate> )*
+<boolean_expression> ::= <boolean_term> ( OR <boolean_term> )*
+
+<boolean_term> ::= <boolean_term> (AND <boolean_term> )*
+
+<boolean_factor> ::= <predicate>
+                   | '(' <boolean_expression> ')'
 
 <predicate> ::= <in_predicate>
               | <contains_all_predicate>
@@ -82,8 +85,10 @@
               | <range_predicate>
               | <time_predicate>
               | <match_predicate>
+              | <like_predicate>
 
-<in_predicate> ::= <column_name> [NOT] IN <value_list> [<except_clause>] [<predicate_props>]
+<in_predicate> ::= <column_name> [NOT] IN <value_list> [<except_clause>]
+                   [<predicate_props>]
 
 <contains_all_predicate> ::= <column_name> CONTAINS ALL <value_list> [<except_clause>]
                              [<predicate_props>]
@@ -96,18 +101,21 @@
 
 <between_predicate> ::= <column_name> [NOT] BETWEEN <value> AND <value>
 
-<range_predicate> ::= <column_name> <range_op> <numeric>
+<range_predicate> ::= <column_name> <range_op> <value>
 
-<time_predicate> ::= <column_name> IN LAST <time_span>
-                   | <column_name> ( SINCE | AFTER | BEFORE ) <time_expr>
+<time_predicate> ::= <column_name> [NOT] IN LAST <time_span>
+                   | <column_name> [NOT] ( SINCE | AFTER | BEFORE ) <time_expr>
 
-<match_predicate> ::= MATCH '(' column_name_list ')' AGAINST '(' quoted_string ')'
+<match_predicate> ::= [NOT] MATCH '(' column_name_list ')' AGAINST '(' quoted_string ')'
 
-<like_predicate> ::= <column_name> LIKE <quoted_string>
+<like_predicate> ::= <column_name> [NOT] LIKE <quoted_string>
 
 <value_list> ::= '(' <value> ( ',' <value> )* ')'
 
-<value> ::= <quoted_string> | <numeric>
+<value> ::= <quoted_string>
+          | <numeric>
+          | TRUE
+          | FALSE
 
 <range_op> ::= '<' | '<=' | '>=' | '>'
 
@@ -223,8 +231,8 @@
 
 <time_millisecond_part> ::= <integer> ( 'millisecond' | 'milliseconds' | 'msec' | 'msecs')
 
-<date_time_string> ::= <digit><digit><digit><digit> ('-' | '/' | '.') <digit><digit>
-                       ('-' | '/' | '.') <digit><digit>
+<date_time_string> ::= <digit><digit><digit><digit> ('-' | '/' ) <digit><digit>
+                       ('-' | '/' ) <digit><digit>
                        <digit><digit> ':' <digit><digit> ':' <digit><digit>
 
 ]]></programlisting>
@@ -240,10 +248,10 @@
       <title>DESCRIBE Statement</title>
 
       <para>DESCRIBE statement provides the information about the index
-      (or table in RDBM terminology).  In Sensei, the index name is
-      optional because when a Sensei client talks to one Sensei broker,
-      only one index is accessible on this broker.  Essentially, the
-      index name in a DESCRIBE statement is ignored.</para>
+      (or <emphasis>table</emphasis> in RDBM terminology).  In Sensei,
+      the index name is optional because when a Sensei client sends a
+      query to a Sensei REST endpoint, only one index is accessible.
+      The index name in a DESCRIBE statement is simply ignored.</para>
 
       <para><emphasis role="bold">Example Statement:</emphasis></para>
 
@@ -279,8 +287,8 @@
         <para>If the select list is not a <literal>*</literal>, each
         item, often called a <emphasis>column</emphasis>, in the select
         list is either a facet name or a field name in the index.  If a
-        column is unknown to Sensei server, then <literal>&lt;NOT
-        FOUND&gt;</literal> is displayed in the results.</para>
+        column is unknown to Sensei server, then it is discarded on the
+        server side.</para>
       </section>
 
       <section>
@@ -294,28 +302,39 @@
       <section>
         <title>WHERE Clause</title>
 
-        <para>The WHERE clause, if given, specifies the search condition
-        or conditions that documents must satisfy to be selected. Each
-        condition is a Boolean expression consisting of one or more
-        predicates.  Current the following predicates are supported in
-        BQL:</para>
+        <para>The WHERE clause, if given, specifies the search
+        condition(s) that all documents must satisfy to be selected.
+        Conditions are expressed as a Boolean expression consisting of
+        one or more predicates.  Currently the following predicates are
+        supported in BQL:</para>
 
         <itemizedlist>
           <listitem>
             <para>IN predicate</para>
 
-            <para>This predicate is used to specify the values of one
-            column in search results.  For example:</para>
+            <para>This predicate specifies that the value(s) of a column
+            has to have, or not have, in all selected documents.  For
+            example:</para>
 
             <itemizedlist>
               <listitem>
                 <para><literal>color IN ("red", "blue")</literal></para>
+
+                <para>Each document in the search results much have color
+                "red" or "blue".</para>
               </listitem>
               <listitem>
-                <para><literal>category IN ("sedan", "compact")</literal></para>
+                <para><literal>tags IN ("cool", "leather") EXCEPT
+                ("moon-roof", "automatic") </literal></para>
+
+                <para>Each document in the search results should have a
+                tag of "cool" or "leather", but cannot have a tag of
+                "moon-roof" or "automatic". </para>
               </listitem>
               <listitem>
-                <para><literal>age in (10, 20, 30)</literal></para>
+                <para><literal>age IN (10, 20, 30)</literal></para>
+                <para>Each document in the search results must have a
+                age of 10, 20, or 30.</para>
               </listitem>
             </itemizedlist>
 
@@ -323,32 +342,39 @@
           <listitem>
             <para>CONTAINS ALL predicate</para>
 
-            <para>This predicate is used to specify that a multi-value
-            column has to contain <emphasis>all</emphasis> the
-            values.  For example:</para>
+            <para>This predicate specifies that a multi-value column has
+            to contain <emphasis>all</emphasis> the given values in all
+            selected documents.  For example:</para>
 
             <itemizedlist>
               <listitem>
                 <para><literal>tags CONTAINS ALL ("cool", "hybrid") EXCEPT("favorite")</literal></para>
+                <para>Each document in the search results must have two
+                tags: "cool" and "hybrid".  However, it cannot have the
+                tag of "favorite".</para>
               </listitem>
             </itemizedlist>
 
           </listitem>
           <listitem>
             <para>Equal predicate</para>
-            <para>This predicate is used to specify a single value that
-            a column needs to contain.  For example:</para>
+
+            <para>This predicate specifies that a column has to have the
+            given value in all selected documents.  For example:</para>
 
             <itemizedlist>
               <listitem>
                 <para><literal>color = "red"</literal></para>
+                <para>Each document in the search results must have a
+                color of "red".</para>
               </listitem>
             </itemizedlist>
           </listitem>
           <listitem>
             <para>Not equal predicate</para>
-            <para>This predicate is used to specify a single value that
-            a column cannot contain.  For example:</para>
+            <para>This predicate specifies that a column cannot be of a
+            the given value in all selected documents.  For
+            example:</para>
 
             <itemizedlist>
               <listitem>
@@ -360,9 +386,9 @@
           <listitem>
             <para>Query predicate</para>
 
-            <para>This is used to do full text search on the internal
-            <emphasis>contents</emphasis> column.  All Lucene query
-            syntax is supported.  For example:</para>
+            <para>This predicate is used to do full text search on the
+            internal <emphasis>contents</emphasis> column.  All Lucene
+            query syntax is supported.  For example:</para>
 
             <itemizedlist>
               <listitem>
@@ -388,10 +414,10 @@
                 <para><literal>price &lt; 17500</literal></para>
               </listitem>
               <listitem>
-                <para><literal>time &gt;= "2011-10-20 15:30:00"</literal></para>
+                <para><literal>time &gt;= 2011-10-20 15:30:00</literal></para>
               </listitem>
               <listitem>
-                <para><literal>time &lt; "2011/12/31 10:00:00"</literal></para>
+                <para><literal>time &lt; 2011/12/31 10:00:00</literal></para>
               </listitem>
             </itemizedlist>
           </listitem>
@@ -399,21 +425,15 @@
           <listitem>
             <para>BETWEEN predicate</para>
 
-            <para>This predicate is used to specify both the lower and
-            upper bounds for a range facet at the same time. For
-            example:</para>
+            <para>This predicate specifies that a range facet column has
+            to be within a bound for all selected documents.  Both upper
+            bound and lower bound are inclusive.  For example:</para>
 
             <itemizedlist>
               <listitem>
                 <para><literal>year BETWEEN 1995 AND 2000</literal></para>
               </listitem>
             </itemizedlist>
-
-            <note>
-              <para>Note that, when a BETWEEN predicate is used, both
-              lower and upper bounds are included in the range
-              selection.</para>
-            </note>
 
           </listitem>
 
@@ -436,7 +456,7 @@
                 <para><literal>time BEFORE 2 weeks AGO</literal></para>
               </listitem>
               <listitem>
-                <para><literal>time AFTER "2011-10-20 15:30:00"</literal></para>
+                <para><literal>time AFTER 2011-10-20 15:30:00</literal></para>
               </listitem>
             </itemizedlist>
 

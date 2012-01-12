@@ -409,11 +409,25 @@ var default_js_beautify_settings = {
   space_after_anon_function : true
 };
 
+function runBql(){
+  if (bqlMirror == null)
+    return;
+
+  var jobj = $('.run');
+  jobj.attr('disabled', 'disabled');
+  $.post("sensei", $.toJSON({bql:bqlMirror.getValue()}), function (text) {
+    contentMirror.setValue(js_beautify(text, default_js_beautify_settings));
+  }, 'text')
+  .complete(function(){
+    jobj.removeAttr('disabled');
+  });
+}
+
 function runQuery(){
   if (reqTextMirror == null)
     return;
 
-  var jobj = $('#runquery');
+  var jobj = $('.run');
   jobj.attr('disabled', 'disabled');
   $.post("sensei", reqTextMirror.getValue(), function (text) {
     contentMirror.setValue(js_beautify(text, default_js_beautify_settings));
@@ -424,6 +438,8 @@ function runQuery(){
 }
 
 function buildQuery(){
+  var bql = 'SELECT * FROM SENSEI';
+  var and = [];
   var req = {};
 
   req.query = {
@@ -432,6 +448,10 @@ function buildQuery(){
     }
   };
 
+  if (req.query.query_string.query) {
+    and.push('QUERY IS "' + req.query.query_string.query.replace(/"/g, '""') + '"');
+  }
+
   req.from = parseInt($('#start').val());
   if (isNaN(req.from))
     req.from = 0;
@@ -439,12 +459,16 @@ function buildQuery(){
   if (isNaN(req.size))
     req.size = 10;
 
+  var limit = req.from + ', ' + req.size;
+
   routeParam = $('#routeparam').val();
   if (routeParam != null && routeParam.length != 0)
     req.routeParam = routeParam;
 
   req.explain = $('#explain').prop('checked');
   req.fetchStored = $('#fetchstore').prop('checked');
+
+  var fetchStored = req.fetchStored;
 
   if ($('#fetchTermVector').prop('checked')) {
     var val = $('#tvFields').val();
@@ -459,8 +483,8 @@ function buildQuery(){
     }
   }
 
-	var groupBy = $('#groupBy').val();
-	var maxPerGroup = parseInt($('#maxpergroup').val());
+  var groupBy = $('#groupBy').val();
+  var maxPerGroup = parseInt($('#maxpergroup').val());
   if (groupBy != null && groupBy.length != 0) {
     if (isNaN(maxPerGroup))
       maxPerGroup = 0;
@@ -469,20 +493,27 @@ function buildQuery(){
       columns : [groupBy],
       top     : maxPerGroup
     };
+
+    groupBy = groupBy + ' TOP ' + maxPerGroup;
   }
 
+  var orderBy = [];
   var sort = [];
   $('[name="sort"]').each(function (i, v) {
     var jobj = $(v);
     var field = jobj.find('[name="field"]').val();
-    if (field == '_score')
+    if (field == '_score') {
       sort.push(field);
+      orderBy.push(field);
+    }
     else {
       var o = {};
       o[field] = jobj.find('[name="dir"]').val();
       sort.push(o);
+      orderBy.push(field + ' ' + o[field]);
     }
   });
+  orderBy = orderBy.join(', ');
   if (sort.length != 0)
     req.sort = sort;
 
@@ -516,12 +547,35 @@ function buildQuery(){
       }
 
       selections.push(o);
+
+      var bql = field;
+      var values = [];
+      $.each(oo.values, function (ii, vv) {
+        values.push(vv.replace(/"/g, '""'));
+      });
+      var excludes = [];
+      $.each(oo.excludes, function (ii, vv) {
+        excludes.push(vv.replace(/"/g, '""'));
+      });
+      if ('and' == oo.operator) {
+        if (values.length != 0)
+          bql += ' CONTAINS ALL ("' + values.join('", "') + '")';
+      }
+      else {
+        if (values.length != 0)
+          bql += ' IN ("' + values.join('", "') + '")';
+      }
+      if (excludes.length != 0)
+        bql += ' EXCEPT ("' + excludes.join('", "') + '")';
+      if (bql != field)
+        and.push(bql);
     }
   });
   if (selections.length != 0)
     req.selections = selections;
 
   var facets = {};
+  var browseBy = [];
   $('[name="facet"]').each(function (i, v) {
     var jobj = $(v);
     var field = jobj.find('[name="name"]').val();
@@ -536,14 +590,18 @@ function buildQuery(){
         o.max = 10;
       if (isNaN(o.minCount))
         o.minCount = 1;
+
+      browseBy.push(field + '(' + o.expand + ', ' + o.minCount + ', ' + o.max + ', ' + o.order + ')');
     }
   });
+  browseBy = browseBy.join(', ');
   for (var key in facets) {
     req.facets = facets;
     break;
   }
 
   var facetInit = {};
+  var given = [];
   $('[name="inputParam"]').each(function (i, v) {
     var jobj = $(v);
     var field = jobj.find('[name="facetName"]').val();
@@ -566,15 +624,34 @@ function buildQuery(){
             if (vv.length != 0)
               oo.values.push(vv);
           });
+
+          given.push('(' + field + ', "' + param.replace(/"/g, '""') + '", ' + oo.type + ', "' + values.replace(/"/g, '""') + '")');
         }
       }
     }
   });
+  given = given.join(', ');
   for (var key in facetInit) {
     req.facetInit = facetInit;
     break;
   }
 
+  if (and.length)
+    bql += ' WHERE ' + and.join(' AND ');
+  if (given)
+    bql += ' GIVEN FACET PARAM ' + given;
+  if (fetchStored)
+    bql += ' FETCHING STORED';
+  if (orderBy)
+    bql += ' ORDER BY ' + orderBy;
+  if (browseBy)
+    bql += ' BROWSE BY ' + browseBy;
+  if (groupBy)
+    bql += ' GROUP BY ' + groupBy;
+  if (limit)
+    bql += ' LIMIT ' + limit;
+
+  bqlMirror.setValue(bql);
   reqTextMirror.setValue(js_beautify($.toJSON(req), default_js_beautify_settings));
 }
 
