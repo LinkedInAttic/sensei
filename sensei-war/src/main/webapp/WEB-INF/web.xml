@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE web-app PUBLIC '-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN' 'http://java.sun.com/dtd/web-app_2_3.dtd'>
+
+<web-app>
+
+  <context-param>
+		<param-name>config.file</param-name>
+		<param-value>/conf</param-value>
+	</context-param>
+	<listener>
+		<listener-class>com.sensei.search.client.servlet.SenseiConfigServletContextListener</listener-class>
+	</listener>
+ 
+  <!-- ******************************************************************* -->
+  <!-- * Servlets definition * -->
+  <!-- ******************************************************************* -->
+    
+  <servlet>
+ 
+  	<servlet-name>SenseiBroker</servlet-name>
+  	<servlet-class>com.sensei.search.client.servlet.DefaultSenseiJSONServlet</servlet-class>
+  	<init-param>
+    	<param-name>debug</param-name>
+    	<param-value>true</param-value>
+  	</init-param>
+  	<load-on-startup>2</load-on-startup>
+  </servlet>
+ 
+  <!-- ******************************************************************* -->
+  <!-- * Servlets mapping * -->
+  <!-- ******************************************************************* -->
+  
+  <servlet-mapping>
+  	<servlet-name>SenseiBroker</servlet-name>
+  	<url-pattern>/sensei-broker/*</url-pattern>
+  </servlet-mapping>
+</web-app>
