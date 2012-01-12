@@ -109,12 +109,18 @@ public class SenseiServerBuilder implements SenseiConfParams{
 
   private final JSONObject _schemaDoc;
   private final SenseiSchema  _senseiSchema;
-  private final Server _jettyServer;
   private final SenseiGateway _gateway;
 
   static final String SENSEI_CONTEXT_PATH = "sensei";
 
 
+  public Configuration getConfiguration(){
+    return _senseiConf;
+  }
+  
+  public SenseiPluginRegistry getPluginRegistry(){
+    return pluginRegistry;
+  }
 
 
   public ClusterClient buildClusterClient()
@@ -255,11 +261,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
 
     _schemaDoc = loadSchema(confDir);
     _senseiSchema = SenseiSchema.build(_schemaDoc);
-
-    _jettyServer = buildHttpRestServer();
   }
-
-
 
   static final Pattern PARTITION_PATTERN = Pattern.compile("[\\d]+||[\\d]+-[\\d]+");
 
@@ -508,10 +510,6 @@ public class SenseiServerBuilder implements SenseiConfParams{
 
     }
     return zoieSystemFactory;
-  }
-
-  public Server getJettyServer(){
-    return _jettyServer;
   }
 
   public Comparator<String> getVersionComparator() {

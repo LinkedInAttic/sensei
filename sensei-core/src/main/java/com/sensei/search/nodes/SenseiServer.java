@@ -430,7 +430,7 @@ public class SenseiServer {
 
     final SenseiServer server = senseiServerBuilder.buildServer();
 
-    final Server jettyServer = senseiServerBuilder.getJettyServer();
+    final Server jettyServer = senseiServerBuilder.buildHttpRestServer();
 
     /*final HttpAdaptor httpAdaptor = senseiServerBuilder.buildJMXAdaptor();
 

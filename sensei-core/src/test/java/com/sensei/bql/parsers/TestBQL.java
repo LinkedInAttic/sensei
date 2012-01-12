@@ -671,6 +671,21 @@ public class TestBQL extends TestCase
   }
 
   @Test
+  public void testNotMatchPred() throws Exception
+  {
+    System.out.println("testNotMatchPred");
+    System.out.println("==================================================");
+
+    JSONObject json = _compiler.compile(
+      "SELECT color " +
+      "FROM cars " +
+      "WHERE NOT MATCH(color) AGAINST('red')"
+      );
+    JSONObject expected = new JSONObject("{\"filter\":{\"bool\":{\"must_not\":{\"query\":{\"query_string\":{\"query\":\"red\",\"fields\":[\"color\"]}}}}},\"meta\":{\"select_list\":[\"color\"]}}");
+    assertTrue(_comp.isEquals(json, expected));
+  }
+
+  @Test
   public void testLikePredicate1() throws Exception
   {
     System.out.println("testLikePredicate1");
@@ -950,6 +965,27 @@ public class TestBQL extends TestCase
   }
 
   @Test
+  public void testNotTimePred1() throws Exception
+  {
+    System.out.println("testNotTimePred1");
+    System.out.println("==================================================");
+
+    long now = System.currentTimeMillis();
+
+    JSONObject json = _compiler.compile(
+      "SELECT * " +
+      "FROM cars " +
+      "WHERE time NOT BEFORE 3 hours 4 min AGO"
+      );
+
+    long timeStamp = json.getJSONArray("selections").getJSONObject(0)
+      .getJSONObject("range").getJSONObject("time").getLong("from");
+    long timeSpan = 3 * (60 * 60 * 1000L) +
+                    4 * (60 * 1000L);
+    assertTrue(now - timeStamp - timeSpan < 2); // Should be less than 2 msecs
+  }
+
+  @Test
   public void testDateTime1() throws Exception
   {
     System.out.println("testDateTime1");
@@ -987,6 +1023,43 @@ public class TestBQL extends TestCase
       .getJSONObject("range").getJSONObject("time").getLong("to");
     long expected = new SimpleDateFormat("yyyy-MM-dd").parse("2012-01-02").getTime();
     assertEquals(timeStamp, expected);
+  }
+
+  @Test
+  public void testDateTime3() throws Exception
+  {
+    System.out.println("testDateTime3");
+    System.out.println("==================================================");
+
+    long now = System.currentTimeMillis();
+
+    JSONObject json = _compiler.compile(
+      "SELECT * \n" +
+      "FROM cars \n" +
+      "WHERE time > 2012-01-02 AND time <= 2012/01/31 \n" +
+      "  AND color = 'red'"
+      );
+
+    JSONArray selections = json.getJSONArray("selections");
+    JSONObject timeRange = null;
+    for (int i = 0; i < selections.length(); ++i)
+    {
+      timeRange = selections.getJSONObject(i).optJSONObject("range");
+      if (timeRange != null)
+      {
+        break;
+      }
+    }
+
+    long fromTime = timeRange.getJSONObject("time").getLong("from");
+    long expectedFromTime = new SimpleDateFormat("yyyy-MM-dd").parse("2012-01-02").getTime();
+    assertEquals(fromTime, expectedFromTime);
+    assertFalse(timeRange.getJSONObject("time").getBoolean("include_lower"));
+
+    long toTime = timeRange.getJSONObject("time").getLong("from");
+    long expectedToTime = new SimpleDateFormat("yyyy/MM/dd").parse("2012/01/31").getTime();
+    assertEquals(fromTime, expectedFromTime);
+    assertTrue(timeRange.getJSONObject("time").getBoolean("include_upper"));
   }
 
   @Test
