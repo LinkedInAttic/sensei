@@ -1,0 +1,64 @@
+package com.senseidb.servlet;
+
+import java.io.File;
+
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
+
+import com.sensei.conf.SenseiConfParams;
+import com.sensei.conf.SenseiServerBuilder;
+import com.sensei.plugin.SenseiPluginRegistry;
+import com.sensei.search.client.servlet.DefaultSenseiJSONServlet;
+import com.sensei.search.client.servlet.SenseiConfigServletContextListener;
+import com.sensei.search.cluster.routing.MD5HashProvider;
+import com.sensei.search.cluster.routing.RingHashLoadBalancerFactory;
+import com.sensei.search.cluster.routing.SenseiLoadBalancerFactory;
+import com.sensei.search.nodes.SenseiServer;
+
+public class SenseiNodeServlet extends DefaultSenseiJSONServlet {
+
+  /**
+   * 
+   */
+  private static final long serialVersionUID = 1L;
+  private SenseiServer _senseiServer = null;
+  @Override
+  public void init(ServletConfig config) throws ServletException {
+    
+    ServletContext ctx = config.getServletContext();
+    
+    String confDirName = ctx.getInitParameter(SenseiConfigServletContextListener.SENSEI_CONF_DIR_PARAM);
+    if (confDirName==null){
+      throw new ServletException("configuration not specified, "+SenseiConfigServletContextListener.SENSEI_CONF_DIR_PARAM+" not set");
+    }
+    
+    SenseiServerBuilder builder;
+    try {
+      builder = new SenseiServerBuilder(new File(confDirName), null);
+      ctx.setAttribute("sensei.search.configuration", builder.getConfiguration());
+      ctx.setAttribute("sensei.search.version.comparator",builder.getVersionComparator());
+      SenseiPluginRegistry pluginRegistry = builder.getPluginRegistry();
+      SenseiLoadBalancerFactory routerFactory = pluginRegistry.getBeanByFullPrefix(SenseiConfParams.SERVER_SEARCH_ROUTER_FACTORY, SenseiLoadBalancerFactory.class);
+      if (routerFactory == null) {
+        routerFactory = new RingHashLoadBalancerFactory(new MD5HashProvider(), 1000);
+      }
+      ctx.setAttribute("sensei.search.router.factory", routerFactory);
+      
+      _senseiServer = builder.buildServer();
+      _senseiServer.start(true);
+      super.init(config);
+    } catch (Exception e) {
+      throw new ServletException(e.getMessage(),e);
+    }    
+  }
+
+  @Override
+  public void destroy() {
+    if (_senseiServer!=null){
+      _senseiServer.shutdown();
+    }
+    super.destroy();
+  }
+
+}

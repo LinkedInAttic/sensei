@@ -22,7 +22,8 @@
     <module>sensei-hadoop-indexing</module>
     <!--<module>example</module>-->
     <module>clients/java</module>
-  </modules>
+   <module>sensei-war</module>   
+</modules>
 
 
 	<build>
