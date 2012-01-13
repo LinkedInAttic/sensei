@@ -1,0 +1,17 @@
+README
+
+Currently we use Jekyll (https://github.com/mojombo/jekyll/wiki) to
+maintain the documentation site for Sensei.  If you do not have Jekyll
+installed on your machine, you can do the following to get it installed:
+
+  $ sudo get install jekyll
+
+After you make any documentation changes, you can start the site using
+the following command to check if everything looks OK:
+
+  $ jekyll --server
+
+The Sensei home page will be running on:
+
+  http://localhost:4000
+
