@@ -7,18 +7,45 @@ title: SenseiDB - BQL
   <p>The query lanaguage for Sensei</p>
 </div>
 
-<h2 class="title" style="clear: both"><a name="d0e3636"></a>1.&nbsp;What is BQL?</h2><p>BQL stands for <span class="emphasis"><em>Browsing Query Language</em></span>.
-    It is an SQL-like language that provides Sensei users easy access to
-    the database if they have experience using traditional relational
-    databases.</p><p>BQL was originally proposed as a query language for <a class="link" href="http://sna-projects.com/bobo/" target="_top">Bobo</a>.  Now it is
-    being developed and bundled with Sensei, and used by both Sensei and
-    Sin.</p></div><div class="section" title="2.&nbsp;BNF Grammar for BQL"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="d0e3649"></a>2.&nbsp;BNF Grammar for BQL</h2></div></div></div><div class="section" title="2.1.&nbsp;BNF Notation"><div class="titlepage"><div><div><h3 class="title"><a name="d0e3652"></a>2.1.&nbsp;BNF Notation</h3></div></div></div><p>
-        We use a modified BNF notation to describe BQL.  The following table
-        lists the meaning of all the meta-symbols we use.
-      </p><table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides" id="d0e3657"><colgroup><col align="left"><col align="left">
-        </colgroup><thead><tr><th align="left">Symbol</th><th align="left">Meaning</th></tr></thead><tbody><tr><td align="left">|</td><td align="left">Or.  Choose one of the items.</td></tr><tr><td align="left">[ ]</td><td align="left">Enclose optional items.</td></tr><tr><td align="left">*</td><td align="left">Flags items that can be repeated 0 or more times.</td></tr><tr><td align="left">( )</td><td align="left">Group items so that they can be marked with one of the symbols: [ ], |, or *.</td></tr></tbody></table></div><div class="section" title="2.2.&nbsp;BQL Grammar"><div class="titlepage"><div><div><h3 class="title"><a name="d0e3689"></a>2.2.&nbsp;BQL Grammar</h3></div></div></div><p>Below is an overview of the BQL grammar in BNF.  Detailed
-      documentation of statements and clauses can be found in later
-      sections.</p><pre class="programlisting">
+<h2>What is BQL?</h2>
+
+<p>BQL stands for <span class="emphasis"><em>Browsing Query
+Language</em></span>.  It is an SQL-like language that provides Sensei
+users easy access to the database if they have experience using
+traditional relational databases.</p>
+
+<p>BQL was originally proposed as a query language for <a class="link"
+href="http://sna-projects.com/bobo/">Bobo</a>.  Now it is being
+developed and bundled with Sensei, and used by both Sensei and Sin.</p>
+
+<h2>BNF Grammar for BQL</h2>
+
+<h3>BNF Notation</h3>
+
+<p>We use a modified BNF notation to describe BQL.  The following table
+lists the meaning of all the meta-symbols we use.
+</p>
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+  <colgroup><col align="left"><col align="left"></colgroup>
+  <thead>
+    <tr><th align="left">Symbol</th><th align="left">Meaning</th></tr>
+  </thead>
+  <tbody>
+    <tr><td align="left">|</td><td align="left">Or.  Choose one of the items.</td></tr>
+    <tr><td align="left">[ ]</td><td align="left">Enclose optional items.</td></tr>
+    <tr><td align="left">*</td><td align="left">Flags items that can be repeated 0 or more times.</td></tr>
+    <tr><td align="left">( )</td><td align="left">Group items so that they can be marked with one of the symbols: [ ], |, or *.</td></tr>
+  </tbody>
+</table>
+
+<h3>BQL Grammar</h3>
+
+<p>Below is an overview of the BQL grammar in BNF.  Detailed
+documentation of statements and clauses can be found in later
+sections.</p>
+
+<pre class="programlisting">
 &lt;statement&gt; ::= ( &lt;select_stmt&gt; | &lt;describe_stmt&gt; ) [';']
 
 &lt;select_stmt&gt; ::= SELECT &lt;select_list&gt; [&lt;from_clause&gt;] [&lt;where_clause&gt;] [&lt;given_clause&gt;]
@@ -202,11 +229,30 @@ title: SenseiDB - BQL
                        ('-' | '/' ) &lt;digit&gt;&lt;digit&gt;
                        &lt;digit&gt;&lt;digit&gt; ':' &lt;digit&gt;&lt;digit&gt; ':' &lt;digit&gt;&lt;digit&gt;
 
-</pre></div></div><div class="section" title="3.&nbsp;BQL Statement Syntax"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="d0e3696"></a>3.&nbsp;BQL Statement Syntax</h2></div></div></div><div class="section" title="3.1.&nbsp;DESCRIBE Statement"><div class="titlepage"><div><div><h3 class="title"><a name="d0e3699"></a>3.1.&nbsp;DESCRIBE Statement</h3></div></div></div><p>DESCRIBE statement provides the information about the index
-      (or <span class="emphasis"><em>table</em></span> in RDBM terminology).  In Sensei,
-      the index name is optional because when a Sensei client sends a
-      query to a Sensei REST endpoint, only one index is accessible.
-      The index name in a DESCRIBE statement is simply ignored.</p><p><span class="bold"><strong>Example Statement:</strong></span></p><pre class="programlisting">DESCRIBE cars;</pre><p><span class="bold"><strong>Results:</strong></span></p><pre class="programlisting">+------------+------------+---------+-----------+-------------+---------+
+</pre>
+
+<h2>BQL Statement Syntax</h2>
+
+<h3>DESCRIBE Statement</h3>
+
+<p>DESCRIBE statement provides the information about the index
+(or <span class="emphasis"><em>table</em></span> in RDBM terminology).
+In Sensei, the index name is optional because when a Sensei client sends
+a query to a Sensei REST endpoint, only one index is accessible.  The
+index name in a DESCRIBE statement is simply ignored.</p>
+
+<p>The keyword "DESCRIBE" can also be written as "DESC".</p>
+
+<p><strong>Example Statement:</strong></p>
+
+<pre>
+DESC cars;
+</pre>
+
+<p><span class="bold"><strong>Results:</strong></span></p>
+
+<pre>
++------------+------------+---------+-----------+-------------+---------+
 | facet_name | facet_type | runtime | column    | column_type | depends |
 +------------+------------+---------+-----------+-------------+---------+
 | category   | simple     | false   | category  | string      | []      |
@@ -218,146 +264,474 @@ title: SenseiDB - BQL
 | makemodel  | path       | false   | makemodel | string      | []      |
 | mileage    | range      | false   | mileage   | int         | []      |
 | year       | range      | false   | year      | int         | []      |
-+------------+------------+---------+-----------+-------------+---------+</pre></div><div class="section" title="3.2.&nbsp;SELECT Statement"><div class="titlepage"><div><div><h3 class="title"><a name="d0e3717"></a>3.2.&nbsp;SELECT Statement</h3></div></div></div><p>SELECT is the only Data Manipulation Language (DML) that
-      Sensei supports today.  It is used to retrieve a set of documents
-      based on conditions specified in the WHERE clause.</p><p>The SELECT statement takes the following form:</p><pre class="programlisting">    SELECT &lt;select_list&gt;
-    [ FROM &lt;index&gt; ]
-    [ WHERE &lt;search_expr&gt; ]
-    [ GIVEN FACET PARAM &lt;facet_param_list&gt; ]
-    ( &lt;order_by_clause&gt;
-      | &lt;group_by_clause&gt;
-      | &lt;limit_clause&gt;
-      | &lt;browse_by_clause&gt;
-      | &lt;fetching_stored_clause&gt;
-    )*</pre><p>Most of the syntax is similar to SQL.  So if you are
-      familiar with SQL, you should be ready to write some basic BQL
-      queries right away.  In addition to the basic SQL syntax, BQL
-      includes several new features to support faceted search and
-      syntactic sugar to make real-time search queries easier.</p><p>We'll describe different pieces of the SELECT statement in
-      more details in the following sections.</p><div class="section" title="3.2.1.&nbsp;Select List"><div class="titlepage"><div><div><h4 class="title"><a name="d0e3730"></a>3.2.1.&nbsp;Select List</h4></div></div></div><p>The select list in a SELECT statement can simply be a
-        "<code class="literal">*</code>" or a comma-separated
-        <span class="emphasis"><em>column</em></span> names.  If "<code class="literal">*</code>" is
-        given, it means all columns in the index are selected.</p><p>A column in the select list is either a facet name or a
-        field name in the index.  Column names are case-sensitive in BQL
-        because they have to match what are defined in the index schema.
-        If a column is unknown to Sensei server, then it is discarded on
-        the server side.</p><p>Sensei reserves several internal column names, which are
-        all named with a leading "<code class="literal">_</code>",
-        e.g. "<code class="literal">_uid</code>".  Try to avoid naming any column
-        with a leading "<code class="literal">_</code>".</p></div><div class="section" title="3.2.2.&nbsp;FROM Clause"><div class="titlepage"><div><div><h4 class="title"><a name="d0e3757"></a>3.2.2.&nbsp;FROM Clause</h4></div></div></div><p>Just like the index name in a DESCRIBE statement is
-        optional, the FROM clause in a SELECT statement is also
-        optional.</p></div><div class="section" title="3.2.3.&nbsp;WHERE Clause"><div class="titlepage"><div><div><h4 class="title"><a name="d0e3762"></a>3.2.3.&nbsp;WHERE Clause</h4></div></div></div><p>The WHERE clause, if given, specifies the search
-        conditions that all documents must satisfy to be selected.
-        Conditions are expressed as a Boolean expression consisting of
-        one or more predicates.  The following predicates are supported
-        in BQL.</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>IN predicate</p></li><li class="listitem"><p>CONTAINS ALL predicate</p></li><li class="listitem"><p>Equal predicate</p></li><li class="listitem"><p>Not equal predicate</p></li><li class="listitem"><p>Query predicate</p></li><li class="listitem"><p>Range predicate</p></li><li class="listitem"><p>BETWEEN predicate</p></li><li class="listitem"><p>Time predicate</p></li><li class="listitem"><p>MATCH AGAINST predicate</p></li><li class="listitem"><p>LIKE predicate</p></li></ul></div></div><div class="section" title="3.2.4.&nbsp;Predicate"><div class="titlepage"><div><div><h4 class="title"><a name="d0e3798"></a>3.2.4.&nbsp;Predicate</h4></div></div></div><div class="section" title="3.2.4.1.&nbsp;IN Predicate"><div class="titlepage"><div><div><h5 class="title"><a name="d0e3801"></a>3.2.4.1.&nbsp;IN Predicate</h5></div></div></div><p>This predicate specifies that the value(s) of a column
-          has to have, or not have, in the selected documents.  For
-          example:</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p><code class="literal">color IN ("red", "blue")</code></p><p>Each document in the search results much have color
-              "red" or "blue".</p></li><li class="listitem"><p><code class="literal">tags IN ("cool", "leather") EXCEPT
-              ("moon-roof", "automatic") </code></p><p>Each document in the search results should have a
-              tag of "cool" or "leather", but cannot have a tag of
-              "moon-roof" or "automatic". </p></li><li class="listitem"><p><code class="literal">age IN (10, 20, 30)</code></p><p>Each document in the search results must have a
-              age of 10, 20, or 30.</p></li></ul></div></div><div class="section" title="3.2.4.2.&nbsp;CONTAINS ALL Predicate"><div class="titlepage"><div><div><h5 class="title"><a name="d0e3825"></a>3.2.4.2.&nbsp;CONTAINS ALL Predicate</h5></div></div></div><p>This predicate specifies that a multi-value column has
-          to contain <span class="emphasis"><em>all</em></span> the given values in the
-          selected documents.  For example:</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p><code class="literal">tags CONTAINS ALL ("cool", "hybrid") EXCEPT("favorite")</code></p><p>Each document in the search results must have two
-              tags: "cool" and "hybrid".  However, it cannot have the
-              tag of "favorite".</p></li></ul></div></div><div class="section" title="3.2.4.3.&nbsp;Equal Predicate"><div class="titlepage"><div><div><h5 class="title"><a name="d0e3840"></a>3.2.4.3.&nbsp;Equal Predicate</h5></div></div></div><p>This predicate specifies that a column has to have the
-          given value in the selected documents.  For example:</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p><code class="literal">color = "red"</code></p><p>Each document in the search results must have a
-              color of "red".</p></li></ul></div></div><div class="section" title="3.2.4.4.&nbsp;Not Equal Predicate"><div class="titlepage"><div><div><h5 class="title"><a name="d0e3852"></a>3.2.4.4.&nbsp;Not Equal Predicate</h5></div></div></div><p>This predicate specifies the value that a column cannot
-          have in the selected documents.  For example:</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p><code class="literal">color &lt;&gt; "red"</code></p></li></ul></div></div><div class="section" title="3.2.4.5.&nbsp;Query Predicate"><div class="titlepage"><div><div><h5 class="title"><a name="d0e3862"></a>3.2.4.5.&nbsp;Query Predicate</h5></div></div></div><p>This predicate is used to do full text search on the
-          internal <span class="emphasis"><em>contents</em></span> column.  All Lucene
-          query syntax is supported.  For example:</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p><code class="literal">QUERY IS "hybrid AND (cool or moon-roof)"</code></p></li></ul></div></div><div class="section" title="3.2.4.6.&nbsp;Range Predicate"><div class="titlepage"><div><div><h5 class="title"><a name="d0e3875"></a>3.2.4.6.&nbsp;Range Predicate</h5></div></div></div><p>This predicate is used to specify a value range for a
-          range facet.  For example:</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p><code class="literal">year &gt; 1999</code></p></li><li class="listitem"><p><code class="literal">year &lt;= 2002</code></p></li><li class="listitem"><p><code class="literal">price &lt; 17500</code></p></li><li class="listitem"><p><code class="literal">time &gt;= 2011-10-20 15:30:00</code></p></li><li class="listitem"><p><code class="literal">time &lt; 2011/12/31 10:00:00</code></p></li></ul></div></div><div class="section" title="3.2.4.7.&nbsp;BETWEEN Predicate"><div class="titlepage"><div><div><h5 class="title"><a name="d0e3901"></a>3.2.4.7.&nbsp;BETWEEN Predicate</h5></div></div></div><p>This predicate specifies that a range facet column has
-          to be within a bound for all selected documents.  Both upper
-          bound and lower bound are inclusive.  For example:</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p><code class="literal">year BETWEEN 1995 AND 2000</code></p></li></ul></div></div><div class="section" title="3.2.4.8.&nbsp;Time Predicate"><div class="titlepage"><div><div><h5 class="title"><a name="d0e3911"></a>3.2.4.8.&nbsp;Time Predicate</h5></div></div></div><p>This predicate is used on a column that contains time
-          stamp values (and the column should be a range facet too).
-          This is useful to search documents that are indexed in
-          real-time.  For example:</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p><code class="literal">time IN LAST 2 hours 10 mins 30 secs 100 msecs</code></p></li><li class="listitem"><p><code class="literal">time SINCE 2 weeks AGO</code></p></li><li class="listitem"><p><code class="literal">time NOT BEFORE 2 weeks AGO</code></p></li><li class="listitem"><p><code class="literal">time AFTER 2011-10-20 15:30:00</code></p></li></ul></div></div><div class="section" title="3.2.4.9.&nbsp;MATCH AGAINST Predicate"><div class="titlepage"><div><div><h5 class="title"><a name="d0e3933"></a>3.2.4.9.&nbsp;MATCH AGAINST Predicate</h5></div></div></div><p>This predicate is used to perform full text searches
-          on one or more columns that have a string data type.  When
-          more than one columns are given in the predicate, then any
-          column in the list that contains specified searched string
-          would make a document satisfy this condition.  For example:
-          </p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p><code class="literal">MATCH(color) AGAINST("bl*")</code></p><p>All cars that have a "black" or "blue" color would
-              satisfy this predicate.</p></li><li class="listitem"><p><code class="literal">MATCH(category) AGAINST("*van")</code></p><p>All cars in the category of "van" or "mini-van"
-              would satisfy this predicate.</p></li><li class="listitem"><p><code class="literal">MATCH(color, category) AGAINST("*ac*")</code></p><p>A car with a "black" or "blue" color, or with a
-              category of "compact" would satisfy this
-              condition.</p></li></ul></div></div><div class="section" title="3.2.4.10.&nbsp;LIKE Predicate"><div class="titlepage"><div><div><h5 class="title"><a name="d0e3957"></a>3.2.4.10.&nbsp;LIKE Predicate</h5></div></div></div><p>This is a predicate to do wildcard text match.  Two
-          wildcards are supported: <code class="literal">%</code> and
-          <code class="literal">_</code>.  Wildcard <code class="literal">%</code> matches
-          zero or more characters, while <code class="literal">_</code> matches
-          exactly one character.  For example:</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p><code class="literal">color LIKE "bl%"</code></p><p>All cars that have a "black" or "blue" color would
-              satisfy this predicate.</p></li><li class="listitem"><p><code class="literal">color LIKE "bl__"</code></p><p>All cars with a "blue" color would satisfy this
-              condition, but the cars with a "black" color would
-              not.</p></li></ul></div><div class="note" title="Note" style="margin-left: 0.5in; margin-right: 0.5in;"><table border="0" summary="Note"><tr><td rowspan="2" align="center" valign="top" width="25"><img alt="[Note]" src="docbook-xsl-ns/images/note.png"></td><th align="left">Note</th></tr><tr><td align="left" valign="top"><p>Note that wildcards <code class="literal">%</code> and
-            <code class="literal">_</code>, not Lucene's <code class="literal">*</code>
-            and <code class="literal">?</code> are used in BQL.  This is mainly
-            to make BQL more compatible with SQL.  However, if
-            <code class="literal">*</code> or <code class="literal">?</code> is used, it
-            is also accepted.</p></td></tr></table></div></div></div><div class="section" title="3.2.5.&nbsp;ORDER BY Clause"><div class="titlepage"><div><div><h4 class="title"><a name="d0e4008"></a>3.2.5.&nbsp;ORDER BY Clause</h4></div></div></div><p>ORDER BY clause specifies how you want to have the search
-        results sorted.  You can sort the results based on one or
-        multiple columns, in either ascending or descending
-        order.</p><p>The clause takes the following form:</p><pre class="programlisting">    ORDER BY &lt;column_name&gt; [(ASC | DESC)] (',' &lt;column_name&gt; [(ASC | DESC)])* </pre><p>ORDER BY clause can only be specified once in a SELECT
-        statement.</p></div><div class="section" title="3.2.6.&nbsp;LIMIT Clause"><div class="titlepage"><div><div><h4 class="title"><a name="d0e4019"></a>3.2.6.&nbsp;LIMIT Clause</h4></div></div></div><p>LIMIT clause specifies how many results you want to get
-        and what the starting offset is in the entire matched document
-        set.</p><p>A LIMIT clause takes one of the following two
-        formats:</p><pre class="programlisting">    LIMIT &lt;count&gt;</pre><pre class="programlisting">    LIMIT &lt;offset&gt; ',' &lt;count&gt;</pre><p>By default, the offset is set to 0 and the count is set to
-        10.</p><p>LIMIT clause can only be specified once in a SELECT
-        statement.</p></div><div class="section" title="3.2.7.&nbsp;GROUP BY Clause"><div class="titlepage"><div><div><h4 class="title"><a name="d0e4034"></a>3.2.7.&nbsp;GROUP BY Clause</h4></div></div></div><p>GROUP BY clause supports the grouping of search
-        results based on a facet.  It takes the following form:</p><pre class="programlisting">    GROUP BY &lt;facet_name&gt; [TOP &lt;max_per_group&gt;]</pre><p>The facet name in a GROUP BY clause has to be a defined
-        facet in the index.  A non-facet column cannot be used to do
-        group-by. <code class="literal">[TOP &lt;max_per_group&gt;]</code>
-        specifies how many results you want to have for each group.  If
-        it is omitted, the default value is 10.</p><p>GROUP BY clause can only be specified once in a SELECT
-        statement.</p></div><div class="section" title="3.2.8.&nbsp;BROWSE BY Clause"><div class="titlepage"><div><div><h4 class="title"><a name="d0e4048"></a>3.2.8.&nbsp;BROWSE BY Clause</h4></div></div></div><p>This clause is a BQL feature for faceted search.  You can
-        use it to get the facet count information for one or multiple
-        facets returned with the search results.  A BROWSE BY clause
-        takes the following form:</p><pre class="programlisting">    BROWSE BY &lt;facet_spec&gt; ( ',' &lt;facet_spec&gt; )*</pre><p>where each <code class="literal">&lt;facet_spec&gt;</code> is
-        defined as:</p><pre class="programlisting">    &lt;facet_name&gt; ['(' &lt;expand_flag&gt; &lt;count&gt; &lt;count&gt; &lt;facet_ordering&gt; ')']</pre><p>Here, each <code class="literal">&lt;facet_spec&gt;</code>
-        optionally specifies the following information about the facet
-        you want to get the facet count information for:</p><div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem"><p>whether the selection is expanded (default false)</p></li><li class="listitem"><p>the minimum number of hit counts (the first <code class="literal">&lt;count&gt;</code>)</p></li><li class="listitem"><p>the maximum number of hit counts (the second <code class="literal">&lt;count&gt;</code>)</p></li><li class="listitem"><p>facet ordering method: "<code class="literal">hits</code>" or
-            "<code class="literal">value</code>" (default "<code class="literal">hits</code>")</p></li></ol></div><p>BROWSE BY clause can only be specified once in a SELECT
-        statement.</p></div><div class="section" title="3.2.9.&nbsp;GIVEN FACET PARAM Clause"><div class="titlepage"><div><div><h4 class="title"><a name="d0e4097"></a>3.2.9.&nbsp;GIVEN FACET PARAM Clause</h4></div></div></div><p>In a faceted search system, a run-time facet handler
-        usually requires initialization parameter(s) to be provided at
-        search time for each query.  For example, in a search system
-        that searches LinkedIn shares or Twitter tweets, one or more
-        run-time facets usually require the searcher to provide his/her
-        user Id (or user name) and the time when the search is
-        performed.</p><p>One run-time facet may need multiple initialization
-        parameters, each of which has a different name and/or a
-        different data type.  These parameters can be specified in the
-        SELECT statement using the GIVEN FACET PARAM clause, which takes
-        the following form:</p><pre class="programlisting">    GIVEN FACET PARAM &lt;facet_param&gt; ( ',' &lt;facet_param&gt; )*</pre><p>Each <code class="literal">&lt;facet_param&gt;</code> is specified as a
-        4-typle:</p><pre class="programlisting">    '(' &lt;facet_name&gt; &lt;facet_param_name&gt; &lt;facet_param_type&gt; &lt;facet_param_value&gt; ')'</pre><p>All the information in this tuple should match what is
-        defined in the schema for this facet.</p><p>GIVEN FACET PARAM clause can only be specified once in a
-        SELECT statement.</p></div><div class="section" title="3.2.10.&nbsp;FETCHING STORED Clause"><div class="titlepage"><div><div><h4 class="title"><a name="d0e4117"></a>3.2.10.&nbsp;FETCHING STORED Clause</h4></div></div></div><p>This clause specifies if you want to retrieve the source
-        data of the documents in the search results.  It take the
-        following format:</p><pre class="programlisting">    FETCHING STORED (TRUE | FALSE)?</pre><p>When the TRUE or FALSE value is not specified, the value
-        is set to TRUE.  If this clause itself is not specified in the
-        SELECT statement, the flag is implicitly set to FALSE.</p><p>FETCHING STORED clause can only be specified once in a
-        SELECT statement.</p></div></div><div class="section" title="3.3.&nbsp;Comments in BQL Statements"><div class="titlepage"><div><div><h3 class="title"><a name="d0e4128"></a>3.3.&nbsp;Comments in BQL Statements</h3></div></div></div><p>You can include comments in your BQL statements.  Comments
-      may be needed for some complicated queries.</p><p>Two comment styles are supported:</p><div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem"><p>Block comments</p><p>Block comments in BQL are similar to the block comments
-          in C.  A block comment can span multiple lines.  All
-          characters inside a pair of <code class="literal">/*</code> and
-          <code class="literal">*/</code> are treated as part of a block comment
-          and ignored by BQL parser.</p><p><span class="emphasis"><em>Example:</em></span></p><pre class="programlisting">SELECT *
-FROM cars
++------------+------------+---------+-----------+-------------+---------+
+</pre>
+
+<h3>SELECT Statement</h3>
+
+<p>SELECT is the only Data Manipulation Language (DML) that Sensei
+supports today.  It is used to retrieve a set of documents based on
+conditions specified in the WHERE clause.</p>
+
+<p>The SELECT statement takes the following form:</p>
+
+<pre>
+SELECT &lt;select_list&gt;
+[ FROM &lt;index&gt; ]
+[ WHERE &lt;search_expr&gt; ]
+[ GIVEN FACET PARAM &lt;facet_param_list&gt; ]
+( &lt;order_by_clause&gt;
+  | &lt;group_by_clause&gt;
+  | &lt;limit_clause&gt;
+  | &lt;browse_by_clause&gt;
+  | &lt;fetching_stored_clause&gt;
+)*
+</pre>
+
+<p>Most of the syntax is similar to SQL.  So if you are familiar with
+SQL, you should be ready to write some basic BQL queries right away.  In
+addition to the basic SQL syntax, BQL includes several new features to
+support faceted search and syntactic sugar to make real-time search
+queries easier.</p>
+
+<p>We'll describe different pieces of the SELECT statement in more
+details in the following sections.</p>
+
+<h4>Select List</h4>
+
+<p>The select list in a SELECT statement can simply be a
+"<code>*</code>" or a
+comma-separated <span class="emphasis"><em>column</em></span> names.  If
+"<code>*</code>" is given, it means all columns in the index are
+selected.</p>
+
+<p>A column in the select list is either a facet name or a field name in
+the index.  Column names are case-sensitive in BQL because they have to
+match what are defined in the index schema.  If a column is unknown to
+Sensei server, then it is discarded on the server side.</p>
+
+<p>Sensei reserves several internal column names, which are all named
+with a leading "<code>_</code>", e.g. "<code>_uid</code>".  Try to avoid
+naming any column with a leading "<code>_</code>".</p>
+
+<h4>FROM Clause</h4>
+
+<p>Just like the index name in a DESCRIBE statement is optional, the
+FROM clause in a SELECT statement is also optional.</p>
+
+<h4>WHERE Clause</h4>
+
+<p>The WHERE clause, if given, specifies the search conditions that all
+documents must satisfy to be selected.  Conditions are expressed as a
+Boolean expression consisting of one or more predicates.  The following
+predicates are supported in BQL.</p>
+
+<ul>
+  <li><p>IN predicate</p></li>
+  <li><p>CONTAINS ALL predicate</p></li>
+  <li><p>Equal predicate</p></li>
+  <li><p>Not equal predicate</p></li>
+  <li><p>Query predicate</p></li>
+  <li><p>Range predicate</p></li>
+  <li><p>BETWEEN predicate</p></li>
+  <li><p>Time predicate</p></li>
+  <li><p>MATCH AGAINST predicate</p></li>
+  <li><p>LIKE predicate</p></li>
+</ul>
+
+
+<h4>Predicate</h4>
+
+<h5>IN Predicate</h5>
+
+<p>This predicate specifies that the value(s) of a column has to have,
+or not have, in the selected documents.  For example:</p>
+
+<ul>
+  <li>
+    <p><code>color IN ("red", "blue")</code></p>
+
+    <p>Each document in the search results much have color "red" or
+    "blue".</p>
+  </li>
+
+  <li>
+    <p><code>tags IN ("cool", "leather") EXCEPT ("moon-roof",
+    "automatic") </code></p>
+
+    <p>Each document in the search results should have a tag of "cool"
+    or "leather", but cannot have a tag of "moon-roof" or
+    "automatic". </p>
+  </li>
+
+  <li>
+    <p><code>age IN (10, 20, 30)</code></p>
+
+    <p>Each document in the search results must have a age of 10, 20, or
+    30.</p>
+  </li>
+</ul>
+
+<h5>CONTAINS ALL Predicate</h5>
+
+<p>This predicate specifies that a multi-value column has to
+contain <span class="emphasis"><em>all</em></span> the given values in
+the selected documents.  For example:</p>
+
+<ul>
+  <li>
+    <p><code>tags CONTAINS ALL ("cool", "hybrid") EXCEPT("favorite")</code></p>
+
+    <p>Each document in the search results must have two tags: "cool"
+    and "hybrid".  However, it cannot have the tag of "favorite".</p>
+  </li>
+</ul>
+
+<h5>Equal Predicate</h5>
+
+<p>This predicate specifies that a column has to have the given value in
+the selected documents.  For example:</p>
+
+<ul>
+  <li>
+    <p><code>color = "red"</code></p>
+
+    <p>Each document in the search results must have a color of
+    "red".</p>
+  </li>
+</ul>
+
+<h5>Not Equal Predicate</h5>
+
+<p>This predicate specifies the value that a column cannot have in the
+selected documents.  For example:</p>
+
+<ul>
+  <li>
+    <p><code>color &lt;&gt; "red"</code></p>
+  </li>
+</ul>
+
+<h5>Query Predicate</h5>
+
+<p>This predicate is used to do full text search on the
+internal <span class="emphasis"><em>contents</em></span> column.  All
+Lucene query syntax is supported.  For example:</p>
+
+<ul>
+  <li>
+    <p><code>QUERY IS "hybrid AND (cool or moon-roof)"</code></p>
+  </li>
+</ul>
+
+<h5>Range Predicate</h5>
+
+<p>This predicate is used to specify a value range for a range facet.
+For example:</p>
+
+<ul>
+  <li><p><code>year &gt; 1999</code></p></li>
+  <li><p><code>year &lt;= 2002</code></p></li>
+  <li><p><code>price &lt; 17500</code></p></li>
+  <li><p><code>time &gt;= 2011-10-20 15:30:00</code></p></li>
+  <li><p><code>time &lt; 2011/12/31 10:00:00</code></p></li>
+</ul>
+
+<h5>BETWEEN Predicate</h5>
+
+<p>This predicate specifies that a range facet column has to be within a
+bound for all selected documents.  Both upper bound and lower bound are
+inclusive.  For example:</p>
+
+<ul>
+  <li>
+    <p><code>year BETWEEN 1995 AND 2000</code></p>
+  </li>
+</ul>
+
+<h5>Time Predicate</h5>
+
+<p>This predicate is used on a column that contains time stamp values
+(and the column should be a range facet too).  This is useful to search
+documents that are indexed in real-time.  For example:</p>
+
+<ul>
+  <li><p><code>time IN LAST 2 hours 10 mins 30 secs 100 msecs</code></p></li>
+  <li><p><code>time SINCE 2 weeks AGO</code></p></li>
+  <li><p><code>time NOT BEFORE 2 weeks AGO</code></p></li>
+  <li><p><code>time AFTER 2011-10-20 15:30:00</code></p></li>
+</ul>
+
+<h5>MATCH AGAINST Predicate</h5>
+
+<p>This predicate is used to perform full text searches on one or more
+columns that have a string data type.  When more than one columns are
+given in the predicate, then any column in the list that contains
+specified searched string would make a document satisfy this condition.
+For example:
+</p>
+
+<ul>
+  <li>
+    <p><code>MATCH(color) AGAINST("bl*")</code></p>
+
+    <p>All cars that have a "black" or "blue" color would satisfy this
+    predicate.</p>
+  </li>
+
+  <li>
+    <p><code>MATCH(category) AGAINST("*van")</code></p>
+
+    <p>All cars in the category of "van" or "mini-van" would satisfy
+    this predicate.</p>
+  </li>
+  
+  <li>
+    <p><code>MATCH(color, category) AGAINST("*ac*")</code></p>
+
+    <p>A car with a "black" or "blue" color, or with a category of
+    "compact" would satisfy this condition.</p>
+  </li>
+</ul>
+
+<h5>LIKE Predicate</h5>
+
+<p>This is a predicate to do wildcard text match.  Two wildcards are
+supported: <code>%</code> and <code>_</code>.  Wildcard <code>%</code>
+matches zero or more characters, while <code>_</code> matches exactly
+one character.  For example:</p>
+
+<ul>
+  <li>
+    <p><code>color LIKE "bl%"</code></p>
+
+    <p>All cars that have a "black" or "blue" color would satisfy this
+    predicate.</p>
+  </li>
+
+  <li>
+    <p><code>color LIKE "bl__"</code></p>
+
+    <p>All cars with a "blue" color would satisfy this condition, but
+    the cars with a "black" color would not.</p>
+  </li>
+</ul>
+
+<p>Note that wildcards <code>%</code> and <code>_</code>, not
+Lucene's <code>*</code> and <code>?</code> are used in BQL.  This is
+mainly to make BQL more compatible with SQL.  However, if <code>*</code>
+or <code>?</code> is used, it is also accepted.</p>
+
+
+<h4>ORDER BY Clause</h4>
+
+<p>ORDER BY clause specifies how you want to have the search results
+sorted.  You can sort the results based on one or multiple columns, in
+either ascending or descending order.</p>
+
+<p>The clause takes the following form:</p>
+
+<pre>
+ORDER BY &lt;column_name&gt; [(ASC | DESC)] (',' &lt;column_name&gt; [(ASC | DESC)])*
+</pre>
+
+<p>ORDER BY clause can only be specified once in a SELECT statement.</p>
+
+<h4>LIMIT Clause</h4>
+
+<p>LIMIT clause specifies how many results you want to get and what the
+starting offset is in the entire matched document set.</p>
+
+<p>A LIMIT clause takes one of the following two formats:</p>
+
+<pre>
+LIMIT &lt;count&gt;
+</pre>
+
+<pre>
+LIMIT &lt;offset&gt; ',' &lt;count&gt;
+</pre>
+
+<p>By default, the offset is set to 0 and the count is set to 10.</p>
+
+<p>LIMIT clause can only be specified once in a SELECT statement.</p>
+
+
+<h4>GROUP BY Clause</h4>
+
+<p>GROUP BY clause supports the grouping of search results based on a
+facet.  It takes the following form:</p>
+
+<pre>
+GROUP BY &lt;facet_name&gt; [TOP &lt;max_per_group&gt;]
+</pre>
+
+<p>The facet name in a GROUP BY clause has to be a defined facet in the
+index.  A non-facet column cannot be used to do group-by. <code>[TOP
+&lt;max_per_group&gt;]</code> specifies how many results you want to
+have for each group.  If it is omitted, the default value is 10.</p>
+
+<p>GROUP BY clause can only be specified once in a SELECT statement.</p>
+
+
+<h4>BROWSE BY Clause</h4>
+
+<p>This clause is a BQL feature for faceted search.  You can use it to
+get the facet count information for one or multiple facets returned with
+the search results.  A BROWSE BY clause takes the following form:</p>
+
+<pre>BROWSE BY &lt;facet_spec&gt; ( ',' &lt;facet_spec&gt; )*</pre>
+
+<p>where each <code>&lt;facet_spec&gt;</code> is defined as:</p>
+
+<pre>
+&lt;facet_name&gt; ['(' &lt;expand_flag&gt; &lt;count&gt;&lt;count&gt; &lt;facet_ordering&gt; ')']
+</pre>
+
+<p>Here, each <code>&lt;facet_spec&gt;</code> optionally specifies the
+following information about the facet you want to get the facet count
+information for:</p>
+
+<ol>
+  <li>
+    <p>whether the selection is expanded (default false)</p>
+  </li>
+
+  <li>
+    <p>the minimum number of hit counts (the
+    first <code>&lt;count&gt;</code>)</p>
+  </li>
+
+  <li>
+    <p>the maximum number of hit counts (the
+    second <code>&lt;count&gt;</code>)</p>
+  </li>
+
+  <li>
+    <p>facet ordering method: "<code>hits</code>" or
+    "<code>value</code>" (default "<code>hits</code>")</p>
+  </li>
+</ol>
+
+<p>BROWSE BY clause can only be specified once in a SELECT
+statement.</p>
+
+
+<h4>GIVEN FACET PARAM Clause</h4>
+
+<p>In a faceted search system, a run-time facet handler usually requires
+initialization parameter(s) to be provided at search time for each
+query.  For example, in a search system that searches LinkedIn shares or
+Twitter tweets, one or more run-time facets usually require the searcher
+to provide his/her user Id (or user name) and the time when the search
+is performed.</p>
+
+<p>One run-time facet may need multiple initialization parameters, each
+of which has a different name and/or a different data type.  These
+parameters can be specified in the SELECT statement using the GIVEN
+FACET PARAM clause, which takes the following form:</p>
+
+<pre>
+GIVEN FACET PARAM &lt;facet_param&gt; ( ',' &lt;facet_param&gt; )*
+</pre>
+
+<p>Each <code>&lt;facet_param&gt;</code> is specified as a 4-typle:</p>
+
+<pre>
+'(' &lt;facet_name&gt; &lt;facet_param_name&gt; &lt;facet_param_type&gt; &lt;facet_param_value&gt; ')'
+</pre>
+
+<p>All the information in this tuple should match what is defined in the
+schema for this facet.</p>
+
+<p>GIVEN FACET PARAM clause can only be specified once in a SELECT
+statement.</p>
+
+
+<h4>FETCHING STORED Clause</h4>
+
+<p>This clause specifies if you want to retrieve the source data of the
+documents in the search results.  It take the following format:</p>
+
+<pre>FETCHING STORED (TRUE | FALSE)?</pre>
+
+<p>When the TRUE or FALSE value is not specified, the value is set to
+TRUE.  If this clause itself is not specified in the SELECT statement,
+the flag is implicitly set to FALSE.</p>
+
+<p>FETCHING STORED clause can only be specified once in a SELECT
+statement.</p>
+
+
+<h3>Comments in BQL Statements</h3>
+
+<p>You can include comments in your BQL statements.  Comments may be
+needed for some complicated queries.</p>
+
+<p>Two comment styles are supported:</p>
+
+<ol class="orderedlist" type="1">
+  <li>
+    <p>Block comments</p>
+
+    <p>Block comments in BQL are similar to the block comments in C.  A
+    block comment can span multiple lines.  All characters inside a pair
+    of <code>/*</code> and <code>*/</code> are treated as part of a
+    block comment and ignored by BQL parser.</p>
+
+    <p><span class="emphasis"><em>Example:</em></span></p>
+
+    <pre>
+SELECT *
+FROM   cars
 WHERE  /* Here is my comment, we are going to
           add some search conditions here.
         */
        color = 'red'
-  AND  year &gt; 1999
-</pre></li><li class="listitem"><p>Line comments</p><p>A line comment in BQL starts with <code class="literal">--</code>.
-          All characters after <code class="literal">--</code> on the same line
-          will be treated as comments and ignored by BQL parser.</p><p><span class="emphasis"><em>Example:</em></span></p><pre class="programlisting">SELECT *
-FROM cars    -- Comment: the index name "cars" is optional
-WHERE color = 'red'</pre></li></ol></div></div></div><div class="section" title="4.&nbsp;Query Examples"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="d0e4168"></a>4.&nbsp;Query Examples</h2></div></div></div><p>The best way to learn about BQL is to learn from BQL query
-    examples.  In this section, we are going to present a series of BQL
-    queries that cover most of the main features.</p><div class="section" title="4.1.&nbsp;The Simplest Query"><div class="titlepage"><div><div><h3 class="title"><a name="d0e4173"></a>4.1.&nbsp;The Simplest Query</h3></div></div></div><p><span class="bold"><strong>Find the first 10 cars in the
-      index:</strong></span></p><pre class="programlisting">SELECT *
-FROM cars;</pre><p>This query searches for the top 10 cars, sorted by time,
-      from index cars.  All columns are selected.  Number 10 is the
-      default number of results to be returned, and time is the default
-      order-by column.</p><p><span class="bold"><strong>Results:</strong></span></p><pre class="programlisting">+---------------+---------------------------------+ ... +-------+
+AND    year &gt; 1999
+    </pre>
+  </li>
+
+  <li>
+    <p>Line comments</p>
+
+    <p>A line comment in BQL starts with <code>--</code>.  All
+    characters after <code>--</code> on the same line will be treated as
+    comments and ignored by BQL parser.</p>
+
+    <p><span class="emphasis"><em>Example:</em></span></p>
+
+    <pre>
+SELECT *
+FROM   cars    -- Comment: the index name "cars" is optional
+WHERE  color = 'red'
+    </pre>
+  </li>
+</ol>
+
+
+<h2>Query Examples</h2>
+
+<p>The best way to learn about BQL is to learn from BQL query examples.
+In this section, we are going to present a series of BQL queries that
+cover most of the main features.</p>
+
+<h3>The Simplest Query</h3>
+
+<p><span class="bold"><strong>Find the first 10 cars in the index:</strong></span></p>
+
+<pre>
+SELECT * FROM cars;
+</pre>
+
+<p>This query searches for the top 10 cars, sorted by time, from index
+cars.  All columns are selected.  Number 10 is the default number of
+results to be returned, and time is the default order-by column.</p>
+
+<p><span class="bold"><strong>Results:</strong></span></p>
+
+<pre>
++---------------+---------------------------------+ ... +-------+
 | category      | city                            |     | uid   |
 +---------------+---------------------------------+ ... +-------+
 | station wagon | u.s.a./florida/tampa            |     | 14999 |
@@ -371,15 +745,34 @@ FROM cars;</pre><p>This query searches for the top 10 cars, sorted by time,
 | compact       | u.s.a./california/sacramento    |     | 3     |
 | compact       | u.s.a./california/san diego     |     | 4     |
 +---------------+---------------------------------+ ... +-------+
-10 rows in set, 15000 hits, 15000 total docs (server: 20ms, total: 68ms)</pre></div><div class="section" title="4.2.&nbsp;Queries with Limited Number of Results"><div class="titlepage"><div><div><h3 class="title"><a name="d0e4188"></a>4.2.&nbsp;Queries with Limited Number of Results</h3></div></div></div><p>You can use the limit clause in a query to specify the
-      starting offset and number of documents to be returned in the
-      results. By default, the starting offset is 0, and number of
-      results to be returned is 10. If only one number is specified in
-      the limit clause, then it is treated the number of results.</p><p>The limit clause is mainly used for pagination on search
-      result age.</p><div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem"><p><span class="bold"><strong>Find the next 10 cars
-          starting from offset 5:</strong></span></p><pre class="programlisting">SELECT *
-FROM cars
-LIMIT 5, 10</pre><p><span class="bold"><strong>Results:</strong></span></p><pre class="programlisting">+----------+---------------------------------+ ... +-----+
+10 rows in set, 15000 hits, 15000 total docs (server: 20ms, total: 68ms)</pre>
+
+<h3>Queries with Limited Number of Results</h3>
+
+<p>You can use the limit clause in a query to specify the starting
+offset and number of documents to be returned in the results. By
+default, the starting offset is 0, and number of results to be returned
+is 10. If only one number is specified in the limit clause, then it is
+treated the number of results.</p>
+
+<p>The limit clause is mainly used for pagination on search result
+age.</p>
+
+<ol>
+  <li>
+    <p><span class="bold"><strong>Find the next 10 cars starting from
+    offset 5:</strong></span></p>
+
+    <pre>
+SELECT *
+FROM   cars
+LIMIT  5, 10
+    </pre>
+
+    <p><span class="bold"><strong>Results:</strong></span></p>
+
+    <pre>
++----------+---------------------------------+ ... +-----+
 | category | city                            |     | uid |
 +----------+---------------------------------+ ... +-----+
 | compact  | u.s.a./texas/houston            |     | 2   |
@@ -393,20 +786,52 @@ LIMIT 5, 10</pre><p><span class="bold"><strong>Results:</strong></span></p><pre 
 | compact  | u.s.a./utah/salt lake city      |     | 6   |
 | exotic   | china/shanghai                  |     | 248 |
 +----------+---------------------------------+ ... +-----+
-10 rows in set, 15000 hits, 15000 total docs (server: 10ms, total: 60ms)</pre></li><li class="listitem"><p><span class="bold"><strong>Just get the top 3
-          results:</strong></span></p><pre class="programlisting">SELECT *
-FROM cars
-LIMIT 3</pre><p><span class="bold"><strong>Results:</strong></span></p><pre class="programlisting">+----------+-----------------------------+ ... +-----+
+10 rows in set, 15000 hits, 15000 total docs (server: 10ms, total: 60ms)
+    </pre>
+  </li>
+
+  <li>
+    <p><span class="bold"><strong>Just get the top 3
+    results:</strong></span></p>
+
+    <pre>
+SELECT *
+FROM   cars
+LIMIT  3
+    </pre>
+
+    <p><span class="bold"><strong>Results:</strong></span></p>
+
+    <pre>
++----------+-----------------------------+ ... +-----+
 | category | city                        |     | uid |
 +----------+-----------------------------+ ... +-----+
 | compact  | u.s.a./california/sunnyvale |     | 1   |
 | compact  | u.s.a./florida/tampa        |     | 0   |
 | exotic   | u.s.a./florida/tampa        |     | 242 |
 +----------+-----------------------------+ ... +-----+
-3 rows in set, 15001 hits, 15001 total docs (server: 7ms, total: 27ms)</pre></li></ol></div></div><div class="section" title="4.3.&nbsp;Queries with Basic Conditions"><div class="titlepage"><div><div><h3 class="title"><a name="d0e4218"></a>4.3.&nbsp;Queries with Basic Conditions</h3></div></div></div><div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem"><p><span class="bold"><strong>Find all red
-          cars:</strong></span></p><pre class="programlisting">  SELECT color, year, makemodel
-  FROM cars
-  WHERE color = "red"</pre><p><span class="bold"><strong>Results:</strong></span></p><pre class="programlisting">+-------+----------------------+------------------------+
+3 rows in set, 15001 hits, 15001 total docs (server: 7ms, total: 27ms)
+    </pre>
+  </li>
+</ol>
+
+
+<h3>Queries with Basic Conditions</h3>
+
+<ol>
+  <li>
+    <p><span class="bold"><strong>Find all red cars:</strong></span></p>
+
+    <pre>
+SELECT color, year, makemodel
+FROM   cars
+WHERE  color = "red"
+    </pre>
+
+    <p><span class="bold"><strong>Results:</strong></span></p>
+
+    <pre>
++-------+----------------------+------------------------+
 | color | year                 | makemodel              |
 +-------+----------------------+------------------------+
 | red   | 00000000000000001996 | european/bentley/azure |
@@ -420,10 +845,24 @@ LIMIT 3</pre><p><span class="bold"><strong>Results:</strong></span></p><pre clas
 | red   | 00000000000000002002 | european/bentley/azure |
 | red   | 00000000000000001996 | asian/acura/integra    |
 +-------+----------------------+------------------------+
-10 rows in set, 2160 hits, 15000 total docs (server: 5ms, total: 41ms)</pre></li><li class="listitem"><p><span class="bold"><strong>Find all red and blue
-          cars:</strong></span></p><pre class="programlisting">SELECT color, year, makemodel
-FROM cars
-WHERE color IN ("red", "blue")</pre><p><span class="bold"><strong>Results:</strong></span></p><pre class="programlisting">+-------+----------------------+------------------------+
+10 rows in set, 2160 hits, 15000 total docs (server: 5ms, total: 41ms)
+    </pre>
+
+  </li>
+
+  <li>
+    <p><span class="bold"><strong>Find all red and blue cars:</strong></span></p>
+
+    <pre>
+SELECT color, year, makemodel
+FROM   cars
+WHERE  color IN ("red", "blue")
+    </pre>
+
+    <p><span class="bold"><strong>Results:</strong></span></p>
+
+    <pre>
++-------+----------------------+------------------------+
 | color | year                 | makemodel              |
 +-------+----------------------+------------------------+
 | blue  | 00000000000000001999 | asian/acura/tl         |
@@ -438,11 +877,24 @@ WHERE color IN ("red", "blue")</pre><p><span class="bold"><strong>Results:</stro
 | red   | 00000000000000001994 | european/bentley/azure |
 +-------+----------------------+------------------------+
 10 rows in set, 3264 hits, 15000 total docs (server: 4ms, total: 33ms)
-</pre></li><li class="listitem"><p><span class="bold"><strong>Find all 1999 or 2000 cars
-          that are not black nor red:</strong></span></p><pre class="programlisting">SELECT color, year, makemodel
-FROM cars
-WHERE color NOT IN ("black", "red")
-  AND year BETWEEN 1999 AND 2000</pre><p><span class="bold"><strong>Results:</strong></span></p><pre class="programlisting">+--------+----------------------+------------------------+
+    </pre>
+
+  </li>
+
+  <li>
+    <p><span class="bold"><strong>Find all 1999 or 2000 cars that are not black nor red:</strong></span></p>
+
+    <pre>
+SELECT color, year, makemodel
+FROM   cars
+WHERE  color NOT IN ("black", "red")
+AND    year BETWEEN 1999 AND 2000
+    </pre>
+
+    <p><span class="bold"><strong>Results:</strong></span></p>
+
+    <pre>
++--------+----------------------+------------------------+
 | color  | year                 | makemodel              |
 +--------+----------------------+------------------------+
 | blue   | 00000000000000001999 | asian/acura/tl         |
@@ -456,10 +908,23 @@ WHERE color NOT IN ("black", "red")
 | yellow | 00000000000000002000 | european/bentley/azure |
 | yellow | 00000000000000002000 | asian/acura/tl         |
 +--------+----------------------+------------------------+
-10 rows in set, 1934 hits, 15000 total docs (server: 4ms, total: 35ms)</pre></li><li class="listitem"><p><span class="bold"><strong>Find all cars in New York
-          state:</strong></span></p><pre class="programlisting">SELECT color, city, price
-FROM cars
-WHERE city in ("u.s.a./new york")</pre><p><span class="bold"><strong>Results:</strong></span></p><pre class="programlisting">+--------+----------------------------+-------------------------+
+10 rows in set, 1934 hits, 15000 total docs (server: 4ms, total: 35ms)
+    </pre>
+  </li>
+
+  <li>
+    <p><span class="bold"><strong>Find all cars in New York state:</strong></span></p>
+
+    <pre>
+SELECT color, city, price
+FROM   cars
+WHERE  city in ("u.s.a./new york")
+    </pre>
+
+    <p><span class="bold"><strong>Results:</strong></span></p>
+
+    <pre>
++--------+----------------------------+-------------------------+
 | color  | city                       | price                   |
 +--------+----------------------------+-------------------------+
 | white  | u.s.a./new york/albany     | 00000000000000007500.00 |
@@ -473,11 +938,30 @@ WHERE city in ("u.s.a./new york")</pre><p><span class="bold"><strong>Results:</s
 | gold   | u.s.a./new york/new york   | 00000000000000011100.00 |
 | red    | u.s.a./new york/rochester  | 00000000000000009500.00 |
 +--------+----------------------------+-------------------------+
-10 rows in set, 2781 hits, 15000 total docs (server: 5ms, total: 37ms)</pre></li></ol></div></div><div class="section" title="4.4.&nbsp;Queries with AND, OR, and NOT Logic in Value Selections"><div class="titlepage"><div><div><h3 class="title"><a name="d0e4266"></a>4.4.&nbsp;Queries with AND, OR, and NOT Logic in Value Selections</h3></div></div></div><div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem"><p><span class="bold"><strong>Find all cars tagged with
-          both <code class="literal">"cool"</code> and <code class="literal">"hybrid"</code>
-          but not <code class="literal">"favorite"</code>:</strong></span></p><pre class="programlisting">SELECT tags, price from cars
-WHERE tags CONTAINS ALL ("cool", "hybrid") EXCEPT("favorite")
-LIMIT 5</pre><p><span class="bold"><strong>Results:</strong></span></p><pre class="programlisting">+----------------------------------+-------------------------+
+10 rows in set, 2781 hits, 15000 total docs (server: 5ms, total: 37ms)
+    </pre>
+  </li>
+</ol>
+
+
+<h3>Queries with AND, OR, and NOT Logic in Value Selections</h3>
+
+<ol class="orderedlist" type="1">
+  <li>
+    <p><span class="bold"><strong>Find all cars tagged with
+    both <code>"cool"</code> and <code>"hybrid"</code> but
+    not <code>"favorite"</code>:</strong></span></p>
+
+    <pre>
+SELECT tags, price from cars
+WHERE  tags CONTAINS ALL ("cool", "hybrid") EXCEPT("favorite")
+LIMIT  5
+    </pre>
+
+    <p><span class="bold"><strong>Results:</strong></span></p>
+
+    <pre>
++----------------------------------+-------------------------+
 | tags                             | price                   |
 +----------------------------------+-------------------------+
 | automatic,cool,hybrid,reliable   | 00000000000000009400.00 |
@@ -486,13 +970,26 @@ LIMIT 5</pre><p><span class="bold"><strong>Results:</strong></span></p><pre clas
 | cool,hybrid,moon-roof,reliable   | 00000000000000006500.00 |
 | cool,hybrid,moon-roof,reliable   | 00000000000000007100.00 |
 +----------------------------------+-------------------------+
-5 rows in set, 491 hits, 15000 total docs (server: 9ms, total: 28ms)</pre></li><li class="listitem"><p><span class="bold"><strong>Find all cars tagged with
-          either <code class="literal">"cool"</code> or
-          <code class="literal">"hybrid"</code> but not
-          <code class="literal">"mp3"</code></strong></span>:</p><pre class="programlisting">SELECT tags, price
-FROM cars
-WHERE tags IN ("cool", "hybrid") EXCEPT ("mp3")
-LIMIT 5</pre><p><span class="bold"><strong>Results:</strong></span></p><pre class="programlisting">+----------------------------------------------+-------------------------+
+5 rows in set, 491 hits, 15000 total docs (server: 9ms, total: 28ms)
+    </pre>
+  </li>
+
+  <li>
+    <p><span class="bold"><strong>Find all cars tagged with
+    either <code>"cool"</code> or <code>"hybrid"</code> but
+    not <code>"mp3"</code></strong></span>:</p>
+
+    <pre>
+SELECT tags, price
+FROM   cars
+WHERE  tags IN ("cool", "hybrid") EXCEPT ("mp3")
+LIMIT  5
+    </pre>
+
+    <p><span class="bold"><strong>Results:</strong></span></p>
+
+    <pre>
++----------------------------------------------+-------------------------+
 | tags                                         | price                   |
 +----------------------------------------------+-------------------------+
 | hybrid,leather,moon-roof,reliable            | 00000000000000007500.00 |
@@ -501,12 +998,34 @@ LIMIT 5</pre><p><span class="bold"><strong>Results:</strong></span></p><pre clas
 | cool,electric,favorite,reliable              | 00000000000000007200.00 |
 | automatic,hybrid,leather,reliable            | 00000000000000007100.00 |
 +----------------------------------------------+-------------------------+
-5 rows in set, 8176 hits, 15000 total docs (server: 6ms, total: 25ms)</pre></li></ol></div></div><div class="section" title="4.5.&nbsp;Having Search Results Sorted"><div class="titlepage"><div><div><h3 class="title"><a name="d0e4310"></a>4.5.&nbsp;Having Search Results Sorted</h3></div></div></div><p>You can sort the search result based on one or more columns,
-      in either ascending (the default) or descending order.</p><div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem"><p><span class="bold"><strong>Find the top 5 cheapest
-          but newest cars.</strong></span></p><pre class="programlisting">SELECT year, makemodel, price
-FROM cars
+5 rows in set, 8176 hits, 15000 total docs (server: 6ms, total: 25ms)
+    </pre>
+
+  </li>
+</ol>
+
+
+<h3>Having Search Results Sorted</h3>
+
+<p>You can sort the search result based on one or more columns, in
+either ascending (the default) or descending order.</p>
+
+<ol class="orderedlist" type="1">
+  <li>
+    <p><span class="bold"><strong>Find the top 5 cheapest but newest
+    cars.</strong></span></p>
+
+    <pre>
+SELECT   year, makemodel, price
+FROM     cars
 ORDER BY year desc, price
-LIMIT 5</pre><p><span class="bold"><strong>Results:</strong></span></p><pre class="programlisting">+----------------------+-------------------------------+-------------------------+
+LIMIT    5
+    </pre>
+
+    <p><span class="bold"><strong>Results:</strong></span></p>
+
+    <pre>
++----------------------+-------------------------------+-------------------------+
 | year                 | makemodel                     | price                   |
 +----------------------+-------------------------------+-------------------------+
 | 00000000000000002002 | asian/subaru/justy            | 00000000000000002100.00 |
@@ -515,11 +1034,25 @@ LIMIT 5</pre><p><span class="bold"><strong>Results:</strong></span></p><pre clas
 | 00000000000000002002 | north american/mercury/tracer | 00000000000000002400.00 |
 | 00000000000000002002 | north american/mercury/tracer | 00000000000000002500.00 |
 +----------------------+-------------------------------+-------------------------+
-5 rows in set, 15000 hits, 15000 total docs (server: 22ms, total: 50ms)</pre></li><li class="listitem"><p><span class="bold"><strong>Find the top 5 most
-          expensive but oldest cars:</strong></span></p><pre class="programlisting">SELECT year, makemodel, price
-FROM cars
+5 rows in set, 15000 hits, 15000 total docs (server: 22ms, total: 50ms)
+    </pre>
+  </li>
+
+  <li>
+    <p><span class="bold"><strong>Find the top 5 most expensive but
+    oldest cars:</strong></span></p>
+
+    <pre>
+SELECT   year, makemodel, price
+FROM     cars
 ORDER BY year asc, price desc
-LIMIT 5</pre><p><span class="bold"><strong>Results:</strong></span></p><pre class="programlisting">+----------------------+-----------------------------+-------------------------+
+LIMIT    5
+    </pre>
+
+    <p><span class="bold"><strong>Results:</strong></span></p>
+
+    <pre>
++----------------------+-----------------------------+-------------------------+
 | year                 | makemodel                   | price                   |
 +----------------------+-----------------------------+-------------------------+
 | 00000000000000001993 | european/ferrari/360 modena | 00000000000000019500.00 |
@@ -528,9 +1061,28 @@ LIMIT 5</pre><p><span class="bold"><strong>Results:</strong></span></p><pre clas
 | 00000000000000001993 | european/ferrari/360 modena | 00000000000000019500.00 |
 | 00000000000000001993 | asian/acura/nsx             | 00000000000000019500.00 |
 +----------------------+-----------------------------+-------------------------+
-5 rows in set, 15000 hits, 15000 total docs (server: 5ms, total: 27ms)</pre></li></ol></div></div><div class="section" title="4.6.&nbsp;Queries Using MATCH AGAINST Predicate"><div class="titlepage"><div><div><h3 class="title"><a name="d0e4338"></a>4.6.&nbsp;Queries Using MATCH AGAINST Predicate</h3></div></div></div><div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem"><p>Find all the cars with color "black" or "blue":</p><pre class="programlisting">SELECT color, year, makemodel
-FROM cars
-WHERE MATCH(color) AGAINST("bl*")</pre><p><span class="emphasis"><em>Results:</em></span></p><pre class="programlisting">+-------+----------------------+---------------------+
+5 rows in set, 15000 hits, 15000 total docs (server: 5ms, total: 27ms)
+    </pre>
+
+  </li>
+</ol>
+
+<h3>Queries Using MATCH AGAINST Predicate</h3>
+
+<ol>
+  <li>
+    <p>Find all the cars with color "black" or "blue":</p>
+
+    <pre>
+SELECT color, year, makemodel
+FROM   cars
+WHERE  MATCH(color) AGAINST("bl*")
+    </pre>
+
+    <p><span class="emphasis"><em>Results:</em></span></p>
+
+    <pre>
++-------+----------------------+---------------------+
 | color | year                 | makemodel           |
 +-------+----------------------+---------------------+
 | blue  | 00000000000000001993 | asian/acura/3.2tl   |
@@ -544,12 +1096,26 @@ WHERE MATCH(color) AGAINST("bl*")</pre><p><span class="emphasis"><em>Results:</e
 | black | 00000000000000001999 | asian/acura/integra |
 | black | 00000000000000001994 | asian/acura/integra |
 +-------+----------------------+---------------------+
-10 rows in set, 4245 hits, 15000 total docs (server: 8ms, total: 46ms)</pre></li><li class="listitem"><p>Find all the cars with color column or category column
-          containing substring "<code class="literal">ac</code>" (like color
-          "black" or category "compact"):</p><pre class="programlisting">SELECT color, category, year, makemodel
-FROM cars
-WHERE MATCH(color, category) AGAINST("*ac*")
-LIMIT 20</pre><p><span class="emphasis"><em>Results:</em></span></p><pre class="programlisting">+--------+------------+----------------------+---------------------+
+10 rows in set, 4245 hits, 15000 total docs (server: 8ms, total: 46ms)
+    </pre>
+  </li>
+
+  <li>
+    <p>Find all the cars with color column or category column containing
+    substring "<code>ac</code>" (like color "black" or category
+    "compact"):</p>
+
+    <pre>
+SELECT color, category, year, makemodel
+FROM   cars
+WHERE  MATCH(color, category) AGAINST("*ac*")
+LIMIT  20
+    </pre>
+
+    <p><span class="emphasis"><em>Results:</em></span></p>
+
+    <pre>
++--------+------------+----------------------+---------------------+
 | color  | category   | year                 | makemodel           |
 +--------+------------+----------------------+---------------------+
 | white  | compact    | 00000000000000001993 | asian/acura/1.6el   |
@@ -573,13 +1139,25 @@ LIMIT 20</pre><p><span class="emphasis"><em>Results:</em></span></p><pre class="
 | black  | sports car | 00000000000000001994 | asian/acura/integra |
 | black  | sports car | 00000000000000001993 | asian/acura/integra |
 +--------+------------+----------------------+---------------------+
-20 rows in set, 7178 hits, 15000 total docs (server: 4ms, total: 134ms)</pre></li><li class="listitem"><p>Find all the car categories that are not van nor
-          mini-van:</p><pre class="programlisting">SELECT color, category, year, makemodel
-FROM cars
-WHERE NOT MATCH(color, category) AGAINST("*van")
+20 rows in set, 7178 hits, 15000 total docs (server: 4ms, total: 134ms)
+    </pre>
+  </li>
+
+  <li>
+    <p>Find all the car categories that are not van nor mini-van:</p>
+
+    <pre>
+SELECT   color, category, year, makemodel
+FROM     cars
+WHERE    NOT MATCH(color, category) AGAINST("*van")
 GROUP BY category TOP 1
-LIMIT 1000
-</pre><p><span class="emphasis"><em>Results:</em></span></p><pre class="programlisting">+--------+---------------+----------------------+-----------------------------+
+LIMIT    1000
+    </pre>
+
+    <p><span class="emphasis"><em>Results:</em></span></p>
+
+    <pre>
++--------+---------------+----------------------+-----------------------------+
 | color  | category      | year                 | makemodel                   |
 +--------+---------------+----------------------+-----------------------------+
 | white  | compact       | 00000000000000001993 | asian/acura/1.6el           |
@@ -592,13 +1170,23 @@ LIMIT 1000
 | green  | station wagon | 00000000000000001995 | north american/saturn/sw    |
 | gold   | sub-compact   | 00000000000000001993 | north american/ford/aspire  |
 +--------+---------------+----------------------+-----------------------------+
-9 rows in set, 6980 hits, 7500 total docs (server: 5ms, total: 84ms)</pre><p>You can compare the above results (containing 9 rows)
-          with the ones from the following query (containing 11
-          rows):</p><pre class="programlisting">SELECT color, category, year, makemodel
-FROM cars
+9 rows in set, 6980 hits, 7500 total docs (server: 5ms, total: 84ms)
+    </pre>
+
+    <p>You can compare the above results (containing 9 rows) with the
+    ones from the following query (containing 11 rows):</p>
+
+    <pre>
+SELECT   color, category, year, makemodel
+FROM     cars
 GROUP BY category TOP 1
-LIMIT 1000
-</pre><p><span class="emphasis"><em>Results:</em></span></p><pre class="programlisting">+--------+---------------+----------------------+------------------------------------+
+LIMIT    1000
+    </pre>
+
+    <p><span class="emphasis"><em>Results:</em></span></p>
+
+    <pre>
++--------+---------------+----------------------+------------------------------------+
 | color  | category      | year                 | makemodel                          |
 +--------+---------------+----------------------+------------------------------------+
 | white  | compact       | 00000000000000001993 | asian/acura/1.6el                  |
@@ -614,9 +1202,28 @@ LIMIT 1000
 | gold   | sub-compact   | 00000000000000001993 | north american/ford/aspire         |
 +--------+---------------+----------------------+------------------------------------+
 11 rows in set, 15000 hits, 15000 total docs (server: 7ms, total: 50ms)
-</pre></li></ol></div></div><div class="section" title="4.7.&nbsp;Queries Using LIKE Predicate"><div class="titlepage"><div><div><h3 class="title"><a name="d0e4384"></a>4.7.&nbsp;Queries Using LIKE Predicate</h3></div></div></div><div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem"><p>Find all the cars with color "black" or "blue":</p><pre class="programlisting">SELECT color, year, makemodel
-FROM cars
-WHERE color LIKE "bl%"</pre><p><span class="emphasis"><em>Results:</em></span></p><pre class="programlisting">+-------+------------+----------------------+---------------------+
+    </pre>
+
+  </li>
+</ol>
+
+
+<h3>Queries Using LIKE Predicate</h3>
+
+<ol>
+  <li>
+    <p>Find all the cars with color "black" or "blue":</p>
+
+    <pre>
+SELECT color, year, makemodel
+FROM   cars
+WHERE  color LIKE "bl%"
+    </pre>
+
+    <p><span class="emphasis"><em>Results:</em></span></p>
+
+    <pre>
++-------+------------+----------------------+---------------------+
 | color | category   | year                 | makemodel           |
 +-------+------------+----------------------+---------------------+
 | blue  | compact    | 00000000000000001993 | asian/acura/3.2tl   |
@@ -630,10 +1237,24 @@ WHERE color LIKE "bl%"</pre><p><span class="emphasis"><em>Results:</em></span></
 | black | sports car | 00000000000000001999 | asian/acura/integra |
 | black | sports car | 00000000000000001994 | asian/acura/integra |
 +-------+------------+----------------------+---------------------+
-10 rows in set, 4245 hits, 15000 total docs (server: 3ms, total: 78ms)</pre></li><li class="listitem"><p>Find all cars with color matching pattern "bl__" (4
-          characters only):</p><pre class="programlisting">SELECT color, category, year, makemodel
-FROM cars
-WHERE color like "bl__"</pre><p><span class="emphasis"><em>Results:</em></span></p><pre class="programlisting">+-------+----------+----------------------+-----------------------------+
+10 rows in set, 4245 hits, 15000 total docs (server: 3ms, total: 78ms)
+    </pre>
+  </li>
+  
+  <li>
+    <p>Find all cars with color matching pattern "bl__" (4 characters
+    only):</p>
+
+    <pre>
+SELECT color, category, year, makemodel
+FROM   cars
+WHERE  color like "bl__"
+    </pre>
+
+    <p><span class="emphasis"><em>Results:</em></span></p>
+
+    <pre>
++-------+----------+----------------------+-----------------------------+
 | color | category | year                 | makemodel                   |
 +-------+----------+----------------------+-----------------------------+
 | blue  | compact  | 00000000000000001993 | asian/acura/3.2tl           |
@@ -647,13 +1268,34 @@ WHERE color like "bl__"</pre><p><span class="emphasis"><em>Results:</em></span><
 | blue  | sedan    | 00000000000000002000 | north american/eagle/vision |
 | blue  | sedan    | 00000000000000001995 | north american/eagle/vision |
 +-------+----------+----------------------+-----------------------------+
-10 rows in set, 1104 hits, 15000 total docs (server: 3ms, total: 59ms)</pre></li></ol></div></div><div class="section" title="4.8.&nbsp;Queries with Full Text Search"><div class="titlepage"><div><div><h3 class="title"><a name="d0e4408"></a>4.8.&nbsp;Queries with Full Text Search</h3></div></div></div><p>In the WHERE clause, you can add a condition for full text
-      search, which is called a (text) query. This condition is to find
-      the documents that contain matching text. You can use Lucene Query
-      Syntax in the text string that you search on.</p><div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem"><p><span class="bold"><strong>Find all the cars that are
-          tagged with "hybrid" and "navigation":</strong></span></p><pre class="programlisting">SELECT tags, makemodel
-FROM cars
-WHERE QUERY IS "hybrid AND navigation"</pre><p><span class="bold"><strong>Results:</strong></span></p><pre class="programlisting">+-------------------------------------+----------------------------+
+10 rows in set, 1104 hits, 15000 total docs (server: 3ms, total: 59ms)
+    </pre>
+  </li>
+</ol>
+
+
+<h3>Queries with Full Text Search</h3>
+
+<p>In the WHERE clause, you can add a condition for full text search,
+which is called a (text) query. This condition is to find the documents
+that contain matching text. You can use Lucene Query Syntax in the text
+string that you search on.</p>
+
+<ol class="orderedlist" type="1">
+  <li>
+    <p><span class="bold"><strong>Find all the cars that are tagged with
+    "hybrid" and "navigation":</strong></span></p>
+
+    <pre>
+SELECT tags, makemodel
+FROM   cars
+WHERE  QUERY IS "hybrid AND navigation"
+    </pre>
+
+    <p><span class="bold"><strong>Results:</strong></span></p>
+
+    <pre>
++-------------------------------------+----------------------------+
 | tags                                | makemodel                  |
 +-------------------------------------+----------------------------+
 | hybrid,leather,moon-roof,navigation | asian/acura/tl             |
@@ -667,12 +1309,25 @@ WHERE QUERY IS "hybrid AND navigation"</pre><p><span class="bold"><strong>Result
 | cool,hybrid,moon-roof,navigation    | north american/asuna/se/gt |
 | automatic,hybrid,leather,navigation | european/saab/900          |
 +-------------------------------------+----------------------------+
-10 rows in set, 778 hits, 15000 total docs (server: 186ms, total: 209ms)</pre></li><li class="listitem"><p><span class="bold"><strong>A more complicated
-          example:</strong></span></p><pre class="programlisting">SELECT color, tags, city
-FROM cars
-WHERE QUERY IS "(hybrid OR moon-roof) AND mp3 NOT cool NOT navigation"
-  AND city in ("u.s.a./new york")
-  AND color = "red"</pre><p><span class="bold"><strong>Results:</strong></span></p><pre class="programlisting">+-------+-------------------------------+----------------------------+
+10 rows in set, 778 hits, 15000 total docs (server: 186ms, total: 209ms)
+    </pre>
+  </li>
+
+  <li>
+    <p><span class="bold"><strong>A more complicated example:</strong></span></p>
+
+    <pre>
+SELECT color, tags, city
+FROM   cars
+WHERE  QUERY IS "(hybrid OR moon-roof) AND mp3 NOT cool NOT navigation"
+AND    city in ("u.s.a./new york")
+AND    color = "red"
+    </pre>
+
+    <p><span class="bold"><strong>Results:</strong></span></p>
+
+    <pre>
++-------+-------------------------------+----------------------------+
 | color | tags                          | city                       |
 +-------+-------------------------------+----------------------------+
 | red   | automatic,hybrid,mp3,reliable | u.s.a./new york/new york   |
@@ -683,13 +1338,33 @@ WHERE QUERY IS "(hybrid OR moon-roof) AND mp3 NOT cool NOT navigation"
 | red   | favorite,hybrid,mp3,reliable  | u.s.a./new york/binghamton |
 | red   | automatic,hybrid,mp3,reliable | u.s.a./new york/syracuse   |
 +-------+-------------------------------+----------------------------+
-7 rows in set, 7 hits, 15000 total docs (server: 17ms, total: 44ms)</pre></li></ol></div></div><div class="section" title="4.9.&nbsp;Queries with GROUP BY"><div class="titlepage"><div><div><h3 class="title"><a name="d0e4436"></a>4.9.&nbsp;Queries with GROUP BY</h3></div></div></div><div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem"><p>You can group the search results of a query by one
-          facet, which can be a simple column or a facet built upon a
-          group of columns. You can also specify how many hits you want
-          to keep in each group (the default is 10).</p><p><span class="bold"><strong>Find the first 10 groups
-          of cars, with 2 hits in each group:</strong></span></p><pre class="programlisting">SELECT category, city, makemodel
-FROM cars
-GROUP BY category TOP 2</pre><p><span class="bold"><strong>Results:</strong></span></p><pre class="programlisting">========================================================================================
+7 rows in set, 7 hits, 15000 total docs (server: 17ms, total: 44ms)
+    </pre>
+  </li>
+</ol>
+
+<h3>Queries with GROUP BY</h3>
+
+<ol>
+  <li>
+    <p>You can group the search results of a query by one facet, which
+    can be a simple column or a facet built upon a group of columns. You
+    can also specify how many hits you want
+          to keep in each group (the default is 10).</p>
+
+    <p><span class="bold"><strong>Find the first 10 groups of cars, with
+    2 hits in each group:</strong></span></p>
+
+    <pre>
+SELECT   category, city, makemodel
+FROM     cars
+GROUP BY category TOP 2
+    </pre>
+
+    <p><span class="bold"><strong>Results:</strong></span></p>
+
+    <pre>
+========================================================================================
 | category      | city                            | makemodel                          |
 ========================================================================================
 | compact       | u.s.a./texas/houston            | asian/acura/tl                     |
@@ -723,10 +1398,24 @@ GROUP BY category TOP 2</pre><p><span class="bold"><strong>Results:</strong></sp
 | mini-van      | u.s.a./california/san jose      | north american/chevrolet/astro van |
 +---------------+---------------------------------+------------------------------------+
 ========================================================================================
-10 groups in set, 15000 hits, 15000 total docs (server: 55ms, total: 130ms)</pre></li><li class="listitem"><p><span class="bold"><strong>Find the numbers of cars
-          in different categories:</strong></span></p><pre class="programlisting">SELECT category, _grouphitscount
-FROM cars
-GROUP BY category top 1</pre><p><span class="bold"><strong>Results:</strong></span></p><pre class="programlisting">+---------------+----------------+
+10 groups in set, 15000 hits, 15000 total docs (server: 55ms, total:130ms)
+    </pre>
+  </li>
+
+  <li>
+    <p><span class="bold"><strong>Find the numbers of cars in different
+    categories:</strong></span></p>
+
+    <pre>
+SELECT   category, _grouphitscount
+FROM     cars
+GROUP BY category top 1
+    </pre>
+
+    <p><span class="bold"><strong>Results:</strong></span></p>
+
+    <pre>
++---------------+----------------+
 | category      | _grouphitscount |
 +---------------+-----------------+
 | compact       | 4169            |
@@ -740,20 +1429,54 @@ GROUP BY category top 1</pre><p><span class="bold"><strong>Results:</strong></sp
 | station wagon | 186             |
 | mini-van      | 869             |
 +---------------+-----------------+
-10 rows in set, 15000 hits, 15000 total docs (server: 3ms, total: 38ms)</pre></li></ol></div></div><div class="section" title="4.10.&nbsp;Getting Facet Information Using BROWSE BY Clause"><div class="titlepage"><div><div><h3 class="title"><a name="d0e4464"></a>4.10.&nbsp;Getting Facet Information Using BROWSE BY Clause</h3></div></div></div><p>BQL is designed to support faceted search, so we have to
-      make it possible to get facet information along with the search
-      results. This can be done using the Browse By clause, where you
-      can specify one or more facets for which you want to get the facet
-      count information. For each facet in the BROWSE BY clause, you can
-      optionally include</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>whether the selection is expanded (default false)</p></li><li class="listitem"><p>the minimum number of hit counts (default 1)</p></li><li class="listitem"><p>the maximum number of hit counts (default 10)</p></li><li class="listitem"><p>facet ordering method ("hits" or "value") (default
-          "hits")</p></li></ul></div><p>Here is an example:</p><p><span class="bold"><strong>Query:</strong></span></p><pre class="programlisting">SELECT color, year, tags, price
-FROM cars
-WHERE QUERY IS "cool"
-  AND tags CONTAINS ALL ("cool", "hybrid") EXCEPT ("favorite")
-  AND color in ("red")
-ORDER BY price desc
-LIMIT 0,10
-BROWSE BY color(true, 1, 10, hits), year(true, 1, 10, value), price</pre><p><span class="bold"><strong>Results:</strong></span></p><pre class="programlisting">+-------+----------------------+----------------------------------+-------------------------+
+10 rows in set, 15000 hits, 15000 total docs (server: 3ms, total: 38ms)
+    </pre>
+  </li>
+</ol>
+
+
+<h3>Getting Facet Information Using BROWSE BY Clause</h3>
+
+<p>BQL is designed to support faceted search, so we have to make it
+possible to get facet information along with the search results. This
+can be done using the Browse By clause, where you can specify one or
+more facets for which you want to get the facet count information. For
+each facet in the BROWSE BY clause, you can optionally include</p>
+
+<ul>
+  <li>
+    <p>whether the selection is expanded (default false)</p>
+  </li>
+  <li>
+    <p>the minimum number of hit counts (default 1)</p>
+  </li>
+  <li>
+    <p>the maximum number of hit counts (default 10)</p>
+  </li>
+  <li>
+    <p>facet ordering method ("hits" or "value") (default "hits")</p>
+  </li>
+</ul>
+
+<p>Here is an example:</p>
+
+<p><span class="bold"><strong>Query:</strong></span></p>
+
+<pre>
+SELECT    color, year, tags, price
+FROM      cars
+WHERE     QUERY IS "cool"
+AND       tags CONTAINS ALL ("cool", "hybrid") EXCEPT ("favorite")
+AND       color in ("red")
+ORDER BY  price desc
+LIMIT     0,10
+BROWSE BY color(true, 1, 10, hits), year(true, 1, 10, value), price
+</pre>
+
+<p><span class="bold"><strong>Results:</strong></span></p>
+
+<pre>
++-------+----------------------+----------------------------------+-------------------------+
 | color | year                 | tags                             | price                   |
 +-------+----------------------+----------------------------------+-------------------------+
 | red   | 00000000000000002000 | cool,hybrid,moon-roof,navigation | 00000000000000014500.00 |
@@ -796,28 +1519,45 @@ BROWSE BY color(true, 1, 10, hits), year(true, 1, 10, value), price</pre><p><spa
 | [1997 TO 1998] (10) |
 | [1999 TO 2000] (9)  |
 | [2001 TO 2002] (11) |
-+---------------------+</pre></div><div class="section" title="4.11.&nbsp;Queries with Run-Time Facet Handler Initialization Parameters"><div class="titlepage"><div><div><h3 class="title"><a name="d0e4494"></a>4.11.&nbsp;Queries with Run-Time Facet Handler Initialization
-      Parameters</h3></div></div></div><p>In a faceted search system, a run-time facet handler usually
-      requires initialization parameter(s) to be provided at search time
-      for each query. For example, in a search system that searches
-      LinkedIn shares or Twitter tweets, one or more run-time facets
-      usually require the searcher to provide his/her user Id (or user
-      name) and the time when the search is performed.</p><p>One run-time facet may need multiple initialization
-      parameters, each of which has a different name and/or a different
-      data type. These parameters can be specified in the SELECT
-      statement using the GIVEN FACET PARAM clause. Every parameter is
-      specified in the clause as a 4-tuple,
-      (<span class="emphasis"><em>facet-name</em></span>, <span class="emphasis"><em>param-name</em></span>,
-      <span class="emphasis"><em>param-type</em></span>,
-      <span class="emphasis"><em>param-value</em></span>).</p><div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem"><p><span class="bold"><strong>On a search system for LinkedIn
-          shares, find recent updates from member 12345678 himself
-          (i.e. value 0 for the Network facet) and all his first degree
-          connections (i.e. value 1 for the Network facet) in US:
-          </strong></span></p><pre class="programlisting">SELECT uid, Network, userid, country
-FROM shares
-WHERE country = "us"
-  AND Network in (0, 1)
-GIVEN FACET PARAM (Network, "member_id", int, 12345678)</pre><p><span class="bold"><strong>Results:</strong></span></p><pre class="programlisting">+---------------------+---------+----------------------+---------+
++---------------------+</pre>
+
+<h3>Queries with Run-Time Facet Handler Initialization Parameters</h3>
+
+<p>In a faceted search system, a run-time facet handler usually requires
+initialization parameter(s) to be provided at search time for each
+query. For example, in a search system that searches LinkedIn shares or
+Twitter tweets, one or more run-time facets usually require the searcher
+to provide his/her user Id (or user name) and the time when the search
+is performed.</p>
+
+<p>One run-time facet may need multiple initialization parameters, each
+of which has a different name and/or a different data type. These
+parameters can be specified in the SELECT statement using the GIVEN
+FACET PARAM clause. Every parameter is specified in the clause as a
+4-tuple,
+(<span class="emphasis"><em>facet-name</em></span>, <span class="emphasis"><em>param-name</em></span>,
+<span class="emphasis"><em>param-type</em></span>,
+<span class="emphasis"><em>param-value</em></span>).</p>
+
+<ol>
+  <li>
+    <p><span class="bold"><strong>On a search system for LinkedIn
+    shares, find recent updates from member 12345678 himself (i.e. value
+    0 for the Network facet) and all his first degree connections
+    (i.e. value 1 for the Network facet) in US: </strong></span></p>
+
+    <pre>
+SELECT uid, Network, userid, country
+FROM   shares
+WHERE  country = "us"
+AND    Network in (0, 1)
+GIVEN FACET PARAM (Network, "member_id", int, 12345678)
+    </pre>
+
+    <p><span class="bold"><strong>Results:</strong></span></p>
+
+    <pre>
++---------------------+---------+----------------------+---------+
 | uid                 | Network | userid               | country |
 +---------------------+---------+----------------------+---------+
 | 5527797854963249152 | 0       | 00000000000012345678 | us      |
@@ -832,4 +1572,4 @@ GIVEN FACET PARAM (Network, "member_id", int, 12345678)</pre><p><span class="bol
 | 5527488521884930048 | 0       | 00000000000012345678 | us      |
 +---------------------+---------+----------------------+---------+
 10 rows in set, 14 hits, 10749644 total docs (server: 432ms, total: 472ms)
-</pre>
+    </pre>
