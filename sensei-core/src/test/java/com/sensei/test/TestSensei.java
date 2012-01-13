@@ -857,6 +857,5 @@ public class TestSensei extends TestCase {
         return i;
     }
     return -1;
-  }
-
+  }  
 }

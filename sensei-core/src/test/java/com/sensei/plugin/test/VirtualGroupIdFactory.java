@@ -1,19 +1,11 @@
 package com.sensei.plugin.test;
 
-import java.util.HashSet;
-import java.util.Map;
-
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.facets.data.FacetDataCache;
 import com.browseengine.bobo.facets.data.FacetDataFetcher;
-import com.browseengine.bobo.facets.data.PredefinedTermListFactory;
-import com.browseengine.bobo.facets.data.TermFixedLengthLongArrayListFactory;
-import com.browseengine.bobo.facets.impl.VirtualSimpleFacetHandler;
-import com.sensei.plugin.SenseiPluginFactory;
-import com.sensei.plugin.SenseiPluginRegistry;
 
-public class VirtualGroupIdFactory implements SenseiPluginFactory<VirtualSimpleFacetHandler> {
-  @Override
+public class VirtualGroupIdFactory /*implements SenseiPluginFactory<VirtualSimpleFacetHandler>*/ {
+  /*@Override
   public VirtualSimpleFacetHandler getBean(Map<String, String> initProperties, String fullPrefix,
       SenseiPluginRegistry pluginRegistry) {
     //the decision also can be made by the full prefix
@@ -28,7 +20,7 @@ public class VirtualGroupIdFactory implements SenseiPluginFactory<VirtualSimpleF
       return new VirtualSimpleFacetHandler("virtual_groupid_fixedlengthlongarray", new TermFixedLengthLongArrayListFactory(2), facetDataFetcherFixedLengthLongArray, depends);
     }
     return null;
-  }
+  }*/
 
 
 
