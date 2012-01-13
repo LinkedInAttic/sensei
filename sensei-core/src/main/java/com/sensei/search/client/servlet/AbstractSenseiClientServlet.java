@@ -175,10 +175,10 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
             
             try 
             {
-              jsonObj = _compiler.compile(bqlStmt);
               if (log.isInfoEnabled()){
                 log.info("bql="+bqlStmt);
               }
+              jsonObj = _compiler.compile(bqlStmt);
             }
             catch (RecognitionException e)
             {
