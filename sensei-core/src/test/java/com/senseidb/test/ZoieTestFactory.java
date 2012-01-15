@@ -8,8 +8,8 @@ import proj.zoie.impl.indexing.ZoieConfig;
 import proj.zoie.impl.indexing.ZoieSystem;
 
 import com.browseengine.bobo.api.BoboIndexReader;
-import com.sensei.search.nodes.SenseiIndexReaderDecorator;
-import com.sensei.search.nodes.SenseiZoieSystemFactory;
+import com.senseidb.search.node.SenseiIndexReaderDecorator;
+import com.senseidb.search.node.SenseiZoieSystemFactory;
 
 public class ZoieTestFactory<T> extends SenseiZoieSystemFactory<T> {
 	  

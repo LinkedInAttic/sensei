@@ -10,8 +10,8 @@ import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.api.MultiBoboBrowser;
 import com.linkedin.norbert.network.JavaSerializer;
 import com.linkedin.norbert.network.Serializer;
-import com.sensei.search.nodes.SenseiCore;
-import com.sensei.search.nodes.SenseiQueryBuilderFactory;
+import com.senseidb.search.node.SenseiCore;
+import com.senseidb.search.node.SenseiQueryBuilderFactory;
 import com.senseidb.search.req.SenseiRequest;
 import com.senseidb.search.req.SenseiSystemInfo;
 

@@ -16,8 +16,8 @@ import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.api.BrowseSelection;
 import com.browseengine.bobo.facets.FacetHandler;
 import com.kamikaze.docidset.impl.OrDocIdSet;
-import com.sensei.indexing.api.DefaultSenseiInterpreter;
-import com.sensei.indexing.api.MetaType;
+import com.senseidb.indexing.DefaultSenseiInterpreter;
+import com.senseidb.indexing.MetaType;
 
 public class TimeRetentionFilter extends Filter {
 

@@ -6,13 +6,13 @@ import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 
-import com.sensei.conf.SenseiConfParams;
-import com.sensei.conf.SenseiServerBuilder;
-import com.sensei.search.nodes.SenseiServer;
 import com.senseidb.cluster.routing.MD5HashProvider;
 import com.senseidb.cluster.routing.RingHashLoadBalancerFactory;
 import com.senseidb.cluster.routing.SenseiLoadBalancerFactory;
+import com.senseidb.conf.SenseiConfParams;
+import com.senseidb.conf.SenseiServerBuilder;
 import com.senseidb.plugin.SenseiPluginRegistry;
+import com.senseidb.search.node.SenseiServer;
 import com.senseidb.servlet.DefaultSenseiJSONServlet;
 import com.senseidb.servlet.SenseiConfigServletContextListener;
 

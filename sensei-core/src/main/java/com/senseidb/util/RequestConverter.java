@@ -3,8 +3,8 @@ package com.senseidb.util;
 
 import com.browseengine.bobo.api.BrowseRequest;
 import com.browseengine.bobo.api.BrowseSelection;
-import com.sensei.search.nodes.SenseiQueryBuilder;
-import com.sensei.search.nodes.SenseiQueryBuilderFactory;
+import com.senseidb.search.node.SenseiQueryBuilder;
+import com.senseidb.search.node.SenseiQueryBuilderFactory;
 import com.senseidb.search.req.SenseiRequest;
 
 import java.util.HashMap;

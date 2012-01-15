@@ -9,8 +9,8 @@ import javax.servlet.http.HttpServlet;
 
 import org.apache.commons.configuration.Configuration;
 
-import com.sensei.conf.SenseiConfParams;
 import com.senseidb.cluster.routing.SenseiLoadBalancerFactory;
+import com.senseidb.conf.SenseiConfParams;
 
 public class ZookeeperConfigurableServlet extends HttpServlet {
   

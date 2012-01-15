@@ -8,9 +8,9 @@ import org.json.JSONObject;
 import proj.zoie.impl.indexing.StreamDataProvider;
 import proj.zoie.impl.indexing.ZoieConfig;
 
-import com.sensei.conf.SenseiSchema;
-import com.sensei.indexing.api.DataSourceFilter;
-import com.sensei.indexing.api.ShardingStrategy;
+import com.senseidb.conf.SenseiSchema;
+import com.senseidb.indexing.DataSourceFilter;
+import com.senseidb.indexing.ShardingStrategy;
 import com.senseidb.plugin.AbstractSenseiPlugin;
 import com.senseidb.plugin.SenseiPluginRegistry;
 

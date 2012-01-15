@@ -22,14 +22,14 @@ import org.apache.lucene.document.Field.TermVector;
 import proj.zoie.api.indexing.ZoieIndexable;
 import proj.zoie.api.indexing.ZoieIndexable.IndexingReq;
 
-import com.sensei.indexing.api.DefaultSenseiInterpreter;
-import com.sensei.indexing.api.DeleteChecker;
-import com.sensei.indexing.api.Meta;
-import com.sensei.indexing.api.MetaType;
-import com.sensei.indexing.api.SkipChecker;
-import com.sensei.indexing.api.StoredValue;
-import com.sensei.indexing.api.Text;
-import com.sensei.indexing.api.Uid;
+import com.senseidb.indexing.DefaultSenseiInterpreter;
+import com.senseidb.indexing.DeleteChecker;
+import com.senseidb.indexing.Meta;
+import com.senseidb.indexing.MetaType;
+import com.senseidb.indexing.SkipChecker;
+import com.senseidb.indexing.StoredValue;
+import com.senseidb.indexing.Text;
+import com.senseidb.indexing.Uid;
 
 public class TestIndexingAPI extends TestCase {
 

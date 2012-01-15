@@ -20,10 +20,10 @@ import proj.zoie.api.ZoieIndexReader;
 
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.linkedin.norbert.network.Serializer;
-import com.sensei.search.nodes.SenseiCore;
-import com.sensei.search.nodes.SenseiQueryBuilderFactory;
 import com.senseidb.jmx.JmxUtil;
 import com.senseidb.metrics.MetricsConstants;
+import com.senseidb.search.node.SenseiCore;
+import com.senseidb.search.node.SenseiQueryBuilderFactory;
 import com.senseidb.search.req.AbstractSenseiRequest;
 import com.senseidb.search.req.AbstractSenseiResult;
 import com.yammer.metrics.Metrics;

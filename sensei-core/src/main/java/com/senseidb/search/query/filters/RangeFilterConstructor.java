@@ -19,8 +19,8 @@ import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.facets.filter.FacetRangeFilter;
 import com.browseengine.bobo.query.MatchAllDocIdSetIterator;
-import com.sensei.indexing.api.DefaultSenseiInterpreter;
-import com.sensei.indexing.api.MetaType;
+import com.senseidb.indexing.DefaultSenseiInterpreter;
+import com.senseidb.indexing.MetaType;
 
 public class RangeFilterConstructor extends FilterConstructor
 {
