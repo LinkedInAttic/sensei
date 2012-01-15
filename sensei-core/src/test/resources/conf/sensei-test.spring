@@ -20,7 +20,7 @@
 	   <constructor-arg ref="analyzer" />
 	</bean>
 	
-	<bean id="query-builder-factory" class="com.sensei.search.nodes.impl.SimpleQueryBuilderFactory">
+	<bean id="query-builder-factory" class="com.senseidb.search.node.impl.SimpleQueryBuilderFactory">
 	   <constructor-arg ref="query-parser"/>
 	</bean>
 	
@@ -31,7 +31,7 @@
        </constructor-arg>
     </bean>
     
-    <bean id="indexing-manager" class="com.sensei.search.nodes.impl.NoopIndexingManager"/>
+    <bean id="indexing-manager" class="com.senseidb.search.node.impl.NoopIndexingManager"/>
     
     <bean id="network-server-config" class="com.linkedin.norbert.javacompat.network.NetworkServerConfig">
         <property name="serviceName" value="testCluster"/>
@@ -61,11 +61,11 @@
        <property name="clusterClient" ref="cluster-client" />
     </bean>	
     
-    <bean id="request-rewriter" class="com.sensei.search.nodes.impl.NoopRequestScatterRewriter" />
+    <bean id="request-rewriter" class="com.senseidb.search.node.impl.NoopRequestScatterRewriter" />
     
-    <bean id="router-factory" class="com.sensei.search.cluster.routing.UniformPartitionedRoutingFactory" />
+    <bean id="router-factory" class="com.senseidb.cluster.routing.UniformPartitionedRoutingFactory" />
     
-    <bean id="network-client" class="com.sensei.search.cluster.client.SenseiNetworkClient">
+    <bean id="network-client" class="com.senseidb.cluster.client.SenseiNetworkClient">
         <constructor-arg ref="network-client-config" />
         <constructor-arg>
           <null />
