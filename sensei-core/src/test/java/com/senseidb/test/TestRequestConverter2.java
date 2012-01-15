@@ -1,4 +1,4 @@
-package com.sensei.test;
+package com.senseidb.test;
 
 import static org.junit.Assert.assertTrue;
 

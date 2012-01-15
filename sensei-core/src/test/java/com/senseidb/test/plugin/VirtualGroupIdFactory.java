@@ -1,4 +1,4 @@
-package com.sensei.plugin.test;
+package com.senseidb.test.plugin;
 
 import java.util.HashSet;
 import java.util.Map;

@@ -1,4 +1,4 @@
-package com.sensei.bql.parsers;
+package com.senseidb.test.bql.parsers;
 
 /* EXPERIMENTAL (really) */
 /* Copyright (c) 2009 Google Inc.

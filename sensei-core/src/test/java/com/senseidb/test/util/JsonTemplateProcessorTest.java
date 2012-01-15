@@ -1,4 +1,4 @@
-package com.sensei.search.util;
+package com.senseidb.test.util;
 
 import junit.framework.TestCase;
 
@@ -6,6 +6,8 @@ import org.apache.commons.io.IOUtils;
 import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
+
+import com.sensei.search.util.JsonTemplateProcessor;
 
 
 

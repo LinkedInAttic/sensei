@@ -1,4 +1,4 @@
-package com.sensei.bql.parsers;
+package com.senseidb.test.bql.parsers;
 
 import java.util.Map;
 import java.util.HashMap;
@@ -10,6 +10,8 @@ import org.junit.Test;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONException;
+
+import com.sensei.bql.parsers.BQLCompiler;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;

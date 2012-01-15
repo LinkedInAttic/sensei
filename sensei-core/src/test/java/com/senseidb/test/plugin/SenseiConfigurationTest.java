@@ -1,4 +1,4 @@
-package com.sensei.plugin;
+package com.senseidb.test.plugin;
 
 import java.util.List;
 
@@ -13,7 +13,7 @@ import org.junit.Test;
 import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.facets.impl.SimpleFacetHandler;
 import com.browseengine.bobo.facets.impl.VirtualSimpleFacetHandler;
-import com.sensei.plugin.test.MyCustomRouterFactory;
+import com.sensei.plugin.SenseiPluginRegistry;
 
 public class SenseiConfigurationTest extends Assert {
   private PropertiesConfiguration configuration;

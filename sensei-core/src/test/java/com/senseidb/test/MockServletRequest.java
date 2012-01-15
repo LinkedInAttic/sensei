@@ -1,4 +1,4 @@
-package com.sensei.test;
+package com.senseidb.test;
 
 
 import java.io.BufferedReader;
