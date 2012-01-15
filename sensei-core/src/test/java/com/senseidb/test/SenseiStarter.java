@@ -14,16 +14,16 @@ import com.linkedin.norbert.NorbertException;
 import com.linkedin.norbert.javacompat.cluster.ClusterClient;
 import com.linkedin.norbert.javacompat.network.NetworkServer;
 import com.sensei.conf.SenseiServerBuilder;
-import com.sensei.search.cluster.client.SenseiNetworkClient;
-import com.sensei.search.cluster.routing.SenseiLoadBalancerFactory;
 import com.sensei.search.nodes.SenseiBroker;
 import com.sensei.search.nodes.SenseiRequestScatterRewriter;
 import com.sensei.search.nodes.SenseiServer;
 import com.sensei.search.nodes.SenseiZoieFactory;
-import com.sensei.search.req.SenseiRequest;
-import com.sensei.search.req.SenseiResult;
-import com.sensei.search.svc.api.SenseiService;
-import com.sensei.search.svc.impl.HttpRestSenseiServiceImpl;
+import com.senseidb.cluster.client.SenseiNetworkClient;
+import com.senseidb.cluster.routing.SenseiLoadBalancerFactory;
+import com.senseidb.search.req.SenseiRequest;
+import com.senseidb.search.req.SenseiResult;
+import com.senseidb.svc.api.SenseiService;
+import com.senseidb.svc.impl.HttpRestSenseiServiceImpl;
 
 /**
  * Embeds all the logic for starting the test Sensei instance

@@ -8,8 +8,8 @@ import java.util.Map;
 import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.facets.data.PredefinedTermListFactory;
 import com.browseengine.bobo.facets.impl.SimpleFacetHandler;
-import com.sensei.plugin.SenseiPluginFactory;
-import com.sensei.plugin.SenseiPluginRegistry;
+import com.senseidb.plugin.SenseiPluginFactory;
+import com.senseidb.plugin.SenseiPluginRegistry;
 
 public class OtherCustomFacetsFactory implements SenseiPluginFactory<List<FacetHandler<?>>>{
 

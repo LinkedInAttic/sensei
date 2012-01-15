@@ -6,29 +6,24 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.http.NameValuePair;
-import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.log4j.Logger;
 import org.apache.lucene.document.Document;
 
+import proj.zoie.api.indexing.AbstractZoieIndexable;
+
 import com.browseengine.bobo.api.FacetSpec;
 import com.linkedin.norbert.NorbertException;
-import com.linkedin.norbert.network.Serializer;
 import com.linkedin.norbert.javacompat.cluster.ClusterClient;
 import com.linkedin.norbert.javacompat.cluster.Node;
 import com.linkedin.norbert.javacompat.network.PartitionedNetworkClient;
 import com.sensei.conf.SenseiSchema;
 import com.sensei.indexing.api.DefaultJsonSchemaInterpreter;
 import com.sensei.search.client.ResultMerger;
-import com.sensei.search.cluster.routing.SenseiLoadBalancerFactory;
-import com.sensei.search.req.SenseiHit;
-import com.sensei.search.req.SenseiRequest;
-import com.sensei.search.req.SenseiResult;
-import com.sensei.search.svc.api.SenseiException;
-import com.sensei.search.svc.impl.CoreSenseiServiceImpl;
-import com.sensei.search.svc.impl.HttpRestSenseiServiceImpl;
-
-import proj.zoie.api.indexing.AbstractZoieIndexable;
+import com.senseidb.cluster.routing.SenseiLoadBalancerFactory;
+import com.senseidb.search.req.SenseiHit;
+import com.senseidb.search.req.SenseiRequest;
+import com.senseidb.search.req.SenseiResult;
+import com.senseidb.svc.impl.CoreSenseiServiceImpl;
 
 /**
  * This SenseiBroker routes search(browse) request using the routers created by

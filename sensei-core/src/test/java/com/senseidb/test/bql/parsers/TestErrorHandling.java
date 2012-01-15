@@ -11,7 +11,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONException;
 
-import com.sensei.bql.parsers.BQLCompiler;
+import com.senseidb.bql.parsers.BQLCompiler;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;

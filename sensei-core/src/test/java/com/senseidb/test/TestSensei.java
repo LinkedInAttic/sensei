@@ -25,10 +25,10 @@ import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
 import com.browseengine.bobo.facets.DefaultFacetHandlerInitializerParam;
 import com.sensei.search.nodes.SenseiBroker;
-import com.sensei.search.req.SenseiHit;
-import com.sensei.search.req.SenseiRequest;
-import com.sensei.search.req.SenseiResult;
-import com.sensei.search.svc.api.SenseiService;
+import com.senseidb.search.req.SenseiHit;
+import com.senseidb.search.req.SenseiRequest;
+import com.senseidb.search.req.SenseiResult;
+import com.senseidb.svc.api.SenseiService;
 
 public class TestSensei extends TestCase {
 

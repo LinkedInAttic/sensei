@@ -28,11 +28,11 @@ import proj.zoie.mbean.DataProviderAdminMBean;
 
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.sensei.conf.SenseiSchema;
-import com.sensei.indexing.api.gateway.SenseiGateway;
-import com.sensei.metrics.MetricsConstants;
-import com.sensei.plugin.SenseiPluginRegistry;
-import com.sensei.search.jmx.JmxUtil;
 import com.sensei.search.nodes.SenseiIndexingManager;
+import com.senseidb.gateway.SenseiGateway;
+import com.senseidb.jmx.JmxUtil;
+import com.senseidb.metrics.MetricsConstants;
+import com.senseidb.plugin.SenseiPluginRegistry;
 import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.MeterMetric;
 import com.yammer.metrics.core.MetricName;

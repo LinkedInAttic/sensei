@@ -1,6 +1,6 @@
 package com.sensei.search.nodes;
 
-import com.sensei.search.req.SenseiQuery;
+import com.senseidb.search.req.SenseiQuery;
 
 public interface SenseiQueryBuilderFactory
 {

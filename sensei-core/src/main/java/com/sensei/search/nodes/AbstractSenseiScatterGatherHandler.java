@@ -10,8 +10,8 @@ import org.apache.log4j.Logger;
 import com.linkedin.norbert.javacompat.cluster.Node;
 import com.linkedin.norbert.network.ResponseIterator;
 import com.linkedin.norbert.javacompat.network.ScatterGatherHandler;
-import com.sensei.search.req.AbstractSenseiRequest;
-import com.sensei.search.req.AbstractSenseiResult;
+import com.senseidb.search.req.AbstractSenseiRequest;
+import com.senseidb.search.req.AbstractSenseiResult;
 
 public abstract class AbstractSenseiScatterGatherHandler<REQUEST extends AbstractSenseiRequest, RESULT extends AbstractSenseiResult>
     implements ScatterGatherHandler<REQUEST, RESULT, RESULT, Integer>

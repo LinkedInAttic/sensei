@@ -8,13 +8,13 @@ import javax.servlet.ServletException;
 
 import com.sensei.conf.SenseiConfParams;
 import com.sensei.conf.SenseiServerBuilder;
-import com.sensei.plugin.SenseiPluginRegistry;
-import com.sensei.search.client.servlet.DefaultSenseiJSONServlet;
-import com.sensei.search.client.servlet.SenseiConfigServletContextListener;
-import com.sensei.search.cluster.routing.MD5HashProvider;
-import com.sensei.search.cluster.routing.RingHashLoadBalancerFactory;
-import com.sensei.search.cluster.routing.SenseiLoadBalancerFactory;
 import com.sensei.search.nodes.SenseiServer;
+import com.senseidb.cluster.routing.MD5HashProvider;
+import com.senseidb.cluster.routing.RingHashLoadBalancerFactory;
+import com.senseidb.cluster.routing.SenseiLoadBalancerFactory;
+import com.senseidb.plugin.SenseiPluginRegistry;
+import com.senseidb.servlet.DefaultSenseiJSONServlet;
+import com.senseidb.servlet.SenseiConfigServletContextListener;
 
 public class SenseiNodeServlet extends DefaultSenseiJSONServlet {
 

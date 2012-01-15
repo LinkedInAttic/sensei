@@ -7,7 +7,7 @@ import com.browseengine.bobo.api.BrowseSelection;
 import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.facets.filter.EmptyFilter;
 import com.browseengine.bobo.facets.filter.RandomAccessFilter;
-import com.sensei.search.req.SenseiRequest;
+import com.senseidb.search.req.SenseiRequest;
 
 public interface SenseiIndexPruner {
 	

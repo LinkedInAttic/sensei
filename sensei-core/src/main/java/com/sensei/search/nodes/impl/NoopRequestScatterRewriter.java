@@ -4,7 +4,7 @@ import java.util.Set;
 
 import com.linkedin.norbert.javacompat.cluster.Node;
 import com.sensei.search.nodes.SenseiRequestScatterRewriter;
-import com.sensei.search.req.SenseiRequest;
+import com.senseidb.search.req.SenseiRequest;
 
 public class NoopRequestScatterRewriter implements SenseiRequestScatterRewriter
 {

@@ -3,17 +3,16 @@ package com.sensei.search.nodes;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.Set;
 
 import org.apache.log4j.Logger;
 
@@ -21,12 +20,11 @@ import com.linkedin.norbert.NorbertException;
 import com.linkedin.norbert.javacompat.cluster.ClusterClient;
 import com.linkedin.norbert.javacompat.cluster.Node;
 import com.linkedin.norbert.javacompat.network.PartitionedNetworkClient;
-import com.linkedin.norbert.network.Serializer;
-import com.sensei.search.cluster.routing.RoutingInfo;
-import com.sensei.search.cluster.routing.SenseiLoadBalancerFactory;
-import com.sensei.search.req.SenseiRequest;
-import com.sensei.search.req.SenseiSystemInfo;
-import com.sensei.search.svc.impl.SysSenseiCoreServiceImpl;
+import com.senseidb.cluster.routing.RoutingInfo;
+import com.senseidb.cluster.routing.SenseiLoadBalancerFactory;
+import com.senseidb.search.req.SenseiRequest;
+import com.senseidb.search.req.SenseiSystemInfo;
+import com.senseidb.svc.impl.SysSenseiCoreServiceImpl;
 
 public class SenseiSysBroker extends AbstractConsistentHashBroker<SenseiRequest, SenseiSystemInfo>
 {

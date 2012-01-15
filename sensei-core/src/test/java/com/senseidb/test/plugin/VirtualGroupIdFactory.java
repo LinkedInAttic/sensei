@@ -9,8 +9,8 @@ import com.browseengine.bobo.facets.data.FacetDataFetcher;
 import com.browseengine.bobo.facets.data.PredefinedTermListFactory;
 import com.browseengine.bobo.facets.data.TermFixedLengthLongArrayListFactory;
 import com.browseengine.bobo.facets.impl.VirtualSimpleFacetHandler;
-import com.sensei.plugin.SenseiPluginFactory;
-import com.sensei.plugin.SenseiPluginRegistry;
+import com.senseidb.plugin.SenseiPluginFactory;
+import com.senseidb.plugin.SenseiPluginRegistry;
 
 public class VirtualGroupIdFactory implements SenseiPluginFactory<VirtualSimpleFacetHandler> {
   @Override

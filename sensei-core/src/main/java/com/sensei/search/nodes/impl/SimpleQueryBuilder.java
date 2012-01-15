@@ -8,7 +8,7 @@ import org.apache.lucene.search.Filter;
 import org.apache.lucene.search.Query;
 
 import com.sensei.search.nodes.SenseiQueryBuilder;
-import com.sensei.search.req.SenseiQuery;
+import com.senseidb.search.req.SenseiQuery;
 
 public class SimpleQueryBuilder implements SenseiQueryBuilder
 {

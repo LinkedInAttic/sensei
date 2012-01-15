@@ -32,14 +32,14 @@ import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.api.MappedFacetAccessible;
 import com.browseengine.bobo.facets.DefaultFacetHandlerInitializerParam;
 import com.browseengine.bobo.facets.FacetHandlerInitializerParam;
-import com.sensei.search.client.servlet.DefaultSenseiJSONServlet;
-import com.sensei.search.req.SenseiHit;
-import com.sensei.search.req.SenseiJSONQuery;
-import com.sensei.search.req.SenseiQuery;
-import com.sensei.search.req.SenseiRequest;
-import com.sensei.search.req.SenseiResult;
-import com.sensei.search.svc.api.SenseiException;
-import com.sensei.search.svc.impl.HttpRestSenseiServiceImpl;
+import com.senseidb.search.req.SenseiHit;
+import com.senseidb.search.req.SenseiJSONQuery;
+import com.senseidb.search.req.SenseiQuery;
+import com.senseidb.search.req.SenseiRequest;
+import com.senseidb.search.req.SenseiResult;
+import com.senseidb.servlet.DefaultSenseiJSONServlet;
+import com.senseidb.svc.api.SenseiException;
+import com.senseidb.svc.impl.HttpRestSenseiServiceImpl;
 
 
 public class TestHttpRestSenseiServiceImpl extends TestCase

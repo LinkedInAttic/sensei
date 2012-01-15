@@ -1,13 +1,9 @@
 package com.sensei.search.nodes;
 
 import java.io.File;
-import java.io.FilenameFilter;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.HashSet;
 import java.util.List;
 
@@ -24,14 +20,14 @@ import com.linkedin.norbert.javacompat.cluster.Node;
 import com.linkedin.norbert.javacompat.network.NetworkServer;
 import com.linkedin.norbert.network.NetworkingException;
 import com.sensei.conf.SenseiServerBuilder;
-import com.sensei.plugin.SenseiPluginRegistry;
-import com.sensei.search.jmx.JmxUtil;
-import com.sensei.search.req.AbstractSenseiRequest;
-import com.sensei.search.req.AbstractSenseiResult;
-import com.sensei.search.svc.impl.AbstractSenseiCoreService;
-import com.sensei.search.svc.impl.CoreSenseiServiceImpl;
-import com.sensei.search.svc.impl.SenseiCoreServiceMessageHandler;
-import com.sensei.search.svc.impl.SysSenseiCoreServiceImpl;
+import com.senseidb.jmx.JmxUtil;
+import com.senseidb.plugin.SenseiPluginRegistry;
+import com.senseidb.search.req.AbstractSenseiRequest;
+import com.senseidb.search.req.AbstractSenseiResult;
+import com.senseidb.svc.impl.AbstractSenseiCoreService;
+import com.senseidb.svc.impl.CoreSenseiServiceImpl;
+import com.senseidb.svc.impl.SenseiCoreServiceMessageHandler;
+import com.senseidb.svc.impl.SysSenseiCoreServiceImpl;
 
 
 public class SenseiServer {

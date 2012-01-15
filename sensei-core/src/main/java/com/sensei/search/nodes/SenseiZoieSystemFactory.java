@@ -18,7 +18,7 @@ import proj.zoie.impl.indexing.ZoieConfig;
 import proj.zoie.impl.indexing.ZoieSystem;
 
 import com.browseengine.bobo.api.BoboIndexReader;
-import com.sensei.metrics.MetricsConstants;
+import com.senseidb.metrics.MetricsConstants;
 import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.HistogramMetric;
 import com.yammer.metrics.core.MeterMetric;

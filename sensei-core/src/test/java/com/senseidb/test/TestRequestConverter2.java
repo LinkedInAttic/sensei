@@ -18,8 +18,8 @@ import org.junit.Test;
 
 import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
 import com.browseengine.bobo.facets.FacetHandlerInitializerParam;
-import com.sensei.search.req.SenseiRequest;
-import com.sensei.search.util.RequestConverter2;
+import com.senseidb.search.req.SenseiRequest;
+import com.senseidb.util.RequestConverter2;
 
 public class TestRequestConverter2
 {

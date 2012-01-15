@@ -8,7 +8,7 @@ import junit.framework.TestCase;
 import org.apache.commons.configuration.BaseConfiguration;
 import org.apache.commons.configuration.Configuration;
 
-import com.sensei.search.util.RequestConverter;
+import com.senseidb.util.RequestConverter;
 
 public class TestRestServer extends TestCase{
 

@@ -8,8 +8,8 @@ import org.apache.log4j.Logger;
 
 import com.google.protobuf.Message;
 import com.linkedin.norbert.javacompat.cluster.Node;
-import com.sensei.search.req.SenseiRequest;
-import com.sensei.search.req.SenseiSystemInfo;
+import com.senseidb.search.req.SenseiRequest;
+import com.senseidb.search.req.SenseiSystemInfo;
 
 public class SenseiSysScatterGatherHandler extends AbstractSenseiScatterGatherHandler<SenseiRequest, SenseiSystemInfo>
 {

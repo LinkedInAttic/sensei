@@ -8,9 +8,9 @@ import com.google.protobuf.Message;
 import com.linkedin.norbert.NorbertException;
 import com.linkedin.norbert.javacompat.cluster.ClusterListener;
 import com.linkedin.norbert.javacompat.network.PartitionedNetworkClient;
-import com.sensei.search.req.AbstractSenseiRequest;
-import com.sensei.search.req.AbstractSenseiResult;
-import com.sensei.search.svc.api.SenseiException;
+import com.senseidb.search.req.AbstractSenseiRequest;
+import com.senseidb.search.req.AbstractSenseiResult;
+import com.senseidb.svc.api.SenseiException;
 
 /**
  * @author "Xiaoyang Gu<xgu@linkedin.com>"

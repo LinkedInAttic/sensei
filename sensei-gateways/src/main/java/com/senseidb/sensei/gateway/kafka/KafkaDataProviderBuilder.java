@@ -10,7 +10,7 @@ import proj.zoie.impl.indexing.ZoieConfig;
 
 import com.sensei.indexing.api.DataSourceFilter;
 import com.sensei.indexing.api.ShardingStrategy;
-import com.sensei.indexing.api.gateway.SenseiGateway;
+import com.senseidb.gateway.SenseiGateway;
 
 public class KafkaDataProviderBuilder extends SenseiGateway<byte[]>{
 

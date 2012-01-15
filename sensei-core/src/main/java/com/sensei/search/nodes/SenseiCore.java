@@ -19,8 +19,8 @@ import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.facets.RuntimeFacetHandlerFactory;
 import com.sensei.indexing.api.SenseiIndexPruner;
 import com.sensei.indexing.api.SenseiIndexPruner.DefaultSenseiIndexPruner;
-import com.sensei.search.jmx.JmxUtil;
-import com.sensei.search.req.SenseiSystemInfo;
+import com.senseidb.jmx.JmxUtil;
+import com.senseidb.search.req.SenseiSystemInfo;
 
 
 public class SenseiCore{

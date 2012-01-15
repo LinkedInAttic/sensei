@@ -10,8 +10,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.sensei.search.nodes.SenseiQueryBuilder;
-import com.sensei.search.query.QueryConstructor;
-import com.sensei.search.query.filters.FilterConstructor;
+import com.senseidb.search.query.QueryConstructor;
+import com.senseidb.search.query.filters.FilterConstructor;
 
 public class DefaultJsonQueryBuilderFactory extends
     AbstractJsonQueryBuilderFactory {

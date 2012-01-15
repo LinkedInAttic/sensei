@@ -3,8 +3,8 @@ package com.senseidb.test;
 import org.apache.log4j.Logger;
 
 import com.linkedin.norbert.javacompat.network.RequestHandler;
-import com.sensei.search.req.SenseiGenericRequest;
-import com.sensei.search.req.SenseiGenericResult;
+import com.senseidb.search.req.SenseiGenericRequest;
+import com.senseidb.search.req.SenseiGenericResult;
 
 public class GenericMessageHandler implements RequestHandler<SenseiGenericRequest, SenseiGenericResult>
 {

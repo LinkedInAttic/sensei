@@ -32,9 +32,9 @@ import com.browseengine.bobo.facets.impl.PathFacetHandler;
 import com.browseengine.bobo.facets.impl.RangeFacetHandler;
 import com.browseengine.bobo.facets.impl.SimpleFacetHandler;
 import com.sensei.indexing.api.DefaultSenseiInterpreter;
-import com.sensei.plugin.SenseiPluginRegistry;
-import com.sensei.search.facet.UIDFacetHandler;
-import com.sensei.search.req.SenseiSystemInfo;
+import com.senseidb.plugin.SenseiPluginRegistry;
+import com.senseidb.search.facet.UIDFacetHandler;
+import com.senseidb.search.req.SenseiSystemInfo;
 
 public class SenseiFacetHandlerBuilder {
 

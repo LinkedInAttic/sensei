@@ -4,7 +4,7 @@ import org.json.JSONObject;
 
 import com.sensei.search.nodes.SenseiQueryBuilder;
 import com.sensei.search.nodes.SenseiQueryBuilderFactory;
-import com.sensei.search.req.SenseiQuery;
+import com.senseidb.search.req.SenseiQuery;
 
 public abstract class AbstractJsonQueryBuilderFactory implements
 		SenseiQueryBuilderFactory {

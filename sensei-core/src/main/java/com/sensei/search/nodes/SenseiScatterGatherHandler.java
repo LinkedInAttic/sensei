@@ -14,9 +14,9 @@ import org.apache.lucene.document.Document;
 
 import com.sensei.conf.SenseiSchema;
 import com.sensei.search.client.ResultMerger;
-import com.sensei.search.req.SenseiHit;
-import com.sensei.search.req.SenseiRequest;
-import com.sensei.search.req.SenseiResult;
+import com.senseidb.search.req.SenseiHit;
+import com.senseidb.search.req.SenseiRequest;
+import com.senseidb.search.req.SenseiResult;
 
 public class SenseiScatterGatherHandler extends AbstractSenseiScatterGatherHandler<SenseiRequest, SenseiResult>
 {

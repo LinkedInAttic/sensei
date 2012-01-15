@@ -7,7 +7,7 @@ import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.sensei.search.util.JsonTemplateProcessor;
+import com.senseidb.util.JsonTemplateProcessor;
 
 
 

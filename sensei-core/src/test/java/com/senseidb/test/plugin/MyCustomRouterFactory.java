@@ -2,8 +2,8 @@ package com.senseidb.test.plugin;
 
 import java.util.Map;
 
-import com.sensei.plugin.SenseiPlugin;
-import com.sensei.plugin.SenseiPluginRegistry;
+import com.senseidb.plugin.SenseiPlugin;
+import com.senseidb.plugin.SenseiPluginRegistry;
 
 public class MyCustomRouterFactory implements SenseiPlugin {
 

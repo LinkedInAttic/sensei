@@ -20,8 +20,8 @@ import proj.zoie.impl.indexing.StreamDataProvider;
 
 import com.sensei.indexing.api.DataSourceFilter;
 import com.sensei.indexing.api.ShardingStrategy;
-import com.sensei.indexing.api.gateway.SenseiGateway;
-import com.sensei.plugin.SenseiPluginRegistry;
+import com.senseidb.gateway.SenseiGateway;
+import com.senseidb.plugin.SenseiPluginRegistry;
 
 public class JdbcDataProviderBuilder extends SenseiGateway<ResultSet>{
 

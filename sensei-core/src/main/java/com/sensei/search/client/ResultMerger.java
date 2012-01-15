@@ -36,9 +36,9 @@ import com.browseengine.bobo.facets.data.PrimitiveLongArrayWrapper;
 import com.browseengine.bobo.sort.SortCollector;
 import com.browseengine.bobo.sort.SortCollector.CollectorContext;
 import com.browseengine.bobo.util.ListMerger;
-import com.sensei.search.req.SenseiHit;
-import com.sensei.search.req.SenseiRequest;
-import com.sensei.search.req.SenseiResult;
+import com.senseidb.search.req.SenseiHit;
+import com.senseidb.search.req.SenseiRequest;
+import com.senseidb.search.req.SenseiResult;
 
 public class ResultMerger
 {
