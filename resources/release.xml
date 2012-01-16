@@ -31,7 +31,7 @@
 	      <directory>sensei-core/src/main/webapp</directory>
 	      <outputDirectory>sensei-core/src/main/webapp</outputDirectory>
 	      <includes>
-	        <include>*.*</include>
+	        <include>**</include>
 	      </includes>
 	    </fileSet>
 		<fileSet>
