@@ -11,7 +11,7 @@
   <classpathentry kind="var" path="M2_REPO/org/antlr/antlr/3.4/antlr-3.4.jar" sourcepath="M2_REPO/org/antlr/antlr/3.4/antlr-3.4-sources.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/antlr/antlr-runtime/3.4/antlr-runtime-3.4.jar" sourcepath="M2_REPO/org/antlr/antlr-runtime/3.4/antlr-runtime-3.4-sources.jar"/>
   <classpathentry kind="var" path="M2_REPO/aopalliance/aopalliance/1.0/aopalliance-1.0.jar" sourcepath="M2_REPO/aopalliance/aopalliance/1.0/aopalliance-1.0-sources.jar"/>
-  <classpathentry kind="var" path="M2_REPO/com/browseengine/bobo/bobo-browse/3.0.0-SNAPSHOT/bobo-browse-3.0.0-SNAPSHOT.jar"/>
+  <classpathentry kind="var" path="M2_REPO/com/browseengine/bobo/bobo-browse/3.0.0-SNAPSHOT/bobo-browse-3.0.0-SNAPSHOT.jar" sourcepath="M2_REPO/com/browseengine/bobo/bobo-browse/3.0.0-SNAPSHOT/bobo-browse-3.0.0-SNAPSHOT-sources.jar"/>
   <classpathentry kind="var" path="M2_REPO/commons-beanutils/commons-beanutils/1.7.0/commons-beanutils-1.7.0.jar" sourcepath="M2_REPO/commons-beanutils/commons-beanutils/1.7.0/commons-beanutils-1.7.0-sources.jar"/>
   <classpathentry kind="var" path="M2_REPO/commons-beanutils/commons-beanutils-core/1.8.0/commons-beanutils-core-1.8.0.jar"/>
   <classpathentry kind="var" path="M2_REPO/commons-cli/commons-cli/1.2/commons-cli-1.2.jar" sourcepath="M2_REPO/commons-cli/commons-cli/1.2/commons-cli-1.2-sources.jar"/>

@@ -142,4 +142,16 @@ public class TwitterSampleStreamer extends StreamDataProvider<JSONObject> {
 
   }
 
+  @Override
+  public void stop() {
+    try{
+      _tweetReader.close();
+    }
+    catch(Exception e){
+      logger.error(e.getMessage(),e);
+    }
+    finally{
+      super.stop();
+    }
+  }
 }

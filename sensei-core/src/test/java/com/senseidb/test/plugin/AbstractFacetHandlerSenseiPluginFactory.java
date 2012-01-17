@@ -1,0 +1,46 @@
+package com.senseidb.test.plugin;
+
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
+import com.browseengine.bobo.facets.FacetHandler;
+import com.senseidb.plugin.SenseiPluginFactory;
+import com.senseidb.plugin.SenseiPluginRegistry;
+
+public abstract class AbstractFacetHandlerSenseiPluginFactory implements SenseiPluginFactory<FacetHandler>
+{
+  public static final String DEPENDS = "depends";
+
+  public String getFacetName(String fullPrefix)
+  {
+    if (fullPrefix == null)
+      return null;
+
+    String[] parts = fullPrefix.split("\\.");
+    return parts[parts.length - 1];
+  }
+
+  public Set<String> getDepends(Map<String, String> initProperties)
+  {
+    Set<String> depends = new HashSet<String>();
+
+    String val = initProperties.get(DEPENDS);
+    if (val != null)
+    {
+      for (String depend : val.split(","))
+      {
+        depend = depend.trim();
+        if (depend.length() != 0)
+          depends.add(depend);
+      }
+    }
+
+    return depends;
+  }
+
+  @Override
+  public abstract FacetHandler getBean(Map<String,String> initProperties,
+                                       String fullPrefix,
+                                       SenseiPluginRegistry pluginRegistry);
+}
