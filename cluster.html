@@ -88,9 +88,9 @@ title: SenseiDB - Cluster Overview
 </p>
 <h4>Sharding Strategy</h4>
 <p>
-	At indexing time, the <a href="javadoc/sensei-core/apidocs/com/sensei/indexing/api/ShardingStrategy.html">ShardingStrategy</a> is applied from the data events streamed-in from the gateway for each node. So only data-events belong to a specific shard is added. ShardingStrategy can be configured with <code>sensei.sharding.strategy</code> setting in the <code>sensei.properties</code> file.
+	At indexing time, the <a href="javadoc/sensei-core/apidocs/com/senseidb/indexing/ShardingStrategy.html">ShardingStrategy</a> is applied from the data events streamed-in from the gateway for each node. So only data-events belong to a specific shard is added. ShardingStrategy can be configured with <code>sensei.sharding.strategy</code> setting in the <code>sensei.properties</code> file.
 </p>
 <h4>Load Balancer Factory</h4>
 <p>
-	At query time, the broker uses the <a href="javadoc/sensei-core/apidocs/com/sensei/search/cluster/routing/SenseiLoadBalancerFactory.html">SenseiLoadBalancerFactory</a> to get a <a href="javadoc/sensei-core/apidocs/com/sensei/search/cluster/routing/SenseiLoadBalancer.html">SenseiLoadBalancer</a> and generates a routing map to get a list of nodes to send the requests to. By default, broker uses <a href="http://en.wikipedia.org/wiki/Consistent_hashing" target="_blank">consistent hash</a> on the <code>routing parameter</code> provided by the request. <code>Load balancer factory</code> can be configured with <code>sensei.search.router.factory</code> setting in the <code>sensei.properties</code> file.
+	At query time, the broker uses the <a href="javadoc/sensei-core/apidocs/com/senseidb/cluster/routing/SenseiLoadBalancerFactory.html">SenseiLoadBalancerFactory</a> to get a <a href="javadoc/sensei-core/apidocs/com/senseidb/cluster/routing/SenseiLoadBalancer.html">SenseiLoadBalancer</a> and generates a routing map to get a list of nodes to send the requests to. By default, broker uses <a href="http://en.wikipedia.org/wiki/Consistent_hashing" target="_blank">consistent hash</a> on the <code>routing parameter</code> provided by the request. <code>Load balancer factory</code> can be configured with <code>sensei.search.router.factory</code> setting in the <code>sensei.properties</code> file.
 </p>

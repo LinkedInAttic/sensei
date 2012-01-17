@@ -1,0 +1,3 @@
+com.senseidb.gateway.jdbc
+com.senseidb.gateway.jms
+com.senseidb.gateway.kafka

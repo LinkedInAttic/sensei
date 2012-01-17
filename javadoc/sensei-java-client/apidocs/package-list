@@ -1,6 +1,6 @@
-com.sensei.search.client.json
-com.sensei.search.client.json.req
-com.sensei.search.client.json.req.filter
-com.sensei.search.client.json.req.query
-com.sensei.search.client.json.req.query.span
-com.sensei.search.client.json.res
+com.senseidb.search.client.json
+com.senseidb.search.client.json.req
+com.senseidb.search.client.json.req.filter
+com.senseidb.search.client.json.req.query
+com.senseidb.search.client.json.req.query.span
+com.senseidb.search.client.json.res

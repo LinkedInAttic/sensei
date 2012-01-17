@@ -276,7 +276,7 @@ sensei.index.freshness = 5
 sensei.index.manager.default.maxpartition.id = 1
 
 # gateway information
-sensei.gateway.class=com.sensei.indexing.api.gateway.file.LinedFileDataProviderBuilder
+sensei.gateway.class=com.senseidb.gateway.file.LinedFileDataProviderBuilder
 sensei.gateway.file.path = example/cars/data/cars.json
 
 # index manager parameters
@@ -296,13 +296,13 @@ sensei.search.cluster.network.stale.timeout.mins = 10
 sensei.search.cluster.network.stale.cleanup.freq.mins = 10
 
 # custom router factory
-# sensei.search.router.factory.class = com.sensei.plugin.example.myRouterFactory
+# sensei.search.router.factory.class = com.senseidb.plugin.example.myRouterFactory
 </pre><p>Let's take a brief look, how the class properties are loaded into
     Sensei.</p><div class="section" title="Sensei plugin infrastructure"><div class="titlepage"><div><div><h3 class="title"><a name="d0e651"></a>Sensei plugin infrastructure</h3></div></div></div><div class="section" title="Loading class properties"><div class="titlepage"><div><div><h4 class="title"><a name="d0e654"></a>Loading class properties</h4></div></div></div><p>On the startup Sensei will scan the config for all the
         properties with the suffix '.class'. It will try to load the specified
         classes from its classpath and instantiate it by calling the no-arg
         constructor. If the instantiated object implements the
-        com.sensei.plugin.SenseiPlugin interface, the init and the start
+        com.senseidb.plugin.SenseiPlugin interface, the init and the start
         callback methods would be called</p><pre class="prettyprint">public interface SenseiPlugin {
      public void init(Map&lt;String, String&gt; config);
      public void start();
@@ -310,10 +310,10 @@ sensei.search.cluster.network.stale.cleanup.freq.mins = 10
 }</pre><p>The config properties are taken from the sensei.properties and
         they should have the same prefix as the corresponding key with the
         '.class' suffix</p><pre class="prettyprint">#Custom implementation of the sensei load balancer strategy
-sensei.search.router.factory.class=com.sensei.plugin.example.MyCustomRouterFactory
+sensei.search.router.factory.class=com.senseidb.plugin.example.MyCustomRouterFactory
 sensei.search.router.factory.customType=round-robin	  </pre><p>Sometimes we would need to provide a reference of the class that
         doesn't have the no-arg default constructor We may implement the
-        SenseiPluginFactory interface for this: in the config:</p><pre class="prettyprint">sensei.index.analyzer.class = com.sensei.plugin.example.LuceneStandardAnalyzerFactory
+        SenseiPluginFactory interface for this: in the config:</p><pre class="prettyprint">sensei.index.analyzer.class = com.senseidb.plugin.example.LuceneStandardAnalyzerFactory
 sensei.index.analyzer.version = LUCENE_34	</pre><p>in the code:</p><pre class="prettyprint">public class LuceneStandardAnalyzerFactory implements SenseiPluginFactory&lt;StandardAnalyzer&gt; {
     @Override
     public StandardAnalyzer getBean(Map&lt;String, String&gt; initProperties, String fullPrefix, SenseiPluginRegistry pluginRegistry) {
@@ -343,13 +343,13 @@ public class SimpleFacetHandlerFactory implements SenseiPluginFactory&lt;SimpleF
     return new SimpleFacetHandler(initProperties.get("facetName"), initProperties.get("fieldName"), null, Collections.EMPTY_SET);
   }
 }  </pre><p>And as the last step it needs to be wired together in the
-        sensei.properties:</p><pre class="prettyprint">my.custom_facets.virtual_groupids.class=com.sensei.plugin.example.VirtualGroupIdFactory
+        sensei.properties:</p><pre class="prettyprint">my.custom_facets.virtual_groupids.class=com.senseidb.plugin.example.VirtualGroupIdFactory
  
-my.custom_facets.groupid.class=com.sensei.plugin.example.SimpleFacetHandlerFactory
+my.custom_facets.groupid.class=com.senseidb.plugin.example.SimpleFacetHandlerFactory
 my.custom_facets.groupid.facetName=groupid
 my.custom_facets.groupid.fieldName=groupid
  
-my.custom_facets.tags.class=com.sensei.plugin.example.SimpleFacetHandlerFactory
+my.custom_facets.tags.class=com.senseidb.plugin.example.SimpleFacetHandlerFactory
 my.custom_facets.tags.facetName=tags
 my.custom_facets.tags.fieldName=tags
  
@@ -417,19 +417,19 @@ sensei.custom.facets.list= virtual_groupids, my.custom_facets.tags, groupid  </p
             plugged into the indexing process to allow users to modify
             generated Lucene documents at the last step before they are
             indexed.</p><p>A custom indexing pipeline has to implement interface
-            <code class="classname">com.sensei.indexing.api.CustomIndexingPipeline</code>.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.index.interpreter.class</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: Class</p></li><li class="listitem"><p>Required: No</p></li><li class="listitem"><p>Default: ""</p></li></ul></div><p>This specifies the bean ID of the interpretor of Zoie
+            <code class="classname">com.senseidb.indexing.CustomIndexingPipeline</code>.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.index.interpreter.class</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: Class</p></li><li class="listitem"><p>Required: No</p></li><li class="listitem"><p>Default: ""</p></li></ul></div><p>This specifies the bean ID of the interpretor of Zoie
             indexables. If not specified,
-            <code class="literal">com.sensei.indexing.api.DefaultJsonSchemaInterpreter</code>
+            <code class="literal">com.senseidb.indexing.DefaultJsonSchemaInterpreter</code>
             is used.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.index.manager.class</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: Class</p></li><li class="listitem"><p>Required: No</p></li><li class="listitem"><p>Default: ""</p></li></ul></div><p>This specifies the class name of the indexing manager object
             implementing
-            <code class="literal">com.sensei.search.nodes.SenseiIndexingManager</code>.
+            <code class="literal">com.senseidb.search.node.SenseiIndexingManager</code>.
             If not specified,
-            <code class="literal">com.sensei.indexing.api.DefaultStreamingIndexingManager</code>
+            <code class="literal">com.senseidb.indexing.DefaultStreamingIndexingManager</code>
             is used.</p></dd><dt><span class="term"><span class="bold"><strong>sensei.gateway.class</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: Class</p></li><li class="listitem"><p>Required: Yes if <span class="bold"><strong>sensei.gateway.class</strong></span> is not specified,
                 i.e. the default indexing manager is used.</p></li><li class="listitem"><p>Default: None</p></li></ul></div><p>This specifies the type of gateway that will be used by the
             default indexing manager. The value identifies the name of of the
             class extending
-            <code class="literal">com.sensei.indexing.api.gateway.SenseiGateway</code>.</p><p>Several built-in gateways are provided by Sensei, but you
+            <code class="literal">com.senseidb.gateway.SenseiGateway</code>.</p><p>Several built-in gateways are provided by Sensei, but you
             can always define your own based on your need. No matter a
             built-in gateway or a custom gateway is used, additional
             parameters can be specified under the names with prefix <span class="bold"><strong>sensei.gateway<span class="emphasis"><em>&lt;gateway-type&gt;</em></span></strong></span>.</p><p>Currently the following built-in gateway types are
@@ -444,7 +444,7 @@ sensei.custom.facets.list= virtual_groupids, my.custom_facets.tags, groupid  </p
                 provided.</p><p>See <a class="xref" href="#sect-jms-gateway-props" title="JMS Gateway Properties">the section called &#8220;JMS Gateway Properties&#8221;</a> for
                 additional property information.</p></li><li class="listitem"><p><code class="literal">jdbc</code>:</p><p>This type of gateway takes JDBC data as input.</p><p>See <a class="xref" href="#sect-jdbc-gateway-props" title="JDBC Gateway Properties">the section called &#8220;JDBC Gateway Properties&#8221;</a> for
                 additional property information.</p></li></ul></div></dd><dt><span class="term"><span class="bold"><strong>sensei.index.manager.filter.class</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: Class</p></li><li class="listitem"><p>Required: No</p></li><li class="listitem"><p>Default: None</p></li></ul></div><p>This is the name of the class extending the
-            <code class="literal">com.sensei.indexing.api.DataSourceFilter</code> . No
+            <code class="literal">com.senseidb.indexing.DataSourceFilter</code> . No
             matter what gateway type the indexing managers uses, a filter can
             be plugged in to get the original source data converted to the
             JSON format defined by the table schema. If the input data is
@@ -469,7 +469,7 @@ sensei.custom.facets.list= virtual_groupids, my.custom_facets.tags, groupid  </p
               <code class="literal">javax.jms.TopicConnection</code> object with the JMS
               provider.</p></dd></dl></div></div><div class="section" title="JDBC Gateway Properties"><div class="titlepage"><div><div><h4 class="title"><a name="sect-jdbc-gateway-props"></a>JDBC Gateway Properties</h4></div></div></div><p>For <code class="literal">jdbc</code> gateway, the following properties
         should/can be specified:</p><div class="variablelist"><dl><dt><span class="term"><span class="bold"><strong>sensei.gateway.jdbc.adaptor</strong></span></span></dt><dd><div class="itemizedlist"><ul class="itemizedlist" type="disc" compact><li class="listitem"><p>Type: Class</p></li><li class="listitem"><p>Required: Yes</p></li><li class="listitem"><p>Default: None</p></li></ul></div><p>This is the bean ID of the
-              <code class="literal">com.sensei.indexing.api.jdbc.SenseiJDBCAdaptor</code>
+              <code class="literal">com.senseidb.gateway.jdbc.SenseiJDBCAdaptor</code>
               object. This object is used to build a
               <code class="literal">proj.zoie.dataprovider.jdbc.PreparedStatementBuilder</code>
               object, which is required by
