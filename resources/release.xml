@@ -28,6 +28,13 @@
 	      </includes>
 	    </fileSet>
 		<fileSet>
+	      <directory>sensei-core/src/main/webapp</directory>
+	      <outputDirectory>sensei-core/src/main/webapp</outputDirectory>
+	      <includes>
+	        <include>**</include>
+	      </includes>
+	    </fileSet>
+		<fileSet>
 	      <directory>sensei-gateway/target</directory>
 	      <outputDirectory>sensei-gateway/target</outputDirectory>
 	      <includes>

@@ -5,5 +5,5 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans 
                            http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-  <bean id="demo" class="com.sensei.search.nodes.impl.DemoZoieSystemFactory$DemoZoieFactoryFactory" />
+  <bean id="demo" class="com.senseidb.search.node.impl.DemoZoieSystemFactory$DemoZoieFactoryFactory" />
 </beans>
