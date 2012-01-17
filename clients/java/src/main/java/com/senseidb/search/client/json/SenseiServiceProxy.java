@@ -10,8 +10,9 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 import java.util.zip.GZIPInputStream;
 
 import org.apache.commons.logging.Log;
@@ -140,10 +141,15 @@ public class SenseiServiceProxy {
         }
     }
 
+
+    public String sendPostRaw(String urlStr, String requestStr){
+      return this.sendPostRaw(urlStr, requestStr,null);
+    }
+    
     /*public void close() {
       getHttpClient().getConnectionManager().shutdown();
     }*/
-    public String sendPostRaw(String urlStr, String requestStr){
+    public String sendPostRaw(String urlStr, String requestStr,Map<String,String> headers){
         HttpURLConnection conn = null;
           try {
           if (LOG.isInfoEnabled()){
@@ -166,6 +172,14 @@ public class SenseiServiceProxy {
           conn.setRequestProperty("Content-Length", String.valueOf(requestBytes.length));
           conn.setRequestProperty("http.keepAlive", String.valueOf(true));
           conn.setRequestProperty("default", String.valueOf(true));
+          
+          if (headers!=null && headers.size()>0){
+            Set<Entry<String,String>> entries = headers.entrySet();
+            for (Entry<String,String> entry : entries){
+              conn.setRequestProperty(entry.getKey(),entry.getValue());
+            }
+          }
+          
 
           //GZIPOutputStream zippedOutputStream = new GZIPOutputStream(conn.getOutputStream());
           OutputStream os = new BufferedOutputStream( conn.getOutputStream());
