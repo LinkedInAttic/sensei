@@ -16,6 +16,7 @@ import com.linkedin.norbert.javacompat.network.NetworkServer;
 import com.senseidb.cluster.client.SenseiNetworkClient;
 import com.senseidb.cluster.routing.SenseiLoadBalancerFactory;
 import com.senseidb.conf.SenseiServerBuilder;
+import com.senseidb.jmx.JmxSenseiMBeanServer;
 import com.senseidb.search.node.SenseiBroker;
 import com.senseidb.search.node.SenseiRequestScatterRewriter;
 import com.senseidb.search.node.SenseiServer;
@@ -64,6 +65,7 @@ public class SenseiStarter {
       return;
     }
     try {
+      JmxSenseiMBeanServer.registerCustomMBeanServer();
     ConfDir1 = new File(SenseiStarter.class.getClassLoader().getResource(confDir1).toURI());
 
     ConfDir2 = new File(SenseiStarter.class.getClassLoader().getResource(confDir2).toURI());
