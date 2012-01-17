@@ -8,7 +8,7 @@ home=`cd "$bin/..";pwd`
 pushd .
 
 cd $home
-
+rm -rf $home/target/docs
 echo "building javadoc"
 mvn javadoc:javadoc
 
@@ -29,9 +29,15 @@ tar -zcf $home/target/docs/sensei-hadoop-indexing-javadoc.tar.gz apidocs
 popd
 
 pushd .
-cd $home/clients/java-client/target/site
+cd $home/clients/java/target/site
 tar -zcf $home/target/docs/sensei-java-client-javadoc.tar.gz apidocs
 popd
+
+pushd .
+cd $home/sensei-gateways/target/site
+tar -zcf $home/target/docs/sensei-gateways-javadoc.tar.gz apidocs
+popd
+
 
 #echo "build docbook"
 #cd $bin/../docs
