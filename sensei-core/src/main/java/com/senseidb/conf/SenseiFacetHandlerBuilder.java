@@ -415,7 +415,7 @@ public class SenseiFacetHandlerBuilder {
 					boolean isDynamic = facet.optBoolean("dynamic");
 					// Load from custom-facets spring configuration.
 					if (isDynamic){
-            RuntimeFacetHandlerFactory<?,?> runtimeFacetFactory = (RuntimeFacetHandlerFactory<?,?>) pluginRegistry.getFacet(name);
+            RuntimeFacetHandlerFactory<?,?> runtimeFacetFactory = pluginRegistry.getRuntimeFacet(name);
             runtimeFacets.add(runtimeFacetFactory);
             facetInfo.setRunTime(true);
 					}
@@ -443,7 +443,7 @@ public class SenseiFacetHandlerBuilder {
     return sysInfo;
 	}
 
-  private static RuntimeFacetHandlerFactory<?, ?> getDynamicTimeFacetHandlerFactory(final String name, String fieldName, Set<String> dependSet,
+  public static RuntimeFacetHandlerFactory<?, ?> getDynamicTimeFacetHandlerFactory(final String name, String fieldName, Set<String> dependSet,
       final Map<String, List<String>> paramMap) {
 
     Assert.isTrue(dependSet.size() == 1, "Facet handler " + name + " should rely only on exactly one another facet handler, but accodring to config the depends set is " + dependSet);

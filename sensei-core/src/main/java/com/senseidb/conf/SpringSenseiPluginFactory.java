@@ -17,6 +17,7 @@ public class SpringSenseiPluginFactory implements SenseiPluginFactory<List<?>>{
   public final String SPRING_FILENAME = "springFile";
   public final String CLASS_TO_RETURN = "returnedClass";
   private Class<?> classToReturn;
+  private List<Class> classes;
   @Override
   public synchronized List<?>  getBean(Map<String, String> initProperties, String fullPrefix, SenseiPluginRegistry pluginRegistry) {
     if (context == null) {
@@ -34,21 +35,41 @@ public class SpringSenseiPluginFactory implements SenseiPluginFactory<List<?>>{
         File directory = ((FileConfiguration) pluginRegistry.getConfiguration()).getFile().getParentFile();
         springFile = new File(directory, localName).getAbsolutePath();
       }
+     
+      
+     
       try {        
        
           springFile = "file:" + springFile;
         
         context = new FileSystemXmlApplicationContext(springFile);
       
-        classToReturn = Class.forName(initProperties.get(CLASS_TO_RETURN));
+        classes = getClasses(initProperties.get(CLASS_TO_RETURN));
       } catch (Exception e) {
         throw new RuntimeException(e);
       }
     }   
     
     List<Object> ret = new ArrayList<Object>();
-    for (String beanName : context.getBeanNamesForType(classToReturn)) {
-      ret.add(context.getBean(beanName));
+    for (Class classToReturn : classes) {
+      for (String beanName : context.getBeanNamesForType(classToReturn)) {
+        ret.add(context.getBean(beanName));
+      }
+    }
+    return ret;
+  }
+  private List<Class> getClasses(String classesToReturn) throws ClassNotFoundException {
+    List<String> classesStr = new ArrayList<String>();
+    if (classesToReturn.contains(",")) {
+      for (String cls : classesToReturn.split(",")) {
+        classesStr.add(cls.trim());
+      }
+    } else {
+      classesStr.add(classesToReturn.trim());
+    }
+    List<Class> ret = new ArrayList<Class>(classesStr.size());
+    for (String cls : classesStr) {
+      ret.add(Class.forName(cls));
     }
     return ret;
   }
