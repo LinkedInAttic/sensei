@@ -26,7 +26,7 @@ public class Examples {
       //ORDER BY price desc LIMIT 0,10 BROWSE BY color(true, 1, 10, hits), year(true, 1, 10, value), price
 
       SenseiClientRequest senseiRequest = SenseiClientRequest.builder()
-            .addFacet("color", Facet.builder().minHit(1).expand(true).orderByHits().max(10).build())
+            .addFacet("color", Facet.builder().minHit(1).expand(true).orderByHits().max(10).addProperty("maxFacetsPerKey", "3").build())
             //.addFacet("price", Facet.builder().minHit(1).expand(false).orderByHits().max(10).build())
             .addFacet("year", Facet.builder().minHit(1).expand(true).orderByVal().max(10).build())
             .query(Queries.stringQuery("cool"))

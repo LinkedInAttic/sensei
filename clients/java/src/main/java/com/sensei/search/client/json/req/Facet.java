@@ -1,5 +1,8 @@
 package com.sensei.search.client.json.req;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class Facet {
   /**
    * This parameter specifies the maximum count value for a facet
@@ -22,7 +25,9 @@ public class Facet {
    * <br>• val: order-by values
    */
   OrderBy order;
-
+  
+  Map<String, String> properties = new HashMap<String, String>();
+  
   public static enum OrderBy {
     hits, val
   }
@@ -54,7 +59,10 @@ public class Facet {
       facet.order = OrderBy.val;
       return this;
     }
-
+    public Builder addProperty(String name, String value) {
+      facet.properties.put(name, value);
+      return this;
+    }
     public Facet build() {
       return facet;
     }
