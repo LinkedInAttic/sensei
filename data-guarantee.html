@@ -27,7 +27,7 @@ title: SenseiDB - Data Guarantees
 	Each Sensei node consumes from the data stream independently without a quorum to maintain a high-level of indexing performance. As a trade-off, consistency between replicas are relaxed, but the eventual consistency is still guaranteed via the semantic of the data stream being versioned and ordered.
 </p>
 <p>
-	To prevent from subsequent queries in one search session (e.g. result paging) to produce inconsistent results, a <b>routing parameter</b> indicating a search session can be set on the request, and the request routing logic will route to the same replica via consistent hashing thus guarantee consistency of results in a given search session.
+	To prevent subsequent queries in one search session (e.g. result paging) to produce inconsistent results, a <b>routing parameter</b> indicating a search session can be set on the request, and the request routing logic will route to the same replica via consistent hashing thus guarantee consistency of results in a given search session.
 </p>
 
 <h2>Elasticity</h2>
