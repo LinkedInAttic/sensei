@@ -55,7 +55,9 @@
       // expand sibling facet values
       "expand" : false,
       // facet ordering, possible values: "hits", "val", defaults to "hits"
-      "order" : "hits"
+      "order" : "hits",
+      // some additional properties to customize facets
+      "properties":{"maxFacetsPerKey":3}
     }
   },
   

@@ -10,6 +10,9 @@ import org.antlr.runtime.TokenStream;
 import org.antlr.runtime.tree.CommonTree;
 import org.json.JSONObject;
 
+import com.senseidb.bql.parsers.BQLLexer;
+import com.senseidb.bql.parsers.BQLParser;
+
 public class BQLCompiler extends AbstractCompiler
 {
   // A map containing facet type and data type info for a facet

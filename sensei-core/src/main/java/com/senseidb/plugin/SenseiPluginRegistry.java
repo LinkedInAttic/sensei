@@ -11,6 +11,7 @@ import java.util.Map;
 import org.apache.commons.configuration.Configuration;
 
 import com.browseengine.bobo.facets.FacetHandler;
+import com.browseengine.bobo.facets.RuntimeFacetHandlerFactory;
 
 public class SenseiPluginRegistry {
   public static final String FACET_CONF_PREFIX = "sensei.custom.facets";
@@ -96,7 +97,23 @@ public class SenseiPluginRegistry {
     return ret;
   }
   public FacetHandler<?> getFacet(String name) {
-    for (FacetHandler handler : resolveBeansByListKey(FACET_CONF_PREFIX, FacetHandler.class)) {
+    for (Object handlerObject : resolveBeansByListKey(FACET_CONF_PREFIX, Object.class)) {
+      if (!(handlerObject instanceof FacetHandler)) {
+        continue;
+      }
+      FacetHandler handler = (FacetHandler) handlerObject;
+      if (handler.getName().equals(name)) {
+        return handler;
+      }
+    }
+    return null;
+  }
+  public RuntimeFacetHandlerFactory getRuntimeFacet(String name) {
+    for (Object handlerObject : resolveBeansByListKey(FACET_CONF_PREFIX, Object.class)) {
+      if (!(handlerObject instanceof RuntimeFacetHandlerFactory)) {
+        continue;
+      }
+      RuntimeFacetHandlerFactory handler = (RuntimeFacetHandlerFactory) handlerObject;
       if (handler.getName().equals(name)) {
         return handler;
       }

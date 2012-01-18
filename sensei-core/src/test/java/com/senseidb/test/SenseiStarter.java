@@ -16,6 +16,7 @@ import com.linkedin.norbert.javacompat.network.NetworkServer;
 import com.senseidb.cluster.client.SenseiNetworkClient;
 import com.senseidb.cluster.routing.SenseiLoadBalancerFactory;
 import com.senseidb.conf.SenseiServerBuilder;
+import com.senseidb.jmx.JmxSenseiMBeanServer;
 import com.senseidb.search.node.SenseiBroker;
 import com.senseidb.search.node.SenseiRequestScatterRewriter;
 import com.senseidb.search.node.SenseiServer;
@@ -34,24 +35,16 @@ public class SenseiStarter {
 
   public static File ConfDir1 = null;
   public static File ConfDir2 = null;
-  static {
-    try {
-      ConfDir1 = new File(SenseiStarter.class.getClassLoader().getResource("conf/node1").toURI());
-
-      ConfDir2 = new File(SenseiStarter.class.getClassLoader().getResource("conf/node2").toURI());
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
-  }
+ 
 
   public static File IndexDir = new File("index/test");
   public static URL SenseiUrl = null;
-  static SenseiBroker broker = null;
-  static SenseiService httpRestSenseiService = null;
-  static SenseiServer node1;
-  static SenseiServer node2;
-  static Server httpServer1;
-  static Server httpServer2;
+  public static SenseiBroker broker = null;
+  public static SenseiService httpRestSenseiService = null;
+  public static SenseiServer node1;
+  public static SenseiServer node2;
+  public static Server httpServer1;
+  public static Server httpServer2;
   protected static SenseiNetworkClient networkClient;
   protected static ClusterClient clusterClient;
   protected static SenseiRequestScatterRewriter requestRewriter;
@@ -65,12 +58,17 @@ public class SenseiStarter {
   /**
    * Will start the new Sensei instance once per process
    */
-  public static synchronized void start() {
+  public static synchronized void start(String confDir1, String confDir2) {
+    
     if (started) {
       logger.warn("The server had been already started");
       return;
     }
     try {
+      JmxSenseiMBeanServer.registerCustomMBeanServer();
+    ConfDir1 = new File(SenseiStarter.class.getClassLoader().getResource(confDir1).toURI());
+
+    ConfDir2 = new File(SenseiStarter.class.getClassLoader().getResource(confDir2).toURI());
     org.apache.log4j.PropertyConfigurator.configure("resources/log4j.properties");
     loadFromSpringContext();
     rmrf(IndexDir);
@@ -109,8 +107,8 @@ public class SenseiStarter {
     logger.info("Node 2 started");
     SenseiUrl =  new URL("http://localhost:8079/sensei");
     waitTillServerStarts();
-    } catch (Exception ex) {
-      logger.error("Could not start the sensei");
+    } catch (Throwable ex) {
+      logger.error("Could not start the sensei", ex);
       throw new RuntimeException(ex);
     }finally {
       started = true;
@@ -137,7 +135,7 @@ public class SenseiStarter {
     ApplicationContext testSpringCtx = null;
     try
     {
-      testSpringCtx = new ClassPathXmlApplicationContext("conf/sensei-test.spring");
+      testSpringCtx = new ClassPathXmlApplicationContext("test-conf/sensei-test.spring");
     } catch(Throwable e)
     {
       if (e instanceof InstanceAlreadyExistsException)

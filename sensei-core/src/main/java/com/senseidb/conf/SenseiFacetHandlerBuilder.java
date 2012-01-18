@@ -34,6 +34,7 @@ import com.browseengine.bobo.facets.impl.SimpleFacetHandler;
 import com.senseidb.indexing.DefaultSenseiInterpreter;
 import com.senseidb.plugin.SenseiPluginRegistry;
 import com.senseidb.search.facet.UIDFacetHandler;
+import com.senseidb.search.facet.attribute.AttributesFacetHandler;
 import com.senseidb.search.req.SenseiSystemInfo;
 
 public class SenseiFacetHandlerBuilder {
@@ -392,7 +393,9 @@ public class SenseiFacetHandlerBuilder {
 					facetHandler = buildMultiHandler(name, fieldName,  termListFactoryMap.get(fieldName), dependSet);
 				} else if (type.equals("compact-multi")) {
 					facetHandler = buildCompactMultiHandler(name, fieldName, dependSet,  termListFactoryMap.get(fieldName));
-				} else if (type.equals("histogram")) {
+				} else if (type.equals("attribute")) {
+          facetHandler = new AttributesFacetHandler(name, fieldName,  termListFactoryMap.get(fieldName), null , dependSet, facetProps);
+        } else if (type.equals("histogram")) {
 				  // A histogram facet handler is always dynamic
 				  RuntimeFacetHandlerFactory<?, ?> runtimeFacetFactory = getHistogramFacetHandlerFactory(facet, name, paramMap);
 				  runtimeFacets.add(runtimeFacetFactory);
@@ -412,7 +415,7 @@ public class SenseiFacetHandlerBuilder {
 					boolean isDynamic = facet.optBoolean("dynamic");
 					// Load from custom-facets spring configuration.
 					if (isDynamic){
-            RuntimeFacetHandlerFactory<?,?> runtimeFacetFactory = (RuntimeFacetHandlerFactory<?,?>) pluginRegistry.getFacet(name);
+            RuntimeFacetHandlerFactory<?,?> runtimeFacetFactory = pluginRegistry.getRuntimeFacet(name);
             runtimeFacets.add(runtimeFacetFactory);
             facetInfo.setRunTime(true);
 					}
@@ -440,7 +443,7 @@ public class SenseiFacetHandlerBuilder {
     return sysInfo;
 	}
 
-  private static RuntimeFacetHandlerFactory<?, ?> getDynamicTimeFacetHandlerFactory(final String name, String fieldName, Set<String> dependSet,
+  public static RuntimeFacetHandlerFactory<?, ?> getDynamicTimeFacetHandlerFactory(final String name, String fieldName, Set<String> dependSet,
       final Map<String, List<String>> paramMap) {
 
     Assert.isTrue(dependSet.size() == 1, "Facet handler " + name + " should rely only on exactly one another facet handler, but accodring to config the depends set is " + dependSet);

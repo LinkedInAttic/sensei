@@ -71,6 +71,7 @@ import com.senseidb.indexing.DefaultJsonSchemaInterpreter;
 import com.senseidb.indexing.DefaultStreamingIndexingManager;
 import com.senseidb.indexing.SenseiIndexPruner;
 import com.senseidb.indexing.ShardingStrategy;
+import com.senseidb.jmx.JmxSenseiMBeanServer;
 import com.senseidb.plugin.SenseiPluginRegistry;
 import com.senseidb.search.node.SenseiCore;
 import com.senseidb.search.node.SenseiHourglassFactory;
@@ -518,7 +519,8 @@ public class SenseiServerBuilder implements SenseiConfParams{
 
   public SenseiServer buildServer() throws ConfigurationException {
     int port = _senseiConf.getInt(SERVER_PORT);
-
+    JmxSenseiMBeanServer.registerCustomMBeanServer();
+    
     ClusterClient clusterClient = buildClusterClient();
 
     NetworkServer networkServer = buildNetworkServer(_senseiConf,clusterClient);

@@ -24,6 +24,7 @@ import com.senseidb.search.req.SenseiRequest;
 import com.senseidb.search.req.SenseiResult;
 import com.senseidb.svc.impl.CoreSenseiServiceImpl;
 
+
 /**
  * This SenseiBroker routes search(browse) request using the routers created by
  * the supplied router factory. It uses Norbert's scatter-gather handling
@@ -143,7 +144,7 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
     if (facetSpecs != null) {
       for (Map.Entry<String, FacetSpec> entry : facetSpecs.entrySet()) {
         FacetSpec spec = entry.getValue();
-        if (spec != null)
+        if (spec != null && spec.getMaxCount() < 50)
           spec.setMaxCount(50);
       }
     }
