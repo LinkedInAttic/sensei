@@ -17,16 +17,76 @@ name: overview
 	<p><a class="btn primary large" href="data-guarantee.html">Learn more &raquo;</a>
 	
 </div>
-<div>
+<h2>If you know RDBMS</h2>
+<p>
+  A good start to understand Sensei is by comparing it to traditional RDBMSs'. This provides a quick reference point to the common feature-sets as well as the differences. 
+</p>
+<p>
+<h3>Query Language</h3>
+<div class="row">
+  <div class="span8 well">
+     <h4>RDBMS</h4>
+     <p>SQL is the de-facto way for querying in the RDBMS world.</p>
+  </div>
+  <div class="span8 well">
+     <h4>Sensei</h4>
+     <p> In the Sensei world, the query language is <a href="bql.html">BQL</a>, which is a SQL-variant that exposes the Sensei specific functionalities.</p>
+  </div>
+</div>
+
+
+<p>
+<h3>Interface with data in a program</h3>
+<div class="row">
+<div class="span8 well">
+     <h4>RDBMS</h4>
+     <p>To interface with your data programmatically, the JDBC API is foundation to most Java based frameworks.</p>
+  </div>
+  <div class="span8 well">
+     <h4>Sensei</h4>
+     <p>With Sensei, we offer a variety of client libraries, e.g. Java, Python etc. over a JSON/Http Rest api. Click <a href="clients.html">here</a> for details.</p>
+  </div>
+ </div>
+</p>
+
+<p>
+<h3>Creating a table/store</h3>
+<div class="row">
+<div class="span8 well">
+     <h4>RDBMS</h4>
+     <p><code>CREATE TABLE</code> SQL statement is issued to RDBMS</p>
+  </div>
+  <div class="span8 well">
+     <h4>Sensei</h4>
+     <p>A Sensei schema is defined in the schema.xml in the configuration file. See <a href="https://github.com/senseidb/sensei/blob/master/example/cars/conf/schema.xml">example</a>.</p>
+  </div>
+ </div>
+</p>
+
+
+<p>
+<h3>Data population</h3>
+<div class="row">
+<div class="span8 well">
+     <h4>RDBMS</h4>
+     <p>Data are pushed into RDBMS via <code>INSERT</code>, <code>DELETE</code> and <code>UPDATE</code> SQL commands</p>
+  </div>
+  <div class="span8 well">
+     <h4>Sensei</h4>
+     <p>Data are pulled into Sensei via <code>Gateways</code>, which defines a flowing stream of data events. See <a href="indexing-gateway.html">details</a></p>
+  </div>
+ </div>
+</p>
+
 	<p>
-		<h3>Architecture Diagram</h3>
+		<h2>Architecture Diagram</h2>
 		<p>
 			<img border="1" src="images/sensei-architect.png">
 		</p>
 	</p>
 	<hr/>
 	<p>
-		<h3>Design considerations</h3>
+		<h2>Design considerations</h2>
 		<p>
 		<ul>
 			<li>data:
@@ -66,4 +126,3 @@ name: overview
 		</ul>
 		</p>
 	</p>
-</div>

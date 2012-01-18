@@ -77,3 +77,22 @@ version: 1.0.0-SNAPSHOT
 </pre>
 	</div>
 </div>
+
+<div class="row">
+	<div class="span6">
+		<h3>War packaging</h3>
+		<p>For people who want to deploy Sensei in a container, we provide a war packaging for Sensei. 
+		</p>
+		<p>Sensei configuration are read from the <pre><code>sensei-conf</code></pre> directory.</p>
+		<p>Depends on Sensei Core.</p>
+	</div>
+	<div class="span7">
+		<pre class="prettyprint" id="xml">
+&lt;dependency&gt;
+  &lt;groupId&gt;com.senseidb&lt;/groupId&gt;
+  &lt;artifactId>sensei-war&lt;/artifactId&gt;
+  &lt;version>{{page.version}}&lt;/version&gt;
+&lt;/depedency&gt;
+</pre>
+	</div>
+</div>
