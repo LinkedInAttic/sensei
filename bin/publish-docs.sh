@@ -23,5 +23,11 @@ mkdir $1/javadoc/sensei-hadoop-indexing
 pushd .
 cd $1/javadoc/sensei-hadoop-indexing
 tar -zxf $home/target/docs/sensei-hadoop-indexing-javadoc.tar.gz 
+popd
+
+mkdir $1/javadoc/sensei-gateways
+pushd .
+cd $1/javadoc/sensei-gateways
+tar -zxf $home/target/docs/sensei-gateways-javadoc.tar.gz 
 popd 
 

@@ -41,7 +41,7 @@ HEAP_OPTS="-Xmx1g -Xms1g -XX:NewSize=256m"
 JAVA_OPTS="-server -d64"
 JMX_OPTS="-Djava.rmi.server.hostname=$IP -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=18889 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false"
 
-MAIN_CLASS="com.sensei.search.nodes.SenseiServer"
+MAIN_CLASS="com.senseidb.search.node.SenseiServer"
 
 
 CLASSPATH=$resources/:$lib/*:$dist/*:$1/ext/*

@@ -7,10 +7,10 @@
       
   <import resource="bobo.spring" />
   <!-- dummy placeholder, we are not worry about indexing for now -->      
-  <bean id="interpreter" class="com.sensei.search.nodes.NoOpIndexableInterpreter" />
+  <bean id="interpreter" class="com.senseidb.search.node.NoOpIndexableInterpreter" />
   
   <bean id="lucene-version" class="org.springframework.beans.factory.config.FieldRetrievingFactoryBean">
-    <property name="staticField" value="org.apache.lucene.util.Version.LUCENE_34"/>
+    <property name="staticField" value="org.apache.lucene.util.Version.LUCENE_35"/>
   </bean>
   
   <bean id="analyzer" class="org.apache.lucene.analysis.standard.StandardAnalyzer">
@@ -19,7 +19,7 @@
   
   <bean id="similarity" class="org.apache.lucene.search.DefaultSimilarity" />
   
-  <bean id="idxDecorator" class="com.sensei.search.nodes.SenseiIndexReaderDecorator">
+  <bean id="idxDecorator" class="com.senseidb.search.node.SenseiIndexReaderDecorator">
     <constructor-arg ref="handlers" />
     <constructor-arg>
       <list>
@@ -32,7 +32,7 @@
     <property name="freshness" value="50" />
   </bean>
   
-  <bean id="zoie-system-factory" class="com.sensei.test.ZoieTestFactory">
+  <bean id="zoie-system-factory" class="com.senseidb.test.ZoieTestFactory">
     <constructor-arg value="file:data/cardata"/>
     <constructor-arg ref="interpreter" />
     <constructor-arg ref="idxDecorator" />
