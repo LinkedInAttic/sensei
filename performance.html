@@ -7,5 +7,771 @@ title: SenseiDB - Performance
   <p>Performance Benchmark</p>
 </div>
 
-<p>
+<h2>Setup</h2>
+
+<h3>(1) Machine Setup</h3>
+<p>In this test, we use the server with the following setup:</p>
+
+</p>Operating System and Software:</p>
+<pre class="prettyprint">
+	Red Hat Enterprise Linux workstation
+	Release 6.1 (Santiago)
+	Kernel Linux 2.6.32-131.4.1.el6.x86_64
+	GNOME 2.28.2
+	MySQL Server version: 5.1.52
+</pre>
+
+<p>Hardware:</p>
+<pre class="prettyprint">
+	8-core Intel Xeon CPU  E5620 @ 2.40 GHz
+	Memory: 64GB
+	Disksize: 350GB
+</pre>
+
+
+<h3>(2) System Startup Configuration</h3>
+<p>We used default startup configuration for both Sensei and MySQL.
+
+However, Sensei requires custom property file for each application. So to start Sensei, checkout the sensei code from <a href='https://github.com/senseidb/sensei/downloads'>https://github.com/senseidb/sensei/downloads</a>,
+Sensei comes with a car demo setup, so replace the car demo configuration file with this one: <a href='https://github.com/sguo/search-perf/tree/master/configs/mysql/cars/conf'>https://github.com/sguo/search-perf/tree/master/configs/mysql/cars/conf</a>, and replace the original car demo data with a much bigger 3 million dataset(we will talk about how the data source is generated in the following section).
+change directory to Sensei home directory and start sensei as below,</p>
+<pre class="prettyprint">
+  $ bin/start-sensei-node.sh  example/cars/conf/
+</pre>
+<p>( By default, Sensei will start up with 1GB memory: <code>HEAP_OPTS="-Xmx1g -Xms1g -XX:NewSize=256m"</code> )</p>
+
+<h3>(3) Data Source</h3>
+<p>We use car data to generate the testing dataset, and the testing dataset will be used by both MySQL and Sensei. To do this, firstly download the car demo dataset from: <a href='https://raw.github.com/senseidb/sensei/master/example/cars/data/cars.json'>https://raw.github.com/senseidb/sensei/master/example/cars/data/cars.json</a>
+then we replicated car data 200 times to get to 3M docs. The python script to do this could be downloaded here: <a href='https://github.com/kwei/search-perf/tree/master/data'>https://github.com/kwei/search-perf/tree/master/data</a>. To generate the large 3 million testing dataset,
+simply run:
 </p>
+
+<pre class="prettyprint">
+  python expandData.py cars.json cars3m.json 3000000
+</pre>
+
+<p>It will create the testing data which contains 3 million lines.
+we also created a MySql table:</p>
+
+<pre class="prettyprint">
+         CREATE TABLE car(
+             id INT not null AUTO_INCREMENT,
+             category VARCHAR(30),
+             city VARCHAR(255),
+             mileage INT,
+             tags VARCHAR(255),
+             color VARCHAR(15),
+             price FLOAT,
+             groupid LONG,
+             makemodel VARCHAR(255),
+             year INT,
+             contents VARCHAR(255),
+             PRIMARY KEY (id),
+             fulltext (contents)
+         )
+</pre>
+
+<code>mysql> desc cars;</code>
+<pre class="prettyprint">
+	+-----------+--------------+------+-----+---------+----------------+
+	| Field     | Type         | Null | Key | Default | Extra          |
+	+-----------+--------------+------+-----+---------+----------------+
+	| id        | int(11)      | NO   | PRI | NULL    | auto_increment |
+	| category  | varchar(30)  | YES  |     | NULL    |                |
+	| city      | varchar(255) | YES  |     | NULL    |                |
+	| mileage   | int(11)      | YES  |     | NULL    |                |
+	| tags      | varchar(255) | YES  |     | NULL    |                |
+	| color     | varchar(15)  | YES  |     | NULL    |                |
+	| price     | float        | YES  |     | NULL    |                |
+	| groupid   | mediumtext   | YES  |     | NULL    |                |
+	| makemodel | varchar(255) | YES  |     | NULL    |                |
+	| year      | int(11)      | YES  |     | NULL    |                |
+	| contents  | varchar(255) | YES  | MUL | NULL    |                |
+	+-----------+--------------+------+-----+---------+----------------+
+	11 rows in set (0.00 sec)
+</pre>
+
+<p>We insert the 3 million testing dataset into MySQL database. Note that columns <b>color</b> and <b>price</b> have indexes, and <b>contents</b> is a fulltext field containing tokens from: color,category,tags, makemodel, and city.</p>
+
+<p>To create index for the two columns of the table, we can execute the following two SQL statements:</p>
+
+<pre class="prettyprint">
+	mysql> create index index_color on car (color);
+	Query OK, 3000000 rows affected (2 min 42.32 sec)
+	Records: 3000000  Duplicates: 0  Warnings: 0
+	mysql> create index index_price on car (price);
+	Query OK, 3000000 rows affected (2 min 47.14 sec)
+	Records: 3000000  Duplicates: 0  Warnings: 0
+</pre>
+
+
+<h2>Data Inserting Test</h2>
+
+
+<p>Inserting data results (3M records):</p>
+<pre class="prettyprint">
+    MySQL:  Time spent:1469924 ms
+    Sensei: Time spent:449413 ms
+</pre>
+
+<p>To insert data into MySQL server, we used the MySQL java connector, and write the custom code to measure the inserting time.</p>
+
+<p>To insert data into Sensei, we have configured the Gateway in the configuration file, so when Sensei is started, it will automatically insert data into the system.</p>
+
+<p>Both Sensei and MySQL insert the data one by one for time measurement convenience.</p>
+
+<h2>Query Latency Test</h2>
+<p>We did the following 10 types of query latency test. Each result covers a certain type of queries.
+
+  <ul>
+    <li><b>(1) Simple select on mileage, a range query, including result count. Sensei automatically returns the count, which translate to the following mysql queries:</b></li>
+    <code>mysql> select id from car where mileage>12750 limit 1,2;</code>
+    <pre class="prettyprint">
+	+----+
+	| id |
+	+----+
+	|  2 |
+	|  3 |
+	+----+
+	2 rows in set (0.00 sec)</pre>
+    <code>mysql> select count(*) from car where mileage>12750;</code>
+    <pre class="prettyprint">
+	+----------+
+	| count(*) |
+	+----------+
+	|  1803200 |
+	+----------+
+	1 row in set (1.19 sec)</pre>
+    <p>Sensei result(The two MySQL query can be done by sending one query to Sensei since Sensei result contains the total document number):</p>
+    <p>JSON API: 34ms</p>
+    <pre class="prettyprint">
+	{
+	   "query": {
+	       "query_string": {
+	           "query": ""
+	       }
+	   },
+	   "from": 1,
+	   "size": 2,
+	   "explain": false,
+	   "fetchStored": false,
+	   "selections": [
+	 {
+	   "range":{
+	     "mileage":{
+	       "from":"12750",
+	       "include_lower":false,
+	       "include_upper":false
+	     }
+	   }
+	 }]
+	}</pre>
+    <p>Sensei BQL: 33ms</p>
+    <pre class="prettyprint">
+  select * from car where mileage>12750 limit 1,2    </pre>
+  </ul>
+  
+  <ul>
+    <li><b>(2) Sorting on one field with no index:</b></li>
+    <code>mysql> select id from car where mileage>12750 order by category limit 1,10;</code>
+    <pre class="prettyprint">
+	+-------+
+	| id    |
+	+-------+
+	| 18891 |
+	| 14084 |
+	| 14085 |
+	| 14086 |
+	| 14087 |
+	| 14088 |
+	| 14089 |
+	| 14090 |
+	| 14091 |
+	| 14092 |
+	+-------+
+	10 rows in set (2.35 sec)</pre>
+    <p>Sensei result:</p>
+    <p>JSON API: 40ms</p>
+    <pre class="prettyprint">
+	{
+	   "query": {
+	       "query_string": {
+	           "query": ""
+	       }
+	   },
+	   "from": 1,
+	   "size": 10,
+	   "explain": false,
+	   "fetchStored": false,
+	   "selections": [
+	 {
+	   "range":{
+	     "mileage":{
+	       "from":"12750",
+	       "include_lower":false,
+	       "include_upper":false
+	     }
+	   }
+	 }],
+	     "sort":[
+	     {"category":"asc"}
+	 ]
+	}</pre>
+    <p>Sensei BQL: 37ms</p>
+    <pre class="prettyprint">
+  select * from car where mileage>12750 order by category limit 1,10 </pre>
+  </ul>
+
+
+  <ul>
+    <li><b>(3) Sorting on one indexed field:</b></li>
+    <code>mysql> select id from car where mileage>12750 order by color limit 1,10;</code>
+    <pre class="prettyprint">
+	+----+
+	| id |
+	+----+
+	| 55 |
+	| 57 |
+	| 60 |
+	| 63 |
+	| 65 |
+	| 66 |
+	| 70 |
+	| 81 |
+	| 84 |
+	| 90 |
+	+----+
+	10 rows in set (0.00 sec)</pre>
+    <p>Sensei result:</p>
+    <p>JSON API: 40ms</p>
+    <pre class="prettyprint">
+	{
+	   "query": {
+	       "query_string": {
+	           "query": ""
+	       }
+	   },
+	   "from": 1,
+	   "size": 10,
+	   "explain": false,
+	   "fetchStored": false,
+	   "selections": [
+	 {
+	   "range":{
+	     "mileage":{
+	       "from":"12750",
+	       "include_lower":false,
+	       "include_upper":false
+	     }
+	   }
+	 }],
+	     "sort":[
+	     {"color":"asc"}
+	 ]
+	}</pre>
+    <p>Sensei BQL: 39ms</p>
+    <pre class="prettyprint">
+  select * from car where mileage>12750 order by color limit 1,10 </pre>
+  </ul>
+
+
+
+  <ul>
+    <li><b>(4) Sorting on two indexed fields:</b></li>
+    <code>mysql> select id from car where mileage>12750 order by color,price limit 1,10;</code>
+    <pre class="prettyprint">
+	+--------+
+	| id     |
+	+--------+
+	|  32205 |
+	|   2205 |
+	|  47205 |
+	|  62205 |
+	| 122205 |
+	| 107205 |
+	| 137205 |
+	| 167205 |
+	| 152205 |
+	|  77205 |
+	+--------+
+	10 rows in set (2.31 sec)</pre>
+    <p>Sensei result:</p>
+    <p>JSON API: 45ms</p>
+    <pre class="prettyprint">
+	{
+	   "query": {
+	       "query_string": {
+	           "query": ""
+	       }
+	   },
+	   "from": 1,
+	   "size": 10,
+	   "explain": false,
+	   "fetchStored": false,
+	   "selections": [
+	 {
+	   "range":{
+	     "mileage":{
+	       "from":"12750",
+	       "include_lower":false,
+	       "include_upper":false
+	     }
+	   }
+	 }],
+	     "sort":[
+	     {"color":"asc"},
+	     {"price":"asc"}
+	 ]
+	}</pre>
+    <p>Sensei BQL: 49ms</p>
+    <pre class="prettyprint">
+  select * from car where mileage>12750 order by color,price limit 1,10</pre>
+  </ul>
+
+
+  <ul>
+    <li><b>(5) Sorting on three fields, 2 index, 1 not indexed:</b></li>
+    <code>mysql> select id from car where mileage>12750 order by color,price,category limit 1,10;</code>
+    <pre class="prettyprint">
+	+--------+
+	| id     |
+	+--------+
+	|  17205 |
+	|  47205 |
+	|  62205 |
+	|  32205 |
+	|  77205 |
+	|  92205 |
+	| 107205 |
+	| 137205 |
+	| 152205 |
+	| 122205 |
+	+--------+
+	10 rows in set (2.66 sec)</pre>
+    <p>Sensei result:</p>
+    <p>JSON API: 46ms</p>
+    <pre class="prettyprint">
+	{
+	   "query": {
+	       "query_string": {
+	           "query": ""
+	       }
+	   },
+	   "from": 1,
+	   "size": 10,
+	   "explain": false,
+	   "fetchStored": false,
+	   "selections": [
+	 {
+	   "range":{
+	     "mileage":{
+	       "from":"12750",
+	       "include_lower":false,
+	       "include_upper":false
+	     }
+	   }
+	 }],
+	     "sort":[
+	     {"color":"asc"},
+	     {"price":"asc"},
+	     {"category":"asc"}
+	 ]
+	}</pre>
+    <p>Sensei BQL: 45ms</p>
+    <pre class="prettyprint">
+  select * from car where mileage>12750 order by color,price,category limit 1,10</pre>
+  </ul>
+
+
+  <ul>
+    <li><b>(6) Group By on a field with an index:</b></li>
+    <code>mysql> select color,count(*) from car where mileage>12750 group by color limit 1,10;</code>
+    <pre class="prettyprint">
+	+--------+----------+
+	| color  | count(*) |
+	+--------+----------+
+	| blue   |   135000 |
+	| gold   |   131400 |
+	| green  |   128400 |
+	| red    |   254200 |
+	| silver |   249200 |
+	| white  |   265200 |
+	| yellow |   264800 |
+	+--------+----------+
+	7 rows in set (5.07 sec)</pre>
+    <p>Sensei result:</p>
+    <p>JSON API: 72ms</p>
+    <pre class="prettyprint">
+	{
+	   "query": {
+	       "query_string": {
+	           "query": ""
+	       }
+	   },
+	   "from": 1,
+	   "size": 10,
+	   "explain": false,
+	   "fetchStored": false,
+	   "selections": [
+	 {
+	   "range":{
+	     "mileage":{
+	       "from":"12750",
+	       "include_lower":false,
+	       "include_upper":false
+	     }
+	   }
+	 }],
+	       "facets": {
+	       "color": {
+	           "max": 10,
+	           "minCount": 1,
+	           "expand": false,
+	           "order": "hits"
+	       }
+	   },
+	     "groupBy" : {
+	   "columns" : ["color"],
+	   "top" : 1
+	 }
+	}</pre>
+    <p>Sensei BQL: 60ms</p>
+    <pre class="prettyprint">
+  select color,_grouphitscount from car where mileage>12750 group by color top 1 limit 1,10</pre>
+  
+    <p>However, Sensei comes with the facet result, which contains the count number for columns, so the groupBy is not necessary when facet is specified. A <b>facet only</b> query is a <b>lightweight</b> alternative in this case:</p>
+    <p>JSON API: 46ms</p>
+    <pre class="prettyprint">
+	{
+	   "query": {
+	       "query_string": {
+	           "query": ""
+	       }
+	   },
+	   "from": 1,
+	   "size": 10,
+	   "explain": false,
+	   "fetchStored": false,
+	   "selections": [
+	 {
+	   "range":{
+	     "mileage":{
+	       "from":"12750",
+	       "include_lower":false,
+	       "include_upper":false
+	     }
+	   }
+	 }],
+	       "facets": {
+	       "color": {
+	           "max": 10,
+	           "minCount": 1,
+	           "expand": false,
+	           "order": "hits"
+	       }
+	   }
+	}</pre>
+    <p>Sensei BQL: 47ms</p>
+    <pre class="prettyprint">
+  select color from car where mileage>12750 browse by color limit 1,10</pre>    
+  </ul>
+
+
+  <ul>
+    <li><b>(7) Group By on a field without an index:</b></li>
+    <code>mysql> select category,count(*) from car where mileage>12750 group by category limit 1,10;</code>
+    <pre class="prettyprint">
+	+---------------+----------+
+	| category      | count(*) |
+	+---------------+----------+
+	| exotic        |   222600 |
+	| luxury        |   330600 |
+	| mini-van      |   105200 |
+	| sedan         |   133200 |
+	| sports car    |   193400 |
+	| station wagon |    27800 |
+	| sub-compact   |    58800 |
+	| suv           |   163800 |
+	| truck         |    56800 |
+	| van           |    19600 |
+	+---------------+----------+
+	10 rows in set (3.59 sec)</pre>
+    <p>Sensei result:</p>
+    <p>JSON API: 49ms</p>
+    <pre class="prettyprint">
+	{
+	   "query": {
+	       "query_string": {
+	           "query": ""
+	       }
+	   },
+	   "from": 1,
+	   "size": 10,
+	   "explain": false,
+	   "fetchStored": false,
+	   "selections": [
+	 {
+	   "range":{
+	     "mileage":{
+	       "from":"12750",
+	       "include_lower":false,
+	       "include_upper":false
+	     }
+	   }
+	 }],
+	       "facets": {
+	       "category": {
+	           "max": 10,
+	           "minCount": 1,
+	           "expand": false,
+	           "order": "hits"
+	       }
+	   },
+	     "groupBy" : {
+	   "columns" : ["category"],
+	   "top" : 1
+	 }
+	}</pre>
+    <p>Sensei BQL: 41ms</p>
+    <pre class="prettyprint">
+  select category,_grouphitscount from car where mileage>12750 group by category top 1 limit 1,10</pre>
+  
+    <p>Facet Only method (When group-by is used only for counting):</p>
+    <p>JSON API: 40ms</p>
+    <pre class="prettyprint">
+	{
+	   "query": {
+	       "query_string": {
+	           "query": ""
+	       }
+	   },
+	   "from": 1,
+	   "size": 10,
+	   "explain": false,
+	   "fetchStored": false,
+	   "selections": [
+	 {
+	   "range":{
+	     "mileage":{
+	       "from":"12750",
+	       "include_lower":false,
+	       "include_upper":false
+	     }
+	   }
+	 }],
+	       "facets": {
+	       "category": {
+	           "max": 10,
+	           "minCount": 1,
+	           "expand": false,
+	           "order": "hits"
+	       }
+	   }
+	}</pre>
+    <p>Sensei BQL: 44ms</p>
+    <pre class="prettyprint">
+  select category from car where mileage>12750 browse by category limit 1,10</pre>    
+  </ul>
+
+
+
+  <ul>
+    <li><b>(8) With text search:</b></li>
+    <code>mysql> select id from car where mileage>12750 AND match(contents) against('cool') limit 1,10;</code>
+    <pre class="prettyprint">
+	+---------+
+	| id      |
+	+---------+
+	| 1163528 |
+	| 1208529 |
+	| 2312764 |
+	| 1062485 |
+	| 1058529 |
+	| 1208528 |
+	| 2687764 |
+	| 1058528 |
+	| 1988528 |
+	|  182764 |
+	+---------+
+	10 rows in set (1.11 sec)</pre>
+    <p>Sensei result:</p>
+    <p>JSON API: 44ms</p>
+    <pre class="prettyprint">
+	{
+	   "query": {
+	     "query_string" : {
+	       "default_field" : "contents",      
+	       "query" : "cool"
+	     }
+	   },
+	   "from": 1,
+	   "size": 10,
+	   "explain": false,
+	   "fetchStored": false,
+	   "selections": [
+	     {
+	       "range":{
+	         "mileage":{
+	           "from":"12750",
+	           "include_lower":false,
+	           "include_upper":false
+	         }
+	       }
+	     }]
+	}</pre>
+    <p>Sensei BQL: 45ms</p>
+    <pre class="prettyprint">
+  select * from car where mileage>12750 AND match(contents) against('cool') limit 1,10</pre>
+  </ul>
+
+  <ul>
+    <li><b>(9) With text search, with sort:</b></li>
+    <code>mysql> select id from car where mileage>'12750' AND match(contents) against('cool') order by category limit 1,10;</code>
+    <pre class="prettyprint">
+	+-----+
+	| id  |
+	+-----+
+	|   7 |
+	|   8 |
+	|  98 |
+	|  99 |
+	| 100 |
+	| 101 |
+	| 102 |
+	| 103 |
+	| 105 |
+	| 106 |
+	+-----+
+	10 rows in set (3.78 sec)</pre>
+    <p>Sensei result:</p>
+    <p>JSON API: 46ms</p>
+    <pre class="prettyprint">
+	{
+	   "query": {
+	     "query_string" : {
+	       "default_field" : "contents",      
+	       "query" : "cool"
+	     }
+	   },
+	   "from": 1,
+	   "size": 10,
+	   "explain": false,
+	   "fetchStored": false,
+	   "selections": [
+	     {
+	       "range":{
+	         "mileage":{
+	           "from":"12750",
+	           "include_lower":false,
+	           "include_upper":false
+	         }
+	       }
+	     }],
+	  "sort":[
+	     {"category":"asc"}
+	 ]
+	}</pre>
+    <p>Sensei BQL: 46ms</p>
+    <pre class="prettyprint">
+  select * from car where mileage>12750 AND match(contents) against('cool') order by category limit 1,10</pre>
+  </ul>
+
+
+  <ul>
+    <li><b>(10) With text search, with sort and group by:</b></li>
+    <code>mysql> select color,count(*) from car where mileage>'12750' AND match(contents) against('cool') group by color order by category limit 1,10;</code>
+    <pre class="prettyprint">
+	+--------+----------+
+	| color  | count(*) |
+	+--------+----------+
+	| gold   |    63600 |
+	| silver |   119600 |
+	| green  |    64200 |
+	| blue   |    69000 |
+	| black  |   185600 |
+	| yellow |   135800 |
+	| red    |   123800 |
+	+--------+----------+
+	7 rows in set (3.71 sec)</pre>
+    <p>Sensei result:</p>
+    <p>JSON API: 65ms</p>
+    <pre class="prettyprint">
+	{
+	   "query": {
+	     "query_string" : {
+	       "default_field" : "contents",      
+	       "query" : "cool"
+	     }
+	   },
+	   "from": 1,
+	   "size": 10,
+	   "explain": false,
+	   "fetchStored": false,
+	   "selections": [
+	     {
+	       "range":{
+	         "mileage":{
+	           "from":"12750",
+	           "include_lower":false,
+	           "include_upper":false
+	         }
+	       }
+	     }],
+	  "sort":[
+	     {"category":"asc"}
+	 ],
+	  "groupBy" : {
+	   "columns" : ["color"],
+	   "top" : 1
+	 }
+	}</pre>
+    <p>Sensei BQL: 64ms</p>
+    <pre class="prettyprint">
+  select color, _grouphitscount from car where mileage>12750 AND match(contents) against('cool') group by color top 1 order by category limit 1,10</pre>
+  
+    <p>Facet Only method (When group-by is used only for counting):</p>
+    <p>JSON API: 52ms</p>
+    <pre class="prettyprint">
+	{
+	   "query": {
+	     "query_string" : {
+	       "default_field" : "contents",      
+	       "query" : "cool"
+	     }
+	   },
+	   "from": 1,
+	   "size": 10,
+	   "explain": false,
+	   "fetchStored": false,
+	   "selections": [
+	     {
+	       "range":{
+	         "mileage":{
+	           "from":"12750",
+	           "include_lower":false,
+	           "include_upper":false
+	         }
+	       }
+	     }],
+	  "sort":[
+	     {"category":"asc"}
+	 ],
+	    "facets": {
+	       "color": {
+	           "max": 10,
+	           "minCount": 1,
+	           "expand": false,
+	           "order": "hits"
+	       }
+	   }
+	}</pre>
+    <p>Sensei BQL: 52ms</p>
+    <pre class="prettyprint">
+  select color from car where mileage>12750 AND match(contents) against('cool') browse by color order by category limit 1,10</pre>    
+  </ul>
+
+
+</p>
+
+
+
