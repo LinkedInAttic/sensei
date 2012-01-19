@@ -867,4 +867,91 @@ we also created a MySql table:</p>
 <p>QPS test (Multi-thread):</p>
 <img src="https://github.com/sguo/search-perf/raw/master/pics/qps_per_number_of_threads.png" alt="QPS test (Multi-thread)"/>
 
-
+<p>The testing query in JSON format is:</p>
+<pre class="prettyprint">
+	{
+	    "partitions":[
+	        
+	    ],
+	    "facetInit":{
+	        
+	    },
+	    "facets":{
+	        "tags":{
+	            "max":100000,
+	            "order":"hits",
+	            "minHit":0,
+	            "expand":true
+	        },
+	        "category":{
+	            "max":100000,
+	            "order":"hits",
+	            "minHit":0,
+	            "expand":true
+	        },
+	        "price":{
+	            "max":100000,
+	            "order":"hits",
+	            "minHit":0,
+	            "expand":true
+	        }
+	    },
+	    "fetchStored":false,
+	    "selections":[
+	        {
+	            "terms":{
+	                "category":{
+	                    "values":[
+	                        "sub-compact",
+	                        "luxury",
+	                        "station wagon",
+	                        "compact"
+	                    ],
+	                    "excludes":[
+	                        "sedan",
+	                        "mini-van",
+	                        "sports car"
+	                    ],
+	                    "operator":"or",
+	                    "_noOptimize":false
+	                }
+	            }
+	        },
+	        {
+	            "terms":{
+	                "tags":{
+	                    "values":[
+	                        "automatic",
+	                        "chick magnet",
+	                        "reliable",
+	                        "cool"
+	                    ],
+	                    "excludes":[
+	                        "expensive",
+	                        "electric",
+	                        "highend"
+	                    ],
+	                    "operator":"or",
+	                    "_noOptimize":false
+	                }
+	            }
+	        },
+	        {
+	            "range":{
+	                "price":{
+	                    "to":"6700",
+	                    "include_lower":true,
+	                    "include_upper":true,
+	                    "from":"*"
+	                }
+	            }
+	        }
+	    ],
+	    "explain":false,
+	    "sorts":[
+	        
+	    ],
+	    "termVectors":[
+	        
+	    ]
+	}</pre>
