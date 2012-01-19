@@ -121,8 +121,95 @@ we also created a MySql table:</p>
 <p>Both Sensei and MySQL insert the data one by one for time measurement convenience.</p>
 
 <h2>Query Latency Test</h2>
-<p>We did the following 10 types of query latency test. Each result covers a certain type of queries.
 
+<p>We did the following 10 types of query latency test. Each result covers a certain type of queries.</p>
+
+<h3>Summary</h3>
+<table class="zebra-striped">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Query Type</th>
+            <th>MySQL</th>
+            <th>Sensei (JSON API)</th>
+            <th>Sensei (BQL)</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>1</td>
+            <td>Simple select with a range query, including result count</td>
+            <td>1.19 s</td>
+            <td>34 ms</td>
+            <td>33 ms</td>
+        </tr>
+        <tr>
+            <td>2</td>
+            <td>Sorting on one field with no index</td>
+            <td>2.35 s</td>
+            <td>40 ms</td>
+            <td>37 ms</td>
+        </tr>
+        <tr>
+            <td>3</td>
+            <td>Sorting on one indexed field</td>
+            <td>0.00 s</td>
+            <td>40 ms</td>
+            <td>39 ms</td>
+        </tr>
+        <tr>
+            <td>4</td>
+            <td>Sorting on two indexed fields</td>
+            <td>2.31 s</td>
+            <td>45 ms</td>
+            <td>49 ms</td>
+        </tr>
+        <tr>
+            <td>5</td>
+            <td>Sorting on three fields, 2 index, 1 not indexed</td>
+            <td>2.66 s</td>
+            <td>46 ms</td>
+            <td>45 ms</td>
+        </tr>   
+        <tr>
+            <td>6</td>
+            <td>Group By on a field with an index</td>
+            <td>5.07 s</td>
+            <td>72 ms / 46 ms (facet-only)</td>
+            <td>60 ms / 47 ms (facet-only)</td>
+        </tr> 
+        <tr>
+            <td>7</td>
+            <td>Group By on a field without an index</td>
+            <td>3.59 s</td>
+            <td>49 ms / 40 ms (facet-only)</td>
+            <td>41 ms / 44 ms (facet-only)</td>
+        </tr> 
+        <tr>
+            <td>8</td>
+            <td>With text search</td>
+            <td>1.11 s</td>
+            <td>44 ms</td>
+            <td>45 ms</td>
+        </tr> 
+        <tr>
+            <td>9</td>
+            <td>With text search, with sort</td>
+            <td>3.78 s</td>
+            <td>46 ms</td>
+            <td>46 ms</td>
+        </tr> 
+        <tr>
+            <td>10</td>
+            <td>With text search, with sort and group by</td>
+            <td>3.71 s</td>
+            <td>65 ms / 52 ms (facet-only)</td>
+            <td>64 ms / 52 ms (facet-only)</td>
+        </tr>         
+    </tbody>
+</table>
+
+<h3>Details</h3>
   <ul>
     <li><b>(1) Simple select on mileage, a range query, including result count. Sensei automatically returns the count, which translate to the following mysql queries:</b></li>
     <code>mysql> select id from car where mileage>12750 limit 1,2;</code>
@@ -771,7 +858,6 @@ we also created a MySql table:</p>
   </ul>
 
 
-</p>
 
 
 
