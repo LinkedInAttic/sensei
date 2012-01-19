@@ -34,7 +34,7 @@ import com.senseidb.metrics.MetricsConstants;
 import com.senseidb.plugin.SenseiPluginRegistry;
 import com.senseidb.search.node.SenseiIndexingManager;
 import com.yammer.metrics.Metrics;
-import com.yammer.metrics.core.MeterMetric;
+import com.yammer.metrics.core.Meter;
 import com.yammer.metrics.core.MetricName;
 
 public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JSONObject> {
@@ -49,9 +49,9 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 
 	private static final String BATCH_SIZE = "batchSize";
 
-  private static MeterMetric ProviderBatchSizeMeter = null;
-  private static MeterMetric EventMeter = null;
-  private static MeterMetric UpdateBatchSizeMeter = null;
+  private static Meter ProviderBatchSizeMeter = null;
+  private static Meter EventMeter = null;
+  private static Meter UpdateBatchSizeMeter = null;
 
   static{
     try{

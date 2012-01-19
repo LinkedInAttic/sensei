@@ -11,13 +11,13 @@ import com.senseidb.search.req.AbstractSenseiRequest;
 import com.senseidb.search.req.AbstractSenseiResult;
 import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.MetricName;
-import com.yammer.metrics.core.TimerMetric;
+import com.yammer.metrics.core.Timer;
 
 public final class SenseiCoreServiceMessageHandler<REQUEST extends AbstractSenseiRequest, RESULT extends AbstractSenseiResult> implements RequestHandler<REQUEST, RESULT> {
 	private static final Logger logger = Logger.getLogger(SenseiCoreServiceMessageHandler.class);
     private final AbstractSenseiCoreService<REQUEST, RESULT> _svc;
 
-    private static TimerMetric TotalSearchTimer = null;
+    private static Timer TotalSearchTimer = null;
     static{
   	  // register jmx monitoring for timers
   	  try{

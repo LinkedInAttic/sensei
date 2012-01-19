@@ -20,8 +20,8 @@ import proj.zoie.impl.indexing.ZoieSystem;
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.senseidb.metrics.MetricsConstants;
 import com.yammer.metrics.Metrics;
-import com.yammer.metrics.core.HistogramMetric;
-import com.yammer.metrics.core.MeterMetric;
+import com.yammer.metrics.core.Histogram;
+import com.yammer.metrics.core.Meter;
 import com.yammer.metrics.core.MetricName;
 
 public class SenseiZoieSystemFactory<T> extends SenseiZoieFactory<T>
@@ -92,9 +92,9 @@ public class SenseiZoieSystemFactory<T> extends SenseiZoieFactory<T>
   }
   
   private static class IndexingMetrics{
-    final MeterMetric docsIndexedMetric;
-    final MeterMetric docsLeftoverMetric;
-    final HistogramMetric flushTimeHistogram;
+    final Meter docsIndexedMetric;
+    final Meter docsLeftoverMetric;
+    final Histogram flushTimeHistogram;
         
     IndexingMetrics(int partition){
       MetricName docsIndexedName =  new MetricName(MetricsConstants.Domain,"meter","docs-indexed","indexer");

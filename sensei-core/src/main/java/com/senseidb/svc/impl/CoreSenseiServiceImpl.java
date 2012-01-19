@@ -35,7 +35,7 @@ import com.senseidb.search.req.SenseiResult;
 import com.senseidb.util.RequestConverter;
 import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.MetricName;
-import com.yammer.metrics.core.TimerMetric;
+import com.yammer.metrics.core.Timer;
 
 public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiRequest, SenseiResult>{
 	public static final Serializer<SenseiRequest, SenseiResult> SERIALIZER =
@@ -44,7 +44,7 @@ public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiReque
 
 	private static final Logger logger = Logger.getLogger(CoreSenseiServiceImpl.class);
 	
-	private static TimerMetric timerMetric = null;
+	private static Timer timerMetric = null;
 	static{
 		  // register prune time metric
 		  try{

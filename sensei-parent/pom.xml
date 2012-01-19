@@ -134,10 +134,6 @@
 	      <id>Scala Tools Repository</id>
 	      <url>http://nexus.scala-tools.org/content/repositories/snapshots/</url>
 	    </repository>
-	    <repository>
-	      <id>Coda Hale Repository</id>
-	      <url>http://repo.codahale.com/</url>
-	    </repository>
       <repository>
         <id>labs-consol-release</id>
         <name>ConSol* Labs Repository (Releases)</name>

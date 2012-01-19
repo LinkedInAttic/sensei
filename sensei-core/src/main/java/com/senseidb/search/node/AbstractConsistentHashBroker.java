@@ -26,9 +26,9 @@ import com.senseidb.search.req.AbstractSenseiRequest;
 import com.senseidb.search.req.AbstractSenseiResult;
 import com.senseidb.svc.api.SenseiException;
 import com.yammer.metrics.Metrics;
-import com.yammer.metrics.core.MeterMetric;
+import com.yammer.metrics.core.Meter;
 import com.yammer.metrics.core.MetricName;
-import com.yammer.metrics.core.TimerMetric;
+import com.yammer.metrics.core.Timer;
 
 /**
  * @author "Xiaoyang Gu<xgu@linkedin.com>"
@@ -45,11 +45,11 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
   protected final Serializer<REQUEST, RESULT> _serializer;
   protected volatile SenseiLoadBalancer _loadBalancer;
   
-  private static TimerMetric ScatterTimer = null;
-  private static TimerMetric GatherTimer = null;
-  private static TimerMetric TotalTimer = null;
-  private static MeterMetric ErrorMeter = null;
-  private static MeterMetric EmptyMeter = null;
+  private static Timer ScatterTimer = null;
+  private static Timer GatherTimer = null;
+  private static Timer TotalTimer = null;
+  private static Meter ErrorMeter = null;
+  private static Meter EmptyMeter = null;
   
   static{
 	  // register metrics monitoring for timers

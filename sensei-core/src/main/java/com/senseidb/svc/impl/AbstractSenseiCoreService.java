@@ -11,8 +11,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import javax.management.ObjectName;
-
 import org.apache.log4j.Logger;
 
 import proj.zoie.api.IndexReaderFactory;
@@ -20,26 +18,24 @@ import proj.zoie.api.ZoieIndexReader;
 
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.linkedin.norbert.network.Serializer;
-import com.senseidb.jmx.JmxUtil;
 import com.senseidb.metrics.MetricsConstants;
 import com.senseidb.search.node.SenseiCore;
 import com.senseidb.search.node.SenseiQueryBuilderFactory;
 import com.senseidb.search.req.AbstractSenseiRequest;
 import com.senseidb.search.req.AbstractSenseiResult;
 import com.yammer.metrics.Metrics;
-import com.yammer.metrics.core.CounterMetric;
-import com.yammer.metrics.core.MeterMetric;
+import com.yammer.metrics.core.Meter;
 import com.yammer.metrics.core.MetricName;
-import com.yammer.metrics.core.TimerMetric;
+import com.yammer.metrics.core.Timer;
 
 public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiRequest,Res extends AbstractSenseiResult>{
   private final static Logger logger = Logger.getLogger(AbstractSenseiCoreService.class);
   
 
-  private static TimerMetric GetReaderTimer = null;
-  private static TimerMetric SearchTimer = null;
-  private static TimerMetric MergeTimer = null;
-  private static MeterMetric SearchCounter = null;
+  private static Timer GetReaderTimer = null;
+  private static Timer SearchTimer = null;
+  private static Timer MergeTimer = null;
+  private static Meter SearchCounter = null;
 	
   static{
 	  // register jmx monitoring for timers
