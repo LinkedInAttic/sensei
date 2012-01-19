@@ -122,6 +122,7 @@ we also created a MySql table:</p>
 
 <h2>Query Latency Test</h2>
 
+
 <p>We did the following 10 types of query latency test. Each result covers a certain type of queries.</p>
 
 <h3>Summary</h3>
@@ -857,7 +858,13 @@ we also created a MySql table:</p>
   select color from car where mileage>12750 AND match(contents) against('cool') browse by color order by category limit 1,10</pre>    
   </ul>
 
+<h2>Sensei Performance Multi-Thread Test</h2>
+<p>We also conducted the multi-thread performance test for Sensei. The following pictures show our experimental results:</p>
 
+<p>Latency test (Multi-thread):</p>
+<img src="https://github.com/sguo/search-perf/raw/master/pics/latency_per_numthreads.png" alt="Latency test (Multi-thread)"/>
 
+<p>QPS test (Multi-thread):</p>
+<img src="https://github.com/sguo/search-perf/raw/master/pics/qps_per_number_of_threads.png" alt="QPS test (Multi-thread)"/>
 
 
