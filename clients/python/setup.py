@@ -8,10 +8,10 @@ except ImportError:
 
 setup(
   name          = 'sensei-python',
-  version       = '1.0',
+  version       = '1.0.0',
   description   = 'Sensei client library',
   author        = 'senseidb.com',
-  url           = 'https://github.com/javasoze/sensei',
+  url           = 'https://github.com/senseidb/sensei',
   packages      = find_packages(),
   classifiers   = ['Development Status :: 5 - Production/Stable',
                    'Intended Audience :: Developers',
