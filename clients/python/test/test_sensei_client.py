@@ -2,11 +2,13 @@ import sys
 import unittest
 import time
 from datetime import datetime
+from os.path import dirname
+from pyparsing import ParseException
 
-sys.path.insert(0, "../src")
+sys.path.insert(0, dirname(__file__) + "/../sensei")
 import sensei_client
 from sensei_client import *
-from pyparsing import ParseException
+import bql_parser
 
 class TestSenseiClient(unittest.TestCase):
   """Test cases for Sensei client."""
@@ -833,14 +835,14 @@ class TestBQL(unittest.TestCase):
 class TestUtils(unittest.TestCase):
 
   def testRanges(self):
-    self.assertEqual("[50 TO 100]", sensei_client.and_ranges("[* TO 100]", "[50 TO 200]"))
-    self.assertEqual("[100 TO 200]", sensei_client.and_ranges("[100 TO *]", "[50 TO 200]"))
-    self.assertEqual("[200 TO *]", sensei_client.and_ranges("[100 TO *]", "[200 TO *]"))
-    self.assertEqual("[150 TO 200]", sensei_client.and_ranges("[100 TO 200]", "[150 TO 400]"))
-    self.assertEqual("[100 TO 200]", sensei_client.and_ranges("[* TO 200]", "[100 TO *]"))
-    self.assertEqual(None, sensei_client.and_ranges("[100 TO 200]", "[15 TO 50]"))
+    self.assertEqual("[50 TO 100]", bql_parser.and_ranges("[* TO 100]", "[50 TO 200]"))
+    self.assertEqual("[100 TO 200]", bql_parser.and_ranges("[100 TO *]", "[50 TO 200]"))
+    self.assertEqual("[200 TO *]", bql_parser.and_ranges("[100 TO *]", "[200 TO *]"))
+    self.assertEqual("[150 TO 200]", bql_parser.and_ranges("[100 TO 200]", "[150 TO 400]"))
+    self.assertEqual("[100 TO 200]", bql_parser.and_ranges("[* TO 200]", "[100 TO *]"))
+    self.assertEqual(None, bql_parser.and_ranges("[100 TO 200]", "[15 TO 50]"))
 
-    new_list = sensei_client.and_range_list(["[10 TO 50]", "[60 TO 80]", "[100 TO 200]"], "[40 TO 150]")
+    new_list = bql_parser.and_range_list(["[10 TO 50]", "[60 TO 80]", "[100 TO 200]"], "[40 TO 150]")
     self.assertEqual(["[40 TO 50]", "[60 TO 80]", "[100 TO 150]"], new_list)
 
 
