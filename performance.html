@@ -7,7 +7,7 @@ title: SenseiDB - Performance
   <p>Performance Benchmark</p>
 </div>
 
-<h2>Setup</h2>
+<h2>Environment Setup</h2>
 
 <h3>(1) Machine Setup</h3>
 <p>In this test, we use the server with the following setup:</p>
@@ -110,8 +110,8 @@ we also created a MySql table:</p>
 
 <p>Inserting data results (3M records):</p>
 <pre class="prettyprint">
-    MySQL:  Time spent:1469924 ms
-    Sensei: Time spent:449413 ms
+    MySQL:  Time spent:1469924 ms ( 2040.92 rows per second)
+    Sensei: Time spent:449413 ms  ( 6675.37 rows per second)
 </pre>
 
 <p>To insert data into MySQL server, we used the MySQL java connector, and write the custom code to measure the inserting time.</p>
@@ -122,10 +122,13 @@ we also created a MySql table:</p>
 
 <h2>Query Latency Test</h2>
 
+<p>We evaluated Sensei query latency in two ways. First we tested the latency while no inserting data statement is executed, then we tested the query latency while another thread keeps inserting data into the table.</p>
+
+<h3>(1) Query latency without inserting data</h3>
 
 <p>We did the following 10 types of query latency test. Each result covers a certain type of queries.</p>
 
-<h3>Summary</h3>
+<h4>Summary</h4>
 <table class="zebra-striped">
     <thead>
         <tr>
@@ -210,7 +213,7 @@ we also created a MySql table:</p>
     </tbody>
 </table>
 
-<h3>Details</h3>
+<h4>Details</h4>
   <ul>
     <li><b>(1) Simple select on mileage, a range query, including result count. Sensei automatically returns the count, which translate to the following mysql queries:</b></li>
     <code>mysql> select id from car where mileage>12750 limit 1,2;</code>
@@ -858,7 +861,97 @@ we also created a MySql table:</p>
   select color from car where mileage>12750 AND match(contents) against('cool') browse by color order by category limit 1,10</pre>    
   </ul>
 
-<h2>Sensei Performance Multi-Thread Test</h2>
+<h3>(2) Query latency while inserting data</h3>
+
+<p>We also did the following 10 types of query latency test while keep inserting another 3 million data items. Each result also covers a certain type of queries.</p>
+<p>Since the testing MySQL query, Sensei JSON and BQL statements are the same, we only list the latency values in the following summary table.</p>
+
+<table class="zebra-striped">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Query Type</th>
+            <th>MySQL</th>
+            <th>Sensei (JSON API)</th>
+            <th>Sensei (BQL)</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>1</td>
+            <td>Simple select with a range query, including result count</td>
+            <td>1.40 s</td>
+            <td>28 ms</td>
+            <td>28 ms</td>
+        </tr>
+        <tr>
+            <td>2</td>
+            <td>Sorting on one field with no index</td>
+            <td>2.78 s</td>
+            <td>37 ms</td>
+            <td>36 ms</td>
+        </tr>
+        <tr>
+            <td>3</td>
+            <td>Sorting on one indexed field</td>
+            <td>0.00 s</td>
+            <td>40 ms</td>
+            <td>38 ms</td>
+        </tr>
+        <tr>
+            <td>4</td>
+            <td>Sorting on two indexed fields</td>
+            <td>3.92 s</td>
+            <td>56 ms</td>
+            <td>57 ms</td>
+        </tr>
+        <tr>
+            <td>5</td>
+            <td>Sorting on three fields, 2 index, 1 not indexed</td>
+            <td>4.59 s</td>
+            <td>63 ms</td>
+            <td>63 ms</td>
+        </tr>   
+        <tr>
+            <td>6</td>
+            <td>Group By on a field with an index</td>
+            <td>14.91 s</td>
+            <td>114 ms / 65 ms (facet-only)</td>
+            <td>94 ms / 64 ms (facet-only)</td>
+        </tr> 
+        <tr>
+            <td>7</td>
+            <td>Group By on a field without an index</td>
+            <td>6.58 s</td>
+            <td>78 ms / 69 ms (facet-only)</td>
+            <td>56 ms / 70 ms (facet-only)</td>
+        </tr> 
+        <tr>
+            <td>8</td>
+            <td>With text search</td>
+            <td>8.44 s</td>
+            <td>79 ms</td>
+            <td>82 ms</td>
+        </tr> 
+        <tr>
+            <td>9</td>
+            <td>With text search, with sort</td>
+            <td>10.09 s</td>
+            <td>82 ms</td>
+            <td>82 ms</td>
+        </tr> 
+        <tr>
+            <td>10</td>
+            <td>With text search, with sort and group by</td>
+            <td>10.72 s</td>
+            <td>122 ms / 98 ms (facet-only)</td>
+            <td>123 ms / 95 ms (facet-only)</td>
+        </tr>         
+    </tbody>
+</table>
+
+
+<h2>Sensei Multi-Thread Performance Test</h2>
 <p>We also conducted the multi-thread performance test for Sensei. The following pictures show our experimental results:</p>
 
 <p>Latency test (Multi-thread):</p>
@@ -955,3 +1048,4 @@ we also created a MySql table:</p>
 	        
 	    ]
 	}</pre>
+
