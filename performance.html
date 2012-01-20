@@ -7,6 +7,18 @@ title: SenseiDB - Performance
   <p>Performance Benchmark</p>
 </div>
 
+<p>
+	<ul>
+		<li><a href="#environment">Environment</a></li>
+		<li><a href="#configuration">Configuration</a></li>
+		<li><a href="#data">Dataset</a></li>
+		<li><a href="#indexing">Update Performance</a></li>
+		<li><a href="#latencyStatic">Query Performance (with no updates)</a></li>
+		<li><a href="#latencyIndexing">Query Performance (with updates)</a></li>
+	</ul>
+</p>
+
+<a name="environment"></a>
 <h2>Environment Setup</h2>
 
 <h3>(1) Machine Setup</h3>
@@ -28,7 +40,7 @@ title: SenseiDB - Performance
 	Disksize: 350GB
 </pre>
 
-
+<a name="configuration"></a>
 <h3>(2) System Startup Configuration</h3>
 <p>We used default startup configuration for both Sensei and MySQL.
 
@@ -50,6 +62,7 @@ simply run:
   python expandData.py cars.json cars3m.json 3000000
 </pre>
 
+<a name="data"></a>
 <p>It will create the testing data which contains 3 million lines.
 we also created a MySql table:</p>
 
@@ -91,6 +104,7 @@ we also created a MySql table:</p>
 	11 rows in set (0.00 sec)
 </pre>
 
+<a name="indexing"></a>
 <p>We insert the 3 million testing dataset into MySQL database. Note that columns <b>color</b> and <b>price</b> have indexes, and <b>contents</b> is a fulltext field containing tokens from: color,category,tags, makemodel, and city.</p>
 
 <p>To create index for the two columns of the table, we can execute the following two SQL statements:</p>
@@ -124,6 +138,7 @@ we also created a MySql table:</p>
 
 <p>We evaluated Sensei query latency in two ways. First we tested the latency while no inserting data statement is executed, then we tested the query latency while another thread keeps inserting data into the table.</p>
 
+<a name="latencyStatic"></a>
 <h3>(1) Query latency without inserting data</h3>
 
 <p>We did the following 10 types of query latency test. Each result covers a certain type of queries.</p>
@@ -861,6 +876,8 @@ we also created a MySql table:</p>
   select color from car where mileage>12750 AND match(contents) against('cool') browse by color order by category limit 1,10</pre>    
   </ul>
 
+
+<a name="latencyIndexing"></a>
 <h3>(2) Query latency while inserting data</h3>
 
 <p>We also did the following 10 types of query latency test while keep inserting another 3 million data items. Each result also covers a certain type of queries.</p>
