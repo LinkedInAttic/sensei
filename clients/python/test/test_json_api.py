@@ -1,9 +1,8 @@
 import sys
 import unittest
-import time
-from datetime import datetime
+from os.path import dirname
 
-sys.path.insert(0, "../sensei")
+sys.path.insert(0, dirname(__file__) + "/../sensei")
 from sensei_client import *
 from sensei_components import *
 from pyparsing import ParseException
