@@ -12,6 +12,7 @@ setup(
   description   = 'Sensei client library',
   author        = 'senseidb.com',
   url           = 'https://github.com/senseidb/sensei',
+  install_requires = ['pyparsing', 'twisted'],
   packages      = find_packages(),
   classifiers   = ['Development Status :: 5 - Production/Stable',
                    'Intended Audience :: Developers',
