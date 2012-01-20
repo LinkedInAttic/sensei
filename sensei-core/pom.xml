@@ -35,6 +35,8 @@
 					<encoding>UTF-8</encoding>
 				</configuration>
 			</plugin>
+			
+			-->
 
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -60,7 +62,6 @@
 					</execution>
 				</executions>
 			</plugin>
-			-->
 			<plugin>
 		      <artifactId>maven-dependency-plugin</artifactId>
 		      <executions>
