@@ -1,8 +1,8 @@
-What is Sensi
+What is Sensei
 ===============
 ([http://www.senseidb.com/](http://www.senseidb.com/))
 
-Sensi is a distributed, elastic realtime searchable database.
+Sensei is a distributed, elastic realtime searchable database.
 
 ------------------------------------
 
@@ -26,23 +26,22 @@ Issues are tracked at:
 
 1. Build
 
-ant
+        ant
 
-or
+    or
 
-mvn package
+        mvn package
 
 2. Start ZooKeeper
 
-${ZK_HOME}/bin/zkServer.sh start
+        ${ZK_HOME}/bin/zkServer.sh start
 
 3. Run a search node(s)
 
-bin/start-sensei-node.sh conf1/
-
-bin/start-sensei-node.sh conf2/
+        bin/start-sensei-node.sh conf1/
+        bin/start-sensei-node.sh conf2/
 
 5. Starting command-line client app
 
-bin/sensei-client.sh client-conf
+        bin/sensei-client.sh client-conf
 
