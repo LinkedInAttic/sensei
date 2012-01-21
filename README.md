@@ -40,4 +40,6 @@ Issues are tracked at:
 
         bin/sensei-client.sh host port (default: localhost 8080)
 
-6. Go to web console: [http://localhost:8080](http://localhost:8080)
+   And/Or:
+
+        Go to web console: [http://localhost:8080](http://localhost:8080)
