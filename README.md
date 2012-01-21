@@ -26,22 +26,18 @@ Issues are tracked at:
 
 1. Build
 
-        ant
-
-    or
-
-        mvn package
+        ./bin/build.sh
 
 2. Start ZooKeeper
 
-        ${ZK_HOME}/bin/zkServer.sh start
+        ./bin/zookeeper-server-start.sh resources/zookeeper.properties
 
 3. Run a search node(s)
 
-        bin/start-sensei-node.sh conf1/
-        bin/start-sensei-node.sh conf2/
+        bin/start-sensei-node.sh example/cars/conf
 
 5. Starting command-line client app
 
-        bin/sensei-client.sh client-conf
+        bin/sensei-client.sh host port (default: localhost 8080)
 
+6. Go to [http://linkedin.jira.com/browse/SENSEI](web console)
