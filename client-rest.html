@@ -18,9 +18,9 @@ title: SenseiDB - Rest API
 
 <h2>Rest end-point</h2>
 <p>
-Every Sensei node has a rest end-point at the <code>/query</code> path listening on the broker port, specified in the <code>sensei.properties</code> file, e.g.
+Every Sensei node has a rest end-point at the <code>/sensei</code> path listening on the broker port, specified in the <code>sensei.properties</code> file, e.g.
 <pre><code>sensei.broker.port = 8080</code></pre>
-An example of the end-point is <a href="http://localhost:8080/query">http://localhost:8080/query</a>
+An example of the end-point is <a href="http://localhost:8080/sensei">http://localhost:8080/sensei</a>
 </p>
 
 <h2>Sensei Request</h2>
@@ -44,7 +44,7 @@ An example of the end-point is <a href="http://localhost:8080/query">http://loca
 	}
 	</pre>
 	and can be POSTed to the Rest end-point, e.g.
-	<p><code>curl -X -POST -d '{"query":{"query_string" : {"query":"cool car"}},"selections": [{"term":"color","value":"red"}]}' 'http://localhost:8080/query'</code></p>
+	<p><code>curl -X -POST -d '{"query":{"query_string" : {"query":"cool car"}},"selections": [{"term":"color","value":"red"}]}' 'http://localhost:8080/sensei'</code></p>
 </p>
 <p>
 	
@@ -64,7 +64,7 @@ An example of the end-point is <a href="http://localhost:8080/query">http://loca
 	&lt;/head&gt;
 	&lt;body&gt;
 		&lt;script type="text/javascript"&gt;
-		  var url = "http://localhost:8080/query"
+		  var url = "http://localhost:8080/sensei"
 		  var senseiReq = {};
 		  senseiReq.query = {};
 		  senseiReq.query.query_string = {"query" : "cool car"};
@@ -72,7 +72,7 @@ An example of the end-point is <a href="http://localhost:8080/query">http://loca
 		  senseiReq.selections = [{"term":"color","value":"red"}];
 		
 		  // cross-domain is allowed by the Sensei Rest end-point
-		  $.post("http://localhost:8080/query", JSON.stringify(senseiReq),
+		  $.post("http://localhost:8080/sensei", JSON.stringify(senseiReq),
 		   function(result) {
 			console.log(result);
 		   });
@@ -81,3 +81,29 @@ An example of the end-point is <a href="http://localhost:8080/query">http://loca
   &lt;/html&gt;
 </pre>
 
+
+
+<h2>Query via BQL</h2>
+<p>
+	It is also possible to query a Sensei cluster using <a href="bql.html">BQL</a>.
+</p>
+<p>
+	Simply post to the above Rest end-point with a JSON object containing a bql query, example:
+<pre class="prettyprint">
+{
+  "bql":"select color where category in ('van','exotic') order by price"
+}
+</pre>
+</p>
+
+<h2>Get using primary keys</h2>
+<p>
+	Another common query Sensei support is <code>Get/GetAll</code> using UIDs.
+</p>
+<p>
+   Given a list of UIDs, encode them into a JSON array, e.g.
+<pre class="prettyprint">
+  [uid1,uid2,uid3]
+</pre>
+   and post to the end-point <code>/sensei/get</code>, e.g. <code>http://localhost:8080/sensei/get</code>
+</p>
