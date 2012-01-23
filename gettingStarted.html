@@ -32,12 +32,12 @@ name: getting-started
 	</div>
 	<div class="span10">
 		<p>
-		Start your Zookeeper instance: (You can start your own Zookeeper cluster by following instructions <a href="http://zookeeper.apache.org/doc/trunk/zookeeperStarted.html">here</a>)
-		<pre><code>$SENSEI_HOME/bin/zookeeper-server-start.sh \ <br/>resources/zookeeper.properties</code></pre>
+		Start your Zookeeper instance: (You can start your own Zookeeper cluster by following instructions <a href="http://zookeeper.apache.org/doc/trunk/zookeeperStarted.html">here</a>), From <code>$SENSEI_HOME<code>
+		<pre><code>./bin/zookeeper-server-start.sh \ <br/>resources/zookeeper.properties</code></pre>
 		</p>
 		<p>
 			You can shut it down by running:
-			<pre><code>>$SENSEI_HOME/bin/zookeeper-server-stop.sh</code></pre>
+			<pre><code>>./bin/zookeeper-server-stop.sh</code></pre>
 		</p>
 	</div>
 </div>
@@ -97,9 +97,9 @@ Url specified, host: localhost, port: 8080
 | mileage    | range      | false   | mileage   | int         | []      |
 | price      | range      | false   | price     | float       | []      |
 +------------+------------+---------+-----------+-------------+---------+
-&gt; select uid,color,category where color in ('red','green') and query is "cool" order by category browse by color,category limit 10;
+&gt; select _uid,color,category where color in ('red','green') and query is "cool" order by category browse by color,category limit 10;
 +-------+-------+----------+
-| uid   | color | category |
+| _uid  | color | category |
 +-------+-------+----------+
 | 11099 | green | compact  |
 | 11101 | green | compact  |

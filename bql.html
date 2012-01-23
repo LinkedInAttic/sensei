@@ -732,7 +732,7 @@ results to be returned, and time is the default order-by column.</p>
 
 <pre>
 +---------------+---------------------------------+ ... +-------+
-| category      | city                            |     | uid   |
+| category      | city                            |     | _uid  |
 +---------------+---------------------------------+ ... +-------+
 | station wagon | u.s.a./florida/tampa            |     | 14999 |
 | compact       | u.s.a./florida/tampa            |     | 0     |
@@ -773,7 +773,7 @@ LIMIT  5, 10
 
     <pre>
 +----------+---------------------------------+ ... +-----+
-| category | city                            |     | uid |
+| category | city                            |     | _uid|
 +----------+---------------------------------+ ... +-----+
 | compact  | u.s.a./texas/houston            |     | 2   |
 | exotic   | u.s.a./california/san francisco |     | 244 |
@@ -804,7 +804,7 @@ LIMIT  3
 
     <pre>
 +----------+-----------------------------+ ... +-----+
-| category | city                        |     | uid |
+| category | city                        |     | _uid|
 +----------+-----------------------------+ ... +-----+
 | compact  | u.s.a./california/sunnyvale |     | 1   |
 | compact  | u.s.a./florida/tampa        |     | 0   |
@@ -1547,7 +1547,7 @@ FACET PARAM clause. Every parameter is specified in the clause as a
     (i.e. value 1 for the Network facet) in US: </strong></span></p>
 
     <pre>
-SELECT uid, Network, userid, country
+SELECT _uid, Network, userid, country
 FROM   shares
 WHERE  country = "us"
 AND    Network in (0, 1)
@@ -1558,7 +1558,7 @@ GIVEN FACET PARAM (Network, "member_id", int, 12345678)
 
     <pre>
 +---------------------+---------+----------------------+---------+
-| uid                 | Network | userid               | country |
+| _uid                 | Network | userid               | country |
 +---------------------+---------+----------------------+---------+
 | 5527797854963249152 | 0       | 00000000000012345678 | us      |
 | 5527805402646839296 | 1       | 00000000000042593551 | us      |
