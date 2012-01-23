@@ -10,4 +10,8 @@ cd $home
 
 mvn -Dmaven.test.skip=true package
 
+cd example/tweets
+rm -rf target
+rm -rf conf/ext
+mvn package
 popd
