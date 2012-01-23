@@ -255,4 +255,17 @@ public class SenseiClientRequest {
   public Map<String, Object> getTemplateMapping() {
     return templateMapping;
   }
+
+  public void setQuery(Query query) {
+    this.query = query;
+  }
+
+  public void setFilter(Filter filter) {
+    this.filter = filter;
+  }
+
+  public void setSelections(List<Selection> selections) {
+    this.selections = selections;
+  }
+  
 }

@@ -14,7 +14,7 @@ import com.senseidb.search.client.json.JsonSerializer;
 public class SelectionJsonHandler implements JsonHandler<Selection> {
     public static Map<String, Class<? extends Selection>> selectionClasses = new HashMap<String, Class<? extends Selection>>();
     static {
-        for (Class<? extends Selection> cls : Arrays.asList(Term.class, Terms.class, Selection.Path.class, Selection.Range.class, Selection.Custom.class)) {
+        for (Class<? extends Selection> cls : Arrays.asList(Term.class, Terms.class, Path.class, Range.class, Selection.Custom.class)) {
             selectionClasses.put(cls.getSimpleName().toLowerCase(), cls);
         }
     }

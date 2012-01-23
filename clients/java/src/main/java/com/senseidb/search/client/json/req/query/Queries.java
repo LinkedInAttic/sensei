@@ -5,9 +5,9 @@ import java.util.List;
 import java.util.Map;
 
 import com.senseidb.search.client.json.req.Operator;
+import com.senseidb.search.client.json.req.Range;
 import com.senseidb.search.client.json.req.Term;
 import com.senseidb.search.client.json.req.Terms;
-import com.senseidb.search.client.json.req.Selection.Range;
 import com.senseidb.search.client.json.req.filter.Filter;
 import com.senseidb.search.client.json.req.filter.Ids;
 import com.senseidb.search.client.json.req.query.TextQuery.Type;
