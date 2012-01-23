@@ -206,7 +206,7 @@ public class DefaultSenseiInterpreter<V> extends
 		    	formatSpec.formatter = new SimpleDateFormat(formatString);
 		      }
 		      else{
-		    	formatSpec.formatter = new DecimalFormat(formatString, new DecimalFormatSymbols(Locale.US));
+		    	formatSpec.formatter = new NegativeAwareDecimalFormat(metaType, formatString, new DecimalFormatSymbols(Locale.US));
 		      }
 		    }
 	    }

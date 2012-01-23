@@ -21,6 +21,7 @@ import com.browseengine.bobo.facets.filter.FacetRangeFilter;
 import com.browseengine.bobo.query.MatchAllDocIdSetIterator;
 import com.senseidb.indexing.DefaultSenseiInterpreter;
 import com.senseidb.indexing.MetaType;
+import com.senseidb.indexing.NegativeAwareDecimalFormat;
 
 public class RangeFilterConstructor extends FilterConstructor
 {
@@ -132,21 +133,21 @@ public class RangeFilterConstructor extends FilterConstructor
         if ("int".equals(type)) {
           MetaType metaType = DefaultSenseiInterpreter.CLASS_METATYPE_MAP.get(int.class);
           String formatString = DefaultSenseiInterpreter.DEFAULT_FORMAT_STRING_MAP.get(metaType);
-          DecimalFormat formatter = new DecimalFormat(formatString, new DecimalFormatSymbols(Locale.US));
+          DecimalFormat formatter = new NegativeAwareDecimalFormat(metaType, formatString, new DecimalFormatSymbols(Locale.US));
           fromPadded = formatter.format(Integer.parseInt(from));
           toPadded = formatter.format(Integer.parseInt(to));
         } 
         else if ("short".equals(type)) {
           MetaType metaType = DefaultSenseiInterpreter.CLASS_METATYPE_MAP.get(short.class);
           String formatString = DefaultSenseiInterpreter.DEFAULT_FORMAT_STRING_MAP.get(metaType);
-          DecimalFormat formatter = new DecimalFormat(formatString, new DecimalFormatSymbols(Locale.US));
+          DecimalFormat formatter = new NegativeAwareDecimalFormat(metaType, formatString, new DecimalFormatSymbols(Locale.US));
           fromPadded = formatter.format(Short.parseShort(from));
           toPadded = formatter.format(Short.parseShort(to));
         }
         else if ("long".equals(type)) {
           MetaType metaType = DefaultSenseiInterpreter.CLASS_METATYPE_MAP.get(long.class);
           String formatString = DefaultSenseiInterpreter.DEFAULT_FORMAT_STRING_MAP.get(metaType);
-          DecimalFormat formatter = new DecimalFormat(formatString, new DecimalFormatSymbols(Locale.US));
+          DecimalFormat formatter = new NegativeAwareDecimalFormat(metaType, formatString, new DecimalFormatSymbols(Locale.US));
           fromPadded = formatter.format(Long.parseLong(from));
           toPadded = formatter.format(Long.parseLong(to));
         }
@@ -162,14 +163,14 @@ public class RangeFilterConstructor extends FilterConstructor
         else if ("float".equals(type)) {
           MetaType metaType = DefaultSenseiInterpreter.CLASS_METATYPE_MAP.get(float.class);
           String formatString = DefaultSenseiInterpreter.DEFAULT_FORMAT_STRING_MAP.get(metaType);
-          DecimalFormat formatter = new DecimalFormat(formatString, new DecimalFormatSymbols(Locale.US));
+          DecimalFormat formatter = new NegativeAwareDecimalFormat(metaType, formatString, new DecimalFormatSymbols(Locale.US));
           fromPadded = formatter.format(Float.parseFloat(from));
           toPadded = formatter.format(Float.parseFloat(to));
         }
         else if ("double".equals(type)) {
           MetaType metaType = DefaultSenseiInterpreter.CLASS_METATYPE_MAP.get(double.class);
           String formatString = DefaultSenseiInterpreter.DEFAULT_FORMAT_STRING_MAP.get(metaType);
-          DecimalFormat formatter = new DecimalFormat(formatString, new DecimalFormatSymbols(Locale.US));
+          DecimalFormat formatter = new NegativeAwareDecimalFormat(metaType, formatString, new DecimalFormatSymbols(Locale.US));
           fromPadded = formatter.format(Double.parseDouble(from));
           toPadded = formatter.format(Double.parseDouble(to));
         }
