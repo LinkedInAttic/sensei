@@ -92,7 +92,7 @@ title: SenseiDB - Indexing &amp; Gateway
        <p>File - each line is a data event, and line number is the version.</p>
        <p>Configuration:</p>
        <pre class="prettyprint">
-    sensei.gateway.type=file
+    sensei.gateway.class=com.senseidb.gateway.file.LinedFileDataProviderBuilder
     sensei.gateway.file.path = &lt;file-name&gt;
        </pre> 
     </li>
@@ -100,7 +100,7 @@ title: SenseiDB - Indexing &amp; Gateway
        <p>JMS - each message is a data event, <code>System.nanoTime()</code> is used as version.</p>
        <p>Configuration:</p>
          <pre class="prettyprint">
-    sensei.gateway.type=jms
+    sensei.gateway.class=com.senseidb.gateway.jms.JmsDataProviderBuilder
     sensei.gateway.jms.topic = &lt;topic name&gt;
     sensei.gateway.jms.clientId = &lt;client id&gt;
     sensei.gateway.jms.topicFactory = &lt;topic factory class name&gt;
@@ -111,13 +111,26 @@ title: SenseiDB - Indexing &amp; Gateway
        <p>JDBC - each element in the ResultSet is a data event, developer implements version semantics.</p>
        <p>Configuration:</p>
        <pre class="prettyprint">
-    sensei.gateway.type=jdbc
+    sensei.gateway.class=com.senseidb.gateway.jdbc.JdbcDataProviderBuilder
+    sensei.gateway.jdbc.url=&lt;url name&gt;	
+    sensei.gateway.jdbc.username=&lt;username&gt;	
+    sensei.gateway.jdbc.password=&lt;password&gt;	
+    sensei.gateway.jdbc.driver=&lt;driver class name&gt;	
+    sensei.gateway.jdbc.username=&lt;url name&gt;	
+    sensei.gateway.jdbc.username=&lt;url name&gt;	
+    jdbc.adaptor.class=&lt;The class name of the custom jdbc adapter&gt;
     </pre>
     </li>
     <li><p>Kafka - each message is a data event, and offset is the version.</p>
     <p>Configuration:</p>
     <pre class="prettyprint">
-    sensei.gateway.type=kafka
+    sensei.gateway.class=com.senseidb.gateway.kafka.KafkaDataProviderBuilder
+    sensei.gateway.kafka.zookeeperUrl=&lt;zookeeper Url&gt;
+    sensei.gateway.kafka.consumerGroupId=&lt;consumerGroupId&gt;
+    sensei.gateway.kafka.topic=&lt;kafka topic name&gt;
+    sensei.gateway.kafka.timeout=&lt;connection timeout&gt;
+    sensei.gateway.kafka.batchsize=&lt;kafka batch size&gt;
+
     </pre>
     </li>
   </ul>
@@ -169,13 +182,12 @@ public class MyAwesomeGateway<V> extends SenseiGateway<V> {
   </li>
   <li>
      Edit <code>sensei.properties</code> to configure your Gateway:
-     <pre class="prettyprint">
-    sensei.gateway.type=custom
-    sensei.gateway.custom.class = &lt;custom gateway class&gt;
+     <pre class="prettyprint">    
+    sensei.gateway.class = &lt;custom gateway class&gt;
     
-    # paramters set to the gateway
-    sensei.gateway.custom.param1 = &lt;value1&gt;
-    sensei.gateway.custom.param2 = &lt;value2&gt;
+    # parameters set to the gateway
+    sensei.gateway.param1 = &lt;value1&gt;
+    sensei.gateway.param2 = &lt;value2&gt;
      </pre>
   </li>
 </ol>
