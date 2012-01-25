@@ -128,7 +128,55 @@
       "range" : {
         "age" : { "from" : 10, "to" : 20 }
       }
-    }
+    },
+    
+    // relevance support
+    "relevance":[
+ 
+       // sequence of statements in a score adjusting function below, statement order matters;
+       // the statement order should be exactly the same as the Java code is executing.
+ 
+ 
+           // (1) Variable assignment statements;
+           //     It may contain set, int, float, double, long, boolean,
+ 
+                // ------  [a] static variables below;
+ 
+           // var_set_int, var_set_string, var_set_double, var_set_long supported now.
+ 
+           {"var_set_int":[{"c":[1996, 1997], {"d":[1998]}}]},
+ 
+           {"var_double":[{"e":0.98}]},
+ 
+           {"var_int":[{"g":1996}]},
+ 
+                // -----  [b] runtime variables: statements here may be (not always) evaluated at runtime;
+ 
+           {"var_constant_long":[{"now":"_NOW"}]},
+ 
+           {"var_constant_float":[{"innerScore":"_INNER_SCORE"}]},
+ 
+           {"var_facet_int":[{"f":"year"}]},
+ 
+ 
+ 
+           // (2) scoring function and function input parameters in Java;
+           
+           {"function_params":["innerScore", "timeVal", "_timeWeight", "_waterworldWeight", "_half_time"]},    //  params for the function above, optional. Symbol order matters, and symbols must be those defined above.           
+
+           // the value string in the following JSONObject is like this (a return statement must appear as the last one):
+                 
+              //    float delta = System.currentTimeMillis() - timeVal;
+              //    float t = delta>0 ? delta : 0;
+              //    float hour = t/(1000*3600);
+              //    float timeScore = (float) Math.exp(-(hour/_half_time));
+              //    float waterworldScore = innerScore;
+              //    float time = timeScore * _timeWeight;
+              //    float water = waterworldScore  * _waterworldWeight;
+              //    return  (time + water);
+              
+           {"function":" A LONG JAVA CODE STRING HERE, ONLY AS FUNCTION BODY"}
+    ]
   },
 
 // terms
