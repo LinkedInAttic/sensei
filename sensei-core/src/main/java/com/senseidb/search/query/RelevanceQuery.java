@@ -313,6 +313,26 @@ public class RelevanceQuery extends AbstractScoreAdjuster
     if(funcBody.indexOf("return ")==-1)
       throw new JSONException("No return statement in the function body.");
     
+    //check if all the parameters have defined;
+    for(int i=0; i< lls_params.size(); i++)
+    {
+      String symbol = lls_params.get(i);
+      if( !hm_type.containsKey(symbol))
+        throw new JSONException("function parameter: " + symbol + " was not defined.");
+      
+      String type = hm_type.get(symbol);
+      if("FACET".equals(type))
+      {
+        if( !hm_symbol_facet.containsKey(symbol))
+          throw new JSONException("function parameter: " + symbol + " was not defined.");
+      }
+      else
+      {
+        if(!hm_var.containsKey(symbol))
+          throw new JSONException("function parameter: " + symbol + " was not defined.");
+      }
+    }
+    
     String className = "CRel"+funcBody.hashCode();
     if(hmModels.containsKey(className))
       cscorer = hmModels.get(className);
