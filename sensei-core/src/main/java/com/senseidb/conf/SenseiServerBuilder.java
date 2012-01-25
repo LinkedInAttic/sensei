@@ -9,6 +9,7 @@ import java.io.InputStream;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedList;
@@ -53,7 +54,6 @@ import proj.zoie.impl.indexing.DefaultReaderCache;
 import proj.zoie.impl.indexing.ReaderCacheFactory;
 import proj.zoie.impl.indexing.SimpleReaderCache;
 import proj.zoie.impl.indexing.ZoieConfig;
-import scala.actors.threadpool.Arrays;
 
 import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.facets.RuntimeFacetHandlerFactory;
