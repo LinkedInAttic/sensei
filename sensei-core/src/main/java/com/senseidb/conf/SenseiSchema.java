@@ -22,9 +22,8 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 import com.senseidb.indexing.DefaultSenseiInterpreter;
-import com.senseidb.indexing.MetaType;
 import com.senseidb.indexing.DefaultSenseiInterpreter.IndexSpec;
-import com.senseidb.indexing.NegativeAwareDecimalFormat;
+import com.senseidb.indexing.MetaType;
 
 public class SenseiSchema {
   public static final String SRC_DATA_FIELD_NAME            = "__SRC_DATA__";
@@ -140,27 +139,27 @@ public class SenseiSchema {
               if (t.equals("int")) {
                   MetaType metaType = DefaultSenseiInterpreter.CLASS_METATYPE_MAP.get(int.class);
                   String formatString = DefaultSenseiInterpreter.DEFAULT_FORMAT_STRING_MAP.get(metaType);
-                  fdef.formatter = new NegativeAwareDecimalFormat(MetaType.Integer, formatString, new DecimalFormatSymbols(Locale.US));
+                  fdef.formatter = new DecimalFormat(formatString, new DecimalFormatSymbols(Locale.US));
                   fdef.type = int.class;
               } else if (t.equals("short")) {
                   MetaType metaType = DefaultSenseiInterpreter.CLASS_METATYPE_MAP.get(short.class);
                   String formatString = DefaultSenseiInterpreter.DEFAULT_FORMAT_STRING_MAP.get(metaType);
-                  fdef.formatter = new NegativeAwareDecimalFormat(MetaType.Short, formatString, new DecimalFormatSymbols(Locale.US));
+                  fdef.formatter = new DecimalFormat(formatString, new DecimalFormatSymbols(Locale.US));
                   fdef.type = int.class;
               } else if (t.equals("long")) {
                   MetaType metaType = DefaultSenseiInterpreter.CLASS_METATYPE_MAP.get(long.class);
                   String formatString = DefaultSenseiInterpreter.DEFAULT_FORMAT_STRING_MAP.get(metaType);
-                  fdef.formatter = new NegativeAwareDecimalFormat(MetaType.Long, formatString, new DecimalFormatSymbols(Locale.US));
+                  fdef.formatter = new DecimalFormat(formatString, new DecimalFormatSymbols(Locale.US));
                   fdef.type = long.class;
               } else if (t.equals("float")) {
                   MetaType metaType = DefaultSenseiInterpreter.CLASS_METATYPE_MAP.get(float.class);
                   String formatString = DefaultSenseiInterpreter.DEFAULT_FORMAT_STRING_MAP.get(metaType);
-                  fdef.formatter = new NegativeAwareDecimalFormat(MetaType.Float, formatString, new DecimalFormatSymbols(Locale.US));
+                  fdef.formatter = new DecimalFormat(formatString, new DecimalFormatSymbols(Locale.US));
                   fdef.type = double.class;
               } else if (t.equals("double")) {
                   MetaType metaType = DefaultSenseiInterpreter.CLASS_METATYPE_MAP.get(double.class);
                   String formatString = DefaultSenseiInterpreter.DEFAULT_FORMAT_STRING_MAP.get(metaType);
-                  fdef.formatter = new NegativeAwareDecimalFormat(MetaType.Double, formatString, new DecimalFormatSymbols(Locale.US));
+                  fdef.formatter = new DecimalFormat(formatString, new DecimalFormatSymbols(Locale.US));
                   fdef.type = double.class;
               } else if (t.equals("char")) {
                   fdef.formatter = null;
@@ -268,27 +267,27 @@ public class SenseiSchema {
 				if (t.equals("int")) {
 					MetaType metaType = DefaultSenseiInterpreter.CLASS_METATYPE_MAP.get(int.class);
 					String formatString = DefaultSenseiInterpreter.DEFAULT_FORMAT_STRING_MAP.get(metaType);
-					fdef.formatter = new NegativeAwareDecimalFormat(metaType, formatString, new DecimalFormatSymbols(Locale.US));
+					fdef.formatter = new DecimalFormat(formatString, new DecimalFormatSymbols(Locale.US));
 					fdef.type = int.class;
 				} else if (t.equals("short")) {
 					MetaType metaType = DefaultSenseiInterpreter.CLASS_METATYPE_MAP.get(short.class);
 					String formatString = DefaultSenseiInterpreter.DEFAULT_FORMAT_STRING_MAP.get(metaType);
-					fdef.formatter = new NegativeAwareDecimalFormat(metaType, formatString, new DecimalFormatSymbols(Locale.US));
+					fdef.formatter = new DecimalFormat(formatString, new DecimalFormatSymbols(Locale.US));
 					fdef.type = int.class;
 				} else if (t.equals("long")) {
 					MetaType metaType = DefaultSenseiInterpreter.CLASS_METATYPE_MAP.get(long.class);
 					String formatString = DefaultSenseiInterpreter.DEFAULT_FORMAT_STRING_MAP.get(metaType);
-					fdef.formatter = new NegativeAwareDecimalFormat(metaType, formatString, new DecimalFormatSymbols(Locale.US));
+					fdef.formatter = new DecimalFormat(formatString, new DecimalFormatSymbols(Locale.US));
 					fdef.type = long.class;
 				} else if (t.equals("float")) {
 					MetaType metaType = DefaultSenseiInterpreter.CLASS_METATYPE_MAP.get(float.class);
 					String formatString = DefaultSenseiInterpreter.DEFAULT_FORMAT_STRING_MAP.get(metaType);
-					fdef.formatter = new NegativeAwareDecimalFormat(metaType, formatString, new DecimalFormatSymbols(Locale.US));
+					fdef.formatter = new DecimalFormat(formatString, new DecimalFormatSymbols(Locale.US));
 					fdef.type = double.class;
 				} else if (t.equals("double")) {
 					MetaType metaType = DefaultSenseiInterpreter.CLASS_METATYPE_MAP.get(double.class);
 					String formatString = DefaultSenseiInterpreter.DEFAULT_FORMAT_STRING_MAP.get(metaType);
-					fdef.formatter = new NegativeAwareDecimalFormat(metaType, formatString, new DecimalFormatSymbols(Locale.US));
+					fdef.formatter = new DecimalFormat(formatString, new DecimalFormatSymbols(Locale.US));
 					fdef.type = double.class;
 				} else if (t.equals("char")) {
 					fdef.formatter = null;

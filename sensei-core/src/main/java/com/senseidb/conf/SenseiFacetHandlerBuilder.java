@@ -150,9 +150,11 @@ public class SenseiFacetHandlerBuilder {
 			if (rangeList!=null){
 			  for (String range : rangeList){
 				if (!range.matches("\\[.* TO .*\\]")){
-					range = "["
-							+ range.replaceFirst("[-,]", " TO ")
-							+ "]";
+					if (!range.contains("-") || !range.contains(",")) {
+				  range = "[" + range.replaceFirst("[-,]", " TO ") + "]";
+					} else {
+					  range = "[" + range.replaceFirst(",", " TO ") + "]";
+					}
 				}
 				predefinedRanges.add(range);
 			  }
