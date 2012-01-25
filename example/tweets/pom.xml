@@ -6,7 +6,7 @@
 	<artifactId>tweet-example</artifactId>
 	<packaging>jar</packaging>
 	<name>tweet-examples</name>
-	<version>1.0.0-SNAPSHOT</version>
+	<version>1.0.0</version>
 	<description>sensei examples - tweets</description>
 
 	<!-- Set the compiler to java6 -->
@@ -59,8 +59,16 @@
 		<dependency>
 			<groupId>com.senseidb</groupId>
 			<artifactId>sensei-core</artifactId>
-			<version>1.0.0-SNAPSHOT</version>
+			<version>1.0.0</version>
 		</dependency>
 	</dependencies>
+
+	<repositories>
+	  <repository>
+        <id>releases</id>
+        <name>Releases</name>
+        <url>https://oss.sonatype.org/content/repositories/releases</url>
+      </repository>
+	</repositories>
 </project>
 

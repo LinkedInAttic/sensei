@@ -62,6 +62,13 @@
 	        <include>**/*</include>
 	      </includes>
 	    </fileSet>
+		<fileSet>
+	      <directory>example/tweet/conf</directory>
+	      <outputDirectory>/example/tweet/conf</outputDirectory>
+	      <includes>
+	        <include>**/*</include>
+	      </includes>
+	    </fileSet>
 	    <fileSet>
 	      <directory>./</directory>
 	      <outputDirectory>./</outputDirectory>
