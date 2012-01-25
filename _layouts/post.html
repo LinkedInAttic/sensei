@@ -35,7 +35,7 @@
     <script type="text/javascript" src="/sensei/js/lang-bql.js"></script>
 
     <!-- Le fav and touch icons -->
-    <link rel="shortcut icon" href="/images/sensei_black.jpg">
+    <link rel="shortcut icon" href="/sensei/images/sensei_black.jpg">
   </head>
 
   <body onload="prettyPrint()">
@@ -63,7 +63,9 @@
 		
           <h5>Posts</h5>
           <ul>
-            <li><a href="/overview.html">Overview</a></li>
+			{% for post in site.posts limit:10 %}
+			      <li><span>{{ post.date | date_to_string }}</span> &raquo; <br/> <a href="/sensei{{ post.url }}">{{ post.title }}</a></li>
+			    {% endfor %}</li>
           </ul>
         </div>
       </div>
