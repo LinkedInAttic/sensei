@@ -105,6 +105,24 @@ public class RelevanceQuery extends AbstractScoreAdjuster
 //            ]
   
   
+  
+  
+  /* A dummy testing relevance json:
+   * 
+   * 
+   *               "relevance":[
+                   {"var_set_int":{"c":[1996, 1997], "d":[1998]}},
+                   {"var_double":{"e":0.98}},
+                   {"var_int":{"g":1996}},
+                   {"var_bool":{"f":true, "h":false}},
+                   {"var_constant_long":{"now":"_NOW"}},
+                   {"var_constant_float":{"innerScore":"_INNER_SCORE"}},
+                   {"var_facet_int":{"f":"color"}},
+                   {"function_params":["innerScore"]},              
+                   {"function":" return 2f;"}
+   * 
+   * */
+  
   public RelevanceQuery(Query query, JSONArray relevance) throws JSONException
   {
     super(query);
@@ -395,6 +413,9 @@ public class RelevanceQuery extends AbstractScoreAdjuster
                                 boolean scoreDocsInOrder,
                                 boolean topScorer) throws IOException
   {
+    if(cscorer == null)
+      return innerScorer;
+    
     if (reader instanceof BoboIndexReader ){
       BoboIndexReader boboReader = (BoboIndexReader)reader;
       
