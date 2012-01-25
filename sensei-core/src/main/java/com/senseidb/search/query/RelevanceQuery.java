@@ -319,7 +319,7 @@ public class RelevanceQuery extends AbstractScoreAdjuster
         throw new JSONException("function parameter: " + symbol + " was not defined.");
       
       String type = hm_type.get(symbol);
-      if("FACET".equals(type))
+      if(type.startsWith("FACET"))
       {
         if( !hm_symbol_facet.containsKey(symbol))
           throw new JSONException("function parameter: " + symbol + " was not defined.");
