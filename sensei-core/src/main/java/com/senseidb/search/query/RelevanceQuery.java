@@ -44,16 +44,14 @@ public class RelevanceQuery extends AbstractScoreAdjuster
   private CustomScorer cscorer = null;
   private int facetIndex = 0;
   
-  interface CustomScorer {
-    float score(Object[] objs);
-  }
-  
   
   static ClassPool pool = ClassPool.getDefault();
   static
   {
     pool.importPackage("java.util");
   }
+  
+  static HashMap<String, CustomScorer> hmModels = new HashMap<String, CustomScorer>();
   
 //  "relevance":[
 //               
@@ -315,24 +313,29 @@ public class RelevanceQuery extends AbstractScoreAdjuster
     if(funcBody.indexOf("return ")==-1)
       throw new JSONException("No return statement in the function body.");
     
-    CtClass ch = pool.makeClass("CRel"+funcBody.hashCode());
-
-    try
+    String className = "CRel"+funcBody.hashCode();
+    if(hmModels.containsKey(className))
+      cscorer = hmModels.get(className);
+    else
     {
-      CtClass ci = pool.get("com.senseidb.search.query.RelevanceQuery.CustomScorer");
-      ch.addInterface(ci);
-      String functionString = makeFuncString(funcBody, hm_type, lls_params);
-      CtMethod m = CtNewMethod.make(functionString, ch);
-      ch.addMethod(m);
-      Class h = ch.toClass();
-      cscorer = (CustomScorer)h.newInstance();
-      
-    }
-    catch (Exception e)
-    {
-      throw new JSONException(e);
-    }
+      CtClass ch = pool.makeClass(className);
 
+      try
+      {
+        CtClass ci = pool.get("com.senseidb.search.query.CustomScorer");
+        ch.addInterface(ci);
+        String functionString = makeFuncString(funcBody, hm_type, lls_params);
+        CtMethod m = CtNewMethod.make(functionString, ch);
+        ch.addMethod(m);
+        Class h = ch.toClass();
+        cscorer = (CustomScorer)h.newInstance();
+        hmModels.put(className, cscorer);
+      }
+      catch (Exception e)
+      {
+        throw new JSONException(e);
+      }
+    }
   }
 
 
