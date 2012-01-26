@@ -12,13 +12,12 @@ import java.util.List;
 import junit.framework.TestCase;
 
 import org.apache.log4j.Logger;
-import org.json.JSONArray;
 import org.json.JSONObject;
 
 import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
-import com.senseidb.search.facet.attribute.AttributesFacetHandler;
+import com.browseengine.bobo.facets.attribute.AttributesFacetHandler;
 import com.senseidb.search.node.SenseiBroker;
 import com.senseidb.search.req.SenseiRequest;
 import com.senseidb.search.req.SenseiResult;
@@ -38,7 +37,30 @@ public class TestSenseiAttributesHandler extends TestCase {
 
   }
 
- 
+  public void test1aMultiRangeHandler() throws Exception
+  {
+   
+    logger.info("executing test case Selection terms");
+    String req = "{\"selections\":[{\"terms\":{\"groupid_range_multi\":{\"values\":[\"[-300 TO -1]\", \"[1 TO 1000]\"],\"operator\":\"or\"}}}]" +
+        //",\"facets\":{    \"object_properties\":{\"minHit\":1 }}" +
+        "}";
+    //assertEquals(broker.browse(new SenseiRequest()).getNumHits(), 15000);
+    JSONObject res = search(new JSONObject(req));
+   // System.out.println(res.toString(1));
+    assertEquals("numhits is wrong", 3, res.getInt("numhits"));
+  }
+  public void test1bMultiRangeHandler() throws Exception
+  {
+   
+    logger.info("executing test case Selection terms");
+    String req = "{\"selections\":[{\"terms\":{\"groupid_range_multi\":{\"values\":[\"[1 TO 500]\"],\"operator\":\"or\"}}}]" +
+        //",\"facets\":{    \"object_properties\":{\"minHit\":1 }}" +
+        "}";
+    //assertEquals(broker.browse(new SenseiRequest()).getNumHits(), 15000);
+    JSONObject res = search(new JSONObject(req));
+    //System.out.println(res.toString(1));
+    assertEquals("numhits is wrong",1, res.getInt("numhits"));
+  }
   
   public void test1AttributesFacetHandlerTwoOrTerms() throws Exception
   {
@@ -125,9 +147,7 @@ public class TestSenseiAttributesHandler extends TestCase {
   private JSONObject search(JSONObject req) throws Exception  {
     return  search(SenseiStarter.SenseiUrl, req.toString());
   }
-  private JSONObject searchGet(JSONArray req) throws Exception  {
-    return  search(new URL(SenseiStarter.SenseiUrl.toString() + "/get"), req.toString());
-  }
+
   private JSONObject search(URL url, String req) throws Exception {
     URLConnection conn = url.openConnection();
     conn.setDoOutput(true);

@@ -109,6 +109,7 @@
 		</params>
 	 </facet>
 	 <facet name="groupid_multi" type="multi"/>	
+	 <facet name="groupid_range_multi" column="groupid_multi" type="multi-range"/>	
 	 <!-- example of a custom facet, defined in custom-facets.xml -->
 	 <!-- 
 	     a bean with name "foobar" must be defined

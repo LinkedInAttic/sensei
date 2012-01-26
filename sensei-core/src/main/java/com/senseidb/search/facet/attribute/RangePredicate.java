@@ -16,8 +16,7 @@ public class RangePredicate implements  FacetPredicate {
       return range;
     }    
     lastDataCache = (MultiValueFacetDataCache) cache;   
-    range = Range.getRange(lastDataCache, value, separator);
-    System.out.println("!!!" + range);
+    range = Range.getRange(lastDataCache, value, separator);   
     buffer = new int[lastDataCache._nestedArray.getMaxItems()];
     return range;
   }  

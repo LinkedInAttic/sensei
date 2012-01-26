@@ -71,7 +71,10 @@ public class SenseiStarter {
     ConfDir2 = new File(SenseiStarter.class.getClassLoader().getResource(confDir2).toURI());
     org.apache.log4j.PropertyConfigurator.configure("resources/log4j.properties");
     loadFromSpringContext();
-    rmrf(IndexDir);
+    boolean removeSuccessful = rmrf(IndexDir);
+    if (!removeSuccessful) {
+      throw new IllegalStateException("The index dir " + IndexDir + " coulnd't be purged");
+    }
     SenseiServerBuilder senseiServerBuilder1 = null;
     senseiServerBuilder1 = new SenseiServerBuilder(ConfDir1, null);
     node1 = senseiServerBuilder1.buildServer();
@@ -154,6 +157,9 @@ public class SenseiStarter {
 
   private static boolean rmrf(File f)
   {
+    if (!f.exists()) {
+      return true;
+    }
     if (f != null) {
       if (f.isDirectory()) {
         for (File sub : f.listFiles()) {
