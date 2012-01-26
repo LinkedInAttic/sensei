@@ -254,9 +254,10 @@ public class SenseiServerBuilder implements SenseiConfParams{
       _senseiConf = new PropertiesConfiguration();
       ((PropertiesConfiguration)_senseiConf).setDelimiterParsingDisabled(true);
       ((PropertiesConfiguration)_senseiConf).load(_senseiConfFile);
-      pluginRegistry = SenseiPluginRegistry.build(_senseiConf);
-      pluginRegistry.start();
     }
+    
+    pluginRegistry = SenseiPluginRegistry.build(_senseiConf);
+    pluginRegistry.start();
 
     _gateway = constructGateway(_senseiConf);
 
