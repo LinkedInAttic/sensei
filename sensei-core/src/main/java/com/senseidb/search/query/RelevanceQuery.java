@@ -15,6 +15,7 @@ import javassist.NotFoundException;
 
 import org.apache.log4j.Logger;
 import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.search.Explanation;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.Scorer;
 import org.json.JSONArray;
@@ -575,6 +576,79 @@ public class RelevanceQuery extends AbstractScoreAdjuster
     else{
       return innerScorer;
     }
+  }
+
+
+
+
+  @Override
+  protected Explanation createExplain(Explanation innerExplain,
+                                      IndexReader reader,
+                                      int doc)
+  {
+    if(cscorer == null)
+      return createDummyExplain(innerExplain, "cscorer is null, return innerExplanation.");
+    
+    if (reader instanceof BoboIndexReader ){
+      BoboIndexReader boboReader = (BoboIndexReader)reader;
+      
+      int numFacet = hm_symbol_facet.keySet().size();
+      final BigSegmentedArray[] orderArrays = new BigSegmentedArray[numFacet];
+      final TermValueList[] termLists = new TermValueList[numFacet];
+      
+      Iterator<String> iter_facet = hm_facet_index.keySet().iterator();
+      while(iter_facet.hasNext()){
+        String facetName = iter_facet.next();
+        
+        // validation;
+        Object dataObj = boboReader.getFacetData(facetName);
+        if ( ! (dataObj instanceof FacetDataCache<?>))
+          return createDummyExplain(innerExplain, "Facet does not exist, return innerExplanation.");
+        
+        int index = hm_facet_index.get(facetName);
+        orderArrays[index] = ((FacetDataCache)(boboReader.getFacetData(facetName))).orderArray;
+        termLists[index] = ((FacetDataCache)(boboReader.getFacetData(facetName))).valArray;
+      }
+      
+      Explanation finalExpl = new Explanation();
+      finalExpl.addDetail(innerExplain);
+      
+      final int paramSize = lls_params.size();
+      
+      
+      // calculate the score below;
+      
+          Object[] objs = new Object[paramSize];  //for this parameter passing method, it will cost 9ms for 1000000 doc scan;
+          //prepare parameters;
+          for(int i=0; i< paramSize; i++)
+          {
+            if(hm_type.get(lls_params.get(i)).equals("INNER_SCORE"))
+              objs[i] = innerExplain.getValue();
+            else if (hm_type.get(lls_params.get(i)).startsWith("FACET"))
+            {
+              String facetName = hm_symbol_facet.get(lls_params.get(i));
+              int index = hm_facet_index.get(facetName);
+              objs[i] = termLists[index].getRawValue(orderArrays[index].get(doc));
+            }
+            else
+              objs[i] = hm_var.get(lls_params.get(i));
+          }
+      finalExpl.setValue(cscorer.score(objs));
+      finalExpl.setDescription("Custom score: "+ cscorer.score(objs));
+      return finalExpl;
+    }
+    else{
+      return createDummyExplain(innerExplain, "Non-Bobo reader with custom scorer. Should not arrive here.");
+    }
+  }
+  
+  private Explanation createDummyExplain(Explanation innerExplain, String message)
+  {
+    Explanation finalExpl = new Explanation();
+    finalExpl.addDetail(innerExplain);
+    finalExpl.setDescription(message);
+    finalExpl.setValue(innerExplain.getValue());
+    return finalExpl;
   }
 
 }
