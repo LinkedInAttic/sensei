@@ -6,10 +6,12 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 
+import javassist.CannotCompileException;
 import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtMethod;
 import javassist.CtNewMethod;
+import javassist.NotFoundException;
 
 import org.apache.log4j.Logger;
 import org.apache.lucene.index.IndexReader;
@@ -43,11 +45,11 @@ public class RelevanceQuery extends AbstractScoreAdjuster
   private int facetIndex = 0;
   
   
-  static ClassPool pool = ClassPool.getDefault();
-  static
-  {
-    pool.importPackage("java.util");
-  }
+//  static ClassPool pool = ClassPool.getDefault();
+//  static
+//  {
+//    pool.importPackage("java.util");
+//  }
   
   static HashMap<String, CustomScorer> hmModels = new HashMap<String, CustomScorer>();
   
@@ -334,31 +336,91 @@ public class RelevanceQuery extends AbstractScoreAdjuster
     String className = "CRel"+funcBody.hashCode();
     logger.info("Custom relevance class name is:"+ className);
     
-    synchronized(this)
+
+    if(hmModels.containsKey(className))
+      cscorer = hmModels.get(className);
+    else
     {
-      if(hmModels.containsKey(className))
-        cscorer = hmModels.get(className);
-      else
+
+      synchronized(this)
       {
+        ClassPool pool = ClassPool.getDefault();  //attn: always returned the same pool;
+        pool.importPackage("java.util");
         CtClass ch = pool.makeClass(className);
-  
+        
+        CtClass ci;
         try
         {
-          CtClass ci = pool.get("com.senseidb.search.query.CustomScorer");
-          ch.addInterface(ci);
-          String functionString = makeFuncString(funcBody, hm_type, lls_params);
-          CtMethod m = CtNewMethod.make(functionString, ch);
-          ch.addMethod(m);
-          Class h = ch.toClass(RelevanceQuery.class.getClassLoader());
-          cscorer = (CustomScorer)h.newInstance();
-          hmModels.put(className, cscorer);
+          ci = pool.get("com.senseidb.search.query.CustomScorer");
         }
-        catch (Exception e)
+        catch (NotFoundException e)
         {
+          logger.info(e.getMessage());
           throw new JSONException(e);
         }
-      }
+        ch.addInterface(ci);
+        String functionString = makeFuncString(funcBody, hm_type, lls_params);
+        
+        
+        CtMethod m;
+        try
+        {
+          m = CtNewMethod.make(functionString, ch);
+        }
+        catch (CannotCompileException e)
+        {
+          logger.info(e.getMessage());
+          throw new JSONException(e);
+        }
+        
+        try
+        {
+          ch.addMethod(m);
+        }
+        catch (CannotCompileException e)
+        {
+          logger.info(e.getMessage());
+          throw new JSONException(e);
+        }
+        
+        Class h;
+        try
+        {
+          h = ch.toClass(RelevanceQuery.class.getClassLoader());
+        }
+        catch (CannotCompileException e)
+        {
+          if(hmModels.containsKey(className))
+          {
+            cscorer = hmModels.get(className);
+            return;
+          }
+          else
+          {
+            logger.info(e.getMessage());
+            throw new JSONException(e);
+          }
+        }
+        
+        try
+        {
+          cscorer = (CustomScorer)h.newInstance();
+        }
+        catch (InstantiationException e)
+        {
+          logger.info(e.getMessage());
+          throw new JSONException(e);
+        }
+        catch (IllegalAccessException e)
+        {
+          logger.info(e.getMessage());
+          throw new JSONException(e);
+        }
+        
+        hmModels.put(className, cscorer);
+      }        
     }
+    
   }
 
 
