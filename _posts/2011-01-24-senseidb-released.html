@@ -5,11 +5,50 @@ title: SenseiDB Released!
 <div class="hero-unit">
   <h2>{{page.title}}</h2>
 </div>
+<p>
+   After months of hard-work, <a href="http://engineering.linkedin.com/open-source/introducing-senseidb-10-open-source-distributed-realtime-semi-structured-database">we are proud to release the first official version of Sensei (v1.0.0)</a>.
+</p>
+<p>On the day after its release, we already received a pull request, 150 points on <a href="http://news.ycombinator.com/item?id=3489658">Hacker News</a> and claimed #1 spot for a while, which drove 23000 page views to our <a href="http://senseidb.com">project page</a> from 8500 unique visitors.</p>
+<p>
+<p>
+   As part of this release, we are dedicating this blog to Sensei technology.
+</p>
+
+<h2>Architecture Diagram:</h2>
+<img src="http://senseidb.github.com/sensei/images/sensei-architect.png" />
 
 <h2>What is it?</h2>
+<h4>One-liner:</h4>
 <p>
-	SenseiDB is a distributed data system optimized for scenarios with rapid updates and complex queries, including full-text search capabilties.
+	SenseiDB is a distributed data system optimized for scenarios with rapid updates and complex queries, including full-text search capabilities.
 </p>
+
 <p>
-	Sensei is used in many places to power LinkedIn.com, powering search pages to analytics products. Most notably the LinkedIn Homepage.  
+	Sensei is used in many places to power LinkedIn.com, powering search pages to analytics products. Most notably the LinkedIn Homepage.
+</p>
+
+
+<h2>What is it NOT?</h2>
+<p>
+	To clear up some confusions from some comments on Hacker News, Sensei is not meant to replace every features of a RDBMS. As with any systems, design trade-offs were made for the primary problem the system tries to solve:
+	<ul>
+		<li>Sensei is NOT relational - JOIN operations are not supported. We adopt the philosophy of NOSQL data systems of data to be de-normalized.</li>
+		<li>Sensei is NOT transactional - although we provide durability and eventual consistency guarantees, we don't support a full transactional insert model, e.g. roll-back etc.</li>
+		<li>Eventual Consistency - Sensei does NOT have the same consistency guarantees that a traditional RDBMS supports. Instead, we guarantee the data to be eventual consistent, e.g. at All nodes will guarantee to converge to a consistent state.</li>
+	</ul>
+</p>
+
+<h2>Trying it out</h2>
+<p>
+	Best way to try out Sensei is start from <a href="http://senseidb.com/gettingStarted.html">getting started page</a> and setup all examples. This way, you can see some of the functionalities Sensei provides.
+</p>
+<h2>Join our community</h2>
+<p>
+	We invite you to join us in making Sensei better:
+	<ul>
+	  <li>Twitter: <a href="https://twitter.com/#!/sensei_db">@sensei_db</a></li>
+	  <li><a href="http://www.linkedin.com/groups/SenseiDB-4264313">LinkedIn group</a></li>
+	  <li><a href="http://groups.google.com/group/sensei-search">Mailing list</a></li>
+	  <li>IRC: irc.webchat.org, channel #senseidb</li>
+	</ul>
 </p>
