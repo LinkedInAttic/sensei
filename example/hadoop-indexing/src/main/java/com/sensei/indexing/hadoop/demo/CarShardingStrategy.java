@@ -3,7 +3,7 @@ package com.sensei.indexing.hadoop.demo;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.sensei.indexing.api.ShardingStrategy;
+import com.senseidb.indexing.ShardingStrategy;
 
 
 public class CarShardingStrategy implements ShardingStrategy {
