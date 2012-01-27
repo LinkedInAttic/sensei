@@ -95,13 +95,14 @@ public class TestSenseiAttributesHandler extends TestCase {
     //assertEquals(broker.browse(new SenseiRequest()).getNumHits(), 15000);
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 8180, res.getInt("numhits"));
-    assertTrue(res.optJSONObject("facets").optJSONArray("object_properties").length() < 5);
+    assertTrue(res.optJSONObject("facets").optJSONArray("object_properties").length() < 10);
     req = "{\"selections\":[{\"terms\":{\"object_properties\":{\"values\":[\"key1\"],\"operator\":\"or\"," +
         "}}}]" +
         ",\"facets\":{    \"object_properties\":{\"minHit\":1, \"max\":100, \"properties\":{\"maxFacetsPerKey\":10} }}" +
         "}";
     //assertEquals(broker.browse(new SenseiRequest()).getNumHits(), 15000);
     res = search(new JSONObject(req));
+    System.out.println(res.toString(1));
     assertTrue(res.optJSONObject("facets").optJSONArray("object_properties").length() > 10);
   }
   public void test4TotalCountWithFacetSpecLimitMaxFacetsPerKey() throws Exception
@@ -139,11 +140,9 @@ public class TestSenseiAttributesHandler extends TestCase {
     //setspec(req, facetSpecall);
     SenseiResult res = broker.browse(req);
     List<BrowseFacet> facets = res.getFacetMap().get("object_properties").getFacets();
-    assertEquals("" + facets.size(), 100, facets.size() );
-    
-
-  
+    assertEquals("" + facets.size(), 100, facets.size() );  
   }
+  
   private JSONObject search(JSONObject req) throws Exception  {
     return  search(SenseiStarter.SenseiUrl, req.toString());
   }
