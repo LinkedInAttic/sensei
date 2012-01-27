@@ -46,11 +46,21 @@ public class RelevanceQuery extends AbstractScoreAdjuster
   private int facetIndex = 0;
   
   
-//  static ClassPool pool = ClassPool.getDefault();
-//  static
-//  {
-//    pool.importPackage("java.util");
-//  }
+  static ClassPool pool = ClassPool.getDefault();
+  static
+  {
+    pool.importPackage("java.util");
+
+    pool.importPackage("it.unimi.dsi.fastutil.ints.*");
+    pool.importPackage("it.unimi.dsi.fastutil.longs.*");
+    pool.importPackage("it.unimi.dsi.fastutil.shorts.*");
+    pool.importPackage("it.unimi.dsi.fastutil.booleans.*");
+    pool.importPackage("it.unimi.dsi.fastutil.bytes.*");
+    pool.importPackage("it.unimi.dsi.fastutil.chars.*");
+    pool.importPackage("it.unimi.dsi.fastutil.doubles.*");
+    pool.importPackage("it.unimi.dsi.fastutil.floats.*");
+    pool.importPackage("it.unimi.dsi.fastutil.objects.*");
+  }
   
   static HashMap<String, CustomScorer> hmModels = new HashMap<String, CustomScorer>();
   
@@ -345,8 +355,7 @@ public class RelevanceQuery extends AbstractScoreAdjuster
 
       synchronized(this)
       {
-        ClassPool pool = ClassPool.getDefault();  //attn: always returned the same pool;
-        pool.importPackage("java.util");
+        
         CtClass ch = pool.makeClass(className);
         
         CtClass ci;
@@ -531,28 +540,59 @@ public class RelevanceQuery extends AbstractScoreAdjuster
       }
       
       final int paramSize = lls_params.size();
+      final int[] types = new int[paramSize];
+      final int[] facetIndex = new int[paramSize];
+      
+      for(int i=0; i< paramSize; i++)
+      {
+        if(hm_type.get(lls_params.get(i)).equals("INNER_SCORE")){
+          types[i] = 0;  //inner_score type parameter;
+          facetIndex[i] = -1;  //should not be used;
+        }
+        else if (hm_type.get(lls_params.get(i)).startsWith("FACET"))
+        {
+          types[i] = 1;  //facet type parameter;
+          String facetName = hm_symbol_facet.get(lls_params.get(i));
+          int index = hm_facet_index.get(facetName);
+          facetIndex[i] = index;  // record the facet index;
+        }
+        else
+        {
+          types[i] = 2;  //normal type parameter;
+          facetIndex[i] = -1;  // should not be used;
+        }
+      }
+      
+      
+      final Object[] objs = new Object[paramSize];  
+    
+
       
       return new Scorer(innerScorer.getSimilarity()){
     
         @Override
         public float score() throws IOException {
-          Object[] objs = new Object[paramSize];  //for this parameter passing method, it will cost 9ms for 1000000 doc scan;
-          
          
-          //prepare parameters;
+          //prepare parameters; //for this parameter passing method, it will cost 9ms for 1000000 doc scan;
           for(int i=0; i< paramSize; i++)
           {
-            if(hm_type.get(lls_params.get(i)).equals("INNER_SCORE"))
+            if(types[i]==0){
+//              logger.info("==innerscore i is:"+i);
               objs[i] = innerScorer.score();
-            else if (hm_type.get(lls_params.get(i)).startsWith("FACET"))
+            }
+            else if (types[i]==1)
             {
-              String facetName = hm_symbol_facet.get(lls_params.get(i));
-              int index = hm_facet_index.get(facetName);
+//              logger.info("==facet i is:"+i);
+              int index = facetIndex[i];
               objs[i] = termLists[index].getRawValue(orderArrays[index].get(innerScorer.docID()));
             }
-            else
+            else if (types[i] == 2)
+            {
+//              logger.info("==else i is:"+i);
               objs[i] = hm_var.get(lls_params.get(i));
+            }
           }
+          
           return cscorer.score(objs);
         }
 
