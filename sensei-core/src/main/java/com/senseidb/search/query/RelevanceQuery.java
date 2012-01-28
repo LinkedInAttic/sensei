@@ -183,7 +183,7 @@ public class RelevanceQuery extends AbstractScoreAdjuster
       
       // var_int, var_string, var_double, var_long
       // {"var_double":{"e":0.98}},
-      else if("var_int".equals(type) || "var_double".equals(type) || "var_long".equals(type) || "var_string".equals(type))
+      else if("var_int".equals(type) || "var_double".equals(type) || "var_long".equals(type) || "var_float".equals(type) || "var_string".equals(type))
       {
         JSONObject sets = stat.optJSONObject(type);
         Iterator<String> iter_symbol = sets.keys();
@@ -204,6 +204,11 @@ public class RelevanceQuery extends AbstractScoreAdjuster
           {
             hm_var.put(symbol, sets.getDouble(symbol));
             hm_type.put(symbol, "DOUBLE");
+          }
+          else if ("var_float".equals(type))
+          {
+            hm_var.put(symbol, ((float)sets.getDouble(symbol)));
+            hm_type.put(symbol, "FLOAT");
           }
           else if ("var_long".equals(type))
           {
@@ -286,6 +291,11 @@ public class RelevanceQuery extends AbstractScoreAdjuster
       {
         JSONObject set = stat.optJSONObject(type);
         handleFacetSymbols(set, "FACET_DOUBLE");
+      }
+      else if("var_facet_float".equals(type))
+      {
+        JSONObject set = stat.optJSONObject(type);
+        handleFacetSymbols(set, "FACET_FLOAT");
       }
       else if("var_facet_long".equals(type))
       {
@@ -483,6 +493,10 @@ public class RelevanceQuery extends AbstractScoreAdjuster
       {
         sb.append(" double " + paramName + " = ((Double) objs["+ i + "]).doubleValue(); ");
       }
+      else if(hm_type.get(paramName).equals("FLOAT") || hm_type.get(paramName).equals("FACET_FLOAT"))
+      {
+        sb.append(" float " + paramName + " = ((Float) objs["+ i + "]).floatValue(); ");
+      }      
       else if(hm_type.get(paramName).equals("STRING") || hm_type.get(paramName).equals("FACET_STRING"))
       {
         sb.append(" String " + paramName + " = (String) objs["+ i + "]; ");
@@ -540,6 +554,7 @@ public class RelevanceQuery extends AbstractScoreAdjuster
       }
       
       final int paramSize = lls_params.size();
+      
       final int[] types = new int[paramSize];
       final int[] facetIndex = new int[paramSize];
       
@@ -567,57 +582,137 @@ public class RelevanceQuery extends AbstractScoreAdjuster
       final Object[] objs = new Object[paramSize];  
     
 
-      
-      return new Scorer(innerScorer.getSimilarity()){
-    
-        @Override
-        public float score() throws IOException {
-         
-          //prepare parameters; //for this parameter passing method, it will cost 9ms for 1000000 doc scan;
-          for(int i=0; i< paramSize; i++)
-          {
-            if(types[i]==0){
-//              logger.info("==innerscore i is:"+i);
-              objs[i] = innerScorer.score();
-            }
-            else if (types[i]==1)
-            {
-//              logger.info("==facet i is:"+i);
-              int index = facetIndex[i];
-              objs[i] = termLists[index].getRawValue(orderArrays[index].get(innerScorer.docID()));
-            }
-            else if (types[i] == 2)
-            {
-//              logger.info("==else i is:"+i);
-              objs[i] = hm_var.get(lls_params.get(i));
-            }
-          }
-          
-          return cscorer.score(objs);
-        }
-
-        @Override
-        public int advance(int target) throws IOException {
-          return innerScorer.advance(target);
-        }
-
-        @Override
-        public int docID() {
-          return innerScorer.docID();
-        }
-
-        @Override
-        public int nextDoc() throws IOException {
-          return innerScorer.nextDoc();
-        }
-        
-      };
+      return new CodeGenScorer(innerScorer, cscorer, orderArrays, termLists, types, facetIndex, paramSize);
+//      return new Scorer(innerScorer.getSimilarity()){
+//    
+//        @Override
+//        public float score() throws IOException {
+//         
+//          //prepare parameters; //for this parameter passing method, it will cost 9ms for 1000000 doc scan;
+//          for(int i=0; i< paramSize; i++)
+//          {
+//            if(types[i]==0){
+////              logger.info("==innerscore i is:"+i);
+//              objs[i] = innerScorer.score();
+//            }
+//            else if (types[i]==1)
+//            {
+////              logger.info("==facet i is:"+i);
+//              int index = facetIndex[i];
+//              objs[i] = termLists[index].getRawValue(orderArrays[index].get(innerScorer.docID()));
+//            }
+//            else if (types[i] == 2)
+//            {
+////              logger.info("==else i is:"+i);
+//              objs[i] = hm_var.get(lls_params.get(i));
+//            }
+//          }
+//          
+//          return cscorer.score(objs);
+//        }
+//
+//        @Override
+//        public int advance(int target) throws IOException {
+//          return innerScorer.advance(target);
+//        }
+//
+//        @Override
+//        public int docID() {
+//          return innerScorer.docID();
+//        }
+//
+//        @Override
+//        public int nextDoc() throws IOException {
+//          return innerScorer.nextDoc();
+//        }
+//        
+//      };
     }
     else{
       return innerScorer;
     }
   }
 
+  public class  CodeGenScorer extends Scorer{
+
+    final Scorer _innerScorer;
+    final CustomScorer _cscorer;
+    
+    final BigSegmentedArray[] _orderArrays;
+    final TermValueList[] _termLists;
+    
+    final int[] _types;
+    final int[] _facetIndex;
+    
+    final int _paramSize;
+    
+    final Object[] _objs;
+    
+    public CodeGenScorer(Scorer innerScorer, 
+                         CustomScorer cscorer, 
+                         BigSegmentedArray[] orderArrays,
+                         TermValueList[] termLists,
+                         int[] types,
+                         int[] facetIndex,
+                         int paramSize
+                         )
+    {
+      super(innerScorer.getSimilarity());
+      
+      _innerScorer = innerScorer;
+      _cscorer = cscorer;
+      _orderArrays = orderArrays;
+      _termLists = termLists;
+      _types = types;
+      _facetIndex = facetIndex;
+      _paramSize = paramSize;
+      
+      _objs = new Object[_paramSize];
+      
+    }
+    @Override
+    public float score() throws IOException {
+      
+      //prepare parameters; //for this parameter passing method, it will cost 9ms for 1000000 doc scan;
+      for(int i=0; i< _paramSize; i++)
+      {
+        if(_types[i]==0){
+//          logger.info("==innerscore i is:"+i);
+          _objs[i] = _innerScorer.score();
+        }
+        else if (_types[i]==1)
+        {
+//          logger.info("==facet i is:"+i);
+          int index = _facetIndex[i];
+          _objs[i] = _termLists[index].getRawValue(_orderArrays[index].get(_innerScorer.docID()));
+        }
+        else if (_types[i] == 2)
+        {
+//          logger.info("==else i is:"+i);
+          _objs[i] = hm_var.get(lls_params.get(i));
+        }
+      }
+      
+      return _cscorer.score(_objs);
+    }
+
+    @Override
+    public int advance(int target) throws IOException {
+      return _innerScorer.advance(target);
+    }
+
+    @Override
+    public int docID() {
+      return _innerScorer.docID();
+    }
+
+    @Override
+    public int nextDoc() throws IOException {
+      return _innerScorer.nextDoc();
+    }
+    
+    
+  }
 
 
 
