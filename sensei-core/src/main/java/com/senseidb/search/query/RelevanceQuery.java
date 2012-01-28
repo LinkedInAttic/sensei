@@ -42,6 +42,7 @@ public class RelevanceQuery extends AbstractScoreAdjuster
   private HashMap<String, Integer> hm_facet_index = new HashMap<String, Integer>();
   private LinkedList<String> lls_params = new LinkedList<String>();
   private String funcBody = null;
+  private String classIDString = null;
   private CustomScorer cscorer = null;
   private int facetIndex = 0;
   
@@ -334,6 +335,7 @@ public class RelevanceQuery extends AbstractScoreAdjuster
     if(funcBody.indexOf("return ")==-1)
       throw new JSONException("No return statement in the function body.");
     
+
     //check if all the parameters have defined;
     for(int i=0; i< lls_params.size(); i++)
     {
@@ -353,8 +355,13 @@ public class RelevanceQuery extends AbstractScoreAdjuster
           throw new JSONException("function parameter: " + symbol + " was not defined.");
       }
     }
+
+    lls_params = filterParameters(lls_params, funcBody);
     
-    String className = "CRel"+funcBody.hashCode();
+    String paramString = getParamString(lls_params);
+    
+    classIDString = funcBody + paramString;
+    String className = "CRel"+ classIDString.hashCode();
     logger.info("Custom relevance class name is:"+ className);
     
 
@@ -441,6 +448,30 @@ public class RelevanceQuery extends AbstractScoreAdjuster
       }        
     }
     
+  }
+  
+  
+  private String getParamString(LinkedList<String> lls_params)
+  {
+    StringBuilder sb = new StringBuilder();
+    for(String param : lls_params)
+    {
+      sb.append(param);
+      sb.append("_");
+    }
+    return sb.toString();
+  }
+
+
+  private LinkedList<String> filterParameters(LinkedList<String> lls_params, String funcBody)
+  {
+    LinkedList<String> lls_new = new LinkedList<String>();
+    for(String param : lls_params)
+    {
+      if(  !(funcBody.indexOf(param) == -1))
+        lls_new.add(param);
+    }
+    return lls_new;
   }
 
 
