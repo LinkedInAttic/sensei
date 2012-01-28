@@ -1,4 +1,4 @@
-package com.sensei.indexing.hadoop.demo;
+package com.senseidb.indexing.hadoop.demo;
 
 
 
