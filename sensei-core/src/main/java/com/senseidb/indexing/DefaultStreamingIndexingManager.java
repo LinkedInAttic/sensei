@@ -23,6 +23,7 @@ import proj.zoie.api.Zoie;
 import proj.zoie.api.ZoieException;
 import proj.zoie.api.ZoieIndexReader;
 import proj.zoie.impl.indexing.StreamDataProvider;
+import proj.zoie.impl.indexing.ZoieConfig;
 import proj.zoie.mbean.DataProviderAdmin;
 import proj.zoie.mbean.DataProviderAdminMBean;
 
@@ -96,7 +97,12 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 	  _dataCollectorMap = new LinkedHashMap<Integer, Collection<DataEvent<JSONObject>>>();
 	  _gateway = gateway;
 
-	  _versionComparator = _gateway.getVersionComparator();
+	  if (_gateway!=null){
+	    _versionComparator = _gateway.getVersionComparator();
+	  }
+	  else{
+	    _versionComparator = ZoieConfig.DEFAULT_VERSION_COMPARATOR;
+	  }
     _shardingStrategy = shardingStrategy;
 	}
 
@@ -130,7 +136,9 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 	      _dataCollectorMap.put(part, new LinkedList<DataEvent<JSONObject>>());
 	    }
 
+	    if (_dataProvider!=null){
 	    _dataProvider.setDataConsumer(consumer);
+	    }
 	}
 
   @Override
@@ -141,38 +149,43 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 
 	private StreamDataProvider<JSONObject> buildDataProvider() throws ConfigurationException{
 		StreamDataProvider<JSONObject> dataProvider = null;
+    if (_gateway!=null){
+		  try{
+		    dataProvider = _gateway.buildDataProvider(_senseiSchema, _oldestSinceKey, pluginRegistry,_shardingStrategy,_dataCollectorMap.keySet());
+        long maxEventsPerMin = _myconfig.getLong(EVTS_PER_MIN,40000);
+        dataProvider.setMaxEventsPerMinute(maxEventsPerMin);
+        int batchSize = _myconfig.getInt(BATCH_SIZE,1);
+        dataProvider.setBatchSize(batchSize);
+	   	}
+		  catch(Exception e){
+			  throw new ConfigurationException(e.getMessage(),e);
+		  }
 
-		try{
-		  dataProvider = _gateway.buildDataProvider(_senseiSchema, _oldestSinceKey, pluginRegistry,_shardingStrategy,_dataCollectorMap.keySet());
-      long maxEventsPerMin = _myconfig.getLong(EVTS_PER_MIN,40000);
-      dataProvider.setMaxEventsPerMinute(maxEventsPerMin);
-      int batchSize = _myconfig.getInt(BATCH_SIZE,1);
-      dataProvider.setBatchSize(batchSize);
-		}
-		catch(Exception e){
-			throw new ConfigurationException(e.getMessage(),e);
-		}
-
-		try {
+		  try {
 		   StandardMBean dataProviderMbean = new StandardMBean(new DataProviderAdmin(dataProvider), DataProviderAdminMBean.class);
 		   JmxUtil.registerMBean(dataProviderMbean, "indexing-manager","stream-data-provider");
-		} catch (Exception e) {
-		  logger.error(e.getMessage(),e);
-		}
+		  } catch (Exception e) {
+		    logger.error(e.getMessage(),e);
+		  }
+    }
 		return dataProvider;
 	}
 
 	@Override
 	public void shutdown() {
-	  _dataProvider.stop();
+	  if (_dataProvider!=null){
+	    _dataProvider.stop();
+	  }
 	}
 
 	@Override
 	public void start() throws Exception {
 		if (_dataProvider==null){
-			throw new Exception("data provider is not started");
+		  logger.warn("no data stream configured, no indexing events are flowing.");
 		}
-		_dataProvider.start();
+		else{
+	 	  _dataProvider.start();
+		}
 	}
 
   @Override

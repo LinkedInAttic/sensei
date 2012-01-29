@@ -323,7 +323,14 @@ public class SenseiServerBuilder implements SenseiConfParams{
       if (similarity == null) {
         similarity = new DefaultSimilarity();
       }
-      ZoieConfig zoieConfig = new ZoieConfig(_gateway.getVersionComparator());
+      ZoieConfig zoieConfig;
+      if (_gateway != null){
+        zoieConfig = new ZoieConfig(_gateway.getVersionComparator());
+      }
+      else{
+        zoieConfig = new ZoieConfig();
+      }
+       
       zoieConfig.setAnalyzer(analyzer);
       zoieConfig.setSimilarity(similarity);
       zoieConfig.setBatchSize(_senseiConf.getInt(SENSEI_INDEX_BATCH_SIZE,ZoieConfig.DEFAULT_SETTING_BATCHSIZE));
