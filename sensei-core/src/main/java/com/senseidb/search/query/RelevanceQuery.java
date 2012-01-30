@@ -97,6 +97,7 @@ public class RelevanceQuery extends AbstractScoreAdjuster
 //         
 //         
 //                   // (2) scoring function and function input parameters in Java;
+//                   //     A scoring function is a model. A model changes when the function body or signature changes;
 //                   
 //                   {"function_params":["innerScore", "timeVal", "_timeWeight", "_waterworldWeight", "_half_time"]},    //  params for the function above, optional. Symbol order matters, and symbols must be those defined above. innerScore MUST be used, otherwise, makes no sense to use the custom relevance;           
 //
@@ -324,12 +325,12 @@ public class RelevanceQuery extends AbstractScoreAdjuster
       //function body;
       if("function".equals(type))
       {
-        funcBody = stat.optString("function");
+        funcBody = stat.optString("function").trim();
       }
       
     } // end of all the statements;
     
-    if(funcBody == null)
+    if(funcBody == null || funcBody.length()==0)
       throw new JSONException("No function body found.");
     
     if(funcBody.indexOf("return ")==-1)
@@ -457,7 +458,7 @@ public class RelevanceQuery extends AbstractScoreAdjuster
     for(String param : lls_params)
     {
       sb.append(param);
-      sb.append("_");
+      sb.append("#");
     }
     return sb.toString();
   }
@@ -609,9 +610,6 @@ public class RelevanceQuery extends AbstractScoreAdjuster
         }
       }
       
-      
-      final Object[] objs = new Object[paramSize];  
-    
 
       return new CodeGenScorer(innerScorer, cscorer, orderArrays, termLists, types, facetIndex, paramSize);
 //      return new Scorer(innerScorer.getSimilarity()){
