@@ -27,7 +27,6 @@
 					<encoding>UTF-8</encoding>
 				</configuration>
 			</plugin>
-			<!--
 			<plugin>
 				<artifactId>maven-resources-plugin</artifactId>
 				<version>2.2</version>
@@ -60,7 +59,6 @@
 					</execution>
 				</executions>
 			</plugin>
-			-->
 			<plugin>
 		      <artifactId>maven-dependency-plugin</artifactId>
 		      <executions>
@@ -130,18 +128,6 @@
 		</dependency>
 		
 		<dependency>
-			<groupId>com.linkedin.zoie</groupId>
-			<artifactId>zoie-core</artifactId>
-			<version>3.1.0-SNAPSHOT</version>
-		</dependency>
-		
-		<dependency>
-			<groupId>com.linkedin.zoie</groupId>
-			<artifactId>zoie-jms</artifactId>
-			<version>3.1.0-SNAPSHOT</version>
-		</dependency>
-		
-		<dependency>
 			<groupId>commons-configuration</groupId>
 			<artifactId>commons-configuration</artifactId>
 			<version>1.6</version>
@@ -152,12 +138,6 @@
 			<artifactId>json</artifactId>
 			<version>20080701</version>
 		</dependency>
-		
-		<dependency>
-           <groupId>com.yammer.metrics</groupId>
-           <artifactId>metrics-core</artifactId>
-           <version>2.0.0-BETA18-SNAPSHOT</version>
-        </dependency>
 		
 		<dependency>
 			<groupId>org.apache.avro</groupId>

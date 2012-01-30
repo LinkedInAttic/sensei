@@ -281,6 +281,9 @@ public class SenseiServerBuilder implements SenseiConfParams{
       ((PropertiesConfiguration)_senseiConf).setDelimiterParsingDisabled(true);
       ((PropertiesConfiguration)_senseiConf).load(_senseiConfFile);
     }
+    
+    pluginRegistry = SenseiPluginRegistry.build(_senseiConf);
+    pluginRegistry.start();
 
     pluginRegistry = SenseiPluginRegistry.build(_senseiConf);
     pluginRegistry.start();
@@ -358,14 +361,21 @@ public class SenseiServerBuilder implements SenseiConfParams{
   // Analyzer from configuration:
       Analyzer analyzer = pluginRegistry.getBeanByFullPrefix(SENSEI_INDEX_ANALYZER, Analyzer.class);
       if (analyzer == null) {
-        analyzer = new StandardAnalyzer(Version.LUCENE_CURRENT);
+        analyzer = new StandardAnalyzer(Version.LUCENE_35);
       }
       // Similarity from configuration:
       Similarity similarity = pluginRegistry.getBeanByFullPrefix(SENSEI_INDEX_SIMILARITY, Similarity.class);
       if (similarity == null) {
         similarity = new DefaultSimilarity();
       }
-      ZoieConfig zoieConfig = new ZoieConfig(_gateway.getVersionComparator());
+      ZoieConfig zoieConfig;
+      if (_gateway != null){
+        zoieConfig = new ZoieConfig(_gateway.getVersionComparator());
+      }
+      else{
+        zoieConfig = new ZoieConfig();
+      }
+       
       zoieConfig.setAnalyzer(analyzer);
       zoieConfig.setSimilarity(similarity);
       zoieConfig.setBatchSize(_senseiConf.getInt(SENSEI_INDEX_BATCH_SIZE,ZoieConfig.DEFAULT_SETTING_BATCHSIZE));
@@ -448,7 +458,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
       }
       SenseiQueryBuilderFactory queryBuilderFactory = pluginRegistry.getBeanByFullPrefix(SENSEI_QUERY_BUILDER_FACTORY, SenseiQueryBuilderFactory.class);
       if (queryBuilderFactory == null){
-        QueryParser queryParser = new QueryParser(Version.LUCENE_CURRENT,"contents", analyzer);
+        QueryParser queryParser = new QueryParser(Version.LUCENE_35,"contents", analyzer);
         queryBuilderFactory = new DefaultJsonQueryBuilderFactory(queryParser);
       }
       SenseiCore senseiCore = new SenseiCore(nodeid,partitions,zoieSystemFactory,indexingManager,queryBuilderFactory);

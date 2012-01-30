@@ -2,8 +2,6 @@ package com.senseidb.search.node.impl;
 
 import java.io.File;
 
-import proj.zoie.api.DefaultDirectoryManager;
-import proj.zoie.api.DirectoryManager;
 import proj.zoie.api.DirectoryManager.DIRECTORY_MODE;
 import proj.zoie.api.indexing.ZoieIndexableInterpreter;
 import proj.zoie.impl.indexing.ZoieConfig;
@@ -23,6 +21,10 @@ public class DemoZoieSystemFactory<T> extends SenseiZoieSystemFactory<T>
                                ZoieConfig zoieConfig)
   {
     super(idxDir, DIRECTORY_MODE.SIMPLE, interpreter, indexReaderDecorator, zoieConfig);
+  }
+  
+  public DemoZoieSystemFactory(File idxDir,ZoieIndexableInterpreter<T> interpreter,ZoieConfig zoieConfig){
+    super(idxDir, DIRECTORY_MODE.SIMPLE, interpreter, new SenseiIndexReaderDecorator(), zoieConfig);
   }
   
   @Override
