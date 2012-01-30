@@ -192,7 +192,11 @@ public class SenseiServer {
       {
         DatagramSocket ds = new DatagramSocket();
         ds.connect(InetAddress.getByName(DUMMY_OUT_IP), 80);
-        String ipAddr = (new InetSocketAddress(ds.getLocalAddress(), _port)).toString().replaceAll("/", "");
+        String inetAddress = new InetSocketAddress(ds.getLocalAddress(), _port).toString();
+		if (inetAddress.trim().startsWith("0.0.0.0/")) {
+			 inetAddress = new InetSocketAddress(InetAddress.getLocalHost().getHostAddress(), _port).toString();
+		}
+        String ipAddr = inetAddress.replaceAll("/", "");
 
         logger.info("Node id : " + _id + " IP address : " + ipAddr);
 
