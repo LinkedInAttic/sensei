@@ -22,8 +22,8 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 import com.senseidb.indexing.DefaultSenseiInterpreter;
-import com.senseidb.indexing.MetaType;
 import com.senseidb.indexing.DefaultSenseiInterpreter.IndexSpec;
+import com.senseidb.indexing.MetaType;
 
 public class SenseiSchema {
   public static final String SRC_DATA_FIELD_NAME            = "__SRC_DATA__";

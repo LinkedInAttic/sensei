@@ -22,6 +22,7 @@ import com.browseengine.bobo.facets.FacetHandler.FacetDataNone;
 import com.browseengine.bobo.facets.FacetHandlerInitializerParam;
 import com.browseengine.bobo.facets.RuntimeFacetHandler;
 import com.browseengine.bobo.facets.RuntimeFacetHandlerFactory;
+import com.browseengine.bobo.facets.attribute.AttributesFacetHandler;
 import com.browseengine.bobo.facets.data.PredefinedTermListFactory;
 import com.browseengine.bobo.facets.data.TermListFactory;
 import com.browseengine.bobo.facets.impl.CompactMultiValueFacetHandler;
@@ -31,10 +32,10 @@ import com.browseengine.bobo.facets.impl.MultiValueFacetHandler;
 import com.browseengine.bobo.facets.impl.PathFacetHandler;
 import com.browseengine.bobo.facets.impl.RangeFacetHandler;
 import com.browseengine.bobo.facets.impl.SimpleFacetHandler;
+import com.browseengine.bobo.facets.range.MultiRangeFacetHandler;
 import com.senseidb.indexing.DefaultSenseiInterpreter;
 import com.senseidb.plugin.SenseiPluginRegistry;
 import com.senseidb.search.facet.UIDFacetHandler;
-import com.senseidb.search.facet.attribute.AttributesFacetHandler;
 import com.senseidb.search.req.SenseiSystemInfo;
 
 public class SenseiFacetHandlerBuilder {
@@ -144,22 +145,29 @@ public class SenseiFacetHandlerBuilder {
 	}
 
 	static RangeFacetHandler buildRangeHandler(String name,String fieldName,TermListFactory<?> termListFactory,Map<String,List<String>> paramMap){
-		LinkedList<String> predefinedRanges = new LinkedList<String>();
+		LinkedList<String> predefinedRanges = buildPredefinedRanges(paramMap);
+		return new RangeFacetHandler(name,fieldName,termListFactory,predefinedRanges);
+	}
+
+  private static LinkedList<String> buildPredefinedRanges(Map<String, List<String>> paramMap) {
+    LinkedList<String> predefinedRanges = new LinkedList<String>();
 		if (paramMap!=null){
 			List<String> rangeList = paramMap.get("range");
 			if (rangeList!=null){
 			  for (String range : rangeList){
 				if (!range.matches("\\[.* TO .*\\]")){
-					range = "["
-							+ range.replaceFirst("[-,]", " TO ")
-							+ "]";
+					if (!range.contains("-") || !range.contains(",")) {
+				  range = "[" + range.replaceFirst("[-,]", " TO ") + "]";
+					} else {
+					  range = "[" + range.replaceFirst(",", " TO ") + "]";
+					}
 				}
 				predefinedRanges.add(range);
 			  }
 			}
 		}
-		return new RangeFacetHandler(name,fieldName,termListFactory,predefinedRanges);
-	}
+    return predefinedRanges;
+  }
 
 	static Map<String,List<String>> parseParams(JSONArray paramList) throws JSONException{
 		HashMap<String,List<String>> retmap = new HashMap<String,List<String>>();
@@ -177,30 +185,6 @@ public class SenseiFacetHandlerBuilder {
 			}
 
 			list.add(paramValue);
-
-			/*if (paramName.equals("range")) {
-				if (!paramValue.matches("\\[.* TO .*\\]"))
-					paramValue = "["
-							+ paramValue.replaceFirst("[-,]", " TO ")
-							+ "]";
-				rangeList.add(paramValue);
-			} else {
-				// Set the bean properties.
-				Class pType = PropertyUtils.getPropertyType(
-						facetHandler, paramName);
-				if (pType == null) // No such properties.
-					continue;
-				Object objValue = paramValue;
-				try {
-					Constructor ctor = pType
-							.getConstructor(String.class);
-					objValue = ctor.newInstance(paramValue);
-				} catch (NoSuchMethodException ex) {
-				}
-				PropertyUtils.setProperty(facetHandler, paramName,
-						objValue);
-			}
-			*/
 		  }
 		}
 
@@ -393,8 +377,10 @@ public class SenseiFacetHandlerBuilder {
 					facetHandler = buildMultiHandler(name, fieldName,  termListFactoryMap.get(fieldName), dependSet);
 				} else if (type.equals("compact-multi")) {
 					facetHandler = buildCompactMultiHandler(name, fieldName, dependSet,  termListFactoryMap.get(fieldName));
-				} else if (type.equals("attribute")) {
-          facetHandler = new AttributesFacetHandler(name, fieldName,  termListFactoryMap.get(fieldName), null , dependSet, facetProps);
+				} else if (type.equals("multi-range")) {
+          facetHandler = new MultiRangeFacetHandler(name, fieldName, null,  termListFactoryMap.get(fieldName) , buildPredefinedRanges(paramMap));
+        } else if (type.equals("attribute")) {
+          facetHandler = new AttributesFacetHandler(name, fieldName,  termListFactoryMap.get(fieldName), null , facetProps);
         } else if (type.equals("histogram")) {
 				  // A histogram facet handler is always dynamic
 				  RuntimeFacetHandlerFactory<?, ?> runtimeFacetFactory = getHistogramFacetHandlerFactory(facet, name, paramMap);

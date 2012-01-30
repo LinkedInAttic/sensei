@@ -37,7 +37,7 @@ public class SenseiStarter {
   public static File ConfDir2 = null;
  
 
-  public static File IndexDir = new File("index/test");
+  public static String IndexDir = "index";
   public static URL SenseiUrl = null;
   public static SenseiBroker broker = null;
   public static SenseiService httpRestSenseiService = null;
@@ -71,7 +71,10 @@ public class SenseiStarter {
     ConfDir2 = new File(SenseiStarter.class.getClassLoader().getResource(confDir2).toURI());
     org.apache.log4j.PropertyConfigurator.configure("resources/log4j.properties");
     loadFromSpringContext();
-    rmrf(IndexDir);
+    boolean removeSuccessful = rmrf(new File(IndexDir));
+    if (!removeSuccessful) {
+      throw new IllegalStateException("The index dir " + IndexDir + " coulnd't be purged");
+    }
     SenseiServerBuilder senseiServerBuilder1 = null;
     senseiServerBuilder1 = new SenseiServerBuilder(ConfDir1, null);
     node1 = senseiServerBuilder1.buildServer();
@@ -152,17 +155,18 @@ public class SenseiStarter {
     _zoieFactory = (SenseiZoieFactory<?>)testSpringCtx.getBean("zoie-system-factory");
   }
 
-  private static boolean rmrf(File f)
-  {
-    if (f != null) {
-      if (f.isDirectory()) {
-        for (File sub : f.listFiles()) {
-          if (!rmrf(sub)) return false;
-        }
-      }
-      else return f.delete();
+  private static boolean rmrf(File f) {
+    if (f == null || !f.exists()) {
+      return true;
     }
-    return true;
+
+    if (f.isDirectory()) {
+      for (File sub : f.listFiles()) {
+        if (!rmrf(sub))
+          return false;
+      }
+    }
+    return f.delete();
   }
 
   private static void shutdownSensei() {
@@ -174,6 +178,7 @@ public class SenseiStarter {
     try{httpServer2.stop();}catch(Throwable t){}
     try{networkClient.shutdown();}catch(Throwable t){}
     try{clusterClient.shutdown();}catch(Throwable t){}
+    rmrf(new File(IndexDir));
   }
 
 }
