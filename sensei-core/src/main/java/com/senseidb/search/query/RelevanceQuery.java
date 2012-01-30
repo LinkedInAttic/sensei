@@ -29,7 +29,32 @@ import com.browseengine.bobo.util.BigSegmentedArray;
 
 public class RelevanceQuery extends AbstractScoreAdjuster
 {
+  
+  // general types:
+  private final String                 TYPE_INT          = "INT";
+  private final String                 TYPE_LONG         = "LONG";
+  private final String                 TYPE_DOUBLE       = "DOUBLE";
+  private final String                 TYPE_FLOAT        = "FLOAT";
+  private final String                 TYPE_BOOLEAN      = "BOOLEAN";
+  private final String                 TYPE_STRING       = "STRING";
 
+  // container types:
+  private final String                 TYPE_SET          = "SET";
+
+  // inner score;
+  private final String                 TYPE_INNER_SCORE  = "INNER_SCORE";
+
+  // facet types:
+  private final String                 TYPE_FACET_INT    = "FACET_INT";
+  private final String                 TYPE_FACET_LONG   = "FACET_LONG";
+  private final String                 TYPE_FACET_DOUBLE = "FACET_DOUBLE";
+  private final String                 TYPE_FACET_FLOAT  = "FACET_FLOAT";
+  private final String                 TYPE_FACET_SHORT  = "FACET_SHORT";
+  private final String                 TYPE_FACET_STRING = "FACET_STRING";
+  
+  private final String                 TYPE_FACET_HEAD   = "FACET";  
+  
+  
   private static final long serialVersionUID = 1L;
   
   private static Logger logger = Logger.getLogger(RelevanceQuery.class);
@@ -92,7 +117,7 @@ public class RelevanceQuery extends AbstractScoreAdjuster
 //         
 //                   {"var_constant_float":{"innerScore":"_INNER_SCORE"}},
 //         
-//                   {"var_facet_int":{"f":"year"}},
+//                   {"var_facet_int":{"f":"year"}},  //facet type support: double, float, int, long, short, string;
 //         
 //         
 //         
@@ -179,7 +204,7 @@ public class RelevanceQuery extends AbstractScoreAdjuster
           if(hm_var.containsKey(symbol))
             throw new JSONException("Symbol "+ symbol + " already defined." );
           hm_var.put(symbol, hs);
-          hm_type.put(symbol, "SET");
+          hm_type.put(symbol, TYPE_SET);
         }
       }
       
@@ -200,27 +225,27 @@ public class RelevanceQuery extends AbstractScoreAdjuster
           if("var_int".equals(type))
           {
             hm_var.put(symbol, sets.getInt(symbol));
-            hm_type.put(symbol, "INT");
+            hm_type.put(symbol, TYPE_INT);
           }
           else if ("var_double".equals(type))
           {
             hm_var.put(symbol, sets.getDouble(symbol));
-            hm_type.put(symbol, "DOUBLE");
+            hm_type.put(symbol, TYPE_DOUBLE);
           }
           else if ("var_float".equals(type))
           {
             hm_var.put(symbol, ((float)sets.getDouble(symbol)));
-            hm_type.put(symbol, "FLOAT");
+            hm_type.put(symbol, TYPE_FLOAT);
           }
           else if ("var_long".equals(type))
           {
             hm_var.put(symbol, sets.getLong(symbol));
-            hm_type.put(symbol, "LONG");
+            hm_type.put(symbol, TYPE_LONG);
           }
           else if ("var_string".equals(type))
           {
             hm_var.put(symbol, sets.getString(symbol));
-            hm_type.put(symbol, "STRING");
+            hm_type.put(symbol, TYPE_STRING);
           }
         }
       }
@@ -237,7 +262,7 @@ public class RelevanceQuery extends AbstractScoreAdjuster
           if(hm_var.containsKey(symbol))
             throw new JSONException("Symbol "+ symbol + " already defined." );
           hm_var.put(symbol, value);
-          hm_type.put(symbol, "BOOLEAN");
+          hm_type.put(symbol, TYPE_BOOLEAN);
         }
       }
       
@@ -257,7 +282,7 @@ public class RelevanceQuery extends AbstractScoreAdjuster
             if(hm_var.containsKey(symbol))
               throw new JSONException("Symbol "+ symbol + " already defined." );
             hm_var.put(symbol, now);
-            hm_type.put(symbol, "LONG");
+            hm_type.put(symbol, TYPE_LONG);
           }
         }
       }
@@ -277,7 +302,7 @@ public class RelevanceQuery extends AbstractScoreAdjuster
             if(hm_var.containsKey(symbol))
               throw new JSONException("Symbol "+ symbol + " already defined." );
             hm_var.put(symbol, "_innerScore");
-            hm_type.put(symbol, "INNER_SCORE");
+            hm_type.put(symbol, TYPE_INNER_SCORE);
           }
         }
       }
@@ -287,27 +312,32 @@ public class RelevanceQuery extends AbstractScoreAdjuster
       else if("var_facet_int".equals(type)) 
       {
         JSONObject set = stat.optJSONObject(type);
-        handleFacetSymbols(set, "FACET_INT");
+        handleFacetSymbols(set, TYPE_FACET_INT);
+      }
+      else if("var_facet_short".equals(type)) 
+      {
+        JSONObject set = stat.optJSONObject(type);
+        handleFacetSymbols(set, TYPE_FACET_SHORT);
       }
       else if("var_facet_double".equals(type))
       {
         JSONObject set = stat.optJSONObject(type);
-        handleFacetSymbols(set, "FACET_DOUBLE");
+        handleFacetSymbols(set, TYPE_FACET_DOUBLE);
       }
       else if("var_facet_float".equals(type))
       {
         JSONObject set = stat.optJSONObject(type);
-        handleFacetSymbols(set, "FACET_FLOAT");
+        handleFacetSymbols(set, TYPE_FACET_FLOAT);
       }
       else if("var_facet_long".equals(type))
       {
         JSONObject set = stat.optJSONObject(type);
-        handleFacetSymbols(set, "FACET_LONG");
+        handleFacetSymbols(set, TYPE_FACET_LONG);
       }
       else if("var_facet_string".equals(type))
       {
         JSONObject set = stat.optJSONObject(type);
-        handleFacetSymbols(set, "FACET_STRING");
+        handleFacetSymbols(set, TYPE_FACET_STRING);
       }
 
       
@@ -345,7 +375,7 @@ public class RelevanceQuery extends AbstractScoreAdjuster
         throw new JSONException("function parameter: " + symbol + " was not defined.");
       
       String type = hm_type.get(symbol);
-      if(type.startsWith("FACET"))
+      if(type.startsWith(TYPE_FACET_HEAD))
       {
         if( !hm_symbol_facet.containsKey(symbol))
           throw new JSONException("function parameter: " + symbol + " was not defined.");
@@ -513,35 +543,39 @@ public class RelevanceQuery extends AbstractScoreAdjuster
       if(!hm_type.containsKey(paramName))
         throw new JSONException("function arameter " + paramName + " is not defined.");
       
-      if(hm_type.get(paramName).equals("INT") || hm_type.get(paramName).equals("FACET_INT"))
+      if(hm_type.get(paramName).equals(TYPE_INT) || hm_type.get(paramName).equals(TYPE_FACET_INT))
       {
         sb.append(" int " + paramName + " = ((Integer) objs["+ i + "]).intValue(); ");
       }
-      else if(hm_type.get(paramName).equals("LONG") || hm_type.get(paramName).equals("FACET_LONG"))
+      else if(hm_type.get(paramName).equals(TYPE_LONG) || hm_type.get(paramName).equals(TYPE_FACET_LONG))
       {
         sb.append(" long " + paramName + " = ((Long) objs["+ i + "]).longValue();  ");
       }
-      else if(hm_type.get(paramName).equals("DOUBLE") || hm_type.get(paramName).equals("FACET_DOUBLE"))
+      else if(hm_type.get(paramName).equals(TYPE_DOUBLE) || hm_type.get(paramName).equals(TYPE_FACET_DOUBLE))
       {
         sb.append(" double " + paramName + " = ((Double) objs["+ i + "]).doubleValue(); ");
       }
-      else if(hm_type.get(paramName).equals("FLOAT") || hm_type.get(paramName).equals("FACET_FLOAT"))
+      else if(hm_type.get(paramName).equals(TYPE_FLOAT) || hm_type.get(paramName).equals(TYPE_FACET_FLOAT))
       {
         sb.append(" float " + paramName + " = ((Float) objs["+ i + "]).floatValue(); ");
       }      
-      else if(hm_type.get(paramName).equals("STRING") || hm_type.get(paramName).equals("FACET_STRING"))
+      else if(hm_type.get(paramName).equals(TYPE_STRING) || hm_type.get(paramName).equals(TYPE_FACET_STRING))
       {
         sb.append(" String " + paramName + " = (String) objs["+ i + "]; ");
       }
-      else if(hm_type.get(paramName).equals("BOOLEAN") || hm_type.get(paramName).equals("FACET_BOOLEAN"))
+      else if(hm_type.get(paramName).equals(TYPE_BOOLEAN))
       {
         sb.append(" boolean " + paramName + " = ((Boolean) objs["+ i + "]).booleanValue(); ");
       }
-      else if(hm_type.get(paramName).equals("SET"))
+      else if(hm_type.get(paramName).equals(TYPE_FACET_SHORT))
+      {
+        sb.append(" short " + paramName + " = ((Short) objs["+ i + "]).shortValue(); ");
+      }
+      else if(hm_type.get(paramName).equals(TYPE_SET))
       {
         sb.append(" Set " + paramName + " = (Set) objs["+ i + "]; ");
       }
-      else if(hm_type.get(paramName).equals("INNER_SCORE"))
+      else if(hm_type.get(paramName).equals(TYPE_INNER_SCORE))
       {
         sb.append(" float " + paramName + " = ((Float) objs["+ i + "]).floatValue(); ");
       }
@@ -592,11 +626,11 @@ public class RelevanceQuery extends AbstractScoreAdjuster
       
       for(int i=0; i< paramSize; i++)
       {
-        if(hm_type.get(lls_params.get(i)).equals("INNER_SCORE")){
+        if(hm_type.get(lls_params.get(i)).equals(TYPE_INNER_SCORE)){
           types[i] = 0;  //inner_score type parameter;
           facetIndex[i] = -1;  //should not be used;
         }
-        else if (hm_type.get(lls_params.get(i)).startsWith("FACET"))
+        else if (hm_type.get(lls_params.get(i)).startsWith(TYPE_FACET_HEAD))
         {
           types[i] = 1;  //facet type parameter;
           String facetName = hm_symbol_facet.get(lls_params.get(i));
@@ -786,9 +820,9 @@ public class RelevanceQuery extends AbstractScoreAdjuster
           //prepare parameters;
           for(int i=0; i< paramSize; i++)
           {
-            if(hm_type.get(lls_params.get(i)).equals("INNER_SCORE"))
+            if(hm_type.get(lls_params.get(i)).equals(TYPE_INNER_SCORE))
               objs[i] = innerExplain.getValue();
-            else if (hm_type.get(lls_params.get(i)).startsWith("FACET"))
+            else if (hm_type.get(lls_params.get(i)).startsWith(TYPE_FACET_HEAD))
             {
               String facetName = hm_symbol_facet.get(lls_params.get(i));
               int index = hm_facet_index.get(facetName);
