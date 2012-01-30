@@ -103,7 +103,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
       }
       catch (Exception e)
       {
-        logger.info("hit exception trying to get sysinfo" + e);
+        logger.info("hit exception trying to get sysinfo", e);
         if (count > 10) 
         {
           logger.error("Give up after 10 tries to get sysinfo");

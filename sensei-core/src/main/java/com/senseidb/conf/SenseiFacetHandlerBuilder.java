@@ -449,31 +449,45 @@ public class SenseiFacetHandlerBuilder {
     Assert.isTrue(dependSet.size() == 1, "Facet handler " + name + " should rely only on exactly one another facet handler, but accodring to config the depends set is " + dependSet);
     final String depends = dependSet.iterator().next();
     Assert.notEmpty(paramMap.get("range"), "Facet handler " + name + " should have at least one predefined range");
+
     return new RuntimeFacetHandlerFactory<FacetHandlerInitializerParam, RuntimeFacetHandler<?>>() {
+
       @Override
       public String getName() {
-        // TODO Auto-generated method stub
         return name;
       }
+
       @Override
       public  RuntimeFacetHandler<?> get(FacetHandlerInitializerParam params) {
-
-        long time = System.currentTimeMillis();
+        long overrideNow = -1;
         try {
-          if (params!=null){
-            long[] longParam = params.getLongParam("time");
-            if (longParam !=null && longParam.length > 0) {
-              time = longParam[0];
-            } else {
-              List<String> strParam = params.getStringParam("time");
-              if (strParam!=null && strParam.size()>0){
-                time = Long.parseLong(strParam.get(0));
-              }
-            }
+          String overrideProp = System.getProperty("override.now");
+          if (overrideProp != null) {
+            overrideNow = Long.parseLong(overrideProp);
           }
-          
-          List<String> ranges = paramMap.get("range");
-          return new DynamicTimeRangeFacetHandler(name, depends, time, ranges);
+        }
+        catch(Exception e) {
+          logger.error(e.getMessage(), e);
+        }
+
+        long now = System.currentTimeMillis();
+        if (overrideNow > 0)
+          now = overrideNow;
+        else {
+          if (params != null) {
+            long[] longParam = params.getLongParam("now");
+            if (longParam == null || longParam.length == 0)
+              longParam = params.getLongParam("time");  // time will also work
+
+            if (longParam != null && longParam.length > 0)
+              now = longParam[0];
+          }
+        }
+
+        List<String> ranges = paramMap.get("range");
+
+        try {
+          return new DynamicTimeRangeFacetHandler(name, depends, now, ranges);
         } catch (ParseException ex) {
           throw new RuntimeException(ex);
         }
