@@ -15,17 +15,17 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.zip.GZIPInputStream;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.senseidb.search.client.json.req.SenseiClientRequest;
 import com.senseidb.search.client.json.res.SenseiResult;
 
 public class SenseiServiceProxy {
-    private static Log LOG = LogFactory.getLog(SenseiServiceProxy.class);
+    private static Logger LOG = LoggerFactory.getLogger(SenseiServiceProxy.class);
     private  String host;
     private  int port;
     private final String url;
@@ -67,6 +67,19 @@ public class SenseiServiceProxy {
         throw new RuntimeException(ex);
       }
     }
+    public SenseiResult sendBQL( String bql)  {
+      try {
+        StringBuilder buffer = new StringBuilder();
+        buffer.append("{'bql':").append(bql).append("}");
+        String requestStr = buffer.toString();
+        String output = sendPostRaw(getSearchUrl(), requestStr);
+        //System.out.println("Output from Server = " + output);
+        return JsonDeserializer.deserialize(SenseiResult.class, jsonResponse(output));
+      } catch (Exception ex) {
+        throw new RuntimeException(ex);
+      }
+    }
+    
 
   public Map<Long, JSONObject> sendGetRequest(long... uids) throws IOException, JSONException {
     Map<Long, JSONObject> ret = new LinkedHashMap<Long, JSONObject>(uids.length);

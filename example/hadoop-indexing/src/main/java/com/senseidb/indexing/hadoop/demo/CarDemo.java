@@ -1,4 +1,4 @@
-package com.sensei.indexing.hadoop.demo;
+package com.senseidb.indexing.hadoop.demo;
 
 
 
@@ -8,8 +8,8 @@ import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 
-import com.sensei.indexing.hadoop.job.MapReduceJob;
-import com.sensei.indexing.hadoop.util.PropertiesLoader;
+import com.senseidb.indexing.hadoop.job.MapReduceJob;
+import com.senseidb.indexing.hadoop.util.PropertiesLoader;
 
 
 public class CarDemo extends MapReduceJob implements Tool {

@@ -103,8 +103,15 @@ public class JavaClientIntegrationTest extends Assert {
     SenseiClientRequest request = SenseiClientRequest.builder().query(Queries.term("color", "red", 1.0)).build();
     SenseiResult res = senseiServiceProxy.sendSearchRequest( request);
     assertEquals("numhits is wrong", 2160, res.getNumhits().intValue());
-
   }
+  
+  @Test
+  public void testSimpleBQL() throws Exception{
+    String bql = "select where color in ('red')";
+    SenseiResult res = senseiServiceProxy.sendBQL(bql);
+    assertEquals("numhits is wrong", 2160, res.getNumhits().intValue()); 
+  }
+  
   @Test
   public void testTermsQuery() throws Exception
   {
