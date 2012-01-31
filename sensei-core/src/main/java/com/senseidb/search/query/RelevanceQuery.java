@@ -1,10 +1,12 @@
 package com.senseidb.search.query;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 
 import javassist.CannotCompileException;
@@ -830,6 +832,8 @@ public class RelevanceQuery extends AbstractScoreAdjuster
     final String[] strings;
     final Set[] sets;
     
+    final int[] dynamicAR;
+    
     public CodeGenScorer(Scorer innerScorer, 
                          CustomScorer cscorer, 
                          BigSegmentedArray[] orderArrays,
@@ -860,64 +864,82 @@ public class RelevanceQuery extends AbstractScoreAdjuster
       strings = new String[_paramSize];
       sets = new Set[_paramSize];
       
+      ArrayList<Integer> arDynamic = new ArrayList<Integer>();
+      
       // prepare the static variable;
       for(int i=0; i<_paramSize; i++)
       {
         switch (_types[i]) {
-        case TYPENUMBER_INT:  
-                  ints[_arrayIndex[i]] = ((Integer)hm_var.get(lls_params.get(i))).intValue();
-                  break;
-        case TYPENUMBER_LONG:
-                  longs[_arrayIndex[i]] = ((Long)hm_var.get(lls_params.get(i))).longValue();
-                  break;
-        case TYPENUMBER_DOUBLE:  
-                  doubles[_arrayIndex[i]] = ((Double)hm_var.get(lls_params.get(i))).doubleValue();
-                  break;
-        case TYPENUMBER_FLOAT: 
-                  floats[_arrayIndex[i]] = ((Float)hm_var.get(lls_params.get(i))).floatValue();
-                  break;
-        case TYPENUMBER_BOOLEAN: 
-                  booleans[_arrayIndex[i]] = ((Boolean)hm_var.get(lls_params.get(i))).booleanValue();
-                  break;
-        case TYPENUMBER_STRING:
-                  strings[_arrayIndex[i]] = (String) hm_var.get(lls_params.get(i));
-                  break;
-        case TYPENUMBER_SET:
-                  sets[_arrayIndex[i]] = (Set)hm_var.get(lls_params.get(i));
-        default: 
-                 break;
+          case TYPENUMBER_INT:  
+                    ints[_arrayIndex[i]] = ((Integer)hm_var.get(lls_params.get(i))).intValue();
+                    break;
+          case TYPENUMBER_LONG:
+                    longs[_arrayIndex[i]] = ((Long)hm_var.get(lls_params.get(i))).longValue();
+                    break;
+          case TYPENUMBER_DOUBLE:  
+                    doubles[_arrayIndex[i]] = ((Double)hm_var.get(lls_params.get(i))).doubleValue();
+                    break;
+          case TYPENUMBER_FLOAT: 
+                    floats[_arrayIndex[i]] = ((Float)hm_var.get(lls_params.get(i))).floatValue();
+                    break;
+          case TYPENUMBER_BOOLEAN: 
+                    booleans[_arrayIndex[i]] = ((Boolean)hm_var.get(lls_params.get(i))).booleanValue();
+                    break;
+          case TYPENUMBER_STRING:
+                    strings[_arrayIndex[i]] = (String) hm_var.get(lls_params.get(i));
+                    break;
+          case TYPENUMBER_SET:
+                    sets[_arrayIndex[i]] = (Set)hm_var.get(lls_params.get(i));
+                    break;
+          default: 
+                    arDynamic.add(i);
         }
       }
       
+      dynamicAR = convertIntegers(arDynamic);
+      
     }
+    
+    public int[] convertIntegers(List<Integer> integers)
+    {
+        int[] ret = new int[integers.size()];
+        Iterator<Integer> iterator = integers.iterator();
+        for (int i = 0; i < ret.length; i++)
+        {
+            ret[i] = iterator.next().intValue();
+        }
+        return ret;
+    }
+    
     @Override
     public float score() throws IOException {
       
-      for(int i=0; i< _paramSize; i++)
+      //update the dynamic parameters only when we have to.
+      for(int j=0; j < dynamicAR.length; j++)
       {
         
         // only when the parameter is inner score variable or facet variable, we need to update the score function input parameter arrays; 
-        switch (_types[i]) {
+        switch (_types[dynamicAR[j]]) {
           case TYPENUMBER_INNER_SCORE:  
-                    floats[_arrayIndex[i]] = _innerScorer.score();
+                    floats[_arrayIndex[dynamicAR[j]]] = _innerScorer.score();
                     break;
           case TYPENUMBER_FACET_INT:  
-                    ints[_arrayIndex[i]] = ((TermIntList)_termLists[_facetIndex[i]]).getPrimitiveValue(_orderArrays[_facetIndex[i]].get(_innerScorer.docID()));
+                    ints[_arrayIndex[dynamicAR[j]]] = ((TermIntList)_termLists[_facetIndex[dynamicAR[j]]]).getPrimitiveValue(_orderArrays[_facetIndex[dynamicAR[j]]].get(_innerScorer.docID()));
                     break;
           case TYPENUMBER_FACET_LONG:
-                    longs[_arrayIndex[i]] = ((TermLongList)_termLists[_facetIndex[i]]).getPrimitiveValue(_orderArrays[_facetIndex[i]].get(_innerScorer.docID()));
+                    longs[_arrayIndex[dynamicAR[j]]] = ((TermLongList)_termLists[_facetIndex[dynamicAR[j]]]).getPrimitiveValue(_orderArrays[_facetIndex[dynamicAR[j]]].get(_innerScorer.docID()));
                     break;
           case TYPENUMBER_FACET_DOUBLE:  
-                    doubles[_arrayIndex[i]] = ((TermDoubleList)_termLists[_facetIndex[i]]).getPrimitiveValue(_orderArrays[_facetIndex[i]].get(_innerScorer.docID()));
+                    doubles[_arrayIndex[dynamicAR[j]]] = ((TermDoubleList)_termLists[_facetIndex[dynamicAR[j]]]).getPrimitiveValue(_orderArrays[_facetIndex[dynamicAR[j]]].get(_innerScorer.docID()));
                     break;
           case TYPENUMBER_FACET_FLOAT: 
-                    floats[_arrayIndex[i]] = ((TermFloatList)_termLists[_facetIndex[i]]).getPrimitiveValue(_orderArrays[_facetIndex[i]].get(_innerScorer.docID()));
+                    floats[_arrayIndex[dynamicAR[j]]] = ((TermFloatList)_termLists[_facetIndex[dynamicAR[j]]]).getPrimitiveValue(_orderArrays[_facetIndex[dynamicAR[j]]].get(_innerScorer.docID()));
                     break;
           case TYPENUMBER_FACET_SHORT: 
-                    shorts[_arrayIndex[i]] = ((TermShortList)_termLists[_facetIndex[i]]).getPrimitiveValue(_orderArrays[_facetIndex[i]].get(_innerScorer.docID()));
+                    shorts[_arrayIndex[dynamicAR[j]]] = ((TermShortList)_termLists[_facetIndex[dynamicAR[j]]]).getPrimitiveValue(_orderArrays[_facetIndex[dynamicAR[j]]].get(_innerScorer.docID()));
                     break;
           case TYPENUMBER_FACET_STRING:
-                    strings[_arrayIndex[i]] = ((TermStringList)_termLists[_facetIndex[i]]).get(_orderArrays[_facetIndex[i]].get(_innerScorer.docID()));
+                    strings[_arrayIndex[dynamicAR[j]]] = ((TermStringList)_termLists[_facetIndex[dynamicAR[j]]]).get(_orderArrays[_facetIndex[dynamicAR[j]]].get(_innerScorer.docID()));
                     break;
           default: 
                    break;
