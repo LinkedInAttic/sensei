@@ -25,6 +25,8 @@ import com.senseidb.search.client.json.req.SenseiClientRequest;
 import com.senseidb.search.client.json.res.SenseiResult;
 public class SenseiServiceProxy {
   private static Logger LOG = LoggerFactory.getLogger(SenseiServiceProxy.class);
+
+
     private  String host;
     private  int port;
     private final String url;
