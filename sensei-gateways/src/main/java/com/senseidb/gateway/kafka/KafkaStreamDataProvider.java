@@ -1,6 +1,5 @@
 package com.senseidb.gateway.kafka;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -16,11 +15,14 @@ import kafka.javaapi.consumer.ConsumerConnector;
 import kafka.message.Message;
 
 import org.apache.log4j.Logger;
+import org.json.JSONObject;
 
 import proj.zoie.api.DataConsumer.DataEvent;
 import proj.zoie.impl.indexing.StreamDataProvider;
 
-public abstract class KafkaStreamDataProvider<D> extends StreamDataProvider<D>{
+import com.senseidb.indexing.DataSourceFilter;
+
+public class KafkaStreamDataProvider extends StreamDataProvider<JSONObject>{
 
   private final String _topic;
   private final String _consumerGroupId;
@@ -35,9 +37,10 @@ public abstract class KafkaStreamDataProvider<D> extends StreamDataProvider<D>{
     private final String _zookeeperUrl;
     private final int _kafkaSoTimeout;
     private volatile boolean _started = false;
+    private final DataSourceFilter<DataPacket> _dataConverter;
   
   public KafkaStreamDataProvider(Comparator<String> versionComparator,String zookeeperUrl,int soTimeout,int batchSize,
-                                 String consumerGroupId,String topic,long startingOffset){
+                                 String consumerGroupId,String topic,long startingOffset,DataSourceFilter<DataPacket> dataConverter){
     super(versionComparator);
     _consumerGroupId = consumerGroupId;
     _topic = topic;
@@ -46,6 +49,11 @@ public abstract class KafkaStreamDataProvider<D> extends StreamDataProvider<D>{
     _kafkaSoTimeout = soTimeout;
     _consumerConnector = null;
     _consumerIterator = null;
+
+    _dataConverter = dataConverter;
+    if (_dataConverter == null){
+      throw new IllegalArgumentException("kafka data converter is null");
+    }
     bytesFactory = new ThreadLocal<byte[]>(){
       @Override
       protected byte[] initialValue() {
@@ -58,18 +66,8 @@ public abstract class KafkaStreamDataProvider<D> extends StreamDataProvider<D>{
   public void setStartingOffset(String version){
   }
   
-  protected D convertMessage(long msgStreamOffset,Message msg) throws IOException{
-    int size = msg.payloadSize();
-    ByteBuffer byteBuffer = msg.payload();
-    byte[] bytes = bytesFactory.get();
-    byteBuffer.get(bytes,0,size);
-    return convertMessageBytes(msgStreamOffset,bytes,0,size);
-  }
-  
-  protected abstract D convertMessageBytes(long msgStreamOffset,byte[] bytes,int offset,int size) throws IOException;
-  
   @Override
-  public DataEvent<D> next() {
+  public DataEvent<JSONObject> next() {
     if (!_started) return null;
 
     try
@@ -88,15 +86,21 @@ public abstract class KafkaStreamDataProvider<D> extends StreamDataProvider<D>{
       logger.debug("got new message: "+msg);
     }
     long version = System.currentTimeMillis();
-
-    D data;
+    
+    JSONObject data;
     try {
-      data = convertMessage(version,msg);
+      int size = msg.payloadSize();
+      ByteBuffer byteBuffer = msg.payload();
+      byte[] bytes = bytesFactory.get();
+      byteBuffer.get(bytes,0,size);
+      
+      data = _dataConverter.filter(new DataPacket(bytes,0,size));
+      
       if (logger.isDebugEnabled()){
         logger.debug("message converted: "+data);
       }
-      return new DataEvent<D>(data, String.valueOf(version));
-    } catch (IOException e) {
+      return new DataEvent<JSONObject>(data, String.valueOf(version));
+    } catch (Exception e) {
       logger.error(e.getMessage(),e);
       return null;
     }

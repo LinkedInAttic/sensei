@@ -6,24 +6,20 @@ import java.util.Set;
 import org.json.JSONObject;
 
 import proj.zoie.impl.indexing.StreamDataProvider;
-import proj.zoie.impl.indexing.ZoieConfig;
 
 import com.senseidb.gateway.SenseiGateway;
 import com.senseidb.indexing.DataSourceFilter;
 import com.senseidb.indexing.ShardingStrategy;
 
-public class KafkaDataProviderBuilder extends SenseiGateway<DataPacket>{
+public class SimpleKafkaGateway extends SenseiGateway<DataPacket> {
 
-	private final Comparator<String> _versionComparator = ZoieConfig.DEFAULT_VERSION_COMPARATOR;
-
-	@Override
-  public StreamDataProvider<JSONObject> buildDataProvider(DataSourceFilter<DataPacket> dataFilter,
-      String oldSinceKey,
-      ShardingStrategy shardingStrategy,
-      Set<Integer> partitions) throws Exception
-  {
-	  String zookeeperUrl = config.get("kafka.zookeeperUrl");
-	  String consumerGroupId = config.get("kafka.consumerGroupId");
+  @Override
+  public StreamDataProvider<JSONObject> buildDataProvider(
+      DataSourceFilter<DataPacket> dataFilter, String oldSinceKey,
+      ShardingStrategy shardingStrategy, Set<Integer> partitions)
+      throws Exception {
+    String kafkaHost = config.get("kafka.host");
+    int kafkaPort = Integer.parseInt(config.get("kafka.port"));
     String topic = config.get("kafka.topic");
     String timeoutStr = config.get("kafka.timeout");
     int timeout = timeoutStr != null ? Integer.parseInt(timeoutStr) : 10000;
@@ -53,12 +49,14 @@ public class KafkaDataProviderBuilder extends SenseiGateway<DataPacket>{
       }
     }
     
-		KafkaStreamDataProvider provider = new KafkaStreamDataProvider(_versionComparator,zookeeperUrl,timeout,batchsize,consumerGroupId,topic,offset,dataFilter);
-		return provider;
-	}
-
+    SimpleKafkaStreamDataProvider provider = new SimpleKafkaStreamDataProvider(KafkaDataProviderBuilder.DEFAULT_VERSION_COMPARATOR,
+                                                 kafkaHost,kafkaPort,timeout,batchsize,
+                                                 topic,offset,dataFilter);
+    return provider;
+  }
+  
   @Override
   public Comparator<String> getVersionComparator() {
-    return _versionComparator;
+    return KafkaDataProviderBuilder.DEFAULT_VERSION_COMPARATOR;
   }
 }
