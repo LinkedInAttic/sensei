@@ -31,7 +31,7 @@ public class TestMapReduce extends TestCase {
       System.out.println("!!!" + result.getReduceResult());
       System.out.println("!!!" + result.getTime());
     }
-    public void test3GroupByColorAndGroupId() throws Exception {
+    public void test3GroupByColorAndGroupId() throws Exception {      
       MapReduceResult result = mapReduceBroker.browse(new MapReduceRequest(new CountGroupByMapReduce("color", "groupid")));
       System.out.println("!!!" + result.getReduceResult());
       System.out.println("!!!" + result.getTime());

@@ -13,19 +13,18 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.logging.Logger;
 import java.util.zip.GZIPInputStream;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.senseidb.search.client.json.req.SenseiClientRequest;
 import com.senseidb.search.client.json.res.SenseiResult;
 
 public class SenseiServiceProxy {
-    private static Logger LOG = LoggerFactory.getLogger(SenseiServiceProxy.class);
+    private static Logger LOG = java.util.logging.Logger.getLogger(SenseiServiceProxy.class.toString());
     private  String host;
     private  int port;
     private final String url;

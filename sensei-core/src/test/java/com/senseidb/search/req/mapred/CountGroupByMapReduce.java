@@ -14,16 +14,17 @@ import proj.zoie.api.DocIDMapper;
 
 import com.senseidb.search.req.mapred.CountGroupByMapReduce.GroupedValue;
 import com.senseidb.search.req.mapred.CountGroupByMapReduce.IntContainer;
+
 @SuppressWarnings("unchecked")
-public class CountGroupByMapReduce implements MapReduceJob<HashMap<String, IntContainer>, ArrayList<GroupedValue>> {  
+public class CountGroupByMapReduce implements MapReduceJob<HashMap<String, IntContainer>, ArrayList<GroupedValue>> {
   private static final long serialVersionUID = 1L;
-  
+
   private final String[] columns;
 
   public CountGroupByMapReduce(String... columns) {
-    this.columns = columns;    
+    this.columns = columns;
   }
-  
+
   @Override
   public HashMap<String, IntContainer> map(long[] uids, DocIDMapper docIDMapper, FieldAccessor fieldAccessor) {
     HashMap<String, IntContainer> ret = new HashMap<String, IntContainer>();
@@ -47,27 +48,26 @@ public class CountGroupByMapReduce implements MapReduceJob<HashMap<String, IntCo
     }
     return key.toString();
   }
-  
-  
-  
+
   @Override
   public List<HashMap<String, IntContainer>> combine(List<HashMap<String, IntContainer>> mapResults) {
-    
+
     HashMap<String, IntContainer> ret = mapResults.get(0);
-    for (int i =1; i < mapResults.size(); i++) {
+    for (int i = 1; i < mapResults.size(); i++) {
       HashMap<String, IntContainer> map = mapResults.get(i);
       for (String key : map.keySet()) {
         IntContainer count = ret.get(key);
-       if (count != null) {
-         count.add(map.get(key).value);
-       } else {
-         ret.put(key, map.get(key));
-       }
+        if (count != null) {
+          count.add(map.get(key).value);
+        } else {
+          ret.put(key, map.get(key));
+        }
       }
     }
     Iterator<IntContainer> iterator = ret.values().iterator();
     while (iterator.hasNext()) {
-      if (iterator.next().value == 1) iterator.remove();
+      if (iterator.next().value == 1)
+        iterator.remove();
     }
     return java.util.Arrays.asList(ret);
   }
@@ -75,16 +75,16 @@ public class CountGroupByMapReduce implements MapReduceJob<HashMap<String, IntCo
   @Override
   public ArrayList<GroupedValue> reduce(List<HashMap<String, IntContainer>> combineResults) {
     HashMap<String, IntContainer> retMap = combineResults.get(0);
-    
-    for (int i =1; i < combineResults.size(); i++) {
+
+    for (int i = 1; i < combineResults.size(); i++) {
       HashMap<String, IntContainer> map = combineResults.get(i);
       for (String key : map.keySet()) {
         IntContainer count = retMap.get(key);
-       if (count != null) {
-         count.add(map.get(key).value);
-       } else {
-         retMap.put(key, map.get(key));
-       }
+        if (count != null) {
+          count.add(map.get(key).value);
+        } else {
+          retMap.put(key, map.get(key));
+        }
       }
     }
     ArrayList<GroupedValue> ret = new ArrayList<CountGroupByMapReduce.GroupedValue>();
@@ -95,27 +95,28 @@ public class CountGroupByMapReduce implements MapReduceJob<HashMap<String, IntCo
     return ret;
   }
 
-  
-  
-  
   public static class GroupedValue implements Comparable {
     String key;
     int value;
+
     public GroupedValue(String key, int value) {
       super();
       this.key = key;
       this.value = value;
     }
+
     @Override
-    public int compareTo(Object o) {      
+    public int compareTo(Object o) {
       return ((GroupedValue) o).value - value;
     }
+
     @Override
     public String toString() {
-      return  key + ", count=" + value;
+      return key + ", count=" + value;
+
     }
-    
   }
+
   public static class IntContainer implements Serializable {
     public int value;
 
@@ -123,16 +124,16 @@ public class CountGroupByMapReduce implements MapReduceJob<HashMap<String, IntCo
       super();
       this.value = value;
     }
+
     public IntContainer add(int value) {
       this.value += value;
       return this;
     }
   }
 
-
-  @Override
   public JSONObject render(ArrayList<GroupedValue> reduceResult) {
     // TODO Auto-generated method stub
     return null;
   }
+
 }
