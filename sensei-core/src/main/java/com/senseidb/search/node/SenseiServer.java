@@ -24,6 +24,7 @@ import com.senseidb.jmx.JmxUtil;
 import com.senseidb.plugin.SenseiPluginRegistry;
 import com.senseidb.search.req.AbstractSenseiRequest;
 import com.senseidb.search.req.AbstractSenseiResult;
+import com.senseidb.search.req.mapred.impl.MapReduceSenseiService;
 import com.senseidb.svc.impl.AbstractSenseiCoreService;
 import com.senseidb.svc.impl.CoreSenseiServiceImpl;
 import com.senseidb.svc.impl.SenseiCoreServiceMessageHandler;
@@ -163,14 +164,15 @@ public class SenseiServer {
 
       AbstractSenseiCoreService coreSenseiService = new CoreSenseiServiceImpl(_core);
       AbstractSenseiCoreService sysSenseiCoreService = new SysSenseiCoreServiceImpl(_core);
+      AbstractSenseiCoreService mapReduceSenseiCoreService = new MapReduceSenseiService(_core);
     // create the zookeeper cluster client
 //    SenseiClusterClientImpl senseiClusterClient = new SenseiClusterClientImpl(clusterName, zookeeperURL, zookeeperTimeout, false);
       SenseiCoreServiceMessageHandler senseiMsgHandler =  new SenseiCoreServiceMessageHandler(coreSenseiService);
       SenseiCoreServiceMessageHandler senseiSysMsgHandler =  new SenseiCoreServiceMessageHandler(sysSenseiCoreService);
-
+      SenseiCoreServiceMessageHandler mapReduceMsgHandler =  new SenseiCoreServiceMessageHandler(mapReduceSenseiCoreService);
       _networkServer.registerHandler(senseiMsgHandler, coreSenseiService.getSerializer());
       _networkServer.registerHandler(senseiSysMsgHandler, sysSenseiCoreService.getSerializer());
-
+      _networkServer.registerHandler(mapReduceMsgHandler, mapReduceSenseiCoreService.getSerializer());
       if (_externalSvc!=null){
     	for (AbstractSenseiCoreService svc : _externalSvc){
     		_networkServer.registerHandler(new SenseiCoreServiceMessageHandler(svc), svc.getSerializer());
