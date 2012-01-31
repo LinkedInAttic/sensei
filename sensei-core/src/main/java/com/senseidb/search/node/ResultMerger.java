@@ -160,8 +160,9 @@ public class ResultMerger
             if (facet!=null)
             {
               delta = facet.getFacetValueHitCount();
+              count.put(val, oldValue + delta);
             }
-            count.put(val, oldValue + delta);
+            
           }
         }
         facetAccessible.close();

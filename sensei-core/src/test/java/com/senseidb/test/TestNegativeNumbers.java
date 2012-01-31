@@ -59,6 +59,7 @@ public class TestNegativeNumbers extends TestCase {
     req.addSelection(new BrowseSelection("groupid").addValue("10").addValue("0").addValue("-7000").addValue("-8000").setSelectionOperation(ValueOperation.ValueOperationOr));
     req.setFacetSpec("groupid", new FacetSpec().setMaxCount(50).setMinHitCount(1));
     SenseiResult res = broker.browse(req);
+    System.out.println(res);
     long[] groupdIDs = extractFieldValues(field, res);
     assertTrue(Arrays.toString(groupdIDs) + " is not the expected output", Arrays.equals(new long[] {-8000L,  -7000L,  0L, 10L}, groupdIDs));
   }
@@ -77,6 +78,11 @@ public class TestNegativeNumbers extends TestCase {
     assertEquals(1, facets.get(9).getFacetValueHitCount());
     assertEquals("0000000000000000000000000000000000000010", facets.get(10).getValue());
     assertEquals(10, facets.get(10).getFacetValueHitCount());
+    for (BrowseFacet facet : facets) {
+      if (!facet.getValue().startsWith("-00") && !facet.getValue().startsWith("00")) {
+        fail(facet.getValue() + " doesn't start with padding zero");
+      }
+    }
   }
   public void test5Range() throws Exception {
     SenseiRequest req = new SenseiRequest();
