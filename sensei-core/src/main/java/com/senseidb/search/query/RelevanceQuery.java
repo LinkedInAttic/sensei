@@ -678,166 +678,9 @@ public class RelevanceQuery extends AbstractScoreAdjuster
       final int[] facetIndex = new int[paramSize];
       final int[] arrayIndex = new int[paramSize];
       
-      
-      int short_index = 0;
-      int int_index = 0;
-      int long_index = 0;
-      int float_index = 0;
-      int double_index = 0;
-      int boolean_index = 0;
-      int string_index = 0;
-      int set_index = 0;
-
-      for(int i=0; i< paramSize; i++)
-      {
-        if(hm_type.get(lls_params.get(i)).equals(TYPE_INNER_SCORE)){
-          types[i] = TYPENUMBER_INNER_SCORE;  //inner_score type parameter;
-          facetIndex[i] = -1;  //should not be used;
-          arrayIndex[i] = float_index;
-          float_index++;
-        }
-        else if (hm_type.get(lls_params.get(i)).startsWith(TYPE_FACET_HEAD))
-        {
-          String type = hm_type.get(lls_params.get(i));
-          
-          if(type.equals(TYPE_FACET_INT))
-          {
-            types[i] = TYPENUMBER_FACET_INT;
-            arrayIndex[i] = int_index;
-            int_index++;
-          }
-          else if (type.equals(TYPE_FACET_LONG))
-          {
-            types[i] = TYPENUMBER_FACET_LONG;
-            arrayIndex[i] = long_index;
-            long_index++;
-          }
-          else if (type.equals(TYPE_FACET_DOUBLE))
-          {
-            types[i] = TYPENUMBER_FACET_DOUBLE;
-            arrayIndex[i] = double_index;
-            double_index++;
-          }
-          else if (type.equals(TYPE_FACET_FLOAT))
-          {
-            types[i] = TYPENUMBER_FACET_FLOAT;
-            arrayIndex[i] = float_index;
-            float_index++;
-          }
-          else if (type.equals(TYPE_FACET_SHORT))
-          {
-            types[i] = TYPENUMBER_FACET_SHORT;
-            arrayIndex[i] = short_index;
-            short_index++;
-          }
-          else if (type.equals(TYPE_FACET_STRING))
-          {
-            types[i] = TYPENUMBER_FACET_STRING;
-            arrayIndex[i] = string_index;
-            string_index++;
-          }
-          
-          String facetName = hm_symbol_facet.get(lls_params.get(i));
-          int index = hm_facet_index.get(facetName);
-          facetIndex[i] = index;  // record the facet index;
-        }
-        else
-        {
-          String type = hm_type.get(lls_params.get(i));  //normal type parameter;
-          
-          if(type.equals(TYPE_INT))
-          {
-            types[i] = TYPENUMBER_INT;
-            arrayIndex[i] = int_index;
-            int_index++;
-          }
-          else if (type.equals(TYPE_LONG))
-          {
-            types[i] = TYPENUMBER_LONG;
-            arrayIndex[i] = long_index;
-            long_index++;
-          }
-          else if (type.equals(TYPE_DOUBLE))
-          {
-            types[i] = TYPENUMBER_DOUBLE;
-            arrayIndex[i] = double_index;
-            double_index++;
-          }
-          else if (type.equals(TYPE_FLOAT))
-          {
-            types[i] = TYPENUMBER_FLOAT;
-            arrayIndex[i] = float_index;
-            float_index++;
-          }
-          else if (type.equals(TYPE_BOOLEAN))
-          {
-            types[i] = TYPENUMBER_BOOLEAN;
-            arrayIndex[i] = boolean_index;
-            boolean_index++;
-          }
-          else if (type.equals(TYPE_STRING))
-          {
-            types[i] = TYPENUMBER_STRING;
-            arrayIndex[i] = string_index;
-            string_index++;
-          }
-          else if (type.equals(TYPE_SET))
-          {
-            types[i] = TYPENUMBER_SET;
-            arrayIndex[i] = set_index;
-            set_index++;
-          }
-          
-          facetIndex[i] = -1;  // should not be used;
-        }
-      }
-      
+      updateArrayIndex(paramSize, types, facetIndex, arrayIndex);
 
       return new CodeGenScorer(innerScorer, cscorer, orderArrays, termLists, types, facetIndex, arrayIndex, paramSize);
-//      return new Scorer(innerScorer.getSimilarity()){
-//    
-//        @Override
-//        public float score() throws IOException {
-//         
-//          //prepare parameters; //for this parameter passing method, it will cost 9ms for 1000000 doc scan;
-//          for(int i=0; i< paramSize; i++)
-//          {
-//            if(types[i]==0){
-////              logger.info("==innerscore i is:"+i);
-//              objs[i] = innerScorer.score();
-//            }
-//            else if (types[i]==1)
-//            {
-////              logger.info("==facet i is:"+i);
-//              int index = facetIndex[i];
-//              objs[i] = termLists[index].getRawValue(orderArrays[index].get(innerScorer.docID()));
-//            }
-//            else if (types[i] == 2)
-//            {
-////              logger.info("==else i is:"+i);
-//              objs[i] = hm_var.get(lls_params.get(i));
-//            }
-//          }
-//          
-//          return cscorer.score(objs);
-//        }
-//
-//        @Override
-//        public int advance(int target) throws IOException {
-//          return innerScorer.advance(target);
-//        }
-//
-//        @Override
-//        public int docID() {
-//          return innerScorer.docID();
-//        }
-//
-//        @Override
-//        public int nextDoc() throws IOException {
-//          return innerScorer.nextDoc();
-//        }
-//        
-//      };
     }
     else{
       return innerScorer;
@@ -845,26 +688,122 @@ public class RelevanceQuery extends AbstractScoreAdjuster
   }
 
   
-  private int getNonFacetTypeNumber(String type)
+  private void updateArrayIndex(int paramSize, int[] types, int[] facetIndex, int[] arrayIndex)
   {
-    
-    if(type.equals(TYPE_INT))
-      return TYPENUMBER_INT;
-    else if (type.equals(TYPE_LONG))
-      return TYPENUMBER_LONG;
-    else if (type.equals(TYPE_DOUBLE))
-      return TYPENUMBER_DOUBLE;
-    else if (type.equals(TYPE_FLOAT))
-      return TYPENUMBER_FLOAT;
-    else if (type.equals(TYPE_BOOLEAN))
-      return TYPENUMBER_BOOLEAN;
-    else if (type.equals(TYPE_STRING))
-      return TYPENUMBER_STRING;
-    else if (type.equals(TYPE_SET))
-      return TYPENUMBER_SET;
-    else
-      return -1;
+    int short_index = 0;
+    int int_index = 0;
+    int long_index = 0;
+    int float_index = 0;
+    int double_index = 0;
+    int boolean_index = 0;
+    int string_index = 0;
+    int set_index = 0;
+
+    for(int i=0; i< paramSize; i++)
+    {
+      if(hm_type.get(lls_params.get(i)).equals(TYPE_INNER_SCORE)){
+        types[i] = TYPENUMBER_INNER_SCORE;  //inner_score type parameter;
+        facetIndex[i] = -1;  //should not be used;
+        arrayIndex[i] = float_index;
+        float_index++;
+      }
+      else if (hm_type.get(lls_params.get(i)).startsWith(TYPE_FACET_HEAD))
+      {
+        String type = hm_type.get(lls_params.get(i));
+        
+        if(type.equals(TYPE_FACET_INT))
+        {
+          types[i] = TYPENUMBER_FACET_INT;
+          arrayIndex[i] = int_index;
+          int_index++;
+        }
+        else if (type.equals(TYPE_FACET_LONG))
+        {
+          types[i] = TYPENUMBER_FACET_LONG;
+          arrayIndex[i] = long_index;
+          long_index++;
+        }
+        else if (type.equals(TYPE_FACET_DOUBLE))
+        {
+          types[i] = TYPENUMBER_FACET_DOUBLE;
+          arrayIndex[i] = double_index;
+          double_index++;
+        }
+        else if (type.equals(TYPE_FACET_FLOAT))
+        {
+          types[i] = TYPENUMBER_FACET_FLOAT;
+          arrayIndex[i] = float_index;
+          float_index++;
+        }
+        else if (type.equals(TYPE_FACET_SHORT))
+        {
+          types[i] = TYPENUMBER_FACET_SHORT;
+          arrayIndex[i] = short_index;
+          short_index++;
+        }
+        else if (type.equals(TYPE_FACET_STRING))
+        {
+          types[i] = TYPENUMBER_FACET_STRING;
+          arrayIndex[i] = string_index;
+          string_index++;
+        }
+        
+        String facetName = hm_symbol_facet.get(lls_params.get(i));
+        int index = hm_facet_index.get(facetName);
+        facetIndex[i] = index;  // record the facet index;
+      }
+      else
+      {
+        String type = hm_type.get(lls_params.get(i));  //normal type parameter;
+        
+        if(type.equals(TYPE_INT))
+        {
+          types[i] = TYPENUMBER_INT;
+          arrayIndex[i] = int_index;
+          int_index++;
+        }
+        else if (type.equals(TYPE_LONG))
+        {
+          types[i] = TYPENUMBER_LONG;
+          arrayIndex[i] = long_index;
+          long_index++;
+        }
+        else if (type.equals(TYPE_DOUBLE))
+        {
+          types[i] = TYPENUMBER_DOUBLE;
+          arrayIndex[i] = double_index;
+          double_index++;
+        }
+        else if (type.equals(TYPE_FLOAT))
+        {
+          types[i] = TYPENUMBER_FLOAT;
+          arrayIndex[i] = float_index;
+          float_index++;
+        }
+        else if (type.equals(TYPE_BOOLEAN))
+        {
+          types[i] = TYPENUMBER_BOOLEAN;
+          arrayIndex[i] = boolean_index;
+          boolean_index++;
+        }
+        else if (type.equals(TYPE_STRING))
+        {
+          types[i] = TYPENUMBER_STRING;
+          arrayIndex[i] = string_index;
+          string_index++;
+        }
+        else if (type.equals(TYPE_SET))
+        {
+          types[i] = TYPENUMBER_SET;
+          arrayIndex[i] = set_index;
+          set_index++;
+        }
+        
+        facetIndex[i] = -1;  // should not be used;
+      }
+    }    
   }
+
 
   public class  CodeGenScorer extends Scorer{
 
@@ -912,7 +851,6 @@ public class RelevanceQuery extends AbstractScoreAdjuster
       _arrayIndex = arrayIndex;
       _paramSize = paramSize;
       
-//      _objs = new Object[_paramSize];
       shorts = new short[_paramSize];
       ints = new int[_paramSize];
       longs = new long[_paramSize];
@@ -1010,74 +948,123 @@ public class RelevanceQuery extends AbstractScoreAdjuster
 
 
 
-//  @Override
-//  protected Explanation createExplain(Explanation innerExplain,
-//                                      IndexReader reader,
-//                                      int doc)
-//  {
-//    if(cscorer == null)
-//      return createDummyExplain(innerExplain, "cscorer is null, return innerExplanation.");
-//    
-//    if (reader instanceof BoboIndexReader ){
-//      BoboIndexReader boboReader = (BoboIndexReader)reader;
-//      
-//      int numFacet = hm_symbol_facet.keySet().size();
-//      final BigSegmentedArray[] orderArrays = new BigSegmentedArray[numFacet];
-//      final TermValueList[] termLists = new TermValueList[numFacet];
-//      
-//      Iterator<String> iter_facet = hm_facet_index.keySet().iterator();
-//      while(iter_facet.hasNext()){
-//        String facetName = iter_facet.next();
-//        
-//        // validation;
-//        Object dataObj = boboReader.getFacetData(facetName);
-//        if ( ! (dataObj instanceof FacetDataCache<?>))
-//          return createDummyExplain(innerExplain, "Facet does not exist, return innerExplanation.");
-//        
-//        int index = hm_facet_index.get(facetName);
-//        orderArrays[index] = ((FacetDataCache)(boboReader.getFacetData(facetName))).orderArray;
-//        termLists[index] = ((FacetDataCache)(boboReader.getFacetData(facetName))).valArray;
-//      }
-//      
-//      Explanation finalExpl = new Explanation();
-//      finalExpl.addDetail(innerExplain);
-//      
-//      final int paramSize = lls_params.size();
-//      
-//      
-//      // calculate the score below;
-//      
-//          Object[] objs = new Object[paramSize];  //for this parameter passing method, it will cost 9ms for 1000000 doc scan;
-//          //prepare parameters;
-//          for(int i=0; i< paramSize; i++)
-//          {
-//            if(hm_type.get(lls_params.get(i)).equals(TYPE_INNER_SCORE))
-//              objs[i] = innerExplain.getValue();
-//            else if (hm_type.get(lls_params.get(i)).startsWith(TYPE_FACET_HEAD))
-//            {
-//              String facetName = hm_symbol_facet.get(lls_params.get(i));
-//              int index = hm_facet_index.get(facetName);
-//              objs[i] = termLists[index].getRawValue(orderArrays[index].get(doc));
-//            }
-//            else
-//              objs[i] = hm_var.get(lls_params.get(i));
-//          }
-//      finalExpl.setValue(cscorer.score(objs));
-//      finalExpl.setDescription("Custom score: "+ cscorer.score(objs));
-//      return finalExpl;
-//    }
-//    else{
-//      return createDummyExplain(innerExplain, "Non-Bobo reader with custom scorer. Should not arrive here.");
-//    }
-//  }
-//  
-//  private Explanation createDummyExplain(Explanation innerExplain, String message)
-//  {
-//    Explanation finalExpl = new Explanation();
-//    finalExpl.addDetail(innerExplain);
-//    finalExpl.setDescription(message);
-//    finalExpl.setValue(innerExplain.getValue());
-//    return finalExpl;
-//  }
+  @Override
+  protected Explanation createExplain(Explanation innerExplain,
+                                      IndexReader reader,
+                                      int doc)
+  {
+    if(cscorer == null)
+      return createDummyExplain(innerExplain, "cscorer is null, return innerExplanation.");
+    
+    if (reader instanceof BoboIndexReader ){
+      BoboIndexReader boboReader = (BoboIndexReader)reader;
+      
+      int numFacet = hm_symbol_facet.keySet().size();
+      final BigSegmentedArray[] orderArrays = new BigSegmentedArray[numFacet];
+      final TermValueList[] termLists = new TermValueList[numFacet];
+      
+      Iterator<String> iter_facet = hm_facet_index.keySet().iterator();
+      while(iter_facet.hasNext()){
+        String facetName = iter_facet.next();
+        
+        // validation;
+        Object dataObj = boboReader.getFacetData(facetName);
+        if ( ! (dataObj instanceof FacetDataCache<?>))
+          return createDummyExplain(innerExplain, "Facet does not exist, return innerExplanation.");
+        
+        int index = hm_facet_index.get(facetName);
+        orderArrays[index] = ((FacetDataCache)(boboReader.getFacetData(facetName))).orderArray;
+        termLists[index] = ((FacetDataCache)(boboReader.getFacetData(facetName))).valArray;
+      }
+      
+      Explanation finalExpl = new Explanation();
+      finalExpl.addDetail(innerExplain);
+      
+      final int paramSize = lls_params.size();
+      
+      final int[] types = new int[paramSize];
+      final int[] facetIndex = new int[paramSize];
+      final int[] arrayIndex = new int[paramSize];
+      
+      updateArrayIndex(paramSize, types, facetIndex, arrayIndex);
+      
+      short[] shorts = new short[paramSize];
+      int[] ints = new int[paramSize];
+      long[] longs = new long[paramSize];
+      float[] floats = new float[paramSize];
+      double[] doubles = new double[paramSize];
+      boolean[] booleans = new boolean[paramSize];
+      String[] strings = new String[paramSize];
+      Set[] sets = new Set[paramSize];
+      
+      for(int i=0; i<paramSize; i++)
+      {
+        switch (types[i]) {
+        case TYPENUMBER_INT:  
+                  ints[arrayIndex[i]] = ((Integer)hm_var.get(lls_params.get(i))).intValue();
+                  break;
+        case TYPENUMBER_LONG:
+                  longs[arrayIndex[i]] = ((Long)hm_var.get(lls_params.get(i))).longValue();
+                  break;
+        case TYPENUMBER_DOUBLE:  
+                  doubles[arrayIndex[i]] = ((Double)hm_var.get(lls_params.get(i))).doubleValue();
+                  break;
+        case TYPENUMBER_FLOAT: 
+                  floats[arrayIndex[i]] = ((Float)hm_var.get(lls_params.get(i))).floatValue();
+                  break;
+        case TYPENUMBER_BOOLEAN: 
+                  booleans[arrayIndex[i]] = ((Boolean)hm_var.get(lls_params.get(i))).booleanValue();
+                  break;
+        case TYPENUMBER_STRING:
+                  strings[arrayIndex[i]] = (String) hm_var.get(lls_params.get(i));
+                  break;
+        case TYPENUMBER_SET:
+                  sets[arrayIndex[i]] = (Set)hm_var.get(lls_params.get(i));
+                  break;
+                  
+        case TYPENUMBER_INNER_SCORE:  
+                  floats[arrayIndex[i]] = innerExplain.getValue();
+                  break;
+        case TYPENUMBER_FACET_INT:  
+                  ints[arrayIndex[i]] = ((TermIntList)termLists[facetIndex[i]]).getPrimitiveValue(orderArrays[facetIndex[i]].get(doc));
+                  break;
+        case TYPENUMBER_FACET_LONG:
+                  longs[arrayIndex[i]] = ((TermLongList)termLists[facetIndex[i]]).getPrimitiveValue(orderArrays[facetIndex[i]].get(doc));
+                  break;
+        case TYPENUMBER_FACET_DOUBLE:  
+                  doubles[arrayIndex[i]] = ((TermDoubleList)termLists[facetIndex[i]]).getPrimitiveValue(orderArrays[facetIndex[i]].get(doc));
+                  break;
+        case TYPENUMBER_FACET_FLOAT: 
+                  floats[arrayIndex[i]] = ((TermFloatList)termLists[facetIndex[i]]).getPrimitiveValue(orderArrays[facetIndex[i]].get(doc));
+                  break;
+        case TYPENUMBER_FACET_SHORT: 
+                  shorts[arrayIndex[i]] = ((TermShortList)termLists[facetIndex[i]]).getPrimitiveValue(orderArrays[facetIndex[i]].get(doc));
+                  break;
+        case TYPENUMBER_FACET_STRING:
+                  strings[arrayIndex[i]] = ((TermStringList)termLists[facetIndex[i]]).get(orderArrays[facetIndex[i]].get(doc));
+                  break;
+        default: 
+                 break;
+        }
+      }
+      
+      float value = cscorer.score(shorts, ints, longs, floats, doubles, booleans, strings, sets);
+      finalExpl.setValue(value);
+      finalExpl.setDescription("Custom score: "+ value + "  function:"+funcBody);
+      return finalExpl;
+    }
+    else{
+      return createDummyExplain(innerExplain, "Non-Bobo reader with custom scorer. Should not arrive here.");
+    }
+  }
+  
+  private Explanation createDummyExplain(Explanation innerExplain, String message)
+  {
+    Explanation finalExpl = new Explanation();
+    finalExpl.addDetail(innerExplain);
+    finalExpl.setDescription(message);
+    finalExpl.setValue(innerExplain.getValue());
+    return finalExpl;
+  }
 
 }
