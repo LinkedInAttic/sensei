@@ -259,7 +259,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
     pluginRegistry = SenseiPluginRegistry.build(_senseiConf);
     pluginRegistry.start();
 
-    _gateway = constructGateway(_senseiConf);
+    _gateway = pluginRegistry.getBeanByFullPrefix(SENSEI_GATEWAY, SenseiGateway.class);
 
     _schemaDoc = loadSchema(confDir);
     _senseiSchema = SenseiSchema.build(_schemaDoc);
@@ -299,12 +299,6 @@ public class SenseiServerBuilder implements SenseiConfParams{
     }
 
     return partitions.toIntArray();
-  }
-
-  private SenseiGateway constructGateway(Configuration conf) throws ConfigurationException{
-      SenseiGateway gateway = pluginRegistry.getBeanByFullPrefix(SENSEI_GATEWAY, SenseiGateway.class);
-      return gateway;
-
   }
 
   public SenseiCore buildCore() throws ConfigurationException {
