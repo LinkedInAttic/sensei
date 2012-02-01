@@ -1,6 +1,13 @@
 package com.senseidb.search.query;
 
+import it.unimi.dsi.fastutil.doubles.DoubleOpenHashSet;
+import it.unimi.dsi.fastutil.floats.FloatOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+
 import java.io.IOException;
+import java.util.AbstractCollection;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -52,8 +59,14 @@ public class RelevanceQuery extends AbstractScoreAdjuster
   private final String                 TYPE_BOOLEAN      = "BOOLEAN";
   private final String                 TYPE_STRING       = "STRING";
 
-  // container types:
-  private final String                 TYPE_SET          = "SET";
+  // hashset container types:
+  private final String                 TYPE_SET_INT          = "SET_INT";
+  private final String                 TYPE_SET_LONG         = "SET_LONG";
+  private final String                 TYPE_SET_DOUBLE       = "SET_DOUBLE";
+  private final String                 TYPE_SET_FLOAT        = "SET_FLOAT";
+  private final String                 TYPE_SET_STRING       = "SET_STRING";
+  
+  private final String                 TYPE_SET_HEAD         = "SET";
 
   // (3) facet types:
   private final String                 TYPE_FACET_INT    = "FACET_INT";
@@ -232,24 +245,65 @@ public class RelevanceQuery extends AbstractScoreAdjuster
         while(iter_symbol.hasNext())
         {
           String symbol = iter_symbol.next();
-          HashSet hs = new HashSet();
+          Set hs = null;
           JSONArray values = sets.getJSONArray(symbol);
           for (int k =0; k < values.length(); k++){
             if("var_set_int".equals(type))
+            {
+              if(hs == null)
+                hs = new IntOpenHashSet();
               hs.add(values.getInt(k));
+            }
             else if ("var_set_double".equals(type))
+            {
+              if(hs == null)
+                hs = new DoubleOpenHashSet();
               hs.add(values.getDouble(k));
+            }
             else if ("var_set_float".equals(type))
+            {
+              if(hs == null)
+                hs = new FloatOpenHashSet();
               hs.add((float)values.getDouble(k));
+            }
             else if ("var_set_long".equals(type))
+            {
+              if(hs == null)
+                hs = new LongOpenHashSet();
               hs.add(values.getLong(k));
+            }
             else if ("var_set_string".equals(type))
+            {
+              if(hs == null)
+                hs = new ObjectOpenHashSet();
               hs.add(values.getString(k));
+            }
           }
           if(hm_var.containsKey(symbol))
             throw new JSONException("Symbol "+ symbol + " already defined." );
           hm_var.put(symbol, hs);
-          hm_type.put(symbol, TYPE_SET);
+          
+          if("var_set_int".equals(type))
+          {
+            hm_type.put(symbol, TYPE_SET_INT);
+          }
+          else if ("var_set_double".equals(type))
+          {
+            hm_type.put(symbol, TYPE_SET_DOUBLE);
+          }
+          else if ("var_set_float".equals(type))
+          {
+            hm_type.put(symbol, TYPE_SET_FLOAT);
+          }
+          else if ("var_set_long".equals(type))
+          {
+            hm_type.put(symbol, TYPE_SET_LONG);
+          }
+          else if ("var_set_string".equals(type))
+          {
+            hm_type.put(symbol, TYPE_SET_STRING);
+          }
+          
         }
       }
       
@@ -633,9 +687,29 @@ public class RelevanceQuery extends AbstractScoreAdjuster
         sb.append(" short " + paramName + " = shorts["+ short_index +"]; ");
         short_index++;
       }
-      else if(hm_type.get(paramName).equals(TYPE_SET))
+      else if(hm_type.get(paramName).equals(TYPE_SET_INT))
       {
-        sb.append(" Set " + paramName + " = sets["+ set_index +"]; ");
+        sb.append(" IntOpenHashSet " + paramName + " = (IntOpenHashSet) sets["+ set_index +"]; ");
+        set_index++;
+      }
+      else if(hm_type.get(paramName).equals(TYPE_SET_LONG))
+      {
+        sb.append(" LongOpenHashSet " + paramName + " = (LongOpenHashSet) sets["+ set_index +"]; ");
+        set_index++;
+      }
+      else if(hm_type.get(paramName).equals(TYPE_SET_DOUBLE))
+      {
+        sb.append(" DoubleOpenHashSet " + paramName + " = (DoubleOpenHashSet) sets["+ set_index +"]; ");
+        set_index++;
+      }
+      else if(hm_type.get(paramName).equals(TYPE_SET_FLOAT))
+      {
+        sb.append(" FloatOpenHashSet " + paramName + " = (FloatOpenHashSet) sets["+ set_index +"]; ");
+        set_index++;
+      }
+      else if(hm_type.get(paramName).equals(TYPE_SET_STRING))
+      {
+        sb.append(" ObjectOpenHashSet " + paramName + " = (ObjectOpenHashSet) sets["+ set_index +"]; ");
         set_index++;
       }
       else if(hm_type.get(paramName).equals(TYPE_INNER_SCORE))
@@ -649,7 +723,6 @@ public class RelevanceQuery extends AbstractScoreAdjuster
     sb.append("}");
     return sb.toString();
   }
-
 
 
 
@@ -685,9 +758,9 @@ public class RelevanceQuery extends AbstractScoreAdjuster
       
       final int paramSize = lls_params.size();
       
-      final int[] types = new int[paramSize];
-      final int[] facetIndex = new int[paramSize];
-      final int[] arrayIndex = new int[paramSize];
+      final int[] types = new int[paramSize];  //store each parameter's type;
+      final int[] facetIndex = new int[paramSize];  // if this parameter is a facet, what is its index number in the facet data array;
+      final int[] arrayIndex = new int[paramSize];  // for each paramter, what is its index number in its own parameter array when passing into the function;
       
       updateArrayIndex(paramSize, types, facetIndex, arrayIndex);
 
@@ -803,7 +876,7 @@ public class RelevanceQuery extends AbstractScoreAdjuster
           arrayIndex[i] = string_index;
           string_index++;
         }
-        else if (type.equals(TYPE_SET))
+        else if (type.startsWith(TYPE_SET_HEAD))
         {
           types[i] = TYPENUMBER_SET;
           arrayIndex[i] = set_index;
