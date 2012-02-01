@@ -134,24 +134,31 @@ public class RelevanceQuery extends AbstractScoreAdjuster
 //         
 //                   // (1) Variable assignment statements;
 //                   //     It may contain set, int, float, double, long, boolean,
-//         
+//
+//  
 //                        // ------  [a] static variables below;
 //         
-//                   // var_set_int, var_set_string, var_set_double, var_set_long supported now.
+//                   // supported hashset types: [var_set_int, var_set_float, var_set_string, var_set_double, var_set_long]
 //         
 //                   {"var_set_int":{"c":[1996, 1997], "d":[1998]}},
 //         
+//                   // supported normal variables: [var_int, var_double, var_float, var_long, var_bool, var_string]
+  
 //                   {"var_double":{"e":0.98}},
 //         
 //                   {"var_int":{"g":1996}},
 //  
 //                   {"var_bool":{"f":true, "h":false}},
+//
+//                   // supported constants: this one is used to hard code some special static variables, like current time, etc;
+//  
+//                   {"var_constant_long":{"now":"_NOW"}},  
+//
+//  
+//  
+//                        // -----  [b] runtime variables: statements here will be evaluated at runtime; Currently are innerscore and facet values;
 //         
-//                        // -----  [b] runtime variables: statements here may be (not always) evaluated at runtime;
-//         
-//                   {"var_constant_long":{"now":"_NOW"}},
-//         
-//                   {"var_constant_float":{"innerScore":"_INNER_SCORE"}},
+//                   {"var_innerscore":{"innerScore":"_INNER_SCORE"}},
 //         
 //                   {"var_facet_int":{"f":"year"}},  //facet type support: double, float, int, long, short, string;
 //         
@@ -218,7 +225,7 @@ public class RelevanceQuery extends AbstractScoreAdjuster
       
       // var_set_int, var_set_string, var_set_double, var_set_long
       // {"var_set_int":{"c":[1996, 1997], "d":[1998]}},
-      if("var_set_int".equals(type) || "var_set_double".equals(type) || "var_set_long".equals(type) || "var_set_string".equals(type))
+      if("var_set_int".equals(type) || "var_set_double".equals(type) || "var_set_long".equals(type) || "var_set_float".equals(type) || "var_set_string".equals(type))
       {
         JSONObject sets = stat.optJSONObject(type);
         Iterator<String> iter_symbol = sets.keys();
@@ -232,6 +239,8 @@ public class RelevanceQuery extends AbstractScoreAdjuster
               hs.add(values.getInt(k));
             else if ("var_set_double".equals(type))
               hs.add(values.getDouble(k));
+            else if ("var_set_float".equals(type))
+              hs.add((float)values.getDouble(k));
             else if ("var_set_long".equals(type))
               hs.add(values.getLong(k));
             else if ("var_set_string".equals(type))
@@ -325,7 +334,7 @@ public class RelevanceQuery extends AbstractScoreAdjuster
       
       // innerscore;
       //  {"var_constant_float":{"innerScore":"_INNER_SCORE"}},
-      else if("var_constant_float".equals(type))
+      else if("var_innerscore".equals(type))
       {
         JSONObject set = stat.optJSONObject(type);
         Iterator<String> iterSymbol = set.keys();
