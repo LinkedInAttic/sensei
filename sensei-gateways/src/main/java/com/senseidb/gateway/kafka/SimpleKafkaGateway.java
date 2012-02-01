@@ -37,12 +37,17 @@ public class SimpleKafkaGateway extends SenseiGateway<DataPacket> {
         dataFilter = new DefaultJsonDataSourceFilter();
       }
       else if ("avro".equals(type)){
-        String msgClsString = config.get("kafka.msg.avro.class");
-        String dataMapperClassString = config.get("kafka.msg.avro.datamapper");
-        Class cls = Class.forName(msgClsString);
-        Class dataMapperClass = Class.forName(dataMapperClassString);
-        DataSourceFilter dataMapper = (DataSourceFilter)dataMapperClass.newInstance();
-        dataFilter = new AvroDataSourceFilter(cls, dataMapper);
+        try{
+          String msgClsString = config.get("kafka.msg.avro.class");
+          String dataMapperClassString = config.get("kafka.msg.avro.datamapper");
+          Class cls = Class.forName(msgClsString);
+          Class dataMapperClass = Class.forName(dataMapperClassString);
+          DataSourceFilter dataMapper = (DataSourceFilter)dataMapperClass.newInstance();
+          dataFilter = new AvroDataSourceFilter(cls, dataMapper);
+        }
+        catch(Exception e){
+          throw new Exception("Unable to construct avro data filter",e);
+        }
       }
       else{
         throw new IllegalArgumentException("invalid msg type: "+type);
