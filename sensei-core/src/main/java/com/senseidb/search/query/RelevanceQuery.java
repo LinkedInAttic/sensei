@@ -126,15 +126,13 @@ public class RelevanceQuery extends AbstractScoreAdjuster
   {
     pool.importPackage("java.util");
 
-    pool.importPackage("it.unimi.dsi.fastutil.ints.*");
-    pool.importPackage("it.unimi.dsi.fastutil.longs.*");
-    pool.importPackage("it.unimi.dsi.fastutil.shorts.*");
-    pool.importPackage("it.unimi.dsi.fastutil.booleans.*");
-    pool.importPackage("it.unimi.dsi.fastutil.bytes.*");
-    pool.importPackage("it.unimi.dsi.fastutil.chars.*");
-    pool.importPackage("it.unimi.dsi.fastutil.doubles.*");
-    pool.importPackage("it.unimi.dsi.fastutil.floats.*");
-    pool.importPackage("it.unimi.dsi.fastutil.objects.*");
+    pool.importPackage("it.unimi.dsi.fastutil.ints.IntOpenHashSet");
+    pool.importPackage("it.unimi.dsi.fastutil.longs.LongOpenHashSet");
+    pool.importPackage("it.unimi.dsi.fastutil.shorts.ShortOpenHashSet");
+    pool.importPackage("it.unimi.dsi.fastutil.booleans.BooleanOpenHashSet");
+    pool.importPackage("it.unimi.dsi.fastutil.doubles.DoubleOpenHashSet");
+    pool.importPackage("it.unimi.dsi.fastutil.floats.FloatOpenHashSet");
+    pool.importPackage("it.unimi.dsi.fastutil.objects.ObjectOpenHashSet");
   }
   
   static HashMap<String, CustomScorer> hmModels = new HashMap<String, CustomScorer>();
@@ -689,27 +687,27 @@ public class RelevanceQuery extends AbstractScoreAdjuster
       }
       else if(hm_type.get(paramName).equals(TYPE_SET_INT))
       {
-        sb.append(" IntOpenHashSet " + paramName + " = (IntOpenHashSet) sets["+ set_index +"]; ");
+        sb.append(" it.unimi.dsi.fastutil.ints.IntOpenHashSet " + paramName + " = (it.unimi.dsi.fastutil.ints.IntOpenHashSet) sets["+ set_index +"]; ");
         set_index++;
       }
       else if(hm_type.get(paramName).equals(TYPE_SET_LONG))
       {
-        sb.append(" LongOpenHashSet " + paramName + " = (LongOpenHashSet) sets["+ set_index +"]; ");
+        sb.append(" it.unimi.dsi.fastutil.longs.LongOpenHashSet " + paramName + " = (it.unimi.dsi.fastutil.longs.LongOpenHashSet) sets["+ set_index +"]; ");
         set_index++;
       }
       else if(hm_type.get(paramName).equals(TYPE_SET_DOUBLE))
       {
-        sb.append(" DoubleOpenHashSet " + paramName + " = (DoubleOpenHashSet) sets["+ set_index +"]; ");
+        sb.append(" it.unimi.dsi.fastutil.doubles.DoubleOpenHashSet " + paramName + " = (it.unimi.dsi.fastutil.doubles.DoubleOpenHashSet) sets["+ set_index +"]; ");
         set_index++;
       }
       else if(hm_type.get(paramName).equals(TYPE_SET_FLOAT))
       {
-        sb.append(" FloatOpenHashSet " + paramName + " = (FloatOpenHashSet) sets["+ set_index +"]; ");
+        sb.append(" it.unimi.dsi.fastutil.floats.FloatOpenHashSet " + paramName + " = (it.unimi.dsi.fastutil.floats.FloatOpenHashSet) sets["+ set_index +"]; ");
         set_index++;
       }
       else if(hm_type.get(paramName).equals(TYPE_SET_STRING))
       {
-        sb.append(" ObjectOpenHashSet " + paramName + " = (ObjectOpenHashSet) sets["+ set_index +"]; ");
+        sb.append(" it.unimi.dsi.fastutil.objects.ObjectOpenHashSet " + paramName + " = (it.unimi.dsi.fastutil.objects.ObjectOpenHashSet) sets["+ set_index +"]; ");
         set_index++;
       }
       else if(hm_type.get(paramName).equals(TYPE_INNER_SCORE))
