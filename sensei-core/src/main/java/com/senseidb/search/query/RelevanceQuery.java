@@ -154,7 +154,7 @@ public class RelevanceQuery extends AbstractScoreAdjuster
 //                   {"var_set_int":{"c":[1996, 1997], "d":[1998]}},
 //         
 //                   // supported normal variables: [var_int, var_double, var_float, var_long, var_bool, var_string]
-  
+//  
 //                   {"var_double":{"e":0.98}},
 //         
 //                   {"var_int":{"g":1996}},
