@@ -68,6 +68,7 @@ public interface SenseiSearchServletParams {
 	public static final String PARAM_RESULT_HIT_SCORE = "_score";
 	public static final String PARAM_RESULT_HIT_SRC_DATA = "_srcdata";
 	public static final String PARAM_RESULT_TIME = "time";
+	public static final String PARAM_RESULT_SELECT_LIST = "select_list";
 
 	public static final String PARAM_SYSINFO_NUMDOCS = "numdocs";
 	public static final String PARAM_SYSINFO_LASTMODIFIED = "lastmodified";

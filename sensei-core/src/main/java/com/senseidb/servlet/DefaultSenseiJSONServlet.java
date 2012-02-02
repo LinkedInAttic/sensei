@@ -49,6 +49,7 @@ import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_HIT_UI
 import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_NUMGROUPS;
 import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_NUMHITS;
 import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_PARSEDQUERY;
+import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_SELECT_LIST;
 import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_TID;
 import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_TIME;
 import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_TOTALDOCS;
@@ -441,6 +442,17 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
     SenseiHit[] hits = res.getSenseiHits();
     JSONArray hitArray = buildJSONHits(req, hits);
     jsonObj.put(PARAM_RESULT_HITS, hitArray);
+
+    List<String> selectList = req.getSelectList();
+    if (selectList != null)
+    {
+      JSONArray jsonSelectList = new JSONArray();
+      for (String col: selectList)
+      {
+        jsonSelectList.put(col);
+      }
+      jsonObj.put(PARAM_RESULT_SELECT_LIST, jsonSelectList);
+    }
 
     jsonObj.put(PARAM_RESULT_TIME, res.getTime());
     jsonObj.put(PARAM_RESULT_FACETS, convert(res.getFacetMap(), req));

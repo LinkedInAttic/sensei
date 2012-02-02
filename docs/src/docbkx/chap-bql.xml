@@ -142,8 +142,8 @@
 <additional_clauses> ::= ( <additional_clause> )+
 
 <additional_clause> ::= <order_by_clause>
-                      | <group_by_clause>
                       | <limit_clause>
+                      | <group_by_clause>
                       | <browse_by_clause>
                       | <fetching_stored_clause>
 
@@ -277,18 +277,50 @@
     <section>
       <title>SELECT Statement</title>
 
+      <para>SELECT is the only Data Manipulation Language (DML) that
+      Sensei supports today.  It is used to retrieve a set of documents
+      based on conditions specified in the WHERE clause.</para>
+
+      <para>The SELECT statement takes the following form:</para>
+
+      <programlisting><![CDATA[    SELECT <select_list>
+    [ FROM <index> ]
+    [ WHERE <search_expr> ]
+    [ GIVEN FACET PARAM <facet_param_list> ]
+    ( <order_by_clause>
+      | <group_by_clause>
+      | <limit_clause>
+      | <browse_by_clause>
+      | <fetching_stored_clause>
+    )*]]></programlisting>
+
+      <para>Most of the syntax is similar to SQL.  So if you are
+      familiar with SQL, you should be ready to write some basic BQL
+      queries right away.  In addition to the basic SQL syntax, BQL
+      includes several new features to support faceted search and
+      syntactic sugar to make real-time search queries easier.</para>
+
+      <para>We'll describe different pieces of the SELECT statement in
+      more details in the following sections.</para>
+
       <section>
         <title>Select List</title>
 
         <para>The select list in a SELECT statement can simply be a
-        <literal>*</literal>, which means all columns are
-        selected.</para>
+        "<literal>*</literal>" or a comma-separated
+        <emphasis>column</emphasis> names.  If "<literal>*</literal>" is
+        given, it means all columns in the index are selected.</para>
 
-        <para>If the select list is not a <literal>*</literal>, each
-        item, often called a <emphasis>column</emphasis>, in the select
-        list is either a facet name or a field name in the index.  If a
-        column is unknown to Sensei server, then it is discarded on the
-        server side.</para>
+        <para>A column in the select list is either a facet name or a
+        field name in the index.  Column names are case-sensitive in BQL
+        because they have to match what are defined in the index schema.
+        If a column is unknown to Sensei server, then it is discarded on
+        the server side.</para>
+
+        <para>Sensei reserves several internal column names, which are
+        all named with a leading "<literal>_</literal>",
+        e.g. "<literal>_uid</literal>".  Try to avoid naming any column
+        with a leading "<literal>_</literal>".</para>
       </section>
 
       <section>
@@ -303,255 +335,471 @@
         <title>WHERE Clause</title>
 
         <para>The WHERE clause, if given, specifies the search
-        condition(s) that all documents must satisfy to be selected.
+        conditions that all documents must satisfy to be selected.
         Conditions are expressed as a Boolean expression consisting of
-        one or more predicates.  Currently the following predicates are
-        supported in BQL:</para>
+        one or more predicates.  The following predicates are supported
+        in BQL.</para>
 
         <itemizedlist>
           <listitem>
             <para>IN predicate</para>
-
-            <para>This predicate specifies that the value(s) of a column
-            has to have, or not have, in all selected documents.  For
-            example:</para>
-
-            <itemizedlist>
-              <listitem>
-                <para><literal>color IN ("red", "blue")</literal></para>
-
-                <para>Each document in the search results much have color
-                "red" or "blue".</para>
-              </listitem>
-              <listitem>
-                <para><literal>tags IN ("cool", "leather") EXCEPT
-                ("moon-roof", "automatic") </literal></para>
-
-                <para>Each document in the search results should have a
-                tag of "cool" or "leather", but cannot have a tag of
-                "moon-roof" or "automatic". </para>
-              </listitem>
-              <listitem>
-                <para><literal>age IN (10, 20, 30)</literal></para>
-                <para>Each document in the search results must have a
-                age of 10, 20, or 30.</para>
-              </listitem>
-            </itemizedlist>
-
           </listitem>
           <listitem>
             <para>CONTAINS ALL predicate</para>
-
-            <para>This predicate specifies that a multi-value column has
-            to contain <emphasis>all</emphasis> the given values in all
-            selected documents.  For example:</para>
-
-            <itemizedlist>
-              <listitem>
-                <para><literal>tags CONTAINS ALL ("cool", "hybrid") EXCEPT("favorite")</literal></para>
-                <para>Each document in the search results must have two
-                tags: "cool" and "hybrid".  However, it cannot have the
-                tag of "favorite".</para>
-              </listitem>
-            </itemizedlist>
-
           </listitem>
           <listitem>
             <para>Equal predicate</para>
-
-            <para>This predicate specifies that a column has to have the
-            given value in all selected documents.  For example:</para>
-
-            <itemizedlist>
-              <listitem>
-                <para><literal>color = "red"</literal></para>
-                <para>Each document in the search results must have a
-                color of "red".</para>
-              </listitem>
-            </itemizedlist>
           </listitem>
           <listitem>
             <para>Not equal predicate</para>
-            <para>This predicate specifies that a column cannot be of a
-            the given value in all selected documents.  For
-            example:</para>
-
-            <itemizedlist>
-              <listitem>
-                <para><literal>color &lt;&gt; "red"</literal></para>
-              </listitem>
-            </itemizedlist>
           </listitem>
-
           <listitem>
             <para>Query predicate</para>
-
-            <para>This predicate is used to do full text search on the
-            internal <emphasis>contents</emphasis> column.  All Lucene
-            query syntax is supported.  For example:</para>
-
-            <itemizedlist>
-              <listitem>
-                <para><literal>QUERY IS "hybrid AND (cool or moon-roof)"</literal></para>
-              </listitem>
-            </itemizedlist>
           </listitem>
-
           <listitem>
             <para>Range predicate</para>
-
-            <para>This predicate is used to specify a value range for a
-            range facet.  For example:</para>
-
-            <itemizedlist>
-              <listitem>
-                <para><literal>year &gt; 1999</literal></para>
-              </listitem>
-              <listitem>
-                <para><literal>year &lt;= 2002</literal></para>
-              </listitem>
-              <listitem>
-                <para><literal>price &lt; 17500</literal></para>
-              </listitem>
-              <listitem>
-                <para><literal>time &gt;= 2011-10-20 15:30:00</literal></para>
-              </listitem>
-              <listitem>
-                <para><literal>time &lt; 2011/12/31 10:00:00</literal></para>
-              </listitem>
-            </itemizedlist>
           </listitem>
-
           <listitem>
             <para>BETWEEN predicate</para>
-
-            <para>This predicate specifies that a range facet column has
-            to be within a bound for all selected documents.  Both upper
-            bound and lower bound are inclusive.  For example:</para>
-
-            <itemizedlist>
-              <listitem>
-                <para><literal>year BETWEEN 1995 AND 2000</literal></para>
-              </listitem>
-            </itemizedlist>
-
           </listitem>
-
           <listitem>
             <para>Time predicate</para>
-
-            <para>This predicate is used on a column that contains time
-            stamp values (and the column should be a range facet too).
-            This is useful to search documents that are indexed in
-            real-time.  For example:</para>
-
-            <itemizedlist>
-              <listitem>
-                <para><literal>time IN LAST 2 hours 10 mins 30 secs 100 msecs</literal></para>
-              </listitem>
-              <listitem>
-                <para><literal>time SINCE 2 weeks AGO</literal></para>
-              </listitem>
-              <listitem>
-                <para><literal>time BEFORE 2 weeks AGO</literal></para>
-              </listitem>
-              <listitem>
-                <para><literal>time AFTER 2011-10-20 15:30:00</literal></para>
-              </listitem>
-            </itemizedlist>
-
           </listitem>
           <listitem>
             <para>MATCH AGAINST predicate</para>
-
-            <para>This predicate is used to perform full text searches
-            on one or more columns that have a string data type.  When
-            more than one columns are given in the predicate, then any
-            column in the list that contains specified searched string
-            would make a document satisfy this condition.  For example:
-            </para>
-
-            <itemizedlist>
-              <listitem>
-                <para><literal>MATCH(color) AGAINST("bl*")</literal></para>
-                <para>All cars that have a "black" or "blue" color would
-                satisfy this predicate.</para>
-              </listitem>
-              <listitem>
-                <para><literal>MATCH(category) AGAINST("*van")</literal></para>
-                <para>All cars in the category of "van" or "mini-van"
-                would satisfy this predicate.</para>
-              </listitem>
-              <listitem>
-                <para><literal>MATCH(color, category) AGAINST("*ac*")</literal></para>
-                <para>A car with a "black" or "blue" color, or with a
-                category of "compact" would satisfy this
-                condition.</para>
-              </listitem>
-            </itemizedlist>
-            
           </listitem>
           <listitem>
             <para>LIKE predicate</para>
-
-            <para>This is a predicate to do wildcard text match.  Two
-            wildcards are supported: <literal>%</literal> and
-            <literal>_</literal>.  Wildcard <literal>%</literal> matches
-            zero or more characters, while <literal>_</literal> matches
-            exactly one character.  For example:</para>
-
-            <itemizedlist>
-              <listitem>
-                <para><literal>color LIKE "bl%"</literal></para>
-                <para>All cars that have a "black" or "blue" color would
-                satisfy this predicate.</para>
-              </listitem>
-              <listitem>
-                <para><literal>color LIKE "bl__"</literal></para>
-                <para>All cars with a "blue" color would satisfy this
-                condition, but the cars with a "black" color would
-                not.</para>
-              </listitem>
-            </itemizedlist>
-
-            <note>
-              <para>Note that wildcards <literal>%</literal> and
-              <literal>_</literal>, not Lucene's <literal>*</literal>
-              and <literal>?</literal> are used in BQL.  This is mainly
-              to make BQL more compatible with SQL.  However, if
-              <literal>*</literal> or <literal>?</literal> is used, it
-              is also accepted.</para>
-            </note>
-
           </listitem>
         </itemizedlist>
 
       </section>
 
       <section>
+        <title>Predicate</title>
+
+        <section>
+          <title>IN Predicate</title>
+
+          <para>This predicate specifies that the value(s) of a column
+          has to have, or not have, in the selected documents.  For
+          example:</para>
+
+          <itemizedlist>
+            <listitem>
+              <para><literal>color IN ("red", "blue")</literal></para>
+
+              <para>Each document in the search results much have color
+              "red" or "blue".</para>
+            </listitem>
+            <listitem>
+              <para><literal>tags IN ("cool", "leather") EXCEPT
+              ("moon-roof", "automatic") </literal></para>
+
+              <para>Each document in the search results should have a
+              tag of "cool" or "leather", but cannot have a tag of
+              "moon-roof" or "automatic". </para>
+            </listitem>
+            <listitem>
+              <para><literal>age IN (10, 20, 30)</literal></para>
+              <para>Each document in the search results must have a
+              age of 10, 20, or 30.</para>
+            </listitem>
+          </itemizedlist>
+
+        </section>
+
+        <section>
+          <title>CONTAINS ALL Predicate</title>
+
+          <para>This predicate specifies that a multi-value column has
+          to contain <emphasis>all</emphasis> the given values in the
+          selected documents.  For example:</para>
+
+          <itemizedlist>
+            <listitem>
+              <para><literal>tags CONTAINS ALL ("cool", "hybrid") EXCEPT("favorite")</literal></para>
+              <para>Each document in the search results must have two
+              tags: "cool" and "hybrid".  However, it cannot have the
+              tag of "favorite".</para>
+            </listitem>
+          </itemizedlist>
+
+        </section>
+
+        <section>
+          <title>Equal Predicate</title>
+
+          <para>This predicate specifies that a column has to have the
+          given value in the selected documents.  For example:</para>
+
+          <itemizedlist>
+            <listitem>
+              <para><literal>color = "red"</literal></para>
+              <para>Each document in the search results must have a
+              color of "red".</para>
+            </listitem>
+          </itemizedlist>
+
+        </section>
+
+        <section>
+          <title>Not Equal Predicate</title>
+
+          <para>This predicate specifies the value that a column cannot
+          have in the selected documents.  For example:</para>
+
+          <itemizedlist>
+            <listitem>
+              <para><literal>color &lt;&gt; "red"</literal></para>
+            </listitem>
+          </itemizedlist>
+
+        </section>
+
+        <section>
+          <title>Query Predicate</title>
+
+          <para>This predicate is used to do full text search on the
+          internal <emphasis>contents</emphasis> column.  All Lucene
+          query syntax is supported.  For example:</para>
+
+          <itemizedlist>
+            <listitem>
+              <para><literal>QUERY IS "hybrid AND (cool or moon-roof)"</literal></para>
+            </listitem>
+          </itemizedlist>
+
+        </section>
+
+        <section>
+          <title>Range Predicate</title>
+
+          <para>This predicate is used to specify a value range for a
+          range facet.  For example:</para>
+
+          <itemizedlist>
+            <listitem>
+              <para><literal>year &gt; 1999</literal></para>
+            </listitem>
+            <listitem>
+              <para><literal>year &lt;= 2002</literal></para>
+            </listitem>
+            <listitem>
+              <para><literal>price &lt; 17500</literal></para>
+            </listitem>
+            <listitem>
+              <para><literal>time &gt;= 2011-10-20 15:30:00</literal></para>
+            </listitem>
+            <listitem>
+              <para><literal>time &lt; 2011/12/31 10:00:00</literal></para>
+            </listitem>
+          </itemizedlist>
+
+        </section>
+
+        <section>
+          <title>BETWEEN Predicate</title>
+
+          <para>This predicate specifies that a range facet column has
+          to be within a bound for all selected documents.  Both upper
+          bound and lower bound are inclusive.  For example:</para>
+
+          <itemizedlist>
+            <listitem>
+              <para><literal>year BETWEEN 1995 AND 2000</literal></para>
+            </listitem>
+          </itemizedlist>
+
+        </section>
+
+        <section>
+          <title>Time Predicate</title>
+
+
+          <para>This predicate is used on a column that contains time
+          stamp values (and the column should be a range facet too).
+          This is useful to search documents that are indexed in
+          real-time.  For example:</para>
+
+          <itemizedlist>
+            <listitem>
+              <para><literal>time IN LAST 2 hours 10 mins 30 secs 100 msecs</literal></para>
+            </listitem>
+            <listitem>
+              <para><literal>time SINCE 2 weeks AGO</literal></para>
+            </listitem>
+            <listitem>
+              <para><literal>time NOT BEFORE 2 weeks AGO</literal></para>
+            </listitem>
+            <listitem>
+              <para><literal>time AFTER 2011-10-20 15:30:00</literal></para>
+            </listitem>
+          </itemizedlist>
+
+        </section>
+
+        <section>
+          <title>MATCH AGAINST Predicate</title>
+
+          <para>This predicate is used to perform full text searches
+          on one or more columns that have a string data type.  When
+          more than one columns are given in the predicate, then any
+          column in the list that contains specified searched string
+          would make a document satisfy this condition.  For example:
+          </para>
+
+          <itemizedlist>
+            <listitem>
+              <para><literal>MATCH(color) AGAINST("bl*")</literal></para>
+              <para>All cars that have a "black" or "blue" color would
+              satisfy this predicate.</para>
+            </listitem>
+            <listitem>
+              <para><literal>MATCH(category) AGAINST("*van")</literal></para>
+              <para>All cars in the category of "van" or "mini-van"
+              would satisfy this predicate.</para>
+            </listitem>
+            <listitem>
+              <para><literal>MATCH(color, category) AGAINST("*ac*")</literal></para>
+              <para>A car with a "black" or "blue" color, or with a
+              category of "compact" would satisfy this
+              condition.</para>
+            </listitem>
+          </itemizedlist>
+
+        </section>
+
+        <section>
+          <title>LIKE Predicate</title>
+
+          <para>This is a predicate to do wildcard text match.  Two
+          wildcards are supported: <literal>%</literal> and
+          <literal>_</literal>.  Wildcard <literal>%</literal> matches
+          zero or more characters, while <literal>_</literal> matches
+          exactly one character.  For example:</para>
+
+          <itemizedlist>
+            <listitem>
+              <para><literal>color LIKE "bl%"</literal></para>
+              <para>All cars that have a "black" or "blue" color would
+              satisfy this predicate.</para>
+            </listitem>
+            <listitem>
+              <para><literal>color LIKE "bl__"</literal></para>
+              <para>All cars with a "blue" color would satisfy this
+              condition, but the cars with a "black" color would
+              not.</para>
+            </listitem>
+          </itemizedlist>
+
+          <note>
+            <para>Note that wildcards <literal>%</literal> and
+            <literal>_</literal>, not Lucene's <literal>*</literal>
+            and <literal>?</literal> are used in BQL.  This is mainly
+            to make BQL more compatible with SQL.  However, if
+            <literal>*</literal> or <literal>?</literal> is used, it
+            is also accepted.</para>
+          </note>
+
+        </section>
+
+      </section>
+
+      <section>
+        <title>ORDER BY Clause</title>
+
+        <para>ORDER BY clause specifies how you want to have the search
+        results sorted.  You can sort the results based on one or
+        multiple columns, in either ascending or descending
+        order.</para>
+
+        <para>The clause takes the following form:</para>
+
+        <programlisting><![CDATA[    ORDER BY <column_name> [(ASC | DESC)] (',' <column_name> [(ASC | DESC)])* ]]></programlisting>
+
+        <para>ORDER BY clause can only be specified once in a SELECT
+        statement.</para>
+
+      </section>
+
+      <section>
+        <title>LIMIT Clause</title>
+
+        <para>LIMIT clause specifies how many results you want to get
+        and what the starting offset is in the entire matched document
+        set.</para>
+
+        <para>A LIMIT clause takes one of the following two
+        formats:</para>
+
+        <programlisting><![CDATA[    LIMIT <count>]]></programlisting>
+        <programlisting><![CDATA[    LIMIT <offset> ',' <count>]]></programlisting>
+
+        <para>By default, the offset is set to 0 and the count is set to
+        10.</para>
+
+        <para>LIMIT clause can only be specified once in a SELECT
+        statement.</para>
+
+      </section>
+
+      <section>
         <title>GROUP BY Clause</title>
 
-        <para></para>
+        <para>GROUP BY clause supports the grouping of search
+        results based on a facet.  It takes the following form:</para>
+
+        <programlisting><![CDATA[    GROUP BY <facet_name> [TOP <max_per_group>]]]></programlisting>
+
+        <para>The facet name in a GROUP BY clause has to be a defined
+        facet in the index.  A non-facet column cannot be used to do
+        group-by. <literal>[TOP &lt;max_per_group&gt;]</literal>
+        specifies how many results you want to have for each group.  If
+        it is omitted, the default value is 10.</para>
+
+        <para>GROUP BY clause can only be specified once in a SELECT
+        statement.</para>
+
       </section>
 
       <section>
         <title>BROWSE BY Clause</title>
 
-        <para></para>
+        <para>This clause is a BQL feature for faceted search.  You can
+        use it to get the facet count information for one or multiple
+        facets returned with the search results.  A BROWSE BY clause
+        takes the following form:</para>
+
+        <programlisting><![CDATA[    BROWSE BY <facet_spec> ( ',' <facet_spec> )*]]></programlisting>
+
+        <para>where each <literal>&lt;facet_spec&gt;</literal> is
+        defined as:</para>
+
+        <programlisting><![CDATA[    <facet_name> ['(' <expand_flag> <count> <count> <facet_ordering> ')']]]></programlisting>
+
+        <para>Here, each <literal>&lt;facet_spec&gt;</literal>
+        optionally specifies the following information about the facet
+        you want to get the facet count information for:</para>
+
+        <orderedlist>
+          <listitem>
+            <para>whether the selection is expanded (default false)</para>
+          </listitem>
+          <listitem>
+            <para>the minimum number of hit counts (the first <literal>&lt;count&gt;</literal>)</para>
+          </listitem>
+          <listitem>
+            <para>the maximum number of hit counts (the second <literal>&lt;count&gt;</literal>)</para>
+          </listitem>
+          <listitem>
+            <para>facet ordering method: "<literal>hits</literal>" or
+            "<literal>value</literal>" (default "<literal>hits</literal>")</para>
+          </listitem>
+        </orderedlist>
+
+        <para>BROWSE BY clause can only be specified once in a SELECT
+        statement.</para>
+
       </section>
 
       <section>
         <title>GIVEN FACET PARAM Clause</title>
 
-        <para></para>
+        <para>In a faceted search system, a run-time facet handler
+        usually requires initialization parameter(s) to be provided at
+        search time for each query.  For example, in a search system
+        that searches LinkedIn shares or Twitter tweets, one or more
+        run-time facets usually require the searcher to provide his/her
+        user Id (or user name) and the time when the search is
+        performed.</para>
+
+        <para>One run-time facet may need multiple initialization
+        parameters, each of which has a different name and/or a
+        different data type.  These parameters can be specified in the
+        SELECT statement using the GIVEN FACET PARAM clause, which takes
+        the following form:</para>
+
+        <programlisting><![CDATA[    GIVEN FACET PARAM <facet_param> ( ',' <facet_param> )*]]></programlisting>
+
+        <para>Each <literal>&lt;facet_param&gt;</literal> is specified as a
+        4-typle:</para>
+
+        <programlisting><![CDATA[    '(' <facet_name> <facet_param_name> <facet_param_type> <facet_param_value> ')']]></programlisting>
+
+        <para>All the information in this tuple should match what is
+        defined in the schema for this facet.</para>
+
+        <para>GIVEN FACET PARAM clause can only be specified once in a
+        SELECT statement.</para>
+
       </section>
 
       <section>
         <title>FETCHING STORED Clause</title>
 
-        <para></para>
+        <para>This clause specifies if you want to retrieve the source
+        data of the documents in the search results.  It take the
+        following format:</para>
+        
+        <programlisting><![CDATA[    FETCHING STORED (TRUE | FALSE)?]]></programlisting>
+
+        <para>When the TRUE or FALSE value is not specified, the value
+        is set to TRUE.  If this clause itself is not specified in the
+        SELECT statement, the flag is implicitly set to FALSE.</para>
+
+        <para>FETCHING STORED clause can only be specified once in a
+        SELECT statement.</para>
+
       </section>
 
+    </section>
+
+    <section>
+      <title>Comments in BQL Statements</title>
+
+      <para>You can include comments in your BQL statements.  Comments
+      may be needed for some complicated queries.</para>
+
+      <para>Two comment styles are supported:</para>
+
+      <orderedlist>
+        <listitem>
+          <para>Block comments</para>
+
+          <para>Block comments in BQL are similar to the block comments
+          in C.  A block comment can span multiple lines.  All
+          characters inside a pair of <literal>/*</literal> and
+          <literal>*/</literal> are treated as part of a block comment
+          and ignored by BQL parser.</para>
+
+          <para><emphasis>Example:</emphasis></para>
+
+          <programlisting>SELECT *
+FROM cars
+WHERE  /* Here is my comment, we are going to
+          add some search conditions here.
+        */
+       color = 'red'
+  AND  year > 1999
+</programlisting>
+        </listitem>
+
+        <listitem>
+          <para>Line comments</para>
+
+          <para>A line comment in BQL starts with <literal>--</literal>.
+          All characters after <literal>--</literal> on the same line
+          will be treated as comments and ignored by BQL parser.</para>
+
+          <para><emphasis>Example:</emphasis></para>
+
+          <programlisting>SELECT *
+FROM cars    -- Comment: the index name "cars" is optional
+WHERE color = 'red'</programlisting>
+          
+        </listitem>
+      </orderedlist>
     </section>
 
   </section>
@@ -559,8 +807,12 @@
   <section>
     <title>Query Examples</title>
 
+    <para>The best way to learn about BQL is to learn from BQL query
+    examples.  In this section, we are going to present a series of BQL
+    queries that cover most of the main features.</para>
+
     <section>
-      <title>Basic Query</title>
+      <title>The Simplest Query</title>
       
       <para><emphasis role="bold">Find the first 10 cars in the
       index:</emphasis></para>
@@ -693,8 +945,7 @@ LIMIT 3</programlisting>
 
           <programlisting>SELECT color, year, makemodel
 FROM cars
-WHERE color in ("red", "blue")
-</programlisting>
+WHERE color IN ("red", "blue")</programlisting>
 
           <para><emphasis role="bold">Results:</emphasis></para>
 
@@ -722,7 +973,7 @@ WHERE color in ("red", "blue")
 
           <programlisting>SELECT color, year, makemodel
 FROM cars
-WHERE color not in ("black", "red")
+WHERE color NOT IN ("black", "red")
   AND year BETWEEN 1999 AND 2000</programlisting>
 
           <para><emphasis role="bold">Results:</emphasis></para>
@@ -892,6 +1143,200 @@ LIMIT 5</programlisting>
     </section>
 
     <section>
+      <title>Queries Using MATCH AGAINST Predicate</title>
+
+      <orderedlist>
+        <listitem>
+          <para>Find all the cars with color "black" or "blue":</para>
+          <programlisting>SELECT color, year, makemodel
+FROM cars
+WHERE MATCH(color) AGAINST("bl*")</programlisting>
+
+          <para><emphasis>Results:</emphasis></para>
+
+          <programlisting>+-------+----------------------+---------------------+
+| color | year                 | makemodel           |
++-------+----------------------+---------------------+
+| blue  | 00000000000000001993 | asian/acura/3.2tl   |
+| black | 00000000000000001994 | asian/acura/3.2tl   |
+| black | 00000000000000001999 | asian/acura/3.5rl   |
+| black | 00000000000000002002 | asian/acura/3.5rl   |
+| black | 00000000000000002000 | asian/acura/3.5rl   |
+| black | 00000000000000001996 | asian/acura/integra |
+| black | 00000000000000001996 | asian/acura/integra |
+| black | 00000000000000001993 | asian/acura/integra |
+| black | 00000000000000001999 | asian/acura/integra |
+| black | 00000000000000001994 | asian/acura/integra |
++-------+----------------------+---------------------+
+10 rows in set, 4245 hits, 15000 total docs (server: 8ms, total: 46ms)</programlisting>
+
+        </listitem>
+
+        <listitem>
+          <para>Find all the cars with color column or category column
+          containing substring "<literal>ac</literal>" (like color
+          "black" or category "compact"):</para>
+          <programlisting>SELECT color, category, year, makemodel
+FROM cars
+WHERE MATCH(color, category) AGAINST("*ac*")
+LIMIT 20</programlisting>
+
+          <para><emphasis>Results:</emphasis></para>
+
+          <programlisting>+--------+------------+----------------------+---------------------+
+| color  | category   | year                 | makemodel           |
++--------+------------+----------------------+---------------------+
+| white  | compact    | 00000000000000001993 | asian/acura/1.6el   |
+| white  | compact    | 00000000000000001999 | asian/acura/1.6el   |
+| gold   | compact    | 00000000000000001996 | asian/acura/1.6el   |
+| silver | compact    | 00000000000000001997 | asian/acura/1.6el   |
+| blue   | compact    | 00000000000000001993 | asian/acura/3.2tl   |
+| gold   | compact    | 00000000000000002001 | asian/acura/3.2tl   |
+| black  | compact    | 00000000000000001994 | asian/acura/3.2tl   |
+| green  | compact    | 00000000000000001995 | asian/acura/3.2tl   |
+| yellow | compact    | 00000000000000001999 | asian/acura/3.2tl   |
+| gold   | compact    | 00000000000000001993 | asian/acura/3.2tl   |
+| red    | compact    | 00000000000000001996 | asian/acura/3.2tl   |
+| black  | luxury     | 00000000000000001999 | asian/acura/3.5rl   |
+| black  | luxury     | 00000000000000002002 | asian/acura/3.5rl   |
+| black  | luxury     | 00000000000000002000 | asian/acura/3.5rl   |
+| black  | sports car | 00000000000000001996 | asian/acura/integra |
+| black  | sports car | 00000000000000001996 | asian/acura/integra |
+| black  | sports car | 00000000000000001993 | asian/acura/integra |
+| black  | sports car | 00000000000000001999 | asian/acura/integra |
+| black  | sports car | 00000000000000001994 | asian/acura/integra |
+| black  | sports car | 00000000000000001993 | asian/acura/integra |
++--------+------------+----------------------+---------------------+
+20 rows in set, 7178 hits, 15000 total docs (server: 4ms, total: 134ms)</programlisting>
+
+        </listitem>
+
+        <listitem>
+          <para>Find all the car categories that are not van nor
+          mini-van:</para>
+
+          <programlisting>SELECT color, category, year, makemodel
+FROM cars
+WHERE NOT MATCH(color, category) AGAINST("*van")
+GROUP BY category TOP 1
+LIMIT 1000
+</programlisting>
+
+          <para><emphasis>Results:</emphasis></para>
+
+          <programlisting>+--------+---------------+----------------------+-----------------------------+
+| color  | category      | year                 | makemodel                   |
++--------+---------------+----------------------+-----------------------------+
+| white  | compact       | 00000000000000001993 | asian/acura/1.6el           |
+| white  | luxury        | 00000000000000001995 | asian/acura/3.5rl           |
+| red    | sports car    | 00000000000000001996 | asian/acura/integra         |
+| yellow | exotic        | 00000000000000001997 | european/aston martin/db7   |
+| black  | sedan         | 00000000000000001997 | north american/eagle/vision |
+| green  | suv           | 00000000000000002002 | north american/ford/bronco  |
+| yellow | truck         | 00000000000000002001 | asian/isuzu/pickup          |
+| green  | station wagon | 00000000000000001995 | north american/saturn/sw    |
+| gold   | sub-compact   | 00000000000000001993 | north american/ford/aspire  |
++--------+---------------+----------------------+-----------------------------+
+9 rows in set, 6980 hits, 7500 total docs (server: 5ms, total: 84ms)</programlisting>
+
+          <para>You can compare the above results (containing 9 rows)
+          with the ones from the following query (containing 11
+          rows):</para>
+
+          <programlisting>SELECT color, category, year, makemodel
+FROM cars
+GROUP BY category TOP 1
+LIMIT 1000
+</programlisting>
+
+          <para><emphasis>Results:</emphasis></para>
+
+          <programlisting>+--------+---------------+----------------------+------------------------------------+
+| color  | category      | year                 | makemodel                          |
++--------+---------------+----------------------+------------------------------------+
+| white  | compact       | 00000000000000001993 | asian/acura/1.6el                  |
+| white  | luxury        | 00000000000000001995 | asian/acura/3.5rl                  |
+| red    | sports car    | 00000000000000001996 | asian/acura/integra                |
+| yellow | exotic        | 00000000000000001997 | european/aston martin/db7          |
+| black  | sedan         | 00000000000000001997 | north american/eagle/vision        |
+| green  | suv           | 00000000000000002002 | north american/ford/bronco         |
+| green  | van           | 00000000000000001994 | north american/ford/club wagon     |
+| yellow | truck         | 00000000000000002001 | asian/isuzu/pickup                 |
+| green  | station wagon | 00000000000000001995 | north american/saturn/sw           |
+| white  | mini-van      | 00000000000000001993 | north american/chevrolet/astro van |
+| gold   | sub-compact   | 00000000000000001993 | north american/ford/aspire         |
++--------+---------------+----------------------+------------------------------------+
+11 rows in set, 15000 hits, 15000 total docs (server: 7ms, total: 50ms)
+</programlisting>
+
+        </listitem>
+
+      </orderedlist>
+    </section>
+
+    <section>
+      <title>Queries Using LIKE Predicate</title>
+
+      <orderedlist>
+        <listitem>
+          <para>Find all the cars with color "black" or "blue":</para>
+          <programlisting>SELECT color, year, makemodel
+FROM cars
+WHERE color LIKE "bl%"</programlisting>
+
+          <para><emphasis>Results:</emphasis></para>
+
+          <programlisting>+-------+------------+----------------------+---------------------+
+| color | category   | year                 | makemodel           |
++-------+------------+----------------------+---------------------+
+| blue  | compact    | 00000000000000001993 | asian/acura/3.2tl   |
+| black | compact    | 00000000000000001994 | asian/acura/3.2tl   |
+| black | luxury     | 00000000000000001999 | asian/acura/3.5rl   |
+| black | luxury     | 00000000000000002002 | asian/acura/3.5rl   |
+| black | luxury     | 00000000000000002000 | asian/acura/3.5rl   |
+| black | sports car | 00000000000000001996 | asian/acura/integra |
+| black | sports car | 00000000000000001996 | asian/acura/integra |
+| black | sports car | 00000000000000001993 | asian/acura/integra |
+| black | sports car | 00000000000000001999 | asian/acura/integra |
+| black | sports car | 00000000000000001994 | asian/acura/integra |
++-------+------------+----------------------+---------------------+
+10 rows in set, 4245 hits, 15000 total docs (server: 3ms, total: 78ms)</programlisting>
+        </listitem>
+
+        <listitem>
+          <para>Find all cars with color matching pattern "bl__" (4
+          characters only):</para>
+
+          <programlisting>SELECT color, category, year, makemodel
+FROM cars
+WHERE color like "bl__"</programlisting>
+
+          <para><emphasis>Results:</emphasis></para>
+
+          <programlisting>+-------+----------+----------------------+-----------------------------+
+| color | category | year                 | makemodel                   |
++-------+----------+----------------------+-----------------------------+
+| blue  | compact  | 00000000000000001993 | asian/acura/3.2tl           |
+| blue  | compact  | 00000000000000001999 | asian/acura/tl              |
+| blue  | compact  | 00000000000000001998 | asian/acura/tl              |
+| blue  | compact  | 00000000000000001998 | asian/acura/tl              |
+| blue  | compact  | 00000000000000001997 | asian/acura/tl              |
+| blue  | compact  | 00000000000000001998 | asian/acura/vigor           |
+| blue  | compact  | 00000000000000001999 | north american/eagle/2000   |
+| blue  | sedan    | 00000000000000001993 | north american/eagle/vision |
+| blue  | sedan    | 00000000000000002000 | north american/eagle/vision |
+| blue  | sedan    | 00000000000000001995 | north american/eagle/vision |
++-------+----------+----------------------+-----------------------------+
+10 rows in set, 1104 hits, 15000 total docs (server: 3ms, total: 59ms)</programlisting>
+
+        </listitem>
+
+      </orderedlist>
+
+    </section>
+
+
+    <section>
       <title>Queries with Full Text Search</title>
 
       <para>In the WHERE clause, you can add a condition for full text
@@ -935,7 +1380,7 @@ WHERE QUERY IS "hybrid AND navigation"</programlisting>
 
           <programlisting>SELECT color, tags, city
 FROM cars
-WHERE QUERY IS "(hybrid OR mooon-roof) AND mp3 NOT cool NOT navigation"
+WHERE QUERY IS "(hybrid OR moon-roof) AND mp3 NOT cool NOT navigation"
   AND city in ("u.s.a./new york")
   AND color = "red"</programlisting>
 
@@ -959,7 +1404,7 @@ WHERE QUERY IS "(hybrid OR mooon-roof) AND mp3 NOT cool NOT navigation"
     </section>
 
     <section>
-      <title>Queries with Group By</title>
+      <title>Queries with GROUP BY</title>
 
       <orderedlist>
         <listitem>
@@ -1019,39 +1464,39 @@ GROUP BY category TOP 2</programlisting>
           <para><emphasis role="bold">Find the numbers of cars
           in different categories:</emphasis></para>
 
-          <programlisting>SELECT category, grouphitscount
+          <programlisting>SELECT category, _grouphitscount
 FROM cars
 GROUP BY category top 1</programlisting>
 
           <para><emphasis role="bold">Results:</emphasis></para>
 
           <programlisting>+---------------+----------------+
-| category      | grouphitscount |
-+---------------+----------------+
-| compact       | 4169           |
-| exotic        | 1902           |
-| luxury        | 2735           |
-| sports car    | 1494           |
-| sedan         | 990            |
-| suv           | 1449           |
-| van           | 168            |
-| truck         | 611            |
-| station wagon | 186            |
-| mini-van      | 869            |
-+---------------+----------------+
+| category      | _grouphitscount |
++---------------+-----------------+
+| compact       | 4169            |
+| exotic        | 1902            |
+| luxury        | 2735            |
+| sports car    | 1494            |
+| sedan         | 990             |
+| suv           | 1449            |
+| van           | 168             |
+| truck         | 611             |
+| station wagon | 186             |
+| mini-van      | 869             |
++---------------+-----------------+
 10 rows in set, 15000 hits, 15000 total docs (server: 3ms, total: 38ms)</programlisting>
         </listitem>
       </orderedlist>
     </section>
 
     <section>
-      <title>Getting Facet Information Using Browse By Clause</title>
+      <title>Getting Facet Information Using BROWSE BY Clause</title>
 
       <para>BQL is designed to support faceted search, so we have to
       make it possible to get facet information along with the search
       results. This can be done using the Browse By clause, where you
       can specify one or more facets for which you want to get the facet
-      count information. For each facet in the Browse By clause, you can
+      count information. For each facet in the BROWSE BY clause, you can
       optionally include</para>
 
       <itemizedlist>
