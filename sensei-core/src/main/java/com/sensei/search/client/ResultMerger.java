@@ -360,7 +360,7 @@ public class ResultMerger
       }
       else
       {
-        int nullCount = 0;
+        int equalCount = 0;
         for (int i = 0; i < _sortFields.length; ++i)
         {
           String field = _sortFields[i].getField();
@@ -372,6 +372,7 @@ public class ResultMerger
             float score2 = o2.getScore();
             if (score1 == score2)
             {
+              equalCount++;
               continue;
             }
             else
@@ -390,7 +391,7 @@ public class ResultMerger
 
             if (value1 == null && value2 == null)
             {
-              nullCount++;
+              equalCount++;
               continue;
             }
             else if (value1 == null)
@@ -404,11 +405,16 @@ public class ResultMerger
               {
                 return comp * reverse;
               }
+              else
+              {
+                equalCount++;
+                continue;
+              }
             }
           } // A regular sort field
         }
 
-        if (nullCount == _sortFields.length)
+        if (equalCount == _sortFields.length)
         {
           return o1.getDocid() - o2.getDocid();
         }
