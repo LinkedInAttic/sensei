@@ -895,6 +895,21 @@ public class TestBQL extends TestCase
   }
 
   @Test
+  public void testGivenClause3() throws Exception
+  {
+    System.out.println("testGivenClause3");
+    System.out.println("==================================================");
+
+    JSONObject json = _compiler.compile(
+      "SELECT * " +
+      "FROM cars " +
+      "GIVEN FACET PARAM (member, 'age', int, (25, 30, 35, 40))"
+      );
+    JSONObject expected = new JSONObject("{\"facetInit\":{\"member\":{\"age\":{\"values\":[25,30,35,40],\"type\":\"int\"}}},\"meta\":{\"select_list\":[\"*\"]}}");
+    assertTrue(_comp.isEquals(json, expected));
+  }
+
+  @Test
   public void testTimePred1() throws Exception
   {
     System.out.println("testTimePred1");

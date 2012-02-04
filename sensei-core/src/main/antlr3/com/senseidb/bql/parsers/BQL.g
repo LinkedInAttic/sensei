@@ -1590,13 +1590,14 @@ facet_param_list returns [JSONObject json]
     ;
 
 facet_param returns [String facet, JSONObject param]
-    :   LPAR column_name COMMA STRING_LITERAL COMMA facet_param_type COMMA value RPAR
+    :   LPAR column_name COMMA STRING_LITERAL COMMA facet_param_type COMMA (val=value | valList=value_list) RPAR
         {
             $facet = $column_name.text; // XXX Check error here?
             try {
+                JSONArray valArray = (val != null) ? new JSONArray().put(val.val) : $valList.json;
                 $param = new JSONObject().put($STRING_LITERAL.text,
                                               new JSONObject().put("type", $facet_param_type.paramType)
-                                                              .put("values", new JSONArray().put($value.val)));
+                                                              .put("values", valArray));
             }
             catch (JSONException err) {
                 throw new FailedPredicateException(input, "facet_param", "JSONException: " + err.getMessage());
