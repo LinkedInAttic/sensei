@@ -522,7 +522,7 @@ MILLISECONDS : ('M'|'m')('I'|'i')('L'|'l')('L'|'l')('I'|'i')('S'|'s')('E'|'e')('
 MSECS : ('M'|'m')('S'|'s')('E'|'e')('C'|'c')('S'|'s')? ;
 
 // Have to define this after the keywords?
-IDENT : (ALPHA | '_') (ALPHA | DIGIT | '-' )* ;
+IDENT : (ALPHA | '_') (ALPHA | DIGIT | '-' | '_')* ;
 
 WS : ( ' ' | '\t' | '\r' | '\n' )+ { $channel = HIDDEN; };
 
@@ -1476,7 +1476,7 @@ value returns [Object val]
 
 numeric returns [Object val]
     :   time_expr { $val = $time_expr.val; }
-    |   INTEGER { $val = Integer.parseInt($INTEGER.text); }
+    |   INTEGER { $val = Long.parseLong($INTEGER.text); }
     |   REAL { $val = Float.parseFloat($REAL.text); }
     ;
 

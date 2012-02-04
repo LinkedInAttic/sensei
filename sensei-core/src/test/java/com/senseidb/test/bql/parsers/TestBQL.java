@@ -34,6 +34,7 @@ public class TestBQL extends TestCase
     facetInfoMap.put("year", new String[]{"range", "int"});
     facetInfoMap.put("makemodel", new String[]{"path", "string"});
     facetInfoMap.put("city", new String[]{"path", "string"});
+    facetInfoMap.put("long_id", new String[]{"simple", "long"});
     facetInfoMap.put("time", new String[]{"custom", ""}); // Mimic a custom facet
     _compiler = new BQLCompiler(facetInfoMap);
   }
@@ -1082,9 +1083,24 @@ public class TestBQL extends TestCase
   }
 
   @Test
+  public void testLongValue() throws Exception
+  {
+    System.out.println("testLongValue");
+    System.out.println("==================================================");
+
+    JSONObject json = _compiler.compile(
+      "SELECT * " +
+      "FROM cars " +
+      "WHERE long_id IN (5497057336205783040)"
+      );
+    // System.out.println(">>> json = " + json);
+    JSONObject expected = new JSONObject("{\"selections\":[{\"terms\":{\"long_id\":{\"values\":[5497057336205783040],\"excludes\":[],\"operator\":\"or\"}}}],\"meta\":{\"select_list\":[\"*\"]}}");
+    assertTrue(_comp.isEquals(json, expected));
+  }
+
+  @Test
   public void testCorrectStatement() throws Exception
   {
-    System.out.println("\n==================================================");
     System.out.println("testCorrectStatement");
     System.out.println("==================================================");
     //compile the statement
