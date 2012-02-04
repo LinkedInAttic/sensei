@@ -1476,8 +1476,22 @@ value returns [Object val]
 
 numeric returns [Object val]
     :   time_expr { $val = $time_expr.val; }
-    |   INTEGER { $val = Long.parseLong($INTEGER.text); }
-    |   REAL { $val = Float.parseFloat($REAL.text); }
+    |   INTEGER {
+            try {
+                $val = Long.parseLong($INTEGER.text);
+            }
+            catch (NumberFormatException err) {
+                throw new FailedPredicateException(input, "numeric", "Hit NumberFormatException: " + err.getMessage());
+            }
+        }
+    |   REAL {
+            try {
+                $val = Float.parseFloat($REAL.text);
+            }
+            catch (NumberFormatException err) {
+                throw new FailedPredicateException(input, "numeric", "Hit NumberFormatException: " + err.getMessage());
+            }
+        }
     ;
 
 except_clause returns [JSONArray json]
