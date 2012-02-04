@@ -54,10 +54,11 @@ public class TestSenseiAttributesHandler extends TestCase {
    
     logger.info("executing test case Selection terms");
     String req = "{\"selections\":[{\"terms\":{\"groupid_range_multi\":{\"values\":[\"[1 TO 500]\"],\"operator\":\"or\"}}}]" +
-        //",\"facets\":{    \"object_properties\":{\"minHit\":1 }}" +
+        ",\"facets\":{    \"groupid_range_multi\":{\"minHit\":1, \"max\":100, \"properties\":{\"maxFacetsPerKey\":1} }}" + 
         "}";
     //assertEquals(broker.browse(new SenseiRequest()).getNumHits(), 15000);
     JSONObject res = search(new JSONObject(req));
+    
     //System.out.println(res.toString(1));
     assertEquals("numhits is wrong",1, res.getInt("numhits"));
   }
