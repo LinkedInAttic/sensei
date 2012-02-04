@@ -34,7 +34,7 @@ public class TestBQL extends TestCase
     facetInfoMap.put("year", new String[]{"range", "int"});
     facetInfoMap.put("makemodel", new String[]{"path", "string"});
     facetInfoMap.put("city", new String[]{"path", "string"});
-    facetInfoMap.put("time", new String[]{"custom", "long"}); // Mimic a custom facet
+    facetInfoMap.put("time", new String[]{"custom", ""}); // Mimic a custom facet
     _compiler = new BQLCompiler(facetInfoMap);
   }
 

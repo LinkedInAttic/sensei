@@ -169,6 +169,11 @@ import java.text.SimpleDateFormat;
         else if (columnType.equals("boolean")) {
             return (value instanceof Boolean);
         }
+        else if (columnType.isEmpty()) {
+            // For a custom facet, the data type is unknown (empty
+            // string).  We accept all value types here.
+            return true;
+        }
         else {
             return false;
         }

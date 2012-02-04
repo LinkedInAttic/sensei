@@ -103,7 +103,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
       }
       catch (Exception e)
       {
-        logger.info("hit exception trying to get sysinfo", e);
+        logger.info("Hit exception trying to get sysinfo", e);
         if (count > 10) 
         {
           logger.error("Give up after 10 tries to get sysinfo");
@@ -117,7 +117,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
           }
           catch (InterruptedException e2)
           {
-            e2.printStackTrace();
+            logger.error("Hit InterruptedException in getting sysinfo: ", e);
           }
         }
       }
