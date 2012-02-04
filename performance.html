@@ -44,7 +44,7 @@ title: SenseiDB - Performance
 <h3>(2) System Startup Configuration</h3>
 <p>We used default startup configuration for both Sensei and MySQL.
 
-However, Sensei requires custom property file for each application. So to start Sensei, checkout the sensei code from <a href='https://github.com/senseidb/sensei/downloads'>https://github.com/senseidb/sensei/downloads</a>,
+However, Sensei requires custom property file for each application. So to start Sensei, checkout the sensei code from <a href='https://github.com/linkedin/sensei/downloads'>https://github.com/linkedin/sensei/downloads</a>,
 Sensei comes with a car demo setup, so replace the car demo configuration file with this one: <a href='https://github.com/sguo/search-perf/tree/master/configs/mysql/cars/conf'>https://github.com/sguo/search-perf/tree/master/configs/mysql/cars/conf</a>, and replace the original car demo data with a much bigger 3 million dataset(we will talk about how the data source is generated in the following section).
 change directory to Sensei home directory and start sensei as below,</p>
 <pre class="prettyprint">
@@ -53,7 +53,7 @@ change directory to Sensei home directory and start sensei as below,</p>
 <p>( By default, Sensei will start up with 1GB memory: <code>HEAP_OPTS="-Xmx1g -Xms1g -XX:NewSize=256m"</code> )</p>
 
 <h3>(3) Data Source</h3>
-<p>We use car data to generate the testing dataset, and the testing dataset will be used by both MySQL and Sensei. To do this, firstly download the car demo dataset from: <a href='https://raw.github.com/senseidb/sensei/master/example/cars/data/cars.json'>https://raw.github.com/senseidb/sensei/master/example/cars/data/cars.json</a>
+<p>We use car data to generate the testing dataset, and the testing dataset will be used by both MySQL and Sensei. To do this, firstly download the car demo dataset from: <a href='https://raw.github.com/linkedin/sensei/master/example/cars/data/cars.json'>https://raw.github.com/linkedin/sensei/master/example/cars/data/cars.json</a>
 then we replicated car data 200 times to get to 3M docs. The python script to do this could be downloaded here: <a href='https://github.com/kwei/search-perf/tree/master/data'>https://github.com/kwei/search-perf/tree/master/data</a>. To generate the large 3 million testing dataset,
 simply run:
 </p>

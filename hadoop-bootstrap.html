@@ -100,7 +100,7 @@ $HADOOP_HOME/bin/hadoop fs -put $SENSEI_HOME/example/cars/data/cars.json data/
 <p>After uploaded the schema.xml file and the input data (cars.json), you can go to "http://localhost:50070/nn_browsedfscontent.jsp" to check if there are there in the local HDFS. These files will be used by your Hadoop job in the following steps.</p>
 
 
-<p>To build index through Sensei-hadoop-indexer, simply write your own job files just as the <a href="https://github.com/senseidb/sensei/tree/master/example/hadoop-indexing/src/main/java/com/senseidb/indexing/hadoop/demo">car demo files</a> (java files with main function as entry point, and also specifying where the configuration file is, sharding strategy, etc.), 
+<p>To build index through Sensei-hadoop-indexer, simply write your own job files just as the <a href="https://github.com/linkedin/sensei/tree/master/example/hadoop-indexing/src/main/java/com/senseidb/indexing/hadoop/demo">car demo files</a> (java files with main function as entry point, and also specifying where the configuration file is, sharding strategy, etc.), 
 and then package it as a runnable jar file (e.g., example.jar) to execute:</p>
 <pre class="prettyprint" id="xml">
 <?xml version="1.0" encoding="UTF-8"?>

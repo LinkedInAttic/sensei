@@ -38,14 +38,14 @@ Data events are units of indexing activities.
 <p>
   Gateways are how Sensei consumes from a data stream. The following are some built-in gateways:
 <ul>
-	<li>File - Streaming of a text file where each line is a json representation of a data event, with each line number as the version. (<a href="https://github.com/senseidb/sensei/tree/master/example/cars/data" target="_blank">Example</a>)</li>
+	<li>File - Streaming of a text file where each line is a json representation of a data event, with each line number as the version. (<a href="https://github.com/linkedin/sensei/tree/master/example/cars/data" target="_blank">Example</a>)</li>
 	<li>JMS - Data stream abstraction over a JMS queue.</li>
 	<li>JDBC - Data stream abstraction over a <a href="http://docs.oracle.com/javase/1.4.2/docs/api/java/sql/ResultSet.html" target="_blank">ResultSet</a> via a defined <a href="http://docs.oracle.com/javase/1.4.2/docs/api/java/sql/PreparedStatement.html" target="_blank">PreparedStatement</a></li>
 	<li><a href="http://incubator.apache.org/kafka/" target="_blank">Apache Kafka</a> - Kafka is a fast distributed messaging system. A Kafka data-stream is versioned by offsets, and each message is a data event.</li>
 </ul>	
 </p>
 <p>
-  You can write your own Gateway implementation by simply implementing the <a href="https://github.com/senseidb/sensei/tree/master/sensei-core/src/main/java/com/senseidb/gateway/SenseiGateway.java" target="_blank">SenseiGateway</a> interface. And configure it via the <b>sensei.gateway</b> properties.
+  You can write your own Gateway implementation by simply implementing the <a href="https://github.com/linkedin/sensei/tree/master/sensei-core/src/main/java/com/senseidb/gateway/SenseiGateway.java" target="_blank">SenseiGateway</a> interface. And configure it via the <b>sensei.gateway</b> properties.
 </p>
 <hr/>
 
@@ -64,6 +64,6 @@ Data events are units of indexing activities.
 
 <h2>Sharding Strategy</h2>
 <p>
-	<a href="https://github.com/senseidb/sensei/tree/master/sensei-core/src/main/java/com/senseidb/indexing/ShardingStrategy.java" target="_blank">ShardingStrategy</a> interface defines how a data event defined by a JSON object is mapped to a shard.
+	<a href="https://github.com/linkedin/sensei/tree/master/sensei-core/src/main/java/com/senseidb/indexing/ShardingStrategy.java" target="_blank">ShardingStrategy</a> interface defines how a data event defined by a JSON object is mapped to a shard.
 </p>
 <hr/>
