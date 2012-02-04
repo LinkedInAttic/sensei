@@ -6,7 +6,6 @@ import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongSet;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Properties;
 
@@ -18,6 +17,7 @@ import org.apache.lucene.search.ScoreDoc;
 import proj.zoie.api.DocIDMapper;
 import proj.zoie.api.ZoieIndexReader;
 import proj.zoie.api.ZoieSegmentReader;
+import scala.actors.threadpool.Arrays;
 
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.api.BrowseSelection;
@@ -112,12 +112,13 @@ public class UIDFacetHandler extends FacetHandler<long[]> {
       @Override
       public RandomAccessDocIdSet getRandomAccessDocIdSet(BoboIndexReader reader)
           throws IOException {
-        ZoieIndexReader<?> zoieReader = (ZoieIndexReader<?>)(reader.getInnerReader());
+        ZoieSegmentReader<?> zoieReader = (ZoieSegmentReader<?>)(reader.getInnerReader());
         DocIDMapper<?> docidMapper = zoieReader.getDocIDMaper();
         
         final IntArrayList docidList = new IntArrayList(valSet.size());
         
         LongIterator iter = valSet.iterator();
+        
         while(iter.hasNext()){
           int docid = docidMapper.getDocID(iter.nextLong());
           if (docid!=DocIDMapper.NOT_FOUND){
@@ -126,17 +127,24 @@ public class UIDFacetHandler extends FacetHandler<long[]> {
         }
         
         if (docidList.size()==0) return EmptyDocIdSet.getInstance();
-        if (docidList.size()==1) return new SingleDocRandmAccessDocIdSet(docidList.getInt(0));
-        
-        Collections.sort(docidList);
-        
+        int[] delDocIds = zoieReader.getDelDocIds();
+        if (docidList.size()==1) {
+          int docId = docidList.getInt(0);
+          if (delDocIds == null || delDocIds.length ==0 || Arrays.binarySearch(delDocIds, docId) < 0) {
+            return new SingleDocRandmAccessDocIdSet(docidList.getInt(0));
+          } else {
+            return EmptyDocIdSet.getInstance();
+          }         
+        }        
+        Collections.sort(docidList);        
         final IntArrayDocIdSet intArraySet = new IntArrayDocIdSet(docidList.size());
+        boolean deletesPresent = delDocIds != null && delDocIds.length > 0;       
         for (int docid : docidList){
-          intArraySet.addDoc(docid);
-        }
-        
+          if (!deletesPresent  || java.util.Arrays.binarySearch(delDocIds,docid) < 0) {
+            intArraySet.addDoc(docid);            
+          } 
+        }        
         return new RandomAccessDocIdSet(){
-
           @Override
           public boolean get(int docid) {
             return docidList.contains(docid);
@@ -145,10 +153,8 @@ public class UIDFacetHandler extends FacetHandler<long[]> {
           @Override
           public DocIdSetIterator iterator() throws IOException {
             return intArraySet.iterator();
-          }
-          
-        };
-        
+          }          
+        };        
       }
     };
   }
@@ -276,7 +282,7 @@ public class UIDFacetHandler extends FacetHandler<long[]> {
     IndexReader innerReader = reader.getInnerReader();
     if (innerReader instanceof ZoieSegmentReader){
       ZoieSegmentReader zoieReader = (ZoieSegmentReader)innerReader;
-      return zoieReader.getUIDArray();
+      return zoieReader.getUIDArray();     
     }
     else{
       throw new IOException("inner reader not instance of "+ZoieSegmentReader.class);
