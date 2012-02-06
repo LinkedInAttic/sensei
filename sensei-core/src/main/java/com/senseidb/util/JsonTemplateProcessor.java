@@ -55,13 +55,9 @@ public class JsonTemplateProcessor {
          throw new IllegalArgumentException("The substitution template value for the key " + key + " contains special characters");
        }
        if (!isString) {
-
           replaceable = "\"" +replaceable + "\"";
         }
-
-
         modifiedStr = modifiedStr.replace(replaceable, value.toString());
-
     }
     if (modifiedStr.equals(requestStr)) {
       logger.info("No substitutions were made");

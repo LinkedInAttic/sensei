@@ -125,6 +125,8 @@ import com.senseidb.util.RequestConverter;
 public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
 {
 
+  private static final String PARAM_RESULT_MAP_REDUCE = "mapReduceResult";
+
   /**
    *
    */
@@ -444,7 +446,10 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
 
     jsonObj.put(PARAM_RESULT_TIME, res.getTime());
     jsonObj.put(PARAM_RESULT_FACETS, convert(res.getFacetMap(), req));
-
+    if (req.getMapReduceFunction() != null) {
+      jsonObj.put(PARAM_RESULT_MAP_REDUCE, req.getMapReduceFunction().render(res.getMapReduceResult().getReduceResult()));
+    }
+   
     return jsonObj;
   }
 
