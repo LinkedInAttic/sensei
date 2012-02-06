@@ -120,11 +120,13 @@
 			<groupId>org.apache.kafka</groupId>
 			<artifactId>kafka</artifactId>
 			<version>0.7.6</version>
-			<exclusions>
-              <exclusion>  <!-- declare the exclusion here -->
-                <groupId>zkclient</groupId>
-              </exclusion>
-            </exclusions>
+			<scope>system</scope>
+			<systemPath>${basedir}/../lib/kafka-0.7.6.jar</systemPath>
+                        <exclusions>
+        		      <exclusion> 
+               		      <groupId>zkclient</groupId>
+                              </exclusion>
+                              </exclusions>
 		</dependency>
 		
 		<dependency>

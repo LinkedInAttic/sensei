@@ -257,6 +257,7 @@ public class TestSensei extends TestCase {
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 12990, res.getInt("numhits"));
   }
+ 
   public void testSelectionRange() throws Exception
   {
     //2000 1548;
@@ -482,8 +483,21 @@ public class TestSensei extends TestCase {
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 2160, res.getInt("numhits"));
   }
-
-
+  public void testNullMultiFilter() throws Exception
+  {
+    logger.info("executing test case testNullFilter");
+    String req = "{\"filter\":{\"isNull\":\"groupid_multi\"}}";
+    JSONObject res = search(new JSONObject(req));
+    assertEquals("numhits is wrong", 14997, res.getInt("numhits"));
+  }
+  
+  public void testNullFilterOnSimpleColumn() throws Exception
+  {
+    logger.info("executing test case testNullFilter");
+    String req = "{\"filter\":{\"isNull\":\"price\"}}";
+    JSONObject res = search(new JSONObject(req));
+    assertEquals("numhits is wrong", 1, res.getInt("numhits"));
+  }
   public void testUIDFilter() throws Exception
   {
     logger.info("executing test case testUIDFilter");
@@ -550,44 +564,44 @@ public class TestSensei extends TestCase {
 
   /* Need to fix the bug in bobo and kamikazi, for details see the following two test cases:*/
 
-//  public void testAndFilter1() throws Exception
-//  {
-//    logger.info("executing test case testAndFilter1");
-//    String req = "{\"filter\":{\"and\":[{\"term\":{\"color\":\"blue\",\"_noOptimize\":false}},{\"query\":{\"term\":{\"category\":\"compact\"}}}]}}";
-//    JSONObject res = search(new JSONObject(req));
-//    assertEquals("numhits is wrong", 504, res.getInt("numhits"));
-//  }
-//
-//  public void testQueryFilter1() throws Exception
-//  {
-//    logger.info("executing test case testQueryFilter1");
-//    String req = "{\"filter\": {\"query\":{\"term\":{\"category\":\"compact\"}}}}";
-//    JSONObject res = search(new JSONObject(req));
-//    assertEquals("numhits is wrong", 4169, res.getInt("numhits"));
-//  }
+  public void testAndFilter1() throws Exception
+  {
+    logger.info("executing test case testAndFilter1");
+    String req = "{\"filter\":{\"and\":[{\"term\":{\"color\":\"blue\",\"_noOptimize\":false}},{\"query\":{\"term\":{\"category\":\"compact\"}}}]}}";
+    JSONObject res = search(new JSONObject(req));
+    assertEquals("numhits is wrong", 504, res.getInt("numhits"));
+  }
+
+  public void testQueryFilter1() throws Exception
+  {
+    logger.info("executing test case testQueryFilter1");
+    String req = "{\"filter\": {\"query\":{\"term\":{\"category\":\"compact\"}}}}";
+    JSONObject res = search(new JSONObject(req));
+    assertEquals("numhits is wrong", 4169, res.getInt("numhits"));
+  }
 
 
   /*  another weird bug may exist somewhere in bobo or kamikazi.*/
   /*  In the following two test cases, when modifying the first one by changing "tags" to "tag", it is supposed that
    *  Only the first test case is not correct, but the second one also throw one NPE, which is weird.
    * */
-//  public void testAndFilter2() throws Exception
-//  {
-//    logger.info("executing test case testAndFilter2");
-//    String req = "{\"filter\":{\"and\":[{\"term\":{\"tags\":\"mp3\",\"_noOptimize\":false}},{\"query\":{\"term\":{\"color\":\"red\"}}}]}}";
-//    JSONObject res = search(new JSONObject(req));
-//    assertEquals("numhits is wrong", 439, res.getInt("numhits"));
-//  }
-//
-//  public void testOrFilter4() throws Exception
-//  {
-//    //color:blue  ==> 1104
-//    //color:red   ==> 2160
-//    logger.info("executing test case testOrFilter4");
-//    String req = "{\"filter\":{\"or\":[{\"term\":{\"color\":\"blue\",\"_noOptimize\":false}},{\"query\":{\"term\":{\"color\":\"red\"}}}]}}";
-//    JSONObject res = search(new JSONObject(req));
-//    assertEquals("numhits is wrong", 3264, res.getInt("numhits"));
-//  }
+  public void testAndFilter2() throws Exception
+  {
+    logger.info("executing test case testAndFilter2");
+    String req = "{\"filter\":{\"and\":[{\"term\":{\"tags\":\"mp3\",\"_noOptimize\":false}},{\"query\":{\"term\":{\"color\":\"red\"}}}]}}";
+    JSONObject res = search(new JSONObject(req));
+    assertEquals("numhits is wrong", 439, res.getInt("numhits"));
+  }
+
+  public void testOrFilter4() throws Exception
+  {
+    //color:blue  ==> 1104
+    //color:red   ==> 2160
+   logger.info("executing test case testOrFilter4");
+    String req = "{\"filter\":{\"or\":[{\"term\":{\"color\":\"blue\",\"_noOptimize\":false}},{\"query\":{\"term\":{\"color\":\"red\"}}}]}}";
+    JSONObject res = search(new JSONObject(req));
+    assertEquals("numhits is wrong", 3264, res.getInt("numhits"));
+  }
 
 
   public void testTermFilter() throws Exception
@@ -660,7 +674,11 @@ public class TestSensei extends TestCase {
       sb.append(line);
     String res = sb.toString();
     // System.out.println("res: " + res);
-    return new JSONObject(res);
+    JSONObject ret = new JSONObject(res);
+    if (ret.opt("totaldocs") !=null){
+      assertEquals(15000L, ret.getLong("totaldocs"));
+    }
+    return ret;
   }
 
   private void setspec(SenseiRequest req, FacetSpec spec) {

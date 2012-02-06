@@ -8,10 +8,10 @@ import org.json.JSONObject;
 
 import com.senseidb.search.client.json.JsonHandler;
 import com.senseidb.search.client.json.JsonSerializer;
+import com.senseidb.search.client.json.req.Range;
 import com.senseidb.search.client.json.req.Selection;
 import com.senseidb.search.client.json.req.Term;
 import com.senseidb.search.client.json.req.Terms;
-import com.senseidb.search.client.json.req.Selection.Range;
 import com.senseidb.search.client.json.req.filter.Ids;
 import com.senseidb.search.client.json.req.query.span.SpanFirst;
 import com.senseidb.search.client.json.req.query.span.SpanNear;

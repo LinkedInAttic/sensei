@@ -23,11 +23,13 @@ import org.slf4j.LoggerFactory;
 
 import com.senseidb.search.client.json.req.SenseiClientRequest;
 import com.senseidb.search.client.json.res.SenseiResult;
-
 public class SenseiServiceProxy {
-    private static Logger LOG = LoggerFactory.getLogger(SenseiServiceProxy.class);
+  private static Logger LOG = LoggerFactory.getLogger(SenseiServiceProxy.class);
+
+
     private  String host;
     private  int port;
+    private final String url;
     /*private static HttpClient httpclient;
 
     private static synchronized HttpClient getHttpClient() {
@@ -50,17 +52,21 @@ public class SenseiServiceProxy {
    public SenseiServiceProxy(String host, int port) {
       this.host = host;
       this.port = port;
+      this.url = null;
     }
-
+   public SenseiServiceProxy(String url) {
+    this.url = url;
+    
+   }
     public SenseiResult sendSearchRequest( SenseiClientRequest request)  {
-    	try {
+      try {
       String requestStr = JsonSerializer.serialize(request).toString();
         String output = sendPostRaw(getSearchUrl(), requestStr);
         //System.out.println("Output from Server = " + output);
         return JsonDeserializer.deserialize(SenseiResult.class, jsonResponse(output));
-    	} catch (Exception ex) {
-    	  throw new RuntimeException(ex);
-    	}
+      } catch (Exception ex) {
+        throw new RuntimeException(ex);
+      }
     }
     public SenseiResult sendBQL( String bql)  {
       try {
@@ -93,28 +99,30 @@ public class SenseiServiceProxy {
     return ret;
   }
     public String getSearchUrl() {
+      if (url != null) return url;
       return "http://" + host + ":" + port + "/sensei";
     }
     public String getStoreGetUrl() {
+      if (url != null) return url + "/get";
       return "http://" + host + ":" + port + "/sensei/get";
     }
-	  /*public String sendPost(String path, String requestStr) {
-			HttpPost httpPost = new HttpPost(path);
-			try {
-			httpPost.setHeader("Content-Type", "application/json; charset=utf-8");
-			httpPost.setHeader("Accept-Encoding", "gzip");
-			httpPost.setHeader("http.keepAlive", String.valueOf(true));
-			httpPost.setHeader("default", String.valueOf(true));
-			httpPost.setEntity(new StringEntity(requestStr));
-			 if (LOG.isDebugEnabled()){
+    /*public String sendPost(String path, String requestStr) {
+      HttpPost httpPost = new HttpPost(path);
+      try {
+      httpPost.setHeader("Content-Type", "application/json; charset=utf-8");
+      httpPost.setHeader("Accept-Encoding", "gzip");
+      httpPost.setHeader("http.keepAlive", String.valueOf(true));
+      httpPost.setHeader("default", String.valueOf(true));
+      httpPost.setEntity(new StringEntity(requestStr));
+       if (LOG.isDebugEnabled()){
          LOG.debug("Sending a post request to the server - " + path);
        }
 
        if (LOG.isDebugEnabled()){
          LOG.debug("The request is - " + requestStr);
        }
-			HttpResponse response = getHttpClient().execute(httpPost);
-			 int responseCode = response.getStatusLine().getStatusCode();
+      HttpResponse response = getHttpClient().execute(httpPost);
+       int responseCode = response.getStatusLine().getStatusCode();
 
        if (LOG.isDebugEnabled()){
          LOG.debug("The http response code is " + responseCode);
@@ -132,11 +140,11 @@ public class SenseiServiceProxy {
          LOG.debug("The response from the server is - " + output);
        }
        return output;
-			} catch (Exception ex) {
-			  httpPost.abort();
-			  throw new RuntimeException(ex);
-			}
-	}*/
+      } catch (Exception ex) {
+        httpPost.abort();
+        throw new RuntimeException(ex);
+      }
+  }*/
     private JSONObject jsonResponse(String output) throws JSONException {
         return new JSONObject(output);
     }

@@ -9,9 +9,9 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.StringTokenizer;
-import java.util.Map.Entry;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -96,10 +96,10 @@ public class DefaultJsonSchemaInterpreter extends
         }
         else{
           int num = Integer.parseInt(val);
-          if (num<0){
+          /*if (num<0){
             logger.error("we don't yet support negative values, skipping.");
             return null;
-          }
+          }*/
           return num;
         }
       }
@@ -115,10 +115,10 @@ public class DefaultJsonSchemaInterpreter extends
         }
         else{
           double num = Double.parseDouble(val);
-          if (num<0.0){
+          /*if (num<0.0){
             logger.error("we don't yet support negative values, skipping.");
             return null;
-          }
+          }*/
           return num;
         }
       }
@@ -133,10 +133,10 @@ public class DefaultJsonSchemaInterpreter extends
         }
         else{
           long num = Long.parseLong(val);
-          if (num<0){
+         /* if (num<0){
             logger.error("we don't yet support negative values, skipping.");
             return null;
-          }
+          }*/
           return num;
         }
       }

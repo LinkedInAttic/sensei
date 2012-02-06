@@ -68,9 +68,15 @@ public class JsonComparator {
     }
    
     if (a instanceof Long) {
-      if (b instanceof Long) {
+      if (b instanceof Long) 
+      {
         return isEqualsLong((Long) a, (Long) b);
-      } else {
+      }
+      else if (b instanceof Integer)
+      {
+        return isEqualsLong((Long) a,  new Long((long) ((Integer) b).intValue()));
+      }
+      else {
         return false;
       }
     }
@@ -78,7 +84,12 @@ public class JsonComparator {
     if (a instanceof Integer) {
       if (b instanceof Integer) {
         return isEqualsInteger((Integer) a, (Integer) b);
-      } else {
+      }
+      else if (b instanceof Long)
+      {
+        return isEqualsInteger((Integer) a, new Integer((int) ((Long) b).longValue()));
+      }
+      else {
         return false;
       }
     }

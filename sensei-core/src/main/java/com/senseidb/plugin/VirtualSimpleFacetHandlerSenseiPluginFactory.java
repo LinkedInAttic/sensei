@@ -30,7 +30,7 @@ public class VirtualSimpleFacetHandlerSenseiPluginFactory extends AbstractFacetH
                                                      TermListFactory.class);
     }
 
-    return new VirtualSimpleFacetHandler(getFacetName(fullPrefix),
+    return new VirtualSimpleFacetHandler(SenseiPluginRegistry.getNameByPrefix(fullPrefix),
                                          termListFactory,
                                          facetDataFetcher,
                                          getDepends(initProperties));

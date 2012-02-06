@@ -1,7 +1,7 @@
 package com.senseidb.search.query.filters;
 
-import java.util.Iterator;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 import org.apache.lucene.queryParser.QueryParser;
@@ -45,6 +45,7 @@ public abstract class FilterConstructor {
     FILTER_CONSTRUCTOR_MAP.put(TermFilterConstructor.FILTER_TYPE, new TermFilterConstructor());
     FILTER_CONSTRUCTOR_MAP.put(PathFilterConstructor.FILTER_TYPE, new PathFilterConstructor());
     FILTER_CONSTRUCTOR_MAP.put(TermsFilterConstructor.FILTER_TYPE, new TermsFilterConstructor());
+    FILTER_CONSTRUCTOR_MAP.put(NullFilterConstructor.FILTER_TYPE, new NullFilterConstructor());
   }
   
   public static FilterConstructor getFilterConstructor(String type, QueryParser qparser)
