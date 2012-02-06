@@ -23,6 +23,7 @@ import com.senseidb.search.node.SenseiServer;
 import com.senseidb.search.node.SenseiZoieFactory;
 import com.senseidb.search.req.SenseiRequest;
 import com.senseidb.search.req.SenseiResult;
+import com.senseidb.search.req.mapred.impl.MapReduceBroker;
 import com.senseidb.svc.api.SenseiService;
 import com.senseidb.svc.impl.HttpRestSenseiServiceImpl;
 
@@ -45,15 +46,17 @@ public class SenseiStarter {
   public static SenseiServer node2;
   public static Server httpServer1;
   public static Server httpServer2;
-  protected static SenseiNetworkClient networkClient;
-  protected static ClusterClient clusterClient;
-  protected static SenseiRequestScatterRewriter requestRewriter;
-  protected static SenseiLoadBalancerFactory loadBalancerFactory;
-  protected static NetworkServer networkServer1;
-  protected static NetworkServer networkServer2;
-  protected static final String SENSEI_TEST_CONF_FILE="sensei-test.spring";
-  protected static SenseiZoieFactory<?> _zoieFactory;
-  private static boolean started = false;
+  public static SenseiNetworkClient networkClient;
+  public static ClusterClient clusterClient;
+  public static SenseiRequestScatterRewriter requestRewriter;
+  public static SenseiLoadBalancerFactory loadBalancerFactory;
+  public static NetworkServer networkServer1;
+  public static NetworkServer networkServer2;
+  public static final String SENSEI_TEST_CONF_FILE="sensei-test.spring";
+  public static SenseiZoieFactory<?> _zoieFactory;
+  public static boolean started = false;
+
+  public static MapReduceBroker mapReduceBroker;
 
   /**
    * Will start the new Sensei instance once per process
@@ -89,6 +92,8 @@ public class SenseiStarter {
     try
     {
       broker = new SenseiBroker(networkClient, clusterClient, loadBalancerFactory);
+      broker.setTimeoutMillis(0);
+      mapReduceBroker = new MapReduceBroker(networkClient, clusterClient, loadBalancerFactory);
       broker.setTimeoutMillis(0);
     } catch (NorbertException ne) {
       logger.info("shutting down cluster...", ne);

@@ -61,7 +61,7 @@
 		     <param name="range" value="000000013" /> 	  	  
 		</params>
 	 </facet>
-	  <facet name="year" type="range">
+	  <facet name="year" type="multi-range">
 		<params>
 		  <param name="range" value="1993-1994" />
 		  <param name="range" value="1995-1996" />
@@ -70,7 +70,7 @@
 		  <param name="range" value="2001-2002" />
 		</params>
 	 </facet>
-	 <facet name="mileage" type="range">
+	 <facet name="mileage" type="multi-range">
 		<params>
 		  <param name="range" value="*-12500" />
 		  <param name="range" value="12501-15000" />
@@ -78,7 +78,7 @@
 		  <param name="range" value="17501-*" />
 		</params>
 	 </facet>
-	 <facet name="price" type="range">
+	 <facet name="price" type="multi-range">
 		<params>
 		  <param name="range" value="*,6700" />
 		  <param name="range" value="6800,9900" />
