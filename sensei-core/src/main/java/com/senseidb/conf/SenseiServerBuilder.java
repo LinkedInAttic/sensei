@@ -285,9 +285,6 @@ public class SenseiServerBuilder implements SenseiConfParams{
     pluginRegistry = SenseiPluginRegistry.build(_senseiConf);
     pluginRegistry.start();
 
-    pluginRegistry = SenseiPluginRegistry.build(_senseiConf);
-    pluginRegistry.start();
-
     _gateway = constructGateway();
 
     _schemaDoc = loadSchema(confDir);
