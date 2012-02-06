@@ -73,6 +73,7 @@ public class BaseGatewayTestUtil {
 
         for (DataEvent<JSONObject> event : events){
           JSONObject jsonObj = event.getData();
+          System.out.println(jsonObj+", version: "+event.getVersion());
           jsonList.add(jsonObj);
           version = event.getVersion();
         }

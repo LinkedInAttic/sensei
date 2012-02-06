@@ -82,7 +82,7 @@ public class TestJDBCGateway{
 
   @AfterClass
   public static void shutdown() {
-
+    gateway.stop();
     pluginRegistry.stop();
     if (conn != null) {
       try {
