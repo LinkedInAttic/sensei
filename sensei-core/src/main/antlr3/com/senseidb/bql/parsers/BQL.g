@@ -249,7 +249,7 @@ import java.text.SimpleDateFormat;
                         filter_list.put(pred);
                     }
                 }
-                else if (pred.has("and") || pred.has("or")) {
+                else if (pred.has("and") || pred.has("or") || pred.has("isNull")) {
                     filter_list.put(pred);
                 }
                 else if (_facetInfoMap.get(predField(pred)) != null) {
@@ -266,7 +266,7 @@ import java.text.SimpleDateFormat;
                 filter.put("filter", filter_list.get(0));
             }
         }
-        else if (where.has("or")) {
+        else if (where.has("or") || where.has("isNull")) {
             filter.put("filter", where);
         }
         else if (_facetInfoMap.get(predField(where)) != null) {
@@ -497,6 +497,7 @@ LONG : ('L'|'l')('O'|'o')('N'|'n')('G'|'g') ;
 MATCH : ('M'|'m')('A'|'a')('T'|'t')('C'|'c')('H'|'h') ;
 NOT : ('N'|'n')('O'|'o')('T'|'t') ;
 NOW : ('N'|'n')('O'|'o')('W'|'w') ;
+NULL : ('N'|'n')('U'|'u')('L'|'l')('L'|'l') ;
 OR : ('O'|'o')('R'|'r') ;
 ORDER : ('O'|'o')('R'|'r')('D'|'d')('E'|'e')('R'|'r') ;
 PARAM : ('P'|'p')('A'|'a')('R'|'r')('A'|'a')('M'|'m') ;
@@ -919,6 +920,7 @@ predicate returns [JSONObject json]
     |   time_predicate { $json = $time_predicate.json; }
     |   match_predicate { $json = $match_predicate.json; }
     |   like_predicate { $json = $like_predicate.json; }
+    |   null_predicate { $json = $null_predicate.json; }
     ;
 
 in_predicate returns [JSONObject json]
@@ -1448,6 +1450,23 @@ like_predicate returns [JSONObject json]
             }
             catch (JSONException err) {
                 throw new FailedPredicateException(input, "like_predicate", "JSONException: " + err.getMessage());
+            }
+        }
+    ;
+
+null_predicate returns [JSONObject json]
+    :   column_name IS (NOT)? NULL
+        {
+            String col = $column_name.text;
+            try {
+                $json = new JSONObject().put("isNull", col);
+                if ($NOT != null) {
+                    $json = new JSONObject().put("bool",
+                                                 new JSONObject().put("must_not", $json));
+                }
+            }
+            catch (JSONException err) {
+                throw new FailedPredicateException(input, "null_predicate", "JSONException: " + err.getMessage());
             }
         }
     ;

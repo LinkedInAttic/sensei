@@ -1138,4 +1138,37 @@ public class TestBQL extends TestCase
     //assertEquals(BQLParser.STAR, ast.getChild(1).getType());
   }
 
+  @Test
+  public void testNullPred1() throws Exception
+  {
+    System.out.println("testNullPred1");
+    System.out.println("==================================================");
+
+    JSONObject json = _compiler.compile(
+      "SELECT * " +
+      "FROM cars " +
+      "WHERE price IS NOT NULL"
+      );
+
+    JSONObject expected = new JSONObject("{\"filter\":{\"bool\":{\"must_not\":{\"isNull\":\"price\"}}},\"meta\":{\"select_list\":[\"*\"]}}");
+    assertTrue(_comp.isEquals(json, expected));
+  }
+
+  @Test
+  public void testNullPred2() throws Exception
+  {
+    System.out.println("testNullPred2");
+    System.out.println("==================================================");
+
+    JSONObject json = _compiler.compile(
+      "SELECT * " +
+      "FROM cars " +
+      "WHERE price IS NULL"
+      );
+
+    JSONObject expected = new JSONObject("{\"filter\":{\"isNull\":\"price\"},\"meta\":{\"select_list\":[\"*\"]}}");
+    assertTrue(_comp.isEquals(json, expected));
+  }
+
+
 }
