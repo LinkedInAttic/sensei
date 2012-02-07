@@ -416,9 +416,16 @@ function runBql(){
 
   var jobj = $('.run');
   jobj.attr('disabled', 'disabled');
-  $.post("sensei", $.toJSON({bql:bqlMirror.getValue()}), function (text) {
-    contentMirror.setValue(js_beautify(text, default_js_beautify_settings));
-  }, 'text')
+  $.ajax({
+    type: 'POST',
+    url: 'sensei',
+    contentType: 'application/json; charset=utf-8',
+    data: $.toJSON({bql:bqlMirror.getValue()}),
+    success: function (text) {
+      contentMirror.setValue(js_beautify(text, default_js_beautify_settings));
+    },
+    dataType: 'text'
+  })
   .complete(function(){
     jobj.removeAttr('disabled');
   });
@@ -430,9 +437,16 @@ function runQuery(){
 
   var jobj = $('.run');
   jobj.attr('disabled', 'disabled');
-  $.post("sensei", reqTextMirror.getValue(), function (text) {
-    contentMirror.setValue(js_beautify(text, default_js_beautify_settings));
-  }, 'text')
+  $.ajax({
+    type: 'POST',
+    url: "sensei",
+    contentType: 'application/json; charset=utf-8',
+    data: reqTextMirror.getValue(),
+    success: function (text) {
+      contentMirror.setValue(js_beautify(text, default_js_beautify_settings));
+    },
+    dataType: 'text'
+  })
   .complete(function(){
     jobj.removeAttr('disabled');
   });
