@@ -7,7 +7,6 @@ import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 
 import java.io.IOException;
-import java.util.AbstractCollection;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -45,6 +44,14 @@ import com.browseengine.bobo.util.BigSegmentedArray;
 
 public class RelevanceQuery extends AbstractScoreAdjuster
 {
+  
+  /* JSON keywords*/
+  
+  private final String                 KW_VALUES               = "values";
+  private final String                 KW_VARIABLES            = "variables";
+  private final String                 KW_FACETS               = "facets";
+  private final String                 KW_FUNC_PARAMETERS      = "function_params";
+  private final String                 KW_FUNCTION             = "function";
   
   /* Type Strings; */
   
@@ -135,50 +142,54 @@ public class RelevanceQuery extends AbstractScoreAdjuster
     pool.importPackage("it.unimi.dsi.fastutil.objects.ObjectOpenHashSet");
   }
   
+
+
+  //white list of safe classes;
+  static HashSet<String>    hs_safe = new HashSet<String>();      
+  static
+  {
+    hs_safe.add("it.unimi.dsi.fastutil.ints.IntOpenHashSet");
+    hs_safe.add("it.unimi.dsi.fastutil.longs.LongOpenHashSet");
+    hs_safe.add("it.unimi.dsi.fastutil.shorts.ShortOpenHashSet");
+    hs_safe.add("it.unimi.dsi.fastutil.booleans.BooleanOpenHashSet");
+    hs_safe.add("it.unimi.dsi.fastutil.doubles.DoubleOpenHashSet");
+    hs_safe.add("it.unimi.dsi.fastutil.floats.FloatOpenHashSet");
+    hs_safe.add("it.unimi.dsi.fastutil.objects.ObjectOpenHashSet");
+    
+    hs_safe.add("com.senseidb.search.query.RelevanceQuery");
+    hs_safe.add("com.senseidb.search.query.CustomScorer");
+    hs_safe.add("com.senseidb.search.query.RelevanceQuery$CustomLoader");
+    
+    hs_safe.add("java.lang.Object");
+  }
+  
+  
   static HashMap<String, CustomScorer> hmModels = new HashMap<String, CustomScorer>();
   
-//  "relevance":[
+//  "relevance":{
 //               
-//               // sequence of statements in a score adjusting function below, statement order matters;
-//               // the statement order should be exactly the same as the Java code is executing.
-//         
-//         
-//                   // (1) Variable assignment statements;
-//                   //     It may contain set, int, float, double, long, boolean,
-//
-//  
-//                        // ------  [a] static variables below;
-//         
-//                   // supported hashset types: [var_set_int, var_set_float, var_set_string, var_set_double, var_set_long]
-//         
-//                   {"var_set_int":{"c":[1996, 1997], "d":[1998]}},
-//         
-//                   // supported normal variables: [var_int, var_double, var_float, var_long, var_bool, var_string]
-//  
-//                   {"var_double":{"e":0.98}},
-//         
-//                   {"var_int":{"g":1996}},
-//  
-//                   {"var_bool":{"f":true, "h":false}},
-//
-//                   // supported constants: this one is used to hard code some special static variables, like current time, etc;
-//  
-//                   {"var_constant_long":{"now":"_NOW"}},  
-//
-//  
-//  
-//                        // -----  [b] runtime variables: statements here will be evaluated at runtime; Currently are innerscore and facet values;
-//         
-//                   {"var_innerscore":{"innerScore":"_INNER_SCORE"}},
-//         
-//                   {"var_facet_int":{"f":"year"}},  //facet type support: double, float, int, long, short, string;
-//         
-//         
+//                  "variables": {
+//                                 "set_int":["c","d"],  // supported hashset types: [set_int, set_float, set_string, set_double, set_long]
+//                                 "int":["e","f"],       // supported normal variables: [int, double, float, long, bool, string]
+//                                 "long":["g","h"]
+//                                },
+//                  "facets":{
+//                               "int":["year","age"],   // facet type support: double, float, int, long, short, string;
+//                               "long":["time"]         // facet variable has the same name as the facet name, and they are defined inside this json;
+//                            },
+//                  
+//                  "values":{
+//                              "c":[1996,1997],
+//                              "e":0.98
+//                            },
 //         
 //                   // (2) scoring function and function input parameters in Java;
-//                   //     A scoring function is a model. A model changes when the function body or signature changes;
+//                   //     A scoring function and its parameters are the model. A model changes when the function body or signature changes;
 //                   
-//                   {"function_params":["innerScore", "timeVal", "_timeWeight", "_waterworldWeight", "_half_time"]},    //  params for the function above, optional. Symbol order matters, and symbols must be those defined above. innerScore MUST be used, otherwise, makes no sense to use the custom relevance;           
+//                  //  params for the function. Symbol order matters, and symbols must be those defined above. innerScore MUST be used, otherwise, makes no sense to use the custom relevance;
+//                  //  reserved keyword for internal parameters are:  "_INNER_SCORE" and "_NOW"     
+//
+//                   "function_params":["_INNER_SCORE", "timeVal", "_timeWeight", "_waterworldWeight", "_half_time"],               
 //
 //                   // the value string in the following JSONObject is like this (a return statement MUST appear as the last one):
 //                         
@@ -186,13 +197,13 @@ public class RelevanceQuery extends AbstractScoreAdjuster
 //                      //    float t = delta>0 ? delta : 0;
 //                      //    float hour = t/(1000*3600);
 //                      //    float timeScore = (float) Math.exp(-(hour/_half_time));
-//                      //    float waterworldScore = innerScore;
+//                      //    float waterworldScore = _INNER_SCORE;
 //                      //    float time = timeScore * _timeWeight;
 //                      //    float water = waterworldScore  * _waterworldWeight;
 //                      //    return  (time + water);
 //                      
-//                   {"function":" A LONG JAVA CODE STRING HERE, ONLY AS FUNCTION BODY"}
-//            ]
+//                   "function":" A LONG JAVA CODE STRING HERE, ONLY AS FUNCTION BODY, NEEDS RETURN STATEMENT."
+//            }
   
   
   
@@ -213,64 +224,90 @@ public class RelevanceQuery extends AbstractScoreAdjuster
    * 
    * */
   
-  public RelevanceQuery(Query query, JSONArray relevance) throws JSONException
+  public RelevanceQuery(Query query, JSONObject relevance) throws JSONException
   {
     super(query);
     _query = query;
+    logger.info("arrived here");
     preprocess(relevance);
   }
  
 
 
 
-  private void preprocess(JSONArray relevance) throws JSONException
+  private void preprocess(JSONObject relevance) throws JSONException
   {
-    for(int i=0; i< relevance.length(); i++)
+    JSONObject jsonVariables = relevance.optJSONObject(KW_VARIABLES);
+    JSONObject jsonFacets = relevance.optJSONObject(KW_FACETS);
+    JSONObject jsonValues = relevance.optJSONObject(KW_VALUES);  // the json containing the values, could be null;
+    
+    
+    //process the function body and parameters firstly;
+    
+    JSONArray jsonFuncParameter = relevance.optJSONArray(KW_FUNC_PARAMETERS);
+    for(int j=0; j<jsonFuncParameter.length(); j++)
     {
-      JSONObject stat = relevance.optJSONObject(i);
-      Iterator<String> iter = stat.keys();
-      if (!iter.hasNext())
-        throw new IllegalArgumentException("statement type not specified in relevance query: " + stat);
-
-      String type = iter.next();
+      String paramName = jsonFuncParameter.optString(j);
+      lls_params.add(paramName);
+    }
+    
+    funcBody = relevance.optString(KW_FUNCTION);
+    
+    //process facet variables;
+    Iterator<String> it_facet = jsonFacets.keys();
+    while(it_facet.hasNext())
+    {
+      String facetType = it_facet.next();
+      JSONArray facetArray = jsonFacets.getJSONArray(facetType);
+      handleFacetSymbols(facetType, facetArray);
+    }
+    
+    //process other variables;
+    Iterator<String> it_var = jsonVariables.keys();
+    while(it_var.hasNext())
+    {
+      String type = it_var.next();
+      JSONArray varArray = jsonVariables.getJSONArray(type);
       
-      // var_set_int, var_set_string, var_set_double, var_set_long
-      // {"var_set_int":{"c":[1996, 1997], "d":[1998]}},
-      if("var_set_int".equals(type) || "var_set_double".equals(type) || "var_set_long".equals(type) || "var_set_float".equals(type) || "var_set_string".equals(type))
+      //process set variable;
+      if("set_int".equals(type) || "set_double".equals(type) || "set_long".equals(type) || "set_float".equals(type) || "set_string".equals(type))
       {
-        JSONObject sets = stat.optJSONObject(type);
-        Iterator<String> iter_symbol = sets.keys();
-        while(iter_symbol.hasNext())
+        JSONArray sets = jsonVariables.getJSONArray(type);
+        for(int i=0; i<sets.length(); i++)
         {
-          String symbol = iter_symbol.next();
+          String symbol = sets.getString(i);
           Set hs = null;
-          JSONArray values = sets.getJSONArray(symbol);
+          JSONArray values = jsonValues.optJSONArray(symbol);
+          
+          if(values == null)
+            throw new JSONException("variable "+ symbol + " does not have value.");
+          
           for (int k =0; k < values.length(); k++){
-            if("var_set_int".equals(type))
+            if("set_int".equals(type))
             {
               if(hs == null)
                 hs = new IntOpenHashSet();
               hs.add(values.getInt(k));
             }
-            else if ("var_set_double".equals(type))
+            else if ("set_double".equals(type))
             {
               if(hs == null)
                 hs = new DoubleOpenHashSet();
               hs.add(values.getDouble(k));
             }
-            else if ("var_set_float".equals(type))
+            else if ("set_float".equals(type))
             {
               if(hs == null)
                 hs = new FloatOpenHashSet();
               hs.add((float)values.getDouble(k));
             }
-            else if ("var_set_long".equals(type))
+            else if ("set_long".equals(type))
             {
               if(hs == null)
                 hs = new LongOpenHashSet();
               hs.add(values.getLong(k));
             }
-            else if ("var_set_string".equals(type))
+            else if ("set_string".equals(type))
             {
               if(hs == null)
                 hs = new ObjectOpenHashSet();
@@ -279,183 +316,97 @@ public class RelevanceQuery extends AbstractScoreAdjuster
           }
           if(hm_var.containsKey(symbol))
             throw new JSONException("Symbol "+ symbol + " already defined." );
+          
           hm_var.put(symbol, hs);
           
-          if("var_set_int".equals(type))
+          if("set_int".equals(type))
           {
             hm_type.put(symbol, TYPE_SET_INT);
           }
-          else if ("var_set_double".equals(type))
+          else if ("set_double".equals(type))
           {
             hm_type.put(symbol, TYPE_SET_DOUBLE);
           }
-          else if ("var_set_float".equals(type))
+          else if ("set_float".equals(type))
           {
             hm_type.put(symbol, TYPE_SET_FLOAT);
           }
-          else if ("var_set_long".equals(type))
+          else if ("set_long".equals(type))
           {
             hm_type.put(symbol, TYPE_SET_LONG);
           }
-          else if ("var_set_string".equals(type))
+          else if ("set_string".equals(type))
           {
             hm_type.put(symbol, TYPE_SET_STRING);
           }
           
         }
-      }
+      } // end of set variable;
       
-      // var_int, var_string, var_double, var_long
-      // {"var_double":{"e":0.98}},
-      else if("var_int".equals(type) || "var_double".equals(type) || "var_long".equals(type) || "var_float".equals(type) || "var_string".equals(type))
+      // process normal variable;
+      // int, string, double, long
+      else if("int".equals(type) || "double".equals(type) || "long".equals(type) || "float".equals(type) || "string".equals(type) || "bool".equals(type))
       {
-        JSONObject sets = stat.optJSONObject(type);
-        Iterator<String> iter_symbol = sets.keys();
-
-        while(iter_symbol.hasNext())
+        JSONArray sets = jsonVariables.getJSONArray(type);
+        
+        for(int i=0; i< sets.length(); i++)
         {
-          String symbol = iter_symbol.next();
+        
+          String symbol = sets.getString(i);
 
           if(hm_var.containsKey(symbol))
             throw new JSONException("Symbol "+ symbol + " already defined." );
           
-          if("var_int".equals(type))
+          if( ! jsonValues.has(symbol))
+            throw new JSONException("Symbol " + symbol + " was not assigned with a value." );
+          
+          if("int".equals(type))
           {
-            hm_var.put(symbol, sets.getInt(symbol));
+            hm_var.put(symbol, jsonValues.getInt(symbol));
             hm_type.put(symbol, TYPE_INT);
           }
-          else if ("var_double".equals(type))
+          else if ("double".equals(type))
           {
-            hm_var.put(symbol, sets.getDouble(symbol));
+            hm_var.put(symbol, jsonValues.getDouble(symbol));
             hm_type.put(symbol, TYPE_DOUBLE);
           }
-          else if ("var_float".equals(type))
+          else if ("float".equals(type))
           {
-            hm_var.put(symbol, ((float)sets.getDouble(symbol)));
+            hm_var.put(symbol, ((float)jsonValues.getDouble(symbol)));
             hm_type.put(symbol, TYPE_FLOAT);
           }
-          else if ("var_long".equals(type))
+          else if ("long".equals(type))
           {
-            hm_var.put(symbol, sets.getLong(symbol));
+            hm_var.put(symbol, jsonValues.getLong(symbol));
             hm_type.put(symbol, TYPE_LONG);
           }
-          else if ("var_string".equals(type))
+          else if ("string".equals(type))
           {
-            hm_var.put(symbol, sets.getString(symbol));
+            hm_var.put(symbol, jsonValues.getString(symbol));
+            hm_type.put(symbol, TYPE_STRING);
+          }
+          else if("bool".equals(type))
+          {
+            hm_var.put(symbol, jsonValues.getBoolean(symbol));
             hm_type.put(symbol, TYPE_STRING);
           }
         }
       }
-      
-      // var_bool
-      else if("var_bool".equals(type))
-      {
-        JSONObject set = stat.optJSONObject(type);
-        Iterator<String> iterSymbol = set.keys();
-        while(iterSymbol.hasNext())
-        {
-          String symbol = iterSymbol.next();
-          Boolean value = set.optBoolean(symbol);
-          if(hm_var.containsKey(symbol))
-            throw new JSONException("Symbol "+ symbol + " already defined." );
-          hm_var.put(symbol, value);
-          hm_type.put(symbol, TYPE_BOOLEAN);
-        }
-      }
-      
-      // now
-      // {"var_constant_long":{"now":"_NOW"}},
-      else if("var_constant_long".equals(type))
-      {
-        JSONObject set = stat.optJSONObject(type);
-        Iterator<String> iterSymbol = set.keys();
-        while(iterSymbol.hasNext())
-        {
-          String symbol = iterSymbol.next();
-          String value = set.optString(symbol);
-          if("_NOW".equals(value))
-          {
-            long now = System.currentTimeMillis();
-            if(hm_var.containsKey(symbol))
-              throw new JSONException("Symbol "+ symbol + " already defined." );
-            hm_var.put(symbol, now);
-            hm_type.put(symbol, TYPE_LONG);
-          }
-        }
-      }
-      
-      // innerscore;
-      //  {"var_constant_float":{"innerScore":"_INNER_SCORE"}},
-      else if("var_innerscore".equals(type))
-      {
-        JSONObject set = stat.optJSONObject(type);
-        Iterator<String> iterSymbol = set.keys();
-        while(iterSymbol.hasNext())
-        {
-          String symbol = iterSymbol.next();
-          String value = set.optString(symbol);
-          if("_INNER_SCORE".equals(value))
-          {
-            if(hm_var.containsKey(symbol))
-              throw new JSONException("Symbol "+ symbol + " already defined." );
-            hm_var.put(symbol, "_innerScore");
-            hm_type.put(symbol, TYPE_INNER_SCORE);
-          }
-        }
-      }
-      
-      // var_facet_int, var_facet_string, var_facet_double, var_facet_long
-      // {"var_facet_int":{"f":"year"}},
-      else if("var_facet_int".equals(type)) 
-      {
-        JSONObject set = stat.optJSONObject(type);
-        handleFacetSymbols(set, TYPE_FACET_INT);
-      }
-      else if("var_facet_short".equals(type)) 
-      {
-        JSONObject set = stat.optJSONObject(type);
-        handleFacetSymbols(set, TYPE_FACET_SHORT);
-      }
-      else if("var_facet_double".equals(type))
-      {
-        JSONObject set = stat.optJSONObject(type);
-        handleFacetSymbols(set, TYPE_FACET_DOUBLE);
-      }
-      else if("var_facet_float".equals(type))
-      {
-        JSONObject set = stat.optJSONObject(type);
-        handleFacetSymbols(set, TYPE_FACET_FLOAT);
-      }
-      else if("var_facet_long".equals(type))
-      {
-        JSONObject set = stat.optJSONObject(type);
-        handleFacetSymbols(set, TYPE_FACET_LONG);
-      }
-      else if("var_facet_string".equals(type))
-      {
-        JSONObject set = stat.optJSONObject(type);
-        handleFacetSymbols(set, TYPE_FACET_STRING);
-      }
+    }// end of normal variable while;
 
-      
-      //function parameters;
-      if("function_params".equals(type))
-      {
-        JSONArray sets = stat.optJSONArray(type);
-        for(int j=0; j<sets.length(); j++)
-        {
-          String paramName = sets.optString(j);
-          lls_params.add(paramName);
-        }
-      }
-
-      //function body;
-      if("function".equals(type))
-      {
-        funcBody = stat.optString("function").trim();
-      }
-      
-    } // end of all the statements;
+    // add now variable;
+    String symbolNow = "_NOW";
+    long now = System.currentTimeMillis();
+    hm_var.put(symbolNow, now);
+    hm_type.put(symbolNow, TYPE_LONG);
+    
+    // add innerscore;
+    String symbolInnerScore = "_INNER_SCORE";
+    hm_var.put(symbolInnerScore, symbolInnerScore);
+    hm_type.put(symbolInnerScore, TYPE_INNER_SCORE);
+    
+    
+    
     
     if(funcBody == null || funcBody.length()==0)
       throw new JSONException("No function body found.");
@@ -501,6 +452,13 @@ public class RelevanceQuery extends AbstractScoreAdjuster
       synchronized(this)
       {
         
+        if(hmModels.containsKey(className))
+        {
+          cscorer = hmModels.get(className);
+          return;
+        }
+        
+        
         CtClass ch = pool.makeClass(className);
         
         CtClass ci;
@@ -541,7 +499,8 @@ public class RelevanceQuery extends AbstractScoreAdjuster
         Class h;
         try
         {
-          h = ch.toClass(RelevanceQuery.class.getClassLoader());
+//          h = pool.toClass(ch, RelevanceQuery.class.getClassLoader());
+          h = pool.toClass(ch, new CustomLoader(RelevanceQuery.class.getClassLoader(), className));
         }
         catch (CannotCompileException e)
         {
@@ -579,6 +538,11 @@ public class RelevanceQuery extends AbstractScoreAdjuster
   }
   
   
+
+
+
+
+
   private String getParamString(LinkedList<String> lls_params)
   {
     StringBuilder sb = new StringBuilder();
@@ -602,15 +566,31 @@ public class RelevanceQuery extends AbstractScoreAdjuster
     return lls_new;
   }
 
-
-
-  private void handleFacetSymbols(JSONObject set, String type) throws JSONException
+  
+  private void handleFacetSymbols(String facetType, JSONArray facetArray) throws JSONException
   {
-    Iterator<String> iterSymbol = set.keys();
-    while(iterSymbol.hasNext())
+    String type = null;
+    
+    if("int".equals(facetType)) 
+      type = TYPE_FACET_INT;
+    else if("short".equals(facetType)) 
+      type = TYPE_FACET_SHORT;
+    else if("double".equals(facetType))
+      type = TYPE_FACET_DOUBLE;
+    else if("float".equals(facetType))
+      type = TYPE_FACET_FLOAT;
+    else if("long".equals(facetType))
+      type = TYPE_FACET_LONG;
+    else if("string".equals(facetType))
+      type = TYPE_FACET_STRING;
+    
+    if(type == null)
+      throw new JSONException("wrong facet type in facet variable definition json");
+    
+    for(int i=0; i< facetArray.length(); i++)
     {
-      String symbol = iterSymbol.next();
-      String facetName = set.optString(symbol);
+      String facetName = facetArray.getString(i);
+      String symbol = facetName;
 
       if(hm_symbol_facet.containsKey(symbol))
         throw new JSONException("facet Symbol "+ symbol + " already defined." );
@@ -623,6 +603,7 @@ public class RelevanceQuery extends AbstractScoreAdjuster
       facetIndex++;
       hm_type.put(symbol, type);
     }
+    
   }
 
   private String makeFuncString(String funcBody, 
@@ -1167,6 +1148,50 @@ public class RelevanceQuery extends AbstractScoreAdjuster
     finalExpl.setDescription(message);
     finalExpl.setValue(innerExplain.getValue());
     return finalExpl;
+  }
+
+  
+  class CustomLoader extends ClassLoader {
+
+    private ClassLoader _cl;
+    private String _target;
+    
+    @Override
+    public Class<?> loadClass(String name) throws ClassNotFoundException {
+      
+//      if(name.startsWith("java.lang.") || name.startsWith("it.unimi.dsi.fastutil.") || name.startsWith("java.util.") || name.startsWith("CRel")
+//          || name.startsWith("com.senseidb.search.query"))
+      if(hs_safe.contains(name) || name.equals(_target))
+        return _cl.loadClass(name);
+      else 
+        throw new ClassNotFoundException();
+      
+//      return _cl.findClass(name);
+    }
+    
+    public CustomLoader(ClassLoader cl, String target) {
+        _cl = cl;
+        _target = target;
+    }
+
+    /* Finds a specified class.
+     * The bytecode for that class can be modified.
+     */
+//    @Override
+//    protected Class findClass(String name) throws ClassNotFoundException {
+//        try {
+//            CtClass cc = _pool.get(name);
+//            // modify the CtClass object here
+//            byte[] b = cc.toBytecode();
+//            return defineClass(name, b, 0, b.length);
+//        } catch (NotFoundException e) {
+//            throw new ClassNotFoundException();
+//        } catch (IOException e) {
+//            throw new ClassNotFoundException();
+//        } catch (CannotCompileException e) {
+//            throw new ClassNotFoundException();
+//        }
+//    }
   }
 
 }

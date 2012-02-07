@@ -112,17 +112,20 @@ public abstract class QueryConstructor
     JSONObject jsonValue = jsonQuery.getJSONObject(type);
     Query baseQuery = queryConstructor.doConstructQuery(jsonValue);
     
-    JSONArray jsonArrayRelevance = null;
+    JSONObject jsonRelevance = null;
     if(jsonValue.has(RELEVANCE))
-      jsonArrayRelevance = jsonValue.optJSONArray(RELEVANCE);
-    
-    if(jsonArrayRelevance == null)
+    {
+      jsonRelevance = jsonValue.optJSONObject(RELEVANCE);
+      if(jsonRelevance == null)
+        throw new JSONException("relevance part of the query json can not be parsed.");
+    }
+    if(jsonRelevance == null)
     {
       return baseQuery;
     }
     else
     {
-     return new RelevanceQuery(baseQuery, jsonArrayRelevance); 
+     return new RelevanceQuery(baseQuery, jsonRelevance); 
     }
   }
 
