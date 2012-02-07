@@ -191,6 +191,24 @@ public class RelevanceQuery extends AbstractScoreAdjuster
     hs_safe.add("com.senseidb.search.query.RelevanceQuery$CustomLoader");
     
     hs_safe.add("java.lang.Object");
+    hs_safe.add("java.lang.Exception");
+    hs_safe.add("java.lang.Boolean");
+    hs_safe.add("java.lang.Byte");
+    hs_safe.add("java.lang.Double");
+    hs_safe.add("java.lang.Float");
+    hs_safe.add("java.lang.Integer");
+    hs_safe.add("java.lang.Long");
+    hs_safe.add("java.lang.Math");
+    hs_safe.add("java.lang.Number");
+    hs_safe.add("java.lang.Short");
+    hs_safe.add("java.lang.String");
+    hs_safe.add("java.lang.StringBuffer");
+    hs_safe.add("java.lang.StringBuilder");
+    hs_safe.add("java.math.BigDecimal");
+    hs_safe.add("java.math.BigInteger");
+    hs_safe.add("java.math.MathContext");
+    hs_safe.add("java.math.RoundingMode");
+    
   }
   
   
