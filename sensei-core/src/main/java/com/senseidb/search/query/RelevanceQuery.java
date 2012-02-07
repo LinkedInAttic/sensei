@@ -47,11 +47,41 @@ public class RelevanceQuery extends AbstractScoreAdjuster
   
   /* JSON keywords*/
   
-  private final String                 KW_VALUES               = "values";
-  private final String                 KW_VARIABLES            = "variables";
-  private final String                 KW_FACETS               = "facets";
-  private final String                 KW_FUNC_PARAMETERS      = "function_params";
-  private final String                 KW_FUNCTION             = "function";
+  // (1) json keys;
+  public static final String           KW_VALUES               = "values";
+  public static final String           KW_VARIABLES            = "variables";
+  public static final String           KW_FACETS               = "facets";
+  public static final String           KW_FUNC_PARAMETERS      = "function_params";
+  public static final String           KW_FUNCTION             = "function";
+
+  // (2) supported types in json:
+  // set type: [set_int, set_float, set_string, set_double, set_long]
+  public static final String           KW_TYPE_SET_INT         = "set_int";
+  public static final String           KW_TYPE_SET_FLOAT       = "set_float";
+  public static final String           KW_TYPE_SET_STRING      = "set_string";
+  public static final String           KW_TYPE_SET_DOUBLE      = "set_double";
+  public static final String           KW_TYPE_SET_LONG        = "set_long";
+
+  // normal type: [int, double, float, long, bool, string]
+  public static final String           KW_TYPE_INT             = "int";
+  public static final String           KW_TYPE_FLOAT           = "float";
+  public static final String           KW_TYPE_STRING          = "string";
+  public static final String           KW_TYPE_DOUBLE          = "double";
+  public static final String           KW_TYPE_LONG            = "long";
+  public static final String           KW_TYPE_BOOL            = "bool";
+
+  // facet type support: [double, float, int, long, short, string]
+  public static final String           KW_TYPE_FACET_INT       = "int";
+  public static final String           KW_TYPE_FACET_FLOAT     = "float";
+  public static final String           KW_TYPE_FACET_STRING    = "string";
+  public static final String           KW_TYPE_FACET_DOUBLE    = "double";
+  public static final String           KW_TYPE_FACET_LONG      = "long";
+  public static final String           KW_TYPE_FACET_SHORT     = "short";
+
+  // constant type:
+  public static final String           KW_INNER_SCORE          = "_INNER_SCORE";
+  public static final String           KW_NOW                  = "_NOW";
+  
   
   /* Type Strings; */
   
@@ -174,7 +204,7 @@ public class RelevanceQuery extends AbstractScoreAdjuster
 //                                 "long":["g","h"]
 //                                },
 //                  "facets":{
-//                               "int":["year","age"],   // facet type support: double, float, int, long, short, string;
+//                               "int":["year","age"],   // facet type support: [double, float, int, long, short, string];
 //                               "long":["time"]         // facet variable has the same name as the facet name, and they are defined inside this json;
 //                            },
 //                  
@@ -211,16 +241,22 @@ public class RelevanceQuery extends AbstractScoreAdjuster
   /* A dummy testing relevance json:
    * 
    * 
-   *               "relevance":[
-                   {"var_set_int":{"c":[1996, 1997], "d":[1998]}},
-                   {"var_double":{"e":0.98}},
-                   {"var_int":{"g":1996}},
-                   {"var_bool":{"f":true, "h":false}},
-                   {"var_constant_long":{"now":"_NOW"}},
-                   {"var_constant_float":{"innerScore":"_INNER_SCORE"}},
-                   {"var_facet_int":{"f":"color"}},
-                   {"function_params":["innerScore"]},              
-                   {"function":" return 2f;"}
+            "relevance":{
+                "variables":{
+                     "set_int":["goodYear"],
+                      "int":["thisYear"]
+                    },
+                "facets":{
+                     "int":["year","mileage"],
+                     "long":["groupid"]
+                    },
+               "values":{
+                     "goodYear":[1996,1997],
+                     "thisYear":1996
+                   },
+               "function_params":["_INNER_SCORE", "thisYear", "year"],              
+               "function":" if(year==thisYear) return 3f  ; return  _INNER_SCORE  ;"
+            }
    * 
    * */
   
@@ -228,7 +264,6 @@ public class RelevanceQuery extends AbstractScoreAdjuster
   {
     super(query);
     _query = query;
-    logger.info("arrived here");
     preprocess(relevance);
   }
  
@@ -270,7 +305,7 @@ public class RelevanceQuery extends AbstractScoreAdjuster
       JSONArray varArray = jsonVariables.getJSONArray(type);
       
       //process set variable;
-      if("set_int".equals(type) || "set_double".equals(type) || "set_long".equals(type) || "set_float".equals(type) || "set_string".equals(type))
+      if(KW_TYPE_SET_INT.equals(type) || KW_TYPE_SET_DOUBLE.equals(type) || KW_TYPE_SET_LONG.equals(type) || KW_TYPE_SET_FLOAT.equals(type) || KW_TYPE_SET_STRING.equals(type))
       {
         JSONArray sets = jsonVariables.getJSONArray(type);
         for(int i=0; i<sets.length(); i++)
@@ -283,31 +318,31 @@ public class RelevanceQuery extends AbstractScoreAdjuster
             throw new JSONException("variable "+ symbol + " does not have value.");
           
           for (int k =0; k < values.length(); k++){
-            if("set_int".equals(type))
+            if(KW_TYPE_SET_INT.equals(type))
             {
               if(hs == null)
                 hs = new IntOpenHashSet();
               hs.add(values.getInt(k));
             }
-            else if ("set_double".equals(type))
+            else if (KW_TYPE_SET_DOUBLE.equals(type))
             {
               if(hs == null)
                 hs = new DoubleOpenHashSet();
               hs.add(values.getDouble(k));
             }
-            else if ("set_float".equals(type))
+            else if (KW_TYPE_SET_FLOAT.equals(type))
             {
               if(hs == null)
                 hs = new FloatOpenHashSet();
               hs.add((float)values.getDouble(k));
             }
-            else if ("set_long".equals(type))
+            else if (KW_TYPE_SET_LONG.equals(type))
             {
               if(hs == null)
                 hs = new LongOpenHashSet();
               hs.add(values.getLong(k));
             }
-            else if ("set_string".equals(type))
+            else if (KW_TYPE_SET_STRING.equals(type))
             {
               if(hs == null)
                 hs = new ObjectOpenHashSet();
@@ -319,23 +354,23 @@ public class RelevanceQuery extends AbstractScoreAdjuster
           
           hm_var.put(symbol, hs);
           
-          if("set_int".equals(type))
+          if(KW_TYPE_SET_INT.equals(type))
           {
             hm_type.put(symbol, TYPE_SET_INT);
           }
-          else if ("set_double".equals(type))
+          else if (KW_TYPE_SET_DOUBLE.equals(type))
           {
             hm_type.put(symbol, TYPE_SET_DOUBLE);
           }
-          else if ("set_float".equals(type))
+          else if (KW_TYPE_SET_FLOAT.equals(type))
           {
             hm_type.put(symbol, TYPE_SET_FLOAT);
           }
-          else if ("set_long".equals(type))
+          else if (KW_TYPE_SET_LONG.equals(type))
           {
             hm_type.put(symbol, TYPE_SET_LONG);
           }
-          else if ("set_string".equals(type))
+          else if (KW_TYPE_SET_STRING.equals(type))
           {
             hm_type.put(symbol, TYPE_SET_STRING);
           }
@@ -345,7 +380,7 @@ public class RelevanceQuery extends AbstractScoreAdjuster
       
       // process normal variable;
       // int, string, double, long
-      else if("int".equals(type) || "double".equals(type) || "long".equals(type) || "float".equals(type) || "string".equals(type) || "bool".equals(type))
+      else if(KW_TYPE_INT.equals(type) || KW_TYPE_DOUBLE.equals(type) || KW_TYPE_LONG.equals(type) || KW_TYPE_FLOAT.equals(type) || KW_TYPE_STRING.equals(type) || KW_TYPE_BOOL.equals(type))
       {
         JSONArray sets = jsonVariables.getJSONArray(type);
         
@@ -360,32 +395,32 @@ public class RelevanceQuery extends AbstractScoreAdjuster
           if( ! jsonValues.has(symbol))
             throw new JSONException("Symbol " + symbol + " was not assigned with a value." );
           
-          if("int".equals(type))
+          if(KW_TYPE_INT.equals(type))
           {
             hm_var.put(symbol, jsonValues.getInt(symbol));
             hm_type.put(symbol, TYPE_INT);
           }
-          else if ("double".equals(type))
+          else if (KW_TYPE_DOUBLE.equals(type))
           {
             hm_var.put(symbol, jsonValues.getDouble(symbol));
             hm_type.put(symbol, TYPE_DOUBLE);
           }
-          else if ("float".equals(type))
+          else if (KW_TYPE_FLOAT.equals(type))
           {
             hm_var.put(symbol, ((float)jsonValues.getDouble(symbol)));
             hm_type.put(symbol, TYPE_FLOAT);
           }
-          else if ("long".equals(type))
+          else if (KW_TYPE_LONG.equals(type))
           {
             hm_var.put(symbol, jsonValues.getLong(symbol));
             hm_type.put(symbol, TYPE_LONG);
           }
-          else if ("string".equals(type))
+          else if (KW_TYPE_STRING.equals(type))
           {
             hm_var.put(symbol, jsonValues.getString(symbol));
             hm_type.put(symbol, TYPE_STRING);
           }
-          else if("bool".equals(type))
+          else if(KW_TYPE_BOOL.equals(type))
           {
             hm_var.put(symbol, jsonValues.getBoolean(symbol));
             hm_type.put(symbol, TYPE_STRING);
@@ -395,13 +430,13 @@ public class RelevanceQuery extends AbstractScoreAdjuster
     }// end of normal variable while;
 
     // add now variable;
-    String symbolNow = "_NOW";
+    String symbolNow = KW_NOW;
     long now = System.currentTimeMillis();
     hm_var.put(symbolNow, now);
     hm_type.put(symbolNow, TYPE_LONG);
     
     // add innerscore;
-    String symbolInnerScore = "_INNER_SCORE";
+    String symbolInnerScore = KW_INNER_SCORE; 
     hm_var.put(symbolInnerScore, symbolInnerScore);
     hm_type.put(symbolInnerScore, TYPE_INNER_SCORE);
     
@@ -916,14 +951,14 @@ public class RelevanceQuery extends AbstractScoreAdjuster
       _arrayIndex = arrayIndex;
       _paramSize = paramSize;
       
-      shorts = new short[_paramSize];
-      ints = new int[_paramSize];
-      longs = new long[_paramSize];
-      floats = new float[_paramSize];
-      doubles = new double[_paramSize];
-      booleans = new boolean[_paramSize];
-      strings = new String[_paramSize];
-      sets = new Set[_paramSize];
+      shorts    = new short[_paramSize];
+      ints      = new int[_paramSize];
+      longs     = new long[_paramSize];
+      floats    = new float[_paramSize];
+      doubles   = new double[_paramSize];
+      booleans  = new boolean[_paramSize];
+      strings   = new String[_paramSize];
+      sets      = new Set[_paramSize];
       
       ArrayList<Integer> arDynamic = new ArrayList<Integer>();
       
@@ -1159,39 +1194,16 @@ public class RelevanceQuery extends AbstractScoreAdjuster
     @Override
     public Class<?> loadClass(String name) throws ClassNotFoundException {
       
-//      if(name.startsWith("java.lang.") || name.startsWith("it.unimi.dsi.fastutil.") || name.startsWith("java.util.") || name.startsWith("CRel")
-//          || name.startsWith("com.senseidb.search.query"))
       if(hs_safe.contains(name) || name.equals(_target))
         return _cl.loadClass(name);
       else 
         throw new ClassNotFoundException();
-      
-//      return _cl.findClass(name);
     }
     
     public CustomLoader(ClassLoader cl, String target) {
         _cl = cl;
         _target = target;
     }
-
-    /* Finds a specified class.
-     * The bytecode for that class can be modified.
-     */
-//    @Override
-//    protected Class findClass(String name) throws ClassNotFoundException {
-//        try {
-//            CtClass cc = _pool.get(name);
-//            // modify the CtClass object here
-//            byte[] b = cc.toBytecode();
-//            return defineClass(name, b, 0, b.length);
-//        } catch (NotFoundException e) {
-//            throw new ClassNotFoundException();
-//        } catch (IOException e) {
-//            throw new ClassNotFoundException();
-//        } catch (CannotCompileException e) {
-//            throw new ClassNotFoundException();
-//        }
-//    }
   }
 
 }

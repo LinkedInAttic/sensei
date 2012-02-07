@@ -131,48 +131,30 @@
     },
     
     // relevance support
-    "relevance":[
+  "relevance":{
                
-               // sequence of statements in a score adjusting function below, statement order matters;
-               // the statement order should be exactly the same as the Java code is executing.
-         
-         
-                   // (1) Variable assignment statements;
-                   //     It may contain set, int, float, double, long, boolean,
-
-  
-                        // ------  [a] static variables below;
-         
-                   // supported hashset types: [var_set_int, var_set_float, var_set_string, var_set_double, var_set_long]
-         
-                   {"var_set_int":{"c":[1996, 1997], "d":[1998]}},
-         
-                   // supported normal variables: [var_int, var_double, var_float, var_long, var_bool, var_string]
-  
-                   {"var_double":{"e":0.98}},
-         
-                   {"var_int":{"g":1996}},
-  
-                   {"var_bool":{"f":true, "h":false}},
-
-                   // supported constants: this one is used to hard code some special static variables, like current time, etc;
-  
-                   {"var_constant_long":{"now":"_NOW"}},   // --- time in millionseconds. 
-
-  
-  
-                        // -----  [b] runtime variables: statements here will be evaluated at runtime; Currently are innerscore and facet values;
-         
-                   {"var_innerscore":{"innerScore":"_INNER_SCORE"}},
-         
-                   {"var_facet_int":{"f":"year"}},  //facet type support: double, float, int, long, short, string;
-         
-         
+                  "variables": {
+                                 "set_int":["c","d"],  // supported hashset types: [set_int, set_float, set_string, set_double, set_long]
+                                 "int":["e","f"],       // supported normal variables: [int, double, float, long, bool, string]
+                                 "long":["g","h"]
+                                },
+                  "facets":{
+                               "int":["year","age"],   // facet type support: double, float, int, long, short, string;
+                               "long":["time"]         // facet variable has the same name as the facet name, and they are defined inside this json;
+                            },
+                  
+                  "values":{
+                              "c":[1996,1997],
+                              "e":0.98
+                            },
          
                    // (2) scoring function and function input parameters in Java;
-                   //     A scoring function is a model. A model changes when the function body or signature changes;
+                   //     A scoring function and its parameters are the model. A model changes when the function body or signature changes;
                    
-                   {"function_params":["innerScore", "timeVal", "_timeWeight", "_waterworldWeight", "_half_time"]},    //  params for the function above, optional. Symbol order matters, and symbols must be those defined above. innerScore MUST be used, otherwise, makes no sense to use the custom relevance;           
+                  //  params for the function. Symbol order matters, and symbols must be those defined above. innerScore MUST be used, otherwise, makes no sense to use the custom relevance;
+                  //  reserved keyword for internal parameters are:  "_INNER_SCORE" and "_NOW"     
+
+                   "function_params":["_INNER_SCORE", "timeVal", "_timeWeight", "_waterworldWeight", "_half_time"],               
 
                    // the value string in the following JSONObject is like this (a return statement MUST appear as the last one):
                          
@@ -180,13 +162,13 @@
                       //    float t = delta>0 ? delta : 0;
                       //    float hour = t/(1000*3600);
                       //    float timeScore = (float) Math.exp(-(hour/_half_time));
-                      //    float waterworldScore = innerScore;
+                      //    float waterworldScore = _INNER_SCORE;
                       //    float time = timeScore * _timeWeight;
                       //    float water = waterworldScore  * _waterworldWeight;
                       //    return  (time + water);
                       
-                   {"function":" A LONG JAVA CODE STRING HERE, ONLY AS FUNCTION BODY"}
-            ]
+                   "function":" A LONG JAVA CODE STRING HERE, ONLY AS FUNCTION BODY, NEEDS RETURN STATEMENT."
+            }
   },
 
 // terms
