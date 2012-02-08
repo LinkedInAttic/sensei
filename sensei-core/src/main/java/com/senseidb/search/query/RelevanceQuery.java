@@ -48,6 +48,7 @@ public class RelevanceQuery extends AbstractScoreAdjuster
   /* JSON keywords*/
   
   // (1) json keys;
+  public static final String           KW_MODEL                = "model";
   public static final String           KW_VALUES               = "values";
   public static final String           KW_VARIABLES            = "variables";
   public static final String           KW_FACETS               = "facets";
@@ -215,6 +216,9 @@ public class RelevanceQuery extends AbstractScoreAdjuster
   static HashMap<String, CustomScorer> hmModels = new HashMap<String, CustomScorer>();
   
 //  "relevance":{
+//    
+//                // (1) Model definition part; this json is used to define a model (input variables, columns/facets, and function parameters and body);    
+//                "model":{
 //               
 //                  "variables": {
 //                                 "set_int":["c","d"],  // supported hashset types: [set_int, set_float, set_string, set_double, set_long]
@@ -226,11 +230,6 @@ public class RelevanceQuery extends AbstractScoreAdjuster
 //                               "long":["time"]         // facet variable has the same name as the facet name, and they are defined inside this json;
 //                            },
 //                  
-//                  "values":{
-//                              "c":[1996,1997],
-//                              "e":0.98
-//                            },
-//         
 //                   // (2) scoring function and function input parameters in Java;
 //                   //     A scoring function and its parameters are the model. A model changes when the function body or signature changes;
 //                   
@@ -251,30 +250,54 @@ public class RelevanceQuery extends AbstractScoreAdjuster
 //                      //    return  (time + water);
 //                      
 //                   "function":" A LONG JAVA CODE STRING HERE, ONLY AS FUNCTION BODY, NEEDS RETURN STATEMENT."
+//                 },
+//                 
+//                 //(2) Input values for the model above, if the model requires input values;
+//                 "values":{
+//                   "c":[1996,1997],
+//                   "e":0.98
+//                 }
 //            }
   
   
   
   
-  /* A dummy testing relevance json:
+  /* A dummy testing relevance json inside a query request json:
    * 
    * 
-            "relevance":{
-                "variables":{
-                     "set_int":["goodYear"],
-                      "int":["thisYear"]
+    {
+        "query": {
+            "query_string": {
+                "query": "",
+                "relevance":{
+                
+                    "model":{
+                        "variables":{
+                             "set_int":["goodYear"],
+                             "int":["thisYear"]
+                            },
+                        "facets":{
+                             "int":["year","mileage"],
+                             "long":["groupid"]
+                            },
+    
+                       "function_params":["_INNER_SCORE", "thisYear", "year","goodYear"],              
+                       "function":" if(goodYear.contains(year)) return (float)Math.exp(10d);   if(year==thisYear) return 87f   ; return  _INNER_SCORE    ;"
                     },
-                "facets":{
-                     "int":["year","mileage"],
-                     "long":["groupid"]
-                    },
-               "values":{
-                     "goodYear":[1996,1997],
-                     "thisYear":1996
-                   },
-               "function_params":["_INNER_SCORE", "thisYear", "year"],              
-               "function":" if(year==thisYear) return 3f  ; return  _INNER_SCORE  ;"
+                    
+                    "values":{
+                         "goodYear":[1996,1997],
+                         "thisYear":2001
+                    }
+                }
             }
+        },
+        "from": 0,
+        "size": 6,
+        "explain": false,
+        "fetchStored": false,
+        "sort":["_score"]
+    }
    * 
    * */
   
@@ -290,21 +313,26 @@ public class RelevanceQuery extends AbstractScoreAdjuster
 
   private void preprocess(JSONObject relevance) throws JSONException
   {
-    JSONObject jsonVariables = relevance.optJSONObject(KW_VARIABLES);
-    JSONObject jsonFacets = relevance.optJSONObject(KW_FACETS);
+    JSONObject jsonModel = relevance.optJSONObject(KW_MODEL);
+    if(jsonModel == null)
+      throw new JSONException("No model is specified.");
+    
+    JSONObject jsonVariables = jsonModel.optJSONObject(KW_VARIABLES);
+    JSONObject jsonFacets = jsonModel.optJSONObject(KW_FACETS);
+    
     JSONObject jsonValues = relevance.optJSONObject(KW_VALUES);  // the json containing the values, could be null;
     
     
     //process the function body and parameters firstly;
     
-    JSONArray jsonFuncParameter = relevance.optJSONArray(KW_FUNC_PARAMETERS);
+    JSONArray jsonFuncParameter = jsonModel.optJSONArray(KW_FUNC_PARAMETERS);
     for(int j=0; j<jsonFuncParameter.length(); j++)
     {
       String paramName = jsonFuncParameter.optString(j);
       lls_params.add(paramName);
     }
     
-    funcBody = relevance.optString(KW_FUNCTION);
+    funcBody = jsonModel.optString(KW_FUNCTION);
     
     //process facet variables;
     Iterator<String> it_facet = jsonFacets.keys();
@@ -490,7 +518,7 @@ public class RelevanceQuery extends AbstractScoreAdjuster
 
     lls_params = filterParameters(lls_params, funcBody);
     
-    String paramString = getParamString(lls_params);
+    String paramString = getParamString(lls_params, hm_type);
     
     classIDString = funcBody + paramString;
     String className = "CRel"+ classIDString.hashCode();
@@ -596,12 +624,14 @@ public class RelevanceQuery extends AbstractScoreAdjuster
 
 
 
-  private String getParamString(LinkedList<String> lls_params)
+  private String getParamString(LinkedList<String> lls_params, HashMap<String, String> hm_type)
   {
     StringBuilder sb = new StringBuilder();
     for(String param : lls_params)
     {
       sb.append(param);
+      sb.append("#");
+      sb.append(hm_type.get(param));
       sb.append("#");
     }
     return sb.toString();
