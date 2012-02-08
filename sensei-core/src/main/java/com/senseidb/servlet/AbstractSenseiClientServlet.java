@@ -155,6 +155,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
       {
         BufferedReader reader = req.getReader();
         content = readContent(reader);
+        if (content == null || content.length() == 0) content = "{}";
         try
         {
           jsonObj = new JSONObject(content);
@@ -195,6 +196,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
         content = req.getParameter("json");
         if (content != null)
         {
+          if (content.length() == 0) content = "{}";
           try
           {
             jsonObj = new JSONObject(content);
