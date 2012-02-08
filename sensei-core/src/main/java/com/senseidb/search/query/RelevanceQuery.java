@@ -357,6 +357,10 @@ public class RelevanceQuery extends AbstractScoreAdjuster
         for(int i=0; i<sets.length(); i++)
         {
           String symbol = sets.getString(i);
+          
+          if(symbol.equals(KW_INNER_SCORE) || symbol.equals(KW_NOW))
+            throw new JSONException("variable name can not be reserved keyword.");
+          
           Set hs = null;
           JSONArray values = jsonValues.optJSONArray(symbol);
           
@@ -654,17 +658,17 @@ public class RelevanceQuery extends AbstractScoreAdjuster
   {
     String type = null;
     
-    if("int".equals(facetType)) 
+    if(KW_TYPE_FACET_INT.equals(facetType)) 
       type = TYPE_FACET_INT;
-    else if("short".equals(facetType)) 
+    else if(KW_TYPE_FACET_SHORT.equals(facetType)) 
       type = TYPE_FACET_SHORT;
-    else if("double".equals(facetType))
+    else if(KW_TYPE_FACET_DOUBLE.equals(facetType))
       type = TYPE_FACET_DOUBLE;
-    else if("float".equals(facetType))
+    else if(KW_TYPE_FACET_FLOAT.equals(facetType))
       type = TYPE_FACET_FLOAT;
-    else if("long".equals(facetType))
+    else if(KW_TYPE_FACET_LONG.equals(facetType))
       type = TYPE_FACET_LONG;
-    else if("string".equals(facetType))
+    else if(KW_TYPE_FACET_STRING.equals(facetType))
       type = TYPE_FACET_STRING;
     
     if(type == null)
