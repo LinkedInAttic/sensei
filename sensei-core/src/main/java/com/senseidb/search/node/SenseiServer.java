@@ -24,7 +24,7 @@ import com.senseidb.jmx.JmxUtil;
 import com.senseidb.plugin.SenseiPluginRegistry;
 import com.senseidb.search.req.AbstractSenseiRequest;
 import com.senseidb.search.req.AbstractSenseiResult;
-import com.senseidb.search.req.mapred.impl.MapReduceSenseiService;
+import com.senseidb.search.req.mapred.obsolete.MapReduceSenseiService;
 import com.senseidb.svc.impl.AbstractSenseiCoreService;
 import com.senseidb.svc.impl.CoreSenseiServiceImpl;
 import com.senseidb.svc.impl.SenseiCoreServiceMessageHandler;

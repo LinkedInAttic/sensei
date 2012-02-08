@@ -16,7 +16,7 @@ import org.json.JSONObject;
 import com.browseengine.bobo.api.BrowseSelection;
 import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.facets.FacetHandlerInitializerParam;
-import com.senseidb.search.req.mapred.v2.SenseiMapReduce;
+import com.senseidb.search.req.mapred.SenseiMapReduce;
 import com.senseidb.util.RequestConverter2;
 
 public  class  SenseiRequest implements AbstractSenseiRequest, Cloneable

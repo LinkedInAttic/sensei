@@ -39,7 +39,7 @@ import com.browseengine.bobo.util.ListMerger;
 import com.senseidb.search.req.SenseiHit;
 import com.senseidb.search.req.SenseiRequest;
 import com.senseidb.search.req.SenseiResult;
-import com.senseidb.search.req.mapred.v2.impl.SenseiReduceFunctionWrapper;
+import com.senseidb.search.req.mapred.impl.SenseiReduceFunctionWrapper;
 
 public class ResultMerger
 {

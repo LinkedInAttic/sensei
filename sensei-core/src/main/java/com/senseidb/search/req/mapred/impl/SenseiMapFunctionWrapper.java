@@ -1,4 +1,4 @@
-package com.senseidb.search.req.mapred.v2.impl;
+package com.senseidb.search.req.mapred.impl;
 
 import java.util.Set;
 
@@ -8,10 +8,11 @@ import proj.zoie.api.impl.DocIDMapperImpl;
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.mapred.BoboMapFunctionWrapper;
 import com.browseengine.bobo.mapred.MapReduceResult;
+import com.browseengine.bobo.util.MemoryManager;
 import com.senseidb.search.req.SenseiSystemInfo.SenseiFacetInfo;
-import com.senseidb.search.req.mapred.impl.FieldAccessorImpl;
-import com.senseidb.search.req.mapred.impl.SenseiMapReduceResult;
-import com.senseidb.search.req.mapred.v2.SenseiMapReduce;
+import com.senseidb.search.req.mapred.FieldAccessor;
+import com.senseidb.search.req.mapred.SenseiMapReduce;
+import com.senseidb.search.req.mapred.obsolete.SenseiMapReduceResult;
 
 
 public class SenseiMapFunctionWrapper implements BoboMapFunctionWrapper {
@@ -24,20 +25,20 @@ public class SenseiMapFunctionWrapper implements BoboMapFunctionWrapper {
   public SenseiMapFunctionWrapper(SenseiMapReduce mapReduceStrategy, Set<SenseiFacetInfo> facetInfos) {
     super();
     this.mapReduceStrategy = mapReduceStrategy;   
-    partialDocIds = new int[BUFFER_SIZE];
+    partialDocIds = intarraymgr.get(BUFFER_SIZE);
     result = new SenseiMapReduceResult();
-    
+    this.facetInfos = facetInfos;
   }
 
   @Override
   public void mapFullIndexReader(BoboIndexReader reader) {
     ZoieSegmentReader<?> zoieReader = (ZoieSegmentReader<?>)(reader.getInnerReader());
     DocIDMapperImpl docIDMapper = (DocIDMapperImpl) zoieReader.getDocIDMaper();
-    result.getMapResults().add(mapReduceStrategy.map(docIDMapper.getDocArray(), docIDMapper.getDocArray().length, zoieReader.getUIDArray(), new FieldAccessorImpl(facetInfos, reader, docIDMapper)));    
+    result.getMapResults().add(mapReduceStrategy.map(docIDMapper.getDocArray(), docIDMapper.getDocArray().length, zoieReader.getUIDArray(), new FieldAccessor(facetInfos, reader, docIDMapper)));    
   }
 
   @Override
-  public void mapSingleDocument(int docId, BoboIndexReader reader) {
+  public final void mapSingleDocument(int docId, BoboIndexReader reader) {
     if (docIdIndex < BUFFER_SIZE - 1) {
       partialDocIds[docIdIndex++] = docId;
       return;
@@ -46,7 +47,8 @@ public class SenseiMapFunctionWrapper implements BoboMapFunctionWrapper {
       partialDocIds[docIdIndex++] = docId;
       ZoieSegmentReader<?> zoieReader = (ZoieSegmentReader<?>)(reader.getInnerReader());
       DocIDMapperImpl docIDMapper = (DocIDMapperImpl) zoieReader.getDocIDMaper();
-      result.getMapResults().add(mapReduceStrategy.map(docIDMapper.getDocArray(), BUFFER_SIZE, zoieReader.getUIDArray(), new FieldAccessorImpl(facetInfos, reader, docIDMapper)));
+      result.getMapResults().add(mapReduceStrategy.map(docIDMapper.getDocArray(), BUFFER_SIZE, zoieReader.getUIDArray(), new FieldAccessor(facetInfos, reader, docIDMapper)));
+      docIdIndex = 0;
     }
   }
 
@@ -55,7 +57,7 @@ public class SenseiMapFunctionWrapper implements BoboMapFunctionWrapper {
     if (docIdIndex > 0) {
       ZoieSegmentReader<?> zoieReader = (ZoieSegmentReader<?>)(reader.getInnerReader());
       DocIDMapperImpl docIDMapper = (DocIDMapperImpl) zoieReader.getDocIDMaper();
-      result.getMapResults().add(mapReduceStrategy.map(docIDMapper.getDocArray(), BUFFER_SIZE, zoieReader.getUIDArray(), new FieldAccessorImpl(facetInfos, reader, docIDMapper)));
+      result.getMapResults().add(mapReduceStrategy.map(partialDocIds, docIdIndex, zoieReader.getUIDArray(), new FieldAccessor(facetInfos, reader, docIDMapper)));
     }
     docIdIndex = 0;
   }
@@ -69,4 +71,19 @@ public class SenseiMapFunctionWrapper implements BoboMapFunctionWrapper {
   public MapReduceResult getResult() {
     return result;
   }
+  
+  protected static MemoryManager<int[]> intarraymgr = new MemoryManager<int[]>(new MemoryManager.Initializer<int[]>()
+      {
+        public void init(int[] buf) {         
+        }
+        public int[] newInstance(int size)
+        {
+          return new int[size];
+        }
+        public int size(int[] buf)
+        {
+          assert buf!=null;
+          return buf.length;
+        }
+      });
 }

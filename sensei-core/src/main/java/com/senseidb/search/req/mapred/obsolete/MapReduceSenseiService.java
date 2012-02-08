@@ -1,4 +1,4 @@
-package com.senseidb.search.req.mapred.impl;
+package com.senseidb.search.req.mapred.obsolete;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,6 +14,7 @@ import com.linkedin.norbert.network.JavaSerializer;
 import com.linkedin.norbert.network.Serializer;
 import com.senseidb.search.node.SenseiCore;
 import com.senseidb.search.node.SenseiQueryBuilderFactory;
+import com.senseidb.search.req.mapred.FieldAccessor;
 import com.senseidb.svc.impl.AbstractSenseiCoreService;
 import com.senseidb.svc.impl.CoreSenseiServiceImpl;
 
@@ -34,7 +35,7 @@ public class MapReduceSenseiService extends AbstractSenseiCoreService<MapReduceR
     for (BoboIndexReader boboIndexReader : segmentReaders) {
       ZoieSegmentReader<?> zoieReader = (ZoieSegmentReader<?>)(boboIndexReader.getInnerReader());
       DocIDMapper<?> docidMapper = zoieReader.getDocIDMaper();     
-      Object result = request.getMapReduceJob().map(zoieReader.getUIDArray(), docidMapper , new FieldAccessorImpl(_core.getSystemInfo().getFacetInfos(), boboIndexReader, docidMapper));
+      Object result = request.getMapReduceJob().map(zoieReader.getUIDArray(), docidMapper , new FieldAccessor(_core.getSystemInfo().getFacetInfos(), boboIndexReader, docidMapper));
       mapReduceResult.getMapResults().add(result);
     }     
     mapReduceResult.setMapResults(request.getMapReduceJob().combine(mapReduceResult.getMapResults()));   

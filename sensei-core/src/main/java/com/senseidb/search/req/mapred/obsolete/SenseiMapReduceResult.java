@@ -1,4 +1,4 @@
-package com.senseidb.search.req.mapred.impl;
+package com.senseidb.search.req.mapred.obsolete;
 
 import java.util.List;
 

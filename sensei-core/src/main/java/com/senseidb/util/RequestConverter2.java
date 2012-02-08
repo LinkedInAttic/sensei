@@ -22,13 +22,12 @@ import com.browseengine.bobo.facets.DefaultFacetHandlerInitializerParam;
 import com.browseengine.bobo.facets.impl.PathFacetHandler;
 import com.senseidb.search.req.SenseiJSONQuery;
 import com.senseidb.search.req.SenseiRequest;
-import com.senseidb.search.req.mapred.v2.SenseiMapReduce;
-import com.senseidb.search.req.mapred.v2.impl.MapReduceRegistry;
+import com.senseidb.search.req.mapred.SenseiMapReduce;
+import com.senseidb.search.req.mapred.impl.MapReduceRegistry;
 
 
 public class RequestConverter2 {
 
-  private static final String MAP_REDUCE_PARAMETERS = "parameters";
   public static final String PAGING_SIZE = "size";
   public static final String PAGING_FROM = "from";
 
@@ -96,6 +95,7 @@ public class RequestConverter2 {
   public static final String MAPPINGS = "mappings";
   private static final String MAP_REDUCE = "mapReduce";
   private static final String MAP_REDUCE_FUNCTION = "function";
+  private static final String MAP_REDUCE_PARAMETERS = "parameters";
 
   private static JsonTemplateProcessor jsonTemplateProcessor = new JsonTemplateProcessor();
 

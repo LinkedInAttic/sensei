@@ -32,7 +32,7 @@ import com.senseidb.search.node.SenseiQueryBuilderFactory;
 import com.senseidb.search.req.SenseiHit;
 import com.senseidb.search.req.SenseiRequest;
 import com.senseidb.search.req.SenseiResult;
-import com.senseidb.search.req.mapred.v2.impl.SenseiMapFunctionWrapper;
+import com.senseidb.search.req.mapred.impl.SenseiMapFunctionWrapper;
 import com.senseidb.util.RequestConverter;
 import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.MetricName;
@@ -81,7 +81,9 @@ public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiReque
 	    // browser.browse(req, collector, facetCollectors);
 	    BrowseResult res = browser.browse(req);
 	    BrowseHit[] hits = res.getHits();
-	    result.setMapReduceResult(res.getMapReduceResult());
+	    if (req.getMapReduceWrapper() != null) {
+	      result.setMapReduceResult(req.getMapReduceWrapper().getResult());
+	    }
 	    SenseiHit[] senseiHits = new SenseiHit[hits.length];
 	    for (int i = 0; i < hits.length; i++)
 	    {

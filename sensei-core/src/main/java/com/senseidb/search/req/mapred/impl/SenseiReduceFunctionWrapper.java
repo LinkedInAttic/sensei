@@ -1,4 +1,4 @@
-package com.senseidb.search.req.mapred.v2.impl;
+package com.senseidb.search.req.mapred.impl;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -6,7 +6,7 @@ import java.util.List;
 
 import com.browseengine.bobo.mapred.MapReduceResult;
 import com.senseidb.search.req.SenseiResult;
-import com.senseidb.search.req.mapred.v2.SenseiMapReduce;
+import com.senseidb.search.req.mapred.SenseiMapReduce;
 
 public class SenseiReduceFunctionWrapper {
  
