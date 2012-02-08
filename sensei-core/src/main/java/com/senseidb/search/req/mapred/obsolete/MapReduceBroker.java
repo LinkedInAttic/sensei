@@ -1,4 +1,4 @@
-package com.senseidb.search.req.mapred.impl;
+package com.senseidb.search.req.mapred.obsolete;
 
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 
@@ -16,7 +16,7 @@ import com.senseidb.cluster.routing.SenseiLoadBalancerFactory;
 import com.senseidb.search.node.AbstractConsistentHashBroker;
 import com.senseidb.svc.api.SenseiException;
 
-public class MapReduceBroker extends AbstractConsistentHashBroker<MapReduceRequest, MapReduceResult> {
+public class MapReduceBroker extends AbstractConsistentHashBroker<MapReduceRequest, SenseiMapReduceResult> {
   private final static Logger logger = Logger.getLogger(MapReduceBroker.class);
   private final SenseiLoadBalancerFactory loadBalancerFactory;
   private long _timeoutMillis;
@@ -30,29 +30,29 @@ public class MapReduceBroker extends AbstractConsistentHashBroker<MapReduceReque
   }
 
   @Override
-  public MapReduceResult getEmptyResultInstance() {
+  public SenseiMapReduceResult getEmptyResultInstance() {
    
-    return new MapReduceResult();
+    return new SenseiMapReduceResult();
   }
 @Override
-  public MapReduceResult browse(MapReduceRequest req) throws SenseiException {
+  public SenseiMapReduceResult browse(MapReduceRequest req) throws SenseiException {
     long time = System.currentTimeMillis();
-    MapReduceResult ret = super.browse(req);
+    SenseiMapReduceResult ret = super.browse(req);
     ret.setTime(System.currentTimeMillis() - time);
     return ret;
   }
   @Override
-  public MapReduceResult mergeResults(MapReduceRequest request, List<MapReduceResult> resultList) {
+  public SenseiMapReduceResult mergeResults(MapReduceRequest request, List<SenseiMapReduceResult> resultList) {
     int size = 0;
-    for (MapReduceResult reduceResult : resultList) {
+    for (SenseiMapReduceResult reduceResult : resultList) {
       size += reduceResult.getMapResults().size();
     }
     List<Object> mapRes = new ArrayList<Object>(size);
-    for (MapReduceResult reduceResult : resultList) {
+    for (SenseiMapReduceResult reduceResult : resultList) {
       mapRes.addAll(reduceResult.getMapResults());
     }
     
-    return new MapReduceResult().setReduceResult(request.getMapReduceJob().reduce(mapRes));
+    return (SenseiMapReduceResult) new SenseiMapReduceResult().setReduceResult(request.getMapReduceJob().reduce(mapRes));
   }
 
   @Override

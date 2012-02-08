@@ -3,7 +3,6 @@ package com.senseidb.search.req;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -12,14 +11,12 @@ import java.util.Random;
 import java.util.Set;
 
 import org.apache.lucene.search.SortField;
-import org.json.JSONArray;
 import org.json.JSONObject;
 
 import com.browseengine.bobo.api.BrowseSelection;
-import com.browseengine.bobo.api.BrowseSelection.ValueOperation;
 import com.browseengine.bobo.api.FacetSpec;
-import com.browseengine.bobo.facets.DefaultFacetHandlerInitializerParam;
 import com.browseengine.bobo.facets.FacetHandlerInitializerParam;
+import com.senseidb.search.req.mapred.SenseiMapReduce;
 import com.senseidb.util.RequestConverter2;
 
 public  class  SenseiRequest implements AbstractSenseiRequest, Cloneable
@@ -55,7 +52,7 @@ private long   tid           =          -1;
   private int _maxPerGroup;
   private Set<String> _termVectorsToFetch;
   private List<String> _selectList; // Select list (mostly used in BQL) 
-  
+  private SenseiMapReduce mapReduceFunction;
   public SenseiRequest(){
     _facetInitParamMap = new HashMap<String,FacetHandlerInitializerParam>();
     _selections=new HashMap<String,BrowseSelection>();
@@ -586,6 +583,16 @@ private long   tid           =          -1;
         && (Arrays.equals(a.getNotValues(), b.getNotValues()))
         && (a.getSelectionOperation().equals(b.getSelectionOperation()))
         && (a.getSelectionProperties().equals(b.getSelectionProperties()));
+  }
+  
+ 
+
+  public SenseiMapReduce getMapReduceFunction() {
+    return mapReduceFunction;
+  }
+
+  public void setMapReduceFunction(SenseiMapReduce mapReduceFunction) {
+    this.mapReduceFunction = mapReduceFunction;
   }
 
   private <T> boolean setsAreEqual(Set<T> a, Set<T> b) {

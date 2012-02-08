@@ -1,4 +1,4 @@
-package com.senseidb.search.req.mapred.impl;
+package com.senseidb.search.req.mapred.obsolete;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,12 +14,13 @@ import com.linkedin.norbert.network.JavaSerializer;
 import com.linkedin.norbert.network.Serializer;
 import com.senseidb.search.node.SenseiCore;
 import com.senseidb.search.node.SenseiQueryBuilderFactory;
+import com.senseidb.search.req.mapred.FieldAccessor;
 import com.senseidb.svc.impl.AbstractSenseiCoreService;
 import com.senseidb.svc.impl.CoreSenseiServiceImpl;
 
-public class MapReduceSenseiService extends AbstractSenseiCoreService<MapReduceRequest, MapReduceResult> {
-  public static final Serializer<MapReduceRequest, MapReduceResult> SERIALIZER =
-      JavaSerializer.apply("SenseiMapReduceRequest", MapReduceRequest.class, MapReduceResult.class);
+public class MapReduceSenseiService extends AbstractSenseiCoreService<MapReduceRequest, SenseiMapReduceResult> {
+  public static final Serializer<MapReduceRequest, SenseiMapReduceResult> SERIALIZER =
+      JavaSerializer.apply("SenseiMapReduceRequest", MapReduceRequest.class, SenseiMapReduceResult.class);
   private static final Logger logger = Logger.getLogger(CoreSenseiServiceImpl.class);
  
   public MapReduceSenseiService(SenseiCore core) {
@@ -27,14 +28,14 @@ public class MapReduceSenseiService extends AbstractSenseiCoreService<MapReduceR
   }
 
   @Override
-  public MapReduceResult handlePartitionedRequest(MapReduceRequest request, List<BoboIndexReader> readerList, SenseiQueryBuilderFactory queryBuilderFactory) throws Exception {
+  public SenseiMapReduceResult handlePartitionedRequest(MapReduceRequest request, List<BoboIndexReader> readerList, SenseiQueryBuilderFactory queryBuilderFactory) throws Exception {
     List<BoboIndexReader> segmentReaders = BoboBrowser.gatherSubReaders(readerList);
-    MapReduceResult mapReduceResult = new MapReduceResult();
+    SenseiMapReduceResult mapReduceResult = new SenseiMapReduceResult();
     mapReduceResult.setMapResults(new ArrayList<Object>(segmentReaders.size()));
     for (BoboIndexReader boboIndexReader : segmentReaders) {
       ZoieSegmentReader<?> zoieReader = (ZoieSegmentReader<?>)(boboIndexReader.getInnerReader());
       DocIDMapper<?> docidMapper = zoieReader.getDocIDMaper();     
-      Object result = request.getMapReduceJob().map(zoieReader.getUIDArray(), docidMapper , new FieldAccessorImpl(_core.getSystemInfo().getFacetInfos(), boboIndexReader, docidMapper));
+      Object result = request.getMapReduceJob().map(zoieReader.getUIDArray(), docidMapper , new FieldAccessor(_core.getSystemInfo().getFacetInfos(), boboIndexReader, docidMapper));
       mapReduceResult.getMapResults().add(result);
     }     
     mapReduceResult.setMapResults(request.getMapReduceJob().combine(mapReduceResult.getMapResults()));   
@@ -42,25 +43,25 @@ public class MapReduceSenseiService extends AbstractSenseiCoreService<MapReduceR
   }
 
   @Override
-  public MapReduceResult mergePartitionedResults(MapReduceRequest request, List<MapReduceResult> resultList) {
+  public SenseiMapReduceResult mergePartitionedResults(MapReduceRequest request, List<SenseiMapReduceResult> resultList) {
     int size = 0;
-    for (MapReduceResult reduceResult : resultList) {
+    for (SenseiMapReduceResult reduceResult : resultList) {
       size += reduceResult.getMapResults().size();
     }
     List<Object> mapRes = new ArrayList<Object>(size);
-    for (MapReduceResult reduceResult : resultList) {
+    for (SenseiMapReduceResult reduceResult : resultList) {
       mapRes.addAll(reduceResult.getMapResults());
     }
-    return new MapReduceResult().setMapResults(request.getMapReduceJob().combine(mapRes));    
+    return (SenseiMapReduceResult) new SenseiMapReduceResult().setMapResults(request.getMapReduceJob().combine(mapRes));    
   }
 
   @Override
-  public MapReduceResult getEmptyResultInstance(Throwable error) {    
-    return new MapReduceResult();
+  public SenseiMapReduceResult getEmptyResultInstance(Throwable error) {    
+    return new SenseiMapReduceResult();
   }
 
   @Override
-  public Serializer<MapReduceRequest, MapReduceResult> getSerializer() {    
+  public Serializer<MapReduceRequest, SenseiMapReduceResult> getSerializer() {    
     return SERIALIZER;
   }
 

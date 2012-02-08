@@ -22,6 +22,8 @@ import com.browseengine.bobo.facets.DefaultFacetHandlerInitializerParam;
 import com.browseengine.bobo.facets.impl.PathFacetHandler;
 import com.senseidb.search.req.SenseiJSONQuery;
 import com.senseidb.search.req.SenseiRequest;
+import com.senseidb.search.req.mapred.SenseiMapReduce;
+import com.senseidb.search.req.mapred.impl.MapReduceRegistry;
 
 
 public class RequestConverter2 {
@@ -91,6 +93,9 @@ public class RequestConverter2 {
   public static final String ROUTEPARAM = "routeParam";
 
   public static final String MAPPINGS = "mappings";
+  private static final String MAP_REDUCE = "mapReduce";
+  private static final String MAP_REDUCE_FUNCTION = "function";
+  private static final String MAP_REDUCE_PARAMETERS = "parameters";
 
   private static JsonTemplateProcessor jsonTemplateProcessor = new JsonTemplateProcessor();
 
@@ -224,7 +229,14 @@ public class RequestConverter2 {
             addSelection(type, jsonSel, req);
         }
       }
-
+      //map reduce
+      JSONObject mapReduceJson =  json.optJSONObject(RequestConverter2.MAP_REDUCE);
+      if (mapReduceJson != null) {
+        String key = mapReduceJson.getString(MAP_REDUCE_FUNCTION);
+        SenseiMapReduce senseiMapReduce = MapReduceRegistry.get(key);
+        senseiMapReduce.init(mapReduceJson.getJSONObject(MAP_REDUCE_PARAMETERS));
+        req.setMapReduceFunction(senseiMapReduce);
+      }
 		 // facets
 		  JSONObject facets = json.optJSONObject(RequestConverter2.FACETS);
 		  if (facets!=null){

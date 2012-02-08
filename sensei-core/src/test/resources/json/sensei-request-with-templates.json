@@ -1,5 +1,5 @@
 {
-  "count": "$max",
+  "$keyToReplace": "$max",
   "explain": false,
   "facetInit": {},
   "facets": {
@@ -45,14 +45,15 @@
     "order": "desc"
   }],
   "boost": "$boost",
-  "routeParam" : "$routeParam",
+  "routeParam" : "prefix_$routeParam_$$$routeParam_suffix$$$$routeParam",
   "termVectors": [],
 
-
+  
     templateMapping : {
     boost: 1.0,
+    "keyToReplace": "count",
     max : 10,
-    routeParam : "substitutedParam",
+    routeParam : "$substitutedParam",
     color : "red"
     }
 

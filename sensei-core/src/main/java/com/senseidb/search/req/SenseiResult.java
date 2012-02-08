@@ -13,6 +13,7 @@ import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.BrowseHit;
 import com.browseengine.bobo.api.BrowseResult;
 import com.browseengine.bobo.api.FacetAccessible;
+import com.senseidb.search.req.mapred.obsolete.SenseiMapReduceResult;
 
 
 public class SenseiResult extends BrowseResult implements AbstractSenseiResult
@@ -21,7 +22,7 @@ public class SenseiResult extends BrowseResult implements AbstractSenseiResult
   private static final long serialVersionUID = 1L;
 
   private String _parsedQuery = null;
-
+ 
   public SenseiHit[] getSenseiHits()
   {
     BrowseHit[] hits = getHits();
@@ -124,4 +125,6 @@ public class SenseiResult extends BrowseResult implements AbstractSenseiResult
     return true;
   }
 
+  
+   
 }
