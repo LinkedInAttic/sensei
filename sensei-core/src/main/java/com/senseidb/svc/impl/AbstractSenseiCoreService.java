@@ -2,8 +2,10 @@ package com.senseidb.svc.impl;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -51,6 +53,7 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
 	    
 	    MetricName searchCounterMetricName = new MetricName(MetricsConstants.Domain,"meter","search-count","node");
 	    SearchCounter = Metrics.newMeter(searchCounterMetricName, "requets", TimeUnit.SECONDS);
+
 	  }
 	  catch(Exception e){
 		logger.error(e.getMessage(),e);
@@ -61,9 +64,18 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
   protected final SenseiCore _core;
 
   private final ExecutorService _executorService = Executors.newCachedThreadPool();
+  
+  private final Map<Integer,Timer> partitionTimerMetricMap = new HashMap<Integer,Timer>();
 	
 	public AbstractSenseiCoreService(SenseiCore core){
 	  _core = core;
+	  int[] partitions = _core.getPartitions();
+	  
+    for (int partition : partitions){
+      MetricName partitionSearchMetricName = new MetricName(MetricsConstants.Domain,"timer","partition-time-"+partition,"partition");
+      Timer timer = Metrics.newTimer(partitionSearchMetricName,TimeUnit.MILLISECONDS,TimeUnit.SECONDS);
+      partitionTimerMetricMap.put(partition, timer); 
+    }
 	}
 	
 	public final Res execute(final Req senseiReq){
@@ -100,12 +112,18 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
               {
                 public Res call() throws Exception
                 {
-                  Res res = handleRequest(senseiReq, readerFactory, _core.getQueryBuilderFactory());
+                  Timer timer = partitionTimerMetricMap.get(partition);
+                  Res res = timer.time(new Callable<Res>(){
 
+                    @Override
+                    public Res call() throws Exception {
+                      return  handleRequest(senseiReq, readerFactory, _core.getQueryBuilderFactory());
+                    }                    
+                  });
+                  
                   long end = System.currentTimeMillis();
                   res.setTime(end - start);
-                  logger.info("searching partition: " + partition + " browse took: " + res.getTime());
-
+                  
                   return res;
                 }
               });
@@ -118,9 +136,17 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
           {
             try
             {
-              Res res = handleRequest(senseiReq, readerFactory, _core.getQueryBuilderFactory());
-              resultList.add(res);
+              Timer timer = partitionTimerMetricMap.get(partition);
+              Res res = timer.time(new Callable<Res>(){
 
+                @Override
+                public Res call() throws Exception {
+                  return  handleRequest(senseiReq, readerFactory, _core.getQueryBuilderFactory());
+                }                    
+              });
+              
+              resultList.add(res);
+              
               long end = System.currentTimeMillis();
               res.setTime(end - start);
               logger.info("searching partition: " + partition + " browse took: " + res.getTime());

@@ -50,4 +50,17 @@ public class Terms extends Selection implements Query {
     this.minimumMatch = minimumMatch;
   }
 
+  public List<String> getValues() {
+    return values;
+  }
+
+  public List<String> getExcludes() {
+    return excludes;
+  }
+
+  public Operator getOperator() {
+    return operator;
+  }
+  
+
 }

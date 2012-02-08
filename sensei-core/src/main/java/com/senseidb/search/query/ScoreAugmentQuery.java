@@ -59,7 +59,7 @@ public class ScoreAugmentQuery extends AbstractScoreAdjuster
     public int nextDoc()
         throws IOException
     {
-      return _innerScorer.docID();
+      return _innerScorer.nextDoc();
     }
     
   }

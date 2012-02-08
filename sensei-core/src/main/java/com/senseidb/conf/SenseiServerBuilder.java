@@ -9,6 +9,7 @@ import java.io.InputStream;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedList;
@@ -43,6 +44,7 @@ import org.mortbay.jetty.servlet.ServletHolder;
 import org.mortbay.jetty.webapp.WebAppContext;
 import org.mortbay.servlet.GzipFilter;
 import org.mortbay.thread.QueuedThreadPool;
+import org.springframework.core.io.Resource;
 import org.w3c.dom.Document;
 
 import proj.zoie.api.DirectoryManager.DIRECTORY_MODE;
@@ -53,7 +55,6 @@ import proj.zoie.impl.indexing.DefaultReaderCache;
 import proj.zoie.impl.indexing.ReaderCacheFactory;
 import proj.zoie.impl.indexing.SimpleReaderCache;
 import proj.zoie.impl.indexing.ZoieConfig;
-import scala.actors.threadpool.Arrays;
 
 import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.facets.RuntimeFacetHandlerFactory;
@@ -240,6 +241,31 @@ public class SenseiServerBuilder implements SenseiConfParams{
 
   }
 
+  public static JSONObject loadSchema(Resource confDir) throws Exception
+  {
+    if (confDir.createRelative(SCHEMA_FILE_JSON).exists()){
+      String json = IOUtils.toString(confDir.createRelative(SCHEMA_FILE_JSON).getInputStream());
+      return new JSONObject(json);
+    }
+    else{
+      if (confDir.createRelative(SCHEMA_FILE_XML).exists()){
+        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+        dbf.setIgnoringComments(true);
+        DocumentBuilder db = dbf.newDocumentBuilder();
+        Document schemaXml = db.parse(confDir.createRelative(SCHEMA_FILE_XML).getInputStream());
+        schemaXml.getDocumentElement().normalize();
+        return SchemaConverter.convert(schemaXml);
+      }
+      else{
+        throw new Exception("no schema found.");
+      }
+    }
+  }
+
+  public SenseiServerBuilder(File confDir) throws Exception {
+    this(confDir, null);
+  }
+
   public SenseiServerBuilder(File confDir, Map<String, Object> properties) throws Exception {
     if (properties != null) {
       _senseiConfFile = null;
@@ -254,11 +280,28 @@ public class SenseiServerBuilder implements SenseiConfParams{
       _senseiConf = new PropertiesConfiguration();
       ((PropertiesConfiguration)_senseiConf).setDelimiterParsingDisabled(true);
       ((PropertiesConfiguration)_senseiConf).load(_senseiConfFile);
-      pluginRegistry = SenseiPluginRegistry.build(_senseiConf);
-      pluginRegistry.start();
     }
+    
+    pluginRegistry = SenseiPluginRegistry.build(_senseiConf);
+    pluginRegistry.start();
 
-    _gateway = constructGateway(_senseiConf);
+    _gateway = pluginRegistry.getBeanByFullPrefix(SENSEI_GATEWAY, SenseiGateway.class);
+
+    _schemaDoc = loadSchema(confDir);
+    _senseiSchema = SenseiSchema.build(_schemaDoc);
+  }
+
+  public SenseiServerBuilder(Resource confDir, Map<String, Object> properties) throws Exception
+  {
+    _senseiConfFile = null;
+
+    _senseiConf = new MapConfiguration(properties);
+    ((MapConfiguration) _senseiConf).setDelimiterParsingDisabled(true);
+
+    pluginRegistry = SenseiPluginRegistry.build(_senseiConf);
+    pluginRegistry.start();
+
+    _gateway = pluginRegistry.getBeanByFullPrefix(SENSEI_GATEWAY, SenseiGateway.class);
 
     _schemaDoc = loadSchema(confDir);
     _senseiSchema = SenseiSchema.build(_schemaDoc);
@@ -300,12 +343,6 @@ public class SenseiServerBuilder implements SenseiConfParams{
     return partitions.toIntArray();
   }
 
-  private SenseiGateway constructGateway(Configuration conf) throws ConfigurationException{
-      SenseiGateway gateway = pluginRegistry.getBeanByFullPrefix(SENSEI_GATEWAY, SenseiGateway.class);
-      return gateway;
-
-  }
-
   public SenseiCore buildCore() throws ConfigurationException {
     int nodeid = _senseiConf.getInt(NODE_ID);
     String partStr = _senseiConf.getString(PARTITIONS);
@@ -315,14 +352,21 @@ public class SenseiServerBuilder implements SenseiConfParams{
   // Analyzer from configuration:
       Analyzer analyzer = pluginRegistry.getBeanByFullPrefix(SENSEI_INDEX_ANALYZER, Analyzer.class);
       if (analyzer == null) {
-        analyzer = new StandardAnalyzer(Version.LUCENE_CURRENT);
+        analyzer = new StandardAnalyzer(Version.LUCENE_35);
       }
       // Similarity from configuration:
       Similarity similarity = pluginRegistry.getBeanByFullPrefix(SENSEI_INDEX_SIMILARITY, Similarity.class);
       if (similarity == null) {
         similarity = new DefaultSimilarity();
       }
-      ZoieConfig zoieConfig = new ZoieConfig(_gateway.getVersionComparator());
+      ZoieConfig zoieConfig;
+      if (_gateway != null){
+        zoieConfig = new ZoieConfig(_gateway.getVersionComparator());
+      }
+      else{
+        zoieConfig = new ZoieConfig();
+      }
+       
       zoieConfig.setAnalyzer(analyzer);
       zoieConfig.setSimilarity(similarity);
       zoieConfig.setBatchSize(_senseiConf.getInt(SENSEI_INDEX_BATCH_SIZE,ZoieConfig.DEFAULT_SETTING_BATCHSIZE));
@@ -405,7 +449,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
       }
       SenseiQueryBuilderFactory queryBuilderFactory = pluginRegistry.getBeanByFullPrefix(SENSEI_QUERY_BUILDER_FACTORY, SenseiQueryBuilderFactory.class);
       if (queryBuilderFactory == null){
-        QueryParser queryParser = new QueryParser(Version.LUCENE_CURRENT,"contents", analyzer);
+        QueryParser queryParser = new QueryParser(Version.LUCENE_35,"contents", analyzer);
         queryBuilderFactory = new DefaultJsonQueryBuilderFactory(queryParser);
       }
       SenseiCore senseiCore = new SenseiCore(nodeid,partitions,zoieSystemFactory,indexingManager,queryBuilderFactory);

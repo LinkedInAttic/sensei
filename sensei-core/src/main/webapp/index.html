@@ -4,7 +4,6 @@
     <title>Sensei Client App</title>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <link rel="stylesheet" href="http://twitter.github.com/bootstrap/1.3.0/bootstrap.css" type="text/css" media="screen"/>
-    <link rel="stylesheet" href="http://wonlay.github.com/sin/styles/prettify.css" type="text/css" media="screen"/>
     <link rel="stylesheet" href="css/codemirror.css" type="text/css" media="screen"/>
 
     <style type="text/css">
@@ -174,9 +173,7 @@
           initFacets($('#initParamsFacets'), info.facets);
         }
 
-        console.log(info);
         if (info.schema) {
-          var columnMap = {};
           // Init column table
           if (info.schema.table && info.schema.table.columns) {
             $.each(info.schema.table.columns, function(i, v) {

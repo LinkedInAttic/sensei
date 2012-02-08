@@ -172,9 +172,13 @@ public class SenseiCore{
       }
       try{
         logger.info("initializing index manager...");
-        _indexManager.initialize(_readerFactoryMap);
+        if (_indexManager!=null){
+          _indexManager.initialize(_readerFactoryMap);
+        }
         logger.info("starting index manager...");
-        _indexManager.start();
+        if (_indexManager!=null){
+          _indexManager.start();
+        }
       
         logger.info("index manager started...");
       }
@@ -190,7 +194,9 @@ public class SenseiCore{
         // shutdown the index manager
 
     logger.info("shutting down index manager...");
+    if (_indexManager!=null){
       _indexManager.shutdown();
+    }
     logger.info("index manager shutdown...");
       
     // shutdown the zoieSystems

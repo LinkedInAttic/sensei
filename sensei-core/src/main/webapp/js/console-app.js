@@ -1,3 +1,4 @@
+var columnMap = {};
 function _void (){}
 // Cookie set and get functions.
 function now(){return (new Date).getTime();}
@@ -415,9 +416,16 @@ function runBql(){
 
   var jobj = $('.run');
   jobj.attr('disabled', 'disabled');
-  $.post("sensei", $.toJSON({bql:bqlMirror.getValue()}), function (text) {
-    contentMirror.setValue(js_beautify(text, default_js_beautify_settings));
-  }, 'text')
+  $.ajax({
+    type: 'POST',
+    url: 'sensei',
+    contentType: 'application/json; charset=utf-8',
+    data: $.toJSON({bql:bqlMirror.getValue()}),
+    success: function (text) {
+      contentMirror.setValue(js_beautify(text, default_js_beautify_settings));
+    },
+    dataType: 'text'
+  })
   .complete(function(){
     jobj.removeAttr('disabled');
   });
@@ -429,9 +437,16 @@ function runQuery(){
 
   var jobj = $('.run');
   jobj.attr('disabled', 'disabled');
-  $.post("sensei", reqTextMirror.getValue(), function (text) {
-    contentMirror.setValue(js_beautify(text, default_js_beautify_settings));
-  }, 'text')
+  $.ajax({
+    type: 'POST',
+    url: "sensei",
+    contentType: 'application/json; charset=utf-8',
+    data: reqTextMirror.getValue(),
+    success: function (text) {
+      contentMirror.setValue(js_beautify(text, default_js_beautify_settings));
+    },
+    dataType: 'text'
+  })
   .complete(function(){
     jobj.removeAttr('disabled');
   });
@@ -557,16 +572,46 @@ function buildQuery(){
       $.each(oo.excludes, function (ii, vv) {
         excludes.push(vv.replace(/"/g, '""'));
       });
+      var use_not_in = true;
+      var use_quote = false;
+      var column = columnMap[field];
+      var column_type = column != null ? column.type : null;
+      if (column != null && column.type in {'string': true, 'char': true, 'text': true})
+      if (/(string|char|text)/i.test(column_type))
+        use_quote = true;
+
       if ('and' == oo.operator) {
-        if (values.length != 0)
-          bql += ' CONTAINS ALL ("' + values.join('", "') + '")';
+        if (values.length != 0) {
+          if (use_quote)
+            bql += ' CONTAINS ALL ("' + values.join('", "') + '")';
+          else
+            bql += ' CONTAINS ALL (' + values.join(', ') + ')';
+          use_not_in = false;
+        }
       }
       else {
-        if (values.length != 0)
-          bql += ' IN ("' + values.join('", "') + '")';
+        if (values.length != 0) {
+          if (use_quote)
+            bql += ' IN ("' + values.join('", "') + '")';
+          else
+            bql += ' IN (' + values.join(', ') + ')';
+          use_not_in = false;
+        }
       }
-      if (excludes.length != 0)
-        bql += ' EXCEPT ("' + excludes.join('", "') + '")';
+      if (excludes.length != 0) {
+        if (use_not_in) {
+          if (use_quote)
+            bql += ' NOT IN ("' + excludes.join('", "') + '")';
+          else
+            bql += ' NOT IN (' + excludes.join(', ') + ')';
+        }
+        else {
+          if (use_quote)
+            bql += ' EXCEPT ("' + excludes.join('", "') + '")';
+          else
+            bql += ' EXCEPT (' + excludes.join(', ') + ')';
+        }
+      }
       if (bql != field)
         and.push(bql);
     }
@@ -625,7 +670,16 @@ function buildQuery(){
               oo.values.push(vv);
           });
 
-          given.push('(' + field + ', "' + param.replace(/"/g, '""') + '", ' + oo.type + ', "' + values.replace(/"/g, '""') + '")');
+          var value_list;
+          if (/(string|char|text)/i.test(oo.type))
+            value_list = '"' + oo.values.join('", "') + '"';
+          else
+            value_list = oo.values.join(', ');
+
+          if (oo.values.length > 1)
+            value_list = '(' + value_list + ')';
+          if (value_list != '')
+            given.push('(' + field + ', "' + param.replace(/"/g, '""') + '", ' + oo.type + ', ' + value_list + ')');
         }
       }
     }

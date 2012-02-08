@@ -4,12 +4,16 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.browseengine.bobo.facets.data.TermFixedLengthLongArrayListFactory;
 import com.browseengine.bobo.facets.data.TermListFactory;
 
 import com.senseidb.indexing.DefaultSenseiInterpreter;
 
 public class TermListFactorySenseiPluginFactory implements SenseiPluginFactory<TermListFactory>
 {
+  public static final String FIXEDLENGTHLONG = "fixedlengthlong";
+  public static final String LENGTH          = "length";
+
   public static final String TYPE    = "type";
   public static final String INT     = "int";
   public static final String STRING  = "string";
@@ -52,6 +56,11 @@ public class TermListFactorySenseiPluginFactory implements SenseiPluginFactory<T
                                  String fullPrefix,
                                  SenseiPluginRegistry pluginRegistry)
   {
-    return getFactory(initProperties.get(TYPE));
+    String type = initProperties.get(TYPE);
+    if (FIXEDLENGTHLONG.equals(type))
+    {
+      return new TermFixedLengthLongArrayListFactory(Integer.parseInt(initProperties.get(LENGTH)));
+    }
+    return getFactory(type);
   }
 }

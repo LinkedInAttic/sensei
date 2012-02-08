@@ -169,6 +169,11 @@ import java.text.SimpleDateFormat;
         else if (columnType.equals("boolean")) {
             return (value instanceof Boolean);
         }
+        else if (columnType.isEmpty()) {
+            // For a custom facet, the data type is unknown (empty
+            // string).  We accept all value types here.
+            return true;
+        }
         else {
             return false;
         }
@@ -517,7 +522,7 @@ MILLISECONDS : ('M'|'m')('I'|'i')('L'|'l')('L'|'l')('I'|'i')('S'|'s')('E'|'e')('
 MSECS : ('M'|'m')('S'|'s')('E'|'e')('C'|'c')('S'|'s')? ;
 
 // Have to define this after the keywords?
-IDENT : (ALPHA | '_') (ALPHA | DIGIT | '-' )* ;
+IDENT : (ALPHA | '_') (ALPHA | DIGIT | '-' | '_')* ;
 
 WS : ( ' ' | '\t' | '\r' | '\n' )+ { $channel = HIDDEN; };
 
@@ -1471,8 +1476,22 @@ value returns [Object val]
 
 numeric returns [Object val]
     :   time_expr { $val = $time_expr.val; }
-    |   INTEGER { $val = Integer.parseInt($INTEGER.text); }
-    |   REAL { $val = Float.parseFloat($REAL.text); }
+    |   INTEGER {
+            try {
+                $val = Long.parseLong($INTEGER.text);
+            }
+            catch (NumberFormatException err) {
+                throw new FailedPredicateException(input, "numeric", "Hit NumberFormatException: " + err.getMessage());
+            }
+        }
+    |   REAL {
+            try {
+                $val = Float.parseFloat($REAL.text);
+            }
+            catch (NumberFormatException err) {
+                throw new FailedPredicateException(input, "numeric", "Hit NumberFormatException: " + err.getMessage());
+            }
+        }
     ;
 
 except_clause returns [JSONArray json]
@@ -1571,13 +1590,14 @@ facet_param_list returns [JSONObject json]
     ;
 
 facet_param returns [String facet, JSONObject param]
-    :   LPAR column_name COMMA STRING_LITERAL COMMA facet_param_type COMMA value RPAR
+    :   LPAR column_name COMMA STRING_LITERAL COMMA facet_param_type COMMA (val=value | valList=value_list) RPAR
         {
             $facet = $column_name.text; // XXX Check error here?
             try {
+                JSONArray valArray = (val != null) ? new JSONArray().put(val.val) : $valList.json;
                 $param = new JSONObject().put($STRING_LITERAL.text,
                                               new JSONObject().put("type", $facet_param_type.paramType)
-                                                              .put("values", new JSONArray().put($value.val)));
+                                                              .put("values", valArray));
             }
             catch (JSONException err) {
                 throw new FailedPredicateException(input, "facet_param", "JSONException: " + err.getMessage());

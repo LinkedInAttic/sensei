@@ -41,6 +41,7 @@ import com.senseidb.util.RequestConverter2;
 
 public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableServlet {
 
+  public static final int JSON_PARSING_ERROR = 489;
   public static final int BQL_PARSING_ERROR = 499;
   private static final long serialVersionUID = 1L;
 
@@ -103,7 +104,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
       }
       catch (Exception e)
       {
-        logger.info("hit exception trying to get sysinfo" + e);
+        logger.info("Hit exception trying to get sysinfo", e);
         if (count > 10) 
         {
           logger.error("Give up after 10 tries to get sysinfo");
@@ -117,7 +118,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
           }
           catch (InterruptedException e2)
           {
-            e2.printStackTrace();
+            logger.error("Hit InterruptedException in getting sysinfo: ", e);
           }
         }
       }
@@ -147,86 +148,127 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
     SenseiRequest senseiReq = null;
     try
     {
+      JSONObject jsonObj = null;
+      String content = null;
+
       if ("post".equalsIgnoreCase(req.getMethod()))
       {
         BufferedReader reader = req.getReader();
-        String content = readContent(reader);
-        JSONObject jsonObj = null;
+        content = readContent(reader);
         try
         {
           jsonObj = new JSONObject(content);
         }
         catch(JSONException jse)
         {
+          String contentType = req.getHeader("Content-Type");
+          if (contentType != null && contentType.indexOf("json") >= 0)
+          {
+            logger.error("JSON parsing error", jse);
+            OutputStream ostream = resp.getOutputStream();
+            try
+            {
+              JSONObject errResp = new JSONObject().put("error",
+                                                        new JSONObject().put("code", JSON_PARSING_ERROR)
+                                                                        .put("msg", jse.getMessage()));
+              ostream.write(errResp.toString().getBytes("UTF-8"));
+              ostream.flush();
+              return;
+            }
+            catch (JSONException err)
+            {
+              logger.error(err.getMessage());
+              throw new ServletException(err.getMessage(), err);
+            }
+          }
+
+          logger.warn("Old client or json error", jse);
+
           // Fall back to the old REST API.  In the future, we should
           // consider reporting JSON exceptions here.
           senseiReq = DefaultSenseiJSONServlet.convertSenseiRequest(
                         new DataConfiguration(new MapConfiguration(getParameters(content))));
         }
-
-        if (jsonObj != null)
-        {
-          String bqlStmt = jsonObj.optString("bql");
-          if (bqlStmt.length() > 0)
-          {
-            Logger log = Logger.getLogger("com.sensei.querylog");
-            
-            try 
-            {
-              if (log.isInfoEnabled()){
-                log.info("bql="+bqlStmt);
-              }
-              jsonObj = _compiler.compile(bqlStmt);
-            }
-            catch (RecognitionException e)
-            {
-              String errMsg = _compiler.getErrorMessage(e);
-              if (errMsg == null) 
-              {
-                errMsg = "Unknown parsing error.";
-              }
-              logger.error("BQL parsing error: " + errMsg + ", BQL: " + bqlStmt);
-              OutputStream ostream = resp.getOutputStream();
-              try
-              {
-                JSONObject errResp = new JSONObject().put("error",
-                                                          new JSONObject().put("code", BQL_PARSING_ERROR)
-                                                                          .put("msg", errMsg));
-                ostream.write(errResp.toString().getBytes("UTF-8"));
-                ostream.flush();
-                return;
-              }
-              catch (JSONException err)
-              {
-                logger.error(err.getMessage());
-                throw new ServletException(err.getMessage(), err);
-              }
-            }
-          }
-          else{
-            Logger log = Logger.getLogger("com.sensei.querylog");
-            if (log.isInfoEnabled()){
-              log.info("json="+content);
-            }
-          }
-          senseiReq = SenseiRequest.fromJSON(jsonObj);
-        }
       }
       else
       {
-        String jsonString = req.getParameter("json");
-        if (jsonString != null)
+        content = req.getParameter("json");
+        if (content != null)
         {
-
-          JSONObject jsonObj = new JSONObject(jsonString);
-          senseiReq = SenseiRequest.fromJSON(jsonObj);
-          Logger log = Logger.getLogger("com.sensei.querylog");
-          if (log.isInfoEnabled()){
-            log.info("query="+jsonString);
+          try
+          {
+            jsonObj = new JSONObject(content);
+          }
+          catch(JSONException jse)
+          {
+            logger.error("JSON parsing error", jse);
+            OutputStream ostream = resp.getOutputStream();
+            try
+            {
+              JSONObject errResp = new JSONObject().put("error",
+                                                        new JSONObject().put("code", JSON_PARSING_ERROR)
+                                                                        .put("msg", jse.getMessage()));
+              ostream.write(errResp.toString().getBytes("UTF-8"));
+              ostream.flush();
+              return;
+            }
+            catch (JSONException err)
+            {
+              logger.error(err.getMessage());
+              throw new ServletException(err.getMessage(), err);
+            }
           }
         }
         else
           senseiReq = buildSenseiRequest(req);
+      }
+
+      if (jsonObj != null)
+      {
+        String bqlStmt = jsonObj.optString("bql");
+        if (bqlStmt.length() > 0)
+        {
+          Logger log = Logger.getLogger("com.sensei.querylog");
+          
+          try 
+          {
+            if (log.isInfoEnabled()){
+              log.info("bql="+bqlStmt);
+            }
+            jsonObj = _compiler.compile(bqlStmt);
+          }
+          catch (RecognitionException e)
+          {
+            String errMsg = _compiler.getErrorMessage(e);
+            if (errMsg == null) 
+            {
+              errMsg = "Unknown parsing error.";
+            }
+            logger.error("BQL parsing error: " + errMsg + ", BQL: " + bqlStmt);
+            OutputStream ostream = resp.getOutputStream();
+            try
+            {
+              JSONObject errResp = new JSONObject().put("error",
+                                                        new JSONObject().put("code", BQL_PARSING_ERROR)
+                                                                        .put("msg", errMsg));
+              ostream.write(errResp.toString().getBytes("UTF-8"));
+              ostream.flush();
+              return;
+            }
+            catch (JSONException err)
+            {
+              logger.error(err.getMessage());
+              throw new ServletException(err.getMessage(), err);
+            }
+          }
+        }
+        else{
+          Logger log = Logger.getLogger("com.sensei.querylog");
+          if (log.isInfoEnabled()){
+            log.info("query="+content);
+          }
+        }
+        senseiReq = SenseiRequest.fromJSON(jsonObj);
       }
       SenseiResult res = _senseiBroker.browse(senseiReq);
       OutputStream ostream = resp.getOutputStream();

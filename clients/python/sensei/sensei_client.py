@@ -382,7 +382,8 @@ exit              Exit
           else:
             print "Unknown error happened!"
         else:
-          res.display(columns=["*"], max_col_width=int(options.max_col_width))
+          select_list = res.jsonMap.get(PARAM_RESULT_SELECT_LIST) or ["*"]
+          res.display(columns=select_list, max_col_width=int(options.max_col_width))
       elif command in ["desc", "describe"]:
         sysinfo = client.get_sysinfo()
         sysinfo.display()
