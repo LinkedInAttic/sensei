@@ -23,7 +23,7 @@ import com.senseidb.search.node.SenseiServer;
 import com.senseidb.search.node.SenseiZoieFactory;
 import com.senseidb.search.req.SenseiRequest;
 import com.senseidb.search.req.SenseiResult;
-import com.senseidb.search.req.mapred.impl.MapReduceBroker;
+import com.senseidb.search.req.mapred.obsolete.MapReduceBroker;
 import com.senseidb.svc.api.SenseiService;
 import com.senseidb.svc.impl.HttpRestSenseiServiceImpl;
 

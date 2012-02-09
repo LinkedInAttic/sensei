@@ -1,9 +1,8 @@
-package com.senseidb.search.req.mapred.impl;
+package com.senseidb.search.req.mapred.obsolete;
 
 import java.util.Set;
 
 import com.senseidb.search.req.AbstractSenseiRequest;
-import com.senseidb.search.req.mapred.MapReduceJob;
 
 @SuppressWarnings("rawtypes")
 public class MapReduceRequest implements AbstractSenseiRequest {

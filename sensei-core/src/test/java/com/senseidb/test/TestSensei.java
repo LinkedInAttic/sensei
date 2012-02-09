@@ -653,13 +653,13 @@ public class TestSensei extends TestCase {
     assertNotNull("", res.get(String.valueOf(1)));
   }
 
-  private JSONObject search(JSONObject req) throws Exception  {
+  public static JSONObject search(JSONObject req) throws Exception  {
     return  search(SenseiStarter.SenseiUrl, req.toString());
   }
-  private JSONObject searchGet(JSONArray req) throws Exception  {
+  public static JSONObject searchGet(JSONArray req) throws Exception  {
     return  search(new URL(SenseiStarter.SenseiUrl.toString() + "/get"), req.toString());
   }
-  private JSONObject search(URL url, String req) throws Exception {
+  public static JSONObject search(URL url, String req) throws Exception {
     URLConnection conn = url.openConnection();
     conn.setDoOutput(true);
     BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(conn.getOutputStream(), "UTF-8"));

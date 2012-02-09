@@ -14,6 +14,7 @@ import proj.zoie.api.DocIDMapper;
 
 import com.senseidb.search.req.mapred.CountGroupByMapReduce.GroupedValue;
 import com.senseidb.search.req.mapred.CountGroupByMapReduce.IntContainer;
+import com.senseidb.search.req.mapred.obsolete.MapReduceJob;
 
 @SuppressWarnings("unchecked")
 public class CountGroupByMapReduce implements MapReduceJob<HashMap<String, IntContainer>, ArrayList<GroupedValue>> {

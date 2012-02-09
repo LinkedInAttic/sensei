@@ -5,14 +5,16 @@ import java.util.List;
 
 import org.json.JSONObject;
 
+import com.senseidb.search.req.mapred.obsolete.MapReduceJob;
+
 import proj.zoie.api.DocIDMapper;
 
-public class MaxMapReduce implements MapReduceJob<Long, Long> {
+public class MaxTestMapReduce implements MapReduceJob<Long, Long> {
   private static final long serialVersionUID = 1L;
   
   private final String fieldName;
 
-  public MaxMapReduce(String fieldName) {
+  public MaxTestMapReduce(String fieldName) {
     this.fieldName = fieldName;   
   }
  

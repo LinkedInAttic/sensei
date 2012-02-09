@@ -39,6 +39,7 @@ import com.browseengine.bobo.util.ListMerger;
 import com.senseidb.search.req.SenseiHit;
 import com.senseidb.search.req.SenseiRequest;
 import com.senseidb.search.req.SenseiResult;
+import com.senseidb.search.req.mapred.impl.SenseiReduceFunctionWrapper;
 
 public class ResultMerger
 {
@@ -833,6 +834,14 @@ public class ResultMerger
     time += (end-start);
     merged.setTime(time);
     merged.setParsedQuery(parsedQuery);
+    if (req.getMapReduceFunction() != null) {
+      if (onSearchNode) {
+        merged.setMapReduceResult(SenseiReduceFunctionWrapper.combine(req.getMapReduceFunction(), SenseiReduceFunctionWrapper.extractMapReduceResults(results)));
+      } else {
+        //on broker level
+        merged.setMapReduceResult(SenseiReduceFunctionWrapper.reduce(req.getMapReduceFunction(), SenseiReduceFunctionWrapper.extractMapReduceResults(results)));
+      }
+    }
     return merged;
   }
 }
