@@ -488,7 +488,7 @@ public class TestHttpRestSenseiServiceImpl extends TestCase
 
     param = new DefaultFacetHandlerInitializerParam();
     for (int i = 0; i < 2; i++) {
-      param.putLongParam("longParam"+i, new long[]{3141592});
+      param.putLongParam("longParam"+i, new long[]{3141592, 123456});
       map.put("longFacet"+i, param);
     }
 

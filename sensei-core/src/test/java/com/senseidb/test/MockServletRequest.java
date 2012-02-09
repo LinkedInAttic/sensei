@@ -5,6 +5,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -33,10 +34,15 @@ public class MockServletRequest implements ServletRequest
     Map<String, List<String>> map = new HashMap<String, List<String>>();
 
     for (NameValuePair pair : list) {
-      if (!map.containsKey(pair.getName())) {
-        map.put(pair.getName(), new ArrayList<String>());
+      String name = pair.getName();
+      if (!map.containsKey(name)) {
+        map.put(name, new ArrayList<String>());
       }
-      map.get(pair.getName()).add(pair.getValue());
+
+      for (String value: pair.getValue().split(","))
+      {
+        map.get(name).add(value);
+      }
     }
 
     return new MockServletRequest(map);

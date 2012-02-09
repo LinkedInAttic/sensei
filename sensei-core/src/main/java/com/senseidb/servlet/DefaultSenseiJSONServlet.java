@@ -640,7 +640,7 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
     boolean[] vals = new boolean[paramVals.length];
     int i = 0;
     for (String paramVal : paramVals ) {
-      vals[i] = Boolean.parseBoolean(paramVal);
+      vals[i++] = Boolean.parseBoolean(paramVal);
     }
 
     facetParams.putBooleanParam(name, vals);
@@ -662,7 +662,7 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
     int[] vals = new int[paramVals.length];
     int i = 0;
     for (String paramVal : paramVals ) {
-      vals[i] = Integer.parseInt(paramVal);
+      vals[i++] = Integer.parseInt(paramVal);
     }
 
     facetParams.putIntParam(name, vals);
@@ -686,7 +686,7 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
     long[] vals = new long[paramVals.length];
     int i = 0;
     for (String paramVal : paramVals ) {
-      vals[i] = Long.parseLong(paramVal);
+      vals[i++] = Long.parseLong(paramVal);
     }
 
     facetParams.putLongParam(name, vals);
@@ -700,7 +700,7 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
     double[] vals = new double[paramVals.length];
     int i = 0;
     for (String paramVal : paramVals ) {
-      vals[i] = Double.parseDouble(paramVal);
+      vals[i++] = Double.parseDouble(paramVal);
     }
 
     facetParams.putDoubleParam(name, vals);
