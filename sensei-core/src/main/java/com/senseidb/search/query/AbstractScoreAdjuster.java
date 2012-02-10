@@ -1,6 +1,7 @@
 package com.senseidb.search.query;
 
 import java.io.IOException;
+import java.util.Set;
 
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.search.Explanation;
@@ -58,8 +59,10 @@ public abstract class AbstractScoreAdjuster extends Query
 
     public Explanation explain(IndexReader reader, int doc) throws IOException
     {
-      return _innerWeight.explain(reader, doc);
+      Explanation innerExplain = _innerWeight.explain(reader, doc);
+      return createExplain(innerExplain, reader, doc);
     }
+
   }
 
   protected final Query _query;
@@ -70,6 +73,13 @@ public abstract class AbstractScoreAdjuster extends Query
   }
   
   protected abstract Scorer createScorer(Scorer innerScorer, IndexReader reader, boolean scoreDocsInOrder, boolean topScorer) throws IOException;
+  
+  protected Explanation createExplain(Explanation innerExplain,
+                                                  IndexReader reader,
+                                                  int doc)
+  {
+    return innerExplain;
+  }
   
   @Override
   public Weight createWeight(Searcher searcher) throws IOException
@@ -88,5 +98,11 @@ public abstract class AbstractScoreAdjuster extends Query
   public String toString(String field)
   {
     return _query.toString(field);
+  }
+  
+  
+  @Override
+  public void extractTerms(Set terms) {
+    _query.extractTerms(terms);
   }
 }
