@@ -16,10 +16,12 @@ import java.util.List;
 import java.util.Set;
 
 import javassist.CannotCompileException;
+import javassist.ClassClassPath;
 import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtMethod;
 import javassist.CtNewMethod;
+import javassist.LoaderClassPath;
 import javassist.NotFoundException;
 
 import org.apache.log4j.Logger;
@@ -171,6 +173,9 @@ public class RelevanceQuery extends AbstractScoreAdjuster
     pool.importPackage("it.unimi.dsi.fastutil.doubles.DoubleOpenHashSet");
     pool.importPackage("it.unimi.dsi.fastutil.floats.FloatOpenHashSet");
     pool.importPackage("it.unimi.dsi.fastutil.objects.ObjectOpenHashSet");
+    
+//    pool.appendClassPath( new LoaderClassPath(RelevanceQuery.class.getClassLoader()));
+    pool.insertClassPath(new ClassClassPath(RelevanceQuery.class));
   }
   
 
@@ -556,9 +561,9 @@ public class RelevanceQuery extends AbstractScoreAdjuster
           logger.info(e.getMessage());
           throw new JSONException(e);
         }
+        
         ch.addInterface(ci);
         String functionString = makeFuncString(funcBody, hm_type, lls_params);
-        
         
         CtMethod m;
         try
@@ -584,7 +589,6 @@ public class RelevanceQuery extends AbstractScoreAdjuster
         Class h;
         try
         {
-//          h = pool.toClass(ch, RelevanceQuery.class.getClassLoader());
           h = pool.toClass(ch, new CustomLoader(RelevanceQuery.class.getClassLoader(), className));
         }
         catch (CannotCompileException e)
