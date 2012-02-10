@@ -177,8 +177,9 @@ public class SenseiPluginRegistry {
 
   public synchronized void start() {
     for (PluginHolder pluginHolder : plugins) {
-      if (pluginHolder.getInstance() instanceof SenseiPlugin) {
-        ((SenseiPlugin) pluginHolder.getInstance()).start();
+      Object instance = pluginHolder.getInstance();
+      if (instance instanceof SenseiPlugin) {
+        ((SenseiPlugin) instance).start();
       }
     }
   }
