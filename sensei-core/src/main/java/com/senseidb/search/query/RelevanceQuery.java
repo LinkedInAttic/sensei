@@ -565,6 +565,8 @@ public class RelevanceQuery extends AbstractScoreAdjuster
         ch.addInterface(ci);
         String functionString = makeFuncString(funcBody, hm_type, lls_params);
         
+        addFacilityMethods(ch);
+        
         CtMethod m;
         try
         {
@@ -625,12 +627,66 @@ public class RelevanceQuery extends AbstractScoreAdjuster
     }
     
   }
-  
-  
+
+  private void addFacilityMethods(CtClass ch) throws JSONException
+  {
+    String expStrInt = createEXpStringInt();
+    String expStrDouble = createEXpStringDouble();
+    String expStrFloat = createEXpStringFloat();
+    
+    addMethod(expStrInt, ch);
+    addMethod(expStrDouble, ch);
+    addMethod(expStrFloat, ch);
+  }
+
+
+  private void addMethod(String expStr, CtClass ch) throws JSONException
+  {
+    CtMethod m_exp;
+    try
+    {
+      m_exp = CtNewMethod.make(expStr, ch);
+    }
+    catch (CannotCompileException e)
+    {
+      logger.info(e.getMessage());
+      throw new JSONException(e);
+    }
+    
+    try
+    {
+      ch.addMethod(m_exp);
+    }
+    catch (CannotCompileException e)
+    {
+      logger.info(e.getMessage());
+      throw new JSONException(e);
+    }    
+  }
 
 
 
 
+  private String createEXpStringInt()
+  {
+    StringBuffer sb = new StringBuffer();
+    sb.append("public double exp(int val) { return Double.longBitsToDouble(((long) (1512775 * val + 1072632447)) << 32); }");
+    return sb.toString();
+  }
+
+  private String createEXpStringDouble()
+  {
+    StringBuffer sb = new StringBuffer();
+    sb.append("public double exp(double val) { return Double.longBitsToDouble(((long) (1512775 * val + 1072632447)) << 32); }");
+    return sb.toString();
+  }
+
+  private String createEXpStringFloat()
+  {
+    StringBuffer sb = new StringBuffer();
+    sb.append("public double exp(float val) { return Double.longBitsToDouble(((long) (1512775 * val + 1072632447)) << 32); }");
+    return sb.toString();
+  }
 
   private String getParamString(LinkedList<String> lls_params, HashMap<String, String> hm_type)
   {
