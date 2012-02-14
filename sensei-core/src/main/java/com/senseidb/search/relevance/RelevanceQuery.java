@@ -192,9 +192,9 @@ public class RelevanceQuery extends AbstractScoreAdjuster
     hs_safe.add("it.unimi.dsi.fastutil.floats.FloatOpenHashSet");
     hs_safe.add("it.unimi.dsi.fastutil.objects.ObjectOpenHashSet");
     
-    hs_safe.add("com.senseidb.search.query.relevance.RelevanceQuery");
-    hs_safe.add("com.senseidb.search.query.relevance.CustomScorer");
-    hs_safe.add("com.senseidb.search.query.relevance.RelevanceQuery$CustomLoader");
+    hs_safe.add("com.senseidb.search.relevance.RelevanceQuery");
+    hs_safe.add("com.senseidb.search.relevance.CustomScorer");
+    hs_safe.add("com.senseidb.search.relevance.RelevanceQuery$CustomLoader");
     
     hs_safe.add("java.lang.Object");
     hs_safe.add("java.lang.Exception");
@@ -554,7 +554,7 @@ public class RelevanceQuery extends AbstractScoreAdjuster
         CtClass ci;
         try
         {
-          ci = pool.get("com.senseidb.search.query.relevance.CustomScorer");
+          ci = pool.get("com.senseidb.search.relevance.CustomScorer");
         }
         catch (NotFoundException e)
         {
