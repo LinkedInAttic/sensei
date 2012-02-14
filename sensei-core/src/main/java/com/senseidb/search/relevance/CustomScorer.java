@@ -1,4 +1,4 @@
-package com.senseidb.search.query;
+package com.senseidb.search.relevance;
 
 import java.util.Set;
 

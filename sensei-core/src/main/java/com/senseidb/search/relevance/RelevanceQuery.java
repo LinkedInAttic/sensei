@@ -1,4 +1,4 @@
-package com.senseidb.search.query;
+package com.senseidb.search.relevance;
 
 import it.unimi.dsi.fastutil.doubles.DoubleOpenHashSet;
 import it.unimi.dsi.fastutil.floats.FloatOpenHashSet;
@@ -21,7 +21,6 @@ import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtMethod;
 import javassist.CtNewMethod;
-import javassist.LoaderClassPath;
 import javassist.NotFoundException;
 
 import org.apache.log4j.Logger;
@@ -43,6 +42,7 @@ import com.browseengine.bobo.facets.data.TermShortList;
 import com.browseengine.bobo.facets.data.TermStringList;
 import com.browseengine.bobo.facets.data.TermValueList;
 import com.browseengine.bobo.util.BigSegmentedArray;
+import com.senseidb.search.query.AbstractScoreAdjuster;
 
 public class RelevanceQuery extends AbstractScoreAdjuster
 {
@@ -192,9 +192,9 @@ public class RelevanceQuery extends AbstractScoreAdjuster
     hs_safe.add("it.unimi.dsi.fastutil.floats.FloatOpenHashSet");
     hs_safe.add("it.unimi.dsi.fastutil.objects.ObjectOpenHashSet");
     
-    hs_safe.add("com.senseidb.search.query.RelevanceQuery");
-    hs_safe.add("com.senseidb.search.query.CustomScorer");
-    hs_safe.add("com.senseidb.search.query.RelevanceQuery$CustomLoader");
+    hs_safe.add("com.senseidb.search.query.relevance.RelevanceQuery");
+    hs_safe.add("com.senseidb.search.query.relevance.CustomScorer");
+    hs_safe.add("com.senseidb.search.query.relevance.RelevanceQuery$CustomLoader");
     
     hs_safe.add("java.lang.Object");
     hs_safe.add("java.lang.Exception");
@@ -554,7 +554,7 @@ public class RelevanceQuery extends AbstractScoreAdjuster
         CtClass ci;
         try
         {
-          ci = pool.get("com.senseidb.search.query.CustomScorer");
+          ci = pool.get("com.senseidb.search.query.relevance.CustomScorer");
         }
         catch (NotFoundException e)
         {
