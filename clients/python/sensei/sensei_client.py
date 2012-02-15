@@ -55,16 +55,6 @@ class SenseiClient:
     for facet_info in self.sysinfo.get_facet_infos():
       self.facet_map[facet_info.get_name()] = facet_info
 
-    self.parser = BQLParser(self.facet_map)
-
-  def compile(self, bql_stmt):
-    tokens = self.parser.parse(bql_stmt)
-    if tokens:
-      logger.debug("tokens: %s" % tokens)
-      bql_req = BQLRequest(tokens, self.facet_map)
-      return SenseiRequest(bql_req, facet_map=self.facet_map)
-    return None
-
   def buildJsonString(self, req, sort_keys=True, indent=None):
     """Build a Sensei request in JSON format.
 
@@ -244,7 +234,7 @@ class SenseiClient:
     time1 = datetime.now()
     query_string = None
     if using_json: # Use JSON format
-      # query_string = self.buildJsonString(req)
+      # bql = {"bql": req, "templateMapping": {"myTag": "cool"}}
       bql = {"bql": req}
       query_string = json.dumps(bql)
     else:

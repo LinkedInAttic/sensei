@@ -524,6 +524,7 @@ MSECS : ('M'|'m')('S'|'s')('E'|'e')('C'|'c')('S'|'s')? ;
 
 // Have to define this after the keywords?
 IDENT : (ALPHA | '_') (ALPHA | DIGIT | '-' | '_')* ;
+VARIABLE : '$' (ALPHA | DIGIT | '-' | '_')+ ;
 
 WS : ( ' ' | '\t' | '\r' | '\n' )+ { $channel = HIDDEN; };
 
@@ -1491,6 +1492,7 @@ value returns [Object val]
     |   STRING_LITERAL { $val = $STRING_LITERAL.text; }
     |   TRUE { $val = true; }
     |   FALSE { $val = false; }
+    |   VARIABLE { $val = $VARIABLE.text; }
     ;
 
 numeric returns [Object val]

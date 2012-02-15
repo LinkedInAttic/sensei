@@ -37,6 +37,7 @@ import com.senseidb.search.req.SenseiHit;
 import com.senseidb.search.req.SenseiRequest;
 import com.senseidb.search.req.SenseiResult;
 import com.senseidb.search.req.SenseiSystemInfo;
+import com.senseidb.util.JsonTemplateProcessor;
 import com.senseidb.util.RequestConverter2;
 
 public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableServlet {
@@ -228,6 +229,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
       if (jsonObj != null)
       {
         String bqlStmt = jsonObj.optString("bql");
+        JSONObject templatesJson = jsonObj.optJSONObject(JsonTemplateProcessor.TEMPLATE_MAPPING_PARAM);
         if (bqlStmt.length() > 0)
         {
           Logger log = Logger.getLogger("com.sensei.querylog");
@@ -269,6 +271,10 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
           if (log.isInfoEnabled()){
             log.info("query="+content);
           }
+        }
+        if (templatesJson != null)
+        {
+          jsonObj.put(JsonTemplateProcessor.TEMPLATE_MAPPING_PARAM, templatesJson);
         }
         senseiReq = SenseiRequest.fromJSON(jsonObj);
       }

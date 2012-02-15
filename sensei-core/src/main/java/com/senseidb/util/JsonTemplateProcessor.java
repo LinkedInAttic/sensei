@@ -10,7 +10,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.apache.log4j.Logger;
 public class JsonTemplateProcessor{
-  private static final String TEMPLATE_MAPPING_PARAM = "templateMapping";
+  public static final String TEMPLATE_MAPPING_PARAM = "templateMapping";
   private final static Logger logger = Logger.getLogger(JsonTemplateProcessor.class);
 
   public Map<String, Object> getTemplates(JSONObject request) {
