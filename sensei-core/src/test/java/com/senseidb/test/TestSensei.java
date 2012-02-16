@@ -712,6 +712,14 @@ public class TestSensei extends TestCase {
     assertEquals("inner score for first is not correct." , true, firstScore == 1 );
     assertEquals("inner score for second is not correct." , true, secondScore == 1);
   }
+  
+  public void testRelevanceMulti() throws Exception
+  {
+    logger.info("executing test case testRelevanceMulti");
+    String req = "{\"sort\":[\"_score\"],\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"model\":{\"function_params\":[\"_INNER_SCORE\",\"thisYear\",\"year\",\"goodYear\",\"tags\",\"coolTag\"],\"facets\":{\"mstring\":[\"tags\"],\"int\":[\"year\",\"mileage\"],\"long\":[\"groupid\"]},\"function\":\" if(tags.contains(coolTag)) return 999999f; if(goodYear.contains(year)) return (float)Math.exp(10d);   if(year==thisYear) return 87f   ; return  _INNER_SCORE    ;\",\"variables\":{\"set_int\":[\"goodYear\"],\"int\":[\"thisYear\"], \"string\":[\"coolTag\"]}},\"values\":{\"coolTag\":\"cool\", \"thisYear\":2001,\"goodYear\":[1996,1997]}}}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":6}";
+    JSONObject res = search(new JSONObject(req));
+    assertEquals("numhits is wrong", 15000, res.getInt("numhits"));
+  }
 
   public static JSONObject search(JSONObject req) throws Exception  {
     return  search(SenseiStarter.SenseiUrl, req.toString());

@@ -19,7 +19,7 @@ public abstract class MFacet
   public MFacet(MultiValueFacetDataCache mDataCaches)
   {
     _mDataCaches = mDataCaches;
-    TermValueList _mTermList = _mDataCaches.valArray;
+    _mTermList = _mDataCaches.valArray;
     _nestedArray = _mDataCaches._nestedArray;
   }
 
