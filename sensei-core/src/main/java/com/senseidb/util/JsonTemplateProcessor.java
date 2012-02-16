@@ -23,11 +23,14 @@ public class JsonTemplateProcessor{
     while (keys.hasNext()) {
       String templateName = (String) keys.next();
       Object templateValueObj = templatesJson.opt(templateName);
-      if (templateValueObj != null && (templateValueObj instanceof String || templateValueObj instanceof Number)) {
+      if (templateValueObj != null &&
+          (templateValueObj instanceof String ||
+           templateValueObj instanceof Number ||
+           templateValueObj instanceof JSONArray)) {
         ret.put(templateName, templateValueObj);
       } else {
         throw new UnsupportedOperationException("Value for the template " + templateName
-            + " couldn't be transformed to the primitive type");
+            + " couldn't be transformed to a primitive type or JSONArray");
       }
     }
 
