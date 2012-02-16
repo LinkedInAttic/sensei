@@ -248,7 +248,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
           try 
           {
             if (queryLogger.isInfoEnabled()){
-              queryLogger.info("bql="+bqlStmt);
+              queryLogger.info("bql=" + bqlStmt);
             }
             jsonObj = _compiler.compile(bqlStmt);
           }
@@ -276,12 +276,38 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
               throw new ServletException(err.getMessage(), err);
             }
           }
-        }
-        else{
-          if (queryLogger.isInfoEnabled()){
-            queryLogger.info("query="+content);
+
+          JSONObject metaData = jsonObj.optJSONObject("meta");
+          if (metaData != null)
+          {
+            JSONArray variables = metaData.optJSONArray("variables");
+            if (variables != null)
+            {
+              for (int i = 0; i < variables.length(); ++i)
+              {
+                String var = variables.getString(i);
+                if (templatesJson == null ||
+                    templatesJson.opt(var) == null)
+                {
+                  OutputStream ostream = resp.getOutputStream();
+                  JSONObject errResp = new JSONObject().put("error",
+                                                            new JSONObject().put("code", BQL_PARSING_ERROR)
+                                                                            .put("msg", "[line:0, col:0] Variable " + var + " is not found."));
+                  ostream.write(errResp.toString().getBytes("UTF-8"));
+                  ostream.flush();
+                  return;
+                }
+              }
+            }
           }
         }
+        else
+        {
+          if (queryLogger.isInfoEnabled()){
+            queryLogger.info("query=" + content);
+          }
+        }
+
         if (templatesJson != null)
         {
           jsonObj.put(JsonTemplateProcessor.TEMPLATE_MAPPING_PARAM, templatesJson);
