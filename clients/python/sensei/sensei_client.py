@@ -55,6 +55,16 @@ class SenseiClient:
     for facet_info in self.sysinfo.get_facet_infos():
       self.facet_map[facet_info.get_name()] = facet_info
 
+    self.parser = BQLParser(self.facet_map)
+
+  def compile(self, bql_stmt):
+    tokens = self.parser.parse(bql_stmt)
+    if tokens:
+      logger.debug("tokens: %s" % tokens)
+      bql_req = BQLRequest(tokens, self.facet_map)
+      return SenseiRequest(bql_req, facet_map=self.facet_map)
+    return None
+
   def buildJsonString(self, req, sort_keys=True, indent=None):
     """Build a Sensei request in JSON format.
 
@@ -228,14 +238,15 @@ class SenseiClient:
 
     return urllib.urlencode(paramMap)
     
-  def doQuery(self, req, using_json=True):
+  def doQuery(self, req, using_json=True, var_map={}):
     """Execute a search query."""
 
     time1 = datetime.now()
     query_string = None
     if using_json: # Use JSON format
-      # bql = {"bql": req, "templateMapping": {"myTag": "cool"}}
       bql = {"bql": req}
+      if var_map:
+        bql["templateMapping"] = var_map;
       query_string = json.dumps(bql)
     else:
       query_string = SenseiClient.buildUrlString(req)
@@ -304,6 +315,7 @@ def main(argv):
     print """\
 help              Show instructions
 select ...        Execute a BQL statement
+set VAR value     Assign a value to a variable     
 desc | describe   Describe current index schema
 get <uid_list>    Retrieve documents based on UID list
 exit              Exit
@@ -340,6 +352,8 @@ exit              Exit
 
   print 'Enter "help" for instructions'
 
+  var_map = {}
+
   import readline
   readline.parse_and_bind("tab: complete")
   while 1:
@@ -360,7 +374,7 @@ exit              Exit
           continue
 
       if command == "select":
-        res = client.doQuery(stmt)
+        res = client.doQuery(stmt, var_map=var_map)
         error = res.error
         if error:
           err_code = error.get("code")
@@ -377,6 +391,12 @@ exit              Exit
       elif command in ["desc", "describe"]:
         sysinfo = client.get_sysinfo()
         sysinfo.display()
+      elif command == "set":
+        tokens = client.parser.parse(stmt)
+        if tokens.value:
+          var_map[tokens.variable] = tokens.value
+        elif tokens.value_list:
+          var_map[tokens.variable] = tokens.value_list[:]
       elif command == "help":
         help()
       elif len(words) > 0 and len(words[0]) > 0:

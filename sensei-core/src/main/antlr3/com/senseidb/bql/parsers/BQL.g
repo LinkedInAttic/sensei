@@ -40,6 +40,7 @@ package com.senseidb.bql.parsers;
 
 import java.util.Iterator;
 import java.util.Map;
+import java.util.HashSet;
 import org.json.JSONObject;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -57,6 +58,7 @@ import java.text.SimpleDateFormat;
 
     Map<String, String[]> _facetInfoMap;
     private long _now;
+    private HashSet<String> _variables;
     private SimpleDateFormat[] _format1 = new SimpleDateFormat[2];
     private SimpleDateFormat[] _format2 = new SimpleDateFormat[2];
 
@@ -157,6 +159,14 @@ import java.text.SimpleDateFormat;
 
     private boolean verifyValueType(Object value, final String columnType)
     {
+        if (value instanceof String &&
+            !((String) value).isEmpty() &&
+            ((String) value).matches("\\$[^$].*"))
+        {
+            // This "value" is a variable, return true always
+            return true;
+        }
+
         if (columnType.equals("long") || columnType.equals("int") || columnType.equals("short")) {
             return !(value instanceof Float || value instanceof String || value instanceof Boolean);
         }
@@ -180,14 +190,43 @@ import java.text.SimpleDateFormat;
     }
 
     private boolean verifyFieldDataType(final String field, Object value)
+        throws FailedPredicateException
     {
         String[] facetInfo = _facetInfoMap.get(field);
-        if (facetInfo != null) {
-            return verifyValueType(value, facetInfo[1]);
-        }
-        else {
-            // Field is not a facet
+
+        if (value instanceof String &&
+            !((String) value).isEmpty() &&
+            ((String) value).matches("\\$[^$].*"))
+        {
+            // This "value" is a variable, return true always
             return true;
+        }
+        else if (value instanceof JSONArray)
+        {
+            try {
+                if (facetInfo != null) {
+                    String columnType = facetInfo[1];
+                    for (int i = 0; i < ((JSONArray) value).length(); ++i) {
+                        if (!verifyValueType(((JSONArray) value).get(i), columnType)) {
+                            return false;
+                        }
+                    }
+                }
+                return true;
+            }
+            catch (JSONException err) {
+                throw new FailedPredicateException(input, "verifyFieldDataType", "JSONException: " + err.getMessage());
+            }
+        }
+        else
+        {
+            if (facetInfo != null) {
+                return verifyValueType(value, facetInfo[1]);
+            }
+            else {
+                // Field is not a facet
+                return true;
+            }
         }
     }
 
@@ -203,26 +242,6 @@ import java.text.SimpleDateFormat;
             }
         }
         return true;
-    }
-
-    private boolean verifyFieldDataType(final String field, JSONArray values)
-        throws FailedPredicateException
-    {
-        String[] facetInfo = _facetInfoMap.get(field);
-        try {
-            if (facetInfo != null) {
-                String columnType = facetInfo[1];
-                for (int i = 0; i < values.length(); ++i) {
-                    if (!verifyValueType(values.get(i), columnType)) {
-                        return false;
-                    }
-                }
-            }
-            return true;
-        }
-        catch (JSONException err) {
-            throw new FailedPredicateException(input, "verifyFieldDataType", "JSONException: " + err.getMessage());
-        }
     }
 
     private void extractSelectionInfo(JSONObject where,
@@ -547,6 +566,7 @@ statement returns [Object json]
 select_stmt returns [Object json]
 @init {
     _now = System.currentTimeMillis();
+    _variables = new HashSet<String>();
     boolean seenOrderBy = false;
     boolean seenLimit = false;
     boolean seenGroupBy = false;
@@ -610,14 +630,20 @@ select_stmt returns [Object json]
             JSONObject query = new JSONObject();
 
             try {
-                JSONObject selectList = new JSONObject();
+                JSONObject metaData = new JSONObject();
                 if (cols == null) {
-                   selectList.put("select_list", new JSONArray().put("*"));
+                   metaData.put("select_list", new JSONArray().put("*"));
                 }
                 else {
-                   selectList.put("select_list", $cols.json);
+                   metaData.put("select_list", $cols.json);
                 }
-                jsonObj.put("meta", selectList);
+
+                if (_variables.size() > 0)
+                {
+                    metaData.put("variables", new JSONArray(_variables));
+                }
+
+                jsonObj.put("meta", metaData);
 
                 if (order_by != null) {
                     jsonObj.put("sort", $order_by.json);
@@ -1472,19 +1498,27 @@ null_predicate returns [JSONObject json]
         }
     ;
 
-value_list returns [JSONArray json]
+value_list returns [Object json]
 @init {
-    $json = new JSONArray();
+    JSONArray jsonArray = new JSONArray();
 }
     :   LPAR v=value
         {
-            $json.put($v.val);
+            jsonArray.put($v.val);
         }
         (COMMA v=value
             {
-                $json.put($v.val);
+                jsonArray.put($v.val);
             }
-        )* RPAR -> value+
+        )* RPAR
+        {
+            $json = jsonArray;
+        }
+    |   VARIABLE
+        {
+            $json = $VARIABLE.text;
+            _variables.add(($VARIABLE.text).substring(1));
+        }
     ;
 
 value returns [Object val]
@@ -1492,7 +1526,11 @@ value returns [Object val]
     |   STRING_LITERAL { $val = $STRING_LITERAL.text; }
     |   TRUE { $val = true; }
     |   FALSE { $val = false; }
-    |   VARIABLE { $val = $VARIABLE.text; }
+    |   VARIABLE
+        {
+            $val = $VARIABLE.text;
+            _variables.add(($VARIABLE.text).substring(1));
+        }
     ;
 
 numeric returns [Object val]
@@ -1515,7 +1553,7 @@ numeric returns [Object val]
         }
     ;
 
-except_clause returns [JSONArray json]
+except_clause returns [Object json]
     :   EXCEPT^ value_list
         {
             $json = $value_list.json;
@@ -1615,7 +1653,7 @@ facet_param returns [String facet, JSONObject param]
         {
             $facet = $column_name.text; // XXX Check error here?
             try {
-                JSONArray valArray = (val != null) ? new JSONArray().put(val.val) : $valList.json;
+                Object valArray = (val != null) ? new JSONArray().put(val.val) : $valList.json;
                 $param = new JSONObject().put($STRING_LITERAL.text,
                                               new JSONObject().put("type", $facet_param_type.paramType)
                                                               .put("values", valArray));
