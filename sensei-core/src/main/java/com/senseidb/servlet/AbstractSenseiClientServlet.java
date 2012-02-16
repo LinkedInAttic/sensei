@@ -19,6 +19,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.antlr.runtime.RecognitionException;
 import org.apache.commons.configuration.DataConfiguration;
 import org.apache.commons.configuration.MapConfiguration;
+import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -37,6 +38,7 @@ import com.senseidb.search.req.SenseiHit;
 import com.senseidb.search.req.SenseiRequest;
 import com.senseidb.search.req.SenseiResult;
 import com.senseidb.search.req.SenseiSystemInfo;
+import com.senseidb.svc.impl.HttpRestSenseiServiceImpl;
 import com.senseidb.util.JsonTemplateProcessor;
 import com.senseidb.util.RequestConverter2;
 
@@ -47,6 +49,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
   private static final long serialVersionUID = 1L;
 
   private static final Logger logger = Logger.getLogger(AbstractSenseiClientServlet.class);
+  private static final Logger queryLogger = Logger.getLogger("com.sensei.querylog");
 
   private final NetworkClientConfig _networkClientConfig = new NetworkClientConfig();
 
@@ -190,6 +193,9 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
           // consider reporting JSON exceptions here.
           senseiReq = DefaultSenseiJSONServlet.convertSenseiRequest(
                         new DataConfiguration(new MapConfiguration(getParameters(content))));
+          if (queryLogger.isInfoEnabled()){
+            queryLogger.info(content);
+          }
         }
       }
       else
@@ -223,7 +229,14 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
           }
         }
         else
+        {
           senseiReq = buildSenseiRequest(req);
+          if (queryLogger.isInfoEnabled()){
+            queryLogger.info(
+                URLEncodedUtils.format(
+                    HttpRestSenseiServiceImpl.convertRequestToQueryParams(senseiReq), "UTF-8"));
+          }
+        }
       }
 
       if (jsonObj != null)
@@ -232,12 +245,10 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
         JSONObject templatesJson = jsonObj.optJSONObject(JsonTemplateProcessor.TEMPLATE_MAPPING_PARAM);
         if (bqlStmt.length() > 0)
         {
-          Logger log = Logger.getLogger("com.sensei.querylog");
-          
           try 
           {
-            if (log.isInfoEnabled()){
-              log.info("bql="+bqlStmt);
+            if (queryLogger.isInfoEnabled()){
+              queryLogger.info("bql="+bqlStmt);
             }
             jsonObj = _compiler.compile(bqlStmt);
           }
@@ -267,9 +278,8 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
           }
         }
         else{
-          Logger log = Logger.getLogger("com.sensei.querylog");
-          if (log.isInfoEnabled()){
-            log.info("query="+content);
+          if (queryLogger.isInfoEnabled()){
+            queryLogger.info("query="+content);
           }
         }
         if (templatesJson != null)
@@ -307,9 +317,8 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
           ids = new JSONArray(jsonString);
       }
 
-      Logger log = Logger.getLogger("com.sensei.querylog");
-      if (log.isInfoEnabled()){
-        log.info("get="+String.valueOf(ids));
+      if (queryLogger.isInfoEnabled()){
+        queryLogger.info("get="+String.valueOf(ids));
       }
 
       String[] vals = RequestConverter2.getStrings(ids);
