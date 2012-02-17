@@ -262,6 +262,13 @@ public class RelevanceQuery extends AbstractScoreAdjuster
     hs_safe.add("it.unimi.dsi.fastutil.floats.FloatOpenHashSet");
     hs_safe.add("it.unimi.dsi.fastutil.objects.ObjectOpenHashSet");
     
+    hs_safe.add("it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap");
+    hs_safe.add("it.unimi.dsi.fastutil.ints.Int2FloatOpenHashMap");
+    hs_safe.add("it.unimi.dsi.fastutil.ints.Int2DoubleOpenHashMap");
+    hs_safe.add("it.unimi.dsi.fastutil.ints.Int2LongOpenHashMap");
+    hs_safe.add("it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap");
+    
+    
     hs_safe.add("com.senseidb.search.relevance.RelevanceQuery");
     hs_safe.add("com.senseidb.search.relevance.CustomScorer");
     hs_safe.add("com.senseidb.search.relevance.RelevanceQuery$CustomLoader");
