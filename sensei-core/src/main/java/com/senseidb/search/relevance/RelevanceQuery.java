@@ -1382,6 +1382,7 @@ public class RelevanceQuery extends AbstractScoreAdjuster
     @Override
     public float score() throws IOException {
       
+      int docID = docID();
       //update the dynamic parameters only when we have to.
       for(int j=0; j < dynamicAR.length; j++)
       {
@@ -1392,42 +1393,42 @@ public class RelevanceQuery extends AbstractScoreAdjuster
                     floats[_arrayIndex[dynamicAR[j]]] = _innerScorer.score();
                     break;
           case TYPENUMBER_FACET_INT:  
-                    ints[_arrayIndex[dynamicAR[j]]] = ((TermIntList)_termLists[_facetIndex[dynamicAR[j]]]).getPrimitiveValue(_orderArrays[_facetIndex[dynamicAR[j]]].get(_innerScorer.docID()));
+                    ints[_arrayIndex[dynamicAR[j]]] = ((TermIntList)_termLists[_facetIndex[dynamicAR[j]]]).getPrimitiveValue(_orderArrays[_facetIndex[dynamicAR[j]]].get(docID));
                     break;
           case TYPENUMBER_FACET_LONG:
-                    longs[_arrayIndex[dynamicAR[j]]] = ((TermLongList)_termLists[_facetIndex[dynamicAR[j]]]).getPrimitiveValue(_orderArrays[_facetIndex[dynamicAR[j]]].get(_innerScorer.docID()));
+                    longs[_arrayIndex[dynamicAR[j]]] = ((TermLongList)_termLists[_facetIndex[dynamicAR[j]]]).getPrimitiveValue(_orderArrays[_facetIndex[dynamicAR[j]]].get(docID));
                     break;
           case TYPENUMBER_FACET_DOUBLE:  
-                    doubles[_arrayIndex[dynamicAR[j]]] = ((TermDoubleList)_termLists[_facetIndex[dynamicAR[j]]]).getPrimitiveValue(_orderArrays[_facetIndex[dynamicAR[j]]].get(_innerScorer.docID()));
+                    doubles[_arrayIndex[dynamicAR[j]]] = ((TermDoubleList)_termLists[_facetIndex[dynamicAR[j]]]).getPrimitiveValue(_orderArrays[_facetIndex[dynamicAR[j]]].get(docID));
                     break;
           case TYPENUMBER_FACET_FLOAT: 
-                    floats[_arrayIndex[dynamicAR[j]]] = ((TermFloatList)_termLists[_facetIndex[dynamicAR[j]]]).getPrimitiveValue(_orderArrays[_facetIndex[dynamicAR[j]]].get(_innerScorer.docID()));
+                    floats[_arrayIndex[dynamicAR[j]]] = ((TermFloatList)_termLists[_facetIndex[dynamicAR[j]]]).getPrimitiveValue(_orderArrays[_facetIndex[dynamicAR[j]]].get(docID));
                     break;
           case TYPENUMBER_FACET_SHORT: 
-                    shorts[_arrayIndex[dynamicAR[j]]] = ((TermShortList)_termLists[_facetIndex[dynamicAR[j]]]).getPrimitiveValue(_orderArrays[_facetIndex[dynamicAR[j]]].get(_innerScorer.docID()));
+                    shorts[_arrayIndex[dynamicAR[j]]] = ((TermShortList)_termLists[_facetIndex[dynamicAR[j]]]).getPrimitiveValue(_orderArrays[_facetIndex[dynamicAR[j]]].get(docID));
                     break;
           case TYPENUMBER_FACET_STRING:
-                    strings[_arrayIndex[dynamicAR[j]]] = ((TermStringList)_termLists[_facetIndex[dynamicAR[j]]]).get(_orderArrays[_facetIndex[dynamicAR[j]]].get(_innerScorer.docID()));
+                    strings[_arrayIndex[dynamicAR[j]]] = ((TermStringList)_termLists[_facetIndex[dynamicAR[j]]]).get(_orderArrays[_facetIndex[dynamicAR[j]]].get(docID));
                     break;
                     
           // multi-facet below;
           case TYPENUMBER_FACET_M_INT:
-                    mFacetInts[_mArrayIndex[dynamicAR[j]]].refresh(_innerScorer.docID());
+                    mFacetInts[_mArrayIndex[dynamicAR[j]]].refresh(docID);
                     break;
           case TYPENUMBER_FACET_M_LONG:
-                    mFacetLongs[_mArrayIndex[dynamicAR[j]]].refresh(_innerScorer.docID());
+                    mFacetLongs[_mArrayIndex[dynamicAR[j]]].refresh(docID);
                     break;
           case  TYPENUMBER_FACET_M_DOUBLE:
-                    mFacetDoubles[_mArrayIndex[dynamicAR[j]]].refresh(_innerScorer.docID());
+                    mFacetDoubles[_mArrayIndex[dynamicAR[j]]].refresh(docID);
                     break;
           case TYPENUMBER_FACET_M_FLOAT:
-                    mFacetFloats[_mArrayIndex[dynamicAR[j]]].refresh(_innerScorer.docID());
+                    mFacetFloats[_mArrayIndex[dynamicAR[j]]].refresh(docID);
                     break;
           case TYPENUMBER_FACET_M_SHORT:
-                    mFacetShorts[_mArrayIndex[dynamicAR[j]]].refresh(_innerScorer.docID());
+                    mFacetShorts[_mArrayIndex[dynamicAR[j]]].refresh(docID);
                     break;
           case TYPENUMBER_FACET_M_STRING:
-                    mFacetStrings[_mArrayIndex[dynamicAR[j]]].refresh(_innerScorer.docID());
+                    mFacetStrings[_mArrayIndex[dynamicAR[j]]].refresh(docID);
                     break;
 
           default: 
