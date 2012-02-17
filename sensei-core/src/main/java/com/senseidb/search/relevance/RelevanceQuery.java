@@ -312,7 +312,7 @@ public class RelevanceQuery extends AbstractScoreAdjuster
 //               
 //                  "variables": {
 //                                 "set_int":["c","d"],  // supported hashset types: [set_int, set_float, set_string, set_double, set_long]
-//                                 "map_int_float":["j"],  // currently supported hashmap: [map_int_float]
+//                                 "map_int_float":["j"],  // currently supported hashmap: [map_int_float, map_int_double, map_int_*...]
 //                                 "int":["e","f"],       // supported normal variables: [int, double, float, long, bool, string]
 //                                 "long":["g","h"]
 //                                },
@@ -366,20 +366,21 @@ public class RelevanceQuery extends AbstractScoreAdjuster
                     "model":{
                         "variables":{
                              "set_int":["goodYear"],
-                             "int":["thisYear"]
+                             "int":["thisYear"],
+                             "map_int_float":["mileageWeight"]
                             },
                         "facets":{
                              "int":["year","mileage"],
                              "long":["groupid"]
                             },
-    
-                       "function_params":["_INNER_SCORE", "thisYear", "year","goodYear"],              
-                       "function":" if(goodYear.contains(year)) return (float)Math.exp(10d);   if(year==thisYear) return 87f   ; return  _INNER_SCORE    ;"
+                        "function_params":["_INNER_SCORE", "thisYear", "year","goodYear","mileageWeight","mileage"],  
+                        "function":" if(mileageWeight.containsKey(mileage)) return 10000+mileageWeight.get(mileage); if(goodYear.contains(year)) return (float)Math.exp(2d);   if(year==thisYear) return 87f   ; return  _INNER_SCORE;"
                     },
                     
                     "values":{
                          "goodYear":[1996,1997],
-                         "thisYear":2001
+                         "thisYear":2001,
+                         "mileageWeight":{"key":[11400,11000],"value":[777.9, 10.2]}
                     }
                 }
             }
