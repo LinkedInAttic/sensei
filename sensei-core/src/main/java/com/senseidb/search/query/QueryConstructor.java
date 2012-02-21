@@ -10,6 +10,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.senseidb.search.relevance.RelevanceQuery;
+
 public abstract class QueryConstructor
 {
   public static final String VALUES_PARAM                       = "values";

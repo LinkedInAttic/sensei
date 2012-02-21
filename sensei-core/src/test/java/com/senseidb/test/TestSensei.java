@@ -712,6 +712,39 @@ public class TestSensei extends TestCase {
     assertEquals("inner score for first is not correct." , true, firstScore == 1 );
     assertEquals("inner score for second is not correct." , true, secondScore == 1);
   }
+  
+  public void testRelevanceHashMapInt2Int() throws Exception
+  {
+    logger.info("executing test case testRelevanceHashMapInt2Int");
+    String req = "{\"sort\":[\"_score\"],\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"model\":{\"function_params\":[\"_INNER_SCORE\",\"thisYear\",\"year\",\"goodYear\",\"mileageWeight\",\"mileage\"],\"facets\":{\"int\":[\"year\",\"mileage\"],\"long\":[\"groupid\"]},\"function\":\" if(mileageWeight.containsKey(mileage)) return 10000+mileageWeight.get(mileage); if(goodYear.contains(year)) return (float)Math.exp(2d);   if(year==thisYear) return 87f   ; return  _INNER_SCORE;\",\"variables\":{\"map_int_float\":[\"mileageWeight\"],\"set_int\":[\"goodYear\"],\"int\":[\"thisYear\"]}},\"values\":{\"thisYear\":2001,\"mileageWeight\":{\"value\":[777.9,10.2],\"key\":[11400,11000]},\"goodYear\":[1996,1997]}}}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":6}";
+    JSONObject res = search(new JSONObject(req));
+    assertEquals("numhits is wrong", 15000, res.getInt("numhits"));
+    //the first one should has socre 10777.900390625, and mileage: 11400;
+    JSONArray hits = res.getJSONArray("hits");
+    JSONObject firstHit = hits.getJSONObject(0);
+    JSONObject secondHit = hits.getJSONObject(1);
+    
+    double firstScore = firstHit.getDouble("_score");
+    double secondScore = secondHit.getDouble("_score");
+    
+    String firstMileage = firstHit.getJSONArray("mileage").getString(0);
+    String secondMileage = secondHit.getJSONArray("mileage").getString(0);
+    
+    assertEquals("inner score for first is not correct." , true, Math.abs(firstScore - 10777.900390625) < 1 );
+    assertEquals("inner score for second is not correct." , true, Math.abs(secondScore - 10777.900390625) < 1 );
+    
+    assertEquals("mileage for first is not correct." , true, Integer.parseInt(firstMileage)==11400 );
+    assertEquals("mileage for second is not correct." , true, Integer.parseInt(secondMileage)==11400 );
+    
+  }
+  
+  public void testRelevanceMulti() throws Exception
+  {
+    logger.info("executing test case testRelevanceMulti");
+    String req = "{\"sort\":[\"_score\"],\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"model\":{\"function_params\":[\"_INNER_SCORE\",\"thisYear\",\"year\",\"goodYear\",\"tags\",\"coolTag\"],\"facets\":{\"mstring\":[\"tags\"],\"int\":[\"year\",\"mileage\"],\"long\":[\"groupid\"]},\"function\":\" if(tags.contains(coolTag)) return 999999f; if(goodYear.contains(year)) return (float)Math.exp(10d);   if(year==thisYear) return 87f   ; return  _INNER_SCORE    ;\",\"variables\":{\"set_int\":[\"goodYear\"],\"int\":[\"thisYear\"], \"string\":[\"coolTag\"]}},\"values\":{\"coolTag\":\"cool\", \"thisYear\":2001,\"goodYear\":[1996,1997]}}}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":6}";
+    JSONObject res = search(new JSONObject(req));
+    assertEquals("numhits is wrong", 15000, res.getInt("numhits"));
+  }
 
   public static JSONObject search(JSONObject req) throws Exception  {
     return  search(SenseiStarter.SenseiUrl, req.toString());

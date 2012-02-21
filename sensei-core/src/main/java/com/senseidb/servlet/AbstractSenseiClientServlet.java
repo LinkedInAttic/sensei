@@ -227,11 +227,11 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
 
       if (jsonObj != null)
       {
+        Logger log = Logger.getLogger("com.sensei.querylog");
+        
         String bqlStmt = jsonObj.optString("bql");
         if (bqlStmt.length() > 0)
         {
-          Logger log = Logger.getLogger("com.sensei.querylog");
-          
           try 
           {
             if (log.isInfoEnabled()){
@@ -265,7 +265,6 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
           }
         }
         else{
-          Logger log = Logger.getLogger("com.sensei.querylog");
           if (log.isInfoEnabled()){
             log.info("query="+content);
           }

@@ -138,6 +138,7 @@
                
                   "variables": {
                                  "set_int":["c","d"],  // supported hashset types: [set_int, set_float, set_string, set_double, set_long]
+                                 "map_int_float":["j"],  // currently supported hashmap: [map_int_float, map_int_double, map_int_*...]
                                  "int":["e","f"],       // supported normal variables: [int, double, float, long, bool, string]
                                  "long":["g","h"]
                                 },
@@ -171,7 +172,8 @@
                  //(2) Input values for the model above, if the model requires input values;
                  "values":{
                    "c":[1996,1997],
-                   "e":0.98
+                   "e":0.98,
+                   "j":{"key":[1,2,3], "value":[2.3, 3.4, 2.9]}      // a user input hashmap;
                  }
             }
   },
