@@ -40,6 +40,9 @@ public class Filters {
     public static BoolFilter boolShould(Filter... should) {
         return new BoolFilter( null, null, Arrays.asList(should));
     }
+    public static IsNull isNull(String fieldName) {
+      return new IsNull(fieldName);
+  }
     public static Term term(String field, String value) {
         return (Term)new Term(value).setField(field);
     }
