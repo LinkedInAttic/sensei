@@ -1,6 +1,10 @@
 package com.senseidb.indexing;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
+
+import org.apache.log4j.Logger;
+import org.apache.lucene.index.IndexCommit;
 
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.api.BrowseSelection;
@@ -64,4 +68,57 @@ public interface SenseiIndexPruner {
 			};
 		}
 	}
+	
+	/**
+	 * An implementation of index pruner which prunes indexes based on
+	 * the age (the last time it was committed to disk) of an index segment. 
+	 */
+	public static class AgeBasedSelectionSenseiIndexPruner implements SenseiIndexPruner {
+		
+		long _maxAgeInDays;
+		private static Logger _logger = Logger.getLogger(AgeBasedSelectionSenseiIndexPruner.class);
+
+		/**
+		 * Constructor
+		 * @param days maximum age (in days) of an index beyond which it will be pruned.
+		 */
+		public AgeBasedSelectionSenseiIndexPruner(long days)
+		{
+			_maxAgeInDays = days;
+		}
+		
+		 /**
+		  */
+		public void setMaxAge(long days)
+		{
+			_maxAgeInDays = days;
+		}
+		
+		@Override
+		public IndexReaderSelector getReaderSelector(final SenseiRequest req)
+		{
+			return new IndexReaderSelector() {
+				@Override
+				public  boolean isSelected(BoboIndexReader reader) throws IOException
+				{
+					long commitTime = reader.getIndexCommit().getTimestamp();
+					long diff = System.currentTimeMillis() - commitTime;
+					long days = TimeUnit.DAYS.convert(diff, TimeUnit.MILLISECONDS);
+
+					if (_logger.isDebugEnabled())
+					{
+						if (days > _maxAgeInDays)
+						{
+							_logger.debug("regjecting " + reader + " because it is "
+								+ (days - _maxAgeInDays)
+								+ " older than max days allowed: " + _maxAgeInDays);
+						}
+					}
+					
+					return days < _maxAgeInDays;
+				}
+			};
+		}
+	}
 }
+
