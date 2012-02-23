@@ -170,7 +170,7 @@ public class SchemaConverter
 
   public static void main(String[] args) throws Exception
   {
-    File xmlSchema = new File("conf/schema.xml");
+    File xmlSchema = new File("../example/cars/conf/schema.xml");
     if (!xmlSchema.exists()){
       throw new ConfigurationException("schema not file");
     }
