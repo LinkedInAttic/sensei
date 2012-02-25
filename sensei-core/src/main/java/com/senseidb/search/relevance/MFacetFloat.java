@@ -16,16 +16,12 @@ public class MFacetFloat extends MFacet
   @Override
   public boolean containsAll(Set set)
   {
-    for(int i=0; i< this.length; i++)
-      if(set.contains(((TermFloatList) _mTermList).getPrimitiveValue(buf[i])))
-        return true;
-              
-    return false;
+    throw new UnsupportedOperationException("not implemented yet");
   }
   
   public boolean containsAll(float[] target)
   {
-    return false;
+    throw new UnsupportedOperationException("not implemented yet");
   }
   
   

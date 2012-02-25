@@ -260,6 +260,8 @@ public class RelevanceQuery extends AbstractScoreAdjuster
     pool.importPackage("it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap");
     pool.importPackage("it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap");
     
+    pool.importPackage("it.unimi.dsi.fastutil.objects.AbstractObject2FloatMap");
+    
     
     pool.importPackage("com.senseidb.search.relevance.MFacet");
     pool.importPackage("com.senseidb.search.relevance.MFacetDouble");
@@ -298,6 +300,8 @@ public class RelevanceQuery extends AbstractScoreAdjuster
     hs_safe.add("it.unimi.dsi.fastutil.objects.Object2DoubleOpenHashMap");
     hs_safe.add("it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap");
     hs_safe.add("it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap");
+    
+    hs_safe.add("it.unimi.dsi.fastutil.objects.AbstractObject2FloatMap");
     
     
     hs_safe.add("com.senseidb.search.relevance.RelevanceQuery");
@@ -398,20 +402,27 @@ public class RelevanceQuery extends AbstractScoreAdjuster
                         "variables":{
                              "set_int":["goodYear"],
                              "int":["thisYear"],
-                             "map_int_float":["mileageWeight"]
+                             "map_int_float":["mileageWeight"],
+                             "map_int_string":["yearcolor"],
+                             "map_string_float":["colorweight"],
+                             "map_string_string":["categorycolor"]
                             },
                         "facets":{
                              "int":["year","mileage"],
-                             "long":["groupid"]
+                             "long":["groupid"],
+                             "string":["color","category"] 
                             },
-                        "function_params":["_INNER_SCORE", "thisYear", "year","goodYear","mileageWeight","mileage"],  
-                        "function":" if(mileageWeight.containsKey(mileage)) return 10000+mileageWeight.get(mileage); if(goodYear.contains(year)) return (float)Math.exp(2d);   if(year==thisYear) return 87f   ; return  _INNER_SCORE;"
+                        "function_params":["_INNER_SCORE", "thisYear", "year","goodYear","mileageWeight","mileage","color", "yearcolor", "colorweight", "category", "categorycolor"],  
+                        "function":" if(categorycolor.containsKey(category) && categorycolor.get(category).equals(color))  return 10000f; if(colorweight.containsKey(color) ) return 200f + colorweight.getFloat(color); if(yearcolor.containsKey(year) && yearcolor.get(year).equals(color)) return 200f; if(mileageWeight.containsKey(mileage)) return 10000+mileageWeight.get(mileage); if(goodYear.contains(year)) return (float)Math.exp(2d);   if(year==thisYear) return 87f   ; return  _INNER_SCORE;"
                     },
                     
                     "values":{
                          "goodYear":[1996,1997],
                          "thisYear":2001,
-                         "mileageWeight":{"key":[11400,11000],"value":[777.9, 10.2]}
+                         "mileageWeight":{"key":[11400,11000],"value":[777.9, 10.2]},
+                        "yearcolor":{"key":[1998],"value":["red"]},
+                        "colorweight":{"key":["red"],"value":[335.5]},
+                        "categorycolor":{"key":["compact"],"value":["red"]}
                     }
                 }
             }
