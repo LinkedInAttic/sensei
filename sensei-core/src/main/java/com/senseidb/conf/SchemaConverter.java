@@ -74,7 +74,7 @@ public class SchemaConverter
           columnObj.put("from", frm);
 
           columnObj.put("multi", Boolean.parseBoolean(column.getAttribute("multi")));
-
+          columnObj.put("activity", Boolean.parseBoolean(column.getAttribute("activity")));
           String delimString = column.getAttribute("delimiter");
           if (delimString != null && delimString.trim().length() > 0)
           {

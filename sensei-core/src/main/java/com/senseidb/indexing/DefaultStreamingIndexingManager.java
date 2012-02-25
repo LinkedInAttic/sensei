@@ -30,6 +30,7 @@ import proj.zoie.mbean.DataProviderAdminMBean;
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.senseidb.conf.SenseiSchema;
 import com.senseidb.gateway.SenseiGateway;
+import com.senseidb.indexing.activity.CompositeActivityManager;
 import com.senseidb.jmx.JmxUtil;
 import com.senseidb.metrics.MetricsConstants;
 import com.senseidb.plugin.SenseiPluginRegistry;
@@ -82,13 +83,18 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 	private final SenseiGateway<?> _gateway;
   private final ShardingStrategy _shardingStrategy;
   private final Comparator<String> _versionComparator;
-
+  private final CompositeActivityManager activityManager;
   private SenseiPluginRegistry pluginRegistry;
+  private final String indexDirectory;
 
+  private final int nodeId;
+  
 
 	public DefaultStreamingIndexingManager(SenseiSchema schema,Configuration senseiConfig, 
-	    SenseiPluginRegistry pluginRegistry, SenseiGateway<?> gateway,ShardingStrategy shardingStrategy){
-	  _dataProvider = null;
+	    SenseiPluginRegistry pluginRegistry, SenseiGateway<?> gateway, ShardingStrategy shardingStrategy, String indexDirectory, int nodeId){
+	  this.indexDirectory = indexDirectory;
+    this.nodeId = nodeId;
+    _dataProvider = null;
 	  _myconfig = senseiConfig.subset(CONFIG_PREFIX);
      this.pluginRegistry = pluginRegistry;
 	  _oldestSinceKey = null;
@@ -96,7 +102,7 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 	  _zoieSystemMap = null;
 	  _dataCollectorMap = new LinkedHashMap<Integer, Collection<DataEvent<JSONObject>>>();
 	  _gateway = gateway;
-
+	  activityManager = new CompositeActivityManager();
 	  if (_gateway!=null){
 	    _versionComparator = _gateway.getVersionComparator();
 	  }
@@ -139,6 +145,7 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 	    if (_dataProvider!=null){
 	    _dataProvider.setDataConsumer(consumer);
 	    }
+	    activityManager.init(indexDirectory, nodeId, _senseiSchema, _gateway.getVersionComparator());
 	}
 
   @Override
@@ -173,6 +180,7 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 
 	@Override
 	public void shutdown() {
+	  activityManager.close();
 	  if (_dataProvider!=null){
 	    _dataProvider.stop();
 	  }
@@ -258,10 +266,15 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
           byte[] src = null;
           long uid = event.getLong(_senseiSchema.getUidField());
           for (ZoieIndexReader<BoboIndexReader> reader : readers)
-          {
+          {            
             src = reader.getStoredValue(uid);
             if (src != null)
               break;
+          }
+          if (src != null && activityManager.isOnlyActivityUpdate(obj)) {
+            obj.put(SenseiSchema.EVENT_TYPE_FIELD, SenseiSchema.EVENT_TYPE_SKIP);
+            obj.put(CompositeActivityManager.EVENT_TYPE_ONLY_ACTIVITY, true);
+            return obj;
           }
           byte[] data = null;
 
@@ -322,6 +335,7 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
             JSONObject rewrited = rewriteData(obj, routeToPart);
             if (rewrited != null)
             {
+              activityManager.update(rewrited, dataEvt.getVersion());
               if (rewrited != obj)
                 dataEvt = new DataEvent<JSONObject>(rewrited, dataEvt.getVersion());
               partDataSet.add(dataEvt);

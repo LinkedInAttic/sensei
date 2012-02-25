@@ -39,8 +39,8 @@ public class SenseiTermFilter extends Filter {
   
   public SenseiTermFilter(String name,String vals[],String[] not,boolean isAnd,boolean noAutoOptimize){
     _name = name;
-    _vals = vals;
-    _not = not;
+    _vals = vals != null  ? vals : new String[0];
+    _not = not != null  ? not : new String[0];
     _isAnd = isAnd;
     _noAutoOptimize = noAutoOptimize;
   }

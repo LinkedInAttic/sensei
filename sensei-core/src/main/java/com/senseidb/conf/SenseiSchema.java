@@ -51,6 +51,7 @@ public class SenseiSchema {
 		public IndexSpec textIndexSpec;
 		public String fromField;
 		public boolean isMulti;
+		public boolean isActivity;
 		public String delim = ",";
 		public Class type = null;
 	}
@@ -127,7 +128,7 @@ public class SenseiSchema {
               fdef.isMeta = true;
               
               fdef.isMulti = column.optBoolean("multi");
-              
+              fdef.isActivity = column.optBoolean("activity");
               
               String delimString = column.optString("delimiter");
               if (delimString!=null && delimString.trim().length()>0){
@@ -256,7 +257,10 @@ public class SenseiSchema {
 				if (isMultiString!=null && isMultiString.trim().length()>0){
 					fdef.isMulti = Boolean.parseBoolean(isMultiString);
 				}
-				
+				String isActivityString = column.getAttribute("activity");
+        if (isActivityString!=null && isActivityString.trim().length()>0){
+          fdef.isActivity = Boolean.parseBoolean(isActivityString);
+        }
 				String delimString = column.getAttribute("delimiter");
 				if (delimString!=null && delimString.trim().length()>0){
 					fdef.delim = delimString;

@@ -19,7 +19,8 @@ public class SenseiReduceFunctionWrapper {
     for (int i = 1; i < results.size(); i++) {
       ret.getMapResults().addAll(results.get(i).getMapResults());
     }
-    ret.setMapResults(mapReduceFunction.combine(ret.getMapResults()));
+    System.out.println("##Combine on node level");
+    ret.setMapResults(new ArrayList(mapReduceFunction.combine(ret.getMapResults())));
     return ret;
   }
  

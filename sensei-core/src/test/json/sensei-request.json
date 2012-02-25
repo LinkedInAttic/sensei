@@ -121,7 +121,7 @@
   "templateMapping":{
     "size" : 10
   }
-
+  "mapReduce":{"function":"com.senseidb.search.req.mapred.functions.MaxMapReduce","parameters":{"column":"groupid"}} 	
   //"size" : "$size"
 
   // Meta data: meta information about the request

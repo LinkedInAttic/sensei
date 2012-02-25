@@ -372,14 +372,16 @@ public class SenseiFacetHandlerBuilder {
 				} else if (type.equals("path")) {
 					facetHandler = buildPathHandler(name, fieldName, paramMap);
 				} else if (type.equals("range")) {
-					facetHandler = buildRangeHandler(name, fieldName, termListFactoryMap.get(fieldName), paramMap);
+					if (column.optBoolean("multi")) {
+					  facetHandler = new MultiRangeFacetHandler(name, fieldName, null,  termListFactoryMap.get(fieldName) , buildPredefinedRanges(paramMap));
+					} else {
+					  facetHandler = buildRangeHandler(name, fieldName, termListFactoryMap.get(fieldName), paramMap);
+					}
 				} else if (type.equals("multi")) {
 					facetHandler = buildMultiHandler(name, fieldName,  termListFactoryMap.get(fieldName), dependSet);
 				} else if (type.equals("compact-multi")) {
 					facetHandler = buildCompactMultiHandler(name, fieldName, dependSet,  termListFactoryMap.get(fieldName));
-				} else if (type.equals("multi-range")) {
-          facetHandler = new MultiRangeFacetHandler(name, fieldName, null,  termListFactoryMap.get(fieldName) , buildPredefinedRanges(paramMap));
-        } else if (type.equals("attribute")) {
+				} else if (type.equals("attribute")) {
           facetHandler = new AttributesFacetHandler(name, fieldName,  termListFactoryMap.get(fieldName), null , facetProps);
         } else if (type.equals("histogram")) {
 				  // A histogram facet handler is always dynamic

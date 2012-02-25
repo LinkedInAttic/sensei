@@ -1,5 +1,6 @@
 package com.senseidb.search.req.mapred.impl;
 
+import java.util.ArrayList;
 import java.util.Set;
 
 import proj.zoie.api.ZoieSegmentReader;
@@ -47,24 +48,25 @@ public class SenseiMapFunctionWrapper implements BoboMapFunctionWrapper {
       partialDocIds[docIdIndex++] = docId;
       ZoieSegmentReader<?> zoieReader = (ZoieSegmentReader<?>)(reader.getInnerReader());
       DocIDMapperImpl docIDMapper = (DocIDMapperImpl) zoieReader.getDocIDMaper();
-      result.getMapResults().add(mapReduceStrategy.map(docIDMapper.getDocArray(), BUFFER_SIZE, zoieReader.getUIDArray(), new FieldAccessor(facetInfos, reader, docIDMapper)));
+      result.getMapResults().add(mapReduceStrategy.map(partialDocIds, BUFFER_SIZE, zoieReader.getUIDArray(), new FieldAccessor(facetInfos, reader, docIDMapper)));
       docIdIndex = 0;
     }
   }
 
   @Override
   public void finalizeSegment(BoboIndexReader reader) {
+    
     if (docIdIndex > 0) {
       ZoieSegmentReader<?> zoieReader = (ZoieSegmentReader<?>)(reader.getInnerReader());
       DocIDMapperImpl docIDMapper = (DocIDMapperImpl) zoieReader.getDocIDMaper();
-      result.getMapResults().add(mapReduceStrategy.map(partialDocIds, docIdIndex, zoieReader.getUIDArray(), new FieldAccessor(facetInfos, reader, docIDMapper)));
+      result.getMapResults().add(mapReduceStrategy.map(partialDocIds, docIdIndex, zoieReader.getUIDArray(), new FieldAccessor(facetInfos, reader, docIDMapper)));    
     }
     docIdIndex = 0;
   }
 
   @Override
   public void finalizePartition() {
-    result.setMapResults(mapReduceStrategy.combine(result.getMapResults()));    
+    result.setMapResults(new ArrayList(mapReduceStrategy.combine(result.getMapResults()))) ;    
   }
 
   @Override
