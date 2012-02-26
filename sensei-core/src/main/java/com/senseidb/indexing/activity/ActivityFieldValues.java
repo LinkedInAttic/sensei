@@ -158,7 +158,7 @@ public class ActivityFieldValues {
       return;
     }
     
-    synchronized(fieldValues) {
+    
     if (value instanceof Integer) {
       fieldValues[index] = (Integer) value;
     } else if (value instanceof Long) {
@@ -178,7 +178,7 @@ public class ActivityFieldValues {
     } else {
       throw new UnsupportedOperationException("Only longs, ints and String are supported");
     }
-    }
+    
   }
 
   protected ReadWriteLock getLock(long uid) {
