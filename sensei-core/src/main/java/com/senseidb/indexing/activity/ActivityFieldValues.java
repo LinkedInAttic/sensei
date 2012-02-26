@@ -42,7 +42,7 @@ public class ActivityFieldValues {
   public void init() {
     init(50000);
   }
-
+  
   public void update(long uid, final String version, Object value) {
     if (versionComparator.compare(lastVersion, version) > 0) {
       return;
@@ -119,15 +119,15 @@ public class ActivityFieldValues {
       if (uid == ZoieIndexReader.DELETED_UID) {
         ret[i] = -1;
       }
-      ReadWriteLock lock = getLock(uid);
+      Lock lock = getLock(uid).readLock();
       try {
-        lock.readLock();
+        lock.lock();
         if (!uidToArrayIndex.containsKey(uid)) {
           throw new IllegalStateException("Couldn't find the field value for the uid = " + uid);
         }
         ret[i] = uidToArrayIndex.get(uid);       
       } finally {
-        lock.readLock().unlock();
+        lock.unlock();
       }
     }
     return ret;

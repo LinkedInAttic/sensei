@@ -2,6 +2,7 @@ package com.senseidb.indexing.activity;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -19,11 +20,33 @@ public class CompositeActivityManager {
     protected Map<String, ActivityFieldValues> columnsMap;
     private SenseiSchema senseiSchema;
     public static final String EVENT_TYPE_ONLY_ACTIVITY = "activity-update";
-    private int nodeId; 
-    public void init(String indexDirectory, int nodeId, SenseiSchema senseiSchema, Comparator<String> versionComparator) {
+    private int nodeId;
+    private Comparator<String> versionComparator; 
+    public CompositeActivityManager() {
+      
+    }
+    public CompositeActivityManager(String indexDirectory, int nodeId, SenseiSchema senseiSchema, Comparator<String> versionComparator) {
+      this.init(indexDirectory, nodeId, senseiSchema, versionComparator);
+    }
+    
+    public String getOldestSinceVersion() {
+      String ret = null;
+      for (ActivityFieldValues activityFieldValues : columnsMap.values()) {
+        if (ret != null && versionComparator.compare(activityFieldValues.getVersion(), ret) < 0) {
+          ret = activityFieldValues.getVersion();
+        }
+        else {
+          ret = activityFieldValues.getVersion();;
+        }
+      }
+      return ret;
+    }
+    
+    public final void init(String indexDirectory, int nodeId, SenseiSchema senseiSchema, Comparator<String> versionComparator) {
       this.nodeId = nodeId;
       this.senseiSchema = senseiSchema;
-      columnsMap = new HashMap<String, ActivityFieldValues>();
+      this.versionComparator = versionComparator;
+      columnsMap = Collections.synchronizedMap(new HashMap<String, ActivityFieldValues>());
       try {
         File dir = new File(indexDirectory, "node" +nodeId +"/activity");
         dir.mkdirs();
@@ -37,6 +60,9 @@ public class CompositeActivityManager {
       } catch (IOException ex) {
         throw new RuntimeException(ex);
       }
+    }
+    public ActivityFieldValues getActivityFieldValues(String field) {
+      return columnsMap.get(field);
     }
     public boolean isOnlyActivityUpdate(JSONObject event) {
       boolean activityPresent = false;     
@@ -61,7 +87,6 @@ public class CompositeActivityManager {
           return;
         }        
         long uid = event.getLong(senseiSchema.getUidField());
-        //System.out.println("!!!setValue uid = " + uid + ", value = " + event.optString("likes") + ", threadId=" + Thread.currentThread().getId() + ",nodeId=" + nodeId);
         for (String field : columnsMap.keySet()) {
           columnsMap.get(field).update(uid, version, event.opt(field));
           event.remove(field);

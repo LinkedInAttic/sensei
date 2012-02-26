@@ -85,16 +85,13 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
   private final Comparator<String> _versionComparator;
   private final CompositeActivityManager activityManager;
   private SenseiPluginRegistry pluginRegistry;
-  private final String indexDirectory;
+  
 
-  private final int nodeId;
   
 
 	public DefaultStreamingIndexingManager(SenseiSchema schema,Configuration senseiConfig, 
-	    SenseiPluginRegistry pluginRegistry, SenseiGateway<?> gateway, ShardingStrategy shardingStrategy, String indexDirectory, int nodeId){
-	  this.indexDirectory = indexDirectory;
-    this.nodeId = nodeId;
-    _dataProvider = null;
+	    SenseiPluginRegistry pluginRegistry, SenseiGateway<?> gateway, ShardingStrategy shardingStrategy, CompositeActivityManager activityManager){
+	    _dataProvider = null;
 	  _myconfig = senseiConfig.subset(CONFIG_PREFIX);
      this.pluginRegistry = pluginRegistry;
 	  _oldestSinceKey = null;
@@ -102,7 +99,7 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 	  _zoieSystemMap = null;
 	  _dataCollectorMap = new LinkedHashMap<Integer, Collection<DataEvent<JSONObject>>>();
 	  _gateway = gateway;
-	  activityManager = new CompositeActivityManager();
+	  this.activityManager = activityManager;
 	  if (_gateway!=null){
 	    _versionComparator = _gateway.getVersionComparator();
 	  }
@@ -141,11 +138,11 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 	      updateOldestSinceKey(zoie.getVersion());
 	      _dataCollectorMap.put(part, new LinkedList<DataEvent<JSONObject>>());
 	    }
+	    updateOldestSinceKey(activityManager.getOldestSinceVersion());	    
 
 	    if (_dataProvider!=null){
 	    _dataProvider.setDataConsumer(consumer);
-	    }
-	    activityManager.init(indexDirectory, nodeId, _senseiSchema, _gateway.getVersionComparator());
+	    }	   
 	}
 
   @Override

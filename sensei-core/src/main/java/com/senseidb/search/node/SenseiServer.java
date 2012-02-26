@@ -4,6 +4,8 @@ import java.io.File;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.util.HashSet;
 import java.util.List;
 
@@ -192,13 +194,7 @@ public class SenseiServer {
       nodeExists = (_serverNode != null);
       if (!nodeExists)
       {
-        DatagramSocket ds = new DatagramSocket();
-        ds.connect(InetAddress.getByName(DUMMY_OUT_IP), 80);
-        String inetAddress = new InetSocketAddress(ds.getLocalAddress(), _port).toString();
-		if (inetAddress.trim().startsWith("0.0.0.0/")) {
-			 inetAddress = new InetSocketAddress(InetAddress.getLocalHost().getHostAddress(), _port).toString();
-		}
-        String ipAddr = inetAddress.replaceAll("/", "");
+        String ipAddr = getLocalIpAddress();
 
         logger.info("Node id : " + _id + " IP address : " + ipAddr);
 
@@ -238,9 +234,8 @@ public class SenseiServer {
         {
           logger.error("problem removing old node: " + e.getMessage(), e);
         }
-        DatagramSocket ds = new DatagramSocket();
-        ds.connect(InetAddress.getByName(DUMMY_OUT_IP), 80);
-        String ipAddr = (new InetSocketAddress(ds.getLocalAddress(), _port)).toString().replaceAll("/", "");
+       
+        String ipAddr = getLocalIpAddress();
         _serverNode = _clusterClient.addNode(_id, ipAddr, partition);
         Thread.sleep(1000);
 
@@ -280,6 +275,18 @@ public class SenseiServer {
 	SenseiServerAdminMBean senseiAdminMBean = getAdminMBean();
 	StandardMBean bean = new StandardMBean(senseiAdminMBean, SenseiServerAdminMBean.class);
 	JmxUtil.registerMBean(bean, "name", "sensei-server-"+_id);
+  }
+
+  private String getLocalIpAddress() throws SocketException,
+      UnknownHostException {
+    DatagramSocket ds = new DatagramSocket();
+    ds.connect(InetAddress.getByName(DUMMY_OUT_IP), 80);
+    String inetAddress = new InetSocketAddress(ds.getLocalAddress(), _port).toString();
+    if (inetAddress.trim().startsWith("0.0.0.0/")) {
+      inetAddress = new InetSocketAddress(InetAddress.getLocalHost().getHostAddress(), _port).toString();
+    }
+    String ipAddr = inetAddress.replaceAll("/", "");
+    return ipAddr;
   }
 
 	private SenseiServerAdminMBean getAdminMBean()

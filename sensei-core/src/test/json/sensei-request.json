@@ -120,7 +120,7 @@
   //Allows template substitution on the server. The template occurrence in other places should begin with the dollar sign. Even for the int values the template needs to be in quotes
   "templateMapping":{
     "size" : 10
-  }
+  },
   "mapReduce":{"function":"com.senseidb.search.req.mapred.functions.MaxMapReduce","parameters":{"column":"groupid"}} 	
   //"size" : "$size"
 

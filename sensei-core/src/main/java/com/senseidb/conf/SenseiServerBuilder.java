@@ -72,6 +72,7 @@ import com.senseidb.indexing.DefaultJsonSchemaInterpreter;
 import com.senseidb.indexing.DefaultStreamingIndexingManager;
 import com.senseidb.indexing.SenseiIndexPruner;
 import com.senseidb.indexing.ShardingStrategy;
+import com.senseidb.indexing.activity.CompositeActivityManager;
 import com.senseidb.jmx.JmxSenseiMBeanServer;
 import com.senseidb.plugin.SenseiPluginRegistry;
 import com.senseidb.search.node.SenseiCore;
@@ -112,6 +113,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
   private final JSONObject _schemaDoc;
   private final SenseiSchema  _senseiSchema;
   private final SenseiGateway _gateway;
+  private CompositeActivityManager activityManager;
 
   static final String SENSEI_CONTEXT_PATH = "sensei";
 
@@ -385,14 +387,14 @@ public class SenseiServerBuilder implements SenseiConfParams{
         readercachefactory = SimpleReaderCache.FACTORY;
       }
       zoieConfig.setReadercachefactory(readercachefactory);
-
+      activityManager = new CompositeActivityManager( _senseiConf.getString(SENSEI_INDEX_DIR), nodeid, _senseiSchema, zoieConfig.getVersionComparator());      
       List<FacetHandler<?>> facetHandlers = new LinkedList<FacetHandler<?>>();
       List<RuntimeFacetHandlerFactory<?,?>> runtimeFacetHandlerFactories = new LinkedList<RuntimeFacetHandlerFactory<?,?>>();
 
       SenseiSystemInfo sysInfo = null;
 
       try {
-        sysInfo = SenseiFacetHandlerBuilder.buildFacets(_schemaDoc, pluginRegistry, facetHandlers, runtimeFacetHandlerFactories);
+        sysInfo = SenseiFacetHandlerBuilder.buildFacets(_schemaDoc, pluginRegistry, facetHandlers, runtimeFacetHandlerFactories, activityManager);
       }
       catch(JSONException jse){
         throw new ConfigurationException(jse.getMessage(),jse);
@@ -408,10 +410,14 @@ public class SenseiServerBuilder implements SenseiConfParams{
 
           DatagramSocket ds = new DatagramSocket();
           ds.connect(InetAddress.getByName(DUMMY_OUT_IP), 80);
+          InetAddress localAddress = ds.getLocalAddress();
+          if (localAddress.getHostName().equals("0.0.0.0")) {
+            localAddress = InetAddress.getLocalHost();
+          }
           clusterInfo.add(new SenseiSystemInfo.SenseiNodeInfo(nodeid, partitions,
-              (new InetSocketAddress(ds.getLocalAddress(),
+              (new InetSocketAddress(localAddress,
                   _senseiConf.getInt(SERVER_PORT))).toString().replaceAll("/", ""),
-              "http://"+(new InetSocketAddress(ds.getLocalAddress(),
+              "http://"+(new InetSocketAddress(localAddress,
                   _senseiConf.getInt(SERVER_BROKER_PORT))).toString().replaceAll("/", "")));
 
           sysInfo.setClusterInfo(clusterInfo);
@@ -445,7 +451,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
       }
 
       if (indexingManager == null){
-        indexingManager = new DefaultStreamingIndexingManager(_senseiSchema,_senseiConf, pluginRegistry, _gateway,strategy, _senseiConf.getString(SENSEI_INDEX_DIR), nodeid);
+        indexingManager = new DefaultStreamingIndexingManager(_senseiSchema,_senseiConf, pluginRegistry, _gateway,strategy, activityManager);
       }
       SenseiQueryBuilderFactory queryBuilderFactory = pluginRegistry.getBeanByFullPrefix(SENSEI_QUERY_BUILDER_FACTORY, SenseiQueryBuilderFactory.class);
       if (queryBuilderFactory == null){
