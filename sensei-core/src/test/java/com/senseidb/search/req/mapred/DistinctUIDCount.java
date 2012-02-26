@@ -35,7 +35,7 @@ public class DistinctUIDCount implements SenseiMapReduce<HashSet<Long>, Integer>
   }
 
   @Override
-  public List<HashSet<Long>> combine(List<HashSet<Long>> mapResults) {
+  public List<HashSet<Long>> combine(List<HashSet<Long>> mapResults, CombinerStage combinerStage) {
     HashSet<Long> ret = new HashSet<Long>();
     for (HashSet<Long> mapResult : mapResults) {
       ret.addAll(mapResult);

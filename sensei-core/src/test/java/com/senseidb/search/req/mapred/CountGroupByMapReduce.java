@@ -57,7 +57,7 @@ public class CountGroupByMapReduce implements SenseiMapReduce<HashMap<String, In
   }
 
   @Override
-  public List<HashMap<String, IntContainer>> combine(List<HashMap<String, IntContainer>> mapResults) {
+  public List<HashMap<String, IntContainer>> combine(List<HashMap<String, IntContainer>> mapResults, CombinerStage combinerStage) {
     
     if (mapResults == null || mapResults.isEmpty()) return mapResults;
     HashMap<String, IntContainer> ret = new HashMap<String, IntContainer>();

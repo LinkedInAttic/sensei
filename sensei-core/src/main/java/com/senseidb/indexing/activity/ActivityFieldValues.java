@@ -46,34 +46,25 @@ public class ActivityFieldValues {
   public void update(long uid, final String version, Object value) {
     if (versionComparator.compare(lastVersion, version) > 0) {
       return;
-    }   
+    }
     int index;
-    if (uidToArrayIndex.containsKey(uid)) {
-      ReadWriteLock lock = getLock(uid);
-      Lock writeLock = lock.writeLock();
-      try {
-        writeLock.lock();
-        index = uidToArrayIndex.get(uid);        
+    ReadWriteLock lock = getLock(uid);
+    Lock writeLock = lock.writeLock();
+    try {
+      writeLock.lock();
+      if (uidToArrayIndex.containsKey(uid)) {
+        index = uidToArrayIndex.get(uid);
         setValue(fieldValues, value, index);
-      } finally {
-        writeLock.unlock();
-      }
-    } else {
-      ReadWriteLock lock = getLock(uid);
-      Lock writeLock = lock.writeLock();
-      try {
-        writeLock.lock();
+      } else {
         ensureCapacity(fieldValues, uidToArrayIndex);
         index = uidToArrayIndex.size();
         uidToArrayIndex.put(uid, index);
         setValue(fieldValues, value, index);
-      } finally {
-        writeLock.unlock();
       }
-      
+    } finally {
+      writeLock.unlock();
     }
-    boolean needToFlush = updateBatch.addFieldUpdate(new FileStorage.FieldUpdate(index, uid, fieldValues[index],
-        version));
+    boolean needToFlush = updateBatch.addFieldUpdate(new FileStorage.FieldUpdate(index, uid, fieldValues[index], version));
     if (needToFlush) {
       flush();
     }

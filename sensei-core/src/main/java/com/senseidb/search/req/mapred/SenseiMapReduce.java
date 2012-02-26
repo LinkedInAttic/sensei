@@ -37,7 +37,7 @@ public interface SenseiMapReduce<MapResult extends Serializable, ReduceResult ex
    * @param mapResults
    * @return
    */
-  public List<MapResult>  combine(List<MapResult> mapResults);
+  public List<MapResult>  combine(List<MapResult> mapResults, CombinerStage combinerStage);
   /**
    * Reduce the merged map results
    * @param combineResults

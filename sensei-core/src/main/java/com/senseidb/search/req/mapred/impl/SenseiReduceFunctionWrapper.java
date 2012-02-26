@@ -6,6 +6,7 @@ import java.util.List;
 
 import com.browseengine.bobo.mapred.MapReduceResult;
 import com.senseidb.search.req.SenseiResult;
+import com.senseidb.search.req.mapred.CombinerStage;
 import com.senseidb.search.req.mapred.SenseiMapReduce;
 
 public class SenseiReduceFunctionWrapper {
@@ -20,7 +21,7 @@ public class SenseiReduceFunctionWrapper {
       ret.getMapResults().addAll(results.get(i).getMapResults());
     }
     System.out.println("##Combine on node level");
-    ret.setMapResults(new ArrayList(mapReduceFunction.combine(ret.getMapResults())));
+    ret.setMapResults(new ArrayList(mapReduceFunction.combine(ret.getMapResults(), CombinerStage.nodeLevel)));
     return ret;
   }
  

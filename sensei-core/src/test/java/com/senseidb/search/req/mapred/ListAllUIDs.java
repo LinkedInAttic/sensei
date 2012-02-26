@@ -25,7 +25,7 @@ public class ListAllUIDs implements SenseiMapReduce<Serializable, Serializable>{
   }
 
   @Override
-  public List<Serializable> combine(List<Serializable> mapResults) {
+  public List<Serializable> combine(List<Serializable> mapResults, CombinerStage combinerStage) {
     // TODO Auto-generated method stub
     return mapResults;
   }

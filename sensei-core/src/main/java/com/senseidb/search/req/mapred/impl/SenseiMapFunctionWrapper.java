@@ -11,6 +11,7 @@ import com.browseengine.bobo.mapred.BoboMapFunctionWrapper;
 import com.browseengine.bobo.mapred.MapReduceResult;
 import com.browseengine.bobo.util.MemoryManager;
 import com.senseidb.search.req.SenseiSystemInfo.SenseiFacetInfo;
+import com.senseidb.search.req.mapred.CombinerStage;
 import com.senseidb.search.req.mapred.FieldAccessor;
 import com.senseidb.search.req.mapred.SenseiMapReduce;
 import com.senseidb.search.req.mapred.obsolete.SenseiMapReduceResult;
@@ -66,7 +67,7 @@ public class SenseiMapFunctionWrapper implements BoboMapFunctionWrapper {
 
   @Override
   public void finalizePartition() {
-    result.setMapResults(new ArrayList(mapReduceStrategy.combine(result.getMapResults()))) ;    
+    result.setMapResults(new ArrayList(mapReduceStrategy.combine(result.getMapResults(), CombinerStage.partitionLevel))) ;    
   }
 
   @Override

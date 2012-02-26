@@ -8,6 +8,7 @@ import org.json.JSONObject;
 
 import scala.actors.threadpool.Arrays;
 
+import com.senseidb.search.req.mapred.CombinerStage;
 import com.senseidb.search.req.mapred.FieldAccessor;
 import com.senseidb.search.req.mapred.SenseiMapReduce;
 
@@ -31,7 +32,7 @@ public class MaxMapReduce implements SenseiMapReduce<MaxResult, MaxResult> {
   }
 
   @Override
-  public List<MaxResult> combine(List<MaxResult> mapResults) {
+  public List<MaxResult> combine(List<MaxResult> mapResults, CombinerStage combinerStage) {
     if (mapResults.isEmpty()) {
       return mapResults;
     }

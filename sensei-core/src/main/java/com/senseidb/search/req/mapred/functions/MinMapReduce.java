@@ -6,6 +6,7 @@ import java.util.List;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.senseidb.search.req.mapred.CombinerStage;
 import com.senseidb.search.req.mapred.FieldAccessor;
 import com.senseidb.search.req.mapred.SenseiMapReduce;
 
@@ -29,7 +30,7 @@ public class MinMapReduce implements SenseiMapReduce<MinResult, MinResult> {
   }
 
   @Override
-  public List<MinResult> combine(List<MinResult> mapResults) {
+  public List<MinResult> combine(List<MinResult> mapResults, CombinerStage combinerStage) {
     if (mapResults.isEmpty()) {
       return mapResults;
     }
