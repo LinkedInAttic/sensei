@@ -16,16 +16,12 @@ public class MFacetDouble extends MFacet
   @Override
   public boolean containsAll(Set set)
   {
-    for(int i=0; i< this.length; i++)
-      if(set.contains(((TermDoubleList) _mTermList).getPrimitiveValue(buf[i])))
-        return true;
-              
-    return false;
+    throw new UnsupportedOperationException("not implemented yet");
   }
 
   public boolean containsAll(double[] target)
   {
-    return false;
+    throw new UnsupportedOperationException("not implemented yet");
   }
   
   
