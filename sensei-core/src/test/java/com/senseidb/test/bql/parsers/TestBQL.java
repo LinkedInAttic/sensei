@@ -34,7 +34,8 @@ public class TestBQL extends TestCase
     facetInfoMap.put("year", new String[]{"range", "int"});
     facetInfoMap.put("makemodel", new String[]{"path", "string"});
     facetInfoMap.put("city", new String[]{"path", "string"});
-    facetInfoMap.put("time", new String[]{"custom", "long"}); // Mimic a custom facet
+    facetInfoMap.put("long_id", new String[]{"simple", "long"});
+    facetInfoMap.put("time", new String[]{"custom", ""}); // Mimic a custom facet
     _compiler = new BQLCompiler(facetInfoMap);
   }
 
@@ -894,6 +895,21 @@ public class TestBQL extends TestCase
   }
 
   @Test
+  public void testGivenClause3() throws Exception
+  {
+    System.out.println("testGivenClause3");
+    System.out.println("==================================================");
+
+    JSONObject json = _compiler.compile(
+      "SELECT * " +
+      "FROM cars " +
+      "GIVEN FACET PARAM (member, 'age', int, (25, 30, 35, 40))"
+      );
+    JSONObject expected = new JSONObject("{\"facetInit\":{\"member\":{\"age\":{\"values\":[25,30,35,40],\"type\":\"int\"}}},\"meta\":{\"select_list\":[\"*\"]}}");
+    assertTrue(_comp.isEquals(json, expected));
+  }
+
+  @Test
   public void testTimePred1() throws Exception
   {
     System.out.println("testTimePred1");
@@ -1082,9 +1098,24 @@ public class TestBQL extends TestCase
   }
 
   @Test
+  public void testLongValue() throws Exception
+  {
+    System.out.println("testLongValue");
+    System.out.println("==================================================");
+
+    JSONObject json = _compiler.compile(
+      "SELECT * " +
+      "FROM cars " +
+      "WHERE long_id IN (5497057336205783040)"
+      );
+    // System.out.println(">>> json = " + json);
+    JSONObject expected = new JSONObject("{\"selections\":[{\"terms\":{\"long_id\":{\"values\":[5497057336205783040],\"excludes\":[],\"operator\":\"or\"}}}],\"meta\":{\"select_list\":[\"*\"]}}");
+    assertTrue(_comp.isEquals(json, expected));
+  }
+
+  @Test
   public void testCorrectStatement() throws Exception
   {
-    System.out.println("\n==================================================");
     System.out.println("testCorrectStatement");
     System.out.println("==================================================");
     //compile the statement
@@ -1106,5 +1137,38 @@ public class TestBQL extends TestCase
     //assertEquals(BQLParser.SELECT, ast.getChild(0).getType());
     //assertEquals(BQLParser.STAR, ast.getChild(1).getType());
   }
+
+  @Test
+  public void testNullPred1() throws Exception
+  {
+    System.out.println("testNullPred1");
+    System.out.println("==================================================");
+
+    JSONObject json = _compiler.compile(
+      "SELECT * " +
+      "FROM cars " +
+      "WHERE price IS NOT NULL"
+      );
+
+    JSONObject expected = new JSONObject("{\"filter\":{\"bool\":{\"must_not\":{\"isNull\":\"price\"}}},\"meta\":{\"select_list\":[\"*\"]}}");
+    assertTrue(_comp.isEquals(json, expected));
+  }
+
+  @Test
+  public void testNullPred2() throws Exception
+  {
+    System.out.println("testNullPred2");
+    System.out.println("==================================================");
+
+    JSONObject json = _compiler.compile(
+      "SELECT * " +
+      "FROM cars " +
+      "WHERE price IS NULL"
+      );
+
+    JSONObject expected = new JSONObject("{\"filter\":{\"isNull\":\"price\"},\"meta\":{\"select_list\":[\"*\"]}}");
+    assertTrue(_comp.isEquals(json, expected));
+  }
+
 
 }

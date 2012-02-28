@@ -11,15 +11,6 @@ public abstract class AbstractFacetHandlerSenseiPluginFactory implements SenseiP
 {
   public static final String DEPENDS = "depends";
 
-  public String getFacetName(String fullPrefix)
-  {
-    if (fullPrefix == null)
-      return null;
-
-    String[] parts = fullPrefix.split("\\.");
-    return parts[parts.length - 1];
-  }
-
   public Set<String> getDepends(Map<String, String> initProperties)
   {
     Set<String> depends = new HashSet<String>();

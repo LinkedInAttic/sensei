@@ -27,6 +27,16 @@ public class SenseiPluginRegistry {
     return cachedRegistries.get(conf);
   }
 
+  public static String getNameByPrefix(String prefix) {
+    if (prefix != null) {
+      if (prefix.contains("."))
+        return prefix.substring(prefix.lastIndexOf(".") + 1);
+      else
+        return prefix;
+    }
+    return null;
+  }
+
   public static synchronized SenseiPluginRegistry build(Configuration conf) {
     if (cachedRegistries.containsKey(conf)) {
       return cachedRegistries.get(conf);
@@ -39,12 +49,15 @@ public class SenseiPluginRegistry {
       String key = (String) keysIterator.next();
       if (key.endsWith(".class")) {
         String prefix = key.substring(0, key.indexOf(".class"));
-        String pluginName = prefix;
-        if (prefix.contains(".")) {
-          pluginName = prefix.substring(prefix.lastIndexOf(".") + 1);
-        }
+        String pluginName = getNameByPrefix(prefix);
         String pluginCLass = conf.getString(key);
         ret.plugins.add(new PluginHolder(ret, pluginCLass, pluginName, prefix));
+      }
+      if (key.endsWith(".instance")) {
+        String prefix = key.substring(0, key.indexOf(".instance"));
+        String pluginName = getNameByPrefix(prefix);
+        Object pluginInstance = conf.getProperty(key);
+        ret.plugins.add(new PluginHolder(ret, pluginInstance, pluginName, prefix));
       }
     }
     for (PluginHolder pluginHolder : ret.plugins) {
@@ -164,8 +177,9 @@ public class SenseiPluginRegistry {
 
   public synchronized void start() {
     for (PluginHolder pluginHolder : plugins) {
-      if (pluginHolder.getInstance() instanceof SenseiPlugin) {
-        ((SenseiPlugin) pluginHolder.getInstance()).start();
+      Object instance = pluginHolder.getInstance();
+      if (instance instanceof SenseiPlugin) {
+        ((SenseiPlugin) instance).start();
       }
     }
   }

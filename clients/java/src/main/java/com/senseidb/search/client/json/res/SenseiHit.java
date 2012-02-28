@@ -10,7 +10,7 @@ import com.senseidb.search.client.json.JsonField;
 @CustomJsonHandler(SenseiHitJsonHandler.class)
 public class SenseiHit {
   @JsonField("_uid")
-  private Integer uid;
+  private Long uid;
   @JsonField("_docid")
   private Integer docid;
   @JsonField("_score")
@@ -37,7 +37,7 @@ public class SenseiHit {
 
 
 
-  public Integer getUid() {
+  public Long getUid() {
     return uid;
   }
 
@@ -61,7 +61,7 @@ public class SenseiHit {
     return groupHits;
   }
 
-  public void setUid(Integer uid) {
+  public void setUid(Long uid) {
     this.uid = uid;
   }
 

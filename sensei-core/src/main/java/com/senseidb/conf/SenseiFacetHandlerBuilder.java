@@ -22,6 +22,7 @@ import com.browseengine.bobo.facets.FacetHandler.FacetDataNone;
 import com.browseengine.bobo.facets.FacetHandlerInitializerParam;
 import com.browseengine.bobo.facets.RuntimeFacetHandler;
 import com.browseengine.bobo.facets.RuntimeFacetHandlerFactory;
+import com.browseengine.bobo.facets.attribute.AttributesFacetHandler;
 import com.browseengine.bobo.facets.data.PredefinedTermListFactory;
 import com.browseengine.bobo.facets.data.TermListFactory;
 import com.browseengine.bobo.facets.impl.CompactMultiValueFacetHandler;
@@ -31,10 +32,10 @@ import com.browseengine.bobo.facets.impl.MultiValueFacetHandler;
 import com.browseengine.bobo.facets.impl.PathFacetHandler;
 import com.browseengine.bobo.facets.impl.RangeFacetHandler;
 import com.browseengine.bobo.facets.impl.SimpleFacetHandler;
+import com.browseengine.bobo.facets.range.MultiRangeFacetHandler;
 import com.senseidb.indexing.DefaultSenseiInterpreter;
 import com.senseidb.plugin.SenseiPluginRegistry;
 import com.senseidb.search.facet.UIDFacetHandler;
-import com.senseidb.search.facet.attribute.AttributesFacetHandler;
 import com.senseidb.search.req.SenseiSystemInfo;
 
 public class SenseiFacetHandlerBuilder {
@@ -144,22 +145,29 @@ public class SenseiFacetHandlerBuilder {
 	}
 
 	static RangeFacetHandler buildRangeHandler(String name,String fieldName,TermListFactory<?> termListFactory,Map<String,List<String>> paramMap){
-		LinkedList<String> predefinedRanges = new LinkedList<String>();
+		LinkedList<String> predefinedRanges = buildPredefinedRanges(paramMap);
+		return new RangeFacetHandler(name,fieldName,termListFactory,predefinedRanges);
+	}
+
+  private static LinkedList<String> buildPredefinedRanges(Map<String, List<String>> paramMap) {
+    LinkedList<String> predefinedRanges = new LinkedList<String>();
 		if (paramMap!=null){
 			List<String> rangeList = paramMap.get("range");
 			if (rangeList!=null){
 			  for (String range : rangeList){
 				if (!range.matches("\\[.* TO .*\\]")){
-					range = "["
-							+ range.replaceFirst("[-,]", " TO ")
-							+ "]";
+					if (!range.contains("-") || !range.contains(",")) {
+				  range = "[" + range.replaceFirst("[-,]", " TO ") + "]";
+					} else {
+					  range = "[" + range.replaceFirst(",", " TO ") + "]";
+					}
 				}
 				predefinedRanges.add(range);
 			  }
 			}
 		}
-		return new RangeFacetHandler(name,fieldName,termListFactory,predefinedRanges);
-	}
+    return predefinedRanges;
+  }
 
 	static Map<String,List<String>> parseParams(JSONArray paramList) throws JSONException{
 		HashMap<String,List<String>> retmap = new HashMap<String,List<String>>();
@@ -177,30 +185,6 @@ public class SenseiFacetHandlerBuilder {
 			}
 
 			list.add(paramValue);
-
-			/*if (paramName.equals("range")) {
-				if (!paramValue.matches("\\[.* TO .*\\]"))
-					paramValue = "["
-							+ paramValue.replaceFirst("[-,]", " TO ")
-							+ "]";
-				rangeList.add(paramValue);
-			} else {
-				// Set the bean properties.
-				Class pType = PropertyUtils.getPropertyType(
-						facetHandler, paramName);
-				if (pType == null) // No such properties.
-					continue;
-				Object objValue = paramValue;
-				try {
-					Constructor ctor = pType
-							.getConstructor(String.class);
-					objValue = ctor.newInstance(paramValue);
-				} catch (NoSuchMethodException ex) {
-				}
-				PropertyUtils.setProperty(facetHandler, paramName,
-						objValue);
-			}
-			*/
 		  }
 		}
 
@@ -393,8 +377,10 @@ public class SenseiFacetHandlerBuilder {
 					facetHandler = buildMultiHandler(name, fieldName,  termListFactoryMap.get(fieldName), dependSet);
 				} else if (type.equals("compact-multi")) {
 					facetHandler = buildCompactMultiHandler(name, fieldName, dependSet,  termListFactoryMap.get(fieldName));
-				} else if (type.equals("attribute")) {
-          facetHandler = new AttributesFacetHandler(name, fieldName,  termListFactoryMap.get(fieldName), null , dependSet, facetProps);
+				} else if (type.equals("multi-range")) {
+          facetHandler = new MultiRangeFacetHandler(name, fieldName, null,  termListFactoryMap.get(fieldName) , buildPredefinedRanges(paramMap));
+        } else if (type.equals("attribute")) {
+          facetHandler = new AttributesFacetHandler(name, fieldName,  termListFactoryMap.get(fieldName), null , facetProps);
         } else if (type.equals("histogram")) {
 				  // A histogram facet handler is always dynamic
 				  RuntimeFacetHandlerFactory<?, ?> runtimeFacetFactory = getHistogramFacetHandlerFactory(facet, name, paramMap);
@@ -449,31 +435,45 @@ public class SenseiFacetHandlerBuilder {
     Assert.isTrue(dependSet.size() == 1, "Facet handler " + name + " should rely only on exactly one another facet handler, but accodring to config the depends set is " + dependSet);
     final String depends = dependSet.iterator().next();
     Assert.notEmpty(paramMap.get("range"), "Facet handler " + name + " should have at least one predefined range");
+
     return new RuntimeFacetHandlerFactory<FacetHandlerInitializerParam, RuntimeFacetHandler<?>>() {
+
       @Override
       public String getName() {
-        // TODO Auto-generated method stub
         return name;
       }
+
       @Override
       public  RuntimeFacetHandler<?> get(FacetHandlerInitializerParam params) {
-
-        long time = System.currentTimeMillis();
+        long overrideNow = -1;
         try {
-          if (params!=null){
-            long[] longParam = params.getLongParam("time");
-            if (longParam !=null && longParam.length > 0) {
-              time = longParam[0];
-            } else {
-              List<String> strParam = params.getStringParam("time");
-              if (strParam!=null && strParam.size()>0){
-                time = Long.parseLong(strParam.get(0));
-              }
-            }
+          String overrideProp = System.getProperty("override.now");
+          if (overrideProp != null) {
+            overrideNow = Long.parseLong(overrideProp);
           }
-          
-          List<String> ranges = paramMap.get("range");
-          return new DynamicTimeRangeFacetHandler(name, depends, time, ranges);
+        }
+        catch(Exception e) {
+          logger.error(e.getMessage(), e);
+        }
+
+        long now = System.currentTimeMillis();
+        if (overrideNow > 0)
+          now = overrideNow;
+        else {
+          if (params != null) {
+            long[] longParam = params.getLongParam("now");
+            if (longParam == null || longParam.length == 0)
+              longParam = params.getLongParam("time");  // time will also work
+
+            if (longParam != null && longParam.length > 0)
+              now = longParam[0];
+          }
+        }
+
+        List<String> ranges = paramMap.get("range");
+
+        try {
+          return new DynamicTimeRangeFacetHandler(name, depends, now, ranges);
         } catch (ParseException ex) {
           throw new RuntimeException(ex);
         }

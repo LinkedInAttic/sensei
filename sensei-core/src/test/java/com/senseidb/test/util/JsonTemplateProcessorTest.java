@@ -10,7 +10,6 @@ import org.junit.Test;
 import com.senseidb.util.JsonTemplateProcessor;
 
 
-
 public class JsonTemplateProcessorTest extends TestCase {
 
   private String senseiRequestStr;
@@ -24,11 +23,11 @@ public class JsonTemplateProcessorTest extends TestCase {
   @Test
   public void testSubstituteTemplates() throws Exception{
     JSONObject requestJson = new JSONObject(senseiRequestStr);
-    System.out.println(requestJson.toString(1));
-    JSONObject substituted = jsonTemplateProcessor.substituteTemplates(requestJson);
+    JSONObject substituted = (JSONObject) jsonTemplateProcessor.process(requestJson, jsonTemplateProcessor.getTemplates(requestJson));
+    System.out.println(substituted.toString(1));
     assertEquals(10, substituted.getInt("count"));
     assertEquals(1.0, substituted.getDouble("boost"), 0.01);
-    assertEquals("substitutedParam", substituted.getString("routeParam"));
+    assertEquals("prefix_$substitutedParam_$$substitutedParam_suffix$$routeParam", substituted.getString("routeParam"));
 
   }
   @Test
@@ -41,34 +40,9 @@ public class JsonTemplateProcessorTest extends TestCase {
    assertSame(substituted, requestJson);
 
   }
-  @Test
-  public void testSubstituteTemplatesWithSpecialCharacters() throws Exception{
-    JSONObject requestJson = new JSONObject(senseiRequestStr);
-    System.out.println(requestJson.toString(1));
-    requestJson.remove("templateMapping");
-    requestJson.put("templateMapping", new JSONObject().put("routeParam", "hav\n a quote \" \t "));
-    try{
-      JSONObject substituted = jsonTemplateProcessor.substituteTemplates(requestJson);
-      fail("The IllegalArgumentException should be thrown");
-    } catch (IllegalArgumentException ex) {
-
-    }
+ 
 
 
-  }
-  public static void main(String[] args) throws Exception {
-    String senseiRequest = new String(IOUtils.toString(JsonTemplateProcessorTest.class.getClassLoader().getResourceAsStream("json/sensei-request-with-templates.json")));
-    JsonTemplateProcessor templateProcessor = new JsonTemplateProcessor();
-    for(int i = 0; i < 10000; i++) {
-      JSONObject jsonObject = new JSONObject(senseiRequest);
-      templateProcessor.substituteTemplates(jsonObject);
-    }
-    long timeStamp = System.currentTimeMillis();
-    for(int i = 0; i < 10000; i++) {
-      JSONObject jsonObject = new JSONObject(senseiRequest);
-      //templateProcessor.substituteTemplates(jsonObject);
-    }
-    System.out.println(System.currentTimeMillis() - timeStamp);
+  
 
-  }
 }

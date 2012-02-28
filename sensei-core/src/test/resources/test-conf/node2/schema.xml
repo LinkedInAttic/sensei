@@ -18,6 +18,7 @@
 
   <table uid="id">
 	<column name="groupid" type="long" />
+	<column name="groupid_multi" type="long"  multi="true" delimiter=","/>
 	<column name="color" type="string" />
 	<column name="category" type="string" />
 	<column name="city" type="string" />
@@ -44,7 +45,7 @@
       custom - custom facet handler, name must be defined in a spring bean in custom-facets.xml
    -->
    <facets>
-	 <facet name="groupid" type="simple">	
+	 <facet name="groupid" type="simple"/>	
 	 <facet name="color" type="simple" depends=""/>
 	 <facet name="category" type="simple" />
 	 <facet name="city" type="path">
@@ -55,7 +56,7 @@
 	 <facet name="makemodel" type="path" />
 	 
 	  	
-	</facet>
+	
 	<facet name="timeRange"  type="dynamicTimeRange" column="groupid" dynamic="true">
 	 <params>	
 		  --  <param name="range" value="000000013" />		  	  
@@ -94,9 +95,21 @@
 		<param name="separator" value="=" />
 	  </params>
 	  </facet>
-	 <facet name="virtual_groupid" type="custom" />
-	 <facet name="virtual_groupid_fixedlengthlongarray" type="custom" />
-	 
+	  <facet name="virtual_groupid" type="custom" />
+	 <facet name="virtual_groupid_fixedlengthlongarray" type="custom" /> 
+	  <facet name="groupid_range" type="range" column="groupid" >
+		<params>
+		  <param name="range" value="*,-12000" />
+		  <param name="range" value="-11900,-6010" />
+		  <param name="range" value="-6000, 6700" />
+		  <param name="range" value="6800,9900" />
+		  <param name="range" value="10000,13100" />
+		  <param name="range" value="13200,17300" />
+		  <param name="range" value="17400,*" />
+		</params>
+	 </facet>
+	 <facet name="groupid_multi" type="multi"/>	
+	 <facet name="groupid_range_multi" column="groupid_multi" type="multi-range"/>	
 	 <!-- example of a custom facet, defined in custom-facets.xml -->
 	 <!-- 
 	     a bean with name "foobar" must be defined

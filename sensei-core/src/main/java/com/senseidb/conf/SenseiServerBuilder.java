@@ -44,6 +44,7 @@ import org.mortbay.jetty.servlet.ServletHolder;
 import org.mortbay.jetty.webapp.WebAppContext;
 import org.mortbay.servlet.GzipFilter;
 import org.mortbay.thread.QueuedThreadPool;
+import org.springframework.core.io.Resource;
 import org.w3c.dom.Document;
 
 import proj.zoie.api.DirectoryManager.DIRECTORY_MODE;
@@ -240,6 +241,31 @@ public class SenseiServerBuilder implements SenseiConfParams{
 
   }
 
+  public static JSONObject loadSchema(Resource confDir) throws Exception
+  {
+    if (confDir.createRelative(SCHEMA_FILE_JSON).exists()){
+      String json = IOUtils.toString(confDir.createRelative(SCHEMA_FILE_JSON).getInputStream());
+      return new JSONObject(json);
+    }
+    else{
+      if (confDir.createRelative(SCHEMA_FILE_XML).exists()){
+        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+        dbf.setIgnoringComments(true);
+        DocumentBuilder db = dbf.newDocumentBuilder();
+        Document schemaXml = db.parse(confDir.createRelative(SCHEMA_FILE_XML).getInputStream());
+        schemaXml.getDocumentElement().normalize();
+        return SchemaConverter.convert(schemaXml);
+      }
+      else{
+        throw new Exception("no schema found.");
+      }
+    }
+  }
+
+  public SenseiServerBuilder(File confDir) throws Exception {
+    this(confDir, null);
+  }
+
   public SenseiServerBuilder(File confDir, Map<String, Object> properties) throws Exception {
     if (properties != null) {
       _senseiConfFile = null;
@@ -259,7 +285,23 @@ public class SenseiServerBuilder implements SenseiConfParams{
     pluginRegistry = SenseiPluginRegistry.build(_senseiConf);
     pluginRegistry.start();
 
-    _gateway = constructGateway(_senseiConf);
+    _gateway = pluginRegistry.getBeanByFullPrefix(SENSEI_GATEWAY, SenseiGateway.class);
+
+    _schemaDoc = loadSchema(confDir);
+    _senseiSchema = SenseiSchema.build(_schemaDoc);
+  }
+
+  public SenseiServerBuilder(Resource confDir, Map<String, Object> properties) throws Exception
+  {
+    _senseiConfFile = null;
+
+    _senseiConf = new MapConfiguration(properties);
+    ((MapConfiguration) _senseiConf).setDelimiterParsingDisabled(true);
+
+    pluginRegistry = SenseiPluginRegistry.build(_senseiConf);
+    pluginRegistry.start();
+
+    _gateway = pluginRegistry.getBeanByFullPrefix(SENSEI_GATEWAY, SenseiGateway.class);
 
     _schemaDoc = loadSchema(confDir);
     _senseiSchema = SenseiSchema.build(_schemaDoc);
@@ -299,12 +341,6 @@ public class SenseiServerBuilder implements SenseiConfParams{
     }
 
     return partitions.toIntArray();
-  }
-
-  private SenseiGateway constructGateway(Configuration conf) throws ConfigurationException{
-      SenseiGateway gateway = pluginRegistry.getBeanByFullPrefix(SENSEI_GATEWAY, SenseiGateway.class);
-      return gateway;
-
   }
 
   public SenseiCore buildCore() throws ConfigurationException {

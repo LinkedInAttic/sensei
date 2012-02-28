@@ -11,7 +11,7 @@
   <classpathentry kind="var" path="M2_REPO/org/antlr/antlr/3.4/antlr-3.4.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/antlr/antlr-runtime/3.4/antlr-runtime-3.4.jar"/>
   <classpathentry kind="var" path="M2_REPO/aopalliance/aopalliance/1.0/aopalliance-1.0.jar"/>
-  <classpathentry kind="var" path="M2_REPO/com/browseengine/bobo/bobo-browse/3.0.1/bobo-browse-3.0.1.jar"/>
+  <classpathentry kind="var" path="M2_REPO/com/browseengine/bobo/bobo-browse/3.0.2-SNAPSHOT/bobo-browse-3.0.2-SNAPSHOT.jar"/>
   <classpathentry kind="var" path="M2_REPO/commons-beanutils/commons-beanutils/1.7.0/commons-beanutils-1.7.0.jar"/>
   <classpathentry kind="var" path="M2_REPO/commons-beanutils/commons-beanutils-core/1.8.0/commons-beanutils-core-1.8.0.jar"/>
   <classpathentry kind="var" path="M2_REPO/commons-cli/commons-cli/1.2/commons-cli-1.2.jar"/>
@@ -32,6 +32,7 @@
   <classpathentry kind="var" path="M2_REPO/hsqldb/hsqldb/1.8.0.10/hsqldb-1.8.0.10.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/apache/httpcomponents/httpclient/4.1/httpclient-4.1.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/apache/httpcomponents/httpcore/4.1/httpcore-4.1.jar"/>
+  <classpathentry kind="var" path="M2_REPO/javassist/javassist/3.12.1.GA/javassist-3.12.1.GA.jar"/>
   <classpathentry kind="var" path="M2_REPO/net/java/dev/jets3t/jets3t/0.7.1/jets3t-0.7.1.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/mortbay/jetty/jetty/6.1.26/jetty-6.1.26.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/mortbay/jetty/jetty-util/6.1.26/jetty-util-6.1.26.jar"/>
@@ -40,11 +41,7 @@
   <classpathentry kind="var" path="M2_REPO/org/json/json/20080701/json-20080701.jar"/>
   <classpathentry kind="var" path="M2_REPO/com/googlecode/json-simple/json-simple/1.1/json-simple-1.1.jar"/>
   <classpathentry kind="var" path="M2_REPO/junit/junit/4.5/junit-4.5.jar"/>
-  <classpathentry kind="var" path="M2_REPO/com/linkedin/kamikaze/kamikaze/3.0.6/kamikaze-3.0.6.jar" sourcepath="M2_REPO/com/linkedin/kamikaze/kamikaze/3.0.6/kamikaze-3.0.6-sources.jar">
-    <attributes>
-      <attribute value="jar:file:/Users/john/.m2/repository/com/linkedin/kamikaze/kamikaze/3.0.6/kamikaze-3.0.6-javadoc.jar!/" name="javadoc_location"/>
-    </attributes>
-  </classpathentry>
+  <classpathentry kind="var" path="M2_REPO/com/linkedin/kamikaze/kamikaze/3.0.6/kamikaze-3.0.6.jar"/>
   <classpathentry kind="var" path="M2_REPO/net/sf/kosmosfs/kfs/0.3/kfs-0.3.jar"/>
   <classpathentry kind="var" path="M2_REPO/log4j/log4j/1.2.14/log4j-1.2.14.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/apache/lucene/lucene-core/3.5.0/lucene-core-3.5.0.jar"/>
@@ -64,16 +61,8 @@
   <classpathentry kind="var" path="M2_REPO/org/antlr/ST4/4.0.4/ST4-4.0.4.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/antlr/stringtemplate/3.2.1/stringtemplate-3.2.1.jar"/>
   <classpathentry kind="var" path="M2_REPO/xmlenc/xmlenc/0.52/xmlenc-0.52.jar"/>
-  <classpathentry kind="var" path="M2_REPO/com/linkedin/zoie/zoie-core/3.1.0/zoie-core-3.1.0.jar" sourcepath="M2_REPO/com/linkedin/zoie/zoie-core/3.1.0/zoie-core-3.1.0-sources.jar">
-    <attributes>
-      <attribute value="jar:file:/Users/john/.m2/repository/com/linkedin/zoie/zoie-core/3.1.0/zoie-core-3.1.0-javadoc.jar!/" name="javadoc_location"/>
-    </attributes>
-  </classpathentry>
-  <classpathentry kind="var" path="M2_REPO/com/linkedin/zoie/zoie-jms/3.1.0/zoie-jms-3.1.0.jar" sourcepath="M2_REPO/com/linkedin/zoie/zoie-jms/3.1.0/zoie-jms-3.1.0-sources.jar">
-    <attributes>
-      <attribute value="jar:file:/Users/john/.m2/repository/com/linkedin/zoie/zoie-jms/3.1.0/zoie-jms-3.1.0-javadoc.jar!/" name="javadoc_location"/>
-    </attributes>
-  </classpathentry>
+  <classpathentry kind="var" path="M2_REPO/com/linkedin/zoie/zoie-core/3.1.1-SNAPSHOT/zoie-core-3.1.1-SNAPSHOT.jar"/>
+  <classpathentry kind="var" path="M2_REPO/com/linkedin/zoie/zoie-jms/3.1.1-SNAPSHOT/zoie-jms-3.1.1-SNAPSHOT.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/apache/zookeeper/zookeeper/3.3.3/zookeeper-3.3.3.jar"/>
   <classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 </classpath>

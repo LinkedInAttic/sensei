@@ -64,6 +64,12 @@ public class FilterJsonHandler implements JsonHandler<Filter>{
 
             return new JSONObject().put("ids", ret);
         }
+        if (bean instanceof IsNull) {
+          IsNull isNull = (IsNull) bean;
+          
+
+          return new JSONObject().put("isNull", new JSONObject().put("field", isNull.getField()));
+      }
         if (bean instanceof Query) {
             return queryJsonHandler.serialize((Query) bean);
         }

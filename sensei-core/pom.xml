@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>com.senseidb</groupId>
 		<artifactId>sensei-parent</artifactId>
-		<version>1.0.0</version>
+		<version>1.1.0-rc1</version>
 		<relativePath>../sensei-parent/pom.xml</relativePath>
 	</parent>
 	
@@ -180,13 +180,13 @@
 		<dependency>
 			<groupId>com.linkedin.zoie</groupId>
 			<artifactId>zoie-core</artifactId>
-			<version>3.1.0</version>
+			<version>3.1.1-rc1</version>
 		</dependency>
 		
 		<dependency>
 			<groupId>com.linkedin.zoie</groupId>
 			<artifactId>zoie-jms</artifactId>
-			<version>3.1.0</version>
+			<version>3.1.1-rc1</version>
 		</dependency>
 		
 		<dependency>
@@ -237,7 +237,7 @@
 		<dependency>
 			<groupId>com.browseengine.bobo</groupId>
 			<artifactId>bobo-browse</artifactId>
-			<version>3.0.1</version>
+			<version>3.0.2-rc1</version>
 			<type>jar</type>
 		</dependency>
 
@@ -299,5 +299,10 @@
             <scope>compile</scope>
           </dependency>
                 
+  	<dependency>
+		<groupId>javassist</groupId>
+		<artifactId>javassist</artifactId>
+		<version>3.12.1.GA</version>
+	</dependency>
 	</dependencies>
 </project>

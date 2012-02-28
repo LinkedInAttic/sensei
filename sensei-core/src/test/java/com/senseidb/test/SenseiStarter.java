@@ -23,6 +23,7 @@ import com.senseidb.search.node.SenseiServer;
 import com.senseidb.search.node.SenseiZoieFactory;
 import com.senseidb.search.req.SenseiRequest;
 import com.senseidb.search.req.SenseiResult;
+import com.senseidb.search.req.mapred.obsolete.MapReduceBroker;
 import com.senseidb.svc.api.SenseiService;
 import com.senseidb.svc.impl.HttpRestSenseiServiceImpl;
 
@@ -45,15 +46,17 @@ public class SenseiStarter {
   public static SenseiServer node2;
   public static Server httpServer1;
   public static Server httpServer2;
-  protected static SenseiNetworkClient networkClient;
-  protected static ClusterClient clusterClient;
-  protected static SenseiRequestScatterRewriter requestRewriter;
-  protected static SenseiLoadBalancerFactory loadBalancerFactory;
-  protected static NetworkServer networkServer1;
-  protected static NetworkServer networkServer2;
-  protected static final String SENSEI_TEST_CONF_FILE="sensei-test.spring";
-  protected static SenseiZoieFactory<?> _zoieFactory;
-  private static boolean started = false;
+  public static SenseiNetworkClient networkClient;
+  public static ClusterClient clusterClient;
+  public static SenseiRequestScatterRewriter requestRewriter;
+  public static SenseiLoadBalancerFactory loadBalancerFactory;
+  public static NetworkServer networkServer1;
+  public static NetworkServer networkServer2;
+  public static final String SENSEI_TEST_CONF_FILE="sensei-test.spring";
+  public static SenseiZoieFactory<?> _zoieFactory;
+  public static boolean started = false;
+
+  public static MapReduceBroker mapReduceBroker;
 
   /**
    * Will start the new Sensei instance once per process
@@ -71,7 +74,10 @@ public class SenseiStarter {
     ConfDir2 = new File(SenseiStarter.class.getClassLoader().getResource(confDir2).toURI());
     org.apache.log4j.PropertyConfigurator.configure("resources/log4j.properties");
     loadFromSpringContext();
-    rmrf(IndexDir);
+    boolean removeSuccessful = rmrf(IndexDir);
+    if (!removeSuccessful) {
+      throw new IllegalStateException("The index dir " + IndexDir + " coulnd't be purged");
+    }
     SenseiServerBuilder senseiServerBuilder1 = null;
     senseiServerBuilder1 = new SenseiServerBuilder(ConfDir1, null);
     node1 = senseiServerBuilder1.buildServer();
@@ -86,6 +92,8 @@ public class SenseiStarter {
     try
     {
       broker = new SenseiBroker(networkClient, clusterClient, loadBalancerFactory);
+      broker.setTimeoutMillis(0);
+      mapReduceBroker = new MapReduceBroker(networkClient, clusterClient, loadBalancerFactory);
       broker.setTimeoutMillis(0);
     } catch (NorbertException ne) {
       logger.info("shutting down cluster...", ne);
@@ -152,17 +160,18 @@ public class SenseiStarter {
     _zoieFactory = (SenseiZoieFactory<?>)testSpringCtx.getBean("zoie-system-factory");
   }
 
-  private static boolean rmrf(File f)
-  {
-    if (f != null) {
-      if (f.isDirectory()) {
-        for (File sub : f.listFiles()) {
-          if (!rmrf(sub)) return false;
-        }
-      }
-      else return f.delete();
+  private static boolean rmrf(File f) {
+    if (f == null || !f.exists()) {
+      return true;
     }
-    return true;
+
+    if (f.isDirectory()) {
+      for (File sub : f.listFiles()) {
+        if (!rmrf(sub))
+          return false;
+      }
+    }
+    return f.delete();
   }
 
   private static void shutdownSensei() {
@@ -174,6 +183,7 @@ public class SenseiStarter {
     try{httpServer2.stop();}catch(Throwable t){}
     try{networkClient.shutdown();}catch(Throwable t){}
     try{clusterClient.shutdown();}catch(Throwable t){}
+    rmrf(IndexDir);
   }
 
 }

@@ -257,6 +257,7 @@ public class TestSensei extends TestCase {
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 12990, res.getInt("numhits"));
   }
+ 
   public void testSelectionRange() throws Exception
   {
     //2000 1548;
@@ -482,8 +483,21 @@ public class TestSensei extends TestCase {
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 2160, res.getInt("numhits"));
   }
-
-
+  public void testNullMultiFilter() throws Exception
+  {
+    logger.info("executing test case testNullFilter");
+    String req = "{\"filter\":{\"isNull\":\"groupid_multi\"}}";
+    JSONObject res = search(new JSONObject(req));
+    assertEquals("numhits is wrong", 14997, res.getInt("numhits"));
+  }
+  
+  public void testNullFilterOnSimpleColumn() throws Exception
+  {
+    logger.info("executing test case testNullFilter");
+    String req = "{\"filter\":{\"isNull\":\"price\"}}";
+    JSONObject res = search(new JSONObject(req));
+    assertEquals("numhits is wrong", 1, res.getInt("numhits"));
+  }
   public void testUIDFilter() throws Exception
   {
     logger.info("executing test case testUIDFilter");
@@ -550,44 +564,44 @@ public class TestSensei extends TestCase {
 
   /* Need to fix the bug in bobo and kamikazi, for details see the following two test cases:*/
 
-//  public void testAndFilter1() throws Exception
-//  {
-//    logger.info("executing test case testAndFilter1");
-//    String req = "{\"filter\":{\"and\":[{\"term\":{\"color\":\"blue\",\"_noOptimize\":false}},{\"query\":{\"term\":{\"category\":\"compact\"}}}]}}";
-//    JSONObject res = search(new JSONObject(req));
-//    assertEquals("numhits is wrong", 504, res.getInt("numhits"));
-//  }
-//
-//  public void testQueryFilter1() throws Exception
-//  {
-//    logger.info("executing test case testQueryFilter1");
-//    String req = "{\"filter\": {\"query\":{\"term\":{\"category\":\"compact\"}}}}";
-//    JSONObject res = search(new JSONObject(req));
-//    assertEquals("numhits is wrong", 4169, res.getInt("numhits"));
-//  }
+  public void testAndFilter1() throws Exception
+  {
+    logger.info("executing test case testAndFilter1");
+    String req = "{\"filter\":{\"and\":[{\"term\":{\"color\":\"blue\",\"_noOptimize\":false}},{\"query\":{\"term\":{\"category\":\"compact\"}}}]}}";
+    JSONObject res = search(new JSONObject(req));
+    assertEquals("numhits is wrong", 504, res.getInt("numhits"));
+  }
+
+  public void testQueryFilter1() throws Exception
+  {
+    logger.info("executing test case testQueryFilter1");
+    String req = "{\"filter\": {\"query\":{\"term\":{\"category\":\"compact\"}}}}";
+    JSONObject res = search(new JSONObject(req));
+    assertEquals("numhits is wrong", 4169, res.getInt("numhits"));
+  }
 
 
   /*  another weird bug may exist somewhere in bobo or kamikazi.*/
   /*  In the following two test cases, when modifying the first one by changing "tags" to "tag", it is supposed that
    *  Only the first test case is not correct, but the second one also throw one NPE, which is weird.
    * */
-//  public void testAndFilter2() throws Exception
-//  {
-//    logger.info("executing test case testAndFilter2");
-//    String req = "{\"filter\":{\"and\":[{\"term\":{\"tags\":\"mp3\",\"_noOptimize\":false}},{\"query\":{\"term\":{\"color\":\"red\"}}}]}}";
-//    JSONObject res = search(new JSONObject(req));
-//    assertEquals("numhits is wrong", 439, res.getInt("numhits"));
-//  }
-//
-//  public void testOrFilter4() throws Exception
-//  {
-//    //color:blue  ==> 1104
-//    //color:red   ==> 2160
-//    logger.info("executing test case testOrFilter4");
-//    String req = "{\"filter\":{\"or\":[{\"term\":{\"color\":\"blue\",\"_noOptimize\":false}},{\"query\":{\"term\":{\"color\":\"red\"}}}]}}";
-//    JSONObject res = search(new JSONObject(req));
-//    assertEquals("numhits is wrong", 3264, res.getInt("numhits"));
-//  }
+  public void testAndFilter2() throws Exception
+  {
+    logger.info("executing test case testAndFilter2");
+    String req = "{\"filter\":{\"and\":[{\"term\":{\"tags\":\"mp3\",\"_noOptimize\":false}},{\"query\":{\"term\":{\"color\":\"red\"}}}]}}";
+    JSONObject res = search(new JSONObject(req));
+    assertEquals("numhits is wrong", 439, res.getInt("numhits"));
+  }
+
+  public void testOrFilter4() throws Exception
+  {
+    //color:blue  ==> 1104
+    //color:red   ==> 2160
+   logger.info("executing test case testOrFilter4");
+    String req = "{\"filter\":{\"or\":[{\"term\":{\"color\":\"blue\",\"_noOptimize\":false}},{\"query\":{\"term\":{\"color\":\"red\"}}}]}}";
+    JSONObject res = search(new JSONObject(req));
+    assertEquals("numhits is wrong", 3264, res.getInt("numhits"));
+  }
 
 
   public void testTermFilter() throws Exception
@@ -639,13 +653,106 @@ public class TestSensei extends TestCase {
     assertNotNull("", res.get(String.valueOf(1)));
   }
 
-  private JSONObject search(JSONObject req) throws Exception  {
+  public void testRelevanceMatchAll() throws Exception
+  {
+    logger.info("executing test case testRelevanceMatchAll");
+    String req = "{\"sort\":[\"_score\"],\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"model\":{\"function_params\":[\"_INNER_SCORE\",\"thisYear\",\"year\",\"goodYear\"],\"facets\":{\"int\":[\"year\",\"mileage\"],\"long\":[\"groupid\"]},\"function\":\" if(goodYear.contains(year)) return (float)Math.exp(10d);   if(year==thisYear) return 87f   ; return  _INNER_SCORE    ;\",\"variables\":{\"set_int\":[\"goodYear\"],\"int\":[\"thisYear\"]}},\"values\":{\"thisYear\":2001,\"goodYear\":[1996,1997]}}}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":6}";
+    JSONObject res = search(new JSONObject(req));
+    assertEquals("numhits is wrong", 15000, res.getInt("numhits"));
+  }
+  
+  public void testRelevanceHashSet() throws Exception
+  {
+    logger.info("executing test case testRelevanceHashSet");
+    String req = "{\"sort\":[\"_score\"],\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"model\":{\"function_params\":[\"_INNER_SCORE\",\"thisYear\",\"year\",\"goodYear\"],\"facets\":{\"int\":[\"year\",\"mileage\"],\"long\":[\"groupid\"]},\"function\":\" if(goodYear.contains(year)) return (float)Math.exp(10d);   if(year==thisYear) return 87f   ; return  _INNER_SCORE    ;\",\"variables\":{\"set_int\":[\"goodYear\"],\"int\":[\"thisYear\"]}},\"values\":{\"thisYear\":2001,\"goodYear\":[1996]}}}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":6}";
+    JSONObject res = search(new JSONObject(req));
+    JSONArray hits = res.getJSONArray("hits");
+    JSONObject firstHit = hits.getJSONObject(0);
+    JSONObject secondHit = hits.getJSONObject(1);
+    
+    String firstYear = firstHit.getJSONArray("year").getString(0);
+    String secondYear = secondHit.getJSONArray("year").getString(0);
+    
+    assertEquals("year 1996 should be on the top", true, firstYear.contains("1996"));
+    assertEquals("year 1996 should be on the top", true, secondYear.contains("1996"));
+  }
+  
+  public void testRelevanceMath() throws Exception
+  {
+    logger.info("executing test case testRelevanceMath");
+    String req = "{\"sort\":[\"_score\"],\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"model\":{\"function_params\":[\"_INNER_SCORE\",\"thisYear\",\"year\",\"goodYear\"],\"facets\":{\"int\":[\"year\",\"mileage\"],\"long\":[\"groupid\"]},\"function\":\" if(goodYear.contains(year)) return (float)Math.exp(10d);   if(year==thisYear) return 87f   ; return  _INNER_SCORE    ;\",\"variables\":{\"set_int\":[\"goodYear\"],\"int\":[\"thisYear\"]}},\"values\":{\"thisYear\":2001,\"goodYear\":[1996]}}}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":6}";
+    JSONObject res = search(new JSONObject(req));
+    JSONArray hits = res.getJSONArray("hits");
+    JSONObject firstHit = hits.getJSONObject(0);
+    JSONObject secondHit = hits.getJSONObject(1);
+    
+    double firstScore = firstHit.getDouble("_score");
+    double secondScore = secondHit.getDouble("_score");
+    
+    double delta1 = firstScore - Math.exp(10d);
+    double delta2 = secondScore - Math.exp(10d);
+    
+    assertEquals("score for first is not correct. delta is: " + delta1, true, Math.abs(delta1) < 0.001 );
+    assertEquals("score for second is not correct. delta is: " + delta2, true, Math.abs(delta2) < 0.001);
+  }
+  
+  
+  public void testRelevanceInnerScore() throws Exception
+  {
+    logger.info("executing test case testRelevanceInnerScore");
+    String req = "{\"sort\":[\"_score\"],\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"model\":{\"function_params\":[\"_INNER_SCORE\",\"thisYear\",\"year\",\"goodYear\"],\"facets\":{\"int\":[\"year\",\"mileage\"],\"long\":[\"groupid\"]},\"function\":\" if(goodYear.contains(year)) return _INNER_SCORE ; return  _INNER_SCORE    ;\",\"variables\":{\"set_int\":[\"goodYear\"],\"int\":[\"thisYear\"]}},\"values\":{\"thisYear\":2001,\"goodYear\":[1996]}}}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":6}";
+    JSONObject res = search(new JSONObject(req));
+    JSONArray hits = res.getJSONArray("hits");
+    JSONObject firstHit = hits.getJSONObject(0);
+    JSONObject secondHit = hits.getJSONObject(1);
+    
+    double firstScore = firstHit.getDouble("_score");
+    double secondScore = secondHit.getDouble("_score");
+    
+    assertEquals("inner score for first is not correct." , true, firstScore == 1 );
+    assertEquals("inner score for second is not correct." , true, secondScore == 1);
+  }
+  
+  public void testRelevanceHashMapInt2Int() throws Exception
+  {
+    logger.info("executing test case testRelevanceHashMapInt2Int");
+    String req = "{\"sort\":[\"_score\"],\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"model\":{\"function_params\":[\"_INNER_SCORE\",\"thisYear\",\"year\",\"goodYear\",\"mileageWeight\",\"mileage\"],\"facets\":{\"int\":[\"year\",\"mileage\"],\"long\":[\"groupid\"]},\"function\":\" if(mileageWeight.containsKey(mileage)) return 10000+mileageWeight.get(mileage); if(goodYear.contains(year)) return (float)Math.exp(2d);   if(year==thisYear) return 87f   ; return  _INNER_SCORE;\",\"variables\":{\"map_int_float\":[\"mileageWeight\"],\"set_int\":[\"goodYear\"],\"int\":[\"thisYear\"]}},\"values\":{\"thisYear\":2001,\"mileageWeight\":{\"value\":[777.9,10.2],\"key\":[11400,11000]},\"goodYear\":[1996,1997]}}}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":6}";
+    JSONObject res = search(new JSONObject(req));
+    assertEquals("numhits is wrong", 15000, res.getInt("numhits"));
+    //the first one should has socre 10777.900390625, and mileage: 11400;
+    JSONArray hits = res.getJSONArray("hits");
+    JSONObject firstHit = hits.getJSONObject(0);
+    JSONObject secondHit = hits.getJSONObject(1);
+    
+    double firstScore = firstHit.getDouble("_score");
+    double secondScore = secondHit.getDouble("_score");
+    
+    String firstMileage = firstHit.getJSONArray("mileage").getString(0);
+    String secondMileage = secondHit.getJSONArray("mileage").getString(0);
+    
+    assertEquals("inner score for first is not correct." , true, Math.abs(firstScore - 10777.900390625) < 1 );
+    assertEquals("inner score for second is not correct." , true, Math.abs(secondScore - 10777.900390625) < 1 );
+    
+    assertEquals("mileage for first is not correct." , true, Integer.parseInt(firstMileage)==11400 );
+    assertEquals("mileage for second is not correct." , true, Integer.parseInt(secondMileage)==11400 );
+    
+  }
+  
+  public void testRelevanceMulti() throws Exception
+  {
+    logger.info("executing test case testRelevanceMulti");
+    String req = "{\"sort\":[\"_score\"],\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"model\":{\"function_params\":[\"_INNER_SCORE\",\"thisYear\",\"year\",\"goodYear\",\"tags\",\"coolTag\"],\"facets\":{\"mstring\":[\"tags\"],\"int\":[\"year\",\"mileage\"],\"long\":[\"groupid\"]},\"function\":\" if(tags.contains(coolTag)) return 999999f; if(goodYear.contains(year)) return (float)Math.exp(10d);   if(year==thisYear) return 87f   ; return  _INNER_SCORE    ;\",\"variables\":{\"set_int\":[\"goodYear\"],\"int\":[\"thisYear\"], \"string\":[\"coolTag\"]}},\"values\":{\"coolTag\":\"cool\", \"thisYear\":2001,\"goodYear\":[1996,1997]}}}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":6}";
+    JSONObject res = search(new JSONObject(req));
+    assertEquals("numhits is wrong", 15000, res.getInt("numhits"));
+  }
+
+  public static JSONObject search(JSONObject req) throws Exception  {
     return  search(SenseiStarter.SenseiUrl, req.toString());
   }
-  private JSONObject searchGet(JSONArray req) throws Exception  {
+  public static JSONObject searchGet(JSONArray req) throws Exception  {
     return  search(new URL(SenseiStarter.SenseiUrl.toString() + "/get"), req.toString());
   }
-  private JSONObject search(URL url, String req) throws Exception {
+  public static JSONObject search(URL url, String req) throws Exception {
     URLConnection conn = url.openConnection();
     conn.setDoOutput(true);
     BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(conn.getOutputStream(), "UTF-8"));
@@ -660,7 +767,11 @@ public class TestSensei extends TestCase {
       sb.append(line);
     String res = sb.toString();
     // System.out.println("res: " + res);
-    return new JSONObject(res);
+    JSONObject ret = new JSONObject(res);
+    if (ret.opt("totaldocs") !=null){
+      assertEquals(15000L, ret.getLong("totaldocs"));
+    }
+    return ret;
   }
 
   private void setspec(SenseiRequest req, FacetSpec spec) {

@@ -12,8 +12,8 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.apache.lucene.index.IndexReader;
@@ -23,9 +23,9 @@ import org.apache.lucene.util.PriorityQueue;
 
 import proj.zoie.api.ZoieIndexReader;
 
+import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.BrowseSelection;
-import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.api.FacetAccessible;
 import com.browseengine.bobo.api.FacetIterator;
 import com.browseengine.bobo.api.FacetSpec;
@@ -39,6 +39,7 @@ import com.browseengine.bobo.util.ListMerger;
 import com.senseidb.search.req.SenseiHit;
 import com.senseidb.search.req.SenseiRequest;
 import com.senseidb.search.req.SenseiResult;
+import com.senseidb.search.req.mapred.impl.SenseiReduceFunctionWrapper;
 
 public class ResultMerger
 {
@@ -160,8 +161,9 @@ public class ResultMerger
             if (facet!=null)
             {
               delta = facet.getFacetValueHitCount();
+              count.put(val, oldValue + delta);
             }
-            count.put(val, oldValue + delta);
+            
           }
         }
         facetAccessible.close();
@@ -313,7 +315,11 @@ public class ResultMerger
 		  if (f2==null){
 		    return 1;	
 		  }
-      return f1.getValue().compareTo(f2.getValue());
+      int ret = f1.getValue().compareTo(f2.getValue());
+      if (f1.getValue().startsWith("-") && f2.getValue().startsWith("-")) {
+        ret *= -1;
+      }
+      return ret;
     }
   }
 
@@ -360,7 +366,7 @@ public class ResultMerger
       }
       else
       {
-        int nullCount = 0;
+        int equalCount = 0;
         for (int i = 0; i < _sortFields.length; ++i)
         {
           String field = _sortFields[i].getField();
@@ -372,6 +378,7 @@ public class ResultMerger
             float score2 = o2.getScore();
             if (score1 == score2)
             {
+              equalCount++;
               continue;
             }
             else
@@ -390,7 +397,7 @@ public class ResultMerger
 
             if (value1 == null && value2 == null)
             {
-              nullCount++;
+              equalCount++;
               continue;
             }
             else if (value1 == null)
@@ -400,15 +407,23 @@ public class ResultMerger
             else
             {
               int comp = value1.compareTo(value2);
+              if (value1.startsWith("-") && value2.startsWith("-")) {
+                comp *= -1;
+              }
               if (comp != 0)
               {
                 return comp * reverse;
+              }
+              else
+              {
+                equalCount++;
+                continue;
               }
             }
           } // A regular sort field
         }
 
-        if (nullCount == _sortFields.length)
+        if (equalCount == _sortFields.length)
         {
           return o1.getDocid() - o2.getDocid();
         }
@@ -819,6 +834,14 @@ public class ResultMerger
     time += (end-start);
     merged.setTime(time);
     merged.setParsedQuery(parsedQuery);
+    if (req.getMapReduceFunction() != null) {
+      if (onSearchNode) {
+        merged.setMapReduceResult(SenseiReduceFunctionWrapper.combine(req.getMapReduceFunction(), SenseiReduceFunctionWrapper.extractMapReduceResults(results)));
+      } else {
+        //on broker level
+        merged.setMapReduceResult(SenseiReduceFunctionWrapper.reduce(req.getMapReduceFunction(), SenseiReduceFunctionWrapper.extractMapReduceResults(results)));
+      }
+    }
     return merged;
   }
 }

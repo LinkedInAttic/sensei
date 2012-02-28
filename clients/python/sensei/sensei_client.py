@@ -238,14 +238,15 @@ class SenseiClient:
 
     return urllib.urlencode(paramMap)
     
-  def doQuery(self, req, using_json=True):
+  def doQuery(self, req, using_json=True, var_map={}):
     """Execute a search query."""
 
     time1 = datetime.now()
     query_string = None
     if using_json: # Use JSON format
-      # query_string = self.buildJsonString(req)
       bql = {"bql": req}
+      if var_map:
+        bql["templateMapping"] = var_map;
       query_string = json.dumps(bql)
     else:
       query_string = SenseiClient.buildUrlString(req)
@@ -314,6 +315,7 @@ def main(argv):
     print """\
 help              Show instructions
 select ...        Execute a BQL statement
+set VAR value     Assign a value to a variable     
 desc | describe   Describe current index schema
 get <uid_list>    Retrieve documents based on UID list
 exit              Exit
@@ -350,6 +352,8 @@ exit              Exit
 
   print 'Enter "help" for instructions'
 
+  var_map = {}
+
   import readline
   readline.parse_and_bind("tab: complete")
   while 1:
@@ -370,7 +374,7 @@ exit              Exit
           continue
 
       if command == "select":
-        res = client.doQuery(stmt)
+        res = client.doQuery(stmt, var_map=var_map)
         error = res.error
         if error:
           err_code = error.get("code")
@@ -382,10 +386,17 @@ exit              Exit
           else:
             print "Unknown error happened!"
         else:
-          res.display(columns=["*"], max_col_width=int(options.max_col_width))
+          select_list = res.jsonMap.get(PARAM_RESULT_SELECT_LIST) or ["*"]
+          res.display(columns=select_list, max_col_width=int(options.max_col_width))
       elif command in ["desc", "describe"]:
         sysinfo = client.get_sysinfo()
         sysinfo.display()
+      elif command == "set":
+        tokens = client.parser.parse(stmt)
+        if tokens.value:
+          var_map[tokens.variable] = tokens.value
+        elif tokens.value_list:
+          var_map[tokens.variable] = tokens.value_list[:]
       elif command == "help":
         help()
       elif len(words) > 0 and len(words[0]) > 0:

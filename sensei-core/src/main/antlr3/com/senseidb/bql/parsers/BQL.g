@@ -40,6 +40,7 @@ package com.senseidb.bql.parsers;
 
 import java.util.Iterator;
 import java.util.Map;
+import java.util.HashSet;
 import org.json.JSONObject;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -57,6 +58,7 @@ import java.text.SimpleDateFormat;
 
     Map<String, String[]> _facetInfoMap;
     private long _now;
+    private HashSet<String> _variables;
     private SimpleDateFormat[] _format1 = new SimpleDateFormat[2];
     private SimpleDateFormat[] _format2 = new SimpleDateFormat[2];
 
@@ -157,6 +159,14 @@ import java.text.SimpleDateFormat;
 
     private boolean verifyValueType(Object value, final String columnType)
     {
+        if (value instanceof String &&
+            !((String) value).isEmpty() &&
+            ((String) value).matches("\\$[^$].*"))
+        {
+            // This "value" is a variable, return true always
+            return true;
+        }
+
         if (columnType.equals("long") || columnType.equals("int") || columnType.equals("short")) {
             return !(value instanceof Float || value instanceof String || value instanceof Boolean);
         }
@@ -169,20 +179,54 @@ import java.text.SimpleDateFormat;
         else if (columnType.equals("boolean")) {
             return (value instanceof Boolean);
         }
+        else if (columnType.isEmpty()) {
+            // For a custom facet, the data type is unknown (empty
+            // string).  We accept all value types here.
+            return true;
+        }
         else {
             return false;
         }
     }
 
     private boolean verifyFieldDataType(final String field, Object value)
+        throws FailedPredicateException
     {
         String[] facetInfo = _facetInfoMap.get(field);
-        if (facetInfo != null) {
-            return verifyValueType(value, facetInfo[1]);
-        }
-        else {
-            // Field is not a facet
+
+        if (value instanceof String &&
+            !((String) value).isEmpty() &&
+            ((String) value).matches("\\$[^$].*"))
+        {
+            // This "value" is a variable, return true always
             return true;
+        }
+        else if (value instanceof JSONArray)
+        {
+            try {
+                if (facetInfo != null) {
+                    String columnType = facetInfo[1];
+                    for (int i = 0; i < ((JSONArray) value).length(); ++i) {
+                        if (!verifyValueType(((JSONArray) value).get(i), columnType)) {
+                            return false;
+                        }
+                    }
+                }
+                return true;
+            }
+            catch (JSONException err) {
+                throw new FailedPredicateException(input, "verifyFieldDataType", "JSONException: " + err.getMessage());
+            }
+        }
+        else
+        {
+            if (facetInfo != null) {
+                return verifyValueType(value, facetInfo[1]);
+            }
+            else {
+                // Field is not a facet
+                return true;
+            }
         }
     }
 
@@ -198,26 +242,6 @@ import java.text.SimpleDateFormat;
             }
         }
         return true;
-    }
-
-    private boolean verifyFieldDataType(final String field, JSONArray values)
-        throws FailedPredicateException
-    {
-        String[] facetInfo = _facetInfoMap.get(field);
-        try {
-            if (facetInfo != null) {
-                String columnType = facetInfo[1];
-                for (int i = 0; i < values.length(); ++i) {
-                    if (!verifyValueType(values.get(i), columnType)) {
-                        return false;
-                    }
-                }
-            }
-            return true;
-        }
-        catch (JSONException err) {
-            throw new FailedPredicateException(input, "verifyFieldDataType", "JSONException: " + err.getMessage());
-        }
     }
 
     private void extractSelectionInfo(JSONObject where,
@@ -244,7 +268,7 @@ import java.text.SimpleDateFormat;
                         filter_list.put(pred);
                     }
                 }
-                else if (pred.has("and") || pred.has("or")) {
+                else if (pred.has("and") || pred.has("or") || pred.has("isNull")) {
                     filter_list.put(pred);
                 }
                 else if (_facetInfoMap.get(predField(pred)) != null) {
@@ -261,7 +285,7 @@ import java.text.SimpleDateFormat;
                 filter.put("filter", filter_list.get(0));
             }
         }
-        else if (where.has("or")) {
+        else if (where.has("or") || where.has("isNull")) {
             filter.put("filter", where);
         }
         else if (_facetInfoMap.get(predField(where)) != null) {
@@ -492,6 +516,7 @@ LONG : ('L'|'l')('O'|'o')('N'|'n')('G'|'g') ;
 MATCH : ('M'|'m')('A'|'a')('T'|'t')('C'|'c')('H'|'h') ;
 NOT : ('N'|'n')('O'|'o')('T'|'t') ;
 NOW : ('N'|'n')('O'|'o')('W'|'w') ;
+NULL : ('N'|'n')('U'|'u')('L'|'l')('L'|'l') ;
 OR : ('O'|'o')('R'|'r') ;
 ORDER : ('O'|'o')('R'|'r')('D'|'d')('E'|'e')('R'|'r') ;
 PARAM : ('P'|'p')('A'|'a')('R'|'r')('A'|'a')('M'|'m') ;
@@ -517,7 +542,8 @@ MILLISECONDS : ('M'|'m')('I'|'i')('L'|'l')('L'|'l')('I'|'i')('S'|'s')('E'|'e')('
 MSECS : ('M'|'m')('S'|'s')('E'|'e')('C'|'c')('S'|'s')? ;
 
 // Have to define this after the keywords?
-IDENT : (ALPHA | '_') (ALPHA | DIGIT | '-' )* ;
+IDENT : (ALPHA | '_') (ALPHA | DIGIT | '-' | '_')* ;
+VARIABLE : '$' (ALPHA | DIGIT | '-' | '_')+ ;
 
 WS : ( ' ' | '\t' | '\r' | '\n' )+ { $channel = HIDDEN; };
 
@@ -540,6 +566,7 @@ statement returns [Object json]
 select_stmt returns [Object json]
 @init {
     _now = System.currentTimeMillis();
+    _variables = new HashSet<String>();
     boolean seenOrderBy = false;
     boolean seenLimit = false;
     boolean seenGroupBy = false;
@@ -603,14 +630,20 @@ select_stmt returns [Object json]
             JSONObject query = new JSONObject();
 
             try {
-                JSONObject selectList = new JSONObject();
+                JSONObject metaData = new JSONObject();
                 if (cols == null) {
-                   selectList.put("select_list", new JSONArray().put("*"));
+                   metaData.put("select_list", new JSONArray().put("*"));
                 }
                 else {
-                   selectList.put("select_list", $cols.json);
+                   metaData.put("select_list", $cols.json);
                 }
-                jsonObj.put("meta", selectList);
+
+                if (_variables.size() > 0)
+                {
+                    metaData.put("variables", new JSONArray(_variables));
+                }
+
+                jsonObj.put("meta", metaData);
 
                 if (order_by != null) {
                     jsonObj.put("sort", $order_by.json);
@@ -914,6 +947,7 @@ predicate returns [JSONObject json]
     |   time_predicate { $json = $time_predicate.json; }
     |   match_predicate { $json = $match_predicate.json; }
     |   like_predicate { $json = $like_predicate.json; }
+    |   null_predicate { $json = $null_predicate.json; }
     ;
 
 in_predicate returns [JSONObject json]
@@ -1447,19 +1481,44 @@ like_predicate returns [JSONObject json]
         }
     ;
 
-value_list returns [JSONArray json]
+null_predicate returns [JSONObject json]
+    :   column_name IS (NOT)? NULL
+        {
+            String col = $column_name.text;
+            try {
+                $json = new JSONObject().put("isNull", col);
+                if ($NOT != null) {
+                    $json = new JSONObject().put("bool",
+                                                 new JSONObject().put("must_not", $json));
+                }
+            }
+            catch (JSONException err) {
+                throw new FailedPredicateException(input, "null_predicate", "JSONException: " + err.getMessage());
+            }
+        }
+    ;
+
+value_list returns [Object json]
 @init {
-    $json = new JSONArray();
+    JSONArray jsonArray = new JSONArray();
 }
     :   LPAR v=value
         {
-            $json.put($v.val);
+            jsonArray.put($v.val);
         }
         (COMMA v=value
             {
-                $json.put($v.val);
+                jsonArray.put($v.val);
             }
-        )* RPAR -> value+
+        )* RPAR
+        {
+            $json = jsonArray;
+        }
+    |   VARIABLE
+        {
+            $json = $VARIABLE.text;
+            _variables.add(($VARIABLE.text).substring(1));
+        }
     ;
 
 value returns [Object val]
@@ -1467,15 +1526,34 @@ value returns [Object val]
     |   STRING_LITERAL { $val = $STRING_LITERAL.text; }
     |   TRUE { $val = true; }
     |   FALSE { $val = false; }
+    |   VARIABLE
+        {
+            $val = $VARIABLE.text;
+            _variables.add(($VARIABLE.text).substring(1));
+        }
     ;
 
 numeric returns [Object val]
     :   time_expr { $val = $time_expr.val; }
-    |   INTEGER { $val = Integer.parseInt($INTEGER.text); }
-    |   REAL { $val = Float.parseFloat($REAL.text); }
+    |   INTEGER {
+            try {
+                $val = Long.parseLong($INTEGER.text);
+            }
+            catch (NumberFormatException err) {
+                throw new FailedPredicateException(input, "numeric", "Hit NumberFormatException: " + err.getMessage());
+            }
+        }
+    |   REAL {
+            try {
+                $val = Float.parseFloat($REAL.text);
+            }
+            catch (NumberFormatException err) {
+                throw new FailedPredicateException(input, "numeric", "Hit NumberFormatException: " + err.getMessage());
+            }
+        }
     ;
 
-except_clause returns [JSONArray json]
+except_clause returns [Object json]
     :   EXCEPT^ value_list
         {
             $json = $value_list.json;
@@ -1571,13 +1649,14 @@ facet_param_list returns [JSONObject json]
     ;
 
 facet_param returns [String facet, JSONObject param]
-    :   LPAR column_name COMMA STRING_LITERAL COMMA facet_param_type COMMA value RPAR
+    :   LPAR column_name COMMA STRING_LITERAL COMMA facet_param_type COMMA (val=value | valList=value_list) RPAR
         {
             $facet = $column_name.text; // XXX Check error here?
             try {
+                Object valArray = (val != null) ? new JSONArray().put(val.val) : $valList.json;
                 $param = new JSONObject().put($STRING_LITERAL.text,
                                               new JSONObject().put("type", $facet_param_type.paramType)
-                                                              .put("values", new JSONArray().put($value.val)));
+                                                              .put("values", valArray));
             }
             catch (JSONException err) {
                 throw new FailedPredicateException(input, "facet_param", "JSONException: " + err.getMessage());

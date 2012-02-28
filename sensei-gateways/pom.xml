@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>com.senseidb</groupId>
 		<artifactId>sensei-parent</artifactId>
-		<version>1.0.0</version>
+		<version>1.1.0-rc1</version>
 		<relativePath>../sensei-parent/pom.xml</relativePath>
 	</parent>
 	
@@ -27,7 +27,6 @@
 					<encoding>UTF-8</encoding>
 				</configuration>
 			</plugin>
-			<!--
 			<plugin>
 				<artifactId>maven-resources-plugin</artifactId>
 				<version>2.2</version>
@@ -60,7 +59,6 @@
 					</execution>
 				</executions>
 			</plugin>
-			-->
 			<plugin>
 		      <artifactId>maven-dependency-plugin</artifactId>
 		      <executions>
@@ -122,23 +120,13 @@
 			<groupId>org.apache.kafka</groupId>
 			<artifactId>kafka</artifactId>
 			<version>0.7.6</version>
-			<exclusions>
-              <exclusion>  <!-- declare the exclusion here -->
-                <groupId>zkclient</groupId>
-              </exclusion>
-            </exclusions>
-		</dependency>
-		
-		<dependency>
-			<groupId>com.linkedin.zoie</groupId>
-			<artifactId>zoie-core</artifactId>
-			<version>3.1.0</version>
-		</dependency>
-		
-		<dependency>
-			<groupId>com.linkedin.zoie</groupId>
-			<artifactId>zoie-jms</artifactId>
-			<version>3.1.0</version>
+			<scope>system</scope>
+			<systemPath>${basedir}/../lib/kafka-0.7.6.jar</systemPath>
+      <exclusions>
+        <exclusion> 
+          <groupId>zkclient</groupId>
+        </exclusion>
+      </exclusions>
 		</dependency>
 		
 		<dependency>
@@ -152,12 +140,6 @@
 			<artifactId>json</artifactId>
 			<version>20080701</version>
 		</dependency>
-		
-		<dependency>
-           <groupId>com.yammer.metrics</groupId>
-           <artifactId>metrics-core</artifactId>
-           <version>2.0.0-RC0</version>
-        </dependency>
 		
 		<dependency>
 			<groupId>org.apache.avro</groupId>

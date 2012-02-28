@@ -4,11 +4,11 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.senseidb.search.client.json.req.Operator;
+import com.senseidb.search.client.json.req.Path;
+import com.senseidb.search.client.json.req.Range;
 import com.senseidb.search.client.json.req.Selection;
 import com.senseidb.search.client.json.req.Term;
 import com.senseidb.search.client.json.req.Terms;
-import com.senseidb.search.client.json.req.Selection.Path;
-import com.senseidb.search.client.json.req.Selection.Range;
 import com.senseidb.search.client.json.req.filter.Filter.AndOr;
 import com.senseidb.search.client.json.req.query.Query;
 
@@ -40,6 +40,9 @@ public class Filters {
     public static BoolFilter boolShould(Filter... should) {
         return new BoolFilter( null, null, Arrays.asList(should));
     }
+    public static IsNull isNull(String fieldName) {
+      return new IsNull(fieldName);
+  }
     public static Term term(String field, String value) {
         return (Term)new Term(value).setField(field);
     }

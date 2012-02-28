@@ -34,7 +34,8 @@ public class TestErrorHandling extends TestCase
     facetInfoMap.put("year", new String[]{"range", "int"});
     facetInfoMap.put("makemodel", new String[]{"path", "string"});
     facetInfoMap.put("city", new String[]{"path", "string"});
-    facetInfoMap.put("time", new String[]{"custom", "long"}); // Mimic a custom facet
+    facetInfoMap.put("long_id", new String[]{"simple", "long"});
+    facetInfoMap.put("time", new String[]{"custom", ""}); // Mimic a custom facet
     _compiler = new BQLCompiler(facetInfoMap);
   }
 
@@ -778,6 +779,33 @@ public class TestErrorHandling extends TestCase
     catch (RecognitionException err)
     {
       assertEquals("[line:3, col:26] Non-range facet column \"color\" cannot be used in TIME predicates. (token=<EOF>)",
+                   _compiler.getErrorMessage(err));
+      caughtException = true;
+    }
+    finally 
+    {
+      assertTrue(caughtException);
+    }
+  }
+
+  @Test
+  public void testOverflowInteger() throws Exception
+  {
+    System.out.println("testOverflowInteger");
+    System.out.println("==================================================");
+
+    boolean caughtException = false;
+    try
+    {
+      JSONObject json = _compiler.compile(
+        "select category \n" +
+        "from cars \n" +
+        "where year = 12345678901234567890"
+        );
+    }
+    catch (RecognitionException err)
+    {
+      assertEquals("[line:3, col:33] Hit NumberFormatException: For input string: \"12345678901234567890\" (token=<EOF>)",
                    _compiler.getErrorMessage(err));
       caughtException = true;
     }

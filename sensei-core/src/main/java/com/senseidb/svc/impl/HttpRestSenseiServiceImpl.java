@@ -27,6 +27,7 @@ import java.util.zip.GZIPInputStream;
 import javax.net.ssl.SSLHandshakeException;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
 import org.apache.http.HeaderElementIterator;
@@ -442,7 +443,7 @@ public class HttpRestSenseiServiceImpl implements SenseiService
             SenseiSearchServletParams.PARAM_DYNAMIC_TYPE_BOOL));
         qparams.add(new BasicNameValuePair(
             String.format(format, SenseiSearchServletParams.PARAM_DYNAMIC_INIT, facetName, paramName, SenseiSearchServletParams.PARAM_DYNAMIC_VAL),
-            Boolean.toString(param.getBooleanParam(paramName)[0])));
+            join(param.getBooleanParam(paramName), ",")));
       }
 
       for (String paramName : param.getByteArrayParamNames()) {
@@ -460,7 +461,7 @@ public class HttpRestSenseiServiceImpl implements SenseiService
             SenseiSearchServletParams.PARAM_DYNAMIC_TYPE_DOUBLE));
         qparams.add(new BasicNameValuePair(
             String.format(format, SenseiSearchServletParams.PARAM_DYNAMIC_INIT, facetName, paramName, SenseiSearchServletParams.PARAM_DYNAMIC_VAL),
-            Double.toString(param.getDoubleParam(paramName)[0])));
+            join(param.getDoubleParam(paramName), ",")));
       }
 
       for (String paramName : param.getIntParamNames()) {
@@ -469,7 +470,7 @@ public class HttpRestSenseiServiceImpl implements SenseiService
             SenseiSearchServletParams.PARAM_DYNAMIC_TYPE_INT));
         qparams.add(new BasicNameValuePair(
             String.format(format, SenseiSearchServletParams.PARAM_DYNAMIC_INIT, facetName, paramName, SenseiSearchServletParams.PARAM_DYNAMIC_VAL),
-            Integer.toString(param.getIntParam(paramName)[0])));
+            join(param.getIntParam(paramName), ",")));
       }
 
       for (String paramName : param.getLongParamNames()) {
@@ -478,7 +479,7 @@ public class HttpRestSenseiServiceImpl implements SenseiService
             SenseiSearchServletParams.PARAM_DYNAMIC_TYPE_LONG));
         qparams.add(new BasicNameValuePair(
             String.format(format, SenseiSearchServletParams.PARAM_DYNAMIC_INIT, facetName, paramName, SenseiSearchServletParams.PARAM_DYNAMIC_VAL),
-            Long.toString(param.getLongParam(paramName)[0])));
+            join(param.getLongParam(paramName), ",")));
       }
 
       for (String paramName : param.getStringParamNames()) {
@@ -487,7 +488,7 @@ public class HttpRestSenseiServiceImpl implements SenseiService
             SenseiSearchServletParams.PARAM_DYNAMIC_TYPE_STRING));
         qparams.add(new BasicNameValuePair(
             String.format(format, SenseiSearchServletParams.PARAM_DYNAMIC_INIT, facetName, paramName, SenseiSearchServletParams.PARAM_DYNAMIC_VAL),
-            param.getStringParam(paramName).get(0)));
+            join(param.getStringParam(paramName), ",")));
       }
     }
   }
@@ -680,6 +681,26 @@ public class HttpRestSenseiServiceImpl implements SenseiService
 
   public static String join(String[] arr, String delimiter) {
     return join(Arrays.asList(arr), delimiter);
+  }
+
+  public static String join(boolean[] arr, String delimiter) {
+    return join(Arrays.asList(ArrayUtils.toObject(arr)), delimiter);
+  }
+
+  public static String join(byte[] arr, String delimiter) {
+    return join(Arrays.asList(ArrayUtils.toObject(arr)), delimiter);
+  }
+
+  public static String join(int[] arr, String delimiter) {
+    return join(Arrays.asList(ArrayUtils.toObject(arr)), delimiter);
+  }
+
+  public static String join(long[] arr, String delimiter) {
+    return join(Arrays.asList(ArrayUtils.toObject(arr)), delimiter);
+  }
+
+  public static String join(double[] arr, String delimiter) {
+    return join(Arrays.asList(ArrayUtils.toObject(arr)), delimiter);
   }
 
   public static String join(Collection<?> s, String delimiter) {

@@ -782,6 +782,7 @@ class BQLParser:
     PARAM = Keyword("param", caseless=True)
     QUERY = Keyword("query", caseless=True)
     SELECT = Keyword("select", caseless=True)
+    SET = Keyword("set", caseless=True)
     SINCE = Keyword("since", caseless=True)
     STORED = Keyword("stored", caseless=True)
     STRING = Keyword("string", caseless=True)
@@ -969,8 +970,16 @@ class BQLParser:
                     )
     
     describe_stmt = (DESC | DESCRIBE).setResultsName("describe") + Optional(ident.setResultsName("index"))
-    
-    BQLstmt = (select_stmt | describe_stmt) + Optional(SEMICOLON) + stringEnd
+
+    set_stmt = (SET +
+                ident.setResultsName("variable") +
+                (value.setResultsName("value") | value_list.setResultsName("value_list"))
+                )
+
+    BQLstmt = (select_stmt
+               | describe_stmt
+               | set_stmt
+               ) + Optional(SEMICOLON) + stringEnd
     
     # Define comment format, and ignore them
     sql_comment = "--" + restOfLine

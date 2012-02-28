@@ -1,16 +1,16 @@
 package com.senseidb.search.query;
 
-import java.util.Iterator;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 import org.apache.lucene.queryParser.QueryParser;
-import org.apache.lucene.index.Term;
-import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Query;
-import org.apache.lucene.search.TermQuery;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import com.senseidb.search.relevance.RelevanceQuery;
 
 public abstract class QueryConstructor
 {
@@ -57,6 +57,7 @@ public abstract class QueryConstructor
   public static final String ANALYZE_WILDCARD_PARAM             = "analyze_wildcard";
   public static final String AUTO_GENERATE_PHRASE_QUERIES_PARAM = "auto_generate_phrase_queries";
   public static final String USE_DIS_MAX_PARAM                  = "use_dis_max";
+  public static final String RELEVANCE                          = "relevance";
 
   private static final Map<String,QueryConstructor> QUERY_CONSTRUCTOR_MAP = new HashMap<String,QueryConstructor>();
 
@@ -110,7 +111,24 @@ public abstract class QueryConstructor
     if (queryConstructor == null)
       throw new IllegalArgumentException("Query type '" + type + "' not supported");
 
-    return queryConstructor.doConstructQuery(jsonQuery.getJSONObject(type));
+    JSONObject jsonValue = jsonQuery.getJSONObject(type);
+    Query baseQuery = queryConstructor.doConstructQuery(jsonValue);
+    
+    JSONObject jsonRelevance = null;
+    if(jsonValue.has(RELEVANCE))
+    {
+      jsonRelevance = jsonValue.optJSONObject(RELEVANCE);
+      if(jsonRelevance == null)
+        throw new JSONException("relevance part of the query json can not be parsed.");
+    }
+    if(jsonRelevance == null)
+    {
+      return baseQuery;
+    }
+    else
+    {
+     return new RelevanceQuery(baseQuery, jsonRelevance); 
+    }
   }
 
   abstract protected Query doConstructQuery(JSONObject jsonQuery) throws JSONException;

@@ -12,10 +12,22 @@ class PluginHolder {
   private Object factoryCreatedInstance;
   Map<String, String> properties = new LinkedHashMap<String, String>();
 
-  public PluginHolder(SenseiPluginRegistry senseiPluginRegistry, String pluginCLass, String pluginName, String fullPrefix) {
-    super();
+  public PluginHolder(SenseiPluginRegistry senseiPluginRegistry,
+                      String pluginCLass,
+                      String pluginName,
+                      String fullPrefix) {
     this.senseiPluginRegistry = senseiPluginRegistry;
     this.pluginCLass = pluginCLass;
+    this.pluginName = pluginName;
+    this.fullPrefix = fullPrefix;
+  }
+
+  public PluginHolder(SenseiPluginRegistry senseiPluginRegistry,
+                      Object instance,
+                      String pluginName,
+                      String fullPrefix) {
+    this.senseiPluginRegistry = senseiPluginRegistry;
+    this.instance = instance;
     this.pluginName = pluginName;
     this.fullPrefix = fullPrefix;
   }

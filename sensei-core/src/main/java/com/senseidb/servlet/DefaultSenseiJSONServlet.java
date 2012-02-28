@@ -49,6 +49,7 @@ import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_HIT_UI
 import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_NUMGROUPS;
 import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_NUMHITS;
 import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_PARSEDQUERY;
+import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_SELECT_LIST;
 import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_TID;
 import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_TIME;
 import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_TOTALDOCS;
@@ -124,6 +125,8 @@ import com.senseidb.util.RequestConverter;
 
 public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
 {
+
+  private static final String PARAM_RESULT_MAP_REDUCE = "mapReduceResult";
 
   /**
    *
@@ -442,9 +445,23 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
     JSONArray hitArray = buildJSONHits(req, hits);
     jsonObj.put(PARAM_RESULT_HITS, hitArray);
 
+    List<String> selectList = req.getSelectList();
+    if (selectList != null)
+    {
+      JSONArray jsonSelectList = new JSONArray();
+      for (String col: selectList)
+      {
+        jsonSelectList.put(col);
+      }
+      jsonObj.put(PARAM_RESULT_SELECT_LIST, jsonSelectList);
+    }
+
     jsonObj.put(PARAM_RESULT_TIME, res.getTime());
     jsonObj.put(PARAM_RESULT_FACETS, convert(res.getFacetMap(), req));
-
+    if (req.getMapReduceFunction() != null) {
+      jsonObj.put(PARAM_RESULT_MAP_REDUCE, req.getMapReduceFunction().render(res.getMapReduceResult().getReduceResult()));
+    }
+   
     return jsonObj;
   }
 
@@ -628,7 +645,7 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
     boolean[] vals = new boolean[paramVals.length];
     int i = 0;
     for (String paramVal : paramVals ) {
-      vals[i] = Boolean.parseBoolean(paramVal);
+      vals[i++] = Boolean.parseBoolean(paramVal);
     }
 
     facetParams.putBooleanParam(name, vals);
@@ -650,7 +667,7 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
     int[] vals = new int[paramVals.length];
     int i = 0;
     for (String paramVal : paramVals ) {
-      vals[i] = Integer.parseInt(paramVal);
+      vals[i++] = Integer.parseInt(paramVal);
     }
 
     facetParams.putIntParam(name, vals);
@@ -674,7 +691,7 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
     long[] vals = new long[paramVals.length];
     int i = 0;
     for (String paramVal : paramVals ) {
-      vals[i] = Long.parseLong(paramVal);
+      vals[i++] = Long.parseLong(paramVal);
     }
 
     facetParams.putLongParam(name, vals);
@@ -688,7 +705,7 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
     double[] vals = new double[paramVals.length];
     int i = 0;
     for (String paramVal : paramVals ) {
-      vals[i] = Double.parseDouble(paramVal);
+      vals[i++] = Double.parseDouble(paramVal);
     }
 
     facetParams.putDoubleParam(name, vals);
