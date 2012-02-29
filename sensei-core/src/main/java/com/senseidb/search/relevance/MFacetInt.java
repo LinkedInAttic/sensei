@@ -27,8 +27,8 @@ public class MFacetInt extends MFacet
   
   public boolean contains(int target)
   {
-    for(int i=0; i< this.length; i++)
-      if(((TermIntList) _mTermList).getPrimitiveValue(buf[i]) == target)
+    for(int i=0; i< this._length; i++)
+      if(((TermIntList) _mTermList).getPrimitiveValue(_buf[i]) == target)
         return true;
               
     return false;

@@ -27,8 +27,8 @@ public class MFacetLong extends MFacet
   
   public boolean contains(long target)
   {
-    for(int i=0; i< this.length; i++)
-      if(((TermLongList) _mTermList).getPrimitiveValue(buf[i]) == target)
+    for(int i=0; i< this._length; i++)
+      if(((TermLongList) _mTermList).getPrimitiveValue(_buf[i]) == target)
         return true;
               
     return false;
