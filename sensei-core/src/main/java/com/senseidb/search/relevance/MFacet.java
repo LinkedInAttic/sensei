@@ -12,9 +12,14 @@ public abstract class MFacet
   protected BigNestedIntArray _nestedArray = null;
   protected TermValueList _mTermList = null;
   
-  
-  protected int[]   buf = new int[1024];
-  protected int     length = 0;
+  protected int[]   _buf = new int[1024];
+  protected int     _length = 0;
+  protected int[]   _weight = new int[1];
+
+// for weighted multi-facet;
+  protected BigNestedIntArray _weightArray = null;
+  protected int[]   weightBuf = new int[1024];
+
   
   public MFacet(MultiValueFacetDataCache mDataCaches)
   {
@@ -25,12 +30,12 @@ public abstract class MFacet
 
   public void refresh(int id)
   {
-    length = _nestedArray.getData(id, buf);
+    _length = _nestedArray.getData(id, _buf);
   }
   
   public int size()
   {
-    return length;
+    return _length;
   }
   
   abstract public boolean containsAll(Set set);

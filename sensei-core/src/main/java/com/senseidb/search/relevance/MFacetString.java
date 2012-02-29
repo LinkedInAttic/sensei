@@ -27,8 +27,8 @@ public class MFacetString extends MFacet
   
   public boolean contains(String target)
   {
-    for(int i=0; i< this.length; i++)
-      if(((TermStringList) _mTermList).get(buf[i]).equals(target))
+    for(int i=0; i< this._length; i++)
+      if(((TermStringList) _mTermList).get(_buf[i]).equals(target))
         return true;
               
     return false;

@@ -27,8 +27,8 @@ public class MFacetDouble extends MFacet
   
   public boolean contains(double target)
   {
-    for(int i=0; i< this.length; i++)
-      if(((TermDoubleList) _mTermList).getPrimitiveValue(buf[i]) == target)
+    for(int i=0; i< this._length; i++)
+      if(((TermDoubleList) _mTermList).getPrimitiveValue(_buf[i]) == target)
         return true;
               
     return false;
