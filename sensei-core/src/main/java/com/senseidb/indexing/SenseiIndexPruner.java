@@ -102,34 +102,18 @@ public interface SenseiIndexPruner {
 				@Override
 				public  boolean isSelected(BoboIndexReader reader) throws IOException
 				{
-					_logger.info("Checking " + reader + " for selection");
 
-					//IndexCommit commit =  null;
 					long commitTime = IndexReader.lastModified(reader.directory());
-					/*
-					try {
-						commit = reader.getIndexCommit();
-					} catch (Exception e)
-					{
-						_logger.info("reader does not support this method");
-						return true;
-					}
-					
-					long commitTime = commit.getTimestamp();
-					*/
 					long diff = System.currentTimeMillis() - commitTime;
 					long days = TimeUnit.DAYS.convert(diff, TimeUnit.MILLISECONDS);
 
-					_logger.info("commit time in days:" + days);
-					
-					if (true || _logger.isDebugEnabled())
+					if (_logger.isDebugEnabled())
 					{
 						if (days > _maxAgeInDays)
 						{
-							_logger.info("regjecting " + reader + " because it is "
+							_logger.debug("regjecting " + reader + " because it is "
 								+ (days - _maxAgeInDays)
 								+ " days older than max days allowed: " + _maxAgeInDays);
-							return false; // TODO: just for debugging remove this line later
 						}
 					}
 					
