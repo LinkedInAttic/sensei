@@ -12,6 +12,12 @@ import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2LongOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2FloatOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2DoubleOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -82,6 +88,12 @@ public class RelevanceQuery extends AbstractScoreAdjuster
   public static final String           KW_TYPE_MAP_INT_DOUBLE      = "map_int_double";
   public static final String           KW_TYPE_MAP_INT_LONG        = "map_int_long";
 
+  public static final String           KW_TYPE_MAP_STRING_INT         = "map_string_int";
+  public static final String           KW_TYPE_MAP_STRING_FLOAT       = "map_string_float";
+  public static final String           KW_TYPE_MAP_STRING_STRING      = "map_string_string";
+  public static final String           KW_TYPE_MAP_STRING_DOUBLE      = "map_string_double";
+  public static final String           KW_TYPE_MAP_STRING_LONG        = "map_string_long";
+  
   // normal type: [int, double, float, long, bool, string]
   public static final String           KW_TYPE_INT             = "int";
   public static final String           KW_TYPE_FLOAT           = "float";
@@ -139,6 +151,11 @@ public class RelevanceQuery extends AbstractScoreAdjuster
   private final String                 TYPE_MAP_INT_DOUBLE       = "MAP_INT_DOUBLE";
   private final String                 TYPE_MAP_INT_FLOAT        = "MAP_INT_FLOAT";
   private final String                 TYPE_MAP_INT_STRING       = "MAP_INT_STRING";
+  private final String                 TYPE_MAP_STRING_INT          = "MAP_STRING_INT";
+  private final String                 TYPE_MAP_STRING_LONG         = "MAP_STRING_LONG";
+  private final String                 TYPE_MAP_STRING_DOUBLE       = "MAP_STRING_DOUBLE";
+  private final String                 TYPE_MAP_STRING_FLOAT        = "MAP_STRING_FLOAT";
+  private final String                 TYPE_MAP_STRING_STRING       = "MAP_STRING_STRING";
   
   private final String                 TYPE_MAP_HEAD         = "MAP";
 
@@ -197,6 +214,8 @@ public class RelevanceQuery extends AbstractScoreAdjuster
   
   private static final long serialVersionUID = 1L;
   
+  public static int MAX_NUM_MODELS  = 10000;
+  
   private static Logger logger = Logger.getLogger(RelevanceQuery.class);
   
   protected final Query _query;
@@ -235,6 +254,14 @@ public class RelevanceQuery extends AbstractScoreAdjuster
     pool.importPackage("it.unimi.dsi.fastutil.ints.Int2LongOpenHashMap");
     pool.importPackage("it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap");
     
+    pool.importPackage("it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap");
+    pool.importPackage("it.unimi.dsi.fastutil.objects.Object2FloatOpenHashMap");
+    pool.importPackage("it.unimi.dsi.fastutil.objects.Object2DoubleOpenHashMap");
+    pool.importPackage("it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap");
+    pool.importPackage("it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap");
+    
+    pool.importPackage("it.unimi.dsi.fastutil.objects.AbstractObject2FloatMap");
+    
     
     pool.importPackage("com.senseidb.search.relevance.MFacet");
     pool.importPackage("com.senseidb.search.relevance.MFacetDouble");
@@ -267,6 +294,14 @@ public class RelevanceQuery extends AbstractScoreAdjuster
     hs_safe.add("it.unimi.dsi.fastutil.ints.Int2DoubleOpenHashMap");
     hs_safe.add("it.unimi.dsi.fastutil.ints.Int2LongOpenHashMap");
     hs_safe.add("it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap");
+    
+    hs_safe.add("it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap");
+    hs_safe.add("it.unimi.dsi.fastutil.objects.Object2FloatOpenHashMap");
+    hs_safe.add("it.unimi.dsi.fastutil.objects.Object2DoubleOpenHashMap");
+    hs_safe.add("it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap");
+    hs_safe.add("it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap");
+    
+    hs_safe.add("it.unimi.dsi.fastutil.objects.AbstractObject2FloatMap");
     
     
     hs_safe.add("com.senseidb.search.relevance.RelevanceQuery");
@@ -312,7 +347,7 @@ public class RelevanceQuery extends AbstractScoreAdjuster
 //               
 //                  "variables": {
 //                                 "set_int":["c","d"],  // supported hashset types: [set_int, set_float, set_string, set_double, set_long]
-//                                 "map_int_float":["j"],  // currently supported hashmap: [map_int_float, map_int_double, map_int_*...]
+//                                 "map_int_float":["j"],  // currently supported hashmap: [map_int_float, map_int_double, map_int_*...] [map_string_int, map_string_float, map_string_*]
 //                                 "int":["e","f"],       // supported normal variables: [int, double, float, long, bool, string]
 //                                 "long":["g","h"]
 //                                },
@@ -367,20 +402,27 @@ public class RelevanceQuery extends AbstractScoreAdjuster
                         "variables":{
                              "set_int":["goodYear"],
                              "int":["thisYear"],
-                             "map_int_float":["mileageWeight"]
+                             "map_int_float":["mileageWeight"],
+                             "map_int_string":["yearcolor"],
+                             "map_string_float":["colorweight"],
+                             "map_string_string":["categorycolor"]
                             },
                         "facets":{
                              "int":["year","mileage"],
-                             "long":["groupid"]
+                             "long":["groupid"],
+                             "string":["color","category"] 
                             },
-                        "function_params":["_INNER_SCORE", "thisYear", "year","goodYear","mileageWeight","mileage"],  
-                        "function":" if(mileageWeight.containsKey(mileage)) return 10000+mileageWeight.get(mileage); if(goodYear.contains(year)) return (float)Math.exp(2d);   if(year==thisYear) return 87f   ; return  _INNER_SCORE;"
+                        "function_params":["_INNER_SCORE", "thisYear", "year","goodYear","mileageWeight","mileage","color", "yearcolor", "colorweight", "category", "categorycolor"],  
+                        "function":" if(categorycolor.containsKey(category) && categorycolor.get(category).equals(color))  return 10000f; if(colorweight.containsKey(color) ) return 200f + colorweight.getFloat(color); if(yearcolor.containsKey(year) && yearcolor.get(year).equals(color)) return 200f; if(mileageWeight.containsKey(mileage)) return 10000+mileageWeight.get(mileage); if(goodYear.contains(year)) return (float)Math.exp(2d);   if(year==thisYear) return 87f   ; return  _INNER_SCORE;"
                     },
                     
                     "values":{
                          "goodYear":[1996,1997],
                          "thisYear":2001,
-                         "mileageWeight":{"key":[11400,11000],"value":[777.9, 10.2]}
+                         "mileageWeight":{"key":[11400,11000],"value":[777.9, 10.2]},
+                        "yearcolor":{"key":[1998],"value":["red"]},
+                        "colorweight":{"key":["red"],"value":[335.5]},
+                        "categorycolor":{"key":["compact"],"value":["red"]}
                     }
                 }
             }
@@ -596,6 +638,47 @@ public class RelevanceQuery extends AbstractScoreAdjuster
               ((Int2ObjectOpenHashMap)hm).put(keysList.getInt(j), valuesList.getString(j));
             hm_type.put(symbol, TYPE_MAP_INT_STRING);
           }
+          
+          else if(KW_TYPE_MAP_STRING_INT.equals(type))
+          {
+            if(hm == null)
+              hm = new Object2IntOpenHashMap();
+            for(int j=0; j<keySize; j++)
+              ((Object2IntOpenHashMap)hm).put(keysList.getString(j), valuesList.getInt(j));
+            hm_type.put(symbol, TYPE_MAP_STRING_INT);
+          }
+          else if (KW_TYPE_MAP_STRING_DOUBLE.equals(type))
+          {
+            if(hm == null)
+              hm = new Object2DoubleOpenHashMap();
+            for(int j=0; j<keySize; j++)
+              ((Object2DoubleOpenHashMap)hm).put(keysList.getString(j), valuesList.getDouble(j));
+            hm_type.put(symbol, TYPE_MAP_STRING_DOUBLE);
+          }
+          else if (KW_TYPE_MAP_STRING_FLOAT.equals(type))
+          {
+            if(hm == null)
+              hm = new Object2FloatOpenHashMap();
+            for(int j=0; j<keySize; j++)
+              ((Object2FloatOpenHashMap)hm).put(keysList.getString(j), (float)(valuesList.getDouble(j)));
+            hm_type.put(symbol, TYPE_MAP_STRING_FLOAT);
+          }
+          else if (KW_TYPE_MAP_STRING_LONG.equals(type))
+          {
+            if(hm == null)
+              hm = new Object2LongOpenHashMap();
+            for(int j=0; j<keySize; j++)
+              ((Object2LongOpenHashMap)hm).put(keysList.getString(j), valuesList.getLong(j));
+            hm_type.put(symbol, TYPE_MAP_STRING_LONG);
+          }
+          else if (KW_TYPE_MAP_STRING_STRING.equals(type))
+          {
+            if(hm == null)
+              hm = new Object2ObjectOpenHashMap();
+            for(int j=0; j<keySize; j++)
+              ((Object2ObjectOpenHashMap)hm).put(keysList.getString(j), valuesList.getString(j));
+            hm_type.put(symbol, TYPE_MAP_STRING_STRING);
+          }
         
           
           if(hm_var.containsKey(symbol))
@@ -798,6 +881,9 @@ public class RelevanceQuery extends AbstractScoreAdjuster
           throw new JSONException(e);
         }
         
+        if(hmModels.size() > MAX_NUM_MODELS)
+          hmModels = new HashMap<String, CustomScorer>();
+        
         hmModels.put(className, cscorer);
       }        
     }
@@ -961,7 +1047,6 @@ public class RelevanceQuery extends AbstractScoreAdjuster
                                 HashMap<String, String> hm_type,
                                 LinkedList<String> lls_params) throws JSONException
   {
-//    "public float score(Object[] objs) {  Integer inta = (Integer)objs[0]; System.out.println(inta);  HashMap hm = (HashMap)objs[2]; System.out.println(hm.get(\"good\")); return b; }"
     
     StringBuffer sb = new StringBuffer();
     sb.append("public float score(short[] shorts, int[] ints, long[] longs, float[] floats, double[] doubles, boolean[] booleans, String[] strings, Set[] sets, Map[] maps, com.senseidb.search.relevance.MFacetInt[] mFacetInts, com.senseidb.search.relevance.MFacetLong[] mFacetLongs, com.senseidb.search.relevance.MFacetFloat[] mFacetFloats, com.senseidb.search.relevance.MFacetDouble[] mFacetDoubles, com.senseidb.search.relevance.MFacetShort[] mFacetShorts, com.senseidb.search.relevance.MFacetString[] mFacetStrings) {");
@@ -1073,6 +1158,32 @@ public class RelevanceQuery extends AbstractScoreAdjuster
       else if(paramType.equals(TYPE_MAP_INT_STRING))
       {
         sb.append(" it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap " + paramName + " = (it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap) maps["+ map_index +"]; ");
+        map_index++;
+      }
+      
+      else if(paramType.equals(TYPE_MAP_STRING_INT))
+      {
+        sb.append(" it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap " + paramName + " = (it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap) maps["+ map_index +"]; ");
+        map_index++;
+      }
+      else if(paramType.equals(TYPE_MAP_STRING_LONG))
+      {
+        sb.append(" it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap " + paramName + " = (it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap) maps["+ map_index +"]; ");
+        map_index++;
+      }
+      else if(paramType.equals(TYPE_MAP_STRING_DOUBLE))
+      {
+        sb.append(" it.unimi.dsi.fastutil.objects.Object2DoubleOpenHashMap " + paramName + " = (it.unimi.dsi.fastutil.objects.Object2DoubleOpenHashMap) maps["+ map_index +"]; ");
+        map_index++;
+      }
+      else if(paramType.equals(TYPE_MAP_STRING_FLOAT))
+      {
+        sb.append(" it.unimi.dsi.fastutil.objects.Object2FloatOpenHashMap " + paramName + " = (it.unimi.dsi.fastutil.objects.Object2FloatOpenHashMap) maps["+ map_index +"]; ");
+        map_index++;
+      }
+      else if(paramType.equals(TYPE_MAP_STRING_STRING))
+      {
+        sb.append(" it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap " + paramName + " = (it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap) maps["+ map_index +"]; ");
         map_index++;
       }
       
@@ -1613,7 +1724,6 @@ public class RelevanceQuery extends AbstractScoreAdjuster
         }
       }
       
-//      float score(short[] shorts, int[] ints, long[] longs, float[] floats, double[] doubles, boolean[] booleans, String[] strings, Set[] sets);
       return _cscorer.score(shorts, ints, longs, floats, doubles, booleans, strings, sets, maps, mFacetInts, mFacetLongs, mFacetFloats, mFacetDoubles, mFacetShorts, mFacetStrings);
     }
 
