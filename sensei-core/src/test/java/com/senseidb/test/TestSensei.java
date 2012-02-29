@@ -739,9 +739,6 @@ public class TestSensei extends TestCase {
   }
   
   
-  
-  
-  
   public void testRelevanceHashMapInt2String() throws Exception
   {
     logger.info("executing test case testRelevanceHashMapInt2String");

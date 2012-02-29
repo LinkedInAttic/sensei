@@ -23,7 +23,7 @@ public class WeightedMFacetFloat extends MFacetFloat implements WeightedMFacet
     _weightArray.getData(id, weightBuf);
   }
 
-  public boolean getWeight(float target){
+  public boolean hasWeight(float target){
     
     for(int i=0; i< this._length; i++)
       if(((TermFloatList) _mTermList).getPrimitiveValue(_buf[i]) == target)
