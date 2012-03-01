@@ -73,6 +73,7 @@ import com.senseidb.indexing.DefaultStreamingIndexingManager;
 import com.senseidb.indexing.SenseiIndexPruner;
 import com.senseidb.indexing.ShardingStrategy;
 import com.senseidb.indexing.activity.CompositeActivityManager;
+import com.senseidb.indexing.activity.deletion.PurgeFilterWrapper;
 import com.senseidb.jmx.JmxSenseiMBeanServer;
 import com.senseidb.plugin.SenseiPluginRegistry;
 import com.senseidb.search.node.SenseiCore;
@@ -496,7 +497,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
 
     if (SENSEI_INDEXER_TYPE_ZOIE.equals(indexerType)){
       SenseiZoieSystemFactory senseiZoieFactory = new SenseiZoieSystemFactory(idxDir,dirMode,interpreter,decorator,
-              zoieConfig);
+              zoieConfig);     
       int retentionDays = _senseiConf.getInt(SENSEI_ZOIE_RETENTION_DAYS,-1);
       if (retentionDays>0){
         RetentionFilterFactory retentionFilterFactory = pluginRegistry.getBeanByFullPrefix(SENSEI_ZOIE_RETENTION_CLASS, RetentionFilterFactory.class);
@@ -515,6 +516,9 @@ public class SenseiServerBuilder implements SenseiConfParams{
       	    throw new ConfigurationException("Invalid timeunit for retention: "+unitString);
       	  }
       	  purgeFilter = new TimeRetentionFilter(timeColumn, retentionDays, unit);
+        }
+        if (purgeFilter != null && activityManager != null) {
+          purgeFilter = new PurgeFilterWrapper(purgeFilter, activityManager);
         }
         senseiZoieFactory.setPurgeFilter(purgeFilter);
       }

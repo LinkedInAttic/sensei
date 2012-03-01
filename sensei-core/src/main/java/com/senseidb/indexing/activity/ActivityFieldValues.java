@@ -1,9 +1,13 @@
 package com.senseidb.indexing.activity;
 
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.longs.Long2IntMap;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
+import it.unimi.dsi.fastutil.longs.LongList;
 
 import java.util.Comparator;
+import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.locks.Lock;
@@ -14,6 +18,7 @@ import org.apache.log4j.Logger;
 
 import proj.zoie.api.ZoieIndexReader;
 
+import com.senseidb.indexing.activity.FileStorage.FieldUpdate;
 import com.senseidb.indexing.activity.FileStorage.UpdateBatch;
 
 public class ActivityFieldValues {
@@ -22,13 +27,15 @@ public class ActivityFieldValues {
   protected String fieldName;
   protected volatile String lastVersion = "";
   protected volatile String lastPersistedVersion;
-  protected Long2IntMap uidToArrayIndex = new Long2IntOpenHashMap();
+  protected Long2IntMap uidToArrayIndex = new Long2IntOpenHashMap();  
   private ReadWriteLock[] locks;
   protected Comparator<String> versionComparator;
+  protected int arraySize;
   private UpdateBatch updateBatch;
   private ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
   protected FileStorage activityFieldStore;
-
+  protected IntList deletedIndexes = new IntArrayList(2000);
+  
   public void init(int capacity) {
     uidToArrayIndex = new Long2IntOpenHashMap(capacity);
     locks = new ReadWriteLock[1024];
@@ -47,20 +54,31 @@ public class ActivityFieldValues {
     if (versionComparator.compare(lastVersion, version) > 0) {
       return;
     }
-    int index;
+    int index = -1;
     ReadWriteLock lock = getLock(uid);
     Lock writeLock = lock.writeLock();
     try {
-      writeLock.lock();
+      writeLock.lock();      
       if (uidToArrayIndex.containsKey(uid)) {
-        index = uidToArrayIndex.get(uid);
-        setValue(fieldValues, value, index);
+        index = uidToArrayIndex.get(uid);       
       } else {
-        ensureCapacity(fieldValues, uidToArrayIndex);
-        index = uidToArrayIndex.size();
-        uidToArrayIndex.put(uid, index);
-        setValue(fieldValues, value, index);
+        boolean deletedDocsPresent = false;
+        synchronized (deletedIndexes) {
+          if (deletedIndexes.size() > 0) {
+             index = deletedIndexes.removeInt(deletedIndexes.size() - 1);
+             uidToArrayIndex.put(uid, index);
+             fieldValues[index] = 0;
+             deletedDocsPresent = true;
+          }
+        }
+        if (!deletedDocsPresent) {
+          ensureCapacity(fieldValues, arraySize);
+          index = arraySize;
+          uidToArrayIndex.put(uid, index);          
+          arraySize++;
+        }
       }
+      setValue(fieldValues, value, index);
     } finally {
       writeLock.unlock();
     }
@@ -70,9 +88,44 @@ public class ActivityFieldValues {
     }
     lastVersion = version;
   }
-
+ 
+  public void delete(LongList uids) {   
+    final IntList indexes = new IntArrayList(uids.size());
+    for (long uid : uids) {
+    ReadWriteLock lock = getLock(uid);
+    Lock writeLock = lock.writeLock();
+    int index = -1;
+    try {
+      writeLock.lock();
+      if (!uidToArrayIndex.containsKey(uid)) {
+        if (logger.isDebugEnabled()) {
+          logger.debug("Couldn't delete the document, as it doesn't exist. UID = " + uid);
+        }
+        continue;
+      }
+      index =  uidToArrayIndex.remove(uid);
+      fieldValues[index] = Integer.MIN_VALUE;
+      indexes.add(index);
+    } finally {
+      writeLock.unlock();
+    }
+    }
+    executor.execute(new Runnable() {
+      public void run() {       
+          if (activityFieldStore.isClosed()) {
+            return;
+          }
+          activityFieldStore.delete(indexes);  
+          activityFieldStore.commit(lastPersistedVersion, arraySize);
+          synchronized (deletedIndexes) {
+            deletedIndexes.addAll(indexes);
+          }
+      }});
+  }
+  
+  
   public void flush() {
-    if (updateBatch.getUpdates().isEmpty()) {
+    if (updateBatch.getUpdates().isEmpty()) {      
       return;
     }
     if (activityFieldStore.isClosed()) {
@@ -80,8 +133,8 @@ public class ActivityFieldValues {
     }
     final FileStorage.UpdateBatch oldBatch = updateBatch;
     updateBatch = new FileStorage.UpdateBatch();
-    final String newVersion = oldBatch.getUpdates().get(oldBatch.getUpdates().size() - 1).version;
-    final int capacity = uidToArrayIndex.size();
+    final String newVersion = getMaxVersion(oldBatch.getUpdates());
+    final int capacity = arraySize;
     executor.execute(new Runnable() {
       public void run() {
         try {
@@ -91,7 +144,7 @@ public class ActivityFieldValues {
           if (versionComparator.compare(newVersion, lastPersistedVersion) < 0) {
             throw new IllegalArgumentException("The current version couln't be less than the one on persisted activity values");
           }
-          activityFieldStore.applyUpdates(oldBatch.getUpdates());
+          activityFieldStore.applyUpdates(oldBatch.getUpdates());         
           activityFieldStore.commit(newVersion, capacity);
           lastPersistedVersion = newVersion;
         } catch (Exception ex) {
@@ -101,14 +154,23 @@ public class ActivityFieldValues {
     });
   }
 
-  public int[] precomputeArrayIndexes(long[] uids) {
-    
-    int[] ret = new int[uids.length];
-   
+  private String getMaxVersion(List<FieldUpdate> updates) {
+    String ret = updates.get(0).version;
+    for (int i = 1; i < updates.size(); i ++) {
+      if (versionComparator.compare(ret, updates.get(i).version) < 0) {
+        ret = updates.get(i).version;
+      }
+    }
+    return ret;
+  }
+
+  public int[] precomputeArrayIndexes(long[] uids) {    
+    int[] ret = new int[uids.length];   
     for (int i = 0; i < uids.length; i++) {
       long uid = uids[i];
       if (uid == ZoieIndexReader.DELETED_UID) {
         ret[i] = -1;
+        continue;
       }
       Lock lock = getLock(uid).readLock();
       try {
@@ -131,7 +193,7 @@ public class ActivityFieldValues {
   public int getValueByUID(long uid) {
     Lock readLock = getLock(uid).readLock();
     if (!uidToArrayIndex.containsKey(uid)) {
-      return -1;
+      return Integer.MIN_VALUE;
     }
     try {
       readLock.lock();
@@ -140,25 +202,22 @@ public class ActivityFieldValues {
       readLock.unlock();
     }
   }
-  private void ensureCapacity(int[] fieldValues, Long2IntMap uidToArrayIndex) {
+  private void ensureCapacity(int[] fieldValues, int currentArraySize) {
     if (fieldValues.length == 0) {
       this.fieldValues = new int[50000];
       return;
     }
-    if (fieldValues.length - uidToArrayIndex.size() < 2) {
+    if (fieldValues.length - currentArraySize < 2) {
       int newSize = fieldValues.length < 10000000 ? fieldValues.length * 2 : (int) (fieldValues.length * 1.5);
       int[] newFieldValues = new int[newSize];
       System.arraycopy(fieldValues, 0, newFieldValues, 0, fieldValues.length);
       this.fieldValues = newFieldValues;
     }
   }
-
   public static void setValue(int[] fieldValues, Object value, int index) {
     if (value == null) {
       return;
     }
-    
-    
     if (value instanceof Integer) {
       fieldValues[index] = (Integer) value;
     } else if (value instanceof Long) {
@@ -177,8 +236,7 @@ public class ActivityFieldValues {
       }
     } else {
       throw new UnsupportedOperationException("Only longs, ints and String are supported");
-    }
-    
+    }    
   }
 
   protected ReadWriteLock getLock(long uid) {
@@ -229,12 +287,11 @@ public class ActivityFieldValues {
     activityFieldStore.close();
   }
 
-  public static ActivityFieldValues readFromFile(String indexDirPath, String fieldName,
-      Comparator<String> versionComparator) {
-    
+  public static ActivityFieldValues readFromFile(String indexDirPath, String fieldName, Comparator<String> versionComparator) {    
     FileStorage persistentColumnManager = new FileStorage(fieldName, indexDirPath);
     persistentColumnManager.init();
     return persistentColumnManager.getActivityDataFromFile(versionComparator);
   }
+
   
 }

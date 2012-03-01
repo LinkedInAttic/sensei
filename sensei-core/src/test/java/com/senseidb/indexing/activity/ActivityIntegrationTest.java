@@ -28,7 +28,7 @@ public class ActivityIntegrationTest extends TestCase {
     }
     final ActivityFieldValues inMemoryColumnData1 = CompositeActivityManager.cachedInstances.get(1).columnsMap.get("likes");
     final ActivityFieldValues inMemoryColumnData2 = CompositeActivityManager.cachedInstances.get(2).columnsMap.get("likes");
-    Wait.waitUntil(10000, "The activity value wasn't updated", new Wait.Condition() {
+    Wait.until(10000, "The activity value wasn't updated", new Wait.Condition() {
       public boolean evaluate() {
         return inMemoryColumnData1.getVersion().equals(String.valueOf(15009)) || inMemoryColumnData2.getVersion().equals(String.valueOf(15009));
       }
@@ -48,7 +48,7 @@ public class ActivityIntegrationTest extends TestCase {
     }
     final ActivityFieldValues inMemoryColumnData1 = CompositeActivityManager.cachedInstances.get(1).columnsMap.get("likes");
     final ActivityFieldValues inMemoryColumnData2 = CompositeActivityManager.cachedInstances.get(2).columnsMap.get("likes");
-    Wait.waitUntil(10000, "The activity value wasn't updated", new Wait.Condition() {
+    Wait.until(10000, "The activity value wasn't updated", new Wait.Condition() {
       public boolean evaluate() {
         return inMemoryColumnData1.getValueByUID(1L) == 26 || inMemoryColumnData2.getValueByUID(1L) == 26;
       }
@@ -56,7 +56,7 @@ public class ActivityIntegrationTest extends TestCase {
     for (int i = 0; i < 5; i++) {
       FileDataProviderWithMocks.add(new JSONObject().put("id", 1L).put("_type", "update").put("likes", "+5"));
     }
-    Wait.waitUntil(10000, "The activity value wasn't updated", new Wait.Condition() {
+    Wait.until(10000, "The activity value wasn't updated", new Wait.Condition() {
       public boolean evaluate() {
         return inMemoryColumnData1.getValueByUID(1L) == 51 || inMemoryColumnData2.getValueByUID(1L) == 51;
       }

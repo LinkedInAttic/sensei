@@ -9,6 +9,7 @@ import org.apache.lucene.search.DocIdSetIterator;
 import org.apache.lucene.search.ScoreDoc;
 
 import proj.zoie.api.ZoieSegmentReader;
+import scala.actors.threadpool.Arrays;
 
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.api.BrowseSelection;
@@ -37,7 +38,7 @@ public class ActivityRangeFacetHandler extends FacetHandler<int[]> {
   @Override
   public int[] load(BoboIndexReader reader) throws IOException {
     ZoieSegmentReader<?> zoieReader = (ZoieSegmentReader<?>)(reader.getInnerReader());    
-    long[] uidArray = zoieReader.getUIDArray();
+    long[] uidArray = zoieReader.getUIDArray();   
     return activityFieldValues.precomputeArrayIndexes(uidArray);    
   }
 
@@ -67,7 +68,8 @@ public class ActivityRangeFacetHandler extends FacetHandler<int[]> {
           @Override
           public boolean get(int docId) {           
             int val = array[indexes[docId]];
-            return val >= startValue && val < endValue;
+            
+            return val >= startValue && val < endValue && val != Integer.MIN_VALUE;
           }
         };
       }
@@ -96,7 +98,11 @@ public class ActivityRangeFacetHandler extends FacetHandler<int[]> {
     if (index == -1) {
       return new String[0];
     }
-    return new String[] {String.valueOf(activityFieldValues.getValue(index))};
+    int value = activityFieldValues.getValue(index);
+    if (value == Integer.MIN_VALUE) {
+      value = 0;
+    }
+    return new String[] {String.valueOf(value)};
   }
 
   @Override
@@ -107,8 +113,12 @@ public class ActivityRangeFacetHandler extends FacetHandler<int[]> {
         final int[] indexes = (int[]) ((BoboIndexReader)reader).getFacetData(_name);          
         return new DocComparator() {          
           @Override
-          public Comparable<Integer> value(ScoreDoc doc) {            
+          public Comparable<Integer> value(ScoreDoc doc) {
+            try {
             return fieldValues[indexes[doc.doc]];
+            } catch (RuntimeException ex) {
+              System.out.println("FieldValues =" + Arrays.toString(fieldValues));
+              System.out.println("Indexes =" + Arrays.toString(indexes));System.out.println("docId=" + doc.doc + " , globalIndex=" + indexes[doc.doc]);throw ex;}
           }          
           @Override
           public int compare(ScoreDoc doc1, ScoreDoc doc2) {            

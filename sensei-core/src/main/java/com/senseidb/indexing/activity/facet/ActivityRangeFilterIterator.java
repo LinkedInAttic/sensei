@@ -27,7 +27,7 @@ public class ActivityRangeFilterIterator extends DocIdSetIterator {
   }
   @Override
   public int nextDoc() throws IOException {  
-   while (++_doc < arrLength) {
+   while (++_doc < arrLength && indexes[_doc] >= 0) {
      int value = fieldValues[indexes[_doc]];
      if (value >= start && value < end) {
        return _doc;

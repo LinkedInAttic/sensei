@@ -1,5 +1,9 @@
 package com.senseidb.indexing.activity;
 
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntIterator;
+import it.unimi.dsi.fastutil.ints.IntList;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -18,13 +22,15 @@ import com.senseidb.conf.SenseiServerBuilder;
 public class FileStorage {
   private static Logger logger = Logger.getLogger(FileStorage.class);
   private RandomAccessFile storedFile;
-  private File metadataFile;
   private final String fieldName;
   private final String indexDir;
   private volatile boolean closed = false;
   private MappedByteBuffer buffer;
   private long fileLength;
   private Metadata metadata;
+  protected IntList pendingDeletions = new IntArrayList(2000);
+  
+  
   public FileStorage(String fieldName, String indexDir) {
     this.fieldName = fieldName;
     this.indexDir = indexDir;
@@ -33,20 +39,16 @@ public class FileStorage {
   public synchronized void init() {
     try {
       File file = new File(indexDir, fieldName + ".data");
-      metadataFile = new File(indexDir, fieldName + ".metadata");
       if (!file.exists()) {
         file.createNewFile();
       }
       storedFile = new RandomAccessFile(file, "rw");
       fileLength = storedFile.length();
        buffer = storedFile.getChannel().map(MapMode.READ_WRITE, 0, file.length());
-      if (!metadataFile.exists()) {
-        metadataFile.createNewFile();
-      } else {
-        String versionPlusCapacity = FileUtils.readFileToString(metadataFile);
-        metadata = Metadata.valueOf(versionPlusCapacity);       
-        
-      }
+     
+        metadata = new Metadata(indexDir, fieldName);      
+        metadata.init();
+      
     } catch (IOException e) {
       logger.error(e.getMessage(), e);
       throw new RuntimeException(e);
@@ -54,13 +56,9 @@ public class FileStorage {
   }
 
   public synchronized void applyUpdates(List<FieldUpdate> updates) {
-    Assert.state(metadataFile != null, "The FileStorage is not initialized");    
+    Assert.state(metadata != null, "The FileStorage is not initialized");    
     try {
-      for (FieldUpdate update : updates) {
-        //storedFile.seek(update.index * 12);
-       // storedFile.writeLong(update.uid);
-        //storedFile.seek(update.index * 12 + 8);
-        //storedFile.writeLong(update.value);
+      for (FieldUpdate update : updates) {       
          ensureCapacity(update.index * 12 + 8);
          buffer.putLong(update.index * 12, update.uid);
          buffer.putInt(update.index * 12 + 8, update.value);
@@ -69,7 +67,14 @@ public class FileStorage {
       throw new RuntimeException(e);
     }
   }
+  public synchronized void delete(IntList indexesToDelete) {   
+    for (int index : indexesToDelete) {
+      buffer.putInt(index * 12 + 8, Integer.MIN_VALUE);
+    }
+  }
 
+  
+ 
   private void ensureCapacity( int i) {
     try {
     if (fileLength > i + 100) {
@@ -88,15 +93,9 @@ public class FileStorage {
     }
   }
 
-  public synchronized void commit(String version, int count) {
-    try {
-      
+  public synchronized void commit(String version, int count) { 
       buffer.force();
-      //storedFile.getFD().sync();     
-      FileUtils.writeStringToFile(metadataFile, version + ";" + count);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+      metadata.update(version, count);
   }
   public synchronized void close() {
     try {
@@ -107,23 +106,33 @@ public class FileStorage {
     }
   }
   public ActivityFieldValues getActivityDataFromFile(Comparator<String> versionComparator) {
-    Assert.state(metadataFile != null, "The FileStorage is not initialized");
+    Assert.state(metadata != null, "The FileStorage is not initialized");
     ActivityFieldValues ret = new ActivityFieldValues();
     ret.versionComparator = versionComparator;    
     ret.activityFieldStore = this;
     ret.fieldName = fieldName;
     try { 
-    if (metadata == null) {
+    if (metadata == null || metadata.count == null) {
       ret.init();
       ret.lastVersion = "";
       ret.lastPersistedVersion = "";    
       return ret;
     }    
     ret.init((int)(metadata.count * 1.5));
+    ret.arraySize = metadata.count;
     int fileIndex = 0;    
       for (int i = 0; i < metadata.count; i ++) {
+        int value = buffer.getInt(fileIndex + 8);
+        //deleted docs
+        if (value == Integer.MIN_VALUE) {
+          ret.deletedIndexes.add(i);
+          ret.fieldValues[i] = Integer.MIN_VALUE; 
+          fileIndex += 12;
+          continue;
+        }
         ret.uidToArrayIndex.put(buffer.getLong((int) fileIndex), i);
-        ret.fieldValues[i] = buffer.getInt(fileIndex + 8);        
+        ret.fieldValues[i] = value; 
+        
         fileIndex += 12;
       }    
     } catch (Exception e) {
@@ -178,23 +187,56 @@ public class FileStorage {
   public static class Metadata {
     public String version;
     public Integer count;
-    public Metadata(String version, Integer count) {
+    private final String indexDir;
+    private final String fieldName;
+    private File file1;
+    private File file2;
+    public Metadata(String indexDir, String fieldName) {
       super();
+      this.indexDir = indexDir;
+      this.fieldName = fieldName;      
+    }
+    public void init() throws IOException {
+      file1 = new File(indexDir, fieldName + ".metadata1");
+      file2 = new File(indexDir, fieldName + ".metadata2");
+      if (!file1.exists()) {
+        file1.createNewFile();
+      }
+      if (!file2.exists()) {
+        file2.createNewFile();
+      } else {
+        long modifiedTime1 = file1.lastModified();
+        long modifiedTime2 = file2.lastModified();
+        if (modifiedTime1 > modifiedTime2) {
+          init(FileUtils.readFileToString(file2));
+        } else {
+          init(FileUtils.readFileToString(file1));
+        }
+      }      
+    }
+    public void update(String version, int count)  {
       this.version = version;
       this.count = count;
+      try {
+      FileUtils.writeStringToFile(file1, this.toString());
+      FileUtils.writeStringToFile(file2, this.toString());
+      } catch (IOException ex) {
+        throw new RuntimeException(ex);
+      }
     }
     @Override
     public String toString() {
      return version + ";" + count;
     }
-    public static Metadata valueOf(String str) {
+    protected void init(String str) {
       if (!str.contains(";")) {
-        return null;
+        return ;
       }
-      String version = str.split(";")[0];
-      int actualCapacity = Integer.parseInt(str.split(";")[1]);
-      return new Metadata(version, actualCapacity);
+      version = str.split(";")[0];
+      count = Integer.parseInt(str.split(";")[1]);     
     }
   }
+  
+ 
 
 }
