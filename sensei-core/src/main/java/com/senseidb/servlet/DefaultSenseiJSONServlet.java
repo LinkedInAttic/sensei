@@ -97,6 +97,7 @@ import java.util.Set;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.DataConfiguration;
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Fieldable;
@@ -548,7 +549,9 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
       if (tvsToFetch.size() > 0)
         senseiReq.setTermVectorsToFetch(tvsToFetch);
     }
-    senseiReq.setGroupBy(params.getString(PARAM_GROUP_BY, null));
+    String groupBy = params.getString(PARAM_GROUP_BY, null);
+    if (groupBy != null && groupBy.length() != 0)
+      senseiReq.setGroupBy(StringUtils.split(groupBy, ','));
     senseiReq.setMaxPerGroup(params.getInt(PARAM_MAX_PER_GROUP, 0));
     String routeParam = params.getString(PARAM_ROUTE_PARAM);
     if (routeParam != null && routeParam.length() != 0)

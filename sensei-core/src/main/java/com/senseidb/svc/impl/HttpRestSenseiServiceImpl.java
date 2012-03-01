@@ -28,6 +28,7 @@ import javax.net.ssl.SSLHandshakeException;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
 import org.apache.http.HeaderElementIterator;
@@ -418,7 +419,7 @@ public class HttpRestSenseiServiceImpl implements SenseiService
 
     if (req.getGroupBy() != null)
     {
-      qparams.add(new BasicNameValuePair(SenseiSearchServletParams.PARAM_GROUP_BY, req.getGroupBy()));
+      qparams.add(new BasicNameValuePair(SenseiSearchServletParams.PARAM_GROUP_BY, StringUtils.join(req.getGroupBy(), ',')));
     }
 
     if (req.getMaxPerGroup() > 0)

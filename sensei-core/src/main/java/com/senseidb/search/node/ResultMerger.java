@@ -548,7 +548,7 @@ public class ResultMerger
     Comparator<SenseiHit> comparator = new SenseiHitComparator(req.getSort());
 
     SenseiHit[] hits;
-    if (req.getGroupBy() == null || req.getGroupBy().length() == 0)
+    if (req.getGroupBy() == null || req.getGroupBy().length == 0)
     {
       List<SenseiHit> mergedList = ListMerger.mergeLists(req.getOffset(), req.getCount(), iteratorList
           .toArray(new Iterator[iteratorList.size()]), comparator);
@@ -560,6 +560,7 @@ public class ResultMerger
       PrimitiveLongArrayWrapper primitiveLongArrayWrapperTmp = new PrimitiveLongArrayWrapper(null);
 
       Object rawGroupValue = null;
+      Object firstRawGroupValue = null;
 
       List<SenseiHit> hitsList = new ArrayList<SenseiHit>(req.getCount());
       Iterator<SenseiHit> mergedIter = ListMerger.mergeLists(iteratorList, comparator);
@@ -618,55 +619,72 @@ public class ResultMerger
           combinedFacetAccessibles[i] = new CombinedFacetAccessible(new FacetSpec(), groupAccessibles[i]);
           groupSets[i] = new HashSet<Object>(req.getCount());
         }
-        while(mergedIter.hasNext())
+        if (combinedFacetAccessibles.length == 1)
         {
-          SenseiHit hit = mergedIter.next();
-          rawGroupValue = hit.getRawGroupValue();
-          if (rawGroupValueType == 0) {
-            if (rawGroupValue != null)
-            {
-              if (rawGroupValue instanceof long[])
-                rawGroupValueType = 2;
-              else
-                rawGroupValueType = 1;
-            }
-          }
-          if (rawGroupValueType == 2)
+          while(mergedIter.hasNext())
           {
-            primitiveLongArrayWrapperTmp.data = (long[])rawGroupValue;
-            rawGroupValue = primitiveLongArrayWrapperTmp;
-          }
-          int i=0;
-          for (; i<groupSets.length; ++i)
-          {
-            if (groupSets[i].contains(rawGroupValue))
+            SenseiHit hit = mergedIter.next();
+            firstRawGroupValue = null;
+            int i=0;
+            for (; i<groupSets.length; ++i)
             {
-              i = -1;
-              break;
-            }
+              //rawGroupValue = hit.getRawField(req.getGroupBy()[i]);
+              rawGroupValue = hit.getRawGroupValue();
+              if (rawGroupValueType == 0)
+              {
+                if (rawGroupValue != null)
+                {
+                  if (rawGroupValue instanceof long[])
+                    rawGroupValueType = 2;
+                  else
+                    rawGroupValueType = 1;
+                }
+              }
+              if (rawGroupValueType == 2)
+              {
+                primitiveLongArrayWrapperTmp.data = (long[])rawGroupValue;
+                rawGroupValue = primitiveLongArrayWrapperTmp;
+              }
+              if (firstRawGroupValue == null) firstRawGroupValue = rawGroupValue;
+              if (groupSets[i].contains(rawGroupValue))
+              {
+                i = -1;
+                break;
+              }
 
-            BrowseFacet facet = combinedFacetAccessibles[i].getFacet(hit.getGroupValue());
-            if (facet == null || facet.getFacetValueHitCount() != 1)
-              break;
-          }
-          if (i >= 0)
-          {
-            if (i >= groupSets.length) --i;
-            if (offsetLeft > 0)
-              --offsetLeft;
-            else {
+              //BrowseFacet facet = combinedFacetAccessibles[i].getFacet(hit.getField(req.getGroupBy()[i]));
               BrowseFacet facet = combinedFacetAccessibles[i].getFacet(hit.getGroupValue());
-              if (facet != null)
-                hit.setGroupHitsCount(facet.getFacetValueHitCount());
-              hitsList.add(hit);
-              if (hitsList.size() >= req.getCount())
+              if (facet == null || facet.getFacetValueHitCount() != 1)
                 break;
             }
-            if (rawGroupValueType == 2)
-              groupSets[i].add(new PrimitiveLongArrayWrapper(primitiveLongArrayWrapperTmp.data));
-            else
-              groupSets[i].add(rawGroupValue);
+            if (i >= 0)
+            {
+              if (i >= groupSets.length)
+              {
+                i = 0;
+                rawGroupValue = firstRawGroupValue;
+              }
+              if (offsetLeft > 0)
+                --offsetLeft;
+              else {
+                //hit.setGroupValue(hit.getField(req.getGroupBy()[i]));
+                //hit.setRawGroupValue(hit.getRawField(req.getGroupBy()[i]));
+                BrowseFacet facet = combinedFacetAccessibles[i].getFacet(hit.getGroupValue());
+                if (facet != null)
+                  hit.setGroupHitsCount(facet.getFacetValueHitCount());
+                hitsList.add(hit);
+                if (hitsList.size() >= req.getCount())
+                  break;
+              }
+              if (rawGroupValueType == 2)
+                groupSets[i].add(new PrimitiveLongArrayWrapper(primitiveLongArrayWrapperTmp.data));
+              else
+                groupSets[i].add(rawGroupValue);
+            }
           }
+        }
+        else
+        {
         }
         for (int i=0; i<combinedFacetAccessibles.length; ++i) combinedFacetAccessibles[i].close();
       }

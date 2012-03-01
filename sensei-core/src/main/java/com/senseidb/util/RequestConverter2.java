@@ -188,7 +188,10 @@ public class RequestConverter2 {
           JSONArray columns = groupBy.optJSONArray("columns");
           if (columns != null && columns.length() >= 1)
           {
-            req.setGroupBy(columns.getString(0));
+            String[] groupByArray = new String[columns.length()];
+            for (int i=0; i<columns.length(); ++i)
+              groupByArray[i] = columns.getString(i);
+            req.setGroupBy(groupByArray);
           }
           req.setMaxPerGroup(groupBy.optInt("top", groupBy.optInt("count", 1)));
         }
