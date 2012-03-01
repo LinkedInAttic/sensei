@@ -8,14 +8,14 @@ import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.docidset.EmptyDocIdSet;
 import com.browseengine.bobo.docidset.RandomAccessDocIdSet;
 import com.browseengine.bobo.facets.data.FacetDataCache;
-import com.browseengine.bobo.facets.filter.AdaptiveFacetFilter.FacetDataCacheBuilder;
+import com.browseengine.bobo.facets.filter.Function;
 import com.browseengine.bobo.facets.filter.RandomAccessFilter;
 
 public class PredicateFacetFilter extends RandomAccessFilter {
-  private final FacetDataCacheBuilder dataCacheBuilder;
+  private final Function<BoboIndexReader, FacetDataCache<?>> dataCacheBuilder;
   private final FacetPredicate facetPredicate;
   
-  public PredicateFacetFilter(FacetDataCacheBuilder dataCacheBuilder, FacetPredicate facetPredicate) {
+  public PredicateFacetFilter(Function<BoboIndexReader, FacetDataCache<?>> dataCacheBuilder, FacetPredicate facetPredicate) {
     this.dataCacheBuilder = dataCacheBuilder;
     this.facetPredicate = facetPredicate;
   }
@@ -23,7 +23,7 @@ public class PredicateFacetFilter extends RandomAccessFilter {
   
   @Override
   public RandomAccessDocIdSet getRandomAccessDocIdSet(BoboIndexReader reader) throws IOException {
-    final FacetDataCache facetDataCache = dataCacheBuilder.build(reader);    
+    final FacetDataCache<?> facetDataCache = dataCacheBuilder.apply(reader);    
     int startDocIdTemp = Integer.MAX_VALUE;
     int endDocIdTemp = -1;
     for (int i = facetPredicate.valueStartIndex(facetDataCache); i < facetPredicate.valueEndIndex(facetDataCache); i++) {
@@ -61,7 +61,7 @@ public class PredicateFacetFilter extends RandomAccessFilter {
   }  
   @Override
   public double getFacetSelectivity(BoboIndexReader reader) {  
-    FacetDataCache dataCache = dataCacheBuilder.build(reader);
+    FacetDataCache<?> dataCache = dataCacheBuilder.apply(reader);
     int[] frequencies = dataCache.freqs;
     double selectivity = 0;
     int accumFreq = 0;
