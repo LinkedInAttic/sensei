@@ -476,6 +476,51 @@ public class RelevanceQuery extends AbstractScoreAdjuster
         "fetchStored": false,
         "sort":["_score"]
     }
+    
+    
+    
+    // Advanded usage of weighted multi-facet relevance:
+     {
+        "query": {
+            "query_string": {
+                "query": "java",
+                "relevance":{
+                    
+                        "model":{
+                            "variables":{
+                                 "string":["skill"]
+                                },
+                            "facets":{
+                                 "wmstring":["user_skills"] 
+                                },
+                            "function_params":["_INNER_SCORE",  "user_skills", "skill"],  
+                            "function":" int weight = 0; if(user_skills.hasWeight(skill)) weight = user_skills.getWeight(); return  _INNER_SCORE + weight;"
+                        },
+                        
+                        "values":{
+                             "skill":"java"
+                        }
+                    }
+            }
+        },
+        "selections": [
+        {
+            "terms": {
+                "country_code": {
+                    "values": ["us"],
+                    "excludes": [],
+                    "operator": "or"
+                }
+            }
+        }],
+        "from": 0,
+        "size": 10,
+        "explain": false,
+        "fetchStored": false
+    }
+
+
+     
    * 
    * */
   
