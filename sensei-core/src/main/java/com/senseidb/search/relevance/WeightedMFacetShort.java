@@ -23,7 +23,7 @@ public class WeightedMFacetShort extends MFacetShort implements WeightedMFacet
     _weightArray.getData(id, weightBuf);
   }
 
-  public boolean hasWeight(long target){
+  public boolean hasWeight(short target){
     
     for(int i=0; i< this._length; i++)
       if(((TermShortList) _mTermList).getPrimitiveValue(_buf[i]) == target)

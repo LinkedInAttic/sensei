@@ -23,7 +23,7 @@ public class WeightedMFacetString extends MFacetString implements WeightedMFacet
     _weightArray.getData(id, weightBuf);
   }
 
-  public boolean hasWeight(long target){
+  public boolean hasWeight(String target){
     
     for(int i=0; i< this._length; i++)
       if(((TermStringList) _mTermList).get(_buf[i]).equals(target))

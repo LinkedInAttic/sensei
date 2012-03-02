@@ -287,7 +287,6 @@ public class RelevanceQuery extends AbstractScoreAdjuster
     
     pool.importPackage("it.unimi.dsi.fastutil.objects.AbstractObject2FloatMap");
     
-    
     pool.importPackage("com.senseidb.search.relevance.MFacet");
     pool.importPackage("com.senseidb.search.relevance.MFacetDouble");
     pool.importPackage("com.senseidb.search.relevance.MFacetFloat");
@@ -295,6 +294,14 @@ public class RelevanceQuery extends AbstractScoreAdjuster
     pool.importPackage("com.senseidb.search.relevance.MFacetLong");
     pool.importPackage("com.senseidb.search.relevance.MFacetShort");
     pool.importPackage("com.senseidb.search.relevance.MFacetString");
+    
+    pool.importPackage("com.senseidb.search.relevance.WeightedMFacet");
+    pool.importPackage("com.senseidb.search.relevance.WeightedMFacetDouble");
+    pool.importPackage("com.senseidb.search.relevance.WeightedMFacetFloat");
+    pool.importPackage("com.senseidb.search.relevance.WeightedMFacetInt");
+    pool.importPackage("com.senseidb.search.relevance.WeightedMFacetLong");
+    pool.importPackage("com.senseidb.search.relevance.WeightedMFacetShort");
+    pool.importPackage("com.senseidb.search.relevance.WeightedMFacetString");
     
 //    pool.appendClassPath( new LoaderClassPath(RelevanceQuery.class.getClassLoader()));
     pool.insertClassPath(new ClassClassPath(RelevanceQuery.class));
@@ -328,6 +335,22 @@ public class RelevanceQuery extends AbstractScoreAdjuster
     
     hs_safe.add("it.unimi.dsi.fastutil.objects.AbstractObject2FloatMap");
     
+    hs_safe.add("com.senseidb.search.relevance.MFacet");
+    hs_safe.add("com.senseidb.search.relevance.MFacetDouble");
+    hs_safe.add("com.senseidb.search.relevance.MFacetFloat");
+    hs_safe.add("com.senseidb.search.relevance.MFacetInt");
+    hs_safe.add("com.senseidb.search.relevance.MFacetLong");
+    hs_safe.add("com.senseidb.search.relevance.MFacetShort");
+    hs_safe.add("com.senseidb.search.relevance.MFacetString");
+    
+    hs_safe.add("com.senseidb.search.relevance.WeightedMFacet");
+    hs_safe.add("com.senseidb.search.relevance.WeightedMFacetDouble");
+    hs_safe.add("com.senseidb.search.relevance.WeightedMFacetFloat");
+    hs_safe.add("com.senseidb.search.relevance.WeightedMFacetInt");
+    hs_safe.add("com.senseidb.search.relevance.WeightedMFacetLong");
+    hs_safe.add("com.senseidb.search.relevance.WeightedMFacetShort");
+    hs_safe.add("com.senseidb.search.relevance.WeightedMFacetString");
+    
     
     hs_safe.add("com.senseidb.search.relevance.RelevanceQuery");
     hs_safe.add("com.senseidb.search.relevance.CustomScorer");
@@ -351,14 +374,6 @@ public class RelevanceQuery extends AbstractScoreAdjuster
     hs_safe.add("java.math.BigInteger");
     hs_safe.add("java.math.MathContext");
     hs_safe.add("java.math.RoundingMode");
-    
-    hs_safe.add("com.senseidb.search.relevance.MFacet");
-    hs_safe.add("com.senseidb.search.relevance.MFacetDouble");
-    hs_safe.add("com.senseidb.search.relevance.MFacetFloat");
-    hs_safe.add("com.senseidb.search.relevance.MFacetInt");
-    hs_safe.add("com.senseidb.search.relevance.MFacetLong");
-    hs_safe.add("com.senseidb.search.relevance.MFacetShort");
-    hs_safe.add("com.senseidb.search.relevance.MFacetString");
     
   }
   
@@ -1268,6 +1283,39 @@ public class RelevanceQuery extends AbstractScoreAdjuster
         sb.append(" com.senseidb.search.relevance.MFacetString " + paramName + " = mFacetStrings["+ m_string_index +"]; ");
         m_string_index++;
       }
+      
+      
+      //weighted multi-facet;
+      else if(paramType.equals(TYPE_FACET_WM_DOUBLE))
+      {
+        sb.append(" com.senseidb.search.relevance.WeightedMFacetDouble " + paramName + " = (com.senseidb.search.relevance.WeightedMFacetDouble) mFacetDoubles["+ m_double_index +"]; ");
+        m_double_index++;
+      }
+      else if(paramType.equals(TYPE_FACET_WM_FLOAT))
+      {
+        sb.append(" com.senseidb.search.relevance.WeightedMFacetFloat " + paramName + " = (com.senseidb.search.relevance.WeightedMFacetFloat) mFacetFloats["+ m_float_index +"]; ");
+        m_float_index++;
+      }
+      else if(paramType.equals(TYPE_FACET_WM_INT))
+      {
+        sb.append(" com.senseidb.search.relevance.WeightedMFacetInt " + paramName + " = (com.senseidb.search.relevance.WeightedMFacetInt) mFacetInts["+ m_int_index +"]; ");
+        m_int_index++;
+      }
+      else if(paramType.equals(TYPE_FACET_WM_LONG))
+      {
+        sb.append(" com.senseidb.search.relevance.WeightedMFacetLong " + paramName + " = (com.senseidb.search.relevance.WeightedMFacetLong) mFacetLongs["+ m_long_index +"]; ");
+        m_long_index++;
+      }
+      else if(paramType.equals(TYPE_FACET_WM_SHORT))
+      {
+        sb.append(" com.senseidb.search.relevance.WeightedMFacetShort " + paramName + " = (com.senseidb.search.relevance.WeightedMFacetShort) mFacetShorts["+ m_short_index +"]; ");
+        m_short_index++;
+      }
+      else if(paramType.equals(TYPE_FACET_WM_STRING))
+      {
+        sb.append(" com.senseidb.search.relevance.WeightedMFacetString " + paramName + " = (com.senseidb.search.relevance.WeightedMFacetString) mFacetStrings["+ m_string_index +"]; ");
+        m_string_index++;
+      }
     }
     
     sb.append(funcBody);
@@ -2034,7 +2082,31 @@ public class RelevanceQuery extends AbstractScoreAdjuster
                   mFacetStrings[mArrayIndex[i]].refresh(doc);
                   break;  
           
-                  
+ 
+        case TYPENUMBER_FACET_WM_INT:
+                  mFacetInts[mArrayIndex[i]] =  new WeightedMFacetInt(mDataCaches[mFacetIndex[i]]);
+                  ((WeightedMFacetInt)mFacetInts[mArrayIndex[i]]).refresh(doc);
+                  break;
+        case TYPENUMBER_FACET_WM_LONG:
+                  mFacetLongs[mArrayIndex[i]] =  new WeightedMFacetLong(mDataCaches[mFacetIndex[i]]);
+                  ((WeightedMFacetLong)mFacetLongs[mArrayIndex[i]]).refresh(doc);
+                  break;
+        case  TYPENUMBER_FACET_WM_DOUBLE:
+                  mFacetDoubles[mArrayIndex[i]] =  new WeightedMFacetDouble(mDataCaches[mFacetIndex[i]]);
+                  ((WeightedMFacetDouble)mFacetDoubles[mArrayIndex[i]]).refresh(doc);
+                  break;
+        case TYPENUMBER_FACET_WM_FLOAT:
+                  mFacetFloats[mArrayIndex[i]] =  new WeightedMFacetFloat(mDataCaches[mFacetIndex[i]]);
+                  ((WeightedMFacetFloat)mFacetFloats[mArrayIndex[i]]).refresh(doc);
+                  break;
+        case TYPENUMBER_FACET_WM_SHORT:
+                  mFacetShorts[mArrayIndex[i]] =  new WeightedMFacetShort(mDataCaches[mFacetIndex[i]]);
+                  ((WeightedMFacetShort)mFacetShorts[mArrayIndex[i]]).refresh(doc);
+                  break;
+        case TYPENUMBER_FACET_WM_STRING:                    
+                  mFacetStrings[mArrayIndex[i]] =  new WeightedMFacetString(mDataCaches[mFacetIndex[i]]);
+                  ((WeightedMFacetString)mFacetStrings[mArrayIndex[i]]).refresh(doc);
+                  break;                    
                   
         default: 
                  break;
