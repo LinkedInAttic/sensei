@@ -919,7 +919,7 @@ public class ResultMerger
                   int j=0;
                   for (; j<sortCollector.groupByMulti.length; ++j)
                   {
-                    vals = sortCollector.groupByMulti[j].getRawFieldValues(currentContext.reader, tmpScoreDoc.doc);
+                    vals = sortCollector.groupByMulti[j].getRawFieldValues(currentContext.reader, doc);
                     if (vals != null && vals.length > 0)
                       rawGroupValue = vals[0];
                     else
