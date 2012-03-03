@@ -49,7 +49,7 @@ public class KafkaJsonStreamDataProvider extends KafkaStreamDataProvider<JSONObj
 			jsonObj.put(KAFKA_MSG_OFFSET, String.valueOf(msgStreamOffset));
 			return jsonObj;
 		} catch (JSONException e) {
-			throw new IOException(e.getMessage(),e);
+			throw new IOException("json error on: " + jsonString,e);
 		}
 	}
 
