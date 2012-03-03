@@ -109,9 +109,15 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 	public void updateOldestSinceKey(String sinceKey){
 	    if(_oldestSinceKey == null){
 	      _oldestSinceKey = sinceKey;
+	      if (_dataProvider != null) {
+	        _dataProvider.setStartingOffset(_oldestSinceKey);
+	      }
 	    }
 	    else if(sinceKey!=null && _versionComparator.compare(sinceKey, _oldestSinceKey) <0 ){
 	      _oldestSinceKey = sinceKey;
+	      if (_dataProvider != null) {
+	        _dataProvider.setStartingOffset(_oldestSinceKey);
+	      }
 	    }
 	}
 
