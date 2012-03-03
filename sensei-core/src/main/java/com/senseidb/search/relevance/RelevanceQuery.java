@@ -118,6 +118,15 @@ public class RelevanceQuery extends AbstractScoreAdjuster
   public static final String           KW_TYPE_FACET_M_LONG      = "mlong";
   public static final String           KW_TYPE_FACET_M_SHORT     = "mshort";
   
+
+  // weighted multi-facet type support: [mdouble, mfloat, mint, mlong, mshort, mstring]
+  public static final String           KW_TYPE_FACET_WM_INT       = "wmint";
+  public static final String           KW_TYPE_FACET_WM_FLOAT     = "wmfloat";
+  public static final String           KW_TYPE_FACET_WM_STRING    = "wmstring";
+  public static final String           KW_TYPE_FACET_WM_DOUBLE    = "wmdouble";
+  public static final String           KW_TYPE_FACET_WM_LONG      = "wmlong";
+  public static final String           KW_TYPE_FACET_WM_SHORT     = "wmshort";
+
   // constant type:
   public static final String           KW_INNER_SCORE          = "_INNER_SCORE";
   public static final String           KW_NOW                  = "_NOW";
@@ -175,8 +184,17 @@ public class RelevanceQuery extends AbstractScoreAdjuster
   private final String                 TYPE_FACET_M_SHORT  = "FACET_M_SHORT";
   private final String                 TYPE_FACET_M_STRING = "FACET_M_STRING";
   
-  private final String                 TYPE_FACET_HEAD   = "FACET";
-  private final String                 TYPE_M_FACET_HEAD = "FACET_M";
+  // (4) weighted multi-facet types:
+  private final String                 TYPE_FACET_WM_INT    = "FACET_WM_INT";
+  private final String                 TYPE_FACET_WM_LONG   = "FACET_WM_LONG";
+  private final String                 TYPE_FACET_WM_DOUBLE = "FACET_WM_DOUBLE";
+  private final String                 TYPE_FACET_WM_FLOAT  = "FACET_WM_FLOAT";
+  private final String                 TYPE_FACET_WM_SHORT  = "FACET_WM_SHORT";
+  private final String                 TYPE_FACET_WM_STRING = "FACET_WM_STRING";
+  
+  private final String                 TYPE_FACET_HEAD    = "FACET";
+  private final String                 TYPE_M_FACET_HEAD  = "FACET_M";
+  private final String                 TYPE_WM_FACET_HEAD = "FACET_WM";
   
   
   /* Type Numbers */
@@ -211,6 +229,13 @@ public class RelevanceQuery extends AbstractScoreAdjuster
   private final int                 TYPENUMBER_FACET_M_SHORT  = 24;
   private final int                 TYPENUMBER_FACET_M_STRING = 25;
   
+  // (5) weighted multi-facet type numbers;
+  private final int                 TYPENUMBER_FACET_WM_INT    = 30;
+  private final int                 TYPENUMBER_FACET_WM_LONG   = 31;
+  private final int                 TYPENUMBER_FACET_WM_DOUBLE = 32;
+  private final int                 TYPENUMBER_FACET_WM_FLOAT  = 33;
+  private final int                 TYPENUMBER_FACET_WM_SHORT  = 34;
+  private final int                 TYPENUMBER_FACET_WM_STRING = 35;
   
   private static final long serialVersionUID = 1L;
   
@@ -262,7 +287,6 @@ public class RelevanceQuery extends AbstractScoreAdjuster
     
     pool.importPackage("it.unimi.dsi.fastutil.objects.AbstractObject2FloatMap");
     
-    
     pool.importPackage("com.senseidb.search.relevance.MFacet");
     pool.importPackage("com.senseidb.search.relevance.MFacetDouble");
     pool.importPackage("com.senseidb.search.relevance.MFacetFloat");
@@ -270,6 +294,14 @@ public class RelevanceQuery extends AbstractScoreAdjuster
     pool.importPackage("com.senseidb.search.relevance.MFacetLong");
     pool.importPackage("com.senseidb.search.relevance.MFacetShort");
     pool.importPackage("com.senseidb.search.relevance.MFacetString");
+    
+    pool.importPackage("com.senseidb.search.relevance.WeightedMFacet");
+    pool.importPackage("com.senseidb.search.relevance.WeightedMFacetDouble");
+    pool.importPackage("com.senseidb.search.relevance.WeightedMFacetFloat");
+    pool.importPackage("com.senseidb.search.relevance.WeightedMFacetInt");
+    pool.importPackage("com.senseidb.search.relevance.WeightedMFacetLong");
+    pool.importPackage("com.senseidb.search.relevance.WeightedMFacetShort");
+    pool.importPackage("com.senseidb.search.relevance.WeightedMFacetString");
     
 //    pool.appendClassPath( new LoaderClassPath(RelevanceQuery.class.getClassLoader()));
     pool.insertClassPath(new ClassClassPath(RelevanceQuery.class));
@@ -303,6 +335,22 @@ public class RelevanceQuery extends AbstractScoreAdjuster
     
     hs_safe.add("it.unimi.dsi.fastutil.objects.AbstractObject2FloatMap");
     
+    hs_safe.add("com.senseidb.search.relevance.MFacet");
+    hs_safe.add("com.senseidb.search.relevance.MFacetDouble");
+    hs_safe.add("com.senseidb.search.relevance.MFacetFloat");
+    hs_safe.add("com.senseidb.search.relevance.MFacetInt");
+    hs_safe.add("com.senseidb.search.relevance.MFacetLong");
+    hs_safe.add("com.senseidb.search.relevance.MFacetShort");
+    hs_safe.add("com.senseidb.search.relevance.MFacetString");
+    
+    hs_safe.add("com.senseidb.search.relevance.WeightedMFacet");
+    hs_safe.add("com.senseidb.search.relevance.WeightedMFacetDouble");
+    hs_safe.add("com.senseidb.search.relevance.WeightedMFacetFloat");
+    hs_safe.add("com.senseidb.search.relevance.WeightedMFacetInt");
+    hs_safe.add("com.senseidb.search.relevance.WeightedMFacetLong");
+    hs_safe.add("com.senseidb.search.relevance.WeightedMFacetShort");
+    hs_safe.add("com.senseidb.search.relevance.WeightedMFacetString");
+    
     
     hs_safe.add("com.senseidb.search.relevance.RelevanceQuery");
     hs_safe.add("com.senseidb.search.relevance.CustomScorer");
@@ -326,14 +374,6 @@ public class RelevanceQuery extends AbstractScoreAdjuster
     hs_safe.add("java.math.BigInteger");
     hs_safe.add("java.math.MathContext");
     hs_safe.add("java.math.RoundingMode");
-    
-    hs_safe.add("com.senseidb.search.relevance.MFacet");
-    hs_safe.add("com.senseidb.search.relevance.MFacetDouble");
-    hs_safe.add("com.senseidb.search.relevance.MFacetFloat");
-    hs_safe.add("com.senseidb.search.relevance.MFacetInt");
-    hs_safe.add("com.senseidb.search.relevance.MFacetLong");
-    hs_safe.add("com.senseidb.search.relevance.MFacetShort");
-    hs_safe.add("com.senseidb.search.relevance.MFacetString");
     
   }
   
@@ -402,6 +442,7 @@ public class RelevanceQuery extends AbstractScoreAdjuster
                         "variables":{
                              "set_int":["goodYear"],
                              "int":["thisYear"],
+                             "string":["coolTag"],
                              "map_int_float":["mileageWeight"],
                              "map_int_string":["yearcolor"],
                              "map_string_float":["colorweight"],
@@ -410,10 +451,11 @@ public class RelevanceQuery extends AbstractScoreAdjuster
                         "facets":{
                              "int":["year","mileage"],
                              "long":["groupid"],
-                             "string":["color","category"] 
+                             "string":["color","category"],
+                             "mstring":["tags"] 
                             },
                         "function_params":["_INNER_SCORE", "thisYear", "year","goodYear","mileageWeight","mileage","color", "yearcolor", "colorweight", "category", "categorycolor"],  
-                        "function":" if(categorycolor.containsKey(category) && categorycolor.get(category).equals(color))  return 10000f; if(colorweight.containsKey(color) ) return 200f + colorweight.getFloat(color); if(yearcolor.containsKey(year) && yearcolor.get(year).equals(color)) return 200f; if(mileageWeight.containsKey(mileage)) return 10000+mileageWeight.get(mileage); if(goodYear.contains(year)) return (float)Math.exp(2d);   if(year==thisYear) return 87f   ; return  _INNER_SCORE;"
+                        "function":"  if(tags.contains(coolTag)) return 999999f; if(categorycolor.containsKey(category) && categorycolor.get(category).equals(color))  return 10000f; if(colorweight.containsKey(color) ) return 200f + colorweight.getFloat(color); if(yearcolor.containsKey(year) && yearcolor.get(year).equals(color)) return 200f; if(mileageWeight.containsKey(mileage)) return 10000+mileageWeight.get(mileage); if(goodYear.contains(year)) return (float)Math.exp(2d);   if(year==thisYear) return 87f   ; return  _INNER_SCORE;"
                     },
                     
                     "values":{
@@ -422,7 +464,8 @@ public class RelevanceQuery extends AbstractScoreAdjuster
                          "mileageWeight":{"key":[11400,11000],"value":[777.9, 10.2]},
                         "yearcolor":{"key":[1998],"value":["red"]},
                         "colorweight":{"key":["red"],"value":[335.5]},
-                        "categorycolor":{"key":["compact"],"value":["red"]}
+                        "categorycolor":{"key":["compact"],"value":["red"]},
+                        "coolTag":"cool"
                     }
                 }
             }
@@ -433,6 +476,51 @@ public class RelevanceQuery extends AbstractScoreAdjuster
         "fetchStored": false,
         "sort":["_score"]
     }
+    
+    
+    
+    // Advanded usage of weighted multi-facet relevance:
+     {
+        "query": {
+            "query_string": {
+                "query": "java",
+                "relevance":{
+                    
+                        "model":{
+                            "variables":{
+                                 "string":["skill"]
+                                },
+                            "facets":{
+                                 "wmstring":["user_skills"] 
+                                },
+                            "function_params":["_INNER_SCORE",  "user_skills", "skill"],  
+                            "function":" int weight = 0; if(user_skills.hasWeight(skill)) weight = user_skills.getWeight(); return  _INNER_SCORE + weight;"
+                        },
+                        
+                        "values":{
+                             "skill":"java"
+                        }
+                    }
+            }
+        },
+        "selections": [
+        {
+            "terms": {
+                "country_code": {
+                    "values": ["us"],
+                    "excludes": [],
+                    "operator": "or"
+                }
+            }
+        }],
+        "from": 0,
+        "size": 10,
+        "explain": false,
+        "fetchStored": false
+    }
+
+
+     
    * 
    * */
   
@@ -997,7 +1085,8 @@ public class RelevanceQuery extends AbstractScoreAdjuster
     else
     {
       isMulti = true;
-      
+     
+      // normal multi-facet;
       if(KW_TYPE_FACET_M_INT.equals(facetType)) 
         type = TYPE_FACET_M_INT;
       else if(KW_TYPE_FACET_M_SHORT.equals(facetType)) 
@@ -1010,6 +1099,20 @@ public class RelevanceQuery extends AbstractScoreAdjuster
         type = TYPE_FACET_M_LONG;
       else if(KW_TYPE_FACET_M_STRING.equals(facetType))
         type = TYPE_FACET_M_STRING;
+      
+      // weighted multi-facet;
+      else if(KW_TYPE_FACET_WM_INT.equals(facetType)) 
+        type = TYPE_FACET_WM_INT;
+      else if(KW_TYPE_FACET_WM_SHORT.equals(facetType)) 
+        type = TYPE_FACET_WM_SHORT;
+      else if(KW_TYPE_FACET_WM_DOUBLE.equals(facetType))
+        type = TYPE_FACET_WM_DOUBLE;
+      else if(KW_TYPE_FACET_WM_FLOAT.equals(facetType))
+        type = TYPE_FACET_WM_FLOAT;
+      else if(KW_TYPE_FACET_WM_LONG.equals(facetType))
+        type = TYPE_FACET_WM_LONG;
+      else if(KW_TYPE_FACET_WM_STRING.equals(facetType))
+        type = TYPE_FACET_WM_STRING;
     }
 
     
@@ -1225,6 +1328,39 @@ public class RelevanceQuery extends AbstractScoreAdjuster
         sb.append(" com.senseidb.search.relevance.MFacetString " + paramName + " = mFacetStrings["+ m_string_index +"]; ");
         m_string_index++;
       }
+      
+      
+      //weighted multi-facet;
+      else if(paramType.equals(TYPE_FACET_WM_DOUBLE))
+      {
+        sb.append(" com.senseidb.search.relevance.WeightedMFacetDouble " + paramName + " = (com.senseidb.search.relevance.WeightedMFacetDouble) mFacetDoubles["+ m_double_index +"]; ");
+        m_double_index++;
+      }
+      else if(paramType.equals(TYPE_FACET_WM_FLOAT))
+      {
+        sb.append(" com.senseidb.search.relevance.WeightedMFacetFloat " + paramName + " = (com.senseidb.search.relevance.WeightedMFacetFloat) mFacetFloats["+ m_float_index +"]; ");
+        m_float_index++;
+      }
+      else if(paramType.equals(TYPE_FACET_WM_INT))
+      {
+        sb.append(" com.senseidb.search.relevance.WeightedMFacetInt " + paramName + " = (com.senseidb.search.relevance.WeightedMFacetInt) mFacetInts["+ m_int_index +"]; ");
+        m_int_index++;
+      }
+      else if(paramType.equals(TYPE_FACET_WM_LONG))
+      {
+        sb.append(" com.senseidb.search.relevance.WeightedMFacetLong " + paramName + " = (com.senseidb.search.relevance.WeightedMFacetLong) mFacetLongs["+ m_long_index +"]; ");
+        m_long_index++;
+      }
+      else if(paramType.equals(TYPE_FACET_WM_SHORT))
+      {
+        sb.append(" com.senseidb.search.relevance.WeightedMFacetShort " + paramName + " = (com.senseidb.search.relevance.WeightedMFacetShort) mFacetShorts["+ m_short_index +"]; ");
+        m_short_index++;
+      }
+      else if(paramType.equals(TYPE_FACET_WM_STRING))
+      {
+        sb.append(" com.senseidb.search.relevance.WeightedMFacetString " + paramName + " = (com.senseidb.search.relevance.WeightedMFacetString) mFacetStrings["+ m_string_index +"]; ");
+        m_string_index++;
+      }
     }
     
     sb.append(funcBody);
@@ -1333,7 +1469,7 @@ public class RelevanceQuery extends AbstractScoreAdjuster
       {
         String type = hm_type.get(lls_params.get(i));
         
-        if( !type.startsWith(TYPE_M_FACET_HEAD))
+        if( (!type.startsWith(TYPE_M_FACET_HEAD)) && (!type.startsWith(TYPE_WM_FACET_HEAD)))
         {
           // non-multi-facet
           if(type.equals(TYPE_FACET_INT))
@@ -1377,9 +1513,10 @@ public class RelevanceQuery extends AbstractScoreAdjuster
         }
         else 
         {
-          // multi-facet;
+          // multi-facet or weighted multi-facet;
           isMultiFacet = true;
           
+          //normal multi-facet
           if(type.equals(TYPE_FACET_M_INT))
           {
             types[i] = TYPENUMBER_FACET_M_INT;
@@ -1413,6 +1550,44 @@ public class RelevanceQuery extends AbstractScoreAdjuster
           else if (type.equals(TYPE_FACET_M_STRING))
           {
             types[i] = TYPENUMBER_FACET_M_STRING;
+            mArrayIndex[i] = m_string_index;
+            m_string_index++;
+          }
+          
+          //weighted multi-facet
+          else if(type.equals(TYPE_FACET_WM_INT))
+          {
+            types[i] = TYPENUMBER_FACET_WM_INT;
+            mArrayIndex[i] = m_int_index;
+            m_int_index++;
+          }
+          else if (type.equals(TYPE_FACET_WM_LONG))
+          {
+            types[i] = TYPENUMBER_FACET_WM_LONG;
+            mArrayIndex[i] = m_long_index;
+            m_long_index++;
+          }
+          else if (type.equals(TYPE_FACET_WM_DOUBLE))
+          {
+            types[i] = TYPENUMBER_FACET_WM_DOUBLE;
+            mArrayIndex[i] = m_double_index;
+            m_double_index++;
+          }
+          else if (type.equals(TYPE_FACET_WM_FLOAT))
+          {
+            types[i] = TYPENUMBER_FACET_WM_FLOAT;
+            mArrayIndex[i] = m_float_index;
+            m_float_index++;
+          }
+          else if (type.equals(TYPE_FACET_WM_SHORT))
+          {
+            types[i] = TYPENUMBER_FACET_WM_SHORT;
+            mArrayIndex[i] = m_short_index;
+            m_short_index++;
+          }
+          else if (type.equals(TYPE_FACET_WM_STRING))
+          {
+            types[i] = TYPENUMBER_FACET_WM_STRING;
             mArrayIndex[i] = m_string_index;
             m_string_index++;
           }
@@ -1646,6 +1821,33 @@ public class RelevanceQuery extends AbstractScoreAdjuster
                     arDynamic.add(i);
                     break;    
                     
+          
+          //weighted multi-facet container initialization; 
+          case TYPENUMBER_FACET_WM_INT:
+                    mFacetInts[_mArrayIndex[i]] =  new WeightedMFacetInt(_mDataCaches[_mFacetIndex[i]]);
+                    arDynamic.add(i);
+                    break;
+          case TYPENUMBER_FACET_WM_LONG:
+                    mFacetLongs[_mArrayIndex[i]] =  new WeightedMFacetLong(_mDataCaches[_mFacetIndex[i]]);
+                    arDynamic.add(i);
+                    break;
+          case  TYPENUMBER_FACET_WM_DOUBLE:
+                    mFacetDoubles[_mArrayIndex[i]] =  new WeightedMFacetDouble(_mDataCaches[_mFacetIndex[i]]);
+                    arDynamic.add(i);
+                    break;
+          case TYPENUMBER_FACET_WM_FLOAT:
+                    mFacetFloats[_mArrayIndex[i]] =  new WeightedMFacetFloat(_mDataCaches[_mFacetIndex[i]]);
+                    arDynamic.add(i);
+                    break;
+          case TYPENUMBER_FACET_WM_SHORT:
+                    mFacetShorts[_mArrayIndex[i]] =  new WeightedMFacetShort(_mDataCaches[_mFacetIndex[i]]);
+                    arDynamic.add(i);
+                    break;
+          case TYPENUMBER_FACET_WM_STRING:                    
+                    mFacetStrings[_mArrayIndex[i]] =  new WeightedMFacetString(_mDataCaches[_mFacetIndex[i]]);
+                    arDynamic.add(i);
+                    break;    
+                    
                     
           default: 
                     arDynamic.add(i);
@@ -1719,6 +1921,27 @@ public class RelevanceQuery extends AbstractScoreAdjuster
                     mFacetStrings[_mArrayIndex[dynamicAR[j]]].refresh(docID);
                     break;
 
+                    
+          // weighted multi-facet below;
+          case TYPENUMBER_FACET_WM_INT:
+                    ((WeightedMFacetInt)mFacetInts[_mArrayIndex[dynamicAR[j]]]).refresh(docID);
+                    break;
+          case TYPENUMBER_FACET_WM_LONG:
+                    ((WeightedMFacetLong)mFacetLongs[_mArrayIndex[dynamicAR[j]]]).refresh(docID);
+                    break;
+          case  TYPENUMBER_FACET_WM_DOUBLE:
+                    ((WeightedMFacetDouble)mFacetDoubles[_mArrayIndex[dynamicAR[j]]]).refresh(docID);
+                    break;
+          case TYPENUMBER_FACET_WM_FLOAT:
+                    ((WeightedMFacetFloat)mFacetFloats[_mArrayIndex[dynamicAR[j]]]).refresh(docID);
+                    break;
+          case TYPENUMBER_FACET_WM_SHORT:
+                    ((WeightedMFacetShort)mFacetShorts[_mArrayIndex[dynamicAR[j]]]).refresh(docID);
+                    break;
+          case TYPENUMBER_FACET_WM_STRING:
+                    ((WeightedMFacetString)mFacetStrings[_mArrayIndex[dynamicAR[j]]]).refresh(docID);
+                    break;
+                              
           default: 
                    break;
         }
@@ -1904,7 +2127,31 @@ public class RelevanceQuery extends AbstractScoreAdjuster
                   mFacetStrings[mArrayIndex[i]].refresh(doc);
                   break;  
           
-                  
+ 
+        case TYPENUMBER_FACET_WM_INT:
+                  mFacetInts[mArrayIndex[i]] =  new WeightedMFacetInt(mDataCaches[mFacetIndex[i]]);
+                  ((WeightedMFacetInt)mFacetInts[mArrayIndex[i]]).refresh(doc);
+                  break;
+        case TYPENUMBER_FACET_WM_LONG:
+                  mFacetLongs[mArrayIndex[i]] =  new WeightedMFacetLong(mDataCaches[mFacetIndex[i]]);
+                  ((WeightedMFacetLong)mFacetLongs[mArrayIndex[i]]).refresh(doc);
+                  break;
+        case  TYPENUMBER_FACET_WM_DOUBLE:
+                  mFacetDoubles[mArrayIndex[i]] =  new WeightedMFacetDouble(mDataCaches[mFacetIndex[i]]);
+                  ((WeightedMFacetDouble)mFacetDoubles[mArrayIndex[i]]).refresh(doc);
+                  break;
+        case TYPENUMBER_FACET_WM_FLOAT:
+                  mFacetFloats[mArrayIndex[i]] =  new WeightedMFacetFloat(mDataCaches[mFacetIndex[i]]);
+                  ((WeightedMFacetFloat)mFacetFloats[mArrayIndex[i]]).refresh(doc);
+                  break;
+        case TYPENUMBER_FACET_WM_SHORT:
+                  mFacetShorts[mArrayIndex[i]] =  new WeightedMFacetShort(mDataCaches[mFacetIndex[i]]);
+                  ((WeightedMFacetShort)mFacetShorts[mArrayIndex[i]]).refresh(doc);
+                  break;
+        case TYPENUMBER_FACET_WM_STRING:                    
+                  mFacetStrings[mArrayIndex[i]] =  new WeightedMFacetString(mDataCaches[mFacetIndex[i]]);
+                  ((WeightedMFacetString)mFacetStrings[mArrayIndex[i]]).refresh(doc);
+                  break;                    
                   
         default: 
                  break;

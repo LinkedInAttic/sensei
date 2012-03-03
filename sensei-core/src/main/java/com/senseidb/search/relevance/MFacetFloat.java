@@ -27,8 +27,8 @@ public class MFacetFloat extends MFacet
   
   public boolean contains(float target)
   {
-    for(int i=0; i< this.length; i++)
-      if(((TermFloatList) _mTermList).getPrimitiveValue(buf[i]) == target)
+    for(int i=0; i< this._length; i++)
+      if(((TermFloatList) _mTermList).getPrimitiveValue(_buf[i]) == target)
         return true;
               
     return false;
