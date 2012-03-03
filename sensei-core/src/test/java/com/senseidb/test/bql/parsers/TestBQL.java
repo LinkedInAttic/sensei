@@ -1170,5 +1170,20 @@ public class TestBQL extends TestCase
     assertTrue(_comp.isEquals(json, expected));
   }
 
+  @Test
+  public void testRouteBy() throws Exception
+  {
+    System.out.println("testRouteBy");
+    System.out.println("==================================================");
+
+    JSONObject json = _compiler.compile(
+      "SELECT * " +
+      "FROM cars " +
+      "ROUTE BY '1234'"
+      );
+
+    JSONObject expected = new JSONObject("{\"routeParam\":\"1234\",\"meta\":{\"select_list\":[\"*\"]}}");
+    assertTrue(_comp.isEquals(json, expected));
+  }
 
 }

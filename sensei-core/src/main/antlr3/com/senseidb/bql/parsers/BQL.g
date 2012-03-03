@@ -521,6 +521,7 @@ OR : ('O'|'o')('R'|'r') ;
 ORDER : ('O'|'o')('R'|'r')('D'|'d')('E'|'e')('R'|'r') ;
 PARAM : ('P'|'p')('A'|'a')('R'|'r')('A'|'a')('M'|'m') ;
 QUERY : ('Q'|'q')('U'|'u')('E'|'e')('R'|'r')('Y'|'y') ;
+ROUTE : ('R'|'r')('O'|'o')('U'|'u')('T'|'t')('E'|'e') ;
 SELECT : ('S'|'s')('E'|'e')('L'|'l')('E'|'e')('C'|'c')('T'|'t') ;
 SINCE : ('S'|'s')('I'|'i')('N'|'n')('C'|'c')('E'|'e') ;
 STORED : ('S'|'s')('T'|'t')('O'|'o')('R'|'r')('E'|'e')('D'|'d') ;
@@ -572,6 +573,7 @@ select_stmt returns [Object json]
     boolean seenGroupBy = false;
     boolean seenBrowseBy = false;
     boolean seenFetchStored = false;
+    boolean seenRouteBy = false;
 }
     :   SELECT ('*' | cols=column_name_list)
         (FROM IDENT)?
@@ -622,6 +624,15 @@ select_stmt returns [Object json]
                     seenFetchStored = true;
                 }
             }
+        |   route_param = route_by_clause
+            {
+                if (seenRouteBy) {
+                    throw new FailedPredicateException(input, "select_stmt", "ROUTE BY clause can only appear once.");
+                }
+                else {
+                    seenRouteBy = true;
+                }
+            }
         )*
         {
             JSONObject jsonObj = new JSONObject();
@@ -662,6 +673,10 @@ select_stmt returns [Object json]
                     // Default is false
                     jsonObj.put("fetchStored", $fetch_stored.val);
                 }
+                if (route_param != null) {
+                    jsonObj.put("routeParam", $route_param.val);
+                }
+
                 if (w != null) {
                     extractSelectionInfo((JSONObject) $w.json, selections, filter, query);
                     JSONObject queryPred = query.optJSONObject("query");
@@ -866,6 +881,10 @@ fetching_stored_clause returns [boolean val]
     :   FETCHING STORED
         ((TRUE | FALSE {$val = false;})
         )*
+    ;
+
+route_by_clause returns [String val]
+    :   ROUTE BY STRING_LITERAL { $val = $STRING_LITERAL.text; }
     ;
 
 search_expr returns [Object json]
