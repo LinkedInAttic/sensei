@@ -122,6 +122,11 @@ import java.text.SimpleDateFormat;
                 fpe.predicateText +
                 " (token=" + fpe.token.getText() + ")";
         }
+        else if (err instanceof MismatchedSetException) {
+            MismatchedSetException mse = (MismatchedSetException) err;
+            msg = "[line:" + mse.line + ", col:" + mse.charPositionInLine + "] " +
+                "Mismatched input (token=" + mse.token.getText() + ")";
+        }
         else {
             msg = super.getErrorMessage(err, tokenNames); 
         }
@@ -576,7 +581,7 @@ select_stmt returns [Object json]
     boolean seenRouteBy = false;
 }
     :   SELECT ('*' | cols=column_name_list)
-        (FROM IDENT)?
+        (FROM (IDENT | STRING_LITERAL))?
         w=where?
         given=given_clause?
         (   order_by = order_by_clause 
@@ -704,7 +709,7 @@ select_stmt returns [Object json]
     ;
 
 describe_stmt
-    :   DESCRIBE IDENT
+    :   DESCRIBE (IDENT | STRING_LITERAL)
     ;
 
 column_name_list returns [JSONArray json]
@@ -717,7 +722,7 @@ column_name_list returns [JSONArray json]
     ;
 
 column_name
-    :   IDENT
+    :   IDENT | STRING_LITERAL
     ;
 
 where returns [Object json]

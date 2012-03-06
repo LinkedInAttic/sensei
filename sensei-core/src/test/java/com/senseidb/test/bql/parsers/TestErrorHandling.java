@@ -615,7 +615,7 @@ public class TestErrorHandling extends TestCase
     }
     catch (RecognitionException err)
     {
-      assertEquals("[line:1, col:24] Expecting IDENT (token=where)",
+      assertEquals("[line:1, col:24] Mismatched input (token=where)",
                    _compiler.getErrorMessage(err));
       caughtException = true;
     }
@@ -640,7 +640,7 @@ public class TestErrorHandling extends TestCase
     }
     catch (RecognitionException err)
     {
-      assertEquals("[line:1, col:14] Expecting IDENT (token=from)",
+      assertEquals("[line:1, col:14] Mismatched input (token=from)",
                    _compiler.getErrorMessage(err));
       caughtException = true;
     }
