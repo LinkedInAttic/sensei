@@ -43,13 +43,15 @@ class SenseiClient:
     self.opener.addheaders = [('User-agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_6_7) AppleWebKit/534.30 (KHTML, like Gecko) Chrome/12.0.742.91 Safari/534.30')]
 
     if sysinfo:
-      self.sysinfo = SenseiSystemInfo(sysinfo)
+      self.test_sysinfo = SenseiSystemInfo(sysinfo)
+      self.sysinfo = self.test_sysinfo
     else:
+      # Here we assume that the index has been started
+      self.test_sysinfo = None
       urlReq = urllib2.Request(self.url + "/sysinfo")
       res = self.opener.open(urlReq)
       line = res.read()
       jsonObj = json.loads(line)
-      # print json.dumps(jsonObj, indent=4)
       self.sysinfo = SenseiSystemInfo(jsonObj)
     self.facet_map = {}
     for facet_info in self.sysinfo.get_facet_infos():
@@ -262,6 +264,15 @@ class SenseiClient:
     return res
 
   def get_sysinfo(self):
+    """Get Sensei system info."""
+
+    if self.test_sysinfo:
+      return self.test_sysinfo
+    urlReq = urllib2.Request(self.url + "/sysinfo")
+    res = self.opener.open(urlReq)
+    line = res.read()
+    jsonObj = json.loads(line)
+    self.sysinfo = SenseiSystemInfo(jsonObj)
     return self.sysinfo
 
   def get_facet_map(self):
