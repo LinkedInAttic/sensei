@@ -6,7 +6,10 @@ __license__ = "APL"
 from sensei_client import BQLRequest, SenseiClientError, SenseiFacet, SenseiSelection,\
                           SenseiSort, SenseiFacetInitParams, SenseiFacetInfo,\
                           SenseiNodeInfo, SenseiSystemInfo, SenseiRequest, SenseiHit,\
-                          SenseiResultFacet, SenseiResult, SenseiClient
+                          SenseiResultFacet, SenseiClient
+
+from sensei_components import *
+
 __all__ = [
   BQLRequest,
   SenseiClientError,
@@ -20,6 +23,5 @@ __all__ = [
   SenseiRequest,
   SenseiHit,
   SenseiResultFacet,
-  SenseiResult,
-  SenseiClient,
+  SenseiClient
 ]
