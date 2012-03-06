@@ -544,7 +544,7 @@ public class RequestConverter2 {
     {
       for (int i = 0; i < jsonArray.length(); i++)
       {
-        longArray[i] = jsonArray.getLong(i);
+        longArray[i] = Long.parseLong(jsonArray.getString(i));
       }
     }
     return longArray;

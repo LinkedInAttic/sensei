@@ -39,9 +39,9 @@ public interface ShardingStrategy {
       JSONObject event = dataObj.optJSONObject(SenseiSchema.EVENT_FIELD);
       long uid;
       if (event == null)
-        uid = dataObj.getLong(_field);
+        uid = Long.parseLong(dataObj.getString(_field));
       else
-        uid = event.getLong(_field);
+        uid = Long.parseLong(event.getString(_field));
       return (int)(uid % maxShardId);
     }
   }

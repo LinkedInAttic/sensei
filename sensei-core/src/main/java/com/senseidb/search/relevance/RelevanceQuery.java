@@ -613,7 +613,7 @@ public class RelevanceQuery extends AbstractScoreAdjuster
             {
               if(hs == null)
                 hs = new LongOpenHashSet();
-              hs.add(values.getLong(k));
+              hs.add(Long.parseLong(values.getString(k)));
             }
             else if (KW_TYPE_SET_STRING.equals(type))
             {
@@ -715,7 +715,7 @@ public class RelevanceQuery extends AbstractScoreAdjuster
             if(hm == null)
               hm = new Int2LongOpenHashMap();
             for(int j=0; j<keySize; j++)
-              ((Int2LongOpenHashMap)hm).put(keysList.getInt(j), valuesList.getLong(j));
+              ((Int2LongOpenHashMap)hm).put(keysList.getInt(j), Long.parseLong(valuesList.getString(j)));
             hm_type.put(symbol, TYPE_MAP_INT_LONG);
           }
           else if (KW_TYPE_MAP_INT_STRING.equals(type))
@@ -756,7 +756,7 @@ public class RelevanceQuery extends AbstractScoreAdjuster
             if(hm == null)
               hm = new Object2LongOpenHashMap();
             for(int j=0; j<keySize; j++)
-              ((Object2LongOpenHashMap)hm).put(keysList.getString(j), valuesList.getLong(j));
+              ((Object2LongOpenHashMap)hm).put(keysList.getString(j), Long.parseLong(valuesList.getString(j)));
             hm_type.put(symbol, TYPE_MAP_STRING_LONG);
           }
           else if (KW_TYPE_MAP_STRING_STRING.equals(type))
@@ -814,7 +814,7 @@ public class RelevanceQuery extends AbstractScoreAdjuster
           }
           else if (KW_TYPE_LONG.equals(type))
           {
-            hm_var.put(symbol, jsonValues.getLong(symbol));
+            hm_var.put(symbol, Long.parseLong(jsonValues.getString(symbol)));
             hm_type.put(symbol, TYPE_LONG);
           }
           else if (KW_TYPE_STRING.equals(type))
