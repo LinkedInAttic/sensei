@@ -643,6 +643,14 @@ public class TestSensei extends TestCase {
     //TODO Sensei returns undeterministic results for this query. Will create a Jira issue
     assertTrue("numhits is wrong", res.getInt("numhits") > 10);
   }
+  public void testFallbackGroupBy() throws Exception
+  {
+    logger.info("executing test case testFallbackGroupBy");
+    String req = "{\"from\": 0,\"size\": 10,\"groupBy\": {\"columns\": [\"virtual_groupid_fixedlengthlongarray\", \"groupid\"],\"top\": 1}}";
+    JSONObject res = search(new JSONObject(req));
+    logger.error(">>> res: " + res);
+    assertTrue("numhits is wrong", res.getInt("numhits") < -10);
+  }
   public void testGetStoreRequest() throws Exception
   {
     logger.info("executing test case testGetStoreRequest");

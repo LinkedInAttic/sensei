@@ -55,6 +55,7 @@ public class ResultMerger
     private BoboIndexReader reader;
     private int finalDoc;
     public int groupPos;
+    public Object rawGroupValue;
     public Comparable sortValue;
 
     public MyScoreDoc(int docid, float score, int finalDoc, BoboIndexReader reader)
@@ -64,12 +65,12 @@ public class ResultMerger
       this.reader = reader;
     }
 
-    SenseiHit getSenseiHit(boolean fetchStoredFields, boolean fetchStoredValue)
+    SenseiHit getSenseiHit(SenseiRequest req)
     {
       SenseiHit hit = new SenseiHit();
-      if (fetchStoredFields || fetchStoredValue)
+      if (req.isFetchStoredFields() || req.isFetchStoredValue())
       {
-        if (fetchStoredFields)
+        if (req.isFetchStoredFields())
         {
           try
           {
@@ -110,6 +111,12 @@ public class ResultMerger
       hit.setScore(score);
       hit.setComparable(sortValue);
       hit.setGroupPosition(groupPos);
+      String[] groupBy = req.getGroupBy();
+      if (groupBy != null && groupBy.length != 0)
+      {
+        hit.setGroupValue(hit.getField(groupBy[groupPos]));
+        hit.setRawGroupValue(hit.getRawField(groupBy[groupPos]));
+      }
       return hit;
     }
   }
@@ -544,6 +551,7 @@ public class ResultMerger
       }
       iteratorList.add(Arrays.asList(res.getSenseiHits()).iterator());
     }
+    logger.error(">>> hasSortCollector: " + hasSortCollector);
 
     Map<String, FacetAccessible> mergedFacetMap = null;
     if (onSearchNode)
@@ -562,7 +570,8 @@ public class ResultMerger
           .toArray(new Iterator[iteratorList.size()]), comparator);
       hits = mergedList.toArray(new SenseiHit[mergedList.size()]);
     }
-    else {
+    else
+    {
       int[] rawGroupValueType = new int[req.getGroupBy().length];  // 0: unknown, 1: normal, 2: long[]
 
       PrimitiveLongArrayWrapper primitiveLongArrayWrapperTmp = new PrimitiveLongArrayWrapper(null);
@@ -581,20 +590,33 @@ public class ResultMerger
           //++preGroups;
           SenseiHit hit = mergedIter.next();
           rawGroupValue = hit.getRawGroupValue();
-          if (rawGroupValueType[0] == 0) {
-            if (rawGroupValue != null)
+          logger.error(">>> rawGroupValue0: " + rawGroupValue);
+
+          if (req.getGroupBy().length > 1)
+          {
+            DeepObjectArrayWrapper wrapper = new DeepObjectArrayWrapper(new Object[2]);
+            wrapper.data[0] = hit.getGroupPosition();
+            wrapper.data[1] = rawGroupValue;
+            rawGroupValue = wrapper;
+          }
+          else
+          {
+            if (rawGroupValueType[hit.getGroupPosition()] == 0) {
+              if (rawGroupValue != null)
+              {
+                if (rawGroupValue instanceof long[])
+                  rawGroupValueType[hit.getGroupPosition()] = 2;
+                else
+                  rawGroupValueType[hit.getGroupPosition()] = 1;
+              }
+            }
+            if (rawGroupValueType[hit.getGroupPosition()] == 2)
             {
-              if (rawGroupValue instanceof long[])
-                rawGroupValueType[0] = 2;
-              else
-                rawGroupValueType[0] = 1;
+              primitiveLongArrayWrapperTmp.data = (long[])rawGroupValue;
+              rawGroupValue = primitiveLongArrayWrapperTmp;
             }
           }
-          if (rawGroupValueType[0] == 2)
-          {
-            primitiveLongArrayWrapperTmp.data = (long[])rawGroupValue;
-            rawGroupValue = primitiveLongArrayWrapperTmp;
-          }
+          logger.error(">>> rawGroupValue0 wrapped: " + rawGroupValue);
 
           SenseiHit pre = groupHitMap.get(rawGroupValue);
           if (pre != null)
@@ -610,7 +632,7 @@ public class ResultMerger
             else if (hitsList.size()<req.getCount())
               hitsList.add(hit);
 
-            if (rawGroupValueType[0] == 2)
+            if (req.getGroupBy().length == 1 && rawGroupValueType[0] == 2)
               groupHitMap.put(new PrimitiveLongArrayWrapper(primitiveLongArrayWrapperTmp.data), hit);
             else
               groupHitMap.put(rawGroupValue, hit);
@@ -657,6 +679,7 @@ public class ResultMerger
           for (SenseiResult res : results)
           {
             SortCollector sortCollector = res.getSortCollector();
+            logger.error(">>> sortCollector: " + sortCollector);
             Iterator<CollectorContext> contextIter = sortCollector.contextList.iterator();
             CollectorContext currentContext = null;
             int contextLeft = 0;
@@ -715,7 +738,11 @@ public class ResultMerger
                       break;
                     }
 
-                    BrowseFacet facet = combinedFacetAccessibles[j].getFacet(sortCollector.groupByMulti[j].getName());
+                    vals = sortCollector.groupByMulti[j].getFieldValues(currentContext.reader, tmpScoreDoc.doc);
+                    if (vals == null || vals.length == 0)
+                      break;
+
+                    BrowseFacet facet = combinedFacetAccessibles[j].getFacet((String)vals[0]);
                     if (facet == null || facet.getFacetValueHitCount() != 1)
                       break;
                   }
@@ -723,10 +750,12 @@ public class ResultMerger
                   {
                     if (tmpScoreDoc.sortValue.compareTo(pre.sortValue) < 0)
                     {
+                      logger.error(">>> tmpScoreDoc.sortValue: " + tmpScoreDoc.sortValue + "; pre.sortValue: " + pre.sortValue);
                       tmpScoreDoc.groupPos = pre.groupPos;
+                      tmpScoreDoc.rawGroupValue = rawGroupValue;
                       MyScoreDoc tmp = pre;
                       bottom = (MyScoreDoc)docQueue.replace(tmpScoreDoc, pre);
-                      valueDocMaps[j].put(rawGroupValue, tmpScoreDoc);
+                      valueDocMaps[tmpScoreDoc.groupPos].put(rawGroupValue, tmpScoreDoc);
                       tmpScoreDoc = tmp;
                     }
                   }
@@ -737,35 +766,58 @@ public class ResultMerger
                        j = 0;
                        rawGroupValue = firstRawGroupValue;
                     }
-                    if (queueFull){
-                      tmpScoreDoc.groupPos = j;
-                      MyScoreDoc tmp = bottom;
+                    if (!queueFull || tmpScoreDoc.sortValue.compareTo(bottom.sortValue) < 0)
+                    {
+                      if (queueFull)
+                      {
+                        tmpScoreDoc.groupPos = j;
+                        tmpScoreDoc.rawGroupValue = rawGroupValue;
+                        MyScoreDoc tmp = bottom;
 
-                      vals = sortCollector.groupByMulti[j].getRawFieldValues(tmp.reader, tmp.doc);
-                      if (vals != null && vals.length > 0) valueDocMaps[j].remove(vals[0]);
+                        valueDocMaps[tmp.groupPos].remove(tmp.rawGroupValue);
 
-                      bottom = (MyScoreDoc)docQueue.replace(tmpScoreDoc);
-                      valueDocMaps[j].put(rawGroupValue, tmpScoreDoc);
-                      tmpScoreDoc = tmp;
+                        bottom = (MyScoreDoc)docQueue.replace(tmpScoreDoc);
+                        valueDocMaps[j].put(rawGroupValue, tmpScoreDoc);
+                        tmpScoreDoc = tmp;
+                      }
+                      else
+                      {
+                        MyScoreDoc tmp = new MyScoreDoc(tmpScoreDoc.doc, tmpScoreDoc.score, currentContext.base + totalDocs + tmpScoreDoc.doc, currentContext.reader);
+                        tmp.groupPos = j;
+                        tmp.rawGroupValue = rawGroupValue;
+                        tmp.sortValue = tmpScoreDoc.sortValue;
+                        bottom = (MyScoreDoc)docQueue.add(tmp);
+                        valueDocMaps[j].put(rawGroupValue, tmp);
+                        queueFull = (docQueue.size >= topHits);
+                      }
                     }
-                    else{ 
-                      MyScoreDoc tmp = new MyScoreDoc(tmpScoreDoc.doc, tmpScoreDoc.score, currentContext.base + totalDocs + tmpScoreDoc.doc, currentContext.reader);
-                      tmp.groupPos = j;
-                      bottom = (MyScoreDoc)docQueue.add(tmp);
-                      valueDocMaps[j].put(rawGroupValue, tmp);
-                      queueFull = (docQueue.size >= topHits);
+                  }
+
+                  --contextLeft;
+                  if (contextLeft <= 0)
+                  {
+                    while (contextIter.hasNext()) {
+                      currentContext = contextIter.next();
+                      contextLeft = currentContext.length;
+                      if (contextLeft > 0)
+                        break;
                     }
+                    if (contextLeft <= 0) // No more docs left.
+                      break;
                   }
                 }
               }
             }
             totalDocs += res.getTotalDocs();
           }
-          while(null != (tmpScoreDoc = (MyScoreDoc)docQueue.pop()))
+          SenseiHit[] hitArray = new SenseiHit[docQueue.size()];
+          for (int i = hitArray.length-1; i>=0; --i)
           {
-            hitsList.add(tmpScoreDoc.getSenseiHit(req.isFetchStoredFields(),
-                                                  req.isFetchStoredValue()));
+            tmpScoreDoc = (MyScoreDoc)docQueue.pop();
+            hitArray[i] = tmpScoreDoc.getSenseiHit(req);
           }
+          for (int i=0; i<hitArray.length; ++i)
+            hitsList.add(hitArray[i]);
         }
         else
         {
@@ -833,6 +885,7 @@ public class ResultMerger
         }
         for (int i=0; i<combinedFacetAccessibles.length; ++i) combinedFacetAccessibles[i].close();
       }
+      logger.error(">>> hitsList: " + hitsList);
       hits = hitsList.toArray(new SenseiHit[hitsList.size()]);
 
       if (req.getMaxPerGroup() > 1)
@@ -841,17 +894,7 @@ public class ResultMerger
         for (SenseiHit hit : hits)
         {
           rawGroupValue = hit.getRawField(req.getGroupBy()[hit.getGroupPosition()]);
-          if (rawGroupValueType[hit.getGroupPosition()] == 0) {
-            if (rawGroupValue != null)
-            {
-              if (rawGroupValue instanceof long[])
-                rawGroupValueType[hit.getGroupPosition()] = 2;
-              else
-                rawGroupValueType[hit.getGroupPosition()] = 1;
-            }
-          }
-          if (rawGroupValueType[hit.getGroupPosition()] == 2)
-            rawGroupValue = new PrimitiveLongArrayWrapper((long[])rawGroupValue);
+          logger.error(">>> rawGroupValue1: " + rawGroupValue);
 
           if (req.getGroupBy().length > 1)
           {
@@ -860,6 +903,21 @@ public class ResultMerger
             wrapper.data[1] = rawGroupValue;
             rawGroupValue = wrapper;
           }
+          else
+          {
+            if (rawGroupValueType[hit.getGroupPosition()] == 0) {
+              if (rawGroupValue != null)
+              {
+                if (rawGroupValue instanceof long[])
+                  rawGroupValueType[hit.getGroupPosition()] = 2;
+                else
+                  rawGroupValueType[hit.getGroupPosition()] = 1;
+              }
+            }
+            if (rawGroupValueType[hit.getGroupPosition()] == 2)
+              rawGroupValue = new PrimitiveLongArrayWrapper((long[])rawGroupValue);
+          }
+          logger.error(">>> rawGroupValue1 wrapped: " + rawGroupValue);
 
           groupMap.put(rawGroupValue, new HitWithGroupQueue(hit, new PriorityQueue<MyScoreDoc>()
             {
@@ -882,6 +940,7 @@ public class ResultMerger
             }
           ));
         }
+        logger.error(">>> groupMap: " + groupMap);
 
         MyScoreDoc tmpScoreDoc = null;
         int doc = 0;
@@ -924,27 +983,30 @@ public class ResultMerger
                       rawGroupValue = vals[0];
                     else
                       rawGroupValue = null;
-                    if (rawGroupValueType[j] == 2)
-                    {
-                      primitiveLongArrayWrapperTmp.data = (long[])rawGroupValue;
-                      rawGroupValue = primitiveLongArrayWrapperTmp;
-                    }
-                    else if (rawGroupValueType[j] == 0)
-                    {
-                      if (rawGroupValue != null)
-                      {
-                        if (rawGroupValue instanceof long[])
-                          rawGroupValueType[j] = 2;
-                        else
-                          rawGroupValueType[j] = 1;
-                      }
-                    }
 
                     if (sortCollector.groupByMulti.length > 1)
                     {
                       tmpWrapper.data[0] = j;
                       tmpWrapper.data[1] = rawGroupValue;
                       rawGroupValue = tmpWrapper;
+                    }
+                    else
+                    {
+                      if (rawGroupValueType[j] == 0)
+                      {
+                        if (rawGroupValue != null)
+                        {
+                          if (rawGroupValue instanceof long[])
+                            rawGroupValueType[j] = 2;
+                          else
+                            rawGroupValueType[j] = 1;
+                        }
+                      }
+                      if (rawGroupValueType[j] == 2)
+                      {
+                        primitiveLongArrayWrapperTmp.data = (long[])rawGroupValue;
+                        rawGroupValue = primitiveLongArrayWrapperTmp;
+                      }
                     }
 
                     hitWithGroupQueue = groupMap.get(rawGroupValue);
@@ -961,7 +1023,10 @@ public class ResultMerger
                         tmpScoreDoc.reader = currentContext.reader;
                       }
                       tmpScoreDoc.sortValue = currentContext.comparator.value(tmpScoreDoc);
+                      tmpScoreDoc.groupPos = j;
+                      tmpScoreDoc.rawGroupValue = rawGroupValue;
                       tmpScoreDoc = hitWithGroupQueue.queue.insertWithOverflow(tmpScoreDoc);
+                      break;
                     }
                   }
                   --contextLeft;
@@ -990,11 +1055,22 @@ public class ResultMerger
                 if (hit.getGroupHits() != null)
                 {
                   rawGroupValue = hit.getRawGroupValue();
-                  if (rawGroupValueType[hit.getGroupPosition()] == 2)
+                  logger.error(">>> rawGroupValue broker: " + rawGroupValue);
+                  if (req.getGroupBy().length > 1)
                   {
-                    primitiveLongArrayWrapperTmp.data = (long[])rawGroupValue;
-                    rawGroupValue = primitiveLongArrayWrapperTmp;
+                    tmpWrapper.data[0] = hit.getGroupPosition();
+                    tmpWrapper.data[1] = rawGroupValue;
+                    rawGroupValue = tmpWrapper;
                   }
+                  else
+                  {
+                    if (rawGroupValueType[hit.getGroupPosition()] == 2)
+                    {
+                      primitiveLongArrayWrapperTmp.data = (long[])rawGroupValue;
+                      rawGroupValue = primitiveLongArrayWrapperTmp;
+                    }
+                  }
+                  logger.error(">>> rawGroupValue broker wrapped: " + rawGroupValue);
 
                   hitWithGroupQueue = groupMap.get(rawGroupValue);
                   if (hitWithGroupQueue != null)
@@ -1016,8 +1092,7 @@ public class ResultMerger
               SenseiHit[] groupHits = new SenseiHit[index+1];
               while (index >=0)
               {
-                groupHits[index] = hwg.queue.pop().getSenseiHit(req.isFetchStoredFields(),
-                                                                req.isFetchStoredValue());
+                groupHits[index] = hwg.queue.pop().getSenseiHit(req);
                 --index;
               }
               hwg.hit.setGroupHits(groupHits);
