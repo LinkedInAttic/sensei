@@ -917,6 +917,9 @@ public class HttpRestSenseiServiceImpl implements SenseiService
     	  else if (SenseiSearchServletParams.PARAM_RESULT_HIT_STORED_FIELDS.equals(key)){
     		  hit.setStoredFields(convertStoredFields(hitObj.optJSONArray(SenseiSearchServletParams.PARAM_RESULT_HIT_STORED_FIELDS)));
     	  }
+    	  else if (SenseiSearchServletParams.PARAM_RESULT_HIT_GROUPFIELD.equals(key)){
+    		  hit.setGroupValue(hitObj.getString(SenseiSearchServletParams.PARAM_RESULT_HIT_GROUPFIELD));
+    	  }
     	  else if (SenseiSearchServletParams.PARAM_RESULT_HIT_GROUPVALUE.equals(key)){
     		  hit.setGroupValue(hitObj.getString(SenseiSearchServletParams.PARAM_RESULT_HIT_GROUPVALUE));
     	  }

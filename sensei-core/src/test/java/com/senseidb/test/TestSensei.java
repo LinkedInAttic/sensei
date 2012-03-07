@@ -646,9 +646,10 @@ public class TestSensei extends TestCase {
   public void testFallbackGroupBy() throws Exception
   {
     logger.info("executing test case testFallbackGroupBy");
-    String req = "{\"from\": 0,\"size\": 10,\"groupBy\": {\"columns\": [\"virtual_groupid_fixedlengthlongarray\", \"groupid\"],\"top\": 1}}";
+    String req = "{\"from\": 0,\"size\": 10,\"groupBy\": {\"columns\": [\"virtual_groupid_fixedlengthlongarray\", \"color\"],\"top\": 1}}";
     JSONObject res = search(new JSONObject(req));
     logger.error(">>> res: " + res);
+    System.in.read();
     assertTrue("numhits is wrong", res.getInt("numhits") < -10);
   }
   public void testGetStoreRequest() throws Exception

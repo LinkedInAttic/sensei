@@ -38,6 +38,7 @@ import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_HIT_DO
 import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_HIT_EXPLANATION;
 import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_HIT_GROUPHITS;
 import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_HIT_GROUPHITSCOUNT;
+import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_HIT_GROUPFIELD;
 import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_HIT_GROUPVALUE;
 import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_HIT_SCORE;
 import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_HIT_SRC_DATA;
@@ -333,6 +334,10 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
       if (selectSet == null || selectSet.contains(PARAM_RESULT_HIT_SCORE))
       {
         hitObj.put(PARAM_RESULT_HIT_SCORE, hit.getScore());
+      }
+      if (selectSet == null || selectSet.contains(PARAM_RESULT_HIT_GROUPFIELD))
+      {
+        hitObj.put(PARAM_RESULT_HIT_GROUPFIELD, hit.getGroupField());
       }
       if (selectSet == null || selectSet.contains(PARAM_RESULT_HIT_GROUPVALUE))
       {

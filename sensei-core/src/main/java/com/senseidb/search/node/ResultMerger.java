@@ -114,6 +114,7 @@ public class ResultMerger
       String[] groupBy = req.getGroupBy();
       if (groupBy != null && groupBy.length != 0)
       {
+        hit.setGroupField(groupBy[groupPos]);
         hit.setGroupValue(hit.getField(groupBy[groupPos]));
         hit.setRawGroupValue(hit.getRawField(groupBy[groupPos]));
       }
@@ -551,7 +552,6 @@ public class ResultMerger
       }
       iteratorList.add(Arrays.asList(res.getSenseiHits()).iterator());
     }
-    logger.error(">>> hasSortCollector: " + hasSortCollector);
 
     Map<String, FacetAccessible> mergedFacetMap = null;
     if (onSearchNode)
@@ -590,7 +590,6 @@ public class ResultMerger
           //++preGroups;
           SenseiHit hit = mergedIter.next();
           rawGroupValue = hit.getRawGroupValue();
-          logger.error(">>> rawGroupValue0: " + rawGroupValue);
 
           if (req.getGroupBy().length > 1)
           {
@@ -616,7 +615,6 @@ public class ResultMerger
               rawGroupValue = primitiveLongArrayWrapperTmp;
             }
           }
-          logger.error(">>> rawGroupValue0 wrapped: " + rawGroupValue);
 
           SenseiHit pre = groupHitMap.get(rawGroupValue);
           if (pre != null)
@@ -679,7 +677,6 @@ public class ResultMerger
           for (SenseiResult res : results)
           {
             SortCollector sortCollector = res.getSortCollector();
-            logger.error(">>> sortCollector: " + sortCollector);
             Iterator<CollectorContext> contextIter = sortCollector.contextList.iterator();
             CollectorContext currentContext = null;
             int contextLeft = 0;
@@ -750,7 +747,6 @@ public class ResultMerger
                   {
                     if (tmpScoreDoc.sortValue.compareTo(pre.sortValue) < 0)
                     {
-                      logger.error(">>> tmpScoreDoc.sortValue: " + tmpScoreDoc.sortValue + "; pre.sortValue: " + pre.sortValue);
                       tmpScoreDoc.groupPos = pre.groupPos;
                       tmpScoreDoc.rawGroupValue = rawGroupValue;
                       MyScoreDoc tmp = pre;
@@ -885,16 +881,14 @@ public class ResultMerger
         }
         for (int i=0; i<combinedFacetAccessibles.length; ++i) combinedFacetAccessibles[i].close();
       }
-      logger.error(">>> hitsList: " + hitsList);
       hits = hitsList.toArray(new SenseiHit[hitsList.size()]);
 
-      if (req.getMaxPerGroup() > 1)
+      if (req.getMaxPerGroup() > 1 || req.getGroupBy().length > 1)
       {
         Map<Object, HitWithGroupQueue> groupMap = new HashMap<Object, HitWithGroupQueue>(hits.length*2);
         for (SenseiHit hit : hits)
         {
           rawGroupValue = hit.getRawField(req.getGroupBy()[hit.getGroupPosition()]);
-          logger.error(">>> rawGroupValue1: " + rawGroupValue);
 
           if (req.getGroupBy().length > 1)
           {
@@ -917,14 +911,13 @@ public class ResultMerger
             if (rawGroupValueType[hit.getGroupPosition()] == 2)
               rawGroupValue = new PrimitiveLongArrayWrapper((long[])rawGroupValue);
           }
-          logger.error(">>> rawGroupValue1 wrapped: " + rawGroupValue);
 
           groupMap.put(rawGroupValue, new HitWithGroupQueue(hit, new PriorityQueue<MyScoreDoc>()
             {
               private int r;
 
               {
-                this.initialize(req.getMaxPerGroup());
+                this.initialize(req.getMaxPerGroup() <= 1? 0:req.getMaxPerGroup());
               }
 
               protected boolean lessThan(MyScoreDoc a, MyScoreDoc b)
@@ -940,7 +933,6 @@ public class ResultMerger
             }
           ));
         }
-        logger.error(">>> groupMap: " + groupMap);
 
         MyScoreDoc tmpScoreDoc = null;
         int doc = 0;
@@ -1012,6 +1004,7 @@ public class ResultMerger
                     hitWithGroupQueue = groupMap.get(rawGroupValue);
                     if (hitWithGroupQueue != null)
                     {
+                      hitWithGroupQueue.hit.setGroupHitsCount(hitWithGroupQueue.hit.getGroupHitsCount() + 1);
                       // Collect this hit.
                       if (tmpScoreDoc == null)
                         tmpScoreDoc = new MyScoreDoc(doc, score, currentContext.base + totalDocs + doc, currentContext.reader);
@@ -1055,7 +1048,6 @@ public class ResultMerger
                 if (hit.getGroupHits() != null)
                 {
                   rawGroupValue = hit.getRawGroupValue();
-                  logger.error(">>> rawGroupValue broker: " + rawGroupValue);
                   if (req.getGroupBy().length > 1)
                   {
                     tmpWrapper.data[0] = hit.getGroupPosition();
@@ -1070,7 +1062,6 @@ public class ResultMerger
                       rawGroupValue = primitiveLongArrayWrapperTmp;
                     }
                   }
-                  logger.error(">>> rawGroupValue broker wrapped: " + rawGroupValue);
 
                   hitWithGroupQueue = groupMap.get(rawGroupValue);
                   if (hitWithGroupQueue != null)
