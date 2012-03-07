@@ -39,15 +39,15 @@ public class TestMapReduce extends TestCase {
       		+", \"mapReduce\":{\"function\":\"sensei.max\",\"parameters\":{\"column\":\"groupid\"}}}";
       JSONObject res = TestSensei.search(new JSONObject(req));
       JSONObject mapReduceResult = res.getJSONObject("mapReduceResult");
-      assertEquals(14990, mapReduceResult.getLong("max"));
-      assertEquals(14994, mapReduceResult.getLong("uid"));
+      assertEquals(14990, Long.parseLong(mapReduceResult.getString("max")));
+      assertEquals(14994, Long.parseLong(mapReduceResult.getString("uid")));
        req = "{\"filter\":{\"term\":{\"color\":\"red\"}}"
           +  ",\"selections\":[{\"terms\":{\"groupid\":{\"excludes\":[14990],\"operator\":\"or\"}}}]"
           + ", \"mapReduce\":{\"function\":\"sensei.max\",\"parameters\":{\"column\":\"groupid\"}}}";
        res = TestSensei.search(new JSONObject(req));
        mapReduceResult = res.getJSONObject("mapReduceResult");
-      assertEquals(14980, mapReduceResult.getLong("max"));
-      //assertEquals(14989, mapReduceResult.getLong("uid"));
+      assertEquals(14980, Long.parseLong(mapReduceResult.getString("max")));
+      //assertEquals(14989, Long.parseLong(mapReduceResult.getString("uid")));
       
     }
     public void test5DistinctCount() throws Exception {      
@@ -55,33 +55,33 @@ public class TestMapReduce extends TestCase {
           +", \"mapReduce\":{\"function\":\"sensei.distinctCount\",\"parameters\":{\"column\":\"groupid\"}}}";
       JSONObject res = TestSensei.search(new JSONObject(req));
       JSONObject mapReduceResult = res.getJSONObject("mapReduceResult");
-      assertEquals(964, mapReduceResult.getLong("distinctCount"));
+      assertEquals(964, Long.parseLong(mapReduceResult.getString("distinctCount")));
      
        req = "{"
           +" \"mapReduce\":{\"function\":\"sensei.distinctCountHashSet\",\"parameters\":{\"column\":\"groupid\"}}}";
        res = TestSensei.search(new JSONObject(req));
        mapReduceResult = res.getJSONObject("mapReduceResult");
-      assertEquals(1509, mapReduceResult.getLong("distinctCount"));      
+      assertEquals(1509, Long.parseLong(mapReduceResult.getString("distinctCount")));
     }
     public void test6MinMapReduce() throws Exception {      
       String req = "{\"filter\":{\"term\":{\"tags\":\"reliable\"}}"
           +", \"mapReduce\":{\"function\":\"sensei.min\",\"parameters\":{\"column\":\"groupid\"}}}";
       JSONObject res = TestSensei.search(new JSONObject(req));
       JSONObject mapReduceResult = res.getJSONObject("mapReduceResult");
-      assertEquals(-15000L, mapReduceResult.getLong("min"));
-      assertEquals(0L, mapReduceResult.getLong("uid"));      
+      assertEquals(-15000L, Long.parseLong(mapReduceResult.getString("min")));
+      assertEquals(0L, Long.parseLong(mapReduceResult.getString("uid")));
        req = "{\"filter\":{\"term\":{\"tags\":\"reliable\"}}"
           +", \"mapReduce\":{\"function\":\"sensei.min\",\"parameters\":{\"column\":\"year\"}}}";
        res = TestSensei.search(new JSONObject(req));
        mapReduceResult = res.getJSONObject("mapReduceResult");
-      assertEquals(1993L, mapReduceResult.getLong("min"));          
+      assertEquals(1993L, Long.parseLong(mapReduceResult.getString("min")));
     }
     public void test7SumMapReduce() throws Exception {      
       String req = "{\"filter\":{\"term\":{\"color\":\"red\"}}, "
           +" \"mapReduce\":{\"function\":\"sensei.sum\",\"parameters\":{\"column\":\"groupid\"}}}";
       JSONObject res = TestSensei.search(new JSONObject(req));
       JSONObject mapReduceResult = res.getJSONObject("mapReduceResult");
-      assertEquals(16036500, mapReduceResult.getLong("sum"));      
+      assertEquals(16036500, mapReduceResult.getLong("sum"));
     }
     public void test8AvgMapReduce() throws Exception {      
       String req = "{\"filter\":{\"term\":{\"color\":\"red\"}}, "
@@ -89,7 +89,7 @@ public class TestMapReduce extends TestCase {
       JSONObject res = TestSensei.search(new JSONObject(req));
       JSONObject mapReduceResult = res.getJSONObject("mapReduceResult");
       assertEquals(7424, mapReduceResult.getLong("avg"));
-      assertEquals(2160, mapReduceResult.getLong("count")); 
+      assertEquals(2160, Long.parseLong(mapReduceResult.getString("count")));
     }
    
 }

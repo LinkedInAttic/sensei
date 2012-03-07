@@ -256,7 +256,7 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
         try
         {
           byte[] src = null;
-          long uid = event.getLong(_senseiSchema.getUidField());
+          long uid = Long.parseLong(event.getString(_senseiSchema.getUidField()));
           for (ZoieIndexReader<BoboIndexReader> reader : readers)
           {
             src = reader.getStoredValue(uid);

@@ -815,4 +815,32 @@ public class TestErrorHandling extends TestCase
     }
   }
 
+  @Test
+  public void testRouteByOnce() throws Exception
+  {
+    System.out.println("testRouteByOnce");
+    System.out.println("==================================================");
+
+    boolean caughtException = false;
+    try
+    {
+      JSONObject json = _compiler.compile(
+        "select category \n" +
+        "from cars \n" +
+        "route by '1234' \n" +
+        "route by '9999'"
+        );
+    }
+    catch (RecognitionException err)
+    {
+      assertEquals("[line:4, col:15] ROUTE BY clause can only appear once. (token=<EOF>)",
+                   _compiler.getErrorMessage(err));
+      caughtException = true;
+    }
+    finally 
+    {
+      assertTrue(caughtException);
+    }
+  }
+
 }

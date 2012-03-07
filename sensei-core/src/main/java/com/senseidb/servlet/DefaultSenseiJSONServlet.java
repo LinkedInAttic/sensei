@@ -594,7 +594,7 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
 
           if (attrVals.length == 0 || attrVals[0].length() == 0)
           {
-            logger.warn(String.format("init param has no values: facet: {0} type '{1}' ", facetName, type));
+            logger.warn(String.format("init param has no values: facet: %s, type: %s", facetName, type));
             continue;
           }
 
@@ -625,14 +625,14 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
           }
           else
           {
-            logger.warn(String.format("Unknown init param name '{0}' type '{1}' for facet: {2} ", paramName, type, facetName));
+            logger.warn(String.format("Unknown init param name: %s, type %s, for facet: %s", paramName, type, facetName));
             continue;
           }
 
         }
         catch (Exception e)
         {
-          logger.warn(String.format("Failed to parse init param name '{0}' type '{1}' for facetName", paramName, type, facetName));
+          logger.warn(String.format("Failed to parse init param name: %s, type %s, for facet: %s", paramName, type, facetName));
         }
       }
 
