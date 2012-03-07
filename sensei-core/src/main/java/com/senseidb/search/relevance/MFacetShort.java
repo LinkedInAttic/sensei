@@ -27,8 +27,8 @@ public class MFacetShort extends MFacet
   
   public boolean contains(short target)
   {
-    for(int i=0; i< this.length; i++)
-      if(((TermShortList) _mTermList).getPrimitiveValue(buf[i]) == target)
+    for(int i=0; i< this._length; i++)
+      if(((TermShortList) _mTermList).getPrimitiveValue(_buf[i]) == target)
         return true;
               
     return false;

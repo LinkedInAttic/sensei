@@ -755,7 +755,7 @@ public class HttpRestSenseiServiceImpl implements SenseiService
   {
     SenseiResult result = new SenseiResult();
 
-    result.setTid(jsonObj.getLong(SenseiSearchServletParams.PARAM_RESULT_TID));
+    result.setTid(Long.parseLong(jsonObj.getString(SenseiSearchServletParams.PARAM_RESULT_TID)));
     result.setTotalDocs(jsonObj.getInt(SenseiSearchServletParams.PARAM_RESULT_TOTALDOCS));
     result.setParsedQuery(jsonObj.getString(SenseiSearchServletParams.PARAM_RESULT_PARSEDQUERY));
     result.setNumHits(jsonObj.getInt(SenseiSearchServletParams.PARAM_RESULT_NUMHITS));
@@ -763,7 +763,7 @@ public class HttpRestSenseiServiceImpl implements SenseiService
     {
       result.setNumGroups(jsonObj.getInt(SenseiSearchServletParams.PARAM_RESULT_NUMGROUPS));
     }
-    result.setTime(jsonObj.getLong(SenseiSearchServletParams.PARAM_RESULT_TIME));
+    result.setTime(Long.parseLong(jsonObj.getString(SenseiSearchServletParams.PARAM_RESULT_TIME)));
     result.addAll(convertFacetMap(jsonObj.getJSONObject(SenseiSearchServletParams.PARAM_RESULT_FACETS)));
     result.setHits(convertHitsArray(jsonObj.getJSONArray(SenseiSearchServletParams.PARAM_RESULT_HITS)));
 
@@ -776,7 +776,7 @@ public class HttpRestSenseiServiceImpl implements SenseiService
     SenseiSystemInfo result = new SenseiSystemInfo();
 
     result.setNumDocs(jsonObj.getInt(SenseiSearchServletParams.PARAM_SYSINFO_NUMDOCS));
-    result.setLastModified(jsonObj.getLong(SenseiSearchServletParams.PARAM_SYSINFO_LASTMODIFIED));
+    result.setLastModified(Long.parseLong(jsonObj.getString(SenseiSearchServletParams.PARAM_SYSINFO_LASTMODIFIED)));
     result.setVersion(jsonObj.getString(SenseiSearchServletParams.PARAM_SYSINFO_VERSION));
     result.setFacetInfos(convertFacetInfos(jsonObj.getJSONArray(SenseiSearchServletParams.PARAM_SYSINFO_FACETS)));
     result.setClusterInfo(convertClusterInfo(jsonObj.getJSONArray(SenseiSearchServletParams.PARAM_SYSINFO_CLUSTERINFO)));
@@ -902,7 +902,7 @@ public class HttpRestSenseiServiceImpl implements SenseiService
       while(keys.hasNext()){
     	  String key = (String)keys.next();
     	  if (SenseiSearchServletParams.PARAM_RESULT_HIT_UID.equals(key)){
-    		  hit.setUID(hitObj.getLong(SenseiSearchServletParams.PARAM_RESULT_HIT_UID));
+    		  hit.setUID(Long.parseLong(hitObj.getString(SenseiSearchServletParams.PARAM_RESULT_HIT_UID)));
     	  }
     	  else if (SenseiSearchServletParams.PARAM_RESULT_HIT_DOCID.equals(key)){
     		  hit.setDocid(hitObj.getInt(SenseiSearchServletParams.PARAM_RESULT_HIT_DOCID));
