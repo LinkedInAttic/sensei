@@ -615,7 +615,7 @@ public class TestErrorHandling extends TestCase
     }
     catch (RecognitionException err)
     {
-      assertEquals("[line:1, col:24] Expecting IDENT (token=where)",
+      assertEquals("[line:1, col:24] Mismatched input (token=where)",
                    _compiler.getErrorMessage(err));
       caughtException = true;
     }
@@ -640,7 +640,7 @@ public class TestErrorHandling extends TestCase
     }
     catch (RecognitionException err)
     {
-      assertEquals("[line:1, col:14] Expecting IDENT (token=from)",
+      assertEquals("[line:1, col:14] Mismatched input (token=from)",
                    _compiler.getErrorMessage(err));
       caughtException = true;
     }
@@ -806,6 +806,34 @@ public class TestErrorHandling extends TestCase
     catch (RecognitionException err)
     {
       assertEquals("[line:3, col:33] Hit NumberFormatException: For input string: \"12345678901234567890\" (token=<EOF>)",
+                   _compiler.getErrorMessage(err));
+      caughtException = true;
+    }
+    finally 
+    {
+      assertTrue(caughtException);
+    }
+  }
+
+  @Test
+  public void testRouteByOnce() throws Exception
+  {
+    System.out.println("testRouteByOnce");
+    System.out.println("==================================================");
+
+    boolean caughtException = false;
+    try
+    {
+      JSONObject json = _compiler.compile(
+        "select category \n" +
+        "from cars \n" +
+        "route by '1234' \n" +
+        "route by '9999'"
+        );
+    }
+    catch (RecognitionException err)
+    {
+      assertEquals("[line:4, col:15] ROUTE BY clause can only appear once. (token=<EOF>)",
                    _compiler.getErrorMessage(err));
       caughtException = true;
     }

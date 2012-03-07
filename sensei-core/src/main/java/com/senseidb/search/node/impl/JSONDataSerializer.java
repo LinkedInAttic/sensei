@@ -25,7 +25,12 @@ public class JSONDataSerializer implements ZoieStoreSerializer<JSONObject>{
   
   @Override
   public long getUid(JSONObject data) {
-    return data.optLong(_uidField, -1);
+    try {
+      return Long.parseLong(data.optString(_uidField, "-1"));
+    }
+    catch(Exception e) {
+      return -1L;
+    }
   }
 
   @Override

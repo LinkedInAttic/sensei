@@ -8,8 +8,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.senseidb.util.JsonTemplateProcessor;
-import com.senseidb.util.JsonTemplateProcessor;
-
 
 
 public class JsonTemplateProcessorTest extends TestCase {

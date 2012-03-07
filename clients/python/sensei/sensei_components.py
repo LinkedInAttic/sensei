@@ -23,6 +23,13 @@ import re
 
 logger = logging.getLogger("sensei_components")
 
+# Regular expression that matches a range facet value
+RANGE_REGEX = re.compile(r'''\[(\d+(\.\d+)*|\*) TO (\d+(\.\d+)*|\*)\]''')
+
+SELECTION_TYPE_RANGE = 1
+SELECTION_TYPE_SIMPLE = 2
+SELECTION_TYPE_TIME = 3
+
 #
 # REST API parameter constants
 #

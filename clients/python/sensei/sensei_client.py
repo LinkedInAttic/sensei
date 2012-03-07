@@ -43,13 +43,15 @@ class SenseiClient:
     self.opener.addheaders = [('User-agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_6_7) AppleWebKit/534.30 (KHTML, like Gecko) Chrome/12.0.742.91 Safari/534.30')]
 
     if sysinfo:
-      self.sysinfo = SenseiSystemInfo(sysinfo)
+      self.test_sysinfo = SenseiSystemInfo(sysinfo)
+      self.sysinfo = self.test_sysinfo
     else:
+      # Here we assume that the index has been started
+      self.test_sysinfo = None
       urlReq = urllib2.Request(self.url + "/sysinfo")
       res = self.opener.open(urlReq)
       line = res.read()
       jsonObj = json.loads(line)
-      # print json.dumps(jsonObj, indent=4)
       self.sysinfo = SenseiSystemInfo(jsonObj)
     self.facet_map = {}
     for facet_info in self.sysinfo.get_facet_infos():
@@ -238,14 +240,15 @@ class SenseiClient:
 
     return urllib.urlencode(paramMap)
     
-  def doQuery(self, req, using_json=True):
+  def doQuery(self, req, using_json=True, var_map={}):
     """Execute a search query."""
 
     time1 = datetime.now()
     query_string = None
     if using_json: # Use JSON format
-      # query_string = self.buildJsonString(req)
       bql = {"bql": req}
+      if var_map:
+        bql["templateMapping"] = var_map;
       query_string = json.dumps(bql)
     else:
       query_string = SenseiClient.buildUrlString(req)
@@ -261,6 +264,15 @@ class SenseiClient:
     return res
 
   def get_sysinfo(self):
+    """Get Sensei system info."""
+
+    if self.test_sysinfo:
+      return self.test_sysinfo
+    urlReq = urllib2.Request(self.url + "/sysinfo")
+    res = self.opener.open(urlReq)
+    line = res.read()
+    jsonObj = json.loads(line)
+    self.sysinfo = SenseiSystemInfo(jsonObj)
     return self.sysinfo
 
   def get_facet_map(self):
@@ -314,6 +326,7 @@ def main(argv):
     print """\
 help              Show instructions
 select ...        Execute a BQL statement
+set VAR value     Assign a value to a variable     
 desc | describe   Describe current index schema
 get <uid_list>    Retrieve documents based on UID list
 exit              Exit
@@ -350,6 +363,8 @@ exit              Exit
 
   print 'Enter "help" for instructions'
 
+  var_map = {}
+
   import readline
   readline.parse_and_bind("tab: complete")
   while 1:
@@ -370,7 +385,7 @@ exit              Exit
           continue
 
       if command == "select":
-        res = client.doQuery(stmt)
+        res = client.doQuery(stmt, var_map=var_map)
         error = res.error
         if error:
           err_code = error.get("code")
@@ -387,6 +402,12 @@ exit              Exit
       elif command in ["desc", "describe"]:
         sysinfo = client.get_sysinfo()
         sysinfo.display()
+      elif command == "set":
+        tokens = client.parser.parse(stmt)
+        if tokens.value:
+          var_map[tokens.variable] = tokens.value
+        elif tokens.value_list:
+          var_map[tokens.variable] = tokens.value_list[:]
       elif command == "help":
         help()
       elif len(words) > 0 and len(words[0]) > 0:

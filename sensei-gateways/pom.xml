@@ -122,11 +122,11 @@
 			<version>0.7.6</version>
 			<scope>system</scope>
 			<systemPath>${basedir}/../lib/kafka-0.7.6.jar</systemPath>
-                        <exclusions>
-        		      <exclusion> 
-               		      <groupId>zkclient</groupId>
-                              </exclusion>
-                              </exclusions>
+      <exclusions>
+        <exclusion> 
+          <groupId>zkclient</groupId>
+        </exclusion>
+      </exclusions>
 		</dependency>
 		
 		<dependency>

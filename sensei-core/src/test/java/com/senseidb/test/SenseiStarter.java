@@ -38,7 +38,7 @@ public class SenseiStarter {
   public static File ConfDir2 = null;
  
 
-  public static String IndexDir = "index";
+  public static File IndexDir = new File("/tmp/sensei-index/test");
   public static URL SenseiUrl = null;
   public static SenseiBroker broker = null;
   public static SenseiService httpRestSenseiService = null;
@@ -74,7 +74,7 @@ public class SenseiStarter {
     ConfDir2 = new File(SenseiStarter.class.getClassLoader().getResource(confDir2).toURI());
     org.apache.log4j.PropertyConfigurator.configure("resources/log4j.properties");
     loadFromSpringContext();
-    boolean removeSuccessful = rmrf(new File(IndexDir));
+    boolean removeSuccessful = rmrf(IndexDir);
     if (!removeSuccessful) {
       throw new IllegalStateException("The index dir " + IndexDir + " coulnd't be purged");
     }
@@ -183,7 +183,7 @@ public class SenseiStarter {
     try{httpServer2.stop();}catch(Throwable t){}
     try{networkClient.shutdown();}catch(Throwable t){}
     try{clusterClient.shutdown();}catch(Throwable t){}
-    rmrf(new File(IndexDir));
+    rmrf(IndexDir);
   }
 
 }
