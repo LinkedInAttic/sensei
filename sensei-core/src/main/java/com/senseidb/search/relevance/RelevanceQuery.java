@@ -886,7 +886,7 @@ public class RelevanceQuery extends AbstractScoreAdjuster
     else
     {
 
-      synchronized(this)
+      synchronized(RelevanceQuery.class)
       {
         
         if(hmModels.containsKey(className))
