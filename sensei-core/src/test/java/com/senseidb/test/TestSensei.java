@@ -648,8 +648,6 @@ public class TestSensei extends TestCase {
     logger.info("executing test case testFallbackGroupBy");
     String req = "{\"from\": 0,\"size\": 10,\"groupBy\": {\"columns\": [\"virtual_groupid_fixedlengthlongarray\", \"color\"],\"top\": 2}, \"sort\": [{\"color\": \"asc\"}]}";
     JSONObject res = search(new JSONObject(req));
-    logger.error(">>> res: " + res);
-    System.in.read();
     JSONArray hits = res.getJSONArray("hits");
     JSONObject firstHit = hits.getJSONObject(0);
     assertTrue("groupfield is wrong", "color".equals(firstHit.getString("groupfield")) || "virtual_groupid_fixedlengthlongarray".equals(firstHit.getString("groupfield")));
