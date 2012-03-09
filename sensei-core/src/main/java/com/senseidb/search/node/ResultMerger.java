@@ -32,6 +32,7 @@ import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
 import com.browseengine.bobo.facets.CombinedFacetAccessible;
 import com.browseengine.bobo.facets.FacetHandler;
+import com.browseengine.bobo.facets.data.FacetDataCache;
 import com.browseengine.bobo.facets.data.PrimitiveLongArrayWrapper;
 import com.browseengine.bobo.sort.DocComparator;
 import com.browseengine.bobo.sort.DocIDPriorityQueue;
@@ -475,6 +476,14 @@ public class ResultMerger
       return _facetMap.get(value);
     }
 
+    public int getFacetHitsCount(Object value)
+    {
+      BrowseFacet facet = _facetMap.get(value);
+      if (facet != null)
+        return facet.getHitCount();
+      return 0;
+    }
+
     public List<BrowseFacet> getFacets()
     {
       return Arrays.asList(_facets);
@@ -515,7 +524,10 @@ public class ResultMerger
     boolean hasSortCollector = false;
     for (SenseiResult res : results)
     {
-      if (res.getSortCollector() != null) hasSortCollector = true;
+      if (res.getSortCollector() != null && res.getSortCollector().contextList != null)
+      {
+        hasSortCollector = true;
+      }
 
       parsedQuery = res.getParsedQuery();
       SenseiHit[] hits = res.getSenseiHits();
@@ -639,7 +651,7 @@ public class ResultMerger
       }
       else
       {
-        FacetAccessible[] combinedFacetAccessibles = new FacetAccessible[groupAccessibles.length];
+        CombinedFacetAccessible[] combinedFacetAccessibles = new CombinedFacetAccessible[groupAccessibles.length];
         Set<Object>[] groupSets = new Set[groupAccessibles.length];
         for (int i=0; i<groupAccessibles.length; ++i)
         {
@@ -650,7 +662,6 @@ public class ResultMerger
         if (topHits > 0 && combinedFacetAccessibles.length > 1 && hasSortCollector)
         {
           totalDocs = 0;
-          Object[] vals = null;
           MyScoreDoc tmpScoreDoc = new MyScoreDoc(0, 0.0f, 0, null);
           MyScoreDoc bottom = null;
           boolean queueFull = false;
@@ -678,11 +689,16 @@ public class ResultMerger
             Iterator<CollectorContext> contextIter = sortCollector.contextList.iterator();
             CollectorContext currentContext = null;
             int contextLeft = 0;
+            FacetDataCache[] dataCaches = new FacetDataCache[sortCollector.groupByMulti.length];
             while (contextIter.hasNext()) {
               currentContext = contextIter.next();
               contextLeft = currentContext.length;
               if (contextLeft > 0)
+              {
+                for (int j=0; j<sortCollector.groupByMulti.length; ++j)
+                  dataCaches[j] = (FacetDataCache)sortCollector.groupByMulti[j].getFacetData(currentContext.reader);
                 break;
+              }
             }
 
             Iterator<float[]> scoreArrayIter = sortCollector.scorearraylist != null ? sortCollector.scorearraylist.iterator():null;
@@ -703,11 +719,7 @@ public class ResultMerger
                   int j=0;
                   for (; j<sortCollector.groupByMulti.length; ++j)
                   {
-                    vals = sortCollector.groupByMulti[j].getRawFieldValues(currentContext.reader, tmpScoreDoc.doc);
-                    if (vals != null && vals.length > 0)
-                      rawGroupValue = vals[0];
-                    else
-                      rawGroupValue = null;
+                    rawGroupValue = dataCaches[j].valArray.getRawValue(dataCaches[j].orderArray.get(tmpScoreDoc.doc));
                     if (rawGroupValueType[j] == 2)
                     {
                       primitiveLongArrayWrapperTmp.data = (long[])rawGroupValue;
@@ -737,13 +749,16 @@ public class ResultMerger
                       break;
                     }
 
-                    vals = sortCollector.groupByMulti[j].getFieldValues(currentContext.reader, tmpScoreDoc.doc);
-                    if (vals == null || vals.length == 0)
-                      break;
-
-                    BrowseFacet facet = combinedFacetAccessibles[j].getFacet((String)vals[0]);
-                    if (facet == null || facet.getFacetValueHitCount() != 1)
-                      break;
+                    if (rawGroupValueType[j] == 2)
+                    {
+                      if (combinedFacetAccessibles[j].getCappedFacetCount(primitiveLongArrayWrapperTmp.data, 2) != 1)
+                        break;
+                    }
+                    else
+                    {
+                      if (combinedFacetAccessibles[j].getCappedFacetCount(rawGroupValue, 2) != 1)
+                        break;
+                    }
                   }
                   if (j < 0)
                   {
@@ -794,11 +809,16 @@ public class ResultMerger
                   --contextLeft;
                   if (contextLeft <= 0)
                   {
-                    while (contextIter.hasNext()) {
+                    while (contextIter.hasNext())
+                    {
                       currentContext = contextIter.next();
                       contextLeft = currentContext.length;
                       if (contextLeft > 0)
+                      {
+                        for (j=0; j<sortCollector.groupByMulti.length; ++j)
+                          dataCaches[j] = (FacetDataCache)sortCollector.groupByMulti[j].getFacetData(currentContext.reader);
                         break;
+                      }
                     }
                     if (contextLeft <= 0) // No more docs left.
                       break;
@@ -830,20 +850,24 @@ public class ResultMerger
             {
               //rawGroupValue = hit.getRawField(req.getGroupBy()[i]);
               rawGroupValue = hit.getRawGroupValue();
-              if (rawGroupValueType[i] == 0)
-              {
-                if (rawGroupValue != null)
-                {
-                  if (rawGroupValue instanceof long[])
-                    rawGroupValueType[i] = 2;
-                  else
-                    rawGroupValueType[i] = 1;
-                }
-              }
               if (rawGroupValueType[i] == 2)
               {
                 primitiveLongArrayWrapperTmp.data = (long[])rawGroupValue;
                 rawGroupValue = primitiveLongArrayWrapperTmp;
+              }
+              else if (rawGroupValueType[i] == 0)
+              {
+                if (rawGroupValue != null)
+                {
+                  if (rawGroupValue instanceof long[])
+                  {
+                    rawGroupValueType[i] = 2;
+                    primitiveLongArrayWrapperTmp.data = (long[])rawGroupValue;
+                    rawGroupValue = primitiveLongArrayWrapperTmp;
+                  }
+                  else
+                    rawGroupValueType[i] = 1;
+                }
               }
               if (firstRawGroupValue == null) firstRawGroupValue = rawGroupValue;
               if (groupSets[i].contains(rawGroupValue))
@@ -852,10 +876,16 @@ public class ResultMerger
                 break;
               }
 
-              //BrowseFacet facet = combinedFacetAccessibles[i].getFacet(hit.getField(req.getGroupBy()[i]));
-              BrowseFacet facet = combinedFacetAccessibles[i].getFacet(hit.getGroupValue());
-              if (facet == null || facet.getFacetValueHitCount() != 1)
-                break;
+              if (rawGroupValueType[i] == 2)
+              {
+                if (combinedFacetAccessibles[i].getCappedFacetCount(primitiveLongArrayWrapperTmp.data, 2) != 1)
+                  break;
+              }
+              else
+              {
+                if (combinedFacetAccessibles[i].getCappedFacetCount(rawGroupValue, 2) != 1)
+                  break;
+              }
             }
             if (i >= 0)
             {
@@ -867,11 +897,7 @@ public class ResultMerger
               if (offsetLeft > 0)
                 --offsetLeft;
               else {
-                //hit.setGroupValue(hit.getField(req.getGroupBy()[i]));
-                //hit.setRawGroupValue(hit.getRawField(req.getGroupBy()[i]));
-                BrowseFacet facet = combinedFacetAccessibles[i].getFacet(hit.getGroupValue());
-                if (facet != null)
-                  hit.setGroupHitsCount(facet.getFacetValueHitCount());
+                hit.setGroupHitsCount(combinedFacetAccessibles[i].getFacetHitsCount(hit.getRawGroupValue()));
                 hitsList.add(hit);
                 if (hitsList.size() >= req.getCount())
                   break;
@@ -941,7 +967,6 @@ public class ResultMerger
         MyScoreDoc tmpScoreDoc = null;
         int doc = 0;
         float score = 0.0f;
-        Object[] vals = null;
         HitWithGroupQueue hitWithGroupQueue = null;
 
         totalDocs = 0;
@@ -953,11 +978,16 @@ public class ResultMerger
             Iterator<CollectorContext> contextIter = sortCollector.contextList.iterator();
             CollectorContext currentContext = null;
             int contextLeft = 0;
+            FacetDataCache[] dataCaches = new FacetDataCache[sortCollector.groupByMulti.length];
             while (contextIter.hasNext()) {
               currentContext = contextIter.next();
               contextLeft = currentContext.length;
               if (contextLeft > 0)
+              {
+                for (int j=0; j<sortCollector.groupByMulti.length; ++j)
+                  dataCaches[j] = (FacetDataCache)sortCollector.groupByMulti[j].getFacetData(currentContext.reader);
                 break;
+              }
             }
 
             Iterator<float[]> scoreArrayIter = sortCollector.scorearraylist != null ? sortCollector.scorearraylist.iterator():null;
@@ -973,11 +1003,7 @@ public class ResultMerger
                   int j=0;
                   for (; j<sortCollector.groupByMulti.length; ++j)
                   {
-                    vals = sortCollector.groupByMulti[j].getRawFieldValues(currentContext.reader, doc);
-                    if (vals != null && vals.length > 0)
-                      rawGroupValue = vals[0];
-                    else
-                      rawGroupValue = null;
+                    rawGroupValue = dataCaches[j].valArray.getRawValue(dataCaches[j].orderArray.get(doc));
 
                     if (rawGroupValueType[j] == 2)
                     {
@@ -1027,7 +1053,11 @@ public class ResultMerger
                       currentContext = contextIter.next();
                       contextLeft = currentContext.length;
                       if (contextLeft > 0)
+                      {
+                        for (j=0; j<sortCollector.groupByMulti.length; ++j)
+                          dataCaches[j] = (FacetDataCache)sortCollector.groupByMulti[j].getFacetData(currentContext.reader);
                         break;
+                      }
                     }
                     if (contextLeft <= 0) // No more docs left.
                       break;
