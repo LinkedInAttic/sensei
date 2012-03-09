@@ -230,6 +230,23 @@ public class TestSensei extends TestCase {
     logger.info("Executing test case testBQL1");
     String req = "{\"bql\":\"select * from cars\"}";
     JSONObject res = search(new JSONObject(req));
+    assertEquals("numhits is wrong", 15000, res.getInt("numhits"));
+  }
+
+  public void testBQL2() throws Exception
+  {
+    logger.info("Executing test case testBQL2");
+    String req = "{\"bql\":\"select * from cars where color = 'red'\"}";
+    JSONObject res = search(new JSONObject(req));
+    assertEquals("numhits is wrong", 2160, res.getInt("numhits"));
+  }
+
+  public void testBqlExtraFilter() throws Exception
+  {
+    logger.info("Executing test case testBqlExtraFilter");
+    String req = "{\"bql\":\"select * from cars where color = 'red'\", \"bql_extra_filter\":\"year < 2000\"}";
+    JSONObject res = search(new JSONObject(req));
+    assertEquals("numhits is wrong", 1534, res.getInt("numhits"));
   }
 
   public void testSelectionTerm() throws Exception
