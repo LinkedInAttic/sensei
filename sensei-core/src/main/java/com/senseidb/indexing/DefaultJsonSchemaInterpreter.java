@@ -305,7 +305,7 @@ public class DefaultJsonSchemaInterpreter extends
       @Override
       public long getUID() {
         try {
-          return filtered.getLong(_uidField);
+          return Long.parseLong(filtered.getString(_uidField));
         } catch (JSONException e) {
           throw new IllegalStateException(e.getMessage(),e);
         }

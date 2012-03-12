@@ -3,9 +3,12 @@ import unittest
 from os.path import dirname
 
 sys.path.insert(0, dirname(__file__) + "/../sensei")
-from sensei_client import *
-from sensei_components import *
-from pyparsing import ParseException
+from sensei import BQLRequest, SenseiClientError, SenseiFacet, SenseiSelection,\
+                   SenseiSort, SenseiFacetInitParams, SenseiFacetInfo,\
+                   SenseiNodeInfo, SenseiSystemInfo, SenseiRequest, SenseiHit,\
+                   SenseiResultFacet, SenseiResult, SenseiClient
+# from sensei_components import *
+from pyparsing import ParseException, ParseFatalException, ParseSyntaxException
 
 sensei_client = SenseiClient(sysinfo={
     "lastmodified": 0, 
