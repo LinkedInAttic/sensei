@@ -112,7 +112,7 @@ public class ResultMerger
       hit.setComparable(sortValue);
       hit.setGroupPosition(groupPos);
       String[] groupBy = req.getGroupBy();
-      if (groupBy != null && groupBy.length != 0)
+      if (groupBy != null && groupBy.length > groupPos && groupBy[groupPos] != null)
       {
         hit.setGroupField(groupBy[groupPos]);
         hit.setGroupValue(hit.getField(groupBy[groupPos]));
