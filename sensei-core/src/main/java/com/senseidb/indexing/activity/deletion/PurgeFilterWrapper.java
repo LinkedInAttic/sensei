@@ -7,8 +7,6 @@ import org.apache.lucene.search.DocIdSet;
 import org.apache.lucene.search.DocIdSetIterator;
 import org.apache.lucene.search.Filter;
 
-
-import proj.zoie.api.DocIDMapper;
 import proj.zoie.api.ZoieIndexReader;
 
 /**
@@ -33,7 +31,7 @@ public class PurgeFilterWrapper extends Filter {
         return new DocIdSetIteratorWrapper(internal.getDocIdSet(reader).iterator()) {          
           @Override
           protected void handeDoc(int ret) {            
-            deletionListener.onDelete(zoieIndexReader.getUID(ret), reader);            
+            deletionListener.onDelete(reader, zoieIndexReader.getUID(ret));            
           }
         };
       }

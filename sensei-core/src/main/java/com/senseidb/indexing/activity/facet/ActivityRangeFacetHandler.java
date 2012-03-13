@@ -9,7 +9,6 @@ import org.apache.lucene.search.DocIdSetIterator;
 import org.apache.lucene.search.ScoreDoc;
 
 import proj.zoie.api.ZoieSegmentReader;
-import scala.actors.threadpool.Arrays;
 
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.api.BrowseSelection;
@@ -22,24 +21,26 @@ import com.browseengine.bobo.facets.filter.FacetRangeFilter;
 import com.browseengine.bobo.facets.filter.RandomAccessFilter;
 import com.browseengine.bobo.sort.DocComparator;
 import com.browseengine.bobo.sort.DocComparatorSource;
-import com.senseidb.indexing.activity.ActivityFieldValues;
+import com.senseidb.indexing.activity.ActivityIntValues;
+import com.senseidb.indexing.activity.CompositeActivityValues;
 
 public class ActivityRangeFacetHandler extends FacetHandler<int[]> {
   
-  private final ActivityFieldValues activityFieldValues;
-  private int[] fieldValues;
+  private final ActivityIntValues activityIntValues;
+  private final CompositeActivityValues compositeActivityValues;
+  
 
-  public ActivityRangeFacetHandler(String facetName, ActivityFieldValues activityFieldValues) {
+  public ActivityRangeFacetHandler(String facetName, String fieldName, CompositeActivityValues compositeActivityValues) {
     super(facetName, new HashSet<String>());
-    this.activityFieldValues = activityFieldValues;
-    fieldValues = activityFieldValues.getFieldValues();
+    this.compositeActivityValues = compositeActivityValues;
+    this.activityIntValues = compositeActivityValues.getActivityValuesMap().get(fieldName);   
   }
 
   @Override
   public int[] load(BoboIndexReader reader) throws IOException {
     ZoieSegmentReader<?> zoieReader = (ZoieSegmentReader<?>)(reader.getInnerReader());    
     long[] uidArray = zoieReader.getUIDArray();   
-    return activityFieldValues.precomputeArrayIndexes(uidArray);    
+    return compositeActivityValues.precomputeArrayIndexes(uidArray);    
   }
 
   @Override
@@ -58,7 +59,7 @@ public class ActivityRangeFacetHandler extends FacetHandler<int[]> {
         if (startValue >= endValue) {
           return  EmptyDocIdSet.getInstance();
         }
-        final int[] array = activityFieldValues.getFieldValues();
+        final int[] array = activityIntValues.fieldValues;
         return new RandomAccessDocIdSet() {          
           @Override
           public DocIdSetIterator iterator() throws IOException {            
@@ -89,7 +90,7 @@ public class ActivityRangeFacetHandler extends FacetHandler<int[]> {
     if (index == -1) {
       return new String[0];
     }
-    return new Object[] {activityFieldValues.getValue(index)};
+    return new Object[] {activityIntValues.getValue(index)};
   }
   @Override
   public String[] getFieldValues(BoboIndexReader reader, int id) {   
@@ -98,7 +99,7 @@ public class ActivityRangeFacetHandler extends FacetHandler<int[]> {
     if (index == -1) {
       return new String[0];
     }
-    int value = activityFieldValues.getValue(index);
+    int value = activityIntValues.getValue(index);
     if (value == Integer.MIN_VALUE) {
       value = 0;
     }
@@ -107,25 +108,27 @@ public class ActivityRangeFacetHandler extends FacetHandler<int[]> {
 
   @Override
   public DocComparatorSource getDocComparatorSource() {
+    final int[] array = activityIntValues.fieldValues;
     return new DocComparatorSource() {
       @Override
-      public DocComparator getComparator(IndexReader reader, int docbase) throws IOException {
-        final int[] indexes = (int[]) ((BoboIndexReader)reader).getFacetData(_name);          
-        return new DocComparator() {          
+      public DocComparator getComparator(IndexReader reader, int docbase)
+          throws IOException {
+        final int[] indexes = (int[]) ((BoboIndexReader) reader)
+            .getFacetData(_name);
+        return new DocComparator() {
           @Override
           public Comparable<Integer> value(ScoreDoc doc) {
-            try {
-            return fieldValues[indexes[doc.doc]];
-            } catch (RuntimeException ex) {
-              System.out.println("FieldValues =" + Arrays.toString(fieldValues));
-              System.out.println("Indexes =" + Arrays.toString(indexes));System.out.println("docId=" + doc.doc + " , globalIndex=" + indexes[doc.doc]);throw ex;}
-          }          
+
+            return array[indexes[doc.doc]];
+          }
+
           @Override
-          public int compare(ScoreDoc doc1, ScoreDoc doc2) {            
-            return fieldValues[indexes[doc1.doc]] - fieldValues[indexes[doc2.doc]];
+          public int compare(ScoreDoc doc1, ScoreDoc doc2) {
+            return array[indexes[doc1.doc]] - array[indexes[doc2.doc]];
           }
         };
-      }};
+      }
+    };
   }
   public static int[] parseRaw(String rangeString)
   {

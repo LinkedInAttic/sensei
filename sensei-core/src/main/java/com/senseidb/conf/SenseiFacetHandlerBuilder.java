@@ -377,7 +377,7 @@ public class SenseiFacetHandlerBuilder {
 					if (column.optBoolean("multi")) {
 					  facetHandler = new MultiRangeFacetHandler(name, fieldName, null,  termListFactoryMap.get(fieldName) , buildPredefinedRanges(paramMap));
 					} else if (column.optBoolean("activity")) {
-					  facetHandler = new ActivityRangeFacetHandler(name, activityManager.getActivityFieldValues(fieldName));
+					  facetHandler = new ActivityRangeFacetHandler(name, fieldName, activityManager.getActivityValues());
 					} else {
 					  facetHandler = buildRangeHandler(name, fieldName, termListFactoryMap.get(fieldName), paramMap);
 					}

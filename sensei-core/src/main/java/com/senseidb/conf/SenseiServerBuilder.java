@@ -388,7 +388,9 @@ public class SenseiServerBuilder implements SenseiConfParams{
         readercachefactory = SimpleReaderCache.FACTORY;
       }
       zoieConfig.setReadercachefactory(readercachefactory);
-      activityManager = new CompositeActivityManager( _senseiConf.getString(SENSEI_INDEX_DIR), nodeid, _senseiSchema, zoieConfig.getVersionComparator());      
+      if (CompositeActivityManager.activitiesPresent(_senseiSchema)) {
+        activityManager = new CompositeActivityManager( _senseiConf.getString(SENSEI_INDEX_DIR), nodeid, _senseiSchema, zoieConfig.getVersionComparator());      
+      }
       List<FacetHandler<?>> facetHandlers = new LinkedList<FacetHandler<?>>();
       List<RuntimeFacetHandlerFactory<?,?>> runtimeFacetHandlerFactories = new LinkedList<RuntimeFacetHandlerFactory<?,?>>();
 

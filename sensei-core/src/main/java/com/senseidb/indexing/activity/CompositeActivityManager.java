@@ -1,16 +1,12 @@
 package com.senseidb.indexing.activity;
 
-import it.unimi.dsi.fastutil.longs.LongArrayList;
-import it.unimi.dsi.fastutil.longs.LongList;
-
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import org.apache.lucene.index.IndexReader;
 import org.jboss.netty.util.internal.ConcurrentHashMap;
@@ -22,12 +18,11 @@ import com.senseidb.conf.SenseiSchema.FieldDefinition;
 import com.senseidb.indexing.activity.deletion.DeletionListener;
 
 public class CompositeActivityManager implements DeletionListener {
-    protected Map<String, ActivityFieldValues> columnsMap;
+    protected CompositeActivityValues activityValues;
     private SenseiSchema senseiSchema;
     public static final String EVENT_TYPE_ONLY_ACTIVITY = "activity-update";
     private int nodeId;
-    private Comparator<String> versionComparator; 
-    private LongList pendingDeletes = new LongArrayList(2000);
+   
     
     
     public CompositeActivityManager() {
@@ -38,40 +33,30 @@ public class CompositeActivityManager implements DeletionListener {
     }
     
     public String getOldestSinceVersion() {
-      String ret = null;
-      for (ActivityFieldValues activityFieldValues : columnsMap.values()) {
-        if (ret != null && versionComparator.compare(activityFieldValues.getVersion(), ret) < 0) {
-          ret = activityFieldValues.getVersion();
-        }
-        else {
-          ret = activityFieldValues.getVersion();;
-        }
-      }
-      return ret;
+      return activityValues.getVersion();
     }
     
     public final void init(String indexDirectory, int nodeId, SenseiSchema senseiSchema, Comparator<String> versionComparator) {
       this.nodeId = nodeId;
       this.senseiSchema = senseiSchema;
-      this.versionComparator = versionComparator;
-      columnsMap = Collections.synchronizedMap(new HashMap<String, ActivityFieldValues>());
       try {
         File dir = new File(indexDirectory, "node" +nodeId +"/activity");
         dir.mkdirs();
         String canonicalPath = dir.getCanonicalPath();
-      for (Entry<String,FieldDefinition> entry : senseiSchema.getFieldDefMap().entrySet()) {
-        if (entry.getValue().isActivity) {
-          columnsMap.put(entry.getKey(), ActivityFieldValues.readFromFile(canonicalPath, entry.getKey(), versionComparator));
+        List<String> fields = new ArrayList<String>();
+        for ( String field  : senseiSchema.getFieldDefMap().keySet()) {
+          FieldDefinition fieldDefinition = senseiSchema.getFieldDefMap().get(field);
+          if (fieldDefinition.isActivity) {
+            fields.add(field);
+          }
         }
-      }
-      cachedInstances.put(nodeId, this);
+        activityValues = CompositeActivityValues.readFromFile(canonicalPath, fields, versionComparator);
+        cachedInstances.put(nodeId, this);
       } catch (IOException ex) {
         throw new RuntimeException(ex);
       }
     }
-    public ActivityFieldValues getActivityFieldValues(String field) {
-      return columnsMap.get(field);
-    }
+    
     public boolean isOnlyActivityUpdate(JSONObject event) {
       boolean activityPresent = false;     
       Iterator keys = event.keys();
@@ -95,45 +80,38 @@ public class CompositeActivityManager implements DeletionListener {
           return;
         }        
         long uid = event.getLong(senseiSchema.getUidField());       
-        for (String field : columnsMap.keySet()) {          
-            ActivityFieldValues activityFieldValues = columnsMap.get(field);
-            Object value = event.opt(field);
-            if (value != null) {
-              activityFieldValues.update(uid, version, value);         
-              event.remove(field);
-            }
+        if (event.opt(SenseiSchema.EVENT_TYPE_FIELD) != null && event.optBoolean(SenseiSchema.EVENT_TYPE_FIELD) == Boolean.TRUE) {
+          activityValues.delete(uid);
+        } else {
+          activityValues.update(uid, version, event);
         }
       } catch (JSONException ex) {
         throw new RuntimeException(ex);
       }      
     }
-    public void deleteDocument(long uid) {
-      if (columnsMap.size() == 0) {
-        return;
-      }
-      synchronized (pendingDeletes) {
-      pendingDeletes.add(uid);
-      if (pendingDeletes.size() >= 2000) {
-        for (ActivityFieldValues activityFieldValues : columnsMap.values()) {
-          activityFieldValues.delete(pendingDeletes);
-        }
-        pendingDeletes.clear();
-      }
-      }      
-    }
     
+    
+    public CompositeActivityValues getActivityValues() {
+      return activityValues;
+    }
     public void close() {
-      for (ActivityFieldValues activityFieldValues : columnsMap.values()) {
-        activityFieldValues.close();
-      }
+      activityValues.close();
     }
    
     protected static  Map<Integer, CompositeActivityManager> cachedInstances = new ConcurrentHashMap<Integer, CompositeActivityManager>();
-
+    public static boolean activitiesPresent(SenseiSchema schema) {
+      for ( FieldDefinition field  : schema.getFieldDefMap().values()) {
+        if (field.isActivity) {
+          return true;
+        }
+      }
+      return false;
+    }
 
 
     @Override
-    public void onDelete(long uid, IndexReader indexReader) {
-      deleteDocument(uid);      
+    public void onDelete(IndexReader indexReader, long... uids) {
+      activityValues.delete(uids);  
     }
+   
 }

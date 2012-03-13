@@ -47,9 +47,8 @@ public class HourglassAdapterDeletionAdapter {
     
   }
 
-  private void handleSegment(ZoieSegmentReader segmentReader) {
-    for (long uid : segmentReader.getUIDArray()) {
-      deletionListener.onDelete(uid, segmentReader);
-    }    
+  private void handleSegment(ZoieSegmentReader segmentReader) {    
+      deletionListener.onDelete(segmentReader, segmentReader.getUIDArray());
+      
   }
 }

@@ -138,7 +138,9 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 	      updateOldestSinceKey(zoie.getVersion());
 	      _dataCollectorMap.put(part, new LinkedList<DataEvent<JSONObject>>());
 	    }
-	    updateOldestSinceKey(activityManager.getOldestSinceVersion());	    
+	    if (activityManager != null) {
+	      updateOldestSinceKey(activityManager.getOldestSinceVersion());	    
+	    }
 
 	    if (_dataProvider!=null){
 	    _dataProvider.setDataConsumer(consumer);
@@ -177,7 +179,9 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 
 	@Override
 	public void shutdown() {
-	  activityManager.close();
+	  if (activityManager != null) {
+	    activityManager.close();
+	  }
 	  if (_dataProvider!=null){
 	    _dataProvider.stop();
 	  }
@@ -268,7 +272,7 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
             if (src != null)
               break;
           }
-          if (src != null && activityManager.isOnlyActivityUpdate(obj)) {
+          if (src != null && activityManager != null && activityManager.isOnlyActivityUpdate(obj)) {
             obj.put(SenseiSchema.EVENT_TYPE_FIELD, SenseiSchema.EVENT_TYPE_SKIP);
             obj.put(CompositeActivityManager.EVENT_TYPE_ONLY_ACTIVITY, true);
             return obj;
@@ -332,7 +336,9 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
             JSONObject rewrited = rewriteData(obj, routeToPart);
             if (rewrited != null)
             {
-              activityManager.update(rewrited, dataEvt.getVersion());
+              if (activityManager != null) {
+                activityManager.update(rewrited, dataEvt.getVersion());
+              }
               if (rewrited != obj)
                 dataEvt = new DataEvent<JSONObject>(rewrited, dataEvt.getVersion());
               partDataSet.add(dataEvt);
