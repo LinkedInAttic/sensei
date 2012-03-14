@@ -1,5 +1,10 @@
 package com.senseidb.conf;
 
+import com.linkedin.norbert.javacompat.network.IntegerConsistentHashPartitionedLoadBalancerFactory;
+import com.linkedin.norbert.javacompat.network.LoadBalancerFactory;
+import com.linkedin.norbert.javacompat.network.PartitionedLoadBalancerFactory;
+import com.senseidb.cluster.routing.RingHashLoadBalancerFactory;
+import com.senseidb.cluster.routing.SenseiLoadBalancerFactory;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 
@@ -64,8 +69,6 @@ import com.linkedin.norbert.javacompat.network.NettyNetworkServer;
 import com.linkedin.norbert.javacompat.network.NetworkServer;
 import com.linkedin.norbert.javacompat.network.NetworkServerConfig;
 import com.senseidb.cluster.routing.MD5HashProvider;
-import com.senseidb.cluster.routing.RingHashLoadBalancerFactory;
-import com.senseidb.cluster.routing.SenseiLoadBalancerFactory;
 import com.senseidb.gateway.SenseiGateway;
 import com.senseidb.indexing.CustomIndexingPipeline;
 import com.senseidb.indexing.DefaultJsonSchemaInterpreter;
@@ -201,10 +204,12 @@ public class SenseiServerBuilder implements SenseiConfParams{
     //senseiApp.setInitParams(initParam);
     senseiApp.setAttribute("sensei.search.configuration", _senseiConf);
     senseiApp.setAttribute("sensei.search.version.comparator", _gateway.getVersionComparator());
-    SenseiLoadBalancerFactory routerFactory = pluginRegistry.getBeanByFullPrefix(SERVER_SEARCH_ROUTER_FACTORY, SenseiLoadBalancerFactory.class);
+
+    PartitionedLoadBalancerFactory<Integer> routerFactory = pluginRegistry.getBeanByFullPrefix(SenseiConfParams.SERVER_SEARCH_ROUTER_FACTORY, PartitionedLoadBalancerFactory.class);
     if (routerFactory == null) {
-      routerFactory = new RingHashLoadBalancerFactory(new MD5HashProvider(), 1000);
+      routerFactory = new IntegerConsistentHashPartitionedLoadBalancerFactory(-1, true);
     }
+
     senseiApp.setAttribute("sensei.search.router.factory", routerFactory);
     senseiApp.addEventListener(new SenseiConfigServletContextListener());
     senseiApp.addServlet(senseiServletHolder,"/"+SENSEI_CONTEXT_PATH+"/*");

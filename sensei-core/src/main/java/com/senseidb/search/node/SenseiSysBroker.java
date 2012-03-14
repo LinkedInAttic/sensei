@@ -1,5 +1,8 @@
 package com.senseidb.search.node;
 
+import com.linkedin.norbert.javacompat.network.RequestBuilder;
+import com.linkedin.norbert.network.ResponseIterator;
+import com.linkedin.norbert.network.common.TimeoutIterator;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 
@@ -11,6 +14,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
@@ -21,7 +26,6 @@ import com.linkedin.norbert.javacompat.cluster.ClusterClient;
 import com.linkedin.norbert.javacompat.cluster.Node;
 import com.linkedin.norbert.javacompat.network.PartitionedNetworkClient;
 import com.senseidb.cluster.routing.RoutingInfo;
-import com.senseidb.cluster.routing.SenseiLoadBalancerFactory;
 import com.senseidb.search.req.SenseiRequest;
 import com.senseidb.search.req.SenseiSystemInfo;
 import com.senseidb.svc.impl.SysSenseiCoreServiceImpl;
@@ -32,18 +36,15 @@ public class SenseiSysBroker extends AbstractConsistentHashBroker<SenseiRequest,
   private final static long TIMEOUT_MILLIS = 8000L;
   private long _timeoutMillis = TIMEOUT_MILLIS;
   private final Comparator<String> _versionComparator;
-  private final SenseiLoadBalancerFactory _loadBalancerFactory;
 
   protected Set<Node> _nodes = Collections.EMPTY_SET;
 
-  public SenseiSysBroker(PartitionedNetworkClient<Integer> networkClient, ClusterClient clusterClient,
-      SenseiLoadBalancerFactory loadBalancerFactory, Comparator<String> versionComparator) throws NorbertException
+  public SenseiSysBroker(PartitionedNetworkClient<Integer> networkClient, ClusterClient clusterClient, Comparator<String> versionComparator) throws NorbertException
   {
     super(networkClient, SysSenseiCoreServiceImpl.SERIALIZER);
     _versionComparator = versionComparator;
-    _loadBalancerFactory = loadBalancerFactory;
     clusterClient.addListener(this);
-    logger.info("created broker instance " + networkClient + " " + clusterClient + " " + loadBalancerFactory);
+    logger.info("created broker instance " + networkClient + " " + clusterClient);
   }
 
   @Override
@@ -73,87 +74,37 @@ public class SenseiSysBroker extends AbstractConsistentHashBroker<SenseiRequest,
 
     return result;
   }
-  
-  @Override
-  protected SenseiSystemInfo doBrowse(PartitionedNetworkClient<Integer> networkClient, SenseiRequest req, IntSet partitions)
-  {
-    long time = System.currentTimeMillis();
-    int[] parts = null;
-    RoutingInfo searchNodes = null;
 
-    if (_loadBalancer != null)
-    {
-      searchNodes = _loadBalancer.route(getRouteParam(req));
-      if (searchNodes != null)
-      {
-        parts = searchNodes.partitions;
-      }
+
+  @Override
+  protected List<SenseiSystemInfo> doCall(final SenseiRequest req) throws ExecutionException {
+    final List<SenseiSystemInfo> resultList = new ArrayList<SenseiSystemInfo>();
+    ResponseIterator<SenseiSystemInfo> responseIterator =
+        _networkClient.sendRequestToOneReplica(new RequestBuilder<Integer, SenseiRequest>() {
+          @Override
+          public SenseiRequest apply(Node node, Set<Integer> nodePartitions) {
+            synchronized (req) {
+              req.setPartitions(node.getPartitionIds());
+              return req;
+            }
+          }
+        }, _serializer);
+
+    TimeoutIterator<SenseiSystemInfo> timeoutIterator = new TimeoutIterator<SenseiSystemInfo>(responseIterator, _timeout);
+//          PartialIterator<RESULT> partialIterator = new PartialIterator<RESULT>(new ExceptionIterator<RESULT>(timeoutIterator));
+
+//    while(timeoutIterator.hasNext()) {
+//      resultList.add(timeoutIterator.next());
+//    }
+
+    while(responseIterator.hasNext()) {
+      resultList.add(responseIterator.next());
     }
-    
-    if (parts == null)
-    {
-      logger.info("No search nodes to handle request...");
-      return getEmptyResultInstance();
-    }
-    
-    List<SenseiSystemInfo> resultlist = new ArrayList<SenseiSystemInfo>(parts.length);
-    Map<Integer, Set<Integer>> partsMap = new HashMap<Integer, Set<Integer>>();
-    Map<Integer, Node> nodeMap = new HashMap<Integer, Node>();
-    Map<Integer, Future<SenseiSystemInfo>> futureMap = new HashMap<Integer, Future<SenseiSystemInfo>>();
-    for(int ni = 0; ni < parts.length; ni++)
-    {
-      Node node = searchNodes.nodelist[ni].get(searchNodes.nodegroup[ni]);
-      Set<Integer> pset = partsMap.get(node.getId());
-      if (pset == null)
-      {
-        pset = new HashSet<Integer>();
-        partsMap.put(node.getId(), pset);
-      }
-      pset.add(parts[ni]);
-      nodeMap.put(node.getId(), node);
-    }
-    for (Node node : _nodes)
-    {
-      if (nodeMap.containsKey(node.getId()))
-        req.setPartitions(partsMap.get(node.getId()));
-      else
-        req.setPartitions(node.getPartitionIds());
-      if (logger.isDebugEnabled())
-      {
-        logger.debug("DEBUG: broker sending req part: " + req.getPartitions() + " on node: " + node);
-      }
-      futureMap.put(node.getId(), (Future<SenseiSystemInfo>)_networkClient.sendRequestToNode(req, node, _serializer));
-    }
-    for(Map.Entry<Integer, Future<SenseiSystemInfo>> entry : futureMap.entrySet())
-    { 
-      SenseiSystemInfo res;
-      try
-      {
-        res = entry.getValue().get(_timeout,TimeUnit.MILLISECONDS);
-        if (!nodeMap.containsKey(entry.getKey()))  // Do not count.
-          res.setNumDocs(0);
-        resultlist.add(res);
-        if (logger.isDebugEnabled())
-        {
-          logger.info("DEBUG: broker receiving res part: " + (partsMap.containsKey(entry.getKey())?partsMap.get(entry.getKey()):-1)
-              + " on node: " + (nodeMap.containsKey(entry.getKey())?nodeMap.get(entry.getKey()):entry.getKey())
-              + " node time: " + res.getTime() +"ms remote time: " + (System.currentTimeMillis() - time) + "ms");
-        }
-      } catch (Exception e)
-      {
-        logger.error("DEBUG: broker receiving res part: " + (partsMap.containsKey(entry.getKey())?partsMap.get(entry.getKey()):-1)
-            + " on node: " + (nodeMap.containsKey(entry.getKey())?nodeMap.get(entry.getKey()):entry.getKey())
-            + e +" remote time: " + (System.currentTimeMillis() - time) + "ms");
-      }
-    }
-    if (resultlist.size() == 0)
-    {
-      logger.error("no result received at all return empty result");
-      return getEmptyResultInstance();
-    }
-    SenseiSystemInfo result = mergeResults(req, resultlist);
-    logger.info("remote search took " + (System.currentTimeMillis() - time) + "ms");
-    return result;
+
+    logger.debug(String.format("There are %d responses", resultList.size()));
+
+    return resultList;
+
   }
 
   @Override
@@ -180,7 +131,6 @@ public class SenseiSysBroker extends AbstractConsistentHashBroker<SenseiRequest,
 
   public void handleClusterConnected(Set<Node> nodes)
   {
-    _loadBalancer = _loadBalancerFactory.newLoadBalancer(nodes);
     _partitions = getPartitions(nodes);
     _nodes = nodes;
     logger.info("handleClusterConnected(): Received the list of nodes from norbert " + nodes.toString());
@@ -196,7 +146,6 @@ public class SenseiSysBroker extends AbstractConsistentHashBroker<SenseiRequest,
 
   public void handleClusterNodesChanged(Set<Node> nodes)
   {
-    _loadBalancer = _loadBalancerFactory.newLoadBalancer(nodes);
     _partitions = getPartitions(nodes);
     _nodes = nodes;
     logger.info("handleClusterNodesChanged(): Received the list of nodes from norbert " + nodes.toString());

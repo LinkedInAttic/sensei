@@ -12,21 +12,17 @@ import com.linkedin.norbert.NorbertException;
 import com.linkedin.norbert.javacompat.cluster.ClusterClient;
 import com.linkedin.norbert.javacompat.cluster.Node;
 import com.linkedin.norbert.javacompat.network.PartitionedNetworkClient;
-import com.senseidb.cluster.routing.SenseiLoadBalancerFactory;
 import com.senseidb.search.node.AbstractConsistentHashBroker;
 import com.senseidb.svc.api.SenseiException;
 
 public class MapReduceBroker extends AbstractConsistentHashBroker<MapReduceRequest, SenseiMapReduceResult> {
   private final static Logger logger = Logger.getLogger(MapReduceBroker.class);
-  private final SenseiLoadBalancerFactory loadBalancerFactory;
   private long _timeoutMillis;
 
-  public MapReduceBroker(PartitionedNetworkClient<Integer> networkClient, ClusterClient clusterClient,
-      SenseiLoadBalancerFactory loadBalancerFactory) throws NorbertException {
+  public MapReduceBroker(PartitionedNetworkClient<Integer> networkClient, ClusterClient clusterClient) throws NorbertException {
     super(networkClient, MapReduceSenseiService.SERIALIZER);
-    this.loadBalancerFactory = loadBalancerFactory;
     clusterClient.addListener(this);
-    logger.info("created broker instance " + networkClient + " " + clusterClient + " " + loadBalancerFactory);
+    logger.info("created broker instance " + networkClient + " " + clusterClient);
   }
 
   @Override
@@ -76,7 +72,6 @@ public class MapReduceBroker extends AbstractConsistentHashBroker<MapReduceReque
     return request;
   }
   public void handleClusterConnected(Set<Node> nodes) {
-    _loadBalancer = loadBalancerFactory.newLoadBalancer(nodes);
     _partitions = getPartitions(nodes);
     logger.info("handleClusterConnected(): Received the list of nodes from norbert " + nodes.toString());
     logger.info("handleClusterConnected(): Received the list of partitions from router " + _partitions.toString());
@@ -88,7 +83,6 @@ public class MapReduceBroker extends AbstractConsistentHashBroker<MapReduceReque
   }
 
   public void handleClusterNodesChanged(Set<Node> nodes) {
-    _loadBalancer = loadBalancerFactory.newLoadBalancer(nodes);
     _partitions = getPartitions(nodes);
     logger.info("handleClusterNodesChanged(): Received the list of nodes from norbert " + nodes.toString());
     logger.info("handleClusterNodesChanged(): Received the list of partitions from router " + _partitions.toString());

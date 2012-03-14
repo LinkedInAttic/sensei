@@ -2,13 +2,13 @@ package com.senseidb.svc.impl;
 
 import java.util.Comparator;
 
+import com.linkedin.norbert.javacompat.network.PartitionedLoadBalancerFactory;
 import org.apache.log4j.Logger;
 
 import com.linkedin.norbert.javacompat.cluster.ClusterClient;
 import com.linkedin.norbert.javacompat.cluster.ZooKeeperClusterClient;
 import com.linkedin.norbert.javacompat.network.NetworkClientConfig;
 import com.senseidb.cluster.client.SenseiNetworkClient;
-import com.senseidb.cluster.routing.SenseiLoadBalancerFactory;
 import com.senseidb.search.node.SenseiBroker;
 import com.senseidb.search.node.SenseiSysBroker;
 import com.senseidb.search.req.SenseiRequest;
@@ -30,7 +30,7 @@ public class ClusteredSenseiServiceImpl implements SenseiService {
   
   public ClusteredSenseiServiceImpl(String zkurl,int zkTimeout,String clusterClientName, String clusterName, int connectTimeoutMillis,
       int writeTimeoutMillis, int maxConnectionsPerNode, int staleRequestTimeoutMins,
-      int staleRequestCleanupFrequencyMins, SenseiLoadBalancerFactory loadBalancerFactory,
+      int staleRequestCleanupFrequencyMins, PartitionedLoadBalancerFactory<Integer> loadBalancerFactory/*, SenseiLoadBalancerFactory loadBalancerFactory*/,
       Comparator<String> versionComparator) {
     _clusterName = clusterName;
     _networkClientConfig.setServiceName(clusterName);
@@ -46,9 +46,9 @@ public class ClusteredSenseiServiceImpl implements SenseiService {
   
     _networkClientConfig.setClusterClient(_clusterClient);
     
-    _networkClient = new SenseiNetworkClient(_networkClientConfig,null);
-    _senseiBroker = new SenseiBroker(_networkClient, _clusterClient, loadBalancerFactory);
-    _senseiSysBroker = new SenseiSysBroker(_networkClient, _clusterClient, loadBalancerFactory, versionComparator);
+    _networkClient = new SenseiNetworkClient(_networkClientConfig, loadBalancerFactory);
+    _senseiBroker = new SenseiBroker(_networkClient, _clusterClient);
+    _senseiSysBroker = new SenseiSysBroker(_networkClient, _clusterClient, versionComparator);
   }
   
   public void start(){

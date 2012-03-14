@@ -6,6 +6,8 @@ import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 
+import com.linkedin.norbert.javacompat.network.IntegerConsistentHashPartitionedLoadBalancerFactory;
+import com.linkedin.norbert.javacompat.network.PartitionedLoadBalancerFactory;
 import com.senseidb.cluster.routing.MD5HashProvider;
 import com.senseidb.cluster.routing.RingHashLoadBalancerFactory;
 import com.senseidb.cluster.routing.SenseiLoadBalancerFactory;
@@ -39,12 +41,12 @@ public class SenseiNodeServlet extends DefaultSenseiJSONServlet {
       ctx.setAttribute("sensei.search.configuration", builder.getConfiguration());
       ctx.setAttribute("sensei.search.version.comparator",builder.getVersionComparator());
       SenseiPluginRegistry pluginRegistry = builder.getPluginRegistry();
-      SenseiLoadBalancerFactory routerFactory = pluginRegistry.getBeanByFullPrefix(SenseiConfParams.SERVER_SEARCH_ROUTER_FACTORY, SenseiLoadBalancerFactory.class);
+      PartitionedLoadBalancerFactory<Integer> routerFactory = pluginRegistry.getBeanByFullPrefix(SenseiConfParams.SERVER_SEARCH_ROUTER_FACTORY, PartitionedLoadBalancerFactory.class);
       if (routerFactory == null) {
-        routerFactory = new RingHashLoadBalancerFactory(new MD5HashProvider(), 1000);
+        routerFactory = new IntegerConsistentHashPartitionedLoadBalancerFactory(-1, true)
       }
       ctx.setAttribute("sensei.search.router.factory", routerFactory);
-      
+
       _senseiServer = builder.buildServer();
       _senseiServer.start(true);
       super.init(config);
