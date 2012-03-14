@@ -47,19 +47,22 @@ public class PersistentColumnManagerTest extends TestCase {
     compositeActivityValues = CompositeActivityValues.readFromFile(getDirPath(), java.util.Arrays.asList("likes"), ZoieConfig.DEFAULT_VERSION_COMPARATOR);
     
     assertEquals("Found " + compositeActivityValues.uidToArrayIndex.size(), valueCount, compositeActivityValues.uidToArrayIndex.size());
-    assertEquals((int)(valueCount * 1.5), compositeActivityValues.columnsMap.get("likes").fieldValues.length );
+    assertEquals((int)(valueCount * 1.5), getFieldValues(compositeActivityValues).length );
     for (int i = 0; i < valueCount; i++) {      
       compositeActivityValues.update(10000000000L + i, String.format("%08d", valueCount + i), new JSONObject().put("likes","+" + i));
     }
     compositeActivityValues.syncWithPersistentVersion(String.format("%08d", valueCount * 2 - 1));
     compositeActivityValues.close();
-    assertEquals(compositeActivityValues.columnsMap.get("likes").fieldValues[0], 1);
-    assertEquals(compositeActivityValues.columnsMap.get("likes").fieldValues[3], 4);
+    assertEquals(getFieldValues(compositeActivityValues)[0], 1);
+    assertEquals(getFieldValues(compositeActivityValues)[3], 4);
     compositeActivityValues = CompositeActivityValues.readFromFile(getDirPath(), java.util.Arrays.asList("likes"), ZoieConfig.DEFAULT_VERSION_COMPARATOR);
-    assertEquals(compositeActivityValues.columnsMap.get("likes").fieldValues[0], 1);
-    assertEquals(compositeActivityValues.columnsMap.get("likes").fieldValues[3], 4);
+    assertEquals(getFieldValues(compositeActivityValues)[0], 1);
+    assertEquals(getFieldValues(compositeActivityValues)[3], 4);
     compositeActivityValues.close();
   }
+private int[] getFieldValues(CompositeActivityValues compositeActivityValues){
+	return ((ActivityIntValues)compositeActivityValues.columnsMap.get("likes")).fieldValues;
+	}
   public void test2WriteDeleteWriteAgain() throws Exception {
     String indexDirPath = getDirPath() + 1;
     dir = new File(indexDirPath);
@@ -96,8 +99,8 @@ public class PersistentColumnManagerTest extends TestCase {
     assertEquals(valueCount - 1, compositeActivityValues.deletedIndexes.size());
     assertEquals(1, compositeActivityValues.uidToArrayIndex.size());
     assertFalse(compositeActivityValues.uidToArrayIndex.containsKey(UID_BASE + 1));
-    assertEquals(Integer.MIN_VALUE, compositeActivityValues.columnsMap.get("likes").fieldValues[notDeletedIndex - 1]);
-    assertEquals(1, compositeActivityValues.columnsMap.get("likes").fieldValues[notDeletedIndex]);
+    assertEquals(Integer.MIN_VALUE, getFieldValues(compositeActivityValues)[notDeletedIndex - 1]);
+    assertEquals(1, getFieldValues(compositeActivityValues)[notDeletedIndex]);
     assertEquals(1, compositeActivityValues.getValueByUID(UID_BASE + 2, "likes"));    
     compositeActivityValues.flushDeletes();
     compositeActivityValues.close();
@@ -108,9 +111,9 @@ public class PersistentColumnManagerTest extends TestCase {
     assertEquals(1, compositeActivityValues.uidToArrayIndex.size());
    
     assertFalse(compositeActivityValues.uidToArrayIndex.containsKey(UID_BASE + 1));
-    assertEquals(1, compositeActivityValues.columnsMap.get("likes").fieldValues[notDeletedIndex]);
+    assertEquals(1, getFieldValues(compositeActivityValues)[notDeletedIndex]);
     assertEquals(1, compositeActivityValues.getValueByUID(UID_BASE + 2, "likes"));
-    assertEquals((int)(valueCount * 1.5), compositeActivityValues.columnsMap.get("likes").fieldValues.length );
+    assertEquals((int)(valueCount * 1.5), getFieldValues(compositeActivityValues).length );
     for (int i = 0; i < valueCount; i++) {      
       compositeActivityValues.update(UID_BASE + i, String.format("%08d", valueCount * 2 + i), new JSONObject().put("likes", "+" + i));
     }

@@ -29,7 +29,7 @@ import com.senseidb.indexing.activity.CompositeActivityStorage.Update;
 public class CompositeActivityValues {
   private Comparator<String> versionComparator; 
   private volatile UpdateBatch<Update> pendingDeletes = new UpdateBatch<Update>();
-  protected Map<String, ActivityIntValues> columnsMap = new ConcurrentHashMap<String, ActivityIntValues>();
+  protected Map<String, ActivityValues> columnsMap = new ConcurrentHashMap<String, ActivityValues>();
   protected volatile String lastVersion = "";  
   protected Long2IntMap uidToArrayIndex = new Long2IntOpenHashMap();  
   private ReadWriteLock[] locks;
@@ -95,10 +95,7 @@ public class CompositeActivityValues {
         }
         needToFlush = updateBatch.addFieldUpdate(new Update(index, uid));
       }      
-      for (ActivityIntValues activityIntValues :  columnsMap.values()) {
-        Object value = event.opt(activityIntValues.fieldName);
-        
-      }
+      needToFlush = needToFlush || updateActivities(event, index);
       lastVersion = version;
     } finally {
       writeLock.unlock();
@@ -107,6 +104,16 @@ public class CompositeActivityValues {
       flush();
     }
   }
+private boolean updateActivities(JSONObject event, int index) {
+	boolean needToFlush = false;
+	for (ActivityValues activityIntValues :  columnsMap.values()) {
+        Object value = event.opt(activityIntValues.getFieldName());
+        if (value != null) {
+        	needToFlush = needToFlush || activityIntValues.update(index, value);
+        }
+      }
+	return needToFlush;
+}
   private boolean matchesFields(JSONObject event) {
     boolean matchedEvent = false;
     for (String field : columnsMap.keySet()) {
@@ -131,7 +138,7 @@ public class CompositeActivityValues {
           continue;
         }
         int index = uidToArrayIndex.remove(uid);
-        for (ActivityIntValues activityIntValues :  columnsMap.values()) {
+        for (ActivityValues activityIntValues :  columnsMap.values()) {
           activityIntValues.delete(index);
         }
         needToFlush = needToFlush || pendingDeletes.addFieldUpdate(new Update(index, Long.MIN_VALUE));
@@ -187,7 +194,7 @@ public class CompositeActivityValues {
     final UpdateBatch<Update> oldBatch = updateBatch;
     updateBatch = new UpdateBatch<CompositeActivityStorage.Update>();    
     final List<Runnable> underlyingFlushes = new ArrayList<Runnable>(columnsMap.size());
-    for (ActivityIntValues activityIntValues :  columnsMap.values()) {
+    for (ActivityValues activityIntValues :  columnsMap.values()) {
       underlyingFlushes.add(activityIntValues.prepareFlush());
     }
     final String version = lastVersion;
@@ -211,7 +218,7 @@ public class CompositeActivityValues {
   public void close() {
     closed = true;    
     activityStorage.close();
-    for (ActivityIntValues activityIntValues :  columnsMap.values()) {
+    for (ActivityValues activityIntValues :  columnsMap.values()) {
       activityIntValues.close();
     }
   }
@@ -224,7 +231,7 @@ public class CompositeActivityValues {
     ret.metadata = metadata;
     ret.versionComparator = versionComparator;
     ret.lastVersion = metadata.version;
-    ret.columnsMap = new HashMap<String, ActivityIntValues>(fieldNames.size());
+    ret.columnsMap = new HashMap<String, ActivityValues>(fieldNames.size());
     for (String field : fieldNames) {
       ret.columnsMap.put(field, ActivityIntValues.readFromFile(indexDirPath, field, metadata.count));
     }    
@@ -251,14 +258,14 @@ public class CompositeActivityValues {
     }
     return ret;
   }
-  public Map<String, ActivityIntValues> getActivityValuesMap() {
+  public Map<String, ActivityValues> getActivityValuesMap() {
     return columnsMap;
   }
   public int getValueByUID(long uid, String column) {
     Lock lock = getLock(uid).readLock();
     try {
       lock.lock();
-    return columnsMap.get(column).fieldValues[uidToArrayIndex.get(uid)];
+    return ((ActivityIntValues)columnsMap.get(column)).fieldValues[uidToArrayIndex.get(uid)];
     } finally {
       lock.unlock();
     }

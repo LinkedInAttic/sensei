@@ -38,10 +38,11 @@ public class IntContainer {
     return array[startIndex];
   }
 
-  public void add(int number) {
+  public IntContainer add(int number) {
     ensureCapacityOnEnd();
     array[startIndex + actualSize] = number;
     actualSize++;
+    return this;
   }
 
   private void ensureCapacityOnEnd() {    

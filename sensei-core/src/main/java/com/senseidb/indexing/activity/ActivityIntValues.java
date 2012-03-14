@@ -2,14 +2,18 @@ package com.senseidb.indexing.activity;
 
 import org.apache.log4j.Logger;
 
-public class ActivityIntValues {
+public class ActivityIntValues implements ActivityValues {
   private static Logger logger = Logger.getLogger(ActivityIntValues.class);
   public int[] fieldValues;
   protected String fieldName; 
   protected ActivityIntStorage activityFieldStore;
   protected UpdateBatch<ActivityIntStorage.FieldUpdate> updateBatch = new UpdateBatch<ActivityIntStorage.FieldUpdate>(); 
   
-  public void init(int capacity) {    
+  /* (non-Javadoc)
+ * @see com.senseidb.indexing.activity.ActivityValues#init(int)
+ */
+@Override
+public void init(int capacity) {    
     fieldValues = new int[capacity];  
   }
 
@@ -17,8 +21,12 @@ public class ActivityIntValues {
     init(50000);
   }
   
-  public boolean update(int index, Object value) {
-      ensureCapacity(fieldValues, index);
+  /* (non-Javadoc)
+ * @see com.senseidb.indexing.activity.ActivityValues#update(int, java.lang.Object)
+ */
+@Override
+public boolean update(int index, Object value) {
+      ensureCapacity(index);
       if (fieldValues[index] == Integer.MIN_VALUE) {
         fieldValues[index] = 0;
       }
@@ -26,7 +34,11 @@ public class ActivityIntValues {
       return updateBatch.addFieldUpdate(new ActivityIntStorage.FieldUpdate(index, fieldValues[index])); 
   }
   
-  public void delete(int index) {
+  /* (non-Javadoc)
+ * @see com.senseidb.indexing.activity.ActivityValues#delete(int)
+ */
+@Override
+public void delete(int index) {
     fieldValues[index] = Integer.MIN_VALUE;
   }
   
@@ -35,7 +47,11 @@ public class ActivityIntValues {
   }
   
   
-  public Runnable prepareFlush() {    
+  /* (non-Javadoc)
+ * @see com.senseidb.indexing.activity.ActivityValues#prepareFlush()
+ */
+@Override
+public Runnable prepareFlush() {    
     if (activityFieldStore.isClosed()) {
       throw new IllegalStateException("The activityFile is closed");
     }
@@ -60,7 +76,7 @@ public class ActivityIntValues {
     return fieldValues[index];
   }
   
-  private void ensureCapacity(int[] fieldValues, int currentArraySize) {
+  private void ensureCapacity(int currentArraySize) {
     if (fieldValues.length == 0) {
       this.fieldValues = new int[50000];
       return;
@@ -105,7 +121,11 @@ public class ActivityIntValues {
     this.fieldValues = fieldValues;
   }
 
-  public void close() {
+  /* (non-Javadoc)
+ * @see com.senseidb.indexing.activity.ActivityValues#close()
+ */
+@Override
+public void close() {
     activityFieldStore.close();
   }
 
@@ -114,6 +134,11 @@ public class ActivityIntValues {
     persistentColumnManager.init();
     return persistentColumnManager.getActivityDataFromFile(count);
   }
+
+@Override
+public String getFieldName() {
+	return fieldName;
+}
 
  
 }

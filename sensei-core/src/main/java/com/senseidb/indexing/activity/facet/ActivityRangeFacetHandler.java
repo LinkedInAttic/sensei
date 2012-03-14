@@ -33,7 +33,7 @@ public class ActivityRangeFacetHandler extends FacetHandler<int[]> {
   public ActivityRangeFacetHandler(String facetName, String fieldName, CompositeActivityValues compositeActivityValues) {
     super(facetName, new HashSet<String>());
     this.compositeActivityValues = compositeActivityValues;
-    this.activityIntValues = compositeActivityValues.getActivityValuesMap().get(fieldName);   
+    this.activityIntValues = (ActivityIntValues) compositeActivityValues.getActivityValuesMap().get(fieldName);   
   }
 
   @Override
