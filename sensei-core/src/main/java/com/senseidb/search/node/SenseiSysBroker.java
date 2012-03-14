@@ -80,7 +80,7 @@ public class SenseiSysBroker extends AbstractConsistentHashBroker<SenseiRequest,
   protected List<SenseiSystemInfo> doCall(final SenseiRequest req) throws ExecutionException {
     final List<SenseiSystemInfo> resultList = new ArrayList<SenseiSystemInfo>();
     ResponseIterator<SenseiSystemInfo> responseIterator =
-        _networkClient.sendRequestToOneReplica(new RequestBuilder<Integer, SenseiRequest>() {
+        _networkClient.sendRequestToOneReplica(getRouteParam(req), new RequestBuilder<Integer, SenseiRequest>() {
           @Override
           public SenseiRequest apply(Node node, Set<Integer> nodePartitions) {
             synchronized (req) {
@@ -105,12 +105,6 @@ public class SenseiSysBroker extends AbstractConsistentHashBroker<SenseiRequest,
 
     return resultList;
 
-  }
-
-  @Override
-  public String getRouteParam(SenseiRequest req)
-  {
-    return req.getRouteParam();
   }
 
   @Override

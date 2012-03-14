@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
 import com.linkedin.norbert.NorbertException;
@@ -49,12 +50,6 @@ public class MapReduceBroker extends AbstractConsistentHashBroker<MapReduceReque
     }
     
     return (SenseiMapReduceResult) new SenseiMapReduceResult().setReduceResult(request.getMapReduceJob().reduce(mapRes));
-  }
-
-  @Override
-  public String getRouteParam(MapReduceRequest req) {
-    
-    return req.getRouteParam();
   }
 
   @Override

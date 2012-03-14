@@ -60,13 +60,13 @@ public class SenseiNetworkClient implements PartitionedNetworkClient<Integer>
     }
 
     @Override
-    public <RequestMsg, ResponseMsg> ResponseIterator<ResponseMsg> sendRequestToOneReplica(RequestBuilder<Integer, RequestMsg> requestBuilder, Serializer<RequestMsg, ResponseMsg> serializer) throws InvalidClusterException, NoNodesAvailableException, ClusterDisconnectedException {
-        return _networkClient.sendRequestToOneReplica(requestBuilder, serializer);
+    public <RequestMsg, ResponseMsg> ResponseIterator<ResponseMsg> sendRequestToOneReplica(Integer partitionedId, RequestBuilder<Integer, RequestMsg> requestBuilder, Serializer<RequestMsg, ResponseMsg> serializer) throws InvalidClusterException, NoNodesAvailableException, ClusterDisconnectedException {
+      return _networkClient.sendRequestToOneReplica(partitionedId, requestBuilder, serializer);
     }
 
     @Override
-    public <RequestMsg, ResponseMsg> ResponseIterator<ResponseMsg> sendRequestToOneReplica(RequestMsg request, Serializer<RequestMsg, ResponseMsg> serializer) throws InvalidClusterException, NoNodesAvailableException, ClusterDisconnectedException {
-        return _networkClient.sendRequestToOneReplica(request, serializer);
+    public <RequestMsg, ResponseMsg> ResponseIterator<ResponseMsg> sendRequestToOneReplica(Integer partitionedId, RequestMsg request, Serializer<RequestMsg, ResponseMsg> serializer) throws InvalidClusterException, NoNodesAvailableException, ClusterDisconnectedException {
+      return _networkClient.sendRequestToOneReplica(partitionedId, request, serializer);
     }
 
     @Override

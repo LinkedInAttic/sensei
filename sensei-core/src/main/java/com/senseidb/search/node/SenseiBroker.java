@@ -118,12 +118,6 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
   }
 
   @Override
-  public String getRouteParam(SenseiRequest req)
-  {
-    return req.getRouteParam();
-  }
-
-  @Override
   public SenseiResult getEmptyResultInstance()
   {
     return new SenseiResult();

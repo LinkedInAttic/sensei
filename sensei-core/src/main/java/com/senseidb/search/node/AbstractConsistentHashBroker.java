@@ -19,6 +19,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
 import com.linkedin.norbert.NorbertException;
@@ -159,9 +160,22 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
    * @return one single result instance that is merged from the result list.
    */
   public abstract RESULT mergeResults(REQUEST request, List<RESULT> resultList);
-  public abstract String getRouteParam(REQUEST req);
-  
-  
+
+  protected Integer getRouteParam(REQUEST req) {
+    String routeParamString = req.getRouteParam();
+    if(routeParamString == null) 
+      return null;
+    
+    else if("".equals(routeParamString))
+      return 0;
+
+    try {
+      return Integer.parseInt(routeParamString);
+    } catch (NumberFormatException nfe) {
+      return routeParamString.hashCode();
+    }
+  }
+
 
   protected RESULT doBrowse(PartitionedNetworkClient<Integer> networkClient, final REQUEST req, IntSet partitions)
   {
@@ -211,7 +225,7 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
   protected List<RESULT> doCall(final REQUEST req) throws ExecutionException {
     List<RESULT> resultList = new ArrayList<RESULT>();
     ResponseIterator<RESULT> responseIterator =
-        _networkClient.sendRequestToOneReplica(new RequestBuilder<Integer, REQUEST>() {
+        _networkClient.sendRequestToOneReplica(getRouteParam(req), new RequestBuilder<Integer, REQUEST>() {
           private int count = 0;
           @Override
           public REQUEST apply(Node node, Set<Integer> nodePartitions) {

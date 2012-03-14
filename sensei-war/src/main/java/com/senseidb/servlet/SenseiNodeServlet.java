@@ -43,7 +43,7 @@ public class SenseiNodeServlet extends DefaultSenseiJSONServlet {
       SenseiPluginRegistry pluginRegistry = builder.getPluginRegistry();
       PartitionedLoadBalancerFactory<Integer> routerFactory = pluginRegistry.getBeanByFullPrefix(SenseiConfParams.SERVER_SEARCH_ROUTER_FACTORY, PartitionedLoadBalancerFactory.class);
       if (routerFactory == null) {
-        routerFactory = new IntegerConsistentHashPartitionedLoadBalancerFactory(-1, true)
+        routerFactory = new IntegerConsistentHashPartitionedLoadBalancerFactory(-1, true);
       }
       ctx.setAttribute("sensei.search.router.factory", routerFactory);
 
