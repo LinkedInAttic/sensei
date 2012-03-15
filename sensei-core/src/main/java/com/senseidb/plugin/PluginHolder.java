@@ -37,21 +37,22 @@ class PluginHolder {
       synchronized (this) {
         try {
           instance = Class.forName(pluginCLass).newInstance();
+          if (instance instanceof SenseiPlugin) {
+            ((SenseiPlugin) instance).init(properties, senseiPluginRegistry);
+            //((SenseiPlugin) instance).start();
+          }
         } catch (Exception ex) {
           throw new RuntimeException(ex);
         }
       }
     }
-    if (instance instanceof SenseiPlugin) {
-      ((SenseiPlugin) instance).init(properties, senseiPluginRegistry);
-      //((SenseiPlugin) instance).start();
-    }
     if (instance instanceof SenseiPluginFactory) {
       if (factoryCreatedInstance == null) {
         synchronized (instance) {
-          factoryCreatedInstance = ((SenseiPluginFactory) instance).getBean(properties, fullPrefix,
-              this.senseiPluginRegistry);
-
+          factoryCreatedInstance =
+            ((SenseiPluginFactory) instance).getBean(properties,
+                                                     fullPrefix,
+                                                     this.senseiPluginRegistry);
         }
       }
       return factoryCreatedInstance;
