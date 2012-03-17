@@ -29,11 +29,8 @@ public class KafkaStreamDataProvider extends StreamDataProvider<JSONObject>{
   private ConsumerConnector _consumerConnector;
   private ConsumerIterator<Message> _consumerIterator;
 
-  private ThreadLocal<byte[]> bytesFactory;
-
-  private static Logger logger = Logger.getLogger(KafkaStreamDataProvider.class);
   
-    public static final int DEFAULT_MAX_MSG_SIZE = 5*1024*1024;
+  private static Logger logger = Logger.getLogger(KafkaStreamDataProvider.class);
     private final String _zookeeperUrl;
     private final int _kafkaSoTimeout;
     private volatile boolean _started = false;
@@ -54,12 +51,6 @@ public class KafkaStreamDataProvider extends StreamDataProvider<JSONObject>{
     if (_dataConverter == null){
       throw new IllegalArgumentException("kafka data converter is null");
     }
-    bytesFactory = new ThreadLocal<byte[]>(){
-      @Override
-      protected byte[] initialValue() {
-        return new byte[DEFAULT_MAX_MSG_SIZE];
-      }
-    };
   }
   
   @Override
@@ -91,9 +82,8 @@ public class KafkaStreamDataProvider extends StreamDataProvider<JSONObject>{
     try {
       int size = msg.payloadSize();
       ByteBuffer byteBuffer = msg.payload();
-      byte[] bytes = bytesFactory.get();
+      byte[] bytes = new byte[size];
       byteBuffer.get(bytes,0,size);
-      
       data = _dataConverter.filter(new DataPacket(bytes,0,size));
       
       if (logger.isDebugEnabled()){
