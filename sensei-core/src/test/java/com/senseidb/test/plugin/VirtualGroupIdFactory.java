@@ -12,6 +12,8 @@ import com.browseengine.bobo.facets.impl.VirtualSimpleFacetHandler;
 import com.senseidb.plugin.SenseiPluginFactory;
 import com.senseidb.plugin.SenseiPluginRegistry;
 
+import proj.zoie.api.ZoieIndexReader;
+
 public class VirtualGroupIdFactory implements SenseiPluginFactory<VirtualSimpleFacetHandler> {
   @Override
   public VirtualSimpleFacetHandler getBean(Map<String, String> initProperties, String fullPrefix,
@@ -61,21 +63,15 @@ public class VirtualGroupIdFactory implements SenseiPluginFactory<VirtualSimpleF
 
   public static FacetDataFetcher facetDataFetcherFixedLengthLongArray = new FacetDataFetcher()
   {
-    private int counter = 0;
-
     @Override
     public Object fetch(BoboIndexReader reader, int doc)
     {
-      FacetDataCache dataCache = (FacetDataCache)reader.getFacetData("groupid");
+      long uid = ((ZoieIndexReader)reader.getInnerReader()).getUID(doc);
       long[] val = new long[2];
-      val[0] = counter%5;
-      ++counter;
-      Long groupId = (Long)dataCache.valArray.getRawValue(dataCache.orderArray.get(doc));
-      if (groupId < 0) groupId *= -1;
-      if (groupId == null)
-        val[1] = 0;
-      else
-        val[1] = groupId;
+      val[0] = uid;
+      if (uid%4 == 1) val[0] = val[0] - 1;
+      if (uid%4 == 2) val[0] = val[0] - 2;
+      val[1] = uid/10;
       
       return val;
     }
@@ -83,7 +79,6 @@ public class VirtualGroupIdFactory implements SenseiPluginFactory<VirtualSimpleF
     @Override
     public void cleanup(BoboIndexReader reader)
     {
-      counter = 0;
     }
   };
 }

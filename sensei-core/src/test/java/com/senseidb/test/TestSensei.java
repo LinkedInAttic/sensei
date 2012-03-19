@@ -145,7 +145,7 @@ public class TestSensei extends TestCase {
     logger.info("executing test case testGroupBy");
     SenseiRequest req = new SenseiRequest();
     req.setCount(1);
-    req.setGroupBy("groupid");
+    req.setGroupBy(new String[]{"groupid"});
     SenseiResult res = broker.browse(req);
     logger.info("request:" + req + "\nresult:" + res);
     SenseiHit hit = res.getSenseiHits()[0];
@@ -157,7 +157,7 @@ public class TestSensei extends TestCase {
     logger.info("executing test case testGroupBy");
     SenseiRequest req = new SenseiRequest();
     req.setCount(1);
-    req.setGroupBy("groupid");
+    req.setGroupBy(new String[]{"groupid"});
     req.setMaxPerGroup(8);
     SenseiResult res = broker.browse(req);
     logger.info("request:" + req + "\nresult:" + res);
@@ -178,7 +178,7 @@ public class TestSensei extends TestCase {
     logger.info("executing test case testGroupByVirtual");
     SenseiRequest req = new SenseiRequest();
     req.setCount(1);
-    req.setGroupBy("virtual_groupid");
+    req.setGroupBy(new String[]{"virtual_groupid"});
     SenseiResult res = broker.browse(req);
     logger.info("request:" + req + "\nresult:" + res);
     SenseiHit hit = res.getSenseiHits()[0];
@@ -190,7 +190,7 @@ public class TestSensei extends TestCase {
     logger.info("executing test case testGroupByVirtualWithGroupedHits");
     SenseiRequest req = new SenseiRequest();
     req.setCount(1);
-    req.setGroupBy("virtual_groupid");
+    req.setGroupBy(new String[]{"virtual_groupid"});
     req.setMaxPerGroup(8);
     SenseiResult res = broker.browse(req);
     logger.info("request:" + req + "\nresult:" + res);
@@ -204,7 +204,7 @@ public class TestSensei extends TestCase {
     logger.info("executing test case testGroupByFixedLengthLongArray");
     SenseiRequest req = new SenseiRequest();
     req.setCount(1);
-    req.setGroupBy("virtual_groupid_fixedlengthlongarray");
+    req.setGroupBy(new String[]{"virtual_groupid_fixedlengthlongarray"});
     SenseiResult res = broker.browse(req);
     logger.info("request:" + req + "\nresult:" + res);
     SenseiHit hit = res.getSenseiHits()[0];
@@ -216,7 +216,7 @@ public class TestSensei extends TestCase {
     logger.info("executing test case testGroupByFixedLengthLongArrayWithGroupedHits");
     SenseiRequest req = new SenseiRequest();
     req.setCount(1);
-    req.setGroupBy("virtual_groupid_fixedlengthlongarray");
+    req.setGroupBy(new String[]{"virtual_groupid_fixedlengthlongarray"});
     req.setMaxPerGroup(8);
     SenseiResult res = broker.browse(req);
     logger.info("request:" + req + "\nresult:" + res);
@@ -659,6 +659,16 @@ public class TestSensei extends TestCase {
     JSONObject res = search(new JSONObject(req));
     //TODO Sensei returns undeterministic results for this query. Will create a Jira issue
     assertTrue("numhits is wrong", res.getInt("numhits") > 10);
+  }
+  public void testFallbackGroupBy() throws Exception
+  {
+    logger.info("executing test case testFallbackGroupBy");
+    String req = "{\"from\": 0,\"size\": 10,\"groupBy\": {\"columns\": [\"virtual_groupid_fixedlengthlongarray\", \"color\"],\"top\": 2}, \"sort\": [{\"color\": \"asc\"}]}";
+    JSONObject res = search(new JSONObject(req));
+    JSONArray hits = res.getJSONArray("hits");
+    JSONObject firstHit = hits.getJSONObject(0);
+    assertTrue("groupfield is wrong", "color".equals(firstHit.getString("groupfield")) || "virtual_groupid_fixedlengthlongarray".equals(firstHit.getString("groupfield")));
+    assertTrue("no group hits", firstHit.getJSONArray("grouphits") != null);
   }
   public void testGetStoreRequest() throws Exception
   {

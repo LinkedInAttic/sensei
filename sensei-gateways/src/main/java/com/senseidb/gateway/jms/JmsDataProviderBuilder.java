@@ -40,13 +40,18 @@ public class JmsDataProviderBuilder extends SenseiGateway<Message>{
 	    final String clientID = config.get("jms.clientId");
 	    final String topicFac = config.get("jms.topicFactory");
 
-	    TopicFactory topicFactory = pluginRegistry.getBeanByFullPrefix(name + ".topicFactory", TopicFactory.class);
+	    TopicFactory topicFactory = pluginRegistry.getBeanByName(topicFac, TopicFactory.class);
+      if (topicFactory == null)
+        topicFactory = pluginRegistry.getBeanByFullPrefix(topicFac, TopicFactory.class);
 
 	    if (topicFactory == null){
 	    	throw new ConfigurationException("topicFactory not defined: "+topicFac);
 	    }
 
-	    TopicConnectionFactory connectionFactory = pluginRegistry.getBeanByFullPrefix(name + ".connectionFactory", TopicConnectionFactory.class);
+      TopicConnectionFactory connectionFactory = pluginRegistry.getBeanByName(config.get("jms.connectionFactory"), TopicConnectionFactory.class);
+
+      if (connectionFactory == null)
+        connectionFactory = pluginRegistry.getBeanByFullPrefix(config.get("jms.connectionFactory"), TopicConnectionFactory.class);
 
 	    if (connectionFactory == null){
 	    	throw new ConfigurationException("topic connection factory not defined.");

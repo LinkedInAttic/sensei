@@ -47,7 +47,11 @@ public class JdbcDataProviderBuilder extends SenseiGateway<ResultSet>{
 	       final String driver = config.get("jdbc.driver");
 	       final String adaptor = config.get("jdbc.adaptor");
 
-	       final SenseiJDBCAdaptor senseiAdaptor =  pluginRegistry.getBeanByFullPrefix("jdbc.adaptor", SenseiJDBCAdaptor.class);
+         final SenseiJDBCAdaptor senseiAdaptor =
+           pluginRegistry.getBeanByName(adaptor, SenseiJDBCAdaptor.class) != null ?
+           pluginRegistry.getBeanByName(adaptor, SenseiJDBCAdaptor.class) :
+           pluginRegistry.getBeanByFullPrefix(adaptor, SenseiJDBCAdaptor.class);
+
 	       if (senseiAdaptor==null){
 	    	   throw new ConfigurationException("adaptor not found: "+adaptor);
 	       }
