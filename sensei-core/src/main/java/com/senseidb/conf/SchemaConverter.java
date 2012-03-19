@@ -134,7 +134,12 @@ public class SchemaConverter
         facetObj.put("type", facet.getAttribute("type"));
         String depends = facet.getAttribute("depends");
         if (depends!=null){
-          facetObj.put("depends", depends);
+          String[] dependsList = depends.split(",");
+          JSONArray dependsArr = new JSONArray();
+          for (String dependName : dependsList){
+            dependsArr.put(dependName);
+          }
+          facetObj.put("depends", dependsArr);
         }
         String column = facet.getAttribute("column");
         if (column!=null && column.length() > 0){
@@ -170,7 +175,7 @@ public class SchemaConverter
 
   public static void main(String[] args) throws Exception
   {
-    File xmlSchema = new File("../example/cars/conf/schema.xml");
+    File xmlSchema = new File("../example/tweets/conf/schema.xml");
     if (!xmlSchema.exists()){
       throw new ConfigurationException("schema not file");
     }
