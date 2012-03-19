@@ -722,7 +722,7 @@ column_name_list returns [JSONArray json]
     ;
 
 column_name
-    :   IDENT | STRING_LITERAL
+    :   (IDENT | STRING_LITERAL) ('.' (IDENT | STRING_LITERAL))*
     ;
 
 where returns [Object json]
