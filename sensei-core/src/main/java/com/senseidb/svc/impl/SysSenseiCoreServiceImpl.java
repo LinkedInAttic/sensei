@@ -3,6 +3,7 @@ package com.senseidb.svc.impl;
 import java.io.IOException;
 import java.util.List;
 
+import com.sensei.search.req.protobuf.SenseiSysReqProtoSerializer;
 import org.apache.log4j.Logger;
 
 import com.browseengine.bobo.api.BoboBrowser;
@@ -16,8 +17,11 @@ import com.senseidb.search.req.SenseiRequest;
 import com.senseidb.search.req.SenseiSystemInfo;
 
 public class SysSenseiCoreServiceImpl extends AbstractSenseiCoreService<SenseiRequest, SenseiSystemInfo>{
-	public static final Serializer<SenseiRequest, SenseiSystemInfo> SERIALIZER =
+	public static final Serializer<SenseiRequest, SenseiSystemInfo> JAVA_SERIALIZER =
 			JavaSerializer.apply("SenseiSysRequest", SenseiRequest.class, SenseiSystemInfo.class);
+
+	public static final Serializer<SenseiRequest, SenseiSystemInfo> PROTO_SERIALIZER =
+			new SenseiSysReqProtoSerializer();
 
   private static final Logger logger = Logger.getLogger(SysSenseiCoreServiceImpl.class);
   
@@ -78,7 +82,7 @@ public class SysSenseiCoreServiceImpl extends AbstractSenseiCoreService<SenseiRe
 
 	@Override
 	public Serializer<SenseiRequest, SenseiSystemInfo> getSerializer() {
-		return SERIALIZER;
+		return PROTO_SERIALIZER;
 	}
 }
 
