@@ -7,6 +7,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.sensei.search.req.protobuf.SenseiReqProtoSerializer;
 import org.apache.log4j.Logger;
 import org.apache.lucene.search.Query;
 
@@ -38,10 +39,12 @@ import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.MetricName;
 import com.yammer.metrics.core.Timer;
 
-public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiRequest, SenseiResult>{
-	public static final Serializer<SenseiRequest, SenseiResult> SERIALIZER =
+public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiRequest, SenseiResult> {
+	public static final Serializer<SenseiRequest, SenseiResult> JAVA_SERIALIZER =
 			JavaSerializer.apply("SenseiRequest", SenseiRequest.class, SenseiResult.class);
 
+	public static final Serializer<SenseiRequest, SenseiResult> PROTO_SERIALIZER =
+			new SenseiReqProtoSerializer();
 
 	private static final Logger logger = Logger.getLogger(CoreSenseiServiceImpl.class);
 	
@@ -218,6 +221,6 @@ public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiReque
 
 	@Override
 	public Serializer<SenseiRequest, SenseiResult> getSerializer() {
-		 return SERIALIZER;
+		 return PROTO_SERIALIZER;
 	}
 }
