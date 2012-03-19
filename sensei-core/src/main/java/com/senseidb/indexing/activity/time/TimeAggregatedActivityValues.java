@@ -121,6 +121,7 @@ public class TimeAggregatedActivityValues implements ActivityValues {
 		int valueInt = Integer.parseInt(value.toString());
 		String valueStr = valueInt > 0 ? "+" + valueInt : String.valueOf(valueInt);
 		int currentTime = Clock.getCurrentTimeInMinutes();
+		timeActivities.ensureCapacity(index);
 		synchronized (timeActivities.getLock(index)) {
 			if (!timeActivities.isSet(index)) {
 				timeActivities.setActivities(index, new IntContainer(1));
@@ -221,7 +222,7 @@ public class TimeAggregatedActivityValues implements ActivityValues {
 		public Object getLock(int index) {
 			return activities[index] != null ? activities[index] : this;
 		}
-		private void ensureCapacity(int currentArraySize) {
+		public void ensureCapacity(int currentArraySize) {
 		    if (times.length == 0) {
 		    	times = new IntContainer[50000];
 		    	activities = new IntContainer[50000];
