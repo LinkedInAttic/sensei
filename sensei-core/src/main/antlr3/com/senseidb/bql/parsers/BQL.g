@@ -648,10 +648,13 @@ select_stmt returns [Object json]
             try {
                 JSONObject metaData = new JSONObject();
                 if (cols == null) {
-                   metaData.put("select_list", new JSONArray().put("*"));
+                    metaData.put("select_list", new JSONArray().put("*"));
                 }
                 else {
                    metaData.put("select_list", $cols.json);
+                   if ($cols.fetchStored) {
+                       jsonObj.put("fetchStored", true);
+                   }
                 }
 
                 if (_variables.size() > 0)
@@ -674,9 +677,16 @@ select_stmt returns [Object json]
                 if (browse_by != null) {
                     jsonObj.put("facets", $browse_by.json);
                 }
-                if (fetch_stored != null && $fetch_stored.val) {
-                    // Default is false
-                    jsonObj.put("fetchStored", $fetch_stored.val);
+                if (fetch_stored != null) {
+                    if (!$fetch_stored.val && (cols != null && $cols.fetchStored)) {
+                        throw new FailedPredicateException(input, 
+                                                           "select_stmt",
+                                                           "FETCHING STORED cannot be false when _srcdata is selected.");
+                    }
+                    else if ($fetch_stored.val) {
+                        // Default is false
+                        jsonObj.put("fetchStored", $fetch_stored.val);
+                    }
                 }
                 if (route_param != null) {
                     jsonObj.put("routeParam", $route_param.val);
@@ -712,12 +722,32 @@ describe_stmt
     :   DESCRIBE (IDENT | STRING_LITERAL)
     ;
 
-column_name_list returns [JSONArray json]
+column_name_list returns [boolean fetchStored, JSONArray json]
 @init {
+    $fetchStored = false;
     $json = new JSONArray();
 }
-    :   col=column_name { $json.put($col.text); }
-        (COMMA col=column_name { $json.put($col.text); })*
+    :   col=column_name
+        {
+            String colName = $col.text;
+            if (colName != null) {
+                $json.put($col.text); 
+                if ("_srcdata".equals(colName) || colName.startsWith("_srcdata.")) {
+                    $fetchStored = true;
+                }
+            }
+        }
+        (COMMA col=column_name
+            {
+                colName = $col.text;
+                if (colName != null) {
+                    $json.put($col.text); 
+                    if ("_srcdata".equals(colName) || colName.startsWith("_srcdata.")) {
+                        $fetchStored = true;
+                    }
+                }
+            }
+        )*
         -> ^(COLUMN_LIST column_name+)
     ;
 

@@ -1212,7 +1212,7 @@ public class TestBQL extends TestCase
       "FROM cars "
       );
 
-    JSONObject expected = new JSONObject("{\"meta\":{\"select_list\":[\"_srcdata.color\",\"_srcdata.$time\"]}}");
+    JSONObject expected = new JSONObject("{\"fetchStored\":true,\"meta\":{\"select_list\":[\"_srcdata.color\",\"_srcdata.$time\"]}}");
     assertTrue(_comp.isEquals(json, expected));
   }
 
