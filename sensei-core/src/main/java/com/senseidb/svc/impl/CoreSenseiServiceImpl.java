@@ -101,6 +101,7 @@ public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiReque
 	      senseiHit.setScore(hit.getScore());
 	      senseiHit.setComparable(hit.getComparable());
 	      senseiHit.setFieldValues(hit.getFieldValues());
+	      senseiHit.setRawFieldValues(hit.getRawFieldValues());
 	      senseiHit.setStoredFields(hit.getStoredFields());
 	      senseiHit.setExplanation(hit.getExplanation());
 	      senseiHit.setGroupValue(hit.getGroupValue());
@@ -113,7 +114,7 @@ public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiReque
 	    result.setHits(senseiHits);
 	    result.setNumHits(res.getNumHits());
 	    result.setNumGroups(res.getNumGroups());
-	    result.setGroupAccessible(res.getGroupAccessible());
+	    result.setGroupAccessibles(res.getGroupAccessibles());
 	    result.setSortCollector(res.getSortCollector());
 	    result.setTotalDocs(browser.numDocs());
 	    

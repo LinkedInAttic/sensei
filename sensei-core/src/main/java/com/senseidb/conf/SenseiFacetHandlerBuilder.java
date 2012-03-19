@@ -341,14 +341,13 @@ public class SenseiFacetHandlerBuilder {
 				String type = facet.getString("type");
 				String fieldName = facet.optString("column",name);
 				Set<String> dependSet = new HashSet<String>();
-				String depends= facet.optString("depends",null);
-				if (depends != null) {
-					for (String dep :depends.split("[,; ]")) {
-						dep = dep.trim();
-						if (!dep.equals("")) {
-							dependSet.add(dep);
-						}
-					}
+				JSONArray dependsArray = facet.optJSONArray("depends");
+				
+				if (dependsArray != null) {
+				  int depCount = dependsArray.length();
+				  for (int k=0;k<depCount;++k){
+				    dependSet.add(dependsArray.getString(k));
+				  }
 				}
 
         SenseiSystemInfo.SenseiFacetInfo facetInfo = new SenseiSystemInfo.SenseiFacetInfo(name);

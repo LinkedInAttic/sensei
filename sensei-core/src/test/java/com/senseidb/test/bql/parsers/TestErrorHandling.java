@@ -843,4 +843,58 @@ public class TestErrorHandling extends TestCase
     }
   }
 
+  @Test
+  public void testSrcdataFetchStoredError1() throws Exception
+  {
+    System.out.println("testSrcdataFetchStoredError1");
+    System.out.println("==================================================");
+
+    boolean caughtException = false;
+    try
+    {
+      JSONObject json = _compiler.compile(
+        "select _srcdata.category \n" +
+        "from cars \n" +
+        "fetching stored false"
+        );
+    }
+    catch (RecognitionException err)
+    {
+      assertEquals("[line:3, col:21] FETCHING STORED cannot be false when _srcdata is selected. (token=<EOF>)",
+                    _compiler.getErrorMessage(err));
+      caughtException = true;
+    }
+    finally 
+    {
+      assertTrue(caughtException);
+    }
+  }
+
+  @Test
+  public void testSrcdataFetchStoredError2() throws Exception
+  {
+    System.out.println("testSrcdataFetchStoredError2");
+    System.out.println("==================================================");
+
+    boolean caughtException = false;
+    try
+    {
+      JSONObject json = _compiler.compile(
+        "select _srcdata, color \n" +
+        "from cars \n" +
+        "fetching stored false"
+        );
+    }
+    catch (RecognitionException err)
+    {
+      assertEquals("[line:3, col:21] FETCHING STORED cannot be false when _srcdata is selected. (token=<EOF>)",
+                    _compiler.getErrorMessage(err));
+      caughtException = true;
+    }
+    finally 
+    {
+      assertTrue(caughtException);
+    }
+  }
+
 }

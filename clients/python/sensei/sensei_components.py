@@ -1032,9 +1032,25 @@ class SenseiResult:
     def get_max_lens(columns):
       max_lens = {}
       has_group_hits = False
+      srcdata_subcols = []
+      srcdata_subcols_selected = False
+
       for col in columns:
         max_lens[col] = len(col)
+        if re.match('_srcdata\.', col):
+          srcdata_subcols.append(col.split('.')[1])
+      if len(srcdata_subcols) > 0:
+        srcdata_subcols_selected = True
+
       for hit in self.hits:
+        if srcdata_subcols_selected and hit.has_key('_srcdata'):
+          srcdata_json = json.loads(hit.get('_srcdata'))
+          for subcol in srcdata_subcols:
+            new_col = '_srcdata.' + subcol
+            if srcdata_json.has_key(subcol):
+              hit[new_col] = srcdata_json[subcol]
+            else:
+              hit[new_col] = '<Not Found>'
         group_hits = [hit]
         if hit.has_key(GROUP_HITS):
           group_hits = hit.get(GROUP_HITS)

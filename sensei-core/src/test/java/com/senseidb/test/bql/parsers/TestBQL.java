@@ -1201,4 +1201,19 @@ public class TestBQL extends TestCase
     assertTrue(_comp.isEquals(json, expected));
   }
 
+  @Test
+  public void testSubColumnName() throws Exception
+  {
+    System.out.println("testSubColumnName");
+    System.out.println("==================================================");
+
+    JSONObject json = _compiler.compile(
+      "SELECT _srcdata.color, _srcdata.'$time' " +
+      "FROM cars "
+      );
+
+    JSONObject expected = new JSONObject("{\"fetchStored\":true,\"meta\":{\"select_list\":[\"_srcdata.color\",\"_srcdata.$time\"]}}");
+    assertTrue(_comp.isEquals(json, expected));
+  }
+
 }

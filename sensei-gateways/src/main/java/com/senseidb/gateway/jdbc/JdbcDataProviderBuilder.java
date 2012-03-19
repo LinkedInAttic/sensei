@@ -17,24 +17,24 @@ import proj.zoie.dataprovider.jdbc.JDBCConnectionFactory;
 import proj.zoie.dataprovider.jdbc.JDBCStreamDataProvider;
 import proj.zoie.dataprovider.jdbc.PreparedStatementBuilder;
 import proj.zoie.impl.indexing.StreamDataProvider;
+import proj.zoie.impl.indexing.ZoieConfig;
 
 import com.senseidb.gateway.SenseiGateway;
 import com.senseidb.indexing.DataSourceFilter;
 import com.senseidb.indexing.ShardingStrategy;
-import com.senseidb.plugin.SenseiPluginRegistry;
 
 public class JdbcDataProviderBuilder extends SenseiGateway<ResultSet>{
 
-	private SenseiPluginRegistry pluginRegistry;
 	private Comparator<String> _versionComparator;
 
 	@Override
 	public void start() {
 	  _versionComparator = pluginRegistry.getBeanByName("versionComparator", Comparator.class);
+	  if (_versionComparator == null) _versionComparator = ZoieConfig.DEFAULT_VERSION_COMPARATOR;
 	}
 
 
-	@Override
+  @Override
 	public StreamDataProvider<JSONObject> buildDataProvider(final DataSourceFilter<ResultSet> dataFilter,
       String oldSinceKey,
       ShardingStrategy shardingStrategy,
@@ -45,11 +45,15 @@ public class JdbcDataProviderBuilder extends SenseiGateway<ResultSet>{
 	       final String username = config.get("jdbc.username");
 	       final String password = config.get("jdbc.password");
 	       final String driver = config.get("jdbc.driver");
-	       final String adaptor = config.get("jdbc.adaptor");
+         final String adaptor = config.get("jdbc.adaptor");
 
-	       final SenseiJDBCAdaptor senseiAdaptor =  pluginRegistry.getBeanByFullPrefix("jdbc.adaptor", SenseiJDBCAdaptor.class);
+         final SenseiJDBCAdaptor senseiAdaptor =
+           pluginRegistry.getBeanByName(adaptor, SenseiJDBCAdaptor.class) != null ?
+           pluginRegistry.getBeanByName(adaptor, SenseiJDBCAdaptor.class) :
+           pluginRegistry.getBeanByFullPrefix(adaptor, SenseiJDBCAdaptor.class);
+
 	       if (senseiAdaptor==null){
-	    	   throw new ConfigurationException("adaptor not found: "+adaptor);
+           throw new ConfigurationException("adaptor not found: " + adaptor);
 	       }
 
 

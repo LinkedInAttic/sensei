@@ -212,10 +212,16 @@ public class SenseiCore{
     return _indexManager.getDataProvider();
   }
   
-  public IndexReaderFactory<ZoieIndexReader<BoboIndexReader>> getIndexReaderFactory(int partition){
-    return _readerFactoryMap.get(partition);
+  public IndexReaderFactory<ZoieIndexReader<BoboIndexReader>> getIndexReaderFactory(int partition)
+  {
+    IndexReaderFactory<ZoieIndexReader<BoboIndexReader>> readerFactory = _readerFactoryMap.get(partition);
+    if (readerFactory == null)
+    {
+      logger.error("IndexReaderFactory not found for partition: " + partition + ".  Please check the routing strategy.");
+    }
+    return readerFactory;
   }
-  
+
   public SenseiQueryBuilderFactory getQueryBuilderFactory()
   {
     return _queryBuilderFactory;
