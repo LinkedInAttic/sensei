@@ -1,21 +1,26 @@
 package com.senseidb.indexing.activity.time;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.apache.commons.io.FileUtils;
 
 import com.senseidb.indexing.activity.ActivityIntValues;
 import com.senseidb.indexing.activity.ActivityValues;
 
 public class TimeAggregatedActivityValues implements ActivityValues {
-	private Map<String, Integer> times = new HashMap<String, Integer>();
-	private final String fieldName;
-	private Map<String, ActivityIntValues> valuesMap = new HashMap<String, ActivityIntValues>();
-	private IntValueHolder[] intActivityValues;
-	private TimeHitsHolder timeActivities;
+  protected Map<String, Integer> times = new HashMap<String, Integer>();
+	protected final String fieldName;
+	protected Map<String, ActivityIntValues> valuesMap = new HashMap<String, ActivityIntValues>();
+	protected IntValueHolder[] intActivityValues;
+	protected TimeHitsHolder timeActivities;
+	protected volatile int maxIndex;
+  private AggregatesMetadata aggregatesMetadata;
 	
 	public TimeAggregatedActivityValues(String fieldName, List<String> times, int count, String indexDirPath) {
 		this.fieldName = fieldName;
@@ -24,15 +29,72 @@ public class TimeAggregatedActivityValues implements ActivityValues {
 		for(String time : times) {
 			int timeInMinutes = extractTimeInMinutes(time);
 			this.times.put(time, timeInMinutes);
-			ActivityIntValues activityIntValues = ActivityIntValues.readFromFile(indexDirPath, fieldName + ":" + time, count);
-			//TODO init timeAggregates
+			ActivityIntValues activityIntValues = ActivityIntValues.readFromFile(indexDirPath, fieldName + ":" + time, count);			
 			this.valuesMap.put(time, activityIntValues);
 			intActivityValues[index++] = new IntValueHolder(activityIntValues, time, timeInMinutes);
 		}
+		
 		Arrays.sort(intActivityValues);
+		maxIndex = count;
+		aggregatesMetadata = AggregatesMetadata.init(indexDirPath, fieldName);
+		
 	}
-	
-	public static Integer extractTimeInMinutes(String time) {
+	protected static void initTimeHits(TimeHitsHolder timeActivities, IntValueHolder[] intActivityValues, int count, int lastUpdatedTime) {
+    for (int index = 0; index < count; index++) {
+      int activitiesCount = 0;
+      for (int j = 0; j < intActivityValues.length; j++) {
+        int value = intActivityValues[j].activityIntValues.getValue(index);
+        if (value == Integer.MIN_VALUE) {
+          activitiesCount = 0;
+          break;
+        }
+        activitiesCount += value;        
+      }
+      if (activitiesCount == 0) {
+        continue;
+      }
+      int length = Math.min(activitiesCount, intActivityValues[0].timeInMinutes);
+      IntContainer times = new IntContainer(length);
+      IntContainer activities = new IntContainer(length);
+      for (int j = 0; j < intActivityValues.length - 1; j++) {
+        int value = intActivityValues[j].activityIntValues.getValue(index);
+        int time = intActivityValues[j].timeInMinutes;
+        if (value == Integer.MIN_VALUE) {
+          activitiesCount = 0;
+          break;
+        }
+        activitiesCount += value;
+        fillTimeHits(times, activities, value - intActivityValues[j + 1].activityIntValues.getValue(index), lastUpdatedTime - time + 1, time - intActivityValues[j + 1].timeInMinutes);
+      }
+      fillTimeHits(times, activities, intActivityValues[intActivityValues.length - 1].activityIntValues.getValue(index), lastUpdatedTime - intActivityValues[intActivityValues.length - 1].timeInMinutes + 1, intActivityValues[intActivityValues.length - 1].timeInMinutes);
+      timeActivities.activities[index] = activities;
+      timeActivities.times[index] = times;
+    }
+    
+  }
+  
+  private static void fillTimeHits(IntContainer times, IntContainer activities, int activityCount, int startTime, int periodInMinutes) {
+    int length = java.lang.Math.min(periodInMinutes, activityCount);
+    if (length == 1) {
+      activities.add(activityCount);
+      times.add(startTime + periodInMinutes / 2);
+    } else if (length > 1) {
+      int activityIncrement = activityCount / length;
+      int timeIncrement = periodInMinutes / length;
+      int activityIncrementDelta = activityCount - activityIncrement * length;
+      int timeOffset = startTime;
+      for (int i = 0; i < length; i++) {
+        if (i == 0) {
+          activities.add(activityIncrementDelta + activityIncrement);
+        } else {
+          activities.add(activityIncrement);
+        }
+        times.add(timeOffset);
+        timeOffset += timeIncrement;
+      }
+    }
+  }
+  public static Integer extractTimeInMinutes(String time) {
 		time = time.trim();
 		char identifier = time.charAt(time.length() - 1);
 		int number = Integer.parseInt(time.substring(0, time.length() - 1));
@@ -47,13 +109,18 @@ public class TimeAggregatedActivityValues implements ActivityValues {
 	@Override
 	public void init(int capacity) {
 		timeActivities = new TimeHitsHolder(capacity);
+		initTimeHits(timeActivities, intActivityValues, capacity, aggregatesMetadata.lastUpdatedTime);
 	}
 
 	@Override
 	public boolean update(int index, Object value) {
 		boolean needToFlush = false;
+		if (maxIndex < index) {
+		  maxIndex = index;
+		}
 		int valueInt = Integer.parseInt(value.toString());
 		String valueStr = valueInt > 0 ? "+" + valueInt : String.valueOf(valueInt);
+		int currentTime = Clock.getCurrentTimeInMinutes();
 		synchronized (timeActivities.getLock(index)) {
 			if (!timeActivities.isSet(index)) {
 				timeActivities.setActivities(index, new IntContainer(1));
@@ -61,7 +128,11 @@ public class TimeAggregatedActivityValues implements ActivityValues {
 			}
 		}
 		synchronized (timeActivities.getLock(index)) {
-			timeActivities.getTimes(index).add(Clock.getCurrentTimeInMinutes());
+			if (timeActivities.getTimes(index).getSize() > 0 && timeActivities.getTimes(index).peekLast() == currentTime) {
+			  timeActivities.getActivities(index).add(timeActivities.getActivities(index).removeLast() + valueInt);
+			} else {
+			  timeActivities.getTimes(index).add(currentTime);
+			}
 			timeActivities.getActivities(index).add(valueInt);
 		}
 		for (IntValueHolder intValueHolder : intActivityValues) {
@@ -114,8 +185,8 @@ public class TimeAggregatedActivityValues implements ActivityValues {
 		}
 
 		@Override
-		public int compareTo(IntValueHolder o) {
-			return timeInMinutes -  o.timeInMinutes;
+		public int compareTo(IntValueHolder obj) {
+			return obj.timeInMinutes - timeInMinutes;
 		}
 	}
 	
@@ -167,5 +238,40 @@ public class TimeAggregatedActivityValues implements ActivityValues {
 		    }
 		  }
 	}
-	
+	public static class AggregatesMetadata {
+    protected int lastUpdatedTime;
+    protected File aggregatesFile;
+    private AggregatesMetadata() {      
+     
+    }
+    public static AggregatesMetadata init(String dirPath, String fieldName) {
+      AggregatesMetadata ret = new AggregatesMetadata();
+      File aggregatesFile = new File(fieldName + ".aggregates");
+      try {
+      if (!aggregatesFile.exists()) {
+        aggregatesFile.createNewFile();
+        ret.lastUpdatedTime = Clock.getCurrentTimeInMinutes();
+        FileUtils.writeStringToFile(aggregatesFile, String.valueOf(ret.lastUpdatedTime));
+      } else {
+        ret.lastUpdatedTime = Integer.parseInt(FileUtils.readFileToString(aggregatesFile));
+      }
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+      ret.aggregatesFile = aggregatesFile;
+      return ret;
+    }
+    public void updateTime(int currentTime) {
+      lastUpdatedTime  = currentTime;
+      try {
+        FileUtils.writeStringToFile(aggregatesFile, String.valueOf(currentTime));
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    }
+    public int getLastUpdatedTime() {
+      return lastUpdatedTime;
+    }
+    
+  }
 }

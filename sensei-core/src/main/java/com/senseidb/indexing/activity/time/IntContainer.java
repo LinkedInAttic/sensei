@@ -1,12 +1,20 @@
 package com.senseidb.indexing.activity.time;
 
+import scala.actors.threadpool.Arrays;
+
 public class IntContainer {
+  private static int[] EMPTY_ARR = new int[0];
+  
   protected int[] array;
   protected int startIndex = 0;
   protected int actualSize = 0;
 
   public IntContainer(int capacity) {
-    array = new int[capacity];
+    if (capacity == 0) {
+      array = EMPTY_ARR;
+    } else {
+      array = new int[capacity];
+    }
   }
 
   public IntContainer() {
@@ -37,7 +45,12 @@ public class IntContainer {
   public int peekFirst() {
     return array[startIndex];
   }
-
+  public int peekLast() {
+    return array[startIndex + actualSize - 1];
+  }
+  public int get(int index) {
+    return array[startIndex + index];
+  }
   public IntContainer add(int number) {
     ensureCapacityOnEnd();
     array[startIndex + actualSize] = number;
@@ -77,5 +90,13 @@ public class IntContainer {
        System.arraycopy(oldArr, startIndex, array, 0, actualSize);
        startIndex = 0;
      }
+  }
+  @Override
+  public String toString() {
+    // TODO Auto-generated method stub
+    return Arrays.toString(array);
+  }
+  public int size() {
+    return actualSize;
   }
 }

@@ -5,53 +5,59 @@ import org.apache.log4j.Logger;
 public class ActivityIntValues implements ActivityValues {
   private static Logger logger = Logger.getLogger(ActivityIntValues.class);
   public int[] fieldValues;
-  protected String fieldName; 
+  protected String fieldName;
   protected ActivityIntStorage activityFieldStore;
-  protected UpdateBatch<ActivityIntStorage.FieldUpdate> updateBatch = new UpdateBatch<ActivityIntStorage.FieldUpdate>(); 
+  protected UpdateBatch<ActivityIntStorage.FieldUpdate> updateBatch = new UpdateBatch<ActivityIntStorage.FieldUpdate>();
   
-  /* (non-Javadoc)
- * @see com.senseidb.indexing.activity.ActivityValues#init(int)
- */
-@Override
-public void init(int capacity) {    
-    fieldValues = new int[capacity];  
+
+  @Override
+  public void init(int capacity) {
+    fieldValues = new int[capacity];
   }
 
   public void init() {
     init(50000);
   }
-  
-  /* (non-Javadoc)
- * @see com.senseidb.indexing.activity.ActivityValues#update(int, java.lang.Object)
- */
-@Override
-public boolean update(int index, Object value) {
-      ensureCapacity(index);
-      if (fieldValues[index] == Integer.MIN_VALUE) {
-        fieldValues[index] = 0;
-      }
-      setValue(fieldValues, value, index);
-      return updateBatch.addFieldUpdate(new ActivityIntStorage.FieldUpdate(index, fieldValues[index])); 
+
+  /*
+   * (non-Javadoc)
+   * 
+   * @see com.senseidb.indexing.activity.ActivityValues#update(int,
+   * java.lang.Object)
+   */
+  @Override
+  public boolean update(int index, Object value) {
+    ensureCapacity(index);
+    if (fieldValues[index] == Integer.MIN_VALUE) {
+      fieldValues[index] = 0;
+    }
+    setValue(fieldValues, value, index);
+    return updateBatch.addFieldUpdate(new ActivityIntStorage.FieldUpdate(index, fieldValues[index]));
   }
-  
-  /* (non-Javadoc)
- * @see com.senseidb.indexing.activity.ActivityValues#delete(int)
- */
-@Override
-public void delete(int index) {
+
+  /*
+   * (non-Javadoc)
+   * 
+   * @see com.senseidb.indexing.activity.ActivityValues#delete(int)
+   */
+  @Override
+  public void delete(int index) {
     fieldValues[index] = Integer.MIN_VALUE;
   }
-  
   protected ActivityIntValues() {
     
   }
-  
-  
-  /* (non-Javadoc)
- * @see com.senseidb.indexing.activity.ActivityValues#prepareFlush()
- */
-@Override
-public Runnable prepareFlush() {    
+  public ActivityIntValues(int capacity) {
+    init(capacity);
+  }
+
+  /*
+   * (non-Javadoc)
+   * 
+   * @see com.senseidb.indexing.activity.ActivityValues#prepareFlush()
+   */
+  @Override
+  public Runnable prepareFlush() {
     if (activityFieldStore.isClosed()) {
       throw new IllegalStateException("The activityFile is closed");
     }
@@ -62,7 +68,7 @@ public Runnable prepareFlush() {
         try {
           if (activityFieldStore.isClosed()) {
             throw new IllegalStateException("The activityFile is closed");
-          }          
+          }
           activityFieldStore.flush(oldBatch.getUpdates());
         } catch (Exception ex) {
           logger.error("Failure to store the field values to file" + oldBatch.getUpdates(), ex);
@@ -71,11 +77,10 @@ public Runnable prepareFlush() {
     };
   }
 
-
   public int getValue(int index) {
     return fieldValues[index];
   }
-  
+
   private void ensureCapacity(int currentArraySize) {
     if (fieldValues.length == 0) {
       this.fieldValues = new int[50000];
@@ -88,6 +93,7 @@ public Runnable prepareFlush() {
       this.fieldValues = newFieldValues;
     }
   }
+
   public static void setValue(int[] fieldValues, Object value, int index) {
     if (value == null) {
       return;
@@ -109,10 +115,11 @@ public Runnable prepareFlush() {
         fieldValues[index] = Integer.parseInt(valStr);
       }
     } else {
-      throw new UnsupportedOperationException("Only longs, ints and String are supported");
-    }    
+      throw new UnsupportedOperationException(
+          "Only longs, ints and String are supported");
+    }
   }
-  
+
   public int[] getFieldValues() {
     return fieldValues;
   }
@@ -121,24 +128,27 @@ public Runnable prepareFlush() {
     this.fieldValues = fieldValues;
   }
 
-  /* (non-Javadoc)
- * @see com.senseidb.indexing.activity.ActivityValues#close()
- */
-@Override
-public void close() {
+  /*
+   * (non-Javadoc)
+   * 
+   * @see com.senseidb.indexing.activity.ActivityValues#close()
+   */
+  @Override
+  public void close() {
     activityFieldStore.close();
   }
 
-  public static ActivityIntValues readFromFile(String indexDirPath, String fieldName, int count) {    
-    ActivityIntStorage persistentColumnManager = new ActivityIntStorage(fieldName, indexDirPath);
+  public static ActivityIntValues readFromFile(String indexDirPath,
+      String fieldName, int count) {
+    ActivityIntStorage persistentColumnManager = new ActivityIntStorage(
+        fieldName, indexDirPath);
     persistentColumnManager.init();
     return persistentColumnManager.getActivityDataFromFile(count);
   }
 
-@Override
-public String getFieldName() {
-	return fieldName;
-}
+  @Override
+  public String getFieldName() {
+    return fieldName;
+  }
 
- 
 }

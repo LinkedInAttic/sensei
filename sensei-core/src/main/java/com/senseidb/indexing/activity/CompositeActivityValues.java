@@ -198,7 +198,10 @@ private boolean updateActivities(JSONObject event, int index) {
       underlyingFlushes.add(activityIntValues.prepareFlush());
     }
     final String version = lastVersion;
-    final int count = uidToArrayIndex.size();
+    final int count;
+    synchronized (deletedIndexes) {
+      count = uidToArrayIndex.size() + deletedIndexes.size();
+    }
      executor.submit(new Runnable() {      
       @Override
       public void run() {

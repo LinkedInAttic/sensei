@@ -5,6 +5,7 @@ import java.text.SimpleDateFormat;
 
 public class Clock {
   private static Long predefinedTime;
+  private static Integer predefinedTimeInMinutes;
   private static long startTime;
   static {
     SimpleDateFormat formatter = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss");
@@ -15,7 +16,16 @@ public class Clock {
     }
   }
   public static int getCurrentTimeInMinutes() {
+    if (predefinedTimeInMinutes != null) {
+      return predefinedTimeInMinutes;
+    }
     return (int)((getTime() - startTime) / 1000/60);
+  }
+  public static Integer getPredefinedTimeInMinutes() {
+    return predefinedTimeInMinutes;
+  }
+  public static void setPredefinedTimeInMinutes(Integer predefinedTimeInMinutes) {
+    Clock.predefinedTimeInMinutes = predefinedTimeInMinutes;
   }
   public static long getTime() {
     if (predefinedTime == null) {
