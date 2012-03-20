@@ -49,7 +49,7 @@ public class CompositeActivityManager implements DeletionListener {
           if (fieldDefinition.isActivity) {
             fields.add(field);
           }
-        }
+        }        
         activityValues = CompositeActivityValues.readFromFile(canonicalPath, fields, versionComparator);
         cachedInstances.put(nodeId, this);
       } catch (IOException ex) {
@@ -113,5 +113,9 @@ public class CompositeActivityManager implements DeletionListener {
     public void onDelete(IndexReader indexReader, long... uids) {
       activityValues.delete(uids);  
     }
+   public static class TimeAggregateInfo {
+     public String fieldName;
+     public List<String> names;
+   }
    
 }

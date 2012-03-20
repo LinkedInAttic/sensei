@@ -13,22 +13,21 @@ import org.apache.commons.io.FileUtils;
 import com.senseidb.indexing.activity.ActivityIntValues;
 import com.senseidb.indexing.activity.ActivityValues;
 
-public class TimeAggregatedActivityValues implements ActivityValues {
-  protected Map<String, Integer> times = new HashMap<String, Integer>();
+public class TimeAggregatedActivityValues implements ActivityValues {  
 	protected final String fieldName;
 	protected Map<String, ActivityIntValues> valuesMap = new HashMap<String, ActivityIntValues>();
 	protected IntValueHolder[] intActivityValues;
 	protected TimeHitsHolder timeActivities;
 	protected volatile int maxIndex;
   private AggregatesMetadata aggregatesMetadata;
+  private AggregatesUpdateJob aggregatesUpdateJob;
 	
 	public TimeAggregatedActivityValues(String fieldName, List<String> times, int count, String indexDirPath) {
 		this.fieldName = fieldName;
 		intActivityValues = new IntValueHolder[times.size()];
 		int index = 0;
 		for(String time : times) {
-			int timeInMinutes = extractTimeInMinutes(time);
-			this.times.put(time, timeInMinutes);
+			int timeInMinutes = extractTimeInMinutes(time);			
 			ActivityIntValues activityIntValues = ActivityIntValues.readFromFile(indexDirPath, fieldName + ":" + time, count);			
 			this.valuesMap.put(time, activityIntValues);
 			intActivityValues[index++] = new IntValueHolder(activityIntValues, time, timeInMinutes);
@@ -110,6 +109,8 @@ public class TimeAggregatedActivityValues implements ActivityValues {
 	public void init(int capacity) {
 		timeActivities = new TimeHitsHolder(capacity);
 		initTimeHits(timeActivities, intActivityValues, capacity, aggregatesMetadata.lastUpdatedTime);
+		aggregatesUpdateJob = new AggregatesUpdateJob(this, aggregatesMetadata);
+		aggregatesUpdateJob.start();
 	}
 
 	@Override
@@ -169,7 +170,8 @@ public class TimeAggregatedActivityValues implements ActivityValues {
 
 	@Override
 	public void close() {
-		for (IntValueHolder intValueHolder : intActivityValues) {
+	  aggregatesUpdateJob.stop();	  
+	  for (IntValueHolder intValueHolder : intActivityValues) {
 			intValueHolder.activityIntValues.close();
 		}
 		
@@ -247,7 +249,7 @@ public class TimeAggregatedActivityValues implements ActivityValues {
     }
     public static AggregatesMetadata init(String dirPath, String fieldName) {
       AggregatesMetadata ret = new AggregatesMetadata();
-      File aggregatesFile = new File(fieldName + ".aggregates");
+      File aggregatesFile = new File(dirPath, fieldName + ".aggregates");
       try {
       if (!aggregatesFile.exists()) {
         aggregatesFile.createNewFile();

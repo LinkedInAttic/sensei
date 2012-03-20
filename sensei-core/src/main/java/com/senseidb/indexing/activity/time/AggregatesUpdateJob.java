@@ -45,30 +45,34 @@ public class AggregatesUpdateJob implements Runnable {
     }    
     aggregatesMetadata.updateTime(currentTime);
   }
-  private final void updateActivityValues(IntValueHolder[] intActivityValues, IntContainer activities, IntContainer times, int currentTime, int index) {
-    int startIndex = 0;    
-    for (int i = 0; i < activities.getSize(); i++) {      
-      int j;
-      for (j = startIndex, startIndex = Integer.MAX_VALUE; j < intActivityValues.length; j++) {
-        IntValueHolder intValueHolder = intActivityValues[j];        
-        if (currentTime - times.get(i) < intValueHolder.timeInMinutes) {
-          if (startIndex > j) {
-            startIndex = j;
-          }
+ 
+  private final void updateActivityValues(IntValueHolder[] intActivityValues, IntContainer activities, IntContainer times, int currentTime, int index) {       
+    int minimumAggregateIndex = 0;
+    for (int activityIndex = 0; activityIndex < activities.getSize(); activityIndex++) { 
+      //the activity is current. As they are sorted in the ascending order, we can stop now
+      if (currentTime - times.get(activityIndex) < intActivityValues[intActivityValues.length - 1].timeInMinutes) {
+        break;
+      }
+      for (int aggregateIndex = intActivityValues.length - 1; aggregateIndex >= minimumAggregateIndex; aggregateIndex--) {
+        IntValueHolder intValueHolder = intActivityValues[aggregateIndex];        
+        int currentElapsedTime = currentTime - times.get(activityIndex);
+        //activity is current 
+        if (currentElapsedTime < intValueHolder.timeInMinutes) {
+          minimumAggregateIndex = aggregateIndex + 1;
           break;
         }
-        if (currentTime - times.get(i) >= intValueHolder.timeInMinutes && aggregatesMetadata.lastUpdatedTime - times.get(i) < intValueHolder.timeInMinutes) {
-          intValueHolder.activityIntValues.fieldValues[index] -= activities.get(i);
-          if (startIndex > j) {
-            startIndex = j;
-          }
+        int previousElapsedTime = aggregatesMetadata.lastUpdatedTime - times.get(activityIndex);
+        //activity is not current against the current time, but was current for the previous run
+        if (currentElapsedTime >= intValueHolder.timeInMinutes && previousElapsedTime < intValueHolder.timeInMinutes) {
+          intValueHolder.activityIntValues.fieldValues[index] -= activities.get(activityIndex);
         }
       }
     }
     //remove outdated activities
     while (true) {
       int time = times.peekFirst();
-      if (currentTime - time >= intActivityValues[0].timeInMinutes) {
+      int elapsedTime = currentTime - time;
+      if (elapsedTime >= intActivityValues[0].timeInMinutes) {
         times.removeFirst();
         activities.removeFirst();
       } else {
@@ -76,5 +80,4 @@ public class AggregatesUpdateJob implements Runnable {
       }
     }
   }
-  
 }
