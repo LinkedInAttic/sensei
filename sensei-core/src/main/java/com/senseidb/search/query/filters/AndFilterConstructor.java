@@ -1,13 +1,11 @@
 package com.senseidb.search.query.filters;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.lucene.queryParser.QueryParser;
 import org.apache.lucene.search.Filter;
 import org.json.JSONArray;
-import org.json.JSONObject;
 
 import com.browseengine.bobo.facets.filter.AndFilter;
 

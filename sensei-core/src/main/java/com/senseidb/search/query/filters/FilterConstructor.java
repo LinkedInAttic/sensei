@@ -33,6 +33,7 @@ public abstract class FilterConstructor {
   public static final String GTE_PARAM           = "gte";
   public static final String LT_PARAM            = "lt";
   public static final String LTE_PARAM           = "lte";
+  public static final String CLASS_PARAM         = "class";  
 	
   private static final Map<String, FilterConstructor> FILTER_CONSTRUCTOR_MAP = 
     new HashMap<String, FilterConstructor>();
@@ -46,6 +47,7 @@ public abstract class FilterConstructor {
     FILTER_CONSTRUCTOR_MAP.put(PathFilterConstructor.FILTER_TYPE, new PathFilterConstructor());
     FILTER_CONSTRUCTOR_MAP.put(TermsFilterConstructor.FILTER_TYPE, new TermsFilterConstructor());
     FILTER_CONSTRUCTOR_MAP.put(NullFilterConstructor.FILTER_TYPE, new NullFilterConstructor());
+    FILTER_CONSTRUCTOR_MAP.put(CustomFilterConstructor.FILTER_TYPE, new CustomFilterConstructor());
   }
   
   public static FilterConstructor getFilterConstructor(String type, QueryParser qparser)
