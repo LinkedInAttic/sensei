@@ -217,7 +217,7 @@ public class SenseiCore{
     IndexReaderFactory<ZoieIndexReader<BoboIndexReader>> readerFactory = _readerFactoryMap.get(partition);
     if (readerFactory == null)
     {
-      logger.error("IndexReaderFactory not found for partition: " + partition + ".  Please check the routing strategy.");
+      logger.error("IndexReaderFactory not found for partition: " + partition + ". I'm serving partition " + _readerFactoryMap.keySet() + " only.  Please check the routing strategy.");
     }
     return readerFactory;
   }
