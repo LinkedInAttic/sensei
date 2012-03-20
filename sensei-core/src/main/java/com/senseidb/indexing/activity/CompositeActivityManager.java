@@ -13,11 +13,18 @@ import org.jboss.netty.util.internal.ConcurrentHashMap;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import proj.zoie.api.Zoie;
+import proj.zoie.api.ZoieIndexReader;
+import proj.zoie.api.ZoieMultiReader;
+import proj.zoie.api.ZoieSegmentReader;
+import proj.zoie.hourglass.impl.HourglassListener;
+
 import com.senseidb.conf.SenseiSchema;
+import com.senseidb.conf.SenseiSchema.FacetDefinition;
 import com.senseidb.conf.SenseiSchema.FieldDefinition;
 import com.senseidb.indexing.activity.deletion.DeletionListener;
 
-public class CompositeActivityManager implements DeletionListener {
+public class CompositeActivityManager implements DeletionListener, HourglassListener<IndexReader, IndexReader> {
     protected CompositeActivityValues activityValues;
     private SenseiSchema senseiSchema;
     public static final String EVENT_TYPE_ONLY_ACTIVITY = "activity-update";
@@ -50,7 +57,7 @@ public class CompositeActivityManager implements DeletionListener {
             fields.add(field);
           }
         }        
-        activityValues = CompositeActivityValues.readFromFile(canonicalPath, fields, versionComparator);
+        activityValues = CompositeActivityValues.readFromFile(canonicalPath, fields, TimeAggregateInfo.valueOf(senseiSchema), versionComparator);
         cachedInstances.put(nodeId, this);
       } catch (IOException ex) {
         throw new RuntimeException(ex);
@@ -115,7 +122,43 @@ public class CompositeActivityManager implements DeletionListener {
     }
    public static class TimeAggregateInfo {
      public String fieldName;
-     public List<String> names;
+     public List<String> times;
+     public static List<TimeAggregateInfo> valueOf(SenseiSchema senseiSchema) {
+       List<TimeAggregateInfo> ret = new ArrayList<CompositeActivityManager.TimeAggregateInfo>();
+       for (FacetDefinition facetDefinition : senseiSchema.getFacets()) {
+         if ("aggregated-range".equals(facetDefinition.type)) {
+           TimeAggregateInfo aggregateInfo = new TimeAggregateInfo();
+           aggregateInfo.fieldName = facetDefinition.column;
+           aggregateInfo.times = facetDefinition.params.get("time");
+           ret.add(aggregateInfo);
+         }
+       }
+       return ret;
+     }
    }
-   
+  @Override
+  public void onNewZoie(Zoie<IndexReader, IndexReader> zoie) {    
+    
+  }
+  @Override
+  public void onRetiredZoie(Zoie<IndexReader, IndexReader> zoie) {    
+    
+  }
+  @Override
+  public void onIndexReaderCleanUp(ZoieIndexReader<IndexReader> indexReader) {
+    if (indexReader instanceof ZoieMultiReader) {
+      ZoieSegmentReader[] segments = (ZoieSegmentReader[]) ((ZoieMultiReader) indexReader).getSequentialSubReaders();
+      for (ZoieSegmentReader segmentReader : segments) {
+        handleSegment(segmentReader);
+      }
+    } else if (indexReader instanceof ZoieSegmentReader) {
+      handleSegment((ZoieSegmentReader) indexReader);
+    } else {
+      throw new UnsupportedOperationException("Only segment and multisegment readers can be handled");
+    }
+    
+  }
+  private void handleSegment(ZoieSegmentReader segmentReader) {    
+    onDelete(segmentReader, segmentReader.getUIDArray());      
+  }
 }

@@ -24,7 +24,9 @@ import org.springframework.util.Assert;
 
 import proj.zoie.api.ZoieIndexReader;
 
+import com.senseidb.indexing.activity.CompositeActivityManager.TimeAggregateInfo;
 import com.senseidb.indexing.activity.CompositeActivityStorage.Update;
+import com.senseidb.indexing.activity.time.TimeAggregatedActivityValues;
 
 public class CompositeActivityValues {
   private Comparator<String> versionComparator; 
@@ -225,7 +227,7 @@ private boolean updateActivities(JSONObject event, int index) {
       activityIntValues.close();
     }
   }
-  public static CompositeActivityValues readFromFile(String indexDirPath, List<String> fieldNames, Comparator<String> versionComparator) {    
+  public static CompositeActivityValues readFromFile(String indexDirPath, List<String> fieldNames, List<TimeAggregateInfo> aggregatedActivities, Comparator<String> versionComparator) {    
     CompositeActivityStorage persistentColumnManager = new CompositeActivityStorage(indexDirPath);
     persistentColumnManager.init();
     Metadata metadata = new Metadata(indexDirPath);
@@ -238,6 +240,10 @@ private boolean updateActivities(JSONObject event, int index) {
     for (String field : fieldNames) {
       ret.columnsMap.put(field, ActivityIntValues.readFromFile(indexDirPath, field, metadata.count));
     }    
+    for (TimeAggregateInfo aggregatedActivity : aggregatedActivities) {
+      ret.columnsMap.put(aggregatedActivity.fieldName, TimeAggregatedActivityValues.valueOf(aggregatedActivity.fieldName, aggregatedActivity.times, 
+          metadata.count, indexDirPath));
+    }
     return ret;
   }
   public int[] precomputeArrayIndexes(long[] uids) {    

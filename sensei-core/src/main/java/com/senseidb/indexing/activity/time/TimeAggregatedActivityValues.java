@@ -253,7 +253,8 @@ public class TimeAggregatedActivityValues implements ActivityValues {
       try {
       if (!aggregatesFile.exists()) {
         aggregatesFile.createNewFile();
-        ret.lastUpdatedTime = Clock.getCurrentTimeInMinutes();
+        //minimum possible time
+        ret.lastUpdatedTime = 0;
         FileUtils.writeStringToFile(aggregatesFile, String.valueOf(ret.lastUpdatedTime));
       } else {
         ret.lastUpdatedTime = Integer.parseInt(FileUtils.readFileToString(aggregatesFile));
@@ -277,4 +278,13 @@ public class TimeAggregatedActivityValues implements ActivityValues {
     }
     
   }
+	public static TimeAggregatedActivityValues valueOf(String fieldName, List<String> times, int count, String indexDirPath) {
+	  TimeAggregatedActivityValues ret = new TimeAggregatedActivityValues(fieldName, times, count, indexDirPath);
+	  ret.init(count > 0 ? count : 15000);
+	  return ret;
+	}
+  public Map<String, ActivityIntValues> getValuesMap() {
+    return valuesMap;
+  }
+	
 }

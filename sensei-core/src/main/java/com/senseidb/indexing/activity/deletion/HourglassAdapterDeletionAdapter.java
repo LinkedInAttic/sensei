@@ -33,7 +33,7 @@ public class HourglassAdapterDeletionAdapter {
     }
   }
 
-  private void handleIndexReader(ZoieIndexReader indexReader) {
+  public void handleIndexReader(ZoieIndexReader indexReader) {
     if (indexReader instanceof ZoieMultiReader) {
       ZoieSegmentReader[] segments = (ZoieSegmentReader[]) ((ZoieMultiReader) indexReader).getSequentialSubReaders();
       for (ZoieSegmentReader segmentReader : segments) {
@@ -48,7 +48,6 @@ public class HourglassAdapterDeletionAdapter {
   }
 
   private void handleSegment(ZoieSegmentReader segmentReader) {    
-      deletionListener.onDelete(segmentReader, segmentReader.getUIDArray());
-      
+      deletionListener.onDelete(segmentReader, segmentReader.getUIDArray());      
   }
 }

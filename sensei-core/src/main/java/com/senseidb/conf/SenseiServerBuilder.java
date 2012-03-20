@@ -546,7 +546,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
         throw new ConfigurationException("unsupported frequency setting: "+frequencyString);
       }
       zoieSystemFactory = new SenseiHourglassFactory(idxDir,dirMode,interpreter,decorator,
-            zoieConfig,schedule,trimThreshold,frequency);
+            zoieConfig,schedule,trimThreshold,frequency, activityManager);
     }  else{
       ZoieFactoryFactory zoieFactoryFactory= pluginRegistry.getBeanByFullPrefix(indexerType, ZoieFactoryFactory.class);
       if (zoieFactoryFactory==null){

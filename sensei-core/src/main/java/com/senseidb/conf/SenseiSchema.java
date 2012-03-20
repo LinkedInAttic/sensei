@@ -4,10 +4,14 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.Format;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.log4j.Logger;
@@ -44,7 +48,7 @@ public class SenseiSchema {
 	private String _srcDataStore;
 	private String _srcDataField;
   private boolean _compressSrcData;
-	
+  private List<FacetDefinition> facets = new ArrayList<FacetDefinition>();
 	public static class FieldDefinition{
 		public Format formatter;
 		public boolean isMeta;
@@ -55,7 +59,36 @@ public class SenseiSchema {
 		public String delim = ",";
 		public Class type = null;
 	}
-	
+	public static class FacetDefinition {
+   public String name;
+   public String type;
+   public String column;
+   public Boolean dynamic;
+   public Map<String,List<String>> params;
+   public Set<String> dependSet = new HashSet<String>();
+   public static FacetDefinition valueOf(JSONObject facet) {
+     try {
+     FacetDefinition ret = new FacetDefinition();
+     ret.name = facet.getString("name");
+     ret.type = facet.getString("type");
+     ret.column = facet.optString("column",ret.name);
+     String depends= facet.optString("depends",null);
+     if (depends != null) {
+       for (String dep :depends.split("[,; ]")) {
+         dep = dep.trim();
+         if (!dep.equals("")) {
+           ret.dependSet.add(dep);
+         }
+       }
+     }
+     JSONArray paramList = facet.optJSONArray("params");
+     ret.params = SenseiFacetHandlerBuilder.parseParams(paramList);
+     return ret;
+     } catch (Exception ex) {
+       throw new RuntimeException(ex);
+     }
+   }
+  }
 	private SenseiSchema(){
 		
 	}
@@ -202,15 +235,24 @@ public class SenseiSchema {
                     
                   fdef.textIndexSpec = indexingSpec; 
               }
-
+              
           } catch (Exception e) {
               throw new ConfigurationException("Error parsing schema: "
                       + column, e);
           }
       }
+      JSONArray facetsList = schemaObj.optJSONArray("facets");
+      if (facetsList != null) {
+        for (int i = 0; i < facetsList.length(); i++) {
+          JSONObject facet = facetsList.optJSONObject(i);
+          if (facet != null) {
+            schema.facets.add(FacetDefinition.valueOf(facet));
+          }
+        }
+      }
       return schema;
 	}
-
+	@Deprecated
 	public static SenseiSchema build(Document schemaDoc) throws ConfigurationException{
 		SenseiSchema schema = new SenseiSchema();
 		schema._fieldDefMap = new HashMap<String,FieldDefinition>();
@@ -341,4 +383,9 @@ public class SenseiSchema {
 		}
 		return schema;
 	}
+
+  public List<FacetDefinition> getFacets() {
+    return facets;
+  }
+	
 }

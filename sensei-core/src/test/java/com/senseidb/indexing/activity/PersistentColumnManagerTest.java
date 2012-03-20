@@ -4,6 +4,7 @@ import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.longs.LongList;
 
 import java.io.File;
+import java.util.Collections;
 
 import junit.framework.TestCase;
 
@@ -36,7 +37,7 @@ public class PersistentColumnManagerTest extends TestCase {
     SenseiStarter.rmrf(file);
   }
   public void test1WriteValuesAndReadJustAfterThat() throws Exception {
-    CompositeActivityValues compositeActivityValues = CompositeActivityValues.readFromFile(getDirPath(), java.util.Arrays.asList("likes"), ZoieConfig.DEFAULT_VERSION_COMPARATOR);
+    CompositeActivityValues compositeActivityValues = CompositeActivityValues.readFromFile(getDirPath(), java.util.Arrays.asList("likes"), Collections.EMPTY_LIST, ZoieConfig.DEFAULT_VERSION_COMPARATOR);
   
     int valueCount = 10000;
     for (int i = 0; i < valueCount; i++) { 
@@ -44,7 +45,7 @@ public class PersistentColumnManagerTest extends TestCase {
     }    
     compositeActivityValues.syncWithPersistentVersion(String.format("%08d", valueCount - 1));
     compositeActivityValues.close();
-    compositeActivityValues = CompositeActivityValues.readFromFile(getDirPath(), java.util.Arrays.asList("likes"), ZoieConfig.DEFAULT_VERSION_COMPARATOR);
+    compositeActivityValues = CompositeActivityValues.readFromFile(getDirPath(), java.util.Arrays.asList("likes"), Collections.EMPTY_LIST, ZoieConfig.DEFAULT_VERSION_COMPARATOR);
     
     assertEquals("Found " + compositeActivityValues.uidToArrayIndex.size(), valueCount, compositeActivityValues.uidToArrayIndex.size());
     assertEquals((int)(valueCount * 1.5), getFieldValues(compositeActivityValues).length );
@@ -55,7 +56,7 @@ public class PersistentColumnManagerTest extends TestCase {
     compositeActivityValues.close();
     assertEquals(getFieldValues(compositeActivityValues)[0], 1);
     assertEquals(getFieldValues(compositeActivityValues)[3], 4);
-    compositeActivityValues = CompositeActivityValues.readFromFile(getDirPath(), java.util.Arrays.asList("likes"), ZoieConfig.DEFAULT_VERSION_COMPARATOR);
+    compositeActivityValues = CompositeActivityValues.readFromFile(getDirPath(), java.util.Arrays.asList("likes"), Collections.EMPTY_LIST, ZoieConfig.DEFAULT_VERSION_COMPARATOR);
     assertEquals(getFieldValues(compositeActivityValues)[0], 1);
     assertEquals(getFieldValues(compositeActivityValues)[3], 4);
     compositeActivityValues.close();
@@ -68,7 +69,7 @@ private int[] getFieldValues(CompositeActivityValues compositeActivityValues){
     dir = new File(indexDirPath);
     dir.mkdirs(); 
     dir.deleteOnExit();
-    CompositeActivityValues compositeActivityValues = CompositeActivityValues.readFromFile(indexDirPath, java.util.Arrays.asList("likes"), ZoieConfig.DEFAULT_VERSION_COMPARATOR);
+    CompositeActivityValues compositeActivityValues = CompositeActivityValues.readFromFile(indexDirPath, java.util.Arrays.asList("likes"), Collections.EMPTY_LIST, ZoieConfig.DEFAULT_VERSION_COMPARATOR);
     final int valueCount = 10000;   
     for (int i = 0; i < valueCount; i++) {
       compositeActivityValues.update(UID_BASE + i, String.format("%08d", valueCount + i), new JSONObject().put("likes", "+1"));
@@ -104,7 +105,7 @@ private int[] getFieldValues(CompositeActivityValues compositeActivityValues){
     assertEquals(1, compositeActivityValues.getValueByUID(UID_BASE + 2, "likes"));    
     compositeActivityValues.flushDeletes();
     compositeActivityValues.close();
-    compositeActivityValues = CompositeActivityValues.readFromFile(indexDirPath, java.util.Arrays.asList("likes"), ZoieConfig.DEFAULT_VERSION_COMPARATOR);
+    compositeActivityValues = CompositeActivityValues.readFromFile(indexDirPath, java.util.Arrays.asList("likes"), Collections.EMPTY_LIST, ZoieConfig.DEFAULT_VERSION_COMPARATOR);
     
     assertEquals("Found " + compositeActivityValues.metadata.count, valueCount, (int)compositeActivityValues.metadata.count);
     assertEquals(valueCount - 1, compositeActivityValues.deletedIndexes.size());

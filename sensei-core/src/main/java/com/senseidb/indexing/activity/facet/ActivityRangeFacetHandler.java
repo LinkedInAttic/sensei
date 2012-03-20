@@ -31,11 +31,13 @@ public class ActivityRangeFacetHandler extends FacetHandler<int[]> {
   
 
   public ActivityRangeFacetHandler(String facetName, String fieldName, CompositeActivityValues compositeActivityValues) {
+    this(facetName, fieldName, compositeActivityValues, (ActivityIntValues) compositeActivityValues.getActivityValuesMap().get(fieldName)); 
+  }
+  public ActivityRangeFacetHandler(String facetName, String fieldName, CompositeActivityValues compositeActivityValues, ActivityIntValues activityIntValues) {
     super(facetName, new HashSet<String>());
     this.compositeActivityValues = compositeActivityValues;
-    this.activityIntValues = (ActivityIntValues) compositeActivityValues.getActivityValuesMap().get(fieldName);   
+    this.activityIntValues = activityIntValues;   
   }
-
   @Override
   public int[] load(BoboIndexReader reader) throws IOException {
     ZoieSegmentReader<?> zoieReader = (ZoieSegmentReader<?>)(reader.getInnerReader());    

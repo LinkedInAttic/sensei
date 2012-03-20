@@ -1,6 +1,8 @@
 package com.senseidb.conf;
 
 import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -33,9 +35,13 @@ import com.browseengine.bobo.facets.impl.PathFacetHandler;
 import com.browseengine.bobo.facets.impl.RangeFacetHandler;
 import com.browseengine.bobo.facets.impl.SimpleFacetHandler;
 import com.browseengine.bobo.facets.range.MultiRangeFacetHandler;
+import com.senseidb.conf.SenseiSchema.FacetDefinition;
 import com.senseidb.indexing.DefaultSenseiInterpreter;
+import com.senseidb.indexing.activity.ActivityIntValues;
+import com.senseidb.indexing.activity.ActivityValues;
 import com.senseidb.indexing.activity.CompositeActivityManager;
 import com.senseidb.indexing.activity.facet.ActivityRangeFacetHandler;
+import com.senseidb.indexing.activity.time.TimeAggregatedActivityValues;
 import com.senseidb.plugin.SenseiPluginRegistry;
 import com.senseidb.search.facet.UIDFacetHandler;
 import com.senseidb.search.req.SenseiSystemInfo;
@@ -171,7 +177,7 @@ public class SenseiFacetHandlerBuilder {
     return predefinedRanges;
   }
 
-	static Map<String,List<String>> parseParams(JSONArray paramList) throws JSONException{
+	public static Map<String,List<String>> parseParams(JSONArray paramList) throws JSONException{
 		HashMap<String,List<String>> retmap = new HashMap<String,List<String>>();
 		if (paramList!=null){
 		  int count = paramList.length();
@@ -381,7 +387,10 @@ public class SenseiFacetHandlerBuilder {
 					} else {
 					  facetHandler = buildRangeHandler(name, fieldName, termListFactoryMap.get(fieldName), paramMap);
 					}
-				} else if (type.equals("multi")) {
+				} else if (type.equals("aggregated-range")) {
+				  Assert.state(column.optBoolean("activity") != Boolean.TRUE, "aggregated-activity facet handler should reference the activity column");
+				  facets.addAll(buildAggregatedActivityFacetHanlers(facet, activityManager));          
+        } else if (type.equals("multi")) {
 					facetHandler = buildMultiHandler(name, fieldName,  termListFactoryMap.get(fieldName), dependSet);
 				} else if (type.equals("compact-multi")) {
 					facetHandler = buildCompactMultiHandler(name, fieldName, dependSet,  termListFactoryMap.get(fieldName));
@@ -434,6 +443,21 @@ public class SenseiFacetHandlerBuilder {
 
     return sysInfo;
 	}
+
+  private static Collection<? extends FacetHandler<?>> buildAggregatedActivityFacetHanlers(JSONObject facet, CompositeActivityManager activityManager) {
+    List<FacetHandler<?>> ret = new ArrayList<FacetHandler<?>>();
+    FacetDefinition facetDefinition = SenseiSchema.FacetDefinition.valueOf(facet);
+    ActivityValues activityValues = activityManager.getActivityValues().getActivityValuesMap().get(facetDefinition.column);
+    if (!(activityValues instanceof TimeAggregatedActivityValues)) {
+      return ret;
+    } 
+    TimeAggregatedActivityValues aggregatedActivityValues = (TimeAggregatedActivityValues) activityValues;
+    for (String time : facetDefinition.params.get("time")) {
+      String name = facetDefinition.column + ":" + time;
+      ret.add(new ActivityRangeFacetHandler(name, facetDefinition.column, activityManager.getActivityValues(), (ActivityIntValues)aggregatedActivityValues.getValuesMap().get(time)));
+    }
+    return ret;
+  }
 
   public static RuntimeFacetHandlerFactory<?, ?> getDynamicTimeFacetHandlerFactory(final String name, String fieldName, Set<String> dependSet,
       final Map<String, List<String>> paramMap) {

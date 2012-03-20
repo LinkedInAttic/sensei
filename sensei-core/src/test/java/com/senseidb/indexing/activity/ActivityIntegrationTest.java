@@ -1,5 +1,7 @@
 package com.senseidb.indexing.activity;
 
+import java.util.Collections;
+
 import junit.framework.TestCase;
 
 import org.apache.log4j.Logger;
@@ -67,7 +69,7 @@ public class ActivityIntegrationTest extends TestCase {
     inMemoryColumnData1.syncWithPersistentVersion(String.valueOf(15019));
     FileDataProviderWithMocks.add(new JSONObject().put("id", 0).put("_type", "update").put("likes", "+5"));
     String absolutePath = SenseiStarter.IndexDir + "/test/node1/" + "activity/";
-    CompositeActivityValues compositeActivityValues = CompositeActivityValues.readFromFile(absolutePath, java.util.Arrays.asList("likes"), ZoieConfig.DEFAULT_VERSION_COMPARATOR);
+    CompositeActivityValues compositeActivityValues = CompositeActivityValues.readFromFile(absolutePath, java.util.Arrays.asList("likes"), Collections.EMPTY_LIST, ZoieConfig.DEFAULT_VERSION_COMPARATOR);
     
     assertEquals(51, inMemoryColumnData1.getValueByUID(1L, "likes"));
   }
