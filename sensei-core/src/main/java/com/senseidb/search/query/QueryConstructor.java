@@ -77,6 +77,7 @@ public abstract class QueryConstructor
     QUERY_CONSTRUCTOR_MAP.put(TermQueryConstructor.QUERY_TYPE, new TermQueryConstructor());
     QUERY_CONSTRUCTOR_MAP.put(TermsQueryConstructor.QUERY_TYPE, new TermsQueryConstructor());
     QUERY_CONSTRUCTOR_MAP.put(UIDQueryConstructor.QUERY_TYPE, new UIDQueryConstructor());
+    QUERY_CONSTRUCTOR_MAP.put(CustomQueryConstructor.QUERY_TYPE, new CustomQueryConstructor());
   }
   
   public static QueryConstructor getQueryConstructor(String type, QueryParser qparser)

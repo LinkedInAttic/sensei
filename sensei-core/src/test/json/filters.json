@@ -130,5 +130,10 @@
     "path":{
       
     }
+  },
+  
+  // custom
+  "custom" : {
+    "class" : "com.sensidb.query.TestFilter"
   }
 }
