@@ -19,9 +19,11 @@ import com.senseidb.svc.api.SenseiException;
 public class MapReduceBroker extends AbstractConsistentHashBroker<MapReduceRequest, SenseiMapReduceResult> {
   private final static Logger logger = Logger.getLogger(MapReduceBroker.class);
   private long _timeoutMillis;
+  private final boolean allowPartialMerge;
 
-  public MapReduceBroker(PartitionedNetworkClient<String> networkClient, ClusterClient clusterClient) throws NorbertException {
+  public MapReduceBroker(PartitionedNetworkClient<String> networkClient, ClusterClient clusterClient, boolean allowPartialMerge) throws NorbertException {
     super(networkClient, MapReduceSenseiService.SERIALIZER);
+    this.allowPartialMerge = allowPartialMerge;
     clusterClient.addListener(this);
     logger.info("created broker instance " + networkClient + " " + clusterClient);
   }
@@ -86,5 +88,10 @@ public class MapReduceBroker extends AbstractConsistentHashBroker<MapReduceReque
   @Override
   public void handleClusterShutdown() {
     logger.info("handleClusterShutdown() called");
+  }
+
+  @Override
+  public boolean allowPartialMerge() {
+    return allowPartialMerge;
   }
 }

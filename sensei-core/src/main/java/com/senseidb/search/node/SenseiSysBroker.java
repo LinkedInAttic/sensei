@@ -36,13 +36,15 @@ public class SenseiSysBroker extends AbstractConsistentHashBroker<SenseiRequest,
   private final static long TIMEOUT_MILLIS = 8000L;
   private long _timeoutMillis = TIMEOUT_MILLIS;
   private final Comparator<String> _versionComparator;
+  private final boolean allowPartialMerge;
 
   protected Set<Node> _nodes = Collections.EMPTY_SET;
 
-  public SenseiSysBroker(PartitionedNetworkClient<String> networkClient, ClusterClient clusterClient, Comparator<String> versionComparator) throws NorbertException
+  public SenseiSysBroker(PartitionedNetworkClient<String> networkClient, ClusterClient clusterClient, Comparator<String> versionComparator, boolean allowPartialMerge) throws NorbertException
   {
     super(networkClient, SysSenseiCoreServiceImpl.SERIALIZER);
     _versionComparator = versionComparator;
+    this.allowPartialMerge = allowPartialMerge;
     clusterClient.addListener(this);
     logger.info("created broker instance " + networkClient + " " + clusterClient);
   }
@@ -80,7 +82,7 @@ public class SenseiSysBroker extends AbstractConsistentHashBroker<SenseiRequest,
   protected List<SenseiSystemInfo> doCall(final SenseiRequest req) throws ExecutionException {
     final List<SenseiSystemInfo> resultList = new ArrayList<SenseiSystemInfo>();
     ResponseIterator<SenseiSystemInfo> responseIterator =
-        _networkClient.sendRequestToOneReplica(getRouteParam(req), new RequestBuilder<Integer, SenseiRequest>() {
+        buildIterator(_networkClient.sendRequestToOneReplica(getRouteParam(req), new RequestBuilder<Integer, SenseiRequest>() {
           @Override
           public SenseiRequest apply(Node node, Set<Integer> nodePartitions) {
             synchronized (req) {
@@ -88,14 +90,7 @@ public class SenseiSysBroker extends AbstractConsistentHashBroker<SenseiRequest,
               return req;
             }
           }
-        }, _serializer);
-
-    TimeoutIterator<SenseiSystemInfo> timeoutIterator = new TimeoutIterator<SenseiSystemInfo>(responseIterator, _timeout);
-//          PartialIterator<RESULT> partialIterator = new PartialIterator<RESULT>(new ExceptionIterator<RESULT>(timeoutIterator));
-
-//    while(timeoutIterator.hasNext()) {
-//      resultList.add(timeoutIterator.next());
-//    }
+        }, _serializer));
 
     while(responseIterator.hasNext()) {
       resultList.add(responseIterator.next());
@@ -150,6 +145,11 @@ public class SenseiSysBroker extends AbstractConsistentHashBroker<SenseiRequest,
   public void handleClusterShutdown()
   {
     logger.info("handleClusterShutdown() called");
+  }
+
+  @Override
+  public boolean allowPartialMerge() {
+    return allowPartialMerge;
   }
 }
 

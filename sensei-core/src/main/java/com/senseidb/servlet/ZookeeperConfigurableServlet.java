@@ -30,6 +30,7 @@ public class ZookeeperConfigurableServlet extends HttpServlet {
   protected int staleRequestCleanupFrequencyMins;
   protected PartitionedLoadBalancerFactory<String> loadBalancerFactory;
   protected Comparator<String> versionComparator;
+  protected boolean allowPartialMerge;
 
   @Override
   public void init(ServletConfig config) throws ServletException {
@@ -57,5 +58,7 @@ public class ZookeeperConfigurableServlet extends HttpServlet {
     versionComparator = (Comparator<String>)ctx.getAttribute(SenseiConfigServletContextListener.SENSEI_CONF_VERSION_COMPARATOR);
     loadBalancerFactory = (PartitionedLoadBalancerFactory<String>) ctx.getAttribute(
         SenseiConfigServletContextListener.SENSEI_CONF_ROUTER_FACTORY);
+
+    allowPartialMerge = senseiConf.getBoolean(SenseiConfParams.ALLOW_PARTIAL_MERGE, true);
 }
 }

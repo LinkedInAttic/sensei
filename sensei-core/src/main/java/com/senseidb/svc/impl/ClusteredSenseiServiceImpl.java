@@ -30,7 +30,7 @@ public class ClusteredSenseiServiceImpl implements SenseiService {
   
   public ClusteredSenseiServiceImpl(String zkurl,int zkTimeout,String clusterClientName, String clusterName, int connectTimeoutMillis,
       int writeTimeoutMillis, int maxConnectionsPerNode, int staleRequestTimeoutMins,
-      int staleRequestCleanupFrequencyMins, PartitionedLoadBalancerFactory<String> loadBalancerFactory/*, SenseiLoadBalancerFactory loadBalancerFactory*/,
+      int staleRequestCleanupFrequencyMins, boolean allowPartialMerge, PartitionedLoadBalancerFactory<String> loadBalancerFactory/*, SenseiLoadBalancerFactory loadBalancerFactory*/,
       Comparator<String> versionComparator) {
     _clusterName = clusterName;
     _networkClientConfig.setServiceName(clusterName);
@@ -47,8 +47,8 @@ public class ClusteredSenseiServiceImpl implements SenseiService {
     _networkClientConfig.setClusterClient(_clusterClient);
     
     _networkClient = new SenseiNetworkClient(_networkClientConfig, loadBalancerFactory);
-    _senseiBroker = new SenseiBroker(_networkClient, _clusterClient);
-    _senseiSysBroker = new SenseiSysBroker(_networkClient, _clusterClient, versionComparator);
+    _senseiBroker = new SenseiBroker(_networkClient, _clusterClient, allowPartialMerge);
+    _senseiSysBroker = new SenseiSysBroker(_networkClient, _clusterClient, versionComparator, allowPartialMerge);
   }
   
   public void start(){

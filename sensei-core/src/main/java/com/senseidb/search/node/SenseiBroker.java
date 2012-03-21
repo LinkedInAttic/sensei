@@ -35,10 +35,12 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
   private final static Logger logger = Logger.getLogger(SenseiBroker.class);
   private final static long TIMEOUT_MILLIS = 8000L;
   private long _timeoutMillis = TIMEOUT_MILLIS;
+  private final boolean allowPartialMerge;
 
-  public SenseiBroker(PartitionedNetworkClient<String> networkClient, ClusterClient clusterClient) throws NorbertException
+  public SenseiBroker(PartitionedNetworkClient<String> networkClient, ClusterClient clusterClient, boolean allowPartialMerge) throws NorbertException
   {
     super(networkClient, CoreSenseiServiceImpl.SERIALIZER);
+    this.allowPartialMerge = allowPartialMerge;
 //    _loadBalancerFactory = loadBalancerFactory;
     clusterClient.addListener(this);
     logger.info("created broker instance " + networkClient + " " + clusterClient);
@@ -183,5 +185,10 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
   public void handleClusterShutdown()
   {
     logger.info("handleClusterShutdown() called");
+  }
+
+  @Override
+  public boolean allowPartialMerge() {
+    return allowPartialMerge;
   }
 }

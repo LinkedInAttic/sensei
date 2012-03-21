@@ -216,7 +216,7 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
   protected List<RESULT> doCall(final REQUEST req) throws ExecutionException {
     List<RESULT> resultList = new ArrayList<RESULT>();
     ResponseIterator<RESULT> responseIterator =
-        _networkClient.sendRequestToOneReplica(getRouteParam(req), new RequestBuilder<Integer, REQUEST>() {
+        buildIterator(_networkClient.sendRequestToOneReplica(getRouteParam(req), new RequestBuilder<Integer, REQUEST>() {
           private int count = 0;
           @Override
           public REQUEST apply(Node node, Set<Integer> nodePartitions) {
@@ -233,10 +233,7 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
               return customizedRequest;
             }
           }
-        }, _serializer);
-
-    TimeoutIterator<RESULT> timeoutIterator = new TimeoutIterator<RESULT>(responseIterator, _timeout);
-//          PartialIterator<RESULT> partialIterator = new PartialIterator<RESULT>(new ExceptionIterator<RESULT>(timeoutIterator));
+        }, _serializer));
 
     while(responseIterator.hasNext()) {
       resultList.add(responseIterator.next());
@@ -245,6 +242,14 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
     logger.debug(String.format("There are %d responses", resultList.size()));
 
     return resultList;
+  }
+  
+  protected ResponseIterator<RESULT> buildIterator(ResponseIterator<RESULT> responseIterator) {
+    TimeoutIterator<RESULT> timeoutIterator = new TimeoutIterator<RESULT>(responseIterator, _timeout);
+    if(allowPartialMerge()) {
+      return new PartialIterator<RESULT>(new ExceptionIterator<RESULT>(timeoutIterator));
+    }
+    return timeoutIterator;
   }
 
   public void shutdown()
@@ -256,4 +261,9 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
 
   public abstract long getTimeoutMillis();
 
+  /**
+   * @return boolean representing whether or not the server can tolerate node failures or timeouts and merge the other
+   * results. It's a tradeoff between fault tolerance and accuracy that may be acceptable for some applications
+   */
+  public abstract boolean allowPartialMerge();
 }
