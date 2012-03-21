@@ -39,7 +39,7 @@ public class SenseiSysBroker extends AbstractConsistentHashBroker<SenseiRequest,
 
   protected Set<Node> _nodes = Collections.EMPTY_SET;
 
-  public SenseiSysBroker(PartitionedNetworkClient<Integer> networkClient, ClusterClient clusterClient, Comparator<String> versionComparator) throws NorbertException
+  public SenseiSysBroker(PartitionedNetworkClient<String> networkClient, ClusterClient clusterClient, Comparator<String> versionComparator) throws NorbertException
   {
     super(networkClient, SysSenseiCoreServiceImpl.SERIALIZER);
     _versionComparator = versionComparator;

@@ -65,9 +65,8 @@
     
     <!--<bean id="router-factory" class="com.senseidb.cluster.routing.UniformPartitionedRoutingFactory" />-->
 
-    <bean id="loadBalancerFactory" class="com.linkedin.norbert.javacompat.network.IntegerConsistentHashPartitionedLoadBalancerFactory">
-      <constructor-arg value="3"/>
-      <constructor-arg value="true"/>
+    <bean id="loadBalancerFactory" class="com.senseidb.cluster.routing.SenseiPartitionedLoadBalancerFactory">
+      <constructor-arg value="50"/>
     </bean>
     
     <bean id="network-client" class="com.senseidb.cluster.client.SenseiNetworkClient">

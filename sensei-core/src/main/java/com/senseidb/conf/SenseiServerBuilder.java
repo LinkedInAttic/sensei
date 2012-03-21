@@ -3,8 +3,7 @@ package com.senseidb.conf;
 import com.linkedin.norbert.javacompat.network.IntegerConsistentHashPartitionedLoadBalancerFactory;
 import com.linkedin.norbert.javacompat.network.LoadBalancerFactory;
 import com.linkedin.norbert.javacompat.network.PartitionedLoadBalancerFactory;
-import com.senseidb.cluster.routing.RingHashLoadBalancerFactory;
-import com.senseidb.cluster.routing.SenseiLoadBalancerFactory;
+import com.senseidb.cluster.routing.SenseiPartitionedLoadBalancerFactory;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 
@@ -205,9 +204,9 @@ public class SenseiServerBuilder implements SenseiConfParams{
     senseiApp.setAttribute("sensei.search.configuration", _senseiConf);
     senseiApp.setAttribute("sensei.search.version.comparator", _gateway.getVersionComparator());
 
-    PartitionedLoadBalancerFactory<Integer> routerFactory = pluginRegistry.getBeanByFullPrefix(SenseiConfParams.SERVER_SEARCH_ROUTER_FACTORY, PartitionedLoadBalancerFactory.class);
+    PartitionedLoadBalancerFactory<String> routerFactory = pluginRegistry.getBeanByFullPrefix(SenseiConfParams.SERVER_SEARCH_ROUTER_FACTORY, PartitionedLoadBalancerFactory.class);
     if (routerFactory == null) {
-      routerFactory = new IntegerConsistentHashPartitionedLoadBalancerFactory(-1, true);
+      routerFactory = new SenseiPartitionedLoadBalancerFactory(50);
     }
 
     senseiApp.setAttribute("sensei.search.router.factory", routerFactory);

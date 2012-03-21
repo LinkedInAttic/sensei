@@ -30,7 +30,7 @@ public class ClusteredSenseiServiceImpl implements SenseiService {
   
   public ClusteredSenseiServiceImpl(String zkurl,int zkTimeout,String clusterClientName, String clusterName, int connectTimeoutMillis,
       int writeTimeoutMillis, int maxConnectionsPerNode, int staleRequestTimeoutMins,
-      int staleRequestCleanupFrequencyMins, PartitionedLoadBalancerFactory<Integer> loadBalancerFactory/*, SenseiLoadBalancerFactory loadBalancerFactory*/,
+      int staleRequestCleanupFrequencyMins, PartitionedLoadBalancerFactory<String> loadBalancerFactory/*, SenseiLoadBalancerFactory loadBalancerFactory*/,
       Comparator<String> versionComparator) {
     _clusterName = clusterName;
     _networkClientConfig.setServiceName(clusterName);

@@ -36,9 +36,10 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
   private final static long TIMEOUT_MILLIS = 8000L;
   private long _timeoutMillis = TIMEOUT_MILLIS;
 
-  public SenseiBroker(PartitionedNetworkClient<Integer> networkClient, ClusterClient clusterClient) throws NorbertException
+  public SenseiBroker(PartitionedNetworkClient<String> networkClient, ClusterClient clusterClient) throws NorbertException
   {
     super(networkClient, CoreSenseiServiceImpl.SERIALIZER);
+//    _loadBalancerFactory = loadBalancerFactory;
     clusterClient.addListener(this);
     logger.info("created broker instance " + networkClient + " " + clusterClient);
   }
@@ -122,7 +123,7 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
   {
     return new SenseiResult();
   }
-
+  
   @Override
   public SenseiRequest customizeRequest(SenseiRequest request)
   {    // Rewrite offset and count.
@@ -159,9 +160,9 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
   public void handleClusterConnected(Set<Node> nodes)
   {
 //    _loadBalancer = _loadBalancerFactory.newLoadBalancer(nodes);
-    _partitions = getPartitions(nodes);
-    logger.info("handleClusterConnected(): Received the list of nodes from norbert " + nodes.toString());
-    logger.info("handleClusterConnected(): Received the list of partitions from router " + _partitions.toString());
+//    _partitions = getPartitions(nodes);
+//    logger.info("handleClusterConnected(): Received the list of nodes from norbert " + nodes.toString());
+//    logger.info("handleClusterConnected(): Received the list of partitions from router " + _partitions.toString());
   }
 
   public void handleClusterDisconnected()
@@ -173,9 +174,9 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
   public void handleClusterNodesChanged(Set<Node> nodes)
   {
 //    _loadBalancer = _loadBalancerFactory.newLoadBalancer(nodes);
-    _partitions = getPartitions(nodes);
-    logger.info("handleClusterNodesChanged(): Received the list of nodes from norbert " + nodes.toString());
-    logger.info("handleClusterNodesChanged(): Received the list of partitions from router " + _partitions.toString());
+//    _partitions = getPartitions(nodes);
+//    logger.info("handleClusterNodesChanged(): Received the list of nodes from norbert " + nodes.toString());
+//    logger.info("handleClusterNodesChanged(): Received the list of partitions from router " + _partitions.toString());
   }
 
   @Override

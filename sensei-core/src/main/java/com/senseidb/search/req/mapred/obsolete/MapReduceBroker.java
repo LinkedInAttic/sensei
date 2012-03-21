@@ -20,7 +20,7 @@ public class MapReduceBroker extends AbstractConsistentHashBroker<MapReduceReque
   private final static Logger logger = Logger.getLogger(MapReduceBroker.class);
   private long _timeoutMillis;
 
-  public MapReduceBroker(PartitionedNetworkClient<Integer> networkClient, ClusterClient clusterClient) throws NorbertException {
+  public MapReduceBroker(PartitionedNetworkClient<String> networkClient, ClusterClient clusterClient) throws NorbertException {
     super(networkClient, MapReduceSenseiService.SERIALIZER);
     clusterClient.addListener(this);
     logger.info("created broker instance " + networkClient + " " + clusterClient);

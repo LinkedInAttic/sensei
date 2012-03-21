@@ -28,7 +28,7 @@ public class ZookeeperConfigurableServlet extends HttpServlet {
   protected int maxConnectionsPerNode;
   protected int staleRequestTimeoutMins;
   protected int staleRequestCleanupFrequencyMins;
-  protected PartitionedLoadBalancerFactory<Integer> loadBalancerFactory;
+  protected PartitionedLoadBalancerFactory<String> loadBalancerFactory;
   protected Comparator<String> versionComparator;
 
   @Override
@@ -55,7 +55,7 @@ public class ZookeeperConfigurableServlet extends HttpServlet {
     staleRequestCleanupFrequencyMins = senseiConf.getInt(SenseiConfigServletContextListener.SENSEI_CONF_NC_STALE_CLEANUP_FREQ_MINS, 10);
 
     versionComparator = (Comparator<String>)ctx.getAttribute(SenseiConfigServletContextListener.SENSEI_CONF_VERSION_COMPARATOR);
-    loadBalancerFactory = (PartitionedLoadBalancerFactory<Integer>) ctx.getAttribute(
+    loadBalancerFactory = (PartitionedLoadBalancerFactory<String>) ctx.getAttribute(
         SenseiConfigServletContextListener.SENSEI_CONF_ROUTER_FACTORY);
 }
 }
