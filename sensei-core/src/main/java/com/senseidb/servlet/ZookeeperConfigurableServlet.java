@@ -9,7 +9,6 @@ import javax.servlet.http.HttpServlet;
 
 import com.linkedin.norbert.javacompat.network.PartitionedLoadBalancer;
 import com.linkedin.norbert.javacompat.network.PartitionedLoadBalancerFactory;
-import com.senseidb.cluster.routing.SenseiLoadBalancerFactory;
 import org.apache.commons.configuration.Configuration;
 
 import com.senseidb.conf.SenseiConfParams;

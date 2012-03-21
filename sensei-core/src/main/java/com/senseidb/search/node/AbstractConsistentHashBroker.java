@@ -55,30 +55,30 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
   private static Timer TotalTimer = null;
   private static Meter ErrorMeter = null;
   private static Meter EmptyMeter = null;
-  
-  static{
-	  // register metrics monitoring for timers
-	  try{
-	    MetricName scatterMetricName = new MetricName(MetricsConstants.Domain,"timer","scatter-time","broker");
-	    ScatterTimer = Metrics.newTimer(scatterMetricName, TimeUnit.MILLISECONDS,TimeUnit.SECONDS);
-	    
-	    MetricName gatherMetricName = new MetricName(MetricsConstants.Domain,"timer","gather-time","broker");
-	    GatherTimer = Metrics.newTimer(gatherMetricName, TimeUnit.MILLISECONDS,TimeUnit.SECONDS);
 
-	    MetricName totalMetricName = new MetricName(MetricsConstants.Domain,"timer","total-time","broker");
-	    TotalTimer = Metrics.newTimer(totalMetricName, TimeUnit.MILLISECONDS,TimeUnit.SECONDS);
-	    
-	    MetricName errorMetricName = new MetricName(MetricsConstants.Domain,"meter","error-meter","broker");
-	    ErrorMeter = Metrics.newMeter(errorMetricName, "errors",TimeUnit.SECONDS);
-	    
-	    MetricName emptyMetricName = new MetricName(MetricsConstants.Domain,"meter","empty-meter","broker");
-	    EmptyMeter = Metrics.newMeter(emptyMetricName, "null-hits", TimeUnit.SECONDS);
-	  }
-	  catch(Exception e){
-		logger.error(e.getMessage(),e);
-	  }
+  static{
+    // register metrics monitoring for timers
+    try{
+      MetricName scatterMetricName = new MetricName(MetricsConstants.Domain,"timer","scatter-time","broker");
+      ScatterTimer = Metrics.newTimer(scatterMetricName, TimeUnit.MILLISECONDS,TimeUnit.SECONDS);
+
+      MetricName gatherMetricName = new MetricName(MetricsConstants.Domain,"timer","gather-time","broker");
+      GatherTimer = Metrics.newTimer(gatherMetricName, TimeUnit.MILLISECONDS,TimeUnit.SECONDS);
+
+      MetricName totalMetricName = new MetricName(MetricsConstants.Domain,"timer","total-time","broker");
+      TotalTimer = Metrics.newTimer(totalMetricName, TimeUnit.MILLISECONDS,TimeUnit.SECONDS);
+
+      MetricName errorMetricName = new MetricName(MetricsConstants.Domain,"meter","error-meter","broker");
+      ErrorMeter = Metrics.newMeter(errorMetricName, "errors",TimeUnit.SECONDS);
+
+      MetricName emptyMetricName = new MetricName(MetricsConstants.Domain,"meter","empty-meter","broker");
+      EmptyMeter = Metrics.newMeter(emptyMetricName, "null-hits", TimeUnit.SECONDS);
+    }
+    catch(Exception e){
+      logger.error(e.getMessage(),e);
+    }
   }
-  
+
   /**
    * @param networkClient
    * @param clusterClient
@@ -95,24 +95,24 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
     _serializer = serializer;
   }
 
-	public <T> T customizeRequest(REQUEST request)
-	{
-		return null;
-	}
-	
-	public <T> T restoreRequest(REQUEST request,T state){
-		return state;
-	}
+  public <T> T customizeRequest(REQUEST request)
+  {
+    return null;
+  }
+
+  public <T> T restoreRequest(REQUEST request,T state){
+    return state;
+  }
 
   protected IntSet getPartitions(Set<Node> nodes)
   {
-	    IntSet partitionSet = new IntOpenHashSet();
-	    for (Node n : nodes)
-	    {
-	      partitionSet.addAll(n.getPartitionIds());
-	    }
-	    return partitionSet;
-	  }
+    IntSet partitionSet = new IntOpenHashSet();
+    for (Node n : nodes)
+    {
+      partitionSet.addAll(n.getPartitionIds());
+    }
+    return partitionSet;
+  }
 
   /**
    * @return an empty result instance. Used when the request cannot be properly
@@ -122,7 +122,7 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
 
   /**
    * The method that provides the search service.
-   * 
+   *
    * @param req
    * @return
    * @throws SenseiException
@@ -136,12 +136,12 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
     try
     {
       return TotalTimer.time(new Callable<RESULT>(){
-    	@Override
-  		public RESULT call() throws Exception {
-          return doBrowse(_networkClient, req, _partitions); 	  
-    	}
+        @Override
+        public RESULT call() throws Exception {
+          return doBrowse(_networkClient, req, _partitions);
+        }
       });
-    } 
+    }
     catch (Exception e)
     {
       ErrorMeter.mark();
@@ -152,7 +152,7 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
   /**
    * Merge results on the client/broker side. It likely works differently from
    * the one in the search node.
-   * 
+   *
    * @param request
    *          the original request object
    * @param resultList
@@ -163,9 +163,9 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
 
   protected Integer getRouteParam(REQUEST req) {
     String routeParamString = req.getRouteParam();
-    if(routeParamString == null) 
+    if(routeParamString == null)
       return null;
-    
+
     else if("".equals(routeParamString))
       return 0;
 
