@@ -16,6 +16,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.linkedin.norbert.javacompat.network.LoadBalancerFactory;
+import com.linkedin.norbert.javacompat.network.PartitionedLoadBalancerFactory;
 import org.antlr.runtime.RecognitionException;
 import org.apache.commons.configuration.DataConfiguration;
 import org.apache.commons.configuration.MapConfiguration;
@@ -55,6 +57,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
 
   private ClusterClient _clusterClient = null;
   private SenseiNetworkClient _networkClient = null;
+  private PartitionedLoadBalancerFactory<Integer> _loadBalancerFactory = null;
   private SenseiBroker _senseiBroker = null;
   private SenseiSysBroker _senseiSysBroker = null;
   private BQLCompiler _compiler = null;
@@ -79,9 +82,9 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
 
     _networkClientConfig.setClusterClient(_clusterClient);
 
-    _networkClient = new SenseiNetworkClient(_networkClientConfig, null);
-    _senseiBroker = new SenseiBroker(_networkClient, _clusterClient, loadBalancerFactory);
-    _senseiSysBroker = new SenseiSysBroker(_networkClient, _clusterClient, loadBalancerFactory, versionComparator);
+    _networkClient = new SenseiNetworkClient(_networkClientConfig, _loadBalancerFactory);
+    _senseiBroker = new SenseiBroker(_networkClient, _clusterClient/*, loadBalancerFactory */);
+    _senseiSysBroker = new SenseiSysBroker(_networkClient, _clusterClient/*, loadBalancerFactory */, versionComparator);
 
     logger.info("Connecting to cluster: "+clusterName+" ...");
     _clusterClient.awaitConnectionUninterruptibly();

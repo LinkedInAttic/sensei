@@ -7,9 +7,10 @@ import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 
+import com.linkedin.norbert.javacompat.network.PartitionedLoadBalancer;
+import com.linkedin.norbert.javacompat.network.PartitionedLoadBalancerFactory;
 import org.apache.commons.configuration.Configuration;
 
-import com.senseidb.cluster.routing.SenseiLoadBalancerFactory;
 import com.senseidb.conf.SenseiConfParams;
 
 public class ZookeeperConfigurableServlet extends HttpServlet {
@@ -27,7 +28,8 @@ public class ZookeeperConfigurableServlet extends HttpServlet {
   protected int maxConnectionsPerNode;
   protected int staleRequestTimeoutMins;
   protected int staleRequestCleanupFrequencyMins;
-  protected SenseiLoadBalancerFactory loadBalancerFactory;
+  protected PartitionedLoadBalancerFactory<Integer> loadBalancerFactory;
+//  protected SenseiLoadBalancerFactory loadBalancerFactory;
   protected Comparator<String> versionComparator;
 
   @Override
@@ -54,7 +56,7 @@ public class ZookeeperConfigurableServlet extends HttpServlet {
     staleRequestCleanupFrequencyMins = senseiConf.getInt(SenseiConfigServletContextListener.SENSEI_CONF_NC_STALE_CLEANUP_FREQ_MINS, 10);
 
     versionComparator = (Comparator<String>)ctx.getAttribute(SenseiConfigServletContextListener.SENSEI_CONF_VERSION_COMPARATOR);
-    loadBalancerFactory = (SenseiLoadBalancerFactory)ctx.getAttribute(
-        SenseiConfigServletContextListener.SENSEI_CONF_ROUTER_FACTORY);
+//    loadBalancerFactory = (SenseiLoadBalancerFactory)ctx.getAttribute(
+//        SenseiConfigServletContextListener.SENSEI_CONF_ROUTER_FACTORY);
   }
 }

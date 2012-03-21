@@ -21,7 +21,7 @@ import com.linkedin.norbert.javacompat.cluster.ClusterClient;
 import com.linkedin.norbert.javacompat.cluster.Node;
 import com.linkedin.norbert.javacompat.network.PartitionedNetworkClient;
 import com.senseidb.cluster.routing.RoutingInfo;
-import com.senseidb.cluster.routing.SenseiLoadBalancerFactory;
+//import com.senseidb.cluster.routing.SenseiLoadBalancerFactory;
 import com.senseidb.search.req.SenseiRequest;
 import com.senseidb.search.req.SenseiSystemInfo;
 import com.senseidb.svc.impl.SysSenseiCoreServiceImpl;
@@ -32,18 +32,18 @@ public class SenseiSysBroker extends AbstractConsistentHashBroker<SenseiRequest,
   private final static long TIMEOUT_MILLIS = 8000L;
   private long _timeoutMillis = TIMEOUT_MILLIS;
   private final Comparator<String> _versionComparator;
-  private final SenseiLoadBalancerFactory _loadBalancerFactory;
+//  private final SenseiLoadBalancerFactory _loadBalancerFactory;
 
   protected Set<Node> _nodes = Collections.EMPTY_SET;
 
-  public SenseiSysBroker(PartitionedNetworkClient<Integer> networkClient, ClusterClient clusterClient,
-      SenseiLoadBalancerFactory loadBalancerFactory, Comparator<String> versionComparator) throws NorbertException
+  public SenseiSysBroker(PartitionedNetworkClient<Integer> networkClient, ClusterClient clusterClient/*,
+      SenseiLoadBalancerFactory loadBalancerFactory */, Comparator<String> versionComparator) throws NorbertException
   {
     super(networkClient, SysSenseiCoreServiceImpl.SERIALIZER);
     _versionComparator = versionComparator;
-    _loadBalancerFactory = loadBalancerFactory;
+//    _loadBalancerFactory = loadBalancerFactory;
     clusterClient.addListener(this);
-    logger.info("created broker instance " + networkClient + " " + clusterClient + " " + loadBalancerFactory);
+    logger.info("created broker instance " + networkClient + " " + clusterClient/* + " " + loadBalancerFactory*/);
   }
 
   @Override
@@ -81,14 +81,14 @@ public class SenseiSysBroker extends AbstractConsistentHashBroker<SenseiRequest,
     int[] parts = null;
     RoutingInfo searchNodes = null;
 
-    if (_loadBalancer != null)
-    {
-      searchNodes = _loadBalancer.route(getRouteParam(req));
-      if (searchNodes != null)
-      {
-        parts = searchNodes.partitions;
-      }
-    }
+//    if (_loadBalancer != null)
+//    {
+//      searchNodes = _loadBalancer.route(getRouteParam(req));
+//      if (searchNodes != null)
+//      {
+//        parts = searchNodes.partitions;
+//      }
+//    }
     
     if (parts == null)
     {
@@ -180,7 +180,7 @@ public class SenseiSysBroker extends AbstractConsistentHashBroker<SenseiRequest,
 
   public void handleClusterConnected(Set<Node> nodes)
   {
-    _loadBalancer = _loadBalancerFactory.newLoadBalancer(nodes);
+//    _loadBalancer = _loadBalancerFactory.newLoadBalancer(nodes);
     _partitions = getPartitions(nodes);
     _nodes = nodes;
     logger.info("handleClusterConnected(): Received the list of nodes from norbert " + nodes.toString());
@@ -196,7 +196,7 @@ public class SenseiSysBroker extends AbstractConsistentHashBroker<SenseiRequest,
 
   public void handleClusterNodesChanged(Set<Node> nodes)
   {
-    _loadBalancer = _loadBalancerFactory.newLoadBalancer(nodes);
+//    _loadBalancer = _loadBalancerFactory.newLoadBalancer(nodes);
     _partitions = getPartitions(nodes);
     _nodes = nodes;
     logger.info("handleClusterNodesChanged(): Received the list of nodes from norbert " + nodes.toString());

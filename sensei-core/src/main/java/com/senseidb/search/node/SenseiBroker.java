@@ -16,7 +16,6 @@ import com.linkedin.norbert.NorbertException;
 import com.linkedin.norbert.javacompat.cluster.ClusterClient;
 import com.linkedin.norbert.javacompat.cluster.Node;
 import com.linkedin.norbert.javacompat.network.PartitionedNetworkClient;
-import com.senseidb.cluster.routing.SenseiLoadBalancerFactory;
 import com.senseidb.conf.SenseiSchema;
 import com.senseidb.indexing.DefaultJsonSchemaInterpreter;
 import com.senseidb.search.req.SenseiHit;
@@ -36,15 +35,15 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
   private final static Logger logger = Logger.getLogger(SenseiBroker.class);
   private final static long TIMEOUT_MILLIS = 8000L;
   private long _timeoutMillis = TIMEOUT_MILLIS;
-  private final SenseiLoadBalancerFactory _loadBalancerFactory;
+//  private final SenseiLoadBalancerFactory _loadBalancerFactory;
 
-  public SenseiBroker(PartitionedNetworkClient<Integer> networkClient, ClusterClient clusterClient,
-                      SenseiLoadBalancerFactory loadBalancerFactory) throws NorbertException
+  public SenseiBroker(PartitionedNetworkClient<Integer> networkClient, ClusterClient clusterClient/*,
+                      SenseiLoadBalancerFactory loadBalancerFactory*/) throws NorbertException
   {
     super(networkClient, CoreSenseiServiceImpl.SERIALIZER);
-    _loadBalancerFactory = loadBalancerFactory;
+//    _loadBalancerFactory = loadBalancerFactory;
     clusterClient.addListener(this);
-    logger.info("created broker instance " + networkClient + " " + clusterClient + " " + loadBalancerFactory);
+    logger.info("created broker instance " + networkClient + " " + clusterClient/* + " " + loadBalancerFactory*/);
   }
 
   private void recoverSrcData(SenseiHit[] hits, boolean isFetchStoredFields)
@@ -168,7 +167,7 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
 
   public void handleClusterConnected(Set<Node> nodes)
   {
-    _loadBalancer = _loadBalancerFactory.newLoadBalancer(nodes);
+//    _loadBalancer = _loadBalancerFactory.newLoadBalancer(nodes);
     _partitions = getPartitions(nodes);
     logger.info("handleClusterConnected(): Received the list of nodes from norbert " + nodes.toString());
     logger.info("handleClusterConnected(): Received the list of partitions from router " + _partitions.toString());
@@ -182,7 +181,7 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
 
   public void handleClusterNodesChanged(Set<Node> nodes)
   {
-    _loadBalancer = _loadBalancerFactory.newLoadBalancer(nodes);
+//    _loadBalancer = _loadBalancerFactory.newLoadBalancer(nodes);
     _partitions = getPartitions(nodes);
     logger.info("handleClusterNodesChanged(): Received the list of nodes from norbert " + nodes.toString());
     logger.info("handleClusterNodesChanged(): Received the list of partitions from router " + _partitions.toString());

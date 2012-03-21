@@ -1,5 +1,10 @@
 package com.senseidb.search.node;
 
+import com.linkedin.norbert.javacompat.network.RequestBuilder;
+import com.linkedin.norbert.network.ResponseIterator;
+import com.linkedin.norbert.network.common.ExceptionIterator;
+import com.linkedin.norbert.network.common.PartialIterator;
+import com.linkedin.norbert.network.common.TimeoutIterator;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 
@@ -20,7 +25,6 @@ import com.linkedin.norbert.javacompat.cluster.Node;
 import com.linkedin.norbert.javacompat.network.PartitionedNetworkClient;
 import com.linkedin.norbert.network.Serializer;
 import com.senseidb.cluster.routing.RoutingInfo;
-import com.senseidb.cluster.routing.SenseiLoadBalancer;
 import com.senseidb.metrics.MetricsConstants;
 import com.senseidb.search.req.AbstractSenseiRequest;
 import com.senseidb.search.req.AbstractSenseiResult;
@@ -43,7 +47,7 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
 
   protected long _timeout = 8000;
   protected final Serializer<REQUEST, RESULT> _serializer;
-  protected volatile SenseiLoadBalancer _loadBalancer;
+//  protected volatile SenseiLoadBalancer _loadBalancer;
   
   private static Timer ScatterTimer = null;
   private static Timer GatherTimer = null;
@@ -74,8 +78,6 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
 	  }
   }
   
-  
-
   /**
    * @param networkClient
    * @param clusterClient
@@ -89,7 +91,7 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
       throws NorbertException
   {
     super(networkClient);
-    _loadBalancer = null;
+//    _loadBalancer = null;
     _serializer = serializer;
   }
 
@@ -159,124 +161,71 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
    */
   public abstract RESULT mergeResults(REQUEST request, List<RESULT> resultList);
   public abstract String getRouteParam(REQUEST req);
+  
+  
 
   protected RESULT doBrowse(PartitionedNetworkClient<Integer> networkClient, final REQUEST req, IntSet partitions)
   {
     final long time = System.currentTimeMillis();
-    int[] partArray = null;
-    RoutingInfo searchNodeInfo = null;
 
-    if (_loadBalancer != null)
-    {
-      searchNodeInfo = _loadBalancer.route(getRouteParam(req));
-      if (searchNodeInfo != null)
-      {
-    	partArray = searchNodeInfo.partitions;
-      }
-    }
-    
-    if (partArray == null)
-    {
-      logger.info("No search nodes to handle request...");
-      EmptyMeter.mark();
+    final List<RESULT> resultList = new ArrayList<RESULT>();
+    try {
+      resultList.addAll(ScatterTimer.time(new Callable<List<RESULT>>() {
+        @Override
+        public List<RESULT> call() throws Exception {
+          ResponseIterator<RESULT> responseIterator =
+              _networkClient.sendRequestToOneReplica(new RequestBuilder<Integer, REQUEST>() {
+                @Override
+                public REQUEST apply(Node node, Set<Integer> nodePartitions) {
+                  synchronized (req) {
+                    req.setPartitions(nodePartitions);
+                    req.saveState();
+                    REQUEST customizedRequest = customizeRequest(req);
+                    req.restoreState();
+                    return customizedRequest;
+                  }
+                }
+              }, _serializer);
+  
+          TimeoutIterator<RESULT> timeoutIterator = new TimeoutIterator<RESULT>(responseIterator, _timeout);
+//          PartialIterator<RESULT> partialIterator = new PartialIterator<RESULT>(new ExceptionIterator<RESULT>(timeoutIterator));
+  
+          while(timeoutIterator.hasNext()) {
+            resultList.add(timeoutIterator.next());
+          }
+          return resultList;
+        }
+      }));
+    } catch (Exception e) {
+      ErrorMeter.mark();
+      logger.error("Error running scatter/gather", e);
       return getEmptyResultInstance();
     }
-    
-    final int[] parts = partArray;
-    final RoutingInfo searchNodes = searchNodeInfo;
 
-    final List<RESULT> resultlist = new ArrayList<RESULT>(parts.length);
-    final Map<Integer, Set<Integer>> partsMap = new HashMap<Integer, Set<Integer>>();
-    final Map<Integer, Node> nodeMap = new HashMap<Integer, Node>();
-    final Map<Integer, Future<RESULT>> futureMap = new HashMap<Integer, Future<RESULT>>();
-    
-    try{
-      ScatterTimer.time(new Callable<Object>(){
-
-		@Override
-		public Object call() throws Exception {
-			 for(int ni = 0; ni < parts.length; ni++)
-			    {
-			      Node node = searchNodes.nodelist[ni].get(searchNodes.nodegroup[ni]);
-			      Set<Integer> pset = partsMap.get(node.getId());
-			      if (pset == null)
-			      {
-			        pset = new HashSet<Integer>();
-			        partsMap.put(node.getId(), pset);
-			      }
-			      pset.add(parts[ni]);
-			      nodeMap.put(node.getId(), node);
-			    }
-			    
-			    for (Map.Entry<Integer, Node> entry : nodeMap.entrySet())
-			    {
-			      req.setPartitions(partsMap.get(entry.getKey()));
-			      req.saveState();
-			      REQUEST thisRequest = customizeRequest(req);
-				  if (logger.isDebugEnabled()){
-			        logger.debug("broker sending req part: " + partsMap.get(entry.getKey()) + " on node: " + entry.getValue());
-			      }
-			      futureMap.put(entry.getKey(), (Future<RESULT>)_networkClient.sendRequestToNode(thisRequest, entry.getValue(), _serializer));
-			      req.restoreState();
-			    }
-			    for(Map.Entry<Integer, Future<RESULT>> entry : futureMap.entrySet())
-			    { 
-			      RESULT resp;
-			      try
-			      {
-			        resp = entry.getValue().get(_timeout,TimeUnit.MILLISECONDS);
-			        resultlist.add(resp);
-			        if (logger.isDebugEnabled())
-			        {
-			          logger.debug("broker receiving res part: " + partsMap.get(entry.getKey()) + " on node: " + nodeMap.get(entry.getKey())
-			              + " node time: " + resp.getTime() +"ms remote time: " + (System.currentTimeMillis() - time) + "ms");
-			        }
-			      } catch (Exception e)
-			      {
-			    	ErrorMeter.mark();
-			        logger.error("broker receiving res part: " + partsMap.get(entry.getKey()) + " on node: " + nodeMap.get(entry.getKey())
-			            + e +" remote time: " + (System.currentTimeMillis() - time) + "ms");
-			      }
-			    }
-			    return null;
-		}
-    	
-      });
-    }
-    catch(Exception e){
-      logger.error(e.getMessage(),e);
-      ErrorMeter.mark();
-    }
-    
-   
-    if (resultlist.size() == 0)
+    if (resultList.size() == 0)
     {
       logger.error("no result received at all return empty result");
       EmptyMeter.mark();
-      return getEmptyResultInstance();
     }
-    
-    RESULT result;
-    try{
-      result = GatherTimer.time(new Callable<RESULT>(){
 
-		@Override
-		public RESULT call() throws Exception {
-			return mergeResults(req, resultlist);
-		}
-    	
+    RESULT result = null;
+    try {
+      result = GatherTimer.time(new Callable<RESULT>() {
+        @Override
+        public RESULT call() throws Exception {
+          return mergeResults(req, resultList);
+        }
       });
+    } catch (Exception e) {
+      result = getEmptyResultInstance();
+      logger.error("Error gathering the results", e);
+      ErrorMeter.mark();
     }
-    catch(Exception e){
-    	logger.error(e.getMessage(),e);
-    	result = getEmptyResultInstance();
-    	EmptyMeter.mark();
-    	ErrorMeter.mark();
-    }
-    
+
     if (logger.isDebugEnabled()){
       logger.debug("remote search took " + (System.currentTimeMillis() - time) + "ms");
     }
+
     return result;
   }
 
