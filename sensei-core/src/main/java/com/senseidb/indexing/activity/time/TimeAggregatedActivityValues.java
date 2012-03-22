@@ -18,11 +18,12 @@ public class TimeAggregatedActivityValues implements ActivityValues {
 	protected Map<String, ActivityIntValues> valuesMap = new HashMap<String, ActivityIntValues>();
 	protected IntValueHolder[] intActivityValues;
 	protected TimeHitsHolder timeActivities;
-	protected volatile int maxIndex;
+	public volatile int maxIndex;
   private AggregatesMetadata aggregatesMetadata;
-  private AggregatesUpdateJob aggregatesUpdateJob;
-	
-	public TimeAggregatedActivityValues(String fieldName, List<String> times, int count, String indexDirPath) {
+  private AggregatesUpdateJob aggregatesUpdateJob;  
+  private ActivityIntValues defaultIntValues;
+  
+  public TimeAggregatedActivityValues(String fieldName, List<String> times, int count, String indexDirPath) {
 		this.fieldName = fieldName;
 		intActivityValues = new IntValueHolder[times.size()];
 		int index = 0;
@@ -32,7 +33,7 @@ public class TimeAggregatedActivityValues implements ActivityValues {
 			this.valuesMap.put(time, activityIntValues);
 			intActivityValues[index++] = new IntValueHolder(activityIntValues, time, timeInMinutes);
 		}
-		
+		defaultIntValues = ActivityIntValues.readFromFile(indexDirPath, fieldName, count);
 		Arrays.sort(intActivityValues);
 		maxIndex = count;
 		aggregatesMetadata = AggregatesMetadata.init(indexDirPath, fieldName);
@@ -119,9 +120,11 @@ public class TimeAggregatedActivityValues implements ActivityValues {
 		if (maxIndex < index) {
 		  maxIndex = index;
 		}
-		int valueInt = Integer.parseInt(value.toString());
+	
+		int valueInt = getIntValue(value);
 		String valueStr = valueInt > 0 ? "+" + valueInt : String.valueOf(valueInt);
 		int currentTime = Clock.getCurrentTimeInMinutes();
+		defaultIntValues.update(index, value);
 		timeActivities.ensureCapacity(index);
 		synchronized (timeActivities.getLock(index)) {
 			if (!timeActivities.isSet(index)) {
@@ -134,23 +137,40 @@ public class TimeAggregatedActivityValues implements ActivityValues {
 			  timeActivities.getActivities(index).add(timeActivities.getActivities(index).removeLast() + valueInt);
 			} else {
 			  timeActivities.getTimes(index).add(currentTime);
+			  timeActivities.getActivities(index).add(valueInt);
 			}
-			timeActivities.getActivities(index).add(valueInt);
 		}
 		for (IntValueHolder intValueHolder : intActivityValues) {
 			needToFlush = needToFlush || intValueHolder.activityIntValues.update(index, valueStr);
 		}
 		return needToFlush;
 	}
+  private int getIntValue(Object value) {
+    int valueInt;
+    if (value instanceof Number) {
+		  valueInt = ((Number) value).intValue();
+		} else if (value instanceof String) {
+		  if (value.toString().startsWith("+")) {
+		     valueInt = Integer.parseInt(value.toString().substring(1));
+		  } else {
+		    valueInt = Integer.parseInt(value.toString());
+		  }
+		} else {
+		  throw new UnsupportedOperationException();
+		}
+    return valueInt;
+  }
 
 	@Override
 	public void delete(int index) {
-		timeActivities.reset(index);
+	  defaultIntValues.delete(index);
+	  timeActivities.reset(index);
 	}
 
 	@Override
 	public Runnable prepareFlush() {
 		final List<Runnable> flushes = new ArrayList<Runnable>(intActivityValues.length);
+		flushes.add(defaultIntValues.prepareFlush());
 		for (IntValueHolder intValueHolder : intActivityValues) {
 			flushes.add(intValueHolder.activityIntValues.prepareFlush());
 		}
@@ -170,13 +190,23 @@ public class TimeAggregatedActivityValues implements ActivityValues {
 
 	@Override
 	public void close() {
+	  defaultIntValues.close();
 	  aggregatesUpdateJob.stop();	  
 	  for (IntValueHolder intValueHolder : intActivityValues) {
 			intValueHolder.activityIntValues.close();
 		}
 		
 	}
-	public static class IntValueHolder implements Comparable<IntValueHolder> {
+	
+	public ActivityIntValues getDefaultIntValues() {
+    return defaultIntValues;
+  }
+
+  public AggregatesUpdateJob getAggregatesUpdateJob() {
+    return aggregatesUpdateJob;
+  }
+
+  public static class IntValueHolder implements Comparable<IntValueHolder> {
 		public final ActivityIntValues activityIntValues;
 		public final String time;
 		public final Integer timeInMinutes;
@@ -210,6 +240,9 @@ public class TimeAggregatedActivityValues implements ActivityValues {
 			return activities[index] != null;
 		}
 		public void reset(int index) {
+		 if (activities.length <= index) {
+		   return;
+		 }
 		 activities[index] = null;
 		 times[index] = null;
 		}
@@ -285,6 +318,9 @@ public class TimeAggregatedActivityValues implements ActivityValues {
 	}
   public Map<String, ActivityIntValues> getValuesMap() {
     return valuesMap;
+  }
+  public TimeHitsHolder getTimeActivities() {
+    return timeActivities;
   }
 	
 }

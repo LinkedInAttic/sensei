@@ -55,6 +55,18 @@ public class TimeAggregatedActivityValuesTest extends Assert {
     assertEquals(timeAggregatedActivityValues.valuesMap.get("5m").fieldValues[0], 4);
     assertEquals(timeAggregatedActivityValues.valuesMap.get("2m").fieldValues[0], 1);
     assertEquals(timeAggregatedActivityValues.timeActivities.getTimes(0).getSize(), 9);
+    Clock.setPredefinedTimeInMinutes(12);
+    aggregatesUpdateJob.run();
+    assertEquals(timeAggregatedActivityValues.valuesMap.get("10m").fieldValues[0], 8);
+    assertEquals(timeAggregatedActivityValues.valuesMap.get("5m").fieldValues[0], 3);
+    assertEquals(timeAggregatedActivityValues.valuesMap.get("2m").fieldValues[0], 0);
+    assertEquals(timeAggregatedActivityValues.timeActivities.getTimes(0).getSize(), 8);
+    Clock.setPredefinedTimeInMinutes(25);
+    aggregatesUpdateJob.run();
+    assertEquals(timeAggregatedActivityValues.valuesMap.get("10m").fieldValues[0], 0);
+    assertEquals(timeAggregatedActivityValues.valuesMap.get("5m").fieldValues[0], 0);
+    assertEquals(timeAggregatedActivityValues.valuesMap.get("2m").fieldValues[0], 0);
+    assertEquals(timeAggregatedActivityValues.timeActivities.getTimes(0).getSize(), 0);
   }
 
 }

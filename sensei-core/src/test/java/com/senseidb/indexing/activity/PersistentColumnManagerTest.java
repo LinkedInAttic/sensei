@@ -62,7 +62,7 @@ public class PersistentColumnManagerTest extends TestCase {
     compositeActivityValues.close();
   }
 private int[] getFieldValues(CompositeActivityValues compositeActivityValues){
-	return ((ActivityIntValues)compositeActivityValues.columnsMap.get("likes")).fieldValues;
+	return ((ActivityIntValues)compositeActivityValues.intValuesMap.get("likes")).fieldValues;
 	}
   public void test2WriteDeleteWriteAgain() throws Exception {
     String indexDirPath = getDirPath() + 1;

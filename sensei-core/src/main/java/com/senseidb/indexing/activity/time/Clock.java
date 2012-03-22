@@ -4,9 +4,9 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
 public class Clock {
-  private static Long predefinedTime;
-  private static Integer predefinedTimeInMinutes;
-  private static long startTime;
+  private static volatile Long predefinedTime;
+  private static volatile Integer predefinedTimeInMinutes;
+  private static volatile long startTime;
   static {
     SimpleDateFormat formatter = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss");
     try {

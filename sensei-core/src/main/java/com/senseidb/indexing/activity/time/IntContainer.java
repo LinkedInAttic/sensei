@@ -62,7 +62,6 @@ public class IntContainer {
     if (actualSize + startIndex < array.length) {
       return;
     }
-    System.out.println("ensureCapacityOnEnd = " + array.length);
     int newSize = array.length < 10 ? 10 : array.length * 2;
     int[] oldArr = array;
     array = new int[newSize];
@@ -84,8 +83,7 @@ public class IntContainer {
      if (newStartIndex != startIndex || newArrayLength != array.length) {
        int[] oldArr = array;
        if (newArrayLength != array.length) {
-         array = new int[newArrayLength];
-         System.out.println("ensureCapacityOnStart");
+         array = new int[newArrayLength];         
        }
        System.arraycopy(oldArr, startIndex, array, 0, actualSize);
        startIndex = 0;

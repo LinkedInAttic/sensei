@@ -10,7 +10,7 @@ public class Wait {
         return;
       }
       try {
-        Thread.sleep(100L);
+        Thread.sleep(10L);
       } catch (InterruptedException e) {
         throw new IllegalStateException(e);
       }

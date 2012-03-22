@@ -40,6 +40,7 @@ import com.senseidb.indexing.DefaultSenseiInterpreter;
 import com.senseidb.indexing.activity.ActivityIntValues;
 import com.senseidb.indexing.activity.ActivityValues;
 import com.senseidb.indexing.activity.CompositeActivityManager;
+import com.senseidb.indexing.activity.CompositeActivityValues;
 import com.senseidb.indexing.activity.facet.ActivityRangeFacetHandler;
 import com.senseidb.indexing.activity.time.TimeAggregatedActivityValues;
 import com.senseidb.plugin.SenseiPluginRegistry;
@@ -383,12 +384,13 @@ public class SenseiFacetHandlerBuilder {
 					if (column.optBoolean("multi")) {
 					  facetHandler = new MultiRangeFacetHandler(name, fieldName, null,  termListFactoryMap.get(fieldName) , buildPredefinedRanges(paramMap));
 					} else if (column.optBoolean("activity")) {
-					  facetHandler = new ActivityRangeFacetHandler(name, fieldName, activityManager.getActivityValues());
+					  CompositeActivityValues compositeActivityValues = activityManager.getActivityValues();
+            facetHandler = new ActivityRangeFacetHandler(name, fieldName, compositeActivityValues, compositeActivityValues.getActivityIntValues(fieldName));
 					} else {
 					  facetHandler = buildRangeHandler(name, fieldName, termListFactoryMap.get(fieldName), paramMap);
 					}
 				} else if (type.equals("aggregated-range")) {
-				  Assert.state(column.optBoolean("activity") != Boolean.TRUE, "aggregated-activity facet handler should reference the activity column");
+				  Assert.state(column.optBoolean("activity") == Boolean.TRUE, "aggregated-activity facet handler should reference the activity column");
 				  facets.addAll(buildAggregatedActivityFacetHanlers(facet, activityManager));          
         } else if (type.equals("multi")) {
 					facetHandler = buildMultiHandler(name, fieldName,  termListFactoryMap.get(fieldName), dependSet);

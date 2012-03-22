@@ -29,9 +29,10 @@ import com.senseidb.indexing.activity.CompositeActivityStorage.Update;
 import com.senseidb.indexing.activity.time.TimeAggregatedActivityValues;
 
 public class CompositeActivityValues {
+  private static final String AGGREGATED_SUFFIX = "_aggregated";
   private Comparator<String> versionComparator; 
   private volatile UpdateBatch<Update> pendingDeletes = new UpdateBatch<Update>();
-  protected Map<String, ActivityValues> columnsMap = new ConcurrentHashMap<String, ActivityValues>();
+  protected Map<String, ActivityValues> intValuesMap = new ConcurrentHashMap<String, ActivityValues>();
   protected volatile String lastVersion = "";  
   protected Long2IntMap uidToArrayIndex = new Long2IntOpenHashMap();  
   private ReadWriteLock[] locks;
@@ -55,7 +56,7 @@ public class CompositeActivityValues {
       locks[i] = new ReentrantReadWriteLock();
     }
   }
-  protected ReadWriteLock getLock(long uid) {
+  public ReadWriteLock getLock(long uid) {
     return locks[(int) (uid % locks.length)];
   }
   public void updateVersion(String version) {
@@ -64,7 +65,7 @@ public class CompositeActivityValues {
     }
   }
   public void update(long uid, final String version, JSONObject event) {
-    if (columnsMap.isEmpty()) {
+    if (intValuesMap.isEmpty()) {
       return;
     }
     if (versionComparator.compare(lastVersion, version) > 0) {
@@ -106,9 +107,19 @@ public class CompositeActivityValues {
       flush();
     }
   }
+  public ActivityIntValues getActivityIntValues(String fieldName) {
+    ActivityValues activityValues = intValuesMap.get(fieldName);
+    if (activityValues == null) {
+      return null;
+    } else if (activityValues instanceof ActivityIntValues) {
+      return (ActivityIntValues)  activityValues;
+    } else {
+      return ((TimeAggregatedActivityValues)  activityValues).getDefaultIntValues();
+    }
+  }
 private boolean updateActivities(JSONObject event, int index) {
 	boolean needToFlush = false;
-	for (ActivityValues activityIntValues :  columnsMap.values()) {
+	for (ActivityValues activityIntValues :  intValuesMap.values()) {
         Object value = event.opt(activityIntValues.getFieldName());
         if (value != null) {
         	needToFlush = needToFlush || activityIntValues.update(index, value);
@@ -118,7 +129,7 @@ private boolean updateActivities(JSONObject event, int index) {
 }
   private boolean matchesFields(JSONObject event) {
     boolean matchedEvent = false;
-    for (String field : columnsMap.keySet()) {
+    for (String field : intValuesMap.keySet()) {
       if (event.opt(field) != null) {
         matchedEvent = true;
       }
@@ -140,7 +151,7 @@ private boolean updateActivities(JSONObject event, int index) {
           continue;
         }
         int index = uidToArrayIndex.remove(uid);
-        for (ActivityValues activityIntValues :  columnsMap.values()) {
+        for (ActivityValues activityIntValues :  intValuesMap.values()) {
           activityIntValues.delete(index);
         }
         needToFlush = needToFlush || pendingDeletes.addFieldUpdate(new Update(index, Long.MIN_VALUE));
@@ -195,8 +206,8 @@ private boolean updateActivities(JSONObject event, int index) {
     }
     final UpdateBatch<Update> oldBatch = updateBatch;
     updateBatch = new UpdateBatch<CompositeActivityStorage.Update>();    
-    final List<Runnable> underlyingFlushes = new ArrayList<Runnable>(columnsMap.size());
-    for (ActivityValues activityIntValues :  columnsMap.values()) {
+    final List<Runnable> underlyingFlushes = new ArrayList<Runnable>(intValuesMap.size());
+    for (ActivityValues activityIntValues :  intValuesMap.values()) {
       underlyingFlushes.add(activityIntValues.prepareFlush());
     }
     final String version = lastVersion;
@@ -223,7 +234,7 @@ private boolean updateActivities(JSONObject event, int index) {
   public void close() {
     closed = true;    
     activityStorage.close();
-    for (ActivityValues activityIntValues :  columnsMap.values()) {
+    for (ActivityValues activityIntValues :  intValuesMap.values()) {
       activityIntValues.close();
     }
   }
@@ -236,14 +247,16 @@ private boolean updateActivities(JSONObject event, int index) {
     ret.metadata = metadata;
     ret.versionComparator = versionComparator;
     ret.lastVersion = metadata.version;
-    ret.columnsMap = new HashMap<String, ActivityValues>(fieldNames.size());
-    for (String field : fieldNames) {
-      ret.columnsMap.put(field, ActivityIntValues.readFromFile(indexDirPath, field, metadata.count));
-    }    
+    ret.intValuesMap = new HashMap<String, ActivityValues>(fieldNames.size());
     for (TimeAggregateInfo aggregatedActivity : aggregatedActivities) {
-      ret.columnsMap.put(aggregatedActivity.fieldName, TimeAggregatedActivityValues.valueOf(aggregatedActivity.fieldName, aggregatedActivity.times, 
+      ret.intValuesMap.put(aggregatedActivity.fieldName, TimeAggregatedActivityValues.valueOf(aggregatedActivity.fieldName, aggregatedActivity.times, 
           metadata.count, indexDirPath));
     }
+    for (String field : fieldNames) {
+      if (!ret.intValuesMap.containsKey(field)) {
+        ret.intValuesMap.put(field, ActivityIntValues.readFromFile(indexDirPath, field, metadata.count));
+      }
+    }    
     return ret;
   }
   public int[] precomputeArrayIndexes(long[] uids) {    
@@ -268,13 +281,13 @@ private boolean updateActivities(JSONObject event, int index) {
     return ret;
   }
   public Map<String, ActivityValues> getActivityValuesMap() {
-    return columnsMap;
+    return intValuesMap;
   }
   public int getValueByUID(long uid, String column) {
     Lock lock = getLock(uid).readLock();
     try {
       lock.lock();
-    return ((ActivityIntValues)columnsMap.get(column)).fieldValues[uidToArrayIndex.get(uid)];
+    return getActivityIntValues(column).fieldValues[uidToArrayIndex.get(uid)];
     } finally {
       lock.unlock();
     }

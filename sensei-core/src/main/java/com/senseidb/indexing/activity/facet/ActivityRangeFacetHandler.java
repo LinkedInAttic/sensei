@@ -1,6 +1,7 @@
 package com.senseidb.indexing.activity.facet;
 
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.util.HashSet;
 import java.util.Properties;
 
@@ -25,14 +26,18 @@ import com.senseidb.indexing.activity.ActivityIntValues;
 import com.senseidb.indexing.activity.CompositeActivityValues;
 
 public class ActivityRangeFacetHandler extends FacetHandler<int[]> {
-  
+  private static final String DEFAULT_FORMATTING_STRING = "0000000000";
+  protected ThreadLocal<DecimalFormat> formatter = new ThreadLocal<DecimalFormat>() {
+    protected DecimalFormat initialValue() {
+      return new DecimalFormat(DEFAULT_FORMATTING_STRING);
+    }
+  };
+
   private final ActivityIntValues activityIntValues;
   private final CompositeActivityValues compositeActivityValues;
   
 
-  public ActivityRangeFacetHandler(String facetName, String fieldName, CompositeActivityValues compositeActivityValues) {
-    this(facetName, fieldName, compositeActivityValues, (ActivityIntValues) compositeActivityValues.getActivityValuesMap().get(fieldName)); 
-  }
+  
   public ActivityRangeFacetHandler(String facetName, String fieldName, CompositeActivityValues compositeActivityValues, ActivityIntValues activityIntValues) {
     super(facetName, new HashSet<String>());
     this.compositeActivityValues = compositeActivityValues;
@@ -70,8 +75,7 @@ public class ActivityRangeFacetHandler extends FacetHandler<int[]> {
           
           @Override
           public boolean get(int docId) {           
-            int val = array[indexes[docId]];
-            
+            int val = array[indexes[docId]];            
             return val >= startValue && val < endValue && val != Integer.MIN_VALUE;
           }
         };
@@ -105,7 +109,7 @@ public class ActivityRangeFacetHandler extends FacetHandler<int[]> {
     if (value == Integer.MIN_VALUE) {
       value = 0;
     }
-    return new String[] {String.valueOf(value)};
+    return new String[] {formatter.get().format(value)};
   }
 
   @Override
