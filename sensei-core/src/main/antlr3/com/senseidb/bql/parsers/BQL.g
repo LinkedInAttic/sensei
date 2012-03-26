@@ -1552,7 +1552,7 @@ null_predicate returns [JSONObject json]
         }
     ;
 
-value_list returns [Object json]
+non_variable_value_list returns [Object json]
 @init {
     JSONArray jsonArray = new JSONArray();
 }
@@ -1567,6 +1567,14 @@ value_list returns [Object json]
         )* RPAR
         {
             $json = jsonArray;
+        }
+    ;
+
+
+value_list returns [Object json]
+    :   non_variable_value_list
+        {
+            $json = $non_variable_value_list.json;
         }
     |   VARIABLE
         {
@@ -1703,7 +1711,7 @@ facet_param_list returns [JSONObject json]
     ;
 
 facet_param returns [String facet, JSONObject param]
-    :   LPAR column_name COMMA STRING_LITERAL COMMA facet_param_type COMMA (val=value | valList=value_list) RPAR
+    :   LPAR column_name COMMA STRING_LITERAL COMMA facet_param_type COMMA (val=value | valList=non_variable_value_list) RPAR
         {
             $facet = $column_name.text; // XXX Check error here?
             try {
