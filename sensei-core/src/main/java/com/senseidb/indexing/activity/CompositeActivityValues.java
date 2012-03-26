@@ -122,7 +122,7 @@ private boolean updateActivities(JSONObject event, int index) {
 	for (ActivityValues activityIntValues :  intValuesMap.values()) {
         Object value = event.opt(activityIntValues.getFieldName());
         if (value != null) {
-        	needToFlush = needToFlush || activityIntValues.update(index, value);
+        	needToFlush = needToFlush | activityIntValues.update(index, value);
         }
       }
 	return needToFlush;

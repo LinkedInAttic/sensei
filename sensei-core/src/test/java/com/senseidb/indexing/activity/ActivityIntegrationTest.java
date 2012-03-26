@@ -92,42 +92,53 @@ public class ActivityIntegrationTest extends TestCase {
       }
     }  
     int initialTime = Clock.getCurrentTimeInMinutes();
-    for (int i = 0; i < 100; i++) {
+    for (int i = 0; i < 10; i++) {
       final int uid = i;
       Clock.setPredefinedTimeInMinutes(Clock.getCurrentTimeInMinutes() + 1);
-      for (int j = 0; j < 100 - i; j ++) {
+      for (int j = 0; j < 10 - i; j ++) {
         FileDataProviderWithMocks.add(new JSONObject().put("id", j).put("_type", "update").put("likes", "+1"));
       }
-      if (uid < 99)Wait.until(10000, "" + i, new Wait.Condition() {
+      if (uid < 9)Wait.until(10000, "" + i, new Wait.Condition() {
         @Override
         public boolean evaluate() { 
           return inMemoryColumnData1.getValueByUID(1, "likes") == uid + 1;
-          
         }
       });   
     }
     Wait.until(100000, "", new Wait.Condition() {
       @Override
       public boolean evaluate() { 
-        return inMemoryColumnData1.getValueByUID(0, "likes") == 100;
+        return inMemoryColumnData1.getValueByUID(0, "likes") == 10;
       }
     });   
-    String req = "{\"selections\": [{\"range\": {\"likes:2w\": {\"from\": 98, \"include_lower\": true}}}], \"sort\":[{\"likes:2w\":\"desc\"}]}";
+    String req = "{\"selections\": [{\"range\": {\"likes:2w\": {\"from\": 8, \"include_lower\": true}}}], \"sort\":[{\"likes:2w\":\"desc\"}]}";
     JSONObject res = TestSensei.search(new JSONObject(req));     
     System.out.println("!!!" + res.toString(1));
     JSONArray hits = res.getJSONArray("hits");
-    assertEquals(Integer.parseInt(hits.getJSONObject(0).getJSONArray("likes:2w").getString(0)), 100);
-    assertEquals(Integer.parseInt(hits.getJSONObject(1).getJSONArray("likes:2w").getString(0)), 99);
-    assertEquals(Integer.parseInt(hits.getJSONObject(2).getJSONArray("likes:2w").getString(0)), 98);
+    assertEquals(Integer.parseInt(hits.getJSONObject(0).getJSONArray("likes:2w").getString(0)), 10);
+    assertEquals(Integer.parseInt(hits.getJSONObject(1).getJSONArray("likes:2w").getString(0)), 9);
+    assertEquals(Integer.parseInt(hits.getJSONObject(2).getJSONArray("likes:2w").getString(0)), 8);
+    Clock.setPredefinedTimeInMinutes(initialTime + 11);
+    timeAggregatedActivityValues1.getAggregatesUpdateJob().run();
+    timeAggregatedActivityValues2.getAggregatesUpdateJob().run();
+    req = "{ \"sort\":[{\"likes:5m\":\"desc\"}]}";
+     res = TestSensei.search(new JSONObject(req));
+     hits = res.getJSONArray("hits");
+    assertEquals(Integer.parseInt(hits.getJSONObject(0).getJSONArray("likes:5m").getString(0)), 4);
+    assertEquals(Integer.parseInt(hits.getJSONObject(1).getJSONArray("likes:5m").getString(0)), 3);
+    assertEquals(Integer.parseInt(hits.getJSONObject(2).getJSONArray("likes:5m").getString(0)), 2);
+    assertEquals(Integer.parseInt(hits.getJSONObject(0).getJSONArray("likes:15m").getString(0)), 10);
     Clock.setPredefinedTimeInMinutes(initialTime + 20);
     timeAggregatedActivityValues1.getAggregatesUpdateJob().run();
     timeAggregatedActivityValues2.getAggregatesUpdateJob().run();
     req = "{ \"sort\":[{\"likes:15m\":\"desc\"}]}";
-     res = TestSensei.search(new JSONObject(req));
-    assertEquals(Integer.parseInt(hits.getJSONObject(0).getJSONArray("likes:5m").getString(0)), 101);
-    assertEquals(Integer.parseInt(hits.getJSONObject(1).getJSONArray("likes:5m").getString(0)), 99);
-    assertEquals(Integer.parseInt(hits.getJSONObject(2).getJSONArray("likes:5m").getString(0)), 98);
-    
+    res = TestSensei.search(new JSONObject(req));
+    hits = res.getJSONArray("hits");
+    System.out.println(res.toString(1));
+    assertEquals(Integer.parseInt(hits.getJSONObject(0).getJSONArray("likes:5m").getString(0)), 0);
+    assertEquals(Integer.parseInt(hits.getJSONObject(0).getJSONArray("likes:15m").getString(0)), 5);
+    assertEquals(Integer.parseInt(hits.getJSONObject(1).getJSONArray("likes:15m").getString(0)), 4);
+    assertEquals(Integer.parseInt(hits.getJSONObject(2).getJSONArray("likes:15m").getString(0)), 3);
   }
 
   private synchronized TimeAggregatedActivityValues clear(final CompositeActivityValues inMemoryColumnData1) throws Exception {

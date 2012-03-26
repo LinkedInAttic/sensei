@@ -46,13 +46,14 @@ public class AggregatesUpdateJob implements Runnable {
         }
         IntContainer activities = timeAggregatedActivityValues.timeActivities.getActivities(i);
         IntContainer times = timeAggregatedActivityValues.timeActivities.getTimes(i);
-        updateActivityValues(timeAggregatedActivityValues.intActivityValues, activities, times, currentTime, i);        
+        int[] updateTempValues = new int[timeAggregatedActivityValues.intActivityValues.length];
+        updateActivityValues(timeAggregatedActivityValues.intActivityValues, activities, times, currentTime, i, updateTempValues);        
       }      
     }    
     aggregatesMetadata.updateTime(currentTime);
   }
  
-  private final void updateActivityValues(IntValueHolder[] intActivityValues, IntContainer activities, IntContainer times, int currentTime, int index) {       
+  private final void updateActivityValues(IntValueHolder[] intActivityValues, IntContainer activities, IntContainer times, int currentTime, int index, int[] updateTempValues) {       
     int minimumAggregateIndex = 0;
     for (int activityIndex = 0; activityIndex < activities.getSize(); activityIndex++) { 
       //the activity is current. As they are sorted in the ascending order, we can stop now
@@ -78,9 +79,19 @@ public class AggregatesUpdateJob implements Runnable {
         if (currentElapsedTime >= intValueHolder.timeInMinutes && previousElapsedTime < intValueHolder.timeInMinutes) {
           int activityValue = activities.get(activityIndex); 
           if (activityValue != 0) {
-            intValueHolder.activityIntValues.update(index, activityValue > 0 ? String.valueOf(-activityValue) : "+" + String.valueOf(activityValue));
+            updateTempValues[aggregateIndex] += activityValue;
           }
         }
+      }
+    }
+    for (int i = 0; i < updateTempValues.length; i++) {
+      int updateValue = updateTempValues[i];
+      if (updateValue != 0) {
+      // System.out.println("!!!updateValue = " + updateValue + " for " + intActivityValues[i].time + ", index = " + index);
+        synchronized (intActivityValues[i].activityIntValues) {
+         intActivityValues[i].activityIntValues.update(index, updateValue > 0 ? String.valueOf(-updateValue) : "+" + String.valueOf(updateValue));
+       }
+       updateTempValues[i] = 0;
       }
     }
     //remove outdated activities

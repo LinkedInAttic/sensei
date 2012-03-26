@@ -81,7 +81,7 @@ public class ActivityIntValues implements ActivityValues {
     return fieldValues[index];
   }
 
-  private void ensureCapacity(int currentArraySize) {
+  private synchronized void ensureCapacity(int currentArraySize) {
     if (fieldValues.length == 0) {
       this.fieldValues = new int[50000];
       return;
@@ -140,8 +140,7 @@ public class ActivityIntValues implements ActivityValues {
 
   public static ActivityIntValues readFromFile(String indexDirPath,
       String fieldName, int count) {
-    ActivityIntStorage persistentColumnManager = new ActivityIntStorage(
-        fieldName, indexDirPath);
+    ActivityIntStorage persistentColumnManager = new ActivityIntStorage(fieldName, indexDirPath);
     persistentColumnManager.init();
     return persistentColumnManager.getActivityDataFromFile(count);
   }

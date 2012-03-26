@@ -26,7 +26,8 @@ public class ActivityIntStorage {
 
   public synchronized void init() {
     try {
-      File file = new File(indexDir, fieldName + ".data");
+      String fileName = fieldName.replace(':', '-');
+      File file = new File(indexDir, fileName + ".data");
       if (!file.exists()) {
         file.createNewFile();
       }
