@@ -1,13 +1,20 @@
 package com.senseidb.indexing.activity.time;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.Collections;
 
 import junit.framework.Assert;
 
+import org.json.simple.JSONObject;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import proj.zoie.impl.indexing.ZoieConfig;
+
+import com.senseidb.indexing.activity.CompositeActivityManager;
+import com.senseidb.indexing.activity.CompositeActivityValues;
 import com.senseidb.test.SenseiStarter;
 
 public class TimeAggregatedActivityPerfTest extends Assert {
@@ -30,32 +37,48 @@ public class TimeAggregatedActivityPerfTest extends Assert {
     Clock.setPredefinedTimeInMinutes(0);
   }
   @Test
-  public void test1Perf10mInsertsAndUpdateAfterwards() {
+  public void test1Perf10mInsertsAndUpdateAfterwards() throws Exception {
     Clock.setPredefinedTimeInMinutes(0);
-    TimeAggregatedActivityValues timeAggregatedActivityValues = new TimeAggregatedActivityValues("likes", java.util.Arrays.asList("10m","5m", "2m"), 0, getDirPath());
-    
-    timeAggregatedActivityValues.init(0);
+    CompositeActivityValues activityValues = CompositeActivityValues.readFromFile(getDirPath(), Collections.EMPTY_LIST, Arrays.asList(new CompositeActivityManager.TimeAggregateInfo("likes", Arrays.asList("10m","5m", "2m"))) , ZoieConfig.DEFAULT_VERSION_COMPARATOR);
+    TimeAggregatedActivityValues timeAggregatedActivityValues = (TimeAggregatedActivityValues) activityValues.getActivityValuesMap().get("likes");
     timeAggregatedActivityValues.getAggregatesUpdateJob().stop();
     long insertTime = System.currentTimeMillis();
-    for (int i = 0; i < 100; i++) {
+    org.json.JSONObject jsonActivityUpdate = new org.json.JSONObject();
+    jsonActivityUpdate.put("likes", "+1");
+    int recordsCount = 100000;
+    int numOfEvents = 10;
+    for (int i = 0; i < numOfEvents; i++) {
       Clock.setPredefinedTimeInMinutes(i);
-      for (int j = 0; j < 100000; j ++) {
-        if (timeAggregatedActivityValues.update(j, "+1")) {
-          timeAggregatedActivityValues.flush();
+      for (int j = 0; j < recordsCount; j ++) {
+        activityValues.update((long)j, String.valueOf(i * recordsCount + j), jsonActivityUpdate);
+        if (j % 100000 == 0) {
+          System.out.println("Inserted next 100k events j = " + j);
         }
       }
       System.out.println("Updated event = " + i);
     }
     System.out.println("insertTime = " + (System.currentTimeMillis() - insertTime));
-    assertEquals(100, timeAggregatedActivityValues.getValuesMap().get("5m").fieldValues[50000]);
-    assertEquals(100, timeAggregatedActivityValues.getValuesMap().get("10m").fieldValues[50000]);
-    assertEquals(100, timeAggregatedActivityValues.getValuesMap().get("10m").fieldValues[90000]);
+    activityValues.syncWithPersistentVersion(String.valueOf((numOfEvents - 1) * recordsCount + recordsCount - 1));
+    System.out.println("persistentTime = " + (System.currentTimeMillis() - insertTime));
+    assertEquals(numOfEvents, timeAggregatedActivityValues.getValuesMap().get("5m").fieldValues[50000]);
+    assertEquals(numOfEvents, timeAggregatedActivityValues.getValuesMap().get("10m").fieldValues[50000]);
+    assertEquals(numOfEvents, timeAggregatedActivityValues.getValuesMap().get("10m").fieldValues[90000]);
     long updateTime = System.currentTimeMillis();
     timeAggregatedActivityValues.getAggregatesUpdateJob().run();
     assertEquals(5, timeAggregatedActivityValues.getValuesMap().get("5m").fieldValues[50000]);
     assertEquals(10, timeAggregatedActivityValues.getValuesMap().get("10m").fieldValues[50000]);
     assertEquals(10, timeAggregatedActivityValues.getValuesMap().get("10m").fieldValues[90000]);
-    System.out.println("updateTime = " + (System.currentTimeMillis() - updateTime));  
+    System.out.println("updateTime = " + (System.currentTimeMillis() - updateTime)); 
+    activityValues.flush();
+    Thread.sleep(2000);
+    activityValues.close();
+    
+    activityValues = CompositeActivityValues.readFromFile(getDirPath(), Collections.EMPTY_LIST, Arrays.asList(new CompositeActivityManager.TimeAggregateInfo("likes", Arrays.asList("10m","5m", "2m"))) , ZoieConfig.DEFAULT_VERSION_COMPARATOR);
+    timeAggregatedActivityValues = (TimeAggregatedActivityValues) activityValues.getActivityValuesMap().get("likes");
+    timeAggregatedActivityValues.getAggregatesUpdateJob().stop();
+    assertEquals(5, timeAggregatedActivityValues.getValuesMap().get("5m").fieldValues[50000]);
+    assertEquals(10, timeAggregatedActivityValues.getValuesMap().get("10m").fieldValues[50000]);
+    assertEquals(10, timeAggregatedActivityValues.getValuesMap().get("10m").fieldValues[90000]);
   }
 
 }

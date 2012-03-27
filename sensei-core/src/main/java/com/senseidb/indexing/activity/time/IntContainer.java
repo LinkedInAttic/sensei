@@ -62,7 +62,7 @@ public class IntContainer {
     if (actualSize + startIndex < array.length) {
       return;
     }
-    int newSize = array.length < 10 ? 10 : array.length * 2;
+    int newSize = array.length < 10 ? array.length + 2 : (int) (array.length * 1.2);
     int[] oldArr = array;
     array = new int[newSize];
     System.arraycopy(oldArr, startIndex, array, 0, actualSize);

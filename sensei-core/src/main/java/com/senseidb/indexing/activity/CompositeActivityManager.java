@@ -123,6 +123,12 @@ public class CompositeActivityManager implements DeletionListener, HourglassList
    public static class TimeAggregateInfo {
      public String fieldName;
      public List<String> times;     
+     public TimeAggregateInfo(String fieldName, List<String> times) {
+      this.fieldName = fieldName;
+      this.times = times;
+    }
+     public TimeAggregateInfo() {
+    }
      public static List<TimeAggregateInfo> valueOf(SenseiSchema senseiSchema) {
        List<TimeAggregateInfo> ret = new ArrayList<CompositeActivityManager.TimeAggregateInfo>();
        for (FacetDefinition facetDefinition : senseiSchema.getFacets()) {

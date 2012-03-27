@@ -104,6 +104,9 @@ public class AggregatesUpdateJob implements Runnable {
       if (elapsedTime >= intActivityValues[0].timeInMinutes) {
         times.removeFirst();
         activities.removeFirst();
+        if (times.size() == 0) {
+          timeAggregatedActivityValues.timeActivities.reset(index);
+        }
       } else {
         break;
       }

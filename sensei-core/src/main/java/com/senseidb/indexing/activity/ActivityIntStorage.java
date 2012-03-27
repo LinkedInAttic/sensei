@@ -18,7 +18,7 @@ public class ActivityIntStorage {
   private volatile boolean closed = false;
   private MappedByteBuffer buffer;
   private long fileLength; 
-  
+  private boolean activateMemoryMappedBuffers = true;
   public ActivityIntStorage(String fieldName, String indexDir) {
     this.fieldName = fieldName;
     this.indexDir = indexDir;
@@ -33,7 +33,9 @@ public class ActivityIntStorage {
       }
       storedFile = new RandomAccessFile(file, "rw");
       fileLength = storedFile.length();
-       buffer = storedFile.getChannel().map(MapMode.READ_WRITE, 0, file.length());       
+      if (activateMemoryMappedBuffers) {
+        buffer = storedFile.getChannel().map(MapMode.READ_WRITE, 0, file.length());     
+      } 
     } catch (IOException e) {
       logger.error(e.getMessage(), e);
       throw new RuntimeException(e);
@@ -41,13 +43,22 @@ public class ActivityIntStorage {
   }
 
   public synchronized void flush(List<FieldUpdate> updates) {
-    Assert.state(buffer != null, "The FileStorage is not initialized");    
+    Assert.state(storedFile != null, "The FileStorage is not initialized");    
     try {
       for (FieldUpdate update : updates) {       
          ensureCapacity(update.index * 4 + 4);        
+         if (activateMemoryMappedBuffers) {
          buffer.putInt(update.index * 4, update.value);
+         } else {  
+           storedFile.seek(update.index * 4);
+           storedFile.writeInt(update.value);
+         }
       }
-      buffer.force();
+      if (activateMemoryMappedBuffers) {
+        buffer.force();
+      } else {
+        storedFile.getFD().sync(); 
+      }
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -64,14 +75,18 @@ public class ActivityIntStorage {
       fileLength = 2000000;
     }
     storedFile.setLength(fileLength);
-    buffer = storedFile.getChannel().map(MapMode.READ_WRITE, 0,  fileLength);
+    if (activateMemoryMappedBuffers) {
+      buffer = storedFile.getChannel().map(MapMode.READ_WRITE, 0,  fileLength);
+    }
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
   }
   public synchronized void close() {
     try {
-      buffer.force();
+      if (activateMemoryMappedBuffers) {
+        buffer.force();
+      }
       storedFile.close();
       closed = true;
     } catch (IOException e) {
@@ -91,7 +106,13 @@ public class ActivityIntStorage {
       }
       ret.init((int) (count * 1.5));
       for (int i = 0; i < count; i++) {
-        int value = buffer.getInt(i * 4);
+        int value;
+        if (activateMemoryMappedBuffers) {
+          value = buffer.getInt(i * 4);
+        } else {
+          storedFile.seek(i * 4);
+          value = storedFile.readInt();
+        }
         ret.fieldValues[i] = value;
       }
     } catch (Exception e) {
