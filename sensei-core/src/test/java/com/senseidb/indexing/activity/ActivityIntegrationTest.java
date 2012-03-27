@@ -67,18 +67,7 @@ public class ActivityIntegrationTest extends TestCase {
       }
     });
   }
- 
-  public void ntest3OpeningTheNewActivityFieldValues() throws Exception {
-    final CompositeActivityValues inMemoryColumnData1 = CompositeActivityManager.cachedInstances.get(1).activityValues;
-    inMemoryColumnData1.flush();
-    inMemoryColumnData1.syncWithPersistentVersion(String.valueOf(15019));
-    FileDataProviderWithMocks.add(new JSONObject().put("id", 0).put("_type", "update").put("likes", "+5"));
-    String absolutePath = SenseiStarter.IndexDir + "/test/node1/" + "activity/";
-    CompositeActivityValues compositeActivityValues = CompositeActivityValues.readFromFile(absolutePath, java.util.Arrays.asList("likes"), Collections.EMPTY_LIST, ZoieConfig.DEFAULT_VERSION_COMPARATOR);
-    
-    assertEquals(51, inMemoryColumnData1.getValueByUID(1L, "likes"));
-  }
-  public void test4AggregatesIntegrationTest() throws Exception {
+  public void test3AggregatesIntegrationTest() throws Exception {
     final CompositeActivityValues inMemoryColumnData1 = CompositeActivityManager.cachedInstances.get(1).activityValues;
     final CompositeActivityValues inMemoryColumnData2 = CompositeActivityManager.cachedInstances.get(2).activityValues;
     final TimeAggregatedActivityValues timeAggregatedActivityValues1 = clear(inMemoryColumnData1);
@@ -140,6 +129,16 @@ public class ActivityIntegrationTest extends TestCase {
     assertEquals(Integer.parseInt(hits.getJSONObject(1).getJSONArray("likes:15m").getString(0)), 4);
     assertEquals(Integer.parseInt(hits.getJSONObject(2).getJSONArray("likes:15m").getString(0)), 3);
   }
+  public void test4OpeningTheNewActivityFieldValues() throws Exception {
+    final CompositeActivityValues inMemoryColumnData1 = CompositeActivityManager.cachedInstances.get(1).activityValues;
+    inMemoryColumnData1.flush();
+    inMemoryColumnData1.syncWithPersistentVersion(String.valueOf(15019));
+    String absolutePath = SenseiStarter.IndexDir + "/test/node1/" + "activity/";
+    CompositeActivityValues compositeActivityValues = CompositeActivityValues.readFromFile(absolutePath, java.util.Arrays.asList("likes"), Collections.EMPTY_LIST, ZoieConfig.DEFAULT_VERSION_COMPARATOR);
+    assertEquals(9, compositeActivityValues.getValueByUID(1L, "likes"));
+    assertEquals(9, inMemoryColumnData1.getValueByUID(1L, "likes"));
+  }
+ 
 
   private synchronized TimeAggregatedActivityValues clear(final CompositeActivityValues inMemoryColumnData1) throws Exception {
     final TimeAggregatedActivityValues timeAggregatedActivityValues = (TimeAggregatedActivityValues)inMemoryColumnData1.getActivityValuesMap().get("likes");
