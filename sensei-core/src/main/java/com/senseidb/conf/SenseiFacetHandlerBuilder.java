@@ -22,6 +22,7 @@ import com.browseengine.bobo.facets.FacetHandler.FacetDataNone;
 import com.browseengine.bobo.facets.FacetHandlerInitializerParam;
 import com.browseengine.bobo.facets.RuntimeFacetHandler;
 import com.browseengine.bobo.facets.RuntimeFacetHandlerFactory;
+import com.browseengine.bobo.facets.AbstractRuntimeFacetHandlerFactory;
 import com.browseengine.bobo.facets.attribute.AttributesFacetHandler;
 import com.browseengine.bobo.facets.data.PredefinedTermListFactory;
 import com.browseengine.bobo.facets.data.TermListFactory;
@@ -273,7 +274,7 @@ public class SenseiFacetHandlerBuilder {
 	                                                                                                    final T end,
 	                                                                                                    final T unit)
 	{
-	  return new RuntimeFacetHandlerFactory<FacetHandlerInitializerParam, RuntimeFacetHandler<FacetDataNone>>()
+	  return new AbstractRuntimeFacetHandlerFactory<FacetHandlerInitializerParam, RuntimeFacetHandler<FacetDataNone>>()
 	  {
 	    @Override
 	    public RuntimeFacetHandler<FacetDataNone> get(FacetHandlerInitializerParam params)
@@ -442,11 +443,17 @@ public class SenseiFacetHandlerBuilder {
     final String depends = dependSet.iterator().next();
     Assert.notEmpty(paramMap.get("range"), "Facet handler " + name + " should have at least one predefined range");
 
-    return new RuntimeFacetHandlerFactory<FacetHandlerInitializerParam, RuntimeFacetHandler<?>>() {
+    return new AbstractRuntimeFacetHandlerFactory<FacetHandlerInitializerParam, RuntimeFacetHandler<?>>() {
 
       @Override
       public String getName() {
         return name;
+      }
+
+      @Override
+      public boolean isEmptyParamsSupported()
+      {
+        return true;
       }
 
       @Override
