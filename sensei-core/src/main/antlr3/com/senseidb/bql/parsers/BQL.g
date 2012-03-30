@@ -818,22 +818,44 @@ limit_clause returns [int offset, int count]
         }
     ;
 
+or_column_name_list returns [JSONArray json]
+@init {
+    $json = new JSONArray();
+}
+    :   col=column_name
+        {
+            String colName = $col.text;
+            if (colName != null) {
+                $json.put($col.text); 
+            }
+        }
+        (OR col=column_name
+            {
+                colName = $col.text;
+                if (colName != null) {
+                    $json.put($col.text); 
+                }
+            }
+        )*
+    ;
+
 group_by_clause returns [JSONObject json]
-    :   GROUP BY column_name (TOP top=INTEGER)?
+    :   GROUP BY or_column_name_list (TOP top=INTEGER)?
         {
             $json = new JSONObject();
             try {
-                JSONArray cols = new JSONArray();
-                String col = $column_name.text;
-                String[] facetInfo = _facetInfoMap.get(col);
-                if (facetInfo != null && (facetInfo[0].equals("range") ||
-                                          facetInfo[0].equals("multi") ||
-                                          facetInfo[0].equals("path"))) {
-                    throw new FailedPredicateException(input, 
-                                                       "group_by_clause",
-                                                       "Range/multi/path facet, \"" + col + "\", cannot be used in the GROUP BY clause.");
+                JSONArray cols = $or_column_name_list.json;
+                for (int i = 0; i < cols.length(); ++i) {
+                    String col = cols.getString(i);
+                    String[] facetInfo = _facetInfoMap.get(col);
+                    if (facetInfo != null && (facetInfo[0].equals("range") ||
+                                              facetInfo[0].equals("multi") ||
+                                              facetInfo[0].equals("path"))) {
+                        throw new FailedPredicateException(input, 
+                                                           "group_by_clause",
+                                                           "Range/multi/path facet, \"" + col + "\", cannot be used in the GROUP BY clause.");
+                    }
                 }
-                cols.put(col);
                 $json.put("columns", cols);
                 if (top != null) {
                     $json.put("top", Integer.parseInt(top.getText()));
