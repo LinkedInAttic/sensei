@@ -29,9 +29,10 @@ public class ClusteredSenseiServiceImpl implements SenseiService {
   private final String _clusterName;
   
   public ClusteredSenseiServiceImpl(String zkurl,int zkTimeout,String clusterClientName, String clusterName, int connectTimeoutMillis,
-      int writeTimeoutMillis, int maxConnectionsPerNode, int staleRequestTimeoutMins,
-      int staleRequestCleanupFrequencyMins, SenseiLoadBalancerFactory loadBalancerFactory,
-      Comparator<String> versionComparator) {
+                                    int writeTimeoutMillis, int maxConnectionsPerNode, int staleRequestTimeoutMins,
+                                    int staleRequestCleanupFrequencyMins, SenseiLoadBalancerFactory loadBalancerFactory,
+                                    Comparator<String> versionComparator, int pollInterval, int minResponses, int maxTotalWait)
+  {
     _clusterName = clusterName;
     _networkClientConfig.setServiceName(clusterName);
     _networkClientConfig.setZooKeeperConnectString(zkurl);
@@ -47,8 +48,10 @@ public class ClusteredSenseiServiceImpl implements SenseiService {
     _networkClientConfig.setClusterClient(_clusterClient);
     
     _networkClient = new SenseiNetworkClient(_networkClientConfig,null);
-    _senseiBroker = new SenseiBroker(_networkClient, _clusterClient, loadBalancerFactory);
-    _senseiSysBroker = new SenseiSysBroker(_networkClient, _clusterClient, loadBalancerFactory, versionComparator);
+    _senseiBroker = new SenseiBroker(_networkClient, _clusterClient, loadBalancerFactory,
+                                     pollInterval, minResponses, maxTotalWait);
+    _senseiSysBroker = new SenseiSysBroker(_networkClient, _clusterClient, loadBalancerFactory, versionComparator,
+                                           pollInterval, minResponses, maxTotalWait);
   }
   
   public void start(){
