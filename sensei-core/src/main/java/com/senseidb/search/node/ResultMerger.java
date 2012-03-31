@@ -686,6 +686,7 @@ public class ResultMerger
           for (SenseiResult res : results)
           {
             SortCollector sortCollector = res.getSortCollector();
+            if (sortCollector == null) continue;
             Iterator<CollectorContext> contextIter = sortCollector.contextList.iterator();
             CollectorContext currentContext = null;
             int contextLeft = 0;
@@ -964,6 +965,7 @@ public class ResultMerger
         if (hasSortCollector)
         {
           SortCollector sortCollector = res.getSortCollector();
+          if (sortCollector == null) continue;
           Iterator<CollectorContext> contextIter = sortCollector.contextList.iterator();
           CollectorContext currentContext = null;
           int contextLeft = 0;
