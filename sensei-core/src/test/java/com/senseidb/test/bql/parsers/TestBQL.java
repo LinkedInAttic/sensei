@@ -159,6 +159,21 @@ public class TestBQL extends TestCase
   }
 
   @Test
+  public void testGroupByOrColumns() throws Exception
+  {
+    System.out.println("testGroupByOrColumns");
+    System.out.println("==================================================");
+
+    JSONObject json = _compiler.compile(
+      "SELECT category " +
+      "FROM cars " +
+      "GROUP BY color OR category TOP 5"
+      );
+    JSONObject expected = new JSONObject("{\"groupBy\":{\"columns\":[\"color\",\"category\"],\"top\":5},\"meta\":{\"select_list\":[\"category\"]}}");
+    assertTrue(_comp.isEquals(json, expected));
+  }
+
+  @Test
   public void testEqualPredInteger() throws Exception
   {
     System.out.println("testEqualPredInteger");

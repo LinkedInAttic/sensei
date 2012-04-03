@@ -91,9 +91,9 @@ public class SenseiStarter {
     broker = null;
     try
     {
-      broker = new SenseiBroker(networkClient, clusterClient, loadBalancerFactory);
+      broker = new SenseiBroker(networkClient, clusterClient, loadBalancerFactory, 1, 2, 2000);
       broker.setTimeoutMillis(0);
-      mapReduceBroker = new MapReduceBroker(networkClient, clusterClient, loadBalancerFactory);
+      mapReduceBroker = new MapReduceBroker(networkClient, clusterClient, loadBalancerFactory, 1, 2, 2000);
       broker.setTimeoutMillis(0);
     } catch (NorbertException ne) {
       logger.info("shutting down cluster...", ne);

@@ -29,6 +29,9 @@ public class ZookeeperConfigurableServlet extends HttpServlet {
   protected int staleRequestCleanupFrequencyMins;
   protected SenseiLoadBalancerFactory loadBalancerFactory;
   protected Comparator<String> versionComparator;
+  protected int pollInterval;
+  protected int minResponses;
+  protected int maxTotalWait;
 
   @Override
   public void init(ServletConfig config) throws ServletException {
@@ -56,5 +59,8 @@ public class ZookeeperConfigurableServlet extends HttpServlet {
     versionComparator = (Comparator<String>)ctx.getAttribute(SenseiConfigServletContextListener.SENSEI_CONF_VERSION_COMPARATOR);
     loadBalancerFactory = (SenseiLoadBalancerFactory)ctx.getAttribute(
         SenseiConfigServletContextListener.SENSEI_CONF_ROUTER_FACTORY);
+    pollInterval = senseiConf.getInt(SenseiConfParams.SENSEI_BROKER_POLL_INTERVAL, 2);
+    minResponses = senseiConf.getInt(SenseiConfParams.SENSEI_BROKER_MIN_RESPONSES, 2);
+    maxTotalWait = senseiConf.getInt(SenseiConfParams.SENSEI_BROKER_MAX_TOTAL_WAIT, 200);
   }
 }
