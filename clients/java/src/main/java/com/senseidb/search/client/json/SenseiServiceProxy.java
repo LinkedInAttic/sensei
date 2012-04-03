@@ -71,7 +71,7 @@ public class SenseiServiceProxy {
     public SenseiResult sendBQL( String bql)  {
       try {
         StringBuilder buffer = new StringBuilder();
-        buffer.append("{'bql':").append(bql).append("}");
+        buffer.append("{'bql':").append("'"+bql+"'").append("}");
         String requestStr = buffer.toString();
         String output = sendPostRaw(getSearchUrl(), requestStr);
         //System.out.println("Output from Server = " + output);
