@@ -38,10 +38,15 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
   private long _timeoutMillis = TIMEOUT_MILLIS;
   private final SenseiLoadBalancerFactory _loadBalancerFactory;
 
-  public SenseiBroker(PartitionedNetworkClient<Integer> networkClient, ClusterClient clusterClient,
-                      SenseiLoadBalancerFactory loadBalancerFactory) throws NorbertException
+  public SenseiBroker(PartitionedNetworkClient<Integer> networkClient,
+                      ClusterClient clusterClient,
+                      SenseiLoadBalancerFactory loadBalancerFactory,
+                      int pollInterval,
+                      int minResponses,
+                      int maxTotalWait)
+    throws NorbertException
   {
-    super(networkClient, CoreSenseiServiceImpl.PROTO_SERIALIZER);
+    super(networkClient, CoreSenseiServiceImpl.PROTO_SERIALIZER, pollInterval, minResponses, maxTotalWait);
     _loadBalancerFactory = loadBalancerFactory;
     clusterClient.addListener(this);
     logger.info("created broker instance " + networkClient + " " + clusterClient + " " + loadBalancerFactory);

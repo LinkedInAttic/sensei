@@ -64,6 +64,10 @@ public interface SenseiConfParams {
 	public static final String SERVER_BROKER_MAXTHREAD = "sensei.broker.maxThread";
 	public static final String SERVER_BROKER_MAXWAIT = "sensei.broker.maxWaittime";
 
+	public static final String SENSEI_BROKER_POLL_INTERVAL = "sensei.broker.pollInterval";
+	public static final String SENSEI_BROKER_MIN_RESPONSES = "sensei.broker.minResponses";
+	public static final String SENSEI_BROKER_MAX_TOTAL_WAIT = "sensei.broker.maxTotalWait";
+
 	public static final String SERVER_SEARCH_ROUTER_FACTORY = "sensei.search.router.factory";
 
 	public static final String SENSEI_INDEX_PRUNER = "sensei.index.pruner";
