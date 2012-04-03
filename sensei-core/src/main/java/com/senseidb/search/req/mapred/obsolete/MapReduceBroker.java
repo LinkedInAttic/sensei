@@ -21,9 +21,15 @@ public class MapReduceBroker extends AbstractConsistentHashBroker<MapReduceReque
   private final SenseiLoadBalancerFactory loadBalancerFactory;
   private long _timeoutMillis;
 
-  public MapReduceBroker(PartitionedNetworkClient<Integer> networkClient, ClusterClient clusterClient,
-      SenseiLoadBalancerFactory loadBalancerFactory) throws NorbertException {
-    super(networkClient, MapReduceSenseiService.SERIALIZER);
+  public MapReduceBroker(PartitionedNetworkClient<Integer> networkClient,
+                         ClusterClient clusterClient,
+                         SenseiLoadBalancerFactory loadBalancerFactory,
+                         int pollInterval,
+                         int minResponses,
+                         int maxTotalWait)
+    throws NorbertException
+  {
+    super(networkClient, MapReduceSenseiService.SERIALIZER, pollInterval, minResponses, maxTotalWait);
     this.loadBalancerFactory = loadBalancerFactory;
     clusterClient.addListener(this);
     logger.info("created broker instance " + networkClient + " " + clusterClient + " " + loadBalancerFactory);

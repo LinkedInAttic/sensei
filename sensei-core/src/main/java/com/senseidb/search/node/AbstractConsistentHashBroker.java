@@ -6,6 +6,7 @@ import it.unimi.dsi.fastutil.ints.IntSet;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -44,6 +45,9 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
   protected long _timeout = 8000;
   protected final Serializer<REQUEST, RESULT> _serializer;
   protected volatile SenseiLoadBalancer _loadBalancer;
+  protected final int _pollInterval;
+  protected final int _minResponses;
+  protected final int _maxTotalWait;
   
   private static Timer ScatterTimer = null;
   private static Timer GatherTimer = null;
@@ -85,12 +89,19 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
    * @param scatterGatherHandler
    * @throws NorbertException
    */
-  public AbstractConsistentHashBroker(PartitionedNetworkClient<Integer> networkClient, Serializer<REQUEST, RESULT> serializer)
+  public AbstractConsistentHashBroker(PartitionedNetworkClient<Integer> networkClient,
+                                      Serializer<REQUEST, RESULT> serializer,
+                                      int pollInterval,
+                                      int minResponses,
+                                      int maxTotalWait)
       throws NorbertException
   {
     super(networkClient);
     _loadBalancer = null;
     _serializer = serializer;
+    _pollInterval = pollInterval;
+    _minResponses = minResponses;
+    _maxTotalWait = maxTotalWait;
   }
 
 	public <T> T customizeRequest(REQUEST request)
@@ -190,58 +201,71 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
     final Map<Integer, Node> nodeMap = new HashMap<Integer, Node>();
     final Map<Integer, Future<RESULT>> futureMap = new HashMap<Integer, Future<RESULT>>();
     
-    try{
-      ScatterTimer.time(new Callable<Object>(){
-
-		@Override
-		public Object call() throws Exception {
-			 for(int ni = 0; ni < parts.length; ni++)
-			    {
-			      Node node = searchNodes.nodelist[ni].get(searchNodes.nodegroup[ni]);
-			      Set<Integer> pset = partsMap.get(node.getId());
-			      if (pset == null)
-			      {
-			        pset = new HashSet<Integer>();
-			        partsMap.put(node.getId(), pset);
-			      }
-			      pset.add(parts[ni]);
-			      nodeMap.put(node.getId(), node);
-			    }
+    try
+    {
+      ScatterTimer.time(new Callable<Object>() {
+          @Override
+          public Object call() throws Exception {
+            for(int ni = 0; ni < parts.length; ni++)
+            {
+              Node node = searchNodes.nodelist[ni].get(searchNodes.nodegroup[ni]);
+              Set<Integer> pset = partsMap.get(node.getId());
+              if (pset == null)
+              {
+                pset = new HashSet<Integer>();
+                partsMap.put(node.getId(), pset);
+              }
+              pset.add(parts[ni]);
+              nodeMap.put(node.getId(), node);
+            }
 			    
-			    for (Map.Entry<Integer, Node> entry : nodeMap.entrySet())
-			    {
-			      req.setPartitions(partsMap.get(entry.getKey()));
-			      req.saveState();
-			      REQUEST thisRequest = customizeRequest(req);
-				  if (logger.isDebugEnabled()){
-			        logger.debug("broker sending req part: " + partsMap.get(entry.getKey()) + " on node: " + entry.getValue());
-			      }
-			      futureMap.put(entry.getKey(), (Future<RESULT>)_networkClient.sendRequestToNode(thisRequest, entry.getValue(), _serializer));
-			      req.restoreState();
-			    }
-			    for(Map.Entry<Integer, Future<RESULT>> entry : futureMap.entrySet())
-			    { 
-			      RESULT resp;
-			      try
-			      {
-			        resp = entry.getValue().get(_timeout,TimeUnit.MILLISECONDS);
-			        resultlist.add(resp);
-			        if (logger.isDebugEnabled())
-			        {
-			          logger.debug("broker receiving res part: " + partsMap.get(entry.getKey()) + " on node: " + nodeMap.get(entry.getKey())
-			              + " node time: " + resp.getTime() +"ms remote time: " + (System.currentTimeMillis() - time) + "ms");
-			        }
-			      } catch (Exception e)
-			      {
-			    	ErrorMeter.mark();
-			        logger.error("broker receiving res part: " + partsMap.get(entry.getKey()) + " on node: " + nodeMap.get(entry.getKey())
-			            + e +" remote time: " + (System.currentTimeMillis() - time) + "ms");
-			      }
-			    }
-			    return null;
-		}
+            for (Map.Entry<Integer, Node> entry : nodeMap.entrySet())
+            {
+              req.setPartitions(partsMap.get(entry.getKey()));
+              req.saveState();
+              REQUEST thisRequest = customizeRequest(req);
+              if (logger.isDebugEnabled()){
+                logger.debug("broker sending req part: " + partsMap.get(entry.getKey()) + " on node: " + entry.getValue());
+              }
+              futureMap.put(entry.getKey(), (Future<RESULT>)_networkClient.sendRequestToNode(thisRequest, entry.getValue(), _serializer));
+              req.restoreState();
+            }
+
+            int totalTime = 0;
+            int interval = _pollInterval;
+            int numResults = 0;
+            int totalTasks = futureMap.size();
+            int minRespExpected = (_minResponses < totalTasks) ? _minResponses : totalTasks;
+            while (numResults < minRespExpected ||
+                   (numResults < totalTasks && totalTime < _maxTotalWait))
+            {
+              long startTime = System.currentTimeMillis();
+              Thread.sleep(interval);  // Sleep for a small interval. May wake up much later.
+              totalTime += (System.currentTimeMillis() - startTime);
+              if (totalTime > _timeout)
+              {
+                logger.error("Hit hard timeout limit on broker.");
+                break;
+              }
+              Iterator itr = futureMap.entrySet().iterator();
+              while (itr.hasNext())
+              {
+                Map.Entry<Integer, Future<RESULT>> entry = (Map.Entry<Integer, Future<RESULT>>) itr.next();
+                Future<RESULT> futureRes = entry.getValue();
+                if (futureRes.isDone())
+                {
+                  resultlist.add((RESULT) futureRes.get());
+                  itr.remove();
+                  numResults++;
+                }
+              }
+            }
+
+            logger.info("totalTime = " + totalTime + ", resultlist.size = " + resultlist.size());
+            return null;
+          }
     	
-      });
+        });
     }
     catch(Exception e){
       logger.error(e.getMessage(),e);

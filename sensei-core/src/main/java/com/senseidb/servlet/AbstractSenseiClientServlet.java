@@ -83,8 +83,10 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
     _networkClientConfig.setClusterClient(_clusterClient);
 
     _networkClient = new SenseiNetworkClient(_networkClientConfig, null);
-    _senseiBroker = new SenseiBroker(_networkClient, _clusterClient, loadBalancerFactory);
-    _senseiSysBroker = new SenseiSysBroker(_networkClient, _clusterClient, loadBalancerFactory, versionComparator);
+    _senseiBroker = new SenseiBroker(_networkClient, _clusterClient, loadBalancerFactory,
+                                     pollInterval, minResponses, maxTotalWait);
+    _senseiSysBroker = new SenseiSysBroker(_networkClient, _clusterClient, loadBalancerFactory, versionComparator,
+                                           pollInterval, minResponses, maxTotalWait);
 
     logger.info("Connecting to cluster: "+clusterName+" ...");
     _clusterClient.awaitConnectionUninterruptibly();
