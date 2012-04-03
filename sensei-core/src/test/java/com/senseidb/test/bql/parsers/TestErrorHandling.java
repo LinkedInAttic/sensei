@@ -736,6 +736,34 @@ public class TestErrorHandling extends TestCase
     }
   }
 
+  @Test
+  public void testBadGroupBy2() throws Exception
+  {
+    System.out.println("testBadGroupBy2");
+    System.out.println("==================================================");
+
+    boolean caughtException = false;
+    try
+    {
+      JSONObject json = _compiler.compile(
+        "select category, tags \n" +
+        "from cars \n" +
+        "group by color OR year \n" +
+        "order by color \n"
+        );
+    }
+    catch (RecognitionException err)
+    {
+      assertEquals("[line:4, col:0] Range/multi/path facet, \"year\", cannot be used in the GROUP BY clause. (token=order)",
+                   _compiler.getErrorMessage(err));
+      caughtException = true;
+    }
+    finally 
+    {
+      assertTrue(caughtException);
+    }
+  }
+
   // @Test
   // public void testConflictSelections() throws Exception
   // {
