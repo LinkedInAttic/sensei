@@ -47,7 +47,7 @@ public class SenseiMapFunctionWrapper implements BoboMapFunctionWrapper {
       partialDocIds[docIdIndex++] = docId;
       ZoieSegmentReader<?> zoieReader = (ZoieSegmentReader<?>)(reader.getInnerReader());
       DocIDMapperImpl docIDMapper = (DocIDMapperImpl) zoieReader.getDocIDMaper();
-      result.getMapResults().add(mapReduceStrategy.map(docIDMapper.getDocArray(), BUFFER_SIZE, zoieReader.getUIDArray(), new FieldAccessor(facetInfos, reader, docIDMapper)));
+      result.getMapResults().add(mapReduceStrategy.map(partialDocIds, BUFFER_SIZE, zoieReader.getUIDArray(), new FieldAccessor(facetInfos, reader, docIDMapper)));
       docIdIndex = 0;
     }
   }
