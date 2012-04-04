@@ -293,11 +293,6 @@ public class SenseiFacetHandlerBuilder {
 	    {
 	      return name;
 	    }
-
-        @Override
-        public boolean isLoadLazily() {
-            return false;
-        }
 	  };
 	}
 
@@ -459,11 +454,6 @@ public class SenseiFacetHandlerBuilder {
       @Override
       public String getName() {
         return name;
-      }
-
-      @Override
-      public boolean isLoadLazily() {
-          return false;
       }
 
       @Override

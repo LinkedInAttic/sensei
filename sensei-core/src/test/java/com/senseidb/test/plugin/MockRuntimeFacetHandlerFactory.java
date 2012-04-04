@@ -16,10 +16,4 @@ public class MockRuntimeFacetHandlerFactory extends AbstractRuntimeFacetHandlerF
     
     return null;
   }
-
-  @Override
-  public boolean isLoadLazily() {
-      return false;
-  }
-
 }
