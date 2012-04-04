@@ -17,4 +17,9 @@ public class MockRuntimeFacetHandlerFactory implements RuntimeFacetHandlerFactor
     return null;
   }
 
+  @Override
+  public boolean isLoadLazily() {
+      return false;
+  }
+
 }
