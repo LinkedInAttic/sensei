@@ -10,6 +10,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.senseidb.search.query.ScoreAugmentQuery.ScoreAugmentFunction;
+import com.senseidb.search.relevance.CustomRelevanceFactory;
 import com.senseidb.search.relevance.RelevanceQuery;
 
 public abstract class QueryConstructor
@@ -128,7 +130,11 @@ public abstract class QueryConstructor
     }
     else
     {
-     return new RelevanceQuery(baseQuery, jsonRelevance); 
+      return new RelevanceQuery(baseQuery, jsonRelevance);
+      
+      // temporarily turned off during code refactoring;
+//      ScoreAugmentFunction func = CustomRelevanceFactory.build(jsonRelevance);
+//      return new ScoreAugmentQuery(baseQuery, func);
     }
   }
 

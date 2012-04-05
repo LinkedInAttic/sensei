@@ -18,9 +18,30 @@ public class ScoreAugmentQuery extends AbstractScoreAdjuster
   private static final long serialVersionUID = 1L;
   
   public static interface ScoreAugmentFunction{
+    
+    /**
+     * @param reader
+     * @throws IOException
+     */
     public void initialize(BoboIndexReader reader) throws IOException;
+    
+    /**
+     * @param rawScore
+     * @param docID
+     * @return the modified new score for document;
+     */
     public float newScore(float rawScore, int docID);
+    
+    /**
+     * @return the String to explain how the new score is generated;
+     */
     public String getExplainString();
+    
+    
+    /**
+     * @return whether this function object is initialized or not;
+     */
+    public boolean isInitialized();
   }
   
   private static class AugmentScorer extends Scorer{
@@ -32,7 +53,9 @@ public class ScoreAugmentQuery extends AbstractScoreAdjuster
       super(innerScorer.getSimilarity());
       _innerScorer = innerScorer;
       _func = func;
-      _func.initialize(reader);
+      
+      if(!_func.isInitialized())
+        _func.initialize(reader);
     }
 
     @Override
@@ -97,6 +120,9 @@ public class ScoreAugmentQuery extends AbstractScoreAdjuster
     if (reader instanceof BoboIndexReader ){
       Explanation finalExpl = new Explanation();
       finalExpl.addDetail(innerExplain);
+      
+      if(!_func.isInitialized())
+        _func.initialize((BoboIndexReader)reader);
       
       float innerValue = innerExplain.getValue();
       float value = _func.newScore(innerValue, doc);
