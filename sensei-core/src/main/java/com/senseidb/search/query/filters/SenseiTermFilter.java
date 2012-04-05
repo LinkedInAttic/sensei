@@ -110,7 +110,11 @@ public class SenseiTermFilter extends Filter {
     if (reader instanceof BoboIndexReader){
       BoboIndexReader boboReader = (BoboIndexReader)reader;
       FacetHandler facetHandler = (FacetHandler)boboReader.getFacetHandler(_name);
-      Object obj = facetHandler.getFacetData(boboReader);
+      Object obj = null;
+      if (facetHandler != null)
+      {
+        obj = facetHandler.getFacetData(boboReader);
+      }
       if (obj!=null && obj instanceof FacetDataCache){
         FacetDataCache facetData = (FacetDataCache)obj;
         TermValueList valArray = facetData.valArray;
