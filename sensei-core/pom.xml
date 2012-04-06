@@ -157,11 +157,20 @@
 			<version>2.4.0a</version>
 		</dependency>
 
+        <dependency>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+            <version>1.4</version>
+        </dependency>
 		<dependency>
 		    <groupId>org.apache.hadoop</groupId>
 		    <artifactId>hadoop-core</artifactId>
-		    <version>0.20.204.0</version>
+		    <version>0.20.2</version>
         <exclusions>
+          <exclusion>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+          </exclusion>
           <exclusion>
             <groupId>tomcat</groupId>
             <artifactId>jasper-runtime</artifactId>
