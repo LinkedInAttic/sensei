@@ -16,13 +16,17 @@ import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
+
+import org.apache.log4j.Logger;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import javassist.CannotCompileException;
 import javassist.ClassClassPath;
@@ -32,35 +36,10 @@ import javassist.CtMethod;
 import javassist.CtNewMethod;
 import javassist.NotFoundException;
 
-import org.apache.log4j.Logger;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import com.browseengine.bobo.api.BoboIndexReader;
-
-public class RuntimeRelevanceFunction extends CustomRelevanceFunction
+public class CompilationHelper
 {
-  
-  public static int MAX_NUM_MODELS  = 10000;
-  
-  private static Logger logger = Logger.getLogger(RelevanceQuery.class);
-  
-  
-  private HashMap<String, Object> hm_var = new HashMap<String, Object>();
-  private HashMap<String, String> hm_type = new HashMap<String, String>();
-  private HashMap<String, String> hm_symbol_facet = new HashMap<String, String>();
-  private HashMap<String, Integer> hm_facet_index = new HashMap<String, Integer>();
-  private HashMap<String, String> hm_symbol_mfacet = new HashMap<String, String>();  //multi-facet
-  private HashMap<String, Integer> hm_mfacet_index = new HashMap<String, Integer>(); //multi-facet 
-  
-  private LinkedList<String> lls_params = new LinkedList<String>();
-  private String funcBody = null;
-  private String classIDString = null;
-  private CustomMathModel cscorer = null;
-  private int facetIndex = 0;
-  private int facetMultiIndex = 0;
-  
+
+  private static Logger logger = Logger.getLogger(CompilationHelper.class);
   
   static ClassPool pool = ClassPool.getDefault();
   static
@@ -155,7 +134,7 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction
     
     
     hs_safe.add("com.senseidb.search.relevance.RelevanceQuery");
-    hs_safe.add("com.senseidb.search.relevance.CustomScorer");
+    hs_safe.add("com.senseidb.search.relevance.CustomMathModel");
     hs_safe.add("com.senseidb.search.relevance.RelevanceQuery$CustomLoader");
     
     hs_safe.add("java.lang.Object");
@@ -179,161 +158,157 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction
     
   }
   
-  
+  public static int MAX_NUM_MODELS  = 10000;
   static HashMap<String, CustomMathModel> hmModels = new HashMap<String, CustomMathModel>();
   
-//  "relevance":{
-//    
-//                // (1) Model definition part; this json is used to define a model (input variables, columns/facets, and function parameters and body);    
-//                "model":{
-//               
-//                  "variables": {
-//                                 "set_int":["c","d"],  // supported hashset types: [set_int, set_float, set_string, set_double, set_long]
-//                                 "map_int_float":["j"],  // currently supported hashmap: [map_int_float, map_int_double, map_int_*...] [map_string_int, map_string_float, map_string_*]
-//                                 "int":["e","f"],       // supported normal variables: [int, double, float, long, bool, string]
-//                                 "long":["g","h"]
-//                                },
-//                  "facets":{
-//                               "int":["year","age"],   // facet type support: [double, float, int, long, short, string];
-//                               "long":["time"]         // facet variable has the same name as the facet name, and they are defined inside this json;
+//"relevance":{
+//
+//            // (1) Model definition part; this json is used to define a model (input variables, columns/facets, and function parameters and body);    
+//            "model":{
+//           
+//              "variables": {
+//                             "set_int":["c","d"],  // supported hashset types: [set_int, set_float, set_string, set_double, set_long]
+//                             "map_int_float":["j"],  // currently supported hashmap: [map_int_float, map_int_double, map_int_*...] [map_string_int, map_string_float, map_string_*]
+//                             "int":["e","f"],       // supported normal variables: [int, double, float, long, bool, string]
+//                             "long":["g","h"]
 //                            },
+//              "facets":{
+//                           "int":["year","age"],   // facet type support: [double, float, int, long, short, string];
+//                           "long":["time"]         // facet variable has the same name as the facet name, and they are defined inside this json;
+//                        },
+//              
+//               // (2) scoring function and function input parameters in Java;
+//               //     A scoring function and its parameters are the model. A model changes when the function body or signature changes;
+//               
+//              //  params for the function. Symbol order matters, and symbols must be those defined above. innerScore MUST be used, otherwise, makes no sense to use the custom relevance;
+//              //  reserved keyword for internal parameters are:  "_INNER_SCORE" and "_NOW"     
+//
+//               "function_params":["_INNER_SCORE", "timeVal", "_timeWeight", "_waterworldWeight", "_half_time"],               
+//
+//               // the value string in the following JSONObject is like this (a return statement MUST appear as the last one):
+//                     
+//                  //    float delta = System.currentTimeMillis() - timeVal;
+//                  //    float t = delta>0 ? delta : 0;
+//                  //    float hour = t/(1000*3600);
+//                  //    float timeScore = (float) Math.exp(-(hour/_half_time));
+//                  //    float waterworldScore = _INNER_SCORE;
+//                  //    float time = timeScore * _timeWeight;
+//                  //    float water = waterworldScore  * _waterworldWeight;
+//                  //    return  (time + water);
 //                  
-//                   // (2) scoring function and function input parameters in Java;
-//                   //     A scoring function and its parameters are the model. A model changes when the function body or signature changes;
-//                   
-//                  //  params for the function. Symbol order matters, and symbols must be those defined above. innerScore MUST be used, otherwise, makes no sense to use the custom relevance;
-//                  //  reserved keyword for internal parameters are:  "_INNER_SCORE" and "_NOW"     
-//
-//                   "function_params":["_INNER_SCORE", "timeVal", "_timeWeight", "_waterworldWeight", "_half_time"],               
-//
-//                   // the value string in the following JSONObject is like this (a return statement MUST appear as the last one):
-//                         
-//                      //    float delta = System.currentTimeMillis() - timeVal;
-//                      //    float t = delta>0 ? delta : 0;
-//                      //    float hour = t/(1000*3600);
-//                      //    float timeScore = (float) Math.exp(-(hour/_half_time));
-//                      //    float waterworldScore = _INNER_SCORE;
-//                      //    float time = timeScore * _timeWeight;
-//                      //    float water = waterworldScore  * _waterworldWeight;
-//                      //    return  (time + water);
-//                      
-//                   "function":" A LONG JAVA CODE STRING HERE, ONLY AS FUNCTION BODY, NEEDS RETURN STATEMENT."
-//                 },
-//                 
-//                 //(2) Input values for the model above, if the model requires input values;
-//                 "values":{
-//                   "c":[1996,1997],
-//                   "e":0.98,
-//                   "j":{"key":[1,2,3], "value":[2.3, 3.4, 2.9]}      // a user input hashmap;
-//                 }
-//            }
-  
-  
-  
-  
-  /* A dummy testing relevance json inside a query request json:
-   * 
-   * 
-    {
-        "query": {
-            "query_string": {
-                "query": "",
-                "relevance":{
+//               "function":" A LONG JAVA CODE STRING HERE, ONLY AS FUNCTION BODY, NEEDS RETURN STATEMENT."
+//             },
+//             
+//             //(2) Input values for the model above, if the model requires input values;
+//             "values":{
+//               "c":[1996,1997],
+//               "e":0.98,
+//               "j":{"key":[1,2,3], "value":[2.3, 3.4, 2.9]}      // a user input hashmap;
+//             }
+//        }
+
+
+
+
+/* A dummy testing relevance json inside a query request json:
+* 
+* 
+{
+    "query": {
+        "query_string": {
+            "query": "",
+            "relevance":{
+            
+                "model":{
+                    "variables":{
+                         "set_int":["goodYear"],
+                         "int":["thisYear"],
+                         "string":["coolTag"],
+                         "map_int_float":["mileageWeight"],
+                         "map_int_string":["yearcolor"],
+                         "map_string_float":["colorweight"],
+                         "map_string_string":["categorycolor"]
+                        },
+                    "facets":{
+                         "int":["year","mileage"],
+                         "long":["groupid"],
+                         "string":["color","category"],
+                         "mstring":["tags"] 
+                        },
+                    "function_params":["_INNER_SCORE", "thisYear", "year","goodYear","mileageWeight","mileage","color", "yearcolor", "colorweight", "category", "categorycolor"],  
+                    "function":"  if(tags.contains(coolTag)) return 999999f; if(categorycolor.containsKey(category) && categorycolor.get(category).equals(color))  return 10000f; if(colorweight.containsKey(color) ) return 200f + colorweight.getFloat(color); if(yearcolor.containsKey(year) && yearcolor.get(year).equals(color)) return 200f; if(mileageWeight.containsKey(mileage)) return 10000+mileageWeight.get(mileage); if(goodYear.contains(year)) return (float)Math.exp(2d);   if(year==thisYear) return 87f   ; return  _INNER_SCORE;"
+                },
+                
+                "values":{
+                     "goodYear":[1996,1997],
+                     "thisYear":2001,
+                     "mileageWeight":{"key":[11400,11000],"value":[777.9, 10.2]},
+                    "yearcolor":{"key":[1998],"value":["red"]},
+                    "colorweight":{"key":["red"],"value":[335.5]},
+                    "categorycolor":{"key":["compact"],"value":["red"]},
+                    "coolTag":"cool"
+                }
+            }
+        }
+    },
+    "from": 0,
+    "size": 6,
+    "explain": false,
+    "fetchStored": false,
+    "sort":["_score"]
+}
+
+
+
+// Advanded usage of weighted multi-facet relevance:
+ {
+    "query": {
+        "query_string": {
+            "query": "java",
+            "relevance":{
                 
                     "model":{
                         "variables":{
-                             "set_int":["goodYear"],
-                             "int":["thisYear"],
-                             "string":["coolTag"],
-                             "map_int_float":["mileageWeight"],
-                             "map_int_string":["yearcolor"],
-                             "map_string_float":["colorweight"],
-                             "map_string_string":["categorycolor"]
+                             "string":["skill"]
                             },
                         "facets":{
-                             "int":["year","mileage"],
-                             "long":["groupid"],
-                             "string":["color","category"],
-                             "mstring":["tags"] 
+                             "wmstring":["user_skills"] 
                             },
-                        "function_params":["_INNER_SCORE", "thisYear", "year","goodYear","mileageWeight","mileage","color", "yearcolor", "colorweight", "category", "categorycolor"],  
-                        "function":"  if(tags.contains(coolTag)) return 999999f; if(categorycolor.containsKey(category) && categorycolor.get(category).equals(color))  return 10000f; if(colorweight.containsKey(color) ) return 200f + colorweight.getFloat(color); if(yearcolor.containsKey(year) && yearcolor.get(year).equals(color)) return 200f; if(mileageWeight.containsKey(mileage)) return 10000+mileageWeight.get(mileage); if(goodYear.contains(year)) return (float)Math.exp(2d);   if(year==thisYear) return 87f   ; return  _INNER_SCORE;"
+                        "function_params":["_INNER_SCORE",  "user_skills", "skill"],  
+                        "function":" int weight = 0; if(user_skills.hasWeight(skill)) weight = user_skills.getWeight(); return  _INNER_SCORE + weight;"
                     },
                     
                     "values":{
-                         "goodYear":[1996,1997],
-                         "thisYear":2001,
-                         "mileageWeight":{"key":[11400,11000],"value":[777.9, 10.2]},
-                        "yearcolor":{"key":[1998],"value":["red"]},
-                        "colorweight":{"key":["red"],"value":[335.5]},
-                        "categorycolor":{"key":["compact"],"value":["red"]},
-                        "coolTag":"cool"
+                         "skill":"java"
                     }
                 }
+        }
+    },
+    "selections": [
+    {
+        "terms": {
+            "country_code": {
+                "values": ["us"],
+                "excludes": [],
+                "operator": "or"
             }
-        },
-        "from": 0,
-        "size": 6,
-        "explain": false,
-        "fetchStored": false,
-        "sort":["_score"]
-    }
-    
-    
-    
-    // Advanded usage of weighted multi-facet relevance:
-     {
-        "query": {
-            "query_string": {
-                "query": "java",
-                "relevance":{
-                    
-                        "model":{
-                            "variables":{
-                                 "string":["skill"]
-                                },
-                            "facets":{
-                                 "wmstring":["user_skills"] 
-                                },
-                            "function_params":["_INNER_SCORE",  "user_skills", "skill"],  
-                            "function":" int weight = 0; if(user_skills.hasWeight(skill)) weight = user_skills.getWeight(); return  _INNER_SCORE + weight;"
-                        },
-                        
-                        "values":{
-                             "skill":"java"
-                        }
-                    }
-            }
-        },
-        "selections": [
-        {
-            "terms": {
-                "country_code": {
-                    "values": ["us"],
-                    "excludes": [],
-                    "operator": "or"
-                }
-            }
-        }],
-        "from": 0,
-        "size": 10,
-        "explain": false,
-        "fetchStored": false
-    }
+        }
+    }],
+    "from": 0,
+    "size": 10,
+    "explain": false,
+    "fetchStored": false
+}
 
 
-     
-   * 
-   * */
-
-  public RuntimeRelevanceFunction(JSONObject json)
-  {
-    super(json);
-  }
-
+ 
+* 
+* */
   
-  private void preprocess(JSONObject relevance) throws JSONException
+  public static CustomMathModel createCustomMathScorer(JSONObject relevance, DataTable dataTable) throws JSONException
   {
+    CustomMathModel cMathModel = null;
+    
     JSONObject jsonModel = relevance.optJSONObject(JSONConstants.KW_MODEL);
     if(jsonModel == null)
       throw new JSONException("No model is specified.");
@@ -350,18 +325,19 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction
     for(int j=0; j<jsonFuncParameter.length(); j++)
     {
       String paramName = jsonFuncParameter.optString(j);
-      lls_params.add(paramName);
+      dataTable.lls_params.add(paramName);
     }
     
-    funcBody = jsonModel.optString(JSONConstants.KW_FUNCTION);
+    dataTable.funcBody = jsonModel.optString(JSONConstants.KW_FUNCTION);
     
     //process facet variables;
+    int[] facetIndice = new int[]{0,0};  // store the facetIndex and facetMultiIndex;
     Iterator<String> it_facet = jsonFacets.keys();
     while(it_facet.hasNext())
     {
       String facetType = it_facet.next();
       JSONArray facetArray = jsonFacets.getJSONArray(facetType);
-      handleFacetSymbols(facetType, facetArray);
+      handleFacetSymbols(facetType, facetArray, facetIndice, dataTable);
     }
     
     //process other variables;
@@ -420,30 +396,30 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction
               hs.add(values.getString(k));
             }
           }
-          if(hm_var.containsKey(symbol))
+          if(dataTable.hm_var.containsKey(symbol))
             throw new JSONException("Symbol "+ symbol + " already defined." );
           
-          hm_var.put(symbol, hs);
+          dataTable.hm_var.put(symbol, hs);
           
           if(JSONConstants.KW_TYPE_SET_INT.equals(type))
           {
-            hm_type.put(symbol, JSONConstants.TYPE_SET_INT);
+            dataTable.hm_type.put(symbol, JSONConstants.TYPE_SET_INT);
           }
           else if (JSONConstants.KW_TYPE_SET_DOUBLE.equals(type))
           {
-            hm_type.put(symbol, JSONConstants.TYPE_SET_DOUBLE);
+            dataTable.hm_type.put(symbol, JSONConstants.TYPE_SET_DOUBLE);
           }
           else if (JSONConstants.KW_TYPE_SET_FLOAT.equals(type))
           {
-            hm_type.put(symbol, JSONConstants.TYPE_SET_FLOAT);
+            dataTable.hm_type.put(symbol, JSONConstants.TYPE_SET_FLOAT);
           }
           else if (JSONConstants.KW_TYPE_SET_LONG.equals(type))
           {
-            hm_type.put(symbol, JSONConstants.TYPE_SET_LONG);
+            dataTable.hm_type.put(symbol, JSONConstants.TYPE_SET_LONG);
           }
           else if (JSONConstants.KW_TYPE_SET_STRING.equals(type))
           {
-            hm_type.put(symbol, JSONConstants.TYPE_SET_STRING);
+            dataTable.hm_type.put(symbol, JSONConstants.TYPE_SET_STRING);
           }
           
         }
@@ -490,7 +466,7 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction
               hm = new Int2IntOpenHashMap();
             for(int j=0; j<keySize; j++)
               ((Int2IntOpenHashMap)hm).put(keysList.getInt(j), valuesList.getInt(j));
-            hm_type.put(symbol, JSONConstants.TYPE_MAP_INT_INT);
+            dataTable.hm_type.put(symbol, JSONConstants.TYPE_MAP_INT_INT);
           }
           else if (JSONConstants.KW_TYPE_MAP_INT_DOUBLE.equals(type))
           {
@@ -498,7 +474,7 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction
               hm = new Int2DoubleOpenHashMap();
             for(int j=0; j<keySize; j++)
               ((Int2DoubleOpenHashMap)hm).put(keysList.getInt(j), valuesList.getDouble(j));
-            hm_type.put(symbol, JSONConstants.TYPE_MAP_INT_DOUBLE);
+            dataTable.hm_type.put(symbol, JSONConstants.TYPE_MAP_INT_DOUBLE);
           }
           else if (JSONConstants.KW_TYPE_MAP_INT_FLOAT.equals(type))
           {
@@ -506,7 +482,7 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction
               hm = new Int2FloatOpenHashMap();
             for(int j=0; j<keySize; j++)
               ((Int2FloatOpenHashMap)hm).put(keysList.getInt(j), (float)(valuesList.getDouble(j)));
-            hm_type.put(symbol, JSONConstants.TYPE_MAP_INT_FLOAT);
+            dataTable.hm_type.put(symbol, JSONConstants.TYPE_MAP_INT_FLOAT);
           }
           else if (JSONConstants.KW_TYPE_MAP_INT_LONG.equals(type))
           {
@@ -514,7 +490,7 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction
               hm = new Int2LongOpenHashMap();
             for(int j=0; j<keySize; j++)
               ((Int2LongOpenHashMap)hm).put(keysList.getInt(j), Long.parseLong(valuesList.getString(j)));
-            hm_type.put(symbol, JSONConstants.TYPE_MAP_INT_LONG);
+            dataTable.hm_type.put(symbol, JSONConstants.TYPE_MAP_INT_LONG);
           }
           else if (JSONConstants.KW_TYPE_MAP_INT_STRING.equals(type))
           {
@@ -522,7 +498,7 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction
               hm = new Int2ObjectOpenHashMap();
             for(int j=0; j<keySize; j++)
               ((Int2ObjectOpenHashMap)hm).put(keysList.getInt(j), valuesList.getString(j));
-            hm_type.put(symbol, JSONConstants.TYPE_MAP_INT_STRING);
+            dataTable.hm_type.put(symbol, JSONConstants.TYPE_MAP_INT_STRING);
           }
           
           else if(JSONConstants.KW_TYPE_MAP_STRING_INT.equals(type))
@@ -531,7 +507,7 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction
               hm = new Object2IntOpenHashMap();
             for(int j=0; j<keySize; j++)
               ((Object2IntOpenHashMap)hm).put(keysList.getString(j), valuesList.getInt(j));
-            hm_type.put(symbol, JSONConstants.TYPE_MAP_STRING_INT);
+            dataTable.hm_type.put(symbol, JSONConstants.TYPE_MAP_STRING_INT);
           }
           else if (JSONConstants.KW_TYPE_MAP_STRING_DOUBLE.equals(type))
           {
@@ -539,7 +515,7 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction
               hm = new Object2DoubleOpenHashMap();
             for(int j=0; j<keySize; j++)
               ((Object2DoubleOpenHashMap)hm).put(keysList.getString(j), valuesList.getDouble(j));
-            hm_type.put(symbol, JSONConstants.TYPE_MAP_STRING_DOUBLE);
+            dataTable.hm_type.put(symbol, JSONConstants.TYPE_MAP_STRING_DOUBLE);
           }
           else if (JSONConstants.KW_TYPE_MAP_STRING_FLOAT.equals(type))
           {
@@ -547,7 +523,7 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction
               hm = new Object2FloatOpenHashMap();
             for(int j=0; j<keySize; j++)
               ((Object2FloatOpenHashMap)hm).put(keysList.getString(j), (float)(valuesList.getDouble(j)));
-            hm_type.put(symbol, JSONConstants.TYPE_MAP_STRING_FLOAT);
+            dataTable.hm_type.put(symbol, JSONConstants.TYPE_MAP_STRING_FLOAT);
           }
           else if (JSONConstants.KW_TYPE_MAP_STRING_LONG.equals(type))
           {
@@ -555,7 +531,7 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction
               hm = new Object2LongOpenHashMap();
             for(int j=0; j<keySize; j++)
               ((Object2LongOpenHashMap)hm).put(keysList.getString(j), Long.parseLong(valuesList.getString(j)));
-            hm_type.put(symbol, JSONConstants.TYPE_MAP_STRING_LONG);
+            dataTable.hm_type.put(symbol, JSONConstants.TYPE_MAP_STRING_LONG);
           }
           else if (JSONConstants.KW_TYPE_MAP_STRING_STRING.equals(type))
           {
@@ -563,14 +539,14 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction
               hm = new Object2ObjectOpenHashMap();
             for(int j=0; j<keySize; j++)
               ((Object2ObjectOpenHashMap)hm).put(keysList.getString(j), valuesList.getString(j));
-            hm_type.put(symbol, JSONConstants.TYPE_MAP_STRING_STRING);
+            dataTable.hm_type.put(symbol, JSONConstants.TYPE_MAP_STRING_STRING);
           }
         
           
-          if(hm_var.containsKey(symbol))
+          if(dataTable.hm_var.containsKey(symbol))
             throw new JSONException("Symbol "+ symbol + " already defined." );
           
-          hm_var.put(symbol, hm);
+          dataTable.hm_var.put(symbol, hm);
           
         }
       } // end of map variable;
@@ -589,7 +565,7 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction
           if(symbol.equals(JSONConstants.KW_INNER_SCORE) || symbol.equals(JSONConstants.KW_NOW))
             throw new JSONException("variable name can not be reserved keyword.");
 
-          if(hm_var.containsKey(symbol))
+          if(dataTable.hm_var.containsKey(symbol))
             throw new JSONException("Symbol "+ symbol + " already defined." );
           
           if( ! jsonValues.has(symbol))
@@ -597,33 +573,33 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction
           
           if(JSONConstants.KW_TYPE_INT.equals(type))
           {
-            hm_var.put(symbol, jsonValues.getInt(symbol));
-            hm_type.put(symbol, JSONConstants.TYPE_INT);
+            dataTable.hm_var.put(symbol, jsonValues.getInt(symbol));
+            dataTable.hm_type.put(symbol, JSONConstants.TYPE_INT);
           }
           else if (JSONConstants.KW_TYPE_DOUBLE.equals(type))
           {
-            hm_var.put(symbol, jsonValues.getDouble(symbol));
-            hm_type.put(symbol, JSONConstants.TYPE_DOUBLE);
+            dataTable.hm_var.put(symbol, jsonValues.getDouble(symbol));
+            dataTable.hm_type.put(symbol, JSONConstants.TYPE_DOUBLE);
           }
           else if (JSONConstants.KW_TYPE_FLOAT.equals(type))
           {
-            hm_var.put(symbol, ((float)jsonValues.getDouble(symbol)));
-            hm_type.put(symbol, JSONConstants.TYPE_FLOAT);
+            dataTable.hm_var.put(symbol, ((float)jsonValues.getDouble(symbol)));
+            dataTable.hm_type.put(symbol, JSONConstants.TYPE_FLOAT);
           }
           else if (JSONConstants.KW_TYPE_LONG.equals(type))
           {
-            hm_var.put(symbol, Long.parseLong(jsonValues.getString(symbol)));
-            hm_type.put(symbol, JSONConstants.TYPE_LONG);
+            dataTable.hm_var.put(symbol, Long.parseLong(jsonValues.getString(symbol)));
+            dataTable.hm_type.put(symbol, JSONConstants.TYPE_LONG);
           }
           else if (JSONConstants.KW_TYPE_STRING.equals(type))
           {
-            hm_var.put(symbol, jsonValues.getString(symbol));
-            hm_type.put(symbol, JSONConstants.TYPE_STRING);
+            dataTable.hm_var.put(symbol, jsonValues.getString(symbol));
+            dataTable.hm_type.put(symbol, JSONConstants.TYPE_STRING);
           }
           else if(JSONConstants.KW_TYPE_BOOL.equals(type))
           {
-            hm_var.put(symbol, jsonValues.getBoolean(symbol));
-            hm_type.put(symbol, JSONConstants.TYPE_STRING);
+            dataTable.hm_var.put(symbol, jsonValues.getBoolean(symbol));
+            dataTable.hm_type.put(symbol, JSONConstants.TYPE_STRING);
           }
         }
       }
@@ -632,55 +608,58 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction
     // add now variable;
     String symbolNow = JSONConstants.KW_NOW;
     long now = System.currentTimeMillis();
-    hm_var.put(symbolNow, now);
-    hm_type.put(symbolNow, JSONConstants.TYPE_LONG);
+    dataTable.hm_var.put(symbolNow, now);
+    dataTable.hm_type.put(symbolNow, JSONConstants.TYPE_LONG);
     
     // add innerscore;
     String symbolInnerScore = JSONConstants.KW_INNER_SCORE; 
-    hm_var.put(symbolInnerScore, symbolInnerScore);
-    hm_type.put(symbolInnerScore, JSONConstants.TYPE_INNER_SCORE);
+    dataTable.hm_var.put(symbolInnerScore, symbolInnerScore);
+    dataTable.hm_type.put(symbolInnerScore, JSONConstants.TYPE_INNER_SCORE);
     
     
     
     
-    if(funcBody == null || funcBody.length()==0)
+    if(dataTable.funcBody == null || dataTable.funcBody.length()==0)
       throw new JSONException("No function body found.");
     
-    if(funcBody.indexOf("return ")==-1)
+    if(dataTable.funcBody.indexOf("return ")==-1)
       throw new JSONException("No return statement in the function body.");
     
 
     //check if all the parameters have defined;
-    for(int i=0; i< lls_params.size(); i++)
+    for(int i=0; i< dataTable.lls_params.size(); i++)
     {
-      String symbol = lls_params.get(i);
-      if( !hm_type.containsKey(symbol))
+      String symbol = dataTable.lls_params.get(i);
+      if( !dataTable.hm_type.containsKey(symbol))
         throw new JSONException("function parameter: " + symbol + " was not defined.");
       
-      String type = hm_type.get(symbol);
+      String type = dataTable.hm_type.get(symbol);
       if(type.startsWith(JSONConstants.TYPE_FACET_HEAD))
       {
-        if( (!hm_symbol_facet.containsKey(symbol)) && (!hm_symbol_mfacet.containsKey(symbol)))
+        if( (!dataTable.hm_symbol_facet.containsKey(symbol)) && (!dataTable.hm_symbol_mfacet.containsKey(symbol)))
           throw new JSONException("function parameter: " + symbol + " was not defined.");
       }
       else
       {
-        if(!hm_var.containsKey(symbol))
+        if(!dataTable.hm_var.containsKey(symbol))
           throw new JSONException("function parameter: " + symbol + " was not defined.");
       }
     }
 
-    lls_params = filterParameters(lls_params, funcBody);
+    dataTable.lls_params = filterParameters(dataTable);
     
-    String paramString = getParamString(lls_params, hm_type);
+    String paramString = getParamString(dataTable);
     
-    classIDString = funcBody + paramString;
-    String className = "CRel"+ classIDString.hashCode();
+    dataTable.classIDString = dataTable.funcBody + paramString;
+    String className = "CRel"+ dataTable.classIDString.hashCode();
     logger.info("Custom relevance class name is:"+ className);
     
 
     if(hmModels.containsKey(className))
-      cscorer = hmModels.get(className);
+    {
+      cMathModel = hmModels.get(className);
+      return cMathModel;
+    }
     else
     {
 
@@ -689,17 +668,17 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction
         
         if(hmModels.containsKey(className))
         {
-          cscorer = hmModels.get(className);
-          return;
+          cMathModel = hmModels.get(className);
+          return cMathModel;
         }
         
         
-        CtClass ch = pool.makeClass(className);
+        CtClass ch = CompilationHelper.pool.makeClass(className);
         
         CtClass ci;
         try
         {
-          ci = pool.get("com.senseidb.search.relevance.CustomScorer");
+          ci = CompilationHelper.pool.get("com.senseidb.search.relevance.CustomMathModel");
         }
         catch (NotFoundException e)
         {
@@ -708,7 +687,7 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction
         }
         
         ch.addInterface(ci);
-        String functionString = makeFuncString(funcBody, hm_type, lls_params);
+        String functionString = makeFuncString(dataTable);
         
         addFacilityMethods(ch);
         
@@ -736,14 +715,14 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction
         Class h;
         try
         {
-          h = pool.toClass(ch, new CustomLoader(RelevanceQuery.class.getClassLoader(), className));
+          h = CompilationHelper.pool.toClass(ch, new CompilationHelper.CustomLoader(RelevanceQuery.class.getClassLoader(), className));
         }
         catch (CannotCompileException e)
         {
           if(hmModels.containsKey(className))
           {
-            cscorer = hmModels.get(className);
-            return;
+            cMathModel = hmModels.get(className);
+            return cMathModel;
           }
           else
           {
@@ -754,7 +733,7 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction
         
         try
         {
-          cscorer = (CustomMathModel)h.newInstance();
+          cMathModel = (CustomMathModel)h.newInstance();
         }
         catch (InstantiationException e)
         {
@@ -770,14 +749,14 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction
         if(hmModels.size() > MAX_NUM_MODELS)
           hmModels = new HashMap<String, CustomMathModel>();
         
-        hmModels.put(className, cscorer);
+        hmModels.put(className, cMathModel);
+        return cMathModel;
       }        
     }
     
   }
-  
-  
-  private void addFacilityMethods(CtClass ch) throws JSONException
+
+  private static void addFacilityMethods(CtClass ch) throws JSONException
   {
     String expStrInt = createEXpStringInt();
     String expStrDouble = createEXpStringDouble();
@@ -789,7 +768,7 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction
   }
 
 
-  private void addMethod(String expStr, CtClass ch) throws JSONException
+  private static  void addMethod(String expStr, CtClass ch) throws JSONException
   {
     CtMethod m_exp;
     try
@@ -816,56 +795,54 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction
 
 
 
-  private String createEXpStringInt()
+  private static String createEXpStringInt()
   {
     StringBuffer sb = new StringBuffer();
     sb.append("public double exp(int val) { return Double.longBitsToDouble(((long) (1512775 * val + 1072632447)) << 32); }");
     return sb.toString();
   }
 
-  private String createEXpStringDouble()
+  private static String createEXpStringDouble()
   {
     StringBuffer sb = new StringBuffer();
     sb.append("public double exp(double val) { return Double.longBitsToDouble(((long) (1512775 * val + 1072632447)) << 32); }");
     return sb.toString();
   }
 
-  private String createEXpStringFloat()
+  private static String createEXpStringFloat()
   {
     StringBuffer sb = new StringBuffer();
     sb.append("public double exp(float val) { return Double.longBitsToDouble(((long) (1512775 * val + 1072632447)) << 32); }");
     return sb.toString();
   }
 
-  private String getParamString(LinkedList<String> lls_params, HashMap<String, String> hm_type)
+  private static String getParamString(DataTable dataTable)
   {
     StringBuilder sb = new StringBuilder();
-    for(String param : lls_params)
+    for(String param : dataTable.lls_params)
     {
       sb.append(param);
       sb.append("#");
-      sb.append(hm_type.get(param));
+      sb.append(dataTable.hm_type.get(param));
       sb.append("#");
     }
     return sb.toString();
   }
 
 
-  private LinkedList<String> filterParameters(LinkedList<String> lls_params, String funcBody)
+  private static LinkedList<String> filterParameters(DataTable dataTable)
   {
     LinkedList<String> lls_new = new LinkedList<String>();
-    for(String param : lls_params)
+    for(String param : dataTable.lls_params)
     {
-      if(  !(funcBody.indexOf(param) == -1))
+      if(  !(dataTable.funcBody.indexOf(param) == -1))
         lls_new.add(param);
     }
     return lls_new;
   }
-  
-  
 
   
-  private void handleFacetSymbols(String facetType, JSONArray facetArray) throws JSONException
+  private static void handleFacetSymbols(String facetType, JSONArray facetArray, int[] facetIndice, DataTable dataTable) throws JSONException
   {
     String type = null;
     boolean isMulti = false;
@@ -925,31 +902,29 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction
       String facetName = facetArray.getString(i);
       String symbol = facetName;
 
-      if(hm_symbol_facet.containsKey(symbol) || hm_symbol_mfacet.containsKey(symbol))
+      if(dataTable.hm_symbol_facet.containsKey(symbol) || dataTable.hm_symbol_mfacet.containsKey(symbol))
         throw new JSONException("facet Symbol "+ symbol + " already defined." );
 
-      if(hm_facet_index.containsKey(facetName) || hm_mfacet_index.containsKey(facetName))
+      if(dataTable.hm_facet_index.containsKey(facetName) || dataTable.hm_mfacet_index.containsKey(facetName))
         throw new JSONException("facet name "+ facetName + " already assigned to a symbol." );
       
       if(isMulti == false){
-        hm_symbol_facet.put(symbol, facetName);
-        hm_facet_index.put(facetName, facetIndex);
-        facetIndex++;
+        dataTable.hm_symbol_facet.put(symbol, facetName);
+        dataTable.hm_facet_index.put(facetName, facetIndice[0]);
+        facetIndice[0] = facetIndice[0]+1;
       }
       else
       {  
-        hm_symbol_mfacet.put(symbol, facetName);
-        hm_mfacet_index.put(facetName, facetMultiIndex);
-        facetMultiIndex++;
+        dataTable.hm_symbol_mfacet.put(symbol, facetName);
+        dataTable.hm_mfacet_index.put(facetName, facetIndice[1]);
+        facetIndice[1] = facetIndice[1]+1;
       }
       
-      hm_type.put(symbol, type);
+      dataTable.hm_type.put(symbol, type);
     }
   }
 
-  private String makeFuncString(String funcBody, 
-                                HashMap<String, String> hm_type,
-                                LinkedList<String> lls_params) throws JSONException
+  private static String makeFuncString(DataTable dataTable) throws JSONException
   {
     
     StringBuffer sb = new StringBuffer();
@@ -966,14 +941,14 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction
     int set_index = 0;
     int map_index = 0;
     
-    for(int i=0; i< lls_params.size();i++)
+    for(int i=0; i< dataTable.lls_params.size();i++)
     {
-      String paramName = lls_params.get(i);
+      String paramName = dataTable.lls_params.get(i);
       
-      if(!hm_type.containsKey(paramName) || (hm_type.get(paramName) == null))
+      if(!dataTable.hm_type.containsKey(paramName) || (dataTable.hm_type.get(paramName) == null))
         throw new JSONException("function arameter " + paramName + " is not defined.");
       
-      String paramType = hm_type.get(paramName);
+      String paramType = dataTable.hm_type.get(paramName);
       
       if(paramType.equals(JSONConstants.TYPE_INT) || paramType.equals(JSONConstants.TYPE_FACET_INT))
       {
@@ -1164,13 +1139,18 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction
       }
     }
     
-    sb.append(funcBody);
+    sb.append(dataTable.funcBody);
     sb.append("}");
     return sb.toString();
   }
 
 
-  class CustomLoader extends ClassLoader {
+  
+  
+  
+  
+  
+  public static class CustomLoader extends ClassLoader {
 
     private ClassLoader _cl;
     private String _target;
@@ -1190,26 +1170,16 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction
     }
   }
   
-  
-  @Override
-  public void init(BoboIndexReader reader, JSONObject json) throws IOException
-  {
-    // TODO Auto-generated method stub
-
+  public static class DataTable {
+    public HashMap<String, Object> hm_var = new HashMap<String, Object>();
+    public HashMap<String, String> hm_type = new HashMap<String, String>();
+    public HashMap<String, String> hm_symbol_facet = new HashMap<String, String>();
+    public HashMap<String, Integer> hm_facet_index = new HashMap<String, Integer>();
+    public HashMap<String, String> hm_symbol_mfacet = new HashMap<String, String>();  //multi-facet
+    public HashMap<String, Integer> hm_mfacet_index = new HashMap<String, Integer>(); //multi-facet 
+    
+    public LinkedList<String> lls_params = new LinkedList<String>();
+    public String funcBody = null;
+    public String classIDString = null;
   }
-
-  @Override
-  public float newScore(float rawScore, int docID)
-  {
-    // TODO Auto-generated method stub
-    return 0;
-  }
-
-  @Override
-  public String getExplainString()
-  {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
 }
