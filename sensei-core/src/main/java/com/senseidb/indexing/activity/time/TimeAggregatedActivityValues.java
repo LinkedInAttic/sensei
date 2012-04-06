@@ -39,7 +39,7 @@ public class TimeAggregatedActivityValues implements ActivityValues {
 		aggregatesMetadata = AggregatesMetadata.init(indexDirPath, fieldName);
 		
 	}
-	protected static void initTimeHits(TimeHitsHolder timeActivities, IntValueHolder[] intActivityValues, int count, int lastUpdatedTime) {
+	protected synchronized static void initTimeHits(TimeHitsHolder timeActivities, IntValueHolder[] intActivityValues, int count, int lastUpdatedTime) {
     for (int index = 0; index < count; index++) {
       int activitiesCount = 0;
       for (int j = 0; j < intActivityValues.length; j++) {
@@ -119,12 +119,11 @@ public class TimeAggregatedActivityValues implements ActivityValues {
 		boolean needToFlush = false;
 		if (maxIndex < index) {
 		  maxIndex = index;
-		}
-	
+		}	
 		int valueInt = getIntValue(value);
 		String valueStr = valueInt > 0 ? "+" + valueInt : String.valueOf(valueInt);
 		int currentTime = Clock.getCurrentTimeInMinutes();
-		defaultIntValues.update(index, value);
+		needToFlush = needToFlush | defaultIntValues.update(index, value);
 		timeActivities.ensureCapacity(index);
 		synchronized (timeActivities.getLock(index)) {
 			if (!timeActivities.isSet(index)) {
@@ -141,7 +140,9 @@ public class TimeAggregatedActivityValues implements ActivityValues {
 			}
 		}
 		for (IntValueHolder intValueHolder : intActivityValues) {
-			needToFlush = needToFlush || intValueHolder.activityIntValues.update(index, valueStr);
+			synchronized (intValueHolder.activityIntValues) {
+			  needToFlush = needToFlush | intValueHolder.activityIntValues.update(index, valueStr);
+			}
 		}
 		return needToFlush;
 	}

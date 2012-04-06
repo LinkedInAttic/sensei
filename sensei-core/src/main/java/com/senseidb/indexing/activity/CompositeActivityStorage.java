@@ -20,7 +20,7 @@ public class CompositeActivityStorage {
   private volatile boolean closed = false;
   private MappedByteBuffer buffer;
   private long fileLength; 
-  
+  private boolean activateMemoryMappedBuffers = true;
   public CompositeActivityStorage(String indexDir) {   
     this.indexDir = indexDir;
   }
@@ -37,7 +37,9 @@ public class CompositeActivityStorage {
       }
       storedFile = new RandomAccessFile(file, "rw");
       fileLength = storedFile.length();
-       buffer = storedFile.getChannel().map(MapMode.READ_WRITE, 0, file.length());       
+       if (activateMemoryMappedBuffers){
+         buffer = storedFile.getChannel().map(MapMode.READ_WRITE, 0, file.length());       
+       }
     } catch (IOException e) {
       logger.error(e.getMessage(), e);
       throw new RuntimeException(e);
@@ -45,13 +47,22 @@ public class CompositeActivityStorage {
   }
 
   public synchronized void flush(List<Update> updates) {
-    Assert.state(buffer != null, "The FileStorage is not initialized");    
+    Assert.state(storedFile != null, "The FileStorage is not initialized");    
     try {
       for (Update update : updates) {       
          ensureCapacity(update.index * 8 + 8);        
-         buffer.putLong(update.index * 8, update.value);
+         if (activateMemoryMappedBuffers) {
+           buffer.putLong(update.index * 8, update.value);
+         } else {
+           storedFile.seek(update.index * 8);
+           storedFile.writeLong(update.value); 
+         }
       }
-      buffer.force();
+      if (activateMemoryMappedBuffers) {
+        buffer.force();
+      } else {
+        storedFile.getFD().sync();
+      }
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -68,13 +79,19 @@ public class CompositeActivityStorage {
       fileLength = 2000000;
     }
     storedFile.setLength(fileLength);
-    buffer = storedFile.getChannel().map(MapMode.READ_WRITE, 0,  fileLength);
+    if (activateMemoryMappedBuffers) {
+      buffer = storedFile.getChannel().map(MapMode.READ_WRITE, 0,  fileLength);
+    
+    }
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
   }
   public synchronized void close() {
     try {
+      if (activateMemoryMappedBuffers) {
+        buffer.force();
+      }
       storedFile.close();
       closed = true;
     } catch (IOException e) {
@@ -93,7 +110,14 @@ public class CompositeActivityStorage {
       }
       ret.init((int) (metadata.count * 1.5));
       for (int i = 0; i < metadata.count; i++) {
-        long value = buffer.getLong(i * 8);
+        long value;
+        if (activateMemoryMappedBuffers) {
+          value = buffer.getLong(i * 8);
+        }
+        else {
+          storedFile.seek(i * 8);
+          value = storedFile.readLong();
+        }
         if (value != Long.MIN_VALUE) {
           ret.uidToArrayIndex.put(value, i);
         }

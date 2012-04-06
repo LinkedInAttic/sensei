@@ -32,14 +32,13 @@ public class TestMapReduce extends TestCase {
       JSONObject reqJson = new JSONObject(req);
       System.out.println(reqJson.toString(1));
       JSONObject res = TestSensei.search(reqJson);
-      System.out.println(res.toString(1));
+    
       JSONObject highestResult = res.getJSONObject("mapReduceResult").getJSONArray("groupedCounts").getJSONObject(0);
       assertEquals(8, highestResult.getInt(highestResult.keys().next().toString()));
     }
     public void test1Max() throws Exception {
       SenseiMapReduceResult result = mapReduceBroker.browse(new MapReduceRequest(new MaxTestMapReduce("groupid")));
-      assertEquals(14990L, (long)(Long)result.getReduceResult());
-      System.out.println("!!!" + result.getTime());
+      assertEquals(14990L, (long)(Long)result.getReduceResult());     
     }
    
    

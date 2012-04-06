@@ -1,12 +1,13 @@
 package com.senseidb.indexing.activity.time;
 
 import static org.junit.Assert.assertEquals;
+import junit.framework.TestCase;
 
 import org.junit.Test;
 
-public class IntContainerTest {
+public class IntContainerTest extends TestCase {
 
-  @Test
+ 
   public void test1() {
     IntContainer intContainer = new IntContainer();
     assertEquals(0, intContainer.getSize());
@@ -32,8 +33,8 @@ public class IntContainerTest {
       intContainer.add(i);
     }
     assertEquals(19, intContainer.getSize());
-    assertEquals(1, intContainer.startIndex);
-    assertEquals(20, intContainer.array.length);
+    assertEquals(0, intContainer.startIndex);
+    assertEquals(21, intContainer.array.length);
     for (int i = 0; i < 18; i++) {
       intContainer.removeFirst();
     }

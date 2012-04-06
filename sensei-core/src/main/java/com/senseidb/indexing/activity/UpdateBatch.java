@@ -17,7 +17,7 @@ public class UpdateBatch<T> {
     return false;
   }
   public boolean flushNeeded() {
-    return updates.size() == batchSize || (System.currentTimeMillis() - time) > 60 * 1000;
+    return updates.size() >= batchSize || (System.currentTimeMillis() - time) > 60 * 1000;
   }
   public List<T> getUpdates() {
     return updates;
