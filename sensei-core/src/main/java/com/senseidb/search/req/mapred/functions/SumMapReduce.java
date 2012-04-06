@@ -7,6 +7,7 @@ import javax.management.RuntimeErrorException;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.senseidb.search.req.mapred.CombinerStage;
 import com.senseidb.search.req.mapred.FieldAccessor;
 import com.senseidb.search.req.mapred.SenseiMapReduce;
 
@@ -32,7 +33,7 @@ public class SumMapReduce implements SenseiMapReduce<Double, Double> {
   }
 
   @Override
-  public List<Double> combine(List<Double> mapResults) {
+  public List<Double> combine(List<Double> mapResults, CombinerStage combinerStage) {
     double ret = 0;
     for (Double count : mapResults) {
       ret += count;

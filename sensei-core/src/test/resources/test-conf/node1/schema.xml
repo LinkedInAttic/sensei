@@ -26,6 +26,7 @@
 	<column name="year" type="int" />
 	<column name="price" type="float" />
 	<column name="mileage" type="int" />
+	<column name="likes" activity="true" />
 	<!-- multi is default to be false, if set to true, delimiter is used to break the values,
 	     default delimiter is ","
 	 -->
@@ -109,7 +110,19 @@
 		</params>
 	 </facet>
 	 <facet name="groupid_multi" type="multi"/>	
-	 <facet name="groupid_range_multi" column="groupid_multi" type="multi-range"/>	
+	 <facet name="groupid_range_multi" column="groupid_multi" type="range"/>
+	 <facet name="likes" type="range"/>		
+	 <facet name="aggregated-likes" column="likes" type="aggregated-range">
+	 <params>
+		  <param name="time" value="5m" />
+		  <param name="time" value="15m" />
+		  <param name="time" value="1h" />
+		  <param name="time" value="12h" />
+		  <param name="time" value="1d" />
+		  <param name="time" value="7d" />
+		  <param name="time" value="2w" />
+		</params>
+		</facet>
 	 <!-- example of a custom facet, defined in custom-facets.xml -->
 	 <!-- 
 	     a bean with name "foobar" must be defined

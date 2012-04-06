@@ -160,7 +160,7 @@ public class SenseiStarter {
     _zoieFactory = (SenseiZoieFactory<?>)testSpringCtx.getBean("zoie-system-factory");
   }
 
-  private static boolean rmrf(File f) {
+  public static boolean rmrf(File f) {
     if (f == null || !f.exists()) {
       return true;
     }

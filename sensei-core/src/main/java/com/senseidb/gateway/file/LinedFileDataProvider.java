@@ -19,7 +19,7 @@ public abstract class LinedFileDataProvider<D> extends StreamDataProvider<D> {
 	
 	private final File _file;
 	private long _startingOffset;
-	private long _offset;
+	protected long _offset;
 	
 	private BufferedReader _reader;
 	
