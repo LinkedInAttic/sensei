@@ -43,6 +43,7 @@ public class PersistentColumnManagerTest extends TestCase {
     for (int i = 0; i < valueCount; i++) { 
       compositeActivityValues.update(10000000000L + i, String.format("%08d", i), new JSONObject().put("likes", "+1"));
     }    
+    compositeActivityValues.flush();
     compositeActivityValues.syncWithPersistentVersion(String.format("%08d", valueCount - 1));
     compositeActivityValues.close();
     compositeActivityValues = CompositeActivityValues.readFromFile(getDirPath(), java.util.Arrays.asList("likes"), Collections.EMPTY_LIST, ZoieConfig.DEFAULT_VERSION_COMPARATOR);
@@ -52,6 +53,7 @@ public class PersistentColumnManagerTest extends TestCase {
     for (int i = 0; i < valueCount; i++) {      
       compositeActivityValues.update(10000000000L + i, String.format("%08d", valueCount + i), new JSONObject().put("likes","+" + i));
     }
+    compositeActivityValues.flush();
     compositeActivityValues.syncWithPersistentVersion(String.format("%08d", valueCount * 2 - 1));
     compositeActivityValues.close();
     assertEquals(getFieldValues(compositeActivityValues)[0], 1);
@@ -74,6 +76,7 @@ private int[] getFieldValues(CompositeActivityValues compositeActivityValues){
     for (int i = 0; i < valueCount; i++) {
       compositeActivityValues.update(UID_BASE + i, String.format("%08d", valueCount + i), new JSONObject().put("likes", "+1"));
     }  
+    compositeActivityValues.flush();
     compositeActivityValues.syncWithPersistentVersion(String.format("%08d",  valueCount - 1));
     LongList uidsToDelete = new LongArrayList();
     for (int i = 0; i < valueCount; i++) {
@@ -86,10 +89,11 @@ private int[] getFieldValues(CompositeActivityValues compositeActivityValues){
         uidsToDelete.clear();
       } 
     }
+    compositeActivityValues.flush();
     compositeActivityValues.delete(uidsToDelete.toLongArray());
+    compositeActivityValues.flushDeletes();
     int notDeletedIndex = compositeActivityValues.uidToArrayIndex.get(UID_BASE + 2);
-    final CompositeActivityValues testActivityData = compositeActivityValues;
-    testActivityData.flushDeletes();
+    final CompositeActivityValues testActivityData = compositeActivityValues;    
     Wait.until(10000L, "", new Wait.Condition() {      
       public boolean evaluate() {
         synchronized (testActivityData.deletedIndexes) {
@@ -103,7 +107,9 @@ private int[] getFieldValues(CompositeActivityValues compositeActivityValues){
     assertEquals(Integer.MIN_VALUE, getFieldValues(compositeActivityValues)[notDeletedIndex - 1]);
     assertEquals(1, getFieldValues(compositeActivityValues)[notDeletedIndex]);
     assertEquals(1, compositeActivityValues.getValueByUID(UID_BASE + 2, "likes"));    
-    compositeActivityValues.flushDeletes();
+    
+    compositeActivityValues.flush();
+    Thread.sleep(1000L);
     compositeActivityValues.close();
     compositeActivityValues = CompositeActivityValues.readFromFile(indexDirPath, java.util.Arrays.asList("likes"), Collections.EMPTY_LIST, ZoieConfig.DEFAULT_VERSION_COMPARATOR);
     
@@ -118,9 +124,10 @@ private int[] getFieldValues(CompositeActivityValues compositeActivityValues){
     for (int i = 0; i < valueCount; i++) {      
       compositeActivityValues.update(UID_BASE + i, String.format("%08d", valueCount * 2 + i), new JSONObject().put("likes", "+" + i));
     }
+    compositeActivityValues.flush();
     compositeActivityValues.syncWithPersistentVersion(String.format("%08d", valueCount * 2 - 1));   
    
-    assertEquals(compositeActivityValues.getValueByUID(UID_BASE + 0, "likes"), 0);
+    assertEquals(compositeActivityValues.getValueByUID(UID_BASE + 0, "likes"), 1);
     assertEquals(compositeActivityValues.getValueByUID(UID_BASE + 3, "likes"), 4);
     compositeActivityValues.close();
   }

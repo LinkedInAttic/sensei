@@ -107,7 +107,7 @@ public class ActivityRangeFacetHandler extends FacetHandler<int[]> {
     }
     int value = activityIntValues.getValue(index);
     if (value == Integer.MIN_VALUE) {
-      value = 0;
+      return new String[0];
     }
     return new String[] {formatter.get().format(value)};
   }

@@ -2,8 +2,6 @@ package com.senseidb.search.req.mapred.functions;
 
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 
-import java.io.Serializable;
-import java.util.Arrays;
 import java.util.List;
 
 import org.json.JSONException;
@@ -12,7 +10,6 @@ import org.json.JSONObject;
 import com.senseidb.search.req.mapred.CombinerStage;
 import com.senseidb.search.req.mapred.FieldAccessor;
 import com.senseidb.search.req.mapred.SenseiMapReduce;
-import com.senseidb.search.req.mapred.obsolete.MapReduceJob;
 
 public class DistinctCountMapReduce implements SenseiMapReduce<LongOpenHashSet, Integer> {
 

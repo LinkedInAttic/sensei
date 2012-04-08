@@ -19,6 +19,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import org.apache.log4j.Logger;
 import org.json.JSONObject;
 import org.springframework.util.Assert;
 
@@ -26,9 +27,15 @@ import proj.zoie.api.ZoieIndexReader;
 
 import com.senseidb.indexing.activity.CompositeActivityManager.TimeAggregateInfo;
 import com.senseidb.indexing.activity.CompositeActivityStorage.Update;
+import com.senseidb.indexing.activity.time.AggregatesUpdateJob;
 import com.senseidb.indexing.activity.time.TimeAggregatedActivityValues;
+import com.senseidb.metrics.MetricsConstants;
+import com.yammer.metrics.Metrics;
+import com.yammer.metrics.core.Counter;
+import com.yammer.metrics.core.MetricName;
 
 public class CompositeActivityValues {
+  private final static Logger logger = Logger.getLogger(CompositeActivityValues.class);
   private static final String AGGREGATED_SUFFIX = "_aggregated";
   private Comparator<String> versionComparator; 
   private volatile UpdateBatch<Update> pendingDeletes = new UpdateBatch<Update>();
@@ -41,7 +48,9 @@ public class CompositeActivityValues {
   protected CompositeActivityStorage activityStorage;
   protected UpdateBatch<Update> updateBatch = new UpdateBatch<Update>(); 
   protected volatile Metadata metadata;
-  private volatile boolean closed; 
+  private volatile boolean closed;
+  private Counter deletedDocumentsCounter;
+  private Counter inserteddDocumentsCounter; 
   protected CompositeActivityValues() {
    
   }
@@ -55,6 +64,8 @@ public class CompositeActivityValues {
     for (int i = 0; i < 1024; i++) {
       locks[i] = new ReentrantReadWriteLock();
     }
+    deletedDocumentsCounter = Metrics.newCounter(new MetricName(MetricsConstants.Domain,"deletedDocs","deletedDocs" ,"CompositeActivityStorage"));
+    inserteddDocumentsCounter = Metrics.newCounter(new MetricName(MetricsConstants.Domain,"insertedDocs","insertedDocs" ,"CompositeActivityStorage"));
   }
   public ReadWriteLock getLock(long uid) {
     return locks[(int) (uid % locks.length)];
@@ -88,8 +99,8 @@ public class CompositeActivityValues {
         synchronized (deletedIndexes) {
           if (deletedIndexes.size() > 0) {
              index = deletedIndexes.removeInt(deletedIndexes.size() - 1);
-             uidToArrayIndex.put(uid, index);             ;
-             deletedDocsPresent = true;
+             uidToArrayIndex.put(uid, index); 
+             deletedDocsPresent = true;           
           }
         }
         if (!deletedDocsPresent) {          
@@ -180,7 +191,7 @@ private boolean updateActivities(JSONObject event, int index) {
         synchronized (deletedIndexes) {
           for (Update update : deleteBatch.updates) {
             deletedIndexes.add(update.index);
-          }
+          }       
         }
       }
     });
@@ -214,6 +225,11 @@ private boolean updateActivities(JSONObject event, int index) {
     final int count;
     synchronized (deletedIndexes) {
       count = uidToArrayIndex.size() + deletedIndexes.size();
+      inserteddDocumentsCounter.clear();
+      inserteddDocumentsCounter.inc(uidToArrayIndex.size());
+      deletedDocumentsCounter.clear();
+      deletedDocumentsCounter.inc( uidToArrayIndex.size());
+      logger.info("Flush compositeActivityValues. Documents = " +  uidToArrayIndex.size() + ", Deletes = " + deletedIndexes.size());
     }
      executor.submit(new Runnable() {      
       @Override
@@ -244,6 +260,9 @@ private boolean updateActivities(JSONObject event, int index) {
     Metadata metadata = new Metadata(indexDirPath);
     metadata.init();
     CompositeActivityValues ret = persistentColumnManager.getActivityDataFromFile(metadata);
+    ret.deletedDocumentsCounter.inc(ret.deletedIndexes.size());
+    ret.inserteddDocumentsCounter.inc(ret.uidToArrayIndex.size());
+    logger.info("Init compositeActivityValues. Documents = " +  ret.uidToArrayIndex.size() + ", Deletes = " +ret.deletedIndexes.size());
     ret.metadata = metadata;
     ret.versionComparator = versionComparator;
     ret.lastVersion = metadata.version;

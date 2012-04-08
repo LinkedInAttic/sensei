@@ -26,7 +26,6 @@ import com.senseidb.jmx.JmxUtil;
 import com.senseidb.plugin.SenseiPluginRegistry;
 import com.senseidb.search.req.AbstractSenseiRequest;
 import com.senseidb.search.req.AbstractSenseiResult;
-import com.senseidb.search.req.mapred.obsolete.MapReduceSenseiService;
 import com.senseidb.svc.impl.AbstractSenseiCoreService;
 import com.senseidb.svc.impl.CoreSenseiServiceImpl;
 import com.senseidb.svc.impl.SenseiCoreServiceMessageHandler;
@@ -136,11 +135,13 @@ public class SenseiServer {
       logger.info("shutting down node...");
       try
       {
+        _core.getActivityManager().getActivityValues().flush();
         _core.shutdown();
         pluginRegistry.stop();
         _clusterClient.removeNode(_id);
         _clusterClient.shutdown();
         _serverNode = null;
+        _core.getActivityManager().close();
       } catch (Exception e)
       {
         logger.warn(e.getMessage());
@@ -165,17 +166,15 @@ public class SenseiServer {
     logger.info("Cluster info: " + _clusterClient.toString());
 
     AbstractSenseiCoreService coreSenseiService = new CoreSenseiServiceImpl(_core);
-    AbstractSenseiCoreService sysSenseiCoreService = new SysSenseiCoreServiceImpl(_core);
-    AbstractSenseiCoreService mapReduceSenseiCoreService = new MapReduceSenseiService(_core);
+    AbstractSenseiCoreService sysSenseiCoreService = new SysSenseiCoreServiceImpl(_core);    
     // create the zookeeper cluster client
 //    SenseiClusterClientImpl senseiClusterClient = new SenseiClusterClientImpl(clusterName, zookeeperURL, zookeeperTimeout, false);
     SenseiCoreServiceMessageHandler senseiMsgHandler =  new SenseiCoreServiceMessageHandler(coreSenseiService);
     SenseiCoreServiceMessageHandler senseiSysMsgHandler =  new SenseiCoreServiceMessageHandler(sysSenseiCoreService);
-    SenseiCoreServiceMessageHandler mapReduceMsgHandler =  new SenseiCoreServiceMessageHandler(mapReduceSenseiCoreService);
+   
     _networkServer.registerHandler(senseiMsgHandler, coreSenseiService.getSerializer());
     _networkServer.registerHandler(senseiSysMsgHandler, sysSenseiCoreService.getSerializer());
-    _networkServer.registerHandler(mapReduceMsgHandler, mapReduceSenseiCoreService.getSerializer());
-
+    
     _networkServer.registerHandler(senseiMsgHandler, CoreSenseiServiceImpl.JAVA_SERIALIZER);
     _networkServer.registerHandler(senseiSysMsgHandler, SysSenseiCoreServiceImpl.JAVA_SERIALIZER);
 

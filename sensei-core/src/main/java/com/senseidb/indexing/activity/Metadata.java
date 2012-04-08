@@ -6,8 +6,8 @@ import java.io.IOException;
 import org.apache.commons.io.FileUtils;
 
 public class Metadata {
-  public String version;
-  public int count;
+  public volatile String version;
+  public volatile int count;
   private final String indexDir; 
   private File file1;
   private File file2;

@@ -6,9 +6,16 @@ import java.io.RandomAccessFile;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel.MapMode;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
 import org.springframework.util.Assert;
+
+import com.senseidb.metrics.MetricsConstants;
+import com.yammer.metrics.Metrics;
+import com.yammer.metrics.core.MetricName;
+import com.yammer.metrics.core.Timer;
 
 public class ActivityIntStorage {
   private static Logger logger = Logger.getLogger(ActivityIntStorage.class);
@@ -19,9 +26,13 @@ public class ActivityIntStorage {
   private MappedByteBuffer buffer;
   private long fileLength; 
   private boolean activateMemoryMappedBuffers = true;
+  private Timer timer;
+  
   public ActivityIntStorage(String fieldName, String indexDir) {
     this.fieldName = fieldName;
     this.indexDir = indexDir;
+    timer = Metrics.newTimer(new MetricName(MetricsConstants.Domain,"timer","initIntActivities-time-" + fieldName,"initIntActivities"), TimeUnit.MILLISECONDS, TimeUnit.SECONDS);
+   
   }
 
   public synchronized void init() {
@@ -94,31 +105,42 @@ public class ActivityIntStorage {
     }
   }
 
-  protected  ActivityIntValues getActivityDataFromFile(int count) {
-    Assert.state(storedFile != null, "The FileStorage is not initialized");
-    ActivityIntValues ret = new ActivityIntValues();
-    ret.activityFieldStore = this;
-    ret.fieldName = fieldName;
+  protected  ActivityIntValues getActivityDataFromFile(final int count) {
     try {
-      if (count == 0) {
-        ret.init();
-        return ret;
-      }
-      ret.init((int) (count * 1.5));
-      for (int i = 0; i < count; i++) {
-        int value;
-        if (activateMemoryMappedBuffers) {
-          value = buffer.getInt(i * 4);
-        } else {
-          storedFile.seek(i * 4);
-          value = storedFile.readInt();
+      return timer.time(new Callable<ActivityIntValues>() {
+
+        @Override
+        public ActivityIntValues call() throws Exception {
+          Assert.state(storedFile != null, "The FileStorage is not initialized");
+          ActivityIntValues ret = new ActivityIntValues();
+          ret.activityFieldStore = ActivityIntStorage.this;
+          ret.fieldName = fieldName;
+          try {
+            if (count == 0) {
+              ret.init();
+              return ret;
+            }
+            ret.init((int) (count * 1.5));
+            for (int i = 0; i < count; i++) {
+              int value;
+              if (activateMemoryMappedBuffers) {
+                value = buffer.getInt(i * 4);
+              } else {
+                storedFile.seek(i * 4);
+                value = storedFile.readInt();
+              }
+              ret.fieldValues[i] = value;
+            }
+          } catch (Exception e) {
+            throw new RuntimeException(e);
+          }
+          return ret;
         }
-        ret.fieldValues[i] = value;
-      }
+      });
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
-    return ret;
+    
   }
   
   public boolean isClosed() {

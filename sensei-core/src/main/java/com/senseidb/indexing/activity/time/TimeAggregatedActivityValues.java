@@ -164,7 +164,14 @@ public class TimeAggregatedActivityValues implements ActivityValues {
 
 	@Override
 	public void delete(int index) {
-	  defaultIntValues.delete(index);
+	  synchronized (defaultIntValues) {
+	    defaultIntValues.delete(index);
+	  }
+	  for (IntValueHolder intValueHolder : intActivityValues) {
+	   synchronized(intValueHolder.activityIntValues) {
+	    intValueHolder.activityIntValues.delete(index);
+	   }
+    }
 	  timeActivities.reset(index);
 	}
 

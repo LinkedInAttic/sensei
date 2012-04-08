@@ -5,12 +5,6 @@ import junit.framework.TestCase;
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
 
-import com.senseidb.search.req.SenseiHit;
-import com.senseidb.search.req.SenseiRequest;
-import com.senseidb.search.req.SenseiResult;
-import com.senseidb.search.req.mapred.obsolete.MapReduceBroker;
-import com.senseidb.search.req.mapred.obsolete.MapReduceRequest;
-import com.senseidb.search.req.mapred.obsolete.SenseiMapReduceResult;
 import com.senseidb.svc.api.SenseiService;
 import com.senseidb.test.SenseiStarter;
 import com.senseidb.test.TestSensei;
@@ -19,11 +13,10 @@ public class TestMapReduce extends TestCase {
 
     private static final Logger logger = Logger.getLogger(TestMapReduce.class);
 
-    private static MapReduceBroker mapReduceBroker;
+    
     private static SenseiService httpRestSenseiService;
     static {
-      SenseiStarter.start("test-conf/node1","test-conf/node2");
-      mapReduceBroker = SenseiStarter.mapReduceBroker;
+      SenseiStarter.start("test-conf/node1","test-conf/node2");     
       httpRestSenseiService = SenseiStarter.httpRestSenseiService;
     }
     public void test2GroupByColorAndGroupId() throws Exception { 
@@ -36,10 +29,7 @@ public class TestMapReduce extends TestCase {
       JSONObject highestResult = res.getJSONObject("mapReduceResult").getJSONArray("groupedCounts").getJSONObject(0);
       assertEquals(8, highestResult.getInt(highestResult.keys().next().toString()));
     }
-    public void test1Max() throws Exception {
-      SenseiMapReduceResult result = mapReduceBroker.browse(new MapReduceRequest(new MaxTestMapReduce("groupid")));
-      assertEquals(14990L, (long)(Long)result.getReduceResult());     
-    }
+  
    
    
     public void test4MaxMapReduce() throws Exception {      

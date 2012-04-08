@@ -133,6 +133,7 @@ public class ActivityIntegrationTest extends TestCase {
     assertEquals(Integer.parseInt(hits.getJSONObject(1).getJSONArray("likes:5m").getString(0)), 3);
     assertEquals(Integer.parseInt(hits.getJSONObject(2).getJSONArray("likes:5m").getString(0)), 2);
     assertEquals(Integer.parseInt(hits.getJSONObject(0).getJSONArray("likes:15m").getString(0)), 10);
+    
     Clock.setPredefinedTimeInMinutes(initialTime + 20);
     timeAggregatedActivityValues1.getAggregatesUpdateJob().run();
     timeAggregatedActivityValues2.getAggregatesUpdateJob().run();
@@ -145,7 +146,16 @@ public class ActivityIntegrationTest extends TestCase {
     assertEquals(Integer.parseInt(hits.getJSONObject(0).getJSONArray("likes:15m").getString(0)), 5);
     assertEquals(Integer.parseInt(hits.getJSONObject(1).getJSONArray("likes:15m").getString(0)), 4);
     assertEquals(Integer.parseInt(hits.getJSONObject(2).getJSONArray("likes:15m").getString(0)), 3);
-
+    inMemoryColumnData1.delete(0L);
+    req = "{ \"sort\":[{\"likes:15m\":\"desc\"}]}";
+    //testign deletes
+    res = TestSensei.search(new JSONObject(req));
+    hits = res.getJSONArray("hits");
+    System.out.println(res.toString(1));
+    assertEquals(Integer.parseInt(hits.getJSONObject(0).getJSONArray("likes:15m").getString(0)), 4);
+    assertEquals(Integer.parseInt(hits.getJSONObject(1).getJSONArray("likes:15m").getString(0)), 3);
+    assertEquals(Integer.parseInt(hits.getJSONObject(2).getJSONArray("likes:15m").getString(0)), 2);
+   
   }
   public void test4OpeningTheNewActivityFieldValues() throws Exception {
     final CompositeActivityValues inMemoryColumnData1 = CompositeActivityManager.cachedInstances.get(1).activityValues;

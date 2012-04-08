@@ -14,7 +14,6 @@ import com.senseidb.search.req.SenseiSystemInfo.SenseiFacetInfo;
 import com.senseidb.search.req.mapred.CombinerStage;
 import com.senseidb.search.req.mapred.FieldAccessor;
 import com.senseidb.search.req.mapred.SenseiMapReduce;
-import com.senseidb.search.req.mapred.obsolete.SenseiMapReduceResult;
 
 
 public class SenseiMapFunctionWrapper implements BoboMapFunctionWrapper {
@@ -28,7 +27,7 @@ public class SenseiMapFunctionWrapper implements BoboMapFunctionWrapper {
     super();
     this.mapReduceStrategy = mapReduceStrategy;   
     partialDocIds = intarraymgr.get(BUFFER_SIZE);
-    result = new SenseiMapReduceResult();
+    result = new MapReduceResult();
     this.facetInfos = facetInfos;
   }
 

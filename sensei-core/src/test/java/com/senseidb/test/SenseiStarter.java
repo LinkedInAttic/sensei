@@ -23,7 +23,6 @@ import com.senseidb.search.node.SenseiServer;
 import com.senseidb.search.node.SenseiZoieFactory;
 import com.senseidb.search.req.SenseiRequest;
 import com.senseidb.search.req.SenseiResult;
-import com.senseidb.search.req.mapred.obsolete.MapReduceBroker;
 import com.senseidb.svc.api.SenseiService;
 import com.senseidb.svc.impl.HttpRestSenseiServiceImpl;
 
@@ -55,8 +54,7 @@ public class SenseiStarter {
   public static final String SENSEI_TEST_CONF_FILE="sensei-test.spring";
   public static SenseiZoieFactory<?> _zoieFactory;
   public static boolean started = false;
-
-  public static MapReduceBroker mapReduceBroker;
+  
 
   /**
    * Will start the new Sensei instance once per process
@@ -92,8 +90,7 @@ public class SenseiStarter {
     try
     {
       broker = new SenseiBroker(networkClient, clusterClient, loadBalancerFactory, 1, 2, 2000);
-      broker.setTimeoutMillis(0);
-      mapReduceBroker = new MapReduceBroker(networkClient, clusterClient, loadBalancerFactory, 1, 2, 2000);
+      broker.setTimeoutMillis(0);     
       broker.setTimeoutMillis(0);
     } catch (NorbertException ne) {
       logger.info("shutting down cluster...", ne);

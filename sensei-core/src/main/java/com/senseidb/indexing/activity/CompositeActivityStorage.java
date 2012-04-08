@@ -7,11 +7,18 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel.MapMode;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
 import org.springframework.util.Assert;
 
 import com.senseidb.indexing.activity.ActivityIntStorage.FieldUpdate;
+import com.senseidb.metrics.MetricsConstants;
+import com.yammer.metrics.Metrics;
+import com.yammer.metrics.core.Counter;
+import com.yammer.metrics.core.MetricName;
+import com.yammer.metrics.core.Timer;
 
 public class CompositeActivityStorage {
   private static Logger logger = Logger.getLogger(ActivityIntStorage.class);
@@ -21,8 +28,12 @@ public class CompositeActivityStorage {
   private MappedByteBuffer buffer;
   private long fileLength; 
   private boolean activateMemoryMappedBuffers = true;
+  private Timer timer;
+
   public CompositeActivityStorage(String indexDir) {   
     this.indexDir = indexDir;
+    timer = Metrics.newTimer(new MetricName(MetricsConstants.Domain,"timer","initCompositeActivities-time" ,"CompositeActivityStorage"), TimeUnit.MILLISECONDS, TimeUnit.SECONDS);
+ 
   }
 
   public synchronized void init() {
@@ -99,36 +110,47 @@ public class CompositeActivityStorage {
     }
   }
 
-  protected CompositeActivityValues getActivityDataFromFile(Metadata metadata) {
-    Assert.state(storedFile != null, "The FileStorage is not initialized");
-    CompositeActivityValues ret = new CompositeActivityValues();
-    ret.activityStorage = this;   
+  protected CompositeActivityValues getActivityDataFromFile(final Metadata metadata) {
     try {
-      if (metadata.count == 0) {
-        ret.init();
-        return ret;
-      }
-      ret.init((int) (metadata.count * 1.5));
-      for (int i = 0; i < metadata.count; i++) {
-        long value;
-        if (activateMemoryMappedBuffers) {
-          value = buffer.getLong(i * 8);
+      return timer.time(new Callable<CompositeActivityValues>() {
+
+        @Override
+        public CompositeActivityValues call() throws Exception {
+          Assert.state(storedFile != null, "The FileStorage is not initialized");
+          CompositeActivityValues ret = new CompositeActivityValues();
+          ret.activityStorage = CompositeActivityStorage.this;   
+          try {
+            if (metadata.count == 0) {
+              ret.init();
+              return ret;
+            }
+            ret.init((int) (metadata.count * 1.5));
+            for (int i = 0; i < metadata.count; i++) {
+              long value;
+              if (activateMemoryMappedBuffers) {
+                value = buffer.getLong(i * 8);
+              }
+              else {
+                storedFile.seek(i * 8);
+                value = storedFile.readLong();
+              }
+              if (value != Long.MIN_VALUE) {
+                ret.uidToArrayIndex.put(value, i);
+              }
+              else {
+                ret.deletedIndexes.add(i);
+              }
+            }
+          } catch (Exception e) {
+            throw new RuntimeException(e);
+          }
+          return ret;
         }
-        else {
-          storedFile.seek(i * 8);
-          value = storedFile.readLong();
-        }
-        if (value != Long.MIN_VALUE) {
-          ret.uidToArrayIndex.put(value, i);
-        }
-        else {
-          ret.deletedIndexes.add(i);
-        }
-      }
+      });
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
-    return ret;
+   
   }
   
   public boolean isClosed() {
