@@ -31,7 +31,7 @@ public class ActivityIntStorage {
   public ActivityIntStorage(String fieldName, String indexDir) {
     this.fieldName = fieldName;
     this.indexDir = indexDir;
-    timer = Metrics.newTimer(new MetricName(MetricsConstants.Domain,"timer","initIntActivities-time-" + fieldName,"initIntActivities"), TimeUnit.MILLISECONDS, TimeUnit.SECONDS);
+    timer = Metrics.newTimer(new MetricName(MetricsConstants.Domain,"timer","initIntActivities-time-" + fieldName.replaceAll(":", "-"),"initIntActivities"), TimeUnit.MILLISECONDS, TimeUnit.SECONDS);
    
   }
 

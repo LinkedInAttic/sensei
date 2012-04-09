@@ -139,10 +139,8 @@ public class TimeAggregatedActivityValues implements ActivityValues {
 			  timeActivities.getActivities(index).add(valueInt);
 			}
 		}
-		for (IntValueHolder intValueHolder : intActivityValues) {
-			synchronized (intValueHolder.activityIntValues) {
+		for (IntValueHolder intValueHolder : intActivityValues) {			
 			  needToFlush = needToFlush | intValueHolder.activityIntValues.update(index, valueStr);
-			}
 		}
 		return needToFlush;
 	}
@@ -163,16 +161,15 @@ public class TimeAggregatedActivityValues implements ActivityValues {
   }
 
 	@Override
-	public void delete(int index) {
-	  synchronized (defaultIntValues) {
+	public void delete(int index) {	  
 	    defaultIntValues.delete(index);
-	  }
-	  for (IntValueHolder intValueHolder : intActivityValues) {
-	   synchronized(intValueHolder.activityIntValues) {
-	    intValueHolder.activityIntValues.delete(index);
-	   }
+	
+	  for (IntValueHolder intValueHolder : intActivityValues) {	 
+	    intValueHolder.activityIntValues.delete(index);	   
     }
-	  timeActivities.reset(index);
+	  synchronized (timeActivities.getLock(index)) {
+	    timeActivities.reset(index);
+	  }
 	}
 
 	@Override
