@@ -887,6 +887,7 @@ public class TestBQL extends TestCase
       "FROM cars " +
       "GIVEN FACET PARAM (My-Network, 'srcid', int, 8233570)"
       );
+    System.out.println(">>> jsonxxx = " + json);
     JSONObject expected = new JSONObject("{\"facetInit\":{\"My-Network\":{\"srcid\":{\"values\":[8233570],\"type\":\"int\"}}}, \"meta\":{\"select_list\":[\"*\"]}}");
     assertTrue(_comp.isEquals(json, expected));
   }
@@ -1228,6 +1229,23 @@ public class TestBQL extends TestCase
       );
 
     JSONObject expected = new JSONObject("{\"fetchStored\":true,\"meta\":{\"select_list\":[\"_srcdata.color\",\"_srcdata.$time\"]}}");
+    assertTrue(_comp.isEquals(json, expected));
+  }
+
+  @Test
+  public void testRelevanceModel1() throws Exception
+  {
+    System.out.println("testRelevanceModel1");
+    System.out.println("==================================================");
+
+    JSONObject json = _compiler.compile(
+      "SELECT color, year "                     +
+      "FROM cars "                              +
+      "WHERE color = 'red' "                    +
+      "USING RELEVANCE MODEL homepage_top ('srcid':1234)"
+      );
+
+    JSONObject expected = new JSONObject("{\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"values\":{\"srcid\":1234},\"predefined_model\":\"homepage_top\"}}},\"selections\":[{\"term\":{\"color\":{\"value\":\"red\"}}}],\"meta\":{\"select_list\":[\"color\",\"year\"]}}");
     assertTrue(_comp.isEquals(json, expected));
   }
 
