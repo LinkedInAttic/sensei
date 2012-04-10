@@ -76,7 +76,7 @@ public abstract class AbstractScoreAdjuster extends Query
   
   protected Explanation createExplain(Explanation innerExplain,
                                                   IndexReader reader,
-                                                  int doc)
+                                                  int doc) throws IOException
   {
     return innerExplain;
   }

@@ -1,4 +1,4 @@
-package com.senseidb.search.relevance;
+package com.senseidb.search.relevance.impl;
 
 import com.browseengine.bobo.facets.data.MultiValueFacetDataCache;
 import com.browseengine.bobo.facets.data.MultiValueWithWeightFacetDataCache;

@@ -1,13 +1,13 @@
-package com.senseidb.search.relevance;
+package com.senseidb.search.relevance.impl;
 
 import com.browseengine.bobo.facets.data.MultiValueFacetDataCache;
 import com.browseengine.bobo.facets.data.MultiValueWithWeightFacetDataCache;
-import com.browseengine.bobo.facets.data.TermDoubleList;
+import com.browseengine.bobo.facets.data.TermStringList;
 
-public class WeightedMFacetDouble extends MFacetDouble implements WeightedMFacet
+public class WeightedMFacetString extends MFacetString implements WeightedMFacet
 {
 
-  public WeightedMFacetDouble(MultiValueFacetDataCache mDataCaches)
+  public WeightedMFacetString(MultiValueFacetDataCache mDataCaches)
   {
     super(mDataCaches);
     
@@ -15,7 +15,7 @@ public class WeightedMFacetDouble extends MFacetDouble implements WeightedMFacet
     _weightArray = wmDataCaches._weightArray;
     weightBuf = new int[1024];
   }
-  
+
   @Override
   public void refresh(int id)
   {
@@ -23,10 +23,10 @@ public class WeightedMFacetDouble extends MFacetDouble implements WeightedMFacet
     _weightArray.getData(id, weightBuf);
   }
 
-  public boolean hasWeight(double target){
+  public boolean hasWeight(String target){
     
     for(int i=0; i< this._length; i++)
-      if(((TermDoubleList) _mTermList).getPrimitiveValue(_buf[i]) == target)
+      if(((TermStringList) _mTermList).get(_buf[i]).equals(target))
       {
         _weight[0] = weightBuf[i];
         return true;
@@ -40,5 +40,4 @@ public class WeightedMFacetDouble extends MFacetDouble implements WeightedMFacet
   {
     return _weight[0];
   }
-  
 }
