@@ -11,7 +11,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.browseengine.bobo.api.BoboIndexReader;
-import com.senseidb.search.relevance.CustomScorer.RuntimeRelevanceFunction;
 
 public class ScoreAugmentQuery extends AbstractScoreAdjuster
 {

@@ -1,4 +1,4 @@
-package com.senseidb.search.relevance;
+package com.senseidb.search.relevance.impl;
 
 import it.unimi.dsi.fastutil.doubles.DoubleOpenHashSet;
 import it.unimi.dsi.fastutil.floats.FloatOpenHashSet;
@@ -68,21 +68,21 @@ public class CompilationHelper
     
     pool.importPackage("it.unimi.dsi.fastutil.objects.AbstractObject2FloatMap");
     
-    pool.importPackage("com.senseidb.search.relevance.MFacet");
-    pool.importPackage("com.senseidb.search.relevance.MFacetDouble");
-    pool.importPackage("com.senseidb.search.relevance.MFacetFloat");
-    pool.importPackage("com.senseidb.search.relevance.MFacetInt");
-    pool.importPackage("com.senseidb.search.relevance.MFacetLong");
-    pool.importPackage("com.senseidb.search.relevance.MFacetShort");
-    pool.importPackage("com.senseidb.search.relevance.MFacetString");
+    pool.importPackage("com.senseidb.search.relevance.impl.MFacet");
+    pool.importPackage("com.senseidb.search.relevance.impl.MFacetDouble");
+    pool.importPackage("com.senseidb.search.relevance.impl.MFacetFloat");
+    pool.importPackage("com.senseidb.search.relevance.impl.MFacetInt");
+    pool.importPackage("com.senseidb.search.relevance.impl.MFacetLong");
+    pool.importPackage("com.senseidb.search.relevance.impl.MFacetShort");
+    pool.importPackage("com.senseidb.search.relevance.impl.MFacetString");
     
-    pool.importPackage("com.senseidb.search.relevance.WeightedMFacet");
-    pool.importPackage("com.senseidb.search.relevance.WeightedMFacetDouble");
-    pool.importPackage("com.senseidb.search.relevance.WeightedMFacetFloat");
-    pool.importPackage("com.senseidb.search.relevance.WeightedMFacetInt");
-    pool.importPackage("com.senseidb.search.relevance.WeightedMFacetLong");
-    pool.importPackage("com.senseidb.search.relevance.WeightedMFacetShort");
-    pool.importPackage("com.senseidb.search.relevance.WeightedMFacetString");
+    pool.importPackage("com.senseidb.search.relevance.impl.WeightedMFacet");
+    pool.importPackage("com.senseidb.search.relevance.impl.WeightedMFacetDouble");
+    pool.importPackage("com.senseidb.search.relevance.impl.WeightedMFacetFloat");
+    pool.importPackage("com.senseidb.search.relevance.impl.WeightedMFacetInt");
+    pool.importPackage("com.senseidb.search.relevance.impl.WeightedMFacetLong");
+    pool.importPackage("com.senseidb.search.relevance.impl.WeightedMFacetShort");
+    pool.importPackage("com.senseidb.search.relevance.impl.WeightedMFacetString");
     
 //    pool.appendClassPath( new LoaderClassPath(RelevanceQuery.class.getClassLoader()));
     pool.insertClassPath(new ClassClassPath(RelevanceQuery.class));
@@ -116,26 +116,26 @@ public class CompilationHelper
     
     hs_safe.add("it.unimi.dsi.fastutil.objects.AbstractObject2FloatMap");
     
-    hs_safe.add("com.senseidb.search.relevance.MFacet");
-    hs_safe.add("com.senseidb.search.relevance.MFacetDouble");
-    hs_safe.add("com.senseidb.search.relevance.MFacetFloat");
-    hs_safe.add("com.senseidb.search.relevance.MFacetInt");
-    hs_safe.add("com.senseidb.search.relevance.MFacetLong");
-    hs_safe.add("com.senseidb.search.relevance.MFacetShort");
-    hs_safe.add("com.senseidb.search.relevance.MFacetString");
+    hs_safe.add("com.senseidb.search.relevance.impl.MFacet");
+    hs_safe.add("com.senseidb.search.relevance.impl.MFacetDouble");
+    hs_safe.add("com.senseidb.search.relevance.impl.MFacetFloat");
+    hs_safe.add("com.senseidb.search.relevance.impl.MFacetInt");
+    hs_safe.add("com.senseidb.search.relevance.impl.MFacetLong");
+    hs_safe.add("com.senseidb.search.relevance.impl.MFacetShort");
+    hs_safe.add("com.senseidb.search.relevance.impl.MFacetString");
     
-    hs_safe.add("com.senseidb.search.relevance.WeightedMFacet");
-    hs_safe.add("com.senseidb.search.relevance.WeightedMFacetDouble");
-    hs_safe.add("com.senseidb.search.relevance.WeightedMFacetFloat");
-    hs_safe.add("com.senseidb.search.relevance.WeightedMFacetInt");
-    hs_safe.add("com.senseidb.search.relevance.WeightedMFacetLong");
-    hs_safe.add("com.senseidb.search.relevance.WeightedMFacetShort");
-    hs_safe.add("com.senseidb.search.relevance.WeightedMFacetString");
+    hs_safe.add("com.senseidb.search.relevance.impl.WeightedMFacet");
+    hs_safe.add("com.senseidb.search.relevance.impl.WeightedMFacetDouble");
+    hs_safe.add("com.senseidb.search.relevance.impl.WeightedMFacetFloat");
+    hs_safe.add("com.senseidb.search.relevance.impl.WeightedMFacetInt");
+    hs_safe.add("com.senseidb.search.relevance.impl.WeightedMFacetLong");
+    hs_safe.add("com.senseidb.search.relevance.impl.WeightedMFacetShort");
+    hs_safe.add("com.senseidb.search.relevance.impl.WeightedMFacetString");
     
     
-    hs_safe.add("com.senseidb.search.relevance.RelevanceQuery");
-    hs_safe.add("com.senseidb.search.relevance.CustomMathModel");
-    hs_safe.add("com.senseidb.search.relevance.RelevanceQuery$CustomLoader");
+    hs_safe.add("com.senseidb.search.relevance.impl.RelevanceQuery");
+    hs_safe.add("com.senseidb.search.relevance.impl.CustomMathModel");
+    hs_safe.add("com.senseidb.search.relevance.impl.RelevanceQuery$CustomLoader");
     
     hs_safe.add("java.lang.Object");
     hs_safe.add("java.lang.Exception");
@@ -553,7 +553,7 @@ public class CompilationHelper
         CtClass ci;
         try
         {
-          ci = CompilationHelper.pool.get("com.senseidb.search.relevance.CustomMathModel");
+          ci = CompilationHelper.pool.get("com.senseidb.search.relevance.impl.CustomMathModel");
         }
         catch (NotFoundException e)
         {
@@ -1015,7 +1015,7 @@ public class CompilationHelper
   {
     
     StringBuffer sb = new StringBuffer();
-    sb.append("public float score(short[] shorts, int[] ints, long[] longs, float[] floats, double[] doubles, boolean[] booleans, String[] strings, Set[] sets, Map[] maps, com.senseidb.search.relevance.MFacetInt[] mFacetInts, com.senseidb.search.relevance.MFacetLong[] mFacetLongs, com.senseidb.search.relevance.MFacetFloat[] mFacetFloats, com.senseidb.search.relevance.MFacetDouble[] mFacetDoubles, com.senseidb.search.relevance.MFacetShort[] mFacetShorts, com.senseidb.search.relevance.MFacetString[] mFacetStrings) {");
+    sb.append("public float score(short[] shorts, int[] ints, long[] longs, float[] floats, double[] doubles, boolean[] booleans, String[] strings, Set[] sets, Map[] maps, com.senseidb.search.relevance.impl.MFacetInt[] mFacetInts, com.senseidb.search.relevance.impl.MFacetLong[] mFacetLongs, com.senseidb.search.relevance.impl.MFacetFloat[] mFacetFloats, com.senseidb.search.relevance.impl.MFacetDouble[] mFacetDoubles, com.senseidb.search.relevance.impl.MFacetShort[] mFacetShorts, com.senseidb.search.relevance.impl.MFacetString[] mFacetStrings) {");
     
     int short_index = 0,    m_short_index = 0;
     int int_index = 0,      m_int_index = 0;
@@ -1160,35 +1160,35 @@ public class CompilationHelper
         float_index++;
       }
       //multi-facet;
-      //com.senseidb.search.relevance.MFacetInt[] mFacetInts, com.senseidb.search.relevance.MFacetLong[] mFacetLongs, com.senseidb.search.relevance.MFacetFloat[] mFacetFloats, , com.senseidb.search.relevance.MFacetShort[] mFacetShorts, com.senseidb.search.relevance.MFacetString[] mFacetStrings
+      //com.senseidb.search.relevance.impl.MFacetInt[] mFacetInts, com.senseidb.search.relevance.impl.MFacetLong[] mFacetLongs, com.senseidb.search.relevance.impl.MFacetFloat[] mFacetFloats, , com.senseidb.search.relevance.impl.MFacetShort[] mFacetShorts, com.senseidb.search.relevance.impl.MFacetString[] mFacetStrings
       else if(paramType.equals(JSONConstants.TYPE_FACET_M_DOUBLE))
       {
-        sb.append(" com.senseidb.search.relevance.MFacetDouble " + paramName + " = mFacetDoubles["+ m_double_index +"]; ");
+        sb.append(" com.senseidb.search.relevance.impl.MFacetDouble " + paramName + " = mFacetDoubles["+ m_double_index +"]; ");
         m_double_index++;
       }
       else if(paramType.equals(JSONConstants.TYPE_FACET_M_FLOAT))
       {
-        sb.append(" com.senseidb.search.relevance.MFacetFloat " + paramName + " = mFacetFloats["+ m_float_index +"]; ");
+        sb.append(" com.senseidb.search.relevance.impl.MFacetFloat " + paramName + " = mFacetFloats["+ m_float_index +"]; ");
         m_float_index++;
       }
       else if(paramType.equals(JSONConstants.TYPE_FACET_M_INT))
       {
-        sb.append(" com.senseidb.search.relevance.MFacetInt " + paramName + " = mFacetInts["+ m_int_index +"]; ");
+        sb.append(" com.senseidb.search.relevance.impl.MFacetInt " + paramName + " = mFacetInts["+ m_int_index +"]; ");
         m_int_index++;
       }
       else if(paramType.equals(JSONConstants.TYPE_FACET_M_LONG))
       {
-        sb.append(" com.senseidb.search.relevance.MFacetLong " + paramName + " = mFacetLongs["+ m_long_index +"]; ");
+        sb.append(" com.senseidb.search.relevance.impl.MFacetLong " + paramName + " = mFacetLongs["+ m_long_index +"]; ");
         m_long_index++;
       }
       else if(paramType.equals(JSONConstants.TYPE_FACET_M_SHORT))
       {
-        sb.append(" com.senseidb.search.relevance.MFacetShort " + paramName + " = mFacetShorts["+ m_short_index +"]; ");
+        sb.append(" com.senseidb.search.relevance.impl.MFacetShort " + paramName + " = mFacetShorts["+ m_short_index +"]; ");
         m_short_index++;
       }
       else if(paramType.equals(JSONConstants.TYPE_FACET_M_STRING))
       {
-        sb.append(" com.senseidb.search.relevance.MFacetString " + paramName + " = mFacetStrings["+ m_string_index +"]; ");
+        sb.append(" com.senseidb.search.relevance.impl.MFacetString " + paramName + " = mFacetStrings["+ m_string_index +"]; ");
         m_string_index++;
       }
       
@@ -1196,32 +1196,32 @@ public class CompilationHelper
       //weighted multi-facet;
       else if(paramType.equals(JSONConstants.TYPE_FACET_WM_DOUBLE))
       {
-        sb.append(" com.senseidb.search.relevance.WeightedMFacetDouble " + paramName + " = (com.senseidb.search.relevance.WeightedMFacetDouble) mFacetDoubles["+ m_double_index +"]; ");
+        sb.append(" com.senseidb.search.relevance.impl.WeightedMFacetDouble " + paramName + " = (com.senseidb.search.relevance.impl.WeightedMFacetDouble) mFacetDoubles["+ m_double_index +"]; ");
         m_double_index++;
       }
       else if(paramType.equals(JSONConstants.TYPE_FACET_WM_FLOAT))
       {
-        sb.append(" com.senseidb.search.relevance.WeightedMFacetFloat " + paramName + " = (com.senseidb.search.relevance.WeightedMFacetFloat) mFacetFloats["+ m_float_index +"]; ");
+        sb.append(" com.senseidb.search.relevance.impl.WeightedMFacetFloat " + paramName + " = (com.senseidb.search.relevance.impl.WeightedMFacetFloat) mFacetFloats["+ m_float_index +"]; ");
         m_float_index++;
       }
       else if(paramType.equals(JSONConstants.TYPE_FACET_WM_INT))
       {
-        sb.append(" com.senseidb.search.relevance.WeightedMFacetInt " + paramName + " = (com.senseidb.search.relevance.WeightedMFacetInt) mFacetInts["+ m_int_index +"]; ");
+        sb.append(" com.senseidb.search.relevance.impl.WeightedMFacetInt " + paramName + " = (com.senseidb.search.relevance.impl.WeightedMFacetInt) mFacetInts["+ m_int_index +"]; ");
         m_int_index++;
       }
       else if(paramType.equals(JSONConstants.TYPE_FACET_WM_LONG))
       {
-        sb.append(" com.senseidb.search.relevance.WeightedMFacetLong " + paramName + " = (com.senseidb.search.relevance.WeightedMFacetLong) mFacetLongs["+ m_long_index +"]; ");
+        sb.append(" com.senseidb.search.relevance.impl.WeightedMFacetLong " + paramName + " = (com.senseidb.search.relevance.impl.WeightedMFacetLong) mFacetLongs["+ m_long_index +"]; ");
         m_long_index++;
       }
       else if(paramType.equals(JSONConstants.TYPE_FACET_WM_SHORT))
       {
-        sb.append(" com.senseidb.search.relevance.WeightedMFacetShort " + paramName + " = (com.senseidb.search.relevance.WeightedMFacetShort) mFacetShorts["+ m_short_index +"]; ");
+        sb.append(" com.senseidb.search.relevance.impl.WeightedMFacetShort " + paramName + " = (com.senseidb.search.relevance.impl.WeightedMFacetShort) mFacetShorts["+ m_short_index +"]; ");
         m_short_index++;
       }
       else if(paramType.equals(JSONConstants.TYPE_FACET_WM_STRING))
       {
-        sb.append(" com.senseidb.search.relevance.WeightedMFacetString " + paramName + " = (com.senseidb.search.relevance.WeightedMFacetString) mFacetStrings["+ m_string_index +"]; ");
+        sb.append(" com.senseidb.search.relevance.impl.WeightedMFacetString " + paramName + " = (com.senseidb.search.relevance.impl.WeightedMFacetString) mFacetStrings["+ m_string_index +"]; ");
         m_string_index++;
       }
     }

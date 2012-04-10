@@ -1,4 +1,4 @@
-package com.senseidb.search.relevance;
+package com.senseidb.search.relevance.impl;
 
 import java.io.IOException;
 
@@ -12,8 +12,8 @@ import org.json.JSONObject;
 
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.senseidb.search.query.AbstractScoreAdjuster;
-import com.senseidb.search.relevance.CompilationHelper.DataTable;
-import com.senseidb.search.relevance.CustomScorer.RuntimeRelevanceFunction;
+import com.senseidb.search.relevance.RuntimeRelevanceFunction;
+import com.senseidb.search.relevance.impl.CompilationHelper.DataTable;
 
 public class RelevanceQuery extends AbstractScoreAdjuster
 {

@@ -1,14 +1,14 @@
-package com.senseidb.search.relevance;
+package com.senseidb.search.relevance.impl;
 
 import java.util.Set;
 
 import com.browseengine.bobo.facets.data.MultiValueFacetDataCache;
-import com.browseengine.bobo.facets.data.TermLongList;
+import com.browseengine.bobo.facets.data.TermStringList;
 
-public class MFacetLong extends MFacet
+public class MFacetString extends MFacet
 {
 
-  public MFacetLong(MultiValueFacetDataCache mDataCaches)
+  public MFacetString(MultiValueFacetDataCache mDataCaches)
   {
     super(mDataCaches);
   }
@@ -18,20 +18,20 @@ public class MFacetLong extends MFacet
   {
     throw new UnsupportedOperationException("not implemented yet");
   }
-  
-  public boolean containsAll(long[] target)
+
+  public boolean containsAll(String[] target)
   {
     throw new UnsupportedOperationException("not implemented yet");
   }
   
   
-  public boolean contains(long target)
+  public boolean contains(String target)
   {
     for(int i=0; i< this._length; i++)
-      if(((TermLongList) _mTermList).getPrimitiveValue(_buf[i]) == target)
+      if(((TermStringList) _mTermList).get(_buf[i]).equals(target))
         return true;
               
     return false;
   }
-
+  
 }

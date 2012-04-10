@@ -12,8 +12,8 @@ import org.json.JSONObject;
 
 import com.senseidb.search.query.ScoreAugmentQuery.ScoreAugmentFunction;
 import com.senseidb.search.relevance.CustomRelevanceFactory;
-import com.senseidb.search.relevance.JSONConstants;
-import com.senseidb.search.relevance.RelevanceQuery;
+import com.senseidb.search.relevance.impl.JSONConstants;
+import com.senseidb.search.relevance.impl.RelevanceQuery;
 
 public abstract class QueryConstructor
 {
