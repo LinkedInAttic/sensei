@@ -16,5 +16,4 @@ public class MockRuntimeFacetHandlerFactory extends AbstractRuntimeFacetHandlerF
     
     return null;
   }
-
 }
