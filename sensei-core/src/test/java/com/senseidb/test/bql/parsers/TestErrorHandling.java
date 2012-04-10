@@ -925,4 +925,32 @@ public class TestErrorHandling extends TestCase
     }
   }
 
+  @Test
+  public void testUsingRelevanceOnce() throws Exception
+  {
+    System.out.println("testUsingRelevanceOnce");
+    System.out.println("==================================================");
+
+    boolean caughtException = false;
+    try
+    {
+      JSONObject json = _compiler.compile(
+        "select category \n" +
+        "from cars \n" +
+        "using relevance model md1 ('srcid':1234) \n" +
+        "using relevance model md2 ('param1':'abc')"
+        );
+    }
+    catch (RecognitionException err)
+    {
+      assertEquals("[line:4, col:42] USING RELEVANCE MODEL clause can only appear once. (token=<EOF>)",
+                   _compiler.getErrorMessage(err));
+      caughtException = true;
+    }
+    finally 
+    {
+      assertTrue(caughtException);
+    }
+  }
+
 }
