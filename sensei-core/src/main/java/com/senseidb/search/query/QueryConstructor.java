@@ -12,6 +12,7 @@ import org.json.JSONObject;
 
 import com.senseidb.search.query.ScoreAugmentQuery.ScoreAugmentFunction;
 import com.senseidb.search.relevance.CustomRelevanceFactory;
+import com.senseidb.search.relevance.JSONConstants;
 import com.senseidb.search.relevance.RelevanceQuery;
 
 public abstract class QueryConstructor
@@ -130,11 +131,15 @@ public abstract class QueryConstructor
     }
     else
     {
-      return new RelevanceQuery(baseQuery, jsonRelevance);
+        // the olde code path, now turned off;
+//      return new RelevanceQuery(baseQuery, jsonRelevance);
       
-      // temporarily turned off during code refactoring;
-//      ScoreAugmentFunction func = CustomRelevanceFactory.build(jsonRelevance);
-//      return new ScoreAugmentQuery(baseQuery, func);
+      ScoreAugmentFunction func = CustomRelevanceFactory.build(jsonRelevance);
+      JSONObject valuesJson = jsonRelevance.optJSONObject(JSONConstants.KW_VALUES); 
+      if(func == null)
+        throw new JSONException("Can not create the score function;");
+      
+      return new ScoreAugmentQuery(baseQuery, func, valuesJson);
     }
   }
 

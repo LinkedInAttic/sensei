@@ -6,6 +6,7 @@ public class JSONConstants
   
   // (1) json keys;
   public static final String           KW_MODEL                = "model";
+  public static final String           KW_PREDEFINED           = "predefined-model";
   public static final String           KW_VALUES               = "values";
   public static final String           KW_VARIABLES            = "variables";
   public static final String           KW_FACETS               = "facets";

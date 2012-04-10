@@ -7,7 +7,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.log4j.Logger;
 import org.apache.lucene.search.Scorer;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.facets.data.FacetDataCache;
@@ -20,39 +23,34 @@ import com.browseengine.bobo.facets.data.TermShortList;
 import com.browseengine.bobo.facets.data.TermStringList;
 import com.browseengine.bobo.facets.data.TermValueList;
 import com.browseengine.bobo.util.BigSegmentedArray;
+import com.senseidb.search.query.ScoreAugmentQuery.ScoreAugmentFunction;
 import com.senseidb.search.relevance.CompilationHelper.DataTable;
 
 public class CustomScorer extends Scorer
 {
-
+  private static Logger logger = Logger.getLogger(CustomScorer.class);
   final Scorer _innerScorer;
-  private scoreModifier _sModifier = null;
+  private RuntimeRelevanceFunction _sModifier = null;
   
   public CustomScorer(Scorer innerScorer, 
                       BoboIndexReader boboReader, 
                        CustomMathModel cModel, 
-                       DataTable _dt
+                       DataTable _dt,
+                       JSONObject _valueJson
                        ) throws Exception
   {
     super(innerScorer.getSimilarity());
     
     _innerScorer = innerScorer;
-    _sModifier = new scoreModifier(boboReader, cModel, _dt);
-    
+    _sModifier = new RuntimeRelevanceFunction(cModel, _dt);
+    _sModifier.initializeGlobal(_valueJson);
+    _sModifier.initializeReader(boboReader, _valueJson);
   }
   
-  public CustomScorer(Scorer innerScorer, scoreModifier sModifier) throws Exception
-  {
-    super(innerScorer.getSimilarity());
-    
-    _innerScorer = innerScorer;
-    _sModifier = sModifier;
-    
-  }
 
   @Override
   public float score() throws IOException {
-    return _sModifier.score(_innerScorer.score(), docID());
+    return _sModifier.newScore(_innerScorer.score(), docID());
   }
   
   @Override
@@ -74,49 +72,60 @@ public class CustomScorer extends Scorer
   
   
   
-  public static class scoreModifier {
+  public static class RuntimeRelevanceFunction extends CustomRelevanceFunction{
     
-    final CustomMathModel _cModel;
+    private static Logger logger = Logger.getLogger(RuntimeRelevanceFunction.class);
     
-    final BigSegmentedArray[] _orderArrays;
-    final TermValueList[] _termLists;
+    private DataTable _dt;
+    private CustomMathModel _cModel;
     
-    final MultiValueFacetDataCache[] _mDataCaches;
-    final TermValueList[] _mTermLists;
+    private BigSegmentedArray[] _orderArrays;
+    private TermValueList[] _termLists;
     
-    final int[] _types;
-    final int[] _facetIndex;
-    final int[] _arrayIndex;
+    private MultiValueFacetDataCache[] _mDataCaches;
+    private TermValueList[] _mTermLists;
     
-    final int[] _mFacetIndex;
-    final int[] _mArrayIndex;
+    private int[] _types;
+    private int[] _facetIndex;
+    private int[] _arrayIndex;
     
-    final int _paramSize;
+    private int[] _mFacetIndex;
+    private int[] _mArrayIndex;
     
-    
-    final short[] shorts;
-    final int[] ints;
-    final long[] longs;
-    final float[] floats;
-    final double[] doubles;
-    final boolean[] booleans;
-    final String[] strings;
-    final Set[] sets;
-    final Map[] maps;
-    
-    final MFacetInt[] mFacetInts;
-    final MFacetLong[] mFacetLongs;
-    final MFacetShort[] mFacetShorts;
-    final MFacetFloat[] mFacetFloats;
-    final MFacetDouble[] mFacetDoubles;
-    final MFacetString[] mFacetStrings;
-    
-    final int[] dynamicAR;
+    private int _paramSize;
     
     
-    public scoreModifier(BoboIndexReader boboReader, 
+    private short[] shorts;
+    private int[] ints;
+    private long[] longs;
+    private float[] floats;
+    private double[] doubles;
+    private boolean[] booleans;
+    private String[] strings;
+    private Set[] sets;
+    private Map[] maps;
+    
+    private MFacetInt[] mFacetInts;
+    private MFacetLong[] mFacetLongs;
+    private MFacetShort[] mFacetShorts;
+    private MFacetFloat[] mFacetFloats;
+    private MFacetDouble[] mFacetDoubles;
+    private MFacetString[] mFacetStrings;
+    
+    private int[] dynamicAR;
+    
+    
+    public RuntimeRelevanceFunction(CustomMathModel cModel, 
+                         DataTable dt)
+    {
+      _cModel = cModel;
+      _dt = dt;
+    }
+    
+    
+    private void initialRunningData(BoboIndexReader boboReader, 
                          CustomMathModel cModel, 
-                         DataTable _dt) throws Exception
+                         DataTable _dt) throws IOException
     {
       int numFacet = _dt.hm_symbol_facet.keySet().size();
       final BigSegmentedArray[] orderArrays = new BigSegmentedArray[numFacet];
@@ -541,8 +550,9 @@ public class CustomScorer extends Scorer
     }
     
     
-    public float score(float innerScore, int docID) throws IOException {
-      
+    @Override
+    public float newScore(float innerScore, int docID){
+    
       //update the dynamic parameters only when we have to.
       for(int j=0; j < dynamicAR.length; j++)
       {
@@ -618,6 +628,50 @@ public class CustomScorer extends Scorer
       }
       
       return _cModel.score(shorts, ints, longs, floats, doubles, booleans, strings, sets, maps, mFacetInts, mFacetLongs, mFacetFloats, mFacetDoubles, mFacetShorts, mFacetStrings);
+    }
+
+
+//
+//    public boolean init(BoboIndexReader reader, JSONObject jsonValues)
+//    {
+//      try{
+//        CompilationHelper.initialize(jsonValues, _dt);
+//        initialRunningData(reader,_cModel, _dt);
+//        return true;
+//      }catch(Exception e)
+//      {
+//        logger.info("Can not initialize the scoring function with reader and value json.\n" + e);
+//        return false;
+//      }
+//    }
+
+
+
+    @Override
+    public String getExplainString()
+    {
+      return _dt.funcBody;
+    }
+
+
+    @Override
+    public void initializeReader(BoboIndexReader reader, JSONObject jsonParams) throws IOException
+    {
+      initialRunningData(reader,_cModel, _dt);      
+    }
+
+
+    @Override
+    public void initializeGlobal(JSONObject jsonValues) throws JSONException
+    {
+      CompilationHelper.initialize(jsonValues, _dt);
+    }
+
+
+    @Override
+    public ScoreAugmentFunction getCopy()
+    {
+      return new RuntimeRelevanceFunction(this._cModel, this._dt);
     }
 
     

@@ -305,19 +305,15 @@ public class CompilationHelper
 * 
 * */
   
-  public static CustomMathModel createCustomMathScorer(JSONObject relevance, DataTable dataTable) throws JSONException
+  public static CustomMathModel createCustomMathScorer(JSONObject jsonModel, DataTable dataTable) throws JSONException
   {
     CustomMathModel cMathModel = null;
     
-    JSONObject jsonModel = relevance.optJSONObject(JSONConstants.KW_MODEL);
     if(jsonModel == null)
       throw new JSONException("No model is specified.");
     
     JSONObject jsonVariables = jsonModel.optJSONObject(JSONConstants.KW_VARIABLES);
     JSONObject jsonFacets = jsonModel.optJSONObject(JSONConstants.KW_FACETS);
-    
-    JSONObject jsonValues = relevance.optJSONObject(JSONConstants.KW_VALUES);  // the json containing the values, could be null;
-    
     
     //process the function body and parameters firstly;
     
@@ -358,48 +354,6 @@ public class CompilationHelper
           if(symbol.equals(JSONConstants.KW_INNER_SCORE) || symbol.equals(JSONConstants.KW_NOW))
             throw new JSONException("variable name can not be reserved keyword.");
           
-          Set hs = null;
-          JSONArray values = jsonValues.optJSONArray(symbol);
-          
-          if(values == null)
-            throw new JSONException("variable "+ symbol + " does not have value.");
-          
-          for (int k =0; k < values.length(); k++){
-            if(JSONConstants.KW_TYPE_SET_INT.equals(type))
-            {
-              if(hs == null)
-                hs = new IntOpenHashSet();
-              hs.add(values.getInt(k));
-            }
-            else if (JSONConstants.KW_TYPE_SET_DOUBLE.equals(type))
-            {
-              if(hs == null)
-                hs = new DoubleOpenHashSet();
-              hs.add(values.getDouble(k));
-            }
-            else if (JSONConstants.KW_TYPE_SET_FLOAT.equals(type))
-            {
-              if(hs == null)
-                hs = new FloatOpenHashSet();
-              hs.add((float)values.getDouble(k));
-            }
-            else if (JSONConstants.KW_TYPE_SET_LONG.equals(type))
-            {
-              if(hs == null)
-                hs = new LongOpenHashSet();
-              hs.add(Long.parseLong(values.getString(k)));
-            }
-            else if (JSONConstants.KW_TYPE_SET_STRING.equals(type))
-            {
-              if(hs == null)
-                hs = new ObjectOpenHashSet();
-              hs.add(values.getString(k));
-            }
-          }
-          if(dataTable.hm_var.containsKey(symbol))
-            throw new JSONException("Symbol "+ symbol + " already defined." );
-          
-          dataTable.hm_var.put(symbol, hs);
           
           if(JSONConstants.KW_TYPE_SET_INT.equals(type))
           {
@@ -439,115 +393,48 @@ public class CompilationHelper
           
 //          "j":{"key":[1,2,3], "value":[2.3, 3.4, 2.9]}      // a user input hashmap;
           
-          JSONObject values = jsonValues.optJSONObject(symbol);
-          
-          if(values == null)
-            throw new JSONException("variable "+ symbol + " does not have value.");
-          
-          JSONArray keysList = values.optJSONArray("key");
-          JSONArray valuesList = values.optJSONArray("value");
-          
-          if(keysList == null)
-            throw new JSONException("variable " + symbol + "is a map, but does not have a key list");
-          
-          if(valuesList == null)
-            throw new JSONException("variable " + symbol + "is a map, but does not have a value list");
-          
-          int keySize = keysList.length();
-          int valueSize = valuesList.length();
-          if(keySize != valueSize)
-            throw new JSONException("variable " + symbol + ": key size is different from value size, can not convert to a map." );
-          
-          Map hm = null;
           
           if(JSONConstants.KW_TYPE_MAP_INT_INT.equals(type))
           {
-            if(hm == null)
-              hm = new Int2IntOpenHashMap();
-            for(int j=0; j<keySize; j++)
-              ((Int2IntOpenHashMap)hm).put(keysList.getInt(j), valuesList.getInt(j));
             dataTable.hm_type.put(symbol, JSONConstants.TYPE_MAP_INT_INT);
           }
           else if (JSONConstants.KW_TYPE_MAP_INT_DOUBLE.equals(type))
           {
-            if(hm == null)
-              hm = new Int2DoubleOpenHashMap();
-            for(int j=0; j<keySize; j++)
-              ((Int2DoubleOpenHashMap)hm).put(keysList.getInt(j), valuesList.getDouble(j));
             dataTable.hm_type.put(symbol, JSONConstants.TYPE_MAP_INT_DOUBLE);
           }
           else if (JSONConstants.KW_TYPE_MAP_INT_FLOAT.equals(type))
           {
-            if(hm == null)
-              hm = new Int2FloatOpenHashMap();
-            for(int j=0; j<keySize; j++)
-              ((Int2FloatOpenHashMap)hm).put(keysList.getInt(j), (float)(valuesList.getDouble(j)));
             dataTable.hm_type.put(symbol, JSONConstants.TYPE_MAP_INT_FLOAT);
           }
           else if (JSONConstants.KW_TYPE_MAP_INT_LONG.equals(type))
           {
-            if(hm == null)
-              hm = new Int2LongOpenHashMap();
-            for(int j=0; j<keySize; j++)
-              ((Int2LongOpenHashMap)hm).put(keysList.getInt(j), Long.parseLong(valuesList.getString(j)));
             dataTable.hm_type.put(symbol, JSONConstants.TYPE_MAP_INT_LONG);
           }
           else if (JSONConstants.KW_TYPE_MAP_INT_STRING.equals(type))
           {
-            if(hm == null)
-              hm = new Int2ObjectOpenHashMap();
-            for(int j=0; j<keySize; j++)
-              ((Int2ObjectOpenHashMap)hm).put(keysList.getInt(j), valuesList.getString(j));
             dataTable.hm_type.put(symbol, JSONConstants.TYPE_MAP_INT_STRING);
           }
           
           else if(JSONConstants.KW_TYPE_MAP_STRING_INT.equals(type))
           {
-            if(hm == null)
-              hm = new Object2IntOpenHashMap();
-            for(int j=0; j<keySize; j++)
-              ((Object2IntOpenHashMap)hm).put(keysList.getString(j), valuesList.getInt(j));
             dataTable.hm_type.put(symbol, JSONConstants.TYPE_MAP_STRING_INT);
           }
           else if (JSONConstants.KW_TYPE_MAP_STRING_DOUBLE.equals(type))
           {
-            if(hm == null)
-              hm = new Object2DoubleOpenHashMap();
-            for(int j=0; j<keySize; j++)
-              ((Object2DoubleOpenHashMap)hm).put(keysList.getString(j), valuesList.getDouble(j));
             dataTable.hm_type.put(symbol, JSONConstants.TYPE_MAP_STRING_DOUBLE);
           }
           else if (JSONConstants.KW_TYPE_MAP_STRING_FLOAT.equals(type))
           {
-            if(hm == null)
-              hm = new Object2FloatOpenHashMap();
-            for(int j=0; j<keySize; j++)
-              ((Object2FloatOpenHashMap)hm).put(keysList.getString(j), (float)(valuesList.getDouble(j)));
             dataTable.hm_type.put(symbol, JSONConstants.TYPE_MAP_STRING_FLOAT);
           }
           else if (JSONConstants.KW_TYPE_MAP_STRING_LONG.equals(type))
           {
-            if(hm == null)
-              hm = new Object2LongOpenHashMap();
-            for(int j=0; j<keySize; j++)
-              ((Object2LongOpenHashMap)hm).put(keysList.getString(j), Long.parseLong(valuesList.getString(j)));
             dataTable.hm_type.put(symbol, JSONConstants.TYPE_MAP_STRING_LONG);
           }
           else if (JSONConstants.KW_TYPE_MAP_STRING_STRING.equals(type))
           {
-            if(hm == null)
-              hm = new Object2ObjectOpenHashMap();
-            for(int j=0; j<keySize; j++)
-              ((Object2ObjectOpenHashMap)hm).put(keysList.getString(j), valuesList.getString(j));
             dataTable.hm_type.put(symbol, JSONConstants.TYPE_MAP_STRING_STRING);
           }
-        
-          
-          if(dataTable.hm_var.containsKey(symbol))
-            throw new JSONException("Symbol "+ symbol + " already defined." );
-          
-          dataTable.hm_var.put(symbol, hm);
-          
         }
       } // end of map variable;
       
@@ -565,45 +452,33 @@ public class CompilationHelper
           if(symbol.equals(JSONConstants.KW_INNER_SCORE) || symbol.equals(JSONConstants.KW_NOW))
             throw new JSONException("variable name can not be reserved keyword.");
 
-          if(dataTable.hm_var.containsKey(symbol))
-            throw new JSONException("Symbol "+ symbol + " already defined." );
-          
-          if( ! jsonValues.has(symbol))
-            throw new JSONException("Symbol " + symbol + " was not assigned with a value." );
-          
           if(JSONConstants.KW_TYPE_INT.equals(type))
           {
-            dataTable.hm_var.put(symbol, jsonValues.getInt(symbol));
             dataTable.hm_type.put(symbol, JSONConstants.TYPE_INT);
           }
           else if (JSONConstants.KW_TYPE_DOUBLE.equals(type))
           {
-            dataTable.hm_var.put(symbol, jsonValues.getDouble(symbol));
             dataTable.hm_type.put(symbol, JSONConstants.TYPE_DOUBLE);
           }
           else if (JSONConstants.KW_TYPE_FLOAT.equals(type))
           {
-            dataTable.hm_var.put(symbol, ((float)jsonValues.getDouble(symbol)));
             dataTable.hm_type.put(symbol, JSONConstants.TYPE_FLOAT);
           }
           else if (JSONConstants.KW_TYPE_LONG.equals(type))
           {
-            dataTable.hm_var.put(symbol, Long.parseLong(jsonValues.getString(symbol)));
             dataTable.hm_type.put(symbol, JSONConstants.TYPE_LONG);
           }
           else if (JSONConstants.KW_TYPE_STRING.equals(type))
           {
-            dataTable.hm_var.put(symbol, jsonValues.getString(symbol));
             dataTable.hm_type.put(symbol, JSONConstants.TYPE_STRING);
           }
           else if(JSONConstants.KW_TYPE_BOOL.equals(type))
           {
-            dataTable.hm_var.put(symbol, jsonValues.getBoolean(symbol));
-            dataTable.hm_type.put(symbol, JSONConstants.TYPE_STRING);
+            dataTable.hm_type.put(symbol, JSONConstants.TYPE_BOOLEAN);
           }
         }
-      }
-    }// end of normal variable while;
+      }// end of normal variable while;
+    }
 
     // add now variable;
     String symbolNow = JSONConstants.KW_NOW;
@@ -624,7 +499,7 @@ public class CompilationHelper
     
     if(dataTable.funcBody.indexOf("return ")==-1)
       throw new JSONException("No return statement in the function body.");
-    
+   
 
     //check if all the parameters have defined;
     for(int i=0; i< dataTable.lls_params.size(); i++)
@@ -639,25 +514,24 @@ public class CompilationHelper
         if( (!dataTable.hm_symbol_facet.containsKey(symbol)) && (!dataTable.hm_symbol_mfacet.containsKey(symbol)))
           throw new JSONException("function parameter: " + symbol + " was not defined.");
       }
-      else
-      {
-        if(!dataTable.hm_var.containsKey(symbol))
-          throw new JSONException("function parameter: " + symbol + " was not defined.");
-      }
     }
 
     dataTable.lls_params = filterParameters(dataTable);
     
-    String paramString = getParamString(dataTable);
+
     
+    
+    //compile the math model below;
+    String paramString = getParamString(dataTable);
     dataTable.classIDString = dataTable.funcBody + paramString;
     String className = "CRel"+ dataTable.classIDString.hashCode();
-    logger.info("Custom relevance class name is:"+ className);
+    logger.info("Custom relevance math class name is:"+ className);
     
 
     if(hmModels.containsKey(className))
     {
       cMathModel = hmModels.get(className);
+      logger.info("get math model from hashmap:"+ className);
       return cMathModel;
     }
     else
@@ -669,6 +543,7 @@ public class CompilationHelper
         if(hmModels.containsKey(className))
         {
           cMathModel = hmModels.get(className);
+          logger.info("get math model from hashmap:"+ className);
           return cMathModel;
         }
         
@@ -722,6 +597,7 @@ public class CompilationHelper
           if(hmModels.containsKey(className))
           {
             cMathModel = hmModels.get(className);
+            logger.info("get math model from hashmap:"+ className);
             return cMathModel;
           }
           else
@@ -750,9 +626,220 @@ public class CompilationHelper
           hmModels = new HashMap<String, CustomMathModel>();
         
         hmModels.put(className, cMathModel);
+        logger.info("get math model by compilation:"+ className);
         return cMathModel;
       }        
     }
+    
+  }
+  
+  public static void initialize(JSONObject jsonValues, DataTable dataTable) throws JSONException
+  {
+    HashMap<String, String> hm_type = dataTable.hm_type;
+    Iterator it = hm_type.keySet().iterator();
+    while(it.hasNext()){
+      String symbol = (String)it.next();
+      String type = dataTable.hm_type.get(symbol);
+      
+      if(symbol.equals(JSONConstants.KW_INNER_SCORE) || symbol.equals(JSONConstants.KW_NOW))
+        continue;
+      
+      //process set variable;
+      if(JSONConstants.TYPE_SET_INT.equals(type) || JSONConstants.TYPE_SET_DOUBLE.equals(type) || JSONConstants.TYPE_SET_LONG.equals(type) || JSONConstants.TYPE_SET_FLOAT.equals(type) || JSONConstants.TYPE_SET_STRING.equals(type))
+      {
+        Set hs = null;
+        JSONArray values = jsonValues.optJSONArray(symbol);
+        
+        if(values == null)
+          throw new JSONException("variable "+ symbol + " does not have value.");
+        
+        for (int k =0; k < values.length(); k++){
+          if(JSONConstants.TYPE_SET_INT.equals(type))
+          {
+            if(hs == null)
+              hs = new IntOpenHashSet();
+            hs.add(values.getInt(k));
+          }
+          else if (JSONConstants.TYPE_SET_DOUBLE.equals(type))
+          {
+            if(hs == null)
+              hs = new DoubleOpenHashSet();
+            hs.add(values.getDouble(k));
+          }
+          else if (JSONConstants.TYPE_SET_FLOAT.equals(type))
+          {
+            if(hs == null)
+              hs = new FloatOpenHashSet();
+            hs.add((float)values.getDouble(k));
+          }
+          else if (JSONConstants.TYPE_SET_LONG.equals(type))
+          {
+            if(hs == null)
+              hs = new LongOpenHashSet();
+            hs.add(Long.parseLong(values.getString(k)));
+          }
+          else if (JSONConstants.TYPE_SET_STRING.equals(type))
+          {
+            if(hs == null)
+              hs = new ObjectOpenHashSet();
+            hs.add(values.getString(k));
+          }
+        }
+        
+        dataTable.hm_var.put(symbol, hs);
+          
+      } // end of set variable;
+     
+      
+      else if(type.startsWith(JSONConstants.TYPE_MAP_HEAD))
+      {
+          
+//          "j":{"key":[1,2,3], "value":[2.3, 3.4, 2.9]}      // a user input hashmap;
+          
+          JSONObject values = jsonValues.optJSONObject(symbol);
+          
+          if(values == null)
+            throw new JSONException("variable "+ symbol + " does not have value.");
+          
+          JSONArray keysList = values.optJSONArray("key");
+          JSONArray valuesList = values.optJSONArray("value");
+          
+          if(keysList == null)
+            throw new JSONException("variable " + symbol + "is a map, but does not have a key list");
+          
+          if(valuesList == null)
+            throw new JSONException("variable " + symbol + "is a map, but does not have a value list");
+          
+          int keySize = keysList.length();
+          int valueSize = valuesList.length();
+          if(keySize != valueSize)
+            throw new JSONException("variable " + symbol + ": key size is different from value size, can not convert to a map." );
+          
+          Map hm = null;
+          
+          if(JSONConstants.TYPE_MAP_INT_INT.equals(type))
+          {
+            if(hm == null)
+              hm = new Int2IntOpenHashMap();
+            for(int j=0; j<keySize; j++)
+              ((Int2IntOpenHashMap)hm).put(keysList.getInt(j), valuesList.getInt(j));
+          }
+          else if (JSONConstants.TYPE_MAP_INT_DOUBLE.equals(type))
+          {
+            if(hm == null)
+              hm = new Int2DoubleOpenHashMap();
+            for(int j=0; j<keySize; j++)
+              ((Int2DoubleOpenHashMap)hm).put(keysList.getInt(j), valuesList.getDouble(j));
+          }
+          else if (JSONConstants.TYPE_MAP_INT_FLOAT.equals(type))
+          {
+            if(hm == null)
+              hm = new Int2FloatOpenHashMap();
+            for(int j=0; j<keySize; j++)
+              ((Int2FloatOpenHashMap)hm).put(keysList.getInt(j), (float)(valuesList.getDouble(j)));
+          }
+          else if (JSONConstants.TYPE_MAP_INT_LONG.equals(type))
+          {
+            if(hm == null)
+              hm = new Int2LongOpenHashMap();
+            for(int j=0; j<keySize; j++)
+              ((Int2LongOpenHashMap)hm).put(keysList.getInt(j), Long.parseLong(valuesList.getString(j)));
+          }
+          else if (JSONConstants.TYPE_MAP_INT_STRING.equals(type))
+          {
+            if(hm == null)
+              hm = new Int2ObjectOpenHashMap();
+            for(int j=0; j<keySize; j++)
+              ((Int2ObjectOpenHashMap)hm).put(keysList.getInt(j), valuesList.getString(j));
+          }
+          
+          else if(JSONConstants.TYPE_MAP_STRING_INT.equals(type))
+          {
+            if(hm == null)
+              hm = new Object2IntOpenHashMap();
+            for(int j=0; j<keySize; j++)
+              ((Object2IntOpenHashMap)hm).put(keysList.getString(j), valuesList.getInt(j));
+          }
+          else if (JSONConstants.TYPE_MAP_STRING_DOUBLE.equals(type))
+          {
+            if(hm == null)
+              hm = new Object2DoubleOpenHashMap();
+            for(int j=0; j<keySize; j++)
+              ((Object2DoubleOpenHashMap)hm).put(keysList.getString(j), valuesList.getDouble(j));
+          }
+          else if (JSONConstants.TYPE_MAP_STRING_FLOAT.equals(type))
+          {
+            if(hm == null)
+              hm = new Object2FloatOpenHashMap();
+            for(int j=0; j<keySize; j++)
+              ((Object2FloatOpenHashMap)hm).put(keysList.getString(j), (float)(valuesList.getDouble(j)));
+          }
+          else if (JSONConstants.TYPE_MAP_STRING_LONG.equals(type))
+          {
+            if(hm == null)
+              hm = new Object2LongOpenHashMap();
+            for(int j=0; j<keySize; j++)
+              ((Object2LongOpenHashMap)hm).put(keysList.getString(j), Long.parseLong(valuesList.getString(j)));
+          }
+          else if (JSONConstants.TYPE_MAP_STRING_STRING.equals(type))
+          {
+            if(hm == null)
+              hm = new Object2ObjectOpenHashMap();
+            for(int j=0; j<keySize; j++)
+              ((Object2ObjectOpenHashMap)hm).put(keysList.getString(j), valuesList.getString(j));
+          }
+        
+          dataTable.hm_var.put(symbol, hm);
+          
+      } // end of map variable;
+      
+      else if(JSONConstants.TYPE_INT.equals(type) || JSONConstants.TYPE_DOUBLE.equals(type) || JSONConstants.TYPE_LONG.equals(type) || JSONConstants.TYPE_FLOAT.equals(type) || JSONConstants.TYPE_STRING.equals(type) || JSONConstants.TYPE_BOOLEAN.equals(type))
+      {
+          
+          if( ! jsonValues.has(symbol))
+            throw new JSONException("Symbol " + symbol + " was not assigned with a value." );
+          
+          if(JSONConstants.TYPE_INT.equals(type))
+          {
+            dataTable.hm_var.put(symbol, jsonValues.getInt(symbol));
+          }
+          else if (JSONConstants.TYPE_DOUBLE.equals(type))
+          {
+            dataTable.hm_var.put(symbol, jsonValues.getDouble(symbol));
+          }
+          else if (JSONConstants.TYPE_FLOAT.equals(type))
+          {
+            dataTable.hm_var.put(symbol, ((float)jsonValues.getDouble(symbol)));
+          }
+          else if (JSONConstants.TYPE_LONG.equals(type))
+          {
+            dataTable.hm_var.put(symbol, Long.parseLong(jsonValues.getString(symbol)));
+          }
+          else if (JSONConstants.TYPE_STRING.equals(type))
+          {
+            dataTable.hm_var.put(symbol, jsonValues.getString(symbol));
+          }
+          else if(JSONConstants.TYPE_BOOLEAN.equals(type))
+          {
+            dataTable.hm_var.put(symbol, jsonValues.getBoolean(symbol));
+          }
+      }// end of normal variable while;
+      
+    }
+    
+    
+    //check if all the parameters have initialized;
+    for(int i=0; i< dataTable.lls_params.size(); i++)
+    {
+      String symbol = dataTable.lls_params.get(i);
+      String type = dataTable.hm_type.get(symbol);
+      if( !type.startsWith(JSONConstants.TYPE_FACET_HEAD))
+      {
+        if(!dataTable.hm_var.containsKey(symbol))
+          throw new JSONException("function parameter: " + symbol + " was not initialized.");
+      }
+    }
+    
     
   }
 
@@ -1171,15 +1258,29 @@ public class CompilationHelper
   }
   
   public static class DataTable {
-    public HashMap<String, Object> hm_var = new HashMap<String, Object>();
-    public HashMap<String, String> hm_type = new HashMap<String, String>();
-    public HashMap<String, String> hm_symbol_facet = new HashMap<String, String>();
-    public HashMap<String, Integer> hm_facet_index = new HashMap<String, Integer>();
-    public HashMap<String, String> hm_symbol_mfacet = new HashMap<String, String>();  //multi-facet
-    public HashMap<String, Integer> hm_mfacet_index = new HashMap<String, Integer>(); //multi-facet 
     
-    public LinkedList<String> lls_params = new LinkedList<String>();
+    //dynamic data;
+    public HashMap<String, Object> hm_var;
+    
+    //static model data;
+    public HashMap<String, String> hm_type;
+    public HashMap<String, String> hm_symbol_facet;
+    public HashMap<String, Integer> hm_facet_index;
+    public HashMap<String, String> hm_symbol_mfacet;  //multi-facet
+    public HashMap<String, Integer> hm_mfacet_index; //multi-facet 
+    
+    public LinkedList<String> lls_params;
     public String funcBody = null;
     public String classIDString = null;
+    
+    public DataTable(){
+      hm_var = new HashMap<String, Object>();
+      hm_type = new HashMap<String, String>();
+      hm_symbol_facet = new HashMap<String, String>();
+      hm_facet_index = new HashMap<String, Integer>();
+      hm_symbol_mfacet = new HashMap<String, String>();  //multi-facet
+      hm_mfacet_index = new HashMap<String, Integer>(); //multi-facet 
+      lls_params = new LinkedList<String>();
+    }
   }
 }

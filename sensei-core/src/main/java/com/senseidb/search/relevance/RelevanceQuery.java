@@ -13,7 +13,7 @@ import org.json.JSONObject;
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.senseidb.search.query.AbstractScoreAdjuster;
 import com.senseidb.search.relevance.CompilationHelper.DataTable;
-import com.senseidb.search.relevance.CustomScorer.scoreModifier;
+import com.senseidb.search.relevance.CustomScorer.RuntimeRelevanceFunction;
 
 public class RelevanceQuery extends AbstractScoreAdjuster
 {
@@ -24,6 +24,7 @@ public class RelevanceQuery extends AbstractScoreAdjuster
   protected final Query       _query;
   private DataTable           _dt     = null;
   private CustomMathModel     _cModel = null;
+  private JSONObject          _valuesJson = null;
   
   
   public RelevanceQuery(Query query, JSONObject relevance) throws JSONException
@@ -31,7 +32,10 @@ public class RelevanceQuery extends AbstractScoreAdjuster
     super(query);
     _query = query;
     _dt = new DataTable();
-    _cModel = CompilationHelper.createCustomMathScorer(relevance, _dt);
+    JSONObject modelJson  = relevance.optJSONObject(JSONConstants.KW_MODEL);
+    JSONObject valuesJson = relevance.optJSONObject(JSONConstants.KW_VALUES); 
+    _valuesJson = valuesJson;
+    _cModel = CompilationHelper.createCustomMathScorer(modelJson, _dt);
   }
  
 
@@ -49,7 +53,7 @@ public class RelevanceQuery extends AbstractScoreAdjuster
       BoboIndexReader boboReader = (BoboIndexReader)reader;
       CustomScorer cScorer = null;
       try{
-        cScorer = new CustomScorer(innerScorer, boboReader, _cModel, _dt);
+        cScorer = new CustomScorer(innerScorer, boboReader, _cModel, _dt, _valuesJson);
       }catch(Exception e){
         logger.info(e.getMessage());
         cScorer = null;
@@ -81,8 +85,10 @@ public class RelevanceQuery extends AbstractScoreAdjuster
       finalExpl.addDetail(innerExplain);
       
       try{
-        scoreModifier sModifier = new scoreModifier( (BoboIndexReader)reader, _cModel, _dt);
-        float value = sModifier.score(innerExplain.getValue(), doc);
+        RuntimeRelevanceFunction sModifier = new RuntimeRelevanceFunction(_cModel, _dt);
+        sModifier.initializeGlobal(_valuesJson);
+        sModifier.initializeReader((BoboIndexReader)reader, _valuesJson);
+        float value = sModifier.newScore(innerExplain.getValue(), doc);
         finalExpl.setValue(value);
         finalExpl.setDescription("Custom score: "+ value + "  function:"+ _dt.funcBody);
         

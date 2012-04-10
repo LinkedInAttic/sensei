@@ -1,16 +1,24 @@
 package com.senseidb.search.relevance;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.senseidb.search.query.ScoreAugmentQuery.ScoreAugmentFunction;
+import com.senseidb.search.relevance.CompilationHelper.DataTable;
+import com.senseidb.search.relevance.CustomScorer.RuntimeRelevanceFunction;
 
 public class CustomRelevanceFactory
 {
 
+  private static Map<String, CustomRelevanceFunction> map = new HashMap<String, CustomRelevanceFunction>();
+  
+  public static void addCustomRelevanceFunction(String name, CustomRelevanceFunction rf)
+  {
+    map.put(name, rf);
+  }
   
 //"relevance":{
 //              //   This relevance part support both runtime anonymous model and pre-loaded relevance class;
@@ -61,36 +69,34 @@ public class CustomRelevanceFactory
 //               "j":{"key":[1,2,3], "value":[2.3, 3.4, 2.9]}      // a user input hashmap;
 //             },
 //
-//             // (3) Pre-defined scoreFunction class and its json parameter;
-//             "predefined": {
-//                "class":"",
-//                "params":{}  
+//             // (3) Pre-defined scoreFunction class;
+//             "predefined-model": "model-name" 
 //             }   
 //        }
   
-  public static ScoreAugmentFunction build(JSONObject jsonRelevance) throws JSONException, ClassNotFoundException, SecurityException, NoSuchMethodException, IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException
+  public static ScoreAugmentFunction build(JSONObject jsonRelevance) throws JSONException
   {
     // first handle the predefined case if there is any one existing in the json;
-    if(jsonRelevance.has("predefined"))
+    if(jsonRelevance.has(JSONConstants.KW_PREDEFINED))
     {
-      String className = jsonRelevance.getString("class");
-      JSONObject jsonPrams = jsonRelevance.getJSONObject("params");
-      Class functionClass = Class.forName(className);
+      String pluginName = jsonRelevance.getString(JSONConstants.KW_PREDEFINED);
       
-      Class partypes[] = new Class[1];
-      partypes[0] = JSONObject.class;
-      Constructor ct = functionClass.getConstructor(partypes);
-      Object arglist[] = new Object[1];
-      arglist[0] = jsonPrams;
-      Object functionObject = ct.newInstance(arglist);
-      
-      return (ScoreAugmentFunction)functionObject;
+      if(map.containsKey(pluginName))
+        return map.get(pluginName);
+      else
+      {
+        throw new JSONException("No such CustomRelevanceFunction plugin is registered: " + pluginName);
+      }
     }
     
     // runtime anonymous model;
-    else if (jsonRelevance.has("model"))
+    else if (jsonRelevance.has(JSONConstants.KW_MODEL))
     {
-      return new RuntimeRelevanceFunction(jsonRelevance);      
+      JSONObject modelJson  = jsonRelevance.optJSONObject(JSONConstants.KW_MODEL);
+      DataTable _dt = new DataTable();
+      CustomMathModel _cModel = CompilationHelper.createCustomMathScorer(modelJson, _dt);
+      RuntimeRelevanceFunction sm = new RuntimeRelevanceFunction(_cModel, _dt); 
+      return  sm;     
     }
     else{
       throw new IllegalArgumentException("the relevance json is not valid"); 
