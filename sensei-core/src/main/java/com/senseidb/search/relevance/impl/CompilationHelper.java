@@ -312,19 +312,19 @@ public class CompilationHelper
     if(jsonModel == null)
       throw new JSONException("No model is specified.");
     
-    JSONObject jsonVariables = jsonModel.optJSONObject(JSONConstants.KW_VARIABLES);
-    JSONObject jsonFacets = jsonModel.optJSONObject(JSONConstants.KW_FACETS);
+    JSONObject jsonVariables = jsonModel.optJSONObject(RelevanceJSONConstants.KW_VARIABLES);
+    JSONObject jsonFacets = jsonModel.optJSONObject(RelevanceJSONConstants.KW_FACETS);
     
     //process the function body and parameters firstly;
     
-    JSONArray jsonFuncParameter = jsonModel.optJSONArray(JSONConstants.KW_FUNC_PARAMETERS);
+    JSONArray jsonFuncParameter = jsonModel.optJSONArray(RelevanceJSONConstants.KW_FUNC_PARAMETERS);
     for(int j=0; j<jsonFuncParameter.length(); j++)
     {
       String paramName = jsonFuncParameter.optString(j);
       dataTable.lls_params.add(paramName);
     }
     
-    dataTable.funcBody = jsonModel.optString(JSONConstants.KW_FUNCTION);
+    dataTable.funcBody = jsonModel.optString(RelevanceJSONConstants.KW_FUNCTION);
     
     //process facet variables;
     int[] facetIndice = new int[]{0,0};  // store the facetIndex and facetMultiIndex;
@@ -344,36 +344,36 @@ public class CompilationHelper
       JSONArray varArray = jsonVariables.getJSONArray(type);
       
       //process set variable;
-      if(JSONConstants.KW_TYPE_SET_INT.equals(type) || JSONConstants.KW_TYPE_SET_DOUBLE.equals(type) || JSONConstants.KW_TYPE_SET_LONG.equals(type) || JSONConstants.KW_TYPE_SET_FLOAT.equals(type) || JSONConstants.KW_TYPE_SET_STRING.equals(type))
+      if(RelevanceJSONConstants.KW_TYPE_SET_INT.equals(type) || RelevanceJSONConstants.KW_TYPE_SET_DOUBLE.equals(type) || RelevanceJSONConstants.KW_TYPE_SET_LONG.equals(type) || RelevanceJSONConstants.KW_TYPE_SET_FLOAT.equals(type) || RelevanceJSONConstants.KW_TYPE_SET_STRING.equals(type))
       {
         JSONArray sets = jsonVariables.getJSONArray(type);
         for(int i=0; i<sets.length(); i++)
         {
           String symbol = sets.getString(i);
           
-          if(symbol.equals(JSONConstants.KW_INNER_SCORE) || symbol.equals(JSONConstants.KW_NOW))
+          if(symbol.equals(RelevanceJSONConstants.KW_INNER_SCORE) || symbol.equals(RelevanceJSONConstants.KW_NOW))
             throw new JSONException("variable name can not be reserved keyword.");
           
           
-          if(JSONConstants.KW_TYPE_SET_INT.equals(type))
+          if(RelevanceJSONConstants.KW_TYPE_SET_INT.equals(type))
           {
-            dataTable.hm_type.put(symbol, JSONConstants.TYPE_SET_INT);
+            dataTable.hm_type.put(symbol, RelevanceJSONConstants.TYPE_SET_INT);
           }
-          else if (JSONConstants.KW_TYPE_SET_DOUBLE.equals(type))
+          else if (RelevanceJSONConstants.KW_TYPE_SET_DOUBLE.equals(type))
           {
-            dataTable.hm_type.put(symbol, JSONConstants.TYPE_SET_DOUBLE);
+            dataTable.hm_type.put(symbol, RelevanceJSONConstants.TYPE_SET_DOUBLE);
           }
-          else if (JSONConstants.KW_TYPE_SET_FLOAT.equals(type))
+          else if (RelevanceJSONConstants.KW_TYPE_SET_FLOAT.equals(type))
           {
-            dataTable.hm_type.put(symbol, JSONConstants.TYPE_SET_FLOAT);
+            dataTable.hm_type.put(symbol, RelevanceJSONConstants.TYPE_SET_FLOAT);
           }
-          else if (JSONConstants.KW_TYPE_SET_LONG.equals(type))
+          else if (RelevanceJSONConstants.KW_TYPE_SET_LONG.equals(type))
           {
-            dataTable.hm_type.put(symbol, JSONConstants.TYPE_SET_LONG);
+            dataTable.hm_type.put(symbol, RelevanceJSONConstants.TYPE_SET_LONG);
           }
-          else if (JSONConstants.KW_TYPE_SET_STRING.equals(type))
+          else if (RelevanceJSONConstants.KW_TYPE_SET_STRING.equals(type))
           {
-            dataTable.hm_type.put(symbol, JSONConstants.TYPE_SET_STRING);
+            dataTable.hm_type.put(symbol, RelevanceJSONConstants.TYPE_SET_STRING);
           }
           
         }
@@ -381,66 +381,66 @@ public class CompilationHelper
       
       
       //process map variable;
-      else if(type.startsWith(JSONConstants.KW_TYPE_MAP_HEAD))
+      else if(type.startsWith(RelevanceJSONConstants.KW_TYPE_MAP_HEAD))
       {
         JSONArray sets = jsonVariables.getJSONArray(type);
         for(int i=0; i<sets.length(); i++)
         {
           String symbol = sets.getString(i);
           
-          if(symbol.equals(JSONConstants.KW_INNER_SCORE) || symbol.equals(JSONConstants.KW_NOW))
+          if(symbol.equals(RelevanceJSONConstants.KW_INNER_SCORE) || symbol.equals(RelevanceJSONConstants.KW_NOW))
             throw new JSONException("variable name can not be reserved keyword.");
           
 //          "j":{"key":[1,2,3], "value":[2.3, 3.4, 2.9]}      // a user input hashmap;
           
           
-          if(JSONConstants.KW_TYPE_MAP_INT_INT.equals(type))
+          if(RelevanceJSONConstants.KW_TYPE_MAP_INT_INT.equals(type))
           {
-            dataTable.hm_type.put(symbol, JSONConstants.TYPE_MAP_INT_INT);
+            dataTable.hm_type.put(symbol, RelevanceJSONConstants.TYPE_MAP_INT_INT);
           }
-          else if (JSONConstants.KW_TYPE_MAP_INT_DOUBLE.equals(type))
+          else if (RelevanceJSONConstants.KW_TYPE_MAP_INT_DOUBLE.equals(type))
           {
-            dataTable.hm_type.put(symbol, JSONConstants.TYPE_MAP_INT_DOUBLE);
+            dataTable.hm_type.put(symbol, RelevanceJSONConstants.TYPE_MAP_INT_DOUBLE);
           }
-          else if (JSONConstants.KW_TYPE_MAP_INT_FLOAT.equals(type))
+          else if (RelevanceJSONConstants.KW_TYPE_MAP_INT_FLOAT.equals(type))
           {
-            dataTable.hm_type.put(symbol, JSONConstants.TYPE_MAP_INT_FLOAT);
+            dataTable.hm_type.put(symbol, RelevanceJSONConstants.TYPE_MAP_INT_FLOAT);
           }
-          else if (JSONConstants.KW_TYPE_MAP_INT_LONG.equals(type))
+          else if (RelevanceJSONConstants.KW_TYPE_MAP_INT_LONG.equals(type))
           {
-            dataTable.hm_type.put(symbol, JSONConstants.TYPE_MAP_INT_LONG);
+            dataTable.hm_type.put(symbol, RelevanceJSONConstants.TYPE_MAP_INT_LONG);
           }
-          else if (JSONConstants.KW_TYPE_MAP_INT_STRING.equals(type))
+          else if (RelevanceJSONConstants.KW_TYPE_MAP_INT_STRING.equals(type))
           {
-            dataTable.hm_type.put(symbol, JSONConstants.TYPE_MAP_INT_STRING);
+            dataTable.hm_type.put(symbol, RelevanceJSONConstants.TYPE_MAP_INT_STRING);
           }
           
-          else if(JSONConstants.KW_TYPE_MAP_STRING_INT.equals(type))
+          else if(RelevanceJSONConstants.KW_TYPE_MAP_STRING_INT.equals(type))
           {
-            dataTable.hm_type.put(symbol, JSONConstants.TYPE_MAP_STRING_INT);
+            dataTable.hm_type.put(symbol, RelevanceJSONConstants.TYPE_MAP_STRING_INT);
           }
-          else if (JSONConstants.KW_TYPE_MAP_STRING_DOUBLE.equals(type))
+          else if (RelevanceJSONConstants.KW_TYPE_MAP_STRING_DOUBLE.equals(type))
           {
-            dataTable.hm_type.put(symbol, JSONConstants.TYPE_MAP_STRING_DOUBLE);
+            dataTable.hm_type.put(symbol, RelevanceJSONConstants.TYPE_MAP_STRING_DOUBLE);
           }
-          else if (JSONConstants.KW_TYPE_MAP_STRING_FLOAT.equals(type))
+          else if (RelevanceJSONConstants.KW_TYPE_MAP_STRING_FLOAT.equals(type))
           {
-            dataTable.hm_type.put(symbol, JSONConstants.TYPE_MAP_STRING_FLOAT);
+            dataTable.hm_type.put(symbol, RelevanceJSONConstants.TYPE_MAP_STRING_FLOAT);
           }
-          else if (JSONConstants.KW_TYPE_MAP_STRING_LONG.equals(type))
+          else if (RelevanceJSONConstants.KW_TYPE_MAP_STRING_LONG.equals(type))
           {
-            dataTable.hm_type.put(symbol, JSONConstants.TYPE_MAP_STRING_LONG);
+            dataTable.hm_type.put(symbol, RelevanceJSONConstants.TYPE_MAP_STRING_LONG);
           }
-          else if (JSONConstants.KW_TYPE_MAP_STRING_STRING.equals(type))
+          else if (RelevanceJSONConstants.KW_TYPE_MAP_STRING_STRING.equals(type))
           {
-            dataTable.hm_type.put(symbol, JSONConstants.TYPE_MAP_STRING_STRING);
+            dataTable.hm_type.put(symbol, RelevanceJSONConstants.TYPE_MAP_STRING_STRING);
           }
         }
       } // end of map variable;
       
       // process normal variable;
       // int, string, double, long
-      else if(JSONConstants.KW_TYPE_INT.equals(type) || JSONConstants.KW_TYPE_DOUBLE.equals(type) || JSONConstants.KW_TYPE_LONG.equals(type) || JSONConstants.KW_TYPE_FLOAT.equals(type) || JSONConstants.KW_TYPE_STRING.equals(type) || JSONConstants.KW_TYPE_BOOL.equals(type))
+      else if(RelevanceJSONConstants.KW_TYPE_INT.equals(type) || RelevanceJSONConstants.KW_TYPE_DOUBLE.equals(type) || RelevanceJSONConstants.KW_TYPE_LONG.equals(type) || RelevanceJSONConstants.KW_TYPE_FLOAT.equals(type) || RelevanceJSONConstants.KW_TYPE_STRING.equals(type) || RelevanceJSONConstants.KW_TYPE_BOOL.equals(type))
       {
         JSONArray sets = jsonVariables.getJSONArray(type);
         
@@ -449,47 +449,47 @@ public class CompilationHelper
         
           String symbol = sets.getString(i);
           
-          if(symbol.equals(JSONConstants.KW_INNER_SCORE) || symbol.equals(JSONConstants.KW_NOW))
+          if(symbol.equals(RelevanceJSONConstants.KW_INNER_SCORE) || symbol.equals(RelevanceJSONConstants.KW_NOW))
             throw new JSONException("variable name can not be reserved keyword.");
 
-          if(JSONConstants.KW_TYPE_INT.equals(type))
+          if(RelevanceJSONConstants.KW_TYPE_INT.equals(type))
           {
-            dataTable.hm_type.put(symbol, JSONConstants.TYPE_INT);
+            dataTable.hm_type.put(symbol, RelevanceJSONConstants.TYPE_INT);
           }
-          else if (JSONConstants.KW_TYPE_DOUBLE.equals(type))
+          else if (RelevanceJSONConstants.KW_TYPE_DOUBLE.equals(type))
           {
-            dataTable.hm_type.put(symbol, JSONConstants.TYPE_DOUBLE);
+            dataTable.hm_type.put(symbol, RelevanceJSONConstants.TYPE_DOUBLE);
           }
-          else if (JSONConstants.KW_TYPE_FLOAT.equals(type))
+          else if (RelevanceJSONConstants.KW_TYPE_FLOAT.equals(type))
           {
-            dataTable.hm_type.put(symbol, JSONConstants.TYPE_FLOAT);
+            dataTable.hm_type.put(symbol, RelevanceJSONConstants.TYPE_FLOAT);
           }
-          else if (JSONConstants.KW_TYPE_LONG.equals(type))
+          else if (RelevanceJSONConstants.KW_TYPE_LONG.equals(type))
           {
-            dataTable.hm_type.put(symbol, JSONConstants.TYPE_LONG);
+            dataTable.hm_type.put(symbol, RelevanceJSONConstants.TYPE_LONG);
           }
-          else if (JSONConstants.KW_TYPE_STRING.equals(type))
+          else if (RelevanceJSONConstants.KW_TYPE_STRING.equals(type))
           {
-            dataTable.hm_type.put(symbol, JSONConstants.TYPE_STRING);
+            dataTable.hm_type.put(symbol, RelevanceJSONConstants.TYPE_STRING);
           }
-          else if(JSONConstants.KW_TYPE_BOOL.equals(type))
+          else if(RelevanceJSONConstants.KW_TYPE_BOOL.equals(type))
           {
-            dataTable.hm_type.put(symbol, JSONConstants.TYPE_BOOLEAN);
+            dataTable.hm_type.put(symbol, RelevanceJSONConstants.TYPE_BOOLEAN);
           }
         }
       }// end of normal variable while;
     }
 
     // add now variable;
-    String symbolNow = JSONConstants.KW_NOW;
+    String symbolNow = RelevanceJSONConstants.KW_NOW;
     long now = System.currentTimeMillis();
     dataTable.hm_var.put(symbolNow, now);
-    dataTable.hm_type.put(symbolNow, JSONConstants.TYPE_LONG);
+    dataTable.hm_type.put(symbolNow, RelevanceJSONConstants.TYPE_LONG);
     
     // add innerscore;
-    String symbolInnerScore = JSONConstants.KW_INNER_SCORE; 
+    String symbolInnerScore = RelevanceJSONConstants.KW_INNER_SCORE; 
     dataTable.hm_var.put(symbolInnerScore, symbolInnerScore);
-    dataTable.hm_type.put(symbolInnerScore, JSONConstants.TYPE_INNER_SCORE);
+    dataTable.hm_type.put(symbolInnerScore, RelevanceJSONConstants.TYPE_INNER_SCORE);
     
     
     
@@ -509,7 +509,7 @@ public class CompilationHelper
         throw new JSONException("function parameter: " + symbol + " was not defined.");
       
       String type = dataTable.hm_type.get(symbol);
-      if(type.startsWith(JSONConstants.TYPE_FACET_HEAD))
+      if(type.startsWith(RelevanceJSONConstants.TYPE_FACET_HEAD))
       {
         if( (!dataTable.hm_symbol_facet.containsKey(symbol)) && (!dataTable.hm_symbol_mfacet.containsKey(symbol)))
           throw new JSONException("function parameter: " + symbol + " was not defined.");
@@ -641,11 +641,11 @@ public class CompilationHelper
       String symbol = (String)it.next();
       String type = dataTable.hm_type.get(symbol);
       
-      if(symbol.equals(JSONConstants.KW_INNER_SCORE) || symbol.equals(JSONConstants.KW_NOW))
+      if(symbol.equals(RelevanceJSONConstants.KW_INNER_SCORE) || symbol.equals(RelevanceJSONConstants.KW_NOW))
         continue;
       
       //process set variable;
-      if(JSONConstants.TYPE_SET_INT.equals(type) || JSONConstants.TYPE_SET_DOUBLE.equals(type) || JSONConstants.TYPE_SET_LONG.equals(type) || JSONConstants.TYPE_SET_FLOAT.equals(type) || JSONConstants.TYPE_SET_STRING.equals(type))
+      if(RelevanceJSONConstants.TYPE_SET_INT.equals(type) || RelevanceJSONConstants.TYPE_SET_DOUBLE.equals(type) || RelevanceJSONConstants.TYPE_SET_LONG.equals(type) || RelevanceJSONConstants.TYPE_SET_FLOAT.equals(type) || RelevanceJSONConstants.TYPE_SET_STRING.equals(type))
       {
         Set hs = null;
         JSONArray values = jsonValues.optJSONArray(symbol);
@@ -654,31 +654,31 @@ public class CompilationHelper
           throw new JSONException("variable "+ symbol + " does not have value.");
         
         for (int k =0; k < values.length(); k++){
-          if(JSONConstants.TYPE_SET_INT.equals(type))
+          if(RelevanceJSONConstants.TYPE_SET_INT.equals(type))
           {
             if(hs == null)
               hs = new IntOpenHashSet();
             hs.add(values.getInt(k));
           }
-          else if (JSONConstants.TYPE_SET_DOUBLE.equals(type))
+          else if (RelevanceJSONConstants.TYPE_SET_DOUBLE.equals(type))
           {
             if(hs == null)
               hs = new DoubleOpenHashSet();
             hs.add(values.getDouble(k));
           }
-          else if (JSONConstants.TYPE_SET_FLOAT.equals(type))
+          else if (RelevanceJSONConstants.TYPE_SET_FLOAT.equals(type))
           {
             if(hs == null)
               hs = new FloatOpenHashSet();
             hs.add((float)values.getDouble(k));
           }
-          else if (JSONConstants.TYPE_SET_LONG.equals(type))
+          else if (RelevanceJSONConstants.TYPE_SET_LONG.equals(type))
           {
             if(hs == null)
               hs = new LongOpenHashSet();
             hs.add(Long.parseLong(values.getString(k)));
           }
-          else if (JSONConstants.TYPE_SET_STRING.equals(type))
+          else if (RelevanceJSONConstants.TYPE_SET_STRING.equals(type))
           {
             if(hs == null)
               hs = new ObjectOpenHashSet();
@@ -691,7 +691,7 @@ public class CompilationHelper
       } // end of set variable;
      
       
-      else if(type.startsWith(JSONConstants.TYPE_MAP_HEAD))
+      else if(type.startsWith(RelevanceJSONConstants.TYPE_MAP_HEAD))
       {
           
 //          "j":{"key":[1,2,3], "value":[2.3, 3.4, 2.9]}      // a user input hashmap;
@@ -717,35 +717,35 @@ public class CompilationHelper
           
           Map hm = null;
           
-          if(JSONConstants.TYPE_MAP_INT_INT.equals(type))
+          if(RelevanceJSONConstants.TYPE_MAP_INT_INT.equals(type))
           {
             if(hm == null)
               hm = new Int2IntOpenHashMap();
             for(int j=0; j<keySize; j++)
               ((Int2IntOpenHashMap)hm).put(keysList.getInt(j), valuesList.getInt(j));
           }
-          else if (JSONConstants.TYPE_MAP_INT_DOUBLE.equals(type))
+          else if (RelevanceJSONConstants.TYPE_MAP_INT_DOUBLE.equals(type))
           {
             if(hm == null)
               hm = new Int2DoubleOpenHashMap();
             for(int j=0; j<keySize; j++)
               ((Int2DoubleOpenHashMap)hm).put(keysList.getInt(j), valuesList.getDouble(j));
           }
-          else if (JSONConstants.TYPE_MAP_INT_FLOAT.equals(type))
+          else if (RelevanceJSONConstants.TYPE_MAP_INT_FLOAT.equals(type))
           {
             if(hm == null)
               hm = new Int2FloatOpenHashMap();
             for(int j=0; j<keySize; j++)
               ((Int2FloatOpenHashMap)hm).put(keysList.getInt(j), (float)(valuesList.getDouble(j)));
           }
-          else if (JSONConstants.TYPE_MAP_INT_LONG.equals(type))
+          else if (RelevanceJSONConstants.TYPE_MAP_INT_LONG.equals(type))
           {
             if(hm == null)
               hm = new Int2LongOpenHashMap();
             for(int j=0; j<keySize; j++)
               ((Int2LongOpenHashMap)hm).put(keysList.getInt(j), Long.parseLong(valuesList.getString(j)));
           }
-          else if (JSONConstants.TYPE_MAP_INT_STRING.equals(type))
+          else if (RelevanceJSONConstants.TYPE_MAP_INT_STRING.equals(type))
           {
             if(hm == null)
               hm = new Int2ObjectOpenHashMap();
@@ -753,35 +753,35 @@ public class CompilationHelper
               ((Int2ObjectOpenHashMap)hm).put(keysList.getInt(j), valuesList.getString(j));
           }
           
-          else if(JSONConstants.TYPE_MAP_STRING_INT.equals(type))
+          else if(RelevanceJSONConstants.TYPE_MAP_STRING_INT.equals(type))
           {
             if(hm == null)
               hm = new Object2IntOpenHashMap();
             for(int j=0; j<keySize; j++)
               ((Object2IntOpenHashMap)hm).put(keysList.getString(j), valuesList.getInt(j));
           }
-          else if (JSONConstants.TYPE_MAP_STRING_DOUBLE.equals(type))
+          else if (RelevanceJSONConstants.TYPE_MAP_STRING_DOUBLE.equals(type))
           {
             if(hm == null)
               hm = new Object2DoubleOpenHashMap();
             for(int j=0; j<keySize; j++)
               ((Object2DoubleOpenHashMap)hm).put(keysList.getString(j), valuesList.getDouble(j));
           }
-          else if (JSONConstants.TYPE_MAP_STRING_FLOAT.equals(type))
+          else if (RelevanceJSONConstants.TYPE_MAP_STRING_FLOAT.equals(type))
           {
             if(hm == null)
               hm = new Object2FloatOpenHashMap();
             for(int j=0; j<keySize; j++)
               ((Object2FloatOpenHashMap)hm).put(keysList.getString(j), (float)(valuesList.getDouble(j)));
           }
-          else if (JSONConstants.TYPE_MAP_STRING_LONG.equals(type))
+          else if (RelevanceJSONConstants.TYPE_MAP_STRING_LONG.equals(type))
           {
             if(hm == null)
               hm = new Object2LongOpenHashMap();
             for(int j=0; j<keySize; j++)
               ((Object2LongOpenHashMap)hm).put(keysList.getString(j), Long.parseLong(valuesList.getString(j)));
           }
-          else if (JSONConstants.TYPE_MAP_STRING_STRING.equals(type))
+          else if (RelevanceJSONConstants.TYPE_MAP_STRING_STRING.equals(type))
           {
             if(hm == null)
               hm = new Object2ObjectOpenHashMap();
@@ -793,33 +793,33 @@ public class CompilationHelper
           
       } // end of map variable;
       
-      else if(JSONConstants.TYPE_INT.equals(type) || JSONConstants.TYPE_DOUBLE.equals(type) || JSONConstants.TYPE_LONG.equals(type) || JSONConstants.TYPE_FLOAT.equals(type) || JSONConstants.TYPE_STRING.equals(type) || JSONConstants.TYPE_BOOLEAN.equals(type))
+      else if(RelevanceJSONConstants.TYPE_INT.equals(type) || RelevanceJSONConstants.TYPE_DOUBLE.equals(type) || RelevanceJSONConstants.TYPE_LONG.equals(type) || RelevanceJSONConstants.TYPE_FLOAT.equals(type) || RelevanceJSONConstants.TYPE_STRING.equals(type) || RelevanceJSONConstants.TYPE_BOOLEAN.equals(type))
       {
           
           if( ! jsonValues.has(symbol))
             throw new JSONException("Symbol " + symbol + " was not assigned with a value." );
           
-          if(JSONConstants.TYPE_INT.equals(type))
+          if(RelevanceJSONConstants.TYPE_INT.equals(type))
           {
             dataTable.hm_var.put(symbol, jsonValues.getInt(symbol));
           }
-          else if (JSONConstants.TYPE_DOUBLE.equals(type))
+          else if (RelevanceJSONConstants.TYPE_DOUBLE.equals(type))
           {
             dataTable.hm_var.put(symbol, jsonValues.getDouble(symbol));
           }
-          else if (JSONConstants.TYPE_FLOAT.equals(type))
+          else if (RelevanceJSONConstants.TYPE_FLOAT.equals(type))
           {
             dataTable.hm_var.put(symbol, ((float)jsonValues.getDouble(symbol)));
           }
-          else if (JSONConstants.TYPE_LONG.equals(type))
+          else if (RelevanceJSONConstants.TYPE_LONG.equals(type))
           {
             dataTable.hm_var.put(symbol, Long.parseLong(jsonValues.getString(symbol)));
           }
-          else if (JSONConstants.TYPE_STRING.equals(type))
+          else if (RelevanceJSONConstants.TYPE_STRING.equals(type))
           {
             dataTable.hm_var.put(symbol, jsonValues.getString(symbol));
           }
-          else if(JSONConstants.TYPE_BOOLEAN.equals(type))
+          else if(RelevanceJSONConstants.TYPE_BOOLEAN.equals(type))
           {
             dataTable.hm_var.put(symbol, jsonValues.getBoolean(symbol));
           }
@@ -833,7 +833,7 @@ public class CompilationHelper
     {
       String symbol = dataTable.lls_params.get(i);
       String type = dataTable.hm_type.get(symbol);
-      if( !type.startsWith(JSONConstants.TYPE_FACET_HEAD))
+      if( !type.startsWith(RelevanceJSONConstants.TYPE_FACET_HEAD))
       {
         if(!dataTable.hm_var.containsKey(symbol))
           throw new JSONException("function parameter: " + symbol + " was not initialized.");
@@ -934,50 +934,50 @@ public class CompilationHelper
     String type = null;
     boolean isMulti = false;
     
-    if(JSONConstants.KW_TYPE_FACET_INT.equals(facetType)) 
-      type = JSONConstants.TYPE_FACET_INT;
-    else if(JSONConstants.KW_TYPE_FACET_SHORT.equals(facetType)) 
-      type = JSONConstants.TYPE_FACET_SHORT;
-    else if(JSONConstants.KW_TYPE_FACET_DOUBLE.equals(facetType))
-      type = JSONConstants.TYPE_FACET_DOUBLE;
-    else if(JSONConstants.KW_TYPE_FACET_FLOAT.equals(facetType))
-      type = JSONConstants.TYPE_FACET_FLOAT;
-    else if(JSONConstants.KW_TYPE_FACET_LONG.equals(facetType))
-      type = JSONConstants.TYPE_FACET_LONG;
-    else if(JSONConstants.KW_TYPE_FACET_STRING.equals(facetType))
-      type = JSONConstants.TYPE_FACET_STRING;
+    if(RelevanceJSONConstants.KW_TYPE_FACET_INT.equals(facetType)) 
+      type = RelevanceJSONConstants.TYPE_FACET_INT;
+    else if(RelevanceJSONConstants.KW_TYPE_FACET_SHORT.equals(facetType)) 
+      type = RelevanceJSONConstants.TYPE_FACET_SHORT;
+    else if(RelevanceJSONConstants.KW_TYPE_FACET_DOUBLE.equals(facetType))
+      type = RelevanceJSONConstants.TYPE_FACET_DOUBLE;
+    else if(RelevanceJSONConstants.KW_TYPE_FACET_FLOAT.equals(facetType))
+      type = RelevanceJSONConstants.TYPE_FACET_FLOAT;
+    else if(RelevanceJSONConstants.KW_TYPE_FACET_LONG.equals(facetType))
+      type = RelevanceJSONConstants.TYPE_FACET_LONG;
+    else if(RelevanceJSONConstants.KW_TYPE_FACET_STRING.equals(facetType))
+      type = RelevanceJSONConstants.TYPE_FACET_STRING;
     
     else
     {
       isMulti = true;
      
       // normal multi-facet;
-      if(JSONConstants.KW_TYPE_FACET_M_INT.equals(facetType)) 
-        type = JSONConstants.TYPE_FACET_M_INT;
-      else if(JSONConstants.KW_TYPE_FACET_M_SHORT.equals(facetType)) 
-        type = JSONConstants.TYPE_FACET_M_SHORT;
-      else if(JSONConstants.KW_TYPE_FACET_M_DOUBLE.equals(facetType))
-        type = JSONConstants.TYPE_FACET_M_DOUBLE;
-      else if(JSONConstants.KW_TYPE_FACET_M_FLOAT.equals(facetType))
-        type = JSONConstants.TYPE_FACET_M_FLOAT;
-      else if(JSONConstants.KW_TYPE_FACET_M_LONG.equals(facetType))
-        type = JSONConstants.TYPE_FACET_M_LONG;
-      else if(JSONConstants.KW_TYPE_FACET_M_STRING.equals(facetType))
-        type = JSONConstants.TYPE_FACET_M_STRING;
+      if(RelevanceJSONConstants.KW_TYPE_FACET_M_INT.equals(facetType)) 
+        type = RelevanceJSONConstants.TYPE_FACET_M_INT;
+      else if(RelevanceJSONConstants.KW_TYPE_FACET_M_SHORT.equals(facetType)) 
+        type = RelevanceJSONConstants.TYPE_FACET_M_SHORT;
+      else if(RelevanceJSONConstants.KW_TYPE_FACET_M_DOUBLE.equals(facetType))
+        type = RelevanceJSONConstants.TYPE_FACET_M_DOUBLE;
+      else if(RelevanceJSONConstants.KW_TYPE_FACET_M_FLOAT.equals(facetType))
+        type = RelevanceJSONConstants.TYPE_FACET_M_FLOAT;
+      else if(RelevanceJSONConstants.KW_TYPE_FACET_M_LONG.equals(facetType))
+        type = RelevanceJSONConstants.TYPE_FACET_M_LONG;
+      else if(RelevanceJSONConstants.KW_TYPE_FACET_M_STRING.equals(facetType))
+        type = RelevanceJSONConstants.TYPE_FACET_M_STRING;
       
       // weighted multi-facet;
-      else if(JSONConstants.KW_TYPE_FACET_WM_INT.equals(facetType)) 
-        type = JSONConstants.TYPE_FACET_WM_INT;
-      else if(JSONConstants.KW_TYPE_FACET_WM_SHORT.equals(facetType)) 
-        type = JSONConstants.TYPE_FACET_WM_SHORT;
-      else if(JSONConstants.KW_TYPE_FACET_WM_DOUBLE.equals(facetType))
-        type = JSONConstants.TYPE_FACET_WM_DOUBLE;
-      else if(JSONConstants.KW_TYPE_FACET_WM_FLOAT.equals(facetType))
-        type = JSONConstants.TYPE_FACET_WM_FLOAT;
-      else if(JSONConstants.KW_TYPE_FACET_WM_LONG.equals(facetType))
-        type = JSONConstants.TYPE_FACET_WM_LONG;
-      else if(JSONConstants.KW_TYPE_FACET_WM_STRING.equals(facetType))
-        type = JSONConstants.TYPE_FACET_WM_STRING;
+      else if(RelevanceJSONConstants.KW_TYPE_FACET_WM_INT.equals(facetType)) 
+        type = RelevanceJSONConstants.TYPE_FACET_WM_INT;
+      else if(RelevanceJSONConstants.KW_TYPE_FACET_WM_SHORT.equals(facetType)) 
+        type = RelevanceJSONConstants.TYPE_FACET_WM_SHORT;
+      else if(RelevanceJSONConstants.KW_TYPE_FACET_WM_DOUBLE.equals(facetType))
+        type = RelevanceJSONConstants.TYPE_FACET_WM_DOUBLE;
+      else if(RelevanceJSONConstants.KW_TYPE_FACET_WM_FLOAT.equals(facetType))
+        type = RelevanceJSONConstants.TYPE_FACET_WM_FLOAT;
+      else if(RelevanceJSONConstants.KW_TYPE_FACET_WM_LONG.equals(facetType))
+        type = RelevanceJSONConstants.TYPE_FACET_WM_LONG;
+      else if(RelevanceJSONConstants.KW_TYPE_FACET_WM_STRING.equals(facetType))
+        type = RelevanceJSONConstants.TYPE_FACET_WM_STRING;
     }
 
     
@@ -1037,156 +1037,156 @@ public class CompilationHelper
       
       String paramType = dataTable.hm_type.get(paramName);
       
-      if(paramType.equals(JSONConstants.TYPE_INT) || paramType.equals(JSONConstants.TYPE_FACET_INT))
+      if(paramType.equals(RelevanceJSONConstants.TYPE_INT) || paramType.equals(RelevanceJSONConstants.TYPE_FACET_INT))
       {
         sb.append(" int " + paramName + " = ints[" + int_index + "]; ");
         int_index++;
       }
-      else if(paramType.equals(JSONConstants.TYPE_LONG) || paramType.equals(JSONConstants.TYPE_FACET_LONG))
+      else if(paramType.equals(RelevanceJSONConstants.TYPE_LONG) || paramType.equals(RelevanceJSONConstants.TYPE_FACET_LONG))
       {
         sb.append(" long " + paramName + " = longs[" + long_index +"];  ");
         long_index++;
       }
-      else if(paramType.equals(JSONConstants.TYPE_DOUBLE) || paramType.equals(JSONConstants.TYPE_FACET_DOUBLE))
+      else if(paramType.equals(RelevanceJSONConstants.TYPE_DOUBLE) || paramType.equals(RelevanceJSONConstants.TYPE_FACET_DOUBLE))
       {
         sb.append(" double " + paramName + " = doubles["+ double_index +"]; ");
         double_index++;
       }
-      else if(paramType.equals(JSONConstants.TYPE_FLOAT) || paramType.equals(JSONConstants.TYPE_FACET_FLOAT))
+      else if(paramType.equals(RelevanceJSONConstants.TYPE_FLOAT) || paramType.equals(RelevanceJSONConstants.TYPE_FACET_FLOAT))
       {
         sb.append(" float " + paramName + " = floats["+ float_index +"]; ");
         float_index++;
       }      
-      else if(paramType.equals(JSONConstants.TYPE_STRING) || paramType.equals(JSONConstants.TYPE_FACET_STRING))
+      else if(paramType.equals(RelevanceJSONConstants.TYPE_STRING) || paramType.equals(RelevanceJSONConstants.TYPE_FACET_STRING))
       {
         sb.append(" String " + paramName + " = strings["+  string_index +"]; ");
         string_index++;
       }
-      else if(paramType.equals(JSONConstants.TYPE_BOOLEAN))
+      else if(paramType.equals(RelevanceJSONConstants.TYPE_BOOLEAN))
       {
         sb.append(" boolean " + paramName + " = booleans["+ boolean_index +"]; ");
         boolean_index++;
       }
-      else if(paramType.equals(JSONConstants.TYPE_FACET_SHORT))
+      else if(paramType.equals(RelevanceJSONConstants.TYPE_FACET_SHORT))
       {
         sb.append(" short " + paramName + " = shorts["+ short_index +"]; ");
         short_index++;
       }
       
       // set
-      else if(paramType.equals(JSONConstants.TYPE_SET_INT))
+      else if(paramType.equals(RelevanceJSONConstants.TYPE_SET_INT))
       {
         sb.append(" it.unimi.dsi.fastutil.ints.IntOpenHashSet " + paramName + " = (it.unimi.dsi.fastutil.ints.IntOpenHashSet) sets["+ set_index +"]; ");
         set_index++;
       }
-      else if(paramType.equals(JSONConstants.TYPE_SET_LONG))
+      else if(paramType.equals(RelevanceJSONConstants.TYPE_SET_LONG))
       {
         sb.append(" it.unimi.dsi.fastutil.longs.LongOpenHashSet " + paramName + " = (it.unimi.dsi.fastutil.longs.LongOpenHashSet) sets["+ set_index +"]; ");
         set_index++;
       }
-      else if(paramType.equals(JSONConstants.TYPE_SET_DOUBLE))
+      else if(paramType.equals(RelevanceJSONConstants.TYPE_SET_DOUBLE))
       {
         sb.append(" it.unimi.dsi.fastutil.doubles.DoubleOpenHashSet " + paramName + " = (it.unimi.dsi.fastutil.doubles.DoubleOpenHashSet) sets["+ set_index +"]; ");
         set_index++;
       }
-      else if(paramType.equals(JSONConstants.TYPE_SET_FLOAT))
+      else if(paramType.equals(RelevanceJSONConstants.TYPE_SET_FLOAT))
       {
         sb.append(" it.unimi.dsi.fastutil.floats.FloatOpenHashSet " + paramName + " = (it.unimi.dsi.fastutil.floats.FloatOpenHashSet) sets["+ set_index +"]; ");
         set_index++;
       }
-      else if(paramType.equals(JSONConstants.TYPE_SET_STRING))
+      else if(paramType.equals(RelevanceJSONConstants.TYPE_SET_STRING))
       {
         sb.append(" it.unimi.dsi.fastutil.objects.ObjectOpenHashSet " + paramName + " = (it.unimi.dsi.fastutil.objects.ObjectOpenHashSet) sets["+ set_index +"]; ");
         set_index++;
       }
       
       // map;
-      else if(paramType.equals(JSONConstants.TYPE_MAP_INT_INT))
+      else if(paramType.equals(RelevanceJSONConstants.TYPE_MAP_INT_INT))
       {
         sb.append(" it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap " + paramName + " = (it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap) maps["+ map_index +"]; ");
         map_index++;
       }
-      else if(paramType.equals(JSONConstants.TYPE_MAP_INT_LONG))
+      else if(paramType.equals(RelevanceJSONConstants.TYPE_MAP_INT_LONG))
       {
         sb.append(" it.unimi.dsi.fastutil.ints.Int2LongOpenHashMap " + paramName + " = (it.unimi.dsi.fastutil.ints.Int2LongOpenHashMap) maps["+ map_index +"]; ");
         map_index++;
       }
-      else if(paramType.equals(JSONConstants.TYPE_MAP_INT_DOUBLE))
+      else if(paramType.equals(RelevanceJSONConstants.TYPE_MAP_INT_DOUBLE))
       {
         sb.append(" it.unimi.dsi.fastutil.ints.Int2DoubleOpenHashMap " + paramName + " = (it.unimi.dsi.fastutil.ints.Int2DoubleOpenHashMap) maps["+ map_index +"]; ");
         map_index++;
       }
-      else if(paramType.equals(JSONConstants.TYPE_MAP_INT_FLOAT))
+      else if(paramType.equals(RelevanceJSONConstants.TYPE_MAP_INT_FLOAT))
       {
         sb.append(" it.unimi.dsi.fastutil.ints.Int2FloatOpenHashMap " + paramName + " = (it.unimi.dsi.fastutil.ints.Int2FloatOpenHashMap) maps["+ map_index +"]; ");
         map_index++;
       }
-      else if(paramType.equals(JSONConstants.TYPE_MAP_INT_STRING))
+      else if(paramType.equals(RelevanceJSONConstants.TYPE_MAP_INT_STRING))
       {
         sb.append(" it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap " + paramName + " = (it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap) maps["+ map_index +"]; ");
         map_index++;
       }
       
-      else if(paramType.equals(JSONConstants.TYPE_MAP_STRING_INT))
+      else if(paramType.equals(RelevanceJSONConstants.TYPE_MAP_STRING_INT))
       {
         sb.append(" it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap " + paramName + " = (it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap) maps["+ map_index +"]; ");
         map_index++;
       }
-      else if(paramType.equals(JSONConstants.TYPE_MAP_STRING_LONG))
+      else if(paramType.equals(RelevanceJSONConstants.TYPE_MAP_STRING_LONG))
       {
         sb.append(" it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap " + paramName + " = (it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap) maps["+ map_index +"]; ");
         map_index++;
       }
-      else if(paramType.equals(JSONConstants.TYPE_MAP_STRING_DOUBLE))
+      else if(paramType.equals(RelevanceJSONConstants.TYPE_MAP_STRING_DOUBLE))
       {
         sb.append(" it.unimi.dsi.fastutil.objects.Object2DoubleOpenHashMap " + paramName + " = (it.unimi.dsi.fastutil.objects.Object2DoubleOpenHashMap) maps["+ map_index +"]; ");
         map_index++;
       }
-      else if(paramType.equals(JSONConstants.TYPE_MAP_STRING_FLOAT))
+      else if(paramType.equals(RelevanceJSONConstants.TYPE_MAP_STRING_FLOAT))
       {
         sb.append(" it.unimi.dsi.fastutil.objects.Object2FloatOpenHashMap " + paramName + " = (it.unimi.dsi.fastutil.objects.Object2FloatOpenHashMap) maps["+ map_index +"]; ");
         map_index++;
       }
-      else if(paramType.equals(JSONConstants.TYPE_MAP_STRING_STRING))
+      else if(paramType.equals(RelevanceJSONConstants.TYPE_MAP_STRING_STRING))
       {
         sb.append(" it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap " + paramName + " = (it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap) maps["+ map_index +"]; ");
         map_index++;
       }
       
       // innerscore
-      else if(paramType.equals(JSONConstants.TYPE_INNER_SCORE))
+      else if(paramType.equals(RelevanceJSONConstants.TYPE_INNER_SCORE))
       {
         sb.append(" float " + paramName + " = floats["+ float_index +"]; ");
         float_index++;
       }
       //multi-facet;
       //com.senseidb.search.relevance.impl.MFacetInt[] mFacetInts, com.senseidb.search.relevance.impl.MFacetLong[] mFacetLongs, com.senseidb.search.relevance.impl.MFacetFloat[] mFacetFloats, , com.senseidb.search.relevance.impl.MFacetShort[] mFacetShorts, com.senseidb.search.relevance.impl.MFacetString[] mFacetStrings
-      else if(paramType.equals(JSONConstants.TYPE_FACET_M_DOUBLE))
+      else if(paramType.equals(RelevanceJSONConstants.TYPE_FACET_M_DOUBLE))
       {
         sb.append(" com.senseidb.search.relevance.impl.MFacetDouble " + paramName + " = mFacetDoubles["+ m_double_index +"]; ");
         m_double_index++;
       }
-      else if(paramType.equals(JSONConstants.TYPE_FACET_M_FLOAT))
+      else if(paramType.equals(RelevanceJSONConstants.TYPE_FACET_M_FLOAT))
       {
         sb.append(" com.senseidb.search.relevance.impl.MFacetFloat " + paramName + " = mFacetFloats["+ m_float_index +"]; ");
         m_float_index++;
       }
-      else if(paramType.equals(JSONConstants.TYPE_FACET_M_INT))
+      else if(paramType.equals(RelevanceJSONConstants.TYPE_FACET_M_INT))
       {
         sb.append(" com.senseidb.search.relevance.impl.MFacetInt " + paramName + " = mFacetInts["+ m_int_index +"]; ");
         m_int_index++;
       }
-      else if(paramType.equals(JSONConstants.TYPE_FACET_M_LONG))
+      else if(paramType.equals(RelevanceJSONConstants.TYPE_FACET_M_LONG))
       {
         sb.append(" com.senseidb.search.relevance.impl.MFacetLong " + paramName + " = mFacetLongs["+ m_long_index +"]; ");
         m_long_index++;
       }
-      else if(paramType.equals(JSONConstants.TYPE_FACET_M_SHORT))
+      else if(paramType.equals(RelevanceJSONConstants.TYPE_FACET_M_SHORT))
       {
         sb.append(" com.senseidb.search.relevance.impl.MFacetShort " + paramName + " = mFacetShorts["+ m_short_index +"]; ");
         m_short_index++;
       }
-      else if(paramType.equals(JSONConstants.TYPE_FACET_M_STRING))
+      else if(paramType.equals(RelevanceJSONConstants.TYPE_FACET_M_STRING))
       {
         sb.append(" com.senseidb.search.relevance.impl.MFacetString " + paramName + " = mFacetStrings["+ m_string_index +"]; ");
         m_string_index++;
@@ -1194,32 +1194,32 @@ public class CompilationHelper
       
       
       //weighted multi-facet;
-      else if(paramType.equals(JSONConstants.TYPE_FACET_WM_DOUBLE))
+      else if(paramType.equals(RelevanceJSONConstants.TYPE_FACET_WM_DOUBLE))
       {
         sb.append(" com.senseidb.search.relevance.impl.WeightedMFacetDouble " + paramName + " = (com.senseidb.search.relevance.impl.WeightedMFacetDouble) mFacetDoubles["+ m_double_index +"]; ");
         m_double_index++;
       }
-      else if(paramType.equals(JSONConstants.TYPE_FACET_WM_FLOAT))
+      else if(paramType.equals(RelevanceJSONConstants.TYPE_FACET_WM_FLOAT))
       {
         sb.append(" com.senseidb.search.relevance.impl.WeightedMFacetFloat " + paramName + " = (com.senseidb.search.relevance.impl.WeightedMFacetFloat) mFacetFloats["+ m_float_index +"]; ");
         m_float_index++;
       }
-      else if(paramType.equals(JSONConstants.TYPE_FACET_WM_INT))
+      else if(paramType.equals(RelevanceJSONConstants.TYPE_FACET_WM_INT))
       {
         sb.append(" com.senseidb.search.relevance.impl.WeightedMFacetInt " + paramName + " = (com.senseidb.search.relevance.impl.WeightedMFacetInt) mFacetInts["+ m_int_index +"]; ");
         m_int_index++;
       }
-      else if(paramType.equals(JSONConstants.TYPE_FACET_WM_LONG))
+      else if(paramType.equals(RelevanceJSONConstants.TYPE_FACET_WM_LONG))
       {
         sb.append(" com.senseidb.search.relevance.impl.WeightedMFacetLong " + paramName + " = (com.senseidb.search.relevance.impl.WeightedMFacetLong) mFacetLongs["+ m_long_index +"]; ");
         m_long_index++;
       }
-      else if(paramType.equals(JSONConstants.TYPE_FACET_WM_SHORT))
+      else if(paramType.equals(RelevanceJSONConstants.TYPE_FACET_WM_SHORT))
       {
         sb.append(" com.senseidb.search.relevance.impl.WeightedMFacetShort " + paramName + " = (com.senseidb.search.relevance.impl.WeightedMFacetShort) mFacetShorts["+ m_short_index +"]; ");
         m_short_index++;
       }
-      else if(paramType.equals(JSONConstants.TYPE_FACET_WM_STRING))
+      else if(paramType.equals(RelevanceJSONConstants.TYPE_FACET_WM_STRING))
       {
         sb.append(" com.senseidb.search.relevance.impl.WeightedMFacetString " + paramName + " = (com.senseidb.search.relevance.impl.WeightedMFacetString) mFacetStrings["+ m_string_index +"]; ");
         m_string_index++;

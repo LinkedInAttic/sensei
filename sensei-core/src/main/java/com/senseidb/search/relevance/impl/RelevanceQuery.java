@@ -32,8 +32,8 @@ public class RelevanceQuery extends AbstractScoreAdjuster
     super(query);
     _query = query;
     _dt = new DataTable();
-    JSONObject modelJson  = relevance.optJSONObject(JSONConstants.KW_MODEL);
-    JSONObject valuesJson = relevance.optJSONObject(JSONConstants.KW_VALUES); 
+    JSONObject modelJson  = relevance.optJSONObject(RelevanceJSONConstants.KW_MODEL);
+    JSONObject valuesJson = relevance.optJSONObject(RelevanceJSONConstants.KW_VALUES); 
     _valuesJson = valuesJson;
     _cModel = CompilationHelper.createCustomMathScorer(modelJson, _dt);
   }
