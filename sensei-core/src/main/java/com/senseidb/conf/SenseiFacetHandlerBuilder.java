@@ -282,6 +282,7 @@ public class SenseiFacetHandlerBuilder {
 	      return new HistogramFacetHandler<T>(name, dataHandler, start, end, unit);
 	    };
 
+      @Override
       public boolean isLoadLazily()
       {
         return true;
