@@ -633,7 +633,7 @@ public class CompilationHelper
     
   }
   
-  public static void initialize(JSONObject jsonValues, DataTable dataTable) throws JSONException
+  public static void initializeValues(JSONObject jsonValues, DataTable dataTable) throws JSONException
   {
     HashMap<String, String> hm_type = dataTable.hm_type;
     Iterator it = hm_type.keySet().iterator();
@@ -1028,6 +1028,8 @@ public class CompilationHelper
     int set_index = 0;
     int map_index = 0;
     
+    dataTable.useInnerScore = false;  // set using innerscore to false at the beginning; once we see innerscore is used in the function below, it will be set to true;
+    
     for(int i=0; i< dataTable.lls_params.size();i++)
     {
       String paramName = dataTable.lls_params.get(i);
@@ -1158,6 +1160,7 @@ public class CompilationHelper
       {
         sb.append(" float " + paramName + " = floats["+ float_index +"]; ");
         float_index++;
+        dataTable.useInnerScore = true;
       }
       //multi-facet;
       //com.senseidb.search.relevance.impl.MFacetInt[] mFacetInts, com.senseidb.search.relevance.impl.MFacetLong[] mFacetLongs, com.senseidb.search.relevance.impl.MFacetFloat[] mFacetFloats, , com.senseidb.search.relevance.impl.MFacetShort[] mFacetShorts, com.senseidb.search.relevance.impl.MFacetString[] mFacetStrings
@@ -1272,6 +1275,7 @@ public class CompilationHelper
     public LinkedList<String> lls_params;
     public String funcBody = null;
     public String classIDString = null;
+    public boolean useInnerScore = true;  // by default will calculate innerscore value, set this to false will ignore inner score to save time;
     
     public DataTable(){
       hm_var = new HashMap<String, Object>();
@@ -1281,6 +1285,7 @@ public class CompilationHelper
       hm_symbol_mfacet = new HashMap<String, String>();  //multi-facet
       hm_mfacet_index = new HashMap<String, Integer>(); //multi-facet 
       lls_params = new LinkedList<String>();
+      useInnerScore = true;
     }
   }
 }

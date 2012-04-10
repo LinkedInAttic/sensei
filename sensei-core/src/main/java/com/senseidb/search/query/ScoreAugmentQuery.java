@@ -42,12 +42,27 @@ public class ScoreAugmentQuery extends AbstractScoreAdjuster
      */
     public void initializeGlobal(JSONObject jsonParams) throws JSONException;
     
+    
+    /**
+     * @return whether the innerscore will be used or not. If innerScore is used, newScore(float rawScore, int docID) will be called; Otherwise newScore(int docID) will be called.
+     */
+    public boolean useInnerScore();
+    
     /**
      * @param rawScore
      * @param docID
-     * @return the modified new score for document;
+     * @return the modified new score for document with the original innerScore;
      */
     public float newScore(float rawScore, int docID);
+    
+    
+    /**
+     * 
+     * @param rawScore
+     * @param docID
+     * @return the modified new score for document without the original innerScore to save time;
+     */
+    public float newScore(int docID);
     
     /**
      * @return the String to explain how the new score is generated;
@@ -78,8 +93,7 @@ public class ScoreAugmentQuery extends AbstractScoreAdjuster
     public float score()
         throws IOException
     {
-      float rawScore = _innerScorer.score();
-      return _func.newScore(rawScore, _innerScorer.docID());
+        return  (_func.useInnerScore())? _func.newScore(_innerScorer.score(), _innerScorer.docID()) :  _func.newScore(_innerScorer.docID());
     }
 
     @Override
