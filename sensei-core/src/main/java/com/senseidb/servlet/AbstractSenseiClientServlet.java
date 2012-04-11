@@ -256,7 +256,10 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
           {
             if (queryLogger.isInfoEnabled())
             {
-              queryLogger.info("bql=" + bqlStmt);
+              if (jsonObj.length() == 1)
+                queryLogger.info("bql=" + bqlStmt);
+              else
+                queryLogger.info("query=" + content);
             }
             compiledJson = _compiler.compile(bqlStmt);
           }
@@ -290,11 +293,6 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
           JSONObject predObj = null;
           if (extraFilter.length() > 0)
           {
-            if (queryLogger.isInfoEnabled())
-            {
-              queryLogger.info("BQL extra filter: " + extraFilter);
-            }
-
             String bql2 = "SELECT * WHERE " + extraFilter;
             try
             {
