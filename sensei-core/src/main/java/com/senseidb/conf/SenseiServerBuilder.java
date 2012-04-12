@@ -12,6 +12,7 @@ import java.net.InetSocketAddress;
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -88,6 +89,8 @@ import com.senseidb.search.node.SenseiZoieSystemFactory;
 import com.senseidb.search.node.impl.DefaultJsonQueryBuilderFactory;
 import com.senseidb.search.query.RetentionFilterFactory;
 import com.senseidb.search.query.TimeRetentionFilter;
+import com.senseidb.search.relevance.CustomRelevanceFactory;
+import com.senseidb.search.relevance.CustomRelevanceFunction;
 import com.senseidb.search.req.AbstractSenseiRequest;
 import com.senseidb.search.req.AbstractSenseiResult;
 import com.senseidb.search.req.SenseiSystemInfo;
@@ -287,12 +290,15 @@ public class SenseiServerBuilder implements SenseiConfParams{
 
     pluginRegistry = SenseiPluginRegistry.build(_senseiConf);
     pluginRegistry.start();
+    
+    processRelevanceFunctionPlugins(pluginRegistry);
 
     _gateway = pluginRegistry.getBeanByFullPrefix(SENSEI_GATEWAY, SenseiGateway.class);
 
     _schemaDoc = loadSchema(confDir);
     _senseiSchema = SenseiSchema.build(_schemaDoc);
   }
+
 
   public SenseiServerBuilder(Resource confDir, Map<String, Object> properties) throws Exception
   {
@@ -303,6 +309,8 @@ public class SenseiServerBuilder implements SenseiConfParams{
 
     pluginRegistry = SenseiPluginRegistry.build(_senseiConf);
     pluginRegistry.start();
+    
+    processRelevanceFunctionPlugins(pluginRegistry);
 
     _gateway = pluginRegistry.getBeanByFullPrefix(SENSEI_GATEWAY, SenseiGateway.class);
 
@@ -310,6 +318,19 @@ public class SenseiServerBuilder implements SenseiConfParams{
     _senseiSchema = SenseiSchema.build(_schemaDoc);
   }
 
+  private void processRelevanceFunctionPlugins(SenseiPluginRegistry pluginRegistry)
+  {
+    Map<String, CustomRelevanceFunction> map = pluginRegistry.getNamedBeansByType(CustomRelevanceFunction.class);
+    Iterator<String> it = map.keySet().iterator();
+    while(it.hasNext())
+    {
+      String name = it.next();
+      CustomRelevanceFunction rf = map.get(name);
+      CustomRelevanceFactory.addCustomRelevanceFunction(name, rf);
+    }
+    
+  }
+  
   static final Pattern PARTITION_PATTERN = Pattern.compile("[\\d]+||[\\d]+-[\\d]+");
 
   public static int[] buildPartitions(String[] partitionArray) throws ConfigurationException{

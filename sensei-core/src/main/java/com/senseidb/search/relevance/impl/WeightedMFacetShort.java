@@ -1,13 +1,13 @@
-package com.senseidb.search.relevance;
+package com.senseidb.search.relevance.impl;
 
 import com.browseengine.bobo.facets.data.MultiValueFacetDataCache;
 import com.browseengine.bobo.facets.data.MultiValueWithWeightFacetDataCache;
-import com.browseengine.bobo.facets.data.TermLongList;
+import com.browseengine.bobo.facets.data.TermShortList;
 
-public class WeightedMFacetLong extends MFacetLong implements WeightedMFacet
+public class WeightedMFacetShort extends MFacetShort implements WeightedMFacet
 {
 
-  public WeightedMFacetLong(MultiValueFacetDataCache mDataCaches)
+  public WeightedMFacetShort(MultiValueFacetDataCache mDataCaches)
   {
     super(mDataCaches);
     
@@ -23,10 +23,10 @@ public class WeightedMFacetLong extends MFacetLong implements WeightedMFacet
     _weightArray.getData(id, weightBuf);
   }
 
-  public boolean hasWeight(long target){
+  public boolean hasWeight(short target){
     
     for(int i=0; i< this._length; i++)
-      if(((TermLongList) _mTermList).getPrimitiveValue(_buf[i]) == target)
+      if(((TermShortList) _mTermList).getPrimitiveValue(_buf[i]) == target)
       {
         _weight[0] = weightBuf[i];
         return true;

@@ -1,9 +1,9 @@
-package com.senseidb.search.relevance;
+package com.senseidb.search.relevance.impl;
 
 import java.util.Map;
 import java.util.Set;
 
-public interface CustomScorer
+public interface CustomMathModel
 {
 
   // Javassist does not support inner class or interface, so put it here;
