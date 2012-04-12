@@ -679,7 +679,12 @@ select_stmt returns [Object json]
                 jsonObj.put("meta", metaData);
 
                 if (order_by != null) {
-                    jsonObj.put("sort", $order_by.json);
+                    if ($order_by.isRelevance) {
+                        jsonObj.put("sort", "relevance");
+                    }
+                    else {
+                        jsonObj.put("sort", $order_by.json);
+                    }
                 }
                 if (limit != null) {
                     jsonObj.put("from", $limit.offset);
@@ -789,10 +794,16 @@ where returns [Object json]
         }
     ;
 
-order_by_clause returns [Object json]
-    :   ORDER BY sort_specs
+order_by_clause returns [boolean isRelevance, Object json]
+    :   ORDER BY (RELEVANCE | sort_specs)
         {
-            $json = $sort_specs.json;
+            if ($RELEVANCE != null) {
+                $isRelevance = true;
+            }
+            else {
+                $isRelevance = false;
+                $json = $sort_specs.json;
+            }
         }
     ;
 

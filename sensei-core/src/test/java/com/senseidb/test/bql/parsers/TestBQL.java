@@ -99,6 +99,21 @@ public class TestBQL extends TestCase
   }
 
   @Test
+  public void testOrderByRelevance() throws Exception
+  {
+    System.out.println("testOrderByRelevance");
+    System.out.println("==================================================");
+
+    JSONObject json = _compiler.compile(
+      "SELECT category " +
+      "FROM cars " +
+      "ORDER BY relevance"
+      );
+    JSONObject expected = new JSONObject("{\"sort\":\"relevance\",\"meta\":{\"select_list\":[\"category\"]}}");
+    assertTrue(_comp.isEquals(json, expected));
+  }
+
+  @Test
   public void testLimit1() throws Exception
   {
     System.out.println("testLimit1");
@@ -887,7 +902,6 @@ public class TestBQL extends TestCase
       "FROM cars " +
       "GIVEN FACET PARAM (My-Network, 'srcid', int, 8233570)"
       );
-    System.out.println(">>> jsonxxx = " + json);
     JSONObject expected = new JSONObject("{\"facetInit\":{\"My-Network\":{\"srcid\":{\"values\":[8233570],\"type\":\"int\"}}}, \"meta\":{\"select_list\":[\"*\"]}}");
     assertTrue(_comp.isEquals(json, expected));
   }
