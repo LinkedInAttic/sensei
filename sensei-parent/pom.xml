@@ -9,11 +9,11 @@
 	<description>sensei search</description>
 	<url>http://www.senseidb.com/</url>
 
-	<!-- parent>
+	<parent>
 		<groupId>org.sonatype.oss</groupId>
 		<artifactId>oss-parent</artifactId>
 		<version>6</version>
-	</parent -->
+	</parent>
 	
 	<inceptionYear>2010</inceptionYear>
 
