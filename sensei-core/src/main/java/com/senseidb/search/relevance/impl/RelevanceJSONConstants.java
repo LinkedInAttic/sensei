@@ -1,12 +1,12 @@
 package com.senseidb.search.relevance.impl;
 
-public class JSONConstants
+public class RelevanceJSONConstants
 {
   /* JSON keywords*/
   
   // (1) json keys;
   public static final String           KW_MODEL                = "model";
-  public static final String           KW_PREDEFINED           = "predefined-model";
+  public static final String           KW_PREDEFINED           = "predefined_model";
   public static final String           KW_VALUES               = "values";
   public static final String           KW_VARIABLES            = "variables";
   public static final String           KW_FACETS               = "facets";

@@ -25,7 +25,7 @@ import com.browseengine.bobo.util.BigSegmentedArray;
 import com.senseidb.search.query.ScoreAugmentQuery.ScoreAugmentFunction;
 import com.senseidb.search.relevance.impl.CompilationHelper;
 import com.senseidb.search.relevance.impl.CustomMathModel;
-import com.senseidb.search.relevance.impl.JSONConstants;
+import com.senseidb.search.relevance.impl.RelevanceJSONConstants;
 import com.senseidb.search.relevance.impl.MFacetDouble;
 import com.senseidb.search.relevance.impl.MFacetFloat;
 import com.senseidb.search.relevance.impl.MFacetInt;
@@ -186,81 +186,81 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction
     for(int i=0; i<_paramSize; i++)
     {
       switch (_types[i]) {
-        case JSONConstants.TYPENUMBER_INT:  
+        case RelevanceJSONConstants.TYPENUMBER_INT:  
                   ints[_arrayIndex[i]] = ((Integer)_dt.hm_var.get(_dt.lls_params.get(i))).intValue();
                   break;
-        case JSONConstants.TYPENUMBER_LONG:
+        case RelevanceJSONConstants.TYPENUMBER_LONG:
                   longs[_arrayIndex[i]] = ((Long)_dt.hm_var.get(_dt.lls_params.get(i))).longValue();
                   break;
-        case JSONConstants.TYPENUMBER_DOUBLE:  
+        case RelevanceJSONConstants.TYPENUMBER_DOUBLE:  
                   doubles[_arrayIndex[i]] = ((Double)_dt.hm_var.get(_dt.lls_params.get(i))).doubleValue();
                   break;
-        case JSONConstants.TYPENUMBER_FLOAT: 
+        case RelevanceJSONConstants.TYPENUMBER_FLOAT: 
                   floats[_arrayIndex[i]] = ((Float)_dt.hm_var.get(_dt.lls_params.get(i))).floatValue();
                   break;
-        case JSONConstants.TYPENUMBER_BOOLEAN: 
+        case RelevanceJSONConstants.TYPENUMBER_BOOLEAN: 
                   booleans[_arrayIndex[i]] = ((Boolean)_dt.hm_var.get(_dt.lls_params.get(i))).booleanValue();
                   break;
-        case JSONConstants.TYPENUMBER_STRING:
+        case RelevanceJSONConstants.TYPENUMBER_STRING:
                   strings[_arrayIndex[i]] = (String) _dt.hm_var.get(_dt.lls_params.get(i));
                   break;
-        case JSONConstants.TYPENUMBER_SET:
+        case RelevanceJSONConstants.TYPENUMBER_SET:
                   sets[_arrayIndex[i]] = (Set)_dt.hm_var.get(_dt.lls_params.get(i));
                   break;
-        case JSONConstants.TYPENUMBER_MAP:
+        case RelevanceJSONConstants.TYPENUMBER_MAP:
                   maps[_arrayIndex[i]] = (Map)_dt.hm_var.get(_dt.lls_params.get(i));
                   break;                    
                   
         
         //multi-facet container initialization; 
-        case JSONConstants.TYPENUMBER_FACET_M_INT:
+        case RelevanceJSONConstants.TYPENUMBER_FACET_M_INT:
                   mFacetInts[_mArrayIndex[i]] =  new MFacetInt(_mDataCaches[_mFacetIndex[i]]);
                   arDynamic.add(i);
                   break;
-        case JSONConstants.TYPENUMBER_FACET_M_LONG:
+        case RelevanceJSONConstants.TYPENUMBER_FACET_M_LONG:
                   mFacetLongs[_mArrayIndex[i]] =  new MFacetLong(_mDataCaches[_mFacetIndex[i]]);
                   arDynamic.add(i);
                   break;
-        case JSONConstants.TYPENUMBER_FACET_M_DOUBLE:
+        case RelevanceJSONConstants.TYPENUMBER_FACET_M_DOUBLE:
                   mFacetDoubles[_mArrayIndex[i]] =  new MFacetDouble(_mDataCaches[_mFacetIndex[i]]);
                   arDynamic.add(i);
                   break;
-        case JSONConstants.TYPENUMBER_FACET_M_FLOAT:
+        case RelevanceJSONConstants.TYPENUMBER_FACET_M_FLOAT:
                   mFacetFloats[_mArrayIndex[i]] =  new MFacetFloat(_mDataCaches[_mFacetIndex[i]]);
                   arDynamic.add(i);
                   break;
-        case JSONConstants.TYPENUMBER_FACET_M_SHORT:
+        case RelevanceJSONConstants.TYPENUMBER_FACET_M_SHORT:
                   mFacetShorts[_mArrayIndex[i]] =  new MFacetShort(_mDataCaches[_mFacetIndex[i]]);
                   arDynamic.add(i);
                   break;
-        case JSONConstants.TYPENUMBER_FACET_M_STRING:                    
+        case RelevanceJSONConstants.TYPENUMBER_FACET_M_STRING:                    
                   mFacetStrings[_mArrayIndex[i]] =  new MFacetString(_mDataCaches[_mFacetIndex[i]]);
                   arDynamic.add(i);
                   break;    
                   
         
         //weighted multi-facet container initialization; 
-        case JSONConstants.TYPENUMBER_FACET_WM_INT:
+        case RelevanceJSONConstants.TYPENUMBER_FACET_WM_INT:
                   mFacetInts[_mArrayIndex[i]] =  new WeightedMFacetInt(_mDataCaches[_mFacetIndex[i]]);
                   arDynamic.add(i);
                   break;
-        case JSONConstants.TYPENUMBER_FACET_WM_LONG:
+        case RelevanceJSONConstants.TYPENUMBER_FACET_WM_LONG:
                   mFacetLongs[_mArrayIndex[i]] =  new WeightedMFacetLong(_mDataCaches[_mFacetIndex[i]]);
                   arDynamic.add(i);
                   break;
-        case  JSONConstants.TYPENUMBER_FACET_WM_DOUBLE:
+        case  RelevanceJSONConstants.TYPENUMBER_FACET_WM_DOUBLE:
                   mFacetDoubles[_mArrayIndex[i]] =  new WeightedMFacetDouble(_mDataCaches[_mFacetIndex[i]]);
                   arDynamic.add(i);
                   break;
-        case JSONConstants.TYPENUMBER_FACET_WM_FLOAT:
+        case RelevanceJSONConstants.TYPENUMBER_FACET_WM_FLOAT:
                   mFacetFloats[_mArrayIndex[i]] =  new WeightedMFacetFloat(_mDataCaches[_mFacetIndex[i]]);
                   arDynamic.add(i);
                   break;
-        case JSONConstants.TYPENUMBER_FACET_WM_SHORT:
+        case RelevanceJSONConstants.TYPENUMBER_FACET_WM_SHORT:
                   mFacetShorts[_mArrayIndex[i]] =  new WeightedMFacetShort(_mDataCaches[_mFacetIndex[i]]);
                   arDynamic.add(i);
                   break;
-        case JSONConstants.TYPENUMBER_FACET_WM_STRING:                    
+        case RelevanceJSONConstants.TYPENUMBER_FACET_WM_STRING:                    
                   mFacetStrings[_mArrayIndex[i]] =  new WeightedMFacetString(_mDataCaches[_mFacetIndex[i]]);
                   arDynamic.add(i);
                   break;    
@@ -305,54 +305,54 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction
     {
       boolean isMultiFacet = false;
       
-      if(_dt.hm_type.get(_dt.lls_params.get(i)).equals(JSONConstants.TYPE_INNER_SCORE)){
-        types[i] = JSONConstants.TYPENUMBER_INNER_SCORE;  //inner_score type parameter;
+      if(_dt.hm_type.get(_dt.lls_params.get(i)).equals(RelevanceJSONConstants.TYPE_INNER_SCORE)){
+        types[i] = RelevanceJSONConstants.TYPENUMBER_INNER_SCORE;  //inner_score type parameter;
         facetIndex[i] = -1;  //should not be used;
         mFacetIndex[i] = -1;
         arrayIndex[i] = float_index;
         float_index++;
         mArrayIndex[i] = -1;
       }
-      else if (_dt.hm_type.get(_dt.lls_params.get(i)).startsWith(JSONConstants.TYPE_FACET_HEAD))
+      else if (_dt.hm_type.get(_dt.lls_params.get(i)).startsWith(RelevanceJSONConstants.TYPE_FACET_HEAD))
       {
         String type = _dt.hm_type.get(_dt.lls_params.get(i));
         
-        if( (!type.startsWith(JSONConstants.TYPE_M_FACET_HEAD)) && (!type.startsWith(JSONConstants.TYPE_WM_FACET_HEAD)))
+        if( (!type.startsWith(RelevanceJSONConstants.TYPE_M_FACET_HEAD)) && (!type.startsWith(RelevanceJSONConstants.TYPE_WM_FACET_HEAD)))
         {
           // non-multi-facet
-          if(type.equals(JSONConstants.TYPE_FACET_INT))
+          if(type.equals(RelevanceJSONConstants.TYPE_FACET_INT))
           {
-            types[i] = JSONConstants.TYPENUMBER_FACET_INT;
+            types[i] = RelevanceJSONConstants.TYPENUMBER_FACET_INT;
             arrayIndex[i] = int_index;
             int_index++;
           }
-          else if (type.equals(JSONConstants.TYPE_FACET_LONG))
+          else if (type.equals(RelevanceJSONConstants.TYPE_FACET_LONG))
           {
-            types[i] = JSONConstants.TYPENUMBER_FACET_LONG;
+            types[i] = RelevanceJSONConstants.TYPENUMBER_FACET_LONG;
             arrayIndex[i] = long_index;
             long_index++;
           }
-          else if (type.equals(JSONConstants.TYPE_FACET_DOUBLE))
+          else if (type.equals(RelevanceJSONConstants.TYPE_FACET_DOUBLE))
           {
-            types[i] = JSONConstants.TYPENUMBER_FACET_DOUBLE;
+            types[i] = RelevanceJSONConstants.TYPENUMBER_FACET_DOUBLE;
             arrayIndex[i] = double_index;
             double_index++;
           }
-          else if (type.equals(JSONConstants.TYPE_FACET_FLOAT))
+          else if (type.equals(RelevanceJSONConstants.TYPE_FACET_FLOAT))
           {
-            types[i] = JSONConstants.TYPENUMBER_FACET_FLOAT;
+            types[i] = RelevanceJSONConstants.TYPENUMBER_FACET_FLOAT;
             arrayIndex[i] = float_index;
             float_index++;
           }
-          else if (type.equals(JSONConstants.TYPE_FACET_SHORT))
+          else if (type.equals(RelevanceJSONConstants.TYPE_FACET_SHORT))
           {
-            types[i] = JSONConstants.TYPENUMBER_FACET_SHORT;
+            types[i] = RelevanceJSONConstants.TYPENUMBER_FACET_SHORT;
             arrayIndex[i] = short_index;
             short_index++;
           }
-          else if (type.equals(JSONConstants.TYPE_FACET_STRING))
+          else if (type.equals(RelevanceJSONConstants.TYPE_FACET_STRING))
           {
-            types[i] = JSONConstants.TYPENUMBER_FACET_STRING;
+            types[i] = RelevanceJSONConstants.TYPENUMBER_FACET_STRING;
             arrayIndex[i] = string_index;
             string_index++;
           }
@@ -365,77 +365,77 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction
           isMultiFacet = true;
           
           //normal multi-facet
-          if(type.equals(JSONConstants.TYPE_FACET_M_INT))
+          if(type.equals(RelevanceJSONConstants.TYPE_FACET_M_INT))
           {
-            types[i] = JSONConstants.TYPENUMBER_FACET_M_INT;
+            types[i] = RelevanceJSONConstants.TYPENUMBER_FACET_M_INT;
             mArrayIndex[i] = m_int_index;
             m_int_index++;
           }
-          else if (type.equals(JSONConstants.TYPE_FACET_M_LONG))
+          else if (type.equals(RelevanceJSONConstants.TYPE_FACET_M_LONG))
           {
-            types[i] = JSONConstants.TYPENUMBER_FACET_M_LONG;
+            types[i] = RelevanceJSONConstants.TYPENUMBER_FACET_M_LONG;
             mArrayIndex[i] = m_long_index;
             m_long_index++;
           }
-          else if (type.equals(JSONConstants.TYPE_FACET_M_DOUBLE))
+          else if (type.equals(RelevanceJSONConstants.TYPE_FACET_M_DOUBLE))
           {
-            types[i] = JSONConstants.TYPENUMBER_FACET_M_DOUBLE;
+            types[i] = RelevanceJSONConstants.TYPENUMBER_FACET_M_DOUBLE;
             mArrayIndex[i] = m_double_index;
             m_double_index++;
           }
-          else if (type.equals(JSONConstants.TYPE_FACET_M_FLOAT))
+          else if (type.equals(RelevanceJSONConstants.TYPE_FACET_M_FLOAT))
           {
-            types[i] = JSONConstants.TYPENUMBER_FACET_M_FLOAT;
+            types[i] = RelevanceJSONConstants.TYPENUMBER_FACET_M_FLOAT;
             mArrayIndex[i] = m_float_index;
             m_float_index++;
           }
-          else if (type.equals(JSONConstants.TYPE_FACET_M_SHORT))
+          else if (type.equals(RelevanceJSONConstants.TYPE_FACET_M_SHORT))
           {
-            types[i] = JSONConstants.TYPENUMBER_FACET_M_SHORT;
+            types[i] = RelevanceJSONConstants.TYPENUMBER_FACET_M_SHORT;
             mArrayIndex[i] = m_short_index;
             m_short_index++;
           }
-          else if (type.equals(JSONConstants.TYPE_FACET_M_STRING))
+          else if (type.equals(RelevanceJSONConstants.TYPE_FACET_M_STRING))
           {
-            types[i] = JSONConstants.TYPENUMBER_FACET_M_STRING;
+            types[i] = RelevanceJSONConstants.TYPENUMBER_FACET_M_STRING;
             mArrayIndex[i] = m_string_index;
             m_string_index++;
           }
           
           //weighted multi-facet
-          else if(type.equals(JSONConstants.TYPE_FACET_WM_INT))
+          else if(type.equals(RelevanceJSONConstants.TYPE_FACET_WM_INT))
           {
-            types[i] = JSONConstants.TYPENUMBER_FACET_WM_INT;
+            types[i] = RelevanceJSONConstants.TYPENUMBER_FACET_WM_INT;
             mArrayIndex[i] = m_int_index;
             m_int_index++;
           }
-          else if (type.equals(JSONConstants.TYPE_FACET_WM_LONG))
+          else if (type.equals(RelevanceJSONConstants.TYPE_FACET_WM_LONG))
           {
-            types[i] = JSONConstants.TYPENUMBER_FACET_WM_LONG;
+            types[i] = RelevanceJSONConstants.TYPENUMBER_FACET_WM_LONG;
             mArrayIndex[i] = m_long_index;
             m_long_index++;
           }
-          else if (type.equals(JSONConstants.TYPE_FACET_WM_DOUBLE))
+          else if (type.equals(RelevanceJSONConstants.TYPE_FACET_WM_DOUBLE))
           {
-            types[i] = JSONConstants.TYPENUMBER_FACET_WM_DOUBLE;
+            types[i] = RelevanceJSONConstants.TYPENUMBER_FACET_WM_DOUBLE;
             mArrayIndex[i] = m_double_index;
             m_double_index++;
           }
-          else if (type.equals(JSONConstants.TYPE_FACET_WM_FLOAT))
+          else if (type.equals(RelevanceJSONConstants.TYPE_FACET_WM_FLOAT))
           {
-            types[i] = JSONConstants.TYPENUMBER_FACET_WM_FLOAT;
+            types[i] = RelevanceJSONConstants.TYPENUMBER_FACET_WM_FLOAT;
             mArrayIndex[i] = m_float_index;
             m_float_index++;
           }
-          else if (type.equals(JSONConstants.TYPE_FACET_WM_SHORT))
+          else if (type.equals(RelevanceJSONConstants.TYPE_FACET_WM_SHORT))
           {
-            types[i] = JSONConstants.TYPENUMBER_FACET_WM_SHORT;
+            types[i] = RelevanceJSONConstants.TYPENUMBER_FACET_WM_SHORT;
             mArrayIndex[i] = m_short_index;
             m_short_index++;
           }
-          else if (type.equals(JSONConstants.TYPE_FACET_WM_STRING))
+          else if (type.equals(RelevanceJSONConstants.TYPE_FACET_WM_STRING))
           {
-            types[i] = JSONConstants.TYPENUMBER_FACET_WM_STRING;
+            types[i] = RelevanceJSONConstants.TYPENUMBER_FACET_WM_STRING;
             mArrayIndex[i] = m_string_index;
             m_string_index++;
           }
@@ -462,51 +462,51 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction
       {
         String type = _dt.hm_type.get(_dt.lls_params.get(i));  //normal type parameter;
         
-        if(type.equals(JSONConstants.TYPE_INT))
+        if(type.equals(RelevanceJSONConstants.TYPE_INT))
         {
-          types[i] = JSONConstants.TYPENUMBER_INT;
+          types[i] = RelevanceJSONConstants.TYPENUMBER_INT;
           arrayIndex[i] = int_index;
           int_index++;
         }
-        else if (type.equals(JSONConstants.TYPE_LONG))
+        else if (type.equals(RelevanceJSONConstants.TYPE_LONG))
         {
-          types[i] = JSONConstants.TYPENUMBER_LONG;
+          types[i] = RelevanceJSONConstants.TYPENUMBER_LONG;
           arrayIndex[i] = long_index;
           long_index++;
         }
-        else if (type.equals(JSONConstants.TYPE_DOUBLE))
+        else if (type.equals(RelevanceJSONConstants.TYPE_DOUBLE))
         {
-          types[i] = JSONConstants.TYPENUMBER_DOUBLE;
+          types[i] = RelevanceJSONConstants.TYPENUMBER_DOUBLE;
           arrayIndex[i] = double_index;
           double_index++;
         }
-        else if (type.equals(JSONConstants.TYPE_FLOAT))
+        else if (type.equals(RelevanceJSONConstants.TYPE_FLOAT))
         {
-          types[i] = JSONConstants.TYPENUMBER_FLOAT;
+          types[i] = RelevanceJSONConstants.TYPENUMBER_FLOAT;
           arrayIndex[i] = float_index;
           float_index++;
         }
-        else if (type.equals(JSONConstants.TYPE_BOOLEAN))
+        else if (type.equals(RelevanceJSONConstants.TYPE_BOOLEAN))
         {
-          types[i] = JSONConstants.TYPENUMBER_BOOLEAN;
+          types[i] = RelevanceJSONConstants.TYPENUMBER_BOOLEAN;
           arrayIndex[i] = boolean_index;
           boolean_index++;
         }
-        else if (type.equals(JSONConstants.TYPE_STRING))
+        else if (type.equals(RelevanceJSONConstants.TYPE_STRING))
         {
-          types[i] = JSONConstants.TYPENUMBER_STRING;
+          types[i] = RelevanceJSONConstants.TYPENUMBER_STRING;
           arrayIndex[i] = string_index;
           string_index++;
         }
-        else if (type.startsWith(JSONConstants.TYPE_SET_HEAD))
+        else if (type.startsWith(RelevanceJSONConstants.TYPE_SET_HEAD))
         {
-          types[i] = JSONConstants.TYPENUMBER_SET;
+          types[i] = RelevanceJSONConstants.TYPENUMBER_SET;
           arrayIndex[i] = set_index;
           set_index++;
         }
-        else if (type.startsWith(JSONConstants.TYPE_MAP_HEAD))
+        else if (type.startsWith(RelevanceJSONConstants.TYPE_MAP_HEAD))
         {
-          types[i] = JSONConstants.TYPENUMBER_MAP;
+          types[i] = RelevanceJSONConstants.TYPENUMBER_MAP;
           arrayIndex[i] = map_index;
           map_index++;
         }
@@ -528,66 +528,66 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction
       
       // only when the parameter is inner score variable or facet variable, we need to update the score function input parameter arrays; 
       switch (_types[dynamicAR[j]]) {
-        case JSONConstants.TYPENUMBER_INNER_SCORE:  
+        case RelevanceJSONConstants.TYPENUMBER_INNER_SCORE:  
                   floats[_arrayIndex[dynamicAR[j]]] = innerScore;
                   break;
-        case JSONConstants.TYPENUMBER_FACET_INT:  
+        case RelevanceJSONConstants.TYPENUMBER_FACET_INT:  
                   ints[_arrayIndex[dynamicAR[j]]] = ((TermIntList)_termLists[_facetIndex[dynamicAR[j]]]).getPrimitiveValue(_orderArrays[_facetIndex[dynamicAR[j]]].get(docID));
                   break;
-        case JSONConstants.TYPENUMBER_FACET_LONG:
+        case RelevanceJSONConstants.TYPENUMBER_FACET_LONG:
                   longs[_arrayIndex[dynamicAR[j]]] = ((TermLongList)_termLists[_facetIndex[dynamicAR[j]]]).getPrimitiveValue(_orderArrays[_facetIndex[dynamicAR[j]]].get(docID));
                   break;
-        case JSONConstants.TYPENUMBER_FACET_DOUBLE:  
+        case RelevanceJSONConstants.TYPENUMBER_FACET_DOUBLE:  
                   doubles[_arrayIndex[dynamicAR[j]]] = ((TermDoubleList)_termLists[_facetIndex[dynamicAR[j]]]).getPrimitiveValue(_orderArrays[_facetIndex[dynamicAR[j]]].get(docID));
                   break;
-        case JSONConstants.TYPENUMBER_FACET_FLOAT: 
+        case RelevanceJSONConstants.TYPENUMBER_FACET_FLOAT: 
                   floats[_arrayIndex[dynamicAR[j]]] = ((TermFloatList)_termLists[_facetIndex[dynamicAR[j]]]).getPrimitiveValue(_orderArrays[_facetIndex[dynamicAR[j]]].get(docID));
                   break;
-        case JSONConstants.TYPENUMBER_FACET_SHORT: 
+        case RelevanceJSONConstants.TYPENUMBER_FACET_SHORT: 
                   shorts[_arrayIndex[dynamicAR[j]]] = ((TermShortList)_termLists[_facetIndex[dynamicAR[j]]]).getPrimitiveValue(_orderArrays[_facetIndex[dynamicAR[j]]].get(docID));
                   break;
-        case JSONConstants.TYPENUMBER_FACET_STRING:
+        case RelevanceJSONConstants.TYPENUMBER_FACET_STRING:
                   strings[_arrayIndex[dynamicAR[j]]] = ((TermStringList)_termLists[_facetIndex[dynamicAR[j]]]).get(_orderArrays[_facetIndex[dynamicAR[j]]].get(docID));
                   break;
                   
         // multi-facet below;
-        case JSONConstants.TYPENUMBER_FACET_M_INT:
+        case RelevanceJSONConstants.TYPENUMBER_FACET_M_INT:
                   mFacetInts[_mArrayIndex[dynamicAR[j]]].refresh(docID);
                   break;
-        case JSONConstants.TYPENUMBER_FACET_M_LONG:
+        case RelevanceJSONConstants.TYPENUMBER_FACET_M_LONG:
                   mFacetLongs[_mArrayIndex[dynamicAR[j]]].refresh(docID);
                   break;
-        case JSONConstants.TYPENUMBER_FACET_M_DOUBLE:
+        case RelevanceJSONConstants.TYPENUMBER_FACET_M_DOUBLE:
                   mFacetDoubles[_mArrayIndex[dynamicAR[j]]].refresh(docID);
                   break;
-        case JSONConstants.TYPENUMBER_FACET_M_FLOAT:
+        case RelevanceJSONConstants.TYPENUMBER_FACET_M_FLOAT:
                   mFacetFloats[_mArrayIndex[dynamicAR[j]]].refresh(docID);
                   break;
-        case JSONConstants.TYPENUMBER_FACET_M_SHORT:
+        case RelevanceJSONConstants.TYPENUMBER_FACET_M_SHORT:
                   mFacetShorts[_mArrayIndex[dynamicAR[j]]].refresh(docID);
                   break;
-        case JSONConstants.TYPENUMBER_FACET_M_STRING:
+        case RelevanceJSONConstants.TYPENUMBER_FACET_M_STRING:
                   mFacetStrings[_mArrayIndex[dynamicAR[j]]].refresh(docID);
                   break;
 
                   
         // weighted multi-facet below;
-        case JSONConstants.TYPENUMBER_FACET_WM_INT:
+        case RelevanceJSONConstants.TYPENUMBER_FACET_WM_INT:
                   ((WeightedMFacetInt)mFacetInts[_mArrayIndex[dynamicAR[j]]]).refresh(docID);
                   break;
-        case JSONConstants.TYPENUMBER_FACET_WM_LONG:
+        case RelevanceJSONConstants.TYPENUMBER_FACET_WM_LONG:
                   ((WeightedMFacetLong)mFacetLongs[_mArrayIndex[dynamicAR[j]]]).refresh(docID);
                   break;
-        case JSONConstants.TYPENUMBER_FACET_WM_DOUBLE:
+        case RelevanceJSONConstants.TYPENUMBER_FACET_WM_DOUBLE:
                   ((WeightedMFacetDouble)mFacetDoubles[_mArrayIndex[dynamicAR[j]]]).refresh(docID);
                   break;
-        case JSONConstants.TYPENUMBER_FACET_WM_FLOAT:
+        case RelevanceJSONConstants.TYPENUMBER_FACET_WM_FLOAT:
                   ((WeightedMFacetFloat)mFacetFloats[_mArrayIndex[dynamicAR[j]]]).refresh(docID);
                   break;
-        case JSONConstants.TYPENUMBER_FACET_WM_SHORT:
+        case RelevanceJSONConstants.TYPENUMBER_FACET_WM_SHORT:
                   ((WeightedMFacetShort)mFacetShorts[_mArrayIndex[dynamicAR[j]]]).refresh(docID);
                   break;
-        case JSONConstants.TYPENUMBER_FACET_WM_STRING:
+        case RelevanceJSONConstants.TYPENUMBER_FACET_WM_STRING:
                   ((WeightedMFacetString)mFacetStrings[_mArrayIndex[dynamicAR[j]]]).refresh(docID);
                   break;
                             
@@ -600,21 +600,83 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction
   }
 
 
-//
-//  public boolean init(BoboIndexReader reader, JSONObject jsonValues)
-//  {
-//    try{
-//      CompilationHelper.initialize(jsonValues, _dt);
-//      initialRunningData(reader,_cModel, _dt);
-//      return true;
-//    }catch(Exception e)
-//    {
-//      logger.info("Can not initialize the scoring function with reader and value json.\n" + e);
-//      return false;
-//    }
-//  }
+  @Override
+  public float newScore(int docID)
+  {
+  
+    //update the dynamic parameters only when we have to.
+    for(int j=0; j < dynamicAR.length; j++)
+    {
+      
+      // only when the parameter is inner score variable or facet variable, we need to update the score function input parameter arrays; 
+      switch (_types[dynamicAR[j]]) {
+        case RelevanceJSONConstants.TYPENUMBER_FACET_INT:  
+                  ints[_arrayIndex[dynamicAR[j]]] = ((TermIntList)_termLists[_facetIndex[dynamicAR[j]]]).getPrimitiveValue(_orderArrays[_facetIndex[dynamicAR[j]]].get(docID));
+                  break;
+        case RelevanceJSONConstants.TYPENUMBER_FACET_LONG:
+                  longs[_arrayIndex[dynamicAR[j]]] = ((TermLongList)_termLists[_facetIndex[dynamicAR[j]]]).getPrimitiveValue(_orderArrays[_facetIndex[dynamicAR[j]]].get(docID));
+                  break;
+        case RelevanceJSONConstants.TYPENUMBER_FACET_DOUBLE:  
+                  doubles[_arrayIndex[dynamicAR[j]]] = ((TermDoubleList)_termLists[_facetIndex[dynamicAR[j]]]).getPrimitiveValue(_orderArrays[_facetIndex[dynamicAR[j]]].get(docID));
+                  break;
+        case RelevanceJSONConstants.TYPENUMBER_FACET_FLOAT: 
+                  floats[_arrayIndex[dynamicAR[j]]] = ((TermFloatList)_termLists[_facetIndex[dynamicAR[j]]]).getPrimitiveValue(_orderArrays[_facetIndex[dynamicAR[j]]].get(docID));
+                  break;
+        case RelevanceJSONConstants.TYPENUMBER_FACET_SHORT: 
+                  shorts[_arrayIndex[dynamicAR[j]]] = ((TermShortList)_termLists[_facetIndex[dynamicAR[j]]]).getPrimitiveValue(_orderArrays[_facetIndex[dynamicAR[j]]].get(docID));
+                  break;
+        case RelevanceJSONConstants.TYPENUMBER_FACET_STRING:
+                  strings[_arrayIndex[dynamicAR[j]]] = ((TermStringList)_termLists[_facetIndex[dynamicAR[j]]]).get(_orderArrays[_facetIndex[dynamicAR[j]]].get(docID));
+                  break;
+                  
+        // multi-facet below;
+        case RelevanceJSONConstants.TYPENUMBER_FACET_M_INT:
+                  mFacetInts[_mArrayIndex[dynamicAR[j]]].refresh(docID);
+                  break;
+        case RelevanceJSONConstants.TYPENUMBER_FACET_M_LONG:
+                  mFacetLongs[_mArrayIndex[dynamicAR[j]]].refresh(docID);
+                  break;
+        case RelevanceJSONConstants.TYPENUMBER_FACET_M_DOUBLE:
+                  mFacetDoubles[_mArrayIndex[dynamicAR[j]]].refresh(docID);
+                  break;
+        case RelevanceJSONConstants.TYPENUMBER_FACET_M_FLOAT:
+                  mFacetFloats[_mArrayIndex[dynamicAR[j]]].refresh(docID);
+                  break;
+        case RelevanceJSONConstants.TYPENUMBER_FACET_M_SHORT:
+                  mFacetShorts[_mArrayIndex[dynamicAR[j]]].refresh(docID);
+                  break;
+        case RelevanceJSONConstants.TYPENUMBER_FACET_M_STRING:
+                  mFacetStrings[_mArrayIndex[dynamicAR[j]]].refresh(docID);
+                  break;
 
-
+                  
+        // weighted multi-facet below;
+        case RelevanceJSONConstants.TYPENUMBER_FACET_WM_INT:
+                  ((WeightedMFacetInt)mFacetInts[_mArrayIndex[dynamicAR[j]]]).refresh(docID);
+                  break;
+        case RelevanceJSONConstants.TYPENUMBER_FACET_WM_LONG:
+                  ((WeightedMFacetLong)mFacetLongs[_mArrayIndex[dynamicAR[j]]]).refresh(docID);
+                  break;
+        case RelevanceJSONConstants.TYPENUMBER_FACET_WM_DOUBLE:
+                  ((WeightedMFacetDouble)mFacetDoubles[_mArrayIndex[dynamicAR[j]]]).refresh(docID);
+                  break;
+        case RelevanceJSONConstants.TYPENUMBER_FACET_WM_FLOAT:
+                  ((WeightedMFacetFloat)mFacetFloats[_mArrayIndex[dynamicAR[j]]]).refresh(docID);
+                  break;
+        case RelevanceJSONConstants.TYPENUMBER_FACET_WM_SHORT:
+                  ((WeightedMFacetShort)mFacetShorts[_mArrayIndex[dynamicAR[j]]]).refresh(docID);
+                  break;
+        case RelevanceJSONConstants.TYPENUMBER_FACET_WM_STRING:
+                  ((WeightedMFacetString)mFacetStrings[_mArrayIndex[dynamicAR[j]]]).refresh(docID);
+                  break;
+                            
+        default: 
+                 break;
+      }
+    }
+    
+    return _cModel.score(shorts, ints, longs, floats, doubles, booleans, strings, sets, maps, mFacetInts, mFacetLongs, mFacetFloats, mFacetDoubles, mFacetShorts, mFacetStrings);
+  }
 
   @Override
   public String getExplainString()
@@ -633,7 +695,7 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction
   @Override
   public void initializeGlobal(JSONObject jsonValues) throws JSONException
   {
-    CompilationHelper.initialize(jsonValues, _dt);
+    CompilationHelper.initializeValues(jsonValues, _dt);
   }
 
 
@@ -643,6 +705,11 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction
     return new RuntimeRelevanceFunction(this._cModel, this._dt);
   }
 
-  
+
+  @Override
+  public boolean useInnerScore()
+  {
+    return this._dt.useInnerScore;
+  }
   
 }
