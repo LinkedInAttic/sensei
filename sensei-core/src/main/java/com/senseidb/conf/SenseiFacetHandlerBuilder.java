@@ -396,7 +396,7 @@ public class SenseiFacetHandlerBuilder {
 					  facetHandler = new MultiRangeFacetHandler(name, fieldName, null,  termListFactoryMap.get(fieldName) , buildPredefinedRanges(paramMap));
 					} else if (column.optBoolean("activity")) {
 					  CompositeActivityValues compositeActivityValues = activityManager.getActivityValues();
-            facetHandler = new ActivityRangeFacetHandler(name, fieldName, compositeActivityValues, compositeActivityValues.getActivityIntValues(fieldName));
+            facetHandler =  ActivityRangeFacetHandler.valueOf(name, fieldName, compositeActivityValues, compositeActivityValues.getActivityIntValues(fieldName));
 					} else {
 					  facetHandler = buildRangeHandler(name, fieldName, termListFactoryMap.get(fieldName), paramMap);
 					}
@@ -472,7 +472,7 @@ public class SenseiFacetHandlerBuilder {
     TimeAggregatedActivityValues aggregatedActivityValues = (TimeAggregatedActivityValues) activityValues;
     for (String time : facetDefinition.params.get("time")) {
       String name = facetDefinition.column + ":" + time;
-      ret.add(new ActivityRangeFacetHandler(name, facetDefinition.column, activityManager.getActivityValues(), (ActivityIntValues)aggregatedActivityValues.getValuesMap().get(time)));
+      ret.add(ActivityRangeFacetHandler.valueOf(name, facetDefinition.column, activityManager.getActivityValues(), (ActivityIntValues)aggregatedActivityValues.getValuesMap().get(time)));
     }
     return ret;
   }

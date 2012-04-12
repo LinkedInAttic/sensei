@@ -6,7 +6,7 @@ import org.apache.lucene.search.DocIdSetIterator;
 
 public class ActivityRangeFilterIterator extends DocIdSetIterator {
   private int _doc;
-  private final int[] fieldValues;
+  protected final int[] fieldValues;
   private final int start;
   private final int end;
   private final int arrLength;
@@ -31,8 +31,8 @@ public class ActivityRangeFilterIterator extends DocIdSetIterator {
      if (indexes[_doc] == -1) {
        continue;
      }
-     int value = fieldValues[indexes[_doc]];
-     if (value >= start && value < end) {
+     int value = fieldValues[indexes[_doc]]; 
+     if (value >= start && value < end && value != Integer.MIN_VALUE) {
        return _doc;
      }
    }

@@ -4,10 +4,9 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.longs.Long2IntMap;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
-import it.unimi.dsi.fastutil.longs.LongArrayList;
-import it.unimi.dsi.fastutil.longs.LongList;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -21,13 +20,11 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
-import org.springframework.util.Assert;
 
 import proj.zoie.api.ZoieIndexReader;
 
 import com.senseidb.indexing.activity.CompositeActivityManager.TimeAggregateInfo;
 import com.senseidb.indexing.activity.CompositeActivityStorage.Update;
-import com.senseidb.indexing.activity.time.AggregatesUpdateJob;
 import com.senseidb.indexing.activity.time.TimeAggregatedActivityValues;
 import com.senseidb.metrics.MetricsConstants;
 import com.yammer.metrics.Metrics;
@@ -121,6 +118,9 @@ public class CompositeActivityValues {
   public ActivityIntValues getActivityIntValues(String fieldName) {
     ActivityValues activityValues = intValuesMap.get(fieldName);
     if (activityValues == null) {
+      if (fieldName.contains(":")) {
+        return ((TimeAggregatedActivityValues)intValuesMap.get(fieldName.substring(0, fieldName.indexOf(":")))).getValuesMap().get(fieldName.substring(fieldName.indexOf(":") + 1));
+      }
       return null;
     } else if (activityValues instanceof ActivityIntValues) {
       return (ActivityIntValues)  activityValues;
@@ -187,8 +187,10 @@ private boolean updateActivities(JSONObject event, int index) {
         if (closed) {
           return;
         }
+        Collections.reverse(deleteBatch.updates);
         activityStorage.flush(deleteBatch.updates);
         synchronized (deletedIndexes) {
+          
           for (Update update : deleteBatch.updates) {
             deletedIndexes.add(update.index);
           }       
@@ -200,6 +202,17 @@ private boolean updateActivities(JSONObject event, int index) {
   public void syncWithPersistentVersion(String version) {
     synchronized (this) {
       while (versionComparator.compare(metadata.version, version) < 0) {
+        try {
+          this.wait(400L);
+        } catch (InterruptedException e) {
+          Thread.currentThread().interrupt();
+        }
+      }
+    }
+  }
+  public void syncWithVersion(String version) {
+    synchronized (this) {
+      while (versionComparator.compare(lastVersion, version) < 0) {
         try {
           this.wait(400L);
         } catch (InterruptedException e) {
@@ -306,7 +319,7 @@ private boolean updateActivities(JSONObject event, int index) {
     Lock lock = getLock(uid).readLock();
     try {
       lock.lock();
-    return getActivityIntValues(column).fieldValues[uidToArrayIndex.get(uid)];
+    return getActivityIntValues(column).getFieldValues()[uidToArrayIndex.get(uid)];
     } finally {
       lock.unlock();
     }

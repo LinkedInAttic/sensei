@@ -27,6 +27,8 @@ import com.senseidb.indexing.activity.CompositeActivityValues;
 
 public class ActivityRangeFacetHandler extends FacetHandler<int[]> {
   private static final String DEFAULT_FORMATTING_STRING = "0000000000";
+  public static volatile boolean isSynchronized = false;
+  
   protected ThreadLocal<DecimalFormat> formatter = new ThreadLocal<DecimalFormat>() {
     protected DecimalFormat initialValue() {
       return new DecimalFormat(DEFAULT_FORMATTING_STRING);
@@ -36,13 +38,19 @@ public class ActivityRangeFacetHandler extends FacetHandler<int[]> {
   private final ActivityIntValues activityIntValues;
   private final CompositeActivityValues compositeActivityValues;
   
-
-  
-  public ActivityRangeFacetHandler(String facetName, String fieldName, CompositeActivityValues compositeActivityValues, ActivityIntValues activityIntValues) {
+  private ActivityRangeFacetHandler(String facetName, String fieldName, CompositeActivityValues compositeActivityValues, ActivityIntValues activityIntValues) {
     super(facetName, new HashSet<String>());
     this.compositeActivityValues = compositeActivityValues;
     this.activityIntValues = activityIntValues;   
   }
+  public static FacetHandler valueOf(String facetName, String fieldName, CompositeActivityValues compositeActivityValues, ActivityIntValues activityIntValues) {
+   if (isSynchronized) {
+     return new SynchronizedActivityRangeFacetHandler(facetName, fieldName, compositeActivityValues, activityIntValues);
+   }
+   return new ActivityRangeFacetHandler(facetName, fieldName, compositeActivityValues, activityIntValues);
+  }
+  
+  
   @Override
   public int[] load(BoboIndexReader reader) throws IOException {
     ZoieSegmentReader<?> zoieReader = (ZoieSegmentReader<?>)(reader.getInnerReader());    
@@ -66,11 +74,11 @@ public class ActivityRangeFacetHandler extends FacetHandler<int[]> {
         if (startValue >= endValue) {
           return  EmptyDocIdSet.getInstance();
         }
-        final int[] array = activityIntValues.fieldValues;
+        final int[] array = activityIntValues.getFieldValues();
         return new RandomAccessDocIdSet() {          
           @Override
-          public DocIdSetIterator iterator() throws IOException {            
-            return new ActivityRangeFilterIterator(array, indexes, startValue, endValue);
+          public DocIdSetIterator iterator() throws IOException {
+              return new ActivityRangeFilterIterator(array, indexes, startValue, endValue);           
           }
           
           @Override
@@ -86,26 +94,17 @@ public class ActivityRangeFacetHandler extends FacetHandler<int[]> {
   @Override
   public FacetCountCollectorSource getFacetCountCollectorSource(BrowseSelection sel, FacetSpec fspec) {
    throw new UnsupportedOperationException("Facets on activity columns are unsupported");
-  }
-  
+  }  
   
   @Override
   public Object[] getRawFieldValues(BoboIndexReader reader, int id) {    
-    final int[] indexes = (int[]) ((BoboIndexReader)reader).getFacetData(_name);   
-    int index = indexes[id];
-    if (index == -1) {
-      return new String[0];
-    }
-    return new Object[] {activityIntValues.getValue(index)};
+    final int[] indexes = (int[]) ((BoboIndexReader)reader).getFacetData(_name);  
+    return new Object[] {activityIntValues.getValue(indexes[id])};
   }
   @Override
   public String[] getFieldValues(BoboIndexReader reader, int id) {   
-    final int[] indexes = (int[]) ((BoboIndexReader)reader).getFacetData(_name);   
-    int index = indexes[id];
-    if (index == -1) {
-      return new String[0];
-    }
-    int value = activityIntValues.getValue(index);
+    final int[] indexes = (int[]) ((BoboIndexReader)reader).getFacetData(_name); 
+      int value = activityIntValues.getValue(indexes[id]);
     if (value == Integer.MIN_VALUE) {
       return new String[0];
     }
@@ -123,14 +122,15 @@ public class ActivityRangeFacetHandler extends FacetHandler<int[]> {
             .getFacetData(_name);
         return new DocComparator() {
           @Override
-          public Comparable<Integer> value(ScoreDoc doc) {
-
-            return array[indexes[doc.doc]];
+          public Comparable<Integer> value(ScoreDoc doc) {           
+              return array[indexes[doc.doc]];           
           }
 
           @Override
-          public int compare(ScoreDoc doc1, ScoreDoc doc2) {
-            return array[indexes[doc1.doc]] - array[indexes[doc2.doc]];
+          public int compare(ScoreDoc doc1, ScoreDoc doc2) {  
+            int val1 = array[indexes[doc1.doc]]; 
+            int val2 = array[indexes[doc2.doc]];            
+            return (val1<val2 ? -1 : (val1==val2 ? 0 : 1));
           }
         };
       }

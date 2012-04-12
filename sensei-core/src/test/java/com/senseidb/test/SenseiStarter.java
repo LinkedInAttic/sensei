@@ -16,6 +16,7 @@ import com.linkedin.norbert.javacompat.network.NetworkServer;
 import com.senseidb.cluster.client.SenseiNetworkClient;
 import com.senseidb.cluster.routing.SenseiLoadBalancerFactory;
 import com.senseidb.conf.SenseiServerBuilder;
+import com.senseidb.indexing.activity.facet.ActivityRangeFacetHandler;
 import com.senseidb.jmx.JmxSenseiMBeanServer;
 import com.senseidb.search.node.SenseiBroker;
 import com.senseidb.search.node.SenseiRequestScatterRewriter;
@@ -60,7 +61,7 @@ public class SenseiStarter {
    * Will start the new Sensei instance once per process
    */
   public static synchronized void start(String confDir1, String confDir2) {
-    
+    ActivityRangeFacetHandler.isSynchronized = true;
     if (started) {
       logger.warn("The server had been already started");
       return;

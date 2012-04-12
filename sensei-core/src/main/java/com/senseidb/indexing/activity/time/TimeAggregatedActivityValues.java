@@ -21,7 +21,7 @@ public class TimeAggregatedActivityValues implements ActivityValues {
 	public volatile int maxIndex;
   private AggregatesMetadata aggregatesMetadata;
   private AggregatesUpdateJob aggregatesUpdateJob;  
-  private ActivityIntValues defaultIntValues;
+  protected ActivityIntValues defaultIntValues;
   
   public TimeAggregatedActivityValues(String fieldName, List<String> times, int count, String indexDirPath) {
 		this.fieldName = fieldName;
@@ -123,7 +123,9 @@ public class TimeAggregatedActivityValues implements ActivityValues {
 		int valueInt = getIntValue(value);
 		String valueStr = valueInt > 0 ? "+" + valueInt : String.valueOf(valueInt);
 		int currentTime = Clock.getCurrentTimeInMinutes();
-		needToFlush = needToFlush | defaultIntValues.update(index, value);
+		synchronized (defaultIntValues) {
+		  needToFlush = needToFlush | defaultIntValues.update(index, value);
+		}
 		timeActivities.ensureCapacity(index);
 		synchronized (timeActivities.getLock(index)) {
 			if (!timeActivities.isSet(index)) {
@@ -140,7 +142,9 @@ public class TimeAggregatedActivityValues implements ActivityValues {
 			}
 		}
 		for (IntValueHolder intValueHolder : intActivityValues) {			
-			  needToFlush = needToFlush | intValueHolder.activityIntValues.update(index, valueStr);
+			  synchronized (intValueHolder.activityIntValues) {
+			    needToFlush = needToFlush | intValueHolder.activityIntValues.update(index, valueStr);
+			  }
 		}
 		return needToFlush;
 	}
@@ -162,10 +166,13 @@ public class TimeAggregatedActivityValues implements ActivityValues {
 
 	@Override
 	public void delete(int index) {	  
+	  synchronized (defaultIntValues) {  
 	    defaultIntValues.delete(index);
-	
+	  }
 	  for (IntValueHolder intValueHolder : intActivityValues) {	 
-	    intValueHolder.activityIntValues.delete(index);	   
+	    synchronized (intValueHolder.activityIntValues) {
+	      intValueHolder.activityIntValues.delete(index);	   
+	    }
     }
 	  synchronized (timeActivities.getLock(index)) {
 	    timeActivities.reset(index);
@@ -212,7 +219,7 @@ public class TimeAggregatedActivityValues implements ActivityValues {
   }
 
   public static class IntValueHolder implements Comparable<IntValueHolder> {
-		public final ActivityIntValues activityIntValues;
+		public  ActivityIntValues activityIntValues;
 		public final String time;
 		public final Integer timeInMinutes;
 
