@@ -140,7 +140,7 @@ public class UIDFacetHandler extends FacetHandler<long[]> {
         final IntArrayDocIdSet intArraySet = new IntArrayDocIdSet(docidList.size());
         boolean deletesPresent = delDocIds != null && delDocIds.length > 0;       
         for (int docid : docidList){
-          if (!deletesPresent  || java.util.Arrays.binarySearch(delDocIds,docid) < 0) {
+          if (!deletesPresent  || Arrays.binarySearch(delDocIds,docid) < 0) {
             intArraySet.addDoc(docid);            
           } 
         }        
