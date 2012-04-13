@@ -239,6 +239,9 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
       resultList.add(responseIterator.next());
     }
 
+    // restore the last customization
+    req.restoreState();
+
     logger.debug(String.format("There are %d responses", resultList.size()));
 
     return resultList;
