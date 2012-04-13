@@ -679,7 +679,7 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction
   }
 
   @Override
-  public String getExplainString()
+  public String getExplainString(float innerScore, int doc)
   {
     return _dt.funcBody;
   }
