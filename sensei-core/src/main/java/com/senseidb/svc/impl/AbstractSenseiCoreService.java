@@ -72,13 +72,21 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
 	public AbstractSenseiCoreService(SenseiCore core){
 	  _core = core;
 	  int[] partitions = _core.getPartitions();
-	  
-    for (int partition : partitions){
-      MetricName partitionSearchMetricName = new MetricName(MetricsConstants.Domain,"timer","partition-time-"+partition,"partition");
-      Timer timer = Metrics.newTimer(partitionSearchMetricName,TimeUnit.MILLISECONDS,TimeUnit.SECONDS);
-      partitionTimerMetricMap.put(partition, timer); 
-    }
 	}
+  
+  private Timer buildTimer(int partition) {
+    MetricName partitionSearchMetricName = new MetricName(MetricsConstants.Domain,"timer","partition-time-"+partition,"partition");
+    return Metrics.newTimer(partitionSearchMetricName,TimeUnit.MILLISECONDS,TimeUnit.SECONDS);
+  }
+  
+  private Timer getTimer(int partition) {
+    Timer timer = partitionTimerMetricMap.get(partition);
+    if(timer == null) {
+      partitionTimerMetricMap.put(partition, buildTimer(partition));
+      return getTimer(partition);
+    }
+    return timer;
+  }
 	
 	public final Res execute(final Req senseiReq){
 		SearchCounter.mark();
@@ -106,7 +114,7 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
           final long start = System.currentTimeMillis();
           final IndexReaderFactory<ZoieIndexReader<BoboIndexReader>> readerFactory = _core.getIndexReaderFactory(partition);
 
-          if (i<partitions.size()-1)  // Search simultaneously.
+          if (i < partitions.size() - 1)  // Search simultaneously.
           {
             try
             {
@@ -114,7 +122,8 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
               {
                 public Res call() throws Exception
                 {
-                  Timer timer = partitionTimerMetricMap.get(partition);
+                  Timer timer = getTimer(partition);
+                  
                   Res res = timer.time(new Callable<Res>(){
 
                     @Override
@@ -139,7 +148,7 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
           {
             try
             {
-              Timer timer = partitionTimerMetricMap.get(partition);
+              Timer timer = getTimer(partition);
               Res res = timer.time(new Callable<Res>(){
 
                 @Override

@@ -27,10 +27,8 @@ public class SenseiHttpInvokerServiceServlet extends
 		super.init(config);
 		
 		innerSvc = new ClusteredSenseiServiceImpl(zkurl, zkTimeout, clusterClientName, clusterName, connectTimeoutMillis,
-                                              writeTimeoutMillis, maxConnectionsPerNode, staleRequestTimeoutMins,
-                                              staleRequestCleanupFrequencyMins,
-                                              loadBalancerFactory, versionComparator,
-                                              pollInterval, minResponses, maxTotalWait);
+        writeTimeoutMillis, maxConnectionsPerNode, staleRequestTimeoutMins, staleRequestCleanupFrequencyMins, allowPartialMerge,
+       loadBalancerFactory, versionComparator);
 		innerSvc.start();
 		target = new HttpInvokerServiceExporter();
 		target.setService(innerSvc);

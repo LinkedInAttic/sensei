@@ -6,6 +6,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 
@@ -15,7 +16,6 @@ import org.apache.log4j.Logger;
 import org.mortbay.jetty.Server;
 
 import proj.zoie.api.DataProvider;
-import scala.actors.threadpool.Arrays;
 
 import com.linkedin.norbert.javacompat.cluster.ClusterClient;
 import com.linkedin.norbert.javacompat.cluster.Node;
@@ -294,7 +294,6 @@ public class SenseiServer {
 	  return new SenseiServerAdminMBean(){
 	  @Override
     public int getId()
-
       {
         return _id;
       }
