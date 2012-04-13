@@ -125,7 +125,8 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
                   
                   long end = System.currentTimeMillis();
                   res.setTime(end - start);
-                  
+                  logger.info("searching partition: " + partition + " browse took: " + res.getTime());
+
                   return res;
                 }
               });
