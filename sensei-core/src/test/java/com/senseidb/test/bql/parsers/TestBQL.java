@@ -159,6 +159,21 @@ public class TestBQL extends TestCase
   }
 
   @Test
+  public void testGroupByOrColumns() throws Exception
+  {
+    System.out.println("testGroupByOrColumns");
+    System.out.println("==================================================");
+
+    JSONObject json = _compiler.compile(
+      "SELECT category " +
+      "FROM cars " +
+      "GROUP BY color OR category TOP 5"
+      );
+    JSONObject expected = new JSONObject("{\"groupBy\":{\"columns\":[\"color\",\"category\"],\"top\":5},\"meta\":{\"select_list\":[\"category\"]}}");
+    assertTrue(_comp.isEquals(json, expected));
+  }
+
+  @Test
   public void testEqualPredInteger() throws Exception
   {
     System.out.println("testEqualPredInteger");
@@ -1198,6 +1213,21 @@ public class TestBQL extends TestCase
       );
 
     JSONObject expected = new JSONObject("{\"meta\":{\"select_list\":[\"color\",\"year\"]}}");
+    assertTrue(_comp.isEquals(json, expected));
+  }
+
+  @Test
+  public void testSubColumnName() throws Exception
+  {
+    System.out.println("testSubColumnName");
+    System.out.println("==================================================");
+
+    JSONObject json = _compiler.compile(
+      "SELECT _srcdata.color, _srcdata.'$time' " +
+      "FROM cars "
+      );
+
+    JSONObject expected = new JSONObject("{\"fetchStored\":true,\"meta\":{\"select_list\":[\"_srcdata.color\",\"_srcdata.$time\"]}}");
     assertTrue(_comp.isEquals(json, expected));
   }
 

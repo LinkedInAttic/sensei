@@ -74,7 +74,7 @@ public class SchemaConverter
           columnObj.put("from", frm);
 
           columnObj.put("multi", Boolean.parseBoolean(column.getAttribute("multi")));
-
+          columnObj.put("activity", Boolean.parseBoolean(column.getAttribute("activity")));
           String delimString = column.getAttribute("delimiter");
           if (delimString != null && delimString.trim().length() > 0)
           {
@@ -134,7 +134,18 @@ public class SchemaConverter
         facetObj.put("type", facet.getAttribute("type"));
         String depends = facet.getAttribute("depends");
         if (depends!=null){
-          facetObj.put("depends", depends);
+          String[] dependsList = depends.split(",");
+          JSONArray dependsArr = new JSONArray();
+          for (String dependName : dependsList)
+          {
+            if (dependName != null)
+            {
+              dependName = dependName.trim();
+              if (dependName.length() != 0)
+                dependsArr.put(dependName);
+            }
+          }
+          facetObj.put("depends", dependsArr);
         }
         String column = facet.getAttribute("column");
         if (column!=null && column.length() > 0){
@@ -170,7 +181,7 @@ public class SchemaConverter
 
   public static void main(String[] args) throws Exception
   {
-    File xmlSchema = new File("../example/cars/conf/schema.xml");
+    File xmlSchema = new File("../example/tweets/conf/schema.xml");
     if (!xmlSchema.exists()){
       throw new ConfigurationException("schema not file");
     }

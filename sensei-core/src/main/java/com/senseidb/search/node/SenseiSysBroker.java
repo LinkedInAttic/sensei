@@ -42,7 +42,7 @@ public class SenseiSysBroker extends AbstractConsistentHashBroker<SenseiRequest,
 
   public SenseiSysBroker(PartitionedNetworkClient<String> networkClient, ClusterClient clusterClient, Comparator<String> versionComparator, boolean allowPartialMerge) throws NorbertException
   {
-    super(networkClient, SysSenseiCoreServiceImpl.SERIALIZER);
+    super(networkClient, SysSenseiCoreServiceImpl.JAVA_SERIALIZER);
     _versionComparator = versionComparator;
     this.allowPartialMerge = allowPartialMerge;
     clusterClient.addListener(this);

@@ -19,6 +19,7 @@ import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.facets.RuntimeFacetHandlerFactory;
 import com.senseidb.indexing.SenseiIndexPruner;
 import com.senseidb.indexing.SenseiIndexPruner.DefaultSenseiIndexPruner;
+import com.senseidb.indexing.activity.CompositeActivityManager;
 import com.senseidb.jmx.JmxUtil;
 import com.senseidb.search.req.SenseiSystemInfo;
 
@@ -37,6 +38,8 @@ public class SenseiCore{
   private SenseiSystemInfo _senseiSystemInfo;
   private volatile boolean _started;
   private SenseiIndexPruner _pruner;
+
+  private CompositeActivityManager activityManager;
     
   public SenseiCore(int id,int[] partitions,
             SenseiZoieFactory<?> zoieSystemFactory,
@@ -212,10 +215,16 @@ public class SenseiCore{
     return _indexManager.getDataProvider();
   }
   
-  public IndexReaderFactory<ZoieIndexReader<BoboIndexReader>> getIndexReaderFactory(int partition){
-    return _readerFactoryMap.get(partition);
+  public IndexReaderFactory<ZoieIndexReader<BoboIndexReader>> getIndexReaderFactory(int partition)
+  {
+    IndexReaderFactory<ZoieIndexReader<BoboIndexReader>> readerFactory = _readerFactoryMap.get(partition);
+    if (readerFactory == null)
+    {
+      logger.error("IndexReaderFactory not found for partition: " + partition + ". I'm serving partition " + _readerFactoryMap.keySet() + " only.  Please check the routing strategy.");
+    }
+    return readerFactory;
   }
-  
+
   public SenseiQueryBuilderFactory getQueryBuilderFactory()
   {
     return _queryBuilderFactory;
@@ -226,4 +235,12 @@ public class SenseiCore{
     _indexManager.syncWithVersion(timeToWait, version);
   }
 
+  public void setActivityManager(CompositeActivityManager activityManager) {
+    this.activityManager = activityManager;
+  }
+
+  public CompositeActivityManager getActivityManager() {
+    return activityManager;
+  }
+  
 }

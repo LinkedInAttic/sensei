@@ -52,6 +52,7 @@ public interface SenseiSearchServletParams {
 	public static final String PARAM_RESULT_HIT_STORED_FIELDS_NAME = "name";
 	public static final String PARAM_RESULT_HIT_STORED_FIELDS_VALUE = "val";
 	public static final String PARAM_RESULT_HIT_EXPLANATION = "_explanation";
+	public static final String PARAM_RESULT_HIT_GROUPFIELD = "groupfield";
 	public static final String PARAM_RESULT_HIT_GROUPVALUE = "groupvalue";
 	public static final String PARAM_RESULT_HIT_GROUPHITSCOUNT = "_grouphitscount";
 	public static final String PARAM_RESULT_HIT_GROUPHITS = "grouphits";

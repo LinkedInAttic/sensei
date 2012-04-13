@@ -38,6 +38,7 @@ import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_HIT_DO
 import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_HIT_EXPLANATION;
 import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_HIT_GROUPHITS;
 import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_HIT_GROUPHITSCOUNT;
+import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_HIT_GROUPFIELD;
 import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_HIT_GROUPVALUE;
 import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_HIT_SCORE;
 import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_HIT_SRC_DATA;
@@ -97,6 +98,7 @@ import java.util.Set;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.DataConfiguration;
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Fieldable;
@@ -333,6 +335,10 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
       {
         hitObj.put(PARAM_RESULT_HIT_SCORE, hit.getScore());
       }
+      if (selectSet == null || selectSet.contains(PARAM_RESULT_HIT_GROUPFIELD))
+      {
+        hitObj.put(PARAM_RESULT_HIT_GROUPFIELD, hit.getGroupField());
+      }
       if (selectSet == null || selectSet.contains(PARAM_RESULT_HIT_GROUPVALUE))
       {
         hitObj.put(PARAM_RESULT_HIT_GROUPVALUE, hit.getGroupValue());
@@ -344,7 +350,7 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
       if (hit.getGroupHits() != null && hit.getGroupHits().length > 0)
         hitObj.put(PARAM_RESULT_HIT_GROUPHITS, buildJSONHits(req, hit.getSenseiGroupHits()));
 
-      if (selectSet == null || selectSet.contains(PARAM_RESULT_HIT_SRC_DATA))
+      if (selectSet == null || selectSet.contains(PARAM_RESULT_HIT_SRC_DATA) || req.isFetchStoredFields())
       {
         hitObj.put(PARAM_RESULT_HIT_SRC_DATA, hit.getSrcData());
       }
@@ -458,7 +464,7 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
 
     jsonObj.put(PARAM_RESULT_TIME, res.getTime());
     jsonObj.put(PARAM_RESULT_FACETS, convert(res.getFacetMap(), req));
-    if (req.getMapReduceFunction() != null) {
+    if (req.getMapReduceFunction() != null && res.getMapReduceResult() != null) {
       jsonObj.put(PARAM_RESULT_MAP_REDUCE, req.getMapReduceFunction().render(res.getMapReduceResult().getReduceResult()));
     }
    
@@ -548,7 +554,9 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
       if (tvsToFetch.size() > 0)
         senseiReq.setTermVectorsToFetch(tvsToFetch);
     }
-    senseiReq.setGroupBy(params.getString(PARAM_GROUP_BY, null));
+    String groupBy = params.getString(PARAM_GROUP_BY, null);
+    if (groupBy != null && groupBy.length() != 0)
+      senseiReq.setGroupBy(StringUtils.split(groupBy, ','));
     senseiReq.setMaxPerGroup(params.getInt(PARAM_MAX_PER_GROUP, 0));
     String routeParam = params.getString(PARAM_ROUTE_PARAM);
     if (routeParam != null && routeParam.length() != 0)

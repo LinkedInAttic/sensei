@@ -5,6 +5,7 @@ import java.net.URL;
 
 import javax.management.InstanceAlreadyExistsException;
 
+import com.senseidb.indexing.activity.facet.ActivityRangeFacetHandler;
 import org.apache.log4j.Logger;
 import org.mortbay.jetty.Server;
 import org.springframework.context.ApplicationContext;
@@ -22,7 +23,6 @@ import com.senseidb.search.node.SenseiServer;
 import com.senseidb.search.node.SenseiZoieFactory;
 import com.senseidb.search.req.SenseiRequest;
 import com.senseidb.search.req.SenseiResult;
-import com.senseidb.search.req.mapred.obsolete.MapReduceBroker;
 import com.senseidb.svc.api.SenseiService;
 import com.senseidb.svc.impl.HttpRestSenseiServiceImpl;
 
@@ -53,14 +53,13 @@ public class SenseiStarter {
   public static final String SENSEI_TEST_CONF_FILE="sensei-test.spring";
   public static SenseiZoieFactory<?> _zoieFactory;
   public static boolean started = false;
-
-  public static MapReduceBroker mapReduceBroker;
+  
 
   /**
    * Will start the new Sensei instance once per process
    */
   public static synchronized void start(String confDir1, String confDir2) {
-    
+    ActivityRangeFacetHandler.isSynchronized = true;
     if (started) {
       logger.warn("The server had been already started");
       return;
@@ -91,7 +90,6 @@ public class SenseiStarter {
     {
       broker = new SenseiBroker(networkClient, clusterClient, true);
       broker.setTimeoutMillis(0);
-      mapReduceBroker = new MapReduceBroker(networkClient, clusterClient, true);
       broker.setTimeoutMillis(0);
     } catch (NorbertException ne) {
       logger.info("shutting down cluster...", ne);
@@ -157,7 +155,7 @@ public class SenseiStarter {
     _zoieFactory = (SenseiZoieFactory<?>)testSpringCtx.getBean("zoie-system-factory");
   }
 
-  private static boolean rmrf(File f) {
+  public static boolean rmrf(File f) {
     if (f == null || !f.exists()) {
       return true;
     }

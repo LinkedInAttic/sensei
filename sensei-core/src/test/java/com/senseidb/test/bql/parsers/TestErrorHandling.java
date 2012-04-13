@@ -736,6 +736,34 @@ public class TestErrorHandling extends TestCase
     }
   }
 
+  @Test
+  public void testBadGroupBy2() throws Exception
+  {
+    System.out.println("testBadGroupBy2");
+    System.out.println("==================================================");
+
+    boolean caughtException = false;
+    try
+    {
+      JSONObject json = _compiler.compile(
+        "select category, tags \n" +
+        "from cars \n" +
+        "group by color OR year \n" +
+        "order by color \n"
+        );
+    }
+    catch (RecognitionException err)
+    {
+      assertEquals("[line:4, col:0] Range/multi/path facet, \"year\", cannot be used in the GROUP BY clause. (token=order)",
+                   _compiler.getErrorMessage(err));
+      caughtException = true;
+    }
+    finally 
+    {
+      assertTrue(caughtException);
+    }
+  }
+
   // @Test
   // public void testConflictSelections() throws Exception
   // {
@@ -835,6 +863,60 @@ public class TestErrorHandling extends TestCase
     {
       assertEquals("[line:4, col:15] ROUTE BY clause can only appear once. (token=<EOF>)",
                    _compiler.getErrorMessage(err));
+      caughtException = true;
+    }
+    finally 
+    {
+      assertTrue(caughtException);
+    }
+  }
+
+  @Test
+  public void testSrcdataFetchStoredError1() throws Exception
+  {
+    System.out.println("testSrcdataFetchStoredError1");
+    System.out.println("==================================================");
+
+    boolean caughtException = false;
+    try
+    {
+      JSONObject json = _compiler.compile(
+        "select _srcdata.category \n" +
+        "from cars \n" +
+        "fetching stored false"
+        );
+    }
+    catch (RecognitionException err)
+    {
+      assertEquals("[line:3, col:21] FETCHING STORED cannot be false when _srcdata is selected. (token=<EOF>)",
+                    _compiler.getErrorMessage(err));
+      caughtException = true;
+    }
+    finally 
+    {
+      assertTrue(caughtException);
+    }
+  }
+
+  @Test
+  public void testSrcdataFetchStoredError2() throws Exception
+  {
+    System.out.println("testSrcdataFetchStoredError2");
+    System.out.println("==================================================");
+
+    boolean caughtException = false;
+    try
+    {
+      JSONObject json = _compiler.compile(
+        "select _srcdata, color \n" +
+        "from cars \n" +
+        "fetching stored false"
+        );
+    }
+    catch (RecognitionException err)
+    {
+      assertEquals("[line:3, col:21] FETCHING STORED cannot be false when _srcdata is selected. (token=<EOF>)",
+                    _compiler.getErrorMessage(err));
       caughtException = true;
     }
     finally 

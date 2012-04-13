@@ -48,7 +48,8 @@ private long   tid           =          -1;
   private boolean _showExplanation;
   private static Random _rand = new Random(System.nanoTime());
   private String _routeParam;
-  private String _groupBy;
+	private String _groupBy;  // TODO: Leave here for backward compatible reason, will remove it later.
+	private String[] _groupByMulti;
   private int _maxPerGroup;
   private Set<String> _termVectorsToFetch;
   private List<String> _selectList; // Select list (mostly used in BQL) 
@@ -64,6 +65,7 @@ private long   tid           =          -1;
     _showExplanation = false;
     _routeParam = null;
     _groupBy = null;
+    _groupByMulti = null;
     _maxPerGroup = 0;
     _termVectorsToFetch = null;
     _selectList = null;
@@ -124,14 +126,19 @@ private long   tid           =          -1;
     return String.valueOf(_rand.nextInt());
   }
 
-  public void setGroupBy(String groupBy)
+  public void setGroupBy(String[] groupBy)
   {
-    _groupBy = groupBy;
+		_groupByMulti = groupBy;
+    if (_groupByMulti != null && _groupByMulti.length != 0)
+      _groupBy = _groupByMulti[0];
   }
 
-  public String getGroupBy()
+  public String[] getGroupBy()
   {
-    return _groupBy;
+    if (_groupByMulti == null && _groupBy != null)
+      _groupByMulti = new String[]{_groupBy};
+
+		return _groupByMulti;
   }
 
   public void setMaxPerGroup(int maxPerGroup)

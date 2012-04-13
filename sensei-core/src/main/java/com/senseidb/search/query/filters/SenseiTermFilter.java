@@ -38,8 +38,8 @@ public class SenseiTermFilter extends Filter {
   
   public SenseiTermFilter(String name,String vals[],String[] not,boolean isAnd,boolean noAutoOptimize){
     _name = name;
-    _vals = vals;
-    _not = not;
+    _vals = vals != null  ? vals : new String[0];
+    _not = not != null  ? not : new String[0];
     _isAnd = isAnd;
     _noAutoOptimize = noAutoOptimize;
   }
@@ -109,7 +109,11 @@ public class SenseiTermFilter extends Filter {
     if (reader instanceof BoboIndexReader){
       BoboIndexReader boboReader = (BoboIndexReader)reader;
       FacetHandler facetHandler = (FacetHandler)boboReader.getFacetHandler(_name);
-      Object obj = facetHandler.getFacetData(boboReader);
+      Object obj = null;
+      if (facetHandler != null)
+      {
+        obj = facetHandler.getFacetData(boboReader);
+      }
       if (obj!=null && obj instanceof FacetDataCache){
         FacetDataCache facetData = (FacetDataCache)obj;
         TermValueList valArray = facetData.valArray;

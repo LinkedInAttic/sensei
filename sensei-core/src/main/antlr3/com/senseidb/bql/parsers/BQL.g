@@ -648,10 +648,13 @@ select_stmt returns [Object json]
             try {
                 JSONObject metaData = new JSONObject();
                 if (cols == null) {
-                   metaData.put("select_list", new JSONArray().put("*"));
+                    metaData.put("select_list", new JSONArray().put("*"));
                 }
                 else {
                    metaData.put("select_list", $cols.json);
+                   if ($cols.fetchStored) {
+                       jsonObj.put("fetchStored", true);
+                   }
                 }
 
                 if (_variables.size() > 0)
@@ -674,9 +677,16 @@ select_stmt returns [Object json]
                 if (browse_by != null) {
                     jsonObj.put("facets", $browse_by.json);
                 }
-                if (fetch_stored != null && $fetch_stored.val) {
-                    // Default is false
-                    jsonObj.put("fetchStored", $fetch_stored.val);
+                if (fetch_stored != null) {
+                    if (!$fetch_stored.val && (cols != null && $cols.fetchStored)) {
+                        throw new FailedPredicateException(input, 
+                                                           "select_stmt",
+                                                           "FETCHING STORED cannot be false when _srcdata is selected.");
+                    }
+                    else if ($fetch_stored.val) {
+                        // Default is false
+                        jsonObj.put("fetchStored", $fetch_stored.val);
+                    }
                 }
                 if (route_param != null) {
                     jsonObj.put("routeParam", $route_param.val);
@@ -712,17 +722,37 @@ describe_stmt
     :   DESCRIBE (IDENT | STRING_LITERAL)
     ;
 
-column_name_list returns [JSONArray json]
+column_name_list returns [boolean fetchStored, JSONArray json]
 @init {
+    $fetchStored = false;
     $json = new JSONArray();
 }
-    :   col=column_name { $json.put($col.text); }
-        (COMMA col=column_name { $json.put($col.text); })*
+    :   col=column_name
+        {
+            String colName = $col.text;
+            if (colName != null) {
+                $json.put($col.text); 
+                if ("_srcdata".equals(colName) || colName.startsWith("_srcdata.")) {
+                    $fetchStored = true;
+                }
+            }
+        }
+        (COMMA col=column_name
+            {
+                colName = $col.text;
+                if (colName != null) {
+                    $json.put($col.text); 
+                    if ("_srcdata".equals(colName) || colName.startsWith("_srcdata.")) {
+                        $fetchStored = true;
+                    }
+                }
+            }
+        )*
         -> ^(COLUMN_LIST column_name+)
     ;
 
 column_name
-    :   IDENT | STRING_LITERAL
+    :   (IDENT | STRING_LITERAL) ('.' (IDENT | STRING_LITERAL))*
     ;
 
 where returns [Object json]
@@ -788,22 +818,44 @@ limit_clause returns [int offset, int count]
         }
     ;
 
+or_column_name_list returns [JSONArray json]
+@init {
+    $json = new JSONArray();
+}
+    :   col=column_name
+        {
+            String colName = $col.text;
+            if (colName != null) {
+                $json.put($col.text); 
+            }
+        }
+        (OR col=column_name
+            {
+                colName = $col.text;
+                if (colName != null) {
+                    $json.put($col.text); 
+                }
+            }
+        )*
+    ;
+
 group_by_clause returns [JSONObject json]
-    :   GROUP BY column_name (TOP top=INTEGER)?
+    :   GROUP BY or_column_name_list (TOP top=INTEGER)?
         {
             $json = new JSONObject();
             try {
-                JSONArray cols = new JSONArray();
-                String col = $column_name.text;
-                String[] facetInfo = _facetInfoMap.get(col);
-                if (facetInfo != null && (facetInfo[0].equals("range") ||
-                                          facetInfo[0].equals("multi") ||
-                                          facetInfo[0].equals("path"))) {
-                    throw new FailedPredicateException(input, 
-                                                       "group_by_clause",
-                                                       "Range/multi/path facet, \"" + col + "\", cannot be used in the GROUP BY clause.");
+                JSONArray cols = $or_column_name_list.json;
+                for (int i = 0; i < cols.length(); ++i) {
+                    String col = cols.getString(i);
+                    String[] facetInfo = _facetInfoMap.get(col);
+                    if (facetInfo != null && (facetInfo[0].equals("range") ||
+                                              facetInfo[0].equals("multi") ||
+                                              facetInfo[0].equals("path"))) {
+                        throw new FailedPredicateException(input, 
+                                                           "group_by_clause",
+                                                           "Range/multi/path facet, \"" + col + "\", cannot be used in the GROUP BY clause.");
+                    }
                 }
-                cols.put(col);
                 $json.put("columns", cols);
                 if (top != null) {
                     $json.put("top", Integer.parseInt(top.getText()));
@@ -1522,7 +1574,7 @@ null_predicate returns [JSONObject json]
         }
     ;
 
-value_list returns [Object json]
+non_variable_value_list returns [Object json]
 @init {
     JSONArray jsonArray = new JSONArray();
 }
@@ -1537,6 +1589,14 @@ value_list returns [Object json]
         )* RPAR
         {
             $json = jsonArray;
+        }
+    ;
+
+
+value_list returns [Object json]
+    :   non_variable_value_list
+        {
+            $json = $non_variable_value_list.json;
         }
     |   VARIABLE
         {
@@ -1673,7 +1733,7 @@ facet_param_list returns [JSONObject json]
     ;
 
 facet_param returns [String facet, JSONObject param]
-    :   LPAR column_name COMMA STRING_LITERAL COMMA facet_param_type COMMA (val=value | valList=value_list) RPAR
+    :   LPAR column_name COMMA STRING_LITERAL COMMA facet_param_type COMMA (val=value | valList=non_variable_value_list) RPAR
         {
             $facet = $column_name.text; // XXX Check error here?
             try {

@@ -45,7 +45,10 @@ import com.senseidb.util.RequestConverter2;
 public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableServlet {
 
   public static final int JSON_PARSING_ERROR = 489;
+  public static final int BQL_EXTRA_FILTER_ERROR = 498;
   public static final int BQL_PARSING_ERROR = 499;
+  public static final String BQL_STMT = "bql";
+  public static final String BQL_EXTRA_FILTER = "bql_extra_filter";
   private static final long serialVersionUID = 1L;
 
   private static final Logger logger = Logger.getLogger(AbstractSenseiClientServlet.class);
@@ -241,16 +244,22 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
 
       if (jsonObj != null)
       {
-        String bqlStmt = jsonObj.optString("bql");
+        String bqlStmt = jsonObj.optString(BQL_STMT);
         JSONObject templatesJson = jsonObj.optJSONObject(JsonTemplateProcessor.TEMPLATE_MAPPING_PARAM);
+        JSONObject compiledJson = null;
+
         if (bqlStmt.length() > 0)
         {
-          try 
+          try
           {
-            if (queryLogger.isInfoEnabled()){
-              queryLogger.info("bql=" + bqlStmt);
+            if (queryLogger.isInfoEnabled())
+            {
+              if (jsonObj.length() == 1)
+                queryLogger.info("bql=" + bqlStmt);
+              else
+                queryLogger.info("query=" + content);
             }
-            jsonObj = _compiler.compile(bqlStmt);
+            compiledJson = _compiler.compile(bqlStmt);
           }
           catch (RecognitionException e)
           {
@@ -277,7 +286,78 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
             }
           }
 
-          JSONObject metaData = jsonObj.optJSONObject("meta");
+          // Handle extra BQL filter if it exists
+          String extraFilter = jsonObj.optString(BQL_EXTRA_FILTER);
+          JSONObject predObj = null;
+          if (extraFilter.length() > 0)
+          {
+            String bql2 = "SELECT * WHERE " + extraFilter;
+            try
+            {
+              predObj = _compiler.compile(bql2);
+            }
+            catch (RecognitionException e)
+            {
+              String errMsg = _compiler.getErrorMessage(e);
+              if (errMsg == null) 
+              {
+                errMsg = "Unknown parsing error.";
+              }
+              logger.error("BQL parsing error for additional preds: " + errMsg + ", BQL: " + bql2);
+              OutputStream ostream = resp.getOutputStream();
+              try
+              {
+                JSONObject errResp = new JSONObject().put("error",
+                                                          new JSONObject().put("code", BQL_EXTRA_FILTER_ERROR)
+                                                          .put("msg", errMsg));
+                ostream.write(errResp.toString().getBytes("UTF-8"));
+                ostream.flush();
+                return;
+              }
+              catch (JSONException err)
+              {
+                logger.error(err.getMessage());
+                throw new ServletException(err.getMessage(), err);
+              }
+            }
+
+            // Combine filters
+            JSONArray filter_list = new JSONArray();
+            JSONObject currentFilter = compiledJson.optJSONObject("filter");
+            if (currentFilter != null)
+            {
+              filter_list.put(currentFilter);
+            }
+
+            JSONArray selections = predObj.optJSONArray("selections");
+            if (selections != null)
+            {
+              for (int i = 0; i < selections.length(); ++i)
+              {
+                JSONObject pred = selections.getJSONObject(i);
+                if (pred != null)
+                {
+                  filter_list.put(pred);
+                }
+              }
+            }
+            JSONObject additionalFilter = predObj.optJSONObject("filter");
+            if (additionalFilter != null)
+            {
+              filter_list.put(additionalFilter);
+            }
+            
+            if (filter_list.length() > 1)
+            {
+              compiledJson.put("filter", new JSONObject().put("and", filter_list));
+            }
+            else if (filter_list.length() == 1)
+            {
+              compiledJson.put("filter", filter_list.get(0));
+            }
+          }
+
+          JSONObject metaData = compiledJson.optJSONObject("meta");
           if (metaData != null)
           {
             JSONArray variables = metaData.optJSONArray("variables");
@@ -303,20 +383,22 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
         }
         else
         {
+          // This is NOT a BQL statement
           if (queryLogger.isInfoEnabled()){
             queryLogger.info("query=" + content);
           }
+          compiledJson = jsonObj;
         }
 
         if (templatesJson != null)
         {
-          jsonObj.put(JsonTemplateProcessor.TEMPLATE_MAPPING_PARAM, templatesJson);
+          compiledJson.put(JsonTemplateProcessor.TEMPLATE_MAPPING_PARAM, templatesJson);
         }
-        senseiReq = SenseiRequest.fromJSON(jsonObj);
+        senseiReq = SenseiRequest.fromJSON(compiledJson);
       }
       SenseiResult res = _senseiBroker.browse(senseiReq);
       OutputStream ostream = resp.getOutputStream();
-      convertResult(senseiReq,res,ostream);
+      convertResult(senseiReq, res, ostream);
       ostream.flush();
     }
     catch (Exception e)

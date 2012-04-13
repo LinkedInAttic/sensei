@@ -97,7 +97,7 @@ public class TestRequestConverter2
     assertTrue("size is not correct", req.getCount() ==10);
     
     //test group by;
-    assertTrue("group by is not correct", req.getGroupBy().equals("category"));
+    assertTrue("group by is not correct", req.getGroupBy()[0].equals("category"));
     assertTrue("max per group is not correct", req.getMaxPerGroup() == 3);
     
     //test filters;

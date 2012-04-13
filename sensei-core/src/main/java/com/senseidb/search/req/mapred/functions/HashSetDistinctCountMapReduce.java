@@ -9,6 +9,7 @@ import java.util.List;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.senseidb.search.req.mapred.CombinerStage;
 import com.senseidb.search.req.mapred.FieldAccessor;
 import com.senseidb.search.req.mapred.SenseiMapReduce;
 
@@ -36,7 +37,7 @@ public class HashSetDistinctCountMapReduce implements SenseiMapReduce<HashSet, I
   }
 
   @Override
-  public List<HashSet> combine(List<HashSet> mapResults) {
+  public List<HashSet> combine(List<HashSet> mapResults, CombinerStage combinerStage) {
     if (mapResults.isEmpty()) {
       return mapResults;
     }

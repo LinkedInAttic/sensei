@@ -24,3 +24,6 @@ cscope.*
 index
 target
 *.pyc
+*.iml
+*.ipr
+*.iws

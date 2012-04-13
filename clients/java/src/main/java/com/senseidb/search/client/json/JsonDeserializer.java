@@ -26,7 +26,6 @@ public class JsonDeserializer {
 
             CustomJsonHandler customJsonHandler = (CustomJsonHandler) ReflectionUtil.getAnnotation(cls, CustomJsonHandler.class);
             if (customJsonHandler != null && handleCustomJsonHandler) {
-                CustomJsonHandler annotation = cls.getAnnotation(CustomJsonHandler.class);
                 JsonHandler jsonHandler;
                try {
                   jsonHandler = customJsonHandler.value().newInstance();

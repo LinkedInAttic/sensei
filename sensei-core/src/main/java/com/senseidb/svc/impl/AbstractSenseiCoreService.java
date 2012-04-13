@@ -15,6 +15,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
 
+import org.apache.lucene.util.NamedThreadFactory;
 import proj.zoie.api.IndexReaderFactory;
 import proj.zoie.api.ZoieIndexReader;
 
@@ -62,8 +63,9 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
   protected long _timeout = 8000;
     
   protected final SenseiCore _core;
-
-  private final ExecutorService _executorService = Executors.newCachedThreadPool();
+  
+  private final NamedThreadFactory threadFactory = new NamedThreadFactory("parallel-searcher");
+  private final ExecutorService _executorService = Executors.newCachedThreadPool(threadFactory);
   
   private final Map<Integer,Timer> partitionTimerMetricMap = new HashMap<Integer,Timer>();
 	
