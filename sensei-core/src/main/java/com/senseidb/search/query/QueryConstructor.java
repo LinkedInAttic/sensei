@@ -11,7 +11,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.senseidb.search.query.ScoreAugmentQuery.ScoreAugmentFunction;
-import com.senseidb.search.relevance.CustomRelevanceFactory;
+import com.senseidb.search.relevance.RelevanceFunctionBuilder;
 import com.senseidb.search.relevance.impl.RelevanceJSONConstants;
 import com.senseidb.search.relevance.impl.RelevanceQuery;
 
@@ -134,7 +134,7 @@ public abstract class QueryConstructor
         // the olde code path, now turned off;
 //      return new RelevanceQuery(baseQuery, jsonRelevance);
       
-      ScoreAugmentFunction func = CustomRelevanceFactory.build(jsonRelevance);
+      ScoreAugmentFunction func = RelevanceFunctionBuilder.build(jsonRelevance);
       JSONObject valuesJson = jsonRelevance.optJSONObject(RelevanceJSONConstants.KW_VALUES); 
       if(func == null)
         throw new JSONException("Can not create the score function;");
