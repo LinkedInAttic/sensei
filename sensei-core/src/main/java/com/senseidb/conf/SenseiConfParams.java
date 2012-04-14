@@ -63,6 +63,8 @@ public interface SenseiConfParams {
 	public static final String SERVER_BROKER_MINTHREAD = "sensei.broker.minThread";
 	public static final String SERVER_BROKER_MAXTHREAD = "sensei.broker.maxThread";
 	public static final String SERVER_BROKER_MAXWAIT = "sensei.broker.maxWaittime";
+  public static final String ALLOW_PARTIAL_MERGE = "sensei.broker.allowPartialMerge";
+
 
 	public static final String SENSEI_BROKER_POLL_INTERVAL = "sensei.broker.pollInterval";
 	public static final String SENSEI_BROKER_MIN_RESPONSES = "sensei.broker.minResponses";
