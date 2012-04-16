@@ -67,7 +67,7 @@ public class ScoreAugmentQuery extends AbstractScoreAdjuster
     /**
      * @return the String to explain how the new score is generated;
      */
-    public String getExplainString();
+    public String getExplainString(float rawscore, int docID);
     
     
     /**
@@ -157,9 +157,14 @@ public class ScoreAugmentQuery extends AbstractScoreAdjuster
       _func.initializeReader((BoboIndexReader)reader, _jsonParam);
       
       float innerValue = innerExplain.getValue();
-      float value = _func.newScore(innerValue, doc);
+      float value = 0;
+      if(_func.useInnerScore())
+        value = _func.newScore(innerValue, doc);
+      else
+        value = _func.newScore(doc);
+      
       finalExpl.setValue(value);
-      finalExpl.setDescription("Custom score: "+ _func.getExplainString() );
+      finalExpl.setDescription("Custom score: "+ _func.getExplainString(innerValue, doc) );
       return finalExpl;
     }
     else{

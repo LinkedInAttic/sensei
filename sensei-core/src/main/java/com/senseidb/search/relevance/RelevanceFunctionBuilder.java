@@ -7,19 +7,20 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.senseidb.search.query.ScoreAugmentQuery.ScoreAugmentFunction;
+import com.senseidb.search.relevance.CustomRelevanceFunction.CustomRelevanceFunctionFactory;
 import com.senseidb.search.relevance.impl.CompilationHelper;
 import com.senseidb.search.relevance.impl.CustomMathModel;
 import com.senseidb.search.relevance.impl.RelevanceJSONConstants;
 import com.senseidb.search.relevance.impl.CompilationHelper.DataTable;
 
-public class CustomRelevanceFactory
+public class RelevanceFunctionBuilder
 {
 
-  private static Map<String, CustomRelevanceFunction> map = new HashMap<String, CustomRelevanceFunction>();
+  private static Map<String, CustomRelevanceFunctionFactory> crfMap = new HashMap<String, CustomRelevanceFunctionFactory>();
   
-  public static void addCustomRelevanceFunction(String name, CustomRelevanceFunction rf)
+  public static void addCustomRelevanceFunction(String name, CustomRelevanceFunctionFactory crf)
   {
-    map.put(name, rf);
+    crfMap.put(name, crf);
   }
   
   
@@ -88,8 +89,11 @@ public class CustomRelevanceFactory
     {
       String pluginName = jsonRelevance.getString(RelevanceJSONConstants.KW_PREDEFINED);
       
-      if(map.containsKey(pluginName))
-        return map.get(pluginName);
+      if(crfMap.containsKey(pluginName))
+      {
+        CustomRelevanceFunctionFactory crfFactory = crfMap.get(pluginName); 
+        return crfFactory.build();
+      }
       else
       {
         throw new JSONException("No such CustomRelevanceFunction plugin is registered: " + pluginName);
