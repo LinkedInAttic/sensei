@@ -471,8 +471,8 @@ private long   tid           =          -1;
     return buf.toString();
   }
 
-  public SenseiRequest clone()
-  {
+  @Override
+  public SenseiRequest clone() {
     SenseiRequest clone = new SenseiRequest();
     clone.setTid(this.getTid());
     
@@ -483,7 +483,13 @@ private long   tid           =          -1;
     for(SortField sort : this.getSort())
       clone.addSortField(sort);
     
-    clone.setFacetSpecs(this.getFacetSpecs());
+    
+    Map<String, FacetSpec> cloneFacetSpecs = new HashMap<String, FacetSpec>();
+    for(Entry<String, FacetSpec> facetSpec : this.getFacetSpecs().entrySet()) {
+      cloneFacetSpecs.put(facetSpec.getKey(), facetSpec.getValue().clone());
+    }
+    
+    clone.setFacetSpecs(cloneFacetSpecs);
     clone.setQuery(this.getQuery());
     clone.setOffset(this.getOffset());
     clone.setCount(this.getCount());
@@ -498,6 +504,7 @@ private long   tid           =          -1;
     clone.setTermVectorsToFetch(this.getTermVectorsToFetch());
     clone.setSelectList(this.getSelectList());
     clone.setMapReduceFunction(this.getMapReduceFunction());
+
     return clone;
   }
 

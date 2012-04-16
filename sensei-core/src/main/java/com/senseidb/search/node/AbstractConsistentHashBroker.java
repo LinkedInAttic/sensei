@@ -5,6 +5,7 @@ import com.linkedin.norbert.network.ResponseIterator;
 import com.linkedin.norbert.network.common.ExceptionIterator;
 import com.linkedin.norbert.network.common.PartialIterator;
 import com.linkedin.norbert.network.common.TimeoutIterator;
+import com.senseidb.search.req.SenseiRequest;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 
@@ -98,11 +99,7 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
 
 	public <T> T customizeRequest(REQUEST request)
 	{
-		return null;
-	}
-	
-	public <T> T restoreRequest(REQUEST request,T state){
-		return state;
+		return (T) request;
 	}
 
   protected IntSet getPartitions(Set<Node> nodes)
@@ -220,27 +217,19 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
           private int count = 0;
           @Override
           public REQUEST apply(Node node, Set<Integer> nodePartitions) {
-            synchronized (req) {
-              req.setPartitions(nodePartitions);
+            // TODO: Cloning is yucky per http://www.artima.com/intv/bloch13.html
+            REQUEST clone = (REQUEST) (((SenseiRequest) req).clone());
+            
+            clone.setPartitions(nodePartitions);
 
-              if(count != 0)
-                req.restoreState();
-
-              req.saveState();
-              REQUEST customizedRequest = customizeRequest(req);
-
-              count++;
-              return customizedRequest;
-            }
+            REQUEST customizedRequest = customizeRequest(clone);
+            return customizedRequest;
           }
         }, _serializer));
 
     while(responseIterator.hasNext()) {
       resultList.add(responseIterator.next());
     }
-
-    // restore the last customization
-    req.restoreState();
 
     logger.debug(String.format("There are %d responses", resultList.size()));
 
