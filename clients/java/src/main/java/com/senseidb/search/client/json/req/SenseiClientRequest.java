@@ -77,6 +77,8 @@ public class SenseiClientRequest {
    */
   private Map<String, Object> templateMapping;
 
+  private MapReduce mapReduce;
+
   /**
    * @author vzhabiuk
    *
@@ -183,6 +185,11 @@ public class SenseiClientRequest {
       return this;
     }
 
+    public Builder mapReduce(MapReduce mapReduce){
+      request.mapReduce = mapReduce;
+      return this;
+    }
+
     public SenseiClientRequest build() {
       return request;
     }
@@ -267,5 +274,10 @@ public class SenseiClientRequest {
   public void setSelections(List<Selection> selections) {
     this.selections = selections;
   }
-  
+  public void SetMapReduce(MapReduce mapReduce){
+    this.mapReduce = mapReduce;
+  }
+  public MapReduce getMapReduce(){
+    return mapReduce;
+  }  
 }

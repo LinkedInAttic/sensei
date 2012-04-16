@@ -99,6 +99,11 @@ public class Examples {
 
         return builder;
     }
+    
+    public static SenseiClientRequest.Builder mapReduce(SenseiClientRequest.Builder builder) {
+      builder.mapReduce(MapReduce.builder("com.senseidb.search.req.mapred.functions.MinMapReduce").addParams("column", "price").build());
+      return builder;
+    }
 
 
 }
