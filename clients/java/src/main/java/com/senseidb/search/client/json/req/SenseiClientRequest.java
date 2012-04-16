@@ -274,7 +274,7 @@ public class SenseiClientRequest {
   public void setSelections(List<Selection> selections) {
     this.selections = selections;
   }
-  public void SetMapReduce(MapReduce mapReduce){
+  public void setMapReduce(MapReduce mapReduce){
     this.mapReduce = mapReduce;
   }
   public MapReduce getMapReduce(){
