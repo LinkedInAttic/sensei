@@ -4,6 +4,7 @@ import com.senseidb.search.client.json.SenseiServiceProxy;
 import com.senseidb.search.client.json.req.FacetInit;
 import com.senseidb.search.client.json.req.Selection;
 import com.senseidb.search.client.json.req.SenseiClientRequest;
+import org.junit.Test;
 
 public class TweetsTest {
 public static void main(String[] args) throws Exception {
@@ -13,4 +14,10 @@ public static void main(String[] args) throws Exception {
   SenseiServiceProxy senseiServiceProxy = new SenseiServiceProxy("localhost", 8080);
   System.out.println(senseiServiceProxy.sendSearchRequest(request));
 }
+
+  @Test
+  public void bareEntry() throws Exception
+  {
+  }
+
 }
