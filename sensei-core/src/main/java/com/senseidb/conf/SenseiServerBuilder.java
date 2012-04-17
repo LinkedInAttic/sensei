@@ -88,6 +88,7 @@ import com.senseidb.search.node.impl.DefaultJsonQueryBuilderFactory;
 import com.senseidb.search.query.RetentionFilterFactory;
 import com.senseidb.search.query.TimeRetentionFilter;
 import com.senseidb.search.relevance.CustomRelevanceFunction.CustomRelevanceFunctionFactory;
+import com.senseidb.search.relevance.ModelStorage;
 import com.senseidb.search.relevance.RelevanceFunctionBuilder;
 import com.senseidb.search.relevance.CustomRelevanceFunction;
 import com.senseidb.search.req.AbstractSenseiRequest;
@@ -324,7 +325,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
     {
       String name = it.next();
       CustomRelevanceFunctionFactory crf = map.get(name);
-      RelevanceFunctionBuilder.addCustomRelevanceFunction(name, crf);
+      ModelStorage.injectPreloadedModel(name, crf);
     }
     
   }

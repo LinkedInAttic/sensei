@@ -8,6 +8,7 @@ import org.json.JSONObject;
 
 import com.senseidb.search.query.ScoreAugmentQuery.ScoreAugmentFunction;
 import com.senseidb.search.relevance.CustomRelevanceFunction.CustomRelevanceFunctionFactory;
+import com.senseidb.search.relevance.RuntimeRelevanceFunction.RuntimeRelevanceFunctionFactory;
 import com.senseidb.search.relevance.impl.CompilationHelper;
 import com.senseidb.search.relevance.impl.CustomMathModel;
 import com.senseidb.search.relevance.impl.RelevanceJSONConstants;
@@ -16,12 +17,6 @@ import com.senseidb.search.relevance.impl.CompilationHelper.DataTable;
 public class RelevanceFunctionBuilder
 {
 
-  private static Map<String, CustomRelevanceFunctionFactory> crfMap = new HashMap<String, CustomRelevanceFunctionFactory>();
-  
-  public static void addCustomRelevanceFunction(String name, CustomRelevanceFunctionFactory crf)
-  {
-    crfMap.put(name, crf);
-  }
   
   
 /************
@@ -65,7 +60,11 @@ public class RelevanceFunctionBuilder
                   //    float water = waterworldScore  * _waterworldWeight;
                   //    return  (time + water);
                   
-               "function":" A LONG JAVA CODE STRING HERE, ONLY AS FUNCTION BODY, NEEDS RETURN STATEMENT."
+               "function":" A LONG JAVA CODE STRING HERE, ONLY AS FUNCTION BODY, NEEDS RETURN STATEMENT.",
+               "save_as":{
+                           "name":"RuntimeModelName",
+                           "overwrite":true
+               }
              },
              
              //(2) Input values for the runtime model, if the model requires input values;
@@ -87,16 +86,21 @@ public class RelevanceFunctionBuilder
     // first handle the predefined case if there is any one existing in the json;
     if(jsonRelevance.has(RelevanceJSONConstants.KW_PREDEFINED))
     {
-      String pluginName = jsonRelevance.getString(RelevanceJSONConstants.KW_PREDEFINED);
+      String modelName = jsonRelevance.getString(RelevanceJSONConstants.KW_PREDEFINED);
       
-      if(crfMap.containsKey(pluginName))
+      if(ModelStorage.hasPreloadedModel(modelName))
       {
-        CustomRelevanceFunctionFactory crfFactory = crfMap.get(pluginName); 
+        CustomRelevanceFunctionFactory crfFactory = ModelStorage.getPreloadedModel(modelName); 
         return crfFactory.build();
+      }
+      else if (ModelStorage.hasRuntimeModel(modelName))
+      {
+        RuntimeRelevanceFunctionFactory rrfFactory = ModelStorage.getRuntimeModel(modelName);
+        return rrfFactory.build();
       }
       else
       {
-        throw new JSONException("No such CustomRelevanceFunction plugin is registered: " + pluginName);
+        throw new JSONException("No such model (CustomRelevanceFunctionFactory plugin) is registered: " + modelName);
       }
     }
     
@@ -107,6 +111,27 @@ public class RelevanceFunctionBuilder
       DataTable _dt = new DataTable();
       CustomMathModel _cModel = CompilationHelper.createCustomMathScorer(modelJson, _dt);
       RuntimeRelevanceFunction sm = new RuntimeRelevanceFunction(_cModel, _dt); 
+      
+      //store the model if specified;
+      if(jsonRelevance.has(RelevanceJSONConstants.KW_SAVE_AS))
+      {
+//        "save_as":{
+//        "name":"RuntimeModelName",
+//        "overwrite":true
+//        }
+        JSONObject jsonSaveAS = jsonRelevance.getJSONObject(RelevanceJSONConstants.KW_SAVE_AS);
+        String newRuntimeName = jsonSaveAS.getString(RelevanceJSONConstants.KW_NAME_AS);
+        boolean overwrite = false;
+        if(jsonSaveAS.has(RelevanceJSONConstants.KW_OVERWRITE))
+          overwrite = jsonSaveAS.getBoolean(RelevanceJSONConstants.KW_OVERWRITE);
+        
+        if((ModelStorage.hasRuntimeModel(newRuntimeName) || ModelStorage.hasPreloadedModel(newRuntimeName)) && (overwrite == false))
+          throw new IllegalArgumentException("the runtime model name " + newRuntimeName + " already exists, or you did not ask to overwrite the old model. Set \"overwrite\":true in the json will replace the old model if you want."); 
+
+        RuntimeRelevanceFunctionFactory rrfFactory = new RuntimeRelevanceFunctionFactory(sm);
+        ModelStorage.injectRuntimeModel(newRuntimeName, rrfFactory);
+      }
+      
       return  sm;     
     }
     else{

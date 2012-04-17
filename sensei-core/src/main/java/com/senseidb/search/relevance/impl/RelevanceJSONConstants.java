@@ -12,6 +12,10 @@ public class RelevanceJSONConstants
   public static final String           KW_FACETS               = "facets";
   public static final String           KW_FUNC_PARAMETERS      = "function_params";
   public static final String           KW_FUNCTION             = "function";
+  public static final String           KW_SAVE_AS              = "save_as";
+  public static final String           KW_NAME_AS              = "name";
+  public static final String           KW_OVERWRITE            = "overwrite";
+  
 
   // (2) supported types in json:
   // set type: [set_int, set_float, set_string, set_double, set_long]
