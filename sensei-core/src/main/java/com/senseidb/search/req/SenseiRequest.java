@@ -54,6 +54,8 @@ private long   tid           =          -1;
   private Set<String> _termVectorsToFetch;
   private List<String> _selectList; // Select list (mostly used in BQL) 
   private SenseiMapReduce mapReduceFunction;
+  private List<SenseiError> errors = new ArrayList<SenseiError>();
+  
   public SenseiRequest(){
     _facetInitParamMap = new HashMap<String,FacetHandlerInitializerParam>();
     _selections=new HashMap<String,BrowseSelection>();
@@ -600,6 +602,14 @@ private long   tid           =          -1;
 
   public void setMapReduceFunction(SenseiMapReduce mapReduceFunction) {
     this.mapReduceFunction = mapReduceFunction;
+  }
+  
+  public List<SenseiError> getErrors() {
+    return errors;
+  }
+
+  public void addError(SenseiError error) {
+    this.errors.add(error);
   }
 
   private <T> boolean setsAreEqual(Set<T> a, Set<T> b) {
