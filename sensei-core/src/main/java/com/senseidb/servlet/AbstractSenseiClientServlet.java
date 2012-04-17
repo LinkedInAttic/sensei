@@ -82,11 +82,9 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
 
     _networkClientConfig.setClusterClient(_clusterClient);
 
-    _networkClient = new SenseiNetworkClient(_networkClientConfig, null);
-    _senseiBroker = new SenseiBroker(_networkClient, _clusterClient, loadBalancerFactory,
-                                     pollInterval, minResponses, maxTotalWait);
-    _senseiSysBroker = new SenseiSysBroker(_networkClient, _clusterClient, loadBalancerFactory, versionComparator,
-                                           pollInterval, minResponses, maxTotalWait);
+    _networkClient = new SenseiNetworkClient(_networkClientConfig, loadBalancerFactory);
+    _senseiBroker = new SenseiBroker(_networkClient, _clusterClient, allowPartialMerge);
+    _senseiSysBroker = new SenseiSysBroker(_networkClient, _clusterClient, versionComparator, allowPartialMerge);
 
     logger.info("Connecting to cluster: "+clusterName+" ...");
     _clusterClient.awaitConnectionUninterruptibly();
@@ -256,7 +254,10 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
           {
             if (queryLogger.isInfoEnabled())
             {
-              queryLogger.info("bql=" + bqlStmt);
+              if (jsonObj.length() == 1)
+                queryLogger.info("bql=" + bqlStmt);
+              else
+                queryLogger.info("query=" + content);
             }
             compiledJson = _compiler.compile(bqlStmt);
           }
@@ -290,11 +291,6 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
           JSONObject predObj = null;
           if (extraFilter.length() > 0)
           {
-            if (queryLogger.isInfoEnabled())
-            {
-              queryLogger.info("BQL extra filter: " + extraFilter);
-            }
-
             String bql2 = "SELECT * WHERE " + extraFilter;
             try
             {

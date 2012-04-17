@@ -1,5 +1,6 @@
 package com.senseidb.search.req.mapred.impl;
 
+import java.util.ArrayList;
 import java.util.Set;
 
 import proj.zoie.api.ZoieSegmentReader;
@@ -10,9 +11,9 @@ import com.browseengine.bobo.mapred.BoboMapFunctionWrapper;
 import com.browseengine.bobo.mapred.MapReduceResult;
 import com.browseengine.bobo.util.MemoryManager;
 import com.senseidb.search.req.SenseiSystemInfo.SenseiFacetInfo;
+import com.senseidb.search.req.mapred.CombinerStage;
 import com.senseidb.search.req.mapred.FieldAccessor;
 import com.senseidb.search.req.mapred.SenseiMapReduce;
-import com.senseidb.search.req.mapred.obsolete.SenseiMapReduceResult;
 
 
 public class SenseiMapFunctionWrapper implements BoboMapFunctionWrapper {
@@ -26,7 +27,7 @@ public class SenseiMapFunctionWrapper implements BoboMapFunctionWrapper {
     super();
     this.mapReduceStrategy = mapReduceStrategy;   
     partialDocIds = intarraymgr.get(BUFFER_SIZE);
-    result = new SenseiMapReduceResult();
+    result = new MapReduceResult();
     this.facetInfos = facetInfos;
   }
 
@@ -54,17 +55,18 @@ public class SenseiMapFunctionWrapper implements BoboMapFunctionWrapper {
 
   @Override
   public void finalizeSegment(BoboIndexReader reader) {
+    
     if (docIdIndex > 0) {
       ZoieSegmentReader<?> zoieReader = (ZoieSegmentReader<?>)(reader.getInnerReader());
       DocIDMapperImpl docIDMapper = (DocIDMapperImpl) zoieReader.getDocIDMaper();
-      result.getMapResults().add(mapReduceStrategy.map(partialDocIds, docIdIndex, zoieReader.getUIDArray(), new FieldAccessor(facetInfos, reader, docIDMapper)));
+      result.getMapResults().add(mapReduceStrategy.map(partialDocIds, docIdIndex, zoieReader.getUIDArray(), new FieldAccessor(facetInfos, reader, docIDMapper)));    
     }
     docIdIndex = 0;
   }
 
   @Override
   public void finalizePartition() {
-    result.setMapResults(mapReduceStrategy.combine(result.getMapResults()));    
+    result.setMapResults(new ArrayList(mapReduceStrategy.combine(result.getMapResults(), CombinerStage.partitionLevel))) ;    
   }
 
   @Override

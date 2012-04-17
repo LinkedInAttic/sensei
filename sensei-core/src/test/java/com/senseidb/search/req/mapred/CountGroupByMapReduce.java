@@ -7,43 +7,49 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import org.jboss.netty.util.internal.ConcurrentHashMap;
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
-import proj.zoie.api.DocIDMapper;
-
-import com.senseidb.search.req.mapred.CountGroupByMapReduce.GroupedValue;
-import com.senseidb.search.req.mapred.CountGroupByMapReduce.IntContainer;
-import com.senseidb.search.req.mapred.obsolete.MapReduceJob;
-
 @SuppressWarnings("unchecked")
-public class CountGroupByMapReduce implements MapReduceJob<HashMap<String, IntContainer>, ArrayList<GroupedValue>> {
-  private static final long serialVersionUID = 1L;
-
-  private final String[] columns;
-
-  public CountGroupByMapReduce(String... columns) {
-    this.columns = columns;
+public class CountGroupByMapReduce implements SenseiMapReduce<HashMap<String, IntContainer>, ArrayList<GroupedValue>> {
+  private static final long serialVersionUID = 1L;  
+  private String[] columns;
+  
+  public void init(JSONObject params) {
+    try {
+      JSONArray columnsJson = params.getJSONArray("columns");
+      columns = new String[columnsJson.length()];
+      for (int i = 0; i < columnsJson.length(); i++) {
+        columns[i] = columnsJson.getString(i);
+      }
+    } catch (JSONException ex) {
+      throw new RuntimeException(ex);
+    }
   }
-
-  @Override
-  public HashMap<String, IntContainer> map(long[] uids, DocIDMapper docIDMapper, FieldAccessor fieldAccessor) {
+  public HashMap<String, IntContainer> map(int[] docIds, int docIdCount, long[] uids, FieldAccessor accessor) {
     HashMap<String, IntContainer> ret = new HashMap<String, IntContainer>();
-    for (long uid : uids) {
-      int docId = docIDMapper.quickGetDocID(uid);
-      String key = getKey(columns, fieldAccessor, docId);
-      IntContainer count = ret.get(key);
+    int duplicatedUids = 0;
+    for (int i = 0; i < docIdCount; i++) {     
+      String key = getKey(columns, accessor, docIds[i]);
+      IntContainer count = ret.get(key);     
+     
       if (!ret.containsKey(key)) {
         ret.put(key, new IntContainer(1));
       } else {
         count.add(1);
       }
-    }
+    }  
+    
     return ret;
   }
+ 
 
   private String getKey(String[] columns, FieldAccessor fieldAccessor, int docId) {
-    StringBuilder key = new StringBuilder(fieldAccessor.getString(columns[0], docId));
+    StringBuilder key = new StringBuilder(fieldAccessor.get(columns[0], docId).toString());
     for (int i = 1; i < columns.length; i++) {
       key.append(":").append(fieldAccessor.get(columns[i], docId).toString());
     }
@@ -51,11 +57,12 @@ public class CountGroupByMapReduce implements MapReduceJob<HashMap<String, IntCo
   }
 
   @Override
-  public List<HashMap<String, IntContainer>> combine(List<HashMap<String, IntContainer>> mapResults) {
-
-    HashMap<String, IntContainer> ret = mapResults.get(0);
-    for (int i = 1; i < mapResults.size(); i++) {
-      HashMap<String, IntContainer> map = mapResults.get(i);
+  public List<HashMap<String, IntContainer>> combine(List<HashMap<String, IntContainer>> mapResults, CombinerStage combinerStage) {
+    
+    if (mapResults == null || mapResults.isEmpty()) return mapResults;
+    HashMap<String, IntContainer> ret = new HashMap<String, IntContainer>();
+    for (int i = 0; i < mapResults.size(); i++) {
+      Map<String, IntContainer> map = mapResults.get(i);
       for (String key : map.keySet()) {
         IntContainer count = ret.get(key);
         if (count != null) {
@@ -64,21 +71,16 @@ public class CountGroupByMapReduce implements MapReduceJob<HashMap<String, IntCo
           ret.put(key, map.get(key));
         }
       }
-    }
-    Iterator<IntContainer> iterator = ret.values().iterator();
-    while (iterator.hasNext()) {
-      if (iterator.next().value == 1)
-        iterator.remove();
-    }
+    }  
     return java.util.Arrays.asList(ret);
   }
 
   @Override
   public ArrayList<GroupedValue> reduce(List<HashMap<String, IntContainer>> combineResults) {
-    HashMap<String, IntContainer> retMap = combineResults.get(0);
-
-    for (int i = 1; i < combineResults.size(); i++) {
-      HashMap<String, IntContainer> map = combineResults.get(i);
+    if (combineResults == null || combineResults.isEmpty()) return new ArrayList<GroupedValue>();
+    Map<String, IntContainer> retMap = new HashMap<String, IntContainer>();
+    for (int i = 0; i < combineResults.size(); i++) {
+      Map<String, IntContainer> map = combineResults.get(i);
       for (String key : map.keySet()) {
         IntContainer count = retMap.get(key);
         if (count != null) {
@@ -88,7 +90,7 @@ public class CountGroupByMapReduce implements MapReduceJob<HashMap<String, IntCo
         }
       }
     }
-    ArrayList<GroupedValue> ret = new ArrayList<CountGroupByMapReduce.GroupedValue>();
+    ArrayList<GroupedValue> ret = new ArrayList<GroupedValue>();
     for (Map.Entry<String, IntContainer> entry : retMap.entrySet()) {
       ret.add(new GroupedValue(entry.getKey(), entry.getValue().value));
     }
@@ -96,45 +98,47 @@ public class CountGroupByMapReduce implements MapReduceJob<HashMap<String, IntCo
     return ret;
   }
 
-  public static class GroupedValue implements Comparable {
-    String key;
-    int value;
-
-    public GroupedValue(String key, int value) {
-      super();
-      this.key = key;
-      this.value = value;
-    }
-
-    @Override
-    public int compareTo(Object o) {
-      return ((GroupedValue) o).value - value;
-    }
-
-    @Override
-    public String toString() {
-      return key + ", count=" + value;
-
-    }
-  }
-
-  public static class IntContainer implements Serializable {
-    public int value;
-
-    public IntContainer(int value) {
-      super();
-      this.value = value;
-    }
-
-    public IntContainer add(int value) {
-      this.value += value;
-      return this;
-    }
-  }
-
   public JSONObject render(ArrayList<GroupedValue> reduceResult) {
-    // TODO Auto-generated method stub
-    return null;
+    try {
+      List<JSONObject> ret = new ArrayList<JSONObject>();
+      for (GroupedValue grouped : reduceResult) {
+        ret.add(new JSONObject().put(grouped.key, grouped.value));
+      }
+      return new JSONObject().put("groupedCounts", new JSONArray(ret));
+    } catch (JSONException ex) {
+      throw new RuntimeException(ex);
+    }
+  }
+}
+
+ class IntContainer implements Serializable {
+  public int value;
+
+  public IntContainer(int value) {
+    super();
+    this.value = value;
   }
 
+  public IntContainer add(int value) {
+    this.value += value;
+    return this;
+  }
 }
+ class GroupedValue implements Comparable {
+   String key;
+   int value;
+
+   public GroupedValue(String key, int value) {
+     super();
+     this.key = key;
+     this.value = value;
+   }
+   @Override
+   public int compareTo(Object o) {
+     return ((GroupedValue) o).value - value;
+   }
+   @Override
+   public String toString() {
+     return key + ", count=" + value;
+   }
+ }

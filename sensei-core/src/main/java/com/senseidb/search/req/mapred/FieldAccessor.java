@@ -71,7 +71,7 @@ public final class FieldAccessor  {
       return getArray(fieldName, docId);
     }
     if (valueCache != null) {
-      valueCache.valArray.getInnerList().get(valueCache.orderArray.get(docId));
+      return valueCache.valArray.getRawValue(valueCache.orderArray.get(docId));
     }
     return getFacetHandler(fieldName).getRawFieldValues(boboIndexReader, docId);
   }
@@ -252,6 +252,12 @@ public final class FieldAccessor  {
     lastFacetHandler = boboIndexReader.getFacetHandler(fieldName);
     lastFacetHandlerName = fieldName;
     return lastFacetHandler;
+  }
+  public BoboIndexReader getBoboIndexReader() {
+    return boboIndexReader;
+  }
+  public DocIDMapper getMapper() {
+    return mapper;
   }
 
 }

@@ -63,13 +63,15 @@
     
     <bean id="request-rewriter" class="com.senseidb.search.node.impl.NoopRequestScatterRewriter" />
     
-    <bean id="router-factory" class="com.senseidb.cluster.routing.UniformPartitionedRoutingFactory" />
+    <!--<bean id="router-factory" class="com.senseidb.cluster.routing.UniformPartitionedRoutingFactory" />-->
+
+    <bean id="loadBalancerFactory" class="com.senseidb.cluster.routing.SenseiPartitionedLoadBalancerFactory">
+      <constructor-arg value="50"/>
+    </bean>
     
     <bean id="network-client" class="com.senseidb.cluster.client.SenseiNetworkClient">
         <constructor-arg ref="network-client-config" />
-        <constructor-arg>
-          <null />
-        </constructor-arg>
+        <constructor-arg ref="loadBalancerFactory"/>
     </bean>
       
 </beans>

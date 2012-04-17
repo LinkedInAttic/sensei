@@ -7,9 +7,10 @@ import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 
+import com.linkedin.norbert.javacompat.network.PartitionedLoadBalancer;
+import com.linkedin.norbert.javacompat.network.PartitionedLoadBalancerFactory;
 import org.apache.commons.configuration.Configuration;
 
-import com.senseidb.cluster.routing.SenseiLoadBalancerFactory;
 import com.senseidb.conf.SenseiConfParams;
 
 public class ZookeeperConfigurableServlet extends HttpServlet {
@@ -27,11 +28,9 @@ public class ZookeeperConfigurableServlet extends HttpServlet {
   protected int maxConnectionsPerNode;
   protected int staleRequestTimeoutMins;
   protected int staleRequestCleanupFrequencyMins;
-  protected SenseiLoadBalancerFactory loadBalancerFactory;
+  protected PartitionedLoadBalancerFactory<String> loadBalancerFactory;
   protected Comparator<String> versionComparator;
-  protected int pollInterval;
-  protected int minResponses;
-  protected int maxTotalWait;
+  protected boolean allowPartialMerge;
 
   @Override
   public void init(ServletConfig config) throws ServletException {
@@ -57,10 +56,9 @@ public class ZookeeperConfigurableServlet extends HttpServlet {
     staleRequestCleanupFrequencyMins = senseiConf.getInt(SenseiConfigServletContextListener.SENSEI_CONF_NC_STALE_CLEANUP_FREQ_MINS, 10);
 
     versionComparator = (Comparator<String>)ctx.getAttribute(SenseiConfigServletContextListener.SENSEI_CONF_VERSION_COMPARATOR);
-    loadBalancerFactory = (SenseiLoadBalancerFactory)ctx.getAttribute(
+    loadBalancerFactory = (PartitionedLoadBalancerFactory<String>) ctx.getAttribute(
         SenseiConfigServletContextListener.SENSEI_CONF_ROUTER_FACTORY);
-    pollInterval = senseiConf.getInt(SenseiConfParams.SENSEI_BROKER_POLL_INTERVAL, 2);
-    minResponses = senseiConf.getInt(SenseiConfParams.SENSEI_BROKER_MIN_RESPONSES, 2);
-    maxTotalWait = senseiConf.getInt(SenseiConfParams.SENSEI_BROKER_MAX_TOTAL_WAIT, 200);
-  }
+
+    allowPartialMerge = senseiConf.getBoolean(SenseiConfParams.ALLOW_PARTIAL_MERGE, true);
+}
 }

@@ -6,6 +6,7 @@ import java.util.List;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.senseidb.search.req.mapred.CombinerStage;
 import com.senseidb.search.req.mapred.FieldAccessor;
 import com.senseidb.search.req.mapred.SenseiMapReduce;
 
@@ -31,7 +32,7 @@ public class AvgMapReduce implements SenseiMapReduce<AvgResult, AvgResult> {
   }
 
   @Override
-  public List<AvgResult> combine(List<AvgResult> mapResults) {
+  public List<AvgResult> combine(List<AvgResult> mapResults, CombinerStage combinerStage) {
     AvgResult avgResult = reduce(mapResults);
     mapResults.clear();
     mapResults.add(avgResult);
