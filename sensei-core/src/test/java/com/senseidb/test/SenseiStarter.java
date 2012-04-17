@@ -37,7 +37,7 @@ public class SenseiStarter {
   public static File ConfDir2 = null;
  
 
-  public static File IndexDir = new File("/tmp/sensei-index/test");
+  public static File IndexDir = new File("sensei-index-test");
   public static URL SenseiUrl = null;
   public static SenseiBroker broker = null;
   public static SenseiService httpRestSenseiService = null;
