@@ -3,7 +3,7 @@ package com.senseidb.search.client.json.req.query;
 import com.senseidb.search.client.json.CustomJsonHandler;
 
 @CustomJsonHandler(value = QueryJsonHandler.class)
-public class PathQuery extends FieldAware implements Query {
+public class PathQuery extends FieldAwareQuery {
   private String value;
   private double boost;
 

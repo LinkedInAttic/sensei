@@ -35,7 +35,7 @@ public class Sort {
     }
     public static Sort byRelevance() {
         Sort sort = new Sort();
-        sort.field = "relevance";
+        sort.field = "_score";
         return sort;
     }
     public static enum Order {

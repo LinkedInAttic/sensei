@@ -122,10 +122,6 @@ import com.senseidb.search.client.json.req.filter.Filter;
  * (the <code>name</code> is boosted by 5 using <code>^5</code> notation):
  * </p>
  *
- * <pre class="prettyprint lang-js">
- * <span class="pun">{</span><span class="pln"><br>&nbsp; &nbsp; </span><span class="str">"query_string"</span><span class="pln"> </span><span class="pun">:</span><span class="pln"> </span><span class="pun">{</span><span class="pln"><br>&nbsp; &nbsp; &nbsp; &nbsp; </span><span class="str">"fields"</span><span class="pln"> </span><span class="pun">:</span><span class="pln"> </span><span class="pun">[</span><span class="str">"content"</span><span class="pun">,</span><span class="pln"> </span><span class="str">"name^5"</span><span class="pun">],</span><span class="pln"><br>&nbsp; &nbsp; &nbsp; &nbsp; </span><span class="str">"query"</span><span class="pln"> </span><span class="pun">:</span><span class="pln"> </span><span class="str">"this AND that OR thus"</span><span class="pun">,</span><span class="pln"><br>&nbsp; &nbsp; &nbsp; &nbsp; </span><span class="str">"use_dis_max"</span><span class="pln"> </span><span class="pun">:</span><span class="pln"> </span><span class="kwd">true</span><span class="pln"><br>&nbsp; &nbsp; </span><span class="pun">}</span><span class="pln"><br></span><span class="pun">}</span>
- * </pre>
- *
  * <p>
  * When running the <code>query_string</code> query against multiple fields, the
  * following additional parameters are allowed:
@@ -158,13 +154,9 @@ import com.senseidb.search.client.json.req.filter.Filter;
  * included). For example:
  * </p>
  *
- * <pre class="prettyprint lang-js">
- * <span class="pun">{</span><span class="pln"><br>&nbsp; &nbsp; </span><span class="str">"query_string"</span><span class="pln"> </span><span class="pun">:</span><span class="pln"> </span><span class="pun">{</span><span class="pln"><br>&nbsp; &nbsp; &nbsp; &nbsp; </span><span class="str">"fields"</span><span class="pln"> </span><span class="pun">:</span><span class="pln"> </span><span class="pun">[</span><span class="str">"content"</span><span class="pun">,</span><span class="pln"> </span><span class="str">"name.*^5"</span><span class="pun">],</span><span class="pln"><br>&nbsp; &nbsp; &nbsp; &nbsp; </span><span class="str">"query"</span><span class="pln"> </span><span class="pun">:</span><span class="pln"> </span><span class="str">"this AND that OR thus"</span><span class="pun">,</span><span class="pln"><br>&nbsp; &nbsp; &nbsp; &nbsp; </span><span class="str">"use_dis_max"</span><span class="pln"> </span><span class="pun">:</span><span class="pln"> </span><span class="kwd">true</span><span class="pln"><br>&nbsp; &nbsp; </span><span class="pun">}</span><span class="pln"><br>
- * </span><span class="pun">}</span>
- *
  */
 @CustomJsonHandler(QueryJsonHandler.class)
-public class StringQuery implements Filter, Query {
+public class StringQuery extends Query {
   @JsonField("default_field")
   private String defaultField;
   private String query;

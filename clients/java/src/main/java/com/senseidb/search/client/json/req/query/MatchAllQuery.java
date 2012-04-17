@@ -17,7 +17,7 @@ import com.senseidb.search.client.json.CustomJsonHandler;
  *
  */
 @CustomJsonHandler(QueryJsonHandler.class)
-public class MatchAllQuery  implements Query {
+public class MatchAllQuery  extends Query {
     double boost;
 
     public MatchAllQuery(double boost) {

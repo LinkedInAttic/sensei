@@ -17,7 +17,7 @@ import com.senseidb.search.client.json.JsonField;
  */
 
 @CustomJsonHandler(QueryJsonHandler.class)
-public class BoolQuery implements Query {
+public class BoolQuery extends Query {
   List<Query> must;
   List<Query> must_not;
   List<Query> should;

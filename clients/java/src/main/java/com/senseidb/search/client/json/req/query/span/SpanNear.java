@@ -25,7 +25,7 @@ import com.senseidb.search.client.json.req.query.QueryJsonHandler;
  *
  */
 @CustomJsonHandler(QueryJsonHandler.class)
-public class SpanNear implements Query {
+public class SpanNear extends Query {
   List<SpanTerm> clauses;
   private int slop;
   @JsonField("in_order")

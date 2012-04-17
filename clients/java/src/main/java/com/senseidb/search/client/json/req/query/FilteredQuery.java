@@ -20,7 +20,7 @@ import com.senseidb.search.client.json.req.filter.FilterJsonHandler;
  *
  */
 @CustomJsonHandler(value = QueryJsonHandler.class)
-public class FilteredQuery implements Query {
+public class FilteredQuery extends Query {
 
   private Query query;
   @CustomJsonHandler(value = FilterJsonHandler.class, flatten = false)

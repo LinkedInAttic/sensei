@@ -10,6 +10,7 @@ import com.senseidb.search.client.json.JsonSerializer;
 import com.senseidb.search.client.json.SenseiServiceProxy;
 import com.senseidb.search.client.json.req.Facet;
 import com.senseidb.search.client.json.req.FacetInit;
+import com.senseidb.search.client.json.req.FacetType;
 import com.senseidb.search.client.json.req.Operator;
 import com.senseidb.search.client.json.req.Selection;
 import com.senseidb.search.client.json.req.SenseiClientRequest;
@@ -49,7 +50,7 @@ public class Examples {
         .addSelection(Selection.path("field", "value", true, 1))
         .addSelection(Selection.range("color", "*", "*"))
         .addFacet("facet1", Facet.builder().max(2).minHit(1).orderByVal().build())
-        .addFacetInit("name", "parameter", FacetInit.build("string", "val1", "val2"))
+        .addFacetInit("name", "parameter", FacetInit.build(FacetType.type_double, "val1", "val2"))
         .addSort(Sort.desc("color"))
         .addSort(Sort.asc("year"))
         .addTermVector("Term1")

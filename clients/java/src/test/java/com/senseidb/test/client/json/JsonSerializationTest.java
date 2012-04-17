@@ -8,6 +8,7 @@ import org.junit.Test;
 import com.senseidb.search.client.json.JsonDeserializer;
 import com.senseidb.search.client.json.JsonSerializer;
 import com.senseidb.search.client.json.req.FacetInit;
+import com.senseidb.search.client.json.req.FacetType;
 import com.senseidb.search.client.json.req.SenseiClientRequest;
 import com.senseidb.search.client.json.res.SenseiResult;
 
@@ -37,7 +38,7 @@ public class JsonSerializationTest extends Assert {
     //@Test
     public void test3DeserializeFacetInit() throws Exception {
         SenseiClientRequest senseiRequest =  SenseiClientRequest.builder()
-                .addFacetInit("name", "parameter", FacetInit.build("string", "val1", "val2")).build();
+                .addFacetInit("name", "parameter", FacetInit.build(FacetType.type_float, "val1", "val2")).build();
        String strRepresentation = JsonSerializer.serialize(senseiRequest).toString();
        SenseiClientRequest senseiRequest2 = JsonDeserializer.deserialize(SenseiClientRequest.class, new JSONObject(strRepresentation));
        String strRepresentation2 = JsonSerializer.serialize(senseiRequest2).toString();

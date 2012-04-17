@@ -21,7 +21,7 @@ import com.senseidb.search.client.json.req.query.QueryJsonHandler;
  *
  */
 @CustomJsonHandler(QueryJsonHandler.class)
-public class SpanOr implements Query {
+public class SpanOr extends Query {
   List<SpanTerm> clauses;
   private final Double boost;
 

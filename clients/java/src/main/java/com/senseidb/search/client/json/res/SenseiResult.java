@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.json.JSONObject;
+
 import com.senseidb.search.client.json.JsonField;
 
 public class SenseiResult {
@@ -17,6 +19,7 @@ public class SenseiResult {
     private String parsedQuery;
     private Long time;
     private Map<String, List<FacetResult>> facets;
+    private JSONObject mapReduceResult;
     @Override
     public String toString() {
         return "SenseiResult [tid=" + tid + ", totaldocs=" + totaldocs + ", numhits=" + numhits + ", numgroups="
@@ -70,6 +73,12 @@ public class SenseiResult {
     }
     public void setFacets(Map<String, List<FacetResult>> facets) {
         this.facets = facets;
+    }
+    public JSONObject getMapReduceResult() {
+      return mapReduceResult;
+    }
+    public void setMapReduceResult(JSONObject mapReduceResult) {
+      this.mapReduceResult = mapReduceResult;
     }
 
 
