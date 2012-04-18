@@ -7,10 +7,12 @@ import java.util.List;
 import java.util.Map;
 
 import com.senseidb.search.client.json.CustomJsonHandler;
+import com.senseidb.search.client.json.JsonField;
 import com.senseidb.search.client.json.req.filter.Filter;
 import com.senseidb.search.client.json.req.filter.FilterJsonHandler;
 import com.senseidb.search.client.json.req.query.Query;
 import com.senseidb.search.client.json.req.query.QueryJsonHandler;
+import com.senseidb.search.client.json.req.relevance.Relevance;
 
 /**
  * The sensei request object, that is used to send the Sensei query to the
@@ -41,7 +43,7 @@ public class SenseiClientRequest {
    * initializing parameters that are needed by all runtime facet handlers
    */
   private Map<String, Map<String, FacetInit>> facetInit = new HashMap<String, Map<String, FacetInit>>();
-  private List<Sort> sorts = new ArrayList<Sort>();
+  private List<Object> sort = new ArrayList<Object>();
   private Map<String, Facet> facets = new HashMap<String, Facet>();
   /**
    * Flag indicating whether stored fields are to be fetched
@@ -77,10 +79,9 @@ public class SenseiClientRequest {
    */
   private Map<String, Object> templateMapping;
 
-  /**
-   * @author vzhabiuk
-   *
-   */
+  private MapReduce mapReduce;
+ 
+  private RequestMetadata meta;
 
   public static class Builder {
     private SenseiClientRequest request = new SenseiClientRequest();
@@ -134,7 +135,10 @@ public class SenseiClientRequest {
       request.facetInit.put(name, facetInits);
       return this;
     }
-
+    public Builder showOnlyFields(String...fields ) {
+      request.meta = new RequestMetadata(Arrays.asList(fields));
+      return this;
+    }
     /**
      * @see com.senseidb.search.client.json.req.SenseiClientRequest#templateMapping
      */
@@ -151,7 +155,11 @@ public class SenseiClientRequest {
       if (sort == null) {
         throw new IllegalArgumentException("The sort should be not null");
       }
-      request.sorts.add(sort);
+      if ("_score".equalsIgnoreCase(sort.getField())) {
+        request.sort.add("_score");
+      } else {
+        request.sort.add(sort);
+      }      
       return this;
     }
 
@@ -182,10 +190,14 @@ public class SenseiClientRequest {
       request.filter = filter;
       return this;
     }
-
+    public Builder mapReduce(String function, Map<String, Object> parameters) {
+      request.mapReduce = new MapReduce(function, parameters);
+      return this;
+    }
     public SenseiClientRequest build() {
       return request;
     }
+   
   }
 
   public static Builder builder() {
@@ -208,8 +220,8 @@ public class SenseiClientRequest {
     return facetInit;
   }
 
-  public List<Sort> getSorts() {
-    return sorts;
+  public List<Object> getSorts() {
+    return sort;
   }
 
   public Map<String, Facet> getFacets() {

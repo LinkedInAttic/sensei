@@ -31,6 +31,8 @@ import com.senseidb.cluster.routing.RoutingInfo;
 import com.senseidb.metrics.MetricsConstants;
 import com.senseidb.search.req.AbstractSenseiRequest;
 import com.senseidb.search.req.AbstractSenseiResult;
+import com.senseidb.search.req.ErrorType;
+import com.senseidb.search.req.SenseiError;
 import com.senseidb.svc.api.SenseiException;
 import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.Meter;
@@ -173,6 +175,7 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
     final long time = System.currentTimeMillis();
 
     final List<RESULT> resultList = new ArrayList<RESULT>();
+   
     try {
       resultList.addAll(ScatterTimer.time(new Callable<List<RESULT>>() {
         @Override
@@ -182,14 +185,19 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
       }));
     } catch (Exception e) {
       ErrorMeter.mark();
+      RESULT emptyResult = getEmptyResultInstance();
       logger.error("Error running scatter/gather", e);
-      return getEmptyResultInstance();
+      emptyResult.addError(new SenseiError("Error gathering the results" + e.getMessage(), ErrorType.BrokerGatherError));
+      return emptyResult;
     }
 
     if (resultList.size() == 0)
     {
       logger.error("no result received at all return empty result");
+      RESULT emptyResult = getEmptyResultInstance();
+      emptyResult.addError(new SenseiError("Error gathering the results. " + "no result received at all return empty result", ErrorType.BrokerGatherError));
       EmptyMeter.mark();
+      return emptyResult;
     }
 
     RESULT result = null;
@@ -203,6 +211,7 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
     } catch (Exception e) {
       result = getEmptyResultInstance();
       logger.error("Error gathering the results", e);
+      result.addError(new SenseiError("Error gathering the results" + e.getMessage(), ErrorType.BrokerGatherError));
       ErrorMeter.mark();
     }
 

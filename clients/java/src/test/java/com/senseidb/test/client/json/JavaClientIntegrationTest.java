@@ -1,6 +1,7 @@
 package com.senseidb.test.client.json;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.json.JSONObject;
@@ -14,10 +15,16 @@ import com.senseidb.search.client.json.SenseiServiceProxy;
 import com.senseidb.search.client.json.req.Operator;
 import com.senseidb.search.client.json.req.Selection;
 import com.senseidb.search.client.json.req.SenseiClientRequest;
+import com.senseidb.search.client.json.req.Sort;
 import com.senseidb.search.client.json.req.filter.Filter;
 import com.senseidb.search.client.json.req.filter.Filters;
 import com.senseidb.search.client.json.req.query.Queries;
 import com.senseidb.search.client.json.req.query.Query;
+import com.senseidb.search.client.json.req.relevance.Model;
+import com.senseidb.search.client.json.req.relevance.Relevance;
+import com.senseidb.search.client.json.req.relevance.RelevanceFacetType;
+import com.senseidb.search.client.json.req.relevance.RelevanceValues;
+import com.senseidb.search.client.json.req.relevance.VariableType;
 import com.senseidb.search.client.json.res.SenseiResult;
 @Ignore
 public class JavaClientIntegrationTest extends Assert {
@@ -107,7 +114,7 @@ public class JavaClientIntegrationTest extends Assert {
   
   @Test
   public void testSimpleBQL() throws Exception{
-    String bql = "select where color in ('red')";
+    String bql = "select *  where color in ('red')";
     SenseiResult res = senseiServiceProxy.sendBQL(bql);
     assertEquals("numhits is wrong", 2160, res.getNumhits().intValue()); 
   }
@@ -361,6 +368,17 @@ public class JavaClientIntegrationTest extends Assert {
 
   }
   @Test
+  public void testSingleField() throws Exception
+  {
+    SenseiClientRequest request = SenseiClientRequest.builder().showOnlyFields("color")
+
+   .build();
+    System.out.println(JsonSerializer.serialize(request));
+    SenseiResult res = senseiServiceProxy.sendSearchRequest( request);
+    assertEquals( 1, res.getHits().get(0).getFieldValues().size());
+
+  }
+  @Test
   public void testTermsFilter() throws Exception
   {
     SenseiClientRequest request = SenseiClientRequest.builder().filter(
@@ -404,7 +422,30 @@ public class JavaClientIntegrationTest extends Assert {
       assertEquals(Integer.valueOf(5), ret.get(5L).get("id"));
       assertEquals("automatic,hybrid,leather,reliable", ret.get(5L).get("tags"));
   }
-
+  @Test
+  public void testRelevance() throws Exception
+  {
+    Model model = Model.builder().addFacets(RelevanceFacetType.type_int, "year","mileage").
+        addFacets(RelevanceFacetType.type_long, "groupid").addFacets(RelevanceFacetType.type_string, "color","category").
+        addFunctionParams("_INNER_SCORE", "thisYear", "year","goodYear","mileageWeight","mileage","color", "yearcolor", "colorweight", "category", "categorycolor").
+        addVariables(VariableType.set_int, "goodYear").addVariables(VariableType.type_int, "thisYear").
+        addVariables(VariableType.map_int_float, "mileageWeight").addVariables(VariableType.map_int_string, "yearcolor")
+        .addVariables(VariableType.map_string_float, "colorweight").addVariables(VariableType.map_string_string, "categorycolor").
+        function(" if(categorycolor.containsKey(category) && categorycolor.get(category).equals(color))  return 10000f; if(colorweight.containsKey(color) ) return 200f + colorweight.getFloat(color); if(yearcolor.containsKey(year) && yearcolor.get(year).equals(color)) return 200f; if(mileageWeight.containsKey(mileage)) return 10000+mileageWeight.get(mileage); if(goodYear.contains(year)) return (float)Math.exp(2d);   if(year==thisYear) return 87f   ; return  _INNER_SCORE;").build();
+    Map<Object, Object> map = new HashMap<Object, Object>();
+    map.put("red", 335.5);
+    RelevanceValues.RelevanceValuesBuilder valuesBuilder = new RelevanceValues.RelevanceValuesBuilder().addAtomicValue("thisYear", 2001)
+        .addListValue("goodYear", 1996,1997).
+        addMapValue("mileageWeight", Arrays.asList(11400,11000), Arrays.asList(777.9, 10.2))
+        .addMapValue("colorweight", map);
+    map.clear();
+    map.put(1998, "red");
+    valuesBuilder.addMapValue("yearcolor", map);
+    valuesBuilder.addMapValue("categorycolor", Arrays.asList("compact"), Arrays.asList("white"));
+    SenseiClientRequest request = SenseiClientRequest.builder().addSort(Sort.byRelevance()).query(Queries.stringQuery("").setRelevance(Relevance.valueOf(model, valuesBuilder.build()))).build();
+    SenseiResult senseiResult = senseiServiceProxy.sendSearchRequest(request);
+    assertEquals(10777, senseiResult.getHits().get(0).getScore().intValue());
+  }
 
 
   /* Need to fix the bug in bobo and kamikazi, for details see the following two test cases:*/

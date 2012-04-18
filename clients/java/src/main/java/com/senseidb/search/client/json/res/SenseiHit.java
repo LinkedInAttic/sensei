@@ -14,7 +14,7 @@ public class SenseiHit {
   @JsonField("_docid")
   private Integer docid;
   @JsonField("_score")
-  private Integer score;
+  private Double score;
   @JsonField("_srcdata")
   private String srcdata;
   @JsonField("_grouphitscount")
@@ -45,7 +45,7 @@ public class SenseiHit {
     return docid;
   }
 
-  public Integer getScore() {
+  public Double getScore() {
     return score;
   }
 
@@ -69,7 +69,7 @@ public class SenseiHit {
     this.docid = docid;
   }
 
-  public void setScore(Integer score) {
+  public void setScore(Double score) {
     this.score = score;
   }
 

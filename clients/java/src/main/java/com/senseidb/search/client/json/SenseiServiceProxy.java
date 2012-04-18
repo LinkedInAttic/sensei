@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory;
 import com.senseidb.search.client.json.req.SenseiClientRequest;
 import com.senseidb.search.client.json.res.SenseiResult;
 public class SenseiServiceProxy {
-  private static Logger LOG = LoggerFactory.getLogger(SenseiServiceProxy.class);
+ // private static Logger LOG = LoggerFactory.getLogger(SenseiServiceProxy.class);
 
 
     private  String host;
@@ -68,13 +68,16 @@ public class SenseiServiceProxy {
         throw new RuntimeException(ex);
       }
     }
-    public SenseiResult sendBQL( String bql)  {
+    public SenseiResult sendBQL( String bql)  throws BQLException {
       try {
         StringBuilder buffer = new StringBuilder();
         buffer.append("{'bql':").append(bql).append("}");
         String requestStr = buffer.toString();
         String output = sendPostRaw(getSearchUrl(), requestStr);
         //System.out.println("Output from Server = " + output);
+        if (output.indexOf("\"error\"") < 5 && output.indexOf("\"error\"") >= 0) {
+          throw new BQLException(output);
+        }
         return JsonDeserializer.deserialize(SenseiResult.class, jsonResponse(output));
       } catch (Exception ex) {
         throw new RuntimeException(ex);
@@ -173,13 +176,13 @@ public class SenseiServiceProxy {
     public String sendPostRaw(String urlStr, String requestStr,Map<String,String> headers){
         HttpURLConnection conn = null;
           try {
-          if (LOG.isInfoEnabled()){
+          /*if (LOG.isInfoEnabled()){
             LOG.info("Sending a post request to the server - " + urlStr);
           }
 
           if (LOG.isDebugEnabled()){
             LOG.debug("The request is - " + requestStr);
-          }
+          }*/
           URL url = new URL(urlStr);
            conn = (HttpURLConnection) url.openConnection();
           conn.setDoOutput(true);
@@ -209,9 +212,9 @@ public class SenseiServiceProxy {
           os.close();
           int responseCode = conn.getResponseCode();
 
-          if (LOG.isInfoEnabled()){
+          /*if (LOG.isInfoEnabled()){
             LOG.info("The http response code is " + responseCode);
-          }
+          }*/
           if (responseCode != HttpURLConnection.HTTP_OK) {
               throw new IOException("Failed : HTTP error code : "
                   + responseCode);
@@ -219,9 +222,9 @@ public class SenseiServiceProxy {
           byte[] bytes = drain(new GZIPInputStream(new BufferedInputStream( conn.getInputStream())));
 
           String output = new String(bytes, "UTF-8");
-          if (LOG.isDebugEnabled()){
+          /*if (LOG.isDebugEnabled()){
             LOG.debug("The response from the server is - " + output);
-          }
+          }*/
           return output;
           } catch (Exception ex) {
             throw new RuntimeException (ex);

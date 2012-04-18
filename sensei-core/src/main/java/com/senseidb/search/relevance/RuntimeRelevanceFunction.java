@@ -45,9 +45,12 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction
   
   private static Logger logger = Logger.getLogger(RuntimeRelevanceFunction.class);
   
+  //per request shared data;
   private DataTable _dt;
   private CustomMathModel _cModel;
   
+  
+  //index reader level data;
   private BigSegmentedArray[] _orderArrays;
   private TermValueList[] _termLists;
   
@@ -710,6 +713,22 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction
   public boolean useInnerScore()
   {
     return this._dt.useInnerScore;
+  }
+  
+  public static class RuntimeRelevanceFunctionFactory extends CustomRelevanceFunctionFactory{
+
+    RuntimeRelevanceFunction _rrf;
+    public RuntimeRelevanceFunctionFactory(RuntimeRelevanceFunction rrf)
+    {
+      _rrf = rrf;
+    }
+    
+    @Override
+    public CustomRelevanceFunction build()
+    {
+      return (CustomRelevanceFunction) _rrf.getCopy();
+    }
+    
   }
   
 }

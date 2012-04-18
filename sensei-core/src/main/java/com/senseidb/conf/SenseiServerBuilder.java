@@ -92,6 +92,7 @@ import com.senseidb.search.node.impl.DefaultJsonQueryBuilderFactory;
 import com.senseidb.search.query.RetentionFilterFactory;
 import com.senseidb.search.query.TimeRetentionFilter;
 import com.senseidb.search.relevance.CustomRelevanceFunction.CustomRelevanceFunctionFactory;
+import com.senseidb.search.relevance.ModelStorage;
 import com.senseidb.search.relevance.RelevanceFunctionBuilder;
 import com.senseidb.search.relevance.CustomRelevanceFunction;
 import com.senseidb.search.req.AbstractSenseiRequest;
@@ -331,7 +332,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
     {
       String name = it.next();
       CustomRelevanceFunctionFactory crf = map.get(name);
-      RelevanceFunctionBuilder.addCustomRelevanceFunction(name, crf);
+      ModelStorage.injectPreloadedModel(name, crf);
     }
     
   }
@@ -415,8 +416,11 @@ public class SenseiServerBuilder implements SenseiConfParams{
       }
       zoieConfig.setReadercachefactory(readercachefactory);
       if (CompositeActivityManager.activitiesPresent(_senseiSchema)) {
-        activityManager = new CompositeActivityManager( _senseiConf.getString(SENSEI_INDEX_DIR), nodeid, _senseiSchema, zoieConfig.getVersionComparator());      
-      
+        try {
+    	  activityManager = new CompositeActivityManager( _senseiConf.getString(SENSEI_INDEX_DIR), nodeid, _senseiSchema, zoieConfig.getVersionComparator());      
+        } catch (Exception ex) {
+        	throw new ConfigurationException("Couldn't init the activity manager",ex);
+        }
       }
       List<FacetHandler<?>> facetHandlers = new LinkedList<FacetHandler<?>>();
       List<RuntimeFacetHandlerFactory<?,?>> runtimeFacetHandlerFactories = new LinkedList<RuntimeFacetHandlerFactory<?,?>>();

@@ -65,7 +65,9 @@ public class JsonDeserializer {
                     value = jsonObject.optString(name);
                 } else if (type == Double.class) {
                     value = jsonObject.optDouble(name);
-                } else if (type.isEnum()) {
+                } else if (type == JSONObject.class) {
+                  value = jsonObject.optJSONObject(name);
+                }else if (type.isEnum()) {
                     value = jsonObject.optString(name);
                     if (value != null) {
                     	value = Enum.valueOf((Class)type, value.toString());

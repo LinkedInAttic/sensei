@@ -19,7 +19,7 @@ import com.senseidb.search.client.json.req.query.QueryJsonHandler;
  *
  */
 @CustomJsonHandler(QueryJsonHandler.class)
-public class SpanFirst implements Query {
+public class SpanFirst extends Query {
 
   SpanTerm match;
   int end;
