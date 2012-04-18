@@ -10,4 +10,5 @@ public interface AbstractSenseiRequest extends Serializable
   public String getRouteParam();
   public void saveState();
   public void restoreState();
+  public void addError(SenseiError error);
 }

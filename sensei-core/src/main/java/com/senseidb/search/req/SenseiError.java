@@ -1,14 +1,22 @@
 package com.senseidb.search.req;
 
-public class SenseiError {
+import java.io.Serializable;
+
+public class SenseiError implements Serializable {
   private final String message;
   private final ErrorType errorType;
+  private final int errorCode;
 
   public SenseiError(String message, ErrorType errorType) {
     this.message = message;
     this.errorType = errorType;
+    this.errorCode = errorType.getDefaultErrorCode();
   }
-
+  public SenseiError(String message, ErrorType errorType, int errorCode) {
+    this.message = message;
+    this.errorType = errorType;
+    this.errorCode = errorCode;
+  }
   @Override
   public int hashCode() {
     final int prime = 31;
@@ -35,6 +43,15 @@ public class SenseiError {
     } else if (!message.equals(other.message))
       return false;
     return true;
+  }
+  public String getMessage() {
+    return message;
+  }
+  public ErrorType getErrorType() {
+    return errorType;
+  }
+  public int getErrorCode() {
+    return errorCode;
   }
   
   

@@ -18,6 +18,8 @@ import com.linkedin.norbert.javacompat.cluster.Node;
 import com.linkedin.norbert.javacompat.network.PartitionedNetworkClient;
 import com.senseidb.conf.SenseiSchema;
 import com.senseidb.indexing.DefaultJsonSchemaInterpreter;
+import com.senseidb.search.req.ErrorType;
+import com.senseidb.search.req.SenseiError;
 import com.senseidb.search.req.SenseiHit;
 import com.senseidb.search.req.SenseiRequest;
 import com.senseidb.search.req.SenseiResult;
@@ -46,7 +48,7 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
     logger.info("created broker instance " + networkClient + " " + clusterClient);
   }
 
-  private void recoverSrcData(SenseiHit[] hits, boolean isFetchStoredFields)
+  private void recoverSrcData(SenseiResult res, SenseiHit[] hits, boolean isFetchStoredFields)
   {
     if (hits != null)
     {
@@ -89,6 +91,7 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
             }
             catch(Exception ex)
             {
+              
               data = dataBytes;
             }
             hit.setSrcData(new String(data, "UTF-8"));
@@ -97,9 +100,10 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
         catch(Exception e)
         {
           logger.error(e.getMessage(),e);
+          res.getErrors().add(new SenseiError(e.getMessage(), ErrorType.BrokerGatherError));
         }
 
-        recoverSrcData(hit.getSenseiGroupHits(), isFetchStoredFields);
+        recoverSrcData(res, hit.getSenseiGroupHits(), isFetchStoredFields);
 
         // Remove stored fields since the user is not requesting:
         if (!isFetchStoredFields)
@@ -113,9 +117,9 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
   {
     request.restoreState();
     SenseiResult res = ResultMerger.merge(request, resultList, false);
-
+    
     if (request.isFetchStoredFields() || request.isFetchStoredValue())
-      recoverSrcData(res.getSenseiHits(), request.isFetchStoredFields());
+      recoverSrcData(res, res.getSenseiHits(), request.isFetchStoredFields());
 
     return res;
   }
