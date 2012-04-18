@@ -237,7 +237,7 @@ public class RequestConverter2 {
       if (mapReduceJson != null) {
         String key = mapReduceJson.getString(MAP_REDUCE_FUNCTION);
         SenseiMapReduce senseiMapReduce = MapReduceRegistry.get(key);
-        senseiMapReduce.init(mapReduceJson.getJSONObject(MAP_REDUCE_PARAMETERS));
+        senseiMapReduce.init(mapReduceJson.optJSONObject(MAP_REDUCE_PARAMETERS));
         req.setMapReduceFunction(senseiMapReduce);
       }
 		 // facets
