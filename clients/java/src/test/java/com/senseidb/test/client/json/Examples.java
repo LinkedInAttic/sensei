@@ -2,7 +2,9 @@ package com.senseidb.test.client.json;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.json.JSONObject;
 
@@ -97,6 +99,13 @@ public class Examples {
 
 
         return builder;
+    }
+    
+    public static SenseiClientRequest.Builder mapReduce(SenseiClientRequest.Builder builder) {
+      Map<String, Object> params = new HashMap<String, Object>();
+      params.put("column", "price");
+      builder.mapReduce("com.senseidb.search.req.mapred.functions.MinMapReduce", params).build();
+      return builder;
     }
 
 

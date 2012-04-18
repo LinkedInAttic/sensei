@@ -456,7 +456,12 @@ public class JavaClientIntegrationTest extends Assert {
     assertEquals( "[line:1, col:0] No viable alternative (token=select1)", res.getErrors().get(0).getMessage());
     assertEquals( "BQLParsingError", res.getErrors().get(0).getErrorType());
   }
-
+  @Test
+  public void testMapReduce() throws Exception{
+    SenseiResult res = senseiServiceProxy.sendSearchRequest(Examples.mapReduce(SenseiClientRequest.builder()).build());    
+    assertEquals("{\"min\":2100,\"uid\":4757}", res.getMapReduceResult().toString());
+    
+  }
   /* Need to fix the bug in bobo and kamikazi, for details see the following two test cases:*/
 
 //  public void testAndFilter1() throws Exception
