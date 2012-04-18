@@ -15,6 +15,8 @@ public class Model {
   @JsonField("function_params")
   private List<String> functionParams = new ArrayList<String>();
   private String function;
+  @JsonField("save_as")
+  private SaveAs saveAs;
   public static ModelBuilder builder() {
     return new ModelBuilder();
   }
@@ -54,6 +56,10 @@ public class Model {
          }
          variablesList.addAll(Arrays.asList(variables));
       }
+      return this;
+    }
+    public ModelBuilder saveAs(String name, boolean overwrite) {
+      this.model.saveAs = new SaveAs(name, overwrite);
       return this;
     }
     public Model build() {

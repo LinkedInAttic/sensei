@@ -20,6 +20,8 @@ public class SenseiResult {
     private Long time;
     private Map<String, List<FacetResult>> facets;
     private JSONObject mapReduceResult;
+    private Integer errorCode;
+    private List<Error> errors = new ArrayList<Error>();
     @Override
     public String toString() {
         return "SenseiResult [tid=" + tid + ", totaldocs=" + totaldocs + ", numhits=" + numhits + ", numgroups="
@@ -80,6 +82,18 @@ public class SenseiResult {
     public void setMapReduceResult(JSONObject mapReduceResult) {
       this.mapReduceResult = mapReduceResult;
     }
-
+    public Integer getErrorCode() {
+      return errorCode;
+    }
+    public void setErrorCode(Integer errorCode) {
+      this.errorCode = errorCode;
+    }
+    public List<Error> getErrors() {
+      return errors;
+    }
+    public void setErrors(List<Error> errors) {
+      this.errors = errors;
+    }
+    
 
 }
