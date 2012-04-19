@@ -1,5 +1,6 @@
 package com.senseidb.search.client.json.req;
 
+
 import java.util.Map;
 
 public class MapReduce {

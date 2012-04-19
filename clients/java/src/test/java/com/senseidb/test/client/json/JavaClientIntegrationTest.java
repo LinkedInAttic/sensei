@@ -430,7 +430,7 @@ public class JavaClientIntegrationTest extends Assert {
         addFunctionParams("_INNER_SCORE", "thisYear", "year","goodYear","mileageWeight","mileage","color", "yearcolor", "colorweight", "category", "categorycolor").
         addVariables(VariableType.set_int, "goodYear").addVariables(VariableType.type_int, "thisYear").
         addVariables(VariableType.map_int_float, "mileageWeight").addVariables(VariableType.map_int_string, "yearcolor")
-        .addVariables(VariableType.map_string_float, "colorweight").addVariables(VariableType.map_string_string, "categorycolor").
+        .addVariables(VariableType.map_string_float, "colorweight").addVariables(VariableType.map_string_string, "categorycolor").saveAs("model", true).
         function(" if(categorycolor.containsKey(category) && categorycolor.get(category).equals(color))  return 10000f; if(colorweight.containsKey(color) ) return 200f + colorweight.getFloat(color); if(yearcolor.containsKey(year) && yearcolor.get(year).equals(color)) return 200f; if(mileageWeight.containsKey(mileage)) return 10000+mileageWeight.get(mileage); if(goodYear.contains(year)) return (float)Math.exp(2d);   if(year==thisYear) return 87f   ; return  _INNER_SCORE;").build();
     Map<Object, Object> map = new HashMap<Object, Object>();
     map.put("red", 335.5);
@@ -445,9 +445,23 @@ public class JavaClientIntegrationTest extends Assert {
     SenseiClientRequest request = SenseiClientRequest.builder().addSort(Sort.byRelevance()).query(Queries.stringQuery("").setRelevance(Relevance.valueOf(model, valuesBuilder.build()))).build();
     SenseiResult senseiResult = senseiServiceProxy.sendSearchRequest(request);
     assertEquals(10777, senseiResult.getHits().get(0).getScore().intValue());
+    assertEquals(0, senseiResult.getErrorCode().intValue());
   }
-
-
+  @Test
+  public void testError() throws Exception{
+    String bql = "select1 *  where color in ('red')";
+    SenseiResult res = senseiServiceProxy.sendBQL(bql);
+    assertEquals( 150, res.getErrorCode().intValue());
+    assertEquals( 1, res.getErrors().size());
+    assertEquals( "[line:1, col:0] No viable alternative (token=select1)", res.getErrors().get(0).getMessage());
+    assertEquals( "BQLParsingError", res.getErrors().get(0).getErrorType());
+  }
+  @Test
+  public void testMapReduce() throws Exception{
+    SenseiResult res = senseiServiceProxy.sendSearchRequest(Examples.mapReduce(SenseiClientRequest.builder()).build());    
+    assertEquals("{\"min\":2100,\"uid\":4757}", res.getMapReduceResult().toString());
+    
+  }
   /* Need to fix the bug in bobo and kamikazi, for details see the following two test cases:*/
 
 //  public void testAndFilter1() throws Exception

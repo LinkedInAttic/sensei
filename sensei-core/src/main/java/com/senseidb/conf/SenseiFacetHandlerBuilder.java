@@ -410,8 +410,6 @@ public class SenseiFacetHandlerBuilder {
 
 				} else if (type.equals("weighted-multi")) {
 				    facetHandler = buildWeightedMultiHandler(name, fieldName,  termListFactoryMap.get(fieldName), dependSet);
-        } else if (type.equals("multi-range")) {
-          facetHandler = new MultiRangeFacetHandler(name, fieldName, null, termListFactoryMap.get(fieldName), buildPredefinedRanges(paramMap));
         } else if (type.equals("attribute")) {
           facetHandler = new AttributesFacetHandler(name, fieldName, termListFactoryMap.get(fieldName), null, facetProps);
         } else if (type.equals("histogram")) {

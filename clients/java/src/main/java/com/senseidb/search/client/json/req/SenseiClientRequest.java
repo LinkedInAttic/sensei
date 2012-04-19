@@ -80,8 +80,10 @@ public class SenseiClientRequest {
   private Map<String, Object> templateMapping;
 
   private MapReduce mapReduce;
+
  
   private RequestMetadata meta;
+
 
   public static class Builder {
     private SenseiClientRequest request = new SenseiClientRequest();
@@ -190,10 +192,12 @@ public class SenseiClientRequest {
       request.filter = filter;
       return this;
     }
+
     public Builder mapReduce(String function, Map<String, Object> parameters) {
       request.mapReduce = new MapReduce(function, parameters);
       return this;
     }
+    
     public SenseiClientRequest build() {
       return request;
     }
@@ -279,5 +283,10 @@ public class SenseiClientRequest {
   public void setSelections(List<Selection> selections) {
     this.selections = selections;
   }
-  
+  public void setMapReduce(MapReduce mapReduce){
+    this.mapReduce = mapReduce;
+  }
+  public MapReduce getMapReduce(){
+    return mapReduce;
+  }  
 }
