@@ -2,9 +2,13 @@ package com.senseidb.search.node;
 
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 
+import java.lang.management.ManagementFactory;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import javax.management.MBeanServer;
+import javax.management.ObjectName;
 
 import org.apache.log4j.Logger;
 import org.apache.lucene.document.Document;
@@ -32,19 +36,29 @@ import com.senseidb.svc.impl.CoreSenseiServiceImpl;
  * mechanism to handle distributed search, which does not support request based
  * context sensitive routing.
  */
-public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, SenseiResult>
+public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, SenseiResult> implements SenseiBrokerMBean
 {
   private final static Logger logger = Logger.getLogger(SenseiBroker.class);
   private final static long TIMEOUT_MILLIS = 8000L;
   private long _timeoutMillis = TIMEOUT_MILLIS;
   private final boolean allowPartialMerge;
+  private final ClusterClient clusterClient;
 
   public SenseiBroker(PartitionedNetworkClient<String> networkClient, ClusterClient clusterClient, boolean allowPartialMerge) throws NorbertException
   {
     super(networkClient, CoreSenseiServiceImpl.JAVA_SERIALIZER);
+	this.clusterClient = clusterClient;
     this.allowPartialMerge = allowPartialMerge;
-//    _loadBalancerFactory = loadBalancerFactory;
-    clusterClient.addListener(this);
+    MBeanServer platformMBeanServer = ManagementFactory.getPlatformMBeanServer();
+	ObjectName name;
+	try {
+		name = new ObjectName("com.senseidb.search.node:type=SenseiBroker");
+		platformMBeanServer.registerMBean(this, name);
+	    
+	} catch (Exception e) {
+		throw new RuntimeException(e.getMessage(), e);
+	}	
+	clusterClient.addListener(this);
     logger.info("created broker instance " + networkClient + " " + clusterClient);
   }
 
@@ -167,7 +181,7 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
   {
 //    _loadBalancer = _loadBalancerFactory.newLoadBalancer(nodes);
 //    _partitions = getPartitions(nodes);
-//    logger.info("handleClusterConnected(): Received the list of nodes from norbert " + nodes.toString());
+//      logger.info("handleClusterConnected(): Received the list of nodes from norbert " + nodes.toString());
 //    logger.info("handleClusterConnected(): Received the list of partitions from router " + _partitions.toString());
   }
 
@@ -179,7 +193,8 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
 
   public void handleClusterNodesChanged(Set<Node> nodes)
   {
-//    _loadBalancer = _loadBalancerFactory.newLoadBalancer(nodes);
+	  
+	  //    _loadBalancer = _loadBalancerFactory.newLoadBalancer(nodes);
 //    _partitions = getPartitions(nodes);
 //    logger.info("handleClusterNodesChanged(): Received the list of nodes from norbert " + nodes.toString());
 //    logger.info("handleClusterNodesChanged(): Received the list of partitions from router " + _partitions.toString());
@@ -195,4 +210,18 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
   public boolean allowPartialMerge() {
     return allowPartialMerge;
   }
+
+	@Override
+	public int getNumberOfNodes() {
+		return clusterClient.getNodes().size();
+	}
+
+	@Override
+	public String getNodeStatistics() {
+		StringBuilder str = new StringBuilder("Nodes:");
+		for (Node node : clusterClient.getNodes()) {
+			str.append("[nodeId=" + node.getId() + ", partitions=["	+ node.getPartitionIds() + "]],");
+		}
+		return str.toString();
+	}
 }
