@@ -6,6 +6,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import com.senseidb.search.client.json.CustomJsonHandler;
 import com.senseidb.search.client.json.JsonField;
 import com.senseidb.search.client.json.req.filter.Filter;
@@ -160,7 +163,11 @@ public class SenseiClientRequest {
       if ("_score".equalsIgnoreCase(sort.getField())) {
         request.sort.add("_score");
       } else {
-        request.sort.add(sort);
+        try {
+          request.sort.add(new JSONObject().put(sort.getField(), sort.getOrder().name()));
+        } catch (JSONException e) {
+         throw new RuntimeException(e);
+        }
       }      
       return this;
     }

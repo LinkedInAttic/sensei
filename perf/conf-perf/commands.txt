@@ -1,0 +1,7 @@
+-d64 -Xms4g -Xmx40g 
+-XX:ReservedCodeCacheSize=256m -XX:MaxPermSize=1536m -XX:+UseParallelGC 
+-XX:+DisableExplicitGC -Dname=PerfRunner
+
+rm -rf /tmp/sensei-example-cars-perf
+
+kill -9 $(ps aux | grep 'PerfRunner' | awk '{print $2}')
