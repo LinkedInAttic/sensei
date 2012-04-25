@@ -31,8 +31,9 @@ public class ActivityRangeFilterIterator extends DocIdSetIterator {
      if (indexes[_doc] == -1) {
        continue;
      }
-     int value = fieldValues[indexes[_doc]]; 
+     int value = fieldValues[indexes[_doc]];      
      if (value >= start && value < end && value != Integer.MIN_VALUE) {
+       System.out.println("docId = " + _doc + "; value = " + value + "; index = " + indexes[_doc]);
        return _doc;
      }
    }

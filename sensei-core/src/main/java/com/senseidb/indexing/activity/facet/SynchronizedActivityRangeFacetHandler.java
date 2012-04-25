@@ -77,6 +77,9 @@ public class SynchronizedActivityRangeFacetHandler extends FacetHandler<int[]> {
           
           @Override
           public boolean get(int docId) {           
+            if (indexes[docId] == -1) {
+              return false;
+            }
             synchronized (activityIntValues.getFieldValues()) {
               int val = array[indexes[docId]];            
               return val >= startValue && val < endValue && val != Integer.MIN_VALUE;
@@ -107,7 +110,10 @@ public class SynchronizedActivityRangeFacetHandler extends FacetHandler<int[]> {
   @Override
   public String[] getFieldValues(BoboIndexReader reader, int id) {   
     final int[] indexes = (int[]) ((BoboIndexReader)reader).getFacetData(_name);   
-    int index = indexes[id];   
+    int index = indexes[id]; 
+    if (index == -1) {
+      return new String[0];
+    }
     int value = 0;   
      synchronized (activityIntValues.getFieldValues()) {
        value = activityIntValues.getValue(index);
@@ -131,15 +137,19 @@ public class SynchronizedActivityRangeFacetHandler extends FacetHandler<int[]> {
           @Override
           public Comparable<Integer> value(ScoreDoc doc) {          
               synchronized (activityIntValues.getFieldValues()) {
+                if (indexes[doc.doc] == -1) {
+                  return 0;
+                }
                 return array[indexes[doc.doc]]; 
               }
           }
 
           @Override
           public int compare(ScoreDoc doc1, ScoreDoc doc2) {  
+            
             synchronized (activityIntValues.getFieldValues()) {
-              int val1 = array[indexes[doc1.doc]]; 
-              int val2 = array[indexes[doc2.doc]];            
+              int val1 = indexes[doc1.doc] > -1 ? array[indexes[doc1.doc]] : 0; ; 
+              int val2 = indexes[doc2.doc] > -1 ?array[indexes[doc2.doc]] : 0;            
               return (val1<val2 ? -1 : (val1==val2 ? 0 : 1));
             }
           }

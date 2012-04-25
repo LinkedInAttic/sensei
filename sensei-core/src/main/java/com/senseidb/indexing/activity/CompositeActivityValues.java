@@ -32,8 +32,9 @@ import com.yammer.metrics.core.Counter;
 import com.yammer.metrics.core.MetricName;
 
 public class CompositeActivityValues {
+  private static final int NUM_LOCKS = 1024;
+  private static final int DEFAULT_INITIAL_CAPACITY = 5000;
   private final static Logger logger = Logger.getLogger(CompositeActivityValues.class);
-  private static final String AGGREGATED_SUFFIX = "_aggregated";
   private Comparator<String> versionComparator; 
   private volatile UpdateBatch<Update> pendingDeletes = new UpdateBatch<Update>();
   protected Map<String, ActivityValues> intValuesMap = new ConcurrentHashMap<String, ActivityValues>();
@@ -52,12 +53,12 @@ public class CompositeActivityValues {
    
   }
   public void init() {
-    init(5000);   
+    init(DEFAULT_INITIAL_CAPACITY);   
   }
 
   public void init(int count) {
     uidToArrayIndex = new Long2IntOpenHashMap(count);
-    locks = new ReadWriteLock[1024];
+    locks = new ReadWriteLock[NUM_LOCKS];
     for (int i = 0; i < 1024; i++) {
       locks[i] = new ReentrantReadWriteLock();
     }
@@ -106,6 +107,7 @@ public class CompositeActivityValues {
         }
         needToFlush = updateBatch.addFieldUpdate(new Update(index, uid));
       }      
+      System.out.println("update uid = " + uid + ", index = " + index + ", threadID = " + Thread.currentThread().getId());
       needToFlush = needToFlush || updateActivities(event, index);
       lastVersion = version;
     } finally {
@@ -303,9 +305,10 @@ private boolean updateActivities(JSONObject event, int index) {
       try {
         lock.lock();
         if (!uidToArrayIndex.containsKey(uid)) {
-          throw new IllegalStateException("Couldn't find the field value for the uid = " + uid);
+          ret[i] = -1;
+        } else {
+          ret[i] = uidToArrayIndex.get(uid);       
         }
-        ret[i] = uidToArrayIndex.get(uid);       
       } finally {
         lock.unlock();
       }
@@ -316,6 +319,9 @@ private boolean updateActivities(JSONObject event, int index) {
     return intValuesMap;
   }
   public int getValueByUID(long uid, String column) {
+    if (!uidToArrayIndex.containsKey(uid)) {
+     return Integer.MIN_VALUE;
+    }
     Lock lock = getLock(uid).readLock();
     try {
       lock.lock();

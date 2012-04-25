@@ -402,7 +402,7 @@ public class SenseiFacetHandlerBuilder {
 					}
 				} else if (type.equals("aggregated-range")) {
 				  Assert.state(column.optBoolean("activity") == Boolean.TRUE, "aggregated-activity facet handler should reference the activity column");
-				  facets.addAll(buildAggregatedActivityFacetHanlers(facet, activityManager));          
+				  facets.addAll(buildAggregatedActivityFacetHandlers(facet, activityManager));          
         } else if (type.equals("multi")) {
 					facetHandler = buildMultiHandler(name, fieldName,  termListFactoryMap.get(fieldName), dependSet);
 				} else if (type.equals("compact-multi")) {
@@ -460,7 +460,7 @@ public class SenseiFacetHandlerBuilder {
     return sysInfo;
 	}
 
-  private static Collection<? extends FacetHandler<?>> buildAggregatedActivityFacetHanlers(JSONObject facet, CompositeActivityManager activityManager) {
+  private static Collection<? extends FacetHandler<?>> buildAggregatedActivityFacetHandlers(JSONObject facet, CompositeActivityManager activityManager) {
     List<FacetHandler<?>> ret = new ArrayList<FacetHandler<?>>();
     FacetDefinition facetDefinition = SenseiSchema.FacetDefinition.valueOf(facet);
     ActivityValues activityValues = activityManager.getActivityValues().getActivityValuesMap().get(facetDefinition.column);
