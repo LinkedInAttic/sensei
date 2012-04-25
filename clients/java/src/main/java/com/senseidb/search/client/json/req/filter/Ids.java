@@ -15,7 +15,7 @@ import com.senseidb.search.client.json.req.query.QueryJsonHandler;
  *
  */
 @CustomJsonHandler(QueryJsonHandler.class)
-public class Ids implements Filter, Query {
+public class Ids extends Query implements Filter {
     List<String> values;
     List<String> excludes;
     private double boost;

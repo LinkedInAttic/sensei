@@ -34,6 +34,8 @@ import com.senseidb.cluster.client.SenseiNetworkClient;
 import com.senseidb.conf.SenseiFacetHandlerBuilder;
 import com.senseidb.search.node.SenseiBroker;
 import com.senseidb.search.node.SenseiSysBroker;
+import com.senseidb.search.req.ErrorType;
+import com.senseidb.search.req.SenseiError;
 import com.senseidb.search.req.SenseiHit;
 import com.senseidb.search.req.SenseiRequest;
 import com.senseidb.search.req.SenseiResult;
@@ -82,11 +84,9 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
 
     _networkClientConfig.setClusterClient(_clusterClient);
 
-    _networkClient = new SenseiNetworkClient(_networkClientConfig, null);
-    _senseiBroker = new SenseiBroker(_networkClient, _clusterClient, loadBalancerFactory,
-                                     pollInterval, minResponses, maxTotalWait);
-    _senseiSysBroker = new SenseiSysBroker(_networkClient, _clusterClient, loadBalancerFactory, versionComparator,
-                                           pollInterval, minResponses, maxTotalWait);
+    _networkClient = new SenseiNetworkClient(_networkClientConfig, loadBalancerFactory);
+    _senseiBroker = new SenseiBroker(_networkClient, _clusterClient, allowPartialMerge);
+    _senseiSysBroker = new SenseiSysBroker(_networkClient, _clusterClient, versionComparator, allowPartialMerge);
 
     logger.info("Connecting to cluster: "+clusterName+" ...");
     _clusterClient.awaitConnectionUninterruptibly();
@@ -174,22 +174,9 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
           String contentType = req.getHeader("Content-Type");
           if (contentType != null && contentType.indexOf("json") >= 0)
           {
-            logger.error("JSON parsing error", jse);
-            OutputStream ostream = resp.getOutputStream();
-            try
-            {
-              JSONObject errResp = new JSONObject().put("error",
-                                                        new JSONObject().put("code", JSON_PARSING_ERROR)
-                                                                        .put("msg", jse.getMessage()));
-              ostream.write(errResp.toString().getBytes("UTF-8"));
-              ostream.flush();
-              return;
-            }
-            catch (JSONException err)
-            {
-              logger.error(err.getMessage());
-              throw new ServletException(err.getMessage(), err);
-            }
+            logger.error("JSON parsing error", jse);           
+              writeEmptyResponse(resp, new SenseiError(jse.getMessage(), ErrorType.JsonParsingError));              
+              return;            
           }
 
           logger.warn("Old client or json error", jse);
@@ -216,21 +203,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
           catch(JSONException jse)
           {
             logger.error("JSON parsing error", jse);
-            OutputStream ostream = resp.getOutputStream();
-            try
-            {
-              JSONObject errResp = new JSONObject().put("error",
-                                                        new JSONObject().put("code", JSON_PARSING_ERROR)
-                                                                        .put("msg", jse.getMessage()));
-              ostream.write(errResp.toString().getBytes("UTF-8"));
-              ostream.flush();
-              return;
-            }
-            catch (JSONException err)
-            {
-              logger.error(err.getMessage());
-              throw new ServletException(err.getMessage(), err);
-            }
+              writeEmptyResponse(resp, new SenseiError(jse.getMessage(), ErrorType.JsonParsingError)); 
           }
         }
         else
@@ -256,7 +229,10 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
           {
             if (queryLogger.isInfoEnabled())
             {
-              queryLogger.info("bql=" + bqlStmt);
+              if (jsonObj.length() == 1)
+                queryLogger.info("bql=" + bqlStmt);
+              else
+                queryLogger.info("query=" + content);
             }
             compiledJson = _compiler.compile(bqlStmt);
           }
@@ -268,21 +244,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
               errMsg = "Unknown parsing error.";
             }
             logger.error("BQL parsing error: " + errMsg + ", BQL: " + bqlStmt);
-            OutputStream ostream = resp.getOutputStream();
-            try
-            {
-              JSONObject errResp = new JSONObject().put("error",
-                                                        new JSONObject().put("code", BQL_PARSING_ERROR)
-                                                                        .put("msg", errMsg));
-              ostream.write(errResp.toString().getBytes("UTF-8"));
-              ostream.flush();
-              return;
-            }
-            catch (JSONException err)
-            {
-              logger.error(err.getMessage());
-              throw new ServletException(err.getMessage(), err);
-            }
+            writeEmptyResponse(resp, new SenseiError(errMsg, ErrorType.BQLParsingError));             
           }
 
           // Handle extra BQL filter if it exists
@@ -290,11 +252,6 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
           JSONObject predObj = null;
           if (extraFilter.length() > 0)
           {
-            if (queryLogger.isInfoEnabled())
-            {
-              queryLogger.info("BQL extra filter: " + extraFilter);
-            }
-
             String bql2 = "SELECT * WHERE " + extraFilter;
             try
             {
@@ -308,21 +265,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
                 errMsg = "Unknown parsing error.";
               }
               logger.error("BQL parsing error for additional preds: " + errMsg + ", BQL: " + bql2);
-              OutputStream ostream = resp.getOutputStream();
-              try
-              {
-                JSONObject errResp = new JSONObject().put("error",
-                                                          new JSONObject().put("code", BQL_EXTRA_FILTER_ERROR)
-                                                          .put("msg", errMsg));
-                ostream.write(errResp.toString().getBytes("UTF-8"));
-                ostream.flush();
-                return;
-              }
-              catch (JSONException err)
-              {
-                logger.error(err.getMessage());
-                throw new ServletException(err.getMessage(), err);
-              }
+              writeEmptyResponse(resp, new SenseiError("BQL parsing error for additional preds: " + errMsg + ", BQL: " + bql2, ErrorType.BQLParsingError));  
             }
 
             // Combine filters
@@ -373,12 +316,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
                 if (templatesJson == null ||
                     templatesJson.opt(var) == null)
                 {
-                  OutputStream ostream = resp.getOutputStream();
-                  JSONObject errResp = new JSONObject().put("error",
-                                                            new JSONObject().put("code", BQL_PARSING_ERROR)
-                                                                            .put("msg", "[line:0, col:0] Variable " + var + " is not found."));
-                  ostream.write(errResp.toString().getBytes("UTF-8"));
-                  ostream.flush();
+                  writeEmptyResponse(resp, new SenseiError("[line:0, col:0] Variable " + var + " is not found.", ErrorType.BQLParsingError));
                   return;
                 }
               }
@@ -401,14 +339,39 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
         senseiReq = SenseiRequest.fromJSON(compiledJson);
       }
       SenseiResult res = _senseiBroker.browse(senseiReq);
-      OutputStream ostream = resp.getOutputStream();
-      convertResult(senseiReq, res, ostream);
-      ostream.flush();
+      sendResponse(resp, senseiReq, res);
+   } catch (JSONException e) {
+      try {
+        writeEmptyResponse(resp, new SenseiError(e.getMessage(), ErrorType.JsonParsingError));
+      } catch (Exception ex) {
+        throw new ServletException(e);
+      }
     }
     catch (Exception e)
     {
-      throw new ServletException(e.getMessage(),e);
+      try {
+        logger.error(e.getMessage(), e);
+        if (e.getCause() != null && e.getCause() instanceof JSONException) {
+          writeEmptyResponse(resp, new SenseiError(e.getMessage(), ErrorType.JsonParsingError));
+      } else {
+        writeEmptyResponse(resp, new SenseiError(e.getMessage(), ErrorType.InternalError));
+      }
+      } catch (Exception ex) {
+        throw new ServletException(e);
+      }
     }
+  }
+
+  private void writeEmptyResponse(HttpServletResponse resp, SenseiError senseiError) throws Exception {
+    SenseiResult res = new SenseiResult();
+    res.addError(senseiError);
+    sendResponse(resp, new SenseiRequest(), res);
+  }
+
+  private void sendResponse(HttpServletResponse resp, SenseiRequest senseiReq, SenseiResult res) throws Exception {
+    OutputStream ostream = resp.getOutputStream();
+    convertResult(senseiReq, res, ostream);
+    ostream.flush();
   }
 
   private void handleStoreGetRequest(HttpServletRequest req, HttpServletResponse resp)

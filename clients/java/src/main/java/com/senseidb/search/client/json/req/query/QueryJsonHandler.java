@@ -54,18 +54,22 @@ public class QueryJsonHandler implements JsonHandler<Query> {
           + " is not supported for serialization by the QueryJsonHandler");
     }
     JSONObject defaultSerialization = (JSONObject) JsonSerializer.serialize(bean, false);
-    if (bean instanceof FieldAware) {
+    if (bean instanceof FieldAwareQuery) {
       defaultSerialization.remove("field");
       if (bean instanceof SpanTerm && ((SpanTerm) bean).getBoost() == null) {
         SpanTerm spanTerm = (SpanTerm) bean;
         defaultSerialization = new JSONObject().put(spanTerm.getField(), spanTerm.getValue());
       } else {
-        defaultSerialization = new JSONObject().put(((FieldAware) bean).getField(), defaultSerialization);
+        defaultSerialization = new JSONObject().put(((FieldAwareQuery) bean).getField(), defaultSerialization);
       }
     }
     if (bean instanceof Selection) {
       defaultSerialization.remove("field");
       defaultSerialization = new JSONObject().put(((Selection) bean).getField(), defaultSerialization);
+    }
+    if (bean.getRelevance() != null) {
+      defaultSerialization.remove("relevance");
+      defaultSerialization.put("relevance", JsonSerializer.serialize(bean.getRelevance()));
     }
     return new JSONObject().put(typeNames.get(bean.getClass()), defaultSerialization);
   }

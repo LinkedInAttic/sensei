@@ -18,7 +18,7 @@ import com.senseidb.search.client.json.CustomJsonHandler;
  *
  */
 @CustomJsonHandler(QueryJsonHandler.class)
-public class QueryWildcard extends FieldAware implements Query {
+public class QueryWildcard extends FieldAwareQuery {
   private String value;
   private double boost;
 

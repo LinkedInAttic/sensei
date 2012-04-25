@@ -519,6 +519,7 @@ LIKE : ('L'|'l')('I'|'i')('K'|'k')('E'|'e') ;
 LIMIT : ('L'|'l')('I'|'i')('M'|'m')('I'|'i')('T'|'t') ;
 LONG : ('L'|'l')('O'|'o')('N'|'n')('G'|'g') ;
 MATCH : ('M'|'m')('A'|'a')('T'|'t')('C'|'c')('H'|'h') ;
+MODEL : ('M'|'m')('O'|'o')('D'|'d')('E'|'e')('L'|'l') ;
 NOT : ('N'|'n')('O'|'o')('T'|'t') ;
 NOW : ('N'|'n')('O'|'o')('W'|'w') ;
 NULL : ('N'|'n')('U'|'u')('L'|'l')('L'|'l') ;
@@ -527,12 +528,14 @@ ORDER : ('O'|'o')('R'|'r')('D'|'d')('E'|'e')('R'|'r') ;
 PARAM : ('P'|'p')('A'|'a')('R'|'r')('A'|'a')('M'|'m') ;
 QUERY : ('Q'|'q')('U'|'u')('E'|'e')('R'|'r')('Y'|'y') ;
 ROUTE : ('R'|'r')('O'|'o')('U'|'u')('T'|'t')('E'|'e') ;
+RELEVANCE : ('R'|'r')('E'|'e')('L'|'l')('E'|'e')('V'|'v')('A'|'a')('N'|'n')('C'|'c')('E'|'e') ;
 SELECT : ('S'|'s')('E'|'e')('L'|'l')('E'|'e')('C'|'c')('T'|'t') ;
 SINCE : ('S'|'s')('I'|'i')('N'|'n')('C'|'c')('E'|'e') ;
 STORED : ('S'|'s')('T'|'t')('O'|'o')('R'|'r')('E'|'e')('D'|'d') ;
 STRING : ('S'|'s')('T'|'t')('R'|'r')('I'|'i')('N'|'n')('G'|'g') ;
 TOP : ('T'|'t')('O'|'o')('P'|'p') ;
 TRUE : ('T'|'t')('R'|'r')('U'|'u')('E'|'e') ;
+USING : ('U'|'u')('S'|'s')('I'|'i')('N'|'n')('G'|'g') ;
 VALUE : ('V'|'v')('A'|'a')('L'|'l')('U'|'u')('E'|'e') ;
 WHERE : ('W'|'w')('H'|'h')('E'|'e')('R'|'r')('E'|'e') ;
 WITH : ('W'|'w')('I'|'i')('T'|'t')('H'|'h') ;
@@ -579,6 +582,7 @@ select_stmt returns [Object json]
     boolean seenBrowseBy = false;
     boolean seenFetchStored = false;
     boolean seenRouteBy = false;
+    boolean seenRelevanceModel = false;
 }
     :   SELECT ('*' | cols=column_name_list)
         (FROM (IDENT | STRING_LITERAL))?
@@ -638,6 +642,16 @@ select_stmt returns [Object json]
                     seenRouteBy = true;
                 }
             }
+        |   rel_model = relevance_model_clause
+            {
+                if (seenRelevanceModel) {
+                    throw new FailedPredicateException(input, "select_stmt", "USING RELEVANCE MODEL clause can only appear once.");
+                }
+                else {
+                    seenRelevanceModel = true;
+                }
+            }
+
         )*
         {
             JSONObject jsonObj = new JSONObject();
@@ -665,7 +679,12 @@ select_stmt returns [Object json]
                 jsonObj.put("meta", metaData);
 
                 if (order_by != null) {
-                    jsonObj.put("sort", $order_by.json);
+                    if ($order_by.isRelevance) {
+                        jsonObj.put("sort", "relevance");
+                    }
+                    else {
+                        jsonObj.put("sort", $order_by.json);
+                    }
                 }
                 if (limit != null) {
                     jsonObj.put("from", $limit.offset);
@@ -706,13 +725,26 @@ select_stmt returns [Object json]
                         jsonObj.put("filter", f);
                     }
                 }
+
                 if (given != null) {
                     jsonObj.put("facetInit", $given.json);
                 }
+
+                if (rel_model != null) {
+                    JSONObject queryPred = jsonObj.optJSONObject("query");
+                    if (queryPred == null) {
+                        queryPred = new JSONObject().put("query_string",
+                                                         new JSONObject().put("query", "")
+                                                                         .put("relevance", $rel_model.json));
+                        jsonObj.put("query", queryPred);
+                    }
+                }
+                
             }
             catch (JSONException err) {
                 throw new FailedPredicateException(input, "select_stmt", "JSONException: " + err.getMessage());
             }
+
             $json = jsonObj;
         }
         // -> ^(SELECT column_name_list IDENT where?)
@@ -762,10 +794,16 @@ where returns [Object json]
         }
     ;
 
-order_by_clause returns [Object json]
-    :   ORDER BY sort_specs
+order_by_clause returns [boolean isRelevance, Object json]
+    :   ORDER BY (RELEVANCE | sort_specs)
         {
-            $json = $sort_specs.json;
+            if ($RELEVANCE != null) {
+                $isRelevance = true;
+            }
+            else {
+                $isRelevance = false;
+                $json = $sort_specs.json;
+            }
         }
     ;
 
@@ -1690,6 +1728,23 @@ given_clause returns [JSONObject json]
     :   GIVEN FACET PARAM facet_param_list
         {
             $json = $facet_param_list.json;
+        }
+    ;
+
+relevance_model_clause returns [JSONObject json]
+@init {
+    $json = new JSONObject();
+}
+    :   USING RELEVANCE MODEL IDENT prop_list
+        {
+            try {
+                $json.put("predefined_model", $IDENT.text);
+                $json.put("values", $prop_list.json);
+            }
+            catch (JSONException err) {
+                throw new FailedPredicateException(input, "relevance_model_clause",
+                                                   "JSONException: " + err.getMessage());
+            }
         }
     ;
 

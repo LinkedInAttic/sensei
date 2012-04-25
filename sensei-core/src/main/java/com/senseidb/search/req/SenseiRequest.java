@@ -54,6 +54,8 @@ private long   tid           =          -1;
   private Set<String> _termVectorsToFetch;
   private List<String> _selectList; // Select list (mostly used in BQL) 
   private SenseiMapReduce mapReduceFunction;
+  private List<SenseiError> errors = new ArrayList<SenseiError>();
+  
   public SenseiRequest(){
     _facetInitParamMap = new HashMap<String,FacetHandlerInitializerParam>();
     _selections=new HashMap<String,BrowseSelection>();
@@ -470,10 +472,35 @@ private long   tid           =          -1;
     buf.append("fetch stored value: ").append(_fetchStoredValue);
     return buf.toString();
   }
-  
-  public Object clone() throws CloneNotSupportedException
+
+  public SenseiRequest clone()
   {
-    return super.clone();
+    SenseiRequest clone = new SenseiRequest();
+    clone.setTid(this.getTid());
+    
+    BrowseSelection[] selections = this.getSelections();
+    for(BrowseSelection selection : selections)
+      clone.addSelection(selection);
+    
+    for(SortField sort : this.getSort())
+      clone.addSortField(sort);
+    
+    clone.setFacetSpecs(this.getFacetSpecs());
+    clone.setQuery(this.getQuery());
+    clone.setOffset(this.getOffset());
+    clone.setCount(this.getCount());
+    clone.setFetchStoredFields(this.isFetchStoredFields());
+    clone.setFetchStoredValue(this.isFetchStoredValue());
+    clone.setFacetHandlerInitParamMap(this.getFacetHandlerInitParamMap());
+    clone.setPartitions(this.getPartitions());
+    clone.setShowExplanation(this.isShowExplanation());
+    clone.setRouteParam(this.getRouteParam());
+    clone.setGroupBy(this.getGroupBy());
+    clone.setMaxPerGroup(this.getMaxPerGroup());
+    clone.setTermVectorsToFetch(this.getTermVectorsToFetch());
+    clone.setSelectList(this.getSelectList());
+    clone.setMapReduceFunction(this.getMapReduceFunction());
+    return clone;
   }
 
   @Override
@@ -600,6 +627,14 @@ private long   tid           =          -1;
 
   public void setMapReduceFunction(SenseiMapReduce mapReduceFunction) {
     this.mapReduceFunction = mapReduceFunction;
+  }
+  
+  public List<SenseiError> getErrors() {
+    return errors;
+  }
+
+  public void addError(SenseiError error) {
+    this.errors.add(error);
   }
 
   private <T> boolean setsAreEqual(Set<T> a, Set<T> b) {

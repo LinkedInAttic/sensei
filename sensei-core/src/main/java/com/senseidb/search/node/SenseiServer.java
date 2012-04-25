@@ -4,6 +4,9 @@ import java.io.File;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.SocketException;
+import java.net.UnknownHostException;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 
@@ -13,7 +16,6 @@ import org.apache.log4j.Logger;
 import org.mortbay.jetty.Server;
 
 import proj.zoie.api.DataProvider;
-import scala.actors.threadpool.Arrays;
 
 import com.linkedin.norbert.javacompat.cluster.ClusterClient;
 import com.linkedin.norbert.javacompat.cluster.Node;
@@ -24,7 +26,6 @@ import com.senseidb.jmx.JmxUtil;
 import com.senseidb.plugin.SenseiPluginRegistry;
 import com.senseidb.search.req.AbstractSenseiRequest;
 import com.senseidb.search.req.AbstractSenseiResult;
-import com.senseidb.search.req.mapred.obsolete.MapReduceSenseiService;
 import com.senseidb.svc.impl.AbstractSenseiCoreService;
 import com.senseidb.svc.impl.CoreSenseiServiceImpl;
 import com.senseidb.svc.impl.SenseiCoreServiceMessageHandler;
@@ -134,11 +135,13 @@ public class SenseiServer {
       logger.info("shutting down node...");
       try
       {
+        _core.getActivityManager().getActivityValues().flush();
         _core.shutdown();
         pluginRegistry.stop();
         _clusterClient.removeNode(_id);
         _clusterClient.shutdown();
         _serverNode = null;
+        _core.getActivityManager().close();
       } catch (Exception e)
       {
         logger.warn(e.getMessage());
@@ -154,7 +157,7 @@ public class SenseiServer {
     }
   }
 
-  public void start(boolean available) throws Exception{
+  public void start(boolean available) throws Exception {
     _core.start();
 //        ClusterClient clusterClient = ClusterClientFactory.newInstance().newZookeeperClient();
     String clusterName = _clusterClient.getServiceName();
@@ -163,17 +166,15 @@ public class SenseiServer {
     logger.info("Cluster info: " + _clusterClient.toString());
 
     AbstractSenseiCoreService coreSenseiService = new CoreSenseiServiceImpl(_core);
-    AbstractSenseiCoreService sysSenseiCoreService = new SysSenseiCoreServiceImpl(_core);
-    AbstractSenseiCoreService mapReduceSenseiCoreService = new MapReduceSenseiService(_core);
+    AbstractSenseiCoreService sysSenseiCoreService = new SysSenseiCoreServiceImpl(_core);    
     // create the zookeeper cluster client
 //    SenseiClusterClientImpl senseiClusterClient = new SenseiClusterClientImpl(clusterName, zookeeperURL, zookeeperTimeout, false);
     SenseiCoreServiceMessageHandler senseiMsgHandler =  new SenseiCoreServiceMessageHandler(coreSenseiService);
     SenseiCoreServiceMessageHandler senseiSysMsgHandler =  new SenseiCoreServiceMessageHandler(sysSenseiCoreService);
-    SenseiCoreServiceMessageHandler mapReduceMsgHandler =  new SenseiCoreServiceMessageHandler(mapReduceSenseiCoreService);
+   
     _networkServer.registerHandler(senseiMsgHandler, coreSenseiService.getSerializer());
     _networkServer.registerHandler(senseiSysMsgHandler, sysSenseiCoreService.getSerializer());
-    _networkServer.registerHandler(mapReduceMsgHandler, mapReduceSenseiCoreService.getSerializer());
-
+    
     _networkServer.registerHandler(senseiMsgHandler, CoreSenseiServiceImpl.JAVA_SERIALIZER);
     _networkServer.registerHandler(senseiSysMsgHandler, SysSenseiCoreServiceImpl.JAVA_SERIALIZER);
 
@@ -194,20 +195,10 @@ public class SenseiServer {
       _clusterClient.awaitConnectionUninterruptibly();
       _serverNode = _clusterClient.getNodeWithId(_id);
       nodeExists = (_serverNode != null);
-      if (!nodeExists)
-      {
-        DatagramSocket ds = new DatagramSocket();
-        ds.connect(InetAddress.getByName(DUMMY_OUT_IP), 80);
-        String inetAddress = new InetSocketAddress(ds.getLocalAddress(), _port).toString();
-        if (inetAddress.trim().startsWith("0.0.0.0/")) {
-          inetAddress = new InetSocketAddress(InetAddress.getLocalHost().getHostAddress(), _port).toString();
-        }
-        String ipAddr = inetAddress.replaceAll("/", "");
-
+      if (!nodeExists) {
+        String ipAddr = getLocalIpAddress();
         logger.info("Node id : " + _id + " IP address : " + ipAddr);
-
         _serverNode = _clusterClient.addNode(_id, ipAddr, partition);
-
         logger.info("added node id: " + _id);
       } else
       {
@@ -242,9 +233,8 @@ public class SenseiServer {
         {
           logger.error("problem removing old node: " + e.getMessage(), e);
         }
-        DatagramSocket ds = new DatagramSocket();
-        ds.connect(InetAddress.getByName(DUMMY_OUT_IP), 80);
-        String ipAddr = (new InetSocketAddress(ds.getLocalAddress(), _port)).toString().replaceAll("/", "");
+       
+        String ipAddr = getLocalIpAddress();
         _serverNode = _clusterClient.addNode(_id, ipAddr, partition);
         Thread.sleep(1000);
 
@@ -286,11 +276,24 @@ public class SenseiServer {
     JmxUtil.registerMBean(bean, "name", "sensei-server-"+_id);
   }
 
-  private SenseiServerAdminMBean getAdminMBean()
-  {
-    return new SenseiServerAdminMBean(){
-      @Override
-      public int getId()
+
+  private String getLocalIpAddress() throws SocketException,
+      UnknownHostException {
+    DatagramSocket ds = new DatagramSocket();
+    ds.connect(InetAddress.getByName(DUMMY_OUT_IP), 80);
+    String inetAddress = new InetSocketAddress(ds.getLocalAddress(), _port).toString();
+    if (inetAddress.trim().startsWith("0.0.0.0/")) {
+      inetAddress = new InetSocketAddress(InetAddress.getLocalHost().getHostAddress(), _port).toString();
+    }
+    String ipAddr = inetAddress.replaceAll("/", "");
+    return ipAddr;
+  }
+
+	private SenseiServerAdminMBean getAdminMBean()
+	{
+	  return new SenseiServerAdminMBean(){
+	  @Override
+    public int getId()
       {
         return _id;
       }

@@ -8,9 +8,10 @@ import org.json.JSONObject;
 
 import com.senseidb.search.client.json.CustomJsonHandler;
 import com.senseidb.search.client.json.req.filter.Filter;
+import com.senseidb.search.client.json.req.query.Query;
 
 @CustomJsonHandler(SelectionJsonHandler.class)
-public abstract class Selection implements Filter {
+public abstract class Selection extends Query {
   private String field;
 
   public String getField() {

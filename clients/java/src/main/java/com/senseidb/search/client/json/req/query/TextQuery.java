@@ -48,28 +48,15 @@ import com.senseidb.search.client.json.req.Operator;
  * change in structure, <code>message</code> is the field name):
  * </p>
  *
- * <pre class="prettyprint lang-js">
- * <span class="pun">{</span><span class="pln"><br>&nbsp; &nbsp; </span><span class="str">"text"</span><span class="pln"> </span><span class="pun">:</span><span class="pln"> </span><span class="pun">{</span><span class="pln"><br>&nbsp; &nbsp; &nbsp; &nbsp; </span><span class="str">"message"</span><span class="pln"> </span><span class="pun">:</span><span class="pln"> </span><span class="pun">{</span><span class="pln"><br>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </span><span class="str">"query"</span><span class="pln"> </span><span class="pun">:</span><span class="pln"> </span><span class="str">"this is a test"</span><span class="pun">,</span><span class="pln"><br>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </span><span class="str">"operator"</span><span class="pln"> </span><span class="pun">:</span><span class="pln"> </span><span class="str">"and"</span><span class="pln"><br>&nbsp; &nbsp; &nbsp; &nbsp; </span><span class="pun">}</span><span class="pln"><br>&nbsp; &nbsp; </span><span class="pun">}</span><span class="pln"><br></span><span class="pun">}</span>
- * </pre>
- *
  * <h3>phrase</h3>
  * <p>
  * The <code>text_phrase</code> query analyzes the text and creates a
  * <code>phrase</code> query out of the analyzed text. For example:
  * </p>
- *
- * <pre class="prettyprint lang-js">
- * <span class="pun">{</span><span class="pln"><br>&nbsp; &nbsp; </span><span class="str">"text_phrase"</span><span class="pln"> </span><span class="pun">:</span><span class="pln"> </span><span class="pun">{</span><span class="pln"><br>&nbsp; &nbsp; &nbsp; &nbsp; </span><span class="str">"message"</span><span class="pln"> </span><span class="pun">:</span><span class="pln"> </span><span class="str">"this is a test"</span><span class="pln"><br>&nbsp; &nbsp; </span><span class="pun">}</span><span class="pln"><br></span><span class="pun">}</span>
- * </pre>
- *
  * <p>
  * Since <code>text_phrase</code> is only a <code>type</code> of a
  * <code>text</code> query, it can also be used in the following manner:
  * </p>
- *
- * <pre class="prettyprint lang-js">
- * <span class="pun">{</span><span class="pln"><br>&nbsp; &nbsp; </span><span class="str">"text"</span><span class="pln"> </span><span class="pun">:</span><span class="pln"> </span><span class="pun">{</span><span class="pln"><br>&nbsp; &nbsp; &nbsp; &nbsp; </span><span class="str">"message"</span><span class="pln"> </span><span class="pun">:</span><span class="pln"> </span><span class="pun">{</span><span class="pln"><br>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </span><span class="str">"query"</span><span class="pln"> </span><span class="pun">:</span><span class="pln"> </span><span class="str">"this is a test"</span><span class="pun">,</span><span class="pln"><br>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </span><span class="str">"type"</span><span class="pln"> </span><span class="pun">:</span><span class="pln"> </span><span class="str">"phrase"</span><span class="pln"><br>&nbsp; &nbsp; &nbsp; &nbsp; </span><span class="pun">}</span><span class="pln"><br>&nbsp; &nbsp; </span><span class="pun">}</span><span class="pln"><br></span><span class="pun">}</span>
- * </pre>
  *
  * <p>
  * A phrase query maintains order of the terms up to a configurable
@@ -81,29 +68,15 @@ import com.senseidb.search.client.json.req.Operator;
  * definition, or the default search analyzer, for example:
  * </p>
  *
- * <pre class="prettyprint lang-js">
- * <span class="pun">{</span><span class="pln"><br>&nbsp; &nbsp; </span><span class="str">"text_phrase"</span><span class="pln"> </span><span class="pun">:</span><span class="pln"> </span><span class="pun">{</span><span class="pln"><br>&nbsp; &nbsp; &nbsp; &nbsp; </span><span class="str">"message"</span><span class="pln"> </span><span class="pun">:</span><span class="pln"> </span><span class="pun">{</span><span class="pln"><br>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </span><span class="str">"query"</span><span class="pln"> </span><span class="pun">:</span><span class="pln"> </span><span class="str">"this is a test"</span><span class="pun">,</span><span class="pln"><br>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </span><span class="str">"analyzer"</span><span class="pln"> </span><span class="pun">:</span><span class="pln"> </span><span class="str">"my_analyzer"</span><span class="pln"><br>&nbsp; &nbsp; &nbsp; &nbsp; </span><span class="pun">}</span><span class="pln"><br>&nbsp; &nbsp; </span><span class="pun">}</span><span class="pln"><br></span><span class="pun">}</span>
- * </pre>
- *
  * <h3>text_phrase_prefix</h3>
  * <p>
  * The <code>text_phrase_prefix</code> is the same as <code>text_phrase</code>,
  * expect it allows for prefix matches on the last term in the text. For
  * example:
  * </p>
- *
- * <pre class="prettyprint lang-js">
- * <span class="pun">{</span><span class="pln"><br>&nbsp; &nbsp; </span><span class="str">"text_phrase_prefix"</span><span class="pln"> </span><span class="pun">:</span><span class="pln"> </span><span class="pun">{</span><span class="pln"><br>&nbsp; &nbsp; &nbsp; &nbsp; </span><span class="str">"message"</span><span class="pln"> </span><span class="pun">:</span><span class="pln"> </span><span class="str">"this is a test"</span><span class="pln"><br>&nbsp; &nbsp; </span><span class="pun">}</span><span class="pln"><br></span><span class="pun">}</span>
- * </pre>
- *
  * <p>
  * Or:
  * </p>
- *
- * <pre class="prettyprint lang-js">
- * <span class="pun">{</span><span class="pln"><br>&nbsp; &nbsp; </span><span class="str">"text"</span><span class="pln"> </span><span class="pun">:</span><span class="pln"> </span><span class="pun">{</span><span class="pln"><br>&nbsp; &nbsp; &nbsp; &nbsp; </span><span class="str">"message"</span><span class="pln"> </span><span class="pun">:</span><span class="pln"> </span><span class="pun">{</span><span class="pln"><br>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </span><span class="str">"query"</span><span class="pln"> </span><span class="pun">:</span><span class="pln"> </span><span class="str">"this is a test"</span><span class="pun">,</span><span class="pln"><br>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </span><span class="str">"type"</span><span class="pln"> </span><span class="pun">:</span><span class="pln"> </span><span class="str">"phrase_prefix"</span><span class="pln"><br>&nbsp; &nbsp; &nbsp; &nbsp; </span><span class="pun">}</span><span class="pln"><br>&nbsp; &nbsp; </span><span class="pun">}</span><span class="pln"><br></span><span class="pun">}</span>
- * </pre>
- *
  * <p>
  * It accepts the same parameters as the phrase type. In addition, it also
  * accepts a <code>max_expansions</code> parameter that can control to how many
@@ -111,11 +84,6 @@ import com.senseidb.search.client.json.req.Operator;
  * to an acceptable value to control the execution time of the query. For
  * example:
  * </p>
- *
- * <pre class="prettyprint lang-js">
- * <span class="pun">{</span><span class="pln"><br>&nbsp; &nbsp; </span><span class="str">"text_phrase_prefix"</span><span class="pln"> </span><span class="pun">:</span><span class="pln"> </span><span class="pun">{</span><span class="pln"><br>&nbsp; &nbsp; &nbsp; &nbsp; </span><span class="str">"message"</span><span class="pln"> </span><span class="pun">:</span><span class="pln"> </span><span class="pun">{</span><span class="pln"><br>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </span><span class="str">"query"</span><span class="pln"> </span><span class="pun">:</span><span class="pln"> </span><span class="str">"this is a test"</span><span class="pun">,</span><span class="pln"><br>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </span><span class="str">"max_expansions"</span><span class="pln"> </span><span class="pun">:</span><span class="pln"> </span><span class="lit">10</span><span class="pln"><br>&nbsp; &nbsp; &nbsp; &nbsp; </span><span class="pun">}</span><span class="pln"><br>&nbsp; &nbsp; </span><span class="pun">}</span><span class="pln"><br></span><span class="pun">}</span>
- * </pre>
- *
  * <h2>Comparison to query_string / field</h2>
  * <p>
  * The text family of queries does not go through a “query parsing” process. It
@@ -126,11 +94,9 @@ import com.senseidb.search.client.json.req.Operator;
  * box does). Also, the <code>phrase_prefix</code> can provide a great “as you
  * type” behavior to automatically load search results.
  * </p>
- *
- *
  */
 @CustomJsonHandler(value = QueryJsonHandler.class)
-public class TextQuery extends FieldAware implements Query {
+public class TextQuery extends FieldAwareQuery {
   private String value;
   private Operator operator;
   private Type type;

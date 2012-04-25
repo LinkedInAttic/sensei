@@ -50,7 +50,7 @@ import com.senseidb.search.client.json.req.query.Query;
  *
  *
  */
-  public class Range extends Selection implements Query{
+  public class Range extends Selection  {
 
     private String from;
       private String to;

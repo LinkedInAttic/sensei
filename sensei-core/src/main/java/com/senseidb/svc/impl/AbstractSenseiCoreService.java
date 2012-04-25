@@ -12,6 +12,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.apache.log4j.Logger;
 
@@ -26,6 +27,8 @@ import com.senseidb.search.node.SenseiCore;
 import com.senseidb.search.node.SenseiQueryBuilderFactory;
 import com.senseidb.search.req.AbstractSenseiRequest;
 import com.senseidb.search.req.AbstractSenseiResult;
+import com.senseidb.search.req.ErrorType;
+import com.senseidb.search.req.SenseiError;
 import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.Meter;
 import com.yammer.metrics.core.MetricName;
@@ -72,13 +75,21 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
 	public AbstractSenseiCoreService(SenseiCore core){
 	  _core = core;
 	  int[] partitions = _core.getPartitions();
-	  
-    for (int partition : partitions){
-      MetricName partitionSearchMetricName = new MetricName(MetricsConstants.Domain,"timer","partition-time-"+partition,"partition");
-      Timer timer = Metrics.newTimer(partitionSearchMetricName,TimeUnit.MILLISECONDS,TimeUnit.SECONDS);
-      partitionTimerMetricMap.put(partition, timer); 
-    }
 	}
+  
+  private Timer buildTimer(int partition) {
+    MetricName partitionSearchMetricName = new MetricName(MetricsConstants.Domain,"timer","partition-time-"+partition,"partition");
+    return Metrics.newTimer(partitionSearchMetricName,TimeUnit.MILLISECONDS,TimeUnit.SECONDS);
+  }
+  
+  private Timer getTimer(int partition) {
+    Timer timer = partitionTimerMetricMap.get(partition);
+    if(timer == null) {
+      partitionTimerMetricMap.put(partition, buildTimer(partition));
+      return getTimer(partition);
+    }
+    return timer;
+  }
 	
 	public final Res execute(final Req senseiReq){
 		SearchCounter.mark();
@@ -106,7 +117,7 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
           final long start = System.currentTimeMillis();
           final IndexReaderFactory<ZoieIndexReader<BoboIndexReader>> readerFactory = _core.getIndexReaderFactory(partition);
 
-          if (i<partitions.size()-1)  // Search simultaneously.
+          if (i < partitions.size() - 1)  // Search simultaneously.
           {
             try
             {
@@ -114,7 +125,8 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
               {
                 public Res call() throws Exception
                 {
-                  Timer timer = partitionTimerMetricMap.get(partition);
+                  Timer timer = getTimer(partition);
+                  
                   Res res = timer.time(new Callable<Res>(){
 
                     @Override
@@ -125,12 +137,14 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
                   
                   long end = System.currentTimeMillis();
                   res.setTime(end - start);
-                  
+                  logger.info("searching partition: " + partition + " browse took: " + res.getTime());
+
                   return res;
                 }
               });
             } catch (Exception e)
             {
+              senseiReq.addError(new SenseiError(e.getMessage(), ErrorType.BoboExecutionError));              
               logger.error(e.getMessage(), e);
             }
           }
@@ -138,7 +152,7 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
           {
             try
             {
-              Timer timer = partitionTimerMetricMap.get(partition);
+              Timer timer = getTimer(partition);
               Res res = timer.time(new Callable<Res>(){
 
                 @Override
@@ -147,14 +161,15 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
                 }                    
               });
               
-              resultList.add(res);
-              
+              resultList.add(res);              
               long end = System.currentTimeMillis();
               res.setTime(end - start);
               logger.info("searching partition: " + partition + " browse took: " + res.getTime());
             } catch (Exception e)
             {
               logger.error(e.getMessage(), e);
+              senseiReq.addError(new SenseiError(e.getMessage(), ErrorType.BoboExecutionError));       
+              
               resultList.add(getEmptyResultInstance(e));
             }
           }
@@ -170,7 +185,13 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
           }
           catch(Exception e)
           {
-	          logger.error(e.getMessage(), e);
+	          
+            logger.error(e.getMessage(), e);
+	          if (e instanceof TimeoutException) {
+	            senseiReq.addError(new SenseiError(e.getMessage(), ErrorType.ExecutionTimeout));    
+	          } else {
+	            senseiReq.addError(new SenseiError(e.getMessage(), ErrorType.BoboExecutionError));       
+	          }
 	          resultList.add(getEmptyResultInstance(e));
           }
         }
@@ -185,6 +206,7 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
           catch(Exception e){
         	logger.error(e.getMessage(),e);
         	finalResult = getEmptyResultInstance(null);
+        	finalResult.addError(new SenseiError(e.getMessage(), ErrorType.MergePartitionError));
           }
 	    } 
 	    else
@@ -193,6 +215,7 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
 	        logger.info("no partitions specified");
 	      }
 	      finalResult = getEmptyResultInstance(null);
+	      finalResult.addError(new SenseiError("no partitions specified", ErrorType.PartitionCallError));
 	    }
 	    if (logger.isInfoEnabled()){
 	      logger.info("searching partitions  " + String.valueOf(partitions) + " took: " + finalResult.getTime());

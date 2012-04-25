@@ -38,7 +38,7 @@ import com.senseidb.search.client.json.req.Term;
  *
  */
 @CustomJsonHandler(QueryJsonHandler.class)
-public class DisMax implements Query {
+public class DisMax extends Query {
   @JsonField("tie_braker")
   private double tieBraker;
   private double boost;

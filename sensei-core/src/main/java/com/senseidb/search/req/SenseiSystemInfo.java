@@ -116,6 +116,8 @@ public class SenseiSystemInfo implements AbstractSenseiResult {
   private Set<SenseiFacetInfo> _facetInfos;
   private String _schema; /* JSONObject is not protobuf serializerable, we use string here. */
   private List<SenseiNodeInfo> _clusterInfo;
+
+  private List<SenseiError> errors = new ArrayList<SenseiError>();
     
   public SenseiSystemInfo(){
     _numDocs = 0;
@@ -183,7 +185,13 @@ public class SenseiSystemInfo implements AbstractSenseiResult {
   public void setClusterInfo(List<SenseiNodeInfo> clusterInfo) {
     _clusterInfo = clusterInfo;
   }
-  
+  public List<SenseiError> getErrors() {
+    return errors  ;
+  }
+
+  public void addError(SenseiError error) {
+    this.errors.add(error);
+  }
   @Override
   public String toString(){
     StringBuffer buf = new StringBuffer();

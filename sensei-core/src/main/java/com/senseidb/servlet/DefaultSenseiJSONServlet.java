@@ -107,6 +107,7 @@ import org.apache.lucene.search.SortField;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.springframework.util.Assert;
 
 import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.BrowseHit;
@@ -116,6 +117,7 @@ import com.browseengine.bobo.api.FacetAccessible;
 import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
 import com.browseengine.bobo.facets.DefaultFacetHandlerInitializerParam;
+import com.senseidb.search.req.SenseiError;
 import com.senseidb.search.req.SenseiHit;
 import com.senseidb.search.req.SenseiJSONQuery;
 import com.senseidb.search.req.SenseiQuery;
@@ -134,6 +136,14 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
    *
    */
   private static final long serialVersionUID = 1L;
+
+  private static final String PARAM_RESULT_ERROR_MESSAGE = "message";
+
+  private static final String PARAM_RESULT_ERROR_TYPE = "errorType";
+
+  private static final String PARAM_RESULT_ERRORS = "errors";
+
+  private static final String PARAM_RESULT_ERROR_CODE = "errorCode";
 
   private static Logger logger = Logger.getLogger(DefaultSenseiJSONServlet.class);
 
@@ -446,7 +456,7 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
     jsonObj.put(PARAM_RESULT_NUMHITS, res.getNumHits());
     jsonObj.put(PARAM_RESULT_NUMGROUPS, res.getNumGroups());
     jsonObj.put(PARAM_RESULT_PARSEDQUERY, res.getParsedQuery());
-
+    addErrors(jsonObj, res);
     SenseiHit[] hits = res.getSenseiHits();
     JSONArray hitArray = buildJSONHits(req, hits);
     jsonObj.put(PARAM_RESULT_HITS, hitArray);
@@ -469,6 +479,19 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
     }
    
     return jsonObj;
+  }
+
+  private static void addErrors(JSONObject jsonResult, SenseiResult res) throws JSONException {
+    JSONArray errorsJson = new JSONArray();
+    for (SenseiError error: res.getErrors()) {
+      errorsJson.put(new JSONObject().put(PARAM_RESULT_ERROR_MESSAGE, error.getMessage()).put(PARAM_RESULT_ERROR_TYPE, error.getErrorType().name()));
+    }
+    jsonResult.put(PARAM_RESULT_ERRORS, errorsJson);
+    if (res.getErrors().size() > 0) {
+      jsonResult.put(PARAM_RESULT_ERROR_CODE, res.getErrors().get(0).getErrorCode());
+    } else {
+      jsonResult.put(PARAM_RESULT_ERROR_CODE, 0);
+    }
   }
 
   private static SenseiQuery buildSenseiQuery(DataConfiguration params)

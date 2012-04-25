@@ -20,7 +20,7 @@ import com.senseidb.search.client.json.req.query.Query;
  *
  *
  */
-public class Terms extends Selection implements Query {
+public class Terms extends Selection {
 
   List<String> values;
   List<String> excludes;

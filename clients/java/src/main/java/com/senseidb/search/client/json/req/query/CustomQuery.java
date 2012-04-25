@@ -11,7 +11,7 @@ import com.senseidb.search.client.json.JsonField;
  *
  */
 @CustomJsonHandler(value = QueryJsonHandler.class)
-public class CustomQuery implements Query {
+public class CustomQuery extends Query {
   @JsonField("class")
   private String cls;
   private Map<String, String> params = new HashMap<String, String>();

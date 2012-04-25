@@ -14,12 +14,6 @@ public interface Filter {
    * href="bool-filter.html">bool</a> filter. Can be placed within queries that
    * accept a filter.
    * </p>
-   * 
-   * <pre class="prettyprint lang-js">
-   * </pre>
-   * 
-   * 
-   * 
    */
   public static class AndOr implements Filter {
     List<Filter> filters = new ArrayList<Filter>();;
