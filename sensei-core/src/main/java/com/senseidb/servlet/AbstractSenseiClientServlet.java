@@ -62,6 +62,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
   private SenseiNetworkClient _networkClient = null;
   private SenseiBroker _senseiBroker = null;
   private SenseiSysBroker _senseiSysBroker = null;
+  private Map<String, String[]> _facetInfoMap = new HashMap<String, String[]>();
   private BQLCompiler _compiler = null;
 
   public AbstractSenseiClientServlet() {
@@ -100,15 +101,14 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
         logger.info("Trying to get sysinfo");
         SenseiSystemInfo sysInfo = _senseiSysBroker.browse(new SenseiRequest());
 
-        Map<String, String[]> facetInfoMap = new HashMap<String, String[]>();
         Iterator<SenseiSystemInfo.SenseiFacetInfo> itr = sysInfo.getFacetInfos().iterator();
         while (itr.hasNext())
         {
           SenseiSystemInfo.SenseiFacetInfo facetInfo = itr.next();
           Map<String, String> props = facetInfo.getProps();
-          facetInfoMap.put(facetInfo.getName(), new String[]{props.get("type"), props.get("column_type")});
+          _facetInfoMap.put(facetInfo.getName(), new String[]{props.get("type"), props.get("column_type")});
         }
-        _compiler = new BQLCompiler(facetInfoMap);
+        _compiler = new BQLCompiler(_facetInfoMap);
         break;
       }
       catch (Exception e)
@@ -336,7 +336,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
         {
           compiledJson.put(JsonTemplateProcessor.TEMPLATE_MAPPING_PARAM, templatesJson);
         }
-        senseiReq = SenseiRequest.fromJSON(compiledJson);
+        senseiReq = SenseiRequest.fromJSON(compiledJson, _facetInfoMap);
       }
       SenseiResult res = _senseiBroker.browse(senseiReq);
       sendResponse(resp, senseiReq, res);
