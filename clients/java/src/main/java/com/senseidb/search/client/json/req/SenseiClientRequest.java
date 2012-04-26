@@ -24,7 +24,7 @@ public class SenseiClientRequest {
   /*
    * private Paging paging;
    */
-  private Integer count;
+  private Integer size;
   private Integer from;
 
   /**
@@ -85,8 +85,8 @@ public class SenseiClientRequest {
   public static class Builder {
     private SenseiClientRequest request = new SenseiClientRequest();
 
-    public Builder paging(int count, int offset) {
-      request.count = count;
+    public Builder paging(int size, int offset) {
+      request.size = size;
       request.from = offset;
       return this;
     }
@@ -193,7 +193,7 @@ public class SenseiClientRequest {
   }
 
   public Paging getPaging() {
-    return new Paging(count, from);
+    return new Paging(size, from);
   }
 
   public GroupBy getGroupBy() {
@@ -236,8 +236,8 @@ public class SenseiClientRequest {
     return routeParam;
   }
 
-  public Integer getCount() {
-    return count;
+  public Integer getSize() {
+    return size;
   }
 
   public Integer getFrom() {
