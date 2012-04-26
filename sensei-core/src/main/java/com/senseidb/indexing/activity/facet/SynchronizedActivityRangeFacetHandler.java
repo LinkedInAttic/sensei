@@ -25,6 +25,11 @@ import com.browseengine.bobo.sort.DocComparatorSource;
 import com.senseidb.indexing.activity.ActivityIntValues;
 import com.senseidb.indexing.activity.CompositeActivityValues;
 
+/**
+ * Used only for testing
+ * @author vzhabiuk
+ *
+ */
 public class SynchronizedActivityRangeFacetHandler extends FacetHandler<int[]> {
   private static final String DEFAULT_FORMATTING_STRING = "0000000000";
   

@@ -3,6 +3,11 @@ package com.senseidb.indexing.activity.time;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
+/**
+ * This class should be used instead of System.currentTimeInMillis. It also keep track of minute count since Jan 1st 2010
+ * @author vzhabiuk
+ *
+ */
 public class Clock {
   private static volatile Long predefinedTime;
   private static volatile Integer predefinedTimeInMinutes;

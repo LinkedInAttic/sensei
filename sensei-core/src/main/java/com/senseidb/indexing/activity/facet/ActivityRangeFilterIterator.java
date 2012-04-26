@@ -4,6 +4,11 @@ import java.io.IOException;
 
 import org.apache.lucene.search.DocIdSetIterator;
 
+/**
+ * Performs range iteration over activity fields
+ * @author vzhabiuk
+ *
+ */
 public class ActivityRangeFilterIterator extends DocIdSetIterator {
   private int _doc;
   protected final int[] fieldValues;

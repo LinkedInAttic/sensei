@@ -2,12 +2,16 @@ package com.senseidb.indexing.activity;
 
 import org.apache.log4j.Logger;
 
+/**
+ * Wraps an int array. Also provides the persistence support. The changes are kept accumulating in the batch.   
+ *
+ */
 public class ActivityIntValues implements ActivityValues {
   private static Logger logger = Logger.getLogger(ActivityIntValues.class);
   public int[] fieldValues;
   protected String fieldName;
   protected ActivityIntStorage activityFieldStore;
-  protected UpdateBatch<ActivityIntStorage.FieldUpdate> updateBatch = new UpdateBatch<ActivityIntStorage.FieldUpdate>();
+  protected volatile UpdateBatch<ActivityIntStorage.FieldUpdate> updateBatch = new UpdateBatch<ActivityIntStorage.FieldUpdate>();
   
 
   @Override
@@ -19,11 +23,9 @@ public class ActivityIntValues implements ActivityValues {
     init(50000);
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see com.senseidb.indexing.activity.ActivityValues#update(int,
-   * java.lang.Object)
+  
+  /* (non-Javadoc)
+   * @see com.senseidb.indexing.activity.ActivityValues#update(int, java.lang.Object)
    */
   @Override
   public boolean update(int index, Object value) {
@@ -94,6 +96,12 @@ public class ActivityIntValues implements ActivityValues {
     }
   }
 
+  /**
+   * value might be int or long or String. +n, -n  operations are supported
+   * @param fieldValues
+   * @param value
+   * @param index
+   */
   public static void setValue(int[] fieldValues, Object value, int index) {
     if (value == null) {
       return;
@@ -138,6 +146,13 @@ public class ActivityIntValues implements ActivityValues {
     activityFieldStore.close();
   }
 
+  /**
+   * The factory method to create the ActivityIntValues. If the corresponding file doesn't exist, the new one will be created
+   * @param indexDirPath
+   * @param fieldName
+   * @param the number of records in the file. This info is ussually kept separately in the metadata files
+   * @return
+   */
   public static ActivityIntValues readFromFile(String indexDirPath,
       String fieldName, int count) {
     ActivityIntStorage persistentColumnManager = new ActivityIntStorage(fieldName, indexDirPath);

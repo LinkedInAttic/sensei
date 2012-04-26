@@ -31,6 +31,13 @@ import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.Counter;
 import com.yammer.metrics.core.MetricName;
 
+/**
+ * 
+ * Maintains the set of activityValues. The main responsibility of this class is to keep track of uid to array index mapping,
+ *  persisted and in memory versions. The the document gets into the system, the class will find/create uid to index mapping, and change the activity values 
+ *  for the activity fields found in the document
+ *
+ */
 public class CompositeActivityValues {
   private static final int NUM_LOCKS = 1024;
   private static final int DEFAULT_INITIAL_CAPACITY = 5000;
@@ -130,16 +137,23 @@ public class CompositeActivityValues {
       return ((TimeAggregatedActivityValues)  activityValues).getDefaultIntValues();
     }
   }
-private boolean updateActivities(JSONObject event, int index) {
-	boolean needToFlush = false;
-	for (ActivityValues activityIntValues :  intValuesMap.values()) {
-        Object value = event.opt(activityIntValues.getFieldName());
-        if (value != null) {
-        	needToFlush = needToFlush | activityIntValues.update(index, value);
-        }
+
+  private boolean updateActivities(JSONObject event, int index) {
+    boolean needToFlush = false;
+    for (ActivityValues activityIntValues : intValuesMap.values()) {
+      Object value = event.opt(activityIntValues.getFieldName());
+      if (value != null) {
+        needToFlush = needToFlush | activityIntValues.update(index, value);
       }
-	return needToFlush;
-}
+    }
+    return needToFlush;
+  }
+  
+  /**
+   * Tells whether the document will modify activity values
+   * @param event
+   * @return
+   */
   private boolean matchesFields(JSONObject event) {
     boolean matchedEvent = false;
     for (String field : intValuesMap.keySet()) {
@@ -150,6 +164,9 @@ private boolean updateActivities(JSONObject event, int index) {
     return matchedEvent;
   }
 
+  /**Deletes documents from the activity engine
+   * @param uids
+   */
   public void delete(long... uids) {
     boolean needToFlush = false;
     for (long uid : uids) {
@@ -176,6 +193,9 @@ private boolean updateActivities(JSONObject event, int index) {
       flushDeletes();
     }
   }
+  /**
+   * Propagates the deletes to disk. After calling this method freed array indexes can be reused for different document uids
+   */
   public void flushDeletes() {
     if (pendingDeletes.updates.isEmpty()) {
       return;
@@ -226,6 +246,9 @@ private boolean updateActivities(JSONObject event, int index) {
   public String getVersion() {
     return lastVersion;
   }
+  /**
+   * flushes pening updates to disk
+   */
   public synchronized void flush() {
     if (closed) {
       return;
@@ -269,6 +292,14 @@ private boolean updateActivities(JSONObject event, int index) {
       activityIntValues.close();
     }
   }
+  /**
+   * A factory method that constructs the CompositeActivityValues
+   * @param indexDirPath
+   * @param fieldNames
+   * @param aggregatedActivities
+   * @param versionComparator
+   * @return
+   */
   public static CompositeActivityValues readFromFile(String indexDirPath, List<String> fieldNames, List<TimeAggregateInfo> aggregatedActivities, Comparator<String> versionComparator) {    
     CompositeActivityStorage persistentColumnManager = new CompositeActivityStorage(indexDirPath);
     persistentColumnManager.init();

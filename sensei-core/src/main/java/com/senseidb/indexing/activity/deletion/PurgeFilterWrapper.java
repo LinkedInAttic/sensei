@@ -10,7 +10,7 @@ import org.apache.lucene.search.Filter;
 import proj.zoie.api.ZoieIndexReader;
 
 /**
- * This is used to notify activity engine if the document gets deleted from Zoie
+ * This is used to notify the activity engine if the document gets deleted from Zoie by executing the purge filter
  * @author vzhabiuk
  *
  */
