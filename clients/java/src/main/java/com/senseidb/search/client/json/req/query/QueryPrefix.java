@@ -31,7 +31,7 @@ import com.senseidb.search.client.json.CustomJsonHandler;
  *
  */
 @CustomJsonHandler(QueryJsonHandler.class)
-public class QueryPrefix extends FieldAware implements Query {
+public class QueryPrefix extends FieldAwareQuery {
   private String value;
   private double boost;
 

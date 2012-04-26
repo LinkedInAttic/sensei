@@ -6,6 +6,7 @@ import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongSet;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Properties;
 
@@ -17,7 +18,6 @@ import org.apache.lucene.search.ScoreDoc;
 import proj.zoie.api.DocIDMapper;
 import proj.zoie.api.ZoieIndexReader;
 import proj.zoie.api.ZoieSegmentReader;
-import scala.actors.threadpool.Arrays;
 
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.api.BrowseSelection;
@@ -140,7 +140,7 @@ public class UIDFacetHandler extends FacetHandler<long[]> {
         final IntArrayDocIdSet intArraySet = new IntArrayDocIdSet(docidList.size());
         boolean deletesPresent = delDocIds != null && delDocIds.length > 0;       
         for (int docid : docidList){
-          if (!deletesPresent  || java.util.Arrays.binarySearch(delDocIds,docid) < 0) {
+          if (!deletesPresent  || Arrays.binarySearch(delDocIds,docid) < 0) {
             intArraySet.addDoc(docid);            
           } 
         }        

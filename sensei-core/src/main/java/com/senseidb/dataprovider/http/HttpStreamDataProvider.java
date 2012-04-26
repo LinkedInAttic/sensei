@@ -239,7 +239,7 @@ public abstract class HttpStreamDataProvider<D> extends StreamDataProvider<D> im
 	  }
 	  
 	  DataEvent<D> data = null;
-	  if (_currentDataIter.hasNext()){
+	  if (_currentDataIter != null && _currentDataIter.hasNext()) {
 	    data = _currentDataIter.next();
 	    if (data!=null){
 	      _offset = data.getVersion();

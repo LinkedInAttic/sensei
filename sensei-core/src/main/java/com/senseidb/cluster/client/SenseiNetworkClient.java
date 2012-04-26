@@ -17,56 +17,58 @@ import com.linkedin.norbert.javacompat.network.NettyPartitionedNetworkClient;
 import com.linkedin.norbert.network.NoNodesAvailableException;
 import com.linkedin.norbert.network.ResponseIterator;
 import com.linkedin.norbert.network.Serializer;
+import com.senseidb.cluster.routing.SenseiPartitionedLoadBalancerFactory;
 
 /**
  * @author nnarkhed
  *
  */
-public class SenseiNetworkClient implements PartitionedNetworkClient<Integer>
+public class SenseiNetworkClient implements PartitionedNetworkClient<String>
 {
-  private final PartitionedNetworkClient<Integer> _networkClient;
+  private final PartitionedNetworkClient<String> _networkClient;
 
-  public SenseiNetworkClient(NetworkClientConfig netConfig, PartitionedLoadBalancerFactory<Integer> routerFactory)
+  public SenseiNetworkClient(NetworkClientConfig netConfig, PartitionedLoadBalancerFactory<String> routerFactory)
   {
     if(routerFactory != null)
     {
-      _networkClient = new NettyPartitionedNetworkClient<Integer>(netConfig, routerFactory);
+      _networkClient = new NettyPartitionedNetworkClient<String>(netConfig, routerFactory);
     }
     else
     {
-      _networkClient = new NettyPartitionedNetworkClient<Integer>(netConfig, new IntegerConsistentHashPartitionedLoadBalancerFactory(1, false));
+      SenseiPartitionedLoadBalancerFactory lbf = new SenseiPartitionedLoadBalancerFactory(50);
+      _networkClient = new NettyPartitionedNetworkClient<String>(netConfig, lbf);
     }
   }
 
     @Override
-    public <RequestMsg, ResponseMsg> Future<ResponseMsg> sendRequest(Integer partition, RequestMsg request, Serializer<RequestMsg, ResponseMsg> serializer) throws InvalidClusterException, NoNodesAvailableException, ClusterDisconnectedException {
-        return _networkClient.sendRequest(partition, request, serializer);
+    public <RequestMsg, ResponseMsg> Future<ResponseMsg> sendRequest(String partitionedId, RequestMsg request, Serializer<RequestMsg, ResponseMsg> serializer) throws InvalidClusterException, NoNodesAvailableException, ClusterDisconnectedException {
+        return _networkClient.sendRequest(partitionedId, request, serializer);
     }
 
     @Override
-    public <RequestMsg, ResponseMsg> ResponseIterator<ResponseMsg> sendRequest(Set<Integer> partitions, RequestMsg request, Serializer<RequestMsg, ResponseMsg> serializer) throws InvalidClusterException, NoNodesAvailableException, ClusterDisconnectedException {
-        return _networkClient.sendRequest(partitions, request, serializer);
+    public <RequestMsg, ResponseMsg> ResponseIterator<ResponseMsg> sendRequest(Set<String> partitionedIds, RequestMsg request, Serializer<RequestMsg, ResponseMsg> serializer) throws InvalidClusterException, NoNodesAvailableException, ClusterDisconnectedException {
+        return _networkClient.sendRequest(partitionedIds, request, serializer);
     }
 
     @Override
-    public <RequestMsg, ResponseMsg> ResponseIterator<ResponseMsg> sendRequest(Set<Integer> partitions, RequestBuilder<Integer, RequestMsg> requestBuilder, Serializer<RequestMsg, ResponseMsg> serializer) throws Exception {
-        return _networkClient.sendRequest(partitions, requestBuilder, serializer);
+    public <RequestMsg, ResponseMsg> ResponseIterator<ResponseMsg> sendRequest(Set<String> partitionedIds, RequestBuilder<String, RequestMsg> requestBuilder, Serializer<RequestMsg, ResponseMsg> serializer) throws Exception {
+        return _networkClient.sendRequest(partitionedIds, requestBuilder, serializer);
     }
 
     @Override
-    public <RequestMsg, ResponseMsg, T> T sendRequest(Set<Integer> partitions, RequestBuilder<Integer, RequestMsg> requestBuilder, ScatterGatherHandler<RequestMsg, ResponseMsg, T, Integer> scatterGatherHandler, Serializer<RequestMsg, ResponseMsg> serializer) throws Exception {
-        return _networkClient.sendRequest(partitions, requestBuilder, scatterGatherHandler, serializer);
+    public <RequestMsg, ResponseMsg, T> T sendRequest(Set<String> partitionedIds, RequestBuilder<String, RequestMsg> requestBuilder, ScatterGatherHandler<RequestMsg, ResponseMsg, T, String> scatterGatherHandler, Serializer<RequestMsg, ResponseMsg> serializer) throws Exception {
+        return _networkClient.sendRequest(partitionedIds, requestBuilder, scatterGatherHandler, serializer);
 
     }
 
     @Override
-    public <RequestMsg, ResponseMsg> ResponseIterator<ResponseMsg> sendRequestToOneReplica(RequestBuilder<Integer, RequestMsg> requestBuilder, Serializer<RequestMsg, ResponseMsg> serializer) throws InvalidClusterException, NoNodesAvailableException, ClusterDisconnectedException {
-        return _networkClient.sendRequestToOneReplica(requestBuilder, serializer);
+    public <RequestMsg, ResponseMsg> ResponseIterator<ResponseMsg> sendRequestToOneReplica(String partitionedId, RequestBuilder<Integer, RequestMsg> requestBuilder, Serializer<RequestMsg, ResponseMsg> serializer) throws InvalidClusterException, NoNodesAvailableException, ClusterDisconnectedException {
+      return _networkClient.sendRequestToOneReplica(partitionedId, requestBuilder, serializer);
     }
 
     @Override
-    public <RequestMsg, ResponseMsg> ResponseIterator<ResponseMsg> sendRequestToOneReplica(RequestMsg request, Serializer<RequestMsg, ResponseMsg> serializer) throws InvalidClusterException, NoNodesAvailableException, ClusterDisconnectedException {
-        return _networkClient.sendRequestToOneReplica(request, serializer);
+    public <RequestMsg, ResponseMsg> ResponseIterator<ResponseMsg> sendRequestToOneReplica(String partitionedId, RequestMsg request, Serializer<RequestMsg, ResponseMsg> serializer) throws InvalidClusterException, NoNodesAvailableException, ClusterDisconnectedException {
+      return _networkClient.sendRequestToOneReplica(partitionedId, request, serializer);
     }
 
     @Override
@@ -78,6 +80,11 @@ public class SenseiNetworkClient implements PartitionedNetworkClient<Integer>
     public <RequestMsg, ResponseMsg> ResponseIterator<ResponseMsg> broadcastMessage(RequestMsg request, Serializer<RequestMsg, ResponseMsg> serializer) throws ClusterDisconnectedException {
         return _networkClient.broadcastMessage(request, serializer);
     }
+
+  @Override
+  public <RequestMsg, ResponseMsg> ResponseIterator<ResponseMsg> sendRequestToPartitions(String partitionedId, Set<Integer> partitions, RequestBuilder<Integer, RequestMsg> requestBuilder, Serializer<RequestMsg, ResponseMsg> serializer) throws InvalidClusterException, NoNodesAvailableException, ClusterDisconnectedException {
+    return _networkClient.sendRequestToPartitions(partitionedId, partitions, requestBuilder, serializer);
+  }
 
   public void shutdown()
   {

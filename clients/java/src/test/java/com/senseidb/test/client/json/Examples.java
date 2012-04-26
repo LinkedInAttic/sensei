@@ -2,7 +2,9 @@ package com.senseidb.test.client.json;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.json.JSONObject;
 
@@ -10,6 +12,7 @@ import com.senseidb.search.client.json.JsonSerializer;
 import com.senseidb.search.client.json.SenseiServiceProxy;
 import com.senseidb.search.client.json.req.Facet;
 import com.senseidb.search.client.json.req.FacetInit;
+import com.senseidb.search.client.json.req.FacetType;
 import com.senseidb.search.client.json.req.Operator;
 import com.senseidb.search.client.json.req.Selection;
 import com.senseidb.search.client.json.req.SenseiClientRequest;
@@ -49,9 +52,7 @@ public class Examples {
         .addSelection(Selection.path("field", "value", true, 1))
         .addSelection(Selection.range("color", "*", "*"))
         .addFacet("facet1", Facet.builder().max(2).minHit(1).orderByVal().build())
-        .addFacetInit("name", "parameter", FacetInit.build("string", "val1", "val2"))
-        .addSort(Sort.desc("color"))
-        .addSort(Sort.asc("year"))
+        .addFacetInit("name", "parameter", FacetInit.build(FacetType.type_double, "val1", "val2"))        
         .addTermVector("Term1")
         .explain(true)
         .partitions(Arrays.asList(1,2)) ;
@@ -98,6 +99,13 @@ public class Examples {
 
 
         return builder;
+    }
+    
+    public static SenseiClientRequest.Builder mapReduce(SenseiClientRequest.Builder builder) {
+      Map<String, Object> params = new HashMap<String, Object>();
+      params.put("column", "price");
+      builder.mapReduce("com.senseidb.search.req.mapred.functions.MinMapReduce", params).build();
+      return builder;
     }
 
 

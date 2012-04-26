@@ -39,6 +39,8 @@ import com.browseengine.bobo.sort.DocIDPriorityQueue;
 import com.browseengine.bobo.sort.SortCollector;
 import com.browseengine.bobo.sort.SortCollector.CollectorContext;
 import com.browseengine.bobo.util.ListMerger;
+import com.senseidb.search.req.ErrorType;
+import com.senseidb.search.req.SenseiError;
 import com.senseidb.search.req.SenseiHit;
 import com.senseidb.search.req.SenseiRequest;
 import com.senseidb.search.req.SenseiResult;
@@ -1148,7 +1150,7 @@ public class ResultMerger
     
     time += (end-start);
     merged.setTime(time);
-    merged.setParsedQuery(parsedQuery);
+    mergerErrors(merged, req, results, parsedQuery);
     if (req.getMapReduceFunction() != null) {
       if (onSearchNode) {
         merged.setMapReduceResult(SenseiReduceFunctionWrapper.combine(req.getMapReduceFunction(), SenseiReduceFunctionWrapper.extractMapReduceResults(results)));
@@ -1158,5 +1160,17 @@ public class ResultMerger
       }
     }
     return merged;
+  }
+  private static void mergerErrors(SenseiResult merged, final SenseiRequest req, Collection<SenseiResult> results, String parsedQuery) {
+    merged.setParsedQuery(parsedQuery);
+    merged.getErrors().addAll(req.getErrors());
+    for (SenseiResult res : results) {
+      merged.getErrors().addAll(res.getErrors());
+      if (res.getBoboErrors().size() > 0) {
+        for (String boboError : res.getBoboErrors()) {
+          merged.addError(new SenseiError(boboError, ErrorType.BoboExecutionError));
+        }
+      }
+    }
   }
 }

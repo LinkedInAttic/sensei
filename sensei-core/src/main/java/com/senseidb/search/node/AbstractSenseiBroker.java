@@ -22,7 +22,7 @@ public abstract class AbstractSenseiBroker<REQUEST extends AbstractSenseiRequest
     implements ClusterListener
 {
   private final static Logger logger = Logger.getLogger(AbstractSenseiBroker.class);
-  protected final PartitionedNetworkClient<Integer> _networkClient;
+  protected final PartitionedNetworkClient<String> _networkClient;
   protected volatile IntSet _partitions = null;
   
 
@@ -33,7 +33,7 @@ public abstract class AbstractSenseiBroker<REQUEST extends AbstractSenseiRequest
    * @param scatterGatherHandler
    * @throws NorbertException
    */
-  public AbstractSenseiBroker(PartitionedNetworkClient<Integer> networkClient)
+  public AbstractSenseiBroker(PartitionedNetworkClient<String> networkClient)
       throws NorbertException
   {
     _networkClient = networkClient;
@@ -66,7 +66,7 @@ public abstract class AbstractSenseiBroker<REQUEST extends AbstractSenseiRequest
     }
   }
 
-  protected abstract RESULT doBrowse(PartitionedNetworkClient<Integer> networkClient, REQUEST req, IntSet partitions) throws Exception;
+  protected abstract RESULT doBrowse(PartitionedNetworkClient<String> networkClient, REQUEST req, IntSet partitions) throws Exception;
 
   public void shutdown()
   {
