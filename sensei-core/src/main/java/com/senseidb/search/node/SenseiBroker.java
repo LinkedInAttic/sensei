@@ -10,7 +10,7 @@ import java.util.Set;
 import org.apache.log4j.Logger;
 import org.apache.lucene.document.Document;
 
-import proj.zoie.api.indexing.AbstractZoieIndexable;
+import com.linkedin.zoie.api.indexing.AbstractZoieIndexable;
 
 import com.browseengine.bobo.api.FacetSpec;
 import com.linkedin.norbert.NorbertException;

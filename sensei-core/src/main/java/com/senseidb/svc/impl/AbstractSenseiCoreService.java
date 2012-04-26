@@ -16,8 +16,8 @@ import java.util.concurrent.TimeUnit;
 import org.apache.log4j.Logger;
 
 import org.apache.lucene.util.NamedThreadFactory;
-import proj.zoie.api.IndexReaderFactory;
-import proj.zoie.api.ZoieIndexReader;
+import com.linkedin.zoie.api.IndexReaderFactory;
+import com.linkedin.zoie.api.ZoieIndexReader;
 
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.linkedin.norbert.network.Serializer;

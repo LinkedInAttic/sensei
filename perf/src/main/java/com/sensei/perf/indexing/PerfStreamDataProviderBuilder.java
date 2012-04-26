@@ -7,7 +7,7 @@ import org.apache.commons.configuration.Configuration;
 import org.json.JSONObject;
 import org.springframework.context.ApplicationContext;
 
-import proj.zoie.impl.indexing.StreamDataProvider;
+import com.linkedin.zoie.impl.indexing.StreamDataProvider;
 
 import com.sensei.indexing.api.DataSourceFilter;
 import com.sensei.indexing.api.gateway.SenseiGateway;

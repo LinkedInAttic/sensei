@@ -14,9 +14,9 @@ import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.search.DocIdSetIterator;
 import org.apache.lucene.search.ScoreDoc;
 
-import proj.zoie.api.DocIDMapper;
-import proj.zoie.api.ZoieIndexReader;
-import proj.zoie.api.ZoieSegmentReader;
+import com.linkedin.zoie.api.DocIDMapper;
+import com.linkedin.zoie.api.ZoieIndexReader;
+import com.linkedin.zoie.api.ZoieSegmentReader;
 import scala.actors.threadpool.Arrays;
 
 import com.browseengine.bobo.api.BoboIndexReader;

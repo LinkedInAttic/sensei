@@ -11,9 +11,9 @@ import com.sensei.search.req.protobuf.SenseiReqProtoSerializer;
 import org.apache.log4j.Logger;
 import org.apache.lucene.search.Query;
 
-import proj.zoie.api.ZoieIndexReader;
-import proj.zoie.api.ZoieIndexReader.SubReaderAccessor;
-import proj.zoie.api.ZoieIndexReader.SubReaderInfo;
+import com.linkedin.zoie.api.ZoieIndexReader;
+import com.linkedin.zoie.api.ZoieIndexReader.SubReaderAccessor;
+import com.linkedin.zoie.api.ZoieIndexReader.SubReaderInfo;
 
 import com.browseengine.bobo.api.BoboBrowser;
 import com.browseengine.bobo.api.BoboIndexReader;

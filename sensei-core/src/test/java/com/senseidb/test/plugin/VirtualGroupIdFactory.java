@@ -12,7 +12,7 @@ import com.browseengine.bobo.facets.impl.VirtualSimpleFacetHandler;
 import com.senseidb.plugin.SenseiPluginFactory;
 import com.senseidb.plugin.SenseiPluginRegistry;
 
-import proj.zoie.api.ZoieIndexReader;
+import com.linkedin.zoie.api.ZoieIndexReader;
 
 public class VirtualGroupIdFactory implements SenseiPluginFactory<VirtualSimpleFacetHandler> {
   @Override

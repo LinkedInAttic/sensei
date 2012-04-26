@@ -5,8 +5,8 @@ import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 
-import proj.zoie.api.DataConsumer;
-import proj.zoie.api.ZoieException;
+import com.linkedin.zoie.api.DataConsumer;
+import com.linkedin.zoie.api.ZoieException;
 
 public class CompositeDataConsumer<T> implements DataConsumer<T> {
 

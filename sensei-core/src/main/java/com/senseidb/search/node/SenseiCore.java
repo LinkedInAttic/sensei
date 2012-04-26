@@ -8,11 +8,11 @@ import java.util.Set;
 
 import org.apache.log4j.Logger;
 
-import proj.zoie.api.DataProvider;
-import proj.zoie.api.IndexReaderFactory;
-import proj.zoie.api.Zoie;
-import proj.zoie.api.ZoieException;
-import proj.zoie.api.ZoieIndexReader;
+import com.linkedin.zoie.api.DataProvider;
+import com.linkedin.zoie.api.IndexReaderFactory;
+import com.linkedin.zoie.api.Zoie;
+import com.linkedin.zoie.api.ZoieException;
+import com.linkedin.zoie.api.ZoieIndexReader;
 
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.facets.FacetHandler;

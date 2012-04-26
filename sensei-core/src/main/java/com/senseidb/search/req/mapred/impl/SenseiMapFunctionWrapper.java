@@ -2,8 +2,8 @@ package com.senseidb.search.req.mapred.impl;
 
 import java.util.Set;
 
-import proj.zoie.api.ZoieSegmentReader;
-import proj.zoie.api.impl.DocIDMapperImpl;
+import com.linkedin.zoie.api.ZoieSegmentReader;
+import com.linkedin.zoie.api.impl.DocIDMapperImpl;
 
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.mapred.BoboMapFunctionWrapper;

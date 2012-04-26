@@ -226,7 +226,7 @@
                   <para>DiskFreeSpaceBytes, DiskIndexSizeBytes, LastOptimizationTime, LastDiskIndexModifiedTime, IndexDir, DiskIndexSegmentCount</para>
                   <programlisting><![CDATA[
 (ObjectName: com.senseidb:zoie-name=zoie-admin-1-1 )
-(InterfaceClassName: proj.zoie.mbean.ZoieSystemAdminMBean)
+(InterfaceClassName: com.linkedin.zoie.mbean.ZoieSystemAdminMBean)
                   ]]></programlisting>	
                 </listitem>
                 
@@ -234,7 +234,7 @@
                   <para>LastIndexingBatchSize, LastIndexingBatchDuration, LastIndexingEndTime</para>
                   <programlisting><![CDATA[
 (ObjectName: com.senseidb:zoie-name=zoie-status-1-1 )
-(InterfaceClassName: proj.zoie.mbean.ZoieIndexingStatusAdminMBean)
+(InterfaceClassName: com.linkedin.zoie.mbean.ZoieIndexingStatusAdminMBean)
                   ]]></programlisting>	
                 </listitem>
                                 

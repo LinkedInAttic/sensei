@@ -4,13 +4,13 @@ import java.io.File;
 
 import org.apache.log4j.Logger;
 
-import proj.zoie.api.DirectoryManager.DIRECTORY_MODE;
-import proj.zoie.api.indexing.ZoieIndexableInterpreter;
-import proj.zoie.hourglass.impl.HourGlassScheduler;
-import proj.zoie.hourglass.impl.HourGlassScheduler.FREQUENCY;
-import proj.zoie.hourglass.impl.Hourglass;
-import proj.zoie.hourglass.impl.HourglassDirectoryManagerFactory;
-import proj.zoie.impl.indexing.ZoieConfig;
+import com.linkedin.zoie.api.DirectoryManager.DIRECTORY_MODE;
+import com.linkedin.zoie.api.indexing.ZoieIndexableInterpreter;
+import com.linkedin.zoie.hourglass.impl.HourGlassScheduler;
+import com.linkedin.zoie.hourglass.impl.HourGlassScheduler.FREQUENCY;
+import com.linkedin.zoie.hourglass.impl.Hourglass;
+import com.linkedin.zoie.hourglass.impl.HourglassDirectoryManagerFactory;
+import com.linkedin.zoie.impl.indexing.ZoieConfig;
 
 import com.browseengine.bobo.api.BoboIndexReader;
 
