@@ -107,7 +107,7 @@ public class CompositeActivityValues {
         }
         needToFlush = updateBatch.addFieldUpdate(new Update(index, uid));
       }      
-      System.out.println("update uid = " + uid + ", index = " + index + ", threadID = " + Thread.currentThread().getId());
+      // System.out.println("update uid = " + uid + ", index = " + index + ", threadID = " + Thread.currentThread().getId());
       needToFlush = needToFlush || updateActivities(event, index);
       lastVersion = version;
     } finally {
