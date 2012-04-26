@@ -87,7 +87,7 @@ public class TestRequestConverter2
   @Test
   public void test() throws Exception
   {
-    SenseiRequest req = RequestConverter2.fromJSON(senseiRequestJson);
+    SenseiRequest req = RequestConverter2.fromJSON(senseiRequestJson, null);
     
     //testquery;
 //    assertTrue("query_string is not equal", req.getQuery().toString().equals("this AND that OR thus"));

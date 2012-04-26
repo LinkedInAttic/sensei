@@ -1,11 +1,15 @@
 package com.senseidb.util;
 
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -20,6 +24,9 @@ import com.browseengine.bobo.api.BrowseSelection.ValueOperation;
 import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.facets.DefaultFacetHandlerInitializerParam;
 import com.browseengine.bobo.facets.impl.PathFacetHandler;
+
+import com.senseidb.indexing.DefaultSenseiInterpreter;
+import com.senseidb.indexing.MetaType;
 import com.senseidb.search.req.SenseiJSONQuery;
 import com.senseidb.search.req.SenseiRequest;
 import com.senseidb.search.req.mapred.SenseiMapReduce;
@@ -149,7 +156,20 @@ public class RequestConverter2 {
 		  return vals;
 	  }
 
-	public static SenseiRequest fromJSON(JSONObject json) throws Exception
+
+  /**
+   * Builds SenseiRequest based on a JSON object.
+   *
+   * @param json  The input JSON object.
+   * @param facetInfoMap  Facet information map, which maps a facet name
+   *        to a String array in which the first element is the facet
+   *        type (like "simple" or "range") and the second element is
+   *        the data type (like "int" or "long").
+   * @return The built SenseiRequest.
+   */
+  public static SenseiRequest fromJSON(JSONObject json,
+                                       final Map<String, String[]> facetInfoMap)
+    throws Exception
   {
 	  json = jsonTemplateProcessor.substituteTemplates(json);
 
@@ -214,7 +234,7 @@ public class RequestConverter2 {
               String type = keyIter.next();
               JSONObject jsonSel = selItem.optJSONObject(type);
               if(jsonSel != null){
-                  addSelection(type, jsonSel, req);
+                addSelection(type, jsonSel, req, facetInfoMap);
               }
             }
           }
@@ -229,7 +249,7 @@ public class RequestConverter2 {
           String type = keyIter.next();
           JSONObject jsonSel = selectionObject.optJSONObject(type);
           if (jsonSel != null)
-            addSelection(type, jsonSel, req);
+            addSelection(type, jsonSel, req, facetInfoMap);
         }
       }
       //map reduce
@@ -364,10 +384,78 @@ public class RequestConverter2 {
 		return req;
 	}
 
-  private static void addSelection(String type, JSONObject jsonSel, SenseiRequest req) throws Exception
+  private static String[] formatValues(String facet,
+                                       String[] values,
+                                       final Map<String, String[]> facetInfoMap)
   {
- // we process "term", "terms", "range", "path", "custom" selection types;
-    
+    String[] facetInfo = facetInfoMap == null ? null : facetInfoMap.get(facet);
+    if (facetInfo != null &&
+        ("simple".equals(facetInfo[0]) || "multi".equals(facetInfo[0])))
+    {
+      MetaType metaType = null;
+      String formatString = null;
+      DecimalFormat formatter = null;
+      String type = facetInfo[1];
+
+      if ("int".equals(type))
+      {
+        metaType = DefaultSenseiInterpreter.CLASS_METATYPE_MAP.get(int.class);
+        formatString = DefaultSenseiInterpreter.DEFAULT_FORMAT_STRING_MAP.get(metaType);
+        formatter = new DecimalFormat(formatString, new DecimalFormatSymbols(Locale.US));
+        for (int i = 0; i < values.length; ++i)
+        {
+          values[i] = formatter.format(Integer.parseInt(values[i]));
+        }
+      }
+      else if ("short".equals(type))
+      {
+        metaType = DefaultSenseiInterpreter.CLASS_METATYPE_MAP.get(short.class);
+        formatString = DefaultSenseiInterpreter.DEFAULT_FORMAT_STRING_MAP.get(metaType);
+        formatter = new DecimalFormat(formatString, new DecimalFormatSymbols(Locale.US));
+        for (int i = 0; i < values.length; ++i)
+        {
+          values[i] = formatter.format(Short.parseShort(values[i]));
+        }
+      }
+      else if ("long".equals(type))
+      {
+        metaType = DefaultSenseiInterpreter.CLASS_METATYPE_MAP.get(long.class);
+        formatString = DefaultSenseiInterpreter.DEFAULT_FORMAT_STRING_MAP.get(metaType);
+        formatter = new DecimalFormat(formatString, new DecimalFormatSymbols(Locale.US));
+        for (int i = 0; i < values.length; ++i)
+        {
+          values[i] = formatter.format(Long.parseLong(values[i]));
+        }
+      }
+      else if ("float".equals(type)) {
+        metaType = DefaultSenseiInterpreter.CLASS_METATYPE_MAP.get(float.class);
+        formatString = DefaultSenseiInterpreter.DEFAULT_FORMAT_STRING_MAP.get(metaType);
+        formatter = new DecimalFormat(formatString, new DecimalFormatSymbols(Locale.US));
+        for (int i = 0; i < values.length; ++i)
+        {
+          values[i] = formatter.format(Float.parseFloat(values[i]));
+        }
+      }
+      else if ("double".equals(type)) {
+        metaType = DefaultSenseiInterpreter.CLASS_METATYPE_MAP.get(double.class);
+        formatString = DefaultSenseiInterpreter.DEFAULT_FORMAT_STRING_MAP.get(metaType);
+        formatter = new DecimalFormat(formatString, new DecimalFormatSymbols(Locale.US));
+        for (int i = 0; i < values.length; ++i)
+        {
+          values[i] = formatter.format(Double.parseDouble(values[i]));
+        }
+      }
+    }
+    return values;
+  }
+
+  private static void addSelection(String type,
+                                   JSONObject jsonSel,
+                                   SenseiRequest req,
+                                   final Map<String, String[]> facetInfoMap)
+    throws Exception
+  {
+    // we process "term", "terms", "range", "path", "custom" selection types;
 
     if(RequestConverter2.SELECTIONS_TERM.equals(type))
     {
@@ -381,7 +469,7 @@ public class RequestConverter2 {
           BrowseSelection sel = new BrowseSelection(facet);
           String[] vals = new String[1];
           vals[0] = value;
-          sel.setValues(vals);
+          sel.setValues(formatValues(facet, vals, facetInfoMap));
           req.addSelection(sel);
         }
       }
@@ -403,11 +491,11 @@ public class RequestConverter2 {
             op = ValueOperation.ValueOperationAnd;
 
           if(values != null && values.length()>0){
-            sel.setValues(getStrings(values));
+            sel.setValues(formatValues(facet, getStrings(values), facetInfoMap));
           }
 
           if(excludes != null && excludes.length()>0){
-            sel.setNotValues(getStrings(excludes));
+            sel.setNotValues(formatValues(facet, getStrings(excludes), facetInfoMap));
           }
 
           sel.setSelectionOperation(op);
