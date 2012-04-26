@@ -41,7 +41,7 @@ public class SenseiClientRequest {
    * initializing parameters that are needed by all runtime facet handlers
    */
   private Map<String, Map<String, FacetInit>> facetInit = new HashMap<String, Map<String, FacetInit>>();
-  private List<Sort> sorts = new ArrayList<Sort>();
+  private List<Map<String, String>> sort = new ArrayList<Map<String, String>>();
   private Map<String, Facet> facets = new HashMap<String, Facet>();
   /**
    * Flag indicating whether stored fields are to be fetched
@@ -151,7 +151,9 @@ public class SenseiClientRequest {
       if (sort == null) {
         throw new IllegalArgumentException("The sort should be not null");
       }
-      request.sorts.add(sort);
+      Map<String, String> map = new HashMap<String, String>();
+      map.put(sort.getField(), sort.getOrder().name());
+      request.sort.add(map);      
       return this;
     }
 
@@ -208,8 +210,8 @@ public class SenseiClientRequest {
     return facetInit;
   }
 
-  public List<Sort> getSorts() {
-    return sorts;
+  public List<Map<String, String>> getSort(){
+    return sort;
   }
 
   public Map<String, Facet> getFacets() {
