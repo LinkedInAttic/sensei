@@ -7,7 +7,7 @@ import org.apache.lucene.queryParser.QueryParser;
 import org.apache.lucene.search.Filter;
 import org.json.JSONArray;
 
-import com.browseengine.bobo.facets.filter.AndFilter;
+import com.linkedin.bobo.facets.filter.AndFilter;
 
 
 public class AndFilterConstructor extends FilterConstructor {

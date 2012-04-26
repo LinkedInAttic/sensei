@@ -17,7 +17,7 @@ import com.linkedin.zoie.impl.indexing.IndexUpdatedEvent;
 import com.linkedin.zoie.impl.indexing.ZoieConfig;
 import com.linkedin.zoie.impl.indexing.ZoieSystem;
 
-import com.browseengine.bobo.api.BoboIndexReader;
+import com.linkedin.bobo.api.BoboIndexReader;
 import com.senseidb.metrics.MetricsConstants;
 import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.Histogram;

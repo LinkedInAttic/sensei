@@ -7,7 +7,7 @@ import com.linkedin.zoie.api.indexing.ZoieIndexableInterpreter;
 import com.linkedin.zoie.impl.indexing.ZoieConfig;
 import com.linkedin.zoie.impl.indexing.ZoieSystem;
 
-import com.browseengine.bobo.api.BoboIndexReader;
+import com.linkedin.bobo.api.BoboIndexReader;
 import com.senseidb.search.node.SenseiIndexReaderDecorator;
 import com.senseidb.search.node.SenseiZoieSystemFactory;
 

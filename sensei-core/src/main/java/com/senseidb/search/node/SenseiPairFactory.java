@@ -11,7 +11,7 @@ import com.linkedin.zoie.api.Zoie;
 import com.linkedin.zoie.impl.indexing.ZoieConfig;
 import com.linkedin.zoie.pair.impl.Pair;
 
-import com.browseengine.bobo.api.BoboIndexReader;
+import com.linkedin.bobo.api.BoboIndexReader;
 
 public class SenseiPairFactory<T> extends SenseiZoieFactory<T>
 {

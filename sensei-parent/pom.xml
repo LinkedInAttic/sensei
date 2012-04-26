@@ -130,10 +130,10 @@
 	        <enabled>false</enabled>
 	       </snapshots>
 	    </repository>
-	    <repository>
+	    <!--<repository>
 	      <id>Scala Tools Repository</id>
 	      <url>http://nexus.scala-tools.org/content/repositories/snapshots/</url>
-	    </repository>
+	    </repository>-->
       <repository>
         <id>labs-consol-release</id>
         <name>ConSol* Labs Repository (Releases)</name>

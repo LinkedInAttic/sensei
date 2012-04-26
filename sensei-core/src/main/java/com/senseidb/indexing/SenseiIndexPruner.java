@@ -2,11 +2,11 @@ package com.senseidb.indexing;
 
 import java.io.IOException;
 
-import com.browseengine.bobo.api.BoboIndexReader;
-import com.browseengine.bobo.api.BrowseSelection;
-import com.browseengine.bobo.facets.FacetHandler;
-import com.browseengine.bobo.facets.filter.EmptyFilter;
-import com.browseengine.bobo.facets.filter.RandomAccessFilter;
+import com.linkedin.bobo.api.BoboIndexReader;
+import com.linkedin.bobo.api.BrowseSelection;
+import com.linkedin.bobo.facets.FacetHandler;
+import com.linkedin.bobo.facets.filter.EmptyFilter;
+import com.linkedin.bobo.facets.filter.RandomAccessFilter;
 import com.senseidb.search.req.SenseiRequest;
 
 public interface SenseiIndexPruner {

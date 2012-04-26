@@ -12,7 +12,7 @@ import org.apache.lucene.document.Document;
 
 import com.linkedin.zoie.api.indexing.AbstractZoieIndexable;
 
-import com.browseengine.bobo.api.FacetSpec;
+import com.linkedin.bobo.api.FacetSpec;
 import com.linkedin.norbert.NorbertException;
 import com.linkedin.norbert.javacompat.cluster.ClusterClient;
 import com.linkedin.norbert.javacompat.cluster.Node;

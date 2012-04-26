@@ -8,7 +8,7 @@ import com.linkedin.zoie.api.DirectoryManager.DIRECTORY_MODE;
 import com.linkedin.zoie.api.indexing.ZoieIndexableInterpreter;
 import com.linkedin.zoie.impl.indexing.ZoieConfig;
 
-import com.browseengine.bobo.api.BoboIndexReader;
+import com.linkedin.bobo.api.BoboIndexReader;
 
 public abstract class SenseiZoieFactory<D>
 { 

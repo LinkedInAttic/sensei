@@ -12,7 +12,7 @@ import com.linkedin.zoie.hourglass.impl.Hourglass;
 import com.linkedin.zoie.hourglass.impl.HourglassDirectoryManagerFactory;
 import com.linkedin.zoie.impl.indexing.ZoieConfig;
 
-import com.browseengine.bobo.api.BoboIndexReader;
+import com.linkedin.bobo.api.BoboIndexReader;
 
 public class SenseiHourglassFactory<T> extends SenseiZoieFactory<T>
 {

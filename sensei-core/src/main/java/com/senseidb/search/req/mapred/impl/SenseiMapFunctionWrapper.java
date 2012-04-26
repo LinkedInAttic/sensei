@@ -5,10 +5,10 @@ import java.util.Set;
 import com.linkedin.zoie.api.ZoieSegmentReader;
 import com.linkedin.zoie.api.impl.DocIDMapperImpl;
 
-import com.browseengine.bobo.api.BoboIndexReader;
-import com.browseengine.bobo.mapred.BoboMapFunctionWrapper;
-import com.browseengine.bobo.mapred.MapReduceResult;
-import com.browseengine.bobo.util.MemoryManager;
+import com.linkedin.bobo.api.BoboIndexReader;
+import com.linkedin.bobo.mapred.BoboMapFunctionWrapper;
+import com.linkedin.bobo.mapred.MapReduceResult;
+import com.linkedin.bobo.util.MemoryManager;
 import com.senseidb.search.req.SenseiSystemInfo.SenseiFacetInfo;
 import com.senseidb.search.req.mapred.FieldAccessor;
 import com.senseidb.search.req.mapred.SenseiMapReduce;

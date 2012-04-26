@@ -10,9 +10,9 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.browseengine.bobo.facets.FacetHandler;
-import com.browseengine.bobo.facets.impl.SimpleFacetHandler;
-import com.browseengine.bobo.facets.impl.VirtualSimpleFacetHandler;
+import com.linkedin.bobo.facets.FacetHandler;
+import com.linkedin.bobo.facets.impl.SimpleFacetHandler;
+import com.linkedin.bobo.facets.impl.VirtualSimpleFacetHandler;
 import com.senseidb.plugin.SenseiPluginRegistry;
 
 public class SenseiConfigurationTest extends Assert {

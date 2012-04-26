@@ -56,8 +56,8 @@ import com.linkedin.zoie.impl.indexing.ReaderCacheFactory;
 import com.linkedin.zoie.impl.indexing.SimpleReaderCache;
 import com.linkedin.zoie.impl.indexing.ZoieConfig;
 
-import com.browseengine.bobo.facets.FacetHandler;
-import com.browseengine.bobo.facets.RuntimeFacetHandlerFactory;
+import com.linkedin.bobo.facets.FacetHandler;
+import com.linkedin.bobo.facets.RuntimeFacetHandlerFactory;
 import com.linkedin.norbert.javacompat.cluster.ClusterClient;
 import com.linkedin.norbert.javacompat.cluster.ZooKeeperClusterClient;
 import com.linkedin.norbert.javacompat.network.NettyNetworkServer;

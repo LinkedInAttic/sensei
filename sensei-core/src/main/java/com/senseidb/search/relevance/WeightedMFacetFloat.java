@@ -1,8 +1,8 @@
 package com.senseidb.search.relevance;
 
-import com.browseengine.bobo.facets.data.MultiValueFacetDataCache;
-import com.browseengine.bobo.facets.data.MultiValueWithWeightFacetDataCache;
-import com.browseengine.bobo.facets.data.TermFloatList;
+import com.linkedin.bobo.facets.data.MultiValueFacetDataCache;
+import com.linkedin.bobo.facets.data.MultiValueWithWeightFacetDataCache;
+import com.linkedin.bobo.facets.data.TermFloatList;
 
 public class WeightedMFacetFloat extends MFacetFloat implements WeightedMFacet
 {

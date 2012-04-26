@@ -27,7 +27,7 @@ import com.linkedin.zoie.impl.indexing.ZoieConfig;
 import com.linkedin.zoie.mbean.DataProviderAdmin;
 import com.linkedin.zoie.mbean.DataProviderAdminMBean;
 
-import com.browseengine.bobo.api.BoboIndexReader;
+import com.linkedin.bobo.api.BoboIndexReader;
 import com.senseidb.conf.SenseiSchema;
 import com.senseidb.gateway.SenseiGateway;
 import com.senseidb.jmx.JmxUtil;

@@ -2,8 +2,8 @@ package com.senseidb.search.relevance;
 
 import java.util.Set;
 
-import com.browseengine.bobo.facets.data.MultiValueFacetDataCache;
-import com.browseengine.bobo.facets.data.TermShortList;
+import com.linkedin.bobo.facets.data.MultiValueFacetDataCache;
+import com.linkedin.bobo.facets.data.TermShortList;
 
 public class MFacetShort extends MFacet
 {

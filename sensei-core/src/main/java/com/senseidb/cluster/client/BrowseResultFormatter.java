@@ -6,10 +6,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import com.browseengine.bobo.api.BrowseFacet;
-import com.browseengine.bobo.api.BrowseHit;
-import com.browseengine.bobo.api.BrowseResult;
-import com.browseengine.bobo.api.FacetAccessible;
+import com.linkedin.bobo.api.BrowseFacet;
+import com.linkedin.bobo.api.BrowseHit;
+import com.linkedin.bobo.api.BrowseResult;
+import com.linkedin.bobo.api.FacetAccessible;
 
 public class BrowseResultFormatter{
     

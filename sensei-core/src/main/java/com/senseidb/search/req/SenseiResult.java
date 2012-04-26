@@ -9,10 +9,10 @@ import java.util.Map.Entry;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.search.Explanation;
 
-import com.browseengine.bobo.api.BrowseFacet;
-import com.browseengine.bobo.api.BrowseHit;
-import com.browseengine.bobo.api.BrowseResult;
-import com.browseengine.bobo.api.FacetAccessible;
+import com.linkedin.bobo.api.BrowseFacet;
+import com.linkedin.bobo.api.BrowseHit;
+import com.linkedin.bobo.api.BrowseResult;
+import com.linkedin.bobo.api.FacetAccessible;
 import com.senseidb.search.req.mapred.obsolete.SenseiMapReduceResult;
 
 

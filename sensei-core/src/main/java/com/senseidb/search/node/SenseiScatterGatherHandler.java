@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.zip.GZIPInputStream;
 
-import com.browseengine.bobo.api.FacetSpec;
+import com.linkedin.bobo.api.FacetSpec;
 import com.linkedin.norbert.javacompat.cluster.Node;
 import org.apache.log4j.Logger;
 import org.apache.lucene.document.Document;

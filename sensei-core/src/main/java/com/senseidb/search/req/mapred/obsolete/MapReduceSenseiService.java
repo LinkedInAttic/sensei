@@ -8,8 +8,8 @@ import org.apache.log4j.Logger;
 import com.linkedin.zoie.api.DocIDMapper;
 import com.linkedin.zoie.api.ZoieSegmentReader;
 
-import com.browseengine.bobo.api.BoboBrowser;
-import com.browseengine.bobo.api.BoboIndexReader;
+import com.linkedin.bobo.api.BoboBrowser;
+import com.linkedin.bobo.api.BoboIndexReader;
 import com.linkedin.norbert.network.JavaSerializer;
 import com.linkedin.norbert.network.Serializer;
 import com.senseidb.search.node.SenseiCore;

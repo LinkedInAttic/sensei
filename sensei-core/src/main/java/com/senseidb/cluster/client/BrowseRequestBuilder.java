@@ -5,9 +5,9 @@ import java.io.UnsupportedEncodingException;
 import org.apache.lucene.search.SortField;
 import org.json.JSONObject;
 
-import com.browseengine.bobo.api.BrowseSelection;
-import com.browseengine.bobo.api.FacetSpec;
-import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
+import com.linkedin.bobo.api.BrowseSelection;
+import com.linkedin.bobo.api.FacetSpec;
+import com.linkedin.bobo.api.FacetSpec.FacetSortSpec;
 import com.senseidb.search.req.SenseiJSONQuery;
 import com.senseidb.search.req.SenseiQuery;
 import com.senseidb.search.req.SenseiRequest;

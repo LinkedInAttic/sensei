@@ -1,8 +1,8 @@
 package com.senseidb.search.relevance;
 
-import com.browseengine.bobo.facets.data.MultiValueFacetDataCache;
-import com.browseengine.bobo.facets.data.MultiValueWithWeightFacetDataCache;
-import com.browseengine.bobo.facets.data.TermShortList;
+import com.linkedin.bobo.facets.data.MultiValueFacetDataCache;
+import com.linkedin.bobo.facets.data.MultiValueWithWeightFacetDataCache;
+import com.linkedin.bobo.facets.data.TermShortList;
 
 public class WeightedMFacetShort extends MFacetShort implements WeightedMFacet
 {
