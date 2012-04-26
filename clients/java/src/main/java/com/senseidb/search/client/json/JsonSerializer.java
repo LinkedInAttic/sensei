@@ -13,6 +13,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.senseidb.search.client.ReflectionUtil;
+
 public class JsonSerializer {
     public static Object serialize(Object object) {
         try {

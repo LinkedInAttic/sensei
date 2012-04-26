@@ -12,6 +12,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.senseidb.search.client.ReflectionUtil;
+
 public class JsonDeserializer {
     public static <T> T deserialize(Class<T> cls, JSONObject jsonObject) {
         return deserialize(cls, jsonObject, true);
