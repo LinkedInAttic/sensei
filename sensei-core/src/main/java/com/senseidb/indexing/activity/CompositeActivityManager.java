@@ -87,7 +87,7 @@ public class CompositeActivityManager implements DeletionListener, HourglassList
           return;
         }        
         long uid = event.getLong(senseiSchema.getUidField());       
-        if (event.opt(SenseiSchema.EVENT_TYPE_FIELD) != null && event.optBoolean(SenseiSchema.EVENT_TYPE_FIELD) == Boolean.TRUE) {
+        if (event.opt(SenseiSchema.EVENT_TYPE_FIELD) != null && event.optString(SenseiSchema.EVENT_TYPE_FIELD).equals(SenseiSchema.EVENT_TYPE_DELETE)) {
           activityValues.delete(uid);
         } else {
           activityValues.update(uid, version, event);

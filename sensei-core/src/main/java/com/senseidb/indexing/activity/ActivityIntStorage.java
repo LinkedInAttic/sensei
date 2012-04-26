@@ -18,6 +18,11 @@ import com.yammer.metrics.core.MetricName;
 import com.yammer.metrics.core.Timer;
 
 public class ActivityIntStorage {
+  public static final double INIT_GROWTH_RATIO = 1.5;
+  public static final int BYTES_IN_INT = 4;
+  public static final int LENGTH_THRESHOLD = 1000000;
+  public static final int FILE_GROWTH_RATIO = 2;
+  public static final int INITIAL_FILE_LENGTH = 2000000;
   private static Logger logger = Logger.getLogger(ActivityIntStorage.class);
   private RandomAccessFile storedFile;
   private final String fieldName;
@@ -80,10 +85,10 @@ public class ActivityIntStorage {
       return;
     }
    
-    if (fileLength > 1000000) {
-      fileLength = fileLength * 2;
+    if (fileLength > LENGTH_THRESHOLD) {
+      fileLength = fileLength * FILE_GROWTH_RATIO;
     } else {
-      fileLength = 2000000;
+      fileLength = INITIAL_FILE_LENGTH;
     }
     storedFile.setLength(fileLength);
     if (activateMemoryMappedBuffers) {
@@ -120,13 +125,13 @@ public class ActivityIntStorage {
               ret.init();
               return ret;
             }
-            ret.init((int) (count * 1.5));
+            ret.init((int) (count * INIT_GROWTH_RATIO));
             for (int i = 0; i < count; i++) {
               int value;
               if (activateMemoryMappedBuffers) {
-                value = buffer.getInt(i * 4);
+                value = buffer.getInt(i * BYTES_IN_INT);
               } else {
-                storedFile.seek(i * 4);
+                storedFile.seek(i * BYTES_IN_INT);
                 value = storedFile.readInt();
               }
               ret.fieldValues[i] = value;

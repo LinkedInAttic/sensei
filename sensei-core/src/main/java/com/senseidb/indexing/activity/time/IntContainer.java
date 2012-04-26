@@ -1,6 +1,8 @@
 package com.senseidb.indexing.activity.time;
 
-import scala.actors.threadpool.Arrays;
+import java.util.Arrays;
+
+
 
 public class IntContainer {
   private static int[] EMPTY_ARR = new int[0];
@@ -8,6 +10,9 @@ public class IntContainer {
   protected int[] array;
   protected int startIndex = 0;
   protected int actualSize = 0;
+
+  private static final int initialGrowthFactor = 2;
+  private static final int capacityThreshold = 10;
 
   public IntContainer(int capacity) {
     if (capacity == 0) {
@@ -62,7 +67,9 @@ public class IntContainer {
     if (actualSize + startIndex < array.length) {
       return;
     }
-    int newSize = array.length < 10 ? array.length + 2 : (int) (array.length * 1.2);
+    double growthFactor = 1.2;
+    
+    int newSize = array.length < capacityThreshold ? array.length + initialGrowthFactor : (int) (array.length * growthFactor);
     int[] oldArr = array;
     array = new int[newSize];
     System.arraycopy(oldArr, startIndex, array, 0, actualSize);
@@ -72,13 +79,14 @@ public class IntContainer {
   private void ensureCapacityOnStart() {
       int newStartIndex =  startIndex;
       int newArrayLength = array.length;
-      if (actualSize > 9 && startIndex > actualSize / 4) {
+      int reduceFactor = 2;
+      if (actualSize >= capacityThreshold && startIndex > actualSize / (reduceFactor * reduceFactor)) {
         newStartIndex = 0;
-      } else if (actualSize <= 9 && startIndex > 2) {
+      } else if (startIndex > reduceFactor && actualSize < capacityThreshold) {
         newStartIndex = 0;
       }
-     if (array.length > 2 && actualSize < array.length / 2) {
-       newArrayLength = array.length / 2;
+     if (array.length > reduceFactor && actualSize < array.length / reduceFactor) {
+       newArrayLength = array.length / reduceFactor;
      } 
      if (newStartIndex != startIndex || newArrayLength != array.length) {
        int[] oldArr = array;
@@ -91,7 +99,6 @@ public class IntContainer {
   }
   @Override
   public String toString() {
-    // TODO Auto-generated method stub
     return Arrays.toString(array);
   }
   public int size() {

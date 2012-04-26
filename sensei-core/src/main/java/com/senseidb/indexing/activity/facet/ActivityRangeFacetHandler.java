@@ -26,6 +26,8 @@ import com.senseidb.indexing.activity.ActivityIntValues;
 import com.senseidb.indexing.activity.CompositeActivityValues;
 
 public class ActivityRangeFacetHandler extends FacetHandler<int[]> {
+  private static final String[] EMPTY_STRING_ARR = new String[0];
+  private static final Object[] EMPTY_OBJ_ARR = new Object[0];
   private static final String DEFAULT_FORMATTING_STRING = "0000000000";
   public static volatile boolean isSynchronized = false;
   
@@ -83,6 +85,7 @@ public class ActivityRangeFacetHandler extends FacetHandler<int[]> {
           
           @Override
           public boolean get(int docId) {           
+            if (indexes[docId] == -1) return false;
             int val = array[indexes[docId]];            
             return val >= startValue && val < endValue && val != Integer.MIN_VALUE;
           }
@@ -99,16 +102,16 @@ public class ActivityRangeFacetHandler extends FacetHandler<int[]> {
   @Override
   public Object[] getRawFieldValues(BoboIndexReader reader, int id) {    
     final int[] indexes = (int[]) ((BoboIndexReader)reader).getFacetData(_name);  
-    return new Object[] {activityIntValues.getValue(indexes[id])};
+    return indexes[id] != -1 ? new Object[] {activityIntValues.getValue(indexes[id])} : EMPTY_OBJ_ARR;
   }
   @Override
   public String[] getFieldValues(BoboIndexReader reader, int id) {   
     final int[] indexes = (int[]) ((BoboIndexReader)reader).getFacetData(_name); 
       int value = activityIntValues.getValue(indexes[id]);
     if (value == Integer.MIN_VALUE) {
-      return new String[0];
+      return EMPTY_STRING_ARR;
     }
-    return new String[] {formatter.get().format(value)};
+    return indexes[id] != -1 ? new String[] {formatter.get().format(value)} : EMPTY_STRING_ARR;
   }
 
   @Override
@@ -128,8 +131,8 @@ public class ActivityRangeFacetHandler extends FacetHandler<int[]> {
 
           @Override
           public int compare(ScoreDoc doc1, ScoreDoc doc2) {  
-            int val1 = array[indexes[doc1.doc]]; 
-            int val2 = array[indexes[doc2.doc]];            
+            int val1 = indexes[doc1.doc] != -1 ? array[indexes[doc1.doc]] : 0; 
+            int val2 = indexes[doc2.doc] != -1 ? array[indexes[doc2.doc]] : 0;            
             return (val1<val2 ? -1 : (val1==val2 ? 0 : 1));
           }
         };

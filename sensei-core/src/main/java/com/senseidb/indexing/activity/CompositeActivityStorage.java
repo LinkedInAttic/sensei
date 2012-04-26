@@ -21,7 +21,8 @@ import com.yammer.metrics.core.MetricName;
 import com.yammer.metrics.core.Timer;
 
 public class CompositeActivityStorage {
-  private static Logger logger = Logger.getLogger(ActivityIntStorage.class);
+  private static final int BYTES_IN_LONG = 8;
+  private static Logger logger = Logger.getLogger(CompositeActivityStorage.class);
   private RandomAccessFile storedFile;  
   private final String indexDir;
   private volatile boolean closed = false;
@@ -61,11 +62,11 @@ public class CompositeActivityStorage {
     Assert.state(storedFile != null, "The FileStorage is not initialized");    
     try {
       for (Update update : updates) {       
-         ensureCapacity(update.index * 8 + 8);        
+         ensureCapacity(update.index * BYTES_IN_LONG + BYTES_IN_LONG);        
          if (activateMemoryMappedBuffers) {
-           buffer.putLong(update.index * 8, update.value);
+           buffer.putLong(update.index * BYTES_IN_LONG, update.value);
          } else {
-           storedFile.seek(update.index * 8);
+           storedFile.seek(update.index * BYTES_IN_LONG);
            storedFile.writeLong(update.value); 
          }
       }
@@ -84,10 +85,10 @@ public class CompositeActivityStorage {
       return;
     }
    
-    if (fileLength > 1000000) {
-      fileLength = fileLength * 2;
+    if (fileLength > ActivityIntStorage.LENGTH_THRESHOLD) {
+      fileLength = fileLength * ActivityIntStorage.FILE_GROWTH_RATIO;
     } else {
-      fileLength = 2000000;
+      fileLength = ActivityIntStorage.INITIAL_FILE_LENGTH;
     }
     storedFile.setLength(fileLength);
     if (activateMemoryMappedBuffers) {
@@ -124,14 +125,14 @@ public class CompositeActivityStorage {
               ret.init();
               return ret;
             }
-            ret.init((int) (metadata.count * 1.5));
+            ret.init((int) (metadata.count * ActivityIntStorage.INIT_GROWTH_RATIO));
             for (int i = 0; i < metadata.count; i++) {
               long value;
               if (activateMemoryMappedBuffers) {
-                value = buffer.getLong(i * 8);
+                value = buffer.getLong(i * BYTES_IN_LONG);
               }
               else {
-                storedFile.seek(i * 8);
+                storedFile.seek(i * BYTES_IN_LONG);
                 value = storedFile.readLong();
               }
               if (value != Long.MIN_VALUE) {
