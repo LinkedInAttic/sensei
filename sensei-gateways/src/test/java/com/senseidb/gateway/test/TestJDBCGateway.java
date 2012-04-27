@@ -12,7 +12,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import proj.zoie.impl.indexing.StreamDataProvider;
+import com.linkedin.zoie.impl.indexing.StreamDataProvider;
 
 import com.senseidb.gateway.SenseiGateway;
 import com.senseidb.gateway.test.jdbc.ResultSetJsonFilter;

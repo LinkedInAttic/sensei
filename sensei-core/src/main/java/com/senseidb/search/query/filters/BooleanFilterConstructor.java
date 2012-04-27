@@ -8,9 +8,9 @@ import org.apache.lucene.search.Filter;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import com.browseengine.bobo.facets.filter.AndFilter;
-import com.browseengine.bobo.facets.filter.NotFilter;
-import com.browseengine.bobo.facets.filter.OrFilter;
+import com.linkedin.bobo.facets.filter.AndFilter;
+import com.linkedin.bobo.facets.filter.NotFilter;
+import com.linkedin.bobo.facets.filter.OrFilter;
 
 
 public class BooleanFilterConstructor extends FilterConstructor

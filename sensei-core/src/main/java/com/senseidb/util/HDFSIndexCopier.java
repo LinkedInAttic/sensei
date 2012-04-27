@@ -24,7 +24,7 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.log4j.Logger;
 
-import proj.zoie.api.IndexCopier;
+import com.linkedin.zoie.api.IndexCopier;
 
 public class HDFSIndexCopier implements IndexCopier
 {

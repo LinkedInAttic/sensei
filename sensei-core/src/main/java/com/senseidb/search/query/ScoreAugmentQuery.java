@@ -7,7 +7,7 @@ import org.apache.lucene.search.Query;
 import org.apache.lucene.search.Scorer;
 import org.apache.lucene.search.Similarity;
 
-import com.browseengine.bobo.api.BoboIndexReader;
+import com.linkedin.bobo.api.BoboIndexReader;
 
 public class ScoreAugmentQuery extends AbstractScoreAdjuster
 {

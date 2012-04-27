@@ -10,7 +10,7 @@ import java.util.Map;
 
 import org.json.JSONObject;
 
-import proj.zoie.api.DocIDMapper;
+import com.linkedin.zoie.api.DocIDMapper;
 
 import com.senseidb.search.req.mapred.CountGroupByMapReduce.GroupedValue;
 import com.senseidb.search.req.mapred.CountGroupByMapReduce.IntContainer;

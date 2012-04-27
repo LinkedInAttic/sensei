@@ -13,9 +13,9 @@ import java.util.Set;
 import org.apache.lucene.search.SortField;
 import org.json.JSONObject;
 
-import com.browseengine.bobo.api.BrowseSelection;
-import com.browseengine.bobo.api.FacetSpec;
-import com.browseengine.bobo.facets.FacetHandlerInitializerParam;
+import com.linkedin.bobo.api.BrowseSelection;
+import com.linkedin.bobo.api.FacetSpec;
+import com.linkedin.bobo.facets.FacetHandlerInitializerParam;
 import com.senseidb.search.req.mapred.SenseiMapReduce;
 import com.senseidb.util.RequestConverter2;
 

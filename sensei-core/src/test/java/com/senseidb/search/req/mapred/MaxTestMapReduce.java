@@ -7,7 +7,7 @@ import org.json.JSONObject;
 
 import com.senseidb.search.req.mapred.obsolete.MapReduceJob;
 
-import proj.zoie.api.DocIDMapper;
+import com.linkedin.zoie.api.DocIDMapper;
 
 public class MaxTestMapReduce implements MapReduceJob<Long, Long> {
   private static final long serialVersionUID = 1L;

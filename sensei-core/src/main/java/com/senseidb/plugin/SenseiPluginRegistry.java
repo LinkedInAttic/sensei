@@ -10,8 +10,8 @@ import java.util.Map;
 
 import org.apache.commons.configuration.Configuration;
 
-import com.browseengine.bobo.facets.FacetHandler;
-import com.browseengine.bobo.facets.RuntimeFacetHandlerFactory;
+import com.linkedin.bobo.facets.FacetHandler;
+import com.linkedin.bobo.facets.RuntimeFacetHandlerFactory;
 
 public class SenseiPluginRegistry {
   public static final String FACET_CONF_PREFIX = "sensei.custom.facets";

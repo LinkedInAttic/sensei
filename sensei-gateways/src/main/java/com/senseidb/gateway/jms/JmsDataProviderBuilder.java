@@ -10,12 +10,12 @@ import javax.jms.TopicConnectionFactory;
 import org.apache.commons.configuration.ConfigurationException;
 import org.json.JSONObject;
 
-import proj.zoie.api.DataConsumer.DataEvent;
-import proj.zoie.dataprovider.jms.DataEventBuilder;
-import proj.zoie.dataprovider.jms.JMSStreamDataProvider;
-import proj.zoie.dataprovider.jms.TopicFactory;
-import proj.zoie.impl.indexing.StreamDataProvider;
-import proj.zoie.impl.indexing.ZoieConfig;
+import com.linkedin.zoie.api.DataConsumer.DataEvent;
+import com.linkedin.zoie.dataprovider.jms.DataEventBuilder;
+import com.linkedin.zoie.dataprovider.jms.JMSStreamDataProvider;
+import com.linkedin.zoie.dataprovider.jms.TopicFactory;
+import com.linkedin.zoie.impl.indexing.StreamDataProvider;
+import com.linkedin.zoie.impl.indexing.ZoieConfig;
 
 import com.senseidb.gateway.SenseiGateway;
 import com.senseidb.indexing.DataSourceFilter;

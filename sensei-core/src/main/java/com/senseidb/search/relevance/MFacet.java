@@ -2,9 +2,9 @@ package com.senseidb.search.relevance;
 
 import java.util.Set;
 
-import com.browseengine.bobo.facets.data.MultiValueFacetDataCache;
-import com.browseengine.bobo.facets.data.TermValueList;
-import com.browseengine.bobo.util.BigNestedIntArray;
+import com.linkedin.bobo.facets.data.MultiValueFacetDataCache;
+import com.linkedin.bobo.facets.data.TermValueList;
+import com.linkedin.bobo.util.BigNestedIntArray;
 
 public abstract class MFacet
 {

@@ -13,8 +13,8 @@ import org.apache.lucene.document.Field.Index;
 import org.apache.lucene.document.Field.Store;
 import org.apache.lucene.document.Field.TermVector;
 
-import proj.zoie.api.indexing.AbstractZoieIndexable;
-import proj.zoie.api.indexing.ZoieIndexable.IndexingReq;
+import com.linkedin.zoie.api.indexing.AbstractZoieIndexable;
+import com.linkedin.zoie.api.indexing.ZoieIndexable.IndexingReq;
 
 import com.senseidb.indexing.DefaultSenseiInterpreter.IndexSpec;
 import com.senseidb.indexing.DefaultSenseiInterpreter.MetaFormatSpec;
