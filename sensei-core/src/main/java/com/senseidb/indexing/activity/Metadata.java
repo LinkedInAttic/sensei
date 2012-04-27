@@ -5,6 +5,11 @@ import java.io.IOException;
 
 import org.apache.commons.io.FileUtils;
 
+/**
+ * Keeps the persisted metadata info: last persisted version  and document count. Uses two files to ensure data integrity
+ * @author vzhabiuk
+ *
+ */
 public class Metadata {
   public volatile String version;
   public volatile int count;

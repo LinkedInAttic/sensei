@@ -5,6 +5,12 @@ import java.util.List;
 
 import com.senseidb.indexing.activity.CompositeActivityStorage.Update;
 
+/**
+ * Keeps track of all the changes not yet persisted
+ * @author vzhabiuk
+ *
+ * @param <T>
+ */
 public class UpdateBatch<T> {
   int batchSize = 50000;
   protected volatile List<T> updates = new ArrayList<T>(batchSize);

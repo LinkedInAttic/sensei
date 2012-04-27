@@ -24,6 +24,12 @@ import com.senseidb.conf.SenseiSchema.FacetDefinition;
 import com.senseidb.conf.SenseiSchema.FieldDefinition;
 import com.senseidb.indexing.activity.deletion.DeletionListener;
 
+/**
+ * Wrapper around all the activity indexes within the Sensei node. It is the entry point to the activity engine. 
+ * AlsoProvides support to delete the docs that are purged from Zoie. 
+ * This class is a bridge between Sensei and the activityEngine
+ *
+ */
 public class CompositeActivityManager implements DeletionListener, HourglassListener<IndexReader, IndexReader> {
     protected CompositeActivityValues activityValues;
     private SenseiSchema senseiSchema;
@@ -64,6 +70,11 @@ public class CompositeActivityManager implements DeletionListener, HourglassList
       }
     }
     
+    /**
+     * Teels whether the document contains only activity fields. 
+     * @param event
+     * @return
+     */
     public boolean isOnlyActivityUpdate(JSONObject event) {
       boolean activityPresent = false;     
       Iterator keys = event.keys();
@@ -81,6 +92,11 @@ public class CompositeActivityManager implements DeletionListener, HourglassList
       }
       return activityPresent;
     }
+    /**
+     * Updates all the corresponding acitivity columns fond in the document
+     * @param event
+     * @param version
+     */
     public void update(JSONObject event, String version) {
       try {
         if (event.opt(SenseiSchema.EVENT_TYPE_SKIP) != null && event.opt(EVENT_TYPE_ONLY_ACTIVITY) == null) {
@@ -106,6 +122,12 @@ public class CompositeActivityManager implements DeletionListener, HourglassList
     }
    
     protected static  Map<Integer, CompositeActivityManager> cachedInstances = new ConcurrentHashMap<Integer, CompositeActivityManager>();
+    
+    /**
+     * Tells whether the activityEngine needs to be initialzed
+     * @param schema
+     * @return
+     */
     public static boolean activitiesPresent(SenseiSchema schema) {
       for ( FieldDefinition field  : schema.getFieldDefMap().values()) {
         if (field.isActivity) {
@@ -116,6 +138,9 @@ public class CompositeActivityManager implements DeletionListener, HourglassList
     }
 
 
+    /* (non-Javadoc)
+     * @see com.senseidb.indexing.activity.deletion.DeletionListener#onDelete(org.apache.lucene.index.IndexReader, long[])
+     */
     @Override
     public void onDelete(IndexReader indexReader, long... uids) {
       activityValues.delete(uids);  

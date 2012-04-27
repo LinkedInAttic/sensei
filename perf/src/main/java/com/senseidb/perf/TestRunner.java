@@ -9,9 +9,9 @@ import org.apache.lucene.search.Sort;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.senseidb.search.client.SenseiServiceProxy;
 import com.senseidb.search.client.json.JsonSerializer;
-import com.senseidb.search.client.json.SenseiServiceProxy;
-import com.senseidb.search.client.json.req.SenseiClientRequest;
+import com.senseidb.search.client.req.SenseiClientRequest;
 import com.senseidb.search.node.SenseiServer;
 
 
@@ -49,7 +49,7 @@ public class TestRunner {
         @Override
         public void run() {
           while (true) {
-            String sendPostRaw = proxy.sendPostRaw(proxy.getSearchUrl(),  ((JSONObject)JsonSerializer.serialize(SenseiClientRequest.builder().addSort(com.senseidb.search.client.json.req.Sort.desc("mileage")).build())).toString());
+            String sendPostRaw = proxy.sendPostRaw(proxy.getSearchUrl(),  ((JSONObject)JsonSerializer.serialize(SenseiClientRequest.builder().addSort(com.senseidb.search.client.req.Sort.desc("mileage")).build())).toString());
             try {
               int numihits = new JSONObject(sendPostRaw).getInt("totaldocs");
               System.out.println(numihits);
