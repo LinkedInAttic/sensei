@@ -13,6 +13,29 @@ import org.apache.commons.io.FileUtils;
 import com.senseidb.indexing.activity.ActivityIntValues;
 import com.senseidb.indexing.activity.ActivityValues;
 
+/**
+ * This is the composite that correspond to such schema configuration 
+ *
+ * <pre>{@code  <facet name="aggregated-likes" column="likes" type="aggregated-range">
+ *    <params>
+ *         <param name="time" value="5m" />
+ *         <param name="time" value="15m" />
+ *         <param name="time" value="1h" />
+ *         <param name="time" value="12h" />
+ *         <param name="time" value="1d" />
+ *         <param name="time" value="7d" />
+ *         <param name="time" value="2w" />
+ *   </params>
+ *</facet>}</pre>
+ *
+ * getDefaultIntValues() will correspond to likes <br>
+ * intActivityValues will contain all the aggregated fields, eg likes:5m, likes:15m, likes:1h etc. <br>
+ * Basically this class is a composite, containing intActivityValue for each aggregate period specified in the config plus a default non time trimmed  values
+ * Each of  underlying activityIntValues will be persisting themselves to the disk.<br>
+ * When the TimeAggregatedActivityValues is constructed from file, it will init all the aggregated activity int values from disk. 
+ * And will try to estimate timeHits - {@link TimeHitsHolder}
+ *
+ */
 public class TimeAggregatedActivityValues implements ActivityValues {  
 	protected final String fieldName;
 	protected Map<String, ActivityIntValues> valuesMap = new HashMap<String, ActivityIntValues>();
@@ -218,6 +241,10 @@ public class TimeAggregatedActivityValues implements ActivityValues {
     return aggregatesUpdateJob;
   }
 
+  /**
+   * @author vzhabiuk
+   *
+   */
   public static class IntValueHolder implements Comparable<IntValueHolder> {
 		public  ActivityIntValues activityIntValues;
 		public final String time;
@@ -235,6 +262,14 @@ public class TimeAggregatedActivityValues implements ActivityValues {
 		}
 	}
 	
+	/**
+	 * Contains the time and values of all the relevant updates, that came to the system in the past. The value will be deleted when the 
+	 * <pre>
+	 * {@code
+	 * longestTimeAgregate = max(valuesMap.keySet); 
+	 * update.time < Clock.getCurrentTimeInMinutes - longestTimeAgregate;
+	 *}</pre>
+	 */
 	public static class TimeHitsHolder {
 		private IntContainer[] times;
 		private IntContainer[] activities;
@@ -286,6 +321,10 @@ public class TimeAggregatedActivityValues implements ActivityValues {
 		    }
 		  }
 	}
+	/**
+	 * Persists the time of the last executed updateAggregateJob
+	 *
+	 */
 	public static class AggregatesMetadata {
     protected int lastUpdatedTime;
     protected File aggregatesFile;

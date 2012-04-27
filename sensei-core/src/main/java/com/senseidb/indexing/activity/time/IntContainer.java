@@ -4,15 +4,20 @@ import java.util.Arrays;
 
 
 
+/**
+ * A copy on write int array wrapper, optimized to store activity updates
+ * @author vzhabiuk
+ *
+ */
 public class IntContainer {
   private static int[] EMPTY_ARR = new int[0];
+  private static final int initialGrowthFactor = 2;
+  private static final int capacityThreshold = 10;
   
   protected int[] array;
   protected int startIndex = 0;
   protected int actualSize = 0;
 
-  private static final int initialGrowthFactor = 2;
-  private static final int capacityThreshold = 10;
 
   public IntContainer(int capacity) {
     if (capacity == 0) {

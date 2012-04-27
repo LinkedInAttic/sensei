@@ -17,6 +17,10 @@ import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.MetricName;
 import com.yammer.metrics.core.Timer;
 
+/**
+ * Allows to persist ActivityIntValues into the file. The persistence is asynchronous via {@link ActivityIntValues#prepareFlush()}
+ *
+ */
 public class ActivityIntStorage {
   public static final double INIT_GROWTH_RATIO = 1.5;
   public static final int BYTES_IN_INT = 4;

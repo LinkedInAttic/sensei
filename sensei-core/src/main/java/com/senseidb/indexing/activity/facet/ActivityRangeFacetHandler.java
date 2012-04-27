@@ -25,6 +25,11 @@ import com.browseengine.bobo.sort.DocComparatorSource;
 import com.senseidb.indexing.activity.ActivityIntValues;
 import com.senseidb.indexing.activity.CompositeActivityValues;
 
+/**
+ * Range facet handler for activity fields
+ * @author vzhabiuk
+ *
+ */
 public class ActivityRangeFacetHandler extends FacetHandler<int[]> {
   private static final String[] EMPTY_STRING_ARR = new String[0];
   private static final Object[] EMPTY_OBJ_ARR = new Object[0];
