@@ -12,6 +12,7 @@ import org.json.JSONObject;
 import org.json.JSONException;
 
 import com.senseidb.bql.parsers.BQLCompiler;
+import com.senseidb.util.JsonTemplateProcessor;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -937,6 +938,30 @@ public class TestBQL extends TestCase
       );
     JSONObject expected = new JSONObject("{\"facetInit\":{\"member\":{\"age\":{\"values\":[25,30,35,40],\"type\":\"int\"}}},\"meta\":{\"select_list\":[\"*\"]}}");
     assertTrue(_comp.isEquals(json, expected));
+  }
+
+  @Test
+  public void testGivenClauseVariable() throws Exception
+  {
+    System.out.println("testGivenClauseVariable");
+    System.out.println("==================================================");
+
+    JSONObject json = _compiler.compile(
+      "SELECT * " +
+      "FROM cars " +
+      "GIVEN FACET PARAM (member, 'age', int, $user_age)"
+      );
+
+    JSONObject expected = new JSONObject("{\"facetInit\":{\"member\":{\"age\":{\"values\":\"$user_age\",\"type\":\"int\"}}},\"meta\":{\"select_list\":[\"*\"],\"variables\":[\"user_age\"]}}");
+    assertTrue(_comp.isEquals(json, expected));
+
+    JsonTemplateProcessor jsonProc = new JsonTemplateProcessor();
+    json.put(JsonTemplateProcessor.TEMPLATE_MAPPING_PARAM,
+             new JSONObject().put("user_age",
+                                  new JSONArray().put(25)));
+    JSONObject newJson = jsonProc.substituteTemplates(json);
+    JSONObject expected2 = new JSONObject("{\"facetInit\":{\"member\":{\"age\":{\"values\":[25],\"type\":\"int\"}}},\"templateMapping\":{\"user_age\":[25]},\"meta\":{\"select_list\":[\"*\"],\"variables\":[\"user_age\"]}}");
+    assertTrue(_comp.isEquals(newJson, expected2));
   }
 
   @Test

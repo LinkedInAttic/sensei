@@ -2612,7 +2612,23 @@ facet_param returns [String facet, JSONObject param]
         {
             $facet = $column_name.text; // XXX Check error here?
             try {
-                Object valArray = (val != null) ? new JSONArray().put(val.val) : $valList.json;
+                Object valArray = null;
+                if (val != null) {
+                    String varName = $value.text;
+                    if (varName.matches("\\$[^$].*")) {
+                        // Here "value" is a variable.  In this case, it
+                        // is REQUIRED that the variable should be
+                        // replaced by a list, NOT a scalar value.
+                        valArray = varName;
+                    }
+                    else {
+                        valArray = new JSONArray().put(val.val);
+                    }
+                }
+                else {
+                    valArray = $valList.json;
+                }
+
                 $param = new JSONObject().put($STRING_LITERAL.text,
                                               new JSONObject().put("type", $facet_param_type.paramType)
                                                               .put("values", valArray));
