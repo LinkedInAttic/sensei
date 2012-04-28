@@ -1263,4 +1263,289 @@ public class TestBQL extends TestCase
     assertTrue(_comp.isEquals(json, expected));
   }
 
+  @Test
+  public void testRelevanceModelIfStmt() throws Exception
+  {
+    System.out.println("testRelevanceModelIfStmt");
+    System.out.println("==================================================");
+
+    JSONObject json = _compiler.compile(
+      "SELECT color, year " +
+      "FROM cars " +
+      "WHERE color = 'red' " +
+      "USING RELEVANCE MODEL my_model ('srcid':1234) " +
+      "  DEFINED AS (float _INNER_SCORE, int intParam1, int intParam2, String strParam) " +
+      "  BEGIN " +
+      "    int myInt = 100; " +
+      "    if (srcid == myInt + 2) " +
+      "      return 123; " +
+      "    else if (srcid > 200) " +
+      "      return 345; " +
+      "    else " +
+      "      return _INNER_SCORE; " +
+      "  END "
+      );
+
+    JSONObject expected = new JSONObject("{\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"model\":{\"function_params\":[\"_INNER_SCORE\",\"intParam1\",\"intParam2\",\"strParam\"],\"variables\":{\"int\":[\"intParam1\",\"intParam2\"],\"String\":[\"strParam\"]},\"function\":\"int myInt = 100;     if (srcid == myInt + 2)       return 123;     else if (srcid > 200)       return 345;     else       return _INNER_SCORE;\"},\"values\":{\"srcid\":1234}}}},\"selections\":[{\"term\":{\"color\":{\"value\":\"red\"}}}],\"meta\":{\"select_list\":[\"color\",\"year\"]}}");
+    assertTrue(_comp.isEquals(json, expected));
+  }
+
+  @Test
+  public void testRelevanceModelFloatLiteral() throws Exception
+  {
+    System.out.println("testRelevanceModelFloatLiteral");
+    System.out.println("==================================================");
+
+    JSONObject json = _compiler.compile(
+      "SELECT color, year " +
+      "FROM cars " +
+      "WHERE color = 'red' " +
+      "USING RELEVANCE MODEL my_model ('srcid':1234) " +
+      "  DEFINED AS (int srcid) " +
+      "  BEGIN " +
+      "    float x1 = 1.2; " +
+      "    x = 7.; " +
+      "    x = 7.5e12; " +
+      "    x = 7.5e-12; " +
+      "    x = 7.5e-12f; " +
+      "    x = .34; " +
+      "    x = .34e+12; " +
+      "    x = 123f; " +
+      "    return 0.25; " +
+      "  END "
+      );
+
+    JSONObject expected = new JSONObject("{\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"model\":{\"function_params\":[\"srcid\"],\"variables\":{\"int\":[\"srcid\"]},\"function\":\"float x1 = 1.2;     x = 7.;     x = 7.5e12;     x = 7.5e-12;     x = 7.5e-12f;     x = .34;     x = .34e+12;     x = 123f;     return 0.25;\"},\"values\":{\"srcid\":1234}}}},\"selections\":[{\"term\":{\"color\":{\"value\":\"red\"}}}],\"meta\":{\"select_list\":[\"color\",\"year\"]}}");
+    assertTrue(_comp.isEquals(json, expected));
+  }
+
+  @Test
+  public void testRelevanceModelDataTypes() throws Exception
+  {
+    System.out.println("testRelevanceModelDataTypes");
+    System.out.println("==================================================");
+
+    JSONObject json = _compiler.compile(
+      "SELECT color, year " +
+      "FROM cars " +
+      "WHERE color = 'red' " +
+      "USING RELEVANCE MODEL my_model ('srcid':1234) " +
+      "  DEFINED AS (int intParam1, int intParam2, String strParam) " +
+      "  BEGIN " +
+      "    int myInt = 100; " +
+      "    String str1; " +
+      "    String str2 = 'abcd' ; " +
+      "    char ch = 'c'; " +
+      "    Integer int1, int2; " +
+      "    int int3 = 0L, int4 = 1234l; " +
+      "    float f1 = 1.23f, f2 = 1.23F; " +
+      "    float e1 = 2e+1234; " +
+      "    Byte byte1; " +
+      "    IntOpenHashSet mySet1, mySet2; " +
+      "    Object2IntOpenHashMap myMap1; " +
+      "    return 0.123f; " +
+      "  END "
+      );
+
+    JSONObject expected = new JSONObject("{\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"model\":{\"function_params\":[\"intParam1\",\"intParam2\",\"strParam\"],\"variables\":{\"String\":[\"strParam\"],\"int\":[\"intParam1\",\"intParam2\"]},\"function\":\"int myInt = 100;     String str1;     String str2 = abcd ;     char ch = c;     Integer int1, int2;     int int3 = 0L, int4 = 1234l;     float f1 = 1.23f, f2 = 1.23F;     float e1 = 2e+1234;     Byte byte1;     IntOpenHashSet mySet1, mySet2;     Object2IntOpenHashMap myMap1;     return 0.123f;\"},\"values\":{\"srcid\":1234}}}},\"selections\":[{\"term\":{\"color\":{\"value\":\"red\"}}}],\"meta\":{\"select_list\":[\"color\",\"year\"]}}");
+    assertTrue(_comp.isEquals(json, expected));
+  }
+
+  @Test
+  public void testRelevanceModelWhileStmt() throws Exception
+  {
+    System.out.println("testRelevanceModelWhileStmt");
+    System.out.println("==================================================");
+
+    JSONObject json = _compiler.compile(
+      "SELECT color, year " +
+      "FROM cars " +
+      "WHERE color = 'red' " +
+      "USING RELEVANCE MODEL my_model ('srcid':1234) " +
+      "  DEFINED AS (int srcid) " +
+      "  BEGIN " +
+      "    int myInt = 100; " +
+      "    while (myInt < 200) { " +
+      "      myInt++; " +
+      "      myInt = myInt + 10; " +
+      "    } " +
+      "    return 100; " +
+      "  END "
+      );
+
+    JSONObject expected = new JSONObject("{\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"model\":{\"function_params\":[\"srcid\"],\"variables\":{\"int\":[\"srcid\"]},\"function\":\"int myInt = 100;     while (myInt < 200) {       myInt++;       myInt = myInt + 10;     }     return 100;\"},\"values\":{\"srcid\":1234}}}},\"selections\":[{\"term\":{\"color\":{\"value\":\"red\"}}}],\"meta\":{\"select_list\":[\"color\",\"year\"]}}");
+    assertTrue(_comp.isEquals(json, expected));
+  }
+
+  @Test
+  public void testRelevanceModelDoWhile() throws Exception
+  {
+    System.out.println("testRelevanceModelDoWhile");
+    System.out.println("==================================================");
+
+    JSONObject json = _compiler.compile(
+      "SELECT color, year " +
+      "FROM cars " +
+      "WHERE color = 'red' " +
+      "USING RELEVANCE MODEL my_model ('srcid':1234) " +
+      "  DEFINED AS (int srcid) " +
+      "  BEGIN " +
+      "    int myInt = 100; " +
+      "    do { " +
+      "      myInt = myInt + 10; " +
+      "    } while (myInt < 100); " +
+      "    return 100; " +
+      "  END "
+      );
+
+    JSONObject expected = new JSONObject("{\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"model\":{\"function_params\":[\"srcid\"],\"variables\":{\"int\":[\"srcid\"]},\"function\":\"int myInt = 100;     do {       myInt = myInt + 10;     } while (myInt < 100);     return 100;\"},\"values\":{\"srcid\":1234}}}},\"selections\":[{\"term\":{\"color\":{\"value\":\"red\"}}}],\"meta\":{\"select_list\":[\"color\",\"year\"]}}");
+    assertTrue(_comp.isEquals(json, expected));
+  }
+
+  @Test
+  public void testRelevanceModelForLoop() throws Exception
+  {
+    System.out.println("testRelevanceModelForLoop");
+    System.out.println("==================================================");
+
+    JSONObject json = _compiler.compile(
+      "SELECT color, year " +
+      "FROM cars " +
+      "WHERE color = 'red' " +
+      "USING RELEVANCE MODEL my_model ('srcid':1234) " +
+      "  DEFINED AS (int srcid) " +
+      "  BEGIN " +
+      "    int myInt = 0; " +
+      "    for (int i = 0; i < 100; i++) { " +
+      "      myInt = myInt + 10; " +
+      "    } " +
+      "    return myInt; " +
+      "  END "
+      );
+
+    JSONObject expected = new JSONObject("{\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"model\":{\"function_params\":[\"srcid\"],\"variables\":{\"int\":[\"srcid\"]},\"function\":\"int myInt = 0;     for (int i = 0; i < 100; i++) {       myInt = myInt + 10;     }     return myInt;\"},\"values\":{\"srcid\":1234}}}},\"selections\":[{\"term\":{\"color\":{\"value\":\"red\"}}}],\"meta\":{\"select_list\":[\"color\",\"year\"]}}");
+    assertTrue(_comp.isEquals(json, expected));
+  }
+
+  @Test
+  public void testRelevanceModelSwitchStmt() throws Exception
+  {
+    System.out.println("testRelevanceModelSwitchStmt");
+    System.out.println("==================================================");
+
+    JSONObject json = _compiler.compile(
+      "SELECT color, year " +
+      "FROM cars " +
+      "WHERE color = 'red' " +
+      "USING RELEVANCE MODEL my_model ('srcid':1234) " +
+      "  DEFINED AS (int srcid) " +
+      "  BEGIN " +
+      "    int myInt = 0; " +
+      "    switch (myInt) { " +
+      "     case 1: myInt = 2; " +
+      "             break; " +
+      "     case 2:        " +
+      "     case 3: myInt = 4; " +
+      "             break; " +
+      "     default: " +
+      "             myInt = 100; " +
+      "    } " +
+      "    return 0.5f; " +
+      "  END "
+      );
+
+    JSONObject expected = new JSONObject("{\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"model\":{\"function_params\":[\"srcid\"],\"variables\":{\"int\":[\"srcid\"]},\"function\":\"int myInt = 0;     switch (myInt) {      case 1: myInt = 2;              break;      case 2:             case 3: myInt = 4;              break;      default:              myInt = 100;     }     return 0.5f;\"},\"values\":{\"srcid\":1234}}}},\"selections\":[{\"term\":{\"color\":{\"value\":\"red\"}}}],\"meta\":{\"select_list\":[\"color\",\"year\"]}}");
+    assertTrue(_comp.isEquals(json, expected));
+  }
+
+  @Test
+  public void testRelevanceModelExpressions() throws Exception
+  {
+    System.out.println("testRelevanceModelExpressions");
+    System.out.println("==================================================");
+
+    JSONObject json = _compiler.compile(
+      "SELECT color, year " +
+      "FROM cars " +
+      "WHERE color = 'red' " +
+      "USING RELEVANCE MODEL my_model ('srcid':1234, 'timeVal':9999, '_half_time':8888) " +
+      "  DEFINED AS (int srcid, long timeVal, long _half_time) " +
+      "  BEGIN " +
+      "    int myInt = 0; " +
+      "    float delta = System.currentTimeMillis() - timeVal; " +
+      "    float t = delta > 0 ? delta : 0; " +
+      "    float numHours = t / (1000 * 3600); " +
+      "    float timeScore = (float) Math.exp(-(numHours/_half_time)); " +
+      "    if (tags.contains(coolTag)) " +
+      "      return 999999; " +
+      "    int x = 0; " +
+      "    x += 5; " +
+      "    x *= 10; " +
+      "    return timeScore; " +
+      "  END "
+      );
+
+    JSONObject expected = new JSONObject("{\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"model\":{\"function_params\":[\"srcid\",\"timeVal\",\"_half_time\"],\"variables\":{\"int\":[\"srcid\"],\"long\":[\"timeVal\",\"_half_time\"]},\"function\":\"int myInt = 0;     float delta = System.currentTimeMillis() - timeVal;     float t = delta > 0 ? delta : 0;     float numHours = t / (1000 * 3600);     float timeScore = (float) Math.exp(-(numHours/_half_time));     if (tags.contains(coolTag))       return 999999;     int x = 0;     x += 5;     x *= 10;     return timeScore;\"},\"values\":{\"_half_time\":8888,\"timeVal\":9999,\"srcid\":1234}}}},\"selections\":[{\"term\":{\"color\":{\"value\":\"red\"}}}],\"meta\":{\"select_list\":[\"color\",\"year\"]}}");
+    assertTrue(_comp.isEquals(json, expected));
+  }
+
+  @Test
+  public void testRelevanceModelParameters() throws Exception
+  {
+    System.out.println("testRelevanceModelParameters");
+    System.out.println("==================================================");
+
+    JSONObject json = _compiler.compile(
+      "SELECT color, year " +
+      "FROM cars " +
+      "WHERE color = 'red' " +
+      "USING RELEVANCE MODEL my_model ('srcid':1234, 'timeVal':9999, '_half_time':8888) " +
+      "  DEFINED AS (int intParam1, int intParam2, String strParam, " +
+      "              DoubleOpenHashSet setParam, Int2IntOpenHashMap mapParam, " +
+      "              float price, String color) " +
+      "  BEGIN " +
+      "    int myInt = 0; " +
+      "    float delta = System.currentTimeMillis() - timeVal; " +
+      "    float t = delta > 0 ? delta : 0; " +
+      "    float numHours = t / (1000 * 3600); " +
+      "    float timeScore = (float) Math.exp(-(numHours/_half_time)); " +
+      "    if (tags.contains(coolTag)) " +
+      "      return 999999; " +
+      "    int x = 0; " +
+      "    x += 5; " +
+      "    x *= 10; " +
+      "    return timeScore; " +
+      "  END "
+      );
+
+    JSONObject expected = new JSONObject("{\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"model\":{\"function_params\":[\"intParam1\",\"intParam2\",\"strParam\",\"setParam\",\"mapParam\",\"price\",\"color\"],\"facets\":{\"String\":[\"color\"],\"float\":[\"price\"]},\"variables\":{\"map_int_int\":[\"mapParam\"],\"String\":[\"strParam\"],\"int\":[\"intParam1\",\"intParam2\"],\"set_double\":[\"setParam\"]},\"function\":\"int myInt = 0;     float delta = System.currentTimeMillis() - timeVal;     float t = delta > 0 ? delta : 0;     float numHours = t / (1000 * 3600);     float timeScore = (float) Math.exp(-(numHours/_half_time));     if (tags.contains(coolTag))       return 999999;     int x = 0;     x += 5;     x *= 10;     return timeScore;\"},\"values\":{\"_half_time\":8888,\"timeVal\":9999,\"srcid\":1234}}}},\"selections\":[{\"term\":{\"color\":{\"value\":\"red\"}}}],\"meta\":{\"select_list\":[\"color\",\"year\"]}}");
+    assertTrue(_comp.isEquals(json, expected));
+  }
+
+  @Test
+  public void testRelevanceModelExample1() throws Exception
+  {
+    System.out.println("testRelevanceModelExample1");
+    System.out.println("==================================================");
+
+    JSONObject json = _compiler.compile(
+      "SELECT * " +
+      "FROM cars " +
+      "WHERE color = 'red' " + 
+      "USING RELEVANCE MODEL my_model ('thisYear':2001, 'goodYear':(1996)) " +
+      "  DEFINED AS (float _INNER_SCORE, int thisYear, int year, IntOpenHashSet goodYear) " +
+      "  BEGIN " +
+      "    if (goodYear.contains(year)) " +
+      "      return (float)Math.exp(10d); " +
+      "    if (year == thisYear) " +
+      "      return 87f; " +
+      "    return _INNER_SCORE; " +
+      "  END " +
+      "ORDER BY relevance"
+      );
+
+    JSONObject expected = new JSONObject("{\"sort\":\"relevance\",\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"model\":{\"function_params\":[\"_INNER_SCORE\",\"thisYear\",\"year\",\"goodYear\"],\"facets\":{\"int\":[\"year\"]},\"variables\":{\"set_int\":[\"goodYear\"],\"int\":[\"thisYear\"]},\"function\":\"if (goodYear.contains(year))       return (float)Math.exp(10d);     if (year == thisYear)       return 87f;     return _INNER_SCORE;\"},\"values\":{\"thisYear\":2001,\"goodYear\":[1996]}}}},\"selections\":[{\"term\":{\"color\":{\"value\":\"red\"}}}],\"meta\":{\"select_list\":[\"*\"]}}");
+    assertTrue(_comp.isEquals(json, expected));
+  }
+
 }

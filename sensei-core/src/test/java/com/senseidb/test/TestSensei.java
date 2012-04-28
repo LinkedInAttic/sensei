@@ -249,6 +249,24 @@ public class TestSensei extends TestCase {
     assertEquals("numhits is wrong", 1534, res.getInt("numhits"));
   }
 
+  public void testBqlRelevance1() throws Exception
+  {
+    logger.info("Executing test case testBqlRelevance1");
+    String req = "{\"bql\":\"SELECT * FROM cars USING RELEVANCE MODEL my_model ('thisYear':2001, 'goodYear':(1996)) DEFINED AS (float _INNER_SCORE, int thisYear, int year, IntOpenHashSet goodYear) BEGIN if (goodYear.contains(year)) return (float)Math.exp(10d); if (year==thisYear) return 87f; return _INNER_SCORE; END\"}";
+    
+    JSONObject res = search(new JSONObject(req));
+
+    JSONArray hits = res.getJSONArray("hits");
+    JSONObject firstHit = hits.getJSONObject(0);
+    JSONObject secondHit = hits.getJSONObject(1);
+    
+    String firstYear = firstHit.getJSONArray("year").getString(0);
+    String secondYear = secondHit.getJSONArray("year").getString(0);
+    
+    assertEquals("year 1996 should be on the top", true, firstYear.contains("1996"));
+    assertEquals("year 1996 should be on the top", true, secondYear.contains("1996"));
+  }
+
   public void testSelectionTerm() throws Exception
   {
     logger.info("executing test case Selection term");
