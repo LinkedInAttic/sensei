@@ -6,6 +6,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import com.senseidb.search.client.json.CustomJsonHandler;
 import com.senseidb.search.client.json.req.filter.Filter;
 import com.senseidb.search.client.json.req.filter.FilterJsonHandler;
@@ -41,7 +44,7 @@ public class SenseiClientRequest {
    * initializing parameters that are needed by all runtime facet handlers
    */
   private Map<String, Map<String, FacetInit>> facetInit = new HashMap<String, Map<String, FacetInit>>();
-  private List<Map<String, String>> sort = new ArrayList<Map<String, String>>();
+  private List<Object> sort = new ArrayList<Object>();
   private Map<String, Facet> facets = new HashMap<String, Facet>();
   /**
    * Flag indicating whether stored fields are to be fetched
@@ -151,9 +154,15 @@ public class SenseiClientRequest {
       if (sort == null) {
         throw new IllegalArgumentException("The sort should be not null");
       }
-      Map<String, String> map = new HashMap<String, String>();
-      map.put(sort.getField(), sort.getOrder().name());
-      request.sort.add(map);      
+      if(sort.getOrder() == null){
+    	  request.sort.add(sort.getField());
+      }else{
+    	  try {
+    		  request.sort.add(new JSONObject().put(sort.getField(), sort.getOrder()));
+    	  } catch (JSONException e) {
+    		  throw new RuntimeException(e);
+    	  }
+      }   
       return this;
     }
 
@@ -210,7 +219,7 @@ public class SenseiClientRequest {
     return facetInit;
   }
 
-  public List<Map<String, String>> getSort(){
+  public List<Object> getSort(){
     return sort;
   }
 
