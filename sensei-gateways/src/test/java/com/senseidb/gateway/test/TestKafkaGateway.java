@@ -69,14 +69,12 @@ public class TestKafkaGateway {
 
 
     kafkaGateway = pluginRegistry.getBeanByFullPrefix("sensei.gateway", SenseiGateway.class);
-    kafkaGateway.start();
     
     config2 = new PropertiesConfiguration(confFile2);
     pluginRegistry2 = SenseiPluginRegistry.build(config2);
     pluginRegistry2.start();
 
     simpleKafkaGateway = pluginRegistry2.getBeanByFullPrefix("sensei.gateway", SenseiGateway.class);
-    simpleKafkaGateway.start();
     
     Properties props = new Properties();
     props.put("zk.connect", "localhost:2181");
@@ -96,10 +94,7 @@ public class TestKafkaGateway {
   
   @AfterClass
   public static void shutdown() {
-    kafkaGateway.stop();
     pluginRegistry.stop();
-    
-    simpleKafkaGateway.stop();
     pluginRegistry2.stop();
     
     try{

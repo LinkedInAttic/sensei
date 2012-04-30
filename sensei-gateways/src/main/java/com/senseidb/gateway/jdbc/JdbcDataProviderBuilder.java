@@ -28,7 +28,7 @@ public class JdbcDataProviderBuilder extends SenseiGateway<ResultSet>{
 	private Comparator<String> _versionComparator;
 
 	@Override
-	public void start() {
+	public void internalStart() {
 	  _versionComparator = pluginRegistry.getBeanByName("versionComparator", Comparator.class);
 	  if (_versionComparator == null) _versionComparator = ZoieConfig.DEFAULT_VERSION_COMPARATOR;
 	}
