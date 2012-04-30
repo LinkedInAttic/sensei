@@ -194,7 +194,7 @@ public class SenseiPluginRegistry {
     }
 
     /**
-     * Calls stop on oll the contanid plugins.
+     * Calls stop on all the contained plugins.
      * Fall all contained plugins (non factories), it calls stop() on them. WARNING: plugin instances
      * created from plugin factories have to be stopped separately.
      */
