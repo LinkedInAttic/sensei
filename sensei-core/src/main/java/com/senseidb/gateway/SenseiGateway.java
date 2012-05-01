@@ -16,27 +16,27 @@ import com.senseidb.plugin.SenseiPluginRegistry;
 
 public abstract class SenseiGateway<V> extends AbstractSenseiPlugin {
 
-  public static Comparator<String> DEFAULT_VERSION_COMPARATOR = ZoieConfig.DEFAULT_VERSION_COMPARATOR;
+    public static Comparator<String> DEFAULT_VERSION_COMPARATOR = ZoieConfig.DEFAULT_VERSION_COMPARATOR;
 
-  final public DataSourceFilter<V> getDataSourceFilter(SenseiSchema senseiSchema, SenseiPluginRegistry pluginRegistry) {
-    DataSourceFilter<V> dataSourceFilter = pluginRegistry.getBeanByFullPrefix("sensei.gateway.filter",
-        DataSourceFilter.class);
-    if (dataSourceFilter != null) {
-      dataSourceFilter.setSrcDataStore(senseiSchema.getSrcDataStore());
-      dataSourceFilter.setSrcDataField(senseiSchema.getSrcDataField());
-      return dataSourceFilter;
+    final public DataSourceFilter<V> getDataSourceFilter(SenseiSchema senseiSchema, SenseiPluginRegistry pluginRegistry) {
+        DataSourceFilter<V> dataSourceFilter = pluginRegistry.getBeanByFullPrefix("sensei.gateway.filter",
+                DataSourceFilter.class);
+        if (dataSourceFilter != null) {
+            dataSourceFilter.setSrcDataStore(senseiSchema.getSrcDataStore());
+            dataSourceFilter.setSrcDataField(senseiSchema.getSrcDataField());
+            return dataSourceFilter;
+        }
+        return null;
     }
-    return null;
-  }
 
-  final public StreamDataProvider<JSONObject> buildDataProvider(SenseiSchema senseiSchema, String oldSinceKey,
-      SenseiPluginRegistry pluginRegistry, ShardingStrategy shardingStrategy, Set<Integer> partitions) throws Exception {
-    DataSourceFilter<V> filter = getDataSourceFilter(senseiSchema, pluginRegistry);
-    return buildDataProvider(filter, oldSinceKey, shardingStrategy, partitions);
-  }
+    final public StreamDataProvider<JSONObject> buildDataProvider(SenseiSchema senseiSchema, String oldSinceKey,
+            SenseiPluginRegistry pluginRegistry, ShardingStrategy shardingStrategy, Set<Integer> partitions) throws Exception {
+        DataSourceFilter<V> filter = getDataSourceFilter(senseiSchema, pluginRegistry);
+        return buildDataProvider(filter, oldSinceKey, shardingStrategy, partitions);
+    }
 
-  abstract public StreamDataProvider<JSONObject> buildDataProvider(DataSourceFilter<V> dataFilter, String oldSinceKey,
-      ShardingStrategy shardingStrategy, Set<Integer> partitions) throws Exception;
+    abstract public StreamDataProvider<JSONObject> buildDataProvider(DataSourceFilter<V> dataFilter, String oldSinceKey,
+            ShardingStrategy shardingStrategy, Set<Integer> partitions) throws Exception;
 
-  abstract public Comparator<String> getVersionComparator();
+    abstract public Comparator<String> getVersionComparator();
 }
