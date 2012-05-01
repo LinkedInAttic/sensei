@@ -5,10 +5,10 @@ import java.util.Map;
 
 class PluginHolder {
     private final SenseiPluginRegistry senseiPluginRegistry;
-    String pluginClass;
-    String pluginName;
-    String fullPrefix;
-    Object instance;
+    private final String pluginClass;
+    private final String pluginName;
+    private final String fullPrefix;
+    private Object instance;
     private Object factoryCreatedInstance;
     Map<String, String> properties = new LinkedHashMap<String, String>();
 

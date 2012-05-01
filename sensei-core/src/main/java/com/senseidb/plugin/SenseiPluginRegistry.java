@@ -56,25 +56,24 @@ public class SenseiPluginRegistry {
                 String prefix = key.substring(0, key.indexOf(".class"));
                 String pluginName = getNameByPrefix(prefix);
                 String pluginCLass = conf.getString(key);
-                ret.plugins.add(new PluginHolder(ret, pluginCLass, pluginName, prefix));
-            }
-        }
-        for (PluginHolder pluginHolder : ret.plugins) {
-            ret.pluginsByPrefix.put(pluginHolder.fullPrefix, pluginHolder);
-            ret.pluginsByNames.put(pluginHolder.pluginName, pluginHolder);
+                PluginHolder holder = new PluginHolder(ret, pluginCLass, pluginName, prefix);
+                ret.plugins.add(holder);
+                ret.pluginsByPrefix.put(prefix, holder);
+                ret.pluginsByNames.put(pluginName, holder);
 
-            Iterator propertyIterator = conf.getKeys(pluginHolder.fullPrefix);
-            while (propertyIterator.hasNext()) {
-                String propertyName = (String) propertyIterator.next();
-                if (propertyName.endsWith(".class")) {
-                    continue;
-                }
-                String property = propertyName;
-                if (propertyName.contains(pluginHolder.fullPrefix)) {
-                    property = propertyName.substring(pluginHolder.fullPrefix.length() + 1);
-                }
-                pluginHolder.properties.put(property, conf.getProperty(propertyName).toString());
+                Iterator propertyIterator = conf.getKeys(prefix);
+                while (propertyIterator.hasNext()) {
+                    String propertyName = (String) propertyIterator.next();
+                    if (propertyName.endsWith(".class")) {
+                        continue;
+                    }
+                    String property = propertyName;
+                    if (propertyName.contains(prefix)) {
+                        property = propertyName.substring(prefix.length() + 1);
+                    }
+                    holder.properties.put(property, conf.getProperty(propertyName).toString());
 
+                }
             }
         }
         cachedRegistries.put(conf, ret);
@@ -99,15 +98,6 @@ public class SenseiPluginRegistry {
         return ret;
     }
 
-    public List<?> getBeansByPrefix(String prefix) {
-        List<Object> ret = new ArrayList<Object>();
-        for (PluginHolder pluginHolder : plugins) {
-            if (pluginHolder.getInstance() != null && pluginHolder.fullPrefix.startsWith(prefix)) {
-                ret.add(pluginHolder.getInstance());
-            }
-        }
-        return ret;
-    }
     public FacetHandler<?> getFacet(String name) {
         for (Object handlerObject : resolveBeansByListKey(FACET_CONF_PREFIX, Object.class)) {
             if (!(handlerObject instanceof FacetHandler)) {
