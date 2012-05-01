@@ -97,13 +97,13 @@ public class SenseiZoieSystemFactory<T> extends SenseiZoieFactory<T>
     final Histogram flushTimeHistogram;
         
     IndexingMetrics(int partition){
-      MetricName docsIndexedName =  new MetricName(MetricsConstants.Domain,"meter","docs-indexed","indexer");
+      MetricName docsIndexedName =  new MetricName(MetricsConstants.Domain,"meter","docs-indexed-" + partition,"indexer");
       docsIndexedMetric = Metrics.newMeter(docsIndexedName, "indexing", TimeUnit.SECONDS);
 
-      MetricName docsLeftoverName = new MetricName(MetricsConstants.Domain,"meter","docs-leftover","indexer");
+      MetricName docsLeftoverName = new MetricName(MetricsConstants.Domain,"meter","docs-leftover-" + partition,"indexer");
       docsLeftoverMetric = Metrics.newMeter(docsLeftoverName, "indexing", TimeUnit.SECONDS);
 
-      MetricName flushTimeName = new MetricName(MetricsConstants.Domain,"histogram","flush-time","indexer");
+      MetricName flushTimeName = new MetricName(MetricsConstants.Domain,"histogram","flush-time-" + partition,"indexer");
       flushTimeHistogram = Metrics.newHistogram(flushTimeName, false);
     }
   }
