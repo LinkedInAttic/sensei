@@ -161,6 +161,19 @@ public class RequestConverter2 {
    * Builds SenseiRequest based on a JSON object.
    *
    * @param json  The input JSON object.
+   * @return The built SenseiRequest.
+   */
+  public static SenseiRequest fromJSON(JSONObject json)
+    throws Exception
+  {
+    return fromJSON(json, null);
+  }
+
+
+  /**
+   * Builds SenseiRequest based on a JSON object.
+   *
+   * @param json  The input JSON object.
    * @param facetInfoMap  Facet information map, which maps a facet name
    *        to a String array in which the first element is the facet
    *        type (like "simple" or "range") and the second element is
