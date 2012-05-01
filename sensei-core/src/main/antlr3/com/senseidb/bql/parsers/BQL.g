@@ -685,7 +685,7 @@ import java.text.SimpleDateFormat;
     }
     
     private void processRelevanceModelParam(JSONObject json,
-                                            final String typeName,
+                                            String typeName,
                                             final String varName)
         throws JSONException
     {
@@ -697,6 +697,10 @@ import java.text.SimpleDateFormat;
 
         // XXX Need to detect duplicates
         funcParams.put(varName);
+
+        if ("String".equals(typeName)) {
+            typeName = "string";
+        }
 
         if (_builtinRelevanceVars.contains(varName)) {
             // Do nothing
@@ -759,21 +763,21 @@ NOT_EQUAL : '<>' ;
 
 STRING_LITERAL
     :   ('"'
-            { StringBuilder builder = new StringBuilder(); }
+            { StringBuilder builder = new StringBuilder().appendCodePoint('"'); }
             ('"' '"'               { builder.appendCodePoint('"'); }
             | ch=~('"'|'\r'|'\n')  { builder.appendCodePoint(ch); }
             )*
          '"'
-            { setText(builder.toString()); }
+            { setText(builder.appendCodePoint('"').toString()); }
         )
     |
         ('\''
-            { StringBuilder builder = new StringBuilder(); }
+            { StringBuilder builder = new StringBuilder().appendCodePoint('\''); }
             ('\'' '\''             { builder.appendCodePoint('\''); }
             | ch=~('\''|'\r'|'\n') { builder.appendCodePoint(ch); }
             )*
          '\''
-            { setText(builder.toString()); }
+            { setText(builder.appendCodePoint('\'').toString()); }
         )
     ;
 
@@ -1153,8 +1157,33 @@ column_name_list returns [boolean fetchStored, JSONArray json]
         -> ^(COLUMN_LIST column_name+)
     ;
 
-column_name
-    :   (IDENT | STRING_LITERAL) ('.' (IDENT | STRING_LITERAL))*
+column_name returns [String text]
+@init {
+    StringBuilder builder = new StringBuilder();
+}
+    :   (id=IDENT | str=STRING_LITERAL)
+        {
+            if (id != null) {
+                builder.append($id.text);
+            }
+            else {
+                String orig = $str.text;
+                builder.append(orig.substring(1, orig.length() - 1));
+            }
+        }
+        ('.' (id2=IDENT | str2=STRING_LITERAL)
+        {
+            builder.append(".");
+            if (id2 != null) {
+                builder.append($id2.text);
+            }
+            else {
+                String orig = $str2.text;
+                builder.append(orig.substring(1, orig.length() - 1));
+            }
+        }
+        )*
+        { $text = builder.toString(); }
     ;
 
 where returns [Object json]
@@ -1349,7 +1378,11 @@ fetching_stored_clause returns [boolean val]
     ;
 
 route_by_clause returns [String val]
-    :   ROUTE BY STRING_LITERAL { $val = $STRING_LITERAL.text; }
+    :   ROUTE BY STRING_LITERAL 
+        { 
+            String orig = $STRING_LITERAL.text;
+            $val = orig.substring(1, orig.length() - 1);
+        }
     ;
 
 search_expr returns [Object json]
@@ -1641,9 +1674,11 @@ query_predicate returns [JSONObject json]
     :   QUERY IS STRING_LITERAL
         {
             try {
+                String orig = $STRING_LITERAL.text;
+                orig = orig.substring(1, orig.length() - 1);
                 $json = new JSONObject().put("query",
                                              new JSONObject().put("query_string",
-                                                                  new JSONObject().put("query", $STRING_LITERAL.text)));
+                                                                  new JSONObject().put("query", orig)));
             }
             catch (JSONException err) {
                 throw new FailedPredicateException(input, "query_predicate", "JSONException: " + err.getMessage());
@@ -1924,10 +1959,13 @@ match_predicate returns [JSONObject json]
                                                            "Non-string type column \"" + col + "\" cannot be used in MATCH AGAINST predicates.");
                     }
                 }
+
+                String orig = $STRING_LITERAL.text;
+                orig = orig.substring(1, orig.length() - 1);
                 $json = new JSONObject().put("query",
                                              new JSONObject().put("query_string",
                                                                   new JSONObject().put("fields", cols)
-                                                                                  .put("query", $STRING_LITERAL.text)));
+                                                                                  .put("query", orig)));
                 if ($NOT != null) {
                     $json = new JSONObject().put("bool",
                                                  new JSONObject().put("must_not", $json));
@@ -1949,7 +1987,9 @@ like_predicate returns [JSONObject json]
                                                    "match_predicate", 
                                                    "Non-string type column \"" + col + "\" cannot be used in LIKE predicates.");
             }
-            String likeString = $STRING_LITERAL.text.replace('\%', '*').replace('_', '?');
+            String orig = $STRING_LITERAL.text;
+            orig = orig.substring(1, orig.length() - 1);
+            String likeString = orig.replace('\%', '*').replace('_', '?');
             try {
                 $json = new JSONObject().put("query",
                                              new JSONObject().put("wildcard",
@@ -2015,7 +2055,12 @@ value_list returns [Object json]
 
 value returns [Object val]
     :   numeric { $val = $numeric.val; }
-    |   STRING_LITERAL { $val = $STRING_LITERAL.text; }
+    |   STRING_LITERAL
+        {
+            String orig = $STRING_LITERAL.text;
+            orig = orig.substring(1, orig.length() - 1);
+            $val = orig;
+        }
     |   TRUE { $val = true; }
     |   FALSE { $val = false; }
     |   VARIABLE
@@ -2088,7 +2133,9 @@ prop_list returns [JSONObject json]
 key_value_pair returns [String key, Object val]
     :   STRING_LITERAL COLON (v=value | vs=non_variable_value_list)
         {
-            $key = $STRING_LITERAL.text;
+            String orig = $STRING_LITERAL.text;
+            orig = orig.substring(1, orig.length() - 1);
+            $key = orig;
             if (v != null) {
                 $val = $v.val;
             }
@@ -2629,7 +2676,9 @@ facet_param returns [String facet, JSONObject param]
                     valArray = $valList.json;
                 }
 
-                $param = new JSONObject().put($STRING_LITERAL.text,
+                String orig = $STRING_LITERAL.text;
+                orig = orig.substring(1, orig.length() - 1);
+                $param = new JSONObject().put(orig,
                                               new JSONObject().put("type", $facet_param_type.paramType)
                                                               .put("values", valArray));
             }

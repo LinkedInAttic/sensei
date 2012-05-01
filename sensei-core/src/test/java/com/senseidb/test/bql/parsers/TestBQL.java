@@ -1311,7 +1311,7 @@ public class TestBQL extends TestCase
       "  END "
       );
 
-    JSONObject expected = new JSONObject("{\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"model\":{\"function_params\":[\"_INNER_SCORE\",\"intParam1\",\"intParam2\",\"strParam\"],\"variables\":{\"int\":[\"intParam1\",\"intParam2\"],\"String\":[\"strParam\"]},\"function\":\"int myInt = 100;     if (srcid == myInt + 2)       return 123;     else if (srcid > 200)       return 345;     else       return _INNER_SCORE;\"},\"values\":{\"srcid\":1234}}}},\"selections\":[{\"term\":{\"color\":{\"value\":\"red\"}}}],\"meta\":{\"select_list\":[\"color\",\"year\"]}}");
+    JSONObject expected = new JSONObject("{\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"model\":{\"function_params\":[\"_INNER_SCORE\",\"intParam1\",\"intParam2\",\"strParam\"],\"variables\":{\"int\":[\"intParam1\",\"intParam2\"],\"string\":[\"strParam\"]},\"function\":\"int myInt = 100;     if (srcid == myInt + 2)       return 123;     else if (srcid > 200)       return 345;     else       return _INNER_SCORE;\"},\"values\":{\"srcid\":1234}}}},\"selections\":[{\"term\":{\"color\":{\"value\":\"red\"}}}],\"meta\":{\"select_list\":[\"color\",\"year\"]}}");
     assertTrue(_comp.isEquals(json, expected));
   }
 
@@ -1359,7 +1359,7 @@ public class TestBQL extends TestCase
       "  BEGIN " +
       "    int myInt = 100; " +
       "    String str1; " +
-      "    String str2 = 'abcd' ; " +
+      "    String str2 = \"abcd\"; " +
       "    char ch = 'c'; " +
       "    Integer int1, int2; " +
       "    int int3 = 0L, int4 = 1234l; " +
@@ -1372,7 +1372,7 @@ public class TestBQL extends TestCase
       "  END "
       );
 
-    JSONObject expected = new JSONObject("{\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"model\":{\"function_params\":[\"intParam1\",\"intParam2\",\"strParam\"],\"variables\":{\"String\":[\"strParam\"],\"int\":[\"intParam1\",\"intParam2\"]},\"function\":\"int myInt = 100;     String str1;     String str2 = abcd ;     char ch = c;     Integer int1, int2;     int int3 = 0L, int4 = 1234l;     float f1 = 1.23f, f2 = 1.23F;     float e1 = 2e+1234;     Byte byte1;     IntOpenHashSet mySet1, mySet2;     Object2IntOpenHashMap myMap1;     return 0.123f;\"},\"values\":{\"srcid\":1234}}}},\"selections\":[{\"term\":{\"color\":{\"value\":\"red\"}}}],\"meta\":{\"select_list\":[\"color\",\"year\"]}}");
+    JSONObject expected = new JSONObject("{\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"model\":{\"function_params\":[\"intParam1\",\"intParam2\",\"strParam\"],\"variables\":{\"string\":[\"strParam\"],\"int\":[\"intParam1\",\"intParam2\"]},\"function\":\"int myInt = 100;     String str1;     String str2 = \\\"abcd\\\";     char ch = 'c';     Integer int1, int2;     int int3 = 0L, int4 = 1234l;     float f1 = 1.23f, f2 = 1.23F;     float e1 = 2e+1234;     Byte byte1;     IntOpenHashSet mySet1, mySet2;     Object2IntOpenHashMap myMap1;     return 0.123f;\"},\"values\":{\"srcid\":1234}}}},\"selections\":[{\"term\":{\"color\":{\"value\":\"red\"}}}],\"meta\":{\"select_list\":[\"color\",\"year\"]}}");
     assertTrue(_comp.isEquals(json, expected));
   }
 
@@ -1543,7 +1543,7 @@ public class TestBQL extends TestCase
       "  END "
       );
 
-    JSONObject expected = new JSONObject("{\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"model\":{\"function_params\":[\"intParam1\",\"intParam2\",\"strParam\",\"setParam\",\"mapParam\",\"price\",\"color\"],\"facets\":{\"String\":[\"color\"],\"float\":[\"price\"]},\"variables\":{\"map_int_int\":[\"mapParam\"],\"String\":[\"strParam\"],\"int\":[\"intParam1\",\"intParam2\"],\"set_double\":[\"setParam\"]},\"function\":\"int myInt = 0;     float delta = System.currentTimeMillis() - timeVal;     float t = delta > 0 ? delta : 0;     float numHours = t / (1000 * 3600);     float timeScore = (float) Math.exp(-(numHours/_half_time));     if (tags.contains(coolTag))       return 999999;     int x = 0;     x += 5;     x *= 10;     return timeScore;\"},\"values\":{\"_half_time\":8888,\"timeVal\":9999,\"srcid\":1234}}}},\"selections\":[{\"term\":{\"color\":{\"value\":\"red\"}}}],\"meta\":{\"select_list\":[\"color\",\"year\"]}}");
+    JSONObject expected = new JSONObject("{\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"model\":{\"function_params\":[\"intParam1\",\"intParam2\",\"strParam\",\"setParam\",\"mapParam\",\"price\",\"color\"],\"facets\":{\"string\":[\"color\"],\"float\":[\"price\"]},\"variables\":{\"map_int_int\":[\"mapParam\"],\"string\":[\"strParam\"],\"int\":[\"intParam1\",\"intParam2\"],\"set_double\":[\"setParam\"]},\"function\":\"int myInt = 0;     float delta = System.currentTimeMillis() - timeVal;     float t = delta > 0 ? delta : 0;     float numHours = t / (1000 * 3600);     float timeScore = (float) Math.exp(-(numHours/_half_time));     if (tags.contains(coolTag))       return 999999;     int x = 0;     x += 5;     x *= 10;     return timeScore;\"},\"values\":{\"_half_time\":8888,\"timeVal\":9999,\"srcid\":1234}}}},\"selections\":[{\"term\":{\"color\":{\"value\":\"red\"}}}],\"meta\":{\"select_list\":[\"color\",\"year\"]}}");
     assertTrue(_comp.isEquals(json, expected));
   }
 
@@ -1570,6 +1570,34 @@ public class TestBQL extends TestCase
       );
 
     JSONObject expected = new JSONObject("{\"sort\":\"relevance\",\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"model\":{\"function_params\":[\"_INNER_SCORE\",\"thisYear\",\"year\",\"goodYear\"],\"facets\":{\"int\":[\"year\"]},\"variables\":{\"set_int\":[\"goodYear\"],\"int\":[\"thisYear\"]},\"function\":\"if (goodYear.contains(year))       return (float)Math.exp(10d);     if (year == thisYear)       return 87f;     return _INNER_SCORE;\"},\"values\":{\"thisYear\":2001,\"goodYear\":[1996]}}}},\"selections\":[{\"term\":{\"color\":{\"value\":\"red\"}}}],\"meta\":{\"select_list\":[\"*\"]}}");
+    assertTrue(_comp.isEquals(json, expected));
+  }
+
+  @Test
+  public void testRelevanceModelExample2() throws Exception
+  {
+    System.out.println("testRelevanceModelExample2");
+    System.out.println("==================================================");
+
+    JSONObject json = _compiler.compile(
+      "SELECT * " +
+      "FROM cars " +
+      "WHERE color = 'red' " + 
+      "USING RELEVANCE MODEL my_model ('thisYear':2001, 'goodYear':(1996)) " +
+      "  DEFINED AS (float _INNER_SCORE, int thisYear, int year, String color, IntOpenHashSet goodYear) " +
+      "  BEGIN " +
+      "    if (goodYear.contains(year)) " +
+      "      return (float)Math.exp(10d); " +
+      "    if (year == thisYear) " +
+      "      return 87f; " +
+      "    else if (color.equals(\"blue\")) " +
+      "      return 99f; " +
+      "    return _INNER_SCORE; " +
+      "  END " +
+      "ORDER BY relevance"
+      );
+
+    JSONObject expected = new JSONObject("{\"sort\":\"relevance\",\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"model\":{\"function_params\":[\"_INNER_SCORE\",\"thisYear\",\"year\",\"color\",\"goodYear\"],\"facets\":{\"int\":[\"year\"],\"string\":[\"color\"]},\"variables\":{\"set_int\":[\"goodYear\"],\"int\":[\"thisYear\"]},\"function\":\"if (goodYear.contains(year))       return (float)Math.exp(10d);     if (year == thisYear)       return 87f;     else if (color.equals(\\\"blue\\\"))       return 99f;     return _INNER_SCORE;\"},\"values\":{\"thisYear\":2001,\"goodYear\":[1996]}}}},\"selections\":[{\"term\":{\"color\":{\"value\":\"red\"}}}],\"meta\":{\"select_list\":[\"*\"]}}");
     assertTrue(_comp.isEquals(json, expected));
   }
 

@@ -635,12 +635,12 @@ public class TestErrorHandling extends TestCase
     try
     {
       JSONObject json = _compiler.compile(
-        "select color, from aa where color  = 'red'"
+        "select color, from aa where color = 'red'"
         );
     }
     catch (RecognitionException err)
     {
-      assertEquals("[line:1, col:14] Mismatched input (token=from)",
+      assertEquals("[line:1, col:14] No viable alternative (token=from)",
                    _compiler.getErrorMessage(err));
       caughtException = true;
     }
