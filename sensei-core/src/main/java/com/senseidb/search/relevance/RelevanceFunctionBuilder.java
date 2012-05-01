@@ -138,4 +138,28 @@ public class RelevanceFunctionBuilder
       throw new IllegalArgumentException("the relevance json is not valid"); 
     }
   }
+  
+  /**
+   * A facility method to build a relevance model factory object from a relevance json object;
+   * A relevance model factory can be used to generate scorefunction object as many as you want.
+   * @param jsonRelevance
+   * @return Relevance model Factory
+   * @throws JSONException
+   */
+  public static CustomRelevanceFunctionFactory buildModelFactory(JSONObject jsonRelevance) throws JSONException
+  {
+    // runtime anonymous model;
+    if (jsonRelevance.has(RelevanceJSONConstants.KW_MODEL))
+    {
+      JSONObject modelJson  = jsonRelevance.optJSONObject(RelevanceJSONConstants.KW_MODEL);
+      DataTable _dt = new DataTable();
+      CustomMathModel _cModel = CompilationHelper.createCustomMathScorer(modelJson, _dt);
+      RuntimeRelevanceFunction sm = new RuntimeRelevanceFunction(_cModel, _dt); 
+      RuntimeRelevanceFunctionFactory rrfFactory = new RuntimeRelevanceFunctionFactory(sm);
+      return rrfFactory;
+    }
+    else{
+      throw new IllegalArgumentException("the relevance json is not valid to create a model factory."); 
+    }
+  }
 }
