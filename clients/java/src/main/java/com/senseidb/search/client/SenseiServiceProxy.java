@@ -70,16 +70,12 @@ public class SenseiServiceProxy {
         throw new RuntimeException(ex);
       }
     }
-    public SenseiResult sendBQL( String bql)  throws BQLException {
+    public SenseiResult sendBQL( String bql) {
       try {
         StringBuilder buffer = new StringBuilder();
         buffer.append("{'bql':").append(bql).append("}");
         String requestStr = buffer.toString();
         String output = sendPostRaw(getSearchUrl(), requestStr);
-        //System.out.println("Output from Server = " + output);
-        if (output.indexOf("\"error\"") < 5 && output.indexOf("\"error\"") >= 0) {
-          throw new BQLException(output);
-        }
         return JsonDeserializer.deserialize(SenseiResult.class, jsonResponse(output));
       } catch (Exception ex) {
         throw new RuntimeException(ex);
