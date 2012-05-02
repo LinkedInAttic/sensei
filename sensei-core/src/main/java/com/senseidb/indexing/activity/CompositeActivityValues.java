@@ -84,7 +84,7 @@ public class CompositeActivityValues {
     if (intValuesMap.isEmpty()) {
       return;
     }
-    if (versionComparator.compare(lastVersion, version) > 0) {
+    if (versionComparator.compare(lastVersion, version) >= 0) {
       return;
     }
     if (map.isEmpty()) {
