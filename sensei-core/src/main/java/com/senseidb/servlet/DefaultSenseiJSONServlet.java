@@ -484,7 +484,9 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
   private static void addErrors(JSONObject jsonResult, SenseiResult res) throws JSONException {
     JSONArray errorsJson = new JSONArray();
     for (SenseiError error: res.getErrors()) {
-      errorsJson.put(new JSONObject().put(PARAM_RESULT_ERROR_MESSAGE, error.getMessage()).put(PARAM_RESULT_ERROR_TYPE, error.getErrorType().name()));
+      errorsJson.put(new JSONObject().put(PARAM_RESULT_ERROR_MESSAGE, error.getMessage())
+                                     .put(PARAM_RESULT_ERROR_TYPE, error.getErrorType().name())
+                                     .put(PARAM_RESULT_ERROR_CODE, error.getErrorCode()));
     }
     jsonResult.put(PARAM_RESULT_ERRORS, errorsJson);
     if (res.getErrors().size() > 0) {

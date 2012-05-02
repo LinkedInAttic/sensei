@@ -203,7 +203,8 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
           catch(JSONException jse)
           {
             logger.error("JSON parsing error", jse);
-              writeEmptyResponse(resp, new SenseiError(jse.getMessage(), ErrorType.JsonParsingError)); 
+            writeEmptyResponse(resp, new SenseiError(jse.getMessage(), ErrorType.JsonParsingError));
+            return;
           }
         }
         else
@@ -244,7 +245,8 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
               errMsg = "Unknown parsing error.";
             }
             logger.error("BQL parsing error: " + errMsg + ", BQL: " + bqlStmt);
-            writeEmptyResponse(resp, new SenseiError(errMsg, ErrorType.BQLParsingError));             
+            writeEmptyResponse(resp, new SenseiError(errMsg, ErrorType.BQLParsingError));
+            return;
           }
 
           // Handle extra BQL filter if it exists
@@ -265,7 +267,8 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
                 errMsg = "Unknown parsing error.";
               }
               logger.error("BQL parsing error for additional preds: " + errMsg + ", BQL: " + bql2);
-              writeEmptyResponse(resp, new SenseiError("BQL parsing error for additional preds: " + errMsg + ", BQL: " + bql2, ErrorType.BQLParsingError));  
+              writeEmptyResponse(resp, new SenseiError("BQL parsing error for additional preds: " + errMsg + ", BQL: " + bql2, ErrorType.BQLParsingError));
+              return;
             }
 
             // Combine filters
