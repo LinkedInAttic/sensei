@@ -19,10 +19,13 @@ import proj.zoie.api.ZoieMultiReader;
 import proj.zoie.api.ZoieSegmentReader;
 import proj.zoie.hourglass.impl.HourglassListener;
 
+import com.senseidb.conf.SenseiConfParams;
 import com.senseidb.conf.SenseiSchema;
 import com.senseidb.conf.SenseiSchema.FacetDefinition;
 import com.senseidb.conf.SenseiSchema.FieldDefinition;
+import com.senseidb.indexing.activity.BaseActivityFilter.ActivityFilteredResult;
 import com.senseidb.indexing.activity.deletion.DeletionListener;
+import com.senseidb.plugin.SenseiPluginRegistry;
 
 /**
  * Wrapper around all the activity indexes within the Sensei node. It is the entry point to the activity engine. 
@@ -31,26 +34,27 @@ import com.senseidb.indexing.activity.deletion.DeletionListener;
  *
  */
 public class CompositeActivityManager implements DeletionListener, HourglassListener<IndexReader, IndexReader> {
+    
     protected CompositeActivityValues activityValues;
     private SenseiSchema senseiSchema;
     public static final String EVENT_TYPE_ONLY_ACTIVITY = "activity-update";
-    private int nodeId;
-   
+    private BaseActivityFilter activityFilter; 
     
     
     public CompositeActivityManager() {
       
     }
-    public CompositeActivityManager(String indexDirectory, int nodeId, SenseiSchema senseiSchema, Comparator<String> versionComparator) {
-      this.init(indexDirectory, nodeId, senseiSchema, versionComparator);
+
+    public CompositeActivityManager(String indexDirectory, int nodeId, SenseiSchema senseiSchema, Comparator<String> versionComparator, SenseiPluginRegistry pluginRegistry) {
+      this.init(indexDirectory, nodeId, senseiSchema, versionComparator, pluginRegistry);
     }
     
     public String getOldestSinceVersion() {
       return activityValues.getVersion();
     }
     
-    public final void init(String indexDirectory, int nodeId, SenseiSchema senseiSchema, Comparator<String> versionComparator) {
-      this.nodeId = nodeId;
+    public final void init(String indexDirectory, int nodeId, SenseiSchema senseiSchema, Comparator<String> versionComparator, SenseiPluginRegistry pluginRegistry) {
+     
       this.senseiSchema = senseiSchema;
       try {
         File dir = new File(indexDirectory, "node" +nodeId +"/activity");
@@ -64,6 +68,10 @@ public class CompositeActivityManager implements DeletionListener, HourglassList
           }
         }        
         activityValues = CompositeActivityValues.readFromFile(canonicalPath, fields, TimeAggregateInfo.valueOf(senseiSchema), versionComparator);
+        activityFilter = pluginRegistry.getBeanByFullPrefix(SenseiConfParams.SENSEI_INDEX_ACTIVITY_FILTER, BaseActivityFilter.class);
+        if (activityFilter == null) {
+          activityFilter = new DefaultActivityFilter();
+        }
         cachedInstances.put(nodeId, this);
       } catch (IOException ex) {
         throw new RuntimeException(ex);
@@ -93,21 +101,26 @@ public class CompositeActivityManager implements DeletionListener, HourglassList
       return activityPresent;
     }
     /**
-     * Updates all the corresponding acitivity columns fond in the document
+     * Updates all the corresponding activity columns found in the document
      * @param event
      * @param version
+     * @return 
      */
-    public void update(JSONObject event, String version) {
+    public JSONObject update(JSONObject event, String version) {
       try {
         if (event.opt(SenseiSchema.EVENT_TYPE_SKIP) != null && event.opt(EVENT_TYPE_ONLY_ACTIVITY) == null) {
-          return;
+          return event;
         }        
-        long uid = event.getLong(senseiSchema.getUidField());       
+        long defaultUid = event.getLong(senseiSchema.getUidField());       
         if (event.opt(SenseiSchema.EVENT_TYPE_FIELD) != null && event.optString(SenseiSchema.EVENT_TYPE_FIELD).equals(SenseiSchema.EVENT_TYPE_DELETE)) {
-          activityValues.delete(uid);
-        } else {
-          activityValues.update(uid, version, event);
+          activityValues.delete(defaultUid);
+          return event;
+        } 
+        ActivityFilteredResult activityFilteredResult = activityFilter.filter(event, senseiSchema);
+        for (long uid : activityFilteredResult.getActivityValues().keySet()) {
+          activityValues.update(uid, version, activityFilteredResult.getActivityValues().get(uid));
         }
+        return activityFilteredResult.getFilteredObject();
       } catch (JSONException ex) {
         throw new RuntimeException(ex);
       }      

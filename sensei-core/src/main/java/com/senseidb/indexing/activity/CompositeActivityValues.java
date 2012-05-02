@@ -80,14 +80,14 @@ public class CompositeActivityValues {
       lastVersion = version;
     }
   }
-  public void update(long uid, final String version, JSONObject event) {
+  public void update(long uid, final String version, Map<String, Object> map) {
     if (intValuesMap.isEmpty()) {
       return;
     }
     if (versionComparator.compare(lastVersion, version) > 0) {
       return;
     }
-    if (!matchesFields(event)) {
+    if (map.isEmpty()) {
       lastVersion = version;
       return;
     }
@@ -115,7 +115,7 @@ public class CompositeActivityValues {
         needToFlush = updateBatch.addFieldUpdate(new Update(index, uid));
       }      
       // System.out.println("update uid = " + uid + ", index = " + index + ", threadID = " + Thread.currentThread().getId());
-      needToFlush = needToFlush || updateActivities(event, index);
+      needToFlush = needToFlush || updateActivities(map, index);
       lastVersion = version;
     } finally {
       writeLock.unlock();
@@ -138,10 +138,10 @@ public class CompositeActivityValues {
     }
   }
 
-  private boolean updateActivities(JSONObject event, int index) {
+  private boolean updateActivities(Map<String, Object> map, int index) {
     boolean needToFlush = false;
     for (ActivityValues activityIntValues : intValuesMap.values()) {
-      Object value = event.opt(activityIntValues.getFieldName());
+      Object value = map.get(activityIntValues.getFieldName());
       if (value != null) {
         needToFlush = needToFlush | activityIntValues.update(index, value);
       }

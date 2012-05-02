@@ -3,6 +3,8 @@ package com.senseidb.indexing.activity.time;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import junit.framework.Assert;
 
@@ -45,7 +47,7 @@ public class TimeAggregatedActivityPerfTest extends Assert {
     TimeAggregatedActivityValues timeAggregatedActivityValues = (TimeAggregatedActivityValues) activityValues.getActivityValuesMap().get("likes");
     timeAggregatedActivityValues.getAggregatesUpdateJob().stop();
     long insertTime = System.currentTimeMillis();
-    org.json.JSONObject jsonActivityUpdate = new org.json.JSONObject();
+    Map<String, Object> jsonActivityUpdate = new HashMap<String, Object>();
     jsonActivityUpdate.put("likes", "+1");
     int recordsCount = 100000;
     int numOfEvents = 10;
