@@ -93,6 +93,11 @@ PARAM_RESULT_HIT_SCORE = "score"
 PARAM_RESULT_HIT_SRC_DATA = "srcdata"
 PARAM_RESULT_TIME = "time"
 PARAM_RESULT_SELECT_LIST = "select_list"
+PARAM_RESULT_ERRORS = "errors"
+PARAM_RESULT_ERROR_MESSAGE = "message";
+PARAM_RESULT_ERROR_TYPE = "errorType";
+PARAM_RESULT_ERRORS = "errors";
+PARAM_RESULT_ERROR_CODE = "errorCode";
 
 PARAM_SYSINFO_NUMDOCS = "numdocs"
 PARAM_SYSINFO_LASTMODIFIED = "lastmodified"
@@ -1010,7 +1015,7 @@ class SenseiResult:
     self.total_time = 0
     self.numHits = json_data.get(PARAM_RESULT_NUMHITS, 0)
     self.hits = json_data.get(PARAM_RESULT_HITS)
-    self.error = json_data.get("error")
+    self.errors = json_data.get(PARAM_RESULT_ERRORS)
     map = json_data.get(PARAM_RESULT_FACETS)
     self.facetMap = {}
     if map:
