@@ -432,7 +432,7 @@ import java.text.SimpleDateFormat;
         else if (columnType.equals("float") || columnType.equals("double")) {
             return !(value instanceof String || value instanceof Boolean);
         }
-        else if (columnType.equals("string")) {
+        else if (columnType.equals("string") || columnType.equals("char")) {
             return (value instanceof String);
         }
         else if (columnType.equals("boolean")) {

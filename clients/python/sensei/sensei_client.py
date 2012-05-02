@@ -387,7 +387,7 @@ exit              Exit
 
       if command == "select":
         res = client.doQuery(stmt, var_map=var_map)
-        error = res.errors[0]
+        error = res.errors and res.errors[0] or None
         if error:
           err_code = error.get(PARAM_RESULT_ERROR_CODE)
           err_msg = error.get(PARAM_RESULT_ERROR_MESSAGE)
