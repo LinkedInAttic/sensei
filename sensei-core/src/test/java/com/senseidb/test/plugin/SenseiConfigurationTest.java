@@ -48,7 +48,7 @@ public class SenseiConfigurationTest extends Assert {
   }
   @Test
   public void test3ConfigParams() {
-    MyCustomRouterFactory customRouterFactory = pluginRegistry.getBeansByType(MyCustomRouterFactory.class).get(0);
+    MyCustomRouterFactory customRouterFactory = pluginRegistry.getBeanByName("factory", MyCustomRouterFactory.class);
     assertEquals("prop1", customRouterFactory.config.get("property1"));
     assertEquals("prop2", customRouterFactory.config.get("property2"));
     assertEquals("3", customRouterFactory.config.get("property3"));

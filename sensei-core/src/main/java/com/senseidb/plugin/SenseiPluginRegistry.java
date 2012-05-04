@@ -98,16 +98,6 @@ public class SenseiPluginRegistry {
         return (T) holder.getInstance();
     }
 
-    public <T> List<T> getBeansByType(Class<T> type) {
-        List<T> ret = new ArrayList<T>();
-        for (PluginHolder pluginHolder : plugins) {
-            if (pluginHolder.getInstance() != null && type.isAssignableFrom(pluginHolder.getInstance().getClass())) {
-                ret.add((T) pluginHolder.getInstance());
-            }
-        }
-        return ret;
-    }
-
     public FacetHandler<?> getFacet(String name) {
         for (Object handlerObject : resolveBeansByListKey(FACET_CONF_PREFIX, Object.class)) {
             if (!(handlerObject instanceof FacetHandler)) {
