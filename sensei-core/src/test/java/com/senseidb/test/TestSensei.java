@@ -282,6 +282,7 @@ public class TestSensei extends TestCase {
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 4483, res.getInt("numhits"));
   }
+
   public void testSelectionDynamicTimeRangeJson() throws Exception
   {
     logger.info("executing test case Selection terms");
@@ -293,6 +294,18 @@ public class TestSensei extends TestCase {
     assertEquals("numhits is wrong", 12990, res.getInt("numhits"));
   }
  
+  public void testSelectionDynamicTimeRangeJson2() throws Exception
+  {
+    // Test scalar values in facet init parameters
+    logger.info("executing test case Selection terms");
+    String req = "{\"selections\":[{\"term\":{\"timeRange\":{\"value\":\"000000013\"}}}]" +
+    		", \"facetInit\":{    \"timeRange\":{\"time\" :{  \"type\" : \"long\",\"values\" : 15000 }}}" +
+    		"}";
+    System.out.println(req);
+    JSONObject res = search(new JSONObject(req));
+    assertEquals("numhits is wrong", 12990, res.getInt("numhits"));
+  }
+
   public void testSelectionRange() throws Exception
   {
     //2000 1548;
