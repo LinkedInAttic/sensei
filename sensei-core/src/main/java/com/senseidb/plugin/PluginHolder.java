@@ -10,16 +10,18 @@ class PluginHolder {
     private final String fullPrefix;
     private Object instance;
     private Object factoryCreatedInstance;
-    Map<String, String> properties = new LinkedHashMap<String, String>();
+    private final Map<String, String> properties;
 
     public PluginHolder(SenseiPluginRegistry senseiPluginRegistry,
             String pluginClass,
             String pluginName,
-            String fullPrefix) {
+            String fullPrefix,
+            Map<String, String> properties) {
         this.senseiPluginRegistry = senseiPluginRegistry;
         this.pluginClass = pluginClass;
         this.pluginName = pluginName;
         this.fullPrefix = fullPrefix;
+        this.properties = properties;
     }
 
     public synchronized Object getInstance() {

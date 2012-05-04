@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.configuration.Configuration;
+import com.google.common.collect.Maps;
+
 
 import com.linkedin.bobo.facets.FacetHandler;
 import com.linkedin.bobo.facets.RuntimeFacetHandlerFactory;
@@ -56,28 +58,36 @@ public class SenseiPluginRegistry {
                 String prefix = key.substring(0, key.indexOf(".class"));
                 String pluginName = getNameByPrefix(prefix);
                 String pluginCLass = conf.getString(key);
-                PluginHolder holder = new PluginHolder(ret, pluginCLass, pluginName, prefix);
+                PluginHolder holder = new PluginHolder(ret, pluginCLass, pluginName, prefix, extractPluginConfiguration(conf, prefix));
                 ret.plugins.add(holder);
                 ret.pluginsByPrefix.put(prefix, holder);
                 ret.pluginsByNames.put(pluginName, holder);
-
-                Iterator propertyIterator = conf.getKeys(prefix);
-                while (propertyIterator.hasNext()) {
-                    String propertyName = (String) propertyIterator.next();
-                    if (propertyName.endsWith(".class")) {
-                        continue;
-                    }
-                    String property = propertyName;
-                    if (propertyName.contains(prefix)) {
-                        property = propertyName.substring(prefix.length() + 1);
-                    }
-                    holder.properties.put(property, conf.getProperty(propertyName).toString());
-
-                }
             }
         }
         cachedRegistries.put(conf, ret);
         return ret;
+    }
+
+    /**
+     * Extracts the map configuration specific for a plugin from the general configuration.
+     * @param origConf the original (global) configuration.
+     * @param pluginPrefix the name of the plugin, and prefix of all its configuration keys.
+     */
+    private static Map<String, String> extractPluginConfiguration(final Configuration origConf, final String pluginPrefix) {
+        Map<String, String> pluginConf = Maps.newHashMap();
+        Iterator propertyIterator = origConf.getKeys(pluginPrefix);
+        while (propertyIterator.hasNext()) {
+            String propertyName = (String) propertyIterator.next();
+            if (propertyName.endsWith(".class")) {
+                continue;
+            }
+            String property = propertyName;
+            if (propertyName.contains(pluginPrefix)) {
+                property = propertyName.substring(pluginPrefix.length() + 1);
+            }
+            pluginConf.put(property, origConf.getProperty(propertyName).toString());
+        }
+        return pluginConf;
     }
 
     public <T> T getBeanByName(String name, Class<T> type) {
