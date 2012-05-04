@@ -6,7 +6,6 @@ import java.util.Map;
 class PluginHolder {
     private final SenseiPluginRegistry senseiPluginRegistry;
     private final String pluginClass;
-    private final String pluginName;
     private final String fullPrefix;
     private Object instance;
     private Object factoryCreatedInstance;
@@ -14,12 +13,10 @@ class PluginHolder {
 
     public PluginHolder(SenseiPluginRegistry senseiPluginRegistry,
             String pluginClass,
-            String pluginName,
             String fullPrefix,
             Map<String, String> properties) {
         this.senseiPluginRegistry = senseiPluginRegistry;
         this.pluginClass = pluginClass;
-        this.pluginName = pluginName;
         this.fullPrefix = fullPrefix;
         this.properties = properties;
     }

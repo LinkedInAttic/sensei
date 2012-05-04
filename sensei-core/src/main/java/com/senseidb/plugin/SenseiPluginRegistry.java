@@ -58,7 +58,7 @@ public class SenseiPluginRegistry {
                 String prefix = key.substring(0, key.indexOf(".class"));
                 String pluginName = getNameByPrefix(prefix);
                 String pluginCLass = conf.getString(key);
-                PluginHolder holder = new PluginHolder(ret, pluginCLass, pluginName, prefix, extractPluginConfiguration(conf, prefix));
+                PluginHolder holder = new PluginHolder(ret, pluginCLass, prefix, extractPluginConfiguration(conf, prefix));
                 ret.plugins.add(holder);
                 ret.pluginsByPrefix.put(prefix, holder);
                 ret.pluginsByNames.put(pluginName, holder);
