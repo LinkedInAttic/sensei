@@ -321,6 +321,16 @@ public class RequestConverter2 {
                   JSONObject jsonParamValues = jsonParams.getJSONObject(paramName);
                   String type = jsonParamValues.optString(RequestConverter2.FACETINIT_TYPE, RequestConverter2.FACETINIT_TYPE_STRING);
                   JSONArray jsonValues = jsonParamValues.optJSONArray(RequestConverter2.FACETINIT_VALUES);
+                  if (jsonValues == null)
+                  {
+                    // Accept scalar values here too.  This is useful in
+                    // supporting variable substitutions.
+                    Object value = jsonParamValues.opt(RequestConverter2.FACETINIT_VALUES);
+                    if (value != null)
+                    {
+                      jsonValues = new JSONArray().put(value);
+                    }
+                  }
                   if (jsonValues != null)
                   {
                     if (type.equals(RequestConverter2.FACETINIT_TYPE_INT))
