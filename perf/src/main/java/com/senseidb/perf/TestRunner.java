@@ -41,7 +41,7 @@ public class TestRunner {
           }
         };
       };
-      //thread.start();  
+      thread.start();  
       Thread[] queryThreads = new Thread[1];
       final SenseiServiceProxy proxy = new SenseiServiceProxy("localhost", 8080);
       Runnable query = new Runnable() {
@@ -52,8 +52,8 @@ public class TestRunner {
             String sendPostRaw = proxy.sendPostRaw(proxy.getSearchUrl(),  ((JSONObject)JsonSerializer.serialize(SenseiClientRequest.builder().addSort(com.senseidb.search.client.req.Sort.desc("mileage")).build())).toString());
             try {
               int numihits = new JSONObject(sendPostRaw).getInt("totaldocs");
-              System.out.println(numihits);
-              Thread.sleep(200);
+              //System.out.println(numihits);
+              Thread.sleep(500);
               if (numihits == 0) {
                 System.out.println("!!!!numihits is 0");
                 
