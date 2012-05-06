@@ -264,8 +264,10 @@ package com.senseidb.bql.parsers;
 @parser::header {
 package com.senseidb.bql.parsers;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
 import org.json.JSONObject;
@@ -283,13 +285,19 @@ import java.text.SimpleDateFormat;
     private static final int DEFAULT_FACET_MINHIT = 1;
     private static final int DEFAULT_FACET_MAXHIT = 10;
     private static final Map<String, String> _fastutilTypeMap;
-    private static final Set<String> _builtinRelevanceVars;
+    private static final Map<String, String> _internalVarMap;
+    private static final Set<String> _supportedClasses;
 
     private Map<String, String[]> _facetInfoMap;
     private long _now;
     private HashSet<String> _variables;
     private SimpleDateFormat[] _format1 = new SimpleDateFormat[2];
     private SimpleDateFormat[] _format2 = new SimpleDateFormat[2];
+
+    private LinkedList<Map<String, String>> _symbolTable;
+    private Map<String, String> _currentScope;
+    private Set<String> _usedFacets; // Facets used by relevance model
+    private Set<String> _usedInternalVars; // Internal variables used by relevance model
 
     static {
         _fastutilTypeMap = new HashMap<String, String>();
@@ -311,9 +319,23 @@ import java.text.SimpleDateFormat;
         _fastutilTypeMap.put("Object2LongOpenHashMap", "map_string_long");
         _fastutilTypeMap.put("Object2ObjectOpenHashMap", "map_string_string");
 
-        _builtinRelevanceVars = new HashSet<String>();
-        _builtinRelevanceVars.add("_NOW");
-        _builtinRelevanceVars.add("_INNER_SCORE");
+        _internalVarMap = new HashMap<String, String>();
+        _internalVarMap.put("_NOW", "long");
+        _internalVarMap.put("_INNER_SCORE", "float");
+
+        _supportedClasses = new HashSet<String>();
+        _supportedClasses.add("Boolean");
+        _supportedClasses.add("Byte");
+        _supportedClasses.add("Character");
+        _supportedClasses.add("Double");
+        _supportedClasses.add("Integer");
+        _supportedClasses.add("Long");
+        _supportedClasses.add("Short");
+
+        _supportedClasses.add("Math");
+        _supportedClasses.add("String");
+        _supportedClasses.add("System");
+
     }
 
     public BQLParser(TokenStream input, Map<String, String[]> facetInfoMap)
@@ -684,57 +706,62 @@ import java.text.SimpleDateFormat;
                                                  new JSONObject().put(field, newSpec)));
     }
     
-    private void processRelevanceModelParam(JSONObject json,
+    private void processRelevanceModelParam(TokenStream input,
+                                            JSONObject json,
+                                            Set<String> params,
                                             String typeName,
                                             final String varName)
-        throws JSONException
+        throws JSONException, RecognitionException
     {
+        if (_facetInfoMap.containsKey(varName)) {
+            throw new FailedPredicateException(input, "", "Facet name \"" + varName + "\" cannot be used as a relevance model parameter.");
+        }
+
+        if (_internalVarMap.containsKey(varName)) {
+            throw new FailedPredicateException(input, "", "Internal variable \"" + varName + "\" cannot be used as a relevance model parameter.");
+        }
+
+        if (params.contains(varName)) {
+            throw new FailedPredicateException(input, "", "Parameter name \"" + varName + "\" has already been used.");
+        }
+
+        if ("String".equals(typeName)) {
+            typeName = "string";
+        }
+
         JSONArray funcParams = json.optJSONArray("function_params");
         if (funcParams == null) {
             funcParams = new JSONArray();
             json.put("function_params", funcParams);
         }
 
-        // XXX Need to detect duplicates
         funcParams.put(varName);
+        params.add(varName);
 
-        if ("String".equals(typeName)) {
-            typeName = "string";
+        JSONObject variables = json.optJSONObject("variables");
+        if (variables == null) {
+            variables = new JSONObject();
+            json.put("variables", variables);
         }
 
-        if (_builtinRelevanceVars.contains(varName)) {
-            // Do nothing
+        JSONArray varsWithSameType = variables.optJSONArray(typeName);
+        if (varsWithSameType == null) {
+            varsWithSameType = new JSONArray();
+            variables.put(typeName, varsWithSameType);
         }
-        else if (_facetInfoMap.get(varName) == null) {
-            // This is NOT a facet, put it in the variable list
-            JSONObject variables = json.optJSONObject("variables");
-            if (variables == null) {
-                variables = new JSONObject();
-                json.put("variables", variables);
-            }
+        varsWithSameType.put(varName);
+    }
 
-            JSONArray varsWithSameType = variables.optJSONArray(typeName);
-            if (varsWithSameType == null) {
-                varsWithSameType = new JSONArray();
-                variables.put(typeName, varsWithSameType);
+    // Check whether a variable is defined.
+    private boolean verifyVariable(final String variable) {
+        Iterator<Map<String, String>> itr = _symbolTable.descendingIterator();
+        while (itr.hasNext()) {
+            Map<String, String> scope = itr.next();
+            if (scope.containsKey(variable)) {
+                return true;
             }
-            varsWithSameType.put(varName);
         }
-        else {
-            JSONObject facets = json.optJSONObject("facets");
-            if (facets == null) {
-                facets = new JSONObject();
-                json.put("facets", facets);
-            }
-
-            // XXX Need to double check the type
-            JSONArray facetsWithSameType = facets.optJSONArray(typeName);
-            if (facetsWithSameType == null) {
-                facetsWithSameType = new JSONArray();
-                facets.put(typeName, facetsWithSameType);
-            }
-            facetsWithSameType.put(varName);
-        }
+        return false;
     }
 }
 
@@ -2157,12 +2184,26 @@ given_clause returns [JSONObject json]
 // Relevance model related
 // =====================================================================
 
-variable_declarators
-    :   variable_declarator (',' variable_declarator)*
+variable_declarators returns [JSONArray json]
+@init {
+    $json = new JSONArray();
+}
+    :   var1=variable_declarator
+        {
+            $json.put($var1.varName);
+        }
+        (COMMA var2=variable_declarator
+            {
+                $json.put($var2.varName);
+            }
+        )*
     ;
 
-variable_declarator
+variable_declarator returns [String varName]
     :   variable_declarator_id ('=' variable_initializer)?
+        {
+            $varName = $variable_declarator_id.varName;
+        }
     ;
 
 variable_declarator_id returns [String varName]
@@ -2227,11 +2268,12 @@ formal_parameters returns [JSONObject json]
 formal_parameter_decls returns [JSONObject json]
 @init {
     $json = new JSONObject();
+    Set<String> params = new HashSet<String>();
 }
     :   decl=formal_parameter_decl
         {
             try {
-                processRelevanceModelParam($json, $decl.typeName, $decl.varName);
+                processRelevanceModelParam(input, $json, params, $decl.typeName, $decl.varName);
             }
             catch (JSONException err) {
                 throw new FailedPredicateException(input,
@@ -2242,7 +2284,7 @@ formal_parameter_decls returns [JSONObject json]
         (COMMA decl=formal_parameter_decl
             {
                 try {
-                    processRelevanceModelParam($json, $decl.typeName, $decl.varName);
+                    processRelevanceModelParam(input, $json, params, $decl.typeName, $decl.varName);
                 }
                 catch (JSONException err) {
                     throw new FailedPredicateException(input,
@@ -2284,7 +2326,9 @@ boxed_type
     ;
 
 limited_type
-    :   { "String".equals(input.LT(1).getText()) }? STRING
+    :   'String'
+    |   'System'
+    |   'Math'
     ;
 
 variable_modifier
@@ -2292,10 +2336,66 @@ variable_modifier
     ;
 
 relevance_model returns [String functionBody, JSONObject json]
-    :   DEFINED AS params=formal_parameters BEGIN model_block END
+@init {
+    _usedFacets = new HashSet<String>();
+    _usedInternalVars = new HashSet<String>();
+    _symbolTable = new LinkedList<Map<String, String>>();
+    _currentScope = new HashMap<String, String>();
+    _symbolTable.offerLast(_currentScope);
+}
+    :   DEFINED AS params=formal_parameters
+        {
+            try {
+                JSONObject varParams = $params.json.optJSONObject("variables");
+                if (varParams != null) {
+                    Iterator<String> itr = varParams.keys();
+                    while (itr.hasNext()) {
+                        String key = (String) itr.next();
+                        JSONArray vars = varParams.getJSONArray(key);
+                        for (int i = 0; i < vars.length(); ++i) {
+                            _currentScope.put(vars.getString(i), key);
+                        }
+                    }
+                }
+            }
+            catch (JSONException err) {
+                throw new FailedPredicateException(input, "relevance_model", "JSONException: " + err.getMessage());
+            }
+        }
+        BEGIN model_block END
         {
             $functionBody = $model_block.text;
             $json = $params.json;
+
+            // Append facets and internal variable to "function_params".
+            try {
+                JSONArray funcParams = $json.getJSONArray("function_params");
+
+                JSONObject facets = new JSONObject();
+                $json.put("facets", facets);
+
+                for (String facet: _usedFacets) {
+                    funcParams.put(facet);
+                    String typeName = _facetInfoMap.get(facet)[1];
+                    JSONArray facetsWithSameType = facets.optJSONArray(typeName);
+                    if (facetsWithSameType == null) {
+                        facetsWithSameType = new JSONArray();
+                        facets.put(typeName, facetsWithSameType);
+                    }
+                    facetsWithSameType.put(facet);
+                }
+
+                // Internal variables, like _NOW, do not need to be
+                // included in "variables".
+                for (String varName: _usedInternalVars) {
+                    funcParams.put(varName);
+                }
+            }
+            catch (JSONException err) {
+                throw new FailedPredicateException(input,
+                                                   "formal_parameter_decl",
+                                                   "JSONException: " + err.getMessage());
+            }
         }
     ;
 
@@ -2304,7 +2404,17 @@ model_block
     ;
 
 block
-    :   '{' block_statement* '}'
+    :   '{' 
+        {
+            _currentScope = new HashMap<String, String>();
+            _symbolTable.offerLast(_currentScope);
+        }
+        block_statement* 
+        {
+            _symbolTable.pollLast();
+            _currentScope = _symbolTable.peekLast();
+        }
+        '}'
     ;
 
 block_statement
@@ -2318,6 +2428,35 @@ local_variable_declaration_stmt
 
 local_variable_declaration
     :   variable_modifiers type variable_declarators
+        {
+            try {
+                JSONArray vars = $variable_declarators.json;
+                for (int i = 0; i < vars.length(); ++i) {
+                    String var = vars.getString(i);
+                    if (_facetInfoMap.containsKey(var)) {
+                        throw new FailedPredicateException(input,
+                                                           "local_variable_declaration",
+                                                           "Facet name \"" + var + "\" cannot be used to declare a variable.");
+                    }
+                    else if (_internalVarMap.containsKey(var)) {
+                        throw new FailedPredicateException(input,
+                                                           "local_variable_declaration",
+                                                           "Internal variable \"" + var + "\" cannot be re-used to declare another variable.");
+                    }
+                    else if (verifyVariable(var)) {
+                        throw new FailedPredicateException(input,
+                                                           "local_variable_declaration",
+                                                           "Variable \"" + var + "\" is already defined.");
+                    }
+                    else {
+                        _currentScope.put(var, $type.typeName);
+                    }
+                }
+            }
+            catch (JSONException err) {
+                throw new FailedPredicateException(input, "local_variable_declaration", "JSONException: " + err.getMessage());
+            }
+        }
     ;
 
 variable_modifiers
@@ -2327,7 +2466,16 @@ variable_modifiers
 java_statement
     :   block
     |   'if' par_expression java_statement (else_statement)?
-    |   'for' LPAR for_control RPAR java_statement
+    |   'for' LPAR
+        {
+            _currentScope = new HashMap<String, String>();
+            _symbolTable.offerLast(_currentScope);
+        }
+        for_control RPAR java_statement
+        {
+            _symbolTable.pollLast();
+            _currentScope = _symbolTable.peekLast();
+        }
     |   'while' par_expression java_statement
     |   'do' java_statement 'while' par_expression SEMI
     |   'switch' par_expression '{' switch_block_statement_groups '}'
@@ -2335,7 +2483,7 @@ java_statement
     |   'break' IDENT? SEMI
     |   'continue' IDENT? SEMI
     |   SEMI
-    |    statement_expression SEMI
+    |   statement_expression SEMI
     ;
 
 else_statement
@@ -2524,7 +2672,27 @@ cast_expression
 primary
     :   par_expression
     |   literal
-    |   IDENT ('.' java_method)* identifier_suffix?
+    |   java_ident ('.' java_method)* identifier_suffix?
+        {
+            String var = $java_ident.text;
+            if (_facetInfoMap.containsKey(var)) {
+                _usedFacets.add(var);
+            }
+            else if (_internalVarMap.containsKey(var)) {
+                _usedInternalVars.add(var);
+            }
+            else if (!_supportedClasses.contains(var) && !verifyVariable(var)) {
+                throw new FailedPredicateException(input,
+                                                   "primary",
+                                                   "Variable or class \"" + var + "\" is not defined.");
+            }
+        }
+    ;
+
+java_ident
+    :   boxed_type
+    |   limited_type
+    |   IDENT
     ;
 
 // Need to handle the conflicts of BQL keywords and common Java method
