@@ -334,7 +334,7 @@ public class CompilationHelper
     {
       pool.importPackage(cls);
     }
-    pool.insertClassPath(new ClassClassPath(RelevanceQuery.class));
+    pool.insertClassPath(new ClassClassPath(CompilationHelper.class));
 
     hs_safe.add("com.senseidb.search.relevance.impl.RelevanceQuery");
     hs_safe.add("com.senseidb.search.relevance.impl.CustomMathModel");
@@ -517,7 +517,7 @@ public class CompilationHelper
     }
     else
     {
-      synchronized(RelevanceQuery.class)
+      synchronized(CompilationHelper.class)
       {
         if(hmModels.containsKey(className))
         {
@@ -558,7 +558,7 @@ public class CompilationHelper
         Class h;
         try
         {
-          h = CompilationHelper.pool.toClass(ch, new CompilationHelper.CustomLoader(RelevanceQuery.class.getClassLoader(), className));
+          h = CompilationHelper.pool.toClass(ch, new CompilationHelper.CustomLoader(CompilationHelper.class.getClassLoader(), className));
         }
         catch (CannotCompileException e)
         {

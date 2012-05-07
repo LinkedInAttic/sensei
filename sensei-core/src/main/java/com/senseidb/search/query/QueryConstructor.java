@@ -13,7 +13,6 @@ import org.json.JSONObject;
 import com.senseidb.search.query.ScoreAugmentQuery.ScoreAugmentFunction;
 import com.senseidb.search.relevance.RelevanceFunctionBuilder;
 import com.senseidb.search.relevance.impl.RelevanceJSONConstants;
-import com.senseidb.search.relevance.impl.RelevanceQuery;
 
 public abstract class QueryConstructor
 {
