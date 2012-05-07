@@ -895,7 +895,7 @@ public class CompilationHelper
   private static String makeFuncString(DataTable dataTable) throws JSONException
   {
     int[] paramIndices = new int[TOTAL_INPUT_DATA_ARRAYS];
-    for (int i = 0; i < 15; i++)
+    for (int i = 0; i < TOTAL_INPUT_DATA_ARRAYS; i++)
     {
       paramIndices[i] = 0;
     }

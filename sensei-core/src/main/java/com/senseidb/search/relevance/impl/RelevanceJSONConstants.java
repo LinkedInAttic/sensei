@@ -28,9 +28,6 @@ public class RelevanceJSONConstants
   public static final String           KW_TYPE_SET_DOUBLE      = "set_double";
   public static final String           KW_TYPE_SET_LONG        = "set_long";
 
-  // map type: [map_int_int, map_int_float, map_int_double, map_int_long, map_int_string]
-  public static final String           KW_TYPE_MAP_HEAD            = "map_";
-
   public static final String           KW_TYPE_MAP_INT_INT         = "map_int_int";
   public static final String           KW_TYPE_MAP_INT_FLOAT       = "map_int_float";
   public static final String           KW_TYPE_MAP_INT_STRING      = "map_int_string";
