@@ -336,9 +336,8 @@ public class CompilationHelper
     }
     pool.insertClassPath(new ClassClassPath(CompilationHelper.class));
 
-    hs_safe.add("com.senseidb.search.relevance.impl.RelevanceQuery");
     hs_safe.add("com.senseidb.search.relevance.impl.CustomMathModel");
-    hs_safe.add("com.senseidb.search.relevance.impl.RelevanceQuery$CustomLoader");
+    hs_safe.add("com.senseidb.search.relevance.impl.CompilationHelper$CustomLoader");
 
     hs_safe.add("java.lang.Object");
     hs_safe.add("java.lang.Exception");

@@ -77,7 +77,10 @@ public class RelevanceJSONConstants
   public static final String           KW_INNER_SCORE          = "_INNER_SCORE";
   public static final String           KW_NOW                  = "_NOW";
 
-  /* Type Numbers */
+  /* Type Numbers 
+   * 
+   * The numbers below are used to in an ordered way, so adding new types should be careful.
+   * */
 
   // (1) inner score type number;
   public static final int TYPENUMBER_INNER_SCORE       =  0;
