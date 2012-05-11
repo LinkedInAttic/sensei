@@ -10,6 +10,11 @@ import com.senseidb.search.req.mapred.functions.MaxMapReduce;
 import com.senseidb.search.req.mapred.functions.MinMapReduce;
 import com.senseidb.search.req.mapred.functions.SumMapReduce;
 
+/**
+ * Registry, that is used to register map reduce functions with the nickname, so that it can be easily referred from the Json api
+ * @author vzhabiuk
+ *
+ */
 @SuppressWarnings("rawtypes")
 public class MapReduceRegistry {
 

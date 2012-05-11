@@ -337,7 +337,7 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
             if (rewrited != null)
             {
               if (activityManager != null) {
-                activityManager.update(rewrited, dataEvt.getVersion());
+                rewrited = activityManager.update(rewrited, dataEvt.getVersion());
               }
               if (rewrited != obj)
                 dataEvt = new DataEvent<JSONObject>(rewrited, dataEvt.getVersion());

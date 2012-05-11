@@ -81,7 +81,9 @@ public interface SenseiConfParams {
   public static final String SENSEI_ZOIE_RETENTION_TIMEUNIT = "sensei.index.retention.column.timeunit";
 
 	public static final String SENSEI_MX4J_PORT = "sensei.mx4j.port";
-
+	
+	public static final String SENSEI_INDEX_ACTIVITY_FILTER = "sensei.index.activity.filter";
+	
 	public static final Comparator<String> DEFAULT_VERSION_STRING_COMPARATOR = new Comparator<String>(){
 		@Override
 	    public int compare(String o1, String o2) {

@@ -3,6 +3,10 @@ package com.senseidb.search.client.req;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * Holds params needed to initialize the facet filter
+ *
+ */
 public class FacetInit {
     String type; List<Object> values;
     

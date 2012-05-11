@@ -9,8 +9,18 @@ import com.senseidb.search.req.SenseiResult;
 import com.senseidb.search.req.mapred.CombinerStage;
 import com.senseidb.search.req.mapred.SenseiMapReduce;
 
+/**
+ * Is the part of the SenseiRequest, keeps the logic of merging  result, that were got on the map/combine phase
+ *
+ */
 public class SenseiReduceFunctionWrapper {
  
+  /**
+   * Combine callback
+   * @param mapReduceFunction
+   * @param results
+   * @return
+   */
   public static MapReduceResult combine(SenseiMapReduce mapReduceFunction, List<MapReduceResult> results) {
     MapReduceResult ret = null;
     if (results.isEmpty()) {
@@ -26,6 +36,11 @@ public class SenseiReduceFunctionWrapper {
   }
  
   
+  /** Reduce callback
+   * @param mapReduceFunction
+   * @param results
+   * @return
+   */
   public static MapReduceResult reduce(SenseiMapReduce mapReduceFunction, List<MapReduceResult> results) {
     MapReduceResult ret = null;
     if (results.isEmpty()) {

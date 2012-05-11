@@ -6,6 +6,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * The "values" part provides the input values for either the runtime model or the predefined one
+ * values part is used for either predefined model or a runtime model above, if these models require input values;
+ *   <pre>            "values":{
+ *                   "thisYear":2001,
+ *                   "goodYear":[
+  *                      1996,
+  *                      1997
+  *                  ]
+  *              }</pre>
+ */
 public class RelevanceValues {
   protected Map<String, Object> values = new HashMap<String, Object>();
   

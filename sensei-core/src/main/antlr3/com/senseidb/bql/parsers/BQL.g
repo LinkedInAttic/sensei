@@ -1,3 +1,226 @@
+/*******************************************************************************************
+
+BNF Grammar for BQL
+===================
+
+<statement> ::= ( <select_stmt> | <describe_stmt> ) [';']
+
+<select_stmt> ::= SELECT <select_list> [<from_clause>] [<where_clause>] [<given_clause>]
+                  [<additional_clauses>]
+
+<describe_stmt> ::= ( DESC | DESCRIBE ) [<index_name>]
+
+<select_list> ::= '*' | <column_name_list>
+
+<column_name_list> ::= <column_name> ( ',' <column_name> )*
+
+<from_clause> ::= FROM <index_name>
+
+<index_name> ::= <identifier> | <quoted_string>
+
+<where_clause> ::= WHERE <search_expr>
+
+<search_expr> ::= <term_expr> ( OR <term_expr> )*
+
+<term_expr> ::= <facet_expr> ( AND <facet_expr> )*
+
+<facet_expr> ::= <predicate> 
+               | '(' <search_expr> ')'
+
+<predicates> ::= <predicate> ( AND <predicate> )*
+
+<predicate> ::= <in_predicate>
+              | <contains_all_predicate>
+              | <equal_predicate>
+              | <not_equal_predicate>
+              | <query_predicate>
+              | <between_predicate>
+              | <range_predicate>
+              | <time_predicate>
+              | <match_predicate>
+              | <like_predicate>
+              | <null_predicate>
+
+<in_predicate> ::= <column_name> [NOT] IN <value_list> [<except_clause>] [<predicate_props>]
+
+<contains_all_predicate> ::= <column_name> CONTAINS ALL <value_list> [<except_clause>]
+                             [<predicate_props>]
+
+<equal_predicate> ::= <column_name> '=' <value> [<predicate_props>]
+
+<not_equal_predicate> ::= <column_name> '<>' <value> [<predicate_props>]
+
+<query_predicate> ::= QUERY IS <quoted_string>
+
+<between_predicate> ::= <column_name> [NOT] BETWEEN <value> AND <value>
+
+<range_predicate> ::= <column_name> <range_op> <numeric>
+
+<time_predicate> ::= <column_name> IN LAST <time_span>
+                   | <column_name> ( SINCE | AFTER | BEFORE ) <time_expr>
+
+<match_predicate> ::= [NOT] MATCH '(' <column_name_list> ')' AGAINST '(' <quoted_string> ')'
+
+<like_predicate> ::= <column_name> [NOT] LIKE <quoted_string>
+
+<null_predicate> ::= <column_name> IS [NOT] NULL
+
+<value_list> ::= <non_variable_value_list> | <variable>
+
+<non_variable_value_list> ::= '(' <value> ( ',' <value> )* ')'
+
+<value> ::= <numeric>
+          | <quoted_string>
+          | TRUE
+          | FALSE
+          | <variable>
+
+<range_op> ::= '<' | '<=' | '>=' | '>'
+
+<except_clause> ::= EXCEPT <value_list>
+
+<predicate_props> ::= WITH <prop_list>
+
+<prop_list> ::= '(' <key_value_pair> ( ',' <key_value_pair> )* ')'
+
+<key_value_pair> ::= <quoted_string> ':' ( <value> | <non_variable_value_list> )
+
+<given_clause> ::= GIVEN FACET PARAM <facet_param_list>
+
+<facet_param_list> ::= <facet_param> ( ',' <facet_param> )*
+
+<facet_param> ::= '(' <facet_name> <facet_param_name> <facet_param_type> <facet_param_value> ')'
+
+<facet_param_name> ::= <quoted_string>
+
+<facet_param_type> ::= BOOLEAN | INT | LONG | STRING | BYTEARRAY | DOUBLE
+
+<facet_param_value> ::= <quoted_string>
+
+<additional_clauses> ::= ( <additional_clause> )+
+
+<additional_clause> ::= <order_by_clause>
+                      | <limit_clause>
+                      | <group_by_clause>
+                      | <browse_by_clause>
+                      | <fetching_stored_clause>
+                      | <route_by_clause>
+                      | <relevance_model_clause>
+
+<order_by_clause> ::= ORDER BY <sort_specs>
+
+<sort_specs> ::= <sort_spec> ( ',' <sort_spec> )*
+
+<sort_spec> ::= <column_name> [<ordering_spec>]
+
+<ordering_spec> ::= ASC | DESC
+
+<group_by_clause> ::= GROUP BY <group_spec>
+
+<group_spec> ::= <or_column_name_list> [TOP <max_per_group>]
+
+<or_column_name_list> ::= <column_name> ( OR <column_name> )*
+
+<limit_clause> ::= LIMIT [<offset> ','] <count>
+
+<offset> ::= ( <digit> )+
+
+<count> ::= ( <digit> )+
+
+<browse_by_clause> ::= BROWSE BY <facet_specs>
+
+<facet_specs> ::= <facet_spec> ( ',' <facet_spec> )*
+
+<facet_spec> ::= <facet_name> [<facet_expression>]
+
+<facet_expression> ::= '(' <expand_flag> <count> <count> <facet_ordering> ')'
+
+<expand_flag> ::= TRUE | FALSE
+
+<facet_ordering> ::= HITS | VALUE
+
+<fetching_stored_clause> ::= FETCHING STORED [<fetching_flag>]
+
+<fetching_flag> ::= TRUE | FALSE
+
+<route_by_clause> ::= ROUTE BY <quoted_string>
+
+<relevance_model_clause> ::= USING RELEVANCE MODEL <identifier> <prop_list>
+                             <relevance_model>
+
+<relevance_model> ::= DEFINED AS <formal_parameters> BEGIN <model_block> END
+
+<formal_parameters> ::= '(' <formal_parameter_decls> ')'
+
+<formal_parameter_decls> ::= <formal_parameter_decl> ( ',' <formal_parameter_decl> )*
+
+<formal_parameter_decl> := ...
+
+<model_block> ::= ( <block_statement> )+
+
+<block_statement> ::= ...
+
+<quoted_string> ::= '"' ( <char> )* '"'
+                  | "'" ( <char> )* "'"
+
+<identifier> ::= <identifier_start> ( <identifier_part> )*
+
+<identifier_start> ::= <alpha> | '-' | '_'
+
+<identifier_part> ::= <identifier_start> | <digit>
+
+<variable> ::= '$' ( <alpha> | <digit> | '_' )+
+
+<column_name> ::= <identifier> | <quoted_string>
+
+<facet_name> ::= <identifier>
+
+<alpha> ::= <alpha_lower_case> | <alpha_upper_case>
+
+<alpha_upper_case> ::= A | B | C | D | E | F | G | H | I | J | K | L | M | N | O
+                     | P | Q | R | S | T | U | V | W | X | Y | Z
+
+<alpha_lower_case> ::= a | b | c | d | e | f | g | h | i | j | k | l | m | n | o
+                     | p | q | r | s | t | u | v | w | x | y | z
+
+<digit> ::= 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
+
+<numeric> ::= <time_expr> 
+            | <integer>
+            | <real>
+
+<integer> ::= ( <digit> )+
+
+<real> ::= ( <digit> )+ '.' ( <digit> )+
+
+<time_expr> ::= <time_span> AGO
+              | <date_time_string>
+              | NOW
+
+<time_span> ::= [<time_week_part>] [<time_day_part>] [<time_hour_part>]
+                [<time_minute_part>] [<time_second_part>] [<time_millisecond_part>]
+
+<time_week_part> ::= <integer> ( 'week' | 'weeks' )
+
+<time_day_part>  ::= <integer> ( 'day'  | 'days' )
+
+<time_hour_part> ::= <integer> ( 'hour' | 'hours' )
+
+<time_minute_part> ::= <integer> ( 'minute' | 'minutes' | 'min' | 'mins')
+
+<time_second_part> ::= <integer> ( 'second' | 'seconds' | 'sec' | 'secs')
+
+<time_millisecond_part> ::= <integer> ( 'millisecond' | 'milliseconds' | 'msec' | 'msecs')
+
+<date_time_string> ::= <date> [<time>]
+
+<date> ::= <digit><digit><digit><digit> ('-' | '/' | '.') <digit><digit>
+           ('-' | '/' | '.') <digit><digit>
+
+<time> ::= DIGIT DIGIT ':' DIGIT DIGIT ':' DIGIT DIGIT
+
+*******************************************************************************************/
+
 grammar BQL;
 
 options
@@ -6,6 +229,9 @@ options
   language = Java;
   // Generated parser should create abstract syntax tree
   output = AST;
+
+  backtrack = true;
+  memoize = true;
 }
 
 // Imaginary tokens
@@ -38,9 +264,12 @@ package com.senseidb.bql.parsers;
 @parser::header {
 package com.senseidb.bql.parsers;
 
-import java.util.Iterator;
-import java.util.Map;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.Map;
+import java.util.Set;
 import org.json.JSONObject;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -55,12 +284,59 @@ import java.text.SimpleDateFormat;
     private static final int DEFAULT_REQUEST_MAX_PER_GROUP = 10;
     private static final int DEFAULT_FACET_MINHIT = 1;
     private static final int DEFAULT_FACET_MAXHIT = 10;
+    private static final Map<String, String> _fastutilTypeMap;
+    private static final Map<String, String> _internalVarMap;
+    private static final Set<String> _supportedClasses;
 
-    Map<String, String[]> _facetInfoMap;
+    private Map<String, String[]> _facetInfoMap;
     private long _now;
     private HashSet<String> _variables;
     private SimpleDateFormat[] _format1 = new SimpleDateFormat[2];
     private SimpleDateFormat[] _format2 = new SimpleDateFormat[2];
+
+    private LinkedList<Map<String, String>> _symbolTable;
+    private Map<String, String> _currentScope;
+    private Set<String> _usedFacets; // Facets used by relevance model
+    private Set<String> _usedInternalVars; // Internal variables used by relevance model
+
+    static {
+        _fastutilTypeMap = new HashMap<String, String>();
+        _fastutilTypeMap.put("IntOpenHashSet", "set_int");
+        _fastutilTypeMap.put("FloatOpenHashSet", "set_float");
+        _fastutilTypeMap.put("DoubleOpenHashSet", "set_double");
+        _fastutilTypeMap.put("LongOpenHashSet", "set_long");
+        _fastutilTypeMap.put("ObjectOpenHashSet", "set_string");
+
+        _fastutilTypeMap.put("Int2IntOpenHashMap", "map_int_int");
+        _fastutilTypeMap.put("Int2FloatOpenHashMap", "map_int_float");
+        _fastutilTypeMap.put("Int2DoubleOpenHashMap", "map_int_double");
+        _fastutilTypeMap.put("Int2LongOpenHashMap", "map_int_long");
+        _fastutilTypeMap.put("Int2ObjectOpenHashMap", "map_int_string");
+
+        _fastutilTypeMap.put("Object2IntOpenHashMap", "map_string_int");
+        _fastutilTypeMap.put("Object2FloatOpenHashMap", "map_string_float");
+        _fastutilTypeMap.put("Object2DoubleOpenHashMap", "map_string_double");
+        _fastutilTypeMap.put("Object2LongOpenHashMap", "map_string_long");
+        _fastutilTypeMap.put("Object2ObjectOpenHashMap", "map_string_string");
+
+        _internalVarMap = new HashMap<String, String>();
+        _internalVarMap.put("_NOW", "long");
+        _internalVarMap.put("_INNER_SCORE", "float");
+
+        _supportedClasses = new HashSet<String>();
+        _supportedClasses.add("Boolean");
+        _supportedClasses.add("Byte");
+        _supportedClasses.add("Character");
+        _supportedClasses.add("Double");
+        _supportedClasses.add("Integer");
+        _supportedClasses.add("Long");
+        _supportedClasses.add("Short");
+
+        _supportedClasses.add("Math");
+        _supportedClasses.add("String");
+        _supportedClasses.add("System");
+
+    }
 
     public BQLParser(TokenStream input, Map<String, String[]> facetInfoMap)
     {
@@ -178,7 +454,7 @@ import java.text.SimpleDateFormat;
         else if (columnType.equals("float") || columnType.equals("double")) {
             return !(value instanceof String || value instanceof Boolean);
         }
-        else if (columnType.equals("string")) {
+        else if (columnType.equals("string") || columnType.equals("char")) {
             return (value instanceof String);
         }
         else if (columnType.equals("boolean")) {
@@ -429,6 +705,64 @@ import java.text.SimpleDateFormat;
         fieldMap.put(field, new JSONObject().put("range",
                                                  new JSONObject().put(field, newSpec)));
     }
+    
+    private void processRelevanceModelParam(TokenStream input,
+                                            JSONObject json,
+                                            Set<String> params,
+                                            String typeName,
+                                            final String varName)
+        throws JSONException, RecognitionException
+    {
+        if (_facetInfoMap.containsKey(varName)) {
+            throw new FailedPredicateException(input, "", "Facet name \"" + varName + "\" cannot be used as a relevance model parameter.");
+        }
+
+        if (_internalVarMap.containsKey(varName)) {
+            throw new FailedPredicateException(input, "", "Internal variable \"" + varName + "\" cannot be used as a relevance model parameter.");
+        }
+
+        if (params.contains(varName)) {
+            throw new FailedPredicateException(input, "", "Parameter name \"" + varName + "\" has already been used.");
+        }
+
+        if ("String".equals(typeName)) {
+            typeName = "string";
+        }
+
+        JSONArray funcParams = json.optJSONArray("function_params");
+        if (funcParams == null) {
+            funcParams = new JSONArray();
+            json.put("function_params", funcParams);
+        }
+
+        funcParams.put(varName);
+        params.add(varName);
+
+        JSONObject variables = json.optJSONObject("variables");
+        if (variables == null) {
+            variables = new JSONObject();
+            json.put("variables", variables);
+        }
+
+        JSONArray varsWithSameType = variables.optJSONArray(typeName);
+        if (varsWithSameType == null) {
+            varsWithSameType = new JSONArray();
+            variables.put(typeName, varsWithSameType);
+        }
+        varsWithSameType.put(varName);
+    }
+
+    // Check whether a variable is defined.
+    private boolean verifyVariable(final String variable) {
+        Iterator<Map<String, String>> itr = _symbolTable.descendingIterator();
+        while (itr.hasNext()) {
+            Map<String, String> scope = itr.next();
+            if (scope.containsKey(variable)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }
 
 @rulecatch {
@@ -440,8 +774,8 @@ import java.text.SimpleDateFormat;
 fragment DIGIT : '0'..'9' ;
 fragment ALPHA : 'a'..'z' | 'A'..'Z' ;
 
-INTEGER : DIGIT+ ;
-REAL : DIGIT+ '.' DIGIT+ ;
+INTEGER : ('0' | '1'..'9' '0'..'9'*) INTEGER_TYPE_SUFFIX? ;
+REAL : DIGIT+ '.' DIGIT* ;
 LPAR : '(' ;
 RPAR : ')' ;
 COMMA : ',' ;
@@ -456,21 +790,21 @@ NOT_EQUAL : '<>' ;
 
 STRING_LITERAL
     :   ('"'
-            { StringBuilder builder = new StringBuilder(); }
+            { StringBuilder builder = new StringBuilder().appendCodePoint('"'); }
             ('"' '"'               { builder.appendCodePoint('"'); }
             | ch=~('"'|'\r'|'\n')  { builder.appendCodePoint(ch); }
             )*
          '"'
-            { setText(builder.toString()); }
+            { setText(builder.appendCodePoint('"').toString()); }
         )
     |
         ('\''
-            { StringBuilder builder = new StringBuilder(); }
+            { StringBuilder builder = new StringBuilder().appendCodePoint('\''); }
             ('\'' '\''             { builder.appendCodePoint('\''); }
             | ch=~('\''|'\r'|'\n') { builder.appendCodePoint(ch); }
             )*
          '\''
-            { setText(builder.toString()); }
+            { setText(builder.appendCodePoint('\'').toString()); }
         )
     ;
 
@@ -484,6 +818,49 @@ TIME
     ;
 
 //
+// BQL Relevance model related
+//
+
+fragment HEX_DIGIT : ('0'..'9'|'a'..'f'|'A'..'F') ;
+fragment INTEGER_TYPE_SUFFIX: ('l' | 'L') ;
+fragment EXPONENT : ('e'|'E') ('+'|'-')? ('0'..'9')+ ;
+fragment FLOAT_TYPE_SUFFIX : ('f'|'F'|'d'|'D') ;
+
+fragment
+ESCAPE_SEQUENCE
+    :   '\\' ('b'|'t'|'n'|'f'|'r'|'\"'|'\''|'\\')
+    |   UNICODE_ESCAPE
+    |   OCTAL_ESCAPE
+    ;
+
+fragment
+UNICODE_ESCAPE
+    :   '\\' 'u' HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT
+    ;
+
+fragment
+OCTAL_ESCAPE
+    :   '\\' ('0'..'3') ('0'..'7') ('0'..'7')
+    |   '\\' ('0'..'7') ('0'..'7')
+    |   '\\' ('0'..'7')
+    ;
+
+HEX_LITERAL : '0' ('x'|'X') HEX_DIGIT+ INTEGER_TYPE_SUFFIX? ;
+OCTAL_LITERAL : '0' ('0'..'7')+ INTEGER_TYPE_SUFFIX? ;
+
+FLOATING_POINT_LITERAL
+    :   REAL EXPONENT? FLOAT_TYPE_SUFFIX?
+    |   '.' DIGIT+ EXPONENT? FLOAT_TYPE_SUFFIX?
+    |   DIGIT+ EXPONENT FLOAT_TYPE_SUFFIX?
+    |   DIGIT+ FLOAT_TYPE_SUFFIX
+    ;
+
+CHARACTER_LITERAL
+    :   '\'' ( ESCAPE_SEQUENCE | ~('\''|'\\') ) '\''
+    ;
+
+
+//
 // BQL Keywords
 //
 
@@ -492,17 +869,23 @@ AFTER : ('A'|'a')('F'|'f')('T'|'t')('E'|'e')('R'|'r') ;
 AGAINST : ('A'|'a')('G'|'g')('A'|'a')('I'|'i')('N'|'n')('S'|'s')('T'|'t') ;
 AGO : ('A'|'a')('G'|'g')('O'|'o') ;
 AND : ('A'|'a')('N'|'n')('D'|'d') ;
+AS : ('A'|'a')('S'|'s') ;
 ASC : ('A'|'a')('S'|'s')('C'|'c') ;
 BEFORE : ('B'|'b')('E'|'e')('F'|'f')('O'|'o')('R'|'r')('E'|'e') ;
+BEGIN : ('B'|'b')('E'|'e')('G'|'g')('I'|'i')('N'|'n') ;
 BETWEEN : ('B'|'b')('E'|'e')('T'|'t')('W'|'w')('E'|'e')('E'|'e')('N'|'n') ;
 BOOLEAN : ('B'|'b')('O'|'o')('O'|'o')('L'|'l')('E'|'e')('A'|'a')('N'|'n') ;
 BROWSE : ('B'|'b')('R'|'r')('O'|'o')('W'|'w')('S'|'s')('E'|'e') ;
 BY : ('B'|'b')('Y'|'y') ;
+BYTE : ('B'|'b')('Y'|'y')('T'|'t')('E'|'e') ;
 BYTEARRAY : ('B'|'b')('Y'|'y')('T'|'t')('E'|'e')('A'|'a')('R'|'r')('R'|'r')('A'|'a')('Y'|'y') ;
 CONTAINS : ('C'|'c')('O'|'o')('N'|'n')('T'|'t')('A'|'a')('I'|'i')('N'|'n')('S'|'s') ;
+DEFINED : ('D'|'d')('E'|'e')('F'|'f')('I'|'i')('N'|'n')('E'|'e')('D'|'d') ;
 DESC : ('D'|'d')('E'|'e')('S'|'s')('C'|'c') ;
 DESCRIBE : ('D'|'d')('E'|'e')('S'|'s')('C'|'c')('R'|'r')('I'|'i')('B'|'b')('E'|'e') ;
 DOUBLE : ('D'|'d')('O'|'o')('U'|'u')('B'|'b')('L'|'l')('E'|'e') ;
+ELSE : ('E'|'e')('L'|'l')('S'|'s')('E'|'e') ;
+END : ('E'|'e')('N'|'n')('D'|'d') ;
 EXCEPT : ('E'|'e')('X'|'x')('C'|'c')('E'|'e')('P'|'p')('T'|'t') ;
 FACET : ('F'|'f')('A'|'a')('C'|'c')('E'|'e')('T'|'t') ;
 FALSE : ('F'|'f')('A'|'a')('L'|'l')('S'|'s')('E'|'e') ;
@@ -550,9 +933,27 @@ SECS : ('S'|'s')('E'|'e')('C'|'c')('S'|'s')? ;
 MILLISECONDS : ('M'|'m')('I'|'i')('L'|'l')('L'|'l')('I'|'i')('S'|'s')('E'|'e')('C'|'c')('O'|'o')('N'|'n')('D'|'d')('S'|'s')? ;
 MSECS : ('M'|'m')('S'|'s')('E'|'e')('C'|'c')('S'|'s')? ;
 
+FAST_UTIL_DATA_TYPE
+    :   'IntOpenHashSet'
+    |   'FloatOpenHashSet'
+    |   'DoubleOpenHashSet'
+    |   'LongOpenHashSet'
+    |   'ObjectOpenHashSet'
+    |   'Int2IntOpenHashMap'
+    |   'Int2FloatOpenHashMap'
+    |   'Int2DoubleOpenHashMap'
+    |   'Int2LongOpenHashMap'
+    |   'Int2ObjectOpenHashMap'
+    |   'Object2IntOpenHashMap'
+    |   'Object2FloatOpenHashMap'
+    |   'Object2DoubleOpenHashMap'
+    |   'Object2LongOpenHashMap'
+    |   'Object2ObjectOpenHashMap'
+    ;
+
 // Have to define this after the keywords?
 IDENT : (ALPHA | '_') (ALPHA | DIGIT | '-' | '_')* ;
-VARIABLE : '$' (ALPHA | DIGIT | '-' | '_')+ ;
+VARIABLE : '$' (ALPHA | DIGIT | '_')+ ;
 
 WS : ( ' ' | '\t' | '\r' | '\n' )+ { $channel = HIDDEN; };
 
@@ -771,7 +1172,7 @@ column_name_list returns [boolean fetchStored, JSONArray json]
         }
         (COMMA col=column_name
             {
-                colName = $col.text;
+                String colName = $col.text;
                 if (colName != null) {
                     $json.put($col.text); 
                     if ("_srcdata".equals(colName) || colName.startsWith("_srcdata.")) {
@@ -783,8 +1184,33 @@ column_name_list returns [boolean fetchStored, JSONArray json]
         -> ^(COLUMN_LIST column_name+)
     ;
 
-column_name
-    :   (IDENT | STRING_LITERAL) ('.' (IDENT | STRING_LITERAL))*
+column_name returns [String text]
+@init {
+    StringBuilder builder = new StringBuilder();
+}
+    :   (id=IDENT | str=STRING_LITERAL)
+        {
+            if (id != null) {
+                builder.append($id.text);
+            }
+            else {
+                String orig = $str.text;
+                builder.append(orig.substring(1, orig.length() - 1));
+            }
+        }
+        ('.' (id2=IDENT | str2=STRING_LITERAL)
+        {
+            builder.append(".");
+            if (id2 != null) {
+                builder.append($id2.text);
+            }
+            else {
+                String orig = $str2.text;
+                builder.append(orig.substring(1, orig.length() - 1));
+            }
+        }
+        )*
+        { $text = builder.toString(); }
     ;
 
 where returns [Object json]
@@ -869,7 +1295,7 @@ or_column_name_list returns [JSONArray json]
         }
         (OR col=column_name
             {
-                colName = $col.text;
+                String colName = $col.text;
                 if (colName != null) {
                     $json.put($col.text); 
                 }
@@ -979,7 +1405,11 @@ fetching_stored_clause returns [boolean val]
     ;
 
 route_by_clause returns [String val]
-    :   ROUTE BY STRING_LITERAL { $val = $STRING_LITERAL.text; }
+    :   ROUTE BY STRING_LITERAL 
+        { 
+            String orig = $STRING_LITERAL.text;
+            $val = orig.substring(1, orig.length() - 1);
+        }
     ;
 
 search_expr returns [Object json]
@@ -1271,9 +1701,11 @@ query_predicate returns [JSONObject json]
     :   QUERY IS STRING_LITERAL
         {
             try {
+                String orig = $STRING_LITERAL.text;
+                orig = orig.substring(1, orig.length() - 1);
                 $json = new JSONObject().put("query",
                                              new JSONObject().put("query_string",
-                                                                  new JSONObject().put("query", $STRING_LITERAL.text)));
+                                                                  new JSONObject().put("query", orig)));
             }
             catch (JSONException err) {
                 throw new FailedPredicateException(input, "query_predicate", "JSONException: " + err.getMessage());
@@ -1554,10 +1986,13 @@ match_predicate returns [JSONObject json]
                                                            "Non-string type column \"" + col + "\" cannot be used in MATCH AGAINST predicates.");
                     }
                 }
+
+                String orig = $STRING_LITERAL.text;
+                orig = orig.substring(1, orig.length() - 1);
                 $json = new JSONObject().put("query",
                                              new JSONObject().put("query_string",
                                                                   new JSONObject().put("fields", cols)
-                                                                                  .put("query", $STRING_LITERAL.text)));
+                                                                                  .put("query", orig)));
                 if ($NOT != null) {
                     $json = new JSONObject().put("bool",
                                                  new JSONObject().put("must_not", $json));
@@ -1579,7 +2014,9 @@ like_predicate returns [JSONObject json]
                                                    "match_predicate", 
                                                    "Non-string type column \"" + col + "\" cannot be used in LIKE predicates.");
             }
-            String likeString = $STRING_LITERAL.text.replace('\%', '*').replace('_', '?');
+            String orig = $STRING_LITERAL.text;
+            orig = orig.substring(1, orig.length() - 1);
+            String likeString = orig.replace('\%', '*').replace('_', '?');
             try {
                 $json = new JSONObject().put("query",
                                              new JSONObject().put("wildcard",
@@ -1645,7 +2082,12 @@ value_list returns [Object json]
 
 value returns [Object val]
     :   numeric { $val = $numeric.val; }
-    |   STRING_LITERAL { $val = $STRING_LITERAL.text; }
+    |   STRING_LITERAL
+        {
+            String orig = $STRING_LITERAL.text;
+            orig = orig.substring(1, orig.length() - 1);
+            $val = orig;
+        }
     |   TRUE { $val = true; }
     |   FALSE { $val = false; }
     |   VARIABLE
@@ -1696,7 +2138,7 @@ prop_list returns [JSONObject json]
     :   LPAR p=key_value_pair
         {
             try {
-                $json.put($p.key, $p.value);
+                $json.put($p.key, $p.val);
             }
             catch (JSONException err) {
                 throw new FailedPredicateException(input, "prop_list", "JSONException: " + err.getMessage());
@@ -1705,7 +2147,7 @@ prop_list returns [JSONObject json]
         (COMMA p=key_value_pair
             {
                 try {
-                    $json.put($p.key, $p.value);
+                    $json.put($p.key, $p.val);
                 }
                 catch (JSONException err) {
                     throw new FailedPredicateException(input, "prop_list", "JSONException: " + err.getMessage());
@@ -1715,13 +2157,19 @@ prop_list returns [JSONObject json]
         -> key_value_pair+
     ;
 
-key_value_pair returns [String key, Object value]
-    :   STRING_LITERAL COLON v=value
+key_value_pair returns [String key, Object val]
+    :   STRING_LITERAL COLON (v=value | vs=non_variable_value_list)
         {
-            $key = $STRING_LITERAL.text;
-            $value = $v.val;
+            String orig = $STRING_LITERAL.text;
+            orig = orig.substring(1, orig.length() - 1);
+            $key = orig;
+            if (v != null) {
+                $val = $v.val;
+            }
+            else {
+                $val = $vs.json;
+            }
         }
-        -> ^(COLON STRING_LITERAL $v)
     ;
 
 given_clause returns [JSONObject json]
@@ -1731,15 +2179,602 @@ given_clause returns [JSONObject json]
         }
     ;
 
+
+// =====================================================================
+// Relevance model related
+// =====================================================================
+
+variable_declarators returns [JSONArray json]
+@init {
+    $json = new JSONArray();
+}
+    :   var1=variable_declarator
+        {
+            $json.put($var1.varName);
+        }
+        (COMMA var2=variable_declarator
+            {
+                $json.put($var2.varName);
+            }
+        )*
+    ;
+
+variable_declarator returns [String varName]
+    :   variable_declarator_id ('=' variable_initializer)?
+        {
+            $varName = $variable_declarator_id.varName;
+        }
+    ;
+
+variable_declarator_id returns [String varName]
+    :   IDENT ('[' ']')*
+        {
+            $varName = $IDENT.text;
+        }
+    ;
+
+variable_initializer
+    :   array_initializer
+    |   expression
+    ;
+
+array_initializer
+    :   '{' (variable_initializer (',' variable_initializer)* (',')?)? '}'
+    ;
+
+type returns [String typeName]
+    :   class_or_interface_type ('[' ']')*
+        { $typeName = $class_or_interface_type.typeName; }
+    |   primitive_type ('[' ']')*
+        { $typeName = $primitive_type.text;}
+    |   boxed_type ('[' ']')*
+        { $typeName = $boxed_type.text;}
+    |   limited_type ('[' ']')*
+        { $typeName = $limited_type.text;}
+    ;
+
+class_or_interface_type returns [String typeName]
+    :   FAST_UTIL_DATA_TYPE
+        { $typeName = _fastutilTypeMap.get($FAST_UTIL_DATA_TYPE.text); }
+    ;
+
+type_arguments returns [String typeArgs]
+@init {
+    StringBuilder builder = new StringBuilder();
+}
+    :   '<'
+        ta1=type_argument
+        { builder.append($ta1.text); }
+        (COMMA ta2=type_argument
+            { builder.append("_").append($ta2.text); }
+        )* '>'
+        {
+            $typeArgs = builder.toString();
+        }
+    ;
+
+type_argument
+    :   type
+    |   '?' (('extends' | 'super') type)?
+    ;
+
+formal_parameters returns [JSONObject json]
+    :   LPAR formal_parameter_decls RPAR
+        {
+            $json = $formal_parameter_decls.json;
+        }
+    ;
+
+formal_parameter_decls returns [JSONObject json]
+@init {
+    $json = new JSONObject();
+    Set<String> params = new HashSet<String>();
+}
+    :   decl=formal_parameter_decl
+        {
+            try {
+                processRelevanceModelParam(input, $json, params, $decl.typeName, $decl.varName);
+            }
+            catch (JSONException err) {
+                throw new FailedPredicateException(input,
+                                                   "formal_parameter_decls",
+                                                   "JSONException: " + err.getMessage());
+            }
+        }
+        (COMMA decl=formal_parameter_decl
+            {
+                try {
+                    processRelevanceModelParam(input, $json, params, $decl.typeName, $decl.varName);
+                }
+                catch (JSONException err) {
+                    throw new FailedPredicateException(input,
+                                                       "formal_parameter_decl",
+                                                       "JSONException: " + err.getMessage());
+                }
+            }
+        )*
+    ;
+    
+formal_parameter_decl returns [String typeName, String varName]
+    :   variable_modifiers type variable_declarator_id
+        {
+            $typeName = $type.typeName;
+            $varName = $variable_declarator_id.varName;
+        }
+    ;
+
+primitive_type
+    :   { "boolean".equals(input.LT(1).getText()) }? BOOLEAN
+    |   'char'
+    |   { "byte".equals(input.LT(1).getText()) }? BYTE
+    |   'short'
+    |   { "int".equals(input.LT(1).getText()) }? INT
+    |   { "long".equals(input.LT(1).getText()) }? LONG
+    |   'float'
+    |   { "double".equals(input.LT(1).getText()) }? DOUBLE
+    ;
+
+boxed_type
+    :   { "Boolean".equals(input.LT(1).getText()) }? BOOLEAN
+    |   'Character'
+    |   { "Byte".equals(input.LT(1).getText()) }? BYTE
+    |   'Short'
+    |   'Integer'
+    |   { "Long".equals(input.LT(1).getText()) }? LONG
+    |   'Float'
+    |   { "Double".equals(input.LT(1).getText()) }? DOUBLE
+    ;
+
+limited_type
+    :   'String'
+    |   'System'
+    |   'Math'
+    ;
+
+variable_modifier
+    :   'final'
+    ;
+
+relevance_model returns [String functionBody, JSONObject json]
+@init {
+    _usedFacets = new HashSet<String>();
+    _usedInternalVars = new HashSet<String>();
+    _symbolTable = new LinkedList<Map<String, String>>();
+    _currentScope = new HashMap<String, String>();
+    _symbolTable.offerLast(_currentScope);
+}
+    :   DEFINED AS params=formal_parameters
+        {
+            try {
+                JSONObject varParams = $params.json.optJSONObject("variables");
+                if (varParams != null) {
+                    Iterator<String> itr = varParams.keys();
+                    while (itr.hasNext()) {
+                        String key = (String) itr.next();
+                        JSONArray vars = varParams.getJSONArray(key);
+                        for (int i = 0; i < vars.length(); ++i) {
+                            _currentScope.put(vars.getString(i), key);
+                        }
+                    }
+                }
+            }
+            catch (JSONException err) {
+                throw new FailedPredicateException(input, "relevance_model", "JSONException: " + err.getMessage());
+            }
+        }
+        BEGIN model_block END
+        {
+            $functionBody = $model_block.text;
+            $json = $params.json;
+
+            // Append facets and internal variable to "function_params".
+            try {
+                JSONArray funcParams = $json.getJSONArray("function_params");
+
+                JSONObject facets = new JSONObject();
+                $json.put("facets", facets);
+
+                for (String facet: _usedFacets) {
+                    funcParams.put(facet);
+                    String typeName = _facetInfoMap.get(facet)[1];
+                    JSONArray facetsWithSameType = facets.optJSONArray(typeName);
+                    if (facetsWithSameType == null) {
+                        facetsWithSameType = new JSONArray();
+                        facets.put(typeName, facetsWithSameType);
+                    }
+                    facetsWithSameType.put(facet);
+                }
+
+                // Internal variables, like _NOW, do not need to be
+                // included in "variables".
+                for (String varName: _usedInternalVars) {
+                    funcParams.put(varName);
+                }
+            }
+            catch (JSONException err) {
+                throw new FailedPredicateException(input,
+                                                   "formal_parameter_decl",
+                                                   "JSONException: " + err.getMessage());
+            }
+        }
+    ;
+
+model_block
+    :   block_statement+
+    ;
+
+block
+    :   '{' 
+        {
+            _currentScope = new HashMap<String, String>();
+            _symbolTable.offerLast(_currentScope);
+        }
+        block_statement* 
+        {
+            _symbolTable.pollLast();
+            _currentScope = _symbolTable.peekLast();
+        }
+        '}'
+    ;
+
+block_statement
+    :   local_variable_declaration_stmt
+    |   java_statement
+    ;
+
+local_variable_declaration_stmt
+    :   local_variable_declaration SEMI
+    ;
+
+local_variable_declaration
+    :   variable_modifiers type variable_declarators
+        {
+            try {
+                JSONArray vars = $variable_declarators.json;
+                for (int i = 0; i < vars.length(); ++i) {
+                    String var = vars.getString(i);
+                    if (_facetInfoMap.containsKey(var)) {
+                        throw new FailedPredicateException(input,
+                                                           "local_variable_declaration",
+                                                           "Facet name \"" + var + "\" cannot be used to declare a variable.");
+                    }
+                    else if (_internalVarMap.containsKey(var)) {
+                        throw new FailedPredicateException(input,
+                                                           "local_variable_declaration",
+                                                           "Internal variable \"" + var + "\" cannot be re-used to declare another variable.");
+                    }
+                    else if (verifyVariable(var)) {
+                        throw new FailedPredicateException(input,
+                                                           "local_variable_declaration",
+                                                           "Variable \"" + var + "\" is already defined.");
+                    }
+                    else {
+                        _currentScope.put(var, $type.typeName);
+                    }
+                }
+            }
+            catch (JSONException err) {
+                throw new FailedPredicateException(input, "local_variable_declaration", "JSONException: " + err.getMessage());
+            }
+        }
+    ;
+
+variable_modifiers
+    :   variable_modifier*
+    ;
+
+java_statement
+    :   block
+    |   'if' par_expression java_statement (else_statement)?
+    |   'for' LPAR
+        {
+            _currentScope = new HashMap<String, String>();
+            _symbolTable.offerLast(_currentScope);
+        }
+        for_control RPAR java_statement
+        {
+            _symbolTable.pollLast();
+            _currentScope = _symbolTable.peekLast();
+        }
+    |   'while' par_expression java_statement
+    |   'do' java_statement 'while' par_expression SEMI
+    |   'switch' par_expression '{' switch_block_statement_groups '}'
+    |   'return' expression SEMI
+    |   'break' IDENT? SEMI
+    |   'continue' IDENT? SEMI
+    |   SEMI
+    |   statement_expression SEMI
+    ;
+
+else_statement
+    :   { "else".equals(input.LT(1).getText()) }? ELSE java_statement
+    ;
+
+switch_block_statement_groups
+    :   (switch_block_statement_group)*
+    ;
+
+switch_block_statement_group
+    :   switch_label+ block_statement*
+    ;
+
+switch_label
+    :   'case' constant_expression COLON
+    |   'case' enum_constant_name COLON
+    |   'default' COLON
+    ;
+
+for_control
+options {k=3;}
+    :   enhanced_for_control
+    |   for_init? SEMI expression? SEMI for_update?
+    ;
+
+for_init
+    :   local_variable_declaration
+    |   expression_list
+    ;
+
+enhanced_for_control
+    :   variable_modifiers type IDENT COLON expression
+    ;
+
+for_update
+    :   expression_list
+    ;
+
+par_expression
+    :   LPAR expression RPAR
+    ;
+
+expression_list
+    :   expression (',' expression)*
+    ;
+
+statement_expression
+    :   expression
+    ;
+
+constant_expression
+    :   expression
+    ;
+
+enum_constant_name
+    :   IDENT
+    ;
+
+expression
+    :   conditional_expression (assignment_operator expression)?
+    ;
+
+assignment_operator
+    :   '='
+    |   '+='
+    |   '-='
+    |   '*='
+    |   '/='
+    |   '&='
+    |   '|='
+    |   '^='
+    |   '%='
+    |   ('<' '<' '=')=> t1='<' t2='<' t3='=' 
+        { $t1.getLine() == $t2.getLine() &&
+          $t1.getCharPositionInLine() + 1 == $t2.getCharPositionInLine() && 
+          $t2.getLine() == $t3.getLine() && 
+          $t2.getCharPositionInLine() + 1 == $t3.getCharPositionInLine() }?
+    |   ('>' '>' '>' '=')=> t1='>' t2='>' t3='>' t4='='
+        { $t1.getLine() == $t2.getLine() && 
+          $t1.getCharPositionInLine() + 1 == $t2.getCharPositionInLine() &&
+          $t2.getLine() == $t3.getLine() && 
+          $t2.getCharPositionInLine() + 1 == $t3.getCharPositionInLine() &&
+          $t3.getLine() == $t4.getLine() && 
+          $t3.getCharPositionInLine() + 1 == $t4.getCharPositionInLine() }?
+    |   ('>' '>' '=')=> t1='>' t2='>' t3='='
+        { $t1.getLine() == $t2.getLine() && 
+          $t1.getCharPositionInLine() + 1 == $t2.getCharPositionInLine() && 
+          $t2.getLine() == $t3.getLine() && 
+          $t2.getCharPositionInLine() + 1 == $t3.getCharPositionInLine() }?
+    ;
+
+conditional_expression
+    :   conditional_or_expression ( '?' expression ':' expression )?
+    ;
+
+conditional_or_expression
+    :   conditional_and_expression ( '||' conditional_and_expression )*
+    ;
+
+conditional_and_expression
+    :   inclusive_or_expression ('&&' inclusive_or_expression )*
+    ;
+
+inclusive_or_expression
+    :   exclusive_or_expression ('|' exclusive_or_expression )*
+    ;
+
+exclusive_or_expression
+    :   and_expression ('^' and_expression )*
+    ;
+
+and_expression
+    :   equality_expression ( '&' equality_expression )*
+    ;
+
+equality_expression
+    :   instanceof_expression ( ('==' | '!=') instanceof_expression )*
+    ;
+
+instanceof_expression
+    :   relational_expression ('instanceof' type)?
+    ;
+
+relational_expression
+    :   shift_expression ( relational_op shift_expression )*
+    ;
+
+relational_op
+    :   ('<' '=')=> t1='<' t2='=' 
+        { $t1.getLine() == $t2.getLine() && 
+          $t1.getCharPositionInLine() + 1 == $t2.getCharPositionInLine() }?
+    |   ('>' '=')=> t1='>' t2='=' 
+        { $t1.getLine() == $t2.getLine() && 
+          $t1.getCharPositionInLine() + 1 == $t2.getCharPositionInLine() }?
+    |   '<'
+    |   '>'
+    ;
+
+shift_expression
+    :   additive_expression ( shift_op additive_expression )*
+    ;
+
+shift_op
+    :   ('<' '<')=> t1='<' t2='<' 
+        { $t1.getLine() == $t2.getLine() && 
+          $t1.getCharPositionInLine() + 1 == $t2.getCharPositionInLine() }?
+    |   ('>' '>' '>')=> t1='>' t2='>' t3='>' 
+        { $t1.getLine() == $t2.getLine() && 
+          $t1.getCharPositionInLine() + 1 == $t2.getCharPositionInLine() &&
+          $t2.getLine() == $t3.getLine() && 
+          $t2.getCharPositionInLine() + 1 == $t3.getCharPositionInLine() }?
+    |   ('>' '>')=> t1='>' t2='>'
+        { $t1.getLine() == $t2.getLine() && 
+          $t1.getCharPositionInLine() + 1 == $t2.getCharPositionInLine() }?
+    ;
+
+additive_expression
+    :   multiplicative_expression ( ('+' | '-') multiplicative_expression )*
+    ;
+
+multiplicative_expression
+    :   unary_expression ( ( '*' | '/' | '%' ) unary_expression )*
+    ;
+    
+unary_expression
+    :   '+' unary_expression
+    |   '-' unary_expression
+    |   '++' unary_expression
+    |   '--' unary_expression
+    |   unary_expression_not_plus_minus
+    ;
+
+unary_expression_not_plus_minus
+    :   '~' unary_expression
+    |   '!' unary_expression
+    |   cast_expression
+    |   primary selector* ('++'|'--')?
+    ;
+
+cast_expression
+    :  '(' primitive_type ')' unary_expression
+    |  '(' (type | expression) ')' unary_expression_not_plus_minus
+    ;
+
+primary
+    :   par_expression
+    |   literal
+    |   java_ident ('.' java_method)* identifier_suffix?
+        {
+            String var = $java_ident.text;
+            if (_facetInfoMap.containsKey(var)) {
+                _usedFacets.add(var);
+            }
+            else if (_internalVarMap.containsKey(var)) {
+                _usedInternalVars.add(var);
+            }
+            else if (!_supportedClasses.contains(var) && !verifyVariable(var)) {
+                throw new FailedPredicateException(input,
+                                                   "primary",
+                                                   "Variable or class \"" + var + "\" is not defined.");
+            }
+        }
+    ;
+
+java_ident
+    :   boxed_type
+    |   limited_type
+    |   IDENT
+    ;
+
+// Need to handle the conflicts of BQL keywords and common Java method
+// names supported by BQL.
+java_method
+    :   { "contains".equals(input.LT(1).getText()) }? CONTAINS
+    |   IDENT
+    ;
+
+identifier_suffix
+    :   ('[' ']')+ '.' 'class'
+    |   arguments
+    |   '.' 'class'
+    |   '.' 'this'
+    |   '.' 'super' arguments
+    ;
+
+literal 
+    :   integer_literal
+    |   REAL
+    |   FLOATING_POINT_LITERAL
+    |   CHARACTER_LITERAL
+    |   STRING_LITERAL
+    |   boolean_literal
+    |   { "null".equals(input.LT(1).getText()) }? NULL
+    ;
+
+integer_literal
+    :   HEX_LITERAL
+    |   OCTAL_LITERAL
+    |   INTEGER
+    ;
+
+boolean_literal
+    :   { "true".equals(input.LT(1).getText()) }? TRUE
+    |   { "false".equals(input.LT(1).getText()) }? FALSE
+    ;
+
+selector
+    :   '.' IDENT arguments?
+    |   '.' 'this'
+    |   '[' expression ']'
+    ;
+
+arguments
+    :   '(' expression_list? ')'
+    ;
+    
 relevance_model_clause returns [JSONObject json]
 @init {
     $json = new JSONObject();
 }
-    :   USING RELEVANCE MODEL IDENT prop_list
+    :   USING RELEVANCE MODEL IDENT prop_list model=relevance_model?
         {
             try {
-                $json.put("predefined_model", $IDENT.text);
-                $json.put("values", $prop_list.json);
+                if (model == null) {
+                    $json.put("predefined_model", $IDENT.text);
+                    $json.put("values", $prop_list.json);
+                }
+                else {
+                    JSONObject modelInfo = $model.json;
+                    JSONObject modelJson = new JSONObject();
+                    modelJson.put("function", $model.functionBody);
+
+                    JSONArray funcParams = modelInfo.optJSONArray("function_params");
+                    if (funcParams != null) {
+                        modelJson.put("function_params", funcParams);
+                    }
+
+                    JSONObject facets = modelInfo.optJSONObject("facets");
+                    if (facets != null) {
+                        modelJson.put("facets", facets);
+                    }
+
+                    JSONObject variables = modelInfo.optJSONObject("variables");
+                    if (variables != null) {
+                        modelJson.put("variables", variables);
+                    }
+
+                    $json.put("model", modelJson);
+                    $json.put("values", $prop_list.json);
+                }
             }
             catch (JSONException err) {
                 throw new FailedPredicateException(input, "relevance_model_clause",
@@ -1792,8 +2827,26 @@ facet_param returns [String facet, JSONObject param]
         {
             $facet = $column_name.text; // XXX Check error here?
             try {
-                Object valArray = (val != null) ? new JSONArray().put(val.val) : $valList.json;
-                $param = new JSONObject().put($STRING_LITERAL.text,
+                Object valArray = null;
+                if (val != null) {
+                    String varName = $value.text;
+                    if (varName.matches("\\$[^$].*")) {
+                        // Here "value" is a variable.  In this case, it
+                        // is REQUIRED that the variable should be
+                        // replaced by a list, NOT a scalar value.
+                        valArray = varName;
+                    }
+                    else {
+                        valArray = new JSONArray().put(val.val);
+                    }
+                }
+                else {
+                    valArray = $valList.json;
+                }
+
+                String orig = $STRING_LITERAL.text;
+                orig = orig.substring(1, orig.length() - 1);
+                $param = new JSONObject().put(orig,
                                               new JSONObject().put("type", $facet_param_type.paramType)
                                                               .put("values", valArray));
             }
@@ -1809,3 +2862,7 @@ facet_param_type returns [String paramType]
             $paramType = $t.text;
         }
     ;
+
+//
+// The end of BQL.g
+//

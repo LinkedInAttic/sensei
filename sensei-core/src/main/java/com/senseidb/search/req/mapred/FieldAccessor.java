@@ -65,6 +65,12 @@ public final class FieldAccessor  {
   
   
   
+  /**
+   * Get facet value for the document
+   * @param fieldName
+   * @param docId
+   * @return
+   */
   public final  Object get(String fieldName, int docId) {
     FacetDataCache valueCache = getValueCache(fieldName);
     if (valueCache instanceof MultiValueFacetDataCache) {
@@ -76,12 +82,22 @@ public final class FieldAccessor  {
     return getFacetHandler(fieldName).getRawFieldValues(boboIndexReader, docId);
   }
 
-  
+  /**
+   * Get string facet value for the document
+   * @param fieldName
+   * @param docId
+   * @return
+   */
   public final String getString(String fieldName, int docId) {
     return getFacetHandler(fieldName).getFieldValue(boboIndexReader, docId);    
   }
 
-  
+  /**
+   * Get long  facet value for the document
+   * @param fieldName
+   * @param docId
+   * @return
+   */
   public final long getLong(String fieldName, int docId) {
     FacetDataCache valueCache = getValueCache(fieldName);    
     if (valueCache != null) {
@@ -105,7 +121,12 @@ public final class FieldAccessor  {
     }
   }
 
-  
+  /**
+   * Get double  facet value for the document
+   * @param fieldName
+   * @param docId
+   * @return
+   */
   public final double getDouble(String fieldName, int docId) {
     FacetDataCache valueCache = getValueCache(fieldName);    
     if (valueCache != null) {
@@ -125,7 +146,12 @@ public final class FieldAccessor  {
     }
   }
 
-  
+  /**
+   * Get short  facet value for the document
+   * @param fieldName
+   * @param docId
+   * @return
+   */
   public final short getShort(String fieldName, int docId) {
     FacetDataCache valueCache = getValueCache(fieldName);   
     if (valueCache != null) {
@@ -149,7 +175,12 @@ public final class FieldAccessor  {
     }
   }
 
-  
+  /**
+   * Get integer  facet value for the document
+   * @param fieldName
+   * @param docId
+   * @return
+   */
   public final int getInteger(String fieldName, int docId) {
     FacetDataCache valueCache = getValueCache(fieldName);    
     if (valueCache != null) {
@@ -173,7 +204,12 @@ public final class FieldAccessor  {
     }
   }
 
-  
+  /**
+   * Get float  facet value for the document
+   * @param fieldName
+   * @param docId
+   * @return
+   */
   public final float getFloat(String fieldName, int docId) {
     FacetDataCache valueCache = getValueCache(fieldName);    
     if (valueCache != null) {
@@ -197,7 +233,12 @@ public final class FieldAccessor  {
     }
   }
 
-  
+  /**
+   * Get array  facet value for the document
+   * @param fieldName
+   * @param docId
+   * @return
+   */
   public final Object[] getArray(String fieldName, int docId) {
     return getFacetHandler(fieldName).getRawFieldValues(boboIndexReader, docId); 
    
@@ -256,6 +297,10 @@ public final class FieldAccessor  {
   public BoboIndexReader getBoboIndexReader() {
     return boboIndexReader;
   }
+  /**
+   * Returns the docIdtoUID mapper
+   * @return
+   */
   public DocIDMapper getMapper() {
     return mapper;
   }

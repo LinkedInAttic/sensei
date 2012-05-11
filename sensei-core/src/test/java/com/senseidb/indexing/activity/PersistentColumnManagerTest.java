@@ -5,9 +5,12 @@ import it.unimi.dsi.fastutil.longs.LongList;
 
 import java.io.File;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import junit.framework.TestCase;
 
+import org.hsqldb.lib.Iterator;
 import org.json.JSONObject;
 
 import proj.zoie.impl.indexing.ZoieConfig;
@@ -41,7 +44,7 @@ public class PersistentColumnManagerTest extends TestCase {
   
     int valueCount = 10000;
     for (int i = 0; i < valueCount; i++) { 
-      compositeActivityValues.update(10000000000L + i, String.format("%08d", i), new JSONObject().put("likes", "+1"));
+      compositeActivityValues.update(10000000000L + i, String.format("%08d", i), toMap(new JSONObject().put("likes", "+1")));
     }    
     compositeActivityValues.flush();
     compositeActivityValues.syncWithPersistentVersion(String.format("%08d", valueCount - 1));
@@ -51,7 +54,7 @@ public class PersistentColumnManagerTest extends TestCase {
     assertEquals("Found " + compositeActivityValues.uidToArrayIndex.size(), valueCount, compositeActivityValues.uidToArrayIndex.size());
     assertEquals((int)(valueCount * 1.5), getFieldValues(compositeActivityValues).length );
     for (int i = 0; i < valueCount; i++) {      
-      compositeActivityValues.update(10000000000L + i, String.format("%08d", valueCount + i), new JSONObject().put("likes","+" + i));
+      compositeActivityValues.update(10000000000L + i, String.format("%08d", valueCount + i), toMap(new JSONObject().put("likes","+" + i)));
     }
     compositeActivityValues.flush();
     compositeActivityValues.syncWithPersistentVersion(String.format("%08d", valueCount * 2 - 1));
@@ -62,6 +65,15 @@ public class PersistentColumnManagerTest extends TestCase {
     assertEquals(getFieldValues(compositeActivityValues)[0], 1);
     assertEquals(getFieldValues(compositeActivityValues)[3], 4);
     compositeActivityValues.close();
+  }
+private Map<String, Object> toMap(JSONObject jsonObject) {
+  Map<String, Object> ret = new HashMap<String, Object>();
+  java.util.Iterator<String> it = jsonObject.keys();
+    while (it.hasNext()) {
+      String key =  it.next();
+      ret.put(key, jsonObject.opt(key));
+    }
+  return ret;
   }
 private int[] getFieldValues(CompositeActivityValues compositeActivityValues){
 	return ((ActivityIntValues)compositeActivityValues.intValuesMap.get("likes")).fieldValues;
@@ -74,7 +86,7 @@ private int[] getFieldValues(CompositeActivityValues compositeActivityValues){
     CompositeActivityValues compositeActivityValues = CompositeActivityValues.readFromFile(indexDirPath, java.util.Arrays.asList("likes"), Collections.EMPTY_LIST, ZoieConfig.DEFAULT_VERSION_COMPARATOR);
     final int valueCount = 10000;   
     for (int i = 0; i < valueCount; i++) {
-      compositeActivityValues.update(UID_BASE + i, String.format("%08d", valueCount + i), new JSONObject().put("likes", "+1"));
+      compositeActivityValues.update(UID_BASE + i, String.format("%08d", valueCount + i), toMap(new JSONObject().put("likes", "+1")));
     }  
     compositeActivityValues.flush();
     compositeActivityValues.syncWithPersistentVersion(String.format("%08d",  valueCount - 1));
@@ -122,7 +134,7 @@ private int[] getFieldValues(CompositeActivityValues compositeActivityValues){
     assertEquals(1, compositeActivityValues.getValueByUID(UID_BASE + 2, "likes"));
     assertEquals((int)(valueCount * 1.5), getFieldValues(compositeActivityValues).length );
     for (int i = 0; i < valueCount; i++) {      
-      compositeActivityValues.update(UID_BASE + i, String.format("%08d", valueCount * 2 + i), new JSONObject().put("likes", "+" + i));
+      compositeActivityValues.update(UID_BASE + i, String.format("%08d", valueCount * 2 + i), toMap(new JSONObject().put("likes", "+" + i)));
     }
     compositeActivityValues.flush();
     compositeActivityValues.syncWithPersistentVersion(String.format("%08d", valueCount * 2 - 1));   

@@ -3,6 +3,10 @@ package com.senseidb.search.client.req;
 
 import java.util.Map;
 
+/**
+ * Allows to create Sensei map reduce job
+ *
+ */
 public class MapReduce {
   private String function;
   private Map<String, Object> parameters;

@@ -16,6 +16,11 @@ import com.senseidb.search.req.mapred.FieldAccessor;
 import com.senseidb.search.req.mapred.SenseiMapReduce;
 
 
+/**
+ * Inctance of this class is the part of the senseiReuqest, and it keep the intermediate step of the map reduce job
+ * @author vzhabiuk
+ *
+ */
 public class SenseiMapFunctionWrapper implements BoboMapFunctionWrapper {
   private MapReduceResult result;
   private SenseiMapReduce mapReduceStrategy;
@@ -26,11 +31,14 @@ public class SenseiMapFunctionWrapper implements BoboMapFunctionWrapper {
   public SenseiMapFunctionWrapper(SenseiMapReduce mapReduceStrategy, Set<SenseiFacetInfo> facetInfos) {
     super();
     this.mapReduceStrategy = mapReduceStrategy;   
-    partialDocIds = intarraymgr.get(BUFFER_SIZE);
+    partialDocIds = new int[BUFFER_SIZE];
     result = new MapReduceResult();
     this.facetInfos = facetInfos;
   }
 
+  /* (non-Javadoc)
+   * @see com.browseengine.bobo.mapred.BoboMapFunctionWrapper#mapFullIndexReader(com.browseengine.bobo.api.BoboIndexReader)
+   */
   @Override
   public void mapFullIndexReader(BoboIndexReader reader) {
     ZoieSegmentReader<?> zoieReader = (ZoieSegmentReader<?>)(reader.getInnerReader());
@@ -38,6 +46,9 @@ public class SenseiMapFunctionWrapper implements BoboMapFunctionWrapper {
     result.getMapResults().add(mapReduceStrategy.map(docIDMapper.getDocArray(), docIDMapper.getDocArray().length, zoieReader.getUIDArray(), new FieldAccessor(facetInfos, reader, docIDMapper)));    
   }
 
+  /* (non-Javadoc)
+   * @see com.browseengine.bobo.mapred.BoboMapFunctionWrapper#mapSingleDocument(int, com.browseengine.bobo.api.BoboIndexReader)
+   */
   @Override
   public final void mapSingleDocument(int docId, BoboIndexReader reader) {
     if (docIdIndex < BUFFER_SIZE - 1) {
@@ -53,6 +64,9 @@ public class SenseiMapFunctionWrapper implements BoboMapFunctionWrapper {
     }
   }
 
+  /* (non-Javadoc)
+   * @see com.browseengine.bobo.mapred.BoboMapFunctionWrapper#finalizeSegment(com.browseengine.bobo.api.BoboIndexReader)
+   */
   @Override
   public void finalizeSegment(BoboIndexReader reader) {
     
@@ -64,6 +78,9 @@ public class SenseiMapFunctionWrapper implements BoboMapFunctionWrapper {
     docIdIndex = 0;
   }
 
+  /* (non-Javadoc)
+   * @see com.browseengine.bobo.mapred.BoboMapFunctionWrapper#finalizePartition()
+   */
   @Override
   public void finalizePartition() {
     result.setMapResults(new ArrayList(mapReduceStrategy.combine(result.getMapResults(), CombinerStage.partitionLevel))) ;    
@@ -74,18 +91,4 @@ public class SenseiMapFunctionWrapper implements BoboMapFunctionWrapper {
     return result;
   }
   
-  protected static MemoryManager<int[]> intarraymgr = new MemoryManager<int[]>(new MemoryManager.Initializer<int[]>()
-      {
-        public void init(int[] buf) {         
-        }
-        public int[] newInstance(int size)
-        {
-          return new int[size];
-        }
-        public int size(int[] buf)
-        {
-          assert buf!=null;
-          return buf.length;
-        }
-      });
 }

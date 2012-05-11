@@ -161,6 +161,19 @@ public class RequestConverter2 {
    * Builds SenseiRequest based on a JSON object.
    *
    * @param json  The input JSON object.
+   * @return The built SenseiRequest.
+   */
+  public static SenseiRequest fromJSON(JSONObject json)
+    throws Exception
+  {
+    return fromJSON(json, null);
+  }
+
+
+  /**
+   * Builds SenseiRequest based on a JSON object.
+   *
+   * @param json  The input JSON object.
    * @param facetInfoMap  Facet information map, which maps a facet name
    *        to a String array in which the first element is the facet
    *        type (like "simple" or "range") and the second element is
@@ -308,6 +321,16 @@ public class RequestConverter2 {
                   JSONObject jsonParamValues = jsonParams.getJSONObject(paramName);
                   String type = jsonParamValues.optString(RequestConverter2.FACETINIT_TYPE, RequestConverter2.FACETINIT_TYPE_STRING);
                   JSONArray jsonValues = jsonParamValues.optJSONArray(RequestConverter2.FACETINIT_VALUES);
+                  if (jsonValues == null)
+                  {
+                    // Accept scalar values here too.  This is useful in
+                    // supporting variable substitutions.
+                    Object value = jsonParamValues.opt(RequestConverter2.FACETINIT_VALUES);
+                    if (value != null)
+                    {
+                      jsonValues = new JSONArray().put(value);
+                    }
+                  }
                   if (jsonValues != null)
                   {
                     if (type.equals(RequestConverter2.FACETINIT_TYPE_INT))

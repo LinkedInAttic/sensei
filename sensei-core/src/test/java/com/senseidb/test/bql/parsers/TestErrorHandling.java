@@ -635,12 +635,12 @@ public class TestErrorHandling extends TestCase
     try
     {
       JSONObject json = _compiler.compile(
-        "select color, from aa where color  = 'red'"
+        "select color, from aa where color = 'red'"
         );
     }
     catch (RecognitionException err)
     {
-      assertEquals("[line:1, col:14] Mismatched input (token=from)",
+      assertEquals("[line:1, col:14] No viable alternative (token=from)",
                    _compiler.getErrorMessage(err));
       caughtException = true;
     }
@@ -945,6 +945,329 @@ public class TestErrorHandling extends TestCase
     {
       assertEquals("[line:4, col:42] USING RELEVANCE MODEL clause can only appear once. (token=<EOF>)",
                    _compiler.getErrorMessage(err));
+      caughtException = true;
+    }
+    finally 
+    {
+      assertTrue(caughtException);
+    }
+  }
+
+  @Test
+  public void testRelevanceVarRedefined() throws Exception
+  {
+    System.out.println("testRelevanceVarRedefined");
+    System.out.println("==================================================");
+
+    boolean caughtException = false;
+    try
+    {
+      JSONObject json = _compiler.compile(
+        "SELECT * \n" +
+        "FROM cars \n" +
+        "USING RELEVANCE MODEL md1 ('srcid':1234) \n" +
+        "  DEFINED AS (int srcid) \n" +
+        "  BEGIN \n" +
+        "    int x, y; \n" +
+        "    short x = 5; \n" +
+        "    return 0.5; \n" +
+        "  END"
+        );
+    }
+    catch (RecognitionException err)
+    {
+      assertEquals("[line:7, col:15] Variable \"x\" is already defined. (token=;)",
+                   _compiler.getErrorMessage(err));
+      caughtException = true;
+    }
+    finally 
+    {
+      assertTrue(caughtException);
+    }
+  }
+
+  @Test
+  public void testRelevanceUndefinedVar1() throws Exception
+  {
+    System.out.println("testRelevanceUndefinedVar1");
+    System.out.println("==================================================");
+
+    boolean caughtException = false;
+    try
+    {
+      JSONObject json = _compiler.compile(
+        "SELECT * \n" +
+        "FROM cars \n" +
+        "USING RELEVANCE MODEL md1 ('srcid':1234) \n" +
+        "  DEFINED AS (int srcid) \n" +
+        "  BEGIN \n" +
+        "    if (x == 5) \n" +
+        "      return 0.1; \n" +
+        "    return 0.5; \n" +
+        "  END"
+        );
+    }
+    catch (RecognitionException err)
+    {
+      assertEquals("[line:6, col:10] Variable or class \"x\" is not defined. (token===)", _compiler.getErrorMessage(err));
+      caughtException = true;
+    }
+    finally 
+    {
+      assertTrue(caughtException);
+    }
+  }
+
+  @Test
+  public void testRelevanceUndefinedVar2() throws Exception
+  {
+    System.out.println("testRelevanceUndefinedVar2");
+    System.out.println("==================================================");
+
+    boolean caughtException = false;
+    try
+    {
+      JSONObject json = _compiler.compile(
+        "SELECT * \n" +
+        "FROM cars \n" +
+        "USING RELEVANCE MODEL md1 ('srcid':1234) \n" +
+        "  DEFINED AS (int srcid) \n" +
+        "  BEGIN \n" +
+        "    int x = 5; \n" +
+        "    if (price > 2000.0) \n" +
+        "      return 0.1; \n" +
+        "    else { \n" +
+        "      x = 10; \n" +
+        "      y = x + 123; \n" +
+        "    } \n" +
+        "    return 0.5; \n" +
+        "  END"
+        );
+    }
+    catch (RecognitionException err)
+    {
+      // System.out.println(">>> err = " + _compiler.getErrorMessage(err));
+      assertEquals("[line:11, col:8] Variable or class \"y\" is not defined. (token==)", _compiler.getErrorMessage(err));
+      caughtException = true;
+    }
+    finally 
+    {
+      assertTrue(caughtException);
+    }
+  }
+
+  @Test
+  public void testRelevanceUndefinedVar3() throws Exception
+  {
+    System.out.println("testRelevanceUndefinedVar3");
+    System.out.println("==================================================");
+
+    boolean caughtException = false;
+    try
+    {
+      JSONObject json = _compiler.compile(
+        "SELECT * \n" +
+        "FROM cars \n" +
+        "USING RELEVANCE MODEL md1 ('srcid':1234) \n" +
+        "  DEFINED AS (int srcid) \n" +
+        "  BEGIN \n" +
+        "    int total = 0; \n" +
+        "    for (int i = 0; i < 10; ++i) { \n" +
+        "      total += i; \n" +
+        "    } \n" +
+        "    i = 100; \n" +
+        "  END"
+        );
+    }
+    catch (RecognitionException err)
+    {
+      assertEquals("[line:10, col:6] Variable or class \"i\" is not defined. (token==)", _compiler.getErrorMessage(err));
+      caughtException = true;
+    }
+    finally 
+    {
+      assertTrue(caughtException);
+    }
+  }
+
+  @Test
+  public void testRelevanceVarDeclError1() throws Exception
+  {
+    System.out.println("testRelevanceVarDeclError1");
+    System.out.println("==================================================");
+
+    boolean caughtException = false;
+    try
+    {
+      JSONObject json = _compiler.compile(
+        "SELECT * \n" +
+        "FROM cars \n" +
+        "USING RELEVANCE MODEL md1 ('srcid':1234) \n" +
+        "  DEFINED AS (int srcid) \n" +
+        "  BEGIN \n" +
+        "    int year; \n" +
+        "  END"
+        );
+    }
+    catch (RecognitionException err)
+    {
+      assertEquals("[line:6, col:12] Facet name \"year\" cannot be used to declare a variable. (token=;)", _compiler.getErrorMessage(err));
+      caughtException = true;
+    }
+    finally 
+    {
+      assertTrue(caughtException);
+    }
+  }
+
+  @Test
+  public void testRelevanceVarDeclError2() throws Exception
+  {
+    System.out.println("testRelevanceVarDeclError2");
+    System.out.println("==================================================");
+
+    boolean caughtException = false;
+    try
+    {
+      JSONObject json = _compiler.compile(
+        "SELECT * \n" +
+        "FROM cars \n" +
+        "USING RELEVANCE MODEL md1 ('srcid':1234) \n" +
+        "  DEFINED AS (int srcid) \n" +
+        "  BEGIN \n" +
+        "    String _NOW; \n" +
+        "  END"
+        );
+    }
+    catch (RecognitionException err)
+    {
+      assertEquals("[line:6, col:15] Internal variable \"_NOW\" cannot be re-used to declare another variable. (token=;)", _compiler.getErrorMessage(err));
+      caughtException = true;
+    }
+    finally 
+    {
+      assertTrue(caughtException);
+    }
+  }
+
+  @Test
+  public void testRelevanceVarDeclError3() throws Exception
+  {
+    System.out.println("testRelevanceVarDeclError3");
+    System.out.println("==================================================");
+
+    boolean caughtException = false;
+    try
+    {
+      JSONObject json = _compiler.compile(
+        "SELECT * \n" +
+        "FROM cars \n" +
+        "USING RELEVANCE MODEL md1 ('srcid':1234) \n" +
+        "  DEFINED AS (int srcid) \n" +
+        "  BEGIN \n" +
+        "    int x = 100; \n" +
+        "    for (int i = 1; i < 10; ++i) { \n" +
+        "      int x; \n" +
+        "    } \n" +
+        "  END"
+        );
+    }
+    catch (RecognitionException err)
+    {
+      assertEquals("[line:8, col:11] Variable \"x\" is already defined. (token=;)", _compiler.getErrorMessage(err));
+      caughtException = true;
+    }
+    finally 
+    {
+      assertTrue(caughtException);
+    }
+  }
+
+  @Test
+  public void testRelevanceModelParamError1() throws Exception
+  {
+    System.out.println("testRelevanceModelParamError1");
+    System.out.println("==================================================");
+
+    boolean caughtException = false;
+    try
+    {
+      JSONObject json = _compiler.compile(
+        "SELECT * \n" +
+        "FROM cars \n" +
+        "USING RELEVANCE MODEL md1 ('srcid':1234) \n" +
+        "  DEFINED AS (int srcid, float price) \n" +
+        "  BEGIN \n" +
+        "    return 0.5; \n" +
+        "  END"
+        );
+    }
+    catch (RecognitionException err)
+    {
+      // System.out.println(">>> err = " + _compiler.getErrorMessage(err));
+      assertEquals("[line:4, col:36] Facet name \"price\" cannot be used as a relevance model parameter. (token=))", _compiler.getErrorMessage(err));
+      caughtException = true;
+    }
+    finally 
+    {
+      assertTrue(caughtException);
+    }
+  }
+
+  @Test
+  public void testRelevanceModelParamError2() throws Exception
+  {
+    System.out.println("testRelevanceModelParamError2");
+    System.out.println("==================================================");
+
+    boolean caughtException = false;
+    try
+    {
+      JSONObject json = _compiler.compile(
+        "SELECT * \n" +
+        "FROM cars \n" +
+        "USING RELEVANCE MODEL md1 ('srcid':1234) \n" +
+        "  DEFINED AS (int srcid, String srcid) \n" +
+        "  BEGIN \n" +
+        "    return 0.5; \n" +
+        "  END"
+        );
+    }
+    catch (RecognitionException err)
+    {
+      // System.out.println(">>> err = " + _compiler.getErrorMessage(err));
+      assertEquals("[line:4, col:37] Parameter name \"srcid\" has already been used. (token=))", _compiler.getErrorMessage(err));
+      caughtException = true;
+    }
+    finally 
+    {
+      assertTrue(caughtException);
+    }
+  }
+
+  @Test
+  public void testRelevanceModelParamError3() throws Exception
+  {
+    System.out.println("testRelevanceModelParamError3");
+    System.out.println("==================================================");
+
+    boolean caughtException = false;
+    try
+    {
+      JSONObject json = _compiler.compile(
+        "SELECT * \n" +
+        "FROM cars \n" +
+        "USING RELEVANCE MODEL md1 ('srcid':1234) \n" +
+        "  DEFINED AS (int srcid, long _NOW) \n" +
+        "  BEGIN \n" +
+        "    return 0.5; \n" +
+        "  END"
+        );
+    }
+    catch (RecognitionException err)
+    {
+      // System.out.println(">>> err = " + _compiler.getErrorMessage(err));
+      assertEquals("[line:4, col:34] Internal variable \"_NOW\" cannot be used as a relevance model parameter. (token=))", _compiler.getErrorMessage(err));
       caughtException = true;
     }
     finally 

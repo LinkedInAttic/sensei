@@ -417,7 +417,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
       zoieConfig.setReadercachefactory(readercachefactory);
       if (CompositeActivityManager.activitiesPresent(_senseiSchema)) {
         try {
-    	  activityManager = new CompositeActivityManager( _senseiConf.getString(SENSEI_INDEX_DIR), nodeid, _senseiSchema, zoieConfig.getVersionComparator());      
+          activityManager = new CompositeActivityManager( _senseiConf.getString(SENSEI_INDEX_DIR), nodeid, _senseiSchema, zoieConfig.getVersionComparator(), pluginRegistry);      
         } catch (Exception ex) {
         	throw new ConfigurationException("Couldn't init the activity manager",ex);
         }

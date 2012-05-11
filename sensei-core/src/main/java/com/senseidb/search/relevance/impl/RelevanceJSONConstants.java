@@ -1,9 +1,12 @@
 package com.senseidb.search.relevance.impl;
 
+import java.util.Map;
+import java.util.HashMap;
+
 public class RelevanceJSONConstants
 {
   /* JSON keywords*/
-  
+
   // (1) json keys;
   public static final String           KW_MODEL                = "model";
   public static final String           KW_PREDEFINED           = "predefined_model";
@@ -15,7 +18,7 @@ public class RelevanceJSONConstants
   public static final String           KW_SAVE_AS              = "save_as";
   public static final String           KW_NAME_AS              = "name";
   public static final String           KW_OVERWRITE            = "overwrite";
-  
+
 
   // (2) supported types in json:
   // set type: [set_int, set_float, set_string, set_double, set_long]
@@ -24,10 +27,7 @@ public class RelevanceJSONConstants
   public static final String           KW_TYPE_SET_STRING      = "set_string";
   public static final String           KW_TYPE_SET_DOUBLE      = "set_double";
   public static final String           KW_TYPE_SET_LONG        = "set_long";
-  
-  // map type: [map_int_int, map_int_float, map_int_double, map_int_long, map_int_string]
-  public static final String           KW_TYPE_MAP_HEAD            = "map_"; 
-  
+
   public static final String           KW_TYPE_MAP_INT_INT         = "map_int_int";
   public static final String           KW_TYPE_MAP_INT_FLOAT       = "map_int_float";
   public static final String           KW_TYPE_MAP_INT_STRING      = "map_int_string";
@@ -39,7 +39,7 @@ public class RelevanceJSONConstants
   public static final String           KW_TYPE_MAP_STRING_STRING      = "map_string_string";
   public static final String           KW_TYPE_MAP_STRING_DOUBLE      = "map_string_double";
   public static final String           KW_TYPE_MAP_STRING_LONG        = "map_string_long";
-  
+
   // normal type: [int, double, float, long, bool, string]
   public static final String           KW_TYPE_INT             = "int";
   public static final String           KW_TYPE_FLOAT           = "float";
@@ -63,7 +63,7 @@ public class RelevanceJSONConstants
   public static final String           KW_TYPE_FACET_M_DOUBLE    = "mdouble";
   public static final String           KW_TYPE_FACET_M_LONG      = "mlong";
   public static final String           KW_TYPE_FACET_M_SHORT     = "mshort";
-  
+
 
   // weighted multi-facet type support: [mdouble, mfloat, mint, mlong, mshort, mstring]
   public static final String           KW_TYPE_FACET_WM_INT       = "wmint";
@@ -76,111 +76,118 @@ public class RelevanceJSONConstants
   // constant type:
   public static final String           KW_INNER_SCORE          = "_INNER_SCORE";
   public static final String           KW_NOW                  = "_NOW";
-  
-  
-  /* Type Strings; */
-  
-  // (1) inner score type;
-  public static final String                 TYPE_INNER_SCORE  = "INNER_SCORE";  //actually a float value;
-  
-  // (2) general types:
-  public static final String                 TYPE_INT          = "INT";
-  public static final String                 TYPE_LONG         = "LONG";
-  public static final String                 TYPE_DOUBLE       = "DOUBLE";
-  public static final String                 TYPE_FLOAT        = "FLOAT";
-  public static final String                 TYPE_BOOLEAN      = "BOOLEAN";
-  public static final String                 TYPE_STRING       = "STRING";
 
-  // hashset container types:
-  public static final String                 TYPE_SET_INT          = "SET_INT";
-  public static final String                 TYPE_SET_LONG         = "SET_LONG";
-  public static final String                 TYPE_SET_DOUBLE       = "SET_DOUBLE";
-  public static final String                 TYPE_SET_FLOAT        = "SET_FLOAT";
-  public static final String                 TYPE_SET_STRING       = "SET_STRING";
-  
-  public static final String                 TYPE_SET_HEAD         = "SET";
-  
-  // hashmap container types:
-  public static final String                 TYPE_MAP_INT_INT          = "MAP_INT_INT";
-  public static final String                 TYPE_MAP_INT_LONG         = "MAP_INT_LONG";
-  public static final String                 TYPE_MAP_INT_DOUBLE       = "MAP_INT_DOUBLE";
-  public static final String                 TYPE_MAP_INT_FLOAT        = "MAP_INT_FLOAT";
-  public static final String                 TYPE_MAP_INT_STRING       = "MAP_INT_STRING";
-  public static final String                 TYPE_MAP_STRING_INT          = "MAP_STRING_INT";
-  public static final String                 TYPE_MAP_STRING_LONG         = "MAP_STRING_LONG";
-  public static final String                 TYPE_MAP_STRING_DOUBLE       = "MAP_STRING_DOUBLE";
-  public static final String                 TYPE_MAP_STRING_FLOAT        = "MAP_STRING_FLOAT";
-  public static final String                 TYPE_MAP_STRING_STRING       = "MAP_STRING_STRING";
-  
-  public static final String                 TYPE_MAP_HEAD         = "MAP";
+  /* Type Numbers 
+   * 
+   * The numbers below are used to in an ordered way, so adding new types should be careful.
+   * */
 
-  // (3) facet types:
-  public static final String                 TYPE_FACET_INT    = "FACET_INT";
-  public static final String                 TYPE_FACET_LONG   = "FACET_LONG";
-  public static final String                 TYPE_FACET_DOUBLE = "FACET_DOUBLE";
-  public static final String                 TYPE_FACET_FLOAT  = "FACET_FLOAT";
-  public static final String                 TYPE_FACET_SHORT  = "FACET_SHORT";
-  public static final String                 TYPE_FACET_STRING = "FACET_STRING";
-  
-  // (4) multi-facet types:
-  public static final String                 TYPE_FACET_M_INT    = "FACET_M_INT";
-  public static final String                 TYPE_FACET_M_LONG   = "FACET_M_LONG";
-  public static final String                 TYPE_FACET_M_DOUBLE = "FACET_M_DOUBLE";
-  public static final String                 TYPE_FACET_M_FLOAT  = "FACET_M_FLOAT";
-  public static final String                 TYPE_FACET_M_SHORT  = "FACET_M_SHORT";
-  public static final String                 TYPE_FACET_M_STRING = "FACET_M_STRING";
-  
-  // (4) weighted multi-facet types:
-  public static final String                 TYPE_FACET_WM_INT    = "FACET_WM_INT";
-  public static final String                 TYPE_FACET_WM_LONG   = "FACET_WM_LONG";
-  public static final String                 TYPE_FACET_WM_DOUBLE = "FACET_WM_DOUBLE";
-  public static final String                 TYPE_FACET_WM_FLOAT  = "FACET_WM_FLOAT";
-  public static final String                 TYPE_FACET_WM_SHORT  = "FACET_WM_SHORT";
-  public static final String                 TYPE_FACET_WM_STRING = "FACET_WM_STRING";
-  
-  public static final String                 TYPE_FACET_HEAD    = "FACET";
-  public static final String                 TYPE_M_FACET_HEAD  = "FACET_M";
-  public static final String                 TYPE_WM_FACET_HEAD = "FACET_WM";
-  
-  
-  /* Type Numbers */
-  
   // (1) inner score type number;
-  public static final int                 TYPENUMBER_INNER_SCORE  = 0;
-  
+  public static final int TYPENUMBER_INNER_SCORE       =  0;
+  public static final int TYPENUMBER_NOW               =  1;
+
   // (2) general type numbers:
-  public static final int                 TYPENUMBER_INT          = 1;
-  public static final int                 TYPENUMBER_LONG         = 2;
-  public static final int                 TYPENUMBER_DOUBLE       = 3;
-  public static final int                 TYPENUMBER_FLOAT        = 4;
-  public static final int                 TYPENUMBER_BOOLEAN      = 5;
-  public static final int                 TYPENUMBER_STRING       = 6;  
-  
-  public static final int                 TYPENUMBER_SET          = 7;
-  public static final int                 TYPENUMBER_MAP          = 8;
-  
+  public static final int TYPENUMBER_INT               = 10;
+  public static final int TYPENUMBER_LONG              = 20;
+  public static final int TYPENUMBER_DOUBLE            = 30;
+  public static final int TYPENUMBER_FLOAT             = 40;
+  public static final int TYPENUMBER_BOOLEAN           = 50;
+  public static final int TYPENUMBER_STRING            = 60;
+
+  public static final int TYPENUMBER_SET               =  7;
+  public static final int TYPENUMBER_MAP               =  8;
+
+  public static final int TYPENUMBER_SET_INT           = 70;
+  public static final int TYPENUMBER_SET_LONG          = 71;
+  public static final int TYPENUMBER_SET_DOUBLE        = 72;
+  public static final int TYPENUMBER_SET_FLOAT         = 73;
+  public static final int TYPENUMBER_SET_STRING        = 75;
+
+  public static final int TYPENUMBER_MAP_INT_INT       = 80;
+  public static final int TYPENUMBER_MAP_INT_LONG      = 81;
+  public static final int TYPENUMBER_MAP_INT_DOUBLE    = 82;
+  public static final int TYPENUMBER_MAP_INT_FLOAT     = 83;
+  public static final int TYPENUMBER_MAP_INT_STRING    = 84;
+  public static final int TYPENUMBER_MAP_STRING_INT    = 85;
+  public static final int TYPENUMBER_MAP_STRING_LONG   = 86;
+  public static final int TYPENUMBER_MAP_STRING_DOUBLE = 87;
+  public static final int TYPENUMBER_MAP_STRING_FLOAT  = 88;
+  public static final int TYPENUMBER_MAP_STRING_STRING = 89;
+
   // (3) facet type numbers;
-  public static final int                 TYPENUMBER_FACET_INT    = 10;
-  public static final int                 TYPENUMBER_FACET_LONG   = 11;
-  public static final int                 TYPENUMBER_FACET_DOUBLE = 12;
-  public static final int                 TYPENUMBER_FACET_FLOAT  = 13;
-  public static final int                 TYPENUMBER_FACET_SHORT  = 14;
-  public static final int                 TYPENUMBER_FACET_STRING = 15;
-  
+  public static final int TYPENUMBER_FACET_INT         = 100;
+  public static final int TYPENUMBER_FACET_LONG        = 110;
+  public static final int TYPENUMBER_FACET_DOUBLE      = 120;
+  public static final int TYPENUMBER_FACET_FLOAT       = 130;
+  public static final int TYPENUMBER_FACET_SHORT       = 140;
+  public static final int TYPENUMBER_FACET_STRING      = 150;
+
   // (4) multi-facet type numbers;
-  public static final int                 TYPENUMBER_FACET_M_INT    = 20;
-  public static final int                 TYPENUMBER_FACET_M_LONG   = 21;
-  public static final int                 TYPENUMBER_FACET_M_DOUBLE = 22;
-  public static final int                 TYPENUMBER_FACET_M_FLOAT  = 23;
-  public static final int                 TYPENUMBER_FACET_M_SHORT  = 24;
-  public static final int                 TYPENUMBER_FACET_M_STRING = 25;
-  
+  public static final int TYPENUMBER_FACET_M_INT       = 200;
+  public static final int TYPENUMBER_FACET_M_LONG      = 210;
+  public static final int TYPENUMBER_FACET_M_DOUBLE    = 220;
+  public static final int TYPENUMBER_FACET_M_FLOAT     = 230;
+  public static final int TYPENUMBER_FACET_M_SHORT     = 240;
+  public static final int TYPENUMBER_FACET_M_STRING    = 250;
+
   // (5) weighted multi-facet type numbers;
-  public static final int                 TYPENUMBER_FACET_WM_INT    = 30;
-  public static final int                 TYPENUMBER_FACET_WM_LONG   = 31;
-  public static final int                 TYPENUMBER_FACET_WM_DOUBLE = 32;
-  public static final int                 TYPENUMBER_FACET_WM_FLOAT  = 33;
-  public static final int                 TYPENUMBER_FACET_WM_SHORT  = 34;
-  public static final int                 TYPENUMBER_FACET_WM_STRING = 35;
-  
+  public static final int TYPENUMBER_FACET_WM_INT      = 300;
+  public static final int TYPENUMBER_FACET_WM_LONG     = 310;
+  public static final int TYPENUMBER_FACET_WM_DOUBLE   = 320;
+  public static final int TYPENUMBER_FACET_WM_FLOAT    = 330;
+  public static final int TYPENUMBER_FACET_WM_SHORT    = 340;
+  public static final int TYPENUMBER_FACET_WM_STRING   = 350;
+
+  // A map from facet type names to an integer array whose first element
+  // is the facet type number and the second element indicates whether
+  // the facet is a multi-value facet (1) or not (0).
+  public static Map<String, Integer[]> FACET_INFO_MAP = new HashMap<String, Integer[]>();
+
+  // A map from variable type names to variable type numbers.
+  public static Map<String, Integer> VARIABLE_INFO_MAP = new HashMap<String, Integer>();
+
+  static
+  {
+    FACET_INFO_MAP.put(KW_TYPE_FACET_INT,       new Integer[]{TYPENUMBER_FACET_INT,       0});
+    FACET_INFO_MAP.put(KW_TYPE_FACET_SHORT,     new Integer[]{TYPENUMBER_FACET_SHORT,     0});
+    FACET_INFO_MAP.put(KW_TYPE_FACET_DOUBLE,    new Integer[]{TYPENUMBER_FACET_DOUBLE,    0});
+    FACET_INFO_MAP.put(KW_TYPE_FACET_FLOAT,     new Integer[]{TYPENUMBER_FACET_FLOAT,     0});
+    FACET_INFO_MAP.put(KW_TYPE_FACET_LONG,      new Integer[]{TYPENUMBER_FACET_LONG,      0});
+    FACET_INFO_MAP.put(KW_TYPE_FACET_STRING,    new Integer[]{TYPENUMBER_FACET_STRING,    0});
+    FACET_INFO_MAP.put(KW_TYPE_FACET_M_INT,     new Integer[]{TYPENUMBER_FACET_M_INT,     1});
+    FACET_INFO_MAP.put(KW_TYPE_FACET_M_SHORT,   new Integer[]{TYPENUMBER_FACET_M_SHORT,   1});
+    FACET_INFO_MAP.put(KW_TYPE_FACET_M_DOUBLE,  new Integer[]{TYPENUMBER_FACET_M_DOUBLE,  1});
+    FACET_INFO_MAP.put(KW_TYPE_FACET_M_FLOAT,   new Integer[]{TYPENUMBER_FACET_M_FLOAT,   1});
+    FACET_INFO_MAP.put(KW_TYPE_FACET_M_LONG,    new Integer[]{TYPENUMBER_FACET_M_LONG,    1});
+    FACET_INFO_MAP.put(KW_TYPE_FACET_M_STRING,  new Integer[]{TYPENUMBER_FACET_M_STRING,  1});
+    FACET_INFO_MAP.put(KW_TYPE_FACET_WM_INT,    new Integer[]{TYPENUMBER_FACET_WM_INT,    1});
+    FACET_INFO_MAP.put(KW_TYPE_FACET_WM_SHORT,  new Integer[]{TYPENUMBER_FACET_WM_SHORT,  1});
+    FACET_INFO_MAP.put(KW_TYPE_FACET_WM_DOUBLE, new Integer[]{TYPENUMBER_FACET_WM_DOUBLE, 1});
+    FACET_INFO_MAP.put(KW_TYPE_FACET_WM_FLOAT,  new Integer[]{TYPENUMBER_FACET_WM_FLOAT,  1});
+    FACET_INFO_MAP.put(KW_TYPE_FACET_WM_LONG,   new Integer[]{TYPENUMBER_FACET_WM_LONG,   1});
+    FACET_INFO_MAP.put(KW_TYPE_FACET_WM_STRING, new Integer[]{TYPENUMBER_FACET_WM_STRING, 1});
+
+    VARIABLE_INFO_MAP.put(KW_TYPE_INT, TYPENUMBER_INT);
+    VARIABLE_INFO_MAP.put(KW_TYPE_LONG, TYPENUMBER_LONG);
+    VARIABLE_INFO_MAP.put(KW_TYPE_DOUBLE, TYPENUMBER_DOUBLE);
+    VARIABLE_INFO_MAP.put(KW_TYPE_FLOAT, TYPENUMBER_FLOAT);
+    VARIABLE_INFO_MAP.put(KW_TYPE_BOOL, TYPENUMBER_BOOLEAN);
+    VARIABLE_INFO_MAP.put(KW_TYPE_STRING, TYPENUMBER_STRING);
+    VARIABLE_INFO_MAP.put(KW_TYPE_SET_INT, TYPENUMBER_SET_INT);
+    VARIABLE_INFO_MAP.put(KW_TYPE_SET_LONG, TYPENUMBER_SET_LONG);
+    VARIABLE_INFO_MAP.put(KW_TYPE_SET_DOUBLE, TYPENUMBER_SET_DOUBLE);
+    VARIABLE_INFO_MAP.put(KW_TYPE_SET_FLOAT, TYPENUMBER_SET_FLOAT);
+    VARIABLE_INFO_MAP.put(KW_TYPE_SET_STRING, TYPENUMBER_SET_STRING);
+    VARIABLE_INFO_MAP.put(KW_TYPE_MAP_INT_INT, TYPENUMBER_MAP_INT_INT);
+    VARIABLE_INFO_MAP.put(KW_TYPE_MAP_INT_LONG, TYPENUMBER_MAP_INT_LONG);
+    VARIABLE_INFO_MAP.put(KW_TYPE_MAP_INT_DOUBLE, TYPENUMBER_MAP_INT_DOUBLE);
+    VARIABLE_INFO_MAP.put(KW_TYPE_MAP_INT_FLOAT, TYPENUMBER_MAP_INT_FLOAT);
+    VARIABLE_INFO_MAP.put(KW_TYPE_MAP_INT_STRING, TYPENUMBER_MAP_INT_STRING);
+    VARIABLE_INFO_MAP.put(KW_TYPE_MAP_STRING_INT, TYPENUMBER_MAP_STRING_INT);
+    VARIABLE_INFO_MAP.put(KW_TYPE_MAP_STRING_LONG, TYPENUMBER_MAP_STRING_LONG);
+    VARIABLE_INFO_MAP.put(KW_TYPE_MAP_STRING_DOUBLE, TYPENUMBER_MAP_STRING_DOUBLE);
+    VARIABLE_INFO_MAP.put(KW_TYPE_MAP_STRING_FLOAT, TYPENUMBER_MAP_STRING_FLOAT);
+    VARIABLE_INFO_MAP.put(KW_TYPE_MAP_STRING_STRING, TYPENUMBER_MAP_STRING_STRING);
+  }
+
 }

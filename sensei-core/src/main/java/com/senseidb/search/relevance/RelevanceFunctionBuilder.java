@@ -1,8 +1,5 @@
 package com.senseidb.search.relevance;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -10,9 +7,9 @@ import com.senseidb.search.query.ScoreAugmentQuery.ScoreAugmentFunction;
 import com.senseidb.search.relevance.CustomRelevanceFunction.CustomRelevanceFunctionFactory;
 import com.senseidb.search.relevance.RuntimeRelevanceFunction.RuntimeRelevanceFunctionFactory;
 import com.senseidb.search.relevance.impl.CompilationHelper;
+import com.senseidb.search.relevance.impl.CompilationHelper.DataTable;
 import com.senseidb.search.relevance.impl.CustomMathModel;
 import com.senseidb.search.relevance.impl.RelevanceJSONConstants;
-import com.senseidb.search.relevance.impl.CompilationHelper.DataTable;
 
 public class RelevanceFunctionBuilder
 {
