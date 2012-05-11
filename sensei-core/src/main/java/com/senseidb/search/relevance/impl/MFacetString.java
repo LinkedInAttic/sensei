@@ -24,6 +24,15 @@ public class MFacetString extends MFacet
     throw new UnsupportedOperationException("not implemented yet");
   }
   
+  @Override
+  public boolean containsAny(Set set)
+  {
+    for(int i=0; i< this._length; i++)
+      if( set.contains(((TermStringList) _mTermList).get(_buf[i])) )
+        return true;
+              
+    return false;
+  }
   
   public boolean contains(String target)
   {

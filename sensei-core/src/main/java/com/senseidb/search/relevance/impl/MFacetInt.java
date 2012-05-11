@@ -24,6 +24,15 @@ public class MFacetInt extends MFacet
     throw new UnsupportedOperationException("not implemented yet");
   }
   
+  @Override
+  public boolean containsAny(Set set)
+  {
+    for(int i=0; i< this._length; i++)
+      if( set.contains(((TermIntList) _mTermList).getPrimitiveValue(_buf[i])) )
+        return true;
+              
+    return false;
+  }
   
   public boolean contains(int target)
   {
@@ -33,4 +42,5 @@ public class MFacetInt extends MFacet
               
     return false;
   }
+
 }
