@@ -16,6 +16,7 @@ import junit.framework.TestCase;
 
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.browseengine.bobo.api.BrowseFacet;
@@ -885,12 +886,50 @@ public class TestSensei extends TestCase {
   
   
   
-  public void testRelevanceMulti() throws Exception
+  public void testRelevanceMultiContains() throws Exception
   {
-    logger.info("executing test case testRelevanceMulti");
+    logger.info("executing test case testRelevanceMultiContains");
     String req = "{\"sort\":[\"_score\"],\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"model\":{\"function_params\":[\"_INNER_SCORE\",\"thisYear\",\"year\",\"goodYear\",\"tags\",\"coolTag\"],\"facets\":{\"mstring\":[\"tags\"],\"int\":[\"year\",\"mileage\"],\"long\":[\"groupid\"]},\"function\":\" if(tags.contains(coolTag)) return 999999f; if(goodYear.contains(year)) return (float)Math.exp(10d);   if(year==thisYear) return 87f   ; return  _INNER_SCORE    ;\",\"variables\":{\"set_int\":[\"goodYear\"],\"int\":[\"thisYear\"], \"string\":[\"coolTag\"]}},\"values\":{\"coolTag\":\"cool\", \"thisYear\":2001,\"goodYear\":[1996,1997]}}}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":6}";
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 15000, res.getInt("numhits"));
+  }
+  
+  
+  
+  public void testRelevanceMultiContainsAny() throws Exception
+  {
+    logger.info("executing test case testRelevanceMultiContainsAny");
+    String req = "{\"sort\":[\"_score\"],\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"model\":{\"function_params\":[\"_INNER_SCORE\",\"thisYear\",\"year\",\"goodYear\",\"tags\",\"goodTags\"],\"facets\":{\"int\":[\"year\",\"mileage\"],\"mstring\":[\"tags\"],\"long\":[\"groupid\"]},\"function\":\" if(tags.containsAny(goodTags)) return 100000f; if(goodYear.contains(year)) return (float)Math.exp(10d);   if(year==thisYear) return 87f   ; return  _INNER_SCORE    ;\",\"variables\":{\"set_string\":[\"goodTags\"],\"set_int\":[\"goodYear\"],\"int\":[\"thisYear\"]}},\"values\":{\"thisYear\":2001,\"goodTags\":[\"leather\"],\"goodYear\":[1996,1997]}}}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":6}";
+    JSONObject res = search(new JSONObject(req));
+    assertEquals("numhits is wrong", 15000, res.getInt("numhits"));
+
+    JSONArray hits = res.getJSONArray("hits");
+    JSONObject firstHit = hits.getJSONObject(0);
+    JSONObject secondHit = hits.getJSONObject(1);
+    
+    double firstScore = firstHit.getDouble("_score");
+    double secondScore = secondHit.getDouble("_score");
+    
+    JSONArray firstTags = firstHit.getJSONArray("tags");
+    JSONArray secondTags = secondHit.getJSONArray("tags");
+    
+    assertEquals("inner score for first is not correct." , true, Math.abs(firstScore - 100000) < 1 );
+    assertEquals("inner score for second is not correct." , true, Math.abs(secondScore - 100000) < 1 );
+    
+    assertEquals("tags for first is not correct." , true, containsString(firstTags, "leather") );
+    assertEquals("tags for second is not correct." , true, containsString(secondTags, "leather") );
+  }
+  
+
+  private boolean containsString(JSONArray array, String target) throws JSONException
+  {
+    for(int i=0; i<array.length(); i++)
+    {
+      String item = array.getString(i);
+      if(item.equals(target))
+        return true;
+    }
+    return false;
   }
 
   public static JSONObject search(JSONObject req) throws Exception  {
