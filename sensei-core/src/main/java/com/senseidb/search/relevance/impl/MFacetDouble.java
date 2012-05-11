@@ -1,5 +1,7 @@
 package com.senseidb.search.relevance.impl;
 
+import it.unimi.dsi.fastutil.doubles.DoubleOpenHashSet;
+
 import java.util.Set;
 
 import com.browseengine.bobo.facets.data.MultiValueFacetDataCache;
@@ -24,11 +26,13 @@ public class MFacetDouble extends MFacet
     throw new UnsupportedOperationException("not implemented yet");
   }
   
+  
   @Override
-  public boolean containsAny(Set set)
+  public boolean containsAny(Object set)
   {
+    DoubleOpenHashSet setDouble = (DoubleOpenHashSet)set;
     for(int i=0; i< this._length; i++)
-      if( set.contains(((TermDoubleList) _mTermList).getPrimitiveValue(_buf[i])) )
+      if( setDouble.contains(((TermDoubleList) _mTermList).getPrimitiveValue(_buf[i])) )
         return true;
               
     return false;

@@ -1,5 +1,7 @@
 package com.senseidb.search.relevance.impl;
 
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+
 import java.util.Set;
 
 import com.browseengine.bobo.facets.data.MultiValueFacetDataCache;
@@ -25,10 +27,11 @@ public class MFacetString extends MFacet
   }
   
   @Override
-  public boolean containsAny(Set set)
+  public boolean containsAny(Object set)
   {
+    ObjectOpenHashSet setString = (ObjectOpenHashSet)set;
     for(int i=0; i< this._length; i++)
-      if( set.contains(((TermStringList) _mTermList).get(_buf[i])) )
+      if( setString.contains(((TermStringList) _mTermList).get(_buf[i])) )
         return true;
               
     return false;

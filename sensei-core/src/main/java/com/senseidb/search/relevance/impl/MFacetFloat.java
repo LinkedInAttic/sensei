@@ -1,5 +1,7 @@
 package com.senseidb.search.relevance.impl;
 
+import it.unimi.dsi.fastutil.floats.FloatOpenHashSet;
+
 import java.util.Set;
 
 import com.browseengine.bobo.facets.data.MultiValueFacetDataCache;
@@ -25,10 +27,11 @@ public class MFacetFloat extends MFacet
   }
   
   @Override
-  public boolean containsAny(Set set)
+  public boolean containsAny(Object set)
   {
+    FloatOpenHashSet setFloat = (FloatOpenHashSet)set;
     for(int i=0; i< this._length; i++)
-      if( set.contains(((TermFloatList) _mTermList).getPrimitiveValue(_buf[i])) )
+      if( setFloat.contains(((TermFloatList) _mTermList).getPrimitiveValue(_buf[i])) )
         return true;
               
     return false;
