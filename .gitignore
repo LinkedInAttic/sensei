@@ -1,3 +1,5 @@
+sensei-gateways/src/main/resources
+sensei-war/src/main/resources
 build
 build-test
 dist
