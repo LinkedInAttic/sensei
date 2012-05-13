@@ -2,8 +2,8 @@ package com.senseidb.search.relevance;
 
 import java.util.Set;
 
-import com.browseengine.bobo.facets.data.MultiValueFacetDataCache;
-import com.browseengine.bobo.facets.data.TermFloatList;
+import com.linkedin.bobo.facets.data.MultiValueFacetDataCache;
+import com.linkedin.bobo.facets.data.TermFloatList;
 
 public class MFacetFloat extends MFacet
 {

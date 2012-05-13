@@ -5,9 +5,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
-import com.browseengine.bobo.facets.FacetHandler;
-import com.browseengine.bobo.facets.data.PredefinedTermListFactory;
-import com.browseengine.bobo.facets.impl.SimpleFacetHandler;
+import com.linkedin.bobo.facets.FacetHandler;
+import com.linkedin.bobo.facets.data.PredefinedTermListFactory;
+import com.linkedin.bobo.facets.impl.SimpleFacetHandler;
 import com.senseidb.plugin.SenseiPluginFactory;
 import com.senseidb.plugin.SenseiPluginRegistry;
 

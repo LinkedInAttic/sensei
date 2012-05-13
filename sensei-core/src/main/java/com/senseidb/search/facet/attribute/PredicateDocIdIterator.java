@@ -4,7 +4,7 @@ import java.io.IOException;
 
 import org.apache.lucene.search.DocIdSetIterator;
 
-import com.browseengine.bobo.facets.data.FacetDataCache;
+import com.linkedin.bobo.facets.data.FacetDataCache;
 @SuppressWarnings("rawtypes")
 public class PredicateDocIdIterator extends DocIdSetIterator {
   private final int startDocId;

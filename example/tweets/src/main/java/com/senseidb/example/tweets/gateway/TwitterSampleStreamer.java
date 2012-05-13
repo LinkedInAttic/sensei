@@ -16,8 +16,8 @@ import java.util.regex.Pattern;
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
 
-import proj.zoie.api.DataConsumer.DataEvent;
-import proj.zoie.impl.indexing.StreamDataProvider;
+import com.linkedin.zoie.api.DataConsumer.DataEvent;
+import com.linkedin.zoie.impl.indexing.StreamDataProvider;
 
 public class TwitterSampleStreamer extends StreamDataProvider<JSONObject> {
 

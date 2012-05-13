@@ -11,17 +11,17 @@ import com.sensei.search.req.protobuf.SenseiReqProtoSerializer;
 import org.apache.log4j.Logger;
 import org.apache.lucene.search.Query;
 
-import proj.zoie.api.ZoieIndexReader;
-import proj.zoie.api.ZoieIndexReader.SubReaderAccessor;
-import proj.zoie.api.ZoieIndexReader.SubReaderInfo;
+import com.linkedin.zoie.api.ZoieIndexReader;
+import com.linkedin.zoie.api.ZoieIndexReader.SubReaderAccessor;
+import com.linkedin.zoie.api.ZoieIndexReader.SubReaderInfo;
 
-import com.browseengine.bobo.api.BoboBrowser;
-import com.browseengine.bobo.api.BoboIndexReader;
-import com.browseengine.bobo.api.BrowseException;
-import com.browseengine.bobo.api.BrowseHit;
-import com.browseengine.bobo.api.BrowseRequest;
-import com.browseengine.bobo.api.BrowseResult;
-import com.browseengine.bobo.api.MultiBoboBrowser;
+import com.linkedin.bobo.api.BoboBrowser;
+import com.linkedin.bobo.api.BoboIndexReader;
+import com.linkedin.bobo.api.BrowseException;
+import com.linkedin.bobo.api.BrowseHit;
+import com.linkedin.bobo.api.BrowseRequest;
+import com.linkedin.bobo.api.BrowseResult;
+import com.linkedin.bobo.api.MultiBoboBrowser;
 import com.linkedin.norbert.network.JavaSerializer;
 import com.linkedin.norbert.network.Serializer;
 import com.senseidb.indexing.SenseiIndexPruner;

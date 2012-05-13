@@ -12,7 +12,7 @@ import javax.management.StandardMBean;
 import org.apache.log4j.Logger;
 import org.mortbay.jetty.Server;
 
-import proj.zoie.api.DataProvider;
+import com.linkedin.zoie.api.DataProvider;
 import scala.actors.threadpool.Arrays;
 
 import com.linkedin.norbert.javacompat.cluster.ClusterClient;

@@ -6,7 +6,7 @@ import java.util.List;
 import org.json.JSONObject;
 
 
-import proj.zoie.api.DocIDMapper;
+import com.linkedin.zoie.api.DocIDMapper;
 
 public interface SenseiMapReduce<MapResult extends Serializable, ReduceResult extends Serializable> extends Serializable {
   public void init(JSONObject params);

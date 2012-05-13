@@ -9,12 +9,12 @@ import org.apache.lucene.search.DocIdSetIterator;
 import org.apache.lucene.search.Filter;
 import org.json.JSONObject;
 
-import com.browseengine.bobo.api.BoboIndexReader;
-import com.browseengine.bobo.api.BrowseSelection;
-import com.browseengine.bobo.facets.impl.PathFacetHandler;
-import com.browseengine.bobo.facets.FacetHandler;
+import com.linkedin.bobo.api.BoboIndexReader;
+import com.linkedin.bobo.api.BrowseSelection;
+import com.linkedin.bobo.facets.impl.PathFacetHandler;
+import com.linkedin.bobo.facets.FacetHandler;
 
-import com.browseengine.bobo.query.MatchAllDocIdSetIterator;
+import com.linkedin.bobo.query.MatchAllDocIdSetIterator;
 
 public class PathFilterConstructor extends FilterConstructor
 {

@@ -18,11 +18,11 @@ import org.apache.lucene.document.Field.Index;
 import org.apache.lucene.document.Field.Store;
 import org.apache.lucene.document.Field.TermVector;
 
-import proj.zoie.api.indexing.AbstractZoieIndexableInterpreter;
-import proj.zoie.api.indexing.ZoieIndexable;
+import com.linkedin.zoie.api.indexing.AbstractZoieIndexableInterpreter;
+import com.linkedin.zoie.api.indexing.ZoieIndexable;
 
-import com.browseengine.bobo.facets.data.PredefinedTermListFactory;
-import com.browseengine.bobo.facets.data.TermListFactory;
+import com.linkedin.bobo.facets.data.PredefinedTermListFactory;
+import com.linkedin.bobo.facets.data.TermListFactory;
 
 public class DefaultSenseiInterpreter<V> extends
 		AbstractZoieIndexableInterpreter<V> {

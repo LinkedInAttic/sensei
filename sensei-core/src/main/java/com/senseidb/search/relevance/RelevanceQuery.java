@@ -45,17 +45,17 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.browseengine.bobo.api.BoboIndexReader;
-import com.browseengine.bobo.facets.data.FacetDataCache;
-import com.browseengine.bobo.facets.data.MultiValueFacetDataCache;
-import com.browseengine.bobo.facets.data.TermDoubleList;
-import com.browseengine.bobo.facets.data.TermFloatList;
-import com.browseengine.bobo.facets.data.TermIntList;
-import com.browseengine.bobo.facets.data.TermLongList;
-import com.browseengine.bobo.facets.data.TermShortList;
-import com.browseengine.bobo.facets.data.TermStringList;
-import com.browseengine.bobo.facets.data.TermValueList;
-import com.browseengine.bobo.util.BigSegmentedArray;
+import com.linkedin.bobo.api.BoboIndexReader;
+import com.linkedin.bobo.facets.data.FacetDataCache;
+import com.linkedin.bobo.facets.data.MultiValueFacetDataCache;
+import com.linkedin.bobo.facets.data.TermDoubleList;
+import com.linkedin.bobo.facets.data.TermFloatList;
+import com.linkedin.bobo.facets.data.TermIntList;
+import com.linkedin.bobo.facets.data.TermLongList;
+import com.linkedin.bobo.facets.data.TermShortList;
+import com.linkedin.bobo.facets.data.TermStringList;
+import com.linkedin.bobo.facets.data.TermValueList;
+import com.linkedin.bobo.util.BigSegmentedArray;
 import com.senseidb.search.query.AbstractScoreAdjuster;
 
 public class RelevanceQuery extends AbstractScoreAdjuster

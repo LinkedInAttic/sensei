@@ -7,8 +7,8 @@ import java.io.RandomAccessFile;
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
 
-import proj.zoie.api.DataConsumer.DataEvent;
-import proj.zoie.impl.indexing.StreamDataProvider;
+import com.linkedin.zoie.api.DataConsumer.DataEvent;
+import com.linkedin.zoie.impl.indexing.StreamDataProvider;
 
 import com.sensei.indexing.api.DataSourceFilter;
 import com.sensei.indexing.api.DataSourceFilterable;

@@ -16,8 +16,8 @@ import org.json.JSONObject;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
-import com.browseengine.bobo.facets.FacetHandlerInitializerParam;
+import com.linkedin.bobo.api.FacetSpec.FacetSortSpec;
+import com.linkedin.bobo.facets.FacetHandlerInitializerParam;
 import com.senseidb.search.req.SenseiRequest;
 import com.senseidb.util.RequestConverter2;
 
