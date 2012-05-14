@@ -1,6 +1,9 @@
 # SenseiDB release-1.1.2 RC2
 
-Having trouble compiling SenseiDB release-1.1.2-rc have no fear this repo currently hosts an updated version untill upstream tends to the pull request linkedin/sensei#44 Things move fast in this day and age and so even the libraries that SenseiDB requires which in our case meant that the ones used in the config files were not available anymore. Follow the instructions and find out first hand what all the hype is about.
+Having trouble compiling SenseiDB release-1.1.2-rc have no fear this repo currently hosts an updated version 
+untill upstream tends to the pull request [linkedin/sensei#44](/linkedin/sensei/pull/44) Things move fast in this day and age and so even 
+the libraries that SenseiDB requires which in our case meant that the ones used in the config files were not 
+available anymore. Follow the instructions and find out first hand what all the hype is about.
 
 ##Compiling and running SenseiDB release-1.1.2
 
@@ -14,7 +17,9 @@ Grab this repo @ branch [release-1.1.2-rc2](https://github.com/nickl-/sensei-for
 
 ```
 
-You will first need installed binarios of [java](http://www.oracle.com/technetwork/java/javase/downloads/jdk-6u32-downloads-1594644.html), for the virtual machine to run SenseiDB and [maven](http://maven.apache.org/download.html) which SenseiDB uses to retrieve all tie libraries and compile the code. 
+You will first need installed binarios of [java](http://www.oracle.com/technetwork/java/javase/downloads/jdk-6u32-downloads-1594644.html), 
+for the virtual machine to run SenseiDB and [maven](http://maven.apache.org/download.html) which SenseiDB uses to retrieve all tie libraries
+ and compile the code. 
 
 Once you have java and mavin and the repository has been cloned change directory to sensei-forked.
 
@@ -99,14 +104,14 @@ you can follow the rest of the [Getting Started](http://linkedin.github.com/sens
 instructions without hurting any kittens =)
 
 
-** First start the zookeeper:
+ * *First start the zookeeper:*
 ```
 
      ./bin/zookeeper-server-start.sh resources/zookeeper.properties &
 
 
 ```
-** Then start the SenseiDB server node with the cars db schema configuration:
+ * *Then start the SenseiDB server node with the cars db schema configuration:*
 
 ```
 
@@ -115,10 +120,10 @@ instructions without hurting any kittens =)
 
 ```
 
-** Finaly point your browser in at the sample gui front-end and take SenseiDB for a test drive.
+ * *Finaly point your browser in at the sample gui front-end and take SenseiDB for a test drive:*
 
 
-     http://localhost:8080
+     [http://localhost:8080](http://localhost:8080)
 
 
 
@@ -152,4 +157,6 @@ Issues are tracked at:
 ## Why is this called sensei-forked?
 
 I don't want you to confuse this for for the real project [linkedin/sensei](/linkedin/sensei) which is 
-where all the cool kids hang out.
+where all the cool kids hang out and you should too. 
+
+This facility is only here temporarily to help you out and getting you experiencing SenseiDB like it's supposed to be... without any pain.
