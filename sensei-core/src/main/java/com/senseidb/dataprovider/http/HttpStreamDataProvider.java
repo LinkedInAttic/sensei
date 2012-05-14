@@ -32,8 +32,8 @@ import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.protocol.HttpContext;
 import org.apache.log4j.Logger;
 
-import proj.zoie.api.DataConsumer.DataEvent;
-import proj.zoie.impl.indexing.StreamDataProvider;
+import com.linkedin.zoie.api.DataConsumer.DataEvent;
+import com.linkedin.zoie.impl.indexing.StreamDataProvider;
 
 public abstract class HttpStreamDataProvider<D> extends StreamDataProvider<D> implements HttpDataProviderAdminMBean{
 

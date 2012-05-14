@@ -8,16 +8,16 @@ import java.util.concurrent.TimeUnit;
 import org.apache.log4j.Logger;
 import org.apache.lucene.search.Filter;
 
-import proj.zoie.api.DefaultDirectoryManager;
-import proj.zoie.api.DirectoryManager;
-import proj.zoie.api.DirectoryManager.DIRECTORY_MODE;
-import proj.zoie.api.indexing.IndexingEventListener;
-import proj.zoie.api.indexing.ZoieIndexableInterpreter;
-import proj.zoie.impl.indexing.IndexUpdatedEvent;
-import proj.zoie.impl.indexing.ZoieConfig;
-import proj.zoie.impl.indexing.ZoieSystem;
+import com.linkedin.zoie.api.DefaultDirectoryManager;
+import com.linkedin.zoie.api.DirectoryManager;
+import com.linkedin.zoie.api.DirectoryManager.DIRECTORY_MODE;
+import com.linkedin.zoie.api.indexing.IndexingEventListener;
+import com.linkedin.zoie.api.indexing.ZoieIndexableInterpreter;
+import com.linkedin.zoie.impl.indexing.IndexUpdatedEvent;
+import com.linkedin.zoie.impl.indexing.ZoieConfig;
+import com.linkedin.zoie.impl.indexing.ZoieSystem;
 
-import com.browseengine.bobo.api.BoboIndexReader;
+import com.linkedin.bobo.api.BoboIndexReader;
 import com.senseidb.metrics.MetricsConstants;
 import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.Histogram;

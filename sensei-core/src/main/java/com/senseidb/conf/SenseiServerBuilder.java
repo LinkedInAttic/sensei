@@ -47,17 +47,17 @@ import org.mortbay.thread.QueuedThreadPool;
 import org.springframework.core.io.Resource;
 import org.w3c.dom.Document;
 
-import proj.zoie.api.DirectoryManager.DIRECTORY_MODE;
-import proj.zoie.api.IndexCopier;
-import proj.zoie.api.indexing.ZoieIndexableInterpreter;
-import proj.zoie.hourglass.impl.HourGlassScheduler.FREQUENCY;
-import proj.zoie.impl.indexing.DefaultReaderCache;
-import proj.zoie.impl.indexing.ReaderCacheFactory;
-import proj.zoie.impl.indexing.SimpleReaderCache;
-import proj.zoie.impl.indexing.ZoieConfig;
+import com.linkedin.zoie.api.DirectoryManager.DIRECTORY_MODE;
+import com.linkedin.zoie.api.IndexCopier;
+import com.linkedin.zoie.api.indexing.ZoieIndexableInterpreter;
+import com.linkedin.zoie.hourglass.impl.HourGlassScheduler.FREQUENCY;
+import com.linkedin.zoie.impl.indexing.DefaultReaderCache;
+import com.linkedin.zoie.impl.indexing.ReaderCacheFactory;
+import com.linkedin.zoie.impl.indexing.SimpleReaderCache;
+import com.linkedin.zoie.impl.indexing.ZoieConfig;
 
-import com.browseengine.bobo.facets.FacetHandler;
-import com.browseengine.bobo.facets.RuntimeFacetHandlerFactory;
+import com.linkedin.bobo.facets.FacetHandler;
+import com.linkedin.bobo.facets.RuntimeFacetHandlerFactory;
 import com.linkedin.norbert.javacompat.cluster.ClusterClient;
 import com.linkedin.norbert.javacompat.cluster.ZooKeeperClusterClient;
 import com.linkedin.norbert.javacompat.network.NettyNetworkServer;

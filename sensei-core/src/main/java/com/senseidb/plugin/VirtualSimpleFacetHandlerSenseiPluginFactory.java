@@ -2,10 +2,10 @@ package com.senseidb.plugin;
 
 import java.util.Map;
 
-import com.browseengine.bobo.facets.data.FacetDataFetcher;
-import com.browseengine.bobo.facets.data.TermListFactory;
-import com.browseengine.bobo.facets.FacetHandler;
-import com.browseengine.bobo.facets.impl.VirtualSimpleFacetHandler;
+import com.linkedin.bobo.facets.data.FacetDataFetcher;
+import com.linkedin.bobo.facets.data.TermListFactory;
+import com.linkedin.bobo.facets.FacetHandler;
+import com.linkedin.bobo.facets.impl.VirtualSimpleFacetHandler;
 
 public class VirtualSimpleFacetHandlerSenseiPluginFactory extends AbstractFacetHandlerSenseiPluginFactory
 {

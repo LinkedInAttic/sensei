@@ -8,12 +8,12 @@ import org.apache.lucene.search.DocIdSetIterator;
 import org.apache.lucene.search.Filter;
 import org.json.JSONObject;
 
-import com.browseengine.bobo.api.BoboIndexReader;
-import com.browseengine.bobo.facets.data.FacetDataCache;
-import com.browseengine.bobo.facets.data.MultiValueFacetDataCache;
-import com.browseengine.bobo.facets.filter.FacetFilter;
-import com.browseengine.bobo.facets.filter.FacetFilter.FacetDocIdSetIterator;
-import com.browseengine.bobo.util.BigNestedIntArray;
+import com.linkedin.bobo.api.BoboIndexReader;
+import com.linkedin.bobo.facets.data.FacetDataCache;
+import com.linkedin.bobo.facets.data.MultiValueFacetDataCache;
+import com.linkedin.bobo.facets.filter.FacetFilter;
+import com.linkedin.bobo.facets.filter.FacetFilter.FacetDocIdSetIterator;
+import com.linkedin.bobo.util.BigNestedIntArray;
 
 public class NullFilterConstructor extends FilterConstructor {
   public static final String FILTER_TYPE = "isNull";

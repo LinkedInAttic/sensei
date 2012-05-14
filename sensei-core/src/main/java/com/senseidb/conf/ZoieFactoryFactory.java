@@ -2,8 +2,8 @@ package com.senseidb.conf;
 
 import java.io.File;
 
-import proj.zoie.api.indexing.ZoieIndexableInterpreter;
-import proj.zoie.impl.indexing.ZoieConfig;
+import com.linkedin.zoie.api.indexing.ZoieIndexableInterpreter;
+import com.linkedin.zoie.impl.indexing.ZoieConfig;
 
 import com.senseidb.search.node.SenseiIndexReaderDecorator;
 import com.senseidb.search.node.SenseiZoieFactory;

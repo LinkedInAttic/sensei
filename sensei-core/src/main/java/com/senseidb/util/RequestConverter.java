@@ -1,8 +1,8 @@
 package com.senseidb.util;
 
 
-import com.browseengine.bobo.api.BrowseRequest;
-import com.browseengine.bobo.api.BrowseSelection;
+import com.linkedin.bobo.api.BrowseRequest;
+import com.linkedin.bobo.api.BrowseSelection;
 import com.senseidb.search.node.SenseiQueryBuilder;
 import com.senseidb.search.node.SenseiQueryBuilderFactory;
 import com.senseidb.search.req.SenseiRequest;

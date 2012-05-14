@@ -14,10 +14,10 @@ import junit.framework.TestCase;
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
 
-import com.browseengine.bobo.api.BrowseFacet;
-import com.browseengine.bobo.api.FacetSpec;
-import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
-import com.browseengine.bobo.facets.attribute.AttributesFacetHandler;
+import com.linkedin.bobo.api.BrowseFacet;
+import com.linkedin.bobo.api.FacetSpec;
+import com.linkedin.bobo.api.FacetSpec.FacetSortSpec;
+import com.linkedin.bobo.facets.attribute.AttributesFacetHandler;
 import com.senseidb.search.node.SenseiBroker;
 import com.senseidb.search.req.SenseiRequest;
 import com.senseidb.search.req.SenseiResult;

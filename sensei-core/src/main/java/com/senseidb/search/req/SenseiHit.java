@@ -1,6 +1,6 @@
 package com.senseidb.search.req;
 
-import com.browseengine.bobo.api.BrowseHit;
+import com.linkedin.bobo.api.BrowseHit;
 
 public class SenseiHit extends BrowseHit
 {

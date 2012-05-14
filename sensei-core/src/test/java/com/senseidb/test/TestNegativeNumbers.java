@@ -9,11 +9,11 @@ import org.apache.lucene.search.SortField;
 
 import scala.actors.threadpool.Arrays;
 
-import com.browseengine.bobo.api.BrowseFacet;
-import com.browseengine.bobo.api.BrowseSelection;
-import com.browseengine.bobo.api.BrowseSelection.ValueOperation;
-import com.browseengine.bobo.api.FacetSpec;
-import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
+import com.linkedin.bobo.api.BrowseFacet;
+import com.linkedin.bobo.api.BrowseSelection;
+import com.linkedin.bobo.api.BrowseSelection.ValueOperation;
+import com.linkedin.bobo.api.FacetSpec;
+import com.linkedin.bobo.api.FacetSpec.FacetSortSpec;
 import com.senseidb.search.node.SenseiBroker;
 import com.senseidb.search.req.SenseiRequest;
 import com.senseidb.search.req.SenseiResult;

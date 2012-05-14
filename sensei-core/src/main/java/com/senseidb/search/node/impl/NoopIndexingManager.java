@@ -2,11 +2,11 @@ package com.senseidb.search.node.impl;
 
 import java.util.Map;
 
-import proj.zoie.api.DataProvider;
-import proj.zoie.api.Zoie;
-import proj.zoie.api.ZoieException;
+import com.linkedin.zoie.api.DataProvider;
+import com.linkedin.zoie.api.Zoie;
+import com.linkedin.zoie.api.ZoieException;
 
-import com.browseengine.bobo.api.BoboIndexReader;
+import com.linkedin.bobo.api.BoboIndexReader;
 import com.senseidb.search.node.SenseiIndexingManager;
 
 public class NoopIndexingManager<D> implements SenseiIndexingManager<D> {

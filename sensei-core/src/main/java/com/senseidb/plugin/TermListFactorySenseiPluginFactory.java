@@ -4,8 +4,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.browseengine.bobo.facets.data.TermFixedLengthLongArrayListFactory;
-import com.browseengine.bobo.facets.data.TermListFactory;
+import com.linkedin.bobo.facets.data.TermFixedLengthLongArrayListFactory;
+import com.linkedin.bobo.facets.data.TermListFactory;
 
 import com.senseidb.indexing.DefaultSenseiInterpreter;
 

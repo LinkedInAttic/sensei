@@ -12,13 +12,13 @@ import org.apache.lucene.search.Filter;
 
 import scala.actors.threadpool.Arrays;
 
-import com.browseengine.bobo.api.BoboIndexReader;
-import com.browseengine.bobo.api.BrowseSelection;
-import com.browseengine.bobo.api.BrowseSelection.ValueOperation;
-import com.browseengine.bobo.facets.FacetHandler;
-import com.browseengine.bobo.facets.data.FacetDataCache;
-import com.browseengine.bobo.facets.data.TermValueList;
-import com.browseengine.bobo.facets.filter.EmptyFilter;
+import com.linkedin.bobo.api.BoboIndexReader;
+import com.linkedin.bobo.api.BrowseSelection;
+import com.linkedin.bobo.api.BrowseSelection.ValueOperation;
+import com.linkedin.bobo.facets.FacetHandler;
+import com.linkedin.bobo.facets.data.FacetDataCache;
+import com.linkedin.bobo.facets.data.TermValueList;
+import com.linkedin.bobo.facets.filter.EmptyFilter;
 import com.kamikaze.docidset.impl.AndDocIdSet;
 import com.kamikaze.docidset.impl.NotDocIdSet;
 import com.kamikaze.docidset.impl.OrDocIdSet;

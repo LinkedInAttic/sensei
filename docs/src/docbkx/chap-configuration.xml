@@ -742,7 +742,7 @@ sensei.indexer.type=zoie
 
 # sensei
 # version comparator, default: ZoieConfig.DefaultVersionComparator
-# sensei.version.comparator.class = proj.zoie.impl.indexing.ZoieConfig$DefaultVersionComparator
+# sensei.version.comparator.class = com.linkedin.zoie.impl.indexing.ZoieConfig$DefaultVersionComparator
 
 # extra services
 sensei.plugin.services.list =
@@ -2479,7 +2479,7 @@ sensei.custom.facets.list= virtual_groupids, my.custom_facets.tags, groupid  </p
               </itemizedlist>
 
               <para>This is the bean ID of the
-              <literal>proj.zoie.dataprovider.jms.TopicFactory</literal>
+              <literal>com.linkedin.zoie.dataprovider.jms.TopicFactory</literal>
               object. This object is used to generate a topic object based on
               the given topic name.</para>
             </listitem>
@@ -2547,9 +2547,9 @@ sensei.custom.facets.list= virtual_groupids, my.custom_facets.tags, groupid  </p
               <para>This is the bean ID of the
               <literal>com.sensei.indexing.api.jdbc.SenseiJDBCAdaptor</literal>
               object. This object is used to build a
-              <literal>proj.zoie.dataprovider.jdbc.PreparedStatementBuilder</literal>
+              <literal>com.linkedin.zoie.dataprovider.jdbc.PreparedStatementBuilder</literal>
               object, which is required by
-              <literal>proj.zoie.dataprovider.jdbc.JDBCStreamDataProvider</literal>.</para>
+              <literal>com.linkedin.zoie.dataprovider.jdbc.JDBCStreamDataProvider</literal>.</para>
             </listitem>
           </varlistentry>
 
