@@ -99,8 +99,10 @@ Then just run the following command to download all the deps and get SenseiDB co
 ### How cool is that!!! =)
 
 
-Once that is done and you manage to hold yourself back from running the build script agai, 
-you can follow the rest of the [Getting Started](http://linkedin.github.com/sensei/gettingStarted.html)
+Once that is done and you manage to hold yourself back 
+from running the build script agai, 
+you can follow the rest of the
+[Getting Started](http://linkedin.github.com/sensei/gettingStarted.html)
 instructions without hurting any kittens =)
 
 
@@ -123,14 +125,17 @@ instructions without hurting any kittens =)
 ```
 
 
- * __Finaly point your browser in at the sample gui front-end and take SenseiDB for a test drive:__
+ * __Finaly point your browser at the sample gui front-end and take SenseiDB for a test drive:__
 
 
 
      [http://localhost:8080](http://localhost:8080)
 
 
+![The cool Sensei GUI](http://cloud.github.com/downloads/nickl-/sensei-forked/senseidb_sml.png)
 
+The cool Sensei GUI ollowing you to test just how strong your BQL-fu can be while the 
+json query might look dawnting don't feer, our computer friends lap it up like hot cake.
 
 
 # What is Sensei
