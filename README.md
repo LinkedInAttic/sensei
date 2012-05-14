@@ -165,4 +165,8 @@ Issues are tracked at:
 I don't want you to confuse this for for the real project [linkedin/sensei](/linkedin/sensei) which is 
 where all the cool kids hang out and you should too. 
 
-This facility is only here temporarily to help you out and getting you experiencing SenseiDB like it's supposed to be... without any pain.
+This facility is only here temporarily to help you out and getting you experiencing SenseiDB like it's supposed to be… without any pain.
+
+## Legalese, say what?
+
+[Apache License Version 2.0](/linkedin/sensei/blob/master/LICENSE.TXT)
