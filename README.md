@@ -1,45 +1,155 @@
-What is Sensei
-===============
+# SenseiDB release-1.1.2 RC2
+
+Having trouble compiling SenseiDB release-1.1.2-rc have no fear this repo currently hosts an updated version untill upstream tends to the pull request linkedin/sensei#44 Things move fast in this day and age and so even the libraries that SenseiDB requires which in our case meant that the ones used in the config files were not available anymore. Follow the instructions and find out first hand what all the hype is about.
+
+##Compiling and running SenseiDB release-1.1.2
+
+
+Grab this repo @ branch [release-1.1.2-rc2](https://github.com/nickl-/sensei-forked/tree/release-1.1.2-rc2) and clone it somewhere in a folder.
+
+```
+
+            git clone git://github.com/nickl-/sensei-forked.git
+
+
+```
+
+You will first need installed binarios of [java](http://www.oracle.com/technetwork/java/javase/downloads/jdk-6u32-downloads-1594644.html), for the virtual machine to run SenseiDB and [maven](http://maven.apache.org/download.html) which SenseiDB uses to retrieve all tie libraries and compile the code. 
+
+Once you have java and mavin and the repository has been cloned change directory to sensei-forked.
+
+Then just run the following command to download all the deps and get SenseiDB compiled.
+
+
+```
+           ./bin/build.sh 
+           
+
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Build Order:
+[INFO] 
+[INFO] sensei parent
+[INFO] sensei core
+[INFO] sensei gateways
+[INFO] sensei hadoop indexing
+[INFO] sensei java client
+[INFO] sensei war
+[INFO] sensei
+[INFO]                                                                         
+[INFO] ------------------------------------------------------------------------
+[INFO] Building sensei parent 1.1.2
+[INFO] ------------------------------------------------------------------------
+[INFO] 
+[INFO]                                                                         
+[INFO] ------------------------------------------------------------------------
+[INFO] Building sensei core 1.1.2
+[INFO] ------------------------------------------------------------------------
+[INFO]
+[INFO]                                                                         
+[INFO] ------------------------------------------------------------------------
+[INFO] Building sensei gateways 1.1.2
+[INFO] ------------------------------------------------------------------------
+[INFO] 
+[INFO]                                                                         
+[INFO] ------------------------------------------------------------------------
+[INFO] Building sensei hadoop indexing 1.1.2
+[INFO] ------------------------------------------------------------------------
+[INFO]
+[INFO]
+[INFO] ------------------------------------------------------------------------
+[INFO] Building sensei java client 1.0.0
+[INFO] ------------------------------------------------------------------------
+[INFO] 
+[INFO]                                                                         
+[INFO] ------------------------------------------------------------------------
+[INFO] Building sensei war 1.1.2
+[INFO] ------------------------------------------------------------------------
+[INFO] 
+[INFO]                                                                         
+[INFO] ------------------------------------------------------------------------
+[INFO] Building sensei 1.1.2
+[INFO] ------------------------------------------------------------------------
+[INFO]
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Summary:
+[INFO] 
+[INFO] sensei parent ..................................... SUCCESS [0.575s]
+[INFO] sensei core ....................................... SUCCESS [23.545s]
+[INFO] sensei gateways ................................... SUCCESS [3.780s]
+[INFO] sensei hadoop indexing ............................ SUCCESS [1.265s]
+[INFO] sensei java client ................................ SUCCESS [0.436s]
+[INFO] sensei war ........................................ SUCCESS [6.432s]
+[INFO] sensei ............................................ SUCCESS [55.661s]
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time: 1:32.027s
+[INFO] Finished at: Mon May 14 06:33:17 SAST 2012
+[INFO] Final Memory: 27M/81M
+[INFO] ------------------------------------------------------------------------
+
+```
+
+### How cool is that!!! =)
+
+
+Once that is done and you manage to hold yourself back from running the build script agai, 
+you can follow the rest of the [Getting Started](http://linkedin.github.com/sensei/gettingStarted.html)
+instructions without hurting any kittens =)
+
+
+** First start the zookeeper:
+```
+
+     ./bin/zookeeper-server-start.sh resources/zookeeper.properties &
+
+
+```
+** Then start the SenseiDB server node with the cars db schema configuration:
+
+```
+
+     ./bin/start-sensei-node.sh example/tweets/conf
+
+
+```
+
+** Finaly point your browser in at the sample gui front-end and take SenseiDB for a test drive.
+
+
+     http://localhost:8080
+
+
+
+
+
+# What is Sensei
+
 ([http://www.senseidb.com/](http://www.senseidb.com/))
 
 Sensei is a distributed, elastic realtime searchable database.
 
 ------------------------------------
 
-### Wiki
+## Wiki
 
 Wiki is available at: 
 
 [http://linkedin.jira.com/wiki/display/SENSEI/Home](http://linkedin.jira.com/wiki/display/SENSEI/Home)
 
-### Issues
+## Issues
 
 Issues are tracked at: 
 
 [http://linkedin.jira.com/browse/SENSEI](http://linkedin.jira.com/browse/SENSEI)
 
-### Mailing List / Discussion Group
+## Mailing List / Discussion Group
 
 [http://groups.google.com/group/sensei-search](http://groups.google.com/group/sensei-search)
 
-### Getting Started
 
-1. Build
+## Why is this called sensei-forked?
 
-        ./bin/build.sh
-
-2. Start ZooKeeper
-
-        ./bin/zookeeper-server-start.sh resources/zookeeper.properties
-
-3. Run a search node(s)
-
-        bin/start-sensei-node.sh example/cars/conf
-
-5. Starting command-line client app
-
-        bin/sensei-client.sh host port (default: localhost 8080)
-
-And/Or:
-
-Go to web console: [http://localhost:8080](http://localhost:8080)
+I don't want you to confuse this for for the real project [linkedin/sensei](/linkedin/sensei) which is 
+where all the cool kids hang out.
