@@ -104,23 +104,20 @@ you can follow the rest of the [Getting Started](http://linkedin.github.com/sens
 instructions without hurting any kittens =)
 
 
- * *First start the zookeeper:*
+ * __First start the zookeeper:__
 ```
-
      ./bin/zookeeper-server-start.sh resources/zookeeper.properties &
 
+```
+ * __Then start the SenseiDB server node with the cars db schema configuration:__
+
 
 ```
- * *Then start the SenseiDB server node with the cars db schema configuration:*
-
-```
-
      ./bin/start-sensei-node.sh example/tweets/conf
 
-
 ```
 
- * *Finaly point your browser in at the sample gui front-end and take SenseiDB for a test drive:*
+ * __Finaly point your browser in at the sample gui front-end and take SenseiDB for a test drive:__
 
 
      [http://localhost:8080](http://localhost:8080)
