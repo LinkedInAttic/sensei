@@ -28,8 +28,8 @@ Then just run the following command to download all the deps and get SenseiDB co
 
 ```
            ./bin/build.sh 
-           
-
+```           
+```
 [INFO] ------------------------------------------------------------------------
 [INFO] Reactor Build Order:
 [INFO] 
@@ -105,11 +105,16 @@ instructions without hurting any kittens =)
 
 
  * __First start the zookeeper:__
+ 
+ 
 ```
      ./bin/zookeeper-server-start.sh resources/zookeeper.properties &
 
 ```
+
+
  * __Then start the SenseiDB server node with the cars db schema configuration:__
+
 
 
 ```
@@ -117,7 +122,9 @@ instructions without hurting any kittens =)
 
 ```
 
+
  * __Finaly point your browser in at the sample gui front-end and take SenseiDB for a test drive:__
+
 
 
      [http://localhost:8080](http://localhost:8080)
