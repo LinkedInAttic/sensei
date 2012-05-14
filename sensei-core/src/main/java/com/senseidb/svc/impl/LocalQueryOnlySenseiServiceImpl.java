@@ -7,10 +7,10 @@ import org.apache.lucene.queryParser.QueryParser;
 import org.apache.lucene.util.Version;
 import org.json.JSONObject;
 
-import proj.zoie.api.indexing.AbstractZoieIndexableInterpreter;
-import proj.zoie.api.indexing.ZoieIndexable;
-import proj.zoie.impl.indexing.SimpleReaderCache;
-import proj.zoie.impl.indexing.ZoieConfig;
+import com.linkedin.zoie.api.indexing.AbstractZoieIndexableInterpreter;
+import com.linkedin.zoie.api.indexing.ZoieIndexable;
+import com.linkedin.zoie.impl.indexing.SimpleReaderCache;
+import com.linkedin.zoie.impl.indexing.ZoieConfig;
 
 import com.senseidb.search.node.SenseiCore;
 import com.senseidb.search.node.impl.DefaultJsonQueryBuilderFactory;

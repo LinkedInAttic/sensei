@@ -3,12 +3,12 @@ package com.senseidb.search.node;
 import java.io.File;
 import java.util.Comparator;
 
-import proj.zoie.api.Zoie;
-import proj.zoie.api.DirectoryManager.DIRECTORY_MODE;
-import proj.zoie.api.indexing.ZoieIndexableInterpreter;
-import proj.zoie.impl.indexing.ZoieConfig;
+import com.linkedin.zoie.api.Zoie;
+import com.linkedin.zoie.api.DirectoryManager.DIRECTORY_MODE;
+import com.linkedin.zoie.api.indexing.ZoieIndexableInterpreter;
+import com.linkedin.zoie.impl.indexing.ZoieConfig;
 
-import com.browseengine.bobo.api.BoboIndexReader;
+import com.linkedin.bobo.api.BoboIndexReader;
 
 public abstract class SenseiZoieFactory<D>
 { 

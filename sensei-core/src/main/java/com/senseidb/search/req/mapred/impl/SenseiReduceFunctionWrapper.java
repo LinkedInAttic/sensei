@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import com.browseengine.bobo.mapred.MapReduceResult;
+import com.linkedin.bobo.mapred.MapReduceResult;
 import com.senseidb.search.req.SenseiResult;
 import com.senseidb.search.req.mapred.SenseiMapReduce;
 

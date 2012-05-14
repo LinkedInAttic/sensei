@@ -12,8 +12,8 @@ import org.apache.lucene.store.SimpleFSDirectory;
 import org.apache.lucene.util.Version;
 import org.json.JSONObject;
 
-import proj.zoie.api.indexing.ZoieIndexable;
-import proj.zoie.api.indexing.ZoieIndexable.IndexingReq;
+import com.linkedin.zoie.api.indexing.ZoieIndexable;
+import com.linkedin.zoie.api.indexing.ZoieIndexable.IndexingReq;
 
 import com.senseidb.conf.SenseiSchema;
 import com.senseidb.conf.SenseiServerBuilder;

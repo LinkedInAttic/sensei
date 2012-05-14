@@ -3,28 +3,28 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<bean id="color" class="com.browseengine.bobo.facets.impl.SimpleFacetHandler">
+	<bean id="color" class="com.linkedin.bobo.facets.impl.SimpleFacetHandler">
 		<constructor-arg value="color" />
 	</bean>
 	
-	<bean id="category" class="com.browseengine.bobo.facets.impl.SimpleFacetHandler">
+	<bean id="category" class="com.linkedin.bobo.facets.impl.SimpleFacetHandler">
 		<constructor-arg value="category" />
 	</bean>
 	
-	<bean id="city" class="com.browseengine.bobo.facets.impl.PathFacetHandler">
+	<bean id="city" class="com.linkedin.bobo.facets.impl.PathFacetHandler">
 		<constructor-arg value="city" />
 		<property name="separator" value="/" />
 	</bean>
 	
-	<bean id="makemodel" class="com.browseengine.bobo.facets.impl.PathFacetHandler">
+	<bean id="makemodel" class="com.linkedin.bobo.facets.impl.PathFacetHandler">
 		<constructor-arg value="makemodel" />
 		<property name="separator" value="/" />
 	</bean>
 	
-        <bean id="year" class="com.browseengine.bobo.facets.impl.RangeFacetHandler">
+        <bean id="year" class="com.linkedin.bobo.facets.impl.RangeFacetHandler">
                 <constructor-arg value="year" />
                 <constructor-arg>
-                        <bean class="com.browseengine.bobo.facets.data.PredefinedTermListFactory">
+                        <bean class="com.linkedin.bobo.facets.data.PredefinedTermListFactory">
                                 <constructor-arg value="java.lang.Integer"/>
                                 <constructor-arg value="00000000000000000000" />
                         </bean>
@@ -40,10 +40,10 @@
                 </constructor-arg>
         </bean>
 	
-        <bean id="price" class="com.browseengine.bobo.facets.impl.RangeFacetHandler">
+        <bean id="price" class="com.linkedin.bobo.facets.impl.RangeFacetHandler">
                 <constructor-arg value="price" />
                 <constructor-arg>
-                        <bean class="com.browseengine.bobo.facets.data.PredefinedTermListFactory">
+                        <bean class="com.linkedin.bobo.facets.data.PredefinedTermListFactory">
                                 <constructor-arg value="java.lang.Float" />
                                 <constructor-arg value="00000000000000000000" />
                         </bean>
@@ -58,10 +58,10 @@
                      </list>
                 </constructor-arg>
         </bean>
-	<bean id="mileage" class="com.browseengine.bobo.facets.impl.RangeFacetHandler">
+	<bean id="mileage" class="com.linkedin.bobo.facets.impl.RangeFacetHandler">
 		<constructor-arg value="mileage" />
 		<constructor-arg>
-			<bean class="com.browseengine.bobo.facets.data.PredefinedTermListFactory">
+			<bean class="com.linkedin.bobo.facets.data.PredefinedTermListFactory">
 				<constructor-arg value="java.lang.Integer"/>
 				<constructor-arg value="00000000000000000000" />
 			</bean>
@@ -76,7 +76,7 @@
 		</constructor-arg>
 	</bean>
 
-	<bean id="tags" class="com.browseengine.bobo.facets.impl.MultiValueFacetHandler">
+	<bean id="tags" class="com.linkedin.bobo.facets.impl.MultiValueFacetHandler">
 		<constructor-arg value="tags" />
 	</bean>
 	

@@ -2,12 +2,12 @@ package com.senseidb.test;
 
 import java.io.File;
 
-import proj.zoie.api.DirectoryManager.DIRECTORY_MODE;
-import proj.zoie.api.indexing.ZoieIndexableInterpreter;
-import proj.zoie.impl.indexing.ZoieConfig;
-import proj.zoie.impl.indexing.ZoieSystem;
+import com.linkedin.zoie.api.DirectoryManager.DIRECTORY_MODE;
+import com.linkedin.zoie.api.indexing.ZoieIndexableInterpreter;
+import com.linkedin.zoie.impl.indexing.ZoieConfig;
+import com.linkedin.zoie.impl.indexing.ZoieSystem;
 
-import com.browseengine.bobo.api.BoboIndexReader;
+import com.linkedin.bobo.api.BoboIndexReader;
 import com.senseidb.search.node.SenseiIndexReaderDecorator;
 import com.senseidb.search.node.SenseiZoieSystemFactory;
 

@@ -16,18 +16,18 @@ import org.apache.commons.configuration.ConfigurationException;
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
 
-import proj.zoie.api.DataConsumer;
-import proj.zoie.api.DataConsumer.DataEvent;
-import proj.zoie.api.DataProvider;
-import proj.zoie.api.Zoie;
-import proj.zoie.api.ZoieException;
-import proj.zoie.api.ZoieIndexReader;
-import proj.zoie.impl.indexing.StreamDataProvider;
-import proj.zoie.impl.indexing.ZoieConfig;
-import proj.zoie.mbean.DataProviderAdmin;
-import proj.zoie.mbean.DataProviderAdminMBean;
+import com.linkedin.zoie.api.DataConsumer;
+import com.linkedin.zoie.api.DataConsumer.DataEvent;
+import com.linkedin.zoie.api.DataProvider;
+import com.linkedin.zoie.api.Zoie;
+import com.linkedin.zoie.api.ZoieException;
+import com.linkedin.zoie.api.ZoieIndexReader;
+import com.linkedin.zoie.impl.indexing.StreamDataProvider;
+import com.linkedin.zoie.impl.indexing.ZoieConfig;
+import com.linkedin.zoie.mbean.DataProviderAdmin;
+import com.linkedin.zoie.mbean.DataProviderAdminMBean;
 
-import com.browseengine.bobo.api.BoboIndexReader;
+import com.linkedin.bobo.api.BoboIndexReader;
 import com.senseidb.conf.SenseiSchema;
 import com.senseidb.gateway.SenseiGateway;
 import com.senseidb.jmx.JmxUtil;
@@ -300,7 +300,7 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
     }
 
     @Override
-    public void consume(Collection<proj.zoie.api.DataConsumer.DataEvent<JSONObject>> data) throws ZoieException
+    public void consume(Collection<com.linkedin.zoie.api.DataConsumer.DataEvent<JSONObject>> data) throws ZoieException
     {
       UpdateBatchSizeMeter.mark(data.size());
       ProviderBatchSizeMeter.mark(_dataProvider.getBatchSize());

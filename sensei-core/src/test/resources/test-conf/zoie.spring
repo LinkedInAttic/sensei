@@ -28,7 +28,7 @@
   </bean>
   
   
-  <bean id="zoieConfig" class="proj.zoie.impl.indexing.ZoieConfig">
+  <bean id="zoieConfig" class="com.linkedin.zoie.impl.indexing.ZoieConfig">
     <property name="freshness" value="50" />
   </bean>
   

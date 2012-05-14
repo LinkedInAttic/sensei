@@ -5,18 +5,18 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import proj.zoie.api.DocIDMapper;
+import com.linkedin.zoie.api.DocIDMapper;
 
-import com.browseengine.bobo.api.BoboIndexReader;
-import com.browseengine.bobo.facets.FacetHandler;
-import com.browseengine.bobo.facets.data.FacetDataCache;
-import com.browseengine.bobo.facets.data.MultiValueFacetDataCache;
-import com.browseengine.bobo.facets.data.TermFloatList;
-import com.browseengine.bobo.facets.data.TermIntList;
-import com.browseengine.bobo.facets.data.TermLongList;
-import com.browseengine.bobo.facets.data.TermNumberList;
-import com.browseengine.bobo.facets.data.TermShortList;
-import com.browseengine.bobo.facets.data.TermValueList;
+import com.linkedin.bobo.api.BoboIndexReader;
+import com.linkedin.bobo.facets.FacetHandler;
+import com.linkedin.bobo.facets.data.FacetDataCache;
+import com.linkedin.bobo.facets.data.MultiValueFacetDataCache;
+import com.linkedin.bobo.facets.data.TermFloatList;
+import com.linkedin.bobo.facets.data.TermIntList;
+import com.linkedin.bobo.facets.data.TermLongList;
+import com.linkedin.bobo.facets.data.TermNumberList;
+import com.linkedin.bobo.facets.data.TermShortList;
+import com.linkedin.bobo.facets.data.TermValueList;
 import com.senseidb.search.req.SenseiSystemInfo.SenseiFacetInfo;
 
 /**

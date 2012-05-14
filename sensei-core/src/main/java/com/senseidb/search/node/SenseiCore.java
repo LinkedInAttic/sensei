@@ -8,15 +8,15 @@ import java.util.Set;
 
 import org.apache.log4j.Logger;
 
-import proj.zoie.api.DataProvider;
-import proj.zoie.api.IndexReaderFactory;
-import proj.zoie.api.Zoie;
-import proj.zoie.api.ZoieException;
-import proj.zoie.api.ZoieIndexReader;
+import com.linkedin.zoie.api.DataProvider;
+import com.linkedin.zoie.api.IndexReaderFactory;
+import com.linkedin.zoie.api.Zoie;
+import com.linkedin.zoie.api.ZoieException;
+import com.linkedin.zoie.api.ZoieIndexReader;
 
-import com.browseengine.bobo.api.BoboIndexReader;
-import com.browseengine.bobo.facets.FacetHandler;
-import com.browseengine.bobo.facets.RuntimeFacetHandlerFactory;
+import com.linkedin.bobo.api.BoboIndexReader;
+import com.linkedin.bobo.facets.FacetHandler;
+import com.linkedin.bobo.facets.RuntimeFacetHandlerFactory;
 import com.senseidb.indexing.SenseiIndexPruner;
 import com.senseidb.indexing.SenseiIndexPruner.DefaultSenseiIndexPruner;
 import com.senseidb.jmx.JmxUtil;

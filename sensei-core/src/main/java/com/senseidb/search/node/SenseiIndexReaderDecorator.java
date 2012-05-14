@@ -5,12 +5,12 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
-import proj.zoie.api.ZoieIndexReader;
-import proj.zoie.impl.indexing.AbstractIndexReaderDecorator;
+import com.linkedin.zoie.api.ZoieIndexReader;
+import com.linkedin.zoie.impl.indexing.AbstractIndexReaderDecorator;
 
-import com.browseengine.bobo.api.BoboIndexReader;
-import com.browseengine.bobo.facets.FacetHandler;
-import com.browseengine.bobo.facets.RuntimeFacetHandlerFactory;
+import com.linkedin.bobo.api.BoboIndexReader;
+import com.linkedin.bobo.facets.FacetHandler;
+import com.linkedin.bobo.facets.RuntimeFacetHandlerFactory;
 
 public class SenseiIndexReaderDecorator extends AbstractIndexReaderDecorator<BoboIndexReader> {
 	private final List<FacetHandler<?>> _facetHandlers;
