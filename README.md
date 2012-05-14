@@ -1,4 +1,4 @@
-# SenseiDB release-1.1.2 RC2
+# SenseiDB (unofficial) release-1.1.2 RC2
 
 Having trouble compiling SenseiDB release-1.1.2-rc have no fear this repo currently hosts an updated version 
 untill upstream tends to the pull request [linkedin/sensei#44](/linkedin/sensei/pull/44) Things move fast in this day and age and so even 
