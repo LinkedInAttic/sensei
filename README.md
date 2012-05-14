@@ -11,10 +11,7 @@ available anymore. Follow the instructions and find out first hand what all the 
 Grab this repo @ branch [release-1.1.2-rc2](https://github.com/nickl-/sensei-forked/tree/release-1.1.2-rc2) and clone it somewhere in a folder.
 
 ```
-
             git clone git://github.com/nickl-/sensei-forked.git
-
-
 ```
 
 You will first need installed binarios of [java](http://www.oracle.com/technetwork/java/javase/downloads/jdk-6u32-downloads-1594644.html), 
