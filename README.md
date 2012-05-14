@@ -132,10 +132,10 @@ instructions without hurting any kittens =)
      [http://localhost:8080](http://localhost:8080)
 
 
-![The cool Sensei GUI](http://cloud.github.com/downloads/nickl-/sensei-forked/senseidb_sml.png)
+[<img alt="The cool Sensei GUI" src="http://cloud.github.com/downloads/nickl-/sensei-forked/senseidb_sml.png">](https://github.com/downloads/nickl-/sensei-forked/senseidb.png)
 
 The cool Sensei GUI ollowing you to test just how strong your BQL-fu can be while the 
-json query might look dawnting don't feer, our computer friends lap it up like hot cake.
+json query might look dawnting don't fear, our computer friends lap it up like bits & bytes.
 
 
 # What is Sensei
