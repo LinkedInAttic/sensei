@@ -647,64 +647,14 @@ public class ResultMerger
 
       List<SenseiHit> hitsList = new ArrayList<SenseiHit>(req.getCount());
       Iterator<SenseiHit> mergedIter = ListMerger.mergeLists(hitLists, comparator);
-      int offsetLeft = req.getOffset();
       if (!hasSortCollector)
       {
-        Map<Object, SenseiHit>[] groupHitMaps = new Map[req.getGroupBy().length];
-        for (int i=0; i<groupHitMaps.length; ++i)
-        {
-          groupHitMaps[i] = new HashMap<Object, SenseiHit>(topHits);
-        }
-        while(mergedIter.hasNext())
-        {
-          //++preGroups;
-          SenseiHit hit = mergedIter.next();
-          rawGroupValue = hit.getRawGroupValue();
-
-          if (rawGroupValueType[hit.getGroupPosition()] == 2)
-          {
-            primitiveLongArrayWrapperTmp.data = (long[])rawGroupValue;
-            rawGroupValue = primitiveLongArrayWrapperTmp;
-          }
-          else if (rawGroupValueType[hit.getGroupPosition()] == 0)
-          {
-            if (rawGroupValue != null)
-            {
-              if (rawGroupValue instanceof long[])
-              {
-                rawGroupValueType[hit.getGroupPosition()] = 2;
-                primitiveLongArrayWrapperTmp.data = (long[])rawGroupValue;
-                rawGroupValue = primitiveLongArrayWrapperTmp;
-              }
-              else
-                rawGroupValueType[hit.getGroupPosition()] = 1;
-            }
-          }
-
-          SenseiHit pre = groupHitMaps[hit.getGroupPosition()].get(rawGroupValue);
-          if (pre != null)
-          {
-            if (offsetLeft <= 0) {
-              pre.setGroupHitsCount(pre.getGroupHitsCount()+hit.getGroupHitsCount());
-            }
-          }
-          else
-          {
-            if (offsetLeft > 0)
-              --offsetLeft;
-            else if (hitsList.size()<req.getCount())
-              hitsList.add(hit);
-
-            if (rawGroupValueType[0] == 2)
-              groupHitMaps[hit.getGroupPosition()].put(new PrimitiveLongArrayWrapper(primitiveLongArrayWrapperTmp.data), hit);
-            else
-              groupHitMaps[hit.getGroupPosition()].put(rawGroupValue, hit);
-          }
-        }
+        calcGroupHitsMapping(req, topHits, rawGroupValueType, hitsList, mergedIter, req.getOffset());
         //numGroups = (int)(numGroups*(groupHitMap.size()/(float)preGroups));
       }
       else
       {
+        int offsetLeft = req.getOffset();
         MyScoreDoc pre = null;
         if (topHits > 0 && groupAccessibles != null && groupAccessibles.length > 1)
         {
@@ -715,8 +665,12 @@ public class ResultMerger
             combinedFacetAccessibles[i] = new CombinedFacetAccessible(new FacetSpec(), groupAccessibles[i]);
             groupSets[i] = new HashSet<Object>(topHits);
           }
+
           totalDocs = 0;
+
           MyScoreDoc tmpScoreDoc = new MyScoreDoc(0, 0.0f, 0, null);
+
+
           MyScoreDoc bottom = null;
           boolean queueFull = false;
           Map<Object, MyScoreDoc>[] valueDocMaps = new Map[combinedFacetAccessibles.length];
@@ -724,6 +678,7 @@ public class ResultMerger
           {
             valueDocMaps[i] = new HashMap<Object, MyScoreDoc>(topHits);
           }
+
           DocIDPriorityQueue docQueue = new DocIDPriorityQueue(new DocComparator()
             {
               public int compare(ScoreDoc doc1, ScoreDoc doc2)
@@ -775,25 +730,9 @@ public class ResultMerger
                   for (; j<sortCollector.groupByMulti.length; ++j)
                   {
                     rawGroupValue = dataCaches[j].valArray.getRawValue(dataCaches[j].orderArray.get(tmpScoreDoc.doc));
-                    if (rawGroupValueType[j] == 2)
-                    {
-                      primitiveLongArrayWrapperTmp.data = (long[])rawGroupValue;
-                      rawGroupValue = primitiveLongArrayWrapperTmp;
-                    }
-                    else if (rawGroupValueType[j] == 0)
-                    {
-                      if (rawGroupValue != null)
-                      {
-                        if (rawGroupValue instanceof long[])
-                        {
-                          rawGroupValueType[j] = 2;
-                          primitiveLongArrayWrapperTmp.data = (long[])rawGroupValue;
-                          rawGroupValue = primitiveLongArrayWrapperTmp;
-                        }
-                        else
-                          rawGroupValueType[j] = 1;
-                      }
-                    }
+
+                    rawGroupValue = extractRawGroupValue(rawGroupValueType, j,
+                                                         primitiveLongArrayWrapperTmp, rawGroupValue);
 
                     if (firstRawGroupValue == null) firstRawGroupValue = rawGroupValue;
 
@@ -906,26 +845,10 @@ public class ResultMerger
             for (; i<groupSets.length; ++i)
             {
               //rawGroupValue = hit.getRawField(req.getGroupBy()[i]);
-              rawGroupValue = hit.getRawGroupValue();
-              if (rawGroupValueType[i] == 2)
-              {
-                primitiveLongArrayWrapperTmp.data = (long[])rawGroupValue;
-                rawGroupValue = primitiveLongArrayWrapperTmp;
-              }
-              else if (rawGroupValueType[i] == 0)
-              {
-                if (rawGroupValue != null)
-                {
-                  if (rawGroupValue instanceof long[])
-                  {
-                    rawGroupValueType[i] = 2;
-                    primitiveLongArrayWrapperTmp.data = (long[])rawGroupValue;
-                    rawGroupValue = primitiveLongArrayWrapperTmp;
-                  }
-                  else
-                    rawGroupValueType[i] = 1;
-                }
-              }
+
+              rawGroupValue = extractRawGroupValue(rawGroupValueType, i,
+                                                   primitiveLongArrayWrapperTmp, rawGroupValue);
+
               if (firstRawGroupValue == null) firstRawGroupValue = rawGroupValue;
               if (groupSets[i].contains(rawGroupValue))
               {
@@ -968,23 +891,8 @@ public class ResultMerger
       {
         rawGroupValue = hit.getRawField(req.getGroupBy()[hit.getGroupPosition()]);
 
-        if (rawGroupValueType[hit.getGroupPosition()] == 2)
-        {
-          rawGroupValue = new PrimitiveLongArrayWrapper((long[])rawGroupValue);
-        }
-        else if (rawGroupValueType[hit.getGroupPosition()] == 0)
-        {
-          if (rawGroupValue != null)
-          {
-            if (rawGroupValue instanceof long[])
-            {
-              rawGroupValueType[hit.getGroupPosition()] = 2;
-              rawGroupValue = new PrimitiveLongArrayWrapper((long[])rawGroupValue);
-            }
-            else
-              rawGroupValueType[hit.getGroupPosition()] = 1;
-          }
-        }
+        rawGroupValue = extractRawGroupValue(rawGroupValueType, hit.getGroupPosition(),
+                                             primitiveLongArrayWrapperTmp, rawGroupValue);
 
         groupMaps[hit.getGroupPosition()].put(rawGroupValue, new HitWithGroupQueue(hit, new PriorityQueue<MyScoreDoc>()
           {
@@ -1048,27 +956,8 @@ public class ResultMerger
                 int j=0;
                 for (; j<sortCollector.groupByMulti.length; ++j)
                 {
-                  rawGroupValue = dataCaches[j].valArray.getRawValue(dataCaches[j].orderArray.get(doc));
-
-                  if (rawGroupValueType[j] == 2)
-                  {
-                    primitiveLongArrayWrapperTmp.data = (long[])rawGroupValue;
-                    rawGroupValue = primitiveLongArrayWrapperTmp;
-                  }
-                  else if (rawGroupValueType[j] == 0)
-                  {
-                    if (rawGroupValue != null)
-                    {
-                      if (rawGroupValue instanceof long[])
-                      {
-                        rawGroupValueType[j] = 2;
-                        primitiveLongArrayWrapperTmp.data = (long[])rawGroupValue;
-                        rawGroupValue = primitiveLongArrayWrapperTmp;
-                      }
-                      else
-                        rawGroupValueType[j] = 1;
-                    }
-                  }
+                  rawGroupValue = extractRawGroupValue(rawGroupValueType, j, primitiveLongArrayWrapperTmp,
+                    dataCaches[j].valArray.getRawValue(dataCaches[j].orderArray.get(doc)));
 
                   hitWithGroupQueue = groupMaps[j].get(rawGroupValue);
                   if (hitWithGroupQueue != null)
@@ -1207,6 +1096,81 @@ public class ResultMerger
       }
     }
     return merged;
+  }
+
+  private static void calcGroupHitsMapping(SenseiRequest req,
+                                           int topHits,
+                                           int[] rawGroupValueType,
+                                           List<SenseiHit> hitsList,
+                                           Iterator<SenseiHit> mergedIter,
+                                           int offsetLeft) {
+    // TODO: Pull out the sensei hits extraction from this function
+    PrimitiveLongArrayWrapper primitiveLongArrayWrapperTmp = new PrimitiveLongArrayWrapper(null);
+
+    Map<Object, SenseiHit>[] groupHitMaps = new Map[req.getGroupBy().length];
+    for (int i=0; i < groupHitMaps.length; ++i)
+    {
+      groupHitMaps[i] = new HashMap<Object, SenseiHit>(topHits);
+    }
+
+    while(mergedIter.hasNext())
+    {
+      SenseiHit hit = mergedIter.next();
+      Object rawGroupValue = extractRawGroupValue(rawGroupValueType, hit.getGroupPosition(), primitiveLongArrayWrapperTmp, hit);
+
+      SenseiHit pre = groupHitMaps[hit.getGroupPosition()].get(rawGroupValue);
+      if (pre != null)
+      {
+        if (offsetLeft <= 0) {
+          pre.setGroupHitsCount(pre.getGroupHitsCount()+hit.getGroupHitsCount());
+        }
+      }
+      else
+      {
+        if (offsetLeft > 0)
+          --offsetLeft;
+        else if (hitsList.size() < req.getCount())
+          hitsList.add(hit);
+
+        if (rawGroupValueType[0] == 2)
+          groupHitMaps[hit.getGroupPosition()].put(new PrimitiveLongArrayWrapper(primitiveLongArrayWrapperTmp.data), hit);
+        else
+          groupHitMaps[hit.getGroupPosition()].put(rawGroupValue, hit);
+      }
+    }
+  }
+
+  private static Object extractRawGroupValue(int[] rawGroupValueType, int groupPosition,
+                                             PrimitiveLongArrayWrapper primitiveLongArrayWrapperTmp, SenseiHit hit) {
+    return extractRawGroupValue(rawGroupValueType, groupPosition, primitiveLongArrayWrapperTmp, hit.getRawGroupValue());
+  }
+
+  private static Object extractRawGroupValue(int[] rawGroupValueType, int groupPosition,
+                                             PrimitiveLongArrayWrapper primitiveLongArrayWrapperTmp, Object rawGroupValue) {
+
+    if (rawGroupValueType[groupPosition] == 2)
+    {
+      // We already know this group position is a long[]
+      primitiveLongArrayWrapperTmp.data = (long[])rawGroupValue;
+      rawGroupValue = primitiveLongArrayWrapperTmp;
+    }
+    else if (rawGroupValueType[groupPosition] == 0)
+    {
+      // Unknown
+      if (rawGroupValue != null)
+      {
+        if (rawGroupValue instanceof long[])
+        {
+          // It's a long array, so set the position
+          rawGroupValueType[groupPosition] = 2;
+          primitiveLongArrayWrapperTmp.data = (long[])rawGroupValue;
+          rawGroupValue = primitiveLongArrayWrapperTmp;
+        }
+        else
+          rawGroupValueType[groupPosition] = 1;
+      }
+    }
+    return rawGroupValue;
   }
 
   private static List<FacetAccessible>[] extractFacetAccessible(Collection<SenseiResult> results) {
