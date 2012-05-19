@@ -504,32 +504,63 @@ public class ResultMerger
 
   }
 
-  public static SenseiResult merge(final SenseiRequest req, Collection<SenseiResult> results, boolean onSearchNode)
-  {
-    long start = System.currentTimeMillis();
-    List<Map<String, FacetAccessible>> facetList = new ArrayList<Map<String, FacetAccessible>>(results.size());
-
-    ArrayList<Iterator<SenseiHit>> iteratorList = new ArrayList<Iterator<SenseiHit>>(results.size());
+  public static int getNumHits(Collection<SenseiResult> results) {
     int numHits = 0;
-    //int preGroups = 0;
-    int numGroups = 0;
-    int totalDocs = 0;
-    int topHits = req.getOffset() + req.getCount();
+    for(SenseiResult res : results)
+    {
+      numHits += res.getNumHits();
+    }
+    return numHits;
+  }
 
+  public static int getTotalDocs(Collection<SenseiResult> results) {
+    int totalDocs = 0;
+    for(SenseiResult res : results) {
+      totalDocs += res.getTotalDocs();
+    }
+    return totalDocs;
+  }
+
+  public static int getNumGroups(Collection<SenseiResult> results) {
+    int numGroups = 0;
+    for(SenseiResult res : results) {
+      numGroups += res.getNumGroups();
+    }
+    return numGroups;
+  }
+
+  public static long findLongestTime(Collection<SenseiResult> results) {
     long time = 0L;
-    
-    List<FacetAccessible>[] groupAccessibles = null;
-    
-    String parsedQuery = null;
-    boolean hasSortCollector = false;
     for (SenseiResult res : results)
+    {
+      time = Math.max(time,res.getTime());
+    }
+    return time;
+  }
+
+  public static String findParsedQuery(Collection<SenseiResult> results) {
+    for(SenseiResult res : results)
+    {
+      return res.getParsedQuery();
+    }
+    return "";
+  }
+
+  public static boolean hasSortCollector(Collection<SenseiResult> results) {
+    for(SenseiResult res : results)
     {
       if (res.getSortCollector() != null && res.getSortCollector().contextList != null)
       {
-        hasSortCollector = true;
+        return true;
       }
+    }
+    return false;
+  }
 
-      parsedQuery = res.getParsedQuery();
+  public static void createUniqueDocIds(Collection<SenseiResult> results) {
+    int totalDocs= 0;
+    for (SenseiResult res : results)
+    {
       SenseiHit[] hits = res.getSenseiHits();
       if (hits != null)
       {
@@ -538,31 +569,54 @@ public class ResultMerger
           hit.setDocid(hit.getDocid() + totalDocs);
         }
       }
-      numHits += res.getNumHits();
-      numGroups += res.getNumGroups();
       totalDocs += res.getTotalDocs();
-      time = Math.max(time,res.getTime());
+    }
+  }
+
+  public static List<Iterator<SenseiHit>> flattenHits(Collection<SenseiResult> results) {
+    List<Iterator<SenseiHit>> hitList = new ArrayList<Iterator<SenseiHit>>(results.size());
+
+    for (SenseiResult res : results)
+    {
+      hitList.add(Arrays.asList(res.getSenseiHits()).iterator());
+    }
+    return hitList;
+  }
+
+  public static SenseiResult merge(final SenseiRequest req, Collection<SenseiResult> results, boolean onSearchNode)
+  {
+    long start = System.currentTimeMillis();
+    List<Map<String, FacetAccessible>> facetList = new ArrayList<Map<String, FacetAccessible>>(results.size());
+
+    // Compute the size of hits priority queue
+    final int topHits = req.getOffset() + req.getCount();
+
+    // Sum the hits, groups, totalDocs, etc from all the results
+    final int numHits = getNumHits(results);
+    final int numGroups = getNumGroups(results);
+    int totalDocs = getTotalDocs(results);
+    final long longestTime = findLongestTime(results);
+
+    final String parsedQuery = findParsedQuery(results);
+    final boolean hasSortCollector = hasSortCollector(results);
+
+    // Assign each hit document a unique "document id"
+    createUniqueDocIds(results);
+
+    // Extract the hits from the results
+    List<Iterator<SenseiHit>> hitLists = flattenHits(results);
+
+
+    List<FacetAccessible>[] groupAccessibles = extractFacetAccessible(results);
+
+    // Merge your facets
+    for (SenseiResult res : results)
+    {
       Map<String, FacetAccessible> facetMap = res.getFacetMap();
       if (facetMap != null)
       {
         facetList.add(facetMap);
       }
-      if (res.getGroupAccessibles() != null)
-      {
-        if (groupAccessibles == null)
-        {
-          groupAccessibles = new List[res.getGroupAccessibles().length];
-          for (int i=0; i<groupAccessibles.length; ++i)
-          {
-            groupAccessibles[i] = new ArrayList<FacetAccessible>(results.size());
-          }
-        }
-        for (int i=0; i<groupAccessibles.length; ++i)
-        {
-          groupAccessibles[i].add(res.getGroupAccessibles()[i]);
-        }
-      }
-      iteratorList.add(Arrays.asList(res.getSenseiHits()).iterator());
     }
 
     Map<String, FacetAccessible> mergedFacetMap = null;
@@ -578,8 +632,8 @@ public class ResultMerger
     SenseiHit[] hits;
     if (req.getGroupBy() == null || req.getGroupBy().length == 0)
     {
-      List<SenseiHit> mergedList = ListMerger.mergeLists(req.getOffset(), req.getCount(), iteratorList
-          .toArray(new Iterator[iteratorList.size()]), comparator);
+      List<SenseiHit> mergedList = ListMerger.mergeLists(req.getOffset(), req.getCount(), hitLists
+          .toArray(new Iterator[hitLists.size()]), comparator);
       hits = mergedList.toArray(new SenseiHit[mergedList.size()]);
     }
     else
@@ -592,7 +646,7 @@ public class ResultMerger
       Object firstRawGroupValue = null;
 
       List<SenseiHit> hitsList = new ArrayList<SenseiHit>(req.getCount());
-      Iterator<SenseiHit> mergedIter = ListMerger.mergeLists(iteratorList, comparator);
+      Iterator<SenseiHit> mergedIter = ListMerger.mergeLists(hitLists, comparator);
       int offsetLeft = req.getOffset();
       if (!hasSortCollector)
       {
@@ -1140,14 +1194,9 @@ public class ResultMerger
     merged.setTotalDocs(totalDocs);
     merged.addAll(mergedFacetMap);
     
-    if (parsedQuery == null){
-    	parsedQuery = "";
-    }
-    
     long end = System.currentTimeMillis();
     
-    time += (end-start);
-    merged.setTime(time);
+    merged.setTime(longestTime + end - start);
     merged.setParsedQuery(parsedQuery);
     if (req.getMapReduceFunction() != null) {
       if (onSearchNode) {
@@ -1158,5 +1207,28 @@ public class ResultMerger
       }
     }
     return merged;
+  }
+
+  private static List<FacetAccessible>[] extractFacetAccessible(Collection<SenseiResult> results) {
+    List<FacetAccessible>[] groupAccessibles = null;
+    for (SenseiResult res : results)
+    {
+      if (res.getGroupAccessibles() != null)
+      {
+        if (groupAccessibles == null)
+        {
+          groupAccessibles = new List[res.getGroupAccessibles().length];
+          for (int i=0; i<groupAccessibles.length; ++i)
+          {
+            groupAccessibles[i] = new ArrayList<FacetAccessible>(results.size());
+          }
+        }
+        for (int i=0; i<groupAccessibles.length; ++i)
+        {
+          groupAccessibles[i].add(res.getGroupAccessibles()[i]);
+        }
+      }
+    }
+    return groupAccessibles;
   }
 }
