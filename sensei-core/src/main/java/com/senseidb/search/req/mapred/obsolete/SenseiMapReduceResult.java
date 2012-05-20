@@ -2,7 +2,7 @@ package com.senseidb.search.req.mapred.obsolete;
 
 import java.util.List;
 
-import com.browseengine.bobo.mapred.MapReduceResult;
+import com.linkedin.bobo.mapred.MapReduceResult;
 import com.senseidb.search.req.AbstractSenseiResult;
 
 public class SenseiMapReduceResult extends MapReduceResult implements AbstractSenseiResult {  

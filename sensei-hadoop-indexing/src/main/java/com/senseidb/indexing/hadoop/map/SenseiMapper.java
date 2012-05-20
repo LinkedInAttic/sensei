@@ -29,10 +29,10 @@ import org.apache.lucene.util.Version;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import proj.zoie.api.ZoieSegmentReader;
-import proj.zoie.api.indexing.AbstractZoieIndexable;
-import proj.zoie.api.indexing.ZoieIndexable;
-import proj.zoie.api.indexing.ZoieIndexable.IndexingReq;
+import com.linkedin.zoie.api.ZoieSegmentReader;
+import com.linkedin.zoie.api.indexing.AbstractZoieIndexable;
+import com.linkedin.zoie.api.indexing.ZoieIndexable;
+import com.linkedin.zoie.api.indexing.ZoieIndexable.IndexingReq;
 
 import com.senseidb.conf.SchemaConverter;
 import com.senseidb.conf.SenseiSchema;

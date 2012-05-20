@@ -1,7 +1,7 @@
 package com.senseidb.search.node;
 
-import proj.zoie.api.indexing.AbstractZoieIndexableInterpreter;
-import proj.zoie.api.indexing.ZoieIndexable;
+import com.linkedin.zoie.api.indexing.AbstractZoieIndexableInterpreter;
+import com.linkedin.zoie.api.indexing.ZoieIndexable;
 
 
 public class NoOpIndexableInterpreter extends

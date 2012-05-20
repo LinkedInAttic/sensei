@@ -15,11 +15,11 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.browseengine.bobo.api.BrowseSelection;
-import com.browseengine.bobo.api.BrowseSelection.ValueOperation;
-import com.browseengine.bobo.api.FacetSpec;
-import com.browseengine.bobo.facets.DefaultFacetHandlerInitializerParam;
-import com.browseengine.bobo.facets.impl.PathFacetHandler;
+import com.linkedin.bobo.api.BrowseSelection;
+import com.linkedin.bobo.api.BrowseSelection.ValueOperation;
+import com.linkedin.bobo.api.FacetSpec;
+import com.linkedin.bobo.facets.DefaultFacetHandlerInitializerParam;
+import com.linkedin.bobo.facets.impl.PathFacetHandler;
 import com.senseidb.search.req.SenseiJSONQuery;
 import com.senseidb.search.req.SenseiRequest;
 import com.senseidb.search.req.mapred.SenseiMapReduce;

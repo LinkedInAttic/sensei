@@ -69,12 +69,12 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.browseengine.bobo.api.BrowseFacet;
-import com.browseengine.bobo.api.BrowseSelection;
-import com.browseengine.bobo.api.FacetAccessible;
-import com.browseengine.bobo.api.FacetSpec;
-import com.browseengine.bobo.api.MappedFacetAccessible;
-import com.browseengine.bobo.facets.FacetHandlerInitializerParam;
+import com.linkedin.bobo.api.BrowseFacet;
+import com.linkedin.bobo.api.BrowseSelection;
+import com.linkedin.bobo.api.FacetAccessible;
+import com.linkedin.bobo.api.FacetSpec;
+import com.linkedin.bobo.api.MappedFacetAccessible;
+import com.linkedin.bobo.facets.FacetHandlerInitializerParam;
 import com.senseidb.search.req.SenseiHit;
 import com.senseidb.search.req.SenseiQuery;
 import com.senseidb.search.req.SenseiRequest;

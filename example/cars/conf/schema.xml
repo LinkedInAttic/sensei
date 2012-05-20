@@ -35,11 +35,11 @@
 
    <!-- 
      valid types are:
-      simple - corresponds to com.browseengine.bobo.facets.impl.SimpleFacetHandler
-      path - corresponds to com.browseengine.bobo.facets.impl.PathFacetHandler
-      range - corresponds to com.browseengine.bobo.facets.impl.RangeFacetHandler
-      multi - corresponds to com.browseengine.bobo.facets.impl.MultiFacetHandler
-      compact-multi - corresponds to com.browseengine.bobo.facets.impl.CompactMultiFacetHandler
+      simple - corresponds to com.linkedin.bobo.facets.impl.SimpleFacetHandler
+      path - corresponds to com.linkedin.bobo.facets.impl.PathFacetHandler
+      range - corresponds to com.linkedin.bobo.facets.impl.RangeFacetHandler
+      multi - corresponds to com.linkedin.bobo.facets.impl.MultiFacetHandler
+      compact-multi - corresponds to com.linkedin.bobo.facets.impl.CompactMultiFacetHandler
       custom - custom facet handler, name must be defined in a spring bean in custom-facets.xml
    -->
    <facets>

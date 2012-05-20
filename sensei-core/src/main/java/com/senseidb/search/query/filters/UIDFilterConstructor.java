@@ -7,9 +7,9 @@ import org.apache.lucene.search.DocIdSet;
 import org.apache.lucene.search.Filter;
 import org.json.JSONObject;
 
-import com.browseengine.bobo.api.BoboIndexReader;
-import com.browseengine.bobo.api.BrowseSelection;
-import com.browseengine.bobo.facets.FacetHandler;
+import com.linkedin.bobo.api.BoboIndexReader;
+import com.linkedin.bobo.api.BrowseSelection;
+import com.linkedin.bobo.facets.FacetHandler;
 import com.senseidb.conf.SenseiFacetHandlerBuilder;
 import com.senseidb.search.facet.UIDFacetHandler;
 import com.senseidb.util.RequestConverter2;

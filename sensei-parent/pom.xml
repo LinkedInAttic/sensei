@@ -9,11 +9,11 @@
 	<description>sensei search</description>
 	<url>http://www.senseidb.com/</url>
 
-	<!-- parent>
+	<parent>
 		<groupId>org.sonatype.oss</groupId>
 		<artifactId>oss-parent</artifactId>
 		<version>6</version>
-	</parent -->
+	</parent>
 	
 	<inceptionYear>2010</inceptionYear>
 
@@ -130,10 +130,10 @@
 	        <enabled>false</enabled>
 	       </snapshots>
 	    </repository>
-	    <repository>
+	    <!--<repository>
 	      <id>Scala Tools Repository</id>
 	      <url>http://nexus.scala-tools.org/content/repositories/snapshots/</url>
-	    </repository>
+	    </repository>-->
       <repository>
         <id>labs-consol-release</id>
         <name>ConSol* Labs Repository (Releases)</name>

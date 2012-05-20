@@ -10,11 +10,11 @@ import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.search.DocIdSet;
 import org.apache.lucene.search.Filter;
 
-import proj.zoie.api.ZoieIndexReader;
+import com.linkedin.zoie.api.ZoieIndexReader;
 
-import com.browseengine.bobo.api.BoboIndexReader;
-import com.browseengine.bobo.api.BrowseSelection;
-import com.browseengine.bobo.facets.FacetHandler;
+import com.linkedin.bobo.api.BoboIndexReader;
+import com.linkedin.bobo.api.BrowseSelection;
+import com.linkedin.bobo.facets.FacetHandler;
 import com.kamikaze.docidset.impl.OrDocIdSet;
 import com.senseidb.indexing.DefaultSenseiInterpreter;
 import com.senseidb.indexing.MetaType;

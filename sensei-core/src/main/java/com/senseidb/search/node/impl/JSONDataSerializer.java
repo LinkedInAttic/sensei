@@ -7,7 +7,7 @@ import org.json.JSONObject;
 
 import com.senseidb.conf.SenseiSchema;
 
-import proj.zoie.store.ZoieStoreSerializer;
+import com.linkedin.zoie.store.ZoieStoreSerializer;
 
 public class JSONDataSerializer implements ZoieStoreSerializer<JSONObject>{
 

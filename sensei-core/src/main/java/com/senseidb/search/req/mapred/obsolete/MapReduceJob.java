@@ -7,7 +7,7 @@ import org.json.JSONObject;
 
 import com.senseidb.search.req.mapred.FieldAccessor;
 
-import proj.zoie.api.DocIDMapper;
+import com.linkedin.zoie.api.DocIDMapper;
 
 public interface MapReduceJob<MapResult extends Serializable, ReduceResult extends Serializable> extends Serializable{
     public MapResult map(long[] uids, DocIDMapper docIDMapper, FieldAccessor fieldAccessor);

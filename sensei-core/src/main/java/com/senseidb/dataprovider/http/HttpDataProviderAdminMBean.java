@@ -1,6 +1,6 @@
 package com.senseidb.dataprovider.http;
 
-import proj.zoie.mbean.DataProviderAdminMBean;
+import com.linkedin.zoie.mbean.DataProviderAdminMBean;
 
 public interface HttpDataProviderAdminMBean extends DataProviderAdminMBean {
 
