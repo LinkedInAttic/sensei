@@ -252,7 +252,7 @@ public class TestSensei extends TestCase {
   public void testBqlRelevance1() throws Exception
   {
     logger.info("Executing test case testBqlRelevance1");
-    String req = "{\"bql\":\"SELECT * FROM cars USING RELEVANCE MODEL my_model ('thisYear':2001, 'goodYear':(1996)) DEFINED AS (int thisYear, IntOpenHashSet goodYear) BEGIN if (goodYear.contains(year)) return (float)Math.exp(10d); if (year==thisYear) return 87f; return _INNER_SCORE; END\"}";
+    String req = "{\"bql\":\"SELECT * FROM cars USING RELEVANCE MODEL my_model ('thisYear':2001, 'goodYear':[1996]) DEFINED AS (int thisYear, IntOpenHashSet goodYear) BEGIN if (goodYear.contains(year)) return (float)Math.exp(10d); if (year==thisYear) return 87f; return _INNER_SCORE; END\"}";
     
     JSONObject res = search(new JSONObject(req));
 

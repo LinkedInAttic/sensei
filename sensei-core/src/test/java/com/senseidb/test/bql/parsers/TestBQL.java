@@ -1557,7 +1557,7 @@ public class TestBQL extends TestCase
       "SELECT * " +
       "FROM cars " +
       "WHERE color = 'red' " + 
-      "USING RELEVANCE MODEL my_model ('thisYear':2001, 'goodYear':(1996)) " +
+      "USING RELEVANCE MODEL my_model ('thisYear':2001, 'goodYear':[1996]) " +
       "  DEFINED AS (int thisYear, IntOpenHashSet goodYear) " +
       "  BEGIN " +
       "    if (goodYear.contains(year)) " +
@@ -1583,7 +1583,7 @@ public class TestBQL extends TestCase
       "SELECT * " +
       "FROM cars " +
       "WHERE color = 'red' " + 
-      "USING RELEVANCE MODEL my_model ('thisYear':2001, 'goodYear':(1996)) " +
+      "USING RELEVANCE MODEL my_model ('thisYear':2001, 'goodYear':[1996]) " +
       "  DEFINED AS (int thisYear, IntOpenHashSet goodYear) " +
       "  BEGIN " +
       "    if (goodYear.contains(year)) " +
@@ -1625,6 +1625,24 @@ public class TestBQL extends TestCase
       );
 
     JSONObject expected = new JSONObject("{\"sort\":\"relevance\",\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"model\":{\"function_params\":[\"boost\",\"price\"],\"facets\":{\"float\":[\"price\"]},\"variables\":{\"float\":[\"boost\"]},\"function\":\"int x, y;     for (int i = 0; i < 10; ++i) {        x = 10;        y = x + i;     }     return y * boost + price;\"},\"values\":{\"boost\":2.5}}}},\"selections\":[{\"term\":{\"color\":{\"value\":\"red\"}}}],\"meta\":{\"select_list\":[\"*\"]}}");
+    assertTrue(_comp.isEquals(json, expected));
+  }
+
+  @Test
+  public void testRelevanceModelMapValue() throws Exception
+  {
+    System.out.println("testRelevanceModelMapValue");
+    System.out.println("==================================================");
+
+    JSONObject json = _compiler.compile(
+      "SELECT * " +
+      "FROM cars " +
+      "WHERE color = 'red' " + 
+      "USING RELEVANCE MODEL my_model ('thisYear':2001, 'myMap':{'aaa':1, 'bbb':2}) " +
+      "ORDER BY relevance"
+      );
+
+    JSONObject expected = new JSONObject("{\"sort\":\"relevance\",\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"predefined_model\":\"my_model\",\"values\":{\"thisYear\":2001,\"myMap\":{\"value\":[1,2],\"key\":[\"aaa\",\"bbb\"]}}}}},\"selections\":[{\"term\":{\"color\":{\"value\":\"red\"}}}],\"meta\":{\"select_list\":[\"*\"]}}");
     assertTrue(_comp.isEquals(json, expected));
   }
 

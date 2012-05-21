@@ -2049,24 +2049,69 @@ null_predicate returns [JSONObject json]
         }
     ;
 
-non_variable_value_list returns [Object json]
+non_variable_value_list returns [JSONArray json]
 @init {
-    JSONArray jsonArray = new JSONArray();
+    $json = new JSONArray();
 }
     :   LPAR v=value
         {
-            jsonArray.put($v.val);
+            $json.put($v.val);
         }
         (COMMA v=value
             {
-                jsonArray.put($v.val);
+                $json.put($v.val);
             }
         )* RPAR
+    ;
+
+python_style_list returns [JSONArray json]
+@init {
+    $json = new JSONArray();
+}
+    :   '[' v=python_style_value
         {
-            $json = jsonArray;
+            $json.put($v.val);
+        }
+        (COMMA v=python_style_value
+            {
+                $json.put($v.val);
+            }
+        )* ']'
+    ;
+
+python_style_dict returns [JSONObject json]
+@init {
+    $json = new JSONObject();
+    JSONArray keys = new JSONArray();
+    JSONArray values = new JSONArray();
+}
+    :   '{' p=key_value_pair
+        {
+            keys.put($p.key);
+            values.put($p.val);
+        }
+        (COMMA p=key_value_pair
+            {
+                keys.put($p.key);
+                values.put($p.val);
+            }
+        )* '}'
+        {
+            try {
+                $json.put("key", keys);
+                $json.put("value", values);
+            }
+            catch (JSONException err) {
+                throw new FailedPredicateException(input, "python_style_dict", "JSONException: " + err.getMessage());
+            }
         }
     ;
 
+python_style_value returns [Object val]
+    :   value { $val = $value.val; }
+    |   python_style_list { $val = $python_style_list.json; }
+    |   python_style_dict { $val = $python_style_dict.json; }
+    ;
 
 value_list returns [Object json]
     :   non_variable_value_list
@@ -2158,7 +2203,7 @@ prop_list returns [JSONObject json]
     ;
 
 key_value_pair returns [String key, Object val]
-    :   STRING_LITERAL COLON (v=value | vs=non_variable_value_list)
+    :   STRING_LITERAL COLON (v=value | vs=python_style_list | vd=python_style_dict)
         {
             String orig = $STRING_LITERAL.text;
             orig = orig.substring(1, orig.length() - 1);
@@ -2166,8 +2211,11 @@ key_value_pair returns [String key, Object val]
             if (v != null) {
                 $val = $v.val;
             }
-            else {
+            else if (vs != null) {
                 $val = $vs.json;
+            }
+            else {
+                $val = $vd.json;
             }
         }
     ;
