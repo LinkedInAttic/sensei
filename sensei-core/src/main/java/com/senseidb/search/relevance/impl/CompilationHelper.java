@@ -89,7 +89,7 @@ import javassist.NotFoundException;
       "values": {
           "c":[1996,1997],
           "e":0.98,
-          "j":{"key":[1,2,3], "value":[2.3, 3.4, 2.9]}      // a user input hashmap;
+          "j":{"1":2.3, "2":3.4, "3":2.9}      // a user input hashmap;
       }
   }
 
@@ -151,10 +151,10 @@ import javassist.NotFoundException;
                   "values":{
                        "goodYear":[1996,1997],
                        "thisYear":2001,
-                       "mileageWeight":{"key":[11400,11000],"value":[777.9, 10.2]},
-                      "yearcolor":{"key":[1998],"value":["red"]},
-                      "colorweight":{"key":["red"],"value":[335.5]},
-                      "categorycolor":{"key":["compact"],"value":["red"]},
+                       "mileageWeight":{"11400":777.9, "11000":10.2},
+                      "yearcolor":{"1998":"red"},
+                      "colorweight":{"red":335.5},
+                      "categorycolor":{"compact":"red"},
                       "coolTag":"cool"
                   }
               }
@@ -667,20 +667,9 @@ public class CompilationHelper
         if (values == null)
           throw new JSONException("Variable "+ symbol + " does not have value.");
 
-        JSONArray keysList = values.optJSONArray("key");
-        JSONArray valuesList = values.optJSONArray("value");
-
-        if (keysList == null)
-          throw new JSONException("Variable " + symbol + " is a map, but does not have a key list.");
-
-        if (valuesList == null)
-          throw new JSONException("Variable " + symbol + "is a map, but does not have a value list.");
+        JSONArray keysList = values.names();
 
         int keySize = keysList.length();
-        int valueSize = valuesList.length();
-
-        if (keySize != valueSize)
-          throw new JSONException("Variable " + symbol + ": key size is different from value size, can not convert to a map." );
 
         Map hm = null;
         switch (typeNum)
@@ -689,70 +678,75 @@ public class CompilationHelper
           hm = new Int2IntOpenHashMap();
           for (int j = 0; j < keySize; j++)
           {
-            ((Int2IntOpenHashMap) hm).put(keysList.getInt(j), valuesList.getInt(j));
+            ((Int2IntOpenHashMap) hm).put(keysList.getInt(j), values.getInt(keysList.getString(j)));
           }
           break;
         case RelevanceJSONConstants.TYPENUMBER_MAP_INT_DOUBLE:
           hm = new Int2DoubleOpenHashMap();
           for (int j = 0; j < keySize; j++)
           {
-            ((Int2DoubleOpenHashMap) hm).put(keysList.getInt(j), valuesList.getDouble(j));
+            ((Int2DoubleOpenHashMap) hm).put(keysList.getInt(j), values.getDouble(keysList.getString(j)));
           }
           break;
         case RelevanceJSONConstants.TYPENUMBER_MAP_INT_FLOAT:
           hm = new Int2FloatOpenHashMap();
           for (int j = 0; j < keySize; j++)
           {
-            ((Int2FloatOpenHashMap) hm).put(keysList.getInt(j), (float) valuesList.getDouble(j));
+            ((Int2FloatOpenHashMap) hm).put(keysList.getInt(j), (float) values.getDouble(keysList.getString(j)));
           }
           break;
         case RelevanceJSONConstants.TYPENUMBER_MAP_INT_LONG:
           hm = new Int2LongOpenHashMap();
           for (int j = 0; j < keySize; j++)
           {
-            ((Int2LongOpenHashMap) hm).put(keysList.getInt(j), Long.parseLong(valuesList.getString(j)));
+            ((Int2LongOpenHashMap) hm).put(keysList.getInt(j), Long.parseLong(values.getString(keysList.getString(j))));
           }
           break;
         case RelevanceJSONConstants.TYPENUMBER_MAP_INT_STRING:
           hm = new Int2ObjectOpenHashMap();
           for (int j = 0; j < keySize; j++)
           {
-            ((Int2ObjectOpenHashMap) hm).put(keysList.getInt(j), valuesList.getString(j));
+            ((Int2ObjectOpenHashMap) hm).put(keysList.getInt(j), values.getString(keysList.getString(j)));
           }
           break;
         case RelevanceJSONConstants.TYPENUMBER_MAP_STRING_INT:
           hm = new Object2IntOpenHashMap();
           for (int j = 0; j < keySize; j++)
           {
-            ((Object2IntOpenHashMap) hm).put(keysList.getString(j), valuesList.getInt(j));
+            String key = keysList.getString(j);
+            ((Object2IntOpenHashMap) hm).put(key, values.getInt(key));
           }
           break;
         case RelevanceJSONConstants.TYPENUMBER_MAP_STRING_DOUBLE:
           hm = new Object2DoubleOpenHashMap();
           for (int j = 0; j < keySize; j++)
           {
-            ((Object2DoubleOpenHashMap) hm).put(keysList.getString(j), valuesList.getDouble(j));
+            String key = keysList.getString(j);
+            ((Object2DoubleOpenHashMap) hm).put(key, values.getDouble(key));
           }
           break;
         case RelevanceJSONConstants.TYPENUMBER_MAP_STRING_FLOAT:
           hm = new Object2FloatOpenHashMap();
           for (int j = 0; j < keySize; j++)
           {
-            ((Object2FloatOpenHashMap) hm).put(keysList.getString(j), (float) valuesList.getDouble(j));
+            String key = keysList.getString(j);
+            ((Object2FloatOpenHashMap) hm).put(key, (float) values.getDouble(key));
           }
           break;
         case RelevanceJSONConstants.TYPENUMBER_MAP_STRING_LONG:
           hm = new Object2LongOpenHashMap();
           for (int j = 0; j < keySize; j++)
           {
-            ((Object2LongOpenHashMap) hm).put(keysList.getString(j), Long.parseLong(valuesList.getString(j)));
+            String key = keysList.getString(j);
+            ((Object2LongOpenHashMap) hm).put(key, Long.parseLong(values.getString(keysList.getString(j))));
           }
           break;
         case RelevanceJSONConstants.TYPENUMBER_MAP_STRING_STRING:
           hm = new Object2ObjectOpenHashMap();
           for (int j = 0; j < keySize; j++)
           {
-            ((Object2ObjectOpenHashMap) hm).put(keysList.getString(j), valuesList.getString(j));
+            String key = keysList.getString(j);
+            ((Object2ObjectOpenHashMap) hm).put(key, values.getString(key));
           }
           break;
         }

@@ -1642,7 +1642,7 @@ public class TestBQL extends TestCase
       "ORDER BY relevance"
       );
 
-    JSONObject expected = new JSONObject("{\"sort\":\"relevance\",\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"predefined_model\":\"my_model\",\"values\":{\"thisYear\":2001,\"myMap\":{\"value\":[1,2],\"key\":[\"aaa\",\"bbb\"]}}}}},\"selections\":[{\"term\":{\"color\":{\"value\":\"red\"}}}],\"meta\":{\"select_list\":[\"*\"]}}");
+    JSONObject expected = new JSONObject("{\"sort\":\"relevance\",\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"predefined_model\":\"my_model\",\"values\":{\"thisYear\":2001,\"myMap\":{\"aaa\":1,\"bbb\":2}}}}},\"selections\":[{\"term\":{\"color\":{\"value\":\"red\"}}}],\"meta\":{\"select_list\":[\"*\"]}}");
     assertTrue(_comp.isEquals(json, expected));
   }
 

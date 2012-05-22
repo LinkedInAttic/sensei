@@ -2082,29 +2082,26 @@ python_style_list returns [JSONArray json]
 python_style_dict returns [JSONObject json]
 @init {
     $json = new JSONObject();
-    JSONArray keys = new JSONArray();
-    JSONArray values = new JSONArray();
 }
     :   '{' p=key_value_pair
         {
-            keys.put($p.key);
-            values.put($p.val);
-        }
-        (COMMA p=key_value_pair
-            {
-                keys.put($p.key);
-                values.put($p.val);
-            }
-        )* '}'
-        {
             try {
-                $json.put("key", keys);
-                $json.put("value", values);
+                $json.put($p.key, $p.val);
             }
             catch (JSONException err) {
                 throw new FailedPredicateException(input, "python_style_dict", "JSONException: " + err.getMessage());
             }
         }
+        (COMMA p=key_value_pair
+            {
+                try {
+                    $json.put($p.key, $p.val);
+                }
+                catch (JSONException err) {
+                    throw new FailedPredicateException(input, "python_style_dict", "JSONException: " + err.getMessage());
+                }
+            }
+        )* '}'
     ;
 
 python_style_value returns [Object val]
