@@ -96,6 +96,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.DataConfiguration;
 import org.apache.commons.lang.StringUtils;
@@ -294,10 +296,19 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
   }
 
   @Override
-  protected String buildResultString(SenseiRequest req, SenseiResult res)
+  protected String buildResultString(HttpServletRequest httpReq, SenseiRequest req, SenseiResult res)
       throws Exception
   {
-    return buildJSONResultString(req, res);
+    return supportJsonp(httpReq, buildJSONResultString(req, res));
+  }
+
+  private String supportJsonp(HttpServletRequest httpReq, String jsonString) {
+    String callback = httpReq.getParameter("callback");
+    if (callback != null) {
+      return callback + "(" + jsonString + ");";
+    } else {
+      return jsonString;
+    }   
   }
 
   public static String buildJSONResultString(SenseiRequest req, SenseiResult res)
@@ -884,7 +895,7 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
   }
 
   @Override
-  protected String buildResultString(SenseiSystemInfo info) throws Exception {
+  protected String buildResultString(HttpServletRequest httpReq, SenseiSystemInfo info) throws Exception {
     JSONObject jsonObj = new JSONObject();
     jsonObj.put(PARAM_SYSINFO_NUMDOCS, info.getNumDocs());
     jsonObj.put(PARAM_SYSINFO_LASTMODIFIED, info.getLastModified());
@@ -924,6 +935,6 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
       }
     }
 
-    return jsonObj.toString();
+    return supportJsonp(httpReq, jsonObj.toString());
   }
 }
