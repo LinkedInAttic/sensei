@@ -647,9 +647,6 @@ public class ResultMerger
 
       PrimitiveLongArrayWrapper primitiveLongArrayWrapperTmp = new PrimitiveLongArrayWrapper(null);
 
-      Object rawGroupValue = null;
-      Object firstRawGroupValue = null;
-
       Iterator<SenseiHit> mergedIter = ListMerger.mergeLists(hitLists, comparator);
 
       List<SenseiHit> hitsList = null;
@@ -666,11 +663,11 @@ public class ResultMerger
 
         if (topHits > 0 && groupAccessibles != null && groupAccessibles.length > 1)
         {
-          hitsList = buildHitsList(req, results, topHits, groupAccessibles, rawGroupValueType, primitiveLongArrayWrapperTmp, rawGroupValue);
+          hitsList = buildHitsList(req, results, topHits, groupAccessibles, rawGroupValueType, primitiveLongArrayWrapperTmp);
         }
         else
         {
-          hitsList = buildHitsListNoGroupAccessibles(req, topHits, rawGroupValueType, primitiveLongArrayWrapperTmp, rawGroupValue, mergedIter, offsetLeft);
+          hitsList = buildHitsListNoGroupAccessibles(req, topHits, rawGroupValueType, primitiveLongArrayWrapperTmp, mergedIter, offsetLeft);
         }
         //for (int i=0; i<combinedFacetAccessibles.length; ++i) combinedFacetAccessibles[i].close();
       }
@@ -756,12 +753,12 @@ public class ResultMerger
                                                                  int topHits,
                                                                  int[] rawGroupValueType,
                                                                  PrimitiveLongArrayWrapper primitiveLongArrayWrapperTmp,
-                                                                 Object rawGroupValue,
                                                                  Iterator<SenseiHit> mergedIter,
                                                                  int offsetLeft) {
     List<SenseiHit> hitsList = new ArrayList<SenseiHit>(req.getCount());
 
-    Object firstRawGroupValue;
+    Object rawGroupValue = null;
+    Object firstRawGroupValue = null;
     Set<Object>[] groupSets = new Set[1];
     groupSets[0] = new HashSet<Object>(topHits);
     while(mergedIter.hasNext())
@@ -775,7 +772,7 @@ public class ResultMerger
         //rawGroupValue = hit.getRawField(req.getGroupBy()[i]);
 
         rawGroupValue = extractRawGroupValue(rawGroupValueType, i,
-            primitiveLongArrayWrapperTmp, rawGroupValue);
+            primitiveLongArrayWrapperTmp, hit);
 
         if (firstRawGroupValue == null) firstRawGroupValue = rawGroupValue;
         if (groupSets[i].contains(rawGroupValue))
@@ -814,12 +811,13 @@ public class ResultMerger
                                                int topHits,
                                                List<FacetAccessible>[] groupAccessibles,
                                                int[] rawGroupValueType,
-                                               PrimitiveLongArrayWrapper primitiveLongArrayWrapperTmp,
-                                               Object rawGroupValue) {
+                                               PrimitiveLongArrayWrapper primitiveLongArrayWrapperTmp) {
     List<SenseiHit> hitsList = new ArrayList<SenseiHit>(req.getCount());
 
     MyScoreDoc pre = null;
-    Object firstRawGroupValue;CombinedFacetAccessible[] combinedFacetAccessibles = new CombinedFacetAccessible[groupAccessibles.length];
+    Object rawGroupValue = null;
+    Object firstRawGroupValue = null;
+    CombinedFacetAccessible[] combinedFacetAccessibles = new CombinedFacetAccessible[groupAccessibles.length];
     for(int i = 0; i < groupAccessibles.length; i++)
     {
       combinedFacetAccessibles[i] = new CombinedFacetAccessible(new FacetSpec(), groupAccessibles[i]);
