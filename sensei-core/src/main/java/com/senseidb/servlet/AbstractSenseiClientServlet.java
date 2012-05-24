@@ -402,7 +402,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
       }
       SenseiResult res = _senseiBroker.browse(senseiReq);
       OutputStream ostream = resp.getOutputStream();
-      convertResult(senseiReq, res, ostream);
+      convertResult(req, senseiReq, res, ostream);
       ostream.flush();
     }
     catch (Exception e)
@@ -480,7 +480,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
     try {
       SenseiSystemInfo res = _senseiSysBroker.browse(new SenseiRequest());
       OutputStream ostream = resp.getOutputStream();
-      convertResult(res, ostream);
+      convertResult(req, res, ostream);
       ostream.flush();
     } catch (Exception e) {
       throw new ServletException(e.getMessage(),e);
@@ -606,9 +606,9 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
     resp.setHeader("Access-Control-Allow-Headers", "Origin, Content-Type, X-Requested-With, Accept");
   }
 
-  protected abstract void convertResult(SenseiSystemInfo info, OutputStream ostream) throws Exception;
+  protected abstract void convertResult(HttpServletRequest httpReq, SenseiSystemInfo info, OutputStream ostream) throws Exception;
 
-  protected abstract void convertResult(SenseiRequest req,SenseiResult res,OutputStream ostream) throws Exception;
+  protected abstract void convertResult(HttpServletRequest httpReq, SenseiRequest req,SenseiResult res,OutputStream ostream) throws Exception;
 
   @Override
   public void destroy() {
