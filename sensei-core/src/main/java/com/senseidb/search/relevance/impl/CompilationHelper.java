@@ -28,6 +28,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.senseidb.search.req.ErrorType;
+
 import javassist.CannotCompileException;
 import javassist.ClassClassPath;
 import javassist.ClassPool;
@@ -413,12 +415,12 @@ public class CompilationHelper
   private static int MAX_NUM_MODELS  = 10000;
   static HashMap<String, CustomMathModel> hmModels = new HashMap<String, CustomMathModel>();
 
-  public static CustomMathModel createCustomMathScorer(JSONObject jsonModel, DataTable dataTable) throws JSONException
+  public static CustomMathModel createCustomMathScorer(JSONObject jsonModel, DataTable dataTable) throws RelevanceException, JSONException
   {
     CustomMathModel cMathModel = null;
 
     if(jsonModel == null)
-      throw new JSONException("No model is specified.");
+      throw new RelevanceException(ErrorType.JsonParsingError, "No json model is specified.");
 
     JSONObject jsonVariables = jsonModel.optJSONObject(RelevanceJSONConstants.KW_VARIABLES);
     JSONObject jsonFacets = jsonModel.optJSONObject(RelevanceJSONConstants.KW_FACETS);
@@ -456,13 +458,13 @@ public class CompilationHelper
         if (symbol.equals(RelevanceJSONConstants.KW_INNER_SCORE) ||
             symbol.equals(RelevanceJSONConstants.KW_NOW))
         {
-          throw new JSONException("Internal variable name, " + symbol + ", is reserved.");
+          throw new RelevanceException(ErrorType.JsonParsingError, "Internal variable name, " + symbol + ", is reserved.");
         }
 
         Integer typeNum = RelevanceJSONConstants.VARIABLE_INFO_MAP.get(type);
         if (typeNum == null)
         {
-          throw new JSONException("Variable type, " + type + ", is not recognized.");
+          throw new RelevanceException(ErrorType.JsonParsingError, "Variable type, " + type + ", is not recognized.");
         }
         dataTable.hm_type.put(symbol, typeNum);
       }
@@ -480,10 +482,10 @@ public class CompilationHelper
     dataTable.hm_type.put(symbolInnerScore, RelevanceJSONConstants.TYPENUMBER_INNER_SCORE);
 
     if(dataTable.funcBody == null || dataTable.funcBody.length()==0)
-      throw new JSONException("No function body found.");
+      throw new RelevanceException(ErrorType.JsonParsingError, "No function body found.");
 
     if(dataTable.funcBody.indexOf("return ")==-1)
-      throw new JSONException("No return statement in the function body.");
+      throw new RelevanceException(ErrorType.JsonParsingError, "No return statement in the function body.");
 
 
     // Check if all the parameters have been defined
@@ -491,13 +493,13 @@ public class CompilationHelper
     {
       String symbol = dataTable.lls_params.get(i);
       if( !dataTable.hm_type.containsKey(symbol))
-        throw new JSONException("function parameter: " + symbol + " was not defined.");
+        throw new RelevanceException(ErrorType.JsonParsingError, "function parameter: " + symbol + " was not defined.");
 
       Integer typeNum = dataTable.hm_type.get(symbol);
       if (typeNum >= RelevanceJSONConstants.TYPENUMBER_FACET_INT && typeNum <= RelevanceJSONConstants.TYPENUMBER_FACET_WM_STRING)
       {
         if( (!dataTable.hm_symbol_facet.containsKey(symbol)) && (!dataTable.hm_symbol_mfacet.containsKey(symbol)))
-          throw new JSONException("function parameter: " + symbol + " was not defined.");
+          throw new RelevanceException(ErrorType.JsonParsingError, "function parameter: " + symbol + " was not defined.");
       }
     }
 
@@ -535,7 +537,7 @@ public class CompilationHelper
         catch (NotFoundException e)
         {
           logger.info(e.getMessage());
-          throw new JSONException(e);
+          throw new RelevanceException(e);
         }
 
         ch.addInterface(ci);
@@ -552,7 +554,7 @@ public class CompilationHelper
         catch (CannotCompileException e)
         {
           logger.info(e.getMessage());
-          throw new JSONException(e);
+          throw new RelevanceException(ErrorType.JsonCompilationError, "Compilation error of json relevance model.", e);
         }
 
         Class h;
@@ -571,7 +573,7 @@ public class CompilationHelper
           else
           {
             logger.info(e.getMessage());
-            throw new JSONException(e);
+            throw new RelevanceException(ErrorType.JsonCompilationError, "Compilation error of json relevance model.", e);
           }
         }
 
@@ -582,12 +584,12 @@ public class CompilationHelper
         catch (InstantiationException e)
         {
           logger.info(e.getMessage());
-          throw new JSONException(e);
+          throw new RelevanceException(ErrorType.JsonCompilationError, "Instantiation exception of relevance object.", e);
         }
         catch (IllegalAccessException e)
         {
           logger.info(e.getMessage());
-          throw new JSONException(e);
+          throw new RelevanceException(ErrorType.JsonCompilationError, "Instantiation exception of relevance object; Illegal access exception", e);
         }
 
         if(hmModels.size() > MAX_NUM_MODELS)

@@ -9,7 +9,9 @@ import com.senseidb.search.relevance.RuntimeRelevanceFunction.RuntimeRelevanceFu
 import com.senseidb.search.relevance.impl.CompilationHelper;
 import com.senseidb.search.relevance.impl.CompilationHelper.DataTable;
 import com.senseidb.search.relevance.impl.CustomMathModel;
+import com.senseidb.search.relevance.impl.RelevanceException;
 import com.senseidb.search.relevance.impl.RelevanceJSONConstants;
+import com.senseidb.search.req.ErrorType;
 
 public class RelevanceFunctionBuilder
 {
@@ -141,22 +143,23 @@ public class RelevanceFunctionBuilder
    * A relevance model factory can be used to generate scorefunction object as many as you want.
    * @param jsonRelevance
    * @return Relevance model Factory
-   * @throws JSONException
+   * @throws RelevanceException this could be a wrapper of JSONException, it may also provide some compilation error message.
    */
-  public static CustomRelevanceFunctionFactory buildModelFactory(JSONObject jsonRelevance) throws JSONException
+  public static CustomRelevanceFunctionFactory buildModelFactoryFromModelJSON(JSONObject modelJson) throws RelevanceException
   {
     // runtime anonymous model;
-    if (jsonRelevance.has(RelevanceJSONConstants.KW_MODEL))
-    {
-      JSONObject modelJson  = jsonRelevance.optJSONObject(RelevanceJSONConstants.KW_MODEL);
+    try{
       DataTable _dt = new DataTable();
       CustomMathModel _cModel = CompilationHelper.createCustomMathScorer(modelJson, _dt);
       RuntimeRelevanceFunction sm = new RuntimeRelevanceFunction(_cModel, _dt); 
       RuntimeRelevanceFunctionFactory rrfFactory = new RuntimeRelevanceFunctionFactory(sm);
       return rrfFactory;
-    }
-    else{
-      throw new IllegalArgumentException("the relevance json is not valid to create a model factory."); 
+    }catch(JSONException e)
+    {
+      if(e instanceof RelevanceException)
+        throw (RelevanceException)e;
+      else
+        throw new RelevanceException(ErrorType.JsonParsingError, "Json format is not correct.", e);
     }
   }
 }
