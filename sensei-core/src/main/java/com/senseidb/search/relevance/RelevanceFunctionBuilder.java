@@ -148,6 +148,10 @@ public class RelevanceFunctionBuilder
    * @param jsonRelevance
    * @return Relevance model Factory
    * @throws RelevanceException this could be a wrapper of JSONException, it may also provide some compilation error message.
+   * Use {@link RelevanceException#getErrorCode()} method to get the error code for this exception. 
+   * If the code is equal to {@link ErrorType#JsonCompilationError}, {@link RelevanceException#getMessage()} will give a basic error message,
+   * while {@link RelevanceException#getCause()} will give the internal error message from JAVASSIST (more useful).
+   * If the error code is equal to {@link ErrorType#JsonParsingError}, then there could be some JSON format mistake there (not compilation error).
    */
   public static CustomRelevanceFunctionFactory buildModelFactoryFromModelJSON(JSONObject modelJson) throws RelevanceException
   {
@@ -161,7 +165,10 @@ public class RelevanceFunctionBuilder
     }catch(JSONException e)
     {
       if(e instanceof RelevanceException)
+      {
+        RelevanceException re = (RelevanceException)e;
         throw (RelevanceException)e;
+      }
       else
         throw new RelevanceException(ErrorType.JsonParsingError, "Json format is not correct.", e);
     }
