@@ -1,5 +1,6 @@
 package com.senseidb.search.relevance;
 
+import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -80,6 +81,8 @@ public class RelevanceFunctionBuilder
         
 **********/
   
+  private static Logger logger = Logger.getLogger(RelevanceFunctionBuilder.class);
+  
   public static ScoreAugmentFunction build(JSONObject jsonRelevance) throws JSONException
   {
     // first handle the predefined case if there is any one existing in the json;
@@ -107,9 +110,11 @@ public class RelevanceFunctionBuilder
     else if (jsonRelevance.has(RelevanceJSONConstants.KW_MODEL))
     {
       JSONObject modelJson  = jsonRelevance.optJSONObject(RelevanceJSONConstants.KW_MODEL);
-      DataTable _dt = new DataTable();
-      CustomMathModel _cModel = CompilationHelper.createCustomMathScorer(modelJson, _dt);
-      RuntimeRelevanceFunction sm = new RuntimeRelevanceFunction(_cModel, _dt); 
+      
+      // build the model factory and one model; 
+      // if the model factory needs to be saved, the factory will be used, otherwise, just return the model object (RuntimeRelevanceFunction);
+      RuntimeRelevanceFunctionFactory rrfFactory = (RuntimeRelevanceFunctionFactory) buildModelFactoryFromModelJSON(modelJson);
+      RuntimeRelevanceFunction sm = (RuntimeRelevanceFunction) rrfFactory.build();
       
       //store the model if specified;
       if(jsonRelevance.has(RelevanceJSONConstants.KW_SAVE_AS))
@@ -127,7 +132,6 @@ public class RelevanceFunctionBuilder
         if((ModelStorage.hasRuntimeModel(newRuntimeName) || ModelStorage.hasPreloadedModel(newRuntimeName)) && (overwrite == false))
           throw new IllegalArgumentException("the runtime model name " + newRuntimeName + " already exists, or you did not ask to overwrite the old model. Set \"overwrite\":true in the json will replace the old model if you want."); 
 
-        RuntimeRelevanceFunctionFactory rrfFactory = new RuntimeRelevanceFunctionFactory(sm);
         ModelStorage.injectRuntimeModel(newRuntimeName, rrfFactory);
       }
       
