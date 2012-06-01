@@ -69,6 +69,14 @@ BNF Grammar for BQL
 
 <non_variable_value_list> ::= '(' <value> ( ',' <value> )* ')'
 
+<python_style_list> ::= '[' <python_style_value> ( ',' <python_style_value> )* ']'
+
+<python_style_dict> ::= '{' <key_value_pair> ( ',' <key_value_pair> )* '}'
+
+<python_style_value> ::= <value>
+                       | <python_style_list>
+                       | <python_style_dict>
+
 <value> ::= <numeric>
           | <quoted_string>
           | TRUE
@@ -83,7 +91,8 @@ BNF Grammar for BQL
 
 <prop_list> ::= '(' <key_value_pair> ( ',' <key_value_pair> )* ')'
 
-<key_value_pair> ::= <quoted_string> ':' ( <value> | <non_variable_value_list> )
+<key_value_pair> ::= <quoted_string> ':' 
+                     ( <value> | <python_style_list> | <python_style_dict> )
 
 <given_clause> ::= GIVEN FACET PARAM <facet_param_list>
 
@@ -146,7 +155,7 @@ BNF Grammar for BQL
 <route_by_clause> ::= ROUTE BY <quoted_string>
 
 <relevance_model_clause> ::= USING RELEVANCE MODEL <identifier> <prop_list>
-                             <relevance_model>
+                             [<relevance_model>]
 
 <relevance_model> ::= DEFINED AS <formal_parameters> BEGIN <model_block> END
 
@@ -154,11 +163,185 @@ BNF Grammar for BQL
 
 <formal_parameter_decls> ::= <formal_parameter_decl> ( ',' <formal_parameter_decl> )*
 
-<formal_parameter_decl> := ...
+<formal_parameter_decl> ::= <variable_modifiers> <type> <variable_declarator_id>
+
+<variable_modifiers> ::= ( <variable_modifier> )*
+
+<variable_modifier> ::= 'final'
+
+<type> ::= <class_or_interface_type> ('[' ']')*
+         | <primitive_type> ('[' ']')*
+         | <boxed_type> ('[' ']')*
+         | <limited_type> ('[' ']')*
+
+<class_or_interface_type> ::= <fast_util_data_type>
+
+<fast_util_data_type> ::= 'IntOpenHashSet'
+                        | 'FloatOpenHashSet'
+                        | 'DoubleOpenHashSet'
+                        | 'LongOpenHashSet'
+                        | 'ObjectOpenHashSet'
+                        | 'Int2IntOpenHashMap'
+                        | 'Int2FloatOpenHashMap'
+                        | 'Int2DoubleOpenHashMap'
+                        | 'Int2LongOpenHashMap'
+                        | 'Int2ObjectOpenHashMap'
+                        | 'Object2IntOpenHashMap'
+                        | 'Object2FloatOpenHashMap'
+                        | 'Object2DoubleOpenHashMap'
+                        | 'Object2LongOpenHashMap'
+                        | 'Object2ObjectOpenHashMap'
+
+<primitive_type> ::= 'boolean' | 'char' | 'byte' | 'short' 
+                   | 'int' | 'long' | 'float' | 'double'
+
+<boxed_type> ::= 'Boolean' | 'Character' | 'Byte' | 'Short' 
+               | 'Integer' | 'Long' | 'Float' | 'Double'
+
+<limited_type> ::= 'String' | 'System' | 'Math'
 
 <model_block> ::= ( <block_statement> )+
 
-<block_statement> ::= ...
+<block_statement> ::= <local_variable_declaration_stmt>
+                    | <java_statement>
+
+<local_variable_declaration_stmt> ::= <local_variable_declaration> ';'
+
+<local_variable_declaration> ::= <variable_modifiers> <type> <variable_declarators>
+
+<java_statement> ::= <block>
+                   | 'if' <par_expression> <java_statement> [ <else_statement> ]
+                   | 'for' '(' <for_control> ')' <java_statement>
+                   | 'while' <par_expression> <java_statement>
+                   | 'do' <java_statement> 'while> <par_expression> ';'
+                   | 'switch' <par_expression> '{' <switch_block_statement_groups> '}'
+                   | 'return' <expression> ';'
+                   | 'break' [<identifier>] ';'
+                   | 'continue' [<identifier>] ';'
+                   | ';'
+                   | <statement_expression> ';'
+
+<block> ::= '{' ( <block_statement> )* '}'
+
+<else_statement> ::= 'else' <java_statement>
+
+<switch_block_statement_groups> ::= ( <switch_block_statement_group> )*
+
+<switch_block_statement_group> ::= ( <switch_label> )+ ( <block_statement> )*
+
+<switch_label> ::= 'case' <constant_expression> ':'
+                 | 'case' <enum_constant_name> ':'
+                 | 'default' ':'
+
+<for_control> ::= <enhanced_for_control>
+                | [<for_init>] ';' [<expression>] ';' [<for_update>]
+
+<for_init> ::= <local_variable_declaration>
+             | <expression_list>
+
+<enhanced_for_control> ::= <variable_modifiers> <type> <identifier> ':' <expression>
+
+<for_update> ::= <expression_list>
+
+<par_expression> ::= '(' <expression> ')'
+
+<expression_list> ::= <expression> ( ',' <expression> )*
+
+<statement_expression> ::= <expression>
+
+<constant_expression> ::= <expression>
+
+<enum_constant_name> ::= <identifier>
+
+<variable_declarators> ::= <variable_declarator> ( ',' <variable_declarator> )*
+
+<variable_declarator> ::= <variable_declarator_id> '=' <variable_initializer>
+
+<variable_declarator_id> ::= <identifier> ('[' ']')*
+
+<variable_initializer> ::= <array_initializer>
+                         | <expression>
+
+<array_initializer> ::= '{' [ <variable_initializer> ( ',' <variable_initializer> )* [','] ] '}'
+
+<expression> ::= <conditional_expression> [ <assignment_operator> <expression> ]
+
+<assignment_operator> ::= '=' | '+=' | '-=' | '*=' | '/=' | '&=' | '|=' | '^=' |
+                        | '%=' | '<<=' | '>>>=' | '>>='
+
+<conditional_expression> ::= <conditional_or_expression> [ '?' <expression> ':' <expression> ]
+
+<conditional_or_expression> ::= <conditional_and_expression> ( '||' <conditional_and_expression> )*
+
+<conditional_and_expression> ::= <inclusive_or_expression> ('&&' <inclusive_or_expression> )*
+
+<inclusive_or_expression> ::= <exclusive_or_expression> ('|' <exclusive_or_expression> )*
+
+<exclusive_or_expression> ::= <and_expression> ('^' <and_expression> )*
+
+<and_expression> ::= <equality_expression> ( '&' <equality_expression> )*
+
+<equality_expression> ::= <instanceof_expression> ( ('==' | '!=') <instanceof_expression> )*
+
+<instanceof_expression> ::= <relational_expression> [ 'instanceof' <type> ]
+
+<relational_expression> ::= <shift_expression> ( <relational_op> <shift_expression> )*
+
+<shift_expression> ::= <additive_expression> ( <shift_op> <additive_expression> )*
+
+<relational_op> ::= '<=' | '>=' | '<' | '>'
+
+<shift_op> ::= '<<' | '>>>' | '>>'
+
+<additive_expression> ::= <multiplicative_expression> ( ('+' | '-') <multiplicative_expression> )*
+
+<multiplicative_expression> ::= <unary_expression> ( ( '*' | '/' | '%' ) <unary_expression> )*
+
+<unary_expression> ::= '+' <unary_expression>
+                     | '-' <unary_expression>
+                     | '++' <unary_expression>
+                     | '--' <unary_expression>
+                     | <unary_expression_not_plus_minus>
+
+<unary_expression_not_plus_minus> ::= '~' <unary_expression>
+                                    | '!' <unary_expression>
+                                    | <cast_expression>
+                                    | <primary> <selector>* [ ('++'|'--') ]
+
+<cast_expression> ::= '(' <primitive_type> ')' <unary_expression>
+                    | '(' (<type> | <expression>) ')' <unary_expression_not_plus_minus>
+
+<primary> ::= <par_expression>
+            | <literal>
+            | <java_ident> ('.' <java_method>)* [<identifier_suffix>]
+
+<java_ident> ::= <boxed_type>
+               | <limited_type>
+               | <identifier>
+
+<java_method> ::= <identifier>
+
+<identifier_suffix> ::= ('[' ']')+ '.' 'class'
+                      | <arguments>
+                      | '.' 'class'
+                      | '.' 'this'
+                      | '.' 'super' <arguments>
+
+<literal> ::= <integer>
+            | <real>
+            | <floating_point_literal>
+            | <character_literal>
+            | <quoted_string>
+            | <boolean_literal>
+            | 'null'
+
+<boolean_literal> ::= 'true' | 'false'
+
+<selector> ::= '.' <identifier> <arguments>
+             | '.' 'this'
+             | '[' <expression> ']'
+
+<arguments> ::= '(' [<expression_list>] ')'
 
 <quoted_string> ::= '"' ( <char> )* '"'
                   | "'" ( <char> )* "'"
