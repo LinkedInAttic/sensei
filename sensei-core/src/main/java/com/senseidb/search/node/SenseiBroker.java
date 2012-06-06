@@ -183,6 +183,8 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
   {
 //    _loadBalancer = _loadBalancerFactory.newLoadBalancer(nodes);
     _partitions = getPartitions(nodes);
+    numberOfNodesInTheCluster.clear();
+    numberOfNodesInTheCluster.inc(getNumberOfNodes());
     logger.info("handleClusterConnected(): Received the list of nodes from norbert " + nodes.toString());
     logger.info("handleClusterConnected(): Received the list of partitions from router " + _partitions.toString());
   }
@@ -196,11 +198,10 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
   public void handleClusterNodesChanged(Set<Node> nodes)
   {
 
-    numberOfNodesInTheCluster.clear();
-    numberOfNodesInTheCluster.inc(getNumberOfNodes());
-
 //    _loadBalancer = _loadBalancerFactory.newLoadBalancer(nodes);
     _partitions = getPartitions(nodes);
+    numberOfNodesInTheCluster.clear();
+    numberOfNodesInTheCluster.inc(getNumberOfNodes());
     logger.info("handleClusterNodesChanged(): Received the list of nodes from norbert " + nodes.toString());
     logger.info("handleClusterNodesChanged(): Received the list of partitions from router " + _partitions.toString());
 
