@@ -1,9 +1,5 @@
 package com.senseidb.conf;
 
-import com.linkedin.norbert.javacompat.network.IntegerConsistentHashPartitionedLoadBalancerFactory;
-import com.linkedin.norbert.javacompat.network.LoadBalancerFactory;
-import com.linkedin.norbert.javacompat.network.PartitionedLoadBalancerFactory;
-import com.senseidb.cluster.routing.SenseiPartitionedLoadBalancerFactory;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 
@@ -13,8 +9,9 @@ import java.io.InputStream;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -68,7 +65,8 @@ import com.linkedin.norbert.javacompat.cluster.ZooKeeperClusterClient;
 import com.linkedin.norbert.javacompat.network.NettyNetworkServer;
 import com.linkedin.norbert.javacompat.network.NetworkServer;
 import com.linkedin.norbert.javacompat.network.NetworkServerConfig;
-import com.senseidb.cluster.routing.MD5HashProvider;
+import com.linkedin.norbert.javacompat.network.PartitionedLoadBalancerFactory;
+import com.senseidb.cluster.routing.SenseiPartitionedLoadBalancerFactory;
 import com.senseidb.gateway.SenseiGateway;
 import com.senseidb.indexing.CustomIndexingPipeline;
 import com.senseidb.indexing.DefaultJsonSchemaInterpreter;
@@ -79,6 +77,7 @@ import com.senseidb.indexing.activity.CompositeActivityManager;
 import com.senseidb.indexing.activity.deletion.PurgeFilterWrapper;
 import com.senseidb.jmx.JmxSenseiMBeanServer;
 import com.senseidb.plugin.SenseiPluginRegistry;
+import com.senseidb.search.node.GCAwareSegmentDisposal;
 import com.senseidb.search.node.SenseiCore;
 import com.senseidb.search.node.SenseiHourglassFactory;
 import com.senseidb.search.node.SenseiIndexReaderDecorator;
@@ -93,8 +92,6 @@ import com.senseidb.search.query.RetentionFilterFactory;
 import com.senseidb.search.query.TimeRetentionFilter;
 import com.senseidb.search.relevance.CustomRelevanceFunction.CustomRelevanceFunctionFactory;
 import com.senseidb.search.relevance.ModelStorage;
-import com.senseidb.search.relevance.RelevanceFunctionBuilder;
-import com.senseidb.search.relevance.CustomRelevanceFunction;
 import com.senseidb.search.req.AbstractSenseiRequest;
 import com.senseidb.search.req.AbstractSenseiResult;
 import com.senseidb.search.req.SenseiSystemInfo;
@@ -210,6 +207,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
     //}
     //senseiApp.setInitParams(initParam);
     senseiApp.setAttribute("sensei.search.configuration", _senseiConf);
+    senseiApp.setAttribute(SenseiConfigServletContextListener.SENSEI_CONF_PLUGIN_REGISTRY, pluginRegistry);
     senseiApp.setAttribute("sensei.search.version.comparator", _gateway.getVersionComparator());
 
     PartitionedLoadBalancerFactory<String> routerFactory = pluginRegistry.getBeanByFullPrefix(SenseiConfParams.SERVER_SEARCH_ROUTER_FACTORY, PartitionedLoadBalancerFactory.class);
@@ -404,7 +402,6 @@ public class SenseiServerBuilder implements SenseiConfParams{
       zoieConfig.setMaxBatchSize(_senseiConf.getInt(SENSEI_INDEX_BATCH_MAXSIZE, ZoieConfig.DEFAULT_MAX_BATCH_SIZE));
       zoieConfig.setRtIndexing(_senseiConf.getBoolean(SENSEI_INDEX_REALTIME, ZoieConfig.DEFAULT_SETTING_REALTIME));
       zoieConfig.setSkipBadRecord(_senseiConf.getBoolean(SENSEI_SKIP_BAD_RECORDS, false));
-      
       int delay = _senseiConf.getInt(SENSEI_INDEX_FRESHNESS,10);
       ReaderCacheFactory readercachefactory;
       if (delay>0){
@@ -558,7 +555,6 @@ public class SenseiServerBuilder implements SenseiConfParams{
       zoieSystemFactory = senseiZoieFactory;
     }
     else if (SENSEI_INDEXER_TYPE_HOURGLASS.equals(indexerType)) {
-
       String schedule = _senseiConf.getString(SENSEI_HOURGLASS_SCHEDULE,"");
       int trimThreshold = _senseiConf.getInt(SENSEI_HOURGLASS_TRIMTHRESHOLD,14);
       String frequencyString = _senseiConf.getString(SENSEI_HOURGLASS_FREQUENCY,"day");
@@ -575,8 +571,13 @@ public class SenseiServerBuilder implements SenseiConfParams{
       }
       else {
         throw new ConfigurationException("unsupported frequency setting: "+frequencyString);      }
+      int delayedGCPerIndexReaderinSeconds = _senseiConf.getInt(SENSEI_HOURGLASS_DELAYED_GC_IN_SECONDS, 0);      
+      GCAwareSegmentDisposal awareSegmentDisposal = null;
+      if (delayedGCPerIndexReaderinSeconds > 0) {
+        awareSegmentDisposal = new GCAwareSegmentDisposal(delayedGCPerIndexReaderinSeconds);
+      }
       zoieSystemFactory = new SenseiHourglassFactory(idxDir,dirMode,interpreter,decorator,
-            zoieConfig,schedule,trimThreshold,frequency, activityManager);
+            zoieConfig,schedule,trimThreshold,frequency, activityManager != null ? Arrays.asList(activityManager) : Collections.EMPTY_LIST, awareSegmentDisposal);
     }  else{
       ZoieFactoryFactory zoieFactoryFactory= pluginRegistry.getBeanByFullPrefix(indexerType, ZoieFactoryFactory.class);
       if (zoieFactoryFactory==null){

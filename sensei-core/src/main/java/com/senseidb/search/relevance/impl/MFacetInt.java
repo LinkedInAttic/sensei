@@ -1,5 +1,7 @@
 package com.senseidb.search.relevance.impl;
 
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+
 import java.util.Set;
 
 import com.browseengine.bobo.facets.data.MultiValueFacetDataCache;
@@ -24,6 +26,16 @@ public class MFacetInt extends MFacet
     throw new UnsupportedOperationException("not implemented yet");
   }
   
+  @Override
+  public boolean containsAny(Object set)
+  {
+    IntOpenHashSet setInt = (IntOpenHashSet)set;
+    for(int i=0; i< this._length; i++)
+      if( setInt.contains(((TermIntList) _mTermList).getPrimitiveValue(_buf[i])) )
+        return true;
+              
+    return false;
+  }
   
   public boolean contains(int target)
   {
@@ -33,4 +45,5 @@ public class MFacetInt extends MFacet
               
     return false;
   }
+
 }
