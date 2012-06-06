@@ -689,7 +689,7 @@ public class TestSensei extends TestCase {
     logger.info("executing test case testRangeFilter3");
     String req = "{\"fetchStored\":true,\"selections\":[{\"term\":{\"color\":{\"value\":\"red\"}}}],\"from\":0,\"filter\":{\"query\":{\"query_string\":{\"query\":\"cool AND moon-roof AND hybrid\"}}},\"size\":10}";
     JSONObject res = search(new JSONObject(req));
-    //TODO Sensei returns undeterministic results for this query. Will create a Jira issue
+    //TODO Sensei returns undeterministic results for this query. Will create a Jira ticket
     assertTrue("numhits is wrong", res.getInt("numhits") > 10);
   }
   public void testFallbackGroupBy() throws Exception

@@ -19,7 +19,7 @@ import com.senseidb.svc.api.SenseiException;
  * @param <RESULT>
  */
 public abstract class AbstractSenseiBroker<REQUEST extends AbstractSenseiRequest, RESULT extends AbstractSenseiResult>
-    implements ClusterListener
+    implements ClusterListener, Broker<REQUEST, RESULT>
 {
   private final static Logger logger = Logger.getLogger(AbstractSenseiBroker.class);
   protected final PartitionedNetworkClient<String> _networkClient;

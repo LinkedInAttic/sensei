@@ -31,9 +31,13 @@ import com.linkedin.norbert.javacompat.cluster.ZooKeeperClusterClient;
 import com.linkedin.norbert.javacompat.network.NetworkClientConfig;
 import com.senseidb.bql.parsers.BQLCompiler;
 import com.senseidb.cluster.client.SenseiNetworkClient;
+import com.senseidb.conf.SenseiConfParams;
 import com.senseidb.conf.SenseiFacetHandlerBuilder;
+import com.senseidb.search.node.Broker;
 import com.senseidb.search.node.SenseiBroker;
 import com.senseidb.search.node.SenseiSysBroker;
+import com.senseidb.search.node.broker.BrokerConfig;
+import com.senseidb.search.node.broker.LayeredBroker;
 import com.senseidb.search.req.ErrorType;
 import com.senseidb.search.req.SenseiError;
 import com.senseidb.search.req.SenseiHit;
@@ -64,6 +68,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
   private SenseiSysBroker _senseiSysBroker = null;
   private Map<String, String[]> _facetInfoMap = new HashMap<String, String[]>();
   private BQLCompiler _compiler = null;
+  private LayeredBroker federatedBroker;
 
   public AbstractSenseiClientServlet() {
 
@@ -72,24 +77,15 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
   @Override
   public void init(ServletConfig config) throws ServletException {
     super.init(config);
-    _networkClientConfig.setServiceName(clusterName);
-    _networkClientConfig.setZooKeeperConnectString(zkurl);
-    _networkClientConfig.setZooKeeperSessionTimeoutMillis(zkTimeout);
-    _networkClientConfig.setConnectTimeoutMillis(connectTimeoutMillis);
-    _networkClientConfig.setWriteTimeoutMillis(writeTimeoutMillis);
-    _networkClientConfig.setMaxConnectionsPerNode(maxConnectionsPerNode);
-    _networkClientConfig.setStaleRequestTimeoutMins(staleRequestTimeoutMins);
-    _networkClientConfig.setStaleRequestCleanupFrequencyMins(staleRequestCleanupFrequencyMins);
-
-    _clusterClient = new ZooKeeperClusterClient(clusterName,zkurl,zkTimeout);
-
-    _networkClientConfig.setClusterClient(_clusterClient);
-
-    _networkClient = new SenseiNetworkClient(_networkClientConfig, loadBalancerFactory);
-    _senseiBroker = new SenseiBroker(_networkClient, _clusterClient, allowPartialMerge);
-    _senseiSysBroker = new SenseiSysBroker(_networkClient, _clusterClient, versionComparator, allowPartialMerge);
-
-    logger.info("Connecting to cluster: "+clusterName+" ...");
+    BrokerConfig brokerConfig = new BrokerConfig(senseiConf, loadBalancerFactory);
+    brokerConfig.init();
+    _senseiBroker = brokerConfig.buildSenseiBroker();
+    _senseiSysBroker = brokerConfig.buildSysSenseiBroker(versionComparator);
+    _networkClient = brokerConfig.getNetworkClient();
+    _clusterClient = brokerConfig.getClusterClient();
+    federatedBroker = pluginRegistry.getBeanByFullPrefix(SenseiConfParams.SENSEI_FEDERATED_BROKER, LayeredBroker.class);
+    federatedBroker.warmUp();
+    logger.info("Connecting to cluster: " + brokerConfig.getClusterName() +" ...");
     _clusterClient.awaitConnectionUninterruptibly();
 
     int count = 0;
@@ -132,7 +128,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
         }
       }
     }
-    logger.info("Cluster: "+clusterName+" successfully connected ");
+    logger.info("Cluster: "+ brokerConfig.getClusterName() +" successfully connected ");
   }
 
   protected abstract SenseiRequest buildSenseiRequest(HttpServletRequest req) throws Exception;
@@ -152,7 +148,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
     return params;
   }
 
-  private void handleSenseiRequest(HttpServletRequest req, HttpServletResponse resp)
+  private void handleSenseiRequest(HttpServletRequest req, HttpServletResponse resp, Broker<SenseiRequest, SenseiResult> broker)
       throws ServletException, IOException {
     SenseiRequest senseiReq = null;
     try
@@ -341,7 +337,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
         }
         senseiReq = SenseiRequest.fromJSON(compiledJson, _facetInfoMap);
       }
-      SenseiResult res = _senseiBroker.browse(senseiReq);
+      SenseiResult res = broker.browse(senseiReq);
       sendResponse(resp, senseiReq, res);
    } catch (JSONException e) {
       try {
@@ -536,7 +532,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
 
     if (null == req.getPathInfo() || "/".equalsIgnoreCase(req.getPathInfo()))
     {
-      handleSenseiRequest(req, resp);
+      handleSenseiRequest(req, resp, _senseiBroker);
     }
     else if ("/get".equalsIgnoreCase(req.getPathInfo()))
     {
@@ -549,10 +545,20 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
     else if (req.getPathInfo().startsWith("/admin/jmx/"))
     {
       handleJMXRequest(req, resp);
+    }else if (req.getPathInfo().startsWith("/federatedBroker/"))
+    {
+      if (federatedBroker == null) {
+        try {
+          writeEmptyResponse(resp, new SenseiError("The federated broker wasn't initialized", ErrorType.FederatedBrokerUnavailable)) ;
+        } catch (Exception e) {
+          throw new RuntimeException(e);
+        }                    
+      }
+      handleSenseiRequest(req, resp, federatedBroker);
     }
     else
     {
-      handleSenseiRequest(req, resp);
+      handleSenseiRequest(req, resp, _senseiBroker);
     }
   }
 

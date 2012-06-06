@@ -17,11 +17,13 @@ public interface SenseiConfParams {
 	public static final String SENSEI_CLUSTER_TIMEOUT = "sensei.cluster.timeout";
 
 	public static final String SENSEI_INDEX_DIR = "sensei.index.directory";
-
+	public static final String SENSEI_FEDERATED_BROKER = "sensei.federated.broker";
+	public static final String SENSEI_FEDERATED_BROKER_PRUNER = "sensei.federated.broker.pruner";
 	public static final String SENSEI_INDEX_BATCH_SIZE = "sensei.index.batchSize";
 	public static final String SENSEI_INDEX_BATCH_DELAY = "sensei.index.batchDelay";
 	public static final String SENSEI_INDEX_BATCH_MAXSIZE = "sensei.index.maxBatchSize";
 	public static final String SENSEI_INDEX_REALTIME = "sensei.index.realtime";
+	
 	public static final String SENSEI_INDEX_FRESHNESS = "sensei.index.freshness";
 	public static final String SENSEI_SKIP_BAD_RECORDS = "sensei.index.skipBadRecords";
 
@@ -52,6 +54,7 @@ public interface SenseiConfParams {
 	public static final String SENSEI_HOURGLASS_SCHEDULE = "sensei.indexer.hourglass.schedule";
 	public static final String SENSEI_HOURGLASS_TRIMTHRESHOLD = "sensei.indexer.hourglass.trimthreshold";
 	public static final String SENSEI_HOURGLASS_FREQUENCY = "sensei.indexer.hourglass.frequency";
+	public static final String SENSEI_HOURGLASS_DELAYED_GC_IN_SECONDS = "sensei.index.hourglass.DelayedGCPerIndexReaderInSeconds";
 	public static final String SENSEI_HOURGLASS_FREQUENCY_MIN = "minute";
 	public static final String SENSEI_HOURGLASS_FREQUENCY_HOUR = "hour";
 	public static final String SENSEI_HOURGLASS_FREQUENCY_DAY = "day";
