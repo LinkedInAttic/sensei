@@ -84,7 +84,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
     _networkClient = brokerConfig.getNetworkClient();
     _clusterClient = brokerConfig.getClusterClient();
     federatedBroker = pluginRegistry.getBeanByFullPrefix(SenseiConfParams.SENSEI_FEDERATED_BROKER, LayeredBroker.class);
-    if (federatedBroker != null) {
+    if (federatedBroker != null) { 
       federatedBroker.warmUp();
     }
     logger.info("Connecting to cluster: " + brokerConfig.getClusterName() +" ...");
