@@ -35,27 +35,42 @@ public class FacetCountAccessor {
     }
     
    
-    public Integer getFacetCount(String facetName, Object value) {
+    /**
+     * @param facetName
+     * @param value
+     * @return facet count or -1 if facet doesn't exist or facet value can not be found
+     */
+    public int getFacetCount(String facetName, Object value) {
       if (!facetCountCollectors.containsKey(facetName)) {
-        return null;
+        return -1;
       }
       return facetCountCollectors.get(facetName).getFacetHitsCount(value);
     }
-    public Integer getFacetCount(String facetName, String value) {
+    /**
+     * @param facetName
+     * @param value
+     * @return facet count or -1 if facet doesn't exist or facet value can not be found
+     */
+    public int getFacetCount(String facetName, String value) {
       if (!facetCountCollectors.containsKey(facetName)) {
-        return null;
+        return -1;
       }
       return facetCountCollectors.get(facetName).getFacet(value).getFacetValueHitCount();
     }
-    public Integer getFacetCount(String facetName, int valIndex) {
+    /**
+     * @param facetName
+     * @param valIndex
+     * @return facet count or -1 if facet doesn't exist or facet value can not be found
+     */
+    public int  getFacetCount(String facetName, int valIndex) {
       if (!facetCountCollectors.containsKey(facetName)) {
-        return null;
+        return -1;
       }
       return facetCountCollectors.get(facetName).getCountDistribution()[valIndex];
     }
     /**Returns the Bobo specific class that is responsible for facet counting
      * @param facetName
-     * @return
+     * @return 
      */
     public FacetCountCollector getFacetCollector(String facetName) {      
       return facetCountCollectors.get(facetName);
