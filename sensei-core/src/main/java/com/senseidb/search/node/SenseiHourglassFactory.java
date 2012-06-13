@@ -28,8 +28,7 @@ public class SenseiHourglassFactory<T> extends SenseiZoieFactory<T>
   private final HourGlassScheduler.FREQUENCY frequency;
 
   private final List<HourglassListener> hourglassListeners;
-
-  private final GCAwareSegmentDisposal awareSegmentDisposal;
+  
   
   /**
    * @param idxDir the root directory for Hourglass
@@ -49,14 +48,13 @@ public class SenseiHourglassFactory<T> extends SenseiZoieFactory<T>
                                  ZoieConfig zoieConfig,
                                  String schedule,
                                  int trimThreshold,
-                                 FREQUENCY frequency, List<HourglassListener> hourglassListeners, GCAwareSegmentDisposal awareSegmentDisposal)
+                                 FREQUENCY frequency, List<HourglassListener> hourglassListeners)
   {
     super(idxDir,dirMode,interpreter,indexReaderDecorator,zoieConfig);
     this.schedule = schedule;
     this.trimThreshold = trimThreshold;
     this.frequency = frequency;
     this.hourglassListeners = hourglassListeners;
-    this.awareSegmentDisposal = awareSegmentDisposal;
     log.info("creating " + this.getClass().getName() + " with schedule: " + schedule
         + " frequency: " + frequency
         + " trimThreshold: " + trimThreshold);
@@ -76,7 +74,7 @@ public class SenseiHourglassFactory<T> extends SenseiZoieFactory<T>
     HourGlassScheduler scheduler = new HourGlassScheduler(frequency, schedule, trimThreshold);
     HourglassDirectoryManagerFactory dirmgr = new HourglassDirectoryManagerFactory(partDir, scheduler,_dirMode);
     log.info("creating Hourglass for nodeId: " + nodeId + " partition: " + partitionId);
-    return new Hourglass<BoboIndexReader,T>(dirmgr, _interpreter, _indexReaderDecorator, _zoieConfig, hourglassListeners, awareSegmentDisposal);
+    return new Hourglass<BoboIndexReader,T>(dirmgr, _interpreter, _indexReaderDecorator, _zoieConfig, hourglassListeners);
   }
   
   // TODO: change to getDirectoryManager

@@ -5,6 +5,7 @@ import java.util.Map;
 import org.json.JSONObject;
 
 import com.senseidb.conf.SenseiSchema;
+import com.senseidb.indexing.ShardingStrategy;
 import com.senseidb.plugin.SenseiPlugin;
 import com.senseidb.plugin.SenseiPluginRegistry;
 import com.senseidb.util.Pair;
@@ -18,7 +19,7 @@ public abstract class BaseActivityFilter implements SenseiPlugin {
     this.config = config;    
     this.pluginRegistry = pluginRegistry;    
   } 
-  public  abstract ActivityFilteredResult filter(JSONObject event, SenseiSchema senseiSchema);
+  public  abstract ActivityFilteredResult filter(JSONObject event, SenseiSchema senseiSchema, ShardingStrategy shardingStrategy);
   
   public static class ActivityFilteredResult {
     private JSONObject filteredObject;    
