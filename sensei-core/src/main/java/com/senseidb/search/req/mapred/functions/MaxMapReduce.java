@@ -9,6 +9,7 @@ import org.json.JSONObject;
 import scala.actors.threadpool.Arrays;
 
 import com.senseidb.search.req.mapred.CombinerStage;
+import com.senseidb.search.req.mapred.FacetCountAccessor;
 import com.senseidb.search.req.mapred.FieldAccessor;
 import com.senseidb.search.req.mapred.SenseiMapReduce;
 
@@ -17,7 +18,7 @@ public class MaxMapReduce implements SenseiMapReduce<MaxResult, MaxResult> {
   private String column;
 
   @Override
-  public MaxResult map(int[] docIds, int docIdCount, long[] uids, FieldAccessor accessor) {
+  public MaxResult map(int[] docIds, int docIdCount, long[] uids, FieldAccessor accessor, FacetCountAccessor facetCountAccessor) {
     double max = Double.MIN_VALUE;
     double tmp = 0;
     long uid = 0l;

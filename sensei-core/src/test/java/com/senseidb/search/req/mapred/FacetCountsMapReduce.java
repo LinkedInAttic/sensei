@@ -4,46 +4,36 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 
-import org.jboss.netty.util.internal.ConcurrentHashMap;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-@SuppressWarnings("unchecked")
-public class CountGroupByMapReduce implements SenseiMapReduce<HashMap<String, IntContainer>, ArrayList<GroupedValue>> {
+import com.browseengine.bobo.facets.data.TermValueList;
+
+public class FacetCountsMapReduce implements SenseiMapReduce<HashMap<String, IntContainer>, ArrayList<GroupedValue>> {
   private static final long serialVersionUID = 1L;  
-  private String[] columns;
+  private String column;
   
   public void init(JSONObject params) {
     try {
-      JSONArray columnsJson = params.getJSONArray("columns");
-      columns = new String[columnsJson.length()];
-      for (int i = 0; i < columnsJson.length(); i++) {
-        columns[i] = columnsJson.getString(i);
-      }
+       column = params.getString("column");     
     } catch (JSONException ex) {
       throw new RuntimeException(ex);
     }
   }
   public HashMap<String, IntContainer> map(int[] docIds, int docIdCount, long[] uids, FieldAccessor accessor, FacetCountAccessor facetCountAccessor) {
-    HashMap<String, IntContainer> ret = new HashMap<String, IntContainer>();
-    int duplicatedUids = 0;
-    for (int i = 0; i < docIdCount; i++) {     
-      String key = getKey(columns, accessor, docIds[i]);
-      IntContainer count = ret.get(key);     
-     
-      if (!ret.containsKey(key)) {
-        ret.put(key, new IntContainer(1));
-      } else {
-        count.add(1);
-      }
-    }  
-    
+    if (!facetCountAccessor.areFacetCountsPresent()) {
+      return null;
+    }
+    int[] countDistribution = facetCountAccessor.getFacetCollector(column).getCountDistribution();
+    TermValueList termValueList = accessor.getTermValueList(column);
+    HashMap<String, IntContainer> ret = new HashMap<String, IntContainer>(countDistribution.length);
+    for (int i = 0; i < countDistribution.length; i++) {
+      ret.put(termValueList.get(i), new IntContainer(countDistribution[i]));
+    }
     return ret;
   }
  
@@ -63,6 +53,9 @@ public class CountGroupByMapReduce implements SenseiMapReduce<HashMap<String, In
     HashMap<String, IntContainer> ret = new HashMap<String, IntContainer>();
     for (int i = 0; i < mapResults.size(); i++) {
       Map<String, IntContainer> map = mapResults.get(i);
+      if (map == null) {
+        continue;
+      }
       for (String key : map.keySet()) {
         IntContainer count = ret.get(key);
         if (count != null) {
@@ -100,32 +93,30 @@ public class CountGroupByMapReduce implements SenseiMapReduce<HashMap<String, In
 
   public JSONObject render(ArrayList<GroupedValue> reduceResult) {
     try {
-      List<JSONObject> ret = new ArrayList<JSONObject>();
+      JSONObject ret = new JSONObject();
       for (GroupedValue grouped : reduceResult) {
-        ret.add(new JSONObject().put(grouped.key, grouped.value));
+        ret.put(grouped.key, grouped.value);
       }
-      return new JSONObject().put("groupedCounts", new JSONArray(ret));
+      return new JSONObject().put("facetCounts", ret);
     } catch (JSONException ex) {
       throw new RuntimeException(ex);
     }
   }
-
 }
- class GroupedValue implements Comparable {
-   String key;
-   int value;
 
-   public GroupedValue(String key, int value) {
-     super();
-     this.key = key;
-     this.value = value;
-   }
-   @Override
-   public int compareTo(Object o) {
-     return ((GroupedValue) o).value - value;
-   }
-   @Override
-   public String toString() {
-     return key + ", count=" + value;
-   }
- }
+ class IntContainer implements Serializable {
+  public int value;
+
+  public IntContainer(int value) {
+    super();
+    this.value = value;
+  }
+
+  public IntContainer add(int value) {
+    this.value += value;
+    return this;
+  }
+}
+ 
+
+

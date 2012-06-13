@@ -54,7 +54,6 @@ public interface SenseiConfParams {
 	public static final String SENSEI_HOURGLASS_SCHEDULE = "sensei.indexer.hourglass.schedule";
 	public static final String SENSEI_HOURGLASS_TRIMTHRESHOLD = "sensei.indexer.hourglass.trimthreshold";
 	public static final String SENSEI_HOURGLASS_FREQUENCY = "sensei.indexer.hourglass.frequency";
-	public static final String SENSEI_HOURGLASS_DELAYED_GC_IN_SECONDS = "sensei.index.hourglass.DelayedGCPerIndexReaderInSeconds";
 	public static final String SENSEI_HOURGLASS_FREQUENCY_MIN = "minute";
 	public static final String SENSEI_HOURGLASS_FREQUENCY_HOUR = "hour";
 	public static final String SENSEI_HOURGLASS_FREQUENCY_DAY = "day";

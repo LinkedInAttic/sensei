@@ -23,6 +23,7 @@ import com.senseidb.conf.SenseiConfParams;
 import com.senseidb.conf.SenseiSchema;
 import com.senseidb.conf.SenseiSchema.FacetDefinition;
 import com.senseidb.conf.SenseiSchema.FieldDefinition;
+import com.senseidb.indexing.ShardingStrategy;
 import com.senseidb.indexing.activity.BaseActivityFilter.ActivityFilteredResult;
 import com.senseidb.indexing.activity.deletion.DeletionListener;
 import com.senseidb.plugin.SenseiPluginRegistry;
@@ -38,14 +39,16 @@ public class CompositeActivityManager implements DeletionListener, HourglassList
     protected CompositeActivityValues activityValues;
     private SenseiSchema senseiSchema;
     public static final String EVENT_TYPE_ONLY_ACTIVITY = "activity-update";
-    private BaseActivityFilter activityFilter; 
+    private BaseActivityFilter activityFilter;
+    private ShardingStrategy shardingStrategy; 
     
     
     public CompositeActivityManager() {
       
     }
 
-    public CompositeActivityManager(String indexDirectory, int nodeId, SenseiSchema senseiSchema, Comparator<String> versionComparator, SenseiPluginRegistry pluginRegistry) {
+    public CompositeActivityManager(String indexDirectory, int nodeId, SenseiSchema senseiSchema, Comparator<String> versionComparator, SenseiPluginRegistry pluginRegistry, ShardingStrategy strategy) {
+      this.shardingStrategy = strategy;
       this.init(indexDirectory, nodeId, senseiSchema, versionComparator, pluginRegistry);
     }
     
@@ -116,7 +119,7 @@ public class CompositeActivityManager implements DeletionListener, HourglassList
           activityValues.delete(defaultUid);
           return event;
         } 
-        ActivityFilteredResult activityFilteredResult = activityFilter.filter(event, senseiSchema);
+        ActivityFilteredResult activityFilteredResult = activityFilter.filter(event, senseiSchema, shardingStrategy);
         for (long uid : activityFilteredResult.getActivityValues().keySet()) {
           activityValues.update(uid, version, activityFilteredResult.getActivityValues().get(uid));
         }

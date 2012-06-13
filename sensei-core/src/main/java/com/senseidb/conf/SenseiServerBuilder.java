@@ -77,7 +77,6 @@ import com.senseidb.indexing.activity.CompositeActivityManager;
 import com.senseidb.indexing.activity.deletion.PurgeFilterWrapper;
 import com.senseidb.jmx.JmxSenseiMBeanServer;
 import com.senseidb.plugin.SenseiPluginRegistry;
-import com.senseidb.search.node.GCAwareSegmentDisposal;
 import com.senseidb.search.node.SenseiCore;
 import com.senseidb.search.node.SenseiHourglassFactory;
 import com.senseidb.search.node.SenseiIndexReaderDecorator;
@@ -412,9 +411,13 @@ public class SenseiServerBuilder implements SenseiConfParams{
         readercachefactory = SimpleReaderCache.FACTORY;
       }
       zoieConfig.setReadercachefactory(readercachefactory);
+      ShardingStrategy strategy = pluginRegistry.getBeanByFullPrefix(SENSEI_SHARDING_STRATEGY, ShardingStrategy.class);
+      if (strategy == null){
+        strategy = new ShardingStrategy.FieldModShardingStrategy(_senseiSchema.getUidField());
+      }
       if (CompositeActivityManager.activitiesPresent(_senseiSchema)) {
         try {
-          activityManager = new CompositeActivityManager( _senseiConf.getString(SENSEI_INDEX_DIR), nodeid, _senseiSchema, zoieConfig.getVersionComparator(), pluginRegistry);      
+          activityManager = new CompositeActivityManager( _senseiConf.getString(SENSEI_INDEX_DIR), nodeid, _senseiSchema, zoieConfig.getVersionComparator(), pluginRegistry, strategy);      
         } catch (Exception ex) {
         	throw new ConfigurationException("Couldn't init the activity manager",ex);
         }
@@ -476,10 +479,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
     SenseiZoieFactory<?> zoieSystemFactory = constructZoieFactory(zoieConfig, facetHandlers, runtimeFacetHandlerFactories, interpreter);
     SenseiIndexingManager<?> indexingManager = pluginRegistry.getBeanByFullPrefix(SENSEI_INDEX_MANAGER, SenseiIndexingManager.class);
 
-    ShardingStrategy strategy = pluginRegistry.getBeanByFullPrefix(SENSEI_SHARDING_STRATEGY, ShardingStrategy.class);
-    if (strategy == null){
-      strategy = new ShardingStrategy.FieldModShardingStrategy(_senseiSchema.getUidField());
-    }
+    
       if (indexingManager == null){
         indexingManager = new DefaultStreamingIndexingManager(_senseiSchema,_senseiConf, pluginRegistry, _gateway,strategy, activityManager);
       }
@@ -526,8 +526,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
     }
 
     if (SENSEI_INDEXER_TYPE_ZOIE.equals(indexerType)){
-      SenseiZoieSystemFactory senseiZoieFactory = new SenseiZoieSystemFactory(idxDir,dirMode,interpreter,decorator, zoieConfig);     
-
+      SenseiZoieSystemFactory senseiZoieFactory = new SenseiZoieSystemFactory(idxDir,dirMode,interpreter,decorator, zoieConfig);
       int retentionDays = _senseiConf.getInt(SENSEI_ZOIE_RETENTION_DAYS,-1);
       if (retentionDays>0){
         RetentionFilterFactory retentionFilterFactory = pluginRegistry.getBeanByFullPrefix(SENSEI_ZOIE_RETENTION_CLASS, RetentionFilterFactory.class);
@@ -571,13 +570,8 @@ public class SenseiServerBuilder implements SenseiConfParams{
       }
       else {
         throw new ConfigurationException("unsupported frequency setting: "+frequencyString);      }
-      int delayedGCPerIndexReaderinSeconds = _senseiConf.getInt(SENSEI_HOURGLASS_DELAYED_GC_IN_SECONDS, 0);      
-      GCAwareSegmentDisposal awareSegmentDisposal = null;
-      if (delayedGCPerIndexReaderinSeconds > 0) {
-        awareSegmentDisposal = new GCAwareSegmentDisposal(delayedGCPerIndexReaderinSeconds);
-      }
       zoieSystemFactory = new SenseiHourglassFactory(idxDir,dirMode,interpreter,decorator,
-            zoieConfig,schedule,trimThreshold,frequency, activityManager != null ? Arrays.asList(activityManager) : Collections.EMPTY_LIST, awareSegmentDisposal);
+            zoieConfig,schedule,trimThreshold,frequency, activityManager != null ? Arrays.asList(activityManager) : Collections.EMPTY_LIST);
     }  else{
       ZoieFactoryFactory zoieFactoryFactory= pluginRegistry.getBeanByFullPrefix(indexerType, ZoieFactoryFactory.class);
       if (zoieFactoryFactory==null){
