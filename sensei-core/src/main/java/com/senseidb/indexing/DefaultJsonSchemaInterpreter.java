@@ -30,6 +30,7 @@ import proj.zoie.api.indexing.ZoieIndexable;
 
 import com.senseidb.conf.SenseiSchema;
 import com.senseidb.conf.SenseiSchema.FieldDefinition;
+import com.senseidb.search.plugin.PluggableSearchEngineManager;
 
 public class DefaultJsonSchemaInterpreter extends
     AbstractZoieIndexableInterpreter<JSONObject> {
@@ -51,9 +52,17 @@ public class DefaultJsonSchemaInterpreter extends
   private static Charset UTF8 = Charset.forName("UTF-8");
   
   private CustomIndexingPipeline _customIndexingPipeline = null;
+
+
+  private final PluggableSearchEngineManager pluggableSearchEngineManager;
+
+
+  private Set<String> nonLuceneFields;
   
-  public DefaultJsonSchemaInterpreter(SenseiSchema schema) throws ConfigurationException{
+  public DefaultJsonSchemaInterpreter(SenseiSchema schema, PluggableSearchEngineManager pluggableSearchEngineManager) throws ConfigurationException{
      _schema = schema;
+    this.pluggableSearchEngineManager = pluggableSearchEngineManager;
+    nonLuceneFields = pluggableSearchEngineManager.getFieldNames();
      entries = _schema.getFieldDefMap().entrySet();
      _uidField = _schema.getUidField();
      _delField = _schema.getDeleteField();
@@ -230,6 +239,9 @@ public class DefaultJsonSchemaInterpreter extends
           String name = entry.getKey();
           try{
             final FieldDefinition fldDef = entry.getValue();
+            if (nonLuceneFields.contains(entry.getKey())) {
+              continue;
+            }
             if (fldDef.isMeta){
             JsonValExtractor extractor = ExtractorMap.get(fldDef.type);
             if (extractor==null){

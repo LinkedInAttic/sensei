@@ -87,6 +87,7 @@ import com.senseidb.search.node.SenseiServer;
 import com.senseidb.search.node.SenseiZoieFactory;
 import com.senseidb.search.node.SenseiZoieSystemFactory;
 import com.senseidb.search.node.impl.DefaultJsonQueryBuilderFactory;
+import com.senseidb.search.plugin.PluggableSearchEngineManager;
 import com.senseidb.search.query.RetentionFilterFactory;
 import com.senseidb.search.query.TimeRetentionFilter;
 import com.senseidb.search.relevance.CustomRelevanceFunction.CustomRelevanceFunctionFactory;
@@ -117,7 +118,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
   private final JSONObject _schemaDoc;
   private final SenseiSchema  _senseiSchema;
   private final SenseiGateway _gateway;
-  private CompositeActivityManager activityManager;
+  private PluggableSearchEngineManager pluggableSearchEngineManager;
 
   static final String SENSEI_CONTEXT_PATH = "sensei";
 
@@ -415,13 +416,10 @@ public class SenseiServerBuilder implements SenseiConfParams{
       if (strategy == null){
         strategy = new ShardingStrategy.FieldModShardingStrategy(_senseiSchema.getUidField());
       }
-      if (CompositeActivityManager.activitiesPresent(_senseiSchema)) {
-        try {
-          activityManager = new CompositeActivityManager( _senseiConf.getString(SENSEI_INDEX_DIR), nodeid, _senseiSchema, zoieConfig.getVersionComparator(), pluginRegistry, strategy);      
-        } catch (Exception ex) {
-        	throw new ConfigurationException("Couldn't init the activity manager",ex);
-        }
-      }
+     
+      pluggableSearchEngineManager = new PluggableSearchEngineManager();
+      pluggableSearchEngineManager.init( _senseiConf.getString(SENSEI_INDEX_DIR), nodeid, _senseiSchema, zoieConfig.getVersionComparator(), pluginRegistry, strategy);      
+      
       List<FacetHandler<?>> facetHandlers = new LinkedList<FacetHandler<?>>();
       List<RuntimeFacetHandlerFactory<?,?>> runtimeFacetHandlerFactories = new LinkedList<RuntimeFacetHandlerFactory<?,?>>();
 
@@ -430,7 +428,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
     SenseiSystemInfo sysInfo = null;
 
       try {
-        sysInfo = SenseiFacetHandlerBuilder.buildFacets(_schemaDoc, pluginRegistry, facetHandlers, runtimeFacetHandlerFactories, activityManager);
+        sysInfo = SenseiFacetHandlerBuilder.buildFacets(_schemaDoc, pluginRegistry, facetHandlers, runtimeFacetHandlerFactories, pluggableSearchEngineManager);
       }
       catch(JSONException jse){
         throw new ConfigurationException(jse.getMessage(),jse);
@@ -464,7 +462,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
     }
     ZoieIndexableInterpreter interpreter =  pluginRegistry.getBeanByFullPrefix(SENSEI_INDEX_INTERPRETER, ZoieIndexableInterpreter.class);
     if (interpreter == null) {
-      DefaultJsonSchemaInterpreter defaultInterpreter = new DefaultJsonSchemaInterpreter(_senseiSchema);
+      DefaultJsonSchemaInterpreter defaultInterpreter = new DefaultJsonSchemaInterpreter(_senseiSchema, pluggableSearchEngineManager);
       interpreter = defaultInterpreter;
       CustomIndexingPipeline customIndexingPipeline = pluginRegistry.getBeanByFullPrefix(SENSEI_INDEX_CUSTOM, CustomIndexingPipeline.class);
       if (customIndexingPipeline != null){
@@ -481,7 +479,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
 
     
       if (indexingManager == null){
-        indexingManager = new DefaultStreamingIndexingManager(_senseiSchema,_senseiConf, pluginRegistry, _gateway,strategy, activityManager);
+        indexingManager = new DefaultStreamingIndexingManager(_senseiSchema,_senseiConf, pluginRegistry, _gateway,strategy, pluggableSearchEngineManager);
       }
       SenseiQueryBuilderFactory queryBuilderFactory = pluginRegistry.getBeanByFullPrefix(SENSEI_QUERY_BUILDER_FACTORY, SenseiQueryBuilderFactory.class);
       if (queryBuilderFactory == null){
@@ -494,8 +492,9 @@ public class SenseiServerBuilder implements SenseiConfParams{
     if (indexPruner != null){
       senseiCore.setIndexPruner(indexPruner);
     }
-    if (activityManager != null) {
-      senseiCore.setActivityManager(activityManager);
+    if (pluggableSearchEngineManager != null) {
+      senseiCore.setPluggableSearchEngineManager(pluggableSearchEngineManager);
+      pluggableSearchEngineManager.setSenseiCore(senseiCore);
     }
     return senseiCore;
   }
@@ -546,8 +545,8 @@ public class SenseiServerBuilder implements SenseiConfParams{
           }
           purgeFilter = new TimeRetentionFilter(timeColumn, retentionDays, unit);
         }
-        if (purgeFilter != null && activityManager != null) {
-          purgeFilter = new PurgeFilterWrapper(purgeFilter, activityManager);
+        if (purgeFilter != null && pluggableSearchEngineManager != null) {
+          purgeFilter = new PurgeFilterWrapper(purgeFilter, pluggableSearchEngineManager);
         }
         senseiZoieFactory.setPurgeFilter(purgeFilter);
       }
@@ -571,7 +570,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
       else {
         throw new ConfigurationException("unsupported frequency setting: "+frequencyString);      }
       zoieSystemFactory = new SenseiHourglassFactory(idxDir,dirMode,interpreter,decorator,
-            zoieConfig,schedule,trimThreshold,frequency, activityManager != null ? Arrays.asList(activityManager) : Collections.EMPTY_LIST);
+            zoieConfig,schedule,trimThreshold,frequency, pluggableSearchEngineManager != null ? Arrays.asList(pluggableSearchEngineManager) : Collections.EMPTY_LIST);
     }  else{
       ZoieFactoryFactory zoieFactoryFactory= pluginRegistry.getBeanByFullPrefix(indexerType, ZoieFactoryFactory.class);
       if (zoieFactoryFactory==null){

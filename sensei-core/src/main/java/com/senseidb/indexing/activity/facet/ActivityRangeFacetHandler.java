@@ -106,17 +106,18 @@ public class ActivityRangeFacetHandler extends FacetHandler<int[]> {
   
   @Override
   public Object[] getRawFieldValues(BoboIndexReader reader, int id) {    
-    final int[] indexes = (int[]) ((BoboIndexReader)reader).getFacetData(_name);  
+    final int[] indexes = (int[]) ((BoboIndexReader)reader).getFacetData(_name);
     return indexes[id] != -1 ? new Object[] {activityIntValues.getValue(indexes[id])} : EMPTY_OBJ_ARR;
   }
   @Override
   public String[] getFieldValues(BoboIndexReader reader, int id) {   
     final int[] indexes = (int[]) ((BoboIndexReader)reader).getFacetData(_name); 
-      int value = activityIntValues.getValue(indexes[id]);
+    if ( indexes[id] == -1) return EMPTY_STRING_ARR;
+    int value = activityIntValues.getValue(indexes[id]);
     if (value == Integer.MIN_VALUE) {
       return EMPTY_STRING_ARR;
     }
-    return indexes[id] != -1 ? new String[] {formatter.get().format(value)} : EMPTY_STRING_ARR;
+    return new String[] {formatter.get().format(value)} ;
   }
 
   @Override
@@ -126,12 +127,11 @@ public class ActivityRangeFacetHandler extends FacetHandler<int[]> {
       @Override
       public DocComparator getComparator(IndexReader reader, int docbase)
           throws IOException {
-        final int[] indexes = (int[]) ((BoboIndexReader) reader)
-            .getFacetData(_name);
+        final int[] indexes = (int[]) ((BoboIndexReader) reader).getFacetData(_name);
         return new DocComparator() {
           @Override
           public Comparable<Integer> value(ScoreDoc doc) {           
-              return array[indexes[doc.doc]];           
+              return indexes[doc.doc] != -1 ? array[indexes[doc.doc]] : 0;           
           }
 
           @Override
