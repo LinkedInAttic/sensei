@@ -11,13 +11,17 @@ import org.json.JSONObject;
 import com.senseidb.conf.SenseiSchema;
 import com.senseidb.conf.SenseiSchema.FieldDefinition;
 import com.senseidb.indexing.ShardingStrategy;
+import com.senseidb.search.node.SenseiCore;
 
 public class DefaultActivityFilter extends BaseActivityFilter {
 
   private volatile HashSet<String> cachedActivities;
-
+@Override
+public boolean acceptEventsForAllPartitions() {
+  return true;
+}
   @Override
-  public ActivityFilteredResult filter(JSONObject event, SenseiSchema senseiSchema, ShardingStrategy shardingStrategy) {
+  public ActivityFilteredResult filter(JSONObject event, SenseiSchema senseiSchema, ShardingStrategy shardingStrategy, SenseiCore senseiCore) {
     Map<Long, Map<String, Object>> columnValues= new HashMap<Long, Map<String, Object>>();
     Map<String, Object> innerMap = new  HashMap<String, Object>();
     long uid;
