@@ -221,7 +221,9 @@ public class CompositeActivityManager implements PluggableSearchEngine {
   public Set<String> getFacetNames() {
     Set<String> ret = new HashSet<String>();
     for (FacetDefinition facet : senseiSchema.getFacets()) {
-      if (senseiSchema.getFieldDefMap().get(facet.column).isActivity || facet.type.equals("aggregated-range")) {        
+      boolean isActivity = facet.column != null && senseiSchema.getFieldDefMap().containsKey(facet.column) && senseiSchema.getFieldDefMap().get(facet.column).isActivity;
+      boolean isAggregatedRange = "aggregated-range".equals(facet.type);
+      if (isActivity || isAggregatedRange) {        
         ret.add(facet.name);
       }      
     }
@@ -238,7 +240,7 @@ public class CompositeActivityManager implements PluggableSearchEngine {
         continue;
       }
       ActivityValues activityValues = getActivityValues().getActivityValuesMap().get(facet.column);
-      if (facet.type.equals("aggregated-range")) {
+      if ("aggregated-range".equals(facet.type)) {
         if (!(activityValues instanceof TimeAggregatedActivityValues)) {
           throw new IllegalStateException("The facet " + facet.name + "should correspond to the timeAggregateActivityValues");          
         }
@@ -247,8 +249,8 @@ public class CompositeActivityManager implements PluggableSearchEngine {
           String name = facet.column + ":" + time;
           ret.add(ActivityRangeFacetHandler.valueOf(name, facet.column, getActivityValues(), (ActivityIntValues)aggregatedActivityValues.getValuesMap().get(time)));
         }
-      } else if (facet.type.equals("range")){
-        ret.add(ActivityRangeFacetHandler.valueOf(facet.name, facet.column, getActivityValues(), (ActivityIntValues) activityValues));
+      } else if ("range".equals(facet.type)){
+        ret.add(ActivityRangeFacetHandler.valueOf(facet.name, facet.column, getActivityValues(), getActivityValues().getActivityIntValues(facet.column)));
       } else {
         throw new UnsupportedOperationException("The facet " + facet.name + "should be of type either aggregated-range or range");
       }

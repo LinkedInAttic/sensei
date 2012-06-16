@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.log4j.Logger;
 import org.apache.lucene.index.IndexReader;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -19,17 +20,18 @@ import proj.zoie.hourglass.impl.HourglassListener;
 
 import com.browseengine.bobo.facets.FacetHandler;
 import com.senseidb.conf.SenseiSchema;
-import com.senseidb.conf.SenseiSchema.FacetDefinition;
 import com.senseidb.indexing.ShardingStrategy;
 import com.senseidb.indexing.activity.CompositeActivityManager;
 import com.senseidb.indexing.activity.deletion.DeletionListener;
 import com.senseidb.plugin.SenseiPluginRegistry;
+import com.senseidb.search.node.AbstractConsistentHashBroker;
 import com.senseidb.search.node.SenseiCore;
 
 public class PluggableSearchEngineManager implements DeletionListener, HourglassListener<IndexReader, IndexReader> { 
+  private final static Logger logger = Logger.getLogger(PluggableSearchEngineManager.class);
   private ShardingStrategy shardingStrategy;
   private SenseiCore senseiCore; 
-  private String version = "";
+  private String version;
   private Comparator<String> versionComparator;
   private SenseiSchema senseiSchema;
   private SenseiPluginRegistry pluginRegistry;
@@ -42,12 +44,8 @@ public class PluggableSearchEngineManager implements DeletionListener, Hourglass
     
   }
   public String getOldestVersion() {
-     String earliestVersion = version;
-     for (PluggableSearchEngine engine : pluggableEngines) {
-      if (versionComparator.compare(earliestVersion, engine.getVersion()) > 0) {
-        earliestVersion = engine.getVersion();
-      }}
-     return earliestVersion;
+     return version;
+     
   }
  
   public boolean acceptEventsForAllPartitions() {
@@ -57,7 +55,8 @@ public class PluggableSearchEngineManager implements DeletionListener, Hourglass
     this.nodeId = nodeId;
     this.senseiSchema = senseiSchema;
     this.versionComparator = versionComparator;
-    this.pluginRegistry = pluginRegistry;    
+    this.pluginRegistry = pluginRegistry;
+    this.shardingStrategy = shardingStrategy;    
     maxPartition = pluginRegistry.getConfiguration().getInt("sensei.index.manager.default.maxpartition.id") + 1;
     pluggableEngines = new ArrayList<PluggableSearchEngine>(pluginRegistry.resolveBeansByListKey("sensei.search.pluggableEngines", PluggableSearchEngine.class));
     if (CompositeActivityManager.activitiesPresent(senseiSchema)) {
@@ -72,6 +71,24 @@ public class PluggableSearchEngineManager implements DeletionListener, Hourglass
         acceptEventsForAllPartitions = true;
       }
     }
+    initVersion(versionComparator);
+    
+  }
+  public void initVersion(Comparator<String> versionComparator) {
+    List<String> versions = new ArrayList<String>();
+    for (PluggableSearchEngine engine : pluggableEngines) {
+      if (engine.getVersion() != null && !"".equals(engine.getVersion())) {
+        versions.add(engine.getVersion());
+      }
+    }
+    if (versions.size() > 0) {
+      String version = versions.get(0);
+      for (String ver : versions) {
+        if (versionComparator.compare(version, ver) > 0) {
+          version = ver;
+        }
+      }
+    }
   }
   
  
@@ -82,7 +99,7 @@ public class PluggableSearchEngineManager implements DeletionListener, Hourglass
    * @return 
    */
   public JSONObject update(JSONObject event, String version) {
-    if (versionComparator.compare(this.version, version) > 0) {
+    if (this.version != null && versionComparator.compare(this.version, version) > 0) {
       return event;
     } else {
       this.version = version;
@@ -95,7 +112,11 @@ public class PluggableSearchEngineManager implements DeletionListener, Hourglass
     }
     for (PluggableSearchEngine pluggableSearchEngine : pluggableEngines) {
       if (pluggableSearchEngine.acceptEventsForAllPartitions() || validForCurrentNode) {
-        event = pluggableSearchEngine.acceptEvent(event, version);
+        try {
+          event = pluggableSearchEngine.acceptEvent(event, version);
+        } catch (Exception ex) {
+          logger.error(ex.getMessage(), ex);
+        }
     } 
   }
     return event;

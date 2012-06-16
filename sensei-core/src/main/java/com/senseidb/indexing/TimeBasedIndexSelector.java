@@ -59,16 +59,13 @@ public class TimeBasedIndexSelector implements SenseiIndexPruner, SenseiPlugin {
         }
         long[] elements = ((TermLongList)facetDataCache.valArray).getElements();
         if (elements.length < 2) {
-          filteredReadersCount.inc();
-          System.out.println("!!!NotAllow");
+          filteredReadersCount.inc();          
           return false;
         }
         if (elements[1] > end || elements[elements.length - 1] < start) {
-          filteredReadersCount.inc();
-          System.out.println("!!!NotAllow");
+          filteredReadersCount.inc();          
           return false;
-        }        
-        System.out.println("!!!Allow");
+        }                
         return true;
       }
     };
