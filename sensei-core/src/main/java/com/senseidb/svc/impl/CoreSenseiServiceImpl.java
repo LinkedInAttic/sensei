@@ -39,6 +39,8 @@ import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.MetricName;
 import com.yammer.metrics.core.Timer;
 
+import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_HIT_UID;
+
 public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiRequest, SenseiResult> {
 	public static final Serializer<SenseiRequest, SenseiResult> JAVA_SERIALIZER =
 			JavaSerializer.apply("SenseiRequest", SenseiRequest.class, SenseiResult.class);
@@ -95,7 +97,9 @@ public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiReque
 
 	      int docid = hit.getDocid();
 	      SubReaderInfo<BoboIndexReader> readerInfo = subReaderAccessor.getSubReaderInfo(docid);
-	      long uid = (long) ((ZoieIndexReader<BoboIndexReader>) readerInfo.subreader.getInnerReader()).getUID(readerInfo.subdocid);
+        Long uid = (Long)hit.getRawField(PARAM_RESULT_HIT_UID);
+        if (uid == null)
+          uid = ((ZoieIndexReader<BoboIndexReader>) readerInfo.subreader.getInnerReader()).getUID(readerInfo.subdocid);
 	      senseiHit.setUID(uid);
 	      senseiHit.setDocid(docid);
 	      senseiHit.setScore(hit.getScore());
@@ -146,7 +150,6 @@ public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiReque
 	@Override
 	public SenseiResult handlePartitionedRequest(final SenseiRequest request,
 			List<BoboIndexReader> readerList,SenseiQueryBuilderFactory queryBuilderFactory) throws Exception {
-		SubReaderAccessor<BoboIndexReader> subReaderAccessor = ZoieIndexReader.getSubReaderAccessor(readerList);
 	    MultiBoboBrowser browser = null;
 
 	    try
@@ -182,6 +185,8 @@ public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiReque
 	          SenseiMapFunctionWrapper mapWrapper = new SenseiMapFunctionWrapper(request.getMapReduceFunction(), _core.getSystemInfo().getFacetInfos());	        
             breq.setMapReduceWrapper(mapWrapper);
 	        }	        
+          SubReaderAccessor<BoboIndexReader> subReaderAccessor =
+              ZoieIndexReader.getSubReaderAccessor(validatedSegmentReaders);
 	        SenseiResult res = browse(browser, breq, subReaderAccessor);
 	        int totalDocs = res.getTotalDocs()+skipDocs.get();
 	        res.setTotalDocs(totalDocs);
