@@ -283,9 +283,10 @@ public class CompositeActivityManager implements PluggableSearchEngine {
         }
         TimeAggregatedActivityValues aggregatedActivityValues = (TimeAggregatedActivityValues) activityValues;
         for (String time : facet.params.get("time")) {
-          String name = facet.column + ":" + time;
+          String name = facet.name + ":" + time;
           ret.add(ActivityRangeFacetHandler.valueOf(name, facet.column, getActivityValues(), (ActivityIntValues)aggregatedActivityValues.getValuesMap().get(time)));
         }
+        ret.add(ActivityRangeFacetHandler.valueOf(facet.name, facet.column, getActivityValues(), (ActivityIntValues)aggregatedActivityValues.getDefaultIntValues()));
       } else if ("range".equals(facet.type)){
         ret.add(ActivityRangeFacetHandler.valueOf(facet.name, facet.column, getActivityValues(), getActivityValues().getActivityIntValues(facet.column)));
       } else {
