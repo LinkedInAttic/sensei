@@ -139,6 +139,7 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 	      updateOldestSinceKey(zoie.getVersion());
 	      _dataCollectorMap.put(part, new LinkedList<DataEvent<JSONObject>>());
 	    }
+
 	    if (pluggableSearchEngineManager != null && pluggableSearchEngineManager.getOldestVersion() != null && !("".equals(pluggableSearchEngineManager.getOldestVersion()))) {
 	      updateOldestSinceKey(pluggableSearchEngineManager.getOldestVersion());	    
 	    }

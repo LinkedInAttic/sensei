@@ -450,7 +450,8 @@ public class SenseiFacetHandlerBuilder {
                                          + facet, e);
 			}
 		}
-		facets.addAll(pluggableSearchEngineManager.createFacetHandlers());
+
+		facets.addAll((Collection<? extends FacetHandler<?>>) pluggableSearchEngineManager.createFacetHandlers());
 		// uid facet handler to be added by default
 		UIDFacetHandler uidHandler = new UIDFacetHandler(UID_FACET_NAME);
 		facets.add(uidHandler);

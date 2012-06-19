@@ -2,7 +2,6 @@ package com.senseidb.search.plugin;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
@@ -25,7 +24,6 @@ import com.senseidb.indexing.ShardingStrategy;
 import com.senseidb.indexing.activity.CompositeActivityManager;
 import com.senseidb.indexing.activity.deletion.DeletionListener;
 import com.senseidb.plugin.SenseiPluginRegistry;
-import com.senseidb.search.node.AbstractConsistentHashBroker;
 import com.senseidb.search.node.SenseiCore;
 
 public class PluggableSearchEngineManager implements DeletionListener, HourglassListener<IndexReader, IndexReader> { 
@@ -45,8 +43,8 @@ public class PluggableSearchEngineManager implements DeletionListener, Hourglass
     
   }
   public String getOldestVersion() {
-     return version;
-     
+
+     return version;     
   }
  
   public boolean acceptEventsForAllPartitions() {
@@ -56,8 +54,11 @@ public class PluggableSearchEngineManager implements DeletionListener, Hourglass
     this.nodeId = nodeId;
     this.senseiSchema = senseiSchema;
     this.versionComparator = versionComparator;
+
     this.pluginRegistry = pluginRegistry;
     this.shardingStrategy = shardingStrategy;    
+
+
     maxPartition = pluginRegistry.getConfiguration().getInt("sensei.index.manager.default.maxpartition.id") + 1;
     pluggableEngines = new ArrayList<PluggableSearchEngine>(pluginRegistry.resolveBeansByListKey("sensei.search.pluggableEngines", PluggableSearchEngine.class));
     if (CompositeActivityManager.activitiesPresent(senseiSchema)) {
@@ -72,6 +73,7 @@ public class PluggableSearchEngineManager implements DeletionListener, Hourglass
         acceptEventsForAllPartitions = true;
       }
     }
+
     initVersion(versionComparator);
     
   }
@@ -100,6 +102,7 @@ public class PluggableSearchEngineManager implements DeletionListener, Hourglass
    * @return 
    */
   public JSONObject update(JSONObject event, String version) {
+
     if (this.version != null && versionComparator.compare(this.version, version) > 0) {
       return event;
     } else {
@@ -113,6 +116,7 @@ public class PluggableSearchEngineManager implements DeletionListener, Hourglass
     }
     for (PluggableSearchEngine pluggableSearchEngine : pluggableEngines) {
       if (pluggableSearchEngine.acceptEventsForAllPartitions() || validForCurrentNode) {
+
         try {
           event = pluggableSearchEngine.acceptEvent(event, version);
         } catch (Exception ex) {
@@ -184,6 +188,7 @@ public class PluggableSearchEngineManager implements DeletionListener, Hourglass
     return ret;
   }
   
+
   public List<FacetHandler<?>> createFacetHandlers() {
     List<FacetHandler<?>> ret = new ArrayList<FacetHandler<?>>();
     for (PluggableSearchEngine pluggableSearchEngine : pluggableEngines) {

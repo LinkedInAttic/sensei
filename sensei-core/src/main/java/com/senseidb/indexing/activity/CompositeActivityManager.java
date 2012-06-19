@@ -15,15 +15,6 @@ import org.jboss.netty.util.internal.ConcurrentHashMap;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import proj.zoie.api.DocIDMapper;
-import proj.zoie.api.IndexReaderFactory;
-import proj.zoie.api.Zoie;
-import proj.zoie.api.ZoieIndexReader;
-import proj.zoie.api.ZoieMultiReader;
-import proj.zoie.api.ZoieSegmentReader;
-import proj.zoie.hourglass.impl.HourglassListener;
-
-import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.facets.FacetHandler;
 import com.senseidb.conf.SenseiConfParams;
 import com.senseidb.conf.SenseiSchema;
@@ -31,7 +22,6 @@ import com.senseidb.conf.SenseiSchema.FacetDefinition;
 import com.senseidb.conf.SenseiSchema.FieldDefinition;
 import com.senseidb.indexing.ShardingStrategy;
 import com.senseidb.indexing.activity.BaseActivityFilter.ActivityFilteredResult;
-import com.senseidb.indexing.activity.deletion.DeletionListener;
 import com.senseidb.indexing.activity.facet.ActivityRangeFacetHandler;
 import com.senseidb.indexing.activity.time.TimeAggregatedActivityValues;
 import com.senseidb.plugin.SenseiPluginRegistry;
@@ -40,6 +30,7 @@ import com.senseidb.search.plugin.PluggableSearchEngine;
 import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.Counter;
 import com.yammer.metrics.core.MetricName;
+
 
 /**
  * Wrapper around all the activity indexes within the Sensei node. It is the entry point to the activity engine. 
@@ -54,8 +45,10 @@ public class CompositeActivityManager implements PluggableSearchEngine {
     public static final String EVENT_TYPE_ONLY_ACTIVITY = "activity-update";
     private BaseActivityFilter activityFilter;
     private ShardingStrategy shardingStrategy;
+
     private SenseiCore senseiCore;
     private Counter skippedBecauseOfNotFoundUIDCounter; 
+
     
     
     public CompositeActivityManager() {
@@ -269,6 +262,7 @@ public class CompositeActivityManager implements PluggableSearchEngine {
 
 
   @Override
+
   public List<FacetHandler<?>> createFacetHandlers() {
     Set<String> facets = getFacetNames();
     List<FacetHandler<?>> ret = new ArrayList<FacetHandler<?>>();
@@ -277,6 +271,7 @@ public class CompositeActivityManager implements PluggableSearchEngine {
         continue;
       }
       ActivityValues activityValues = getActivityValues().getActivityValuesMap().get(facet.column);
+
       if ("aggregated-range".equals(facet.type)) {
         if (!(activityValues instanceof TimeAggregatedActivityValues)) {
           throw new IllegalStateException("The facet " + facet.name + "should correspond to the timeAggregateActivityValues");          

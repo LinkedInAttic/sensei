@@ -54,10 +54,6 @@ public class DefaultJsonSchemaInterpreter extends
   
   private CustomIndexingPipeline _customIndexingPipeline = null;
 
-
-  
-
-
   private Set<String> nonLuceneFields = new HashSet<String>();
   public DefaultJsonSchemaInterpreter(SenseiSchema schema) throws ConfigurationException {
     this(schema, null);
