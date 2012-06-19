@@ -21,7 +21,7 @@ public interface PluggableSearchEngine {
   public boolean acceptEventsForAllPartitions();
   public Set<String> getFieldNames();
   public Set<String> getFacetNames();
-  public List<FacetHandler> createFacetHandlers();
+  public List<FacetHandler<?>> createFacetHandlers();
   public void onDelete(IndexReader indexReader, long... uids);
   public void close();  
 }

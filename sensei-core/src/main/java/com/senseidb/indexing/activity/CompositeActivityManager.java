@@ -15,12 +15,15 @@ import org.jboss.netty.util.internal.ConcurrentHashMap;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import proj.zoie.api.DocIDMapper;
+import proj.zoie.api.IndexReaderFactory;
 import proj.zoie.api.Zoie;
 import proj.zoie.api.ZoieIndexReader;
 import proj.zoie.api.ZoieMultiReader;
 import proj.zoie.api.ZoieSegmentReader;
 import proj.zoie.hourglass.impl.HourglassListener;
 
+import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.facets.FacetHandler;
 import com.senseidb.conf.SenseiConfParams;
 import com.senseidb.conf.SenseiSchema;
@@ -34,6 +37,9 @@ import com.senseidb.indexing.activity.time.TimeAggregatedActivityValues;
 import com.senseidb.plugin.SenseiPluginRegistry;
 import com.senseidb.search.node.SenseiCore;
 import com.senseidb.search.plugin.PluggableSearchEngine;
+import com.yammer.metrics.Metrics;
+import com.yammer.metrics.core.Counter;
+import com.yammer.metrics.core.MetricName;
 
 /**
  * Wrapper around all the activity indexes within the Sensei node. It is the entry point to the activity engine. 
@@ -48,11 +54,12 @@ public class CompositeActivityManager implements PluggableSearchEngine {
     public static final String EVENT_TYPE_ONLY_ACTIVITY = "activity-update";
     private BaseActivityFilter activityFilter;
     private ShardingStrategy shardingStrategy;
-    private SenseiCore senseiCore; 
+    private SenseiCore senseiCore;
+    private Counter skippedBecauseOfNotFoundUIDCounter; 
     
     
     public CompositeActivityManager() {
-      
+      skippedBecauseOfNotFoundUIDCounter = Metrics.newCounter(new MetricName(getClass(), "skippedBecauseOfNotFoundUID"));
     }
 
    
@@ -134,6 +141,10 @@ public class CompositeActivityManager implements PluggableSearchEngine {
         } 
         ActivityFilteredResult activityFilteredResult = activityFilter.filter(event, senseiSchema, shardingStrategy, senseiCore);
         for (long uid : activityFilteredResult.getActivityValues().keySet()) {
+          if (defaultUid != uid && !isUidPresent(uid)) {
+            skippedBecauseOfNotFoundUIDCounter.inc();
+            continue;
+          }
           activityValues.update(uid, version, activityFilteredResult.getActivityValues().get(uid));
         }
         return activityFilteredResult.getFilteredObject();
@@ -143,6 +154,32 @@ public class CompositeActivityManager implements PluggableSearchEngine {
     }
     
     
+    private boolean isUidPresent(long uid) {     
+      /*if (activityValues.uidToArrayIndex.containsKey(uid)) {
+        return true;
+      }
+      for (int partition : senseiCore.getPartitions()) {
+        IndexReaderFactory<ZoieIndexReader<BoboIndexReader>> zoie = senseiCore.getIndexReaderFactory(partition);
+        List<ZoieIndexReader<BoboIndexReader>> indexReaders = null;
+        try {
+          indexReaders = zoie.getIndexReaders();
+          for (ZoieIndexReader<BoboIndexReader> indexReader : indexReaders) {
+           if (indexReader.getDocIDMaper().getDocID(uid) != DocIDMapper.NOT_FOUND) {
+             return true;
+           }
+          }
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        } finally {
+          if (indexReaders != null) {
+            zoie.returnIndexReaders(indexReaders);
+          }
+        }
+      }*/
+      return true;
+    }
+
+
     public CompositeActivityValues getActivityValues() {
       return activityValues;
     }
@@ -232,9 +269,9 @@ public class CompositeActivityManager implements PluggableSearchEngine {
 
 
   @Override
-  public List<FacetHandler> createFacetHandlers() {
+  public List<FacetHandler<?>> createFacetHandlers() {
     Set<String> facets = getFacetNames();
-    List<FacetHandler> ret = new ArrayList<FacetHandler>();
+    List<FacetHandler<?>> ret = new ArrayList<FacetHandler<?>>();
     for (FacetDefinition facet : senseiSchema.getFacets()) {
       if (!facets.contains(facet.name)) {        
         continue;

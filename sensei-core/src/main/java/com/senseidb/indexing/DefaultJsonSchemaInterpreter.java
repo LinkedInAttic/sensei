@@ -6,6 +6,7 @@ import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -54,15 +55,18 @@ public class DefaultJsonSchemaInterpreter extends
   private CustomIndexingPipeline _customIndexingPipeline = null;
 
 
-  private final PluggableSearchEngineManager pluggableSearchEngineManager;
-
-
-  private Set<String> nonLuceneFields;
   
-  public DefaultJsonSchemaInterpreter(SenseiSchema schema, PluggableSearchEngineManager pluggableSearchEngineManager) throws ConfigurationException{
+
+
+  private Set<String> nonLuceneFields = new HashSet<String>();
+  public DefaultJsonSchemaInterpreter(SenseiSchema schema) throws ConfigurationException {
+    this(schema, null);
+  }
+  public DefaultJsonSchemaInterpreter(SenseiSchema schema, PluggableSearchEngineManager pluggableSearchEngineManager) throws ConfigurationException {
      _schema = schema;
-    this.pluggableSearchEngineManager = pluggableSearchEngineManager;
-    nonLuceneFields = pluggableSearchEngineManager.getFieldNames();
+    if (pluggableSearchEngineManager != null) {
+      nonLuceneFields.addAll(pluggableSearchEngineManager.getFieldNames());
+    }
      entries = _schema.getFieldDefMap().entrySet();
      _uidField = _schema.getUidField();
      _delField = _schema.getDeleteField();

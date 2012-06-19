@@ -2,6 +2,7 @@ package com.senseidb.search.plugin;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
@@ -183,8 +184,8 @@ public class PluggableSearchEngineManager implements DeletionListener, Hourglass
     return ret;
   }
   
-  public List<FacetHandler> createFacetHandlers() {
-    List<FacetHandler> ret = new ArrayList<FacetHandler>();
+  public List<FacetHandler<?>> createFacetHandlers() {
+    List<FacetHandler<?>> ret = new ArrayList<FacetHandler<?>>();
     for (PluggableSearchEngine pluggableSearchEngine : pluggableEngines) {
       ret.addAll(pluggableSearchEngine.createFacetHandlers());
     }

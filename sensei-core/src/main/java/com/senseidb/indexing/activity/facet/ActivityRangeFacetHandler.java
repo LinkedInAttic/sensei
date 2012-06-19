@@ -109,6 +109,13 @@ public class ActivityRangeFacetHandler extends FacetHandler<int[]> {
     final int[] indexes = (int[]) ((BoboIndexReader)reader).getFacetData(_name);
     return indexes[id] != -1 ? new Object[] {activityIntValues.getValue(indexes[id])} : EMPTY_OBJ_ARR;
   }
+  
+  public int getActivityValue(int[] facetData, int id) {
+    if (id < 0 || id >= facetData.length) {
+      return Integer.MIN_VALUE;
+    }
+    return facetData[id] != -1 ?activityIntValues.fieldValues[facetData[id]] : Integer.MIN_VALUE;
+  }
   @Override
   public String[] getFieldValues(BoboIndexReader reader, int id) {   
     final int[] indexes = (int[]) ((BoboIndexReader)reader).getFacetData(_name); 
