@@ -38,7 +38,15 @@
 			<email>john.wang@gmail.com</email>
 		</developer>
 	</developers>
-
+<reporting>
+    <plugins>
+        <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>cobertura-maven-plugin</artifactId>
+ 
+        </plugin>
+    </plugins>
+</reporting>
 	<!-- Set the compiler to java6 -->
 	<build>
 		<plugins>
@@ -58,6 +66,35 @@
 					<encoding>UTF-8</encoding>
 				</configuration>
 			</plugin>
+			<plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>cobertura-maven-plugin</artifactId>
+            <executions>
+                <execution>
+                    <id>site</id>
+                    <phase>pre-site</phase>
+                    <goals>
+                        <goal>clean</goal>
+                    </goals>
+                </execution>
+                <execution>
+                    <id>instrument</id>
+                    <phase>site</phase>
+                    <goals>
+                        <goal>instrument</goal>
+                        <goal>cobertura</goal>
+                    </goals>
+                </execution>
+            </executions>
+            <configuration>
+                <instrumentation>
+                    <excludes>
+                        <exclude>com/test2/**/*.class</exclude>
+                    </excludes>
+                </instrumentation>
+            </configuration>
+ 
+        </plugin>
 		</plugins>
 
 		<pluginManagement>

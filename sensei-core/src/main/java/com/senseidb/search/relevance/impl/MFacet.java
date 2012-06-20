@@ -39,4 +39,5 @@ public abstract class MFacet
   }
   
   abstract public boolean containsAll(Set set);
+  abstract public boolean containsAny(Object set);
 }

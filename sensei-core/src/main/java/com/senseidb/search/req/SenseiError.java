@@ -53,7 +53,12 @@ public class SenseiError implements Serializable {
   public int getErrorCode() {
     return errorCode;
   }
-  
-  
-  
+
+  @Override
+  public String toString() {
+    ErrorType et = errorType;
+    if (et == null)
+      et = ErrorType.UnknownError;
+    return String.format("%s(%d): %s", et.name(), errorCode, message);
+  }
 }

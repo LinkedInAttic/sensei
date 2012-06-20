@@ -134,14 +134,13 @@ public class SenseiServer {
     try {
       logger.info("shutting down node...");
       try
-      {
-        _core.getActivityManager().getActivityValues().flush();
+      {        
         _core.shutdown();
         pluginRegistry.stop();
         _clusterClient.removeNode(_id);
         _clusterClient.shutdown();
         _serverNode = null;
-        _core.getActivityManager().close();
+        _core.getPluggableSearchEngineManager().close();
       } catch (Exception e)
       {
         logger.warn(e.getMessage());

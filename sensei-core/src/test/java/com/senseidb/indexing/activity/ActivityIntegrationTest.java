@@ -44,6 +44,15 @@ public class ActivityIntegrationTest extends TestCase {
       expectedVersion++;
     }
     syncWithVersion(expectedVersion); 
+    String req = "{\"selections\": [{\"range\": {\"aggregated-likes\": {\"from\": 18, \"include_lower\": true}}}], \"sort\":[{\"aggregated-likes\":\"desc\"}]}";
+    JSONObject res = TestSensei.search(new JSONObject(req));
+    JSONArray hits = res.getJSONArray("hits");
+    assertEquals(Integer.parseInt(hits.getJSONObject(0).getJSONArray("aggregated-likes").getString(0)), 20);
+    assertEquals(Integer.parseInt(hits.getJSONObject(1).getJSONArray("aggregated-likes").getString(0)), 19);
+    assertEquals(Integer.parseInt(hits.getJSONObject(2).getJSONArray("aggregated-likes").getString(0)), 18);
+   System.out.println("!!!" + res.toString(1));
+  }
+  public void test1bSendUpdatesAndSort() throws Exception {   
     String req = "{\"selections\": [{\"range\": {\"likes\": {\"from\": 18, \"include_lower\": true}}}], \"sort\":[{\"likes\":\"desc\"}]}";
     JSONObject res = TestSensei.search(new JSONObject(req));
     JSONArray hits = res.getJSONArray("hits");
@@ -52,7 +61,6 @@ public class ActivityIntegrationTest extends TestCase {
     assertEquals(Integer.parseInt(hits.getJSONObject(2).getJSONArray("likes").getString(0)), 18);
    System.out.println("!!!" + res.toString(1));
   }
-
   private void syncWithVersion(final long expectedVersion) {
     final CompositeActivityValues inMemoryColumnData1 = CompositeActivityManager.cachedInstances.get(1).activityValues;
     final CompositeActivityValues inMemoryColumnData2 = CompositeActivityManager.cachedInstances.get(2).activityValues;
@@ -123,49 +131,49 @@ public class ActivityIntegrationTest extends TestCase {
         }
       }
     });   
-    String req = "{\"selections\": [{\"range\": {\"likes:2w\": {\"from\": 8, \"include_lower\": true}}}], \"sort\":[{\"likes:2w\":\"desc\"}]}";
+    String req = "{\"selections\": [{\"range\": {\"aggregated-likes:2w\": {\"from\": 8, \"include_lower\": true}}}], \"sort\":[{\"aggregated-likes:2w\":\"desc\"}]}";
     JSONObject res = TestSensei.search(new JSONObject(req));     
    
     JSONArray hits = res.getJSONArray("hits");
-    assertEquals(Integer.parseInt(hits.getJSONObject(0).getJSONArray("likes:2w").getString(0)), 10);
-    assertEquals(Integer.parseInt(hits.getJSONObject(1).getJSONArray("likes:2w").getString(0)), 9);
-    assertEquals(Integer.parseInt(hits.getJSONObject(2).getJSONArray("likes:2w").getString(0)), 8);
+    assertEquals(Integer.parseInt(hits.getJSONObject(0).getJSONArray("aggregated-likes:2w").getString(0)), 10);
+    assertEquals(Integer.parseInt(hits.getJSONObject(1).getJSONArray("aggregated-likes:2w").getString(0)), 9);
+    assertEquals(Integer.parseInt(hits.getJSONObject(2).getJSONArray("aggregated-likes:2w").getString(0)), 8);
     Clock.setPredefinedTimeInMinutes(initialTime + 11);
     timeAggregatedActivityValues1.getAggregatesUpdateJob().run();
     timeAggregatedActivityValues2.getAggregatesUpdateJob().run();
-    req = "{ \"sort\":[{\"likes:5m\":\"desc\"}]}";
+    req = "{ \"sort\":[{\"aggregated-likes:5m\":\"desc\"}]}";
      res = TestSensei.search(new JSONObject(req));
      hits = res.getJSONArray("hits");
-    assertEquals(Integer.parseInt(hits.getJSONObject(0).getJSONArray("likes:5m").getString(0)), 4);
-    assertEquals(Integer.parseInt(hits.getJSONObject(1).getJSONArray("likes:5m").getString(0)), 3);
-    assertEquals(Integer.parseInt(hits.getJSONObject(2).getJSONArray("likes:5m").getString(0)), 2);
-    assertEquals(Integer.parseInt(hits.getJSONObject(0).getJSONArray("likes:15m").getString(0)), 10);
+    assertEquals(Integer.parseInt(hits.getJSONObject(0).getJSONArray("aggregated-likes:5m").getString(0)), 4);
+    assertEquals(Integer.parseInt(hits.getJSONObject(1).getJSONArray("aggregated-likes:5m").getString(0)), 3);
+    assertEquals(Integer.parseInt(hits.getJSONObject(2).getJSONArray("aggregated-likes:5m").getString(0)), 2);
+    assertEquals(Integer.parseInt(hits.getJSONObject(0).getJSONArray("aggregated-likes:15m").getString(0)), 10);
     
     Clock.setPredefinedTimeInMinutes(initialTime + 20);
     timeAggregatedActivityValues1.getAggregatesUpdateJob().run();
     timeAggregatedActivityValues2.getAggregatesUpdateJob().run();
-    req = "{ \"sort\":[{\"likes:15m\":\"desc\"}]}";
+    req = "{ \"sort\":[{\"aggregated-likes:15m\":\"desc\"}]}";
 
     res = TestSensei.search(new JSONObject(req));
     hits = res.getJSONArray("hits");
    
-    assertEquals(Integer.parseInt(hits.getJSONObject(0).getJSONArray("likes:5m").getString(0)), 0);
-    assertEquals(Integer.parseInt(hits.getJSONObject(0).getJSONArray("likes:15m").getString(0)), 5);
-    assertEquals(Integer.parseInt(hits.getJSONObject(1).getJSONArray("likes:15m").getString(0)), 4);
-    assertEquals(Integer.parseInt(hits.getJSONObject(2).getJSONArray("likes:15m").getString(0)), 3);
-    assertEquals(Integer.parseInt(hits.getJSONObject(3).getJSONArray("likes:15m").getString(0)), 2);
-    assertEquals(Integer.parseInt(hits.getJSONObject(4).getJSONArray("likes:15m").getString(0)), 1);
-    assertEquals(Integer.parseInt(hits.getJSONObject(5).getJSONArray("likes:15m").getString(0)), 0);
+    assertEquals(Integer.parseInt(hits.getJSONObject(0).getJSONArray("aggregated-likes:5m").getString(0)), 0);
+    assertEquals(Integer.parseInt(hits.getJSONObject(0).getJSONArray("aggregated-likes:15m").getString(0)), 5);
+    assertEquals(Integer.parseInt(hits.getJSONObject(1).getJSONArray("aggregated-likes:15m").getString(0)), 4);
+    assertEquals(Integer.parseInt(hits.getJSONObject(2).getJSONArray("aggregated-likes:15m").getString(0)), 3);
+    assertEquals(Integer.parseInt(hits.getJSONObject(3).getJSONArray("aggregated-likes:15m").getString(0)), 2);
+    assertEquals(Integer.parseInt(hits.getJSONObject(4).getJSONArray("aggregated-likes:15m").getString(0)), 1);
+    assertEquals(Integer.parseInt(hits.getJSONObject(5).getJSONArray("aggregated-likes:15m").getString(0)), 0);
     inMemoryColumnData1.delete(0L);
     inMemoryColumnData2.delete(0L);
-    req = "{ \"sort\":[{\"likes:15m\":\"desc\"}]}";
+    req = "{ \"sort\":[{\"aggregated-likes:15m\":\"desc\"}]}";
     //testign deletes
     res = TestSensei.search(new JSONObject(req));
     hits = res.getJSONArray("hits");
     
-    assertEquals(Integer.parseInt(hits.getJSONObject(0).getJSONArray("likes:15m").getString(0)), 4);
-    assertEquals(Integer.parseInt(hits.getJSONObject(1).getJSONArray("likes:15m").getString(0)), 3);
-    assertEquals(Integer.parseInt(hits.getJSONObject(2).getJSONArray("likes:15m").getString(0)), 2);
+    assertEquals(Integer.parseInt(hits.getJSONObject(0).getJSONArray("aggregated-likes:15m").getString(0)), 4);
+    assertEquals(Integer.parseInt(hits.getJSONObject(1).getJSONArray("aggregated-likes:15m").getString(0)), 3);
+    assertEquals(Integer.parseInt(hits.getJSONObject(2).getJSONArray("aggregated-likes:15m").getString(0)), 2);
    
   }
   public void test6AddDeleteAddAgainAndQuery() throws Exception {
@@ -178,23 +186,23 @@ public class ActivityIntegrationTest extends TestCase {
       expectedVersion++;
     }
     inMemoryColumnData1.syncWithVersion(String.valueOf(expectedVersion));
-    String req = "{ \"sort\":[{\"likes:15m\":\"desc\"}]}";
+    String req = "{ \"sort\":[{\"aggregated-likes:15m\":\"desc\"}]}";
     JSONObject res = TestSensei.search(new JSONObject(req));
     JSONArray hits = res.getJSONArray("hits");
-    assertEquals(Integer.parseInt(hits.getJSONObject(0).getJSONArray("likes:15m").getString(0)), 9);
+    assertEquals(Integer.parseInt(hits.getJSONObject(0).getJSONArray("aggregated-likes:15m").getString(0)), 9);
     assertEquals(Integer.parseInt(hits.getJSONObject(0).getString("_uid")), 9);
-    assertEquals(Integer.parseInt(hits.getJSONObject(1).getJSONArray("likes:15m").getString(0)), 8);
+    assertEquals(Integer.parseInt(hits.getJSONObject(1).getJSONArray("aggregated-likes:15m").getString(0)), 8);
     assertEquals(Integer.parseInt(hits.getJSONObject(1).getString("_uid")), 8);
-    assertEquals(Integer.parseInt(hits.getJSONObject(2).getJSONArray("likes:15m").getString(0)), 7);
+    assertEquals(Integer.parseInt(hits.getJSONObject(2).getJSONArray("aggregated-likes:15m").getString(0)), 7);
     assertEquals(Integer.parseInt(hits.getJSONObject(2).getString("_uid")), 7);
     for (int i = 0; i < 10; i ++) {
       inMemoryColumnData1.delete(i);
       inMemoryColumnData2.delete(i);
     }
-    req = "{ \"sort\":[{\"likes:15m\":\"desc\"}]}";
+    req = "{ \"sort\":[{\"aggregated-likes:15m\":\"desc\"}]}";
     res = TestSensei.search(new JSONObject(req));
     hits = res.getJSONArray("hits");
-    assertEquals(Integer.parseInt(hits.getJSONObject(0).getJSONArray("likes:15m").getString(0)), 0);
+    assertEquals(Integer.parseInt(hits.getJSONObject(0).getJSONArray("aggregated-likes:15m").getString(0)), 0);
     inMemoryColumnData1.flushDeletes();
     inMemoryColumnData2.flushDeletes();
     Thread.sleep(1000);
@@ -203,7 +211,7 @@ public class ActivityIntegrationTest extends TestCase {
       expectedVersion++;
     }
     inMemoryColumnData1.syncWithVersion(String.valueOf(expectedVersion));
-    req = "{\"selections\": [{\"range\": {\"likes:2w\": {\"from\": 5, \"include_lower\": true}}}], \"sort\":[{\"likes:2w\":\"desc\"}]}";;
+    req = "{\"selections\": [{\"range\": {\"aggregated-likes:2w\": {\"from\": 5, \"include_lower\": true}}}], \"sort\":[{\"aggregated-likes:2w\":\"desc\"}]}";;
     res = TestSensei.search(new JSONObject(req));
     System.out.println(res.toString(1));
     hits = res.getJSONArray("hits");

@@ -119,7 +119,6 @@ public class AggregatesUpdateJob implements Runnable {
     for (int i = 0; i < updateTempValues.length; i++) {
       int updateValue = updateTempValues[i];
       if (updateValue != 0) {
-       //System.out.println("!!!updateValue = " + updateValue + " for " + intActivityValues[i].time + ", index = " + index);
         synchronized (intActivityValues[i].activityIntValues.getFieldValues()) {
          intActivityValues[i].activityIntValues.update(index, updateValue > 0 ? String.valueOf(-updateValue) : "+" + String.valueOf(updateValue));
        }

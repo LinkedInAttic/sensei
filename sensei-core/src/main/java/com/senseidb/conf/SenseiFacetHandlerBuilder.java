@@ -47,6 +47,7 @@ import com.senseidb.indexing.activity.facet.ActivityRangeFacetHandler;
 import com.senseidb.indexing.activity.time.TimeAggregatedActivityValues;
 import com.senseidb.plugin.SenseiPluginRegistry;
 import com.senseidb.search.facet.UIDFacetHandler;
+import com.senseidb.search.plugin.PluggableSearchEngineManager;
 import com.senseidb.search.req.SenseiSystemInfo;
 
 public class SenseiFacetHandlerBuilder {
@@ -306,9 +307,9 @@ public class SenseiFacetHandlerBuilder {
 	}
 
 	public static SenseiSystemInfo buildFacets(JSONObject schemaObj, SenseiPluginRegistry pluginRegistry,
-			List<FacetHandler<?>> facets,List<RuntimeFacetHandlerFactory<?,?>> runtimeFacets, CompositeActivityManager activityManager)
+			List<FacetHandler<?>> facets,List<RuntimeFacetHandlerFactory<?,?>> runtimeFacets, PluggableSearchEngineManager pluggableSearchEngineManager)
     throws JSONException,ConfigurationException {
-
+	  Set<String> pluggableSearchEngineFacetNames = pluggableSearchEngineManager.getFacetNames();
     SenseiSystemInfo sysInfo = new SenseiSystemInfo();
     JSONArray facetsList = schemaObj.optJSONArray("facets");
 
@@ -354,6 +355,9 @@ public class SenseiFacetHandlerBuilder {
 					logger.error("facet name: "+UID_FACET_NAME+" is reserved, skipping...");
 					continue;
 				}
+				if (pluggableSearchEngineFacetNames.contains(name)) {
+				  continue;
+				}
 				String type = facet.getString("type");
 				String fieldName = facet.optString("column",name);
 				Set<String> dependSet = new HashSet<String>();
@@ -394,16 +398,10 @@ public class SenseiFacetHandlerBuilder {
 				} else if (type.equals("range")) {
 					if (column.optBoolean("multi")) {
 					  facetHandler = new MultiRangeFacetHandler(name, fieldName, null,  termListFactoryMap.get(fieldName) , buildPredefinedRanges(paramMap));
-					} else if (column.optBoolean("activity")) {
-					  CompositeActivityValues compositeActivityValues = activityManager.getActivityValues();
-            facetHandler =  ActivityRangeFacetHandler.valueOf(name, fieldName, compositeActivityValues, compositeActivityValues.getActivityIntValues(fieldName));
 					} else {
 					  facetHandler = buildRangeHandler(name, fieldName, termListFactoryMap.get(fieldName), paramMap);
 					}
-				} else if (type.equals("aggregated-range")) {
-				  Assert.state(column.optBoolean("activity") == Boolean.TRUE, "aggregated-activity facet handler should reference the activity column");
-				  facets.addAll(buildAggregatedActivityFacetHandlers(facet, activityManager));          
-        } else if (type.equals("multi")) {
+				}  else if (type.equals("multi")) {
 					facetHandler = buildMultiHandler(name, fieldName,  termListFactoryMap.get(fieldName), dependSet);
 				} else if (type.equals("compact-multi")) {
 					facetHandler = buildCompactMultiHandler(name, fieldName, dependSet,  termListFactoryMap.get(fieldName));
@@ -452,6 +450,8 @@ public class SenseiFacetHandlerBuilder {
                                          + facet, e);
 			}
 		}
+
+		facets.addAll((Collection<? extends FacetHandler<?>>) pluggableSearchEngineManager.createFacetHandlers());
 		// uid facet handler to be added by default
 		UIDFacetHandler uidHandler = new UIDFacetHandler(UID_FACET_NAME);
 		facets.add(uidHandler);
@@ -460,20 +460,7 @@ public class SenseiFacetHandlerBuilder {
     return sysInfo;
 	}
 
-  private static Collection<? extends FacetHandler<?>> buildAggregatedActivityFacetHandlers(JSONObject facet, CompositeActivityManager activityManager) {
-    List<FacetHandler<?>> ret = new ArrayList<FacetHandler<?>>();
-    FacetDefinition facetDefinition = SenseiSchema.FacetDefinition.valueOf(facet);
-    ActivityValues activityValues = activityManager.getActivityValues().getActivityValuesMap().get(facetDefinition.column);
-    if (!(activityValues instanceof TimeAggregatedActivityValues)) {
-      return ret;
-    } 
-    TimeAggregatedActivityValues aggregatedActivityValues = (TimeAggregatedActivityValues) activityValues;
-    for (String time : facetDefinition.params.get("time")) {
-      String name = facetDefinition.column + ":" + time;
-      ret.add(ActivityRangeFacetHandler.valueOf(name, facetDefinition.column, activityManager.getActivityValues(), (ActivityIntValues)aggregatedActivityValues.getValuesMap().get(time)));
-    }
-    return ret;
-  }
+  
 
   public static RuntimeFacetHandlerFactory<?, ?> getDynamicTimeFacetHandlerFactory(final String name, String fieldName, Set<String> dependSet,
       final Map<String, List<String>> paramMap) {

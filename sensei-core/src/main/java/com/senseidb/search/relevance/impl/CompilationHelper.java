@@ -28,6 +28,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.senseidb.search.req.ErrorType;
+
 import javassist.CannotCompileException;
 import javassist.ClassClassPath;
 import javassist.ClassPool;
@@ -89,7 +91,8 @@ import javassist.NotFoundException;
       "values": {
           "c":[1996,1997],
           "e":0.98,
-          "j":{"1":2.3, "2":3.4, "3":2.9}      // a user input hashmap;
+          "j":{"1":2.3, "2":3.4, "3":2.9}      // A user input hashmap;
+          "jj":{"key":[1,2,3], "value":[2.3, 3.4, 2.9]}      //  It also supports this method to pass in a map. 
       }
   }
 
@@ -412,12 +415,12 @@ public class CompilationHelper
   private static int MAX_NUM_MODELS  = 10000;
   static HashMap<String, CustomMathModel> hmModels = new HashMap<String, CustomMathModel>();
 
-  public static CustomMathModel createCustomMathScorer(JSONObject jsonModel, DataTable dataTable) throws JSONException
+  public static CustomMathModel createCustomMathScorer(JSONObject jsonModel, DataTable dataTable) throws RelevanceException, JSONException
   {
     CustomMathModel cMathModel = null;
 
     if(jsonModel == null)
-      throw new JSONException("No model is specified.");
+      throw new RelevanceException(ErrorType.JsonParsingError, "No json model is specified.");
 
     JSONObject jsonVariables = jsonModel.optJSONObject(RelevanceJSONConstants.KW_VARIABLES);
     JSONObject jsonFacets = jsonModel.optJSONObject(RelevanceJSONConstants.KW_FACETS);
@@ -455,13 +458,13 @@ public class CompilationHelper
         if (symbol.equals(RelevanceJSONConstants.KW_INNER_SCORE) ||
             symbol.equals(RelevanceJSONConstants.KW_NOW))
         {
-          throw new JSONException("Internal variable name, " + symbol + ", is reserved.");
+          throw new RelevanceException(ErrorType.JsonParsingError, "Internal variable name, " + symbol + ", is reserved.");
         }
 
         Integer typeNum = RelevanceJSONConstants.VARIABLE_INFO_MAP.get(type);
         if (typeNum == null)
         {
-          throw new JSONException("Variable type, " + type + ", is not recognized.");
+          throw new RelevanceException(ErrorType.JsonParsingError, "Variable type, " + type + ", is not recognized.");
         }
         dataTable.hm_type.put(symbol, typeNum);
       }
@@ -479,10 +482,10 @@ public class CompilationHelper
     dataTable.hm_type.put(symbolInnerScore, RelevanceJSONConstants.TYPENUMBER_INNER_SCORE);
 
     if(dataTable.funcBody == null || dataTable.funcBody.length()==0)
-      throw new JSONException("No function body found.");
+      throw new RelevanceException(ErrorType.JsonParsingError, "No function body found.");
 
     if(dataTable.funcBody.indexOf("return ")==-1)
-      throw new JSONException("No return statement in the function body.");
+      throw new RelevanceException(ErrorType.JsonParsingError, "No return statement in the function body.");
 
 
     // Check if all the parameters have been defined
@@ -490,13 +493,13 @@ public class CompilationHelper
     {
       String symbol = dataTable.lls_params.get(i);
       if( !dataTable.hm_type.containsKey(symbol))
-        throw new JSONException("function parameter: " + symbol + " was not defined.");
+        throw new RelevanceException(ErrorType.JsonParsingError, "function parameter: " + symbol + " was not defined.");
 
       Integer typeNum = dataTable.hm_type.get(symbol);
       if (typeNum >= RelevanceJSONConstants.TYPENUMBER_FACET_INT && typeNum <= RelevanceJSONConstants.TYPENUMBER_FACET_WM_STRING)
       {
         if( (!dataTable.hm_symbol_facet.containsKey(symbol)) && (!dataTable.hm_symbol_mfacet.containsKey(symbol)))
-          throw new JSONException("function parameter: " + symbol + " was not defined.");
+          throw new RelevanceException(ErrorType.JsonParsingError, "function parameter: " + symbol + " was not defined.");
       }
     }
 
@@ -534,7 +537,7 @@ public class CompilationHelper
         catch (NotFoundException e)
         {
           logger.info(e.getMessage());
-          throw new JSONException(e);
+          throw new RelevanceException(e);
         }
 
         ch.addInterface(ci);
@@ -551,7 +554,7 @@ public class CompilationHelper
         catch (CannotCompileException e)
         {
           logger.info(e.getMessage());
-          throw new JSONException(e);
+          throw new RelevanceException(ErrorType.JsonCompilationError, "Compilation error of json relevance model.", e);
         }
 
         Class h;
@@ -570,7 +573,7 @@ public class CompilationHelper
           else
           {
             logger.info(e.getMessage());
-            throw new JSONException(e);
+            throw new RelevanceException(ErrorType.JsonCompilationError, "Compilation error of json relevance model.", e);
           }
         }
 
@@ -581,12 +584,12 @@ public class CompilationHelper
         catch (InstantiationException e)
         {
           logger.info(e.getMessage());
-          throw new JSONException(e);
+          throw new RelevanceException(ErrorType.JsonCompilationError, "Instantiation exception of relevance object.", e);
         }
         catch (IllegalAccessException e)
         {
           logger.info(e.getMessage());
-          throw new JSONException(e);
+          throw new RelevanceException(ErrorType.JsonCompilationError, "Instantiation exception of relevance object; Illegal access exception", e);
         }
 
         if(hmModels.size() > MAX_NUM_MODELS)
@@ -668,8 +671,30 @@ public class CompilationHelper
           throw new JSONException("Variable "+ symbol + " does not have value.");
 
         JSONArray keysList = values.names();
-
         int keySize = keysList.length();
+        
+        // denote if the map is represented in a way of combination of key jsonarray and value jsonarray;
+        boolean isKeyValue = isKeyValueArrayMethod(values);
+        JSONArray keysArrayList = null, valuesArrayList = null;
+        int keyArraySize, valueArraySize;
+        if(isKeyValue)
+        {
+          keysArrayList = values.optJSONArray(RelevanceJSONConstants.KW_KEY);
+          valuesArrayList = values.optJSONArray(RelevanceJSONConstants.KW_VALUE);
+          
+          if (keysArrayList == null)
+            throw new JSONException("Variable " + symbol + " is a map, but does not have a key list.");
+
+          if (valuesArrayList == null)
+            throw new JSONException("Variable " + symbol + "is a map, but does not have a value list.");
+
+          keyArraySize = keysArrayList.length();
+          valueArraySize = valuesArrayList.length();
+          if (keyArraySize != valueArraySize)
+            throw new JSONException("Variable " + symbol + ": key size is different from value size, can not convert to a map." );
+          
+          keySize = keysArrayList.length();
+        }
 
         Map hm = null;
         switch (typeNum)
@@ -678,75 +703,115 @@ public class CompilationHelper
           hm = new Int2IntOpenHashMap();
           for (int j = 0; j < keySize; j++)
           {
-            ((Int2IntOpenHashMap) hm).put(keysList.getInt(j), values.getInt(keysList.getString(j)));
+            if(isKeyValue)
+              ((Int2IntOpenHashMap) hm).put(keysArrayList.getInt(j), valuesArrayList.getInt(j));
+            else
+              ((Int2IntOpenHashMap) hm).put(keysList.getInt(j), values.getInt(keysList.getString(j)));
           }
           break;
         case RelevanceJSONConstants.TYPENUMBER_MAP_INT_DOUBLE:
           hm = new Int2DoubleOpenHashMap();
           for (int j = 0; j < keySize; j++)
           {
-            ((Int2DoubleOpenHashMap) hm).put(keysList.getInt(j), values.getDouble(keysList.getString(j)));
+            if(isKeyValue)
+              ((Int2DoubleOpenHashMap) hm).put(keysArrayList.getInt(j), valuesArrayList.getDouble(j));
+            else
+              ((Int2DoubleOpenHashMap) hm).put(keysList.getInt(j), values.getDouble(keysList.getString(j)));
           }
           break;
         case RelevanceJSONConstants.TYPENUMBER_MAP_INT_FLOAT:
           hm = new Int2FloatOpenHashMap();
           for (int j = 0; j < keySize; j++)
           {
-            ((Int2FloatOpenHashMap) hm).put(keysList.getInt(j), (float) values.getDouble(keysList.getString(j)));
+            if(isKeyValue)
+              ((Int2FloatOpenHashMap) hm).put(keysArrayList.getInt(j), (float) valuesArrayList.getDouble(j));
+            else
+              ((Int2FloatOpenHashMap) hm).put(keysList.getInt(j), (float) values.getDouble(keysList.getString(j)));
           }
           break;
         case RelevanceJSONConstants.TYPENUMBER_MAP_INT_LONG:
           hm = new Int2LongOpenHashMap();
           for (int j = 0; j < keySize; j++)
           {
-            ((Int2LongOpenHashMap) hm).put(keysList.getInt(j), Long.parseLong(values.getString(keysList.getString(j))));
+            if(isKeyValue)
+              ((Int2LongOpenHashMap) hm).put(keysArrayList.getInt(j), Long.parseLong(valuesArrayList.getString(j)));
+            else
+              ((Int2LongOpenHashMap) hm).put(keysList.getInt(j), Long.parseLong(values.getString(keysList.getString(j))));
           }
           break;
         case RelevanceJSONConstants.TYPENUMBER_MAP_INT_STRING:
           hm = new Int2ObjectOpenHashMap();
           for (int j = 0; j < keySize; j++)
           {
-            ((Int2ObjectOpenHashMap) hm).put(keysList.getInt(j), values.getString(keysList.getString(j)));
+            if(isKeyValue)
+              ((Int2ObjectOpenHashMap) hm).put(keysArrayList.getInt(j), valuesArrayList.getString(j));
+            else
+              ((Int2ObjectOpenHashMap) hm).put(keysList.getInt(j), values.getString(keysList.getString(j)));
           }
           break;
         case RelevanceJSONConstants.TYPENUMBER_MAP_STRING_INT:
           hm = new Object2IntOpenHashMap();
           for (int j = 0; j < keySize; j++)
           {
-            String key = keysList.getString(j);
-            ((Object2IntOpenHashMap) hm).put(key, values.getInt(key));
+            if(isKeyValue)
+              ((Object2IntOpenHashMap) hm).put(keysArrayList.getString(j), valuesArrayList.getInt(j));
+            else
+            {
+              String key = keysList.getString(j);
+              ((Object2IntOpenHashMap) hm).put(key, values.getInt(key));
+            }
           }
           break;
         case RelevanceJSONConstants.TYPENUMBER_MAP_STRING_DOUBLE:
           hm = new Object2DoubleOpenHashMap();
           for (int j = 0; j < keySize; j++)
           {
+            if(isKeyValue)
+              ((Object2DoubleOpenHashMap) hm).put(keysArrayList.getString(j), valuesArrayList.getDouble(j));
+            else
+            {
             String key = keysList.getString(j);
             ((Object2DoubleOpenHashMap) hm).put(key, values.getDouble(key));
+            }
           }
           break;
         case RelevanceJSONConstants.TYPENUMBER_MAP_STRING_FLOAT:
           hm = new Object2FloatOpenHashMap();
           for (int j = 0; j < keySize; j++)
           {
-            String key = keysList.getString(j);
-            ((Object2FloatOpenHashMap) hm).put(key, (float) values.getDouble(key));
+            if(isKeyValue)
+              ((Object2FloatOpenHashMap) hm).put(keysArrayList.getString(j), (float) valuesArrayList.getDouble(j));
+            else
+            {
+              String key = keysList.getString(j);
+              ((Object2FloatOpenHashMap) hm).put(key, (float) values.getDouble(key));
+            }
           }
           break;
         case RelevanceJSONConstants.TYPENUMBER_MAP_STRING_LONG:
           hm = new Object2LongOpenHashMap();
           for (int j = 0; j < keySize; j++)
           {
-            String key = keysList.getString(j);
-            ((Object2LongOpenHashMap) hm).put(key, Long.parseLong(values.getString(keysList.getString(j))));
+            if(isKeyValue)
+              ((Object2LongOpenHashMap) hm).put(keysArrayList.getString(j), Long.parseLong(valuesArrayList.getString(j)));
+            else
+            {
+              String key = keysList.getString(j);
+              ((Object2LongOpenHashMap) hm).put(key, Long.parseLong(values.getString(keysList.getString(j))));
+            }
           }
           break;
         case RelevanceJSONConstants.TYPENUMBER_MAP_STRING_STRING:
           hm = new Object2ObjectOpenHashMap();
           for (int j = 0; j < keySize; j++)
           {
-            String key = keysList.getString(j);
-            ((Object2ObjectOpenHashMap) hm).put(key, values.getString(key));
+            if(isKeyValue)
+              ((Object2ObjectOpenHashMap) hm).put(keysArrayList.getString(j), valuesArrayList.getString(j));
+            else
+            {
+              String key = keysList.getString(j);
+              ((Object2ObjectOpenHashMap) hm).put(key, values.getString(key));
+            }
           }
           break;
         }
@@ -795,6 +860,25 @@ public class CompilationHelper
       }
     }
   } // End of initializeValues()
+
+  /**
+   * check if in the JSON values part the map variable is represented in a json map way or two key and value json array;
+   *       "JsonMapway":{"1":2.3, "2":3.4, "3":2.9}      // A user input hashmap;
+   *       "KeyValueJsonArrayPairWay":{"key":[1,2,3], "value":[2.3, 3.4, 2.9]}      //  It also supports this method to pass in a map. 
+   * @param values
+   * @return boolean
+   */
+  private static boolean isKeyValueArrayMethod(JSONObject mapJSON)
+  {
+    if(mapJSON.has(RelevanceJSONConstants.KW_KEY) && mapJSON.has(RelevanceJSONConstants.KW_VALUE))
+    {
+      JSONArray keysList = mapJSON.optJSONArray(RelevanceJSONConstants.KW_KEY);
+      JSONArray valuesList = mapJSON.optJSONArray(RelevanceJSONConstants.KW_VALUE);
+      if(keysList != null && valuesList != null)
+        return true;
+    }
+    return false;
+  }
 
   private static void addFacilityMethods(CtClass ch) throws JSONException
   {
