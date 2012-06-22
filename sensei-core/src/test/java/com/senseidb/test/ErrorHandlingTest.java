@@ -13,6 +13,7 @@ import org.junit.Ignore;
 
 import com.senseidb.search.req.ErrorType;
 import com.senseidb.search.req.mapred.CombinerStage;
+import com.senseidb.search.req.mapred.FacetCountAccessor;
 import com.senseidb.search.req.mapred.FieldAccessor;
 import com.senseidb.search.req.mapred.SenseiMapReduce;
 import com.senseidb.search.req.mapred.TestMapReduce;
@@ -23,7 +24,7 @@ public class ErrorHandlingTest extends TestCase {
   private static final Logger logger = Logger.getLogger(TestMapReduce.class);
   public static class MapReduceAdapter implements SenseiMapReduce<Serializable, Serializable> {   
     public void init(JSONObject params) {}
-    public Serializable map(int[] docIds, int docIdCount, long[] uids, FieldAccessor accessor) {return new ArrayList();}
+    public Serializable map(int[] docIds, int docIdCount, long[] uids, FieldAccessor accessor, FacetCountAccessor facetCountAccessor) {return new ArrayList();}
     public List<Serializable> combine(List<Serializable> mapResults, CombinerStage combinerStage) {return new ArrayList();}
     public Serializable reduce(List<Serializable> combineResults) {return new ArrayList();}
     public JSONObject render(Serializable reduceResult) {return new JSONObject();}    
@@ -36,7 +37,7 @@ public class ErrorHandlingTest extends TestCase {
   }
   public static class test2BoboError extends MapReduceAdapter {
    @Override
-  public Serializable map(int[] docIds, int docIdCount, long[] uids, FieldAccessor accessor) {
+  public Serializable map(int[] docIds, int docIdCount, long[] uids, FieldAccessor accessor, FacetCountAccessor facetCountAccessor) {
     throw new RuntimeException("Map exception");
   }
   }

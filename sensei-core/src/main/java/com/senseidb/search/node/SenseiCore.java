@@ -21,6 +21,7 @@ import com.senseidb.indexing.SenseiIndexPruner;
 import com.senseidb.indexing.SenseiIndexPruner.DefaultSenseiIndexPruner;
 import com.senseidb.indexing.activity.CompositeActivityManager;
 import com.senseidb.jmx.JmxUtil;
+import com.senseidb.search.plugin.PluggableSearchEngineManager;
 import com.senseidb.search.req.SenseiSystemInfo;
 
 
@@ -39,7 +40,7 @@ public class SenseiCore{
   private volatile boolean _started;
   private SenseiIndexPruner _pruner;
 
-  private CompositeActivityManager activityManager;
+  private PluggableSearchEngineManager pluggableSearchEngineManager;
     
   public SenseiCore(int id,int[] partitions,
             SenseiZoieFactory<?> zoieSystemFactory,
@@ -235,12 +236,12 @@ public class SenseiCore{
     _indexManager.syncWithVersion(timeToWait, version);
   }
 
-  public void setActivityManager(CompositeActivityManager activityManager) {
-    this.activityManager = activityManager;
+  public void setPluggableSearchEngineManager(PluggableSearchEngineManager pluggableSearchEngineManager) {
+    this.pluggableSearchEngineManager = pluggableSearchEngineManager;
   }
 
-  public CompositeActivityManager getActivityManager() {
-    return activityManager;
+  public PluggableSearchEngineManager getPluggableSearchEngineManager() {
+    return pluggableSearchEngineManager;
   }
   
 }

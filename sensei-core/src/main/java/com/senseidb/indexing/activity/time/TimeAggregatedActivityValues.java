@@ -32,8 +32,8 @@ import com.senseidb.indexing.activity.ActivityValues;
  * intActivityValues will contain all the aggregated fields, eg likes:5m, likes:15m, likes:1h etc. <br>
  * Basically this class is a composite, containing intActivityValue for each aggregate period specified in the config plus a default non time trimmed  values
  * Each of  underlying activityIntValues will be persisting themselves to the disk.<br>
- * When the TimeAggregatedActivityValues is constructed from file, it will init all the aggregated activity int values from disk. 
- * And will try to estimate timeHits - {@link TimeHitsHolder}
+ * When the TimeAggregatedActivityValues is constructed from file, it will init all the aggregated activity int values from the disk. 
+ * And it will try to estimate timeHits - {@link TimeHitsHolder}
  *
  */
 public class TimeAggregatedActivityValues implements ActivityValues {  
@@ -126,6 +126,8 @@ public class TimeAggregatedActivityValues implements ActivityValues {
 			case 'h' : return 60 * number;
 			case 'd' : return 24 * 60 * number;
 			case 'w' : return 7 * 24 * 60 * number;
+			case 'M' : return 30 * 24 * 60 * number;
+			case 'y' : return 365 * 24 * 60 * number;
 			default : throw new UnsupportedOperationException("Only m, h, d, w are supported in the end of the time String");
 		}
 	}

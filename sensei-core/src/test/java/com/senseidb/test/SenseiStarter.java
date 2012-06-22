@@ -53,6 +53,8 @@ public class SenseiStarter {
   public static final String SENSEI_TEST_CONF_FILE="sensei-test.spring";
   public static SenseiZoieFactory<?> _zoieFactory;
   public static boolean started = false;
+
+   public static URL  federatedBrokerUrl;
   
 
   /**
@@ -110,6 +112,7 @@ public class SenseiStarter {
     httpServer2.start();
     logger.info("Node 2 started");
     SenseiUrl =  new URL("http://localhost:8079/sensei");
+    federatedBrokerUrl =  new URL("http://localhost:8079/sensei/federatedBroker/");
     waitTillServerStarts();
     } catch (Throwable ex) {
       logger.error("Could not start the sensei", ex);

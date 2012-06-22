@@ -26,6 +26,10 @@ import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_OFFSET;
 import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_PARTITIONS;
 import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_QUERY;
 import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_QUERY_PARAM;
+import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_ERRORS;
+import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_ERROR_CODE;
+import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_ERROR_MESSAGE;
+import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_ERROR_TYPE;
 import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_FACETS;
 import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_FACET_INFO_COUNT;
 import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_FACET_INFO_SELECTED;
@@ -136,14 +140,6 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
    *
    */
   private static final long serialVersionUID = 1L;
-
-  private static final String PARAM_RESULT_ERROR_MESSAGE = "message";
-
-  private static final String PARAM_RESULT_ERROR_TYPE = "errorType";
-
-  private static final String PARAM_RESULT_ERRORS = "errors";
-
-  private static final String PARAM_RESULT_ERROR_CODE = "errorCode";
 
   private static Logger logger = Logger.getLogger(DefaultSenseiJSONServlet.class);
 

@@ -4,28 +4,33 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.lucene.index.IndexReader;
 import org.jboss.netty.util.internal.ConcurrentHashMap;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import proj.zoie.api.Zoie;
-import proj.zoie.api.ZoieIndexReader;
-import proj.zoie.api.ZoieMultiReader;
-import proj.zoie.api.ZoieSegmentReader;
-import proj.zoie.hourglass.impl.HourglassListener;
-
+import com.browseengine.bobo.facets.FacetHandler;
 import com.senseidb.conf.SenseiConfParams;
 import com.senseidb.conf.SenseiSchema;
 import com.senseidb.conf.SenseiSchema.FacetDefinition;
 import com.senseidb.conf.SenseiSchema.FieldDefinition;
+import com.senseidb.indexing.ShardingStrategy;
 import com.senseidb.indexing.activity.BaseActivityFilter.ActivityFilteredResult;
-import com.senseidb.indexing.activity.deletion.DeletionListener;
+import com.senseidb.indexing.activity.facet.ActivityRangeFacetHandler;
+import com.senseidb.indexing.activity.time.TimeAggregatedActivityValues;
 import com.senseidb.plugin.SenseiPluginRegistry;
+import com.senseidb.search.node.SenseiCore;
+import com.senseidb.search.plugin.PluggableSearchEngine;
+import com.yammer.metrics.Metrics;
+import com.yammer.metrics.core.Counter;
+import com.yammer.metrics.core.MetricName;
+
 
 /**
  * Wrapper around all the activity indexes within the Sensei node. It is the entry point to the activity engine. 
@@ -33,29 +38,37 @@ import com.senseidb.plugin.SenseiPluginRegistry;
  * This class is a bridge between Sensei and the activityEngine
  *
  */
-public class CompositeActivityManager implements DeletionListener, HourglassListener<IndexReader, IndexReader> {
+public class CompositeActivityManager implements PluggableSearchEngine {
     
     protected CompositeActivityValues activityValues;
     private SenseiSchema senseiSchema;
     public static final String EVENT_TYPE_ONLY_ACTIVITY = "activity-update";
-    private BaseActivityFilter activityFilter; 
+    private BaseActivityFilter activityFilter;
+    private ShardingStrategy shardingStrategy;
+
+    private SenseiCore senseiCore;
+    private Counter skippedBecauseOfNotFoundUIDCounter; 
+
     
     
     public CompositeActivityManager() {
-      
+      skippedBecauseOfNotFoundUIDCounter = Metrics.newCounter(new MetricName(getClass(), "skippedBecauseOfNotFoundUID"));
     }
 
-    public CompositeActivityManager(String indexDirectory, int nodeId, SenseiSchema senseiSchema, Comparator<String> versionComparator, SenseiPluginRegistry pluginRegistry) {
-      this.init(indexDirectory, nodeId, senseiSchema, versionComparator, pluginRegistry);
-    }
-    
-    public String getOldestSinceVersion() {
+   
+    public String getVersion() {
       return activityValues.getVersion();
     }
-    
-    public final void init(String indexDirectory, int nodeId, SenseiSchema senseiSchema, Comparator<String> versionComparator, SenseiPluginRegistry pluginRegistry) {
+   
+    public boolean acceptEventsForAllPartitions() {
+      if (activityFilter == null) 
+        return false;
+      return activityFilter.acceptEventsForAllPartitions();
+    }
+    public final void init(String indexDirectory, int nodeId, SenseiSchema senseiSchema, Comparator<String> versionComparator, SenseiPluginRegistry pluginRegistry, ShardingStrategy shardingStrategy) {
      
       this.senseiSchema = senseiSchema;
+      this.shardingStrategy = shardingStrategy;
       try {
         File dir = new File(indexDirectory, "node" +nodeId +"/activity");
         dir.mkdirs();
@@ -98,7 +111,7 @@ public class CompositeActivityManager implements DeletionListener, HourglassList
           return false;
         }       
       }
-      return activityPresent;
+      return activityPresent && SenseiSchema.EVENT_TYPE_UPDATE.equalsIgnoreCase(event.optString(SenseiSchema.EVENT_TYPE_FIELD, null));
     }
     /**
      * Updates all the corresponding activity columns found in the document
@@ -106,18 +119,25 @@ public class CompositeActivityManager implements DeletionListener, HourglassList
      * @param version
      * @return 
      */
-    public JSONObject update(JSONObject event, String version) {
-      try {
-        if (event.opt(SenseiSchema.EVENT_TYPE_SKIP) != null && event.opt(EVENT_TYPE_ONLY_ACTIVITY) == null) {
+    public JSONObject acceptEvent(JSONObject event, String version) {
+      try {        
+        if (event.opt(SenseiSchema.EVENT_TYPE_SKIP) != null ) {
           return event;
         }        
+        if (isOnlyActivityUpdate(event)) {
+          event.put(SenseiSchema.EVENT_TYPE_FIELD, SenseiSchema.EVENT_TYPE_SKIP);
+        }
         long defaultUid = event.getLong(senseiSchema.getUidField());       
         if (event.opt(SenseiSchema.EVENT_TYPE_FIELD) != null && event.optString(SenseiSchema.EVENT_TYPE_FIELD).equals(SenseiSchema.EVENT_TYPE_DELETE)) {
           activityValues.delete(defaultUid);
           return event;
         } 
-        ActivityFilteredResult activityFilteredResult = activityFilter.filter(event, senseiSchema);
+        ActivityFilteredResult activityFilteredResult = activityFilter.filter(event, senseiSchema, shardingStrategy, senseiCore);
         for (long uid : activityFilteredResult.getActivityValues().keySet()) {
+          if (defaultUid != uid && !isUidPresent(uid)) {
+            skippedBecauseOfNotFoundUIDCounter.inc();
+            continue;
+          }
           activityValues.update(uid, version, activityFilteredResult.getActivityValues().get(uid));
         }
         return activityFilteredResult.getFilteredObject();
@@ -127,10 +147,37 @@ public class CompositeActivityManager implements DeletionListener, HourglassList
     }
     
     
+    private boolean isUidPresent(long uid) {     
+      /*if (activityValues.uidToArrayIndex.containsKey(uid)) {
+        return true;
+      }
+      for (int partition : senseiCore.getPartitions()) {
+        IndexReaderFactory<ZoieIndexReader<BoboIndexReader>> zoie = senseiCore.getIndexReaderFactory(partition);
+        List<ZoieIndexReader<BoboIndexReader>> indexReaders = null;
+        try {
+          indexReaders = zoie.getIndexReaders();
+          for (ZoieIndexReader<BoboIndexReader> indexReader : indexReaders) {
+           if (indexReader.getDocIDMaper().getDocID(uid) != DocIDMapper.NOT_FOUND) {
+             return true;
+           }
+          }
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        } finally {
+          if (indexReaders != null) {
+            zoie.returnIndexReaders(indexReaders);
+          }
+        }
+      }*/
+      return true;
+    }
+
+
     public CompositeActivityValues getActivityValues() {
       return activityValues;
     }
     public void close() {
+      getActivityValues().flush();
       activityValues.close();
     }
    
@@ -180,29 +227,67 @@ public class CompositeActivityManager implements DeletionListener, HourglassList
        return ret;
      }
    }
-  @Override
-  public void onNewZoie(Zoie<IndexReader, IndexReader> zoie) {    
+ 
+
+  public void setSenseiCore(SenseiCore senseiCore) {
+    this.senseiCore = senseiCore;
     
   }
+
+
+ 
+
   @Override
-  public void onRetiredZoie(Zoie<IndexReader, IndexReader> zoie) {    
-    
-  }
-  @Override
-  public void onIndexReaderCleanUp(ZoieIndexReader<IndexReader> indexReader) {
-    if (indexReader instanceof ZoieMultiReader) {
-      ZoieSegmentReader[] segments = (ZoieSegmentReader[]) ((ZoieMultiReader) indexReader).getSequentialSubReaders();
-      for (ZoieSegmentReader segmentReader : segments) {
-        handleSegment(segmentReader);
+  public Set<String> getFieldNames() {
+    Set<String> ret = new HashSet<String>();
+    for (String field : senseiSchema.getFieldDefMap().keySet()) {
+      if (senseiSchema.getFieldDefMap().get(field).isActivity) {
+        ret.add(field);
       }
-    } else if (indexReader instanceof ZoieSegmentReader) {
-      handleSegment((ZoieSegmentReader) indexReader);
-    } else {
-      throw new UnsupportedOperationException("Only segment and multisegment readers can be handled");
     }
-    
+    return ret;
   }
-  private void handleSegment(ZoieSegmentReader segmentReader) {    
-    onDelete(segmentReader, segmentReader.getUIDArray());      
+  @Override
+  public Set<String> getFacetNames() {
+    Set<String> ret = new HashSet<String>();
+    for (FacetDefinition facet : senseiSchema.getFacets()) {
+      boolean isActivity = facet.column != null && senseiSchema.getFieldDefMap().containsKey(facet.column) && senseiSchema.getFieldDefMap().get(facet.column).isActivity;
+      boolean isAggregatedRange = "aggregated-range".equals(facet.type);
+      if (isActivity || isAggregatedRange) {        
+        ret.add(facet.name);
+      }      
+    }
+    return ret;
+  }
+
+
+  @Override
+
+  public List<FacetHandler<?>> createFacetHandlers() {
+    Set<String> facets = getFacetNames();
+    List<FacetHandler<?>> ret = new ArrayList<FacetHandler<?>>();
+    for (FacetDefinition facet : senseiSchema.getFacets()) {
+      if (!facets.contains(facet.name)) {        
+        continue;
+      }
+      ActivityValues activityValues = getActivityValues().getActivityValuesMap().get(facet.column);
+
+      if ("aggregated-range".equals(facet.type)) {
+        if (!(activityValues instanceof TimeAggregatedActivityValues)) {
+          throw new IllegalStateException("The facet " + facet.name + "should correspond to the timeAggregateActivityValues");          
+        }
+        TimeAggregatedActivityValues aggregatedActivityValues = (TimeAggregatedActivityValues) activityValues;
+        for (String time : facet.params.get("time")) {
+          String name = facet.name + ":" + time;
+          ret.add(ActivityRangeFacetHandler.valueOf(name, facet.column, getActivityValues(), (ActivityIntValues)aggregatedActivityValues.getValuesMap().get(time)));
+        }
+        ret.add(ActivityRangeFacetHandler.valueOf(facet.name, facet.column, getActivityValues(), (ActivityIntValues)aggregatedActivityValues.getDefaultIntValues()));
+      } else if ("range".equals(facet.type)){
+        ret.add(ActivityRangeFacetHandler.valueOf(facet.name, facet.column, getActivityValues(), getActivityValues().getActivityIntValues(facet.column)));
+      } else {
+        throw new UnsupportedOperationException("The facet " + facet.name + "should be of type either aggregated-range or range");
+      }
+    }
+    return ret;
   }
 }

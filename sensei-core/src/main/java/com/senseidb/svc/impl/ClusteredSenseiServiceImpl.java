@@ -3,6 +3,8 @@ package com.senseidb.svc.impl;
 import java.util.Comparator;
 
 import com.linkedin.norbert.javacompat.network.PartitionedLoadBalancerFactory;
+
+import org.apache.commons.configuration.Configuration;
 import org.apache.log4j.Logger;
 
 import com.linkedin.norbert.javacompat.cluster.ClusterClient;
@@ -11,6 +13,7 @@ import com.linkedin.norbert.javacompat.network.NetworkClientConfig;
 import com.senseidb.cluster.client.SenseiNetworkClient;
 import com.senseidb.search.node.SenseiBroker;
 import com.senseidb.search.node.SenseiSysBroker;
+import com.senseidb.search.node.broker.BrokerConfig;
 import com.senseidb.search.req.SenseiRequest;
 import com.senseidb.search.req.SenseiResult;
 import com.senseidb.search.req.SenseiSystemInfo;
@@ -28,27 +31,19 @@ public class ClusteredSenseiServiceImpl implements SenseiService {
   private ClusterClient _clusterClient;
   private final String _clusterName;
   
-  public ClusteredSenseiServiceImpl(String zkurl,int zkTimeout,String clusterClientName, String clusterName, int connectTimeoutMillis,
-      int writeTimeoutMillis, int maxConnectionsPerNode, int staleRequestTimeoutMins,
-      int staleRequestCleanupFrequencyMins, boolean allowPartialMerge, PartitionedLoadBalancerFactory<String> loadBalancerFactory/*, SenseiLoadBalancerFactory loadBalancerFactory*/,
+  public ClusteredSenseiServiceImpl(Configuration senseiConf, PartitionedLoadBalancerFactory<String> loadBalancerFactory/*, SenseiLoadBalancerFactory loadBalancerFactory*/,
       Comparator<String> versionComparator) {
-    _clusterName = clusterName;
-    _networkClientConfig.setServiceName(clusterName);
-    _networkClientConfig.setZooKeeperConnectString(zkurl);
-    _networkClientConfig.setZooKeeperSessionTimeoutMillis(zkTimeout);
-    _networkClientConfig.setConnectTimeoutMillis(connectTimeoutMillis);
-    _networkClientConfig.setWriteTimeoutMillis(writeTimeoutMillis);
-    _networkClientConfig.setMaxConnectionsPerNode(maxConnectionsPerNode);
-    _networkClientConfig.setStaleRequestTimeoutMins(staleRequestTimeoutMins);
-    _networkClientConfig.setStaleRequestCleanupFrequencyMins(staleRequestCleanupFrequencyMins);
-    
-    _clusterClient = new ZooKeeperClusterClient(clusterClientName,clusterName,zkurl,zkTimeout);
+    BrokerConfig brokerConfig = new BrokerConfig(senseiConf, loadBalancerFactory);
+    brokerConfig.init();
+    _clusterName = brokerConfig.getClusterName();
   
-    _networkClientConfig.setClusterClient(_clusterClient);
     
-    _networkClient = new SenseiNetworkClient(_networkClientConfig, loadBalancerFactory);
-    _senseiBroker = new SenseiBroker(_networkClient, _clusterClient, allowPartialMerge);
-    _senseiSysBroker = new SenseiSysBroker(_networkClient, _clusterClient, versionComparator, allowPartialMerge);
+    _clusterClient = brokerConfig.getClusterClient();
+  
+    
+    _networkClient = brokerConfig.getNetworkClient();
+    _senseiBroker = brokerConfig.buildSenseiBroker();
+    _senseiSysBroker = brokerConfig.buildSysSenseiBroker(versionComparator);
   }
   
   public void start(){

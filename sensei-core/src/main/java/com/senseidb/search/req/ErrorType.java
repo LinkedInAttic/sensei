@@ -11,6 +11,7 @@ public enum ErrorType {
   BrokerTimeout(400), 
   InternalError(450), 
   MergePartitionError(500),
+  FederatedBrokerUnavailable(550),
   UnknownError(1000);
   
   private final int defaultErrorCode;
