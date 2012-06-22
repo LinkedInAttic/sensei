@@ -3,6 +3,8 @@ package com.senseidb.examples;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
@@ -18,6 +20,7 @@ import proj.zoie.api.indexing.ZoieIndexable.IndexingReq;
 import com.senseidb.conf.SenseiSchema;
 import com.senseidb.conf.SenseiServerBuilder;
 import com.senseidb.indexing.DefaultJsonSchemaInterpreter;
+import com.senseidb.search.plugin.PluggableSearchEngineManager;
 
 public class SchemaIndexingExample{
   
@@ -29,7 +32,12 @@ public class SchemaIndexingExample{
     JSONObject schemaData = SenseiServerBuilder.loadSchema(confDir);
     SenseiSchema schema = SenseiSchema.build(schemaData);
     
-    DefaultJsonSchemaInterpreter defaultInterpreter = new DefaultJsonSchemaInterpreter(schema);
+    DefaultJsonSchemaInterpreter defaultInterpreter = new DefaultJsonSchemaInterpreter(schema, new PluggableSearchEngineManager() {
+      @Override
+      public Set<String> getFieldNames() {
+        return new HashSet<String>();
+      }
+    });
     
     FileReader freader = new FileReader(dataFile);
     BufferedReader br = new BufferedReader(freader);

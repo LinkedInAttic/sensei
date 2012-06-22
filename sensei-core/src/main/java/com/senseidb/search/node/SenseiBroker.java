@@ -28,6 +28,9 @@ import com.senseidb.search.req.SenseiHit;
 import com.senseidb.search.req.SenseiRequest;
 import com.senseidb.search.req.SenseiResult;
 import com.senseidb.svc.impl.CoreSenseiServiceImpl;
+import com.yammer.metrics.Metrics;
+import com.yammer.metrics.core.Counter;
+import com.yammer.metrics.core.MetricName;
 
 
 /**
@@ -43,7 +46,7 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
   private long _timeoutMillis = TIMEOUT_MILLIS;
   private final boolean allowPartialMerge;
   private final ClusterClient clusterClient;
-
+  private static Counter numberOfNodesInTheCluster = Metrics.newCounter(new MetricName(SenseiBroker.class, "numberOfNodesInTheCluster"));
   public SenseiBroker(PartitionedNetworkClient<String> networkClient, ClusterClient clusterClient, boolean allowPartialMerge) throws NorbertException
   {
     super(networkClient, CoreSenseiServiceImpl.JAVA_SERIALIZER);
@@ -62,7 +65,7 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
     logger.info("created broker instance " + networkClient + " " + clusterClient);
   }
 
-  private void recoverSrcData(SenseiResult res, SenseiHit[] hits, boolean isFetchStoredFields)
+  public static void recoverSrcData(SenseiResult res, SenseiHit[] hits, boolean isFetchStoredFields)
   {
     if (hits != null)
     {
@@ -180,6 +183,8 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
   {
 //    _loadBalancer = _loadBalancerFactory.newLoadBalancer(nodes);
     _partitions = getPartitions(nodes);
+    numberOfNodesInTheCluster.clear();
+    numberOfNodesInTheCluster.inc(getNumberOfNodes());
     logger.info("handleClusterConnected(): Received the list of nodes from norbert " + nodes.toString());
     logger.info("handleClusterConnected(): Received the list of partitions from router " + _partitions.toString());
   }
@@ -192,10 +197,14 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
 
   public void handleClusterNodesChanged(Set<Node> nodes)
   {
+
 //    _loadBalancer = _loadBalancerFactory.newLoadBalancer(nodes);
     _partitions = getPartitions(nodes);
+    numberOfNodesInTheCluster.clear();
+    numberOfNodesInTheCluster.inc(getNumberOfNodes());
     logger.info("handleClusterNodesChanged(): Received the list of nodes from norbert " + nodes.toString());
     logger.info("handleClusterNodesChanged(): Received the list of partitions from router " + _partitions.toString());
+
   }
 
   @Override
@@ -213,7 +222,9 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
 	public int getNumberOfNodes() {
 		return clusterClient.getNodes().size();
 	}
-
+  
+	
+	
 	@Override
 	public String getNodeStatistics() {
 		StringBuilder str = new StringBuilder("Nodes:");

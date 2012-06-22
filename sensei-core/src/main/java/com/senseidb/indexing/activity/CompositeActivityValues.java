@@ -54,8 +54,10 @@ public class CompositeActivityValues {
   protected UpdateBatch<Update> updateBatch = new UpdateBatch<Update>(); 
   protected volatile Metadata metadata;
   private volatile boolean closed;
+  private Counter reclaimedDocumentsCounter;
+  private Counter currentDocumentsCounter;
   private Counter deletedDocumentsCounter;
-  private Counter inserteddDocumentsCounter; 
+  private Counter insertedDocumentsCounter; 
   protected CompositeActivityValues() {
    
   }
@@ -69,8 +71,10 @@ public class CompositeActivityValues {
     for (int i = 0; i < 1024; i++) {
       locks[i] = new ReentrantReadWriteLock();
     }
-    deletedDocumentsCounter = Metrics.newCounter(new MetricName(MetricsConstants.Domain,"deletedDocs","deletedDocs" ,"CompositeActivityStorage"));
-    inserteddDocumentsCounter = Metrics.newCounter(new MetricName(MetricsConstants.Domain,"insertedDocs","insertedDocs" ,"CompositeActivityStorage"));
+    reclaimedDocumentsCounter = Metrics.newCounter(new MetricName(getClass(), "reclaimedActivityDocs"));
+    currentDocumentsCounter = Metrics.newCounter(new MetricName(getClass(), "currentActivityDocs"));
+    deletedDocumentsCounter = Metrics.newCounter(new MetricName(getClass(), "deletedActivityDocs"));
+    insertedDocumentsCounter = Metrics.newCounter(new MetricName(getClass(), "insertedActivityDocs"));
   }
   public ReadWriteLock getLock(long uid) {
     return locks[(int) (uid % locks.length)];
@@ -100,6 +104,7 @@ public class CompositeActivityValues {
       if (uidToArrayIndex.containsKey(uid)) {
         index = uidToArrayIndex.get(uid);       
       } else {
+        insertedDocumentsCounter.inc();
         boolean deletedDocsPresent = false;
         synchronized (deletedIndexes) {
           if (deletedIndexes.size() > 0) {
@@ -114,7 +119,6 @@ public class CompositeActivityValues {
         }
         needToFlush = updateBatch.addFieldUpdate(new Update(index, uid));
       }      
-      // System.out.println("update uid = " + uid + ", index = " + index + ", threadID = " + Thread.currentThread().getId());
       needToFlush = needToFlush || updateActivities(map, index);
       lastVersion = version;
     } finally {
@@ -180,6 +184,7 @@ public class CompositeActivityValues {
         if (!uidToArrayIndex.containsKey(uid)) {
           continue;
         }
+        deletedDocumentsCounter.inc();
         int index = uidToArrayIndex.remove(uid);
         for (ActivityValues activityIntValues :  intValuesMap.values()) {
           activityIntValues.delete(index);
@@ -247,7 +252,7 @@ public class CompositeActivityValues {
     return lastVersion;
   }
   /**
-   * flushes pening updates to disk
+   * flushes pending updates to disk
    */
   public synchronized void flush() {
     if (closed) {
@@ -263,10 +268,10 @@ public class CompositeActivityValues {
     final int count;
     synchronized (deletedIndexes) {
       count = uidToArrayIndex.size() + deletedIndexes.size();
-      inserteddDocumentsCounter.clear();
-      inserteddDocumentsCounter.inc(uidToArrayIndex.size());
-      deletedDocumentsCounter.clear();
-      deletedDocumentsCounter.inc( uidToArrayIndex.size());
+      currentDocumentsCounter.clear();
+      currentDocumentsCounter.inc(uidToArrayIndex.size());
+      reclaimedDocumentsCounter.clear();
+      reclaimedDocumentsCounter.inc( deletedIndexes.size());
       logger.info("Flush compositeActivityValues. Documents = " +  uidToArrayIndex.size() + ", Deletes = " + deletedIndexes.size());
     }
      executor.submit(new Runnable() {      
@@ -306,8 +311,8 @@ public class CompositeActivityValues {
     Metadata metadata = new Metadata(indexDirPath);
     metadata.init();
     CompositeActivityValues ret = persistentColumnManager.getActivityDataFromFile(metadata);
-    ret.deletedDocumentsCounter.inc(ret.deletedIndexes.size());
-    ret.inserteddDocumentsCounter.inc(ret.uidToArrayIndex.size());
+    ret.reclaimedDocumentsCounter.inc(ret.deletedIndexes.size());
+    ret.currentDocumentsCounter.inc(ret.uidToArrayIndex.size());
     logger.info("Init compositeActivityValues. Documents = " +  ret.uidToArrayIndex.size() + ", Deletes = " +ret.deletedIndexes.size());
     ret.metadata = metadata;
     ret.versionComparator = versionComparator;

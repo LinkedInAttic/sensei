@@ -160,7 +160,7 @@ public class SenseiPluginRegistry {
     List<T> ret = new ArrayList<T>();
     String strList = configuration.getString(paramKey);
     if (strList == null) {
-      return null;
+      return new ArrayList<T>();
     }
     String[] keys = strList.split(",");
     if (keys == null || keys.length == 0) {

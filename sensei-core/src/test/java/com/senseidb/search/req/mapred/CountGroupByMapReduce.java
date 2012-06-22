@@ -30,7 +30,7 @@ public class CountGroupByMapReduce implements SenseiMapReduce<HashMap<String, In
       throw new RuntimeException(ex);
     }
   }
-  public HashMap<String, IntContainer> map(int[] docIds, int docIdCount, long[] uids, FieldAccessor accessor) {
+  public HashMap<String, IntContainer> map(int[] docIds, int docIdCount, long[] uids, FieldAccessor accessor, FacetCountAccessor facetCountAccessor) {
     HashMap<String, IntContainer> ret = new HashMap<String, IntContainer>();
     int duplicatedUids = 0;
     for (int i = 0; i < docIdCount; i++) {     
@@ -109,20 +109,7 @@ public class CountGroupByMapReduce implements SenseiMapReduce<HashMap<String, In
       throw new RuntimeException(ex);
     }
   }
-}
 
- class IntContainer implements Serializable {
-  public int value;
-
-  public IntContainer(int value) {
-    super();
-    this.value = value;
-  }
-
-  public IntContainer add(int value) {
-    this.value += value;
-    return this;
-  }
 }
  class GroupedValue implements Comparable {
    String key;

@@ -35,6 +35,7 @@ import com.senseidb.jmx.JmxUtil;
 import com.senseidb.metrics.MetricsConstants;
 import com.senseidb.plugin.SenseiPluginRegistry;
 import com.senseidb.search.node.SenseiIndexingManager;
+import com.senseidb.search.plugin.PluggableSearchEngineManager;
 import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.Meter;
 import com.yammer.metrics.core.MetricName;
@@ -83,14 +84,14 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 	private final SenseiGateway<?> _gateway;
   private final ShardingStrategy _shardingStrategy;
   private final Comparator<String> _versionComparator;
-  private final CompositeActivityManager activityManager;
+  private final PluggableSearchEngineManager pluggableSearchEngineManager;
   private SenseiPluginRegistry pluginRegistry;
   
 
   
 
 	public DefaultStreamingIndexingManager(SenseiSchema schema,Configuration senseiConfig, 
-	    SenseiPluginRegistry pluginRegistry, SenseiGateway<?> gateway, ShardingStrategy shardingStrategy, CompositeActivityManager activityManager){
+	    SenseiPluginRegistry pluginRegistry, SenseiGateway<?> gateway, ShardingStrategy shardingStrategy, PluggableSearchEngineManager pluggableSearchEngineManager){
 	    _dataProvider = null;
 	  _myconfig = senseiConfig.subset(CONFIG_PREFIX);
      this.pluginRegistry = pluginRegistry;
@@ -99,7 +100,7 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 	  _zoieSystemMap = null;
 	  _dataCollectorMap = new LinkedHashMap<Integer, Collection<DataEvent<JSONObject>>>();
 	  _gateway = gateway;
-	  this.activityManager = activityManager;
+	  this.pluggableSearchEngineManager = pluggableSearchEngineManager;
 	  if (_gateway!=null){
 	    _versionComparator = _gateway.getVersionComparator();
 	  }
@@ -138,8 +139,9 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 	      updateOldestSinceKey(zoie.getVersion());
 	      _dataCollectorMap.put(part, new LinkedList<DataEvent<JSONObject>>());
 	    }
-	    if (activityManager != null) {
-	      updateOldestSinceKey(activityManager.getOldestSinceVersion());	    
+
+	    if (pluggableSearchEngineManager != null && pluggableSearchEngineManager.getOldestVersion() != null && !("".equals(pluggableSearchEngineManager.getOldestVersion()))) {
+	      updateOldestSinceKey(pluggableSearchEngineManager.getOldestVersion());	    
 	    }
 
 	    if (_dataProvider!=null){
@@ -179,8 +181,8 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 
 	@Override
 	public void shutdown() {
-	  if (activityManager != null) {
-	    activityManager.close();
+	  if (pluggableSearchEngineManager != null) {
+	    pluggableSearchEngineManager.close();
 	  }
 	  if (_dataProvider!=null){
 	    _dataProvider.stop();
@@ -271,12 +273,7 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
             src = reader.getStoredValue(uid);
             if (src != null)
               break;
-          }
-          if (src != null && activityManager != null && activityManager.isOnlyActivityUpdate(obj)) {
-            obj.put(SenseiSchema.EVENT_TYPE_FIELD, SenseiSchema.EVENT_TYPE_SKIP);
-            obj.put(CompositeActivityManager.EVENT_TYPE_ONLY_ACTIVITY, true);
-            return obj;
-          }
+          }          
           byte[] data = null;
 
           if (_senseiSchema.isCompressSrcData())
@@ -328,7 +325,9 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
             continue;
 
           _currentVersion = dataEvt.getVersion();
-
+          if (pluggableSearchEngineManager != null && pluggableSearchEngineManager.acceptEventsForAllPartitions()) {
+            obj = pluggableSearchEngineManager.update(obj, _currentVersion);
+          }
           int routeToPart = _shardingStrategy.caculateShard(_maxPartitionId, obj);
           Collection<DataEvent<JSONObject>> partDataSet = _dataCollectorMap.get(routeToPart);
           if (partDataSet != null)
@@ -336,8 +335,8 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
             JSONObject rewrited = rewriteData(obj, routeToPart);
             if (rewrited != null)
             {
-              if (activityManager != null) {
-                rewrited = activityManager.update(rewrited, dataEvt.getVersion());
+              if (pluggableSearchEngineManager != null && !pluggableSearchEngineManager.acceptEventsForAllPartitions()) {
+                rewrited = pluggableSearchEngineManager.update(rewrited, dataEvt.getVersion());
               }
               if (rewrited != obj)
                 dataEvt = new DataEvent<JSONObject>(rewrited, dataEvt.getVersion());
