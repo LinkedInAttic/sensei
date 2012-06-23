@@ -18,6 +18,7 @@ import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.facets.data.FacetDataCache;
 import com.browseengine.bobo.facets.data.TermValueList;
 import com.browseengine.bobo.facets.filter.EmptyFilter;
+import com.browseengine.bobo.query.MatchAllDocIdSetIterator;
 import com.kamikaze.docidset.impl.AndDocIdSet;
 import com.kamikaze.docidset.impl.NotDocIdSet;
 import com.kamikaze.docidset.impl.OrDocIdSet;
@@ -72,35 +73,55 @@ public class SenseiTermFilter extends Filter {
   }
   
   
-  private static DocIdSet buildLuceneDefaultDocIdSet(final BoboIndexReader reader,final String name,final String[] vals,String[] nots,boolean isAnd) throws IOException{
-    if (vals!=null && vals.length>0){
-      DocIdSet positiveSet = buildDefaultDocIdSets(reader,name,vals,isAnd);
-      DocIdSet negativeSet = buildDefaultDocIdSets(reader, name, nots, false);
-      
-      if (positiveSet!=null){
-        if (negativeSet==null){
-          return positiveSet;
+  private static DocIdSet buildLuceneDefaultDocIdSet(final BoboIndexReader reader,
+                                                     final String name,
+                                                     final String[] vals,
+                                                     String[] nots,
+                                                     boolean isAnd) throws IOException{
+    if (reader.getRuntimeFacetHandlerFactoryMap().containsKey(name))
+    {
+      // Skip runtime facet handlers
+      return new DocIdSet()
+      {
+        @Override
+        public boolean isCacheable()
+        {
+          return false;
         }
-        else{
-          DocIdSet[] sets = new DocIdSet[]{positiveSet,new NotDocIdSet(negativeSet, reader.maxDoc())};
-          return new AndDocIdSet(Arrays.asList(sets));
+
+        @Override
+        public DocIdSetIterator iterator() throws IOException
+        {
+          return new MatchAllDocIdSetIterator(reader);
         }
+      };
+    }
+    DocIdSet positiveSet = null;
+    DocIdSet negativeSet = null;
+
+    if (vals!=null && vals.length>0)
+      positiveSet = buildDefaultDocIdSets(reader,name,vals,isAnd);
+
+    if (nots!=null && nots.length>0)
+      negativeSet = buildDefaultDocIdSets(reader, name, nots, false);
+
+    if (positiveSet!=null){
+      if (negativeSet==null){
+        return positiveSet;
       }
       else{
-        if (negativeSet==null){
-          return EmptyFilter.getInstance().getDocIdSet(reader);
-        }
-        else{
-          // this could be optimize with AndNot in new Kamikaze
-          return new NotDocIdSet(negativeSet, reader.maxDoc());
-        }
+        DocIdSet[] sets = new DocIdSet[]{positiveSet,new NotDocIdSet(negativeSet, reader.maxDoc())};
+        return new AndDocIdSet(Arrays.asList(sets));
       }
     }
     else{
-      if (logger.isDebugEnabled()){
-        logger.debug("null or no term values, returning empty hits");
+      if (negativeSet==null){
+        return EmptyFilter.getInstance().getRandomAccessDocIdSet(reader);
       }
-      return EmptyFilter.getInstance().getRandomAccessDocIdSet(reader);
+      else{
+        // this could be optimize with AndNot in new Kamikaze
+        return new NotDocIdSet(negativeSet, reader.maxDoc());
+      }
     }
   }
 
@@ -113,11 +134,9 @@ public class SenseiTermFilter extends Filter {
       if (facetHandler != null)
       {
         obj = facetHandler.getFacetData(boboReader);
-      }
-      if (obj!=null && obj instanceof FacetDataCache){
-        FacetDataCache facetData = (FacetDataCache)obj;
-        TermValueList valArray = facetData.valArray;
-        if (_noAutoOptimize){
+        if (_noAutoOptimize && obj!=null && obj instanceof FacetDataCache){
+          FacetDataCache facetData = (FacetDataCache)obj;
+          TermValueList valArray = facetData.valArray;
           // copy vals
           ArrayList<String> validVals = new ArrayList<String>(_vals.length);
           for (String val : _vals){
