@@ -130,7 +130,7 @@ public class PluggableSearchEngineManager implements DeletionListener, Hourglass
   
   public void close() {
     for (PluggableSearchEngine pluggableSearchEngine : pluggableEngines) {
-      pluggableSearchEngine.close();
+      pluggableSearchEngine.stop();
     } 
   }
  
@@ -173,10 +173,10 @@ public class PluggableSearchEngineManager implements DeletionListener, Hourglass
     onDelete(segmentReader, segmentReader.getUIDArray());      
   }
   
-  public void setSenseiCore(SenseiCore senseiCore) {
+  public void start(SenseiCore senseiCore) {
     this.senseiCore = senseiCore;
     for (PluggableSearchEngine pluggableSearchEngine : pluggableEngines) {
-      pluggableSearchEngine.setSenseiCore(senseiCore);
+      pluggableSearchEngine.start(senseiCore);
     }
   }
   

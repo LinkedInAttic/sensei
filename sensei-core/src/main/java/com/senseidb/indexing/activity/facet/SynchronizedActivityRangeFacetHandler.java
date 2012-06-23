@@ -31,6 +31,8 @@ import com.senseidb.indexing.activity.CompositeActivityValues;
  *
  */
 public class SynchronizedActivityRangeFacetHandler extends FacetHandler<int[]> {
+  public static final Object GLOBAL_ACTIVITY_TEST_LOCK = new Object();
+  
   private static final String DEFAULT_FORMATTING_STRING = "0000000000";
   
   
@@ -77,7 +79,8 @@ public class SynchronizedActivityRangeFacetHandler extends FacetHandler<int[]> {
         return new RandomAccessDocIdSet() {          
           @Override
           public DocIdSetIterator iterator() throws IOException {
-              return new ActivityRangeFilterSynchronizedIterator(array, indexes, startValue, endValue);           
+             System.out.println(activityIntValues.getFieldName());
+            return new ActivityRangeFilterSynchronizedIterator(array, indexes, startValue, endValue);           
           }
           
           @Override
@@ -85,8 +88,8 @@ public class SynchronizedActivityRangeFacetHandler extends FacetHandler<int[]> {
             if (indexes[docId] == -1) {
               return false;
             }
-            synchronized (activityIntValues.getFieldValues()) {
-              int val = array[indexes[docId]];            
+            synchronized (GLOBAL_ACTIVITY_TEST_LOCK) {
+              int val = array[indexes[docId]];
               return val >= startValue && val < endValue && val != Integer.MIN_VALUE;
             }
           }
@@ -108,7 +111,7 @@ public class SynchronizedActivityRangeFacetHandler extends FacetHandler<int[]> {
     if (index == -1) {
       return new String[0];
     }
-    synchronized (activityIntValues.getFieldValues()) {
+    synchronized (GLOBAL_ACTIVITY_TEST_LOCK) {
       return new Object[] {activityIntValues.getValue(index)};
     }  
   }
@@ -120,7 +123,7 @@ public class SynchronizedActivityRangeFacetHandler extends FacetHandler<int[]> {
       return new String[0];
     }
     int value = 0;   
-     synchronized (activityIntValues.getFieldValues()) {
+     synchronized (GLOBAL_ACTIVITY_TEST_LOCK) {
        value = activityIntValues.getValue(index);
      }   
     if (value == Integer.MIN_VALUE) {
@@ -141,7 +144,7 @@ public class SynchronizedActivityRangeFacetHandler extends FacetHandler<int[]> {
         return new DocComparator() {
           @Override
           public Comparable<Integer> value(ScoreDoc doc) {          
-              synchronized (activityIntValues.getFieldValues()) {
+              synchronized (GLOBAL_ACTIVITY_TEST_LOCK) {
                 if (indexes[doc.doc] == -1) {
                   return 0;
                 }
@@ -152,7 +155,7 @@ public class SynchronizedActivityRangeFacetHandler extends FacetHandler<int[]> {
           @Override
           public int compare(ScoreDoc doc1, ScoreDoc doc2) {  
             
-            synchronized (activityIntValues.getFieldValues()) {
+            synchronized (GLOBAL_ACTIVITY_TEST_LOCK) {
               int val1 = indexes[doc1.doc] > -1 ? array[indexes[doc1.doc]] : 0; ; 
               int val2 = indexes[doc2.doc] > -1 ?array[indexes[doc2.doc]] : 0;            
               return (val1<val2 ? -1 : (val1==val2 ? 0 : 1));

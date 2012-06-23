@@ -119,27 +119,27 @@ public class CompositeActivityStorage {
         public CompositeActivityValues call() throws Exception {
           Assert.state(storedFile != null, "The FileStorage is not initialized");
           CompositeActivityValues ret = new CompositeActivityValues();
-          ret.activityStorage = CompositeActivityStorage.this;   
+          ret.activityStorage = CompositeActivityStorage.this;
           try {
             if (metadata.count == 0) {
               ret.init();
               return ret;
             }
             ret.init((int) (metadata.count * ActivityIntStorage.INIT_GROWTH_RATIO));
-            for (int i = 0; i < metadata.count; i++) {
-              long value;
-              if (activateMemoryMappedBuffers) {
-                value = buffer.getLong(i * BYTES_IN_LONG);
-              }
-              else {
-                storedFile.seek(i * BYTES_IN_LONG);
-                value = storedFile.readLong();
-              }
-              if (value != Long.MIN_VALUE) {
-                ret.uidToArrayIndex.put(value, i);
-              }
-              else {
-                ret.deletedIndexes.add(i);
+            synchronized (ret.deletedIndexes) {
+              for (int i = 0; i < metadata.count; i++) {
+                long value;
+                if (activateMemoryMappedBuffers) {
+                  value = buffer.getLong(i * BYTES_IN_LONG);
+                } else {
+                  storedFile.seek(i * BYTES_IN_LONG);
+                  value = storedFile.readLong();
+                }
+                if (value != Long.MIN_VALUE) {
+                  ret.uidToArrayIndex.put(value, i);
+                } else {
+                  ret.deletedIndexes.add(i);
+                }
               }
             }
           } catch (Exception e) {
