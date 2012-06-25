@@ -102,7 +102,6 @@ public class PluggableSearchEngineManager implements DeletionListener, Hourglass
    * @return 
    */
   public JSONObject update(JSONObject event, String version) {
-
     if (this.version != null && versionComparator.compare(this.version, version) > 0) {
       return event;
     } else {
@@ -116,14 +115,13 @@ public class PluggableSearchEngineManager implements DeletionListener, Hourglass
     }
     for (PluggableSearchEngine pluggableSearchEngine : pluggableEngines) {
       if (pluggableSearchEngine.acceptEventsForAllPartitions() || validForCurrentNode) {
-
         try {
           event = pluggableSearchEngine.acceptEvent(event, version);
         } catch (Exception ex) {
           logger.error(ex.getMessage(), ex);
         }
-    } 
-  }
+      }
+    }
     return event;
   }
   

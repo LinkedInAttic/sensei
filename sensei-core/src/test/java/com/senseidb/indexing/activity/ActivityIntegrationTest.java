@@ -27,13 +27,15 @@ public class ActivityIntegrationTest extends TestCase {
   private static CompositeActivityValues inMemoryColumnData2;
   static {
     SenseiStarter.start("test-conf/node1", "test-conf/node2");
-    initialVersion = Long.parseLong(CompositeActivityManager.cachedInstances.get(1).activityValues.getVersion());
-    initialVersion = Math.max(initialVersion, Long.parseLong(CompositeActivityManager.cachedInstances.get(2).activityValues.getVersion()));    
-    expectedVersion = initialVersion;
     inMemoryColumnData1 = CompositeActivityManager.cachedInstances.get(1).activityValues;
     inMemoryColumnData2 = CompositeActivityManager.cachedInstances.get(2).activityValues;
     ActivityIntValuesSynchronizedDecorator.decorate((TimeAggregatedActivityValues) inMemoryColumnData1.getActivityValuesMap().get("likes"));
     ActivityIntValuesSynchronizedDecorator.decorate((TimeAggregatedActivityValues) inMemoryColumnData2.getActivityValuesMap().get("likes"));
+    initialVersion = FileDataProviderWithMocks.instances.get(0).getOffset();
+    initialVersion = Math.max(initialVersion, FileDataProviderWithMocks.instances.get(1).getOffset());    
+    initialVersion--;
+    expectedVersion = initialVersion;
+
   }
   
   
@@ -69,7 +71,7 @@ public class ActivityIntegrationTest extends TestCase {
     assertEquals(Integer.parseInt(hits.getJSONObject(2).getJSONArray("likes").getString(0)), 18);
    System.out.println("!!!" + res.toString(1));
   }
-  private void syncWithVersion(final long expectedVersion) {
+  private static void syncWithVersion(final long expectedVersion) {
     final CompositeActivityValues inMemoryColumnData1 = CompositeActivityManager.cachedInstances.get(1).activityValues;
     final CompositeActivityValues inMemoryColumnData2 = CompositeActivityManager.cachedInstances.get(2).activityValues;
     Wait.until(10000, "The activity value wasn't updated", new Wait.Condition() {
@@ -214,20 +216,23 @@ public class ActivityIntegrationTest extends TestCase {
     assertTrue(hits.length() > 0);   
   }
   
-  public void ntest5bIncreaseNonExistingActivityValue() throws Exception {
+  public void test5bIncreaseNonExistingActivityValue() throws Exception {
     final CompositeActivityManager inMemoryColumnData1 = CompositeActivityManager.cachedInstances.get(1);
     final CompositeActivityManager inMemoryColumnData2 = CompositeActivityManager.cachedInstances.get(2);    
     String req = "{\"query\": {\"ids\": {\"values\": [\"14999\"], \"excludes\": [\"2\"]}}}";
     JSONObject res = TestSensei.search(new JSONObject(req));
-  System.out.println("!!!>>> " + res.toString(1));
     FileDataProviderWithMocks.add(new JSONObject().put("id", 14999).put(SenseiSchema.EVENT_TYPE_FIELD, SenseiSchema.EVENT_TYPE_UPDATE).put("likes", "+" + 100));
     expectedVersion++;
     
     inMemoryColumnData2.getActivityValues().syncWithVersion(String.valueOf(expectedVersion));
-    req = "{ \"sort\":[{\"aggregated-likes:15m\":\"desc\"}]}";
+    req = "{ \"size\":1, \"sort\":[{\"aggregated-likes:2w\":\"desc\"}]}";
     res = TestSensei.search(new JSONObject(req));
     JSONArray hits = res.getJSONArray("hits");
-    assertEquals(Integer.parseInt(hits.getJSONObject(0).getJSONArray("aggregated-likes:15m").getString(0)), 100);
+    assertEquals(Integer.parseInt(hits.getJSONObject(0).getJSONArray("aggregated-likes:2w").getString(0)), 100);
+    req = "{ \"size\":1, \"sort\":[{\"aggregated-likes\":\"desc\"}]}";
+    res = TestSensei.search(new JSONObject(req));
+    hits = res.getJSONArray("hits");
+    assertEquals(Integer.parseInt(hits.getJSONObject(0).getJSONArray("aggregated-likes").getString(0)), 100);
     
   }
 public void test5PurgeUnusedActivities() throws Exception {

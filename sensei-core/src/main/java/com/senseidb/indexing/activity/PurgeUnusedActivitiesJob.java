@@ -77,10 +77,7 @@ public class PurgeUnusedActivitiesJob implements Runnable, PurgeUnusedActivities
     logger.info("Starting the purgeUnusedActivitiesJob");
     long[] keys;
     try {
-    for (int i = 0; i < compositeActivityValues.NUM_LOCKS; i++) {
-      compositeActivityValues.locks[i].readLock().lock();
-    }
-   
+      compositeActivityValues.globalLock.readLock().lock();
       keys = new long[compositeActivityValues.uidToArrayIndex.size()];
       LongIterator iterator = compositeActivityValues.uidToArrayIndex.keySet().iterator();
       int i = 0;
@@ -88,9 +85,7 @@ public class PurgeUnusedActivitiesJob implements Runnable, PurgeUnusedActivities
         keys[i++] = iterator.nextLong();
       }
     }  finally {
-      for (int i = 0; i < compositeActivityValues.NUM_LOCKS; i++) {
-        compositeActivityValues.locks[i].readLock().unlock();
-      }
+        compositeActivityValues.globalLock.readLock().unlock();
     }     
     BitSet foundSet = new BitSet(keys.length); 
     for (Zoie<BoboIndexReader, ?> zoie : zoieSystems) {
