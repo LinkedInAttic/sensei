@@ -4,6 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -214,6 +215,65 @@ public class DefaultJsonSchemaInterpreter extends
   public void setJsonFilter(JsonFilter jsonFilter){
     _jsonFilter = jsonFilter;
   }
+
+  public static List<String> tokenize(String val, String delim)
+  {
+    List<String> result = new ArrayList<String>();
+
+    if (val == null || val.length() == 0) return result;
+
+    if (delim == null || delim.length() == 0)
+      result.add(val);
+    else if (delim.length() == 1)
+    {
+      char de = delim.charAt(0);
+      StringBuilder sb = new StringBuilder();
+      boolean escape = false;
+      for (char c : val.toCharArray())
+      {
+        if (escape)
+        {
+          if (c == '\\' || c == de)
+            sb.append(c);
+          else
+            sb.append('\\').append(c);
+
+          escape = false;
+        }
+        else
+        {
+          if (c == '\\')
+          {
+            escape = true;
+            continue;
+          }
+          else if (c == de)
+          {
+            if (sb.length() > 0)
+            {
+              result.add(sb.toString());
+              sb.setLength(0);
+            }
+          }
+          else
+            sb.append(c);
+        }
+      }
+      if (escape) sb.append('\\');
+      if (sb.length() > 0)
+        result.add(sb.toString());
+    }
+    else
+    {
+      StringTokenizer strtok = new StringTokenizer(val, delim);
+      while(strtok.hasMoreTokens())
+      {
+        result.add(strtok.nextToken());
+      }
+    }
+
+    return result;
+  }
   
   @Override
   public ZoieIndexable convertAndInterpret(JSONObject obj) {
@@ -259,15 +319,11 @@ public class DefaultJsonSchemaInterpreter extends
               if (filtered.isNull(fldDef.fromField)) continue;
               if (fldDef.isMulti){
                 String val = filtered.optString(fldDef.fromField);
-
-                if (val!=null && val.trim().length()>0){
-                  StringTokenizer strtok = new StringTokenizer(val,fldDef.delim);
-                  while(strtok.hasMoreTokens()){
-                    String token = strtok.nextToken();
-                    Object obj = extractor.extract(token);
-                    if (obj!=null){
-                      vals.add(obj);
-                    }
+                for (String token : tokenize(val, fldDef.delim))
+                {
+                  Object obj = extractor.extract(token);
+                  if (obj!=null){
+                    vals.add(obj);
                   }
                 }
               }
