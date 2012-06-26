@@ -17,14 +17,14 @@
 				<artifactId>maven-assembly-plugin</artifactId>
 				<configuration>
 					<appendAssemblyId>true</appendAssemblyId>
-					<descriptorRefs>
-						<descriptorRef>jar-with-dependencies</descriptorRef>
-					</descriptorRefs>
-					 <archive>
-		            <manifest>
-		              <mainClass>com.senseidb.indexing.hadoop.demo.CarDemo</mainClass>
-		            </manifest>
-		            </archive>
+					<descriptors>
+						<descriptor>jar-with-dependencies.xml</descriptor>
+					</descriptors>
+					<archive>
+            <manifest>
+              <mainClass>com.senseidb.indexing.hadoop.demo.CarDemo</mainClass>
+            </manifest>
+          </archive>
 				</configuration>
 				<executions>
 					<execution>
