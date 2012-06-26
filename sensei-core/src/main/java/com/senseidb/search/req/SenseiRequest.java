@@ -637,6 +637,8 @@ private long   tid           =          -1;
   }
   
   public List<SenseiError> getErrors() {
+    if (errors == null)
+      errors = new ArrayList<SenseiError>();
     return errors;
   }
 
