@@ -45,7 +45,7 @@ public class ActivityRangeFacetHandler extends FacetHandler<int[]> {
   private final ActivityIntValues activityIntValues;
   private final CompositeActivityValues compositeActivityValues;
   
-  private ActivityRangeFacetHandler(String facetName, String fieldName, CompositeActivityValues compositeActivityValues, ActivityIntValues activityIntValues) {
+  public ActivityRangeFacetHandler(String facetName, String fieldName, CompositeActivityValues compositeActivityValues, ActivityIntValues activityIntValues) {
     super(facetName, new HashSet<String>());
     this.compositeActivityValues = compositeActivityValues;
     this.activityIntValues = activityIntValues;   
