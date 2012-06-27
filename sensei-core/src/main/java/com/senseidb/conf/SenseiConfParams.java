@@ -85,6 +85,8 @@ public interface SenseiConfParams {
 	public static final String SENSEI_MX4J_PORT = "sensei.mx4j.port";
 	
 	public static final String SENSEI_INDEX_ACTIVITY_FILTER = "sensei.index.activity.filter";
+	public static final String SENSEI_INDEX_ACTIVITY_PURGE_FREQUENCY_HOURS = "sensei.index.activity.purge.hours";
+	public static final String SENSEI_INDEX_ACTIVITY_PURGE_FREQUENCY_MINUTES = "sensei.index.activity.purge.minutes";
 	
 	public static final Comparator<String> DEFAULT_VERSION_STRING_COMPARATOR = new Comparator<String>(){
 		@Override

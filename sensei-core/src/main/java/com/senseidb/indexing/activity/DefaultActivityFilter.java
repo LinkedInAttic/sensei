@@ -18,7 +18,7 @@ public class DefaultActivityFilter extends BaseActivityFilter {
   private volatile HashSet<String> cachedActivities;
 @Override
 public boolean acceptEventsForAllPartitions() {
-  return true;
+  return false;
 }
   @Override
   public ActivityFilteredResult filter(JSONObject event, SenseiSchema senseiSchema, ShardingStrategy shardingStrategy, SenseiCore senseiCore) {

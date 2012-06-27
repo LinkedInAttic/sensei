@@ -102,7 +102,6 @@ public class PluggableSearchEngineManager implements DeletionListener, Hourglass
    * @return 
    */
   public JSONObject update(JSONObject event, String version) {
-
     if (this.version != null && versionComparator.compare(this.version, version) > 0) {
       return event;
     } else {
@@ -116,21 +115,20 @@ public class PluggableSearchEngineManager implements DeletionListener, Hourglass
     }
     for (PluggableSearchEngine pluggableSearchEngine : pluggableEngines) {
       if (pluggableSearchEngine.acceptEventsForAllPartitions() || validForCurrentNode) {
-
         try {
           event = pluggableSearchEngine.acceptEvent(event, version);
         } catch (Exception ex) {
           logger.error(ex.getMessage(), ex);
         }
-    } 
-  }
+      }
+    }
     return event;
   }
   
   
   public void close() {
     for (PluggableSearchEngine pluggableSearchEngine : pluggableEngines) {
-      pluggableSearchEngine.close();
+      pluggableSearchEngine.stop();
     } 
   }
  
@@ -173,10 +171,10 @@ public class PluggableSearchEngineManager implements DeletionListener, Hourglass
     onDelete(segmentReader, segmentReader.getUIDArray());      
   }
   
-  public void setSenseiCore(SenseiCore senseiCore) {
+  public void start(SenseiCore senseiCore) {
     this.senseiCore = senseiCore;
     for (PluggableSearchEngine pluggableSearchEngine : pluggableEngines) {
-      pluggableSearchEngine.setSenseiCore(senseiCore);
+      pluggableSearchEngine.start(senseiCore);
     }
   }
   

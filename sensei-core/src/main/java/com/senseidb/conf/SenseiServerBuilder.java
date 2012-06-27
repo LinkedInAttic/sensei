@@ -493,8 +493,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
       senseiCore.setIndexPruner(indexPruner);
     }
     if (pluggableSearchEngineManager != null) {
-      senseiCore.setPluggableSearchEngineManager(pluggableSearchEngineManager);
-      pluggableSearchEngineManager.setSenseiCore(senseiCore);
+      senseiCore.setPluggableSearchEngineManager(pluggableSearchEngineManager);     
     }
     return senseiCore;
   }
