@@ -229,6 +229,26 @@ public class ActivityIntegrationTest extends TestCase {
     assertEquals(1, compositeActivityValues.getValueByUID(1L, "likes"));
     assertEquals(1, inMemoryColumnData1.getValueByUID(1L, "likes"));
   }
+  
+  public void test7RelevanceActivity() throws Exception {
+    
+    FileDataProviderWithMocks.add(new JSONObject().put("id", 500).put(SenseiSchema.EVENT_TYPE_FIELD, SenseiSchema.EVENT_TYPE_UPDATE).put("likes", 10000));
+    expectedVersion++;
+    syncWithVersion(expectedVersion); 
+    
+    {
+      String req = "{\"sort\":[\"_score\"],\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"model\":{\"function_params\":[\"_INNER_SCORE\",\"thisYear\",\"year\",\"goodYear\",\"mileageWeight\",\"mileage\"],\"facets\":{\"int\":[\"year\",\"mileage\"],\"long\":[\"groupid\"]},\"function\":\" if(mileageWeight.containsKey(mileage)) return 10000+mileageWeight.get(mileage); if(goodYear.contains(year)) return (float)Math.exp(2d);   if(year==thisYear) return 87f   ; return  _INNER_SCORE;\",\"variables\":{\"map_int_float\":[\"mileageWeight\"],\"set_int\":[\"goodYear\"],\"int\":[\"thisYear\"]}},\"values\":{\"thisYear\":2001,\"mileageWeight\":{\"11400\":777.9, \"11000\":10.2},\"goodYear\":[1996,1997]}}}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":6}";
+      JSONObject res = TestSensei.search(new JSONObject(req));
+      assertEquals("numhits is wrong", 15000, res.getInt("numhits"));
+    }
+
+//    {
+//      String req = "{\"sort\":[\"_score\"],\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"model\":{\"function_params\":[\"_INNER_SCORE\",\"thisYear\",\"year\",\"goodYear\",\"mileageWeight\",\"mileage\",\"likes\"],\"facets\":{\"int\":[\"year\",\"mileage\"],\"long\":[\"groupid\"],\"aint\":[\"likes\"]},\"function\":\" if(mileageWeight.containsKey(mileage)) return 10000+mileageWeight.get(mileage); if(goodYear.contains(year)) return (float)Math.exp(2d);   if(year==thisYear) return 87f   ; return  _INNER_SCORE;\",\"variables\":{\"map_int_float\":[\"mileageWeight\"],\"set_int\":[\"goodYear\"],\"int\":[\"thisYear\"]}},\"values\":{\"thisYear\":2001,\"mileageWeight\":{\"11400\":777.9, \"11000\":10.2},\"goodYear\":[1996,1997]}}}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":6}";
+//      JSONObject res = TestSensei.search(new JSONObject(req));
+//      assertEquals("numhits is wrong", 15000, res.getInt("numhits"));
+//    }
+
+  }
  
 
   private synchronized TimeAggregatedActivityValues clear(final CompositeActivityValues inMemoryColumnData1) throws Exception {
