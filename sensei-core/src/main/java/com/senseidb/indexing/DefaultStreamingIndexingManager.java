@@ -332,12 +332,14 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
           Collection<DataEvent<JSONObject>> partDataSet = _dataCollectorMap.get(routeToPart);
           if (partDataSet != null)
           {
-            JSONObject rewrited = rewriteData(obj, routeToPart);
+            JSONObject rewrited = obj;
+            if (pluggableSearchEngineManager != null && !pluggableSearchEngineManager.acceptEventsForAllPartitions()) {
+              rewrited = pluggableSearchEngineManager.update(obj, dataEvt.getVersion());
+            }
+            rewrited = rewriteData(obj, routeToPart);
             if (rewrited != null)
             {
-              if (pluggableSearchEngineManager != null && !pluggableSearchEngineManager.acceptEventsForAllPartitions()) {
-                rewrited = pluggableSearchEngineManager.update(rewrited, dataEvt.getVersion());
-              }
+              
               if (rewrited != obj)
                 dataEvt = new DataEvent<JSONObject>(rewrited, dataEvt.getVersion());
               partDataSet.add(dataEvt);
