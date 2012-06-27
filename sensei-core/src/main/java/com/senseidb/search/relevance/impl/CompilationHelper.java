@@ -370,6 +370,8 @@ public class CompilationHelper
     //  4  string_index    10  m_string_index
     //  5  short_index     11  m_short_index
 
+    // the first int in the following int[] is the index of the string template above (PARAM_FORMAT_STRINGS);
+    // the second int in the int[] below is the index of the function parameters;
     PARAM_INIT_MAP.put(RelevanceJSONConstants.TYPENUMBER_INNER_SCORE,       new int[]{ 3,  3});
     PARAM_INIT_MAP.put(RelevanceJSONConstants.TYPENUMBER_INT,               new int[]{ 0,  0});
     PARAM_INIT_MAP.put(RelevanceJSONConstants.TYPENUMBER_LONG,              new int[]{ 1,  1});
@@ -410,6 +412,7 @@ public class CompilationHelper
     PARAM_INIT_MAP.put(RelevanceJSONConstants.TYPENUMBER_FACET_WM_FLOAT,    new int[]{31,  9});
     PARAM_INIT_MAP.put(RelevanceJSONConstants.TYPENUMBER_FACET_WM_STRING,   new int[]{32, 10});
     PARAM_INIT_MAP.put(RelevanceJSONConstants.TYPENUMBER_FACET_WM_SHORT,    new int[]{33, 11});
+    PARAM_INIT_MAP.put(RelevanceJSONConstants.TYPENUMBER_FACET_A_INT,       new int[]{0, 0});
   }
 
   private static int MAX_NUM_MODELS  = 10000;
@@ -437,7 +440,7 @@ public class CompilationHelper
     dataTable.funcBody = jsonModel.optString(RelevanceJSONConstants.KW_FUNCTION);
 
     // Process facet variables
-    int[] facetIndice = new int[]{0,0};  // store the facetIndex and facetMultiIndex;
+    int[] facetIndice = new int[]{0, 0, 0};  // store the facetIndex, facetMultiIndex, and activity engine facet Index;
     Iterator<String> it_facet = jsonFacets.keys();
     while(it_facet.hasNext())
     {
@@ -853,7 +856,7 @@ public class CompilationHelper
       String symbol = dataTable.lls_params.get(i);
       Integer typeNum = dataTable.hm_type.get(symbol);
       if (typeNum < RelevanceJSONConstants.TYPENUMBER_FACET_INT ||
-          typeNum > RelevanceJSONConstants.TYPENUMBER_FACET_WM_STRING)
+          typeNum > RelevanceJSONConstants.TYPENUMBER_FACET_A_INT)
       {
         if(!dataTable.hm_var.containsKey(symbol))
           throw new JSONException("function parameter: " + symbol + " was not initialized.");
@@ -945,24 +948,32 @@ public class CompilationHelper
       String facetName = facetArray.getString(i);
       String symbol = facetName;
 
-      if(dataTable.hm_symbol_facet.containsKey(symbol) || dataTable.hm_symbol_mfacet.containsKey(symbol))
+      if(dataTable.hm_symbol_facet.containsKey(symbol) || dataTable.hm_symbol_mfacet.containsKey(symbol) || dataTable.hm_symbol_afacet.containsKey(symbol))
         throw new JSONException("facet Symbol "+ symbol + " already defined." );
 
-      if(dataTable.hm_facet_index.containsKey(facetName) || dataTable.hm_mfacet_index.containsKey(facetName))
+      if(dataTable.hm_facet_index.containsKey(facetName) || dataTable.hm_mfacet_index.containsKey(facetName) || dataTable.hm_afacet_index.containsKey(facetName))
         throw new JSONException("facet name "+ facetName + " already assigned to a symbol." );
 
       if (facetInfo[1] == 0)
       {
-        // This facet is not a multi-value facet
+        // This facet is a normal facet;
         dataTable.hm_symbol_facet.put(symbol, facetName);
         dataTable.hm_facet_index.put(facetName, facetIndice[0]);
         facetIndice[0] = facetIndice[0]+1;
       }
-      else
-      {
+      else if (facetInfo[1] == 1)
+      { 
+        // This is a multi-value facet;
         dataTable.hm_symbol_mfacet.put(symbol, facetName);
         dataTable.hm_mfacet_index.put(facetName, facetIndice[1]);
         facetIndice[1] = facetIndice[1]+1;
+      }
+      else if (facetInfo[1] == 2)
+      {
+        // This is an activity engine facet;
+        dataTable.hm_symbol_afacet.put(symbol, facetName);
+        dataTable.hm_afacet_index.put(facetName, facetIndice[2]);
+        facetIndice[2] = facetIndice[2]+1;
       }
 
       dataTable.hm_type.put(symbol, type);
@@ -987,7 +998,7 @@ public class CompilationHelper
       String paramName = dataTable.lls_params.get(i);
 
       if(!dataTable.hm_type.containsKey(paramName) || (dataTable.hm_type.get(paramName) == null))
-        throw new JSONException("function arameter " + paramName + " is not defined.");
+        throw new JSONException("function parameter " + paramName + " is not defined.");
 
       Integer paramType = dataTable.hm_type.get(paramName);
       int[] paramInfo = PARAM_INIT_MAP.get(paramType);
@@ -1034,6 +1045,9 @@ public class CompilationHelper
     public HashMap<String, Integer> hm_facet_index;
     public HashMap<String, String> hm_symbol_mfacet;  //multi-facet
     public HashMap<String, Integer> hm_mfacet_index; //multi-facet
+    public HashMap<String, String> hm_symbol_afacet;  //activity-facet
+    public HashMap<String, Integer> hm_afacet_index; //activity-facet
+    
 
     public LinkedList<String> lls_params;
     public String funcBody = null;
@@ -1047,6 +1061,8 @@ public class CompilationHelper
       hm_facet_index = new HashMap<String, Integer>();
       hm_symbol_mfacet = new HashMap<String, String>();  //multi-facet
       hm_mfacet_index = new HashMap<String, Integer>(); //multi-facet
+      hm_symbol_afacet = new HashMap<String, String>();  //multi-facet
+      hm_afacet_index = new HashMap<String, Integer>(); //multi-facet
       lls_params = new LinkedList<String>();
       useInnerScore = true;
     }
