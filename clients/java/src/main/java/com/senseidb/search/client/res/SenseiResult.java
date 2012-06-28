@@ -93,7 +93,7 @@ public class SenseiResult {
     }
     public List<Error> getErrors() {
       if (errors == null)
-        errors = new ArrayList<SenseiError>();
+        errors = new ArrayList<Error>();
 
       return errors;
     }

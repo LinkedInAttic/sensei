@@ -186,14 +186,14 @@ public class SenseiSystemInfo implements AbstractSenseiResult {
     _clusterInfo = clusterInfo;
   }
   public List<SenseiError> getErrors() {
-    if (errors = null)
+    if (errors == null)
       errors = new ArrayList<SenseiError>();
 
     return errors;
   }
 
   public void addError(SenseiError error) {
-    if (errors = null)
+    if (errors == null)
       errors = new ArrayList<SenseiError>();
 
     errors.add(error);
