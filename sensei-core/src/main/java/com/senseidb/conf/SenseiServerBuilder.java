@@ -6,9 +6,6 @@ import it.unimi.dsi.fastutil.ints.IntSet;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -100,6 +97,7 @@ import com.senseidb.servlet.SenseiConfigServletContextListener;
 import com.senseidb.servlet.SenseiHttpInvokerServiceServlet;
 import com.senseidb.svc.impl.AbstractSenseiCoreService;
 import com.senseidb.util.HDFSIndexCopier;
+import com.senseidb.util.NetUtil;
 
 public class SenseiServerBuilder implements SenseiConfParams{
 
@@ -442,17 +440,10 @@ public class SenseiServerBuilder implements SenseiConfParams{
       try
       {
         List<SenseiSystemInfo.SenseiNodeInfo> clusterInfo = new ArrayList(1);
-          DatagramSocket ds = new DatagramSocket();
-          ds.connect(InetAddress.getByName(DUMMY_OUT_IP), 80);
-          InetAddress localAddress = ds.getLocalAddress();
-          if (localAddress.getHostName().equals("0.0.0.0")) {
-            localAddress = InetAddress.getLocalHost();
-          }
+          String addr = NetUtil.getHostAddress();
           clusterInfo.add(new SenseiSystemInfo.SenseiNodeInfo(nodeid, partitions,
-              (new InetSocketAddress(localAddress,
-                  _senseiConf.getInt(SERVER_PORT))).toString().replaceAll("/", ""),
-              "http://"+(new InetSocketAddress(localAddress,
-                  _senseiConf.getInt(SERVER_BROKER_PORT))).toString().replaceAll("/", "")));
+              String.format("%s:%d", addr, _senseiConf.getInt(SERVER_PORT)),
+              String.format("http://%s:%d", addr, _senseiConf.getInt(SERVER_BROKER_PORT))));
           sysInfo.setClusterInfo(clusterInfo);
       }
       catch(Exception e)
