@@ -15,7 +15,6 @@ import com.senseidb.search.node.SenseiCore;
 
 public interface PluggableSearchEngine {
   public void init(String indexDirectory, int nodeId, SenseiSchema senseiSchema, Comparator<String> versionComparator, SenseiPluginRegistry pluginRegistry, ShardingStrategy shardingStrategy);
-  public void setSenseiCore(SenseiCore senseiCore);
   public String getVersion();  
   public JSONObject acceptEvent(JSONObject event, String version);
   public boolean acceptEventsForAllPartitions();
@@ -23,5 +22,6 @@ public interface PluggableSearchEngine {
   public Set<String> getFacetNames();
   public List<FacetHandler<?>> createFacetHandlers();
   public void onDelete(IndexReader indexReader, long... uids);
-  public void close();  
+  public void start(SenseiCore senseiCore);
+  public void stop();  
 }

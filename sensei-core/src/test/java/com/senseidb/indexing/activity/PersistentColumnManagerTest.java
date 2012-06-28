@@ -20,7 +20,8 @@ import com.senseidb.test.SenseiStarter;
 
 public class PersistentColumnManagerTest extends TestCase {
   private static final long UID_BASE = 10000000000L;
-  private File dir; 
+  private File dir;
+  private CompositeActivityValues compositeActivityValues; 
   
   
   public void setUp() {
@@ -40,7 +41,7 @@ public class PersistentColumnManagerTest extends TestCase {
     SenseiStarter.rmrf(file);
   }
   public void test1WriteValuesAndReadJustAfterThat() throws Exception {
-    CompositeActivityValues compositeActivityValues = CompositeActivityValues.readFromFile(getDirPath(), java.util.Arrays.asList("likes"), Collections.EMPTY_LIST, ZoieConfig.DEFAULT_VERSION_COMPARATOR);
+     compositeActivityValues = CompositeActivityValues.readFromFile(getDirPath(), java.util.Arrays.asList("likes"), Collections.EMPTY_LIST, ZoieConfig.DEFAULT_VERSION_COMPARATOR);
   
     int valueCount = 10000;
     for (int i = 0; i < valueCount; i++) { 
@@ -66,7 +67,7 @@ public class PersistentColumnManagerTest extends TestCase {
     assertEquals(getFieldValues(compositeActivityValues)[3], 4);
     compositeActivityValues.close();
   }
-private Map<String, Object> toMap(JSONObject jsonObject) {
+public static Map<String, Object> toMap(JSONObject jsonObject) {
   Map<String, Object> ret = new HashMap<String, Object>();
   java.util.Iterator<String> it = jsonObject.keys();
     while (it.hasNext()) {
@@ -83,7 +84,7 @@ private int[] getFieldValues(CompositeActivityValues compositeActivityValues){
     dir = new File(indexDirPath);
     dir.mkdirs(); 
     dir.deleteOnExit();
-    CompositeActivityValues compositeActivityValues = CompositeActivityValues.readFromFile(indexDirPath, java.util.Arrays.asList("likes"), Collections.EMPTY_LIST, ZoieConfig.DEFAULT_VERSION_COMPARATOR);
+    compositeActivityValues = CompositeActivityValues.readFromFile(indexDirPath, java.util.Arrays.asList("likes"), Collections.EMPTY_LIST, ZoieConfig.DEFAULT_VERSION_COMPARATOR);
     final int valueCount = 10000;   
     for (int i = 0; i < valueCount; i++) {
       compositeActivityValues.update(UID_BASE + i, String.format("%08d", valueCount + i), toMap(new JSONObject().put("likes", "+1")));

@@ -23,7 +23,7 @@ public class SenseiResult extends BrowseResult implements AbstractSenseiResult
 
   private String _parsedQuery = null;
 
-  private List<SenseiError> errors = new ArrayList<SenseiError>();
+  private List<SenseiError> errors;
  
   public SenseiHit[] getSenseiHits()
   {
@@ -128,11 +128,17 @@ public class SenseiResult extends BrowseResult implements AbstractSenseiResult
   }
 
   public List<SenseiError> getErrors() {
+    if (errors == null)
+      errors = new ArrayList<SenseiError>();
+
     return errors ;
   }
 
   public void addError(SenseiError error) {
-    this.errors.add(error);
+    if (errors == null)
+      errors = new ArrayList<SenseiError>();
+
+    errors.add(error);
   }
 
   

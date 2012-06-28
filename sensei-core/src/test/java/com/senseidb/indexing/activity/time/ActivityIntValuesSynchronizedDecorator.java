@@ -1,6 +1,7 @@
 package com.senseidb.indexing.activity.time;
 
 import com.senseidb.indexing.activity.ActivityIntValues;
+import com.senseidb.indexing.activity.facet.SynchronizedActivityRangeFacetHandler;
 import com.senseidb.indexing.activity.time.TimeAggregatedActivityValues;
 import com.senseidb.indexing.activity.time.TimeAggregatedActivityValues.IntValueHolder;
 
@@ -15,24 +16,23 @@ public class ActivityIntValuesSynchronizedDecorator extends ActivityIntValues {
   public void init() {
     decorated.init();
   }
-
   
   @Override
   public boolean update(int index, Object value) {
-    synchronized(getFieldValues()) {
+    synchronized(SynchronizedActivityRangeFacetHandler.GLOBAL_ACTIVITY_TEST_LOCK) {
+      //System.out.println("!!!Update" + value);
       return decorated.update(index, value);
     }
   }
 
  
   public void delete(int index) {
-    synchronized(getFieldValues()) {
+    synchronized(SynchronizedActivityRangeFacetHandler.GLOBAL_ACTIVITY_TEST_LOCK) {
       decorated.delete(index);
     }
   }
   protected ActivityIntValuesSynchronizedDecorator(ActivityIntValues decorated) {
     this.decorated = decorated;
-    
   }
   
 
@@ -42,7 +42,9 @@ public class ActivityIntValuesSynchronizedDecorator extends ActivityIntValues {
   }
 
   public int getValue(int index) {
-    return this.decorated.getValue(index);
+    synchronized(SynchronizedActivityRangeFacetHandler.GLOBAL_ACTIVITY_TEST_LOCK) {
+      return this.decorated.getValue(index);
+    }
   }
 
  

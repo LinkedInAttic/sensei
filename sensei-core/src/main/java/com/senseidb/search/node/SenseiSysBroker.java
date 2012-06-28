@@ -81,19 +81,21 @@ public class SenseiSysBroker extends AbstractConsistentHashBroker<SenseiRequest,
   @Override
   protected List<SenseiSystemInfo> doCall(final SenseiRequest req) throws ExecutionException {
     final List<SenseiSystemInfo> resultList = new ArrayList<SenseiSystemInfo>();
-    ResponseIterator<SenseiSystemInfo> responseIterator =
-        buildIterator(_networkClient.sendRequestToOneReplica(getRouteParam(req), new RequestBuilder<Integer, SenseiRequest>() {
-          @Override
-          public SenseiRequest apply(Node node, Set<Integer> nodePartitions) {
-            synchronized (req) {
-              req.setPartitions(node.getPartitionIds());
-              return req;
-            }
-          }
-        }, _serializer));
-
-    while(responseIterator.hasNext()) {
-      resultList.add(responseIterator.next());
+    List<Future<SenseiSystemInfo>> futures = new ArrayList<Future<SenseiSystemInfo>>(_nodes.size());
+    for(Node n : _nodes)
+    {
+      futures.add(_networkClient.sendRequestToNode(req, n, _serializer));
+    }
+    for(Future<SenseiSystemInfo> future : futures)
+    {
+      try
+      {
+        resultList.add(future.get(2000L, TimeUnit.MILLISECONDS));
+      }
+      catch(Exception e)
+      {
+        logger.error("Failed to get the sysinfo", e);
+      }
     }
 
     logger.debug(String.format("There are %d responses", resultList.size()));

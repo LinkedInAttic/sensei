@@ -18,6 +18,7 @@ import com.senseidb.test.SenseiStarter;
 
 public class TimeAggregatedActivityValuesTest extends TestCase {
   private File dir;
+  private TimeAggregatedActivityValues timeAggregatedActivityValues;
 
   public void setUp() {
     String pathname = getDirPath();
@@ -38,7 +39,7 @@ public class TimeAggregatedActivityValuesTest extends TestCase {
  
   public void test1() {
     Clock.setPredefinedTimeInMinutes(0);
-    TimeAggregatedActivityValues timeAggregatedActivityValues = new TimeAggregatedActivityValues("likes", java.util.Arrays.asList("10m","5m", "2m"), 0, getDirPath());
+     timeAggregatedActivityValues = new TimeAggregatedActivityValues("likes", java.util.Arrays.asList("10m","5m", "2m"), 0, getDirPath());
     timeAggregatedActivityValues.init(0);
     for (int i = 0; i < 11; i++) {
       Clock.setPredefinedTimeInMinutes(i);

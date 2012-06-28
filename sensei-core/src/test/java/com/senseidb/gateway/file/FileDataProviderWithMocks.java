@@ -24,11 +24,16 @@ public class FileDataProviderWithMocks extends LinedJsonFileDataProvider {
   public FileDataProviderWithMocks(Comparator<String> versionComparator, File file, long startingOffset) {
     super(versionComparator, file, startingOffset);   
     queue = new LinkedBlockingQueue<JSONObject>(30000);
-    mockRequests.add(queue);  
+    mockRequests.add(queue); 
+    instances.add(this);
   }
-  
+  public static List<FileDataProviderWithMocks> instances = new ArrayList<FileDataProviderWithMocks>();
   private static List<Queue<JSONObject>> mockRequests = new ArrayList<Queue<JSONObject>>();
-  
+  public static void resetOffset(long newOffset) {
+    for (FileDataProviderWithMocks instance : instances) {
+      instance._offset = newOffset;
+    }
+  }
   
   @Override
   public DataEvent<JSONObject> next() {
@@ -53,5 +58,8 @@ public class FileDataProviderWithMocks extends LinedJsonFileDataProvider {
       }
      }
     return ret;
+  }
+  public long getOffset() {
+    return _offset;
   }
 }
