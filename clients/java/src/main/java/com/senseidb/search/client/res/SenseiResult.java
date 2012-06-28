@@ -22,7 +22,7 @@ public class SenseiResult {
 
     private JSONObject mapReduceResult;
     private Integer errorCode;
-    private List<Error> errors = new ArrayList<Error>();
+    private List<Error> errors;
 
     @Override
     public String toString() {
@@ -92,6 +92,9 @@ public class SenseiResult {
       this.errorCode = errorCode;
     }
     public List<Error> getErrors() {
+      if (errors == null)
+        errors = new ArrayList<SenseiError>();
+
       return errors;
     }
     public void setErrors(List<Error> errors) {
