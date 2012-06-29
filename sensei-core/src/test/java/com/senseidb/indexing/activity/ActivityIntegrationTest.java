@@ -235,6 +235,53 @@ public class ActivityIntegrationTest extends TestCase {
     assertEquals(Integer.parseInt(hits.getJSONObject(0).getJSONArray("aggregated-likes").getString(0)), 100);
     
   }
+
+ public void test7RelevanceActivity() throws Exception {
+    
+    FileDataProviderWithMocks.add(new JSONObject().put("id", 501).put(SenseiSchema.EVENT_TYPE_FIELD, SenseiSchema.EVENT_TYPE_UPDATE).put("likes", 100000));
+    expectedVersion++;
+    syncWithVersion(expectedVersion); 
+    
+    {
+      String req = "{\"sort\":[\"_score\"],\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"model\":{\"function_params\":[\"_INNER_SCORE\",\"thisYear\",\"year\",\"goodYear\",\"mileageWeight\",\"mileage\"],\"facets\":{\"int\":[\"year\",\"mileage\"],\"long\":[\"groupid\"]},\"function\":\" if(mileageWeight.containsKey(mileage)) return 10000+mileageWeight.get(mileage); if(goodYear.contains(year)) return (float)Math.exp(2d);   if(year==thisYear) return 87f   ; return  _INNER_SCORE;\",\"variables\":{\"map_int_float\":[\"mileageWeight\"],\"set_int\":[\"goodYear\"],\"int\":[\"thisYear\"]}},\"values\":{\"thisYear\":2001,\"mileageWeight\":{\"11400\":777.9, \"11000\":10.2},\"goodYear\":[1996,1997]}}}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":6}";
+      JSONObject res = TestSensei.search(new JSONObject(req));
+      assertEquals("numhits is wrong", 15000, res.getInt("numhits"));
+    }
+
+    {
+      String req = "{\"sort\":[\"_score\"],\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"model\":{\"function_params\":[\"_INNER_SCORE\",\"thisYear\",\"year\",\"goodYear\",\"mileageWeight\",\"mileage\",\"likes\"],\"facets\":{\"int\":[\"year\",\"mileage\"],\"long\":[\"groupid\"],\"aint\":[\"likes\"]},\"function\":\" if(mileageWeight.containsKey(mileage)) return 10000+mileageWeight.get(mileage); if(goodYear.contains(year)) return (float)Math.exp(2d);   if(year==thisYear) return 87f   ; if(likes> _INNER_SCORE) return (float)likes;return  _INNER_SCORE;\",\"variables\":{\"map_int_float\":[\"mileageWeight\"],\"set_int\":[\"goodYear\"],\"int\":[\"thisYear\"]}},\"values\":{\"thisYear\":2001,\"mileageWeight\":{\"11400\":777.9, \"11000\":10.2},\"goodYear\":[1996,1997]}}}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":6}";
+      JSONObject res = TestSensei.search(new JSONObject(req));
+      System.out.println(res.toString());
+      assertEquals("numhits is wrong", 15000, res.getInt("numhits"));
+      
+      JSONArray hits = res.getJSONArray("hits");
+      JSONObject firstHit = hits.getJSONObject(0);
+      JSONObject secondHit = hits.getJSONObject(1);
+      
+      double firstScore = firstHit.getDouble("_score");
+      double secondScore = secondHit.getDouble("_score");
+      
+      double delta1 = firstScore - 100000;
+      double delta2 = secondScore - 10777.900390625;
+      
+      assertEquals("score for first is not correct. delta is: " + delta1, true, Math.abs(delta1) < 0.001 );
+      assertEquals("score for second is not correct." , true, Math.abs(delta2) < 1 );
+      
+      int first_aggregated_likes_2w = firstHit.getJSONArray("aggregated-likes:2w").getInt(0);
+      int first_aggregated_likes_12h = firstHit.getJSONArray("aggregated-likes:12h").getInt(0);
+      
+      int second_aggregated_likes_2w = secondHit.getJSONArray("aggregated-likes:2w").getInt(0);
+      int second_aggregated_likes_12h = secondHit.getJSONArray("aggregated-likes:12h").getInt(0);
+      
+      assertEquals("first hit does not have correct aggregated value.", true, first_aggregated_likes_2w==100000);
+      assertEquals("first hit does not have correct aggregated value.", true, first_aggregated_likes_12h==100000);
+
+      assertEquals("second hit does not have correct aggregated value.", true, second_aggregated_likes_2w==0);
+      assertEquals("second hit does not have correct aggregated value.", true, second_aggregated_likes_12h==0);
+    }
+
+  }  
+ 
 public void test5PurgeUnusedActivities() throws Exception {
   final CompositeActivityManager inMemoryColumnData1 = CompositeActivityManager.cachedInstances.get(1);
   final CompositeActivityManager inMemoryColumnData2 = CompositeActivityManager.cachedInstances.get(2);
@@ -264,6 +311,8 @@ public void test5PurgeUnusedActivities() throws Exception {
     assertEquals(1, compositeActivityValues.getValueByUID(1L, "likes"));
     assertEquals(1, inMemoryColumnData1.getValueByUID(1L, "likes"));
   }
+  
+ 
  
 
   private synchronized TimeAggregatedActivityValues clear(final CompositeActivityValues inMemoryColumnData1) throws Exception {
