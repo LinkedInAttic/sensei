@@ -30,31 +30,16 @@ import com.senseidb.indexing.activity.CompositeActivityValues;
  * @author vzhabiuk
  *
  */
-public class SynchronizedActivityRangeFacetHandler extends FacetHandler<int[]> {
-  private static final String DEFAULT_FORMATTING_STRING = "0000000000";
-  
-  
-  protected ThreadLocal<DecimalFormat> formatter = new ThreadLocal<DecimalFormat>() {
-    protected DecimalFormat initialValue() {
-      return new DecimalFormat(DEFAULT_FORMATTING_STRING);
-    }
-  };
+public class SynchronizedActivityRangeFacetHandler extends ActivityRangeFacetHandler {
+  public static final Object GLOBAL_ACTIVITY_TEST_LOCK = new Object();
 
   private final ActivityIntValues activityIntValues;
   private final CompositeActivityValues compositeActivityValues;
   
-
-  
   public SynchronizedActivityRangeFacetHandler(String facetName, String fieldName, CompositeActivityValues compositeActivityValues, ActivityIntValues activityIntValues) {
-    super(facetName, new HashSet<String>());
+    super(facetName, fieldName, compositeActivityValues, activityIntValues);
     this.compositeActivityValues = compositeActivityValues;
     this.activityIntValues = activityIntValues;   
-  }
-  @Override
-  public int[] load(BoboIndexReader reader) throws IOException {
-    ZoieSegmentReader<?> zoieReader = (ZoieSegmentReader<?>)(reader.getInnerReader());    
-    long[] uidArray = zoieReader.getUIDArray();   
-    return compositeActivityValues.precomputeArrayIndexes(uidArray);    
   }
 
   @Override
@@ -77,7 +62,8 @@ public class SynchronizedActivityRangeFacetHandler extends FacetHandler<int[]> {
         return new RandomAccessDocIdSet() {          
           @Override
           public DocIdSetIterator iterator() throws IOException {
-              return new ActivityRangeFilterSynchronizedIterator(array, indexes, startValue, endValue);           
+             System.out.println(activityIntValues.getFieldName());
+            return new ActivityRangeFilterSynchronizedIterator(array, indexes, startValue, endValue);           
           }
           
           @Override
@@ -85,8 +71,8 @@ public class SynchronizedActivityRangeFacetHandler extends FacetHandler<int[]> {
             if (indexes[docId] == -1) {
               return false;
             }
-            synchronized (activityIntValues.getFieldValues()) {
-              int val = array[indexes[docId]];            
+            synchronized (GLOBAL_ACTIVITY_TEST_LOCK) {
+              int val = array[indexes[docId]];
               return val >= startValue && val < endValue && val != Integer.MIN_VALUE;
             }
           }
@@ -94,39 +80,19 @@ public class SynchronizedActivityRangeFacetHandler extends FacetHandler<int[]> {
       }
     };
   }
-
-  @Override
-  public FacetCountCollectorSource getFacetCountCollectorSource(BrowseSelection sel, FacetSpec fspec) {
-   throw new UnsupportedOperationException("Facets on activity columns are unsupported");
-  }
-  
   
   @Override
   public Object[] getRawFieldValues(BoboIndexReader reader, int id) {    
-    final int[] indexes = (int[]) ((BoboIndexReader)reader).getFacetData(_name);   
-    int index = indexes[id];
-    if (index == -1) {
-      return new String[0];
-    }
-    synchronized (activityIntValues.getFieldValues()) {
-      return new Object[] {activityIntValues.getValue(index)};
+    synchronized (GLOBAL_ACTIVITY_TEST_LOCK) {
+      return super.getRawFieldValues(reader, id);
     }  
   }
   @Override
   public String[] getFieldValues(BoboIndexReader reader, int id) {   
-    final int[] indexes = (int[]) ((BoboIndexReader)reader).getFacetData(_name);   
-    int index = indexes[id]; 
-    if (index == -1) {
-      return new String[0];
-    }
-    int value = 0;   
-     synchronized (activityIntValues.getFieldValues()) {
-       value = activityIntValues.getValue(index);
+     synchronized (GLOBAL_ACTIVITY_TEST_LOCK) {
+       return super.getFieldValues(reader, id);
      }   
-    if (value == Integer.MIN_VALUE) {
-      return new String[0];
-    }
-    return new String[] {formatter.get().format(value)};
+   
   }
 
   @Override
@@ -141,7 +107,7 @@ public class SynchronizedActivityRangeFacetHandler extends FacetHandler<int[]> {
         return new DocComparator() {
           @Override
           public Comparable<Integer> value(ScoreDoc doc) {          
-              synchronized (activityIntValues.getFieldValues()) {
+              synchronized (GLOBAL_ACTIVITY_TEST_LOCK) {
                 if (indexes[doc.doc] == -1) {
                   return 0;
                 }
@@ -152,7 +118,7 @@ public class SynchronizedActivityRangeFacetHandler extends FacetHandler<int[]> {
           @Override
           public int compare(ScoreDoc doc1, ScoreDoc doc2) {  
             
-            synchronized (activityIntValues.getFieldValues()) {
+            synchronized (GLOBAL_ACTIVITY_TEST_LOCK) {
               int val1 = indexes[doc1.doc] > -1 ? array[indexes[doc1.doc]] : 0; ; 
               int val2 = indexes[doc2.doc] > -1 ?array[indexes[doc2.doc]] : 0;            
               return (val1<val2 ? -1 : (val1==val2 ? 0 : 1));
@@ -162,33 +128,5 @@ public class SynchronizedActivityRangeFacetHandler extends FacetHandler<int[]> {
       }
     };
   }
-  public static int[] parseRaw(String rangeString)
-  {
-    String[] ranges = FacetRangeFilter.getRangeStrings(rangeString);
-      String lower=ranges[0];
-      String upper=ranges[1];
-      String includeLower = ranges[2];
-      String includeUpper = ranges[3];
-      int start = 0;
-      int end = 0;
-      if ("*".equals(lower))
-      {
-        start=Integer.MIN_VALUE;
-      } else {
-        start = Integer.parseInt(lower);
-        if ("false".equals(includeLower)) {
-          start++;
-        }
-      }
-      if ("*".equals(upper))
-      {
-        end=Integer.MAX_VALUE;
-      } else {
-        end =  Integer.parseInt(upper);
-        if ("true".equals(includeUpper)) {
-          end++;
-        }
-      }     
-      return new int[]{start,end};
-  }
+  
 }

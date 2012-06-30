@@ -175,6 +175,7 @@ public class SenseiCore{
         _readerFactoryMap.put(part, zoieSystem);
       }
       try{
+        pluggableSearchEngineManager.start(this);
         logger.info("initializing index manager...");
         if (_indexManager!=null){
           _indexManager.initialize(_readerFactoryMap);

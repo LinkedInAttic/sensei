@@ -1,9 +1,6 @@
 package com.senseidb.search.node;
 
 import java.io.File;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.Arrays;
@@ -30,6 +27,7 @@ import com.senseidb.svc.impl.AbstractSenseiCoreService;
 import com.senseidb.svc.impl.CoreSenseiServiceImpl;
 import com.senseidb.svc.impl.SenseiCoreServiceMessageHandler;
 import com.senseidb.svc.impl.SysSenseiCoreServiceImpl;
+import com.senseidb.util.NetUtil;
 
 
 public class SenseiServer {
@@ -278,14 +276,8 @@ public class SenseiServer {
 
   private String getLocalIpAddress() throws SocketException,
       UnknownHostException {
-    DatagramSocket ds = new DatagramSocket();
-    ds.connect(InetAddress.getByName(DUMMY_OUT_IP), 80);
-    String inetAddress = new InetSocketAddress(ds.getLocalAddress(), _port).toString();
-    if (inetAddress.trim().startsWith("0.0.0.0/")) {
-      inetAddress = new InetSocketAddress(InetAddress.getLocalHost().getHostAddress(), _port).toString();
-    }
-    String ipAddr = inetAddress.replaceAll("/", "");
-    return ipAddr;
+    String addr = NetUtil.getHostAddress();
+    return String.format("%s:%d", addr, _port);
   }
 
 	private SenseiServerAdminMBean getAdminMBean()

@@ -27,6 +27,7 @@ import com.senseidb.indexing.activity.CompositeActivityManager.TimeAggregateInfo
 import com.senseidb.indexing.activity.CompositeActivityStorage.Update;
 import com.senseidb.indexing.activity.time.TimeAggregatedActivityValues;
 import com.senseidb.metrics.MetricsConstants;
+import com.sun.org.apache.bcel.internal.generic.NEW;
 import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.Counter;
 import com.yammer.metrics.core.MetricName;
@@ -39,7 +40,7 @@ import com.yammer.metrics.core.MetricName;
  *
  */
 public class CompositeActivityValues {
-  private static final int NUM_LOCKS = 1024;
+  
   private static final int DEFAULT_INITIAL_CAPACITY = 5000;
   private final static Logger logger = Logger.getLogger(CompositeActivityValues.class);
   private Comparator<String> versionComparator; 
@@ -47,9 +48,9 @@ public class CompositeActivityValues {
   protected Map<String, ActivityValues> intValuesMap = new ConcurrentHashMap<String, ActivityValues>();
   protected volatile String lastVersion = "";  
   protected Long2IntMap uidToArrayIndex = new Long2IntOpenHashMap();  
-  private ReadWriteLock[] locks;
-  private ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
-  protected IntList deletedIndexes = new IntArrayList(2000);
+  protected ReadWriteLock globalLock = new ReentrantReadWriteLock();
+  protected ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+  protected IntList deletedIndexes = new IntArrayList(2000);  
   protected CompositeActivityStorage activityStorage;
   protected UpdateBatch<Update> updateBatch = new UpdateBatch<Update>(); 
   protected volatile Metadata metadata;
@@ -66,57 +67,47 @@ public class CompositeActivityValues {
   }
 
   public void init(int count) {
-    uidToArrayIndex = new Long2IntOpenHashMap(count);
-    locks = new ReadWriteLock[NUM_LOCKS];
-    for (int i = 0; i < 1024; i++) {
-      locks[i] = new ReentrantReadWriteLock();
-    }
+    uidToArrayIndex = new Long2IntOpenHashMap(count);  
     reclaimedDocumentsCounter = Metrics.newCounter(new MetricName(getClass(), "reclaimedActivityDocs"));
     currentDocumentsCounter = Metrics.newCounter(new MetricName(getClass(), "currentActivityDocs"));
     deletedDocumentsCounter = Metrics.newCounter(new MetricName(getClass(), "deletedActivityDocs"));
     insertedDocumentsCounter = Metrics.newCounter(new MetricName(getClass(), "insertedActivityDocs"));
   }
-  public ReadWriteLock getLock(long uid) {
-    return locks[(int) (uid % locks.length)];
-  }
+  
   public void updateVersion(String version) {
     if (versionComparator.compare(lastVersion, version) < 0) {
       lastVersion = version;
     }
   }
-  public void update(long uid, final String version, Map<String, Object> map) {
+  public int update(long uid, final String version, Map<String, Object> map) {
     if (intValuesMap.isEmpty()) {
-      return;
+      return -1;
     }
-    if (versionComparator.compare(lastVersion, version) >= 0) {
-      return;
+    if (versionComparator.compare(lastVersion, version) == 0) {
+      return -1;
     }
     if (map.isEmpty()) {
       lastVersion = version;
-      return;
+      return -1;
     }
     int index = -1;
-    ReadWriteLock lock = getLock(uid);
-    Lock writeLock = lock.writeLock();
+    
+    Lock writeLock = globalLock.writeLock();
     boolean needToFlush = false;
     try {
       writeLock.lock();      
       if (uidToArrayIndex.containsKey(uid)) {
         index = uidToArrayIndex.get(uid);       
       } else {
-        insertedDocumentsCounter.inc();
-        boolean deletedDocsPresent = false;
+        insertedDocumentsCounter.inc();       
         synchronized (deletedIndexes) {
           if (deletedIndexes.size() > 0) {
              index = deletedIndexes.removeInt(deletedIndexes.size() - 1);
-             uidToArrayIndex.put(uid, index); 
-             deletedDocsPresent = true;           
+          } else {
+            index = uidToArrayIndex.size();
           }
-        }
-        if (!deletedDocsPresent) {          
-          index = uidToArrayIndex.size();
-          uidToArrayIndex.put(uid, index);
-        }
+        } 
+        uidToArrayIndex.put(uid, index); 
         needToFlush = updateBatch.addFieldUpdate(new Update(index, uid));
       }      
       needToFlush = needToFlush || updateActivities(map, index);
@@ -127,6 +118,7 @@ public class CompositeActivityValues {
     if (needToFlush) {
       flush();
     }
+    return index;
   }
   public ActivityIntValues getActivityIntValues(String fieldName) {
     ActivityValues activityValues = intValuesMap.get(fieldName);
@@ -153,39 +145,28 @@ public class CompositeActivityValues {
     return needToFlush;
   }
   
-  /**
-   * Tells whether the document will modify activity values
-   * @param event
-   * @return
-   */
-  private boolean matchesFields(JSONObject event) {
-    boolean matchedEvent = false;
-    for (String field : intValuesMap.keySet()) {
-      if (event.opt(field) != null) {
-        matchedEvent = true;
-      }
-    }
-    return matchedEvent;
-  }
-
+  
   /**Deletes documents from the activity engine
    * @param uids
    */
   public void delete(long... uids) {
     boolean needToFlush = false;
+    if (uids.length == 0) {
+      return;
+    }
+   
     for (long uid : uids) {
       if (uid == Long.MIN_VALUE) {
         continue;
-      }
-      ReadWriteLock lock = getLock(uid);
-      Lock writeLock = lock.writeLock();
+      }     
+      Lock writeLock = globalLock.writeLock();
       try {
         writeLock.lock();
         if (!uidToArrayIndex.containsKey(uid)) {
           continue;
         }
         deletedDocumentsCounter.inc();
-        int index = uidToArrayIndex.remove(uid);
+        int index = uidToArrayIndex.remove(uid);       
         for (ActivityValues activityIntValues :  intValuesMap.values()) {
           activityIntValues.delete(index);
         }
@@ -193,7 +174,7 @@ public class CompositeActivityValues {
       } finally {
         writeLock.unlock();
       }
-    }
+    }    
     if (needToFlush) {
       flushDeletes();
     }
@@ -207,7 +188,6 @@ public class CompositeActivityValues {
     }
     final UpdateBatch<Update> deleteBatch = pendingDeletes;
     pendingDeletes = new UpdateBatch<Update>();
-    
     executor.submit(new Runnable() {
       @Override
       public void run() {
@@ -337,7 +317,7 @@ public class CompositeActivityValues {
         ret[i] = -1;
         continue;
       }
-      Lock lock = getLock(uid).readLock();
+      Lock lock = globalLock.readLock();
       try {
         lock.lock();
         if (!uidToArrayIndex.containsKey(uid)) {
@@ -355,17 +335,28 @@ public class CompositeActivityValues {
     return intValuesMap;
   }
   public int getValueByUID(long uid, String column) {
+    Lock lock = globalLock.readLock();
+    try {
+    lock.lock();
     if (!uidToArrayIndex.containsKey(uid)) {
      return Integer.MIN_VALUE;
     }
-    Lock lock = getLock(uid).readLock();
-    try {
-      lock.lock();
-    return getActivityIntValues(column).getFieldValues()[uidToArrayIndex.get(uid)];
+    return getActivityIntValues(column).getValue(uidToArrayIndex.get(uid));
     } finally {
       lock.unlock();
     }
+  }
+  public int getIndexByUID(long uid) {
+    Lock lock = globalLock.readLock();
+    try {
+    lock.lock();
+    if (!uidToArrayIndex.containsKey(uid)) {
+     return -1;
     }
-  
+    return uidToArrayIndex.get(uid);
+    } finally {
+      lock.unlock();
+    }
+  }
   
 }

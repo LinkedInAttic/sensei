@@ -39,5 +39,6 @@ public class ActivityIntValuesIntTest extends TestCase {
       }
     }
     System.out.println("ElapsedTime = " + (System.currentTimeMillis() - time));
+    intValues.close();
   }
 }

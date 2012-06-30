@@ -12,6 +12,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.browseengine.bobo.api.BoboIndexReader;
+import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.facets.data.FacetDataCache;
 import com.browseengine.bobo.facets.data.MultiValueFacetDataCache;
 import com.browseengine.bobo.facets.data.TermDoubleList;
@@ -22,6 +23,7 @@ import com.browseengine.bobo.facets.data.TermShortList;
 import com.browseengine.bobo.facets.data.TermStringList;
 import com.browseengine.bobo.facets.data.TermValueList;
 import com.browseengine.bobo.util.BigSegmentedArray;
+import com.senseidb.indexing.activity.facet.ActivityRangeFacetHandler;
 import com.senseidb.search.query.ScoreAugmentQuery.ScoreAugmentFunction;
 import com.senseidb.search.relevance.impl.CompilationHelper;
 import com.senseidb.search.relevance.impl.CustomMathModel;
@@ -57,12 +59,17 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction
   private MultiValueFacetDataCache[] _mDataCaches;
   private TermValueList[] _mTermLists;
   
+  private ActivityRangeFacetHandler[] _aHandlers;
+  private int[][] _aData;
+  
   private int[] _types;
   private int[] _facetIndex;
   private int[] _arrayIndex;
   
   private int[] _mFacetIndex;
   private int[] _mArrayIndex;
+  
+  private int[] _aFacetIndex;
   
   private int _paramSize;
   
@@ -99,6 +106,8 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction
                                   DataTable _dt)
     throws IOException
   {
+    
+    // (1) normal facet;
     int numFacet = _dt.hm_symbol_facet.keySet().size();
     final BigSegmentedArray[] orderArrays = new BigSegmentedArray[numFacet];
     final TermValueList[] termLists = new TermValueList[numFacet];
@@ -110,14 +119,14 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction
       // validation;
       Object dataObj = boboReader.getFacetData(facetName);
       if ( ! (dataObj instanceof FacetDataCache<?>))
-        throw new IllegalArgumentException("Facet " + facetName + " does not have a valid FacetDataCache");
+        throw new IllegalArgumentException("Facet " + facetName + " does not have a valid FacetDataCache.");
       
       int index = _dt.hm_facet_index.get(facetName);
       orderArrays[index] = ((FacetDataCache)(boboReader.getFacetData(facetName))).orderArray;
       termLists[index] = ((FacetDataCache)(boboReader.getFacetData(facetName))).valArray;
     }
 
-    //multi-facet;
+    // (2) multi-facet;
     int numMultiFacet = _dt.hm_symbol_mfacet.keySet().size();
     final MultiValueFacetDataCache[] mDataCaches = new MultiValueFacetDataCache[numMultiFacet];
     final TermValueList[] mTermLists = new TermValueList[numMultiFacet];
@@ -129,22 +138,45 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction
       // validation;
       Object dataObj = boboReader.getFacetData(mFacetName);
       if ( ! (dataObj instanceof FacetDataCache<?>))
-        throw new IllegalArgumentException("Facet " + mFacetName + " does not have a valid FacetDataCache");
+        throw new IllegalArgumentException("Facet " + mFacetName + " does not have a valid FacetDataCache.");
       
       int index = _dt.hm_mfacet_index.get(mFacetName);
       mDataCaches[index] = (MultiValueFacetDataCache)(boboReader.getFacetData(mFacetName));
       mTermLists[index] = ((MultiValueFacetDataCache)(boboReader.getFacetData(mFacetName))).valArray;
     }
     
+    // (3) activity engine facet;
+    int numAFacet = _dt.hm_symbol_afacet.keySet().size();
+    final int[][] aData = new int[numAFacet][];
+    final ActivityRangeFacetHandler[] aHandlers = new ActivityRangeFacetHandler[numAFacet];
+    Iterator<String> iter_afacet = _dt.hm_afacet_index.keySet().iterator();
+    while(iter_afacet.hasNext()){
+      String afacetName = iter_afacet.next();
+      
+      // validation;
+      FacetHandler arHandler = boboReader.getFacetHandler(afacetName);
+      Object dataObj = boboReader.getFacetData(afacetName);
+      if( ! (dataObj instanceof int[]))
+        throw new IllegalArgumentException("Facet " + afacetName + " does not have a valid FacetData for activity engine.");
+      
+      if(! (arHandler instanceof ActivityRangeFacetHandler))
+        throw new IllegalArgumentException("Facet " + afacetName + " is not an ActivityRangeFacetHandler.");
+      
+      int index = _dt.hm_afacet_index.get(afacetName);
+      aData[index] = (int[])(boboReader.getFacetData(afacetName));
+      aHandlers[index] = (ActivityRangeFacetHandler) arHandler;
+    }
+    
     final int paramSize = _dt.lls_params.size();
     
     final int[] types = new int[paramSize];  //store each parameter's type;
     final int[] facetIndex = new int[paramSize];  // if this parameter is a facet, what is its index number in the facet data array;
-    final int[] arrayIndex = new int[paramSize];  // for each paramter, what is its index number in its own parameter array when passing into the function;
+    final int[] arrayIndex = new int[paramSize];  // for each parameter, what is its index number in its own parameter array when passing into the function;
     final int[] mFacetIndex = new int[paramSize];  // if this parameter is a multi-facet, we need to know its index. Since we only use one array to store multi-facet, we do not need array index like the one for the simple facet;
     final int[] mArrayIndex = new int[paramSize];  // for each multi-facet, what is its index number in its own parameter array when passing into the function;
+    final int[] aFacetIndex = new int[paramSize];
     
-    updateArrayIndex(_dt, paramSize, types, facetIndex, arrayIndex, mFacetIndex, mArrayIndex);
+    updateArrayIndex(_dt, paramSize, types, facetIndex, arrayIndex, mFacetIndex, mArrayIndex, aFacetIndex);
     
     _cModel = cModel;
     _orderArrays = orderArrays;
@@ -157,6 +189,10 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction
     _mTermLists = mTermLists;
     _mFacetIndex = mFacetIndex;
     _mArrayIndex = mArrayIndex;
+    
+    _aHandlers = aHandlers;
+    _aData = aData;
+    _aFacetIndex = aFacetIndex;
     
     _paramSize = paramSize;
     
@@ -281,7 +317,7 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction
       return ret;
   }
   
-  private void updateArrayIndex(DataTable _dt, int paramSize, int[] types, int[] facetIndex, int[] arrayIndex, int[] mFacetIndex, int[] mArrayIndex)
+  private void updateArrayIndex(DataTable _dt, int paramSize, int[] types, int[] facetIndex, int[] arrayIndex, int[] mFacetIndex, int[] mArrayIndex, int[] aFacetIndex)
   {
     int short_index = 0,    m_short_index = 0;
     int int_index = 0,      m_int_index = 0;
@@ -343,6 +379,13 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction
         facetIndex[i] = index;  // record the facet index;
         arrayIndex[i] = string_index;
         string_index++;
+        break;
+      case RelevanceJSONConstants.TYPENUMBER_FACET_A_INT:
+        facetName = _dt.hm_symbol_afacet.get(symbol);
+        index = _dt.hm_afacet_index.get(facetName);
+        aFacetIndex[i] = index;  // record the activity engine facet index;
+        arrayIndex[i] = int_index;
+        int_index++;
         break;
       case RelevanceJSONConstants.TYPENUMBER_FACET_M_INT:
       case RelevanceJSONConstants.TYPENUMBER_FACET_WM_INT:
@@ -452,9 +495,12 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction
       
       // only when the parameter is inner score variable or facet variable, we need to update the score function input parameter arrays; 
       switch (_types[dynamicAR[j]]) {
+      
         case RelevanceJSONConstants.TYPENUMBER_INNER_SCORE:  
                   floats[_arrayIndex[dynamicAR[j]]] = innerScore;
                   break;
+        
+        // normal facet;          
         case RelevanceJSONConstants.TYPENUMBER_FACET_INT:  
                   ints[_arrayIndex[dynamicAR[j]]] = ((TermIntList)_termLists[_facetIndex[dynamicAR[j]]]).getPrimitiveValue(_orderArrays[_facetIndex[dynamicAR[j]]].get(docID));
                   break;
@@ -514,11 +560,17 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction
         case RelevanceJSONConstants.TYPENUMBER_FACET_WM_STRING:
                   ((WeightedMFacetString)mFacetStrings[_mArrayIndex[dynamicAR[j]]]).refresh(docID);
                   break;
-                            
+                        
+                  
+        // activity engine facet;
+        case RelevanceJSONConstants.TYPENUMBER_FACET_A_INT:
+                  ints[_arrayIndex[dynamicAR[j]]] = _aHandlers[_aFacetIndex[dynamicAR[j]]].getActivityValue((int[])_aData[_aFacetIndex[dynamicAR[j]]], docID);
+                  break;
+          
         default: 
                  break;
       }
-    }
+    }// end for;
     
     return _cModel.score(shorts, ints, longs, floats, doubles, booleans, strings, sets, maps, mFacetInts, mFacetLongs, mFacetFloats, mFacetDoubles, mFacetShorts, mFacetStrings);
   }
@@ -593,11 +645,16 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction
         case RelevanceJSONConstants.TYPENUMBER_FACET_WM_STRING:
                   ((WeightedMFacetString)mFacetStrings[_mArrayIndex[dynamicAR[j]]]).refresh(docID);
                   break;
-                            
+               
+                  
+        // activity engine facet;
+        case RelevanceJSONConstants.TYPENUMBER_FACET_A_INT:
+                 ints[_arrayIndex[dynamicAR[j]]] = _aHandlers[_aFacetIndex[dynamicAR[j]]].getActivityValue((int[])_aData[_aFacetIndex[dynamicAR[j]]], docID);
+                 break;                  
         default: 
                  break;
       }
-    }
+    }// end for;
     
     return _cModel.score(shorts, ints, longs, floats, doubles, booleans, strings, sets, maps, mFacetInts, mFacetLongs, mFacetFloats, mFacetDoubles, mFacetShorts, mFacetStrings);
   }
