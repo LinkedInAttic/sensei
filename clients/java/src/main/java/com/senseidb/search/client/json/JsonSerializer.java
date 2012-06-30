@@ -1,6 +1,7 @@
 package com.senseidb.search.client.json;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -18,15 +19,29 @@ import com.senseidb.search.client.ReflectionUtil;
 public class JsonSerializer {
     public static Object serialize(Object object) {
         try {
-      return serialize(object,true);
+          return serialize(object,true);
         } catch (Exception ex) {
           throw new RuntimeException(ex);
         }
     }
+
     public static Object serialize(Object object, boolean handleCustomJsonHandler) throws JSONException {
+      return serialize(new ArrayList<Object>(), object, handleCustomJsonHandler);
+    }
+
+    private static Object serialize(List<Object> parents,
+                                    Object object,
+                                    boolean handleCustomJsonHandler) throws JSONException {
         if (object == null) {
             return null;
         }
+        for(Object p : parents) {
+            if (p == object) {
+                // Loop reference
+                return null;
+            }
+        }
+        parents.add(object);
         if (object instanceof String || object instanceof Number || object instanceof Boolean || object.getClass().isPrimitive() || object instanceof JSONObject) {
             return object;
         }
@@ -42,7 +57,7 @@ public class JsonSerializer {
             Collection collection = (Collection) object;
             List<Object> arr = new ArrayList<Object>(collection.size());
             for(Object obj : collection) {
-                arr.add(serialize(obj));
+                arr.add(serialize(parents, obj, true));
             }
             return new JSONArray(arr);
         }
@@ -50,13 +65,15 @@ public class JsonSerializer {
             Map map = (Map) object;
             JSONObject ret = new JSONObject();
             for(Map.Entry entry : (Set<Map.Entry>) map.entrySet()) {
-               ret.put(((String)entry.getKey()), serialize(entry.getValue()));
+               ret.put(serialize(parents, entry.getKey(), true).toString(),
+                       serialize(parents, entry.getValue(), true));
             }
             return ret;
         }
         // serialize object by reflection
         JSONObject ret = new JSONObject();
         for (Field field : object.getClass().getDeclaredFields()) {
+            if (Modifier.isStatic(field.getModifiers())) continue;
             field.setAccessible(true);
             String name = field.getName();
             if (field.isAnnotationPresent(JsonField.class)) {
@@ -66,7 +83,7 @@ public class JsonSerializer {
                 CustomJsonHandler customJsonHandlerAnnotation = getCustomJsonHandlerByField(field);
                 Object fieldValue = field.get(object);
                 if (customJsonHandlerAnnotation == null) {
-                    ret.put(name, serialize(fieldValue));
+                    ret.put(name, serialize(parents, fieldValue, true));
                 } else {
                     JsonHandler jsonHandler = instantiate(customJsonHandlerAnnotation.value());
                     Object fieldJson =  jsonHandler.serialize(fieldValue);
@@ -87,8 +104,10 @@ public class JsonSerializer {
                 throw new RuntimeException(e);
             }
         }
-       return ret;
+        parents.remove(parents.size() - 1);
+        return ret;
     }
+
     private static Map<Class<?>, CustomJsonHandler> jsonHandlersByType = Collections.synchronizedMap(new WeakHashMap<Class<?>, CustomJsonHandler>());
     private static Map<Field, CustomJsonHandler> jsonHandlersByField = Collections.synchronizedMap(new WeakHashMap<Field, CustomJsonHandler>());
     private static Map<Class<? extends JsonHandler>, JsonHandler> jsonHandlers = Collections.synchronizedMap(new WeakHashMap<Class<? extends JsonHandler>, JsonHandler>());
