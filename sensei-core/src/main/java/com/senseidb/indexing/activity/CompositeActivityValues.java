@@ -110,7 +110,8 @@ public class CompositeActivityValues {
         uidToArrayIndex.put(uid, index); 
         needToFlush = updateBatch.addFieldUpdate(new Update(index, uid));
       }      
-      needToFlush = needToFlush || updateActivities(map, index);
+      boolean currentUpdate = updateActivities(map, index);
+      needToFlush = needToFlush || currentUpdate;
       lastVersion = version;
     } finally {
       writeLock.unlock();
@@ -140,6 +141,8 @@ public class CompositeActivityValues {
       Object value = map.get(activityIntValues.getFieldName());
       if (value != null) {
         needToFlush = needToFlush | activityIntValues.update(index, value);
+      } else {
+        needToFlush = needToFlush | activityIntValues.update(index, 0);
       }
     }
     return needToFlush;
@@ -246,13 +249,19 @@ public class CompositeActivityValues {
     }
     final String version = lastVersion;
     final int count;
+    globalLock.readLock().lock();
+    try {
     synchronized (deletedIndexes) {
+      
       count = uidToArrayIndex.size() + deletedIndexes.size();
       currentDocumentsCounter.clear();
       currentDocumentsCounter.inc(uidToArrayIndex.size());
       reclaimedDocumentsCounter.clear();
       reclaimedDocumentsCounter.inc( deletedIndexes.size());
       logger.info("Flush compositeActivityValues. Documents = " +  uidToArrayIndex.size() + ", Deletes = " + deletedIndexes.size());
+    }
+    } finally {
+      globalLock.readLock().unlock();
     }
      executor.submit(new Runnable() {      
       @Override

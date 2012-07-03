@@ -36,6 +36,7 @@ public class ActivityIntStorage {
   private long fileLength; 
   private boolean activateMemoryMappedBuffers = true;
   private Timer timer;
+  private String fileName;
   
   public ActivityIntStorage(String fieldName, String indexDir) {
     this.fieldName = fieldName;
@@ -46,7 +47,7 @@ public class ActivityIntStorage {
 
   public synchronized void init() {
     try {
-      String fileName = fieldName.replace(':', '-');
+      fileName = fieldName.replace(':', '-');
       File file = new File(indexDir, fileName + ".data");
       if (!file.exists()) {
         file.createNewFile();
@@ -76,9 +77,9 @@ public class ActivityIntStorage {
       }
       if (activateMemoryMappedBuffers) {
         buffer.force();
-      } else {
-        storedFile.getFD().sync(); 
       }
+      storedFile.getFD().sync(); 
+     
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -117,7 +118,6 @@ public class ActivityIntStorage {
   protected  ActivityIntValues getActivityDataFromFile(final int count) {
     try {
       return timer.time(new Callable<ActivityIntValues>() {
-
         @Override
         public ActivityIntValues call() throws Exception {
           Assert.state(storedFile != null, "The FileStorage is not initialized");
@@ -130,6 +130,11 @@ public class ActivityIntStorage {
               return ret;
             }
             ret.init((int) (count * INIT_GROWTH_RATIO));
+            if (fileLength < count * BYTES_IN_INT) {
+              logger.warn("The  activityIndex is corrupted. The file "+ fieldName +" contains " + (fileLength / BYTES_IN_INT) + " records, while metadata has a bigger number " + count);
+              logger.warn("adding extra space");
+              ensureCapacity(count * BYTES_IN_INT);
+            }
             for (int i = 0; i < count; i++) {
               int value;
               if (activateMemoryMappedBuffers) {
