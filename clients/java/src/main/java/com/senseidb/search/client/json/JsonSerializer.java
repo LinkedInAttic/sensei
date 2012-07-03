@@ -5,6 +5,7 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -26,20 +27,18 @@ public class JsonSerializer {
   }
 
   public static Object serialize(Object object, boolean handleCustomJsonHandler) throws JSONException {
-    return serialize(new ArrayList<Object>(), object, handleCustomJsonHandler);
+    return serialize(Collections.newSetFromMap(new IdentityHashMap()), object, handleCustomJsonHandler);
   }
 
-  private static Object serialize(List<Object> parents,
+  private static Object serialize(Set<Object> parents,
                                   Object object,
                                   boolean handleCustomJsonHandler) throws JSONException {
     if (object == null) {
       return null;
     }
-    for(Object p : parents) {
-      if (p == object) {
-        // Loop reference
-        return null;
-      }
+    if (parents.contains(object)) {
+      // Loop reference
+      return null;
     }
     parents.add(object);
     try {
@@ -109,7 +108,7 @@ public class JsonSerializer {
     }
     finally
     {
-      parents.remove(parents.size() - 1);
+      parents.remove(object);
     }
   }
 
