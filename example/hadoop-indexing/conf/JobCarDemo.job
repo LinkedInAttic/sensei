@@ -30,6 +30,10 @@ sensei.output.dir=example/hadoop-indexing/fileoutput
 ######## Index output location ######
 sensei.index.path=example/hadoop-indexing/index
 
+### the prefix of each shard's index directory. if not specified, it will be empty string;
+### if specified, the index folders are shard0, shard1, shard2, etc;
+sensei.index.prefix=shard
+
 ############# schemas for mapper input  ################
 
 sensei.input.format=org.apache.hadoop.mapred.TextInputFormat
@@ -42,6 +46,6 @@ sensei.mapinput.converter=com.senseidb.indexing.hadoop.demo.CarMapInputConverter
 
 #############  Analyzer configuration for lucene ###############
 sensei.document.analyzer=org.apache.lucene.analysis.standard.StandardAnalyzer
-sensei.document.analyzer.version=LUCENE_30
+sensei.document.analyzer.version=LUCENE_35
 
 
