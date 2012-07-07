@@ -8,7 +8,7 @@ import org.apache.log4j.Logger;
  */
 public class ActivityIntValues implements ActivityValues {
   private static Logger logger = Logger.getLogger(ActivityIntValues.class);
-  public volatile int[] fieldValues;
+  public int[] fieldValues;
   protected String fieldName;
   protected ActivityIntStorage activityFieldStore;
   protected volatile UpdateBatch<ActivityIntStorage.FieldUpdate> updateBatch = new UpdateBatch<ActivityIntStorage.FieldUpdate>();

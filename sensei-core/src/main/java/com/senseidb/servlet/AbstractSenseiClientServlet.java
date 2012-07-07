@@ -152,6 +152,10 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
 
   private void handleSenseiRequest(HttpServletRequest req, HttpServletResponse resp, Broker<SenseiRequest, SenseiResult> broker)
       throws ServletException, IOException {
+    long time = System.currentTimeMillis();
+    int numHits = 0, totalDocs = 0;
+    String query = null;
+
     SenseiRequest senseiReq = null;
     try
     {
@@ -183,9 +187,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
           // consider reporting JSON exceptions here.
           senseiReq = DefaultSenseiJSONServlet.convertSenseiRequest(
                         new DataConfiguration(new MapConfiguration(getParameters(content))));
-          if (queryLogger.isInfoEnabled()){
-            queryLogger.info(content);
-          }
+          query = content;
         }
       }
       else
@@ -208,11 +210,8 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
         else
         {
           senseiReq = buildSenseiRequest(req);
-          if (queryLogger.isInfoEnabled()){
-            queryLogger.info(
-                URLEncodedUtils.format(
-                    HttpRestSenseiServiceImpl.convertRequestToQueryParams(senseiReq), "UTF-8"));
-          }
+          query = URLEncodedUtils.format(
+                    HttpRestSenseiServiceImpl.convertRequestToQueryParams(senseiReq), "UTF-8");
         }
       }
 
@@ -226,13 +225,10 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
         {
           try
           {
-            if (queryLogger.isInfoEnabled())
-            {
-              if (jsonObj.length() == 1)
-                queryLogger.info("bql=" + bqlStmt);
-              else
-                queryLogger.info("query=" + content);
-            }
+            if (jsonObj.length() == 1)
+              query = "bql=" + bqlStmt;
+            else
+              query = "json=" + content;
             compiledJson = _compiler.compile(bqlStmt);
           }
           catch (RecognitionException e)
@@ -327,9 +323,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
         else
         {
           // This is NOT a BQL statement
-          if (queryLogger.isInfoEnabled()){
-            queryLogger.info("query=" + content);
-          }
+          query = "json=" + content;
           compiledJson = jsonObj;
         }
 
@@ -340,6 +334,8 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
         senseiReq = SenseiRequest.fromJSON(compiledJson, _facetInfoMap);
       }
       SenseiResult res = broker.browse(senseiReq);
+      numHits = res.getNumHits();
+      totalDocs = res.getTotalDocs();
       sendResponse(resp, senseiReq, res);
    } catch (JSONException e) {
       try {
@@ -361,6 +357,13 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
         throw new ServletException(e);
       }
     }
+    finally
+    {
+      if (queryLogger.isInfoEnabled() && query != null)
+      {
+        queryLogger.info(String.format("hits(%d/%d) took %dms: %s", numHits, totalDocs, System.currentTimeMillis() - time, query));
+      }
+    }
   }
 
   private void writeEmptyResponse(HttpServletResponse resp, SenseiError senseiError) throws Exception {
@@ -377,6 +380,10 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
 
   private void handleStoreGetRequest(HttpServletRequest req, HttpServletResponse resp)
       throws ServletException, IOException {
+    long time = System.currentTimeMillis();
+    int numHits = 0, totalDocs = 0;
+    String query = null;
+
     SenseiRequest senseiReq = null;
     try
     {
@@ -393,9 +400,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
           ids = new JSONArray(jsonString);
       }
 
-      if (queryLogger.isInfoEnabled()){
-        queryLogger.info("get="+String.valueOf(ids));
-      }
+      query = "get=" + String.valueOf(ids);
 
       String[] vals = RequestConverter2.getStrings(ids);
       if (vals != null && vals.length != 0)
@@ -411,6 +416,12 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
       SenseiResult res = null;
       if (senseiReq != null)
         res =_senseiBroker.browse(senseiReq);
+
+      if (res != null)
+      {
+        numHits = res.getNumHits();
+        totalDocs = res.getTotalDocs();
+      }
 
       JSONObject ret = new JSONObject();
       JSONObject obj = null;
@@ -436,6 +447,13 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
     catch (Exception e)
     {
       throw new ServletException(e.getMessage(),e);
+    }
+    finally
+    {
+      if (queryLogger.isInfoEnabled() && query != null)
+      {
+        queryLogger.info(String.format("hits(%d/%d) took %dms: %s", numHits, totalDocs, System.currentTimeMillis() - time, query));
+      }
     }
   }
 
