@@ -18,6 +18,8 @@ import org.json.JSONObject;
 import com.senseidb.search.client.ReflectionUtil;
 
 public class JsonSerializer {
+  public static String NULL = "__NULL__";
+
   public static Object serialize(Object object) {
     try {
       return serialize(object,true);
@@ -65,8 +67,10 @@ public class JsonSerializer {
         Map map = (Map) object;
         JSONObject ret = new JSONObject();
         for(Map.Entry entry : (Set<Map.Entry>) map.entrySet()) {
-           ret.put(serialize(parents, entry.getKey(), true).toString(),
-               serialize(parents, entry.getValue(), true));
+          Object key = serialize(parents, entry.getKey(), true);
+          if (key == null) key = NULL;
+          else key = key.toString();
+          ret.put((String)key, serialize(parents, entry.getValue(), true));
         }
         return ret;
       }

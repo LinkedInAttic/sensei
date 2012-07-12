@@ -119,6 +119,8 @@ public class JsonDeserializer {
         Type valueType =  getGenericType(genericType, 1);
         for (String paramName : names) {
             Object mapValue = mapJson.opt(paramName);
+            if (JsonSerializer.NULL.equals(paramName))
+                paramName = null;
             if (mapValue == null) {
                 map.put(paramName, null);
             } else if (mapValue instanceof JSONArray) {
