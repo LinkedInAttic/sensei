@@ -7,6 +7,7 @@ import junit.framework.TestCase;
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.junit.Ignore;
 
 import proj.zoie.impl.indexing.ZoieConfig;
 
@@ -236,7 +237,7 @@ public class ActivityIntegrationTest extends TestCase {
     
   }
 
- public void test7RelevanceActivity() throws Exception {
+ public void ntest7RelevanceActivity() throws Exception {
     
     FileDataProviderWithMocks.add(new JSONObject().put("id", 501).put(SenseiSchema.EVENT_TYPE_FIELD, SenseiSchema.EVENT_TYPE_UPDATE).put("likes", 100000));
     expectedVersion++;

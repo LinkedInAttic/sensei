@@ -35,7 +35,7 @@ public class PluggableSearchEngineManager implements DeletionListener, Hourglass
   private SenseiSchema senseiSchema;
   private SenseiPluginRegistry pluginRegistry;
   private int nodeId;
-  private List<PluggableSearchEngine> pluggableEngines;
+  private List<PluggableSearchEngine> pluggableEngines = new ArrayList<PluggableSearchEngine>();
   private int maxPartition;
   private boolean acceptEventsForAllPartitions;
  
@@ -202,6 +202,8 @@ public class PluggableSearchEngineManager implements DeletionListener, Hourglass
     
     return ret;
   }
+
+  
 }
 
 
