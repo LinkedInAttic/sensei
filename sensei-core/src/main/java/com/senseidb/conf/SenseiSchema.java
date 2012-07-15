@@ -49,7 +49,7 @@ public class SenseiSchema {
 	private String _srcDataField;
   private boolean _compressSrcData;
   private List<FacetDefinition> facets = new ArrayList<FacetDefinition>();
-	public static class FieldDefinition{
+	public static class FieldDefinition {
 		public Format formatter;
 		public boolean isMeta;
 		public IndexSpec textIndexSpec;
@@ -59,39 +59,41 @@ public class SenseiSchema {
 		public String delim = ",";
 		public Class type = null;
 	}
-	public static class FacetDefinition {
-   public String name;
-   public String type;
-   public String column;
-   public Boolean dynamic;
-   public Map<String,List<String>> params;
-   public Set<String> dependSet = new HashSet<String>();
-   public static FacetDefinition valueOf(JSONObject facet) {
-     try {
-     FacetDefinition ret = new FacetDefinition();
-     ret.name = facet.getString("name");
-     ret.type = facet.getString("type");
-     ret.column = facet.optString("column",ret.name);
-     String depends= facet.optString("depends",null);
-     if (depends != null) {
-       for (String dep :depends.split("[,; ]")) {
-         dep = dep.trim();
-         if (!dep.equals("")) {
-           ret.dependSet.add(dep);
-         }
-       }
-     }
-     JSONArray paramList = facet.optJSONArray("params");
-     ret.params = SenseiFacetHandlerBuilder.parseParams(paramList);
-     return ret;
-     } catch (Exception ex) {
-       throw new RuntimeException(ex);
-     }
-   }
+
+  public static class FacetDefinition {
+    public String name;
+    public String type;
+    public String column;
+    public Boolean dynamic;
+    public Map<String,List<String>> params;
+    public Set<String> dependSet = new HashSet<String>();
+    public static FacetDefinition valueOf(JSONObject facet) {
+      try {
+        FacetDefinition ret = new FacetDefinition();
+        ret.name = facet.getString("name");
+        ret.type = facet.getString("type");
+        ret.column = facet.optString("column",ret.name);
+        JSONArray depends= facet.optJSONArray("depends");
+        if (depends != null) {
+          for (int i = 0; i < depends.length(); ++i) {
+            String dep = depends.getString(i).trim();
+            if (!dep.isEmpty()) {
+              ret.dependSet.add(dep);
+            }
+          }
+        }
+
+        JSONArray paramList = facet.optJSONArray("params");
+        ret.params = SenseiFacetHandlerBuilder.parseParams(paramList);
+        return ret;
+      } catch (Exception ex) {
+        throw new RuntimeException(ex);
+      }
+    }
   }
-	private SenseiSchema(){
-		
-	}
+
+  private SenseiSchema(){
+  }
 	
 	public String getUidField(){
 		return _uidField;
