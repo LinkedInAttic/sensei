@@ -39,6 +39,7 @@ public class TimeAggregatedActivityPerfTest extends Assert {
     SenseiStarter.rmrf(file);
     Clock.setPredefinedTimeInMinutes(0);
   }
+  
   @Ignore
   @Test
   public void test1Perf10mInsertsAndUpdateAfterwards() throws Exception {

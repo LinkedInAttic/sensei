@@ -28,7 +28,7 @@ public class CompositeActivityStorage {
   private volatile boolean closed = false;
   private MappedByteBuffer buffer;
   private long fileLength; 
-  private boolean activateMemoryMappedBuffers = true;
+  private boolean activateMemoryMappedBuffers = false;
   private Timer timer;
 
   public CompositeActivityStorage(String indexDir) {   
@@ -72,9 +72,9 @@ public class CompositeActivityStorage {
       }
       if (activateMemoryMappedBuffers) {
         buffer.force();
-      } else {
-        storedFile.getFD().sync();
       }
+        storedFile.getFD().sync();
+      
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -127,6 +127,12 @@ public class CompositeActivityStorage {
             }
             ret.init((int) (metadata.count * ActivityIntStorage.INIT_GROWTH_RATIO));
             synchronized (ret.deletedIndexes) {
+              if (metadata.count * BYTES_IN_LONG > fileLength) {
+                logger.warn("The composite activityIndex is corrupted. The file contains " + (fileLength / BYTES_IN_LONG) + " records, while metadata a bigger number " + metadata.count);
+                logger.warn("trimming the metadata");
+                int newCount = (int)(fileLength / BYTES_IN_LONG);
+                metadata.update(metadata.version, newCount);
+              }
               for (int i = 0; i < metadata.count; i++) {
                 long value;
                 if (activateMemoryMappedBuffers) {
