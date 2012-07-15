@@ -1281,7 +1281,7 @@ public class TestBQL extends TestCase
       "SELECT color, year "                     +
       "FROM cars "                              +
       "WHERE color = 'red' "                    +
-      "USING RELEVANCE MODEL homepage_top ('srcid':1234)"
+      "USING RELEVANCE MODEL homepage_top (srcid:1234)"
       );
 
     JSONObject expected = new JSONObject("{\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"values\":{\"srcid\":1234},\"predefined_model\":\"homepage_top\"}}},\"selections\":[{\"term\":{\"color\":{\"value\":\"red\"}}}],\"meta\":{\"select_list\":[\"color\",\"year\"]}}");
@@ -1298,7 +1298,7 @@ public class TestBQL extends TestCase
       "SELECT color, year " +
       "FROM cars " +
       "WHERE color = 'red' " +
-      "USING RELEVANCE MODEL my_model ('srcid':1234) " +
+      "USING RELEVANCE MODEL my_model (srcid:1234) " +
       "  DEFINED AS (int intParam1, int intParam2, String strParam, int srcid) " +
       "  BEGIN " +
       "    int myInt = 100 + intParam1 + intParam2; " +
@@ -1326,7 +1326,7 @@ public class TestBQL extends TestCase
       "SELECT color, year " +
       "FROM cars " +
       "WHERE color = 'red' " +
-      "USING RELEVANCE MODEL my_model ('srcid':1234) " +
+      "USING RELEVANCE MODEL my_model (srcid:1234) " +
       "  DEFINED AS (int srcid) " +
       "  BEGIN " +
       "    float x1 = 1.2; " +
@@ -1355,7 +1355,7 @@ public class TestBQL extends TestCase
       "SELECT color, year " +
       "FROM cars " +
       "WHERE color = 'red' " +
-      "USING RELEVANCE MODEL my_model ('srcid':1234) " +
+      "USING RELEVANCE MODEL my_model (srcid:1234) " +
       "  DEFINED AS (int intParam1, int intParam2, String strParam) " +
       "  BEGIN " +
       "    int myInt = 100; " +
@@ -1387,7 +1387,7 @@ public class TestBQL extends TestCase
       "SELECT color, year " +
       "FROM cars " +
       "WHERE color = 'red' " +
-      "USING RELEVANCE MODEL my_model ('srcid':1234) " +
+      "USING RELEVANCE MODEL my_model (srcid:1234) " +
       "  DEFINED AS (int srcid) " +
       "  BEGIN " +
       "    int myInt = 100; " +
@@ -1413,7 +1413,7 @@ public class TestBQL extends TestCase
       "SELECT color, year " +
       "FROM cars " +
       "WHERE color = 'red' " +
-      "USING RELEVANCE MODEL my_model ('srcid':1234) " +
+      "USING RELEVANCE MODEL my_model (srcid:1234) " +
       "  DEFINED AS (int srcid) " +
       "  BEGIN " +
       "    int myInt = 100; " +
@@ -1438,7 +1438,7 @@ public class TestBQL extends TestCase
       "SELECT color, year " +
       "FROM cars " +
       "WHERE color = 'red' " +
-      "USING RELEVANCE MODEL my_model ('srcid':1234) " +
+      "USING RELEVANCE MODEL my_model (srcid:1234) " +
       "  DEFINED AS (int srcid) " +
       "  BEGIN " +
       "    int myInt = 0; " +
@@ -1463,7 +1463,7 @@ public class TestBQL extends TestCase
       "SELECT color, year " +
       "FROM cars " +
       "WHERE color = 'red' " +
-      "USING RELEVANCE MODEL my_model ('srcid':1234) " +
+      "USING RELEVANCE MODEL my_model (srcid:1234) " +
       "  DEFINED AS (int srcid) " +
       "  BEGIN " +
       "    int myInt = 0; " +
@@ -1494,7 +1494,7 @@ public class TestBQL extends TestCase
       "SELECT color, year " +
       "FROM cars " +
       "WHERE color = 'red' " +
-      "USING RELEVANCE MODEL my_model ('srcid':1234, 'timeVal':9999, '_half_time':8888, 'coolTag':'zzz') " +
+      "USING RELEVANCE MODEL my_model (srcid:1234, timeVal:9999, _half_time:8888, coolTag:'zzz') " +
       "  DEFINED AS (int srcid, long timeVal, long _half_time, String coolTag) " +
       "  BEGIN " +
       "    int myInt = 0; " +
@@ -1525,7 +1525,7 @@ public class TestBQL extends TestCase
       "SELECT color, year " +
       "FROM cars " +
       "WHERE color = 'red' " +
-      "USING RELEVANCE MODEL my_model ('srcid':1234) " +
+      "USING RELEVANCE MODEL my_model (srcid:1234) " +
       "  DEFINED AS (int intParam1, int intParam2, String strParam, " +
       "              DoubleOpenHashSet setParam, Int2IntOpenHashMap mapParam) " +
       "  BEGIN " +
@@ -1557,7 +1557,7 @@ public class TestBQL extends TestCase
       "SELECT * " +
       "FROM cars " +
       "WHERE color = 'red' " + 
-      "USING RELEVANCE MODEL my_model ('thisYear':2001, 'goodYear':[1996]) " +
+      "USING RELEVANCE MODEL my_model (thisYear:2001, goodYear:[1996]) " +
       "  DEFINED AS (int thisYear, IntOpenHashSet goodYear) " +
       "  BEGIN " +
       "    if (goodYear.contains(year)) " +
@@ -1583,7 +1583,7 @@ public class TestBQL extends TestCase
       "SELECT * " +
       "FROM cars " +
       "WHERE color = 'red' " + 
-      "USING RELEVANCE MODEL my_model ('thisYear':2001, 'goodYear':[1996]) " +
+      "USING RELEVANCE MODEL my_model (thisYear:2001, goodYear:[1996]) " +
       "  DEFINED AS (int thisYear, IntOpenHashSet goodYear) " +
       "  BEGIN " +
       "    if (goodYear.contains(year)) " +
@@ -1611,7 +1611,7 @@ public class TestBQL extends TestCase
       "SELECT * " +
       "FROM cars " +
       "WHERE color = 'red' " + 
-      "USING RELEVANCE MODEL my_model ('boost':2.5) " +
+      "USING RELEVANCE MODEL my_model (boost:2.5) " +
       "  DEFINED AS (float boost) " +
       "  BEGIN " +
       "    int x, y; " +
@@ -1638,7 +1638,7 @@ public class TestBQL extends TestCase
       "SELECT * " +
       "FROM cars " +
       "WHERE color = 'red' " + 
-      "USING RELEVANCE MODEL my_model ('thisYear':2001, 'myMap':{'aaa':1, 'bbb':2}) " +
+      "USING RELEVANCE MODEL my_model (thisYear:2001, myMap:{'aaa':1, 'bbb':2}) " +
       "ORDER BY relevance"
       );
 

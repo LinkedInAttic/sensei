@@ -2266,7 +2266,7 @@ python_style_dict returns [JSONObject json]
 @init {
     $json = new JSONObject();
 }
-    :   '{' p=key_value_pair
+    :   '{' p=key_value_pair[true]
         {
             try {
                 $json.put($p.key, $p.val);
@@ -2275,7 +2275,7 @@ python_style_dict returns [JSONObject json]
                 throw new FailedPredicateException(input, "python_style_dict", "JSONException: " + err.getMessage());
             }
         }
-        (COMMA p=key_value_pair
+        (COMMA p=key_value_pair[true]
             {
                 try {
                     $json.put($p.key, $p.val);
@@ -2350,17 +2350,17 @@ except_clause returns [Object json]
     ;
   
 predicate_props returns [JSONObject json]
-    :   WITH^ prop_list
+    :   WITH^ prop_list[true]
         {
             $json = $prop_list.json;
         }
     ;
 
-prop_list returns [JSONObject json]
+prop_list[boolean needKeyInString] returns [JSONObject json]
 @init {
     $json = new JSONObject();
 }
-    :   LPAR p=key_value_pair
+    :   LPAR p=key_value_pair[needKeyInString]
         {
             try {
                 $json.put($p.key, $p.val);
@@ -2369,7 +2369,7 @@ prop_list returns [JSONObject json]
                 throw new FailedPredicateException(input, "prop_list", "JSONException: " + err.getMessage());
             }
         }
-        (COMMA p=key_value_pair
+        (COMMA p=key_value_pair[needKeyInString]
             {
                 try {
                     $json.put($p.key, $p.val);
@@ -2379,15 +2379,27 @@ prop_list returns [JSONObject json]
                 }
             }
         )* RPAR
-        -> key_value_pair+
     ;
 
-key_value_pair returns [String key, Object val]
-    :   STRING_LITERAL COLON (v=value | vs=python_style_list | vd=python_style_dict)
+key_value_pair[boolean needKeyInString] returns [String key, Object val]
+scope {
+    boolean needString;
+}
+@init {
+    $key_value_pair::needString = needKeyInString;
+}
+    :   ( {$key_value_pair::needString}?=> STRING_LITERAL
+        | {!$key_value_pair::needString}?=> IDENT
+        )
+        COLON (v=value | vs=python_style_list | vd=python_style_dict)
         {
-            String orig = $STRING_LITERAL.text;
-            orig = orig.substring(1, orig.length() - 1);
-            $key = orig;
+            if ($STRING_LITERAL != null) {
+                String orig = $STRING_LITERAL.text;
+                $key = orig.substring(1, orig.length() - 1);
+            }
+            else {
+                $key = $IDENT.text;
+            }
             if (v != null) {
                 $val = $v.val;
             }
@@ -2973,7 +2985,7 @@ relevance_model_clause returns [JSONObject json]
 @init {
     $json = new JSONObject();
 }
-    :   USING RELEVANCE MODEL IDENT prop_list model=relevance_model?
+    :   USING RELEVANCE MODEL IDENT prop_list[false] model=relevance_model?
         {
             try {
                 if (model == null) {
