@@ -1,5 +1,8 @@
 package com.senseidb.search.node.inmemory;
 
+
+import java.util.Collections;
+
 import java.util.List;
 
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
@@ -16,18 +19,31 @@ import com.senseidb.search.node.impl.DefaultJsonQueryBuilderFactory;
 
 public class MockSenseiCore extends SenseiCore {
 
-  private final MockIndexReaderFactory<ZoieIndexReader<BoboIndexReader>> mockIndexReaderFactory;
 
-  public MockSenseiCore(MockIndexReaderFactory<ZoieIndexReader<BoboIndexReader>> mockIndexReaderFactory) {
-    super(0, new int[] { 0 }, null, null, new DefaultJsonQueryBuilderFactory(new QueryParser(Version.LUCENE_35, "contents", new StandardAnalyzer(Version.LUCENE_35))));
-    this.mockIndexReaderFactory = mockIndexReaderFactory;
+  private final ThreadLocal<MockIndexReaderFactory<ZoieIndexReader<BoboIndexReader>>> mockIndexReaderFactory = new ThreadLocal<MockIndexReaderFactory<ZoieIndexReader<BoboIndexReader>>>();
+  private final int[] partitions;
+  private static MockIndexReaderFactory<ZoieIndexReader<BoboIndexReader>> emptyIndexFactory = new MockIndexReaderFactory<ZoieIndexReader<BoboIndexReader>>(Collections.EMPTY_LIST);
+  public MockSenseiCore(int[] partitions) {
+    super(0, new int[] { 0 }, null, null, new DefaultJsonQueryBuilderFactory(new QueryParser(Version.LUCENE_35, "contents",
+        new StandardAnalyzer(Version.LUCENE_35))));
+    this.partitions = partitions;
     setIndexPruner(new SenseiIndexPruner.DefaultSenseiIndexPruner());
   }
 
   @Override
   public IndexReaderFactory<ZoieIndexReader<BoboIndexReader>> getIndexReaderFactory(int partition) {
 
-    return mockIndexReaderFactory;
+    if (partition == partitions[0])
+    return mockIndexReaderFactory.get();
+    else {
+      return emptyIndexFactory;
+    }
   }
-
+  public void setIndexReaderFactory(IndexReaderFactory<ZoieIndexReader<BoboIndexReader>> indexReaderFactory) {
+    mockIndexReaderFactory.set((MockIndexReaderFactory<ZoieIndexReader<BoboIndexReader>>)indexReaderFactory);
+  }
+  @Override
+  public int[] getPartitions() {
+    return partitions;
+  }
 }

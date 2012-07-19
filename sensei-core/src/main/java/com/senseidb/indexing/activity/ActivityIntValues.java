@@ -146,19 +146,7 @@ public class ActivityIntValues implements ActivityValues {
     activityFieldStore.close();
   }
 
-  /**
-   * The factory method to create the ActivityIntValues. If the corresponding file doesn't exist, the new one will be created
-   * @param indexDirPath
-   * @param fieldName
-   * @param the number of records in the file. This info is ussually kept separately in the metadata files
-   * @return
-   */
-  public static ActivityIntValues readFromFile(String indexDirPath,
-      String fieldName, int count) {
-    ActivityIntStorage persistentColumnManager = new ActivityIntStorage(fieldName, indexDirPath);
-    persistentColumnManager.init();
-    return persistentColumnManager.getActivityDataFromFile(count);
-  }
+  
 
   @Override
   public String getFieldName() {

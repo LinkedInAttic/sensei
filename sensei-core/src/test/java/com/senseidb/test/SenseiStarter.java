@@ -91,8 +91,6 @@ public class SenseiStarter {
     try
     {
       broker = new SenseiBroker(networkClient, clusterClient, true);
-      broker.setTimeoutMillis(0);
-      broker.setTimeoutMillis(0);
     } catch (NorbertException ne) {
       logger.info("shutting down cluster...", ne);
         clusterClient.shutdown();

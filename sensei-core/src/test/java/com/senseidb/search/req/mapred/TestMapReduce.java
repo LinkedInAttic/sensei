@@ -19,6 +19,18 @@ public class TestMapReduce extends TestCase {
       SenseiStarter.start("test-conf/node1","test-conf/node2");     
       httpRestSenseiService = SenseiStarter.httpRestSenseiService;
     }
+    public void ntest0GroupByColorAndGroupId() throws Exception { 
+      String req = "{\"size\":0, \"facets\": {" +
+         "\"yearToMileAge\": { \"max\": 100, \"minCount\": 1, \"expand\": false,\"order\": \"hits\"}}}";
+      JSONObject reqJson = new JSONObject(req);
+      System.out.println(reqJson.toString(1));
+      JSONObject res = TestSensei.search(reqJson);
+    
+      System.out.println(res.toString(1));
+      Thread.sleep(200000L);
+    }
+    
+    
     public void test2GroupByColorAndGroupId() throws Exception { 
       String req = "{\"size\":0,\"filter\":{\"terms\":{\"color\":{\"includes\":[],\"excludes\":[\"gold\"],\"operator\":\"or\"}}}" +
           ", \"mapReduce\":{\"function\":\"com.senseidb.search.req.mapred.CountGroupByMapReduce\",\"parameters\":{\"columns\":[\"groupid\", \"color\"]}}}";

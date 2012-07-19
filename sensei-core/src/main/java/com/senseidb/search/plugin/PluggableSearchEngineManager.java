@@ -199,11 +199,13 @@ public class PluggableSearchEngineManager implements DeletionListener, Hourglass
     for (PluggableSearchEngine pluggableSearchEngine : pluggableEngines) {
       ret.addAll(pluggableSearchEngine.getFacetNames());
     }
-    
     return ret;
   }
 
-  
+  public List<PluggableSearchEngine> getPluggableEngines() {
+    return pluggableEngines;
+  }
+   
 }
 
 

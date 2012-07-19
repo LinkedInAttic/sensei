@@ -3,7 +3,6 @@ package com.senseidb.search.node.inmemory;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.configuration.Configuration;
@@ -25,14 +24,18 @@ import proj.zoie.api.ZoieMultiReader;
 import proj.zoie.api.ZoieSegmentReader;
 import proj.zoie.api.indexing.AbstractZoieIndexable;
 import proj.zoie.api.indexing.ZoieIndexable;
+import proj.zoie.impl.indexing.ZoieConfig;
 
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.facets.RuntimeFacetHandlerFactory;
+import com.senseidb.conf.SenseiConfParams;
 import com.senseidb.conf.SenseiFacetHandlerBuilder;
 import com.senseidb.conf.SenseiSchema;
 import com.senseidb.conf.SenseiServerBuilder;
 import com.senseidb.indexing.DefaultJsonSchemaInterpreter;
+import com.senseidb.indexing.ShardingStrategy;
+import com.senseidb.indexing.activity.ActivityPersistenceFactory;
 import com.senseidb.plugin.SenseiPluginRegistry;
 import com.senseidb.search.node.SenseiIndexReaderDecorator;
 import com.senseidb.search.plugin.PluggableSearchEngineManager;
@@ -44,8 +47,11 @@ public class InMemorySenseiService {
   private DefaultJsonSchemaInterpreter defaultJsonSchemaInterpreter;
   private List<FacetHandler<?>> facets;
   private List<RuntimeFacetHandlerFactory<?, ?>> runtimeFacets;
-  private MockIndexReaderFactory<ZoieIndexReader<BoboIndexReader>> mockIndexReaderFactory;
+
   private CoreSenseiServiceImpl coreSenseiServiceImpl;
+  private PluggableSearchEngineManager pluggableSearchEngineManager;
+  private MockSenseiCore mockSenseiCore;
+
 
   public InMemorySenseiService(SenseiSchema schema, SenseiPluginRegistry pluginRegistry) {    
     schema.setCompressSrcData(false);
@@ -53,13 +59,28 @@ public class InMemorySenseiService {
       defaultJsonSchemaInterpreter = new DefaultJsonSchemaInterpreter(schema);    
       facets = new ArrayList<FacetHandler<?>>();
       runtimeFacets = new ArrayList<RuntimeFacetHandlerFactory<?, ?>>();
+
+      ShardingStrategy strategy = pluginRegistry.getBeanByFullPrefix(SenseiConfParams.SENSEI_SHARDING_STRATEGY, ShardingStrategy.class);
+      if (strategy == null){
+        strategy = new ShardingStrategy.FieldModShardingStrategy(schema.getUidField());
+      }
+      ActivityPersistenceFactory.setOverrideForCurrentThread(ActivityPersistenceFactory.getInMemoryInstance());
+      pluggableSearchEngineManager = new PluggableSearchEngineManager();     
+      pluggableSearchEngineManager.init("", 0, schema, ZoieConfig.DEFAULT_VERSION_COMPARATOR, pluginRegistry, strategy);
       SenseiFacetHandlerBuilder.buildFacets(schema.getSchemaObj(), pluginRegistry, facets, runtimeFacets,
-          new PluggableSearchEngineManager());
-      mockIndexReaderFactory = new MockIndexReaderFactory<ZoieIndexReader<BoboIndexReader>>();
-      MockSenseiCore mockSenseiCore = new MockSenseiCore(mockIndexReaderFactory);
+          pluggableSearchEngineManager);
+      
+      String partStr = pluginRegistry.getConfiguration().getString(SenseiConfParams.PARTITIONS);
+      String[] partitionArray = partStr.split("[,\\s]+");
+      int[] partitions = SenseiServerBuilder.buildPartitions(partitionArray);
+      mockSenseiCore = new MockSenseiCore(partitions);
+      pluggableSearchEngineManager.start(mockSenseiCore);
       coreSenseiServiceImpl = new CoreSenseiServiceImpl(mockSenseiCore); 
     } catch (Exception e) {
       throw new RuntimeException(e);
+    } finally {
+      ActivityPersistenceFactory.setOverrideForCurrentThread(null);
+
     }
   }
 
@@ -70,6 +91,7 @@ public class InMemorySenseiService {
         if (doc == null)
           continue;
         writer.addDocument(buildDoc(doc));
+        pluggableSearchEngineManager.update(doc, "");
       }
       writer.commit();
 
@@ -88,9 +110,10 @@ public class InMemorySenseiService {
       addDocuments(directory, writer, documents);
       ZoieIndexReader<BoboIndexReader> zoieMultiReader = new ZoieMultiReader<BoboIndexReader>(IndexReader.open(directory),
           new SenseiIndexReaderDecorator(facets, runtimeFacets));
-      mockIndexReaderFactory.setIndexReadersForCurrentThread(Arrays.asList(zoieMultiReader));
+      MockIndexReaderFactory mockIndexReaderFactory = new MockIndexReaderFactory<ZoieIndexReader<BoboIndexReader>>(Arrays.asList(zoieMultiReader));
+      mockSenseiCore.setIndexReaderFactory(mockIndexReaderFactory);
       SenseiResult result = coreSenseiServiceImpl.execute(senseiRequest);
-      mockIndexReaderFactory.setIndexReadersForCurrentThread(Collections.EMPTY_LIST);
+      mockSenseiCore.setIndexReaderFactory(null);
       return result;
     } catch (Exception e) {
       throw new RuntimeException(e);

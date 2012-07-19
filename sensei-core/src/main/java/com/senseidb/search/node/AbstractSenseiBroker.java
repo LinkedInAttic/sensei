@@ -73,8 +73,8 @@ public abstract class AbstractSenseiBroker<REQUEST extends AbstractSenseiRequest
     logger.info("shutting down broker...");
   }
 
-  public abstract void setTimeoutMillis(long timeoutMillis);
+  public abstract void setTimeout(long timeoutMillis);
 
-  public abstract long getTimeoutMillis();
+  public abstract long getTimeout();
 
 }

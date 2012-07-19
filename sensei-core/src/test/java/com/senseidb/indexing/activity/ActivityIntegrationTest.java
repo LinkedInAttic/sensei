@@ -13,7 +13,6 @@ import proj.zoie.impl.indexing.ZoieConfig;
 
 import com.senseidb.conf.SenseiSchema;
 import com.senseidb.gateway.file.FileDataProviderWithMocks;
-import com.senseidb.indexing.activity.facet.SynchronizedActivityRangeFacetHandler;
 import com.senseidb.indexing.activity.time.ActivityIntValuesSynchronizedDecorator;
 import com.senseidb.indexing.activity.time.Clock;
 import com.senseidb.indexing.activity.time.TimeAggregatedActivityValues;
@@ -308,7 +307,7 @@ public void test5PurgeUnusedActivities() throws Exception {
     inMemoryColumnData2.flush();
     inMemoryColumnData2.syncWithPersistentVersion(String.valueOf(expectedVersion - 1));
     String absolutePath = SenseiStarter.IndexDir + "/node1/" + "activity/";
-    CompositeActivityValues compositeActivityValues = CompositeActivityValues.readFromFile(absolutePath, java.util.Arrays.asList("likes"), Collections.EMPTY_LIST, ZoieConfig.DEFAULT_VERSION_COMPARATOR);
+    CompositeActivityValues compositeActivityValues =  ActivityPersistenceFactory.getInstance().createCompositeValues(absolutePath, java.util.Arrays.asList("likes"), Collections.EMPTY_LIST, ZoieConfig.DEFAULT_VERSION_COMPARATOR);
     assertEquals(1, compositeActivityValues.getValueByUID(1L, "likes"));
     assertEquals(1, inMemoryColumnData1.getValueByUID(1L, "likes"));
   }
