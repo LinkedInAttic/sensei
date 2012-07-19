@@ -3,8 +3,6 @@ package com.senseidb.indexing.activity;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.senseidb.indexing.activity.CompositeActivityStorage.Update;
-
 /**
  * Keeps track of all the changes not yet persisted
  * @author vzhabiuk

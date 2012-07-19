@@ -27,7 +27,7 @@ public class ActivityIntValuesIntTest extends TestCase {
   }
   
   public void test1() {
-    ActivityIntValues intValues = ActivityIntValues.readFromFile(getDirPath(), "likes", 0);
+    ActivityIntValues intValues = ActivityPersistenceFactory.getInstance().createIntValues(getDirPath(), "likes", 0);
     long time = System.currentTimeMillis();
     for (int i = 0; i < 1000000; i++) {
       boolean update = intValues.update(i, "+1");

@@ -286,12 +286,19 @@ public final class FieldAccessor  {
   private String lastFacetHandlerName;
   private FacetHandler lastFacetHandler;
   
-  public final FacetHandler getFacetHandler(String fieldName) {    
-    if (fieldName.equals(lastFacetHandlerName)) {
-      return lastFacetHandler;
+  /**
+   * @param facetName
+   * @return
+   * @throws IllegalStateException if the facet can not be found
+   */
+  public final FacetHandler getFacetHandler(String facetName) {    
+    if (!facetName.equals(lastFacetHandlerName)) {
+      lastFacetHandler = boboIndexReader.getFacetHandler(facetName);
+      lastFacetHandlerName = facetName;
     }
-    lastFacetHandler = boboIndexReader.getFacetHandler(fieldName);
-    lastFacetHandlerName = fieldName;
+    if (lastFacetHandler == null) {
+      throw new IllegalStateException("The facetHandler - " + facetName + " is not defined in the schema");
+    }
     return lastFacetHandler;
   }
   public BoboIndexReader getBoboIndexReader() {

@@ -18,6 +18,7 @@ import javax.management.ObjectName;
 import org.apache.log4j.Logger;
 
 import proj.zoie.api.DocIDMapper;
+import proj.zoie.api.IndexReaderFactory;
 import proj.zoie.api.Zoie;
 import proj.zoie.api.ZoieIndexReader;
 
@@ -34,13 +35,13 @@ public class PurgeUnusedActivitiesJob implements Runnable, PurgeUnusedActivities
   private final static Logger logger = Logger.getLogger(PurgeUnusedActivitiesJob.class);
   
   private final CompositeActivityValues compositeActivityValues;
-  private final Set<Zoie<BoboIndexReader, ?>> zoieSystems;
+  private final Set<IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>> zoieSystems;
   private static Timer timer = Metrics.newTimer(new MetricName(PurgeUnusedActivitiesJob.class, "purgeUnusedActivityIndexes"), TimeUnit.MILLISECONDS, TimeUnit.SECONDS);
   private static Counter foundActivitiesToPurge = Metrics.newCounter(new MetricName(PurgeUnusedActivitiesJob.class, "foundActivitiesToPurge"));
   protected ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
 
   private final long frequencyInMillis;
-  public PurgeUnusedActivitiesJob(CompositeActivityValues compositeActivityValues, Set<Zoie<BoboIndexReader,?>> zoieSystems, long frequencyInMillis) {
+  public PurgeUnusedActivitiesJob(CompositeActivityValues compositeActivityValues, Set<IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>> zoieSystems, long frequencyInMillis) {
     this.compositeActivityValues = compositeActivityValues;
     this.zoieSystems = zoieSystems;
     this.frequencyInMillis = frequencyInMillis;
@@ -88,7 +89,7 @@ public class PurgeUnusedActivitiesJob implements Runnable, PurgeUnusedActivities
         compositeActivityValues.globalLock.readLock().unlock();
     }     
     BitSet foundSet = new BitSet(keys.length); 
-    for (Zoie<BoboIndexReader, ?> zoie : zoieSystems) {
+    for (IndexReaderFactory<ZoieIndexReader<BoboIndexReader>> zoie : zoieSystems) {
       List<ZoieIndexReader<BoboIndexReader>> indexReaders = null;      
       try {
         indexReaders = zoie.getIndexReaders();

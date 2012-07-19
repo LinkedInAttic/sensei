@@ -1,6 +1,7 @@
 package com.senseidb.search.node.inmemory;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.lucene.analysis.Analyzer;
@@ -14,20 +15,20 @@ import proj.zoie.api.ZoieIndexReader;
 
 public class MockIndexReaderFactory<T> implements  IndexReaderFactory<ZoieIndexReader<BoboIndexReader> > {
   private Analyzer analyzer = new StandardAnalyzer(Version.LUCENE_35);
-  private final ThreadLocal<List<ZoieIndexReader<BoboIndexReader>>> readers = new ThreadLocal<List<ZoieIndexReader<BoboIndexReader>>>();
+ 
+  private final List<ZoieIndexReader<BoboIndexReader>> readers;
   
-  public MockIndexReaderFactory() {
+  public MockIndexReaderFactory(List<ZoieIndexReader<BoboIndexReader>> readers) {
+    this.readers = readers;
     
   }
   
   @Override
   public List<ZoieIndexReader<BoboIndexReader>> getIndexReaders() throws IOException {
-    return readers.get();
+    return readers;
     
   }
-  public void setIndexReadersForCurrentThread(List<ZoieIndexReader<BoboIndexReader>> newReaders) {
-    readers.set(newReaders); 
-  }
+ 
 
   @Override
   public Analyzer getAnalyzer() {
