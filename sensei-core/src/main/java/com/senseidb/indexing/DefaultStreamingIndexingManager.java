@@ -159,7 +159,7 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 		StreamDataProvider<JSONObject> dataProvider = null;
     if (_gateway!=null){
 		  try{
-		    dataProvider = _gateway.buildDataProvider(_senseiSchema, _oldestSinceKey, pluginRegistry,_shardingStrategy,_dataCollectorMap.keySet());
+		    dataProvider = _gateway.buildDataProvider(_senseiSchema, _oldestSinceKey, pluginRegistry,_shardingStrategy,_zoieSystemMap.keySet());
         long maxEventsPerMin = _myconfig.getLong(EVTS_PER_MIN,40000);
         dataProvider.setMaxEventsPerMinute(maxEventsPerMin);
         int batchSize = _myconfig.getInt(BATCH_SIZE,1);
