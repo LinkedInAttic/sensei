@@ -978,7 +978,9 @@ public class TestBQL extends TestCase
       "WHERE time IN LAST 1 weeks 2 day 3 hours 4 mins 5 seconds 6 msecs"
       );
 
-    long timeStamp = Long.parseLong(json.getJSONArray("selections").getJSONObject(0)
+    //System.out.println(">>> json: " + json);
+
+    long timeStamp = Long.parseLong(json.getJSONObject("filter")
       .getJSONObject("range").getJSONObject("time").getString("from"));
     long timeSpan = 1 * (7 * 24 * 60 * 60 * 1000L) +
                     2 * (24 * 60 * 60 * 1000L) +
@@ -1007,7 +1009,7 @@ public class TestBQL extends TestCase
       "WHERE time SINCE 2 days 3 hours 4 minutes 6 milliseconds AGO"
       );
 
-    long timeStamp = Long.parseLong(json.getJSONArray("selections").getJSONObject(0)
+    long timeStamp = Long.parseLong(json.getJSONObject("filter")
       .getJSONObject("range").getJSONObject("time").getString("from"));
     long timeSpan = 2 * (24 * 60 * 60 * 1000L) +
                     3 * (60 * 60 * 1000L) +
@@ -1030,7 +1032,7 @@ public class TestBQL extends TestCase
       "WHERE time BEFORE 3 hours 4 min AGO"
       );
 
-    long timeStamp = Long.parseLong(json.getJSONArray("selections").getJSONObject(0)
+    long timeStamp = Long.parseLong(json.getJSONObject("filter")
       .getJSONObject("range").getJSONObject("time").getString("to"));
     long timeSpan = 3 * (60 * 60 * 1000L) +
                     4 * (60 * 1000L);
@@ -1051,7 +1053,7 @@ public class TestBQL extends TestCase
       "WHERE time NOT BEFORE 3 hours 4 min AGO"
       );
 
-    long timeStamp = Long.parseLong(json.getJSONArray("selections").getJSONObject(0)
+    long timeStamp = Long.parseLong(json.getJSONObject("filter")
       .getJSONObject("range").getJSONObject("time").getString("from"));
     long timeSpan = 3 * (60 * 60 * 1000L) +
                     4 * (60 * 1000L);
@@ -1072,7 +1074,7 @@ public class TestBQL extends TestCase
       "WHERE time < 2012-01-02 12:10:30"
       );
 
-    long timeStamp = Long.parseLong(json.getJSONArray("selections").getJSONObject(0)
+    long timeStamp = Long.parseLong(json.getJSONObject("filter")
       .getJSONObject("range").getJSONObject("time").getString("to"));
     long expected = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse("2012-01-02 12:10:30").getTime();
     assertEquals(timeStamp, expected);
@@ -1092,7 +1094,7 @@ public class TestBQL extends TestCase
       "WHERE time < 2012-01-02"
       );
 
-    long timeStamp = Long.parseLong(json.getJSONArray("selections").getJSONObject(0)
+    long timeStamp = Long.parseLong(json.getJSONObject("filter")
       .getJSONObject("range").getJSONObject("time").getString("to"));
     long expected = new SimpleDateFormat("yyyy-MM-dd").parse("2012-01-02").getTime();
     assertEquals(timeStamp, expected);
@@ -1113,16 +1115,8 @@ public class TestBQL extends TestCase
       "  AND color = 'red'"
       );
 
-    JSONArray selections = json.getJSONArray("selections");
-    JSONObject timeRange = null;
-    for (int i = 0; i < selections.length(); ++i)
-    {
-      timeRange = selections.getJSONObject(i).optJSONObject("range");
-      if (timeRange != null)
-      {
-        break;
-      }
-    }
+    //System.out.println(">>> json: " + json);
+    JSONObject timeRange = json.getJSONObject("filter").getJSONObject("range");
 
     long fromTime = Long.parseLong(timeRange.getJSONObject("time").getString("from"));
     long expectedFromTime = new SimpleDateFormat("yyyy-MM-dd").parse("2012-01-02").getTime();
