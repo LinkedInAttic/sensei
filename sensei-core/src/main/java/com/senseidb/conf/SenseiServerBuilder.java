@@ -559,8 +559,21 @@ public class SenseiServerBuilder implements SenseiConfParams{
       }
       else {
         throw new ConfigurationException("unsupported frequency setting: "+frequencyString);      }
-      zoieSystemFactory = new SenseiHourglassFactory(idxDir,dirMode,interpreter,decorator,
-            zoieConfig,schedule,trimThreshold,frequency, pluggableSearchEngineManager != null ? Arrays.asList(pluggableSearchEngineManager) : Collections.EMPTY_LIST);
+
+      boolean appendOnly = _senseiConf.getBoolean(SENSEI_HOURGLASS_APPENDONLY, true);
+      zoieSystemFactory = new SenseiHourglassFactory(idxDir,
+                                                     dirMode,
+                                                     interpreter,
+                                                     decorator,
+                                                     zoieConfig,
+                                                     schedule,
+                                                     appendOnly,
+                                                     trimThreshold,
+                                                     frequency,
+                                                     pluggableSearchEngineManager != null ?
+                                                       Arrays.asList(pluggableSearchEngineManager) :
+                                                       Collections.EMPTY_LIST
+                                                    );
     }  else{
       ZoieFactoryFactory zoieFactoryFactory= pluginRegistry.getBeanByFullPrefix(indexerType, ZoieFactoryFactory.class);
       if (zoieFactoryFactory==null){

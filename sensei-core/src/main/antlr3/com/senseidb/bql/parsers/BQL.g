@@ -447,6 +447,7 @@ package com.senseidb.bql.parsers;
 @parser::header {
 package com.senseidb.bql.parsers;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -470,6 +471,7 @@ import java.text.SimpleDateFormat;
     private static final Map<String, String> _fastutilTypeMap;
     private static final Map<String, String> _internalVarMap;
     private static final Set<String> _supportedClasses;
+    private static Map<String, Set<String>> _compatibleFacetTypes;
 
     private Map<String, String[]> _facetInfoMap;
     private long _now;
@@ -519,6 +521,12 @@ import java.text.SimpleDateFormat;
         _supportedClasses.add("String");
         _supportedClasses.add("System");
 
+        _compatibleFacetTypes = new HashMap<String, Set<String>>();
+        _compatibleFacetTypes.put("range", new HashSet<String>(Arrays.asList(new String[]
+                                                               {
+                                                                   "simple",
+                                                                   "multi"
+                                                               })));
     }
 
     public BQLParser(TokenStream input, Map<String, String[]> facetInfoMap)
@@ -614,7 +622,10 @@ import java.text.SimpleDateFormat;
     {
         String[] facetInfo = _facetInfoMap.get(field);
         if (facetInfo != null) {
-            return (expectedType.equals(facetInfo[0]) || "custom".equals(facetInfo[0]));
+            Set<String> compatibleTypes = _compatibleFacetTypes.get(expectedType);
+            return (expectedType.equals(facetInfo[0]) ||
+                    "custom".equals(facetInfo[0]) ||
+                    (compatibleTypes != null && compatibleTypes.contains(facetInfo[0])));
         }
         else {
             return true;
@@ -735,11 +746,19 @@ import java.text.SimpleDateFormat;
                 else if (pred.has("and") || pred.has("or") || pred.has("isNull")) {
                     filter_list.put(pred);
                 }
-                else if (_facetInfoMap.get(predField(pred)) != null) {
-                    selections.put(pred);
-                }
                 else {
-                    filter_list.put(pred);
+                    String[] facetInfo = _facetInfoMap.get(predField(pred));
+                    if (facetInfo != null) {
+                        if ("range".equals(predType(pred)) && !"range".equals(facetInfo[0])) {
+                            filter_list.put(pred);
+                        }
+                        else {
+                            selections.put(pred);
+                        }
+                    }
+                    else {
+                        filter_list.put(pred);
+                    }
                 }
             }
             if (filter_list.length() > 1) {
@@ -752,11 +771,19 @@ import java.text.SimpleDateFormat;
         else if (where.has("or") || where.has("isNull")) {
             filter.put("filter", where);
         }
-        else if (_facetInfoMap.get(predField(where)) != null) {
-            selections.put(where);
-        }
         else {
-            filter.put("filter", where);
+            String[] facetInfo = _facetInfoMap.get(predField(where));
+            if (facetInfo != null) {
+                if ("range".equals(predType(where)) && !"range".equals(facetInfo[0])) {
+                    filter.put("filter", where);
+                }
+                else {
+                    selections.put(where);
+                }
+            }
+            else {
+                filter.put("filter", where);
+            }
         }
     }
 
@@ -1904,7 +1931,7 @@ between_predicate returns [JSONObject json]
             if (!verifyFacetType(col, "range")) {
                 throw new FailedPredicateException(input, 
                                                    "between_predicate",
-                                                   "Non-range facet column \"" + col + "\" cannot be used in BETWEEN predicates.");
+                                                   "Non-rangable facet column \"" + col + "\" cannot be used in BETWEEN predicates.");
             }
 
             if (!verifyFieldDataType(col, new Object[]{$val1.val, $val2.val})) {
@@ -1951,7 +1978,7 @@ range_predicate returns [JSONObject json]
             if (!verifyFacetType(col, "range")) {
                 throw new FailedPredicateException(input, 
                                                    "range_predicate",
-                                                   "Non-range facet column \"" + col + "\" cannot be used in RANGE predicates.");
+                                                   "Non-rangable facet column \"" + col + "\" cannot be used in RANGE predicates.");
             }
 
             if (!verifyFieldDataType(col, $val.val)) {
@@ -1988,7 +2015,7 @@ time_predicate returns [JSONObject json]
             if (!verifyFacetType(col, "range")) {
                 throw new FailedPredicateException(input, 
                                                    "range_predicate",
-                                                   "Non-range facet column \"" + col + "\" cannot be used in TIME predicates.");
+                                                   "Non-rangable facet column \"" + col + "\" cannot be used in TIME predicates.");
             }
 
             try {
@@ -2015,7 +2042,7 @@ time_predicate returns [JSONObject json]
             if (!verifyFacetType(col, "range")) {
                 throw new FailedPredicateException(input, 
                                                    "range_predicate",
-                                                   "Non-range facet column \"" + col + "\" cannot be used in TIME predicates.");
+                                                   "Non-rangable facet column \"" + col + "\" cannot be used in TIME predicates.");
             }
 
             try {

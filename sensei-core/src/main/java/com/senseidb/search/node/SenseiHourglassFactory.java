@@ -24,6 +24,7 @@ public class SenseiHourglassFactory<T> extends SenseiZoieFactory<T>
   // if it is hourly rolling, it means at mm:ss time of the hour that we roll forward
   // if it is MINUTELY, it means at ss seond of the minute that we roll forward.
   private final String schedule;
+  private final boolean appendOnly;
   private final int trimThreshold;
   private final HourGlassScheduler.FREQUENCY frequency;
 
@@ -47,11 +48,13 @@ public class SenseiHourglassFactory<T> extends SenseiZoieFactory<T>
   public SenseiHourglassFactory(File idxDir, DIRECTORY_MODE dirMode,ZoieIndexableInterpreter<T> interpreter, SenseiIndexReaderDecorator indexReaderDecorator,
                                  ZoieConfig zoieConfig,
                                  String schedule,
+                                 boolean appendOnly,
                                  int trimThreshold,
                                  FREQUENCY frequency, List<HourglassListener> hourglassListeners)
   {
     super(idxDir,dirMode,interpreter,indexReaderDecorator,zoieConfig);
     this.schedule = schedule;
+    this.appendOnly = appendOnly;
     this.trimThreshold = trimThreshold;
     this.frequency = frequency;
     this.hourglassListeners = hourglassListeners;
@@ -71,7 +74,7 @@ public class SenseiHourglassFactory<T> extends SenseiZoieFactory<T>
     // format "ss mm hh" meaning at hh:mm:ss time of the day, we roll forward for DAILY rolling
     // if it is hourly rolling, it means at mm:ss time of the hour, we roll forward
     // if it is MINUTELY, it means at ss seond of the minute, we roll forward.
-    HourGlassScheduler scheduler = new HourGlassScheduler(frequency, schedule, trimThreshold);
+    HourGlassScheduler scheduler = new HourGlassScheduler(frequency, schedule, appendOnly, trimThreshold);
     HourglassDirectoryManagerFactory dirmgr = new HourglassDirectoryManagerFactory(partDir, scheduler,_dirMode);
     log.info("creating Hourglass for nodeId: " + nodeId + " partition: " + partitionId);
     return new Hourglass<BoboIndexReader,T>(dirmgr, _interpreter, _indexReaderDecorator, _zoieConfig, hourglassListeners);

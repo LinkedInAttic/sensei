@@ -416,18 +416,22 @@ public class TestErrorHandling extends TestCase
       JSONObject json = _compiler.compile(
         "SELECT category \n" +
         "FROM cars \n" +
-        "WHERE color BETWEEN 'blue' AND 'red' \n" +
+        "WHERE city BETWEEN 'blue' AND 'red' \n" +
         "  AND price < 1750.00"
         );
+      //System.out.println(">>> json: " + json);
     }
     catch (RecognitionException err)
     {
-      assertEquals("[line:4, col:2] Non-range facet column \"color\" cannot be used in BETWEEN predicates. (token=AND)",
+      //System.out.println(">>> _compiler.getErrorMessage(err): " + _compiler.getErrorMessage(err));
+      assertEquals("[line:4, col:2] Non-rangable facet column \"city\" cannot be used in BETWEEN predicates. (token=AND)",
                    _compiler.getErrorMessage(err));
       caughtException = true;
+      //System.out.println(">>> caughtException: " + caughtException);
     }
     finally 
     {
+      //System.out.println(">>> caughtException: " + caughtException);
       assertTrue(caughtException);
     }
   }
@@ -472,13 +476,13 @@ public class TestErrorHandling extends TestCase
       JSONObject json = _compiler.compile(
         "SELECT category \n" +
         "FROM cars \n" +
-        "WHERE color > 'red' \n" +
+        "WHERE city > 'red' \n" +
         "  AND price < 1750.00"
         );
     }
     catch (RecognitionException err)
     {
-      assertEquals("[line:4, col:2] Non-range facet column \"color\" cannot be used in RANGE predicates. (token=AND)",
+      assertEquals("[line:4, col:2] Non-rangable facet column \"city\" cannot be used in RANGE predicates. (token=AND)",
                    _compiler.getErrorMessage(err));
       caughtException = true;
     }
@@ -801,12 +805,13 @@ public class TestErrorHandling extends TestCase
       JSONObject json = _compiler.compile(
         "select category \n" +
         "from cars \n" +
-        "where color IN LAST 2 days"
+        "where city IN LAST 2 days"
         );
     }
     catch (RecognitionException err)
     {
-      assertEquals("[line:3, col:26] Non-range facet column \"color\" cannot be used in TIME predicates. (token=<EOF>)",
+      //System.out.println(">>> _compiler.getErrorMessage(err): " + _compiler.getErrorMessage(err));
+      assertEquals("[line:3, col:25] Non-rangable facet column \"city\" cannot be used in TIME predicates. (token=<EOF>)",
                    _compiler.getErrorMessage(err));
       caughtException = true;
     }
