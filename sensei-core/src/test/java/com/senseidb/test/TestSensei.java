@@ -1031,6 +1031,47 @@ public class TestSensei extends TestCase {
     assertEquals("tags for second is not correct." , true, containsString(secondTags, "leather") );
   }
   
+  public void testRelevanceModelStorageInMemory() throws Exception
+  {
+    logger.info("executing test case testRelevanceModelStorageInMemory");
+    
+    // store the model;
+    {
+      String req = "{\"sort\":[\"_score\"],\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"model\":{\"save_as\":{\"overwrite\":true,\"name\":\"myModel\"},\"function_params\":[\"_INNER_SCORE\",\"thisYear\",\"year\",\"goodYear\",\"mileageWeight\",\"mileage\",\"color\",\"yearcolor\",\"colorweight\",\"category\",\"categorycolor\"],\"facets\":{\"int\":[\"year\",\"mileage\"],\"string\":[\"color\",\"category\"],\"long\":[\"groupid\"]},\"function\":\" if(categorycolor.containsKey(category) && categorycolor.get(category).equals(color))  return 10000f; if(colorweight.containsKey(color) ) return 200f + colorweight.getFloat(color); if(yearcolor.containsKey(year) && yearcolor.get(year).equals(color)) return 200f; if(mileageWeight.containsKey(mileage)) return 10000+mileageWeight.get(mileage); if(goodYear.contains(year)) return (float)Math.exp(2d);   if(year==thisYear) return 87f   ; return  _INNER_SCORE;\",\"variables\":{\"map_int_float\":[\"mileageWeight\"],\"map_int_string\":[\"yearcolor\"],\"set_int\":[\"goodYear\"],\"int\":[\"thisYear\"],\"map_string_float\":[\"colorweight\"],\"map_string_string\":[\"categorycolor\"]}},\"values\":{\"thisYear\":2001,\"yearcolor\":{\"value\":[\"red\"],\"key\":[1998]},\"mileageWeight\":{\"value\":[777.9,10.2],\"key\":[11400,11000]},\"colorweight\":{\"value\":[335.5],\"key\":[\"red\"]},\"goodYear\":[1996,1997],\"categorycolor\":{\"value\":[\"red\"],\"key\":[\"compact\"]}}}}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":6}";
+      JSONObject res = search(new JSONObject(req));
+      assertEquals("numhits is wrong", 15000, res.getInt("numhits"));
+
+      JSONArray hits = res.getJSONArray("hits");
+      JSONObject firstHit = hits.getJSONObject(0);
+      JSONObject secondHit = hits.getJSONObject(1);
+      
+      double firstScore = firstHit.getDouble("_score");
+      double secondScore = secondHit.getDouble("_score");
+      
+      assertEquals("inner score for first is not correct." , true, Math.abs(firstScore - 10777.9) < 1 );
+      assertEquals("inner score for second is not correct." , true, Math.abs(secondScore - 10777.9) < 1 );
+    }
+    
+    
+    // assuming the model is already stored, test new query using only stored model name;
+    {
+      String req = "{\"sort\":[\"_score\"],\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"predefined_model\":\"myModel\",\"values\":{\"thisYear\":2001,\"yearcolor\":{\"value\":[\"red\"],\"key\":[1998]},\"mileageWeight\":{\"value\":[777.9,10.2],\"key\":[11400,11000]},\"colorweight\":{\"value\":[335.5],\"key\":[\"red\"]},\"goodYear\":[1996,1997],\"categorycolor\":{\"value\":[\"red\"],\"key\":[\"compact\"]}}}}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":6}";
+      JSONObject res = search(new JSONObject(req));
+      assertEquals("numhits is wrong", 15000, res.getInt("numhits"));
+
+      JSONArray hits = res.getJSONArray("hits");
+      JSONObject firstHit = hits.getJSONObject(0);
+      JSONObject secondHit = hits.getJSONObject(1);
+      
+      double firstScore = firstHit.getDouble("_score");
+      double secondScore = secondHit.getDouble("_score");
+      
+      assertEquals("inner score for first is not correct." , true, Math.abs(firstScore - 10777.9) < 1 );
+      assertEquals("inner score for second is not correct." , true, Math.abs(secondScore - 10777.9) < 1 );
+    }
+    
+  }
+  
 
   private boolean containsString(JSONArray array, String target) throws JSONException
   {

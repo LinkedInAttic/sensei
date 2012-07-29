@@ -61,7 +61,8 @@ public class MapReduceJob extends Configured {
 		    	    
 			outputPath = new Path(conf.get(SenseiJobConfig.OUTPUT_DIR));
 			String indexPath = conf.get(SenseiJobConfig.INDEX_PATH);
-			shards = createShards(indexPath, numShards, conf);
+			String indexSubDirPrefix = conf.get(SenseiJobConfig.INDEX_SUBDIR_PREFIX, "");
+			shards = createShards(indexPath, numShards, conf, indexSubDirPrefix);
 			
 		    FileSystem fs = FileSystem.get(conf);
 		    String username = conf.get("hadoop.job.ugi");
@@ -169,7 +170,7 @@ public class MapReduceJob extends Configured {
 		  }
 	  
 	  private static Shard[] createShards(String indexPath, int numShards,
-			  org.apache.hadoop.conf.Configuration conf) throws IOException {
+			  org.apache.hadoop.conf.Configuration conf, String indexSubDirPrefix) throws IOException {
 
 	    String parent = Shard.normalizePath(indexPath) + Path.SEPARATOR;
 	    long versionNumber = -1;
@@ -200,7 +201,7 @@ public class MapReduceJob extends Configured {
 	      for (int i = count; i < numShards; i++) {
 	        String shardPath;
 	        while (true) {
-	          shardPath = parent + NUMBER_FORMAT.format(number++);
+	          shardPath = parent + indexSubDirPrefix + NUMBER_FORMAT.format(number++);
 	          if (!fs.exists(new Path(shardPath))) {
 	            break;
 	          }
@@ -212,7 +213,7 @@ public class MapReduceJob extends Configured {
 	      Shard[] shards = new Shard[numShards];
 	      for (int i = 0; i < shards.length; i++) {
 	        shards[i] =
-	            new Shard(versionNumber, parent + NUMBER_FORMAT.format(i),
+	            new Shard(versionNumber, parent + indexSubDirPrefix + NUMBER_FORMAT.format(i),
 	                generation);
 	      }
 	      return shards;
