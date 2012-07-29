@@ -117,13 +117,13 @@ public class RelevanceFunctionBuilder
       RuntimeRelevanceFunction sm = (RuntimeRelevanceFunction) rrfFactory.build();
       
       //store the model if specified;
-      if(jsonRelevance.has(RelevanceJSONConstants.KW_SAVE_AS))
+      if(modelJson.has(RelevanceJSONConstants.KW_SAVE_AS))
       {
 //        "save_as":{
 //        "name":"RuntimeModelName",
 //        "overwrite":true
 //        }
-        JSONObject jsonSaveAS = jsonRelevance.getJSONObject(RelevanceJSONConstants.KW_SAVE_AS);
+        JSONObject jsonSaveAS = modelJson.getJSONObject(RelevanceJSONConstants.KW_SAVE_AS);
         String newRuntimeName = jsonSaveAS.getString(RelevanceJSONConstants.KW_NAME_AS);
         boolean overwrite = false;
         if(jsonSaveAS.has(RelevanceJSONConstants.KW_OVERWRITE))

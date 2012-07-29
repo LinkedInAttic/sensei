@@ -167,9 +167,13 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
   public abstract RESULT mergeResults(REQUEST request, List<RESULT> resultList);
 
   protected String getRouteParam(REQUEST req) {
-    if(req.getRouteParam() == null)
+    String param = req.getRouteParam();
+    if (param == null) {
       return RandomStringUtils.random(4);
-    return req.getRouteParam();
+    }
+    else {
+      return param;
+    }
   }
 
   protected RESULT doBrowse(PartitionedNetworkClient<String> networkClient, final REQUEST req, IntSet partitions)
