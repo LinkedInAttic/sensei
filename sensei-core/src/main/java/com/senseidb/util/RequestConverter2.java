@@ -86,6 +86,7 @@ public class RequestConverter2 {
   public static final String SORT_ASC = "asc";
   public static final String SORT_DESC = "desc";
   public static final String SORT_SCORE = "_score";
+  public static final String SORT_RELEVANCE = "RELEVANCE";
 
   public static final String FETCH_STORED = "fetchStored";
 
@@ -362,6 +363,13 @@ public class RequestConverter2 {
               Object obj = sortArray.opt(i);
               if(obj instanceof JSONObject){
                 String field = (String) ((JSONObject)obj).keys().next();
+                if (field == null || field.length() == 0)
+                  continue;
+                if (SORT_SCORE.equals(field) || SORT_RELEVANCE.equalsIgnoreCase(field))
+                {
+                  sortFieldList.add(SortField.FIELD_SCORE);
+                  continue;
+                }
                 String order = ((JSONObject)obj).optString(field);
                 boolean rev = false;
                 if(RequestConverter2.SORT_DESC.equals(order))
@@ -370,7 +378,7 @@ public class RequestConverter2 {
                 continue;
               }
               else if (obj instanceof String){
-                if(RequestConverter2.SORT_SCORE.equals(obj)){
+                if(SORT_SCORE.equals(obj)){
                   sortFieldList.add(SortField.FIELD_SCORE);
                   continue;
                 }

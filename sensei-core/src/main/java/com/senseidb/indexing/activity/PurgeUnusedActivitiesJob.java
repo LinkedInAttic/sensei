@@ -134,7 +134,7 @@ public class PurgeUnusedActivitiesJob implements Runnable, PurgeUnusedActivities
     if (minutes != 0) {
       return 1000L*60 * minutes;
     }
-    int hours = pluginRegistry.getConfiguration().getInt(SenseiConfParams.SENSEI_INDEX_ACTIVITY_PURGE_FREQUENCY_HOURS, 2);
+    int hours = pluginRegistry.getConfiguration().getInt(SenseiConfParams.SENSEI_INDEX_ACTIVITY_PURGE_FREQUENCY_HOURS, 6);
     return 1000L*60 * 60 * hours;
   }
 }

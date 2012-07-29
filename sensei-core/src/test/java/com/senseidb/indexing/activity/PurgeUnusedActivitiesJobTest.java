@@ -41,8 +41,10 @@ public class PurgeUnusedActivitiesJobTest extends TestCase {
     
     ZoieIndexReader reader =  EasyMock.createMock(ZoieIndexReader.class);
     EasyMock.expect(reader.getDocIDMaper()).andReturn(new DocIDMapperImpl(new long[] {105L, 107L})).anyTimes();
+    
     Zoie zoie = org.easymock.EasyMock.createMock(Zoie.class);
     org.easymock.EasyMock.expect(zoie.getIndexReaders()).andReturn(Arrays.asList(reader)).anyTimes();
+    
     zoie.returnIndexReaders(org.easymock.EasyMock.<List>notNull());
     org.easymock.EasyMock.expectLastCall().anyTimes();
     org.easymock.EasyMock.replay(zoie);
