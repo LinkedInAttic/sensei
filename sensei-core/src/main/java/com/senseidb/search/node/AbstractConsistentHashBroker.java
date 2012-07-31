@@ -57,6 +57,7 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
   private static Timer ScatterTimer = null;
   private static Timer GatherTimer = null;
   private static Timer TotalTimer = null;
+  private static Meter SearchCounter = null;
   private static Meter ErrorMeter = null;
   private static Meter EmptyMeter = null;
   
@@ -72,6 +73,9 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
 	    MetricName totalMetricName = new MetricName(MetricsConstants.Domain,"timer","total-time","broker");
 	    TotalTimer = Metrics.newTimer(totalMetricName, TimeUnit.MILLISECONDS,TimeUnit.SECONDS);
 	    
+	    MetricName searchCounterMetricName = new MetricName(MetricsConstants.Domain,"meter","search-count","broker");
+	    SearchCounter = Metrics.newMeter(searchCounterMetricName, "requets", TimeUnit.SECONDS);
+
 	    MetricName errorMetricName = new MetricName(MetricsConstants.Domain,"meter","error-meter","broker");
 	    ErrorMeter = Metrics.newMeter(errorMetricName, "errors",TimeUnit.SECONDS);
 	    
@@ -133,6 +137,7 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
 //      ErrorMeter.mark();
 //      throw new SenseiException("Browse called before cluster is connected!");
 //    }
+    SearchCounter.mark();
     try
     {
       return TotalTimer.time(new Callable<RESULT>(){
