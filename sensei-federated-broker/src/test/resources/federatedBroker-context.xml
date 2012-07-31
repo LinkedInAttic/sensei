@@ -40,7 +40,7 @@
 	    	<constructor-arg index="0"><ref bean="senseiInMemoryService"/></constructor-arg>
             <constructor-arg index="1"><ref bean="voldermortDatasource"/></constructor-arg>
 	  </bean>
-	  <bean id="federatedBroker" class="com.senseidb.federated.broker.FederatedBroker" init-method="start" destroy-method="stop">
+	  <bean id="federatedBroker" class="com.senseidb.federated.broker.FederatedBroker" init-method="start" destroy-method="stop"  p:inMemorySenseiService-ref="senseiInMemoryService">	  		
 	  	<property name="proxies">
 	  	<list>
 	  		<ref bean="senseiProxy"/>

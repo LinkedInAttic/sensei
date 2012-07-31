@@ -1,9 +1,12 @@
 package com.senseidb.search.node.inmemory;
 
 import java.io.File;
+import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import javax.management.MBeanServer;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
@@ -17,6 +20,7 @@ import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.RAMDirectory;
 import org.apache.lucene.util.Version;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import proj.zoie.api.ZoieIndexReader;
@@ -36,11 +40,14 @@ import com.senseidb.conf.SenseiServerBuilder;
 import com.senseidb.indexing.DefaultJsonSchemaInterpreter;
 import com.senseidb.indexing.ShardingStrategy;
 import com.senseidb.indexing.activity.ActivityPersistenceFactory;
+import com.senseidb.jmx.JmxUtil;
+import com.senseidb.jmx.MockJMXServer;
 import com.senseidb.plugin.SenseiPluginRegistry;
 import com.senseidb.search.node.SenseiIndexReaderDecorator;
 import com.senseidb.search.plugin.PluggableSearchEngineManager;
 import com.senseidb.search.req.SenseiRequest;
 import com.senseidb.search.req.SenseiResult;
+import com.senseidb.search.req.SenseiSystemInfo;
 import com.senseidb.svc.impl.CoreSenseiServiceImpl;
 
 public class InMemorySenseiService {
@@ -51,34 +58,37 @@ public class InMemorySenseiService {
   private CoreSenseiServiceImpl coreSenseiServiceImpl;
   private PluggableSearchEngineManager pluggableSearchEngineManager;
   private MockSenseiCore mockSenseiCore;
+  private SenseiSystemInfo senseiSystemInfo;
 
 
   public InMemorySenseiService(SenseiSchema schema, SenseiPluginRegistry pluginRegistry) {    
+    MBeanServer platformMBeanServer = ManagementFactory.getPlatformMBeanServer();
     schema.setCompressSrcData(false);
     try {
+      platformMBeanServer = JmxUtil.registerNewJmxServer(new MockJMXServer());
       defaultJsonSchemaInterpreter = new DefaultJsonSchemaInterpreter(schema);    
       facets = new ArrayList<FacetHandler<?>>();
       runtimeFacets = new ArrayList<RuntimeFacetHandlerFactory<?, ?>>();
 
-      ShardingStrategy strategy = pluginRegistry.getBeanByFullPrefix(SenseiConfParams.SENSEI_SHARDING_STRATEGY, ShardingStrategy.class);
-      if (strategy == null){
-        strategy = new ShardingStrategy.FieldModShardingStrategy(schema.getUidField());
-      }
+      ShardingStrategy strategy = new ShardingStrategy() {        
+        public int caculateShard(int maxShardId, JSONObject dataObj) throws JSONException {
+          return 0;
+        }
+      };      
       ActivityPersistenceFactory.setOverrideForCurrentThread(ActivityPersistenceFactory.getInMemoryInstance());
       pluggableSearchEngineManager = new PluggableSearchEngineManager();     
       pluggableSearchEngineManager.init("", 0, schema, ZoieConfig.DEFAULT_VERSION_COMPARATOR, pluginRegistry, strategy);
-      SenseiFacetHandlerBuilder.buildFacets(schema.getSchemaObj(), pluginRegistry, facets, runtimeFacets,
+      senseiSystemInfo = SenseiFacetHandlerBuilder.buildFacets(schema.getSchemaObj(), pluginRegistry, facets, runtimeFacets,
           pluggableSearchEngineManager);
       
-      String partStr = pluginRegistry.getConfiguration().getString(SenseiConfParams.PARTITIONS);
-      String[] partitionArray = partStr.split("[,\\s]+");
-      int[] partitions = SenseiServerBuilder.buildPartitions(partitionArray);
+      int[] partitions = new int[]{0};
       mockSenseiCore = new MockSenseiCore(partitions);
       pluggableSearchEngineManager.start(mockSenseiCore);
       coreSenseiServiceImpl = new CoreSenseiServiceImpl(mockSenseiCore); 
     } catch (Exception e) {
       throw new RuntimeException(e);
     } finally {
+      JmxUtil.registerNewJmxServer(platformMBeanServer);
       ActivityPersistenceFactory.setOverrideForCurrentThread(null);
 
     }
@@ -153,5 +163,13 @@ public class InMemorySenseiService {
     } catch (Exception ex) {
       throw new RuntimeException(ex);
     }
+  }
+
+  public SenseiSystemInfo getSenseiSystemInfo() {
+    return senseiSystemInfo;
+  }
+
+  public void setSenseiSystemInfo(SenseiSystemInfo senseiSystemInfo) {
+    this.senseiSystemInfo = senseiSystemInfo;
   }
 }

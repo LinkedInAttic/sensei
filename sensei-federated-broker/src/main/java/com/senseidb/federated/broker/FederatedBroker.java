@@ -2,22 +2,30 @@ package com.senseidb.federated.broker;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
+import org.json.JSONObject;
 
 import com.senseidb.federated.broker.proxy.BrokerProxy;
 import com.senseidb.federated.broker.proxy.SenseiBrokerProxy;
 import com.senseidb.search.node.Broker;
 import com.senseidb.search.node.ResultMerger;
 import com.senseidb.search.node.SenseiBroker;
+import com.senseidb.search.node.inmemory.InMemorySenseiService;
 import com.senseidb.search.req.SenseiRequest;
 import com.senseidb.search.req.SenseiResult;
+import com.senseidb.search.req.SenseiSystemInfo;
+import com.senseidb.servlet.AbstractSenseiClientServlet;
+import com.senseidb.servlet.DefaultSenseiJSONServlet;
 import com.senseidb.svc.api.SenseiException;
+import com.senseidb.util.RequestConverter2;
 
 public class FederatedBroker implements Broker<SenseiRequest, SenseiResult>{
   private final static Logger logger = Logger.getLogger(SenseiBrokerProxy.class);
@@ -25,6 +33,8 @@ public class FederatedBroker implements Broker<SenseiRequest, SenseiResult>{
   private int numThreads = 10;  
   private ExecutorService executor;
   private long timeout = 8000;
+  
+  private Map<String, String[]> facetInfo = new HashMap<String, String[]>();
   public FederatedBroker() {
   }
   public FederatedBroker(List<BrokerProxy> proxies) {
@@ -84,6 +94,23 @@ public class FederatedBroker implements Broker<SenseiRequest, SenseiResult>{
       throw new RuntimeException(e);
     }  
   }
+  
+ 
+  public void setInMemorySenseiService(InMemorySenseiService inMemorySenseiService) {
+    if (inMemorySenseiService != null && inMemorySenseiService.getSenseiSystemInfo() != null) {
+      facetInfo = AbstractSenseiClientServlet.extractFacetInfo(inMemorySenseiService.getSenseiSystemInfo());      
+    }
+  }
+  public JSONObject query(JSONObject request) {
+    try {
+      SenseiRequest senseiRequest = RequestConverter2.fromJSON(request, facetInfo);
+      SenseiResult senseiResult = browse(senseiRequest);
+      JSONObject jsonResult = DefaultSenseiJSONServlet.buildJSONResult(senseiRequest, senseiResult);
+      return jsonResult;
+    } catch (Exception ex) {
+      throw new RuntimeException(ex);
+    }
+  } 
   public void stop() {
     executor.shutdown();
   }

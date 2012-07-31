@@ -13,6 +13,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import javax.management.MBeanServer;
+import javax.management.ObjectInstance;
 import javax.management.ObjectName;
 
 import org.apache.log4j.Logger;
@@ -53,10 +54,12 @@ public class PurgeUnusedActivitiesJob implements Runnable, PurgeUnusedActivities
     ObjectName name;
     try {
       name = new ObjectName("com.senseidb.indexing.activity:type=PurgeUnusedActivitiesJobInvoke");
-      platformMBeanServer.registerMBean(this, name);
-        
+     Set<ObjectInstance> mbeans = platformMBeanServer.queryMBeans(name, null);
+    if (mbeans != null && mbeans.isEmpty()) {
+       platformMBeanServer.registerMBean(this, name);
+     }        
     } catch (Exception e) {
-      throw new RuntimeException(e.getMessage(), e);
+      logger.error("Couldn't register the  PurgeUnusedActivitiesJob operation", e);
     }
   }
   public void stop() {
