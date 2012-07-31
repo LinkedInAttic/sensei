@@ -156,8 +156,12 @@ public class SenseiTermFilter extends Filter {
           sel.setSelectionOperation(ValueOperation.ValueOperationAnd);
         else
           sel.setSelectionOperation(ValueOperation.ValueOperationOr);
-        
-        return facetHandler.buildFilter(sel).getDocIdSet(boboReader);
+
+        Filter filter = facetHandler.buildFilter(sel);
+        if (filter == null)
+          filter = EmptyFilter.getInstance();
+
+        return filter.getDocIdSet(boboReader);
         
       }
       else{

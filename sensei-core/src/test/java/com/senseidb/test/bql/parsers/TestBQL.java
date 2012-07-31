@@ -978,7 +978,9 @@ public class TestBQL extends TestCase
       "WHERE time IN LAST 1 weeks 2 day 3 hours 4 mins 5 seconds 6 msecs"
       );
 
-    long timeStamp = Long.parseLong(json.getJSONArray("selections").getJSONObject(0)
+    //System.out.println(">>> json: " + json);
+
+    long timeStamp = Long.parseLong(json.getJSONObject("filter")
       .getJSONObject("range").getJSONObject("time").getString("from"));
     long timeSpan = 1 * (7 * 24 * 60 * 60 * 1000L) +
                     2 * (24 * 60 * 60 * 1000L) +
@@ -1007,7 +1009,7 @@ public class TestBQL extends TestCase
       "WHERE time SINCE 2 days 3 hours 4 minutes 6 milliseconds AGO"
       );
 
-    long timeStamp = Long.parseLong(json.getJSONArray("selections").getJSONObject(0)
+    long timeStamp = Long.parseLong(json.getJSONObject("filter")
       .getJSONObject("range").getJSONObject("time").getString("from"));
     long timeSpan = 2 * (24 * 60 * 60 * 1000L) +
                     3 * (60 * 60 * 1000L) +
@@ -1030,7 +1032,7 @@ public class TestBQL extends TestCase
       "WHERE time BEFORE 3 hours 4 min AGO"
       );
 
-    long timeStamp = Long.parseLong(json.getJSONArray("selections").getJSONObject(0)
+    long timeStamp = Long.parseLong(json.getJSONObject("filter")
       .getJSONObject("range").getJSONObject("time").getString("to"));
     long timeSpan = 3 * (60 * 60 * 1000L) +
                     4 * (60 * 1000L);
@@ -1051,7 +1053,7 @@ public class TestBQL extends TestCase
       "WHERE time NOT BEFORE 3 hours 4 min AGO"
       );
 
-    long timeStamp = Long.parseLong(json.getJSONArray("selections").getJSONObject(0)
+    long timeStamp = Long.parseLong(json.getJSONObject("filter")
       .getJSONObject("range").getJSONObject("time").getString("from"));
     long timeSpan = 3 * (60 * 60 * 1000L) +
                     4 * (60 * 1000L);
@@ -1072,7 +1074,7 @@ public class TestBQL extends TestCase
       "WHERE time < 2012-01-02 12:10:30"
       );
 
-    long timeStamp = Long.parseLong(json.getJSONArray("selections").getJSONObject(0)
+    long timeStamp = Long.parseLong(json.getJSONObject("filter")
       .getJSONObject("range").getJSONObject("time").getString("to"));
     long expected = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse("2012-01-02 12:10:30").getTime();
     assertEquals(timeStamp, expected);
@@ -1092,7 +1094,7 @@ public class TestBQL extends TestCase
       "WHERE time < 2012-01-02"
       );
 
-    long timeStamp = Long.parseLong(json.getJSONArray("selections").getJSONObject(0)
+    long timeStamp = Long.parseLong(json.getJSONObject("filter")
       .getJSONObject("range").getJSONObject("time").getString("to"));
     long expected = new SimpleDateFormat("yyyy-MM-dd").parse("2012-01-02").getTime();
     assertEquals(timeStamp, expected);
@@ -1113,16 +1115,8 @@ public class TestBQL extends TestCase
       "  AND color = 'red'"
       );
 
-    JSONArray selections = json.getJSONArray("selections");
-    JSONObject timeRange = null;
-    for (int i = 0; i < selections.length(); ++i)
-    {
-      timeRange = selections.getJSONObject(i).optJSONObject("range");
-      if (timeRange != null)
-      {
-        break;
-      }
-    }
+    //System.out.println(">>> json: " + json);
+    JSONObject timeRange = json.getJSONObject("filter").getJSONObject("range");
 
     long fromTime = Long.parseLong(timeRange.getJSONObject("time").getString("from"));
     long expectedFromTime = new SimpleDateFormat("yyyy-MM-dd").parse("2012-01-02").getTime();
@@ -1281,7 +1275,7 @@ public class TestBQL extends TestCase
       "SELECT color, year "                     +
       "FROM cars "                              +
       "WHERE color = 'red' "                    +
-      "USING RELEVANCE MODEL homepage_top ('srcid':1234)"
+      "USING RELEVANCE MODEL homepage_top (srcid:1234)"
       );
 
     JSONObject expected = new JSONObject("{\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"values\":{\"srcid\":1234},\"predefined_model\":\"homepage_top\"}}},\"selections\":[{\"term\":{\"color\":{\"value\":\"red\"}}}],\"meta\":{\"select_list\":[\"color\",\"year\"]}}");
@@ -1298,7 +1292,7 @@ public class TestBQL extends TestCase
       "SELECT color, year " +
       "FROM cars " +
       "WHERE color = 'red' " +
-      "USING RELEVANCE MODEL my_model ('srcid':1234) " +
+      "USING RELEVANCE MODEL my_model (srcid:1234) " +
       "  DEFINED AS (int intParam1, int intParam2, String strParam, int srcid) " +
       "  BEGIN " +
       "    int myInt = 100 + intParam1 + intParam2; " +
@@ -1326,7 +1320,7 @@ public class TestBQL extends TestCase
       "SELECT color, year " +
       "FROM cars " +
       "WHERE color = 'red' " +
-      "USING RELEVANCE MODEL my_model ('srcid':1234) " +
+      "USING RELEVANCE MODEL my_model (srcid:1234) " +
       "  DEFINED AS (int srcid) " +
       "  BEGIN " +
       "    float x1 = 1.2; " +
@@ -1355,7 +1349,7 @@ public class TestBQL extends TestCase
       "SELECT color, year " +
       "FROM cars " +
       "WHERE color = 'red' " +
-      "USING RELEVANCE MODEL my_model ('srcid':1234) " +
+      "USING RELEVANCE MODEL my_model (srcid:1234) " +
       "  DEFINED AS (int intParam1, int intParam2, String strParam) " +
       "  BEGIN " +
       "    int myInt = 100; " +
@@ -1387,7 +1381,7 @@ public class TestBQL extends TestCase
       "SELECT color, year " +
       "FROM cars " +
       "WHERE color = 'red' " +
-      "USING RELEVANCE MODEL my_model ('srcid':1234) " +
+      "USING RELEVANCE MODEL my_model (srcid:1234) " +
       "  DEFINED AS (int srcid) " +
       "  BEGIN " +
       "    int myInt = 100; " +
@@ -1413,7 +1407,7 @@ public class TestBQL extends TestCase
       "SELECT color, year " +
       "FROM cars " +
       "WHERE color = 'red' " +
-      "USING RELEVANCE MODEL my_model ('srcid':1234) " +
+      "USING RELEVANCE MODEL my_model (srcid:1234) " +
       "  DEFINED AS (int srcid) " +
       "  BEGIN " +
       "    int myInt = 100; " +
@@ -1438,7 +1432,7 @@ public class TestBQL extends TestCase
       "SELECT color, year " +
       "FROM cars " +
       "WHERE color = 'red' " +
-      "USING RELEVANCE MODEL my_model ('srcid':1234) " +
+      "USING RELEVANCE MODEL my_model (srcid:1234) " +
       "  DEFINED AS (int srcid) " +
       "  BEGIN " +
       "    int myInt = 0; " +
@@ -1463,7 +1457,7 @@ public class TestBQL extends TestCase
       "SELECT color, year " +
       "FROM cars " +
       "WHERE color = 'red' " +
-      "USING RELEVANCE MODEL my_model ('srcid':1234) " +
+      "USING RELEVANCE MODEL my_model (srcid:1234) " +
       "  DEFINED AS (int srcid) " +
       "  BEGIN " +
       "    int myInt = 0; " +
@@ -1494,7 +1488,7 @@ public class TestBQL extends TestCase
       "SELECT color, year " +
       "FROM cars " +
       "WHERE color = 'red' " +
-      "USING RELEVANCE MODEL my_model ('srcid':1234, 'timeVal':9999, '_half_time':8888, 'coolTag':'zzz') " +
+      "USING RELEVANCE MODEL my_model (srcid:1234, timeVal:9999, _half_time:8888, coolTag:'zzz') " +
       "  DEFINED AS (int srcid, long timeVal, long _half_time, String coolTag) " +
       "  BEGIN " +
       "    int myInt = 0; " +
@@ -1511,7 +1505,7 @@ public class TestBQL extends TestCase
       "  END "
       );
     
-    JSONObject expected = new JSONObject("{\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"model\":{\"function_params\":[\"srcid\",\"timeVal\",\"_half_time\",\"coolTag\",\"tags\"],\"facets\":{\"string\":[\"tags\"]},\"variables\":{\"int\":[\"srcid\"],\"string\":[\"coolTag\"],\"long\":[\"timeVal\",\"_half_time\"]},\"function\":\"int myInt = 0;     float delta = System.currentTimeMillis() - timeVal;     float t = delta > 0 ? delta : 0;     float numHours = t / (1000 * 3600);     float timeScore = (float) Math.exp(-(numHours/_half_time));     if (tags.contains(coolTag))       return 999999;     int x = 0;     x += 5;     x *= 10;     return timeScore;\"},\"values\":{\"_half_time\":8888,\"timeVal\":9999,\"coolTag\":\"zzz\",\"srcid\":1234}}}},\"selections\":[{\"term\":{\"color\":{\"value\":\"red\"}}}],\"meta\":{\"select_list\":[\"color\",\"year\"]}}");
+    JSONObject expected = new JSONObject("{\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"model\":{\"function_params\":[\"srcid\",\"timeVal\",\"_half_time\",\"coolTag\",\"tags\"],\"facets\":{\"mstring\":[\"tags\"]},\"variables\":{\"int\":[\"srcid\"],\"string\":[\"coolTag\"],\"long\":[\"timeVal\",\"_half_time\"]},\"function\":\"int myInt = 0;     float delta = System.currentTimeMillis() - timeVal;     float t = delta > 0 ? delta : 0;     float numHours = t / (1000 * 3600);     float timeScore = (float) Math.exp(-(numHours/_half_time));     if (tags.contains(coolTag))       return 999999;     int x = 0;     x += 5;     x *= 10;     return timeScore;\"},\"values\":{\"_half_time\":8888,\"timeVal\":9999,\"coolTag\":\"zzz\",\"srcid\":1234}}}},\"selections\":[{\"term\":{\"color\":{\"value\":\"red\"}}}],\"meta\":{\"select_list\":[\"color\",\"year\"]}}");
     assertTrue(_comp.isEquals(json, expected));
   }
 
@@ -1525,7 +1519,7 @@ public class TestBQL extends TestCase
       "SELECT color, year " +
       "FROM cars " +
       "WHERE color = 'red' " +
-      "USING RELEVANCE MODEL my_model ('srcid':1234) " +
+      "USING RELEVANCE MODEL my_model (srcid:1234) " +
       "  DEFINED AS (int intParam1, int intParam2, String strParam, " +
       "              DoubleOpenHashSet setParam, Int2IntOpenHashMap mapParam) " +
       "  BEGIN " +
@@ -1543,7 +1537,7 @@ public class TestBQL extends TestCase
       "  END "
       );
 
-    JSONObject expected = new JSONObject("{\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"model\":{\"function_params\":[\"intParam1\",\"intParam2\",\"strParam\",\"setParam\",\"mapParam\",\"tags\",\"price\",\"_INNER_SCORE\"],\"facets\":{\"string\":[\"tags\"],\"float\":[\"price\"]},\"variables\":{\"map_int_int\":[\"mapParam\"],\"int\":[\"intParam1\",\"intParam2\"],\"string\":[\"strParam\"],\"set_double\":[\"setParam\"]},\"function\":\"int myInt = 0;     float delta = System.currentTimeMillis() + intParam1 + intParam2 ;     float t = delta > 0 ? delta : 0;     float numHours = t / (1000 * 3600);     float timeScore = (float) Math.exp(numHours);     if (tags.contains(\\\"zzz\\\"))       return 999999;     int x = 0;     x += 5;     x *= 10;     return timeScore + _INNER_SCORE + price;\"},\"values\":{\"srcid\":1234}}}},\"selections\":[{\"term\":{\"color\":{\"value\":\"red\"}}}],\"meta\":{\"select_list\":[\"color\",\"year\"]}}");
+    JSONObject expected = new JSONObject("{\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"model\":{\"function_params\":[\"intParam1\",\"intParam2\",\"strParam\",\"setParam\",\"mapParam\",\"tags\",\"price\",\"_INNER_SCORE\"],\"facets\":{\"mstring\":[\"tags\"],\"float\":[\"price\"]},\"variables\":{\"map_int_int\":[\"mapParam\"],\"int\":[\"intParam1\",\"intParam2\"],\"string\":[\"strParam\"],\"set_double\":[\"setParam\"]},\"function\":\"int myInt = 0;     float delta = System.currentTimeMillis() + intParam1 + intParam2 ;     float t = delta > 0 ? delta : 0;     float numHours = t / (1000 * 3600);     float timeScore = (float) Math.exp(numHours);     if (tags.contains(\\\"zzz\\\"))       return 999999;     int x = 0;     x += 5;     x *= 10;     return timeScore + _INNER_SCORE + price;\"},\"values\":{\"srcid\":1234}}}},\"selections\":[{\"term\":{\"color\":{\"value\":\"red\"}}}],\"meta\":{\"select_list\":[\"color\",\"year\"]}}");
     assertTrue(_comp.isEquals(json, expected));
   }
 
@@ -1557,7 +1551,7 @@ public class TestBQL extends TestCase
       "SELECT * " +
       "FROM cars " +
       "WHERE color = 'red' " + 
-      "USING RELEVANCE MODEL my_model ('thisYear':2001, 'goodYear':[1996]) " +
+      "USING RELEVANCE MODEL my_model (thisYear:2001, goodYear:[1996]) " +
       "  DEFINED AS (int thisYear, IntOpenHashSet goodYear) " +
       "  BEGIN " +
       "    if (goodYear.contains(year)) " +
@@ -1583,7 +1577,7 @@ public class TestBQL extends TestCase
       "SELECT * " +
       "FROM cars " +
       "WHERE color = 'red' " + 
-      "USING RELEVANCE MODEL my_model ('thisYear':2001, 'goodYear':[1996]) " +
+      "USING RELEVANCE MODEL my_model (thisYear:2001, goodYear:[1996]) " +
       "  DEFINED AS (int thisYear, IntOpenHashSet goodYear) " +
       "  BEGIN " +
       "    if (goodYear.contains(year)) " +
@@ -1611,7 +1605,7 @@ public class TestBQL extends TestCase
       "SELECT * " +
       "FROM cars " +
       "WHERE color = 'red' " + 
-      "USING RELEVANCE MODEL my_model ('boost':2.5) " +
+      "USING RELEVANCE MODEL my_model (boost:2.5) " +
       "  DEFINED AS (float boost) " +
       "  BEGIN " +
       "    int x, y; " +
@@ -1638,7 +1632,7 @@ public class TestBQL extends TestCase
       "SELECT * " +
       "FROM cars " +
       "WHERE color = 'red' " + 
-      "USING RELEVANCE MODEL my_model ('thisYear':2001, 'myMap':{'aaa':1, 'bbb':2}) " +
+      "USING RELEVANCE MODEL my_model (thisYear:2001, myMap:{'aaa':1, 'bbb':2}) " +
       "ORDER BY relevance"
       );
 

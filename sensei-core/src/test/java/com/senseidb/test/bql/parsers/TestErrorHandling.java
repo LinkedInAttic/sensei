@@ -416,18 +416,22 @@ public class TestErrorHandling extends TestCase
       JSONObject json = _compiler.compile(
         "SELECT category \n" +
         "FROM cars \n" +
-        "WHERE color BETWEEN 'blue' AND 'red' \n" +
+        "WHERE city BETWEEN 'blue' AND 'red' \n" +
         "  AND price < 1750.00"
         );
+      //System.out.println(">>> json: " + json);
     }
     catch (RecognitionException err)
     {
-      assertEquals("[line:4, col:2] Non-range facet column \"color\" cannot be used in BETWEEN predicates. (token=AND)",
+      //System.out.println(">>> _compiler.getErrorMessage(err): " + _compiler.getErrorMessage(err));
+      assertEquals("[line:4, col:2] Non-rangable facet column \"city\" cannot be used in BETWEEN predicates. (token=AND)",
                    _compiler.getErrorMessage(err));
       caughtException = true;
+      //System.out.println(">>> caughtException: " + caughtException);
     }
     finally 
     {
+      //System.out.println(">>> caughtException: " + caughtException);
       assertTrue(caughtException);
     }
   }
@@ -472,13 +476,13 @@ public class TestErrorHandling extends TestCase
       JSONObject json = _compiler.compile(
         "SELECT category \n" +
         "FROM cars \n" +
-        "WHERE color > 'red' \n" +
+        "WHERE city > 'red' \n" +
         "  AND price < 1750.00"
         );
     }
     catch (RecognitionException err)
     {
-      assertEquals("[line:4, col:2] Non-range facet column \"color\" cannot be used in RANGE predicates. (token=AND)",
+      assertEquals("[line:4, col:2] Non-rangable facet column \"city\" cannot be used in RANGE predicates. (token=AND)",
                    _compiler.getErrorMessage(err));
       caughtException = true;
     }
@@ -801,12 +805,13 @@ public class TestErrorHandling extends TestCase
       JSONObject json = _compiler.compile(
         "select category \n" +
         "from cars \n" +
-        "where color IN LAST 2 days"
+        "where city IN LAST 2 days"
         );
     }
     catch (RecognitionException err)
     {
-      assertEquals("[line:3, col:26] Non-range facet column \"color\" cannot be used in TIME predicates. (token=<EOF>)",
+      //System.out.println(">>> _compiler.getErrorMessage(err): " + _compiler.getErrorMessage(err));
+      assertEquals("[line:3, col:25] Non-rangable facet column \"city\" cannot be used in TIME predicates. (token=<EOF>)",
                    _compiler.getErrorMessage(err));
       caughtException = true;
     }
@@ -937,13 +942,13 @@ public class TestErrorHandling extends TestCase
       JSONObject json = _compiler.compile(
         "select category \n" +
         "from cars \n" +
-        "using relevance model md1 ('srcid':1234) \n" +
-        "using relevance model md2 ('param1':'abc')"
+        "using relevance model md1 (srcid:1234) \n" +
+        "using relevance model md2 (param1:'abc')"
         );
     }
     catch (RecognitionException err)
     {
-      assertEquals("[line:4, col:42] USING RELEVANCE MODEL clause can only appear once. (token=<EOF>)",
+      assertEquals("[line:4, col:40] USING RELEVANCE MODEL clause can only appear once. (token=<EOF>)",
                    _compiler.getErrorMessage(err));
       caughtException = true;
     }
@@ -965,7 +970,7 @@ public class TestErrorHandling extends TestCase
       JSONObject json = _compiler.compile(
         "SELECT * \n" +
         "FROM cars \n" +
-        "USING RELEVANCE MODEL md1 ('srcid':1234) \n" +
+        "USING RELEVANCE MODEL md1 (srcid:1234) \n" +
         "  DEFINED AS (int srcid) \n" +
         "  BEGIN \n" +
         "    int x, y; \n" +
@@ -998,7 +1003,7 @@ public class TestErrorHandling extends TestCase
       JSONObject json = _compiler.compile(
         "SELECT * \n" +
         "FROM cars \n" +
-        "USING RELEVANCE MODEL md1 ('srcid':1234) \n" +
+        "USING RELEVANCE MODEL md1 (srcid:1234) \n" +
         "  DEFINED AS (int srcid) \n" +
         "  BEGIN \n" +
         "    if (x == 5) \n" +
@@ -1030,7 +1035,7 @@ public class TestErrorHandling extends TestCase
       JSONObject json = _compiler.compile(
         "SELECT * \n" +
         "FROM cars \n" +
-        "USING RELEVANCE MODEL md1 ('srcid':1234) \n" +
+        "USING RELEVANCE MODEL md1 (srcid:1234) \n" +
         "  DEFINED AS (int srcid) \n" +
         "  BEGIN \n" +
         "    int x = 5; \n" +
@@ -1068,7 +1073,7 @@ public class TestErrorHandling extends TestCase
       JSONObject json = _compiler.compile(
         "SELECT * \n" +
         "FROM cars \n" +
-        "USING RELEVANCE MODEL md1 ('srcid':1234) \n" +
+        "USING RELEVANCE MODEL md1 (srcid:1234) \n" +
         "  DEFINED AS (int srcid) \n" +
         "  BEGIN \n" +
         "    int total = 0; \n" +
@@ -1102,7 +1107,7 @@ public class TestErrorHandling extends TestCase
       JSONObject json = _compiler.compile(
         "SELECT * \n" +
         "FROM cars \n" +
-        "USING RELEVANCE MODEL md1 ('srcid':1234) \n" +
+        "USING RELEVANCE MODEL md1 (srcid:1234) \n" +
         "  DEFINED AS (int srcid) \n" +
         "  BEGIN \n" +
         "    int year; \n" +
@@ -1132,7 +1137,7 @@ public class TestErrorHandling extends TestCase
       JSONObject json = _compiler.compile(
         "SELECT * \n" +
         "FROM cars \n" +
-        "USING RELEVANCE MODEL md1 ('srcid':1234) \n" +
+        "USING RELEVANCE MODEL md1 (srcid:1234) \n" +
         "  DEFINED AS (int srcid) \n" +
         "  BEGIN \n" +
         "    String _NOW; \n" +
@@ -1162,7 +1167,7 @@ public class TestErrorHandling extends TestCase
       JSONObject json = _compiler.compile(
         "SELECT * \n" +
         "FROM cars \n" +
-        "USING RELEVANCE MODEL md1 ('srcid':1234) \n" +
+        "USING RELEVANCE MODEL md1 (srcid:1234) \n" +
         "  DEFINED AS (int srcid) \n" +
         "  BEGIN \n" +
         "    int x = 100; \n" +
@@ -1195,7 +1200,7 @@ public class TestErrorHandling extends TestCase
       JSONObject json = _compiler.compile(
         "SELECT * \n" +
         "FROM cars \n" +
-        "USING RELEVANCE MODEL md1 ('srcid':1234) \n" +
+        "USING RELEVANCE MODEL md1 (srcid:1234) \n" +
         "  DEFINED AS (int srcid, float price) \n" +
         "  BEGIN \n" +
         "    return 0.5; \n" +
@@ -1226,7 +1231,7 @@ public class TestErrorHandling extends TestCase
       JSONObject json = _compiler.compile(
         "SELECT * \n" +
         "FROM cars \n" +
-        "USING RELEVANCE MODEL md1 ('srcid':1234) \n" +
+        "USING RELEVANCE MODEL md1 (srcid:1234) \n" +
         "  DEFINED AS (int srcid, String srcid) \n" +
         "  BEGIN \n" +
         "    return 0.5; \n" +
@@ -1257,7 +1262,7 @@ public class TestErrorHandling extends TestCase
       JSONObject json = _compiler.compile(
         "SELECT * \n" +
         "FROM cars \n" +
-        "USING RELEVANCE MODEL md1 ('srcid':1234) \n" +
+        "USING RELEVANCE MODEL md1 (srcid:1234) \n" +
         "  DEFINED AS (int srcid, long _NOW) \n" +
         "  BEGIN \n" +
         "    return 0.5; \n" +
