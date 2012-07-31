@@ -24,14 +24,15 @@ public class JsonSerializationTest extends Assert {
     }
     @Test
     public void test2Serialization() throws Exception {
+       System.out.println("Running test2Serialization...");
         SenseiClientRequest senseiRequest = Examples.basicWithSelections(SenseiClientRequest.builder()).build();
        String strRepresentation = JsonSerializer.serialize(senseiRequest).toString();
-       System.out.println(strRepresentation);
+       System.out.println("strRepresentation: " + strRepresentation);
        SenseiClientRequest senseiRequest2 = JsonDeserializer.deserialize(SenseiClientRequest.class, new JSONObject(strRepresentation));
        assertEquals(senseiRequest2.getFacets().size(), 1);
-       System.out.println(senseiRequest2.toString());
+       System.out.println("senseiRequest2: " + senseiRequest2.toString());
        String strRepresentation2 = JsonSerializer.serialize(senseiRequest2).toString();
-       System.out.println(strRepresentation2);
+       System.out.println("strRepresentation2: " + strRepresentation2);
        assertEquals(strRepresentation2, strRepresentation);
 
     }
