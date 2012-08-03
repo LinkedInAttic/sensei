@@ -251,7 +251,6 @@ public class ActivityIntegrationTest extends TestCase {
     {
       String req = "{\"sort\":[\"_score\"],\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"model\":{\"function_params\":[\"_INNER_SCORE\",\"thisYear\",\"year\",\"goodYear\",\"mileageWeight\",\"mileage\",\"likes\"],\"facets\":{\"int\":[\"year\",\"mileage\"],\"long\":[\"groupid\"],\"aint\":[\"likes\"]},\"function\":\" if(mileageWeight.containsKey(mileage)) return 10000+mileageWeight.get(mileage); if(goodYear.contains(year)) return (float)Math.exp(2d);   if(year==thisYear) return 87f   ; if(likes> _INNER_SCORE) return (float)likes;return  _INNER_SCORE;\",\"variables\":{\"map_int_float\":[\"mileageWeight\"],\"set_int\":[\"goodYear\"],\"int\":[\"thisYear\"]}},\"values\":{\"thisYear\":2001,\"mileageWeight\":{\"11400\":777.9, \"11000\":10.2},\"goodYear\":[1996,1997]}}}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":6}";
       JSONObject res = TestSensei.search(new JSONObject(req));
-      System.out.println(res.toString());
       assertEquals("numhits is wrong", 15000, res.getInt("numhits"));
       
       JSONArray hits = res.getJSONArray("hits");
@@ -275,9 +274,6 @@ public class ActivityIntegrationTest extends TestCase {
       
       assertEquals("first hit does not have correct aggregated value.", true, first_aggregated_likes_2w==100000);
       assertEquals("first hit does not have correct aggregated value.", true, first_aggregated_likes_12h==100000);
-
-      //assertEquals("second hit does not have correct aggregated value.", true, second_aggregated_likes_2w==0);
-      //assertEquals("second hit does not have correct aggregated value.", true, second_aggregated_likes_12h==0);
     }
 
   }  

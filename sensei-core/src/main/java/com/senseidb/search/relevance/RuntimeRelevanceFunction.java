@@ -83,6 +83,7 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction
   private String[] strings;
   private Set[] sets;
   private Map[] maps;
+  private Object[] objs;
   
   private MFacetInt[] mFacetInts;
   private MFacetLong[] mFacetLongs;
@@ -205,6 +206,7 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction
     strings   = new String[_paramSize];
     sets      = new Set[_paramSize];
     maps      = new Map[_paramSize];
+    objs      = new Object[_paramSize];
     
     mFacetInts   = new MFacetInt[_paramSize];
     mFacetLongs = new MFacetLong[_paramSize] ;
@@ -243,9 +245,16 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction
                   break;
         case RelevanceJSONConstants.TYPENUMBER_MAP:
                   maps[_arrayIndex[i]] = (Map)_dt.hm_var.get(_dt.lls_params.get(i));
-                  break;                    
+                  break;  
+                  
         
-        //multi-facet container initialization; 
+        // Custom Object;          
+        case RelevanceJSONConstants.TYPENUMBER_CUSTOM_OBJ:
+                  objs[_arrayIndex[i]] = _dt.hm_var.get(_dt.lls_params.get(i));
+                  break;  
+                  
+                  
+        // Multi-facet container initialization; 
         case RelevanceJSONConstants.TYPENUMBER_FACET_M_INT:
                   mFacetInts[_mArrayIndex[i]] =  new MFacetInt(_mDataCaches[_mFacetIndex[i]]);
                   arDynamic.add(i);
@@ -271,7 +280,7 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction
                   arDynamic.add(i);
                   break;    
         
-        //weighted multi-facet container initialization; 
+        // Weighted multi-facet container initialization; 
         case RelevanceJSONConstants.TYPENUMBER_FACET_WM_INT:
                   mFacetInts[_mArrayIndex[i]] =  new WeightedMFacetInt(_mDataCaches[_mFacetIndex[i]]);
                   arDynamic.add(i);
@@ -330,6 +339,7 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction
     
     int set_index = 0;
     int map_index = 0;
+    int obj_index = 0;
 
     for(int i=0; i< paramSize; i++)
     {
@@ -344,6 +354,10 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction
       case RelevanceJSONConstants.TYPENUMBER_INNER_SCORE:
         arrayIndex[i] = float_index;
         float_index++;
+        break;
+      case RelevanceJSONConstants.TYPENUMBER_CUSTOM_OBJ:
+        arrayIndex[i] = obj_index;
+        obj_index++;
         break;
       case RelevanceJSONConstants.TYPENUMBER_FACET_INT:
         facetName = _dt.hm_symbol_facet.get(symbol);
@@ -572,7 +586,7 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction
       }
     }// end for;
     
-    return _cModel.score(shorts, ints, longs, floats, doubles, booleans, strings, sets, maps, mFacetInts, mFacetLongs, mFacetFloats, mFacetDoubles, mFacetShorts, mFacetStrings);
+    return _cModel.score(shorts, ints, longs, floats, doubles, booleans, strings, sets, maps, mFacetInts, mFacetLongs, mFacetFloats, mFacetDoubles, mFacetShorts, mFacetStrings, objs);
   }
 
 
@@ -656,7 +670,7 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction
       }
     }// end for;
     
-    return _cModel.score(shorts, ints, longs, floats, doubles, booleans, strings, sets, maps, mFacetInts, mFacetLongs, mFacetFloats, mFacetDoubles, mFacetShorts, mFacetStrings);
+    return _cModel.score(shorts, ints, longs, floats, doubles, booleans, strings, sets, maps, mFacetInts, mFacetLongs, mFacetFloats, mFacetDoubles, mFacetShorts, mFacetStrings, objs);
   }
 
   @Override

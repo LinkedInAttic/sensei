@@ -28,6 +28,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.senseidb.search.relevance.FacilityDataStorage;
 import com.senseidb.search.req.ErrorType;
 
 import javassist.CannotCompileException;
@@ -52,7 +53,8 @@ import javassist.NotFoundException;
               "map_int_float":["j"], // supported hashmap: [map_int_float, map_int_double, map_int_*...]
                                      //                    [map_string_int, map_string_float, map_string_*]
               "int":["e","f"],       // supported normal variables: [int, double, float, long, bool, string]
-              "long":["g","h"]
+              "long":["g","h"],
+              "custom_obj":["krati","big_cache"]   // supported external static big in-memory object (initialized when senseidb starts)
           },
 
           "facets": {
@@ -260,7 +262,8 @@ public class CompilationHelper
     /* 30 */ "  com.senseidb.search.relevance.impl.WeightedMFacetDouble %s = (com.senseidb.search.relevance.impl.WeightedMFacetDouble) mFacetDoubles[%d];",
     /* 31 */ "  com.senseidb.search.relevance.impl.WeightedMFacetFloat %s = (com.senseidb.search.relevance.impl.WeightedMFacetFloat) mFacetFloats[%d];",
     /* 32 */ "  com.senseidb.search.relevance.impl.WeightedMFacetString %s = (com.senseidb.search.relevance.impl.WeightedMFacetShort) mFacetStrings[%d];",
-    /* 33 */ "  com.senseidb.search.relevance.impl.WeightedMFacetShort %s = (com.senseidb.search.relevance.impl.WeightedMFacetString) mFacetShorts[%d];"
+    /* 33 */ "  com.senseidb.search.relevance.impl.WeightedMFacetShort %s = (com.senseidb.search.relevance.impl.WeightedMFacetString) mFacetShorts[%d];",
+    /* 34 */ "  %s %s = (%s) objs[%d];"
   };
 
   // Map of parameter types to int arrays.  For each parameter type, the
@@ -269,7 +272,7 @@ public class CompilationHelper
   // the index of input data array for that parameter.
   private static Map<Integer, int[]> PARAM_INIT_MAP = new HashMap<Integer, int[]>();
 
-  private static int TOTAL_INPUT_DATA_ARRAYS = 15;
+  private static int TOTAL_INPUT_DATA_ARRAYS = 16;
 
   private static String EXP_INT_METHOD    = "public double exp(int val) { return Double.longBitsToDouble(((long) (1512775 * val + 1072632447)) << 32); }";
   private static String EXP_DOUBLE_METHOD = "public double exp(double val) { return Double.longBitsToDouble(((long) (1512775 * val + 1072632447)) << 32); }";
@@ -290,7 +293,8 @@ public class CompilationHelper
     "com.senseidb.search.relevance.impl.MFacetFloat[] mFacetFloats, " +
     "com.senseidb.search.relevance.impl.MFacetDouble[] mFacetDoubles, " +
     "com.senseidb.search.relevance.impl.MFacetShort[] mFacetShorts, " +
-    "com.senseidb.search.relevance.impl.MFacetString[] mFacetStrings)";
+    "com.senseidb.search.relevance.impl.MFacetString[] mFacetStrings, " +
+    "java.lang.Object[] objs)";
 
   static
   {
@@ -366,7 +370,7 @@ public class CompilationHelper
     //  0  int_index        6  m_int_index       12  boolean_index
     //  1  long_index       7  m_long_index      13  set_index
     //  2  double_index     8  m_double_index    14  map_index
-    //  3  float_index      9  m_float_index
+    //  3  float_index      9  m_float_index     15  obj_index
     //  4  string_index    10  m_string_index
     //  5  short_index     11  m_short_index
 
@@ -412,7 +416,8 @@ public class CompilationHelper
     PARAM_INIT_MAP.put(RelevanceJSONConstants.TYPENUMBER_FACET_WM_FLOAT,    new int[]{31,  9});
     PARAM_INIT_MAP.put(RelevanceJSONConstants.TYPENUMBER_FACET_WM_STRING,   new int[]{32, 10});
     PARAM_INIT_MAP.put(RelevanceJSONConstants.TYPENUMBER_FACET_WM_SHORT,    new int[]{33, 11});
-    PARAM_INIT_MAP.put(RelevanceJSONConstants.TYPENUMBER_FACET_A_INT,       new int[]{0, 0});
+    PARAM_INIT_MAP.put(RelevanceJSONConstants.TYPENUMBER_FACET_A_INT,       new int[]{0,   0});
+    PARAM_INIT_MAP.put(RelevanceJSONConstants.TYPENUMBER_CUSTOM_OBJ,        new int[]{34, 15});
   }
 
   private static int MAX_NUM_MODELS  = 10000;
@@ -615,7 +620,8 @@ public class CompilationHelper
       Integer typeNum = dataTable.hm_type.get(symbol);
 
       if (typeNum == RelevanceJSONConstants.TYPENUMBER_INNER_SCORE ||
-          typeNum == RelevanceJSONConstants.TYPENUMBER_NOW)
+          typeNum == RelevanceJSONConstants.TYPENUMBER_NOW ||
+          typeNum == RelevanceJSONConstants.TYPENUMBER_CUSTOM_OBJ )
         continue;
 
       if (typeNum >= RelevanceJSONConstants.TYPENUMBER_SET_INT &&
@@ -848,6 +854,14 @@ public class CompilationHelper
           break;
         }
       }
+      else if (typeNum == RelevanceJSONConstants.TYPENUMBER_CUSTOM_OBJ)
+      {
+        Object obj = FacilityDataStorage.getObj(symbol); 
+        if(obj != null)
+          dataTable.hm_var.put(symbol, obj);
+        else
+          throw new JSONException("function parameter: " + symbol + " can not be initialized as a custom Object.");
+      }
     }
 
     // Check if all the parameters have initialized
@@ -1002,7 +1016,17 @@ public class CompilationHelper
 
       Integer paramType = dataTable.hm_type.get(paramName);
       int[] paramInfo = PARAM_INIT_MAP.get(paramType);
-      sb.append(String.format(PARAM_FORMAT_STRINGS[paramInfo[0]], paramName, paramIndices[paramInfo[1]]++));
+      if(paramType.intValue() == RelevanceJSONConstants.TYPENUMBER_CUSTOM_OBJ)
+      {
+        String className = FacilityDataStorage.getObjClsName(paramName);
+        //TODO: add class import here;
+        hs_safe.add(className);
+        pool.importPackage(className);
+        
+        sb.append(String.format(PARAM_FORMAT_STRINGS[paramInfo[0]], className, paramName, className, paramIndices[paramInfo[1]]++));
+      }
+      else
+        sb.append(String.format(PARAM_FORMAT_STRINGS[paramInfo[0]], paramName, paramIndices[paramInfo[1]]++));
       if (paramType == RelevanceJSONConstants.TYPENUMBER_INNER_SCORE)
       {
         dataTable.useInnerScore = true;
