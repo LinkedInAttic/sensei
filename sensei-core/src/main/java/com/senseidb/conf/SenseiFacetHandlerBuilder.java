@@ -219,57 +219,96 @@ public class SenseiFacetHandlerBuilder {
     }
   }
 
-  private static RuntimeFacetHandlerFactory<?, ?> getHistogramFacetHandlerFactory(JSONObject facet,
+  private static Number getOptionalTypedParam(Map<String, List<String>> paramMap,
+                                               String name,
+                                               String dataType)
+    throws ConfigurationException
+  {
+    if (paramMap != null)
+    {
+      List<String> vals = paramMap.get(name);
+      if (vals != null && vals.size() > 0)
+      {
+        if ("int".equals(dataType)) 
+        {
+          return Integer.parseInt(vals.get(0));
+        } 
+        else if ("short".equals(dataType)) 
+        {
+          return (short) Integer.parseInt(vals.get(0));
+        } 
+        else if ("long".equals(dataType)) 
+        {
+          return Long.parseLong(vals.get(0));
+        } 
+        else if ("float".equals(dataType)) 
+        {
+          return Float.parseFloat(vals.get(0));
+        } 
+        else if ("double".equals(dataType)) 
+        {
+          return Double.parseDouble(vals.get(0));
+        }  
+        return null;
+      }
+      return null;
+    }
+
+    throw new ConfigurationException("Parameter map is null");
+  }
+
+  private static <T extends Number> RuntimeFacetHandlerFactory<?, ?> getHistogramFacetHandlerFactory(JSONObject facet,
                                                                                   String name,
                                                                                   Map<String,List<String>> paramMap)
     throws ConfigurationException
   {
     String dataType = getRequiredSingleParam(paramMap, "datatype");
     String dataHandler = getRequiredSingleParam(paramMap, "datahandler");
-    String startParam = getRequiredSingleParam(paramMap, "start");
-    String endParam = getRequiredSingleParam(paramMap, "end");
-    String unitParam = getRequiredSingleParam(paramMap, "unit");
+    
+    Number start = getOptionalTypedParam(paramMap, "start", dataType);
+    Number end = getOptionalTypedParam(paramMap, "end", dataType);
+    Number unit = getOptionalTypedParam(paramMap, "unit", dataType);
 
-    if ("int".equals(dataType))
+    return buildHistogramFacetHandlerFactory(name, dataHandler, dataType, start, end, unit);
+  }
+
+
+  private static <T extends Number> Number getOptionalOverride(String dataType, T field,  String fieldName, FacetHandlerInitializerParam params) {
+    if ("int".equals(dataType)) 
     {
-      int start = Integer.parseInt(startParam);
-      int end = Integer.parseInt(endParam);
-      int unit = Integer.parseInt(unitParam);
-      return buildHistogramFacetHandlerFactory(name, dataHandler, start, end, unit);
-    }
-    else if ("short".equals(dataType))
+      int[] override = params.getIntParam(fieldName);
+      if (override != null && override.length > 0) {
+        return override[0];
+      }
+    } 
+    else if ("short".equals(dataType)) 
     {
-      short start = (short) Integer.parseInt(startParam);
-      short end = (short) Integer.parseInt(endParam);
-      short unit = (short) Integer.parseInt(unitParam);
-      return buildHistogramFacetHandlerFactory(name, dataHandler, start, end, unit);
-    }
-    else if ("long".equals(dataType))
+      int[] override = params.getIntParam(fieldName);
+      if (override != null && override.length > 0) {
+        return (short)override[0];
+      }
+    } 
+    else if ("long".equals(dataType)) 
     {
-      long start = Long.parseLong(startParam);
-      long end = Long.parseLong(endParam);
-      long unit = Long.parseLong(unitParam);
-      return buildHistogramFacetHandlerFactory(name, dataHandler, start, end, unit);
-    }
-    else if ("float".equals(dataType))
+      long[] override = params.getLongParam(fieldName);
+      if (override != null && override.length > 0) {
+        return override[0];
+      }      
+    } 
+    else if ("double".equals(dataType)) 
     {
-      float start = Float.parseFloat(startParam);
-      float end = Float.parseFloat(endParam);
-      float unit = Float.parseFloat(unitParam);
-      return buildHistogramFacetHandlerFactory(name, dataHandler, start, end, unit);
-    }
-    else if ("double".equals(dataType))
-    {
-      double start = Double.parseDouble(startParam);
-      double end = Double.parseDouble(endParam);
-      double unit = Double.parseDouble(unitParam);
-      return buildHistogramFacetHandlerFactory(name, dataHandler, start, end, unit);
-    }
-    return null;
+      double[] override = params.getDoubleParam(fieldName);
+      if (override != null && override.length > 0) {
+        return override[0];
+      }     
+    }  
+    
+    return field;
   }
 
 	private static <T extends Number> RuntimeFacetHandlerFactory<?,?> buildHistogramFacetHandlerFactory(final String name,
 	                                                                                                    final String dataHandler,
+	                                                                                                    final String dataType,
 	                                                                                                    final T start,
 	                                                                                                    final T end,
 	                                                                                                    final T unit)
@@ -279,7 +318,13 @@ public class SenseiFacetHandlerBuilder {
 	    @Override
 	    public RuntimeFacetHandler<FacetDataNone> get(FacetHandlerInitializerParam params)
 	    {
-	      return new HistogramFacetHandler<T>(name, dataHandler, start, end, unit);
+
+        // Load each parameter - either from the init params or the schema
+	      Number fStart = getOptionalOverride(dataType, start, "start", params);
+        Number fEnd = getOptionalOverride(dataType, end, "end", params);
+        Number fUnit = getOptionalOverride(dataType, unit, "unit", params);
+
+	      return new HistogramFacetHandler<T>(name, dataHandler, (T)fStart, (T)fEnd, (T)fUnit);
 	    };
 
       @Override
