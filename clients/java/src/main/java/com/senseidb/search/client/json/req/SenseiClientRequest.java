@@ -6,6 +6,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import com.senseidb.search.client.json.CustomJsonHandler;
 import com.senseidb.search.client.json.req.filter.Filter;
 import com.senseidb.search.client.json.req.filter.FilterJsonHandler;
@@ -24,7 +27,7 @@ public class SenseiClientRequest {
   /*
    * private Paging paging;
    */
-  private Integer count;
+  private Integer size;
   private Integer from;
 
   /**
@@ -41,7 +44,7 @@ public class SenseiClientRequest {
    * initializing parameters that are needed by all runtime facet handlers
    */
   private Map<String, Map<String, FacetInit>> facetInit = new HashMap<String, Map<String, FacetInit>>();
-  private List<Sort> sorts = new ArrayList<Sort>();
+  private List<Object> sort = new ArrayList<Object>();
   private Map<String, Facet> facets = new HashMap<String, Facet>();
   /**
    * Flag indicating whether stored fields are to be fetched
@@ -85,8 +88,8 @@ public class SenseiClientRequest {
   public static class Builder {
     private SenseiClientRequest request = new SenseiClientRequest();
 
-    public Builder paging(int count, int offset) {
-      request.count = count;
+    public Builder paging(int size, int offset) {
+      request.size = size;
       request.from = offset;
       return this;
     }
@@ -151,7 +154,15 @@ public class SenseiClientRequest {
       if (sort == null) {
         throw new IllegalArgumentException("The sort should be not null");
       }
-      request.sorts.add(sort);
+      if(sort.getOrder() == null){
+    	  request.sort.add(sort.getField());
+      }else{
+    	  try {
+    		  request.sort.add(new JSONObject().put(sort.getField(), sort.getOrder()));
+    	  } catch (JSONException e) {
+    		  throw new RuntimeException(e);
+    	  }
+      }   
       return this;
     }
 
@@ -193,7 +204,7 @@ public class SenseiClientRequest {
   }
 
   public Paging getPaging() {
-    return new Paging(count, from);
+    return new Paging(size, from);
   }
 
   public GroupBy getGroupBy() {
@@ -208,8 +219,8 @@ public class SenseiClientRequest {
     return facetInit;
   }
 
-  public List<Sort> getSorts() {
-    return sorts;
+  public List<Object> getSort(){
+    return sort;
   }
 
   public Map<String, Facet> getFacets() {
@@ -236,8 +247,8 @@ public class SenseiClientRequest {
     return routeParam;
   }
 
-  public Integer getCount() {
-    return count;
+  public Integer getSize() {
+    return size;
   }
 
   public Integer getFrom() {
