@@ -863,7 +863,7 @@ public class CompilationHelper
       }
     }
 
-    // Check if all the parameters have initialized
+    // Check if all the parameters have been initialized
     for(int i=0; i< dataTable.lls_params.size(); i++)
     {
       String symbol = dataTable.lls_params.get(i);
