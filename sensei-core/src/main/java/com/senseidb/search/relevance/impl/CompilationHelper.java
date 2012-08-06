@@ -620,8 +620,7 @@ public class CompilationHelper
       Integer typeNum = dataTable.hm_type.get(symbol);
 
       if (typeNum == RelevanceJSONConstants.TYPENUMBER_INNER_SCORE ||
-          typeNum == RelevanceJSONConstants.TYPENUMBER_NOW ||
-          typeNum == RelevanceJSONConstants.TYPENUMBER_CUSTOM_OBJ )
+          typeNum == RelevanceJSONConstants.TYPENUMBER_NOW )
         continue;
 
       if (typeNum >= RelevanceJSONConstants.TYPENUMBER_SET_INT &&
