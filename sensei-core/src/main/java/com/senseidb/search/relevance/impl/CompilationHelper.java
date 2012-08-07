@@ -1018,11 +1018,12 @@ public class CompilationHelper
       if(paramType.intValue() == RelevanceJSONConstants.TYPENUMBER_CUSTOM_OBJ)
       {
         String className = FacilityDataStorage.getObjClsName(paramName);
-        //TODO: add class import here;
+        String className2 = className.replace('$', '.');
+        
         hs_safe.add(className);
         pool.importPackage(className);
         
-        sb.append(String.format(PARAM_FORMAT_STRINGS[paramInfo[0]], className, paramName, className, paramIndices[paramInfo[1]]++));
+        sb.append(String.format(PARAM_FORMAT_STRINGS[paramInfo[0]], className2, paramName, className2, paramIndices[paramInfo[1]]++));
       }
       else
         sb.append(String.format(PARAM_FORMAT_STRINGS[paramInfo[0]], paramName, paramIndices[paramInfo[1]]++));

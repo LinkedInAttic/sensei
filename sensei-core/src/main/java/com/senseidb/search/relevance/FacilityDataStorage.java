@@ -20,9 +20,7 @@ public class FacilityDataStorage
     hmClsNames = new HashMap<String, String>();
     
     //put in some testing object;
-    HashSet<String> hs = new HashSet<String>();
-    hs.add("red");
-    putObj("test_obj", hs);
+    putObj("test_obj", new ExampleExternalObj());
   }
   
   public static Object getObj(String name)
@@ -39,5 +37,32 @@ public class FacilityDataStorage
   {
     hmObjs.put(name, obj);
     hmClsNames.put(name, obj.getClass().getName());
+
   }
+  
+  
+
+  
+  /**
+   * This class has to be public to be used inside the relevance model;
+   *
+   */
+  public static class ExampleExternalObj {
+
+    public boolean contains(String color)
+    {
+      return ExampleExternalExternalObj.hs.contains(color);
+    }
+  }
+  
+  public static class ExampleExternalExternalObj {
+    
+    public static HashSet<String> hs = new HashSet<String>();
+    static {
+      hs.add("red");
+    }
+  }
+  
+  
+  
 }
