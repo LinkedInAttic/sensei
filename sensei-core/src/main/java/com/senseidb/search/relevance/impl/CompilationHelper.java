@@ -28,7 +28,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.senseidb.search.relevance.FacilityDataStorage;
+import com.senseidb.search.relevance.ExternalRelevanceDataStorage;
 import com.senseidb.search.req.ErrorType;
 
 import javassist.CannotCompileException;
@@ -855,7 +855,7 @@ public class CompilationHelper
       }
       else if (typeNum == RelevanceJSONConstants.TYPENUMBER_CUSTOM_OBJ)
       {
-        Object obj = FacilityDataStorage.getObj(symbol); 
+        Object obj = ExternalRelevanceDataStorage.getObj(symbol); 
         if(obj != null)
           dataTable.hm_var.put(symbol, obj);
         else
@@ -1017,7 +1017,10 @@ public class CompilationHelper
       int[] paramInfo = PARAM_INIT_MAP.get(paramType);
       if(paramType.intValue() == RelevanceJSONConstants.TYPENUMBER_CUSTOM_OBJ)
       {
-        String className = FacilityDataStorage.getObjClsName(paramName);
+        String className = ExternalRelevanceDataStorage.getObjClsName(paramName);
+        if(className == null)
+          throw new JSONException("Custom external object " + paramName + " is not found.");
+        
         String className2 = className.replace('$', '.');
         
         hs_safe.add(className);

@@ -88,6 +88,8 @@ import com.senseidb.search.plugin.PluggableSearchEngineManager;
 import com.senseidb.search.query.RetentionFilterFactory;
 import com.senseidb.search.query.TimeRetentionFilter;
 import com.senseidb.search.relevance.CustomRelevanceFunction.CustomRelevanceFunctionFactory;
+import com.senseidb.search.relevance.ExternalRelevanceDataStorage;
+import com.senseidb.search.relevance.ExternalRelevanceDataStorage.RelevanceObjPlugin;
 import com.senseidb.search.relevance.ModelStorage;
 import com.senseidb.search.req.AbstractSenseiRequest;
 import com.senseidb.search.req.AbstractSenseiResult;
@@ -294,9 +296,9 @@ public class SenseiServerBuilder implements SenseiConfParams{
     pluginRegistry.start();
     
     processRelevanceFunctionPlugins(pluginRegistry);
+    processRelevanceExternalObjectPlugins(pluginRegistry);
 
     _gateway = pluginRegistry.getBeanByFullPrefix(SENSEI_GATEWAY, SenseiGateway.class);
-
     _schemaDoc = loadSchema(confDir);
     _senseiSchema = SenseiSchema.build(_schemaDoc);
   }
@@ -330,7 +332,14 @@ public class SenseiServerBuilder implements SenseiConfParams{
       CustomRelevanceFunctionFactory crf = map.get(name);
       ModelStorage.injectPreloadedModel(name, crf);
     }
-    
+  }
+  
+
+  private void processRelevanceExternalObjectPlugins(SenseiPluginRegistry pluginRegistry)
+  {
+    List<RelevanceObjPlugin> relObjPlugins = pluginRegistry.getBeansByType(RelevanceObjPlugin.class);
+    for(RelevanceObjPlugin rop : relObjPlugins)
+      ExternalRelevanceDataStorage.putObj(rop);
   }
   
   static final Pattern PARTITION_PATTERN = Pattern.compile("[\\d]+||[\\d]+-[\\d]+");
