@@ -29,7 +29,7 @@ import com.yammer.metrics.core.MetricName;
 
 /**
  * 
- * Maintains the set of activityValues. The main responsibility of this class is to keep track of uid to array index mapping,
+ *  Maintains the set of activityValues. The main responsibility of this class is to keep track of uid to array index mapping,
  *  persisted and in memory versions. The the document gets into the system, the class will find/create uid to index mapping, and change the activity values 
  *  for the activity fields found in the document
  *
@@ -48,12 +48,21 @@ public class CompositeActivityValues {
   protected IntList deletedIndexes = new IntArrayList(2000);  
   protected CompositeActivityStorage activityStorage;
   protected UpdateBatch<Update> updateBatch = new UpdateBatch<Update>(); 
+  protected RecentlyAddedUids recentlyAddedUids = new RecentlyAddedUids(500); 
   protected volatile Metadata metadata;
+  
   private volatile boolean closed;
-  protected Counter reclaimedDocumentsCounter;
-  protected Counter currentDocumentsCounter;
-  protected Counter deletedDocumentsCounter;
-  protected Counter insertedDocumentsCounter; 
+  
+  protected static Counter reclaimedDocumentsCounter;
+  protected static Counter currentDocumentsCounter;
+  protected static Counter deletedDocumentsCounter;
+  protected static Counter insertedDocumentsCounter; 
+  static {
+    reclaimedDocumentsCounter = Metrics.newCounter(new MetricName(CompositeActivityValues.class, "reclaimedActivityDocs"));
+    currentDocumentsCounter = Metrics.newCounter(new MetricName(CompositeActivityValues.class, "currentActivityDocs"));
+    deletedDocumentsCounter = Metrics.newCounter(new MetricName(CompositeActivityValues.class, "deletedActivityDocs"));
+    insertedDocumentsCounter = Metrics.newCounter(new MetricName(CompositeActivityValues.class, "insertedActivityDocs"));
+  }
   protected CompositeActivityValues() {
    
   }
@@ -63,10 +72,7 @@ public class CompositeActivityValues {
 
   public void init(int count) {
     uidToArrayIndex = new Long2IntOpenHashMap(count);  
-    reclaimedDocumentsCounter = Metrics.newCounter(new MetricName(getClass(), "reclaimedActivityDocs"));
-    currentDocumentsCounter = Metrics.newCounter(new MetricName(getClass(), "currentActivityDocs"));
-    deletedDocumentsCounter = Metrics.newCounter(new MetricName(getClass(), "deletedActivityDocs"));
-    insertedDocumentsCounter = Metrics.newCounter(new MetricName(getClass(), "insertedActivityDocs"));
+    
   }
   
   public void updateVersion(String version) {
@@ -92,7 +98,7 @@ public class CompositeActivityValues {
     try {
       writeLock.lock();      
       if (uidToArrayIndex.containsKey(uid)) {
-        index = uidToArrayIndex.get(uid);       
+        index = uidToArrayIndex.get(uid); 
       } else {
         insertedDocumentsCounter.inc();       
         synchronized (deletedIndexes) {
@@ -103,6 +109,7 @@ public class CompositeActivityValues {
           }
         } 
         uidToArrayIndex.put(uid, index); 
+        recentlyAddedUids.add(uid);
         needToFlush = updateBatch.addFieldUpdate(new Update(index, uid));
       }      
       boolean currentUpdate = updateActivities(map, index);

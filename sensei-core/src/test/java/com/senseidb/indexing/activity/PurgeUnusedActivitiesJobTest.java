@@ -68,7 +68,10 @@ public class PurgeUnusedActivitiesJobTest extends TestCase {
     compositeActivityValues.flush();
     compositeActivityValues.syncWithPersistentVersion(String.format("%08d", valueCount - 1));
     PurgeUnusedActivitiesJob purgeUnusedActivitiesJob = new PurgeUnusedActivitiesJob(compositeActivityValues, zoieSystems, 1000L*1000);
-    assertEquals(9998, purgeUnusedActivitiesJob.purgeUnusedActivityIndexes());
+    
+    assertEquals(9865, purgeUnusedActivitiesJob.purgeUnusedActivityIndexes());
+    compositeActivityValues.recentlyAddedUids.clear();
+    assertEquals(133, purgeUnusedActivitiesJob.purgeUnusedActivityIndexes());
     assertEquals(0, purgeUnusedActivitiesJob.purgeUnusedActivityIndexes());
     compositeActivityValues.flushDeletes();
     compositeActivityValues.executor.shutdown();

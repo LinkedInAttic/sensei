@@ -295,6 +295,12 @@ public void test5PurgeUnusedActivities() throws Exception {
   }
   FileDataProviderWithMocks.resetOffset(expectedVersion);
   inMemoryColumnData1.getActivityValues().syncWithVersion(String.valueOf(expectedVersion));
+ 
+  count1 =  inMemoryColumnData1.getPurgeUnusedActivitiesJob().purgeUnusedActivityIndexes();
+  count2 = inMemoryColumnData2.getPurgeUnusedActivitiesJob().purgeUnusedActivityIndexes();
+  assertEquals(0, count1 + count2);
+  inMemoryColumnData1.activityValues.recentlyAddedUids.clear();
+  inMemoryColumnData2.activityValues.recentlyAddedUids.clear();
   count1 =  inMemoryColumnData1.getPurgeUnusedActivitiesJob().purgeUnusedActivityIndexes();
   count2 = inMemoryColumnData2.getPurgeUnusedActivitiesJob().purgeUnusedActivityIndexes();
   assertEquals(20, count1 + count2);

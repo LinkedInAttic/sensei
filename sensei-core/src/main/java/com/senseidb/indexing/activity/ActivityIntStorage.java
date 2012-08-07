@@ -36,7 +36,7 @@ public class ActivityIntStorage {
   private MappedByteBuffer buffer;
   private long fileLength; 
   private boolean activateMemoryMappedBuffers = true;
-  private Timer timer;
+  private static Timer timer;
   private String fileName;
   
   public ActivityIntStorage(String fieldName, String indexDir) {

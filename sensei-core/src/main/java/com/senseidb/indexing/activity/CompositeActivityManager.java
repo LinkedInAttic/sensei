@@ -59,14 +59,16 @@ public class CompositeActivityManager implements PluggableSearchEngine {
     private PurgeUnusedActivitiesJob purgeUnusedActivitiesJob;
     private SenseiPluginRegistry pluginRegistry; 
     private Map<String, Set<String>> columnToFacetMapping = new HashMap<String, Set<String>>();
-    private Counter recoveredIndexInBoboFacetDataCache;
-    private Counter facetMappingMismatch;
+    private static Counter recoveredIndexInBoboFacetDataCache;
+    private static Counter facetMappingMismatch;
     private final ActivityPersistenceFactory activityPersistenceFactory;
-    
+    static {
+      recoveredIndexInBoboFacetDataCache = Metrics.newCounter(new MetricName(CompositeActivityManager.class, "recoveredIndexInBoboFacetDataCache"));
+      facetMappingMismatch = Metrics.newCounter(new MetricName(CompositeActivityManager.class, "facetMappingMismatch"));
+    }
     public CompositeActivityManager(ActivityPersistenceFactory activityPersistenceFactory) {      
       this.activityPersistenceFactory = activityPersistenceFactory;
-      recoveredIndexInBoboFacetDataCache = Metrics.newCounter(new MetricName(getClass(), "recoveredIndexInBoboFacetDataCache"));
-      facetMappingMismatch = Metrics.newCounter(new MetricName(getClass(), "facetMappingMismatch"));
+      
     }
     public CompositeActivityManager() {
       this(ActivityPersistenceFactory.getInstance());

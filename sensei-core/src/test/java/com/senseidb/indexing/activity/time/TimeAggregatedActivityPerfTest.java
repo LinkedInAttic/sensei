@@ -40,7 +40,7 @@ public class TimeAggregatedActivityPerfTest extends Assert {
     Clock.setPredefinedTimeInMinutes(0);
   }
   
-  @Ignore
+ @Ignore
   @Test
   public void test1Perf10mInsertsAndUpdateAfterwards() throws Exception {
     Clock.setPredefinedTimeInMinutes(0);
@@ -50,7 +50,7 @@ public class TimeAggregatedActivityPerfTest extends Assert {
     long insertTime = System.currentTimeMillis();
     Map<String, Object> jsonActivityUpdate = new HashMap<String, Object>();
     jsonActivityUpdate.put("likes", "+1");
-    int recordsCount = 100000;
+    int recordsCount = 1000000;
     int numOfEvents = 10;
     for (int i = 0; i < numOfEvents; i++) {
       Clock.setPredefinedTimeInMinutes(i);
