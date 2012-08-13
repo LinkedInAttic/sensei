@@ -97,27 +97,7 @@ public class TestSensei extends TestCase {
     verifyFacetCount(res, selName, selVal, 2907);
     verifyFacetCount(res, "year", "[1993 TO 1994]", 3090);
   }
-  public void testSelectionDynamicTimeRange() throws Exception
-  {
-    logger.info("executing test case testSelection");
-
-
-    SenseiRequest req = new SenseiRequest();
-    DefaultFacetHandlerInitializerParam initParam = new DefaultFacetHandlerInitializerParam();
-    initParam.putLongParam("time", new long[]{15000L});
-    req.setFacetHandlerInitializerParam("timeRange", initParam);
-    //req.setFacetHandlerInitializerParam("timeRange_internal", new DefaultFacetHandlerInitializerParam());
-    req.setCount(3);
-    //setspec(req, facetSpecall);
-    BrowseSelection sel = new BrowseSelection("timeRange");
-    String selVal = "000000013";
-    sel.addValue(selVal);
-    req.addSelection(sel);
-     SenseiResult res = broker.browse(req);
-    logger.info("request:" + req + "\nresult:" + res);
-    assertEquals(12990, res.getNumHits());
-
-  }
+ 
   public void testSelectionNot() throws Exception
   {
     logger.info("executing test case testSelectionNot");
@@ -249,7 +229,8 @@ public class TestSensei extends TestCase {
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 1534, res.getInt("numhits"));
   }
-
+  
+  
   public void testBqlRelevance1() throws Exception
   {
     logger.info("Executing test case testBqlRelevance1");
@@ -306,7 +287,22 @@ public class TestSensei extends TestCase {
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 12990, res.getInt("numhits"));
   }
-
+  public void testSelectionRange2() throws Exception
+  {
+    //2000 1548;
+    //2001 1443;
+    //2002 1464;
+    // [2000 TO 2002]   ==> 4455
+    // (2000 TO 2002)   ==> 1443
+    // (2000 TO 2002]   ==> 2907
+    // [2000 TO 2002)   ==> 2991
+    {
+      logger.info("executing test case Selection range [2000 TO 2002]");
+      String req = "{\"selections\":[{\"range\":{\"year\":{\"to\":\"2002\",\"include_lower\":true,\"include_upper\":true,\"from\":\"2000\"}}}]}";
+      JSONObject res = search(new JSONObject(req));
+      assertEquals("numhits is wrong", 4455, res.getInt("numhits"));
+    }
+  }
   public void testSelectionRange() throws Exception
   {
     //2000 1548;
@@ -1307,4 +1303,41 @@ public class TestSensei extends TestCase {
     }
     return -1;
   }  
+  public void testBqlExtraWithRangeTemplateVariables() throws Exception
+  {
+    logger.info("Executing test case testBqlExtraFilter");
+    String req = "{  \"bql\": \"select * FROM sensei WHERE groupid>= $startDate AND groupid<= $endDate ORDER BY groupid ASC limit 0, 500\",   \"templateMapping\": {    \"endDate\": \"1343800000000\",    \"startDate\": \"0\"  }}";
+    JSONObject res = search(new JSONObject(req));
+    System.out.println("!!!" + res.toString(1));
+    assertEquals("numhits is wrong", 14991, res.getInt("numhits"));
+  }
+  public void testBqlExtraWithRangeTemplateVariables2() throws Exception
+  {
+    logger.info("Executing test case testBqlExtraFilter");
+    String req = "{  \"bql\": \"select * FROM sensei WHERE groupid >= 1 AND groupid<= 1343700000000 ORDER BY groupid ASC limit 0, 500\"}";
+    JSONObject res = search(new JSONObject(req));
+    //System.out.println("!!!" + res.toString(1));
+    assertEquals("numhits is wrong", 14990, res.getInt("numhits"));
+  }
+  public void testSelectionDynamicTimeRange() throws Exception
+  {
+    logger.info("executing test case testSelection");
+
+
+    SenseiRequest req = new SenseiRequest();
+    DefaultFacetHandlerInitializerParam initParam = new DefaultFacetHandlerInitializerParam();
+    initParam.putLongParam("time", new long[]{15000L});
+    req.setFacetHandlerInitializerParam("timeRange", initParam);
+    //req.setFacetHandlerInitializerParam("timeRange_internal", new DefaultFacetHandlerInitializerParam());
+    req.setCount(3);
+    //setspec(req, facetSpecall);
+    BrowseSelection sel = new BrowseSelection("timeRange");
+    String selVal = "000000013";
+    sel.addValue(selVal);
+    req.addSelection(sel);
+     SenseiResult res = broker.browse(req);
+    logger.info("request:" + req + "\nresult:" + res);
+    assertEquals(12990, res.getNumHits());
+
+  }
 }

@@ -69,9 +69,10 @@ BNF Grammar for BQL
 
 <non_variable_value_list> ::= '(' <value> ( ',' <value> )* ')'
 
-<python_style_list> ::= '[' <python_style_value> ( ',' <python_style_value> )* ']'
+<python_style_list> ::= '[' <python_style_value>? ( ',' <python_style_value> )* ']'
 
-<python_style_dict> ::= '{' <key_value_pair> ( ',' <key_value_pair> )* '}'
+<python_style_dict> ::= '{''}' 
+                       | '{' <key_value_pair> ( ',' <key_value_pair> )* '}'
 
 <python_style_value> ::= <value>
                        | <python_style_list>
@@ -313,6 +314,7 @@ BNF Grammar for BQL
 
 <primary> ::= <par_expression>
             | <literal>
+            | java_method identifier_suffix
             | <java_ident> ('.' <java_method>)* [<identifier_suffix>]
 
 <java_ident> ::= <boxed_type>
@@ -520,7 +522,7 @@ import java.text.SimpleDateFormat;
         _supportedClasses.add("Math");
         _supportedClasses.add("String");
         _supportedClasses.add("System");
-
+        
         _compatibleFacetTypes = new HashMap<String, Set<String>>();
         _compatibleFacetTypes.put("range", new HashSet<String>(Arrays.asList(new String[]
                                                                {
@@ -892,7 +894,7 @@ import java.text.SimpleDateFormat;
         Object newTo = result[0];
         Boolean newIncludeUpper = (Boolean) result[1];
 
-        if (newFrom != null && newTo != null) {
+        if (newFrom != null && newTo != null && !newFrom.toString().startsWith("$")&& !newTo.toString().startsWith("$")) {
             if (compareValues(newFrom, newTo) > 0 ||
                 (compareValues(newFrom, newTo) == 0) && (!newIncludeLower || !newIncludeUpper)) {
                 // This error is in general detected late, so the token
@@ -2278,7 +2280,7 @@ python_style_list returns [JSONArray json]
 @init {
     $json = new JSONArray();
 }
-    :   '[' v=python_style_value
+    :   '[' v=python_style_value?
         {
             $json.put($v.val);
         }
@@ -2293,7 +2295,8 @@ python_style_dict returns [JSONObject json]
 @init {
     $json = new JSONObject();
 }
-    :   '{' p=key_value_pair[true]
+    :   '{''}'        |
+        '{' p=key_value_pair[true]
         {
             try {
                 $json.put($p.key, $p.val);
@@ -2595,7 +2598,7 @@ boxed_type
 limited_type
     :   'String'
     |   'System'
-    |   'Math'
+    |   'Math'     
     ;
 
 variable_modifier
@@ -2940,7 +2943,8 @@ cast_expression
 
 primary
     :   par_expression
-    |   literal
+    |   literal   
+    |   java_method identifier_suffix
     |   java_ident ('.' java_method)* identifier_suffix?
         {
             String var = $java_ident.text;
@@ -2955,7 +2959,7 @@ primary
                                                    "primary",
                                                    "Variable or class \"" + var + "\" is not defined.");
             }
-        }
+        }        
     ;
 
 java_ident
