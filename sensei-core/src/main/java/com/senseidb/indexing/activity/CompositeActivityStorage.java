@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel.MapMode;
-import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
@@ -13,10 +12,8 @@ import java.util.concurrent.TimeUnit;
 import org.apache.log4j.Logger;
 import org.springframework.util.Assert;
 
-import com.senseidb.indexing.activity.ActivityIntStorage.FieldUpdate;
 import com.senseidb.metrics.MetricsConstants;
 import com.yammer.metrics.Metrics;
-import com.yammer.metrics.core.Counter;
 import com.yammer.metrics.core.MetricName;
 import com.yammer.metrics.core.Timer;
 

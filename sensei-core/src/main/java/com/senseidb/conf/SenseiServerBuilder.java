@@ -70,7 +70,6 @@ import com.senseidb.indexing.DefaultJsonSchemaInterpreter;
 import com.senseidb.indexing.DefaultStreamingIndexingManager;
 import com.senseidb.indexing.SenseiIndexPruner;
 import com.senseidb.indexing.ShardingStrategy;
-import com.senseidb.indexing.activity.CompositeActivityManager;
 import com.senseidb.indexing.activity.deletion.PurgeFilterWrapper;
 import com.senseidb.jmx.JmxSenseiMBeanServer;
 import com.senseidb.plugin.SenseiPluginRegistry;
@@ -366,7 +365,9 @@ public class SenseiServerBuilder implements SenseiConfParams{
           "Error parsing '" + SENSEI_PROPERTIES + "': " + PARTITIONS + "=" + Arrays.toString(partitionArray), e);
     }
 
-    return partitions.toIntArray();
+    int[] ret = partitions.toIntArray();
+    Arrays.sort(ret);
+    return ret;
   }
 
   public SenseiCore buildCore() throws ConfigurationException {

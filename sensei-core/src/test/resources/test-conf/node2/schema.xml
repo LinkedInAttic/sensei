@@ -124,6 +124,7 @@
 		  <param name="time" value="2w" />
 		</params>
 		</facet>	
+		
 	 <!-- example of a custom facet, defined in custom-facets.xml -->
 	 <!-- 
 	     a bean with name "foobar" must be defined

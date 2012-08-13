@@ -22,7 +22,6 @@ import proj.zoie.api.Zoie;
 import proj.zoie.api.ZoieIndexReader;
 import proj.zoie.api.ZoieMultiReader;
 import proj.zoie.api.ZoieSegmentReader;
-import scala.actors.threadpool.Arrays;
 
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.facets.FacetHandler;
@@ -60,13 +59,21 @@ public class CompositeActivityManager implements PluggableSearchEngine {
     private PurgeUnusedActivitiesJob purgeUnusedActivitiesJob;
     private SenseiPluginRegistry pluginRegistry; 
     private Map<String, Set<String>> columnToFacetMapping = new HashMap<String, Set<String>>();
-    private Counter recoveredIndexInBoboFacetDataCache;
-    private Counter facetMappingMismatch;
-    
-    public CompositeActivityManager() {
-      recoveredIndexInBoboFacetDataCache = Metrics.newCounter(new MetricName(getClass(), "recoveredIndexInBoboFacetDataCache"));
-      facetMappingMismatch = Metrics.newCounter(new MetricName(getClass(), "facetMappingMismatch"));
+    private static Counter recoveredIndexInBoboFacetDataCache;
+    private static Counter facetMappingMismatch;
+    private final ActivityPersistenceFactory activityPersistenceFactory;
+    static {
+      recoveredIndexInBoboFacetDataCache = Metrics.newCounter(new MetricName(CompositeActivityManager.class, "recoveredIndexInBoboFacetDataCache"));
+      facetMappingMismatch = Metrics.newCounter(new MetricName(CompositeActivityManager.class, "facetMappingMismatch"));
     }
+    public CompositeActivityManager(ActivityPersistenceFactory activityPersistenceFactory) {      
+      this.activityPersistenceFactory = activityPersistenceFactory;
+      
+    }
+    public CompositeActivityManager() {
+      this(ActivityPersistenceFactory.getInstance());
+    }
+    
     public String getVersion() {
       return activityValues.getVersion();
     }
@@ -91,7 +98,7 @@ public class CompositeActivityManager implements PluggableSearchEngine {
             fields.add(field);
           }
         }
-        activityValues = CompositeActivityValues.readFromFile(canonicalPath, fields, TimeAggregateInfo.valueOf(senseiSchema), versionComparator);
+        activityValues = activityPersistenceFactory.createCompositeValues(canonicalPath, fields, TimeAggregateInfo.valueOf(senseiSchema), versionComparator);
         activityFilter = pluginRegistry.getBeanByFullPrefix(SenseiConfParams.SENSEI_INDEX_ACTIVITY_FILTER, BaseActivityFilter.class);
         if (activityFilter == null) {
           activityFilter = new DefaultActivityFilter();
@@ -164,7 +171,7 @@ public class CompositeActivityManager implements PluggableSearchEngine {
           return event;
         } 
         ActivityFilteredResult activityFilteredResult = activityFilter.filter(event, senseiSchema, shardingStrategy, senseiCore);
-        onlyActivityUpdate = onlyActivityUpdate || activityFilteredResult.getFilteredObject() == null || activityFilteredResult.getFilteredObject().length() == 0 ||SenseiSchema.EVENT_TYPE_SKIP.equals(activityFilteredResult.getFilteredObject().optBoolean(SenseiSchema.EVENT_TYPE_FIELD));
+        onlyActivityUpdate = onlyActivityUpdate || activityFilteredResult.getFilteredObject() == null || activityFilteredResult.getFilteredObject().length() == 0 ||SenseiSchema.EVENT_TYPE_SKIP.equals(activityFilteredResult.getFilteredObject().opt(SenseiSchema.EVENT_TYPE_FIELD));
         for (long uid : activityFilteredResult.getActivityValues().keySet()) {
           if ( activityFilteredResult.getActivityValues().get(uid) == null || activityFilteredResult.getActivityValues().get(uid).size() == 0) {
             continue;
@@ -319,10 +326,10 @@ public class CompositeActivityManager implements PluggableSearchEngine {
 
   public void start(SenseiCore senseiCore) {
     this.senseiCore = senseiCore;
-    Set<Zoie<BoboIndexReader,?>> zoieSystems = new HashSet<Zoie<BoboIndexReader,?>>();
+    Set<IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>> zoieSystems = new HashSet<IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>>();
     for (int partition : senseiCore.getPartitions()) {
       if (senseiCore.getIndexReaderFactory(partition) != null) {
-        zoieSystems.add((Zoie<BoboIndexReader, ?>) senseiCore.getIndexReaderFactory(partition));
+        zoieSystems.add((IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>) senseiCore.getIndexReaderFactory(partition));
       }
     }
     purgeUnusedActivitiesJob = new PurgeUnusedActivitiesJob(activityValues, zoieSystems, PurgeUnusedActivitiesJob.extractFrequency(pluginRegistry));

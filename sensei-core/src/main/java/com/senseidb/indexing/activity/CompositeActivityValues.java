@@ -8,7 +8,6 @@ import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -19,22 +18,18 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.apache.log4j.Logger;
-import org.json.JSONObject;
 
 import proj.zoie.api.ZoieIndexReader;
 
-import com.senseidb.indexing.activity.CompositeActivityManager.TimeAggregateInfo;
 import com.senseidb.indexing.activity.CompositeActivityStorage.Update;
 import com.senseidb.indexing.activity.time.TimeAggregatedActivityValues;
-import com.senseidb.metrics.MetricsConstants;
-import com.sun.org.apache.bcel.internal.generic.NEW;
 import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.Counter;
 import com.yammer.metrics.core.MetricName;
 
 /**
  * 
- * Maintains the set of activityValues. The main responsibility of this class is to keep track of uid to array index mapping,
+ *  Maintains the set of activityValues. The main responsibility of this class is to keep track of uid to array index mapping,
  *  persisted and in memory versions. The the document gets into the system, the class will find/create uid to index mapping, and change the activity values 
  *  for the activity fields found in the document
  *
@@ -43,7 +38,7 @@ public class CompositeActivityValues {
   
   private static final int DEFAULT_INITIAL_CAPACITY = 5000;
   private final static Logger logger = Logger.getLogger(CompositeActivityValues.class);
-  private Comparator<String> versionComparator; 
+  protected Comparator<String> versionComparator; 
   private volatile UpdateBatch<Update> pendingDeletes = new UpdateBatch<Update>();
   protected Map<String, ActivityValues> intValuesMap = new ConcurrentHashMap<String, ActivityValues>();
   protected volatile String lastVersion = "";  
@@ -53,12 +48,21 @@ public class CompositeActivityValues {
   protected IntList deletedIndexes = new IntArrayList(2000);  
   protected CompositeActivityStorage activityStorage;
   protected UpdateBatch<Update> updateBatch = new UpdateBatch<Update>(); 
+  protected RecentlyAddedUids recentlyAddedUids = new RecentlyAddedUids(500); 
   protected volatile Metadata metadata;
+  
   private volatile boolean closed;
-  private Counter reclaimedDocumentsCounter;
-  private Counter currentDocumentsCounter;
-  private Counter deletedDocumentsCounter;
-  private Counter insertedDocumentsCounter; 
+  
+  protected static Counter reclaimedDocumentsCounter;
+  protected static Counter currentDocumentsCounter;
+  protected static Counter deletedDocumentsCounter;
+  protected static Counter insertedDocumentsCounter; 
+  static {
+    reclaimedDocumentsCounter = Metrics.newCounter(new MetricName(CompositeActivityValues.class, "reclaimedActivityDocs"));
+    currentDocumentsCounter = Metrics.newCounter(new MetricName(CompositeActivityValues.class, "currentActivityDocs"));
+    deletedDocumentsCounter = Metrics.newCounter(new MetricName(CompositeActivityValues.class, "deletedActivityDocs"));
+    insertedDocumentsCounter = Metrics.newCounter(new MetricName(CompositeActivityValues.class, "insertedActivityDocs"));
+  }
   protected CompositeActivityValues() {
    
   }
@@ -68,10 +72,7 @@ public class CompositeActivityValues {
 
   public void init(int count) {
     uidToArrayIndex = new Long2IntOpenHashMap(count);  
-    reclaimedDocumentsCounter = Metrics.newCounter(new MetricName(getClass(), "reclaimedActivityDocs"));
-    currentDocumentsCounter = Metrics.newCounter(new MetricName(getClass(), "currentActivityDocs"));
-    deletedDocumentsCounter = Metrics.newCounter(new MetricName(getClass(), "deletedActivityDocs"));
-    insertedDocumentsCounter = Metrics.newCounter(new MetricName(getClass(), "insertedActivityDocs"));
+    
   }
   
   public void updateVersion(String version) {
@@ -83,7 +84,7 @@ public class CompositeActivityValues {
     if (intValuesMap.isEmpty()) {
       return -1;
     }
-    if (versionComparator.compare(lastVersion, version) == 0) {
+    if (versionComparator.compare(lastVersion, version) > 0) {
       return -1;
     }
     if (map.isEmpty()) {
@@ -97,7 +98,7 @@ public class CompositeActivityValues {
     try {
       writeLock.lock();      
       if (uidToArrayIndex.containsKey(uid)) {
-        index = uidToArrayIndex.get(uid);       
+        index = uidToArrayIndex.get(uid); 
       } else {
         insertedDocumentsCounter.inc();       
         synchronized (deletedIndexes) {
@@ -108,6 +109,7 @@ public class CompositeActivityValues {
           }
         } 
         uidToArrayIndex.put(uid, index); 
+        recentlyAddedUids.add(uid);
         needToFlush = updateBatch.addFieldUpdate(new Update(index, uid));
       }      
       boolean currentUpdate = updateActivities(map, index);
@@ -286,38 +288,7 @@ public class CompositeActivityValues {
       activityIntValues.close();
     }
   }
-  /**
-   * A factory method that constructs the CompositeActivityValues
-   * @param indexDirPath
-   * @param fieldNames
-   * @param aggregatedActivities
-   * @param versionComparator
-   * @return
-   */
-  public static CompositeActivityValues readFromFile(String indexDirPath, List<String> fieldNames, List<TimeAggregateInfo> aggregatedActivities, Comparator<String> versionComparator) {    
-    CompositeActivityStorage persistentColumnManager = new CompositeActivityStorage(indexDirPath);
-    persistentColumnManager.init();
-    Metadata metadata = new Metadata(indexDirPath);
-    metadata.init();
-    CompositeActivityValues ret = persistentColumnManager.getActivityDataFromFile(metadata);
-    ret.reclaimedDocumentsCounter.inc(ret.deletedIndexes.size());
-    ret.currentDocumentsCounter.inc(ret.uidToArrayIndex.size());
-    logger.info("Init compositeActivityValues. Documents = " +  ret.uidToArrayIndex.size() + ", Deletes = " +ret.deletedIndexes.size());
-    ret.metadata = metadata;
-    ret.versionComparator = versionComparator;
-    ret.lastVersion = metadata.version;
-    ret.intValuesMap = new HashMap<String, ActivityValues>(fieldNames.size());
-    for (TimeAggregateInfo aggregatedActivity : aggregatedActivities) {
-      ret.intValuesMap.put(aggregatedActivity.fieldName, TimeAggregatedActivityValues.valueOf(aggregatedActivity.fieldName, aggregatedActivity.times, 
-          metadata.count, indexDirPath));
-    }
-    for (String field : fieldNames) {
-      if (!ret.intValuesMap.containsKey(field)) {
-        ret.intValuesMap.put(field, ActivityIntValues.readFromFile(indexDirPath, field, metadata.count));
-      }
-    }    
-    return ret;
-  }
+  
   public int[] precomputeArrayIndexes(long[] uids) {    
     int[] ret = new int[uids.length];   
     for (int i = 0; i < uids.length; i++) {

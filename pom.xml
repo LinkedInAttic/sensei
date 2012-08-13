@@ -20,6 +20,7 @@
     <module>sensei-core</module>
     <module>sensei-gateways</module>
     <module>sensei-hadoop-indexing</module>
+    <module>sensei-federated-broker</module>
     <!--<module>example</module>-->
     <module>clients/java</module>
    <module>sensei-war</module>   

@@ -30,7 +30,6 @@ public class SenseiReduceFunctionWrapper {
     for (int i = 1; i < results.size(); i++) {
       ret.getMapResults().addAll(results.get(i).getMapResults());
     }
-    System.out.println("##Combine on node level");
     ret.setMapResults(new ArrayList(mapReduceFunction.combine(ret.getMapResults(), CombinerStage.nodeLevel)));
     return ret;
   }
