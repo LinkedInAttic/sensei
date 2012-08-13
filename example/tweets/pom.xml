@@ -6,7 +6,7 @@
 	<artifactId>tweet-example</artifactId>
 	<packaging>jar</packaging>
 	<name>tweet-examples</name>
-	<version>1.5.0</version>
+	<version>1.5.1-SNAPSHOT</version>
 	<description>sensei examples - tweets</description>
 
 	<!-- Set the compiler to java6 -->
@@ -59,7 +59,7 @@
 		<dependency>
 			<groupId>com.senseidb</groupId>
 			<artifactId>sensei-core</artifactId>
-			<version>1.5.0</version>
+			<version>1.5.1-SNAPSHOT</version>
 		</dependency>
 	</dependencies>
 
