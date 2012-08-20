@@ -44,7 +44,7 @@ public class TimeAggregatedActivityPerfTest extends Assert {
   @Test
   public void test1Perf10mInsertsAndUpdateAfterwards() throws Exception {
     Clock.setPredefinedTimeInMinutes(0);
-    CompositeActivityValues activityValues = ActivityPersistenceFactory.getInstance().createCompositeValues(getDirPath(), Collections.EMPTY_LIST, Arrays.asList(new CompositeActivityManager.TimeAggregateInfo("likes", Arrays.asList("10m","5m", "2m"))) , ZoieConfig.DEFAULT_VERSION_COMPARATOR);
+    CompositeActivityValues activityValues = CompositeActivityValues.createCompositeValues(ActivityPersistenceFactory.getInstance(getDirPath()), Collections.EMPTY_LIST, Arrays.asList(new CompositeActivityManager.TimeAggregateInfo("likes", Arrays.asList("10m","5m", "2m"))) , ZoieConfig.DEFAULT_VERSION_COMPARATOR);
     TimeAggregatedActivityValues timeAggregatedActivityValues = (TimeAggregatedActivityValues) activityValues.getActivityValuesMap().get("likes");
     timeAggregatedActivityValues.getAggregatesUpdateJob().stop();
     long insertTime = System.currentTimeMillis();
@@ -78,7 +78,7 @@ public class TimeAggregatedActivityPerfTest extends Assert {
     Thread.sleep(2000);
     activityValues.close();
     
-    activityValues =  ActivityPersistenceFactory.getInstance().createCompositeValues(getDirPath(), Collections.EMPTY_LIST, Arrays.asList(new CompositeActivityManager.TimeAggregateInfo("likes", Arrays.asList("10m","5m", "2m"))) , ZoieConfig.DEFAULT_VERSION_COMPARATOR);
+     activityValues = CompositeActivityValues.createCompositeValues(ActivityPersistenceFactory.getInstance(getDirPath()), Collections.EMPTY_LIST, Arrays.asList(new CompositeActivityManager.TimeAggregateInfo("likes", Arrays.asList("10m","5m", "2m"))) , ZoieConfig.DEFAULT_VERSION_COMPARATOR);
     timeAggregatedActivityValues = (TimeAggregatedActivityValues) activityValues.getActivityValuesMap().get("likes");
     timeAggregatedActivityValues.getAggregatesUpdateJob().stop();
     assertEquals(5, timeAggregatedActivityValues.getValuesMap().get("5m").fieldValues[50000]);

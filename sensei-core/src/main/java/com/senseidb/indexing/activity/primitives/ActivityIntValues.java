@@ -1,29 +1,22 @@
-package com.senseidb.indexing.activity;
+package com.senseidb.indexing.activity.primitives;
 
-import org.apache.log4j.Logger;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.nio.MappedByteBuffer;
+
+import com.senseidb.indexing.activity.AtomicFieldUpdate;
+
 
 /**
  * Wraps an int array. Also provides the persistence support. The changes are kept accumulating in the batch.   
  *
  */
-public class ActivityIntValues implements ActivityValues {
-  private static Logger logger = Logger.getLogger(ActivityIntValues.class);
+public class ActivityIntValues extends ActivityPrimitiveValues  {
   public int[] fieldValues;
-  protected String fieldName;
-  protected ActivityIntStorage activityFieldStore;
-  protected volatile UpdateBatch<ActivityIntStorage.FieldUpdate> updateBatch = new UpdateBatch<ActivityIntStorage.FieldUpdate>();
   
-
-  @Override
   public void init(int capacity) {
     fieldValues = new int[capacity];
   }
-
-  public void init() {
-    init(50000);
-  }
-
-  
   /* (non-Javadoc)
    * @see com.senseidb.indexing.activity.ActivityValues#update(int, java.lang.Object)
    */
@@ -34,18 +27,9 @@ public class ActivityIntValues implements ActivityValues {
       fieldValues[index] = 0;
     }
     setValue(fieldValues, value, index);
-    return updateBatch.addFieldUpdate(new ActivityIntStorage.FieldUpdate(index, fieldValues[index]));
+    return updateBatch.addFieldUpdate(AtomicFieldUpdate.valueOf(index, fieldValues[index]));
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see com.senseidb.indexing.activity.ActivityValues#delete(int)
-   */
-  @Override
-  public void delete(int index) {
-    fieldValues[index] = Integer.MIN_VALUE;
-  }
   protected ActivityIntValues() {
     
   }
@@ -53,33 +37,7 @@ public class ActivityIntValues implements ActivityValues {
     init(capacity);
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see com.senseidb.indexing.activity.ActivityValues#prepareFlush()
-   */
-  @Override
-  public Runnable prepareFlush() {
-    if (activityFieldStore.isClosed()) {
-      throw new IllegalStateException("The activityFile is closed");
-    }
-    final UpdateBatch<ActivityIntStorage.FieldUpdate> oldBatch = updateBatch;
-    updateBatch = new UpdateBatch<ActivityIntStorage.FieldUpdate>();
-    return new Runnable() {
-      public void run() {
-        try {
-          if (activityFieldStore.isClosed()) {
-            throw new IllegalStateException("The activityFile is closed");
-          }
-          activityFieldStore.flush(oldBatch.getUpdates());
-        } catch (Exception ex) {
-          logger.error("Failure to store the field values to file" + oldBatch.getUpdates(), ex);
-        }
-      }
-    };
-  }
-
-  public int getValue(int index) {
+  public int getIntValue(int index) {
     return fieldValues[index];
   }
 
@@ -102,7 +60,7 @@ public class ActivityIntValues implements ActivityValues {
    * @param value
    * @param index
    */
-  public static void setValue(int[] fieldValues, Object value, int index) {
+  private static void setValue(int[] fieldValues, Object value, int index) {
     if (value == null) {
       return;
     }
@@ -135,22 +93,38 @@ public class ActivityIntValues implements ActivityValues {
   public void setFieldValues(int[] fieldValues) {
     this.fieldValues = fieldValues;
   }
-
-  /*
-   * (non-Javadoc)
-   * 
-   * @see com.senseidb.indexing.activity.ActivityValues#close()
-   */
+  @Override 
+  public void initFieldValues(int count, MappedByteBuffer  buffer) {
+     for (int i = 0; i < count; i++) {
+       int value;
+         value = buffer.getInt(i * 4);
+       fieldValues[i] = value;
+     }
+   }
+   @Override
+   public void initFieldValues(int count, RandomAccessFile storedFile) {
+     for (int i = 0; i < count; i++) {
+       int value;       
+         try {
+          storedFile.seek(i * 4);
+          value = storedFile.readInt();       
+          fieldValues[i] = value;
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+     }
+   }
+   @Override
+   public void delete(int index) {
+     fieldValues[index] = Integer.MIN_VALUE;
+   }
   @Override
-  public void close() {
-    activityFieldStore.close();
+  public int getFieldSizeInBytes() {
+    
+    return 4;
   }
-
-  
-
   @Override
-  public String getFieldName() {
-    return fieldName;
+  public Number getValue(int index) {    
+    return fieldValues[index];
   }
-
 }

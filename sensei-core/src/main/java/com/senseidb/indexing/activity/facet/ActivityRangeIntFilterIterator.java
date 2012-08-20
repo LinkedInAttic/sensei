@@ -9,7 +9,7 @@ import org.apache.lucene.search.DocIdSetIterator;
  * @author vzhabiuk
  *
  */
-public class ActivityRangeFilterIterator extends DocIdSetIterator {
+public class ActivityRangeIntFilterIterator extends DocIdSetIterator {
   private int _doc;
   protected final int[] fieldValues;
   private final int start;
@@ -17,7 +17,7 @@ public class ActivityRangeFilterIterator extends DocIdSetIterator {
   private final int arrLength;
   private int[] indexes;
 
-  public ActivityRangeFilterIterator(int[] fieldValues, int[] indexes,
+  public ActivityRangeIntFilterIterator(int[] fieldValues, int[] indexes,
       int start, int end) {
     this.fieldValues = fieldValues;
     this.start = start;

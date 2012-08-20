@@ -32,6 +32,7 @@ import com.senseidb.conf.SenseiSchema.FieldDefinition;
 import com.senseidb.indexing.ShardingStrategy;
 import com.senseidb.indexing.activity.BaseActivityFilter.ActivityFilteredResult;
 import com.senseidb.indexing.activity.facet.ActivityRangeFacetHandler;
+import com.senseidb.indexing.activity.primitives.ActivityIntValues;
 import com.senseidb.indexing.activity.time.TimeAggregatedActivityValues;
 import com.senseidb.plugin.SenseiPluginRegistry;
 import com.senseidb.search.node.SenseiCore;
@@ -61,7 +62,7 @@ public class CompositeActivityManager implements PluggableSearchEngine {
     private Map<String, Set<String>> columnToFacetMapping = new HashMap<String, Set<String>>();
     private static Counter recoveredIndexInBoboFacetDataCache;
     private static Counter facetMappingMismatch;
-    private final ActivityPersistenceFactory activityPersistenceFactory;
+    private ActivityPersistenceFactory activityPersistenceFactory;
     static {
       recoveredIndexInBoboFacetDataCache = Metrics.newCounter(new MetricName(CompositeActivityManager.class, "recoveredIndexInBoboFacetDataCache"));
       facetMappingMismatch = Metrics.newCounter(new MetricName(CompositeActivityManager.class, "facetMappingMismatch"));
@@ -71,7 +72,7 @@ public class CompositeActivityManager implements PluggableSearchEngine {
       
     }
     public CompositeActivityManager() {
-      this(ActivityPersistenceFactory.getInstance());
+      
     }
     
     public String getVersion() {
@@ -88,17 +89,18 @@ public class CompositeActivityManager implements PluggableSearchEngine {
       this.pluginRegistry = pluginRegistry;
       this.shardingStrategy = shardingStrategy;
       try {
-        File dir = new File(indexDirectory, "node" +nodeId +"/activity");
-        dir.mkdirs();
-        String canonicalPath = dir.getCanonicalPath();
-        List<String> fields = new ArrayList<String>();
-        for ( String field  : senseiSchema.getFieldDefMap().keySet()) {
-          FieldDefinition fieldDefinition = senseiSchema.getFieldDefMap().get(field);
-          if (fieldDefinition.isActivity) {
-            fields.add(field);
+        if (activityPersistenceFactory == null) {
+          if (indexDirectory == null) {
+            activityPersistenceFactory = ActivityPersistenceFactory.getInMemoryInstance();
+          } else {
+            File dir = new File(indexDirectory, "node" +nodeId +"/activity");
+            dir.mkdirs();
+            String canonicalPath = dir.getCanonicalPath();
+            activityPersistenceFactory = ActivityPersistenceFactory.getInstance(canonicalPath);
           }
         }
-        activityValues = activityPersistenceFactory.createCompositeValues(canonicalPath, fields, TimeAggregateInfo.valueOf(senseiSchema), versionComparator);
+        
+        activityValues = CompositeActivityValues.createCompositeValues(activityPersistenceFactory, senseiSchema.getFieldDefMap().values(), TimeAggregateInfo.valueOf(senseiSchema), versionComparator);
         activityFilter = pluginRegistry.getBeanByFullPrefix(SenseiConfParams.SENSEI_INDEX_ACTIVITY_FILTER, BaseActivityFilter.class);
         if (activityFilter == null) {
           activityFilter = new DefaultActivityFilter();
@@ -388,7 +390,7 @@ public class CompositeActivityManager implements PluggableSearchEngine {
         }
         ret.add(ActivityRangeFacetHandler.valueOf(facet.name, facet.column, getActivityValues(), (ActivityIntValues)aggregatedActivityValues.getDefaultIntValues()));
       } else if ("range".equals(facet.type)){
-        ret.add(ActivityRangeFacetHandler.valueOf(facet.name, facet.column, getActivityValues(), getActivityValues().getActivityIntValues(facet.column)));
+        ret.add(ActivityRangeFacetHandler.valueOf(facet.name, facet.column, getActivityValues(), getActivityValues().getActivityValues(facet.column)));
       } else {
         throw new UnsupportedOperationException("The facet " + facet.name + "should be of type either aggregated-range or range");
       }
