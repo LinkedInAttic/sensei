@@ -564,7 +564,7 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction
                   
         // activity engine facet;
         case RelevanceJSONConstants.TYPENUMBER_FACET_A_INT:
-                  ints[_arrayIndex[dynamicAR[j]]] = _aHandlers[_aFacetIndex[dynamicAR[j]]].getActivityValue((int[])_aData[_aFacetIndex[dynamicAR[j]]], docID);
+                  ints[_arrayIndex[dynamicAR[j]]] = _aHandlers[_aFacetIndex[dynamicAR[j]]].getIntActivityValue((int[])_aData[_aFacetIndex[dynamicAR[j]]], docID);
                   break;
           
         default: 
@@ -649,7 +649,7 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction
                   
         // activity engine facet;
         case RelevanceJSONConstants.TYPENUMBER_FACET_A_INT:
-                 ints[_arrayIndex[dynamicAR[j]]] = _aHandlers[_aFacetIndex[dynamicAR[j]]].getActivityValue((int[])_aData[_aFacetIndex[dynamicAR[j]]], docID);
+                 ints[_arrayIndex[dynamicAR[j]]] = _aHandlers[_aFacetIndex[dynamicAR[j]]].getIntActivityValue((int[])_aData[_aFacetIndex[dynamicAR[j]]], docID);
                  break;                  
         default: 
                  break;

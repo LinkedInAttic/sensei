@@ -59,11 +59,11 @@ public class PurgeUnusedActivitiesJobTest extends TestCase {
     SenseiStarter.rmrf(file);
   }
   public void test1WriteValuesAndReadJustAfterThat() throws Exception {
-     compositeActivityValues = ActivityPersistenceFactory.getInstance().createCompositeValues(getDirPath(), java.util.Arrays.asList("likes"), Collections.EMPTY_LIST, ZoieConfig.DEFAULT_VERSION_COMPARATOR);
+    compositeActivityValues = CompositeActivityValues.createCompositeValues(ActivityPersistenceFactory.getInstance(getDirPath()), java.util.Arrays.asList(ActivityIntegrationTest.getLikesFieldDefinition() ), Collections.EMPTY_LIST, ZoieConfig.DEFAULT_VERSION_COMPARATOR);
     
     int valueCount = 10000;
     for (int i = 0; i < valueCount; i++) { 
-      compositeActivityValues.update(i, String.format("%08d", i), ActivityIntValuesPersistenceTest.toMap(new JSONObject().put("likes", "+1")));
+      compositeActivityValues.update(i, String.format("%08d", i), ActivityPrimitiveValuesPersistenceTest.toMap(new JSONObject().put("likes", "+1")));
     }    
     compositeActivityValues.flush();
     compositeActivityValues.syncWithPersistentVersion(String.format("%08d", valueCount - 1));
@@ -77,7 +77,7 @@ public class PurgeUnusedActivitiesJobTest extends TestCase {
     compositeActivityValues.executor.shutdown();
     compositeActivityValues.executor.awaitTermination(10, TimeUnit.SECONDS);
     for (int i = 0; i < 10; i++) { 
-      compositeActivityValues.update(i, String.format("%08d", valueCount + i), ActivityIntValuesPersistenceTest.toMap(new JSONObject().put("likes", "+1")));
+      compositeActivityValues.update(i, String.format("%08d", valueCount + i), ActivityPrimitiveValuesPersistenceTest.toMap(new JSONObject().put("likes", "+1")));
     }  
     assertEquals(12, compositeActivityValues.uidToArrayIndex.size());
     assertEquals(9988, compositeActivityValues.deletedIndexes.size());

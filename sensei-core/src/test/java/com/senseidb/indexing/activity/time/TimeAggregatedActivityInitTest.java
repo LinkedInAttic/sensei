@@ -6,7 +6,7 @@ import org.junit.Test;
 
 import scala.actors.threadpool.Arrays;
 
-import com.senseidb.indexing.activity.ActivityIntValues;
+import com.senseidb.indexing.activity.primitives.ActivityIntValues;
 import com.senseidb.indexing.activity.time.TimeAggregatedActivityValues.IntValueHolder;
 import com.senseidb.indexing.activity.time.TimeAggregatedActivityValues.TimeHitsHolder;
 
