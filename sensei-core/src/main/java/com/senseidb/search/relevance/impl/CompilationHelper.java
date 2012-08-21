@@ -373,6 +373,7 @@ public class CompilationHelper
     // the first int in the following int[] is the index of the string template above (PARAM_FORMAT_STRINGS);
     // the second int in the int[] below is the index of the function parameters;
     PARAM_INIT_MAP.put(RelevanceJSONConstants.TYPENUMBER_INNER_SCORE,       new int[]{ 3,  3});
+    PARAM_INIT_MAP.put(RelevanceJSONConstants.TYPENUMBER_NOW,               new int[]{ 1,  1});
     PARAM_INIT_MAP.put(RelevanceJSONConstants.TYPENUMBER_INT,               new int[]{ 0,  0});
     PARAM_INIT_MAP.put(RelevanceJSONConstants.TYPENUMBER_LONG,              new int[]{ 1,  1});
     PARAM_INIT_MAP.put(RelevanceJSONConstants.TYPENUMBER_DOUBLE,            new int[]{ 2,  2});

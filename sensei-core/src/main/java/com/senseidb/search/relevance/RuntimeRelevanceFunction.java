@@ -220,6 +220,13 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction
     for(int i=0; i<_paramSize; i++)
     {
       switch (_types[i]) {
+      
+        // The static keyword variable initialization;
+        case RelevanceJSONConstants.TYPENUMBER_NOW:
+                  longs[_arrayIndex[i]] = ((Long)_dt.hm_var.get(_dt.lls_params.get(i))).longValue();
+                  break;
+        
+        // Normal variables;
         case RelevanceJSONConstants.TYPENUMBER_INT:  
                   ints[_arrayIndex[i]] = ((Integer)_dt.hm_var.get(_dt.lls_params.get(i))).intValue();
                   break;
@@ -245,7 +252,7 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction
                   maps[_arrayIndex[i]] = (Map)_dt.hm_var.get(_dt.lls_params.get(i));
                   break;                    
         
-        //multi-facet container initialization; 
+        // Multi-facet container initialization; 
         case RelevanceJSONConstants.TYPENUMBER_FACET_M_INT:
                   mFacetInts[_mArrayIndex[i]] =  new MFacetInt(_mDataCaches[_mFacetIndex[i]]);
                   arDynamic.add(i);
@@ -271,7 +278,7 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction
                   arDynamic.add(i);
                   break;    
         
-        //weighted multi-facet container initialization; 
+        // Weighted multi-facet container initialization; 
         case RelevanceJSONConstants.TYPENUMBER_FACET_WM_INT:
                   mFacetInts[_mArrayIndex[i]] =  new WeightedMFacetInt(_mDataCaches[_mFacetIndex[i]]);
                   arDynamic.add(i);
@@ -345,6 +352,10 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction
         arrayIndex[i] = float_index;
         float_index++;
         break;
+      case RelevanceJSONConstants.TYPENUMBER_NOW:
+        arrayIndex[i] = long_index;
+        long_index++;
+        break;  
       case RelevanceJSONConstants.TYPENUMBER_FACET_INT:
         facetName = _dt.hm_symbol_facet.get(symbol);
         index = _dt.hm_facet_index.get(facetName);
