@@ -222,6 +222,13 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction
     for(int i=0; i<_paramSize; i++)
     {
       switch (_types[i]) {
+      
+        // The static keyword variable initialization;
+        case RelevanceJSONConstants.TYPENUMBER_NOW:
+                  longs[_arrayIndex[i]] = ((Long)_dt.hm_var.get(_dt.lls_params.get(i))).longValue();
+                  break;
+        
+        // Normal variables;
         case RelevanceJSONConstants.TYPENUMBER_INT:  
                   ints[_arrayIndex[i]] = ((Integer)_dt.hm_var.get(_dt.lls_params.get(i))).intValue();
                   break;
@@ -247,12 +254,10 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction
                   maps[_arrayIndex[i]] = (Map)_dt.hm_var.get(_dt.lls_params.get(i));
                   break;  
                   
-        
         // Custom Object;          
         case RelevanceJSONConstants.TYPENUMBER_CUSTOM_OBJ:
                   objs[_arrayIndex[i]] = _dt.hm_var.get(_dt.lls_params.get(i));
                   break;  
-                  
                   
         // Multi-facet container initialization; 
         case RelevanceJSONConstants.TYPENUMBER_FACET_M_INT:
@@ -355,6 +360,10 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction
         arrayIndex[i] = float_index;
         float_index++;
         break;
+      case RelevanceJSONConstants.TYPENUMBER_NOW:
+          arrayIndex[i] = long_index;
+          long_index++;
+          break;
       case RelevanceJSONConstants.TYPENUMBER_CUSTOM_OBJ:
         arrayIndex[i] = obj_index;
         obj_index++;
