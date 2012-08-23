@@ -22,19 +22,24 @@ public class ActivityPersistenceFactory {
 
   private Metadata metadata;
   private static String indexDirPath;
+
+  private final ActivityConfig activityConfig;
   public static ActivityPersistenceFactory getInstance(String indexDirPath) {
+    return getInstance(indexDirPath, new ActivityConfig());
+  }
+  public static ActivityPersistenceFactory getInstance(String indexDirPath, ActivityConfig activityConfig) {
     if (overrideForCurrentThread.get() != null) {
       ActivityPersistenceFactory ret = overrideForCurrentThread.get();     
       return ret;
     }    
-    return new ActivityPersistenceFactory( indexDirPath);   
+    return new ActivityPersistenceFactory( indexDirPath, activityConfig);   
   }
   public static ActivityPersistenceFactory getInMemoryInstance() {
     return new ActivityInMemoryFactory();
   }
-  protected ActivityPersistenceFactory(String indexDirPath) {
+  protected ActivityPersistenceFactory(String indexDirPath, ActivityConfig activityConfig) {
     this.indexDirPath = indexDirPath;
-    // TODO Auto-generated constructor stub
+    this.activityConfig = activityConfig;
   }
   
 
@@ -101,4 +106,8 @@ public class ActivityPersistenceFactory {
   public static void setOverrideForCurrentThread(ActivityPersistenceFactory overrideForCurrentThread) {
     ActivityPersistenceFactory.overrideForCurrentThread.set(overrideForCurrentThread);
   }
+  public ActivityConfig getActivityConfig() {
+    return activityConfig;
+  }
+  
 }

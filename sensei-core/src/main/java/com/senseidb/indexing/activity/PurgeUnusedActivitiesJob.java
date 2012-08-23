@@ -49,7 +49,9 @@ public class PurgeUnusedActivitiesJob implements Runnable, PurgeUnusedActivities
     
   }
   public void start() {
-    executorService.scheduleAtFixedRate(this, frequencyInMillis, frequencyInMillis, TimeUnit.MILLISECONDS); 
+    if (frequencyInMillis > 0) {
+      executorService.scheduleAtFixedRate(this, frequencyInMillis, frequencyInMillis, TimeUnit.MILLISECONDS); 
+    }
     MBeanServer platformMBeanServer = ManagementFactory.getPlatformMBeanServer();
     ObjectName name;
     try {

@@ -58,14 +58,13 @@ public class CompositeActivityManager implements PluggableSearchEngine {
     private ShardingStrategy shardingStrategy;
     private SenseiCore senseiCore;
     private PurgeUnusedActivitiesJob purgeUnusedActivitiesJob;
-    private SenseiPluginRegistry pluginRegistry; 
     private Map<String, Set<String>> columnToFacetMapping = new HashMap<String, Set<String>>();
     private static Counter recoveredIndexInBoboFacetDataCache;
     private static Counter facetMappingMismatch;
     private ActivityPersistenceFactory activityPersistenceFactory;
     static {
       recoveredIndexInBoboFacetDataCache = Metrics.newCounter(new MetricName(CompositeActivityManager.class, "recoveredIndexInBoboFacetDataCache"));
-      facetMappingMismatch = Metrics.newCounter(new MetricName(CompositeActivityManager.class, "facetMappingMismatch"));
+      facetMappingMismatch =  Metrics.newCounter(new MetricName(CompositeActivityManager.class, "facetMappingMismatch"));
     }
     public CompositeActivityManager(ActivityPersistenceFactory activityPersistenceFactory) {      
       this.activityPersistenceFactory = activityPersistenceFactory;
@@ -86,7 +85,6 @@ public class CompositeActivityManager implements PluggableSearchEngine {
     }
     public final void init(String indexDirectory, int nodeId, SenseiSchema senseiSchema, Comparator<String> versionComparator, SenseiPluginRegistry pluginRegistry, ShardingStrategy shardingStrategy) {
       this.senseiSchema = senseiSchema;
-      this.pluginRegistry = pluginRegistry;
       this.shardingStrategy = shardingStrategy;
       try {
         if (activityPersistenceFactory == null) {
@@ -96,7 +94,8 @@ public class CompositeActivityManager implements PluggableSearchEngine {
             File dir = new File(indexDirectory, "node" +nodeId +"/activity");
             dir.mkdirs();
             String canonicalPath = dir.getCanonicalPath();
-            activityPersistenceFactory = ActivityPersistenceFactory.getInstance(canonicalPath);
+            ActivityConfig activityConfig = new ActivityConfig(pluginRegistry);
+            activityPersistenceFactory = ActivityPersistenceFactory.getInstance(canonicalPath, activityConfig);
           }
         }
         
@@ -334,8 +333,10 @@ public class CompositeActivityManager implements PluggableSearchEngine {
         zoieSystems.add((IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>) senseiCore.getIndexReaderFactory(partition));
       }
     }
-    purgeUnusedActivitiesJob = new PurgeUnusedActivitiesJob(activityValues, zoieSystems, PurgeUnusedActivitiesJob.extractFrequency(pluginRegistry));
+    int purgeJobFrequencyInMinutes = activityPersistenceFactory.getActivityConfig().getPurgeJobFrequencyInMinutes();
+    purgeUnusedActivitiesJob = new PurgeUnusedActivitiesJob(activityValues, zoieSystems, purgeJobFrequencyInMinutes * 60 * 1000);
     purgeUnusedActivitiesJob.start();
+    
   }
   public void stop() {
     purgeUnusedActivitiesJob.stop();

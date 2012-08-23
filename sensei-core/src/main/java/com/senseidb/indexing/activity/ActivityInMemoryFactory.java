@@ -7,7 +7,7 @@ import com.senseidb.indexing.activity.primitives.ActivityPrimitivesStorage;
 public class ActivityInMemoryFactory extends ActivityPersistenceFactory {
 
   protected ActivityInMemoryFactory() {
-    super("");
+    super("", new ActivityConfig());
   }
   @Override
   public AggregatesMetadata createAggregatesMetadata(String fieldName) {

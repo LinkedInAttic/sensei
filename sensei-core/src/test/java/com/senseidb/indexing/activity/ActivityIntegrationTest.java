@@ -335,7 +335,7 @@ public void test5PurgeUnusedActivities() throws Exception {
     inMemoryColumnData2.syncWithPersistentVersion(String.valueOf(expectedVersion - 1));
     String absolutePath = SenseiStarter.IndexDir + "/node1/" + "activity/";
     FieldDefinition fieldDefinition = getLikesFieldDefinition();
-    CompositeActivityValues compositeActivityValues =  CompositeActivityValues.createCompositeValues(ActivityPersistenceFactory.getInstance(absolutePath), java.util.Arrays.asList(fieldDefinition), Collections.EMPTY_LIST, ZoieConfig.DEFAULT_VERSION_COMPARATOR);
+    CompositeActivityValues compositeActivityValues =  CompositeActivityValues.createCompositeValues(ActivityPersistenceFactory.getInstance(absolutePath, new ActivityConfig()), java.util.Arrays.asList(fieldDefinition), Collections.EMPTY_LIST, ZoieConfig.DEFAULT_VERSION_COMPARATOR);
     assertEquals(1, compositeActivityValues.getIntValueByUID(1L, "likes"));
     assertEquals(1, inMemoryColumnData1.getIntValueByUID(1L, "likes"));
   }

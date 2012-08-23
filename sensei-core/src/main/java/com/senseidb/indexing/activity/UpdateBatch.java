@@ -12,7 +12,14 @@ import java.util.List;
 public class UpdateBatch<T> {
   int batchSize = 50000;
   protected volatile List<T> updates = new ArrayList<T>(batchSize);
+  long delay = 15 * 1000;
   long time = System.currentTimeMillis();
+  private UpdateBatch() {
+  }
+  public UpdateBatch(ActivityConfig activityConfig) {
+    batchSize = activityConfig.getFlushBufferSize();
+    delay = activityConfig.getFlushBufferMaxDelayInSeconds();
+  }
   public boolean addFieldUpdate(T fieldUpdate) {
     updates.add(fieldUpdate);
     if (flushNeeded()) {
