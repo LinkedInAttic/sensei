@@ -98,7 +98,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
         logger.info("Trying to get sysinfo");
         SenseiSystemInfo sysInfo = _senseiSysBroker.browse(new SenseiRequest());
 
-        _facetInfoMap = extractFacetInfo(sysInfo);
+        _facetInfoMap = sysInfo != null && sysInfo.getFacetInfos() != null ? extractFacetInfo(sysInfo) : new HashMap<String, String[]>();
         _compiler = new BQLCompiler(_facetInfoMap);
         break;
       }

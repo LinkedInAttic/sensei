@@ -59,7 +59,7 @@ public class PluggableSearchEngineManager implements DeletionListener, Hourglass
     this.shardingStrategy = shardingStrategy;    
 
 
-    maxPartition = pluginRegistry.getConfiguration().getInt("sensei.index.manager.default.maxpartition.id") + 1;
+    maxPartition = pluginRegistry.getConfiguration().getInt("sensei.index.manager.default.maxpartition.id", 0) + 1;
     pluggableEngines = new ArrayList<PluggableSearchEngine>(pluginRegistry.resolveBeansByListKey("sensei.search.pluggableEngines", PluggableSearchEngine.class));
     if (CompositeActivityManager.activitiesPresent(senseiSchema)) {
       pluggableEngines.add(new CompositeActivityManager());
