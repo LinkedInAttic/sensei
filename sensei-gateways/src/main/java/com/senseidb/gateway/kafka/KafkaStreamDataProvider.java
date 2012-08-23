@@ -26,6 +26,7 @@ public class KafkaStreamDataProvider extends StreamDataProvider<JSONObject>{
 
   private final String _topic;
   private final String _consumerGroupId;
+  private Properties _kafkaConfig;
   private ConsumerConnector _consumerConnector;
   private ConsumerIterator<Message> _consumerIterator;
 
@@ -38,6 +39,11 @@ public class KafkaStreamDataProvider extends StreamDataProvider<JSONObject>{
   
   public KafkaStreamDataProvider(Comparator<String> versionComparator,String zookeeperUrl,int soTimeout,int batchSize,
                                  String consumerGroupId,String topic,long startingOffset,DataSourceFilter<DataPacket> dataConverter){
+    this(versionComparator, zookeeperUrl, soTimeout, batchSize, consumerGroupId, topic, startingOffset, dataConverter, null);
+  }
+
+  public KafkaStreamDataProvider(Comparator<String> versionComparator,String zookeeperUrl,int soTimeout,int batchSize,
+                                 String consumerGroupId,String topic,long startingOffset,DataSourceFilter<DataPacket> dataConverter,Properties kafkaConfig){
     super(versionComparator);
     _consumerGroupId = consumerGroupId;
     _topic = topic;
@@ -46,6 +52,11 @@ public class KafkaStreamDataProvider extends StreamDataProvider<JSONObject>{
     _kafkaSoTimeout = soTimeout;
     _consumerConnector = null;
     _consumerIterator = null;
+
+    _kafkaConfig = kafkaConfig;
+    if (kafkaConfig == null) {
+      kafkaConfig = new Properties();
+    }
 
     _dataConverter = dataConverter;
     if (_dataConverter == null){
@@ -106,6 +117,10 @@ public class KafkaStreamDataProvider extends StreamDataProvider<JSONObject>{
     props.put("zk.connect", _zookeeperUrl);
     //props.put("consumer.timeout.ms", _kafkaSoTimeout);
     props.put("groupid", _consumerGroupId);
+
+    for (String key : _kafkaConfig.stringPropertyNames()) {
+      props.put(key, _kafkaConfig.getProperty(key));
+    }
 
     ConsumerConfig consumerConfig = new ConsumerConfig(props);
     _consumerConnector = Consumer.createJavaConsumerConnector(consumerConfig);
