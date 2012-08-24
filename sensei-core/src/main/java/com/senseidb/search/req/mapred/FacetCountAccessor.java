@@ -66,7 +66,7 @@ public class FacetCountAccessor {
       if (!facetCountCollectors.containsKey(facetName)) {
         return -1;
       }
-      return facetCountCollectors.get(facetName).getCountDistribution()[valIndex];
+      return facetCountCollectors.get(facetName).getCountDistribution().get(valIndex);
     }
     /**Returns the Bobo specific class that is responsible for facet counting
      * @param facetName
