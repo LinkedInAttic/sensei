@@ -27,21 +27,21 @@ public abstract class AbstractSenseiRestServlet extends AbstractSenseiClientServ
 		return buildSenseiRequest(params);
 	}
 	
-	abstract protected String buildResultString(SenseiRequest req,SenseiResult res) throws Exception;
+	abstract protected String buildResultString(HttpServletRequest httpReq, SenseiRequest req,SenseiResult res) throws Exception;
 
-	abstract protected String buildResultString(SenseiSystemInfo info) throws Exception;
+	abstract protected String buildResultString(HttpServletRequest httpReq, SenseiSystemInfo info) throws Exception;
 
 	@Override
-	protected void convertResult(SenseiSystemInfo info, OutputStream ostream)
+	protected void convertResult(HttpServletRequest httpReq, SenseiSystemInfo info, OutputStream ostream)
 			throws Exception {
-		String outString = buildResultString(info);
+		String outString = buildResultString(httpReq, info);
 		ostream.write(outString.getBytes("UTF-8"));
 	}
 
 	@Override
-	protected void convertResult(SenseiRequest req,SenseiResult res, OutputStream ostream)
+	protected void convertResult(HttpServletRequest httpReq, SenseiRequest req,SenseiResult res, OutputStream ostream)
 			throws Exception {
-		String outString = buildResultString(req,res);
+		String outString = buildResultString(httpReq, req,res);
 		ostream.write(outString.getBytes("UTF-8"));
 	}
 }

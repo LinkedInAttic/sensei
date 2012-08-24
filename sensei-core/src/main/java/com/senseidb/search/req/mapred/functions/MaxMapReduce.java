@@ -6,6 +6,10 @@ import java.util.List;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import scala.actors.threadpool.Arrays;
+
+import com.senseidb.search.req.mapred.CombinerStage;
+import com.senseidb.search.req.mapred.FacetCountAccessor;
 import com.senseidb.search.req.mapred.FieldAccessor;
 import com.senseidb.search.req.mapred.SenseiMapReduce;
 
@@ -14,7 +18,7 @@ public class MaxMapReduce implements SenseiMapReduce<MaxResult, MaxResult> {
   private String column;
 
   @Override
-  public MaxResult map(int[] docIds, int docIdCount, long[] uids, FieldAccessor accessor) {
+  public MaxResult map(int[] docIds, int docIdCount, long[] uids, FieldAccessor accessor, FacetCountAccessor facetCountAccessor) {
     double max = Double.MIN_VALUE;
     double tmp = 0;
     long uid = 0l;
@@ -29,7 +33,7 @@ public class MaxMapReduce implements SenseiMapReduce<MaxResult, MaxResult> {
   }
 
   @Override
-  public List<MaxResult> combine(List<MaxResult> mapResults) {
+  public List<MaxResult> combine(List<MaxResult> mapResults, CombinerStage combinerStage) {
     if (mapResults.isEmpty()) {
       return mapResults;
     }
@@ -38,10 +42,8 @@ public class MaxMapReduce implements SenseiMapReduce<MaxResult, MaxResult> {
       if (ret.value < mapResults.get(i).value) {
         ret = mapResults.get(i);
       }
-    }
-    mapResults.clear();
-    mapResults.add(ret);
-    return mapResults;
+    } 
+    return java.util.Arrays.asList(ret);
   }
 
   @Override

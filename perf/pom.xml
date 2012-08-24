@@ -5,7 +5,7 @@
 	
 	<groupId>com.senseidb</groupId>
 	<artifactId>sensei-perf</artifactId>
-	<version>1.1.2</version>
+	<version>1.5.2</version>
 	<packaging>jar</packaging>
 	<name>sensei-perf</name>
 	<description>sensei perf</description>
@@ -25,7 +25,6 @@
 			</plugin>
 		</plugins>
 		
-        <directory>${basedir}/perf-sensei-conf/ext</directory>
 	</build>
 
 	<properties>
@@ -36,8 +35,14 @@
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>sensei-core</artifactId>
-			<version>1.1.2</version>
+            <version>${project.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>sensei-java-client</artifactId>
+            <version>${project.version}</version>
+		</dependency>
+		
 		<dependency>
 			<groupId>com.yammer.metrics</groupId>
 			<artifactId>metrics-core_2.8.1</artifactId>

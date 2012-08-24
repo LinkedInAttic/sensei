@@ -26,6 +26,10 @@ import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_OFFSET;
 import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_PARTITIONS;
 import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_QUERY;
 import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_QUERY_PARAM;
+import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_ERRORS;
+import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_ERROR_CODE;
+import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_ERROR_MESSAGE;
+import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_ERROR_TYPE;
 import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_FACETS;
 import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_FACET_INFO_COUNT;
 import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_FACET_INFO_SELECTED;
@@ -96,6 +100,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.DataConfiguration;
 import org.apache.commons.lang.StringUtils;
@@ -107,6 +113,7 @@ import org.apache.lucene.search.SortField;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.springframework.util.Assert;
 
 import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.BrowseHit;
@@ -116,6 +123,7 @@ import com.browseengine.bobo.api.FacetAccessible;
 import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
 import com.browseengine.bobo.facets.DefaultFacetHandlerInitializerParam;
+import com.senseidb.search.req.SenseiError;
 import com.senseidb.search.req.SenseiHit;
 import com.senseidb.search.req.SenseiJSONQuery;
 import com.senseidb.search.req.SenseiQuery;
@@ -294,10 +302,19 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
   }
 
   @Override
-  protected String buildResultString(SenseiRequest req, SenseiResult res)
+  protected String buildResultString(HttpServletRequest httpReq, SenseiRequest req, SenseiResult res)
       throws Exception
   {
-    return buildJSONResultString(req, res);
+    return supportJsonp(httpReq, buildJSONResultString(req, res));
+  }
+
+  private String supportJsonp(HttpServletRequest httpReq, String jsonString) {
+    String callback = httpReq.getParameter("callback");
+    if (callback != null) {
+      return callback + "(" + jsonString + ");";
+    } else {
+      return jsonString;
+    }   
   }
 
   public static String buildJSONResultString(SenseiRequest req, SenseiResult res)
@@ -446,7 +463,7 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
     jsonObj.put(PARAM_RESULT_NUMHITS, res.getNumHits());
     jsonObj.put(PARAM_RESULT_NUMGROUPS, res.getNumGroups());
     jsonObj.put(PARAM_RESULT_PARSEDQUERY, res.getParsedQuery());
-
+    addErrors(jsonObj, res);
     SenseiHit[] hits = res.getSenseiHits();
     JSONArray hitArray = buildJSONHits(req, hits);
     jsonObj.put(PARAM_RESULT_HITS, hitArray);
@@ -469,6 +486,21 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
     }
    
     return jsonObj;
+  }
+
+  private static void addErrors(JSONObject jsonResult, SenseiResult res) throws JSONException {
+    JSONArray errorsJson = new JSONArray();
+    for (SenseiError error: res.getErrors()) {
+      errorsJson.put(new JSONObject().put(PARAM_RESULT_ERROR_MESSAGE, error.getMessage())
+                                     .put(PARAM_RESULT_ERROR_TYPE, error.getErrorType().name())
+                                     .put(PARAM_RESULT_ERROR_CODE, error.getErrorCode()));
+    }
+    jsonResult.put(PARAM_RESULT_ERRORS, errorsJson);
+    if (res.getErrors().size() > 0) {
+      jsonResult.put(PARAM_RESULT_ERROR_CODE, res.getErrors().get(0).getErrorCode());
+    } else {
+      jsonResult.put(PARAM_RESULT_ERROR_CODE, 0);
+    }
   }
 
   private static SenseiQuery buildSenseiQuery(DataConfiguration params)
@@ -884,7 +916,7 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
   }
 
   @Override
-  protected String buildResultString(SenseiSystemInfo info) throws Exception {
+  protected String buildResultString(HttpServletRequest httpReq, SenseiSystemInfo info) throws Exception {
     JSONObject jsonObj = new JSONObject();
     jsonObj.put(PARAM_SYSINFO_NUMDOCS, info.getNumDocs());
     jsonObj.put(PARAM_SYSINFO_LASTMODIFIED, info.getLastModified());
@@ -924,6 +956,6 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
       }
     }
 
-    return jsonObj.toString();
+    return supportJsonp(httpReq, jsonObj.toString());
   }
 }

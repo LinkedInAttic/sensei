@@ -18,5 +18,6 @@ public interface SenseiJobConfig {
 	public static final String FORCE_OUTPUT_OVERWRITE = "sensei.force.output.overwrite";
 	public static final String INPUT_DIRS = "sensei.input.dirs";
 	public static final String OUTPUT_DIR = "sensei.output.dir";
+	public static final String INDEX_SUBDIR_PREFIX = "sensei.index.prefix";
 	
 }

@@ -6,6 +6,8 @@ import java.util.List;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.senseidb.search.req.mapred.CombinerStage;
+import com.senseidb.search.req.mapred.FacetCountAccessor;
 import com.senseidb.search.req.mapred.FieldAccessor;
 import com.senseidb.search.req.mapred.SenseiMapReduce;
 
@@ -14,7 +16,7 @@ public class MinMapReduce implements SenseiMapReduce<MinResult, MinResult> {
   private String column;
 
   @Override
-  public MinResult map(int[] docIds, int docIdCount, long[] uids, FieldAccessor accessor) {
+  public MinResult map(int[] docIds, int docIdCount, long[] uids, FieldAccessor accessor, FacetCountAccessor facetCountAccessor) {
     double min = Double.MAX_VALUE;
     double tmp = 0;
     long uid = 0l;
@@ -29,7 +31,7 @@ public class MinMapReduce implements SenseiMapReduce<MinResult, MinResult> {
   }
 
   @Override
-  public List<MinResult> combine(List<MinResult> mapResults) {
+  public List<MinResult> combine(List<MinResult> mapResults, CombinerStage combinerStage) {
     if (mapResults.isEmpty()) {
       return mapResults;
     }

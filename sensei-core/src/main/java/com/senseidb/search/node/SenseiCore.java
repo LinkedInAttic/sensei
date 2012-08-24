@@ -19,7 +19,9 @@ import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.facets.RuntimeFacetHandlerFactory;
 import com.senseidb.indexing.SenseiIndexPruner;
 import com.senseidb.indexing.SenseiIndexPruner.DefaultSenseiIndexPruner;
+import com.senseidb.indexing.activity.CompositeActivityManager;
 import com.senseidb.jmx.JmxUtil;
+import com.senseidb.search.plugin.PluggableSearchEngineManager;
 import com.senseidb.search.req.SenseiSystemInfo;
 
 
@@ -37,6 +39,8 @@ public class SenseiCore{
   private SenseiSystemInfo _senseiSystemInfo;
   private volatile boolean _started;
   private SenseiIndexPruner _pruner;
+
+  private PluggableSearchEngineManager pluggableSearchEngineManager;
     
   public SenseiCore(int id,int[] partitions,
             SenseiZoieFactory<?> zoieSystemFactory,
@@ -171,6 +175,7 @@ public class SenseiCore{
         _readerFactoryMap.put(part, zoieSystem);
       }
       try{
+        pluggableSearchEngineManager.start(this);
         logger.info("initializing index manager...");
         if (_indexManager!=null){
           _indexManager.initialize(_readerFactoryMap);
@@ -232,4 +237,12 @@ public class SenseiCore{
     _indexManager.syncWithVersion(timeToWait, version);
   }
 
+  public void setPluggableSearchEngineManager(PluggableSearchEngineManager pluggableSearchEngineManager) {
+    this.pluggableSearchEngineManager = pluggableSearchEngineManager;
+  }
+
+  public PluggableSearchEngineManager getPluggableSearchEngineManager() {
+    return pluggableSearchEngineManager;
+  }
+  
 }

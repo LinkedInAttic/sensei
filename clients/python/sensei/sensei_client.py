@@ -28,6 +28,7 @@ from bql_parser import BQLParser, BQLRequest
 from sensei_components import *
 from pyparsing import ParseException, ParseFatalException, ParseSyntaxException
 
+BQL_PARSING_ERROR_CODE = 150
 
 logger = logging.getLogger("sensei_client")
 
@@ -386,11 +387,11 @@ exit              Exit
 
       if command == "select":
         res = client.doQuery(stmt, var_map=var_map)
-        error = res.error
+        error = res.errors and res.errors[0] or None
         if error:
-          err_code = error.get("code")
-          err_msg = error.get("msg")
-          if err_code == 499:
+          err_code = error.get(PARAM_RESULT_ERROR_CODE)
+          err_msg = error.get(PARAM_RESULT_ERROR_MESSAGE)
+          if err_code == BQL_PARSING_ERROR_CODE:
             err_match = re.match(r'^\[line:(\d+), col:(\d+)\].*', err_msg)
             print '%s^' % (' ' * (5 + int(err_match.group(2))))
             print err_msg

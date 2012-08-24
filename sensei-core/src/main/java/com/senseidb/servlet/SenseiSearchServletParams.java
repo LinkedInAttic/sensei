@@ -14,7 +14,7 @@ public interface SenseiSearchServletParams {
 	public static final String PARAM_SORT_DOC_REVERSE = "docrev";
 	public static final String PARAM_FETCH_STORED = "fetchstored";
 	public static final String PARAM_FETCH_STORED_VALUE = "fetchstoredvalue";
-    public static final String PARAM_FETCH_TERMVECTOR = "fetchtermvector";
+  public static final String PARAM_FETCH_TERMVECTOR = "fetchtermvector";
 	public static final String PARAM_SHOW_EXPLAIN = "showexplain";
 	public static final String PARAM_ROUTE_PARAM = "routeparam";
 	public static final String PARAM_GROUP_BY = "groupby";
@@ -48,7 +48,7 @@ public interface SenseiSearchServletParams {
 
 	public static final String PARAM_RESULT_PARSEDQUERY = "parsedquery";
 	public static final String PARAM_RESULT_HIT_STORED_FIELDS = "_stored";
-    public static final String PARAM_RESULT_HIT_TERMVECTORS = "_termvectors";
+  public static final String PARAM_RESULT_HIT_TERMVECTORS = "_termvectors";
 	public static final String PARAM_RESULT_HIT_STORED_FIELDS_NAME = "name";
 	public static final String PARAM_RESULT_HIT_STORED_FIELDS_VALUE = "val";
 	public static final String PARAM_RESULT_HIT_EXPLANATION = "_explanation";
@@ -58,6 +58,10 @@ public interface SenseiSearchServletParams {
 	public static final String PARAM_RESULT_HIT_GROUPHITS = "grouphits";
 	public static final String PARAM_RESULT_FACETS = "facets";
 
+  public static final String PARAM_RESULT_ERRORS = "errors";
+  public static final String PARAM_RESULT_ERROR_CODE = "errorCode";
+  public static final String PARAM_RESULT_ERROR_MESSAGE = "message";
+  public static final String PARAM_RESULT_ERROR_TYPE = "errorType";
 	public static final String PARAM_RESULT_TID = "tid";
 	public static final String PARAM_RESULT_TOTALDOCS = "totaldocs";
 	public static final String PARAM_RESULT_TOTALGROUPS = "totalgroups";

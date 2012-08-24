@@ -6,4 +6,5 @@ public interface AbstractSenseiResult extends Serializable
 {
   public abstract long getTime();
   public abstract void setTime(long searchTimeMillis);
+  public void addError(SenseiError error);
 }

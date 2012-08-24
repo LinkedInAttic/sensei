@@ -16,6 +16,7 @@ import junit.framework.TestCase;
 
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.browseengine.bobo.api.BrowseFacet;
@@ -249,6 +250,24 @@ public class TestSensei extends TestCase {
     assertEquals("numhits is wrong", 1534, res.getInt("numhits"));
   }
 
+  public void testBqlRelevance1() throws Exception
+  {
+    logger.info("Executing test case testBqlRelevance1");
+    String req = "{\"bql\":\"SELECT * FROM cars USING RELEVANCE MODEL my_model (thisYear:2001, goodYear:[1996]) DEFINED AS (int thisYear, IntOpenHashSet goodYear) BEGIN if (goodYear.contains(year)) return (float)Math.exp(10d); if (year==thisYear) return 87f; return _INNER_SCORE; END\"}";
+    
+    JSONObject res = search(new JSONObject(req));
+
+    JSONArray hits = res.getJSONArray("hits");
+    JSONObject firstHit = hits.getJSONObject(0);
+    JSONObject secondHit = hits.getJSONObject(1);
+    
+    String firstYear = firstHit.getJSONArray("year").getString(0);
+    String secondYear = secondHit.getJSONArray("year").getString(0);
+    
+    assertEquals("year 1996 should be on the top", true, firstYear.contains("1996"));
+    assertEquals("year 1996 should be on the top", true, secondYear.contains("1996"));
+  }
+
   public void testSelectionTerm() throws Exception
   {
     logger.info("executing test case Selection term");
@@ -264,6 +283,7 @@ public class TestSensei extends TestCase {
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 4483, res.getInt("numhits"));
   }
+
   public void testSelectionDynamicTimeRangeJson() throws Exception
   {
     logger.info("executing test case Selection terms");
@@ -275,6 +295,18 @@ public class TestSensei extends TestCase {
     assertEquals("numhits is wrong", 12990, res.getInt("numhits"));
   }
  
+  public void testSelectionDynamicTimeRangeJson2() throws Exception
+  {
+    // Test scalar values in facet init parameters
+    logger.info("executing test case Selection terms");
+    String req = "{\"selections\":[{\"term\":{\"timeRange\":{\"value\":\"000000013\"}}}]" +
+    		", \"facetInit\":{    \"timeRange\":{\"time\" :{  \"type\" : \"long\",\"values\" : 15000 }}}" +
+    		"}";
+    System.out.println(req);
+    JSONObject res = search(new JSONObject(req));
+    assertEquals("numhits is wrong", 12990, res.getInt("numhits"));
+  }
+
   public void testSelectionRange() throws Exception
   {
     //2000 1548;
@@ -657,7 +689,7 @@ public class TestSensei extends TestCase {
     logger.info("executing test case testRangeFilter3");
     String req = "{\"fetchStored\":true,\"selections\":[{\"term\":{\"color\":{\"value\":\"red\"}}}],\"from\":0,\"filter\":{\"query\":{\"query_string\":{\"query\":\"cool AND moon-roof AND hybrid\"}}},\"size\":10}";
     JSONObject res = search(new JSONObject(req));
-    //TODO Sensei returns undeterministic results for this query. Will create a Jira issue
+    //TODO Sensei returns undeterministic results for this query. Will create a Jira ticket
     assertTrue("numhits is wrong", res.getInt("numhits") > 10);
   }
   public void testFallbackGroupBy() throws Exception
@@ -740,10 +772,27 @@ public class TestSensei extends TestCase {
     assertEquals("inner score for second is not correct." , true, secondScore == 1);
   }
   
+  public void testRelevanceNOW() throws Exception
+  {
+    logger.info("executing test case testRelevanceNOW");
+    // Assume that the difference between request side "now" and node side "_NOW" is less than 2000ms.
+    String req = "{\"sort\":[\"_score\"],\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"model\":{\"function_params\":[\"_INNER_SCORE\",\"year\",\"goodYear\",\"_NOW\",\"now\"],\"facets\":{\"int\":[\"year\",\"mileage\"],\"long\":[\"groupid\"]},\"function\":\" if(Math.abs(_NOW - now) < 2000) return 10000f; if(goodYear.contains(year)) return _INNER_SCORE ; return  _INNER_SCORE    ;\",\"variables\":{\"set_int\":[\"goodYear\"],\"int\":[\"thisYear\"],\"long\":[\"now\"]}},\"values\":{\"thisYear\":2001,\"now\":"+ System.currentTimeMillis() +",\"goodYear\":[1996]}}}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":6}";
+    JSONObject res = search(new JSONObject(req));
+    JSONArray hits = res.getJSONArray("hits");
+    JSONObject firstHit = hits.getJSONObject(0);
+    JSONObject secondHit = hits.getJSONObject(1);
+    
+    double firstScore = firstHit.getDouble("_score");
+    double secondScore = secondHit.getDouble("_score");
+    
+    assertEquals("inner score for first is not correct." , true, firstScore == 10000f );
+    assertEquals("inner score for second is not correct." , true, secondScore == 10000f);
+  }
+  
   public void testRelevanceHashMapInt2Float() throws Exception
   {
-    logger.info("executing test case testRelevanceHashMapInt2Int");
-    String req = "{\"sort\":[\"_score\"],\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"model\":{\"function_params\":[\"_INNER_SCORE\",\"thisYear\",\"year\",\"goodYear\",\"mileageWeight\",\"mileage\"],\"facets\":{\"int\":[\"year\",\"mileage\"],\"long\":[\"groupid\"]},\"function\":\" if(mileageWeight.containsKey(mileage)) return 10000+mileageWeight.get(mileage); if(goodYear.contains(year)) return (float)Math.exp(2d);   if(year==thisYear) return 87f   ; return  _INNER_SCORE;\",\"variables\":{\"map_int_float\":[\"mileageWeight\"],\"set_int\":[\"goodYear\"],\"int\":[\"thisYear\"]}},\"values\":{\"thisYear\":2001,\"mileageWeight\":{\"value\":[777.9,10.2],\"key\":[11400,11000]},\"goodYear\":[1996,1997]}}}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":6}";
+    logger.info("executing test case testRelevanceHashMapInt2Float");
+    String req = "{\"sort\":[\"_score\"],\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"model\":{\"function_params\":[\"_INNER_SCORE\",\"thisYear\",\"year\",\"goodYear\",\"mileageWeight\",\"mileage\"],\"facets\":{\"int\":[\"year\",\"mileage\"],\"long\":[\"groupid\"]},\"function\":\" if(mileageWeight.containsKey(mileage)) return 10000+mileageWeight.get(mileage); if(goodYear.contains(year)) return (float)Math.exp(2d);   if(year==thisYear) return 87f   ; return  _INNER_SCORE;\",\"variables\":{\"map_int_float\":[\"mileageWeight\"],\"set_int\":[\"goodYear\"],\"int\":[\"thisYear\"]}},\"values\":{\"thisYear\":2001,\"mileageWeight\":{\"11400\":777.9, \"11000\":10.2},\"goodYear\":[1996,1997]}}}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":6}";
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 15000, res.getInt("numhits"));
     //the first one should has socre 10777.900390625, and mileage: 11400;
@@ -769,7 +818,7 @@ public class TestSensei extends TestCase {
   public void testRelevanceHashMapInt2String() throws Exception
   {
     logger.info("executing test case testRelevanceHashMapInt2String");
-    String req = "{\"sort\":[\"_score\"],\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"model\":{\"function_params\":[\"_INNER_SCORE\",\"thisYear\",\"year\",\"goodYear\",\"mileageWeight\",\"mileage\",\"color\",\"yearcolor\",\"colorweight\",\"category\",\"categorycolor\"],\"facets\":{\"int\":[\"year\",\"mileage\"],\"string\":[\"color\",\"category\"],\"long\":[\"groupid\"]},\"function\":\"if(yearcolor.containsKey(year) && yearcolor.get(year).equals(color)) return 100000f; if(goodYear.contains(year)) return (float)Math.exp(2d);   if(year==thisYear) return 87f   ; return  _INNER_SCORE;\",\"variables\":{\"map_int_float\":[\"mileageWeight\"],\"map_int_string\":[\"yearcolor\"],\"set_int\":[\"goodYear\"],\"int\":[\"thisYear\"],\"map_string_float\":[\"colorweight\"],\"map_string_string\":[\"categorycolor\"]}},\"values\":{\"thisYear\":2001,\"yearcolor\":{\"value\":[\"red\"],\"key\":[1998]},\"mileageWeight\":{\"value\":[777.9,10.2],\"key\":[11400,11000]},\"colorweight\":{\"value\":[335.5],\"key\":[\"red\"]},\"goodYear\":[1996,1997],\"categorycolor\":{\"value\":[\"red\"],\"key\":[\"compact\"]}}}}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":6}";
+    String req = "{\"sort\":[\"_score\"],\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"model\":{\"function_params\":[\"_INNER_SCORE\",\"thisYear\",\"year\",\"goodYear\",\"mileageWeight\",\"mileage\",\"color\",\"yearcolor\",\"colorweight\",\"category\",\"categorycolor\"],\"facets\":{\"int\":[\"year\",\"mileage\"],\"string\":[\"color\",\"category\"],\"long\":[\"groupid\"]},\"function\":\"if(yearcolor.containsKey(year) && yearcolor.get(year).equals(color)) return 100000f; if(goodYear.contains(year)) return (float)Math.exp(2d);   if(year==thisYear) return 87f   ; return  _INNER_SCORE;\",\"variables\":{\"map_int_float\":[\"mileageWeight\"],\"map_int_string\":[\"yearcolor\"],\"set_int\":[\"goodYear\"],\"int\":[\"thisYear\"],\"map_string_float\":[\"colorweight\"],\"map_string_string\":[\"categorycolor\"]}},\"values\":{\"thisYear\":2001,\"yearcolor\":{\"1998\":\"red\"},\"mileageWeight\":{\"11400\":777.9, \"11000\":10.2},\"colorweight\":{\"red\":335.5},\"goodYear\":[1996,1997],\"categorycolor\":{\"compact\":\"red\"}}}}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":6}";    
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 15000, res.getInt("numhits"));
     //the first one should has socre 10777.900390625, and mileage: 11400;
@@ -800,7 +849,7 @@ public class TestSensei extends TestCase {
   public void testRelevanceHashMapString2Float() throws Exception
   {
     logger.info("executing test case testRelevanceHashMapString2Float");
-    String req = "{\"sort\":[\"_score\"],\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"model\":{\"function_params\":[\"_INNER_SCORE\",\"thisYear\",\"year\",\"goodYear\",\"mileageWeight\",\"mileage\",\"color\",\"yearcolor\",\"colorweight\",\"category\",\"categorycolor\"],\"facets\":{\"int\":[\"year\",\"mileage\"],\"string\":[\"color\",\"category\"],\"long\":[\"groupid\"]},\"function\":\" if(colorweight.containsKey(color) ) return 200f + colorweight.getFloat(color);  if(year==thisYear) return 87f   ; return  _INNER_SCORE;\",\"variables\":{\"map_int_float\":[\"mileageWeight\"],\"map_int_string\":[\"yearcolor\"],\"set_int\":[\"goodYear\"],\"int\":[\"thisYear\"],\"map_string_float\":[\"colorweight\"],\"map_string_string\":[\"categorycolor\"]}},\"values\":{\"thisYear\":2001,\"yearcolor\":{\"value\":[\"red\"],\"key\":[1998]},\"mileageWeight\":{\"value\":[777.9,10.2],\"key\":[11400,11000]},\"colorweight\":{\"value\":[335.5],\"key\":[\"red\"]},\"goodYear\":[1996,1997],\"categorycolor\":{\"value\":[\"red\"],\"key\":[\"compact\"]}}}}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":6}";
+    String req = "{\"sort\":[\"_score\"],\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"model\":{\"function_params\":[\"_INNER_SCORE\",\"thisYear\",\"year\",\"goodYear\",\"mileageWeight\",\"mileage\",\"color\",\"yearcolor\",\"colorweight\",\"category\",\"categorycolor\"],\"facets\":{\"int\":[\"year\",\"mileage\"],\"string\":[\"color\",\"category\"],\"long\":[\"groupid\"]},\"function\":\" if(colorweight.containsKey(color) ) return 200f + colorweight.getFloat(color);  if(year==thisYear) return 87f   ; return  _INNER_SCORE;\",\"variables\":{\"map_int_float\":[\"mileageWeight\"],\"map_int_string\":[\"yearcolor\"],\"set_int\":[\"goodYear\"],\"int\":[\"thisYear\"],\"map_string_float\":[\"colorweight\"],\"map_string_string\":[\"categorycolor\"]}},\"values\":{\"thisYear\":2001,\"yearcolor\":{\"1998\":\"red\"},\"mileageWeight\":{\"11400\":777.9, \"11000\":10.2},\"colorweight\":{\"red\":335.5},\"goodYear\":[1996,1997],\"categorycolor\":{\"compact\":\"red\"}}}}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":6}";
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 15000, res.getInt("numhits"));
     //the first one should has socre 10777.900390625, and mileage: 11400;
@@ -824,7 +873,119 @@ public class TestSensei extends TestCase {
   
   public void testRelevanceHashMapString2String() throws Exception
   {
-    logger.info("executing test case testRelevanceHashMapInt2Int");
+    logger.info("executing test case testRelevanceHashMapString2String");
+    String req = "{\"sort\":[\"_score\"],\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"model\":{\"function_params\":[\"_INNER_SCORE\",\"thisYear\",\"year\",\"goodYear\",\"mileageWeight\",\"mileage\",\"color\",\"yearcolor\",\"colorweight\",\"category\",\"categorycolor\"],\"facets\":{\"int\":[\"year\",\"mileage\"],\"string\":[\"color\",\"category\"],\"long\":[\"groupid\"]},\"function\":\" if(categorycolor.containsKey(category) && categorycolor.get(category).equals(color))  return 10000f;   if(year==thisYear) return 87f   ; return  _INNER_SCORE;\",\"variables\":{\"map_int_float\":[\"mileageWeight\"],\"map_int_string\":[\"yearcolor\"],\"set_int\":[\"goodYear\"],\"int\":[\"thisYear\"],\"map_string_float\":[\"colorweight\"],\"map_string_string\":[\"categorycolor\"]}},\"values\":{\"thisYear\":2001,\"yearcolor\":{\"1998\":\"red\"},\"mileageWeight\":{\"11400\":777.9, \"11000\":10.2},\"colorweight\":{\"red\":335.5},\"goodYear\":[1996,1997],\"categorycolor\":{\"compact\":\"red\"}}}}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":6}";
+    JSONObject res = search(new JSONObject(req));
+    assertEquals("numhits is wrong", 15000, res.getInt("numhits"));
+    //the first one should has socre 10777.900390625, and mileage: 11400;
+    JSONArray hits = res.getJSONArray("hits");
+    JSONObject firstHit = hits.getJSONObject(0);
+    JSONObject secondHit = hits.getJSONObject(1);
+    
+    double firstScore = firstHit.getDouble("_score");
+    double secondScore = secondHit.getDouble("_score");
+    
+    String firstCategory = firstHit.getJSONArray("category").getString(0);
+    String secondCategory = secondHit.getJSONArray("category").getString(0);
+    
+    String firstColor = firstHit.getJSONArray("color").getString(0);
+    String secondColor = secondHit.getJSONArray("color").getString(0);
+    
+    assertEquals("inner score for first is not correct." , true, Math.abs(firstScore - 10000) < 1 );
+    assertEquals("inner score for second is not correct." , true, Math.abs(secondScore - 10000) < 1 );
+    
+    assertEquals("category for first is not correct." , true, firstCategory.equals("compact") );
+    assertEquals("category for second is not correct." , true, secondCategory.equals("compact") );
+    
+    assertEquals("color for first is not correct." , true, firstColor.equals("red") );
+    assertEquals("color for second is not correct." , true, secondColor.equals("red") );
+  }
+  
+  public void testRelevanceHashMapInt2FloatArrayWay() throws Exception
+  {
+    logger.info("executing test case testRelevanceHashMapInt2FloatArrayWay");
+    String req = "{\"sort\":[\"_score\"],\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"model\":{\"function_params\":[\"_INNER_SCORE\",\"thisYear\",\"year\",\"goodYear\",\"mileageWeight\",\"mileage\"],\"facets\":{\"int\":[\"year\",\"mileage\"],\"long\":[\"groupid\"]},\"function\":\" if(mileageWeight.containsKey(mileage)) return 10000+mileageWeight.get(mileage); if(goodYear.contains(year)) return (float)Math.exp(2d);   if(year==thisYear) return 87f   ; return  _INNER_SCORE;\",\"variables\":{\"map_int_float\":[\"mileageWeight\"],\"set_int\":[\"goodYear\"],\"int\":[\"thisYear\"]}},\"values\":{\"thisYear\":2001,\"mileageWeight\":{\"value\":[777.9,10.2],\"key\":[11400,11000]},\"goodYear\":[1996,1997]}}}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":6}";
+    JSONObject res = search(new JSONObject(req));
+    assertEquals("numhits is wrong", 15000, res.getInt("numhits"));
+    //the first one should has socre 10777.900390625, and mileage: 11400;
+    JSONArray hits = res.getJSONArray("hits");
+    JSONObject firstHit = hits.getJSONObject(0);
+    JSONObject secondHit = hits.getJSONObject(1);
+    
+    double firstScore = firstHit.getDouble("_score");
+    double secondScore = secondHit.getDouble("_score");
+    
+    String firstMileage = firstHit.getJSONArray("mileage").getString(0);
+    String secondMileage = secondHit.getJSONArray("mileage").getString(0);
+    
+    assertEquals("inner score for first is not correct." , true, Math.abs(firstScore - 10777.900390625) < 1 );
+    assertEquals("inner score for second is not correct." , true, Math.abs(secondScore - 10777.900390625) < 1 );
+    
+    assertEquals("mileage for first is not correct." , true, Integer.parseInt(firstMileage)==11400 );
+    assertEquals("mileage for second is not correct." , true, Integer.parseInt(secondMileage)==11400 );
+    
+  }
+  
+  
+  public void testRelevanceHashMapInt2StringArrayWay() throws Exception
+  {
+    logger.info("executing test case testRelevanceHashMapInt2StringArrayWay");
+    String req = "{\"sort\":[\"_score\"],\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"model\":{\"function_params\":[\"_INNER_SCORE\",\"thisYear\",\"year\",\"goodYear\",\"mileageWeight\",\"mileage\",\"color\",\"yearcolor\",\"colorweight\",\"category\",\"categorycolor\"],\"facets\":{\"int\":[\"year\",\"mileage\"],\"string\":[\"color\",\"category\"],\"long\":[\"groupid\"]},\"function\":\"if(yearcolor.containsKey(year) && yearcolor.get(year).equals(color)) return 100000f; if(goodYear.contains(year)) return (float)Math.exp(2d);   if(year==thisYear) return 87f   ; return  _INNER_SCORE;\",\"variables\":{\"map_int_float\":[\"mileageWeight\"],\"map_int_string\":[\"yearcolor\"],\"set_int\":[\"goodYear\"],\"int\":[\"thisYear\"],\"map_string_float\":[\"colorweight\"],\"map_string_string\":[\"categorycolor\"]}},\"values\":{\"thisYear\":2001,\"yearcolor\":{\"value\":[\"red\"],\"key\":[1998]},\"mileageWeight\":{\"value\":[777.9,10.2],\"key\":[11400,11000]},\"colorweight\":{\"value\":[335.5],\"key\":[\"red\"]},\"goodYear\":[1996,1997],\"categorycolor\":{\"value\":[\"red\"],\"key\":[\"compact\"]}}}}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":6}";
+    JSONObject res = search(new JSONObject(req));
+    assertEquals("numhits is wrong", 15000, res.getInt("numhits"));
+    //the first one should has socre 10777.900390625, and mileage: 11400;
+    JSONArray hits = res.getJSONArray("hits");
+    JSONObject firstHit = hits.getJSONObject(0);
+    JSONObject secondHit = hits.getJSONObject(1);
+    
+    double firstScore = firstHit.getDouble("_score");
+    double secondScore = secondHit.getDouble("_score");
+    
+    String firstYear = firstHit.getJSONArray("year").getString(0);
+    String secondYear = secondHit.getJSONArray("year").getString(0);
+    
+    String firstColor = firstHit.getJSONArray("color").getString(0);
+    String secondColor = secondHit.getJSONArray("color").getString(0);
+    
+    assertEquals("inner score for first is not correct." , true, Math.abs(firstScore - 100000) < 1 );
+    assertEquals("inner score for second is not correct." , true, Math.abs(secondScore - 100000) < 1 );
+    
+    assertEquals("year for first is not correct." , true, Integer.parseInt(firstYear)==1998 );
+    assertEquals("year for second is not correct." , true, Integer.parseInt(secondYear)==1998 );
+    
+    assertEquals("color for first is not correct." , true, firstColor.equals("red") );
+    assertEquals("color for second is not correct." , true, secondColor.equals("red") );
+    
+  }
+  
+  public void testRelevanceHashMapString2FloatArrayWay() throws Exception
+  {
+    logger.info("executing test case testRelevanceHashMapString2FloatArrayWay");
+    String req = "{\"sort\":[\"_score\"],\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"model\":{\"function_params\":[\"_INNER_SCORE\",\"thisYear\",\"year\",\"goodYear\",\"mileageWeight\",\"mileage\",\"color\",\"yearcolor\",\"colorweight\",\"category\",\"categorycolor\"],\"facets\":{\"int\":[\"year\",\"mileage\"],\"string\":[\"color\",\"category\"],\"long\":[\"groupid\"]},\"function\":\" if(colorweight.containsKey(color) ) return 200f + colorweight.getFloat(color);  if(year==thisYear) return 87f   ; return  _INNER_SCORE;\",\"variables\":{\"map_int_float\":[\"mileageWeight\"],\"map_int_string\":[\"yearcolor\"],\"set_int\":[\"goodYear\"],\"int\":[\"thisYear\"],\"map_string_float\":[\"colorweight\"],\"map_string_string\":[\"categorycolor\"]}},\"values\":{\"thisYear\":2001,\"yearcolor\":{\"value\":[\"red\"],\"key\":[1998]},\"mileageWeight\":{\"value\":[777.9,10.2],\"key\":[11400,11000]},\"colorweight\":{\"value\":[335.5],\"key\":[\"red\"]},\"goodYear\":[1996,1997],\"categorycolor\":{\"value\":[\"red\"],\"key\":[\"compact\"]}}}}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":6}";
+    JSONObject res = search(new JSONObject(req));
+    assertEquals("numhits is wrong", 15000, res.getInt("numhits"));
+    //the first one should has socre 10777.900390625, and mileage: 11400;
+    JSONArray hits = res.getJSONArray("hits");
+    JSONObject firstHit = hits.getJSONObject(0);
+    JSONObject secondHit = hits.getJSONObject(1);
+    
+    double firstScore = firstHit.getDouble("_score");
+    double secondScore = secondHit.getDouble("_score");
+    
+    String firstColor = firstHit.getJSONArray("color").getString(0);
+    String secondColor = secondHit.getJSONArray("color").getString(0);
+    
+    assertEquals("inner score for first is not correct." , true, Math.abs(firstScore - 535.5) < 1 );
+    assertEquals("inner score for second is not correct." , true, Math.abs(secondScore - 535.5) < 1 );
+    
+    assertEquals("color for first is not correct." , true, firstColor.equals("red") );
+    assertEquals("color for second is not correct." , true, secondColor.equals("red") );
+    
+  }
+  
+  public void testRelevanceHashMapString2StringArrayWay() throws Exception
+  {
+    logger.info("executing test case testRelevanceHashMapString2StringArrayWay");
     String req = "{\"sort\":[\"_score\"],\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"model\":{\"function_params\":[\"_INNER_SCORE\",\"thisYear\",\"year\",\"goodYear\",\"mileageWeight\",\"mileage\",\"color\",\"yearcolor\",\"colorweight\",\"category\",\"categorycolor\"],\"facets\":{\"int\":[\"year\",\"mileage\"],\"string\":[\"color\",\"category\"],\"long\":[\"groupid\"]},\"function\":\" if(categorycolor.containsKey(category) && categorycolor.get(category).equals(color))  return 10000f;   if(year==thisYear) return 87f   ; return  _INNER_SCORE;\",\"variables\":{\"map_int_float\":[\"mileageWeight\"],\"map_int_string\":[\"yearcolor\"],\"set_int\":[\"goodYear\"],\"int\":[\"thisYear\"],\"map_string_float\":[\"colorweight\"],\"map_string_string\":[\"categorycolor\"]}},\"values\":{\"thisYear\":2001,\"yearcolor\":{\"value\":[\"red\"],\"key\":[1998]},\"mileageWeight\":{\"value\":[777.9,10.2],\"key\":[11400,11000]},\"colorweight\":{\"value\":[335.5],\"key\":[\"red\"]},\"goodYear\":[1996,1997],\"categorycolor\":{\"value\":[\"red\"],\"key\":[\"compact\"]}}}}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":6}";
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 15000, res.getInt("numhits"));
@@ -853,13 +1014,123 @@ public class TestSensei extends TestCase {
   }
   
   
-  
-  public void testRelevanceMulti() throws Exception
+  public void testRelevanceMultiContains() throws Exception
   {
-    logger.info("executing test case testRelevanceMulti");
+    logger.info("executing test case testRelevanceMultiContains");
     String req = "{\"sort\":[\"_score\"],\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"model\":{\"function_params\":[\"_INNER_SCORE\",\"thisYear\",\"year\",\"goodYear\",\"tags\",\"coolTag\"],\"facets\":{\"mstring\":[\"tags\"],\"int\":[\"year\",\"mileage\"],\"long\":[\"groupid\"]},\"function\":\" if(tags.contains(coolTag)) return 999999f; if(goodYear.contains(year)) return (float)Math.exp(10d);   if(year==thisYear) return 87f   ; return  _INNER_SCORE    ;\",\"variables\":{\"set_int\":[\"goodYear\"],\"int\":[\"thisYear\"], \"string\":[\"coolTag\"]}},\"values\":{\"coolTag\":\"cool\", \"thisYear\":2001,\"goodYear\":[1996,1997]}}}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":6}";
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 15000, res.getInt("numhits"));
+  }
+  
+  
+  
+  public void testRelevanceMultiContainsAny() throws Exception
+  {
+    logger.info("executing test case testRelevanceMultiContainsAny");
+    String req = "{\"sort\":[\"_score\"],\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"model\":{\"function_params\":[\"_INNER_SCORE\",\"thisYear\",\"year\",\"goodYear\",\"tags\",\"goodTags\"],\"facets\":{\"int\":[\"year\",\"mileage\"],\"mstring\":[\"tags\"],\"long\":[\"groupid\"]},\"function\":\" if(tags.containsAny(goodTags)) return 100000f; if(goodYear.contains(year)) return (float)Math.exp(10d);   if(year==thisYear) return 87f   ; return  _INNER_SCORE    ;\",\"variables\":{\"set_string\":[\"goodTags\"],\"set_int\":[\"goodYear\"],\"int\":[\"thisYear\"]}},\"values\":{\"thisYear\":2001,\"goodTags\":[\"leather\"],\"goodYear\":[1996,1997]}}}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":6}";
+    JSONObject res = search(new JSONObject(req));
+    assertEquals("numhits is wrong", 15000, res.getInt("numhits"));
+
+    JSONArray hits = res.getJSONArray("hits");
+    JSONObject firstHit = hits.getJSONObject(0);
+    JSONObject secondHit = hits.getJSONObject(1);
+    
+    double firstScore = firstHit.getDouble("_score");
+    double secondScore = secondHit.getDouble("_score");
+    
+    JSONArray firstTags = firstHit.getJSONArray("tags");
+    JSONArray secondTags = secondHit.getJSONArray("tags");
+    
+    assertEquals("inner score for first is not correct." , true, Math.abs(firstScore - 100000) < 1 );
+    assertEquals("inner score for second is not correct." , true, Math.abs(secondScore - 100000) < 1 );
+    
+    assertEquals("tags for first is not correct." , true, containsString(firstTags, "leather") );
+    assertEquals("tags for second is not correct." , true, containsString(secondTags, "leather") );
+  }
+  
+  public void testRelevanceModelStorageInMemory() throws Exception
+  {
+    logger.info("executing test case testRelevanceModelStorageInMemory");
+    
+    // store the model;
+    {
+      String req = "{\"sort\":[\"_score\"],\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"model\":{\"save_as\":{\"overwrite\":true,\"name\":\"myModel\"},\"function_params\":[\"_INNER_SCORE\",\"thisYear\",\"year\",\"goodYear\",\"mileageWeight\",\"mileage\",\"color\",\"yearcolor\",\"colorweight\",\"category\",\"categorycolor\"],\"facets\":{\"int\":[\"year\",\"mileage\"],\"string\":[\"color\",\"category\"],\"long\":[\"groupid\"]},\"function\":\" if(categorycolor.containsKey(category) && categorycolor.get(category).equals(color))  return 10000f; if(colorweight.containsKey(color) ) return 200f + colorweight.getFloat(color); if(yearcolor.containsKey(year) && yearcolor.get(year).equals(color)) return 200f; if(mileageWeight.containsKey(mileage)) return 10000+mileageWeight.get(mileage); if(goodYear.contains(year)) return (float)Math.exp(2d);   if(year==thisYear) return 87f   ; return  _INNER_SCORE;\",\"variables\":{\"map_int_float\":[\"mileageWeight\"],\"map_int_string\":[\"yearcolor\"],\"set_int\":[\"goodYear\"],\"int\":[\"thisYear\"],\"map_string_float\":[\"colorweight\"],\"map_string_string\":[\"categorycolor\"]}},\"values\":{\"thisYear\":2001,\"yearcolor\":{\"value\":[\"red\"],\"key\":[1998]},\"mileageWeight\":{\"value\":[777.9,10.2],\"key\":[11400,11000]},\"colorweight\":{\"value\":[335.5],\"key\":[\"red\"]},\"goodYear\":[1996,1997],\"categorycolor\":{\"value\":[\"red\"],\"key\":[\"compact\"]}}}}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":6}";
+      JSONObject res = search(new JSONObject(req));
+      assertEquals("numhits is wrong", 15000, res.getInt("numhits"));
+
+      JSONArray hits = res.getJSONArray("hits");
+      JSONObject firstHit = hits.getJSONObject(0);
+      JSONObject secondHit = hits.getJSONObject(1);
+      
+      double firstScore = firstHit.getDouble("_score");
+      double secondScore = secondHit.getDouble("_score");
+      
+      assertEquals("inner score for first is not correct." , true, Math.abs(firstScore - 10777.9) < 1 );
+      assertEquals("inner score for second is not correct." , true, Math.abs(secondScore - 10777.9) < 1 );
+    }
+    
+    
+    // assuming the model is already stored, test new query using only stored model name;
+    {
+      String req = "{\"sort\":[\"_score\"],\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"predefined_model\":\"myModel\",\"values\":{\"thisYear\":2001,\"yearcolor\":{\"value\":[\"red\"],\"key\":[1998]},\"mileageWeight\":{\"value\":[777.9,10.2],\"key\":[11400,11000]},\"colorweight\":{\"value\":[335.5],\"key\":[\"red\"]},\"goodYear\":[1996,1997],\"categorycolor\":{\"value\":[\"red\"],\"key\":[\"compact\"]}}}}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":6}";
+      JSONObject res = search(new JSONObject(req));
+      assertEquals("numhits is wrong", 15000, res.getInt("numhits"));
+
+      JSONArray hits = res.getJSONArray("hits");
+      JSONObject firstHit = hits.getJSONObject(0);
+      JSONObject secondHit = hits.getJSONObject(1);
+      
+      double firstScore = firstHit.getDouble("_score");
+      double secondScore = secondHit.getDouble("_score");
+      
+      assertEquals("inner score for first is not correct." , true, Math.abs(firstScore - 10777.9) < 1 );
+      assertEquals("inner score for second is not correct." , true, Math.abs(secondScore - 10777.9) < 1 );
+    }
+    
+  }
+  
+  public void testRelevanceExternalObject() throws Exception
+  {
+    logger.info("executing test case testRelevanceExternalObject");
+    String req = "{\"sort\":[\"_score\"],\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"model\":{\"function_params\":[\"_INNER_SCORE\",\"thisYear\",\"year\",\"goodYear\",\"mileageWeight\",\"mileage\",\"color\",\"yearcolor\",\"colorweight\",\"category\",\"categorycolor\",\"test_obj2\"],\"facets\":{\"int\":[\"year\",\"mileage\"],\"string\":[\"color\",\"category\"],\"long\":[\"groupid\"]},\"function\":\" if(test_obj2.contains(color)) return 20000f; if(categorycolor.containsKey(category) && categorycolor.get(category).equals(color))  return 10000f; if(colorweight.containsKey(color) ) return 200f + colorweight.getFloat(color); if(yearcolor.containsKey(year) && yearcolor.get(year).equals(color)) return 200f; if(mileageWeight.containsKey(mileage)) return 10000+mileageWeight.get(mileage); if(goodYear.contains(year)) return (float)Math.exp(2d);   if(year==thisYear) return 87f   ; return  _INNER_SCORE;\",\"variables\":{\"map_int_float\":[\"mileageWeight\"],\"map_int_string\":[\"yearcolor\"],\"set_int\":[\"goodYear\"],\"custom_obj\":[\"test_obj2\"],\"int\":[\"thisYear\"],\"map_string_float\":[\"colorweight\"],\"map_string_string\":[\"categorycolor\"]}},\"values\":{\"thisYear\":2001,\"yearcolor\":{\"value\":[\"red\"],\"key\":[1998]},\"mileageWeight\":{\"value\":[777.9,10.2],\"key\":[11400,11000]},\"colorweight\":{\"value\":[335.5],\"key\":[\"red\"]},\"goodYear\":[1996,1997],\"categorycolor\":{\"value\":[\"red\"],\"key\":[\"compact\"]}}}}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":2}";
+    JSONObject res = search(new JSONObject(req));
+    assertEquals("numhits is wrong", 15000, res.getInt("numhits"));
+
+    JSONArray hits = res.getJSONArray("hits");
+    JSONObject firstHit = hits.getJSONObject(0);
+    double firstScore = firstHit.getDouble("_score");
+    String color = firstHit.getJSONArray("color").getString(0);
+    
+    assertEquals("color for first is not correct." , true, color.equals("green") );
+    assertEquals("inner score for first is not correct." , true, Math.abs(firstScore - 20000) < 1 );
+  }
+  
+  public void testRelevanceExternalObjectSenseiPlugin() throws Exception
+  {
+    logger.info("executing test case testRelevanceExternalObjectSenseiPlugin");
+    String req = "{\"sort\":[\"_score\"],\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"model\":{\"function_params\":[\"_INNER_SCORE\",\"thisYear\",\"year\",\"goodYear\",\"mileageWeight\",\"mileage\",\"color\",\"yearcolor\",\"colorweight\",\"category\",\"categorycolor\",\"test_obj\"],\"facets\":{\"int\":[\"year\",\"mileage\"],\"string\":[\"color\",\"category\"],\"long\":[\"groupid\"]},\"function\":\" if(test_obj.contains(color)) return 20000f; if(categorycolor.containsKey(category) && categorycolor.get(category).equals(color))  return 10000f; if(colorweight.containsKey(color) ) return 200f + colorweight.getFloat(color); if(yearcolor.containsKey(year) && yearcolor.get(year).equals(color)) return 200f; if(mileageWeight.containsKey(mileage)) return 10000+mileageWeight.get(mileage); if(goodYear.contains(year)) return (float)Math.exp(2d);   if(year==thisYear) return 87f   ; return  _INNER_SCORE;\",\"variables\":{\"map_int_float\":[\"mileageWeight\"],\"map_int_string\":[\"yearcolor\"],\"set_int\":[\"goodYear\"],\"custom_obj\":[\"test_obj\"],\"int\":[\"thisYear\"],\"map_string_float\":[\"colorweight\"],\"map_string_string\":[\"categorycolor\"]}},\"values\":{\"thisYear\":2001,\"yearcolor\":{\"value\":[\"red\"],\"key\":[1998]},\"mileageWeight\":{\"value\":[777.9,10.2],\"key\":[11400,11000]},\"colorweight\":{\"value\":[335.5],\"key\":[\"red\"]},\"goodYear\":[1996,1997],\"categorycolor\":{\"value\":[\"red\"],\"key\":[\"compact\"]}}}}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":2}";
+    JSONObject res = search(new JSONObject(req));
+    assertEquals("numhits is wrong", 15000, res.getInt("numhits"));
+
+    JSONArray hits = res.getJSONArray("hits");
+    JSONObject firstHit = hits.getJSONObject(0);
+    double firstScore = firstHit.getDouble("_score");
+    String color = firstHit.getJSONArray("color").getString(0);
+    
+    assertEquals("color for first is not correct." , true, color.equals("red") );
+    assertEquals("inner score for first is not correct." , true, Math.abs(firstScore - 20000) < 1 );
+  }
+  
+
+  private boolean containsString(JSONArray array, String target) throws JSONException
+  {
+    for(int i=0; i<array.length(); i++)
+    {
+      String item = array.getString(i);
+      if(item.equals(target))
+        return true;
+    }
+    return false;
   }
 
   public static JSONObject search(JSONObject req) throws Exception  {
@@ -885,7 +1156,7 @@ public class TestSensei extends TestCase {
     // System.out.println("res: " + res);
     JSONObject ret = new JSONObject(res);
     if (ret.opt("totaldocs") !=null){
-      assertEquals(15000L, Long.parseLong(ret.getString("totaldocs")));
+     // assertEquals(15000L, ret.getLong("totaldocs"));
     }
     return ret;
   }

@@ -12,6 +12,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.senseidb.search.client.ReflectionUtil;
+
 public class JsonDeserializer {
     public static <T> T deserialize(Class<T> cls, JSONObject jsonObject) {
         return deserialize(cls, jsonObject, true);
@@ -65,7 +67,9 @@ public class JsonDeserializer {
                     value = jsonObject.optString(name);
                 } else if (type == Double.class) {
                     value = jsonObject.optDouble(name);
-                } else if (type.isEnum()) {
+                } else if (type == JSONObject.class) {
+                  value = jsonObject.optJSONObject(name);
+                }else if (type.isEnum()) {
                     value = jsonObject.optString(name);
                     if (value != null) {
                     	value = Enum.valueOf((Class)type, value.toString());
@@ -115,6 +119,8 @@ public class JsonDeserializer {
         Type valueType =  getGenericType(genericType, 1);
         for (String paramName : names) {
             Object mapValue = mapJson.opt(paramName);
+            if (JsonSerializer.NULL.equals(paramName))
+                paramName = null;
             if (mapValue == null) {
                 map.put(paramName, null);
             } else if (mapValue instanceof JSONArray) {

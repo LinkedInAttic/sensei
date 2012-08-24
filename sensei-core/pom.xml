@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>com.senseidb</groupId>
 		<artifactId>sensei-parent</artifactId>
-		<version>1.1.2</version>
+		<version>1.5.2</version>
 		<relativePath>../sensei-parent/pom.xml</relativePath>
 	</parent>
 	
@@ -199,13 +199,20 @@
 		<dependency>
 			<groupId>com.linkedin.zoie</groupId>
 			<artifactId>zoie-jms</artifactId>
-			<version>3.1.1</version>
+			<version>3.3.0</version>
+			<exclusions>
+				<exclusion>
+					<groupId>fastutil</groupId>
+					<artifactId>fastutil</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		
 		<dependency>
 			<groupId>it.unimi.dsi</groupId>
 			<artifactId>fastutil</artifactId>
 			<version>6.4.3</version>
+			<type>jar</type>
 		</dependency>
 
 		<dependency>
@@ -249,8 +256,13 @@
 		<dependency>
 			<groupId>com.browseengine.bobo</groupId>
 			<artifactId>bobo-browse</artifactId>
-			<version>3.0.5</version>
-			<!-- type>jar</type -->
+			<version>3.0.9</version>
+			<exclusions>
+				<exclusion>
+					<groupId>fastutil</groupId>
+					<artifactId>fastutil</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<dependency>
@@ -268,7 +280,7 @@
 		<dependency>
 			<groupId>com.linkedin</groupId>
 			<artifactId>norbert_2.8.1</artifactId>
-			<version>0.6.12</version>
+			<version>0.6.16-SNAPSHOT</version>
 		</dependency>
 		
 		<dependency>
@@ -316,5 +328,18 @@
 		<artifactId>javassist</artifactId>
 		<version>3.16.1-GA</version>
 	</dependency>
+	<dependency>
+		<groupId>org.easymock</groupId>
+		<artifactId>easymock</artifactId>
+		<version>2.5.1</version>
+		 <scope>test</scope>
+	</dependency>
+     <dependency>
+		<groupId>org.easymock</groupId>
+		<artifactId>easymockclassextension</artifactId>
+		<version>2.5.1</version>
+		 <scope>test</scope>
+	</dependency>
+            
 	</dependencies>
 </project>

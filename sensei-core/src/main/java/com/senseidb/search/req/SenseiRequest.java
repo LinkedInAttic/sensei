@@ -54,6 +54,8 @@ private long   tid           =          -1;
   private Set<String> _termVectorsToFetch;
   private List<String> _selectList; // Select list (mostly used in BQL) 
   private SenseiMapReduce mapReduceFunction;
+  private List<SenseiError> errors;
+  
   public SenseiRequest(){
     _facetInitParamMap = new HashMap<String,FacetHandlerInitializerParam>();
     _selections=new HashMap<String,BrowseSelection>();
@@ -470,10 +472,42 @@ private long   tid           =          -1;
     buf.append("fetch stored value: ").append(_fetchStoredValue);
     return buf.toString();
   }
-  
-  public Object clone() throws CloneNotSupportedException
-  {
-    return super.clone();
+
+  @Override
+  public SenseiRequest clone() {
+    SenseiRequest clone = new SenseiRequest();
+    clone.setTid(this.getTid());
+    
+    BrowseSelection[] selections = this.getSelections();
+    for(BrowseSelection selection : selections)
+      clone.addSelection(selection);
+    
+    for(SortField sort : this.getSort())
+      clone.addSortField(sort);
+    
+    
+    Map<String, FacetSpec> cloneFacetSpecs = new HashMap<String, FacetSpec>();
+    for(Entry<String, FacetSpec> facetSpec : this.getFacetSpecs().entrySet()) {
+      cloneFacetSpecs.put(facetSpec.getKey(), facetSpec.getValue().clone());
+    }
+    
+    clone.setFacetSpecs(cloneFacetSpecs);
+    clone.setQuery(this.getQuery());
+    clone.setOffset(this.getOffset());
+    clone.setCount(this.getCount());
+    clone.setFetchStoredFields(this.isFetchStoredFields());
+    clone.setFetchStoredValue(this.isFetchStoredValue());
+    clone.setFacetHandlerInitParamMap(this.getFacetHandlerInitParamMap());
+    clone.setPartitions(this.getPartitions());
+    clone.setShowExplanation(this.isShowExplanation());
+    clone.setRouteParam(this.getRouteParam());
+    clone.setGroupBy(this.getGroupBy());
+    clone.setMaxPerGroup(this.getMaxPerGroup());
+    clone.setTermVectorsToFetch(this.getTermVectorsToFetch());
+    clone.setSelectList(this.getSelectList());
+    clone.setMapReduceFunction(this.getMapReduceFunction());
+
+    return clone;
   }
 
   @Override
@@ -601,6 +635,20 @@ private long   tid           =          -1;
   public void setMapReduceFunction(SenseiMapReduce mapReduceFunction) {
     this.mapReduceFunction = mapReduceFunction;
   }
+  
+  public List<SenseiError> getErrors() {
+    if (errors == null)
+      errors = new ArrayList<SenseiError>();
+
+    return errors;
+  }
+
+  public void addError(SenseiError error) {
+    if (errors == null)
+      errors = new ArrayList<SenseiError>();
+
+    errors.add(error);
+  }
 
   private <T> boolean setsAreEqual(Set<T> a, Set<T> b) {
     if (a.size() != b.size()) return false;
@@ -614,30 +662,21 @@ private long   tid           =          -1;
     return true;
   }
   
-  //private static SenseiQuery buildSenseiQuery(String query,JSONObject params) throws Exception
-  //{
-    //SenseiQuery sq;
-
-    //JSONObject qjson = null;
-    //if (params==null){
-      //qjson = new JSONObject();
-    //}
-    //else{
-      //qjson = params;
-    //}
-    
-    //if (query != null && query.length() > 0)
-    //{
-      //qjson.put("query", query);
-    //}
-    
-    //sq = new SenseiJSONQuery(qjson);
-    //return sq;
-  //}
-  
-  
-  public static SenseiRequest fromJSON(JSONObject json) throws Exception{
-    return RequestConverter2.fromJSON(json);
+  /**
+   * Builds SenseiRequest based on a JSON object.
+   *
+   * @param json  The input JSON object.
+   * @param facetInfoMap  Facet information map, which maps a facet name
+   *        to a String array in which the first element is the facet
+   *        type (like "simple" or "range") and the second element is
+   *        the data type (like "int" or "long").
+   * @return The built SenseiRequest.
+   */
+  public static SenseiRequest fromJSON(final JSONObject json,
+                                       final Map<String, String[]> facetInfoMap)
+    throws Exception
+  {
+    return RequestConverter2.fromJSON(json, facetInfoMap);
   }
 
 }

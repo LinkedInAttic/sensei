@@ -2,6 +2,7 @@ package com.senseidb.plugin;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -99,6 +100,16 @@ public class SenseiPluginRegistry {
     }
     return ret;
   }
+  
+  public <T> Map<String,T> getNamedBeansByType(Class<T> type) {
+    Map<String, T> ret = new HashMap<String, T>();
+    for (PluginHolder pluginHolder : plugins) {
+      if (pluginHolder.getInstance() != null && type.isAssignableFrom(pluginHolder.getInstance().getClass())) {
+        ret.put(pluginHolder.pluginName, (T) pluginHolder.getInstance());
+      }
+    }
+    return ret;
+  }
 
   public List<?> getBeansByPrefix(String prefix) {
     List<Object> ret = new ArrayList<Object>();
@@ -149,7 +160,7 @@ public class SenseiPluginRegistry {
     List<T> ret = new ArrayList<T>();
     String strList = configuration.getString(paramKey);
     if (strList == null) {
-      return null;
+      return new ArrayList<T>();
     }
     String[] keys = strList.split(",");
     if (keys == null || keys.length == 0) {

@@ -1,6 +1,7 @@
 package com.senseidb.search.req;
 
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -13,7 +14,6 @@ import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.BrowseHit;
 import com.browseengine.bobo.api.BrowseResult;
 import com.browseengine.bobo.api.FacetAccessible;
-import com.senseidb.search.req.mapred.obsolete.SenseiMapReduceResult;
 
 
 public class SenseiResult extends BrowseResult implements AbstractSenseiResult
@@ -22,6 +22,8 @@ public class SenseiResult extends BrowseResult implements AbstractSenseiResult
   private static final long serialVersionUID = 1L;
 
   private String _parsedQuery = null;
+
+  private List<SenseiError> errors;
  
   public SenseiHit[] getSenseiHits()
   {
@@ -123,6 +125,20 @@ public class SenseiResult extends BrowseResult implements AbstractSenseiResult
     if (!Arrays.equals(al.toArray(new BrowseFacet[al.size()]), bl.toArray(new BrowseFacet[bl.size()]))) return false;
 
     return true;
+  }
+
+  public List<SenseiError> getErrors() {
+    if (errors == null)
+      errors = new ArrayList<SenseiError>();
+
+    return errors ;
+  }
+
+  public void addError(SenseiError error) {
+    if (errors == null)
+      errors = new ArrayList<SenseiError>();
+
+    errors.add(error);
   }
 
   

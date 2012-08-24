@@ -5,9 +5,6 @@ import junit.framework.TestCase;
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
 
-import com.senseidb.search.req.mapred.obsolete.MapReduceBroker;
-import com.senseidb.search.req.mapred.obsolete.MapReduceRequest;
-import com.senseidb.search.req.mapred.obsolete.SenseiMapReduceResult;
 import com.senseidb.svc.api.SenseiService;
 import com.senseidb.test.SenseiStarter;
 import com.senseidb.test.TestSensei;
@@ -16,27 +13,31 @@ public class TestMapReduce extends TestCase {
 
     private static final Logger logger = Logger.getLogger(TestMapReduce.class);
 
-    private static MapReduceBroker mapReduceBroker;
+    
     private static SenseiService httpRestSenseiService;
     static {
-      SenseiStarter.start("test-conf/node1","test-conf/node2");
-      mapReduceBroker = SenseiStarter.mapReduceBroker;
+      SenseiStarter.start("test-conf/node1","test-conf/node2");     
       httpRestSenseiService = SenseiStarter.httpRestSenseiService;
     }
-    public void test1Max() throws Exception {
-      SenseiMapReduceResult result = mapReduceBroker.browse(new MapReduceRequest(new MaxTestMapReduce("groupid")));
-      assertEquals(14990L, (long)(Long)result.getReduceResult());
-      System.out.println("!!!" + result.getTime());
+    
+    
+    
+    public void test2GroupByColorAndGroupId() throws Exception { 
+      String req = "{\"size\":0,\"filter\":{\"terms\":{\"color\":{\"includes\":[],\"excludes\":[\"gold\"],\"operator\":\"or\"}}}" +
+          ", \"mapReduce\":{\"function\":\"com.senseidb.search.req.mapred.CountGroupByMapReduce\",\"parameters\":{\"columns\":[\"groupid\", \"color\"]}}}";
+      JSONObject reqJson = new JSONObject(req);
+      System.out.println(reqJson.toString(1));
+      JSONObject res = TestSensei.search(reqJson);
+    
+      JSONObject highestResult = res.getJSONObject("mapReduceResult").getJSONArray("groupedCounts").getJSONObject(0);
+      assertEquals(8, highestResult.getInt(highestResult.keys().next().toString()));
     }
-    public void test2GroupByColorAndGroupId() throws Exception {
-      SenseiMapReduceResult result = mapReduceBroker.browse(new MapReduceRequest(new CountGroupByMapReduce("color", "groupid")));
-      System.out.println("!!!" + result.getReduceResult());
-      System.out.println("!!!" + result.getTime());
-    }
+  
+   
    
     public void test4MaxMapReduce() throws Exception {      
       String req = "{\"filter\":{\"term\":{\"color\":\"red\"}}"
-      		+", \"mapReduce\":{\"function\":\"sensei.max\",\"parameters\":{\"column\":\"groupid\"}}}";
+          +", \"mapReduce\":{\"function\":\"sensei.max\",\"parameters\":{\"column\":\"groupid\"}}}";
       JSONObject res = TestSensei.search(new JSONObject(req));
       JSONObject mapReduceResult = res.getJSONObject("mapReduceResult");
       assertEquals(14990, Long.parseLong(mapReduceResult.getString("max")));
@@ -91,5 +92,27 @@ public class TestMapReduce extends TestCase {
       assertEquals(7424, mapReduceResult.getLong("avg"));
       assertEquals(2160, Long.parseLong(mapReduceResult.getString("count")));
     }
-   
+    public void test9FacetCountMapReduce() throws Exception {      
+      String req = "{\"facets\": {\"color\": {\"max\": 10, \"minCount\": 1, \"expand\": false, \"order\": \"hits\"}}"
+          +", \"mapReduce\":{\"function\":\"com.senseidb.search.req.mapred.FacetCountsMapReduce\",\"parameters\":{\"column\":\"color\"}}}";
+      JSONObject res = TestSensei.search(new JSONObject(req));
+      JSONObject mapReduceResult = res.getJSONObject("mapReduceResult");
+      System.out.println(mapReduceResult.toString(1));
+      assertEquals(3141, mapReduceResult.getJSONObject("facetCounts").getInt("black"));
+      assertEquals(2196, mapReduceResult.getJSONObject("facetCounts").getInt("white"));
+      
+      
+    }
+    public void test10FacetCountMapReduceWithFilter() throws Exception {      
+      String req = "{\"facets\": {\"color\": {\"max\": 10, \"minCount\": 1, \"expand\": false, \"order\": \"hits\"}}"
+          +", \"mapReduce\":{\"function\":\"com.senseidb.search.req.mapred.FacetCountsMapReduce\",\"parameters\":{\"column\":\"color\"}}, " +
+          "\"filter\":{\"term\":{\"tags\":\"reliable\"}}}";
+      JSONObject res = TestSensei.search(new JSONObject(req));
+      JSONObject mapReduceResult = res.getJSONObject("mapReduceResult");
+      System.out.println(mapReduceResult.toString(1));
+      assertEquals(2259, mapReduceResult.getJSONObject("facetCounts").getInt("black"));
+      assertEquals(1560, mapReduceResult.getJSONObject("facetCounts").getInt("white"));
+      
+      
+    }
 }

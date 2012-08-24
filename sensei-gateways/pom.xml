@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>com.senseidb</groupId>
 		<artifactId>sensei-parent</artifactId>
-		<version>1.1.2</version>
+		<version>1.5.2</version>
 		<relativePath>../sensei-parent/pom.xml</relativePath>
 	</parent>
 	
@@ -29,7 +29,7 @@
 			</plugin>
 			<plugin>
 				<artifactId>maven-resources-plugin</artifactId>
-				<version>2.2</version>
+				<version>2.4</version>
 				<configuration>
 					<encoding>UTF-8</encoding>
 				</configuration>
@@ -123,8 +123,8 @@
 			<groupId>org.apache.kafka</groupId>
 			<artifactId>kafka</artifactId>
 			<version>0.7.6</version>
-			<!-- scope>system</scope -->
-			<!-- systemPath>${basedir}/../lib/kafka-0.7.6.jar</systemPath -->
+			 <scope>system</scope>
+			<systemPath>${basedir}/../lib/kafka-0.7.6.jar</systemPath>
       <!-- exclusions>
         <exclusion> 
           <groupId>zkclient</groupId>

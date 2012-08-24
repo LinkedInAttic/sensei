@@ -31,9 +31,15 @@ import com.linkedin.norbert.javacompat.cluster.ZooKeeperClusterClient;
 import com.linkedin.norbert.javacompat.network.NetworkClientConfig;
 import com.senseidb.bql.parsers.BQLCompiler;
 import com.senseidb.cluster.client.SenseiNetworkClient;
+import com.senseidb.conf.SenseiConfParams;
 import com.senseidb.conf.SenseiFacetHandlerBuilder;
+import com.senseidb.search.node.Broker;
 import com.senseidb.search.node.SenseiBroker;
 import com.senseidb.search.node.SenseiSysBroker;
+import com.senseidb.search.node.broker.BrokerConfig;
+import com.senseidb.search.node.broker.LayeredBroker;
+import com.senseidb.search.req.ErrorType;
+import com.senseidb.search.req.SenseiError;
 import com.senseidb.search.req.SenseiHit;
 import com.senseidb.search.req.SenseiRequest;
 import com.senseidb.search.req.SenseiResult;
@@ -60,7 +66,9 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
   private SenseiNetworkClient _networkClient = null;
   private SenseiBroker _senseiBroker = null;
   private SenseiSysBroker _senseiSysBroker = null;
+  private Map<String, String[]> _facetInfoMap = new HashMap<String, String[]>();
   private BQLCompiler _compiler = null;
+  private LayeredBroker federatedBroker;
 
   public AbstractSenseiClientServlet() {
 
@@ -69,26 +77,17 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
   @Override
   public void init(ServletConfig config) throws ServletException {
     super.init(config);
-    _networkClientConfig.setServiceName(clusterName);
-    _networkClientConfig.setZooKeeperConnectString(zkurl);
-    _networkClientConfig.setZooKeeperSessionTimeoutMillis(zkTimeout);
-    _networkClientConfig.setConnectTimeoutMillis(connectTimeoutMillis);
-    _networkClientConfig.setWriteTimeoutMillis(writeTimeoutMillis);
-    _networkClientConfig.setMaxConnectionsPerNode(maxConnectionsPerNode);
-    _networkClientConfig.setStaleRequestTimeoutMins(staleRequestTimeoutMins);
-    _networkClientConfig.setStaleRequestCleanupFrequencyMins(staleRequestCleanupFrequencyMins);
-
-    _clusterClient = new ZooKeeperClusterClient(clusterName,zkurl,zkTimeout);
-
-    _networkClientConfig.setClusterClient(_clusterClient);
-
-    _networkClient = new SenseiNetworkClient(_networkClientConfig, null);
-    _senseiBroker = new SenseiBroker(_networkClient, _clusterClient, loadBalancerFactory,
-                                     pollInterval, minResponses, maxTotalWait);
-    _senseiSysBroker = new SenseiSysBroker(_networkClient, _clusterClient, loadBalancerFactory, versionComparator,
-                                           pollInterval, minResponses, maxTotalWait);
-
-    logger.info("Connecting to cluster: "+clusterName+" ...");
+    BrokerConfig brokerConfig = new BrokerConfig(senseiConf, loadBalancerFactory);
+    brokerConfig.init();
+    _senseiBroker = brokerConfig.buildSenseiBroker();
+    _senseiSysBroker = brokerConfig.buildSysSenseiBroker(versionComparator);
+    _networkClient = brokerConfig.getNetworkClient();
+    _clusterClient = brokerConfig.getClusterClient();
+    federatedBroker = pluginRegistry.getBeanByFullPrefix(SenseiConfParams.SENSEI_FEDERATED_BROKER, LayeredBroker.class);
+    if (federatedBroker != null) { 
+      federatedBroker.warmUp();
+    }
+    logger.info("Connecting to cluster: " + brokerConfig.getClusterName() +" ...");
     _clusterClient.awaitConnectionUninterruptibly();
 
     int count = 0;
@@ -100,15 +99,8 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
         logger.info("Trying to get sysinfo");
         SenseiSystemInfo sysInfo = _senseiSysBroker.browse(new SenseiRequest());
 
-        Map<String, String[]> facetInfoMap = new HashMap<String, String[]>();
-        Iterator<SenseiSystemInfo.SenseiFacetInfo> itr = sysInfo.getFacetInfos().iterator();
-        while (itr.hasNext())
-        {
-          SenseiSystemInfo.SenseiFacetInfo facetInfo = itr.next();
-          Map<String, String> props = facetInfo.getProps();
-          facetInfoMap.put(facetInfo.getName(), new String[]{props.get("type"), props.get("column_type")});
-        }
-        _compiler = new BQLCompiler(facetInfoMap);
+        _facetInfoMap = extractFacetInfo(sysInfo);
+        _compiler = new BQLCompiler(_facetInfoMap);
         break;
       }
       catch (Exception e)
@@ -132,7 +124,19 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
         }
       }
     }
-    logger.info("Cluster: "+clusterName+" successfully connected ");
+    logger.info("Cluster: "+ brokerConfig.getClusterName() +" successfully connected ");
+  }
+
+  public static Map<String, String[]> extractFacetInfo(SenseiSystemInfo sysInfo) {
+    Map<String, String[]> facetInfoMap = new HashMap<String, String[]>();
+    Iterator<SenseiSystemInfo.SenseiFacetInfo> itr = sysInfo.getFacetInfos().iterator();
+    while (itr.hasNext())
+    {
+      SenseiSystemInfo.SenseiFacetInfo facetInfo = itr.next();
+      Map<String, String> props = facetInfo.getProps();
+      facetInfoMap.put(facetInfo.getName(), new String[]{props.get("type"), props.get("column_type")});
+    }
+    return facetInfoMap;
   }
 
   protected abstract SenseiRequest buildSenseiRequest(HttpServletRequest req) throws Exception;
@@ -152,8 +156,12 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
     return params;
   }
 
-  private void handleSenseiRequest(HttpServletRequest req, HttpServletResponse resp)
+  private void handleSenseiRequest(HttpServletRequest req, HttpServletResponse resp, Broker<SenseiRequest, SenseiResult> broker)
       throws ServletException, IOException {
+    long time = System.currentTimeMillis();
+    int numHits = 0, totalDocs = 0;
+    String query = null;
+
     SenseiRequest senseiReq = null;
     try
     {
@@ -174,22 +182,9 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
           String contentType = req.getHeader("Content-Type");
           if (contentType != null && contentType.indexOf("json") >= 0)
           {
-            logger.error("JSON parsing error", jse);
-            OutputStream ostream = resp.getOutputStream();
-            try
-            {
-              JSONObject errResp = new JSONObject().put("error",
-                                                        new JSONObject().put("code", JSON_PARSING_ERROR)
-                                                                        .put("msg", jse.getMessage()));
-              ostream.write(errResp.toString().getBytes("UTF-8"));
-              ostream.flush();
-              return;
-            }
-            catch (JSONException err)
-            {
-              logger.error(err.getMessage());
-              throw new ServletException(err.getMessage(), err);
-            }
+            logger.error("JSON parsing error", jse);           
+              writeEmptyResponse(req, resp, new SenseiError(jse.getMessage(), ErrorType.JsonParsingError));              
+              return;            
           }
 
           logger.warn("Old client or json error", jse);
@@ -198,9 +193,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
           // consider reporting JSON exceptions here.
           senseiReq = DefaultSenseiJSONServlet.convertSenseiRequest(
                         new DataConfiguration(new MapConfiguration(getParameters(content))));
-          if (queryLogger.isInfoEnabled()){
-            queryLogger.info(content);
-          }
+          query = content;
         }
       }
       else
@@ -216,31 +209,15 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
           catch(JSONException jse)
           {
             logger.error("JSON parsing error", jse);
-            OutputStream ostream = resp.getOutputStream();
-            try
-            {
-              JSONObject errResp = new JSONObject().put("error",
-                                                        new JSONObject().put("code", JSON_PARSING_ERROR)
-                                                                        .put("msg", jse.getMessage()));
-              ostream.write(errResp.toString().getBytes("UTF-8"));
-              ostream.flush();
-              return;
-            }
-            catch (JSONException err)
-            {
-              logger.error(err.getMessage());
-              throw new ServletException(err.getMessage(), err);
-            }
+            writeEmptyResponse(req, resp, new SenseiError(jse.getMessage(), ErrorType.JsonParsingError));
+            return;
           }
         }
         else
         {
           senseiReq = buildSenseiRequest(req);
-          if (queryLogger.isInfoEnabled()){
-            queryLogger.info(
-                URLEncodedUtils.format(
-                    HttpRestSenseiServiceImpl.convertRequestToQueryParams(senseiReq), "UTF-8"));
-          }
+          query = URLEncodedUtils.format(
+                    HttpRestSenseiServiceImpl.convertRequestToQueryParams(senseiReq), "UTF-8");
         }
       }
 
@@ -254,10 +231,10 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
         {
           try
           {
-            if (queryLogger.isInfoEnabled())
-            {
-              queryLogger.info("bql=" + bqlStmt);
-            }
+            if (jsonObj.length() == 1)
+              query = "bql=" + bqlStmt;
+            else
+              query = "json=" + content;
             compiledJson = _compiler.compile(bqlStmt);
           }
           catch (RecognitionException e)
@@ -268,21 +245,8 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
               errMsg = "Unknown parsing error.";
             }
             logger.error("BQL parsing error: " + errMsg + ", BQL: " + bqlStmt);
-            OutputStream ostream = resp.getOutputStream();
-            try
-            {
-              JSONObject errResp = new JSONObject().put("error",
-                                                        new JSONObject().put("code", BQL_PARSING_ERROR)
-                                                                        .put("msg", errMsg));
-              ostream.write(errResp.toString().getBytes("UTF-8"));
-              ostream.flush();
-              return;
-            }
-            catch (JSONException err)
-            {
-              logger.error(err.getMessage());
-              throw new ServletException(err.getMessage(), err);
-            }
+            writeEmptyResponse(req, resp, new SenseiError(errMsg, ErrorType.BQLParsingError));
+            return;
           }
 
           // Handle extra BQL filter if it exists
@@ -290,11 +254,6 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
           JSONObject predObj = null;
           if (extraFilter.length() > 0)
           {
-            if (queryLogger.isInfoEnabled())
-            {
-              queryLogger.info("BQL extra filter: " + extraFilter);
-            }
-
             String bql2 = "SELECT * WHERE " + extraFilter;
             try
             {
@@ -308,21 +267,8 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
                 errMsg = "Unknown parsing error.";
               }
               logger.error("BQL parsing error for additional preds: " + errMsg + ", BQL: " + bql2);
-              OutputStream ostream = resp.getOutputStream();
-              try
-              {
-                JSONObject errResp = new JSONObject().put("error",
-                                                          new JSONObject().put("code", BQL_EXTRA_FILTER_ERROR)
-                                                          .put("msg", errMsg));
-                ostream.write(errResp.toString().getBytes("UTF-8"));
-                ostream.flush();
-                return;
-              }
-              catch (JSONException err)
-              {
-                logger.error(err.getMessage());
-                throw new ServletException(err.getMessage(), err);
-              }
+              writeEmptyResponse(req, resp, new SenseiError("BQL parsing error for additional preds: " + errMsg + ", BQL: " + bql2, ErrorType.BQLParsingError));
+              return;
             }
 
             // Combine filters
@@ -373,12 +319,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
                 if (templatesJson == null ||
                     templatesJson.opt(var) == null)
                 {
-                  OutputStream ostream = resp.getOutputStream();
-                  JSONObject errResp = new JSONObject().put("error",
-                                                            new JSONObject().put("code", BQL_PARSING_ERROR)
-                                                                            .put("msg", "[line:0, col:0] Variable " + var + " is not found."));
-                  ostream.write(errResp.toString().getBytes("UTF-8"));
-                  ostream.flush();
+                  writeEmptyResponse(req, resp, new SenseiError("[line:0, col:0] Variable " + var + " is not found.", ErrorType.BQLParsingError));
                   return;
                 }
               }
@@ -388,9 +329,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
         else
         {
           // This is NOT a BQL statement
-          if (queryLogger.isInfoEnabled()){
-            queryLogger.info("query=" + content);
-          }
+          query = "json=" + content;
           compiledJson = jsonObj;
         }
 
@@ -398,21 +337,59 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
         {
           compiledJson.put(JsonTemplateProcessor.TEMPLATE_MAPPING_PARAM, templatesJson);
         }
-        senseiReq = SenseiRequest.fromJSON(compiledJson);
+        senseiReq = SenseiRequest.fromJSON(compiledJson, _facetInfoMap);
       }
-      SenseiResult res = _senseiBroker.browse(senseiReq);
-      OutputStream ostream = resp.getOutputStream();
-      convertResult(senseiReq, res, ostream);
-      ostream.flush();
+      SenseiResult res = broker.browse(senseiReq);
+      numHits = res.getNumHits();
+      totalDocs = res.getTotalDocs();
+      sendResponse(req, resp, senseiReq, res);
+   } catch (JSONException e) {
+      try {
+        writeEmptyResponse(req, resp, new SenseiError(e.getMessage(), ErrorType.JsonParsingError));
+      } catch (Exception ex) {
+        throw new ServletException(e);
+      }
     }
     catch (Exception e)
     {
-      throw new ServletException(e.getMessage(),e);
+      try {
+        logger.error(e.getMessage(), e);
+        if (e.getCause() != null && e.getCause() instanceof JSONException) {
+          writeEmptyResponse(req, resp, new SenseiError(e.getMessage(), ErrorType.JsonParsingError));
+      } else {
+        writeEmptyResponse(req, resp, new SenseiError(e.getMessage(), ErrorType.InternalError));
+      }
+      } catch (Exception ex) {
+        throw new ServletException(e);
+      }
     }
+    finally
+    {
+      if (queryLogger.isInfoEnabled() && query != null)
+      {
+        queryLogger.info(String.format("hits(%d/%d) took %dms: %s", numHits, totalDocs, System.currentTimeMillis() - time, query));
+      }
+    }
+  }
+
+  private void writeEmptyResponse(HttpServletRequest req, HttpServletResponse resp, SenseiError senseiError) throws Exception {
+    SenseiResult res = new SenseiResult();
+    res.addError(senseiError);
+    sendResponse(req, resp, new SenseiRequest(), res);
+  }
+
+  private void sendResponse(HttpServletRequest req, HttpServletResponse resp, SenseiRequest senseiReq, SenseiResult res) throws Exception {
+    OutputStream ostream = resp.getOutputStream();
+    convertResult(req, senseiReq, res, ostream);
+    ostream.flush();
   }
 
   private void handleStoreGetRequest(HttpServletRequest req, HttpServletResponse resp)
       throws ServletException, IOException {
+    long time = System.currentTimeMillis();
+    int numHits = 0, totalDocs = 0;
+    String query = null;
+
     SenseiRequest senseiReq = null;
     try
     {
@@ -429,9 +406,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
           ids = new JSONArray(jsonString);
       }
 
-      if (queryLogger.isInfoEnabled()){
-        queryLogger.info("get="+String.valueOf(ids));
-      }
+      query = "get=" + String.valueOf(ids);
 
       String[] vals = RequestConverter2.getStrings(ids);
       if (vals != null && vals.length != 0)
@@ -447,6 +422,12 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
       SenseiResult res = null;
       if (senseiReq != null)
         res =_senseiBroker.browse(senseiReq);
+
+      if (res != null)
+      {
+        numHits = res.getNumHits();
+        totalDocs = res.getTotalDocs();
+      }
 
       JSONObject ret = new JSONObject();
       JSONObject obj = null;
@@ -473,6 +454,13 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
     {
       throw new ServletException(e.getMessage(),e);
     }
+    finally
+    {
+      if (queryLogger.isInfoEnabled() && query != null)
+      {
+        queryLogger.info(String.format("hits(%d/%d) took %dms: %s", numHits, totalDocs, System.currentTimeMillis() - time, query));
+      }
+    }
   }
 
   private void handleSystemInfoRequest(HttpServletRequest req, HttpServletResponse resp)
@@ -480,7 +468,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
     try {
       SenseiSystemInfo res = _senseiSysBroker.browse(new SenseiRequest());
       OutputStream ostream = resp.getOutputStream();
-      convertResult(res, ostream);
+      convertResult(req, res, ostream);
       ostream.flush();
     } catch (Exception e) {
       throw new ServletException(e.getMessage(),e);
@@ -570,7 +558,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
 
     if (null == req.getPathInfo() || "/".equalsIgnoreCase(req.getPathInfo()))
     {
-      handleSenseiRequest(req, resp);
+      handleSenseiRequest(req, resp, _senseiBroker);
     }
     else if ("/get".equalsIgnoreCase(req.getPathInfo()))
     {
@@ -583,10 +571,20 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
     else if (req.getPathInfo().startsWith("/admin/jmx/"))
     {
       handleJMXRequest(req, resp);
+    }else if (req.getPathInfo().startsWith("/federatedBroker/"))
+    {
+      if (federatedBroker == null) {
+        try {
+          writeEmptyResponse(req, resp, new SenseiError("The federated broker wasn't initialized", ErrorType.FederatedBrokerUnavailable)) ;
+        } catch (Exception e) {
+          throw new RuntimeException(e);
+        }                    
+      }
+      handleSenseiRequest(req, resp, federatedBroker);
     }
     else
     {
-      handleSenseiRequest(req, resp);
+      handleSenseiRequest(req, resp, _senseiBroker);
     }
   }
 
@@ -606,9 +604,9 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
     resp.setHeader("Access-Control-Allow-Headers", "Origin, Content-Type, X-Requested-With, Accept");
   }
 
-  protected abstract void convertResult(SenseiSystemInfo info, OutputStream ostream) throws Exception;
+  protected abstract void convertResult(HttpServletRequest httpReq, SenseiSystemInfo info, OutputStream ostream) throws Exception;
 
-  protected abstract void convertResult(SenseiRequest req,SenseiResult res,OutputStream ostream) throws Exception;
+  protected abstract void convertResult(HttpServletRequest httpReq, SenseiRequest req,SenseiResult res,OutputStream ostream) throws Exception;
 
   @Override
   public void destroy() {

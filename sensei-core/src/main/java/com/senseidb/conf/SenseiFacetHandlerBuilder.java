@@ -1,6 +1,8 @@
 package com.senseidb.conf;
 
 import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -35,9 +37,17 @@ import com.browseengine.bobo.facets.impl.PathFacetHandler;
 import com.browseengine.bobo.facets.impl.RangeFacetHandler;
 import com.browseengine.bobo.facets.impl.SimpleFacetHandler;
 import com.browseengine.bobo.facets.range.MultiRangeFacetHandler;
+import com.senseidb.conf.SenseiSchema.FacetDefinition;
 import com.senseidb.indexing.DefaultSenseiInterpreter;
+import com.senseidb.indexing.activity.ActivityValues;
+import com.senseidb.indexing.activity.CompositeActivityManager;
+import com.senseidb.indexing.activity.CompositeActivityValues;
+import com.senseidb.indexing.activity.facet.ActivityRangeFacetHandler;
+import com.senseidb.indexing.activity.primitives.ActivityIntValues;
+import com.senseidb.indexing.activity.time.TimeAggregatedActivityValues;
 import com.senseidb.plugin.SenseiPluginRegistry;
 import com.senseidb.search.facet.UIDFacetHandler;
+import com.senseidb.search.plugin.PluggableSearchEngineManager;
 import com.senseidb.search.req.SenseiSystemInfo;
 
 public class SenseiFacetHandlerBuilder {
@@ -175,7 +185,7 @@ public class SenseiFacetHandlerBuilder {
     return predefinedRanges;
   }
 
-	static Map<String,List<String>> parseParams(JSONArray paramList) throws JSONException{
+	public static Map<String,List<String>> parseParams(JSONArray paramList) throws JSONException{
 		HashMap<String,List<String>> retmap = new HashMap<String,List<String>>();
 		if (paramList!=null){
 		  int count = paramList.length();
@@ -297,9 +307,9 @@ public class SenseiFacetHandlerBuilder {
 	}
 
 	public static SenseiSystemInfo buildFacets(JSONObject schemaObj, SenseiPluginRegistry pluginRegistry,
-			List<FacetHandler<?>> facets,List<RuntimeFacetHandlerFactory<?,?>> runtimeFacets)
+			List<FacetHandler<?>> facets,List<RuntimeFacetHandlerFactory<?,?>> runtimeFacets, PluggableSearchEngineManager pluggableSearchEngineManager)
     throws JSONException,ConfigurationException {
-
+	  Set<String> pluggableSearchEngineFacetNames = pluggableSearchEngineManager.getFacetNames();
     SenseiSystemInfo sysInfo = new SenseiSystemInfo();
     JSONArray facetsList = schemaObj.optJSONArray("facets");
 
@@ -345,6 +355,9 @@ public class SenseiFacetHandlerBuilder {
 					logger.error("facet name: "+UID_FACET_NAME+" is reserved, skipping...");
 					continue;
 				}
+				if (pluggableSearchEngineFacetNames.contains(name)) {
+				  continue;
+				}
 				String type = facet.getString("type");
 				String fieldName = facet.optString("column",name);
 				Set<String> dependSet = new HashSet<String>();
@@ -383,18 +396,21 @@ public class SenseiFacetHandlerBuilder {
 				} else if (type.equals("path")) {
 					facetHandler = buildPathHandler(name, fieldName, paramMap);
 				} else if (type.equals("range")) {
-					facetHandler = buildRangeHandler(name, fieldName, termListFactoryMap.get(fieldName), paramMap);
-				} else if (type.equals("multi")) {
+					if (column.optBoolean("multi")) {
+					  facetHandler = new MultiRangeFacetHandler(name, fieldName, null,  termListFactoryMap.get(fieldName) , buildPredefinedRanges(paramMap));
+					} else {
+					  facetHandler = buildRangeHandler(name, fieldName, termListFactoryMap.get(fieldName), paramMap);
+					}
+				}  else if (type.equals("multi")) {
 					facetHandler = buildMultiHandler(name, fieldName,  termListFactoryMap.get(fieldName), dependSet);
 				} else if (type.equals("compact-multi")) {
 					facetHandler = buildCompactMultiHandler(name, fieldName, dependSet,  termListFactoryMap.get(fieldName));
+
 				} else if (type.equals("weighted-multi")) {
 				    facetHandler = buildWeightedMultiHandler(name, fieldName,  termListFactoryMap.get(fieldName), dependSet);
-				} else if (type.equals("multi-range")) {
-                    facetHandler = new MultiRangeFacetHandler(name, fieldName, null,  termListFactoryMap.get(fieldName) , buildPredefinedRanges(paramMap));
-                } else if (type.equals("attribute")) {
-                    facetHandler = new AttributesFacetHandler(name, fieldName,  termListFactoryMap.get(fieldName), null , facetProps);
-                } else if (type.equals("histogram")) {
+        } else if (type.equals("attribute")) {
+          facetHandler = new AttributesFacetHandler(name, fieldName, termListFactoryMap.get(fieldName), null, facetProps);
+        } else if (type.equals("histogram")) {
 				  // A histogram facet handler is always dynamic
 				  RuntimeFacetHandlerFactory<?, ?> runtimeFacetFactory = getHistogramFacetHandlerFactory(facet, name, paramMap);
 				  runtimeFacets.add(runtimeFacetFactory);
@@ -434,6 +450,8 @@ public class SenseiFacetHandlerBuilder {
                                          + facet, e);
 			}
 		}
+
+		facets.addAll((Collection<? extends FacetHandler<?>>) pluggableSearchEngineManager.createFacetHandlers());
 		// uid facet handler to be added by default
 		UIDFacetHandler uidHandler = new UIDFacetHandler(UID_FACET_NAME);
 		facets.add(uidHandler);
@@ -441,6 +459,8 @@ public class SenseiFacetHandlerBuilder {
 
     return sysInfo;
 	}
+
+  
 
   public static RuntimeFacetHandlerFactory<?, ?> getDynamicTimeFacetHandlerFactory(final String name, String fieldName, Set<String> dependSet,
       final Map<String, List<String>> paramMap) {

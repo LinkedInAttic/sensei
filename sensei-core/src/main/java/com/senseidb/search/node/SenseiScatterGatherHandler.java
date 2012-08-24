@@ -13,6 +13,8 @@ import org.apache.log4j.Logger;
 import org.apache.lucene.document.Document;
 
 import com.senseidb.conf.SenseiSchema;
+import com.senseidb.search.req.ErrorType;
+import com.senseidb.search.req.SenseiError;
 import com.senseidb.search.req.SenseiHit;
 import com.senseidb.search.req.SenseiRequest;
 import com.senseidb.search.req.SenseiResult;
@@ -79,6 +81,7 @@ public class SenseiScatterGatherHandler extends AbstractSenseiScatterGatherHandl
         }
         catch(Exception e)
         {
+          res.addError(new SenseiError(e.getMessage(),ErrorType.BrokerGatherError));
           logger.error(e.getMessage(),e);
         }
       }
