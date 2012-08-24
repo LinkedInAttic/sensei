@@ -193,7 +193,7 @@
 		<dependency>
 			<groupId>com.linkedin.zoie</groupId>
 			<artifactId>zoie-core</artifactId>
-			<version>3.1.1</version>
+			<version>3.3.0</version>
 		</dependency>
 		
 		<dependency>
@@ -254,7 +254,7 @@
         </dependency>
 
 		<dependency>
-			<groupId>com.browseengine.bobo</groupId>
+			<groupId>com.linkedin.bobo</groupId>
 			<artifactId>bobo-browse</artifactId>
 			<version>3.0.9</version>
 			<exclusions>

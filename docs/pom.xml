@@ -6,32 +6,18 @@
          xmlns:ns="http://maven.apache.org/POM/4.0.0">
 		
   <modelVersion>4.0.0</modelVersion>
-
   <groupId>com.senseidb.doc</groupId>
-
   <artifactId>sensei-doc</artifactId>
-
   <version>1.5.2</version>
-
   <url>http://www.senseidb.com</url>
 
   <licenses>
     <license>
       <name>Apache License, Version 2.0</name>
-
       <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-
       <distribution>repo</distribution>
     </license>
   </licenses>
-
-  <scm>
-    <connection>scm:git://github.com/javasoze/sensei.git</connection>
-
-    <developerConnection>scm:git@github.com:javasoze/sensei.git</developerConnection>
-
-    <url>http://github.com/javasoze/sensei</url>
-  </scm>
 
   <developers>
     <developer>
