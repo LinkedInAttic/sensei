@@ -14,18 +14,11 @@
 	<name>sensei hadoop indexing</name>
 	<description>sensei hadoop indexer</description>
 
-	<!-- Set the compiler to java6 -->
 	<build>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>2.1</version>
-				<configuration>
-					<source>1.6</source>
-					<target>1.6</target>
-					<encoding>UTF-8</encoding>
-				</configuration>
 			</plugin>
 			<plugin>
 		      <artifactId>maven-dependency-plugin</artifactId>
@@ -58,7 +51,6 @@
 		<dependency>
 		    <groupId>org.apache.hadoop</groupId>
 		    <artifactId>hadoop-core</artifactId>
-		    <version>0.20.2</version>
 		</dependency>
 	</dependencies>
 </project>

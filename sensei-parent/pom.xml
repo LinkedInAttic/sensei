@@ -188,6 +188,29 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
+                <groupId>org.apache.avro</groupId>
+                <artifactId>avro</artifactId>
+                <version>1.4.0</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.derby</groupId>
+                <artifactId>derby</artifactId>
+                <version>10.8.2.2</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.github.sgroschupf</groupId>
+                <artifactId>zkclient</artifactId>
+                <version>0.1</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.kafka</groupId>
+                <artifactId>kafka</artifactId>
+                <version>0.7.6</version>
+                <scope>system</scope>
+                <systemPath>${basedir}/../lib/kafka-0.7.6.jar</systemPath>
+            </dependency>
+            <dependency>
                 <groupId>voldemort</groupId>
                 <artifactId>voldemort</artifactId>
                 <version>0.81</version>
