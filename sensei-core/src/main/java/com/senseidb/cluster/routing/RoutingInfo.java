@@ -48,12 +48,5 @@ public class RoutingInfo
     StringBuffer sb = new StringBuffer();
     sb.append("Nodes: ").append(Arrays.toString(nodegroup)).append(" each for partitions: ").append(Arrays.toString(partitions));
     return sb.toString();
-//
-//      StringBuilder builder = new StringBuilder("Nodes: ");
-//      for (int i = 0; i < partitions.length; i++) {
-//          builder.append(String.format("p%d:%d", partitions[i], nodelist[i].get(nodegroup[i]).getId())).append(" ");
-//      }
-//
-//      return builder.toString();
   }
 }
