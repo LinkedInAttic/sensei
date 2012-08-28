@@ -46,7 +46,9 @@ public class CompositeActivityValues {
   private static final int DEFAULT_INITIAL_CAPACITY = 5000;
   private final static Logger logger = Logger.getLogger(CompositeActivityValues.class);
   protected Comparator<String> versionComparator; 
-  private volatile UpdateBatch<Update> pendingDeletes = new UpdateBatch<Update>();
+
+  private volatile UpdateBatch<Update> pendingDeletes;
+
   protected Map<String, ActivityValues> valuesMap = new ConcurrentHashMap<String, ActivityValues>();
   protected volatile String lastVersion = "";  
   protected Long2IntMap uidToArrayIndex = new Long2IntOpenHashMap();  
@@ -54,21 +56,24 @@ public class CompositeActivityValues {
   protected ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
   protected IntList deletedIndexes = new IntArrayList(2000);  
   protected CompositeActivityStorage activityStorage;
-  protected UpdateBatch<Update> updateBatch = new UpdateBatch<Update>(); 
-  protected RecentlyAddedUids recentlyAddedUids = new RecentlyAddedUids(500); 
+  protected UpdateBatch<Update> updateBatch; 
+  protected RecentlyAddedUids recentlyAddedUids; 
   protected volatile Metadata metadata;
   
   private volatile boolean closed;
+  private ActivityConfig activityConfig;
   
   protected static Counter reclaimedDocumentsCounter;
   protected static Counter currentDocumentsCounter;
   protected static Counter deletedDocumentsCounter;
-  protected static Counter insertedDocumentsCounter; 
+  protected static Counter insertedDocumentsCounter;
+  protected static Counter totalUpdatesCounter;
   static {
     reclaimedDocumentsCounter = Metrics.newCounter(new MetricName(CompositeActivityValues.class, "reclaimedActivityDocs"));
     currentDocumentsCounter = Metrics.newCounter(new MetricName(CompositeActivityValues.class, "currentActivityDocs"));
     deletedDocumentsCounter = Metrics.newCounter(new MetricName(CompositeActivityValues.class, "deletedActivityDocs"));
     insertedDocumentsCounter = Metrics.newCounter(new MetricName(CompositeActivityValues.class, "insertedActivityDocs"));
+    totalUpdatesCounter = Metrics.newCounter(new MetricName(CompositeActivityValues.class, "totalUpdatesCounter"));
   }
   CompositeActivityValues() {    
    
@@ -104,6 +109,7 @@ public class CompositeActivityValues {
     boolean needToFlush = false;
     try {
       writeLock.lock();      
+      totalUpdatesCounter.inc();
       if (uidToArrayIndex.containsKey(uid)) {
         index = uidToArrayIndex.get(uid); 
       } else {
@@ -201,7 +207,7 @@ public class CompositeActivityValues {
       return;
     }
     final UpdateBatch<Update> deleteBatch = pendingDeletes;
-    pendingDeletes = new UpdateBatch<Update>();
+    pendingDeletes = new UpdateBatch<Update>(activityConfig);
     executor.submit(new Runnable() {
       @Override
       public void run() {
@@ -254,7 +260,9 @@ public class CompositeActivityValues {
       return;
     }
     final UpdateBatch<Update> oldBatch = updateBatch;
-    updateBatch = new UpdateBatch<CompositeActivityStorage.Update>();    
+
+    updateBatch = new UpdateBatch<CompositeActivityStorage.Update>(activityConfig);    
+
     final List<Runnable> underlyingFlushes = new ArrayList<Runnable>(valuesMap.size());
     for (ActivityValues activityIntValues :  valuesMap.values()) {
       underlyingFlushes.add(activityIntValues.prepareFlush());
@@ -367,6 +375,12 @@ public class CompositeActivityValues {
     CompositeActivityStorage persistentColumnManager = activityPersistenceFactory.getCompositeStorage();
    
     ret.metadata = activityPersistenceFactory.getMetadata();
+
+    ret.activityConfig = activityPersistenceFactory.getActivityConfig();
+    ret.updateBatch = new UpdateBatch<Update>(ret.activityConfig); 
+    ret.pendingDeletes =  new UpdateBatch<Update>(ret.activityConfig); 
+    ret.recentlyAddedUids = new RecentlyAddedUids(ret.activityConfig.getUndeletableBufferSize());
+
     int count = 0;
     if (ret.metadata != null) {
       ret.metadata.init();

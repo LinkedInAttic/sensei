@@ -59,32 +59,33 @@ public class InMemorySenseiService {
   private PluggableSearchEngineManager pluggableSearchEngineManager;
   private MockSenseiCore mockSenseiCore;
   private SenseiSystemInfo senseiSystemInfo;
+  private SenseiIndexReaderDecorator senseiIndexReaderDecorator;
 
-
-  public InMemorySenseiService(SenseiSchema schema, SenseiPluginRegistry pluginRegistry) {    
+  public InMemorySenseiService(SenseiSchema schema, SenseiPluginRegistry pluginRegistry) {
     MBeanServer platformMBeanServer = ManagementFactory.getPlatformMBeanServer();
     schema.setCompressSrcData(false);
     try {
       platformMBeanServer = JmxUtil.registerNewJmxServer(new MockJMXServer());
-      defaultJsonSchemaInterpreter = new DefaultJsonSchemaInterpreter(schema);    
+      defaultJsonSchemaInterpreter = new DefaultJsonSchemaInterpreter(schema);
       facets = new ArrayList<FacetHandler<?>>();
       runtimeFacets = new ArrayList<RuntimeFacetHandlerFactory<?, ?>>();
 
-      ShardingStrategy strategy = new ShardingStrategy() {        
+      ShardingStrategy strategy = new ShardingStrategy() {
         public int caculateShard(int maxShardId, JSONObject dataObj) throws JSONException {
           return 0;
         }
-      };      
+      };
       ActivityPersistenceFactory.setOverrideForCurrentThread(ActivityPersistenceFactory.getInMemoryInstance());
-      pluggableSearchEngineManager = new PluggableSearchEngineManager();     
+      pluggableSearchEngineManager = new PluggableSearchEngineManager();
       pluggableSearchEngineManager.init("", 0, schema, ZoieConfig.DEFAULT_VERSION_COMPARATOR, pluginRegistry, strategy);
       senseiSystemInfo = SenseiFacetHandlerBuilder.buildFacets(schema.getSchemaObj(), pluginRegistry, facets, runtimeFacets,
           pluggableSearchEngineManager);
-      
-      int[] partitions = new int[]{0};
-      mockSenseiCore = new MockSenseiCore(partitions);
+
+      int[] partitions = new int[] { 0 };
+       senseiIndexReaderDecorator = new SenseiIndexReaderDecorator(facets, runtimeFacets);
+      mockSenseiCore = new MockSenseiCore(partitions, senseiIndexReaderDecorator);
       pluggableSearchEngineManager.start(mockSenseiCore);
-      coreSenseiServiceImpl = new CoreSenseiServiceImpl(mockSenseiCore); 
+      coreSenseiServiceImpl = new CoreSenseiServiceImpl(mockSenseiCore);
     } catch (Exception e) {
       throw new RuntimeException(e);
     } finally {
@@ -120,7 +121,8 @@ public class InMemorySenseiService {
       addDocuments(directory, writer, documents);
       ZoieIndexReader<BoboIndexReader> zoieMultiReader = new ZoieMultiReader<BoboIndexReader>(IndexReader.open(directory),
           new SenseiIndexReaderDecorator(facets, runtimeFacets));
-      MockIndexReaderFactory mockIndexReaderFactory = new MockIndexReaderFactory<ZoieIndexReader<BoboIndexReader>>(Arrays.asList(zoieMultiReader));
+      MockIndexReaderFactory mockIndexReaderFactory = new MockIndexReaderFactory<ZoieIndexReader<BoboIndexReader>>(
+          Arrays.asList(zoieMultiReader));
       mockSenseiCore.setIndexReaderFactory(mockIndexReaderFactory);
       SenseiResult result = coreSenseiServiceImpl.execute(senseiRequest);
       mockSenseiCore.setIndexReaderFactory(null);
@@ -144,7 +146,7 @@ public class InMemorySenseiService {
   public Document buildDoc(JSONObject json) {
     ZoieIndexable indexable = defaultJsonSchemaInterpreter.convertAndInterpret(json);
     Document ret = indexable.buildIndexingReqs()[0].getDocument();
-    ret.add(new Field(AbstractZoieIndexable.DOCUMENT_STORE_FIELD,indexable.getStoreValue()));
+    ret.add(new Field(AbstractZoieIndexable.DOCUMENT_STORE_FIELD, indexable.getStoreValue()));
     ZoieSegmentReader.fillDocumentID(ret, indexable.getUID());
     return ret;
   }

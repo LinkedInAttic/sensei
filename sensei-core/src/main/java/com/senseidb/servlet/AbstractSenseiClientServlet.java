@@ -182,7 +182,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
           if (contentType != null && contentType.indexOf("json") >= 0)
           {
             logger.error("JSON parsing error", jse);           
-              writeEmptyResponse(resp, new SenseiError(jse.getMessage(), ErrorType.JsonParsingError));              
+              writeEmptyResponse(req, resp, new SenseiError(jse.getMessage(), ErrorType.JsonParsingError));              
               return;            
           }
 
@@ -208,7 +208,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
           catch(JSONException jse)
           {
             logger.error("JSON parsing error", jse);
-            writeEmptyResponse(resp, new SenseiError(jse.getMessage(), ErrorType.JsonParsingError));
+            writeEmptyResponse(req, resp, new SenseiError(jse.getMessage(), ErrorType.JsonParsingError));
             return;
           }
         }
@@ -244,7 +244,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
               errMsg = "Unknown parsing error.";
             }
             logger.error("BQL parsing error: " + errMsg + ", BQL: " + bqlStmt);
-            writeEmptyResponse(resp, new SenseiError(errMsg, ErrorType.BQLParsingError));
+            writeEmptyResponse(req, resp, new SenseiError(errMsg, ErrorType.BQLParsingError));
             return;
           }
 
@@ -266,7 +266,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
                 errMsg = "Unknown parsing error.";
               }
               logger.error("BQL parsing error for additional preds: " + errMsg + ", BQL: " + bql2);
-              writeEmptyResponse(resp, new SenseiError("BQL parsing error for additional preds: " + errMsg + ", BQL: " + bql2, ErrorType.BQLParsingError));
+              writeEmptyResponse(req, resp, new SenseiError("BQL parsing error for additional preds: " + errMsg + ", BQL: " + bql2, ErrorType.BQLParsingError));
               return;
             }
 
@@ -318,7 +318,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
                 if (templatesJson == null ||
                     templatesJson.opt(var) == null)
                 {
-                  writeEmptyResponse(resp, new SenseiError("[line:0, col:0] Variable " + var + " is not found.", ErrorType.BQLParsingError));
+                  writeEmptyResponse(req, resp, new SenseiError("[line:0, col:0] Variable " + var + " is not found.", ErrorType.BQLParsingError));
                   return;
                 }
               }
@@ -341,10 +341,10 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
       SenseiResult res = broker.browse(senseiReq);
       numHits = res.getNumHits();
       totalDocs = res.getTotalDocs();
-      sendResponse(resp, senseiReq, res);
+      sendResponse(req, resp, senseiReq, res);
    } catch (JSONException e) {
       try {
-        writeEmptyResponse(resp, new SenseiError(e.getMessage(), ErrorType.JsonParsingError));
+        writeEmptyResponse(req, resp, new SenseiError(e.getMessage(), ErrorType.JsonParsingError));
       } catch (Exception ex) {
         throw new ServletException(e);
       }
@@ -354,9 +354,9 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
       try {
         logger.error(e.getMessage(), e);
         if (e.getCause() != null && e.getCause() instanceof JSONException) {
-          writeEmptyResponse(resp, new SenseiError(e.getMessage(), ErrorType.JsonParsingError));
+          writeEmptyResponse(req, resp, new SenseiError(e.getMessage(), ErrorType.JsonParsingError));
       } else {
-        writeEmptyResponse(resp, new SenseiError(e.getMessage(), ErrorType.InternalError));
+        writeEmptyResponse(req, resp, new SenseiError(e.getMessage(), ErrorType.InternalError));
       }
       } catch (Exception ex) {
         throw new ServletException(e);
@@ -371,15 +371,15 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
     }
   }
 
-  private void writeEmptyResponse(HttpServletResponse resp, SenseiError senseiError) throws Exception {
+  private void writeEmptyResponse(HttpServletRequest req, HttpServletResponse resp, SenseiError senseiError) throws Exception {
     SenseiResult res = new SenseiResult();
     res.addError(senseiError);
-    sendResponse(resp, new SenseiRequest(), res);
+    sendResponse(req, resp, new SenseiRequest(), res);
   }
 
-  private void sendResponse(HttpServletResponse resp, SenseiRequest senseiReq, SenseiResult res) throws Exception {
+  private void sendResponse(HttpServletRequest req, HttpServletResponse resp, SenseiRequest senseiReq, SenseiResult res) throws Exception {
     OutputStream ostream = resp.getOutputStream();
-    convertResult(senseiReq, res, ostream);
+    convertResult(req, senseiReq, res, ostream);
     ostream.flush();
   }
 
@@ -467,7 +467,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
     try {
       SenseiSystemInfo res = _senseiSysBroker.browse(new SenseiRequest());
       OutputStream ostream = resp.getOutputStream();
-      convertResult(res, ostream);
+      convertResult(req, res, ostream);
       ostream.flush();
     } catch (Exception e) {
       throw new ServletException(e.getMessage(),e);
@@ -574,7 +574,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
     {
       if (federatedBroker == null) {
         try {
-          writeEmptyResponse(resp, new SenseiError("The federated broker wasn't initialized", ErrorType.FederatedBrokerUnavailable)) ;
+          writeEmptyResponse(req, resp, new SenseiError("The federated broker wasn't initialized", ErrorType.FederatedBrokerUnavailable)) ;
         } catch (Exception e) {
           throw new RuntimeException(e);
         }                    
@@ -603,9 +603,9 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
     resp.setHeader("Access-Control-Allow-Headers", "Origin, Content-Type, X-Requested-With, Accept");
   }
 
-  protected abstract void convertResult(SenseiSystemInfo info, OutputStream ostream) throws Exception;
+  protected abstract void convertResult(HttpServletRequest httpReq, SenseiSystemInfo info, OutputStream ostream) throws Exception;
 
-  protected abstract void convertResult(SenseiRequest req,SenseiResult res,OutputStream ostream) throws Exception;
+  protected abstract void convertResult(HttpServletRequest httpReq, SenseiRequest req,SenseiResult res,OutputStream ostream) throws Exception;
 
   @Override
   public void destroy() {

@@ -36,7 +36,7 @@ public class LocalQueryOnlySenseiServiceImpl implements SenseiService {
     },zoieConfig);
     QueryParser queryParser = new QueryParser(Version.LUCENE_35,"contents", new StandardAnalyzer(Version.LUCENE_35));
     DefaultJsonQueryBuilderFactory queryBuilderFactory = new DefaultJsonQueryBuilderFactory(queryParser);
-    _core = new SenseiCore(1,new int[]{0},zoieFactory,null,queryBuilderFactory);
+    _core = new SenseiCore(1,new int[]{0},zoieFactory,null,queryBuilderFactory, zoieFactory.getDecorator());
     _coreService = new CoreSenseiServiceImpl(_core);
     _core.start();
   }

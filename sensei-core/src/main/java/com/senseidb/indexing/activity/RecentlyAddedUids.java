@@ -14,22 +14,22 @@ public class RecentlyAddedUids {
   
   public synchronized void add(long uid) {
     if (elems.size() == capacity) {
-      elems.removeFirstLong();
+      elems.remove(elems.firstLong());
     }
-    elems.addAndMoveToLast(uid);
+    elems.add(uid);
   }
-  public synchronized int markRecentAsFoundInBitSet(long[] uids, BitSet found) {
+  public synchronized int markRecentAsFoundInBitSet(long[] uids, BitSet found, int bitSetLength) {
     if (found.length() == 0) {
       return 0;
     }
     int ret = 0;
     int index = 0;
     while (true) {
-      if (index < 0 || index >= found.length()) {
+      if (index < 0 || index >= bitSetLength) {
         break;
       }  
       index = found.nextClearBit(index);
-      if (index < 0 || index >= found.length()) {
+      if (index < 0 || index >= bitSetLength) {
         break;
       }     
       
@@ -47,10 +47,10 @@ public class RecentlyAddedUids {
     elems.clear();
   }
  public static void main(String[] args) {
-   LongLinkedOpenHashSet elems = new LongLinkedOpenHashSet(100);
-   for (int i = 0; i < 1000; i++) {
-     elems.addAndMoveToLast(i % 20);
-   }
-   System.out.println(elems);
+   RecentlyAddedUids recentlyAddedUids = new RecentlyAddedUids(500);
+   for (int i = 0; i < 40000; i++) {
+     recentlyAddedUids.add(i);
+  }
+   System.out.println(recentlyAddedUids.elems);
 }
 }

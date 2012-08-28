@@ -22,8 +22,7 @@ import com.browseengine.bobo.facets.filter.FacetRangeFilter;
 import com.browseengine.bobo.facets.filter.RandomAccessFilter;
 import com.browseengine.bobo.sort.DocComparator;
 import com.browseengine.bobo.sort.DocComparatorSource;
-import com.senseidb.bql.parsers.BQLParser.instanceof_expression_return;
-import com.senseidb.indexing.activity.CompositeActivityValues;
+import com.senseidb.indexing.activity.CompositeActivityManager;
 import com.senseidb.indexing.activity.primitives.ActivityFloatValues;
 import com.senseidb.indexing.activity.primitives.ActivityIntValues;
 import com.senseidb.indexing.activity.primitives.ActivityPrimitiveValues;
@@ -46,26 +45,30 @@ public class ActivityRangeFacetHandler extends FacetHandler<int[]> {
   };
 
   private final ActivityPrimitiveValues activityValues;
-  private final CompositeActivityValues compositeActivityValues;
+
+  protected final CompositeActivityManager compositeActivityManager;
   
-  public ActivityRangeFacetHandler(String facetName, String fieldName, CompositeActivityValues compositeActivityValues, ActivityPrimitiveValues activityValues) {
+  public ActivityRangeFacetHandler(String facetName, String fieldName, CompositeActivityManager compositeActivityManager, ActivityPrimitiveValues activityValues) {
     super(facetName, new HashSet<String>());
-    this.compositeActivityValues = compositeActivityValues;
+    this.compositeActivityManager = compositeActivityManager;
     this.activityValues = activityValues;   
   }
-  public static FacetHandler valueOf(String facetName, String fieldName, CompositeActivityValues compositeActivityValues, ActivityPrimitiveValues activityValues) {
+  public static FacetHandler valueOf(String facetName, String fieldName, CompositeActivityManager compositeActivityManager, ActivityPrimitiveValues activityValues) {
    if (isSynchronized) {
-     return new SynchronizedActivityRangeFacetHandler(facetName, fieldName, compositeActivityValues, activityValues);
+     return new SynchronizedActivityRangeFacetHandler(facetName, fieldName, compositeActivityManager, activityValues);
    }
-   return new ActivityRangeFacetHandler(facetName, fieldName, compositeActivityValues, activityValues);
+   return new ActivityRangeFacetHandler(facetName, fieldName, compositeActivityManager, activityValues);
+
   }
-  
+ 
   
   @Override
   public int[] load(BoboIndexReader reader) throws IOException {
-    ZoieSegmentReader<?> zoieReader = (ZoieSegmentReader<?>)(reader.getInnerReader());    
-    long[] uidArray = zoieReader.getUIDArray();   
-    return compositeActivityValues.precomputeArrayIndexes(uidArray);    
+    ZoieSegmentReader zoieReader = (ZoieSegmentReader)(reader.getInnerReader());    
+       
+    long[] uidArray = zoieReader.getUIDArray();  
+   
+    return compositeActivityManager.getActivityValues().precomputeArrayIndexes(uidArray);    
   }
 
   @Override
@@ -124,6 +127,7 @@ public class ActivityRangeFacetHandler extends FacetHandler<int[]> {
   }
   
   public int getIntActivityValue(int[] facetData, int id) {
+
     if (id < 0 || id >= facetData.length) {
       return Integer.MIN_VALUE;
     }
@@ -133,6 +137,7 @@ public class ActivityRangeFacetHandler extends FacetHandler<int[]> {
     if (id < 0 || id >= facetData.length) {
       return Integer.MIN_VALUE;
     }
+
     return facetData[id] != -1 ? ((ActivityFloatValues)activityValues).fieldValues[facetData[id]] : Integer.MIN_VALUE;
   }
   @Override

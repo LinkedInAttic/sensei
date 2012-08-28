@@ -11,8 +11,15 @@ import java.util.List;
  */
 public class UpdateBatch<T> {
   int batchSize = 50000;
-  protected volatile List<T> updates = new ArrayList<T>(batchSize);
+  protected volatile List<T> updates = new ArrayList<T>(2000);
+  long delay = 15 * 1000;
   long time = System.currentTimeMillis();
+  private UpdateBatch() {
+  }
+  public UpdateBatch(ActivityConfig activityConfig) {
+    batchSize = activityConfig.getFlushBufferSize();
+    delay = activityConfig.getFlushBufferMaxDelayInSeconds() * 1000;
+  }
   public boolean addFieldUpdate(T fieldUpdate) {
     updates.add(fieldUpdate);
     if (flushNeeded()) {
@@ -21,7 +28,7 @@ public class UpdateBatch<T> {
     return false;
   }
   public boolean flushNeeded() {
-    return updates.size() >= batchSize || ((System.currentTimeMillis() - time) > 15 * 1000 && !updates.isEmpty());
+    return updates.size() >= batchSize || ((System.currentTimeMillis() - time) > delay && !updates.isEmpty());
   }
   public List<T> getUpdates() {
     return updates;

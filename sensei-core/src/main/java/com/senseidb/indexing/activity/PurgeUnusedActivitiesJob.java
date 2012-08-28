@@ -49,7 +49,9 @@ public class PurgeUnusedActivitiesJob implements Runnable, PurgeUnusedActivities
     
   }
   public void start() {
-    executorService.scheduleAtFixedRate(this, frequencyInMillis, frequencyInMillis, TimeUnit.MILLISECONDS); 
+    if (frequencyInMillis > 0) {
+      executorService.scheduleAtFixedRate(this, frequencyInMillis, frequencyInMillis, TimeUnit.MILLISECONDS); 
+    }
     MBeanServer platformMBeanServer = ManagementFactory.getPlatformMBeanServer();
     ObjectName name;
     try {
@@ -91,6 +93,7 @@ public class PurgeUnusedActivitiesJob implements Runnable, PurgeUnusedActivities
     }  finally {
         compositeActivityValues.globalLock.readLock().unlock();
     }     
+    int bitSetLength = keys.length;
     BitSet foundSet = new BitSet(keys.length); 
     for (IndexReaderFactory<ZoieIndexReader<BoboIndexReader>> zoie : zoieSystems) {
       List<ZoieIndexReader<BoboIndexReader>> indexReaders = null;      
@@ -115,7 +118,7 @@ public class PurgeUnusedActivitiesJob implements Runnable, PurgeUnusedActivities
         }        
       }
     }
-    int recovered = compositeActivityValues.recentlyAddedUids.markRecentAsFoundInBitSet(keys, foundSet);
+    int recovered = compositeActivityValues.recentlyAddedUids.markRecentAsFoundInBitSet(keys, foundSet, bitSetLength);
     recentUidsSavedFromPurge.inc(recovered);
     int found = foundSet.cardinality();
     if (found == keys.length) {
