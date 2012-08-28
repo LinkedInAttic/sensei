@@ -55,8 +55,8 @@ public class JmxUtil {
     ObjectName objectName = null;
     try
     {
-      log.info("registering jmx mbean: "+objectName);
       objectName = new ObjectName(MetricsConstants.Domain,key,val);
+      log.info("registering jmx mbean: "+objectName);
       MbeanServer.registerMBean(bean, objectName);
       RegisteredBeans.add(objectName);
     }
