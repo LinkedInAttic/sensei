@@ -20,6 +20,7 @@ import proj.zoie.api.impl.DocIDMapperImpl;
 import proj.zoie.impl.indexing.ZoieConfig;
 
 import com.browseengine.bobo.api.BoboIndexReader;
+import com.senseidb.conf.SenseiSchema.FieldDefinition;
 import com.senseidb.test.SenseiStarter;
 
 public class PurgeUnusedActivitiesJobTest extends TestCase {
@@ -59,7 +60,7 @@ public class PurgeUnusedActivitiesJobTest extends TestCase {
     SenseiStarter.rmrf(file);
   }
   public void test1WriteValuesAndReadJustAfterThat() throws Exception {
-    compositeActivityValues = CompositeActivityValues.createCompositeValues(ActivityPersistenceFactory.getInstance(getDirPath()), java.util.Arrays.asList(ActivityIntegrationTest.getLikesFieldDefinition() ), Collections.EMPTY_LIST, ZoieConfig.DEFAULT_VERSION_COMPARATOR);
+    compositeActivityValues = CompositeActivityValues.createCompositeValues(ActivityPersistenceFactory.getInstance(getDirPath()), java.util.Arrays.asList(getLikesFieldDefinition() ), Collections.EMPTY_LIST, ZoieConfig.DEFAULT_VERSION_COMPARATOR);
     
     int valueCount = 10000;
     for (int i = 0; i < valueCount; i++) { 
@@ -69,9 +70,9 @@ public class PurgeUnusedActivitiesJobTest extends TestCase {
     compositeActivityValues.syncWithPersistentVersion(String.format("%08d", valueCount - 1));
     PurgeUnusedActivitiesJob purgeUnusedActivitiesJob = new PurgeUnusedActivitiesJob(compositeActivityValues, zoieSystems, 1000L*1000);
     
-    assertEquals(9668, purgeUnusedActivitiesJob.purgeUnusedActivityIndexes());
+    assertEquals(9498, purgeUnusedActivitiesJob.purgeUnusedActivityIndexes());
     compositeActivityValues.recentlyAddedUids.clear();
-    assertEquals(330, purgeUnusedActivitiesJob.purgeUnusedActivityIndexes());
+    assertEquals(500, purgeUnusedActivitiesJob.purgeUnusedActivityIndexes());
     assertEquals(0, purgeUnusedActivitiesJob.purgeUnusedActivityIndexes());
     compositeActivityValues.flushDeletes();
     compositeActivityValues.executor.shutdown();
@@ -82,5 +83,15 @@ public class PurgeUnusedActivitiesJobTest extends TestCase {
     assertEquals(12, compositeActivityValues.uidToArrayIndex.size());
     assertEquals(9988, compositeActivityValues.deletedIndexes.size());
   }
-
+public static FieldDefinition getLikesFieldDefinition() {
+    
+    return getIntFieldDefinition("likes");
+  }
+  public static FieldDefinition getIntFieldDefinition(String name) {
+    FieldDefinition fieldDefinition = new FieldDefinition();
+    fieldDefinition.name = name;
+    fieldDefinition.type = int.class;
+    fieldDefinition.isActivity = true;
+    return fieldDefinition;
+  }
 }

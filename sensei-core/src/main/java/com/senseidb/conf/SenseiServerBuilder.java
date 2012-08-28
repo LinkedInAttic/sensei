@@ -118,6 +118,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
   private final SenseiSchema  _senseiSchema;
   private final SenseiGateway _gateway;
   private PluggableSearchEngineManager pluggableSearchEngineManager;
+  private SenseiIndexReaderDecorator decorator;
 
   static final String SENSEI_CONTEXT_PATH = "sensei";
 
@@ -487,7 +488,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
         QueryParser queryParser = new QueryParser(Version.LUCENE_35,"contents", analyzer);
         queryBuilderFactory = new DefaultJsonQueryBuilderFactory(queryParser);
       }
-      SenseiCore senseiCore = new SenseiCore(nodeid,partitions,zoieSystemFactory,indexingManager,queryBuilderFactory);
+      SenseiCore senseiCore = new SenseiCore(nodeid,partitions,zoieSystemFactory,indexingManager,queryBuilderFactory, decorator);
       senseiCore.setSystemInfo(sysInfo);
     SenseiIndexPruner indexPruner = pluginRegistry.getBeanByFullPrefix(SENSEI_INDEX_PRUNER, SenseiIndexPruner.class);
     if (indexPruner != null){
@@ -504,7 +505,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
                                                     List<RuntimeFacetHandlerFactory<?, ?>> runtimeFacetHandlerFactories, ZoieIndexableInterpreter interpreter)
       throws ConfigurationException {
     String indexerType = _senseiConf.getString(SENSEI_INDEXER_TYPE,"zoie");
-    SenseiIndexReaderDecorator decorator = new SenseiIndexReaderDecorator(facetHandlers,runtimeFacetHandlerFactories);
+     decorator = new SenseiIndexReaderDecorator(facetHandlers,runtimeFacetHandlerFactories);
     File idxDir = new File(_senseiConf.getString(SENSEI_INDEX_DIR));
     SenseiZoieFactory<?> zoieSystemFactory = null;
 

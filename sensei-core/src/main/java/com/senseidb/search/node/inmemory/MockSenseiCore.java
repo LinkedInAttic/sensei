@@ -15,6 +15,7 @@ import proj.zoie.api.ZoieIndexReader;
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.senseidb.indexing.SenseiIndexPruner;
 import com.senseidb.search.node.SenseiCore;
+import com.senseidb.search.node.SenseiIndexReaderDecorator;
 import com.senseidb.search.node.impl.DefaultJsonQueryBuilderFactory;
 
 public class MockSenseiCore extends SenseiCore {
@@ -23,9 +24,9 @@ public class MockSenseiCore extends SenseiCore {
   private final ThreadLocal<MockIndexReaderFactory<ZoieIndexReader<BoboIndexReader>>> mockIndexReaderFactory = new ThreadLocal<MockIndexReaderFactory<ZoieIndexReader<BoboIndexReader>>>();
   private final int[] partitions;
   private static MockIndexReaderFactory<ZoieIndexReader<BoboIndexReader>> emptyIndexFactory = new MockIndexReaderFactory<ZoieIndexReader<BoboIndexReader>>(Collections.EMPTY_LIST);
-  public MockSenseiCore(int[] partitions) {
+  public MockSenseiCore(int[] partitions, SenseiIndexReaderDecorator senseiIndexReaderDecorator) {
     super(0, new int[] { 0 }, null, null, new DefaultJsonQueryBuilderFactory(new QueryParser(Version.LUCENE_35, "contents",
-        new StandardAnalyzer(Version.LUCENE_35))));
+        new StandardAnalyzer(Version.LUCENE_35))), senseiIndexReaderDecorator);
     this.partitions = partitions;
     setIndexPruner(new SenseiIndexPruner.DefaultSenseiIndexPruner());
   }

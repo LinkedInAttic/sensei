@@ -23,6 +23,8 @@ import com.browseengine.bobo.facets.filter.FacetRangeFilter;
 import com.browseengine.bobo.facets.filter.RandomAccessFilter;
 import com.browseengine.bobo.sort.DocComparator;
 import com.browseengine.bobo.sort.DocComparatorSource;
+import com.senseidb.indexing.activity.BoboIndexTracker;
+import com.senseidb.indexing.activity.CompositeActivityManager;
 import com.senseidb.indexing.activity.CompositeActivityValues;
 import com.senseidb.indexing.activity.primitives.ActivityIntValues;
 import com.senseidb.indexing.activity.primitives.ActivityPrimitiveValues;
@@ -36,11 +38,25 @@ import com.senseidb.indexing.activity.primitives.ActivityPrimitiveValues;
 public class SynchronizedActivityRangeFacetHandler extends ActivityRangeFacetHandler {
   public static final Object GLOBAL_ACTIVITY_TEST_LOCK = new Object();
 
-  public SynchronizedActivityRangeFacetHandler(String facetName, String fieldName, CompositeActivityValues compositeActivityValues,
+  public SynchronizedActivityRangeFacetHandler(String facetName, String fieldName, CompositeActivityManager compositeActivityManager,
       ActivityPrimitiveValues activityPrimitiveValues) {
-    super(facetName, fieldName, compositeActivityValues, activityPrimitiveValues);
+    super(facetName, fieldName, compositeActivityManager, activityPrimitiveValues);
   }
-
+  public static class BoboIndexTrackerInMemory extends BoboIndexTracker {
+    @Override
+    protected boolean isSegmentOnDisk(ZoieSegmentReader zoieSegmentReader) {
+      return true;
+    }
+  }
+  @Override
+  public int[] load(BoboIndexReader reader) throws IOException {
+    synchronized(GLOBAL_ACTIVITY_TEST_LOCK) {
+      if (!(compositeActivityManager.getBoboIndexTracker() instanceof BoboIndexTrackerInMemory)) {
+        compositeActivityManager.setBoboIndexTracker(new BoboIndexTrackerInMemory());
+      }
+    }
+    return super.load(reader);
+  }
   @Override
   public RandomAccessFilter buildRandomAccessFilter(final String value, final Properties selectionProperty) throws IOException {
     return new RandomAccessFilter() {

@@ -61,7 +61,7 @@ public class SenseiServer {
                       SenseiQueryBuilderFactory queryBuilderFactory,
                       List<AbstractSenseiCoreService<AbstractSenseiRequest, AbstractSenseiResult>> externalSvc, SenseiPluginRegistry pluginRegistry)
   {
-    this(port,networkServer,clusterClient,new SenseiCore(id, partitions,zoieSystemFactory, indexingManager, queryBuilderFactory),externalSvc, pluginRegistry);
+    this(port,networkServer,clusterClient,new SenseiCore(id, partitions,zoieSystemFactory, indexingManager, queryBuilderFactory, zoieSystemFactory.getDecorator()),externalSvc, pluginRegistry);
   }
 
   public SenseiServer(int port,

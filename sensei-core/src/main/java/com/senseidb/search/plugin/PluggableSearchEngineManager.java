@@ -43,8 +43,8 @@ public class PluggableSearchEngineManager implements DeletionListener, Hourglass
     
   }
   public String getOldestVersion() {
-
-     return version;     
+    //as for now lets take into account only zoie persistent version
+     return null;     
   }
  
   public boolean acceptEventsForAllPartitions() {
@@ -88,7 +88,7 @@ public class PluggableSearchEngineManager implements DeletionListener, Hourglass
       String version = versions.get(0);
       for (String ver : versions) {
         if (versionComparator.compare(version, ver) > 0) {
-          version = ver;
+          this.version = ver;
         }
       }
     }

@@ -8,6 +8,7 @@ import java.util.Properties;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.search.DocIdSetIterator;
 import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.store.RAMDirectory;
 
 import proj.zoie.api.ZoieSegmentReader;
 
@@ -23,6 +24,8 @@ import com.browseengine.bobo.facets.filter.RandomAccessFilter;
 import com.browseengine.bobo.sort.DocComparator;
 import com.browseengine.bobo.sort.DocComparatorSource;
 import com.senseidb.bql.parsers.BQLParser.instanceof_expression_return;
+import com.senseidb.indexing.activity.BoboIndexTracker;
+import com.senseidb.indexing.activity.CompositeActivityManager;
 import com.senseidb.indexing.activity.CompositeActivityValues;
 import com.senseidb.indexing.activity.primitives.ActivityFloatValues;
 import com.senseidb.indexing.activity.primitives.ActivityIntValues;
@@ -46,26 +49,28 @@ public class ActivityRangeFacetHandler extends FacetHandler<int[]> {
   };
 
   private final ActivityPrimitiveValues activityValues;
-  private final CompositeActivityValues compositeActivityValues;
+  protected final CompositeActivityManager compositeActivityManager;
   
-  public ActivityRangeFacetHandler(String facetName, String fieldName, CompositeActivityValues compositeActivityValues, ActivityPrimitiveValues activityValues) {
+  public ActivityRangeFacetHandler(String facetName, String fieldName, CompositeActivityManager compositeActivityManager, ActivityPrimitiveValues activityValues) {
     super(facetName, new HashSet<String>());
-    this.compositeActivityValues = compositeActivityValues;
+    this.compositeActivityManager = compositeActivityManager;
     this.activityValues = activityValues;   
   }
-  public static FacetHandler valueOf(String facetName, String fieldName, CompositeActivityValues compositeActivityValues, ActivityPrimitiveValues activityValues) {
+  public static FacetHandler valueOf(String facetName, String fieldName, CompositeActivityManager compositeActivityManager, ActivityPrimitiveValues activityValues) {
    if (isSynchronized) {
-     return new SynchronizedActivityRangeFacetHandler(facetName, fieldName, compositeActivityValues, activityValues);
+     return new SynchronizedActivityRangeFacetHandler(facetName, fieldName, compositeActivityManager, activityValues);
    }
-   return new ActivityRangeFacetHandler(facetName, fieldName, compositeActivityValues, activityValues);
+   return new ActivityRangeFacetHandler(facetName, fieldName, compositeActivityManager, activityValues);
   }
-  
+ 
   
   @Override
   public int[] load(BoboIndexReader reader) throws IOException {
-    ZoieSegmentReader<?> zoieReader = (ZoieSegmentReader<?>)(reader.getInnerReader());    
-    long[] uidArray = zoieReader.getUIDArray();   
-    return compositeActivityValues.precomputeArrayIndexes(uidArray);    
+    ZoieSegmentReader zoieReader = (ZoieSegmentReader)(reader.getInnerReader());    
+       
+    long[] uidArray = zoieReader.getUIDArray();  
+   
+    return compositeActivityManager.getActivityValues().precomputeArrayIndexes(uidArray);    
   }
 
   @Override
