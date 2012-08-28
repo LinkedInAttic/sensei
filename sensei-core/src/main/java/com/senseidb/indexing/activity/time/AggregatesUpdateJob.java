@@ -7,7 +7,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
 
-import com.senseidb.indexing.activity.time.TimeAggregatedActivityValues.AggregatesMetadata;
+import com.senseidb.indexing.activity.ActivityPersistenceFactory.AggregatesMetadata;
 import com.senseidb.indexing.activity.time.TimeAggregatedActivityValues.IntValueHolder;
 import com.senseidb.metrics.MetricsConstants;
 import com.yammer.metrics.Metrics;
@@ -65,7 +65,7 @@ public class AggregatesUpdateJob implements Runnable {
   }
   public void runUpdateJob() {
     int currentTime = Clock.getCurrentTimeInMinutes();
-    if (currentTime <= aggregatesMetadata.lastUpdatedTime) {
+    if (currentTime <= aggregatesMetadata.getLastUpdatedTime()) {
       return;
     }
     currentCount = 0;;
@@ -105,7 +105,7 @@ public class AggregatesUpdateJob implements Runnable {
           minimumAggregateIndex = aggregateIndex + 1;
           break;
         }
-        int previousElapsedTime = aggregatesMetadata.lastUpdatedTime - times.get(activityIndex);
+        int previousElapsedTime = aggregatesMetadata.getLastUpdatedTime() - times.get(activityIndex);
         //activity is not current against the current time, but was current for the previous run
         if (currentElapsedTime >= intValueHolder.timeInMinutes && previousElapsedTime < intValueHolder.timeInMinutes) {
           int activityValue = activities.get(activityIndex); 

@@ -11,6 +11,7 @@ import com.senseidb.servlet.SenseiConfigServletContextListener;
 public class CompoundBrokerConfig extends BrokerConfig {
   public CompoundBrokerConfig(Configuration senseiConf, PartitionedLoadBalancerFactory<String> loadBalancerFactory, Map<String,String> config, String clusterName) {
     super(senseiConf, loadBalancerFactory);
+    
     this.clusterName = clusterName;
     zkurl = getStrParam(clusterName, config, SenseiConfParams.SENSEI_CLUSTER_URL, zkurl);
     zkTimeout = getIntParam(clusterName, config, SenseiConfParams.SENSEI_CLUSTER_TIMEOUT, zkTimeout);   

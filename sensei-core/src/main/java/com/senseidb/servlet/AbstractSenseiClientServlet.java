@@ -10,6 +10,8 @@ import java.net.URLDecoder;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -41,12 +43,16 @@ import com.senseidb.search.node.broker.LayeredBroker;
 import com.senseidb.search.req.ErrorType;
 import com.senseidb.search.req.SenseiError;
 import com.senseidb.search.req.SenseiHit;
+import com.senseidb.search.req.SenseiJSONQuery;
 import com.senseidb.search.req.SenseiRequest;
 import com.senseidb.search.req.SenseiResult;
 import com.senseidb.search.req.SenseiSystemInfo;
 import com.senseidb.svc.impl.HttpRestSenseiServiceImpl;
 import com.senseidb.util.JsonTemplateProcessor;
 import com.senseidb.util.RequestConverter2;
+import com.yammer.metrics.Metrics;
+import com.yammer.metrics.core.Counter;
+import com.yammer.metrics.core.MetricName;
 
 public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableServlet {
 
@@ -55,10 +61,14 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
   public static final int BQL_PARSING_ERROR = 499;
   public static final String BQL_STMT = "bql";
   public static final String BQL_EXTRA_FILTER = "bql_extra_filter";
+  public static final String TOTAL_DOCS = "totaldocs";
   private static final long serialVersionUID = 1L;
 
   private static final Logger logger = Logger.getLogger(AbstractSenseiClientServlet.class);
   private static final Logger queryLogger = Logger.getLogger("com.sensei.querylog");
+  private static final Counter totalDocsCounter =
+      Metrics.newCounter(new MetricName(AbstractSenseiClientServlet.class,
+                                        TOTAL_DOCS));
 
   private final NetworkClientConfig _networkClientConfig = new NetworkClientConfig();
 
@@ -69,9 +79,10 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
   private Map<String, String[]> _facetInfoMap = new HashMap<String, String[]>();
   private BQLCompiler _compiler = null;
   private LayeredBroker federatedBroker;
+  private Timer _statTimer;
 
   public AbstractSenseiClientServlet() {
-
+    _statTimer = new Timer(true);
   }
 
   @Override
@@ -99,13 +110,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
         logger.info("Trying to get sysinfo");
         SenseiSystemInfo sysInfo = _senseiSysBroker.browse(new SenseiRequest());
 
-        Iterator<SenseiSystemInfo.SenseiFacetInfo> itr = sysInfo.getFacetInfos().iterator();
-        while (itr.hasNext())
-        {
-          SenseiSystemInfo.SenseiFacetInfo facetInfo = itr.next();
-          Map<String, String> props = facetInfo.getProps();
-          _facetInfoMap.put(facetInfo.getName(), new String[]{props.get("type"), props.get("column_type")});
-        }
+        _facetInfoMap = extractFacetInfo(sysInfo);
         _compiler = new BQLCompiler(_facetInfoMap);
         break;
       }
@@ -130,7 +135,49 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
         }
       }
     }
+
+    // Start the stat timer to get some of the sys stat:
+    _statTimer.scheduleAtFixedRate(new TimerTask()
+    {
+      public void run()
+      {
+        int totalDocs = 0;
+        try
+        {
+          SenseiRequest req = new SenseiRequest();
+          req.setQuery(new SenseiJSONQuery(new JSONObject().put("query", "dummy:dummy")));
+          SenseiResult res = _senseiBroker.browse(req);
+          totalDocs = res.getTotalDocs();
+        }
+        catch(Exception e)
+        {
+          logger.warn("Error getting result", e);
+        }
+        if (totalDocs > 0)
+        {
+          totalDocsCounter.clear();
+          totalDocsCounter.inc(totalDocs);
+        }
+        else
+        {
+          logger.warn("Unable to get total docs");
+        }
+      }
+    }, 60000, 60000); // Every minute.
+
     logger.info("Cluster: "+ brokerConfig.getClusterName() +" successfully connected ");
+  }
+
+  public static Map<String, String[]> extractFacetInfo(SenseiSystemInfo sysInfo) {
+    Map<String, String[]> facetInfoMap = new HashMap<String, String[]>();
+    Iterator<SenseiSystemInfo.SenseiFacetInfo> itr = sysInfo.getFacetInfos().iterator();
+    while (itr.hasNext())
+    {
+      SenseiSystemInfo.SenseiFacetInfo facetInfo = itr.next();
+      Map<String, String> props = facetInfo.getProps();
+      facetInfoMap.put(facetInfo.getName(), new String[]{props.get("type"), props.get("column_type")});
+    }
+    return facetInfoMap;
   }
 
   protected abstract SenseiRequest buildSenseiRequest(HttpServletRequest req) throws Exception;
@@ -627,9 +674,17 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
             }
           }
           finally{
-            if (_clusterClient!=null){
-              _clusterClient.shutdown();
-              _clusterClient = null;
+            try
+            {
+              if (_clusterClient!=null)
+              {
+                _clusterClient.shutdown();
+                _clusterClient = null;
+              }
+            }
+            finally
+            {
+              _statTimer.cancel();
             }
           }
         }

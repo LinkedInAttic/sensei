@@ -1,6 +1,7 @@
 package com.senseidb.jmx;
 
 import java.lang.management.ManagementFactory;
+import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -19,7 +20,17 @@ public class JmxUtil {
   private static final Logger log = Logger.getLogger(JmxUtil.class);
   private static final MBeanServer MbeanServer = ManagementFactory.getPlatformMBeanServer();
   private static final List<ObjectName> RegisteredBeans = Collections.synchronizedList(new LinkedList<ObjectName>());
-
+  public static MBeanServer registerNewJmxServer(MBeanServer newBeanServer) {
+    MBeanServer platformMBeanServer = ManagementFactory.getPlatformMBeanServer();
+    try {
+    Field platformMBeanServerField = ManagementFactory.class.getDeclaredField("platformMBeanServer");
+    platformMBeanServerField.setAccessible(true);
+    platformMBeanServerField.set(null, newBeanServer);    
+    } catch (Exception ex) {
+      throw new RuntimeException(ex);
+    }
+    return platformMBeanServer;
+  }
   
   public static void registerMBean(StandardMBean bean,String key,String val)
   {

@@ -8,7 +8,6 @@ import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -19,15 +18,11 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.apache.log4j.Logger;
-import org.json.JSONObject;
 
 import proj.zoie.api.ZoieIndexReader;
 
-import com.senseidb.indexing.activity.CompositeActivityManager.TimeAggregateInfo;
 import com.senseidb.indexing.activity.CompositeActivityStorage.Update;
 import com.senseidb.indexing.activity.time.TimeAggregatedActivityValues;
-import com.senseidb.metrics.MetricsConstants;
-import com.sun.org.apache.bcel.internal.generic.NEW;
 import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.Counter;
 import com.yammer.metrics.core.MetricName;
@@ -43,7 +38,7 @@ public class CompositeActivityValues {
   
   private static final int DEFAULT_INITIAL_CAPACITY = 5000;
   private final static Logger logger = Logger.getLogger(CompositeActivityValues.class);
-  private Comparator<String> versionComparator; 
+  protected Comparator<String> versionComparator; 
   private volatile UpdateBatch<Update> pendingDeletes = new UpdateBatch<Update>();
   protected Map<String, ActivityValues> intValuesMap = new ConcurrentHashMap<String, ActivityValues>();
   protected volatile String lastVersion = "";  
@@ -55,10 +50,10 @@ public class CompositeActivityValues {
   protected UpdateBatch<Update> updateBatch = new UpdateBatch<Update>(); 
   protected volatile Metadata metadata;
   private volatile boolean closed;
-  private Counter reclaimedDocumentsCounter;
-  private Counter currentDocumentsCounter;
-  private Counter deletedDocumentsCounter;
-  private Counter insertedDocumentsCounter; 
+  protected Counter reclaimedDocumentsCounter;
+  protected Counter currentDocumentsCounter;
+  protected Counter deletedDocumentsCounter;
+  protected Counter insertedDocumentsCounter; 
   protected CompositeActivityValues() {
    
   }
@@ -83,7 +78,7 @@ public class CompositeActivityValues {
     if (intValuesMap.isEmpty()) {
       return -1;
     }
-    if (versionComparator.compare(lastVersion, version) == 0) {
+    if (versionComparator.compare(lastVersion, version) > 0) {
       return -1;
     }
     if (map.isEmpty()) {
@@ -286,38 +281,7 @@ public class CompositeActivityValues {
       activityIntValues.close();
     }
   }
-  /**
-   * A factory method that constructs the CompositeActivityValues
-   * @param indexDirPath
-   * @param fieldNames
-   * @param aggregatedActivities
-   * @param versionComparator
-   * @return
-   */
-  public static CompositeActivityValues readFromFile(String indexDirPath, List<String> fieldNames, List<TimeAggregateInfo> aggregatedActivities, Comparator<String> versionComparator) {    
-    CompositeActivityStorage persistentColumnManager = new CompositeActivityStorage(indexDirPath);
-    persistentColumnManager.init();
-    Metadata metadata = new Metadata(indexDirPath);
-    metadata.init();
-    CompositeActivityValues ret = persistentColumnManager.getActivityDataFromFile(metadata);
-    ret.reclaimedDocumentsCounter.inc(ret.deletedIndexes.size());
-    ret.currentDocumentsCounter.inc(ret.uidToArrayIndex.size());
-    logger.info("Init compositeActivityValues. Documents = " +  ret.uidToArrayIndex.size() + ", Deletes = " +ret.deletedIndexes.size());
-    ret.metadata = metadata;
-    ret.versionComparator = versionComparator;
-    ret.lastVersion = metadata.version;
-    ret.intValuesMap = new HashMap<String, ActivityValues>(fieldNames.size());
-    for (TimeAggregateInfo aggregatedActivity : aggregatedActivities) {
-      ret.intValuesMap.put(aggregatedActivity.fieldName, TimeAggregatedActivityValues.valueOf(aggregatedActivity.fieldName, aggregatedActivity.times, 
-          metadata.count, indexDirPath));
-    }
-    for (String field : fieldNames) {
-      if (!ret.intValuesMap.containsKey(field)) {
-        ret.intValuesMap.put(field, ActivityIntValues.readFromFile(indexDirPath, field, metadata.count));
-      }
-    }    
-    return ret;
-  }
+  
   public int[] precomputeArrayIndexes(long[] uids) {    
     int[] ret = new int[uids.length];   
     for (int i = 0; i < uids.length; i++) {

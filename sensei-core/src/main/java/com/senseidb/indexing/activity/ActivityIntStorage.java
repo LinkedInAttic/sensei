@@ -12,6 +12,7 @@ import java.util.concurrent.TimeUnit;
 import org.apache.log4j.Logger;
 import org.springframework.util.Assert;
 
+import com.senseidb.indexing.activity.ActivityIntValues;
 import com.senseidb.metrics.MetricsConstants;
 import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.MetricName;
@@ -29,7 +30,7 @@ public class ActivityIntStorage {
   public static final int INITIAL_FILE_LENGTH = 2000000;
   private static Logger logger = Logger.getLogger(ActivityIntStorage.class);
   private RandomAccessFile storedFile;
-  private final String fieldName;
+  protected final String fieldName;
   private final String indexDir;
   private volatile boolean closed = false;
   private MappedByteBuffer buffer;

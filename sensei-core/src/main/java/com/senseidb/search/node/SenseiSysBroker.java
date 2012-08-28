@@ -110,15 +110,7 @@ public class SenseiSysBroker extends AbstractConsistentHashBroker<SenseiRequest,
     return new SenseiSystemInfo();
   }
 
-  @Override
-  public void setTimeoutMillis(long timeoutMillis){
-    _timeoutMillis = timeoutMillis;
-  }
-
-  @Override
-  public long getTimeoutMillis(){
-    return _timeoutMillis;
-  }
+  
 
   public void handleClusterConnected(Set<Node> nodes)
   {

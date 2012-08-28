@@ -19,6 +19,9 @@ public class TestMapReduce extends TestCase {
       SenseiStarter.start("test-conf/node1","test-conf/node2");     
       httpRestSenseiService = SenseiStarter.httpRestSenseiService;
     }
+    
+    
+    
     public void test2GroupByColorAndGroupId() throws Exception { 
       String req = "{\"size\":0,\"filter\":{\"terms\":{\"color\":{\"includes\":[],\"excludes\":[\"gold\"],\"operator\":\"or\"}}}" +
           ", \"mapReduce\":{\"function\":\"com.senseidb.search.req.mapred.CountGroupByMapReduce\",\"parameters\":{\"columns\":[\"groupid\", \"color\"]}}}";

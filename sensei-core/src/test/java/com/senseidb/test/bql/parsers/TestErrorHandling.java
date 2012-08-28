@@ -942,13 +942,13 @@ public class TestErrorHandling extends TestCase
       JSONObject json = _compiler.compile(
         "select category \n" +
         "from cars \n" +
-        "using relevance model md1 ('srcid':1234) \n" +
-        "using relevance model md2 ('param1':'abc')"
+        "using relevance model md1 (srcid:1234) \n" +
+        "using relevance model md2 (param1:'abc')"
         );
     }
     catch (RecognitionException err)
     {
-      assertEquals("[line:4, col:42] USING RELEVANCE MODEL clause can only appear once. (token=<EOF>)",
+      assertEquals("[line:4, col:40] USING RELEVANCE MODEL clause can only appear once. (token=<EOF>)",
                    _compiler.getErrorMessage(err));
       caughtException = true;
     }
@@ -970,7 +970,7 @@ public class TestErrorHandling extends TestCase
       JSONObject json = _compiler.compile(
         "SELECT * \n" +
         "FROM cars \n" +
-        "USING RELEVANCE MODEL md1 ('srcid':1234) \n" +
+        "USING RELEVANCE MODEL md1 (srcid:1234) \n" +
         "  DEFINED AS (int srcid) \n" +
         "  BEGIN \n" +
         "    int x, y; \n" +
@@ -1003,7 +1003,7 @@ public class TestErrorHandling extends TestCase
       JSONObject json = _compiler.compile(
         "SELECT * \n" +
         "FROM cars \n" +
-        "USING RELEVANCE MODEL md1 ('srcid':1234) \n" +
+        "USING RELEVANCE MODEL md1 (srcid:1234) \n" +
         "  DEFINED AS (int srcid) \n" +
         "  BEGIN \n" +
         "    if (x == 5) \n" +
@@ -1035,7 +1035,7 @@ public class TestErrorHandling extends TestCase
       JSONObject json = _compiler.compile(
         "SELECT * \n" +
         "FROM cars \n" +
-        "USING RELEVANCE MODEL md1 ('srcid':1234) \n" +
+        "USING RELEVANCE MODEL md1 (srcid:1234) \n" +
         "  DEFINED AS (int srcid) \n" +
         "  BEGIN \n" +
         "    int x = 5; \n" +
@@ -1073,7 +1073,7 @@ public class TestErrorHandling extends TestCase
       JSONObject json = _compiler.compile(
         "SELECT * \n" +
         "FROM cars \n" +
-        "USING RELEVANCE MODEL md1 ('srcid':1234) \n" +
+        "USING RELEVANCE MODEL md1 (srcid:1234) \n" +
         "  DEFINED AS (int srcid) \n" +
         "  BEGIN \n" +
         "    int total = 0; \n" +
@@ -1107,7 +1107,7 @@ public class TestErrorHandling extends TestCase
       JSONObject json = _compiler.compile(
         "SELECT * \n" +
         "FROM cars \n" +
-        "USING RELEVANCE MODEL md1 ('srcid':1234) \n" +
+        "USING RELEVANCE MODEL md1 (srcid:1234) \n" +
         "  DEFINED AS (int srcid) \n" +
         "  BEGIN \n" +
         "    int year; \n" +
@@ -1137,7 +1137,7 @@ public class TestErrorHandling extends TestCase
       JSONObject json = _compiler.compile(
         "SELECT * \n" +
         "FROM cars \n" +
-        "USING RELEVANCE MODEL md1 ('srcid':1234) \n" +
+        "USING RELEVANCE MODEL md1 (srcid:1234) \n" +
         "  DEFINED AS (int srcid) \n" +
         "  BEGIN \n" +
         "    String _NOW; \n" +
@@ -1167,7 +1167,7 @@ public class TestErrorHandling extends TestCase
       JSONObject json = _compiler.compile(
         "SELECT * \n" +
         "FROM cars \n" +
-        "USING RELEVANCE MODEL md1 ('srcid':1234) \n" +
+        "USING RELEVANCE MODEL md1 (srcid:1234) \n" +
         "  DEFINED AS (int srcid) \n" +
         "  BEGIN \n" +
         "    int x = 100; \n" +
@@ -1200,7 +1200,7 @@ public class TestErrorHandling extends TestCase
       JSONObject json = _compiler.compile(
         "SELECT * \n" +
         "FROM cars \n" +
-        "USING RELEVANCE MODEL md1 ('srcid':1234) \n" +
+        "USING RELEVANCE MODEL md1 (srcid:1234) \n" +
         "  DEFINED AS (int srcid, float price) \n" +
         "  BEGIN \n" +
         "    return 0.5; \n" +
@@ -1231,7 +1231,7 @@ public class TestErrorHandling extends TestCase
       JSONObject json = _compiler.compile(
         "SELECT * \n" +
         "FROM cars \n" +
-        "USING RELEVANCE MODEL md1 ('srcid':1234) \n" +
+        "USING RELEVANCE MODEL md1 (srcid:1234) \n" +
         "  DEFINED AS (int srcid, String srcid) \n" +
         "  BEGIN \n" +
         "    return 0.5; \n" +
@@ -1262,7 +1262,7 @@ public class TestErrorHandling extends TestCase
       JSONObject json = _compiler.compile(
         "SELECT * \n" +
         "FROM cars \n" +
-        "USING RELEVANCE MODEL md1 ('srcid':1234) \n" +
+        "USING RELEVANCE MODEL md1 (srcid:1234) \n" +
         "  DEFINED AS (int srcid, long _NOW) \n" +
         "  BEGIN \n" +
         "    return 0.5; \n" +

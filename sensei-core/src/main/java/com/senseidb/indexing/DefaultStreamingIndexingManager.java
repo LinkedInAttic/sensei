@@ -130,8 +130,6 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 
 		_zoieSystemMap = zoieSystemMap;
 
-    _dataProvider = buildDataProvider();
-
 	    Iterator<Integer> it = zoieSystemMap.keySet().iterator();
 	    while(it.hasNext()){
 	      int part = it.next();
@@ -143,6 +141,8 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 	    if (pluggableSearchEngineManager != null && pluggableSearchEngineManager.getOldestVersion() != null && !("".equals(pluggableSearchEngineManager.getOldestVersion()))) {
 	      updateOldestSinceKey(pluggableSearchEngineManager.getOldestVersion());	    
 	    }
+
+      _dataProvider = buildDataProvider();
 
 	    if (_dataProvider!=null){
 	    _dataProvider.setDataConsumer(consumer);

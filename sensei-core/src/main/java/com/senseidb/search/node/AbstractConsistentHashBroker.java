@@ -167,9 +167,13 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
   public abstract RESULT mergeResults(REQUEST request, List<RESULT> resultList);
 
   protected String getRouteParam(REQUEST req) {
-    if(req.getRouteParam() == null)
+    String param = req.getRouteParam();
+    if (param == null) {
       return RandomStringUtils.random(4);
-    return req.getRouteParam();
+    }
+    else {
+      return param;
+    }
   }
 
   protected RESULT doBrowse(PartitionedNetworkClient<String> networkClient, final REQUEST req, IntSet partitions)
@@ -263,9 +267,15 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
     logger.info("shutting down broker...");
   }
 
-  public abstract void setTimeoutMillis(long timeoutMillis);
+  
 
-  public abstract long getTimeoutMillis();
+  public long getTimeout() {
+    return _timeout;
+  }
+
+  public void setTimeout(long timeout) {
+    this._timeout = timeout;
+  }
 
   /**
    * @return boolean representing whether or not the server can tolerate node failures or timeouts and merge the other
