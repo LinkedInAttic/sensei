@@ -18,6 +18,7 @@
  */
 package com.senseidb.svc.impl;
 
+import com.senseidb.metrics.MetricFactory;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
@@ -27,7 +28,6 @@ import com.linkedin.norbert.javacompat.network.RequestHandler;
 import com.senseidb.metrics.MetricsConstants;
 import com.senseidb.search.req.AbstractSenseiRequest;
 import com.senseidb.search.req.AbstractSenseiResult;
-import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.MetricName;
 import com.yammer.metrics.core.Timer;
 
@@ -35,25 +35,17 @@ public final class SenseiCoreServiceMessageHandler<REQUEST extends AbstractSense
 	private static final Logger logger = Logger.getLogger(SenseiCoreServiceMessageHandler.class);
     private final AbstractSenseiCoreService<REQUEST, RESULT> _svc;
 
-    private static Timer TotalSearchTimer = null;
-    static{
-  	  // register jmx monitoring for timers
-  	  try{
-  	    MetricName metricName = new MetricName(MetricsConstants.Domain,"timer","total-search-time","node");
-  	    TotalSearchTimer = Metrics.newTimer(metricName, TimeUnit.MILLISECONDS,TimeUnit.SECONDS);
-  	  }
-	    catch(Exception e){
-		    logger.error(e.getMessage(),e);
-	    }
-    }
-    
+    private final Timer _totalSearchTimer;
+
     public SenseiCoreServiceMessageHandler(AbstractSenseiCoreService<REQUEST, RESULT> svc){
 		  _svc = svc;
+      MetricName metricName = new MetricName(MetricsConstants.Domain,"timer","total-search-time","node");
+      _totalSearchTimer = MetricFactory.newTimer(metricName, TimeUnit.MILLISECONDS, TimeUnit.SECONDS);
 	  }
 
     @Override
     public RESULT handleRequest(final REQUEST request) throws Exception {
-        return TotalSearchTimer.time(new Callable<RESULT>(){
+        return _totalSearchTimer.time(new Callable<RESULT>(){
 
             @Override
             public RESULT call() throws Exception {

@@ -19,6 +19,7 @@
 
 package com.senseidb.federated.broker.proxy;
 
+import com.senseidb.metrics.MetricFactory;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -40,7 +41,6 @@ import com.senseidb.search.req.ErrorType;
 import com.senseidb.search.req.SenseiError;
 import com.senseidb.search.req.SenseiRequest;
 import com.senseidb.search.req.SenseiResult;
-import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.Meter;
 import com.yammer.metrics.core.MetricName;
 import com.yammer.metrics.core.Timer;
@@ -48,23 +48,16 @@ import com.yammer.metrics.core.Timer;
 public class SenseiBrokerProxy extends SenseiBroker implements BrokerProxy {
   private final static Logger logger = Logger.getLogger(SenseiBrokerProxy.class);
   private static PartitionedLoadBalancerFactory balancerFactory = new SenseiPartitionedLoadBalancerFactory(50);  
-  private static Timer scatterTimer = null; 
-  private static Meter ErrorMeter = null;
-  static{
-    // register metrics monitoring for timers
-    try{
-      MetricName scatterMetricName = new MetricName(SenseiBrokerProxy.class,"scatter-time");
-      scatterTimer = Metrics.newTimer(scatterMetricName, TimeUnit.MILLISECONDS,TimeUnit.SECONDS);      
-      MetricName errorMetricName = new MetricName(SenseiBrokerProxy.class,"error-meter");
-      ErrorMeter = Metrics.newMeter(errorMetricName, "errors",TimeUnit.SECONDS);
-    }
-    catch(Exception e){
-    logger.error(e.getMessage(),e);
-    }
-  }
-  
+  private final Timer scatterTimer;
+  private final Meter ErrorMeter;
+
   public SenseiBrokerProxy(PartitionedNetworkClient<String> networkClient, ClusterClient clusterClient, boolean allowPartialMerge) {
     super(networkClient, clusterClient, allowPartialMerge);
+
+    MetricName scatterMetricName = new MetricName(SenseiBrokerProxy.class,"scatter-time");
+    scatterTimer = MetricFactory.newTimer(scatterMetricName, TimeUnit.MILLISECONDS, TimeUnit.SECONDS);
+    MetricName errorMetricName = new MetricName(SenseiBrokerProxy.class,"error-meter");
+    ErrorMeter = MetricFactory.newMeter(errorMetricName, "errors",TimeUnit.SECONDS);
   }
   public static SenseiBrokerProxy valueOf(Configuration senseiConfiguration, Map<String, String> overrideProperties) {
     BrokerProxyConfig brokerProxyConfig = new BrokerProxyConfig(senseiConfiguration, balancerFactory, overrideProperties);
