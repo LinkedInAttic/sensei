@@ -313,7 +313,8 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
           if (obj == null) // Just ignore this event.
             continue;
 
-          _currentVersion = dataEvt.getVersion();
+          String version = dataEvt.getVersion();
+          _currentVersion = (_versionComparator.compare(_currentVersion, version) < 0) ? version : _currentVersion;
 
           int routeToPart = _shardingStrategy.caculateShard(_maxPartitionId, obj);
           Collection<DataEvent<JSONObject>> partDataSet = _dataCollectorMap.get(routeToPart);
