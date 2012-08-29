@@ -50,7 +50,7 @@ public class SysSenseiCoreServiceImpl extends AbstractSenseiCoreService<SenseiRe
   @Override
   protected String getMetricScope()
   {
-    return "node";
+    return "sys";
   }
 
   @Override
