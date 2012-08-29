@@ -190,7 +190,7 @@ public class CompositeActivityValues {
         for (ActivityValues activityIntValues :  valuesMap.values()) {
           activityIntValues.delete(index);
         }
-        needToFlush = needToFlush || pendingDeletes.addFieldUpdate(new Update(index, Long.MIN_VALUE));
+        needToFlush = needToFlush | pendingDeletes.addFieldUpdate(new Update(index, Long.MIN_VALUE));
       } finally {
         writeLock.unlock();
       }
@@ -259,6 +259,7 @@ public class CompositeActivityValues {
     if (closed) {
       return;
     }
+    flushDeletes();
     final UpdateBatch<Update> oldBatch = updateBatch;
 
     updateBatch = new UpdateBatch<CompositeActivityStorage.Update>(activityConfig);    
@@ -296,7 +297,7 @@ public class CompositeActivityValues {
         metadata.update(version, count);
       }
     });   
-     flushDeletes();
+     
   }
   
   public void close() {

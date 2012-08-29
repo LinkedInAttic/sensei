@@ -70,7 +70,7 @@ public class ActivityPrimitiveValuesPersistenceTest extends TestCase {
     
     compositeActivityValues = CompositeActivityValues.createCompositeValues(ActivityPersistenceFactory.getInstance(getDirPath()), java.util.Arrays.asList(ActivityIntegrationTest.getLikesFieldDefinition()), Collections.EMPTY_LIST, ZoieConfig.DEFAULT_VERSION_COMPARATOR);
     
-    int valueCount = 10000;
+    int valueCount = 100000;
     for (int i = 0; i < valueCount; i++) { 
       compositeActivityValues.update(10000000000L + i, String.format("%08d", i), toMap(new JSONObject().put("likes", "+1")));
     }    
@@ -147,7 +147,7 @@ private float[] getFloatFieldValues(CompositeActivityValues compositeActivityVal
     dir.mkdirs(); 
     dir.deleteOnExit();
     compositeActivityValues = CompositeActivityValues.createCompositeValues(ActivityPersistenceFactory.getInstance(getDirPath()), java.util.Arrays.asList(ActivityIntegrationTest.getLikesFieldDefinition()), Collections.EMPTY_LIST, ZoieConfig.DEFAULT_VERSION_COMPARATOR);
-    final int valueCount = 10000;   
+    final int valueCount = 100000;   
     for (int i = 0; i < valueCount; i++) {
       compositeActivityValues.update(UID_BASE + i, String.format("%08d", valueCount + i), toMap(new JSONObject().put("likes", "+1")));
     }  

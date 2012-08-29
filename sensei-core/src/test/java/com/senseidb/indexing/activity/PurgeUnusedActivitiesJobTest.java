@@ -60,32 +60,40 @@ public class PurgeUnusedActivitiesJobTest extends TestCase {
     SenseiStarter.rmrf(file);
   }
   public void test1WriteValuesAndReadJustAfterThat() throws Exception {
-
     compositeActivityValues = CompositeActivityValues.createCompositeValues(ActivityPersistenceFactory.getInstance(getDirPath()), java.util.Arrays.asList(getLikesFieldDefinition() ), Collections.EMPTY_LIST, ZoieConfig.DEFAULT_VERSION_COMPARATOR);
-
-    
-    int valueCount = 10000;
+    int valueCount = 100000;
     for (int i = 0; i < valueCount; i++) { 
       compositeActivityValues.update(i, String.format("%08d", i), ActivityPrimitiveValuesPersistenceTest.toMap(new JSONObject().put("likes", "+1")));
     }    
     compositeActivityValues.flush();
     compositeActivityValues.syncWithPersistentVersion(String.format("%08d", valueCount - 1));
+    assertEquals(100000, compositeActivityValues.metadata.count);
     PurgeUnusedActivitiesJob purgeUnusedActivitiesJob = new PurgeUnusedActivitiesJob(compositeActivityValues, zoieSystems, 1000L*1000);
     
 
-    assertEquals(9498, purgeUnusedActivitiesJob.purgeUnusedActivityIndexes());
+    assertEquals(99498, purgeUnusedActivitiesJob.purgeUnusedActivityIndexes());
     compositeActivityValues.recentlyAddedUids.clear();
     assertEquals(500, purgeUnusedActivitiesJob.purgeUnusedActivityIndexes());
-
-    assertEquals(0, purgeUnusedActivitiesJob.purgeUnusedActivityIndexes());
+    assertEquals(2, compositeActivityValues.uidToArrayIndex.size());
+    assertEquals(0, compositeActivityValues.deletedIndexes.size());
+    assertEquals(100000, compositeActivityValues.metadata.count);
     compositeActivityValues.flushDeletes();
+    Thread.sleep(2000);
+    assertEquals(99998, compositeActivityValues.deletedIndexes.size());
+    assertEquals(100000, compositeActivityValues.metadata.count);
+    assertEquals(0, purgeUnusedActivitiesJob.purgeUnusedActivityIndexes());
+    compositeActivityValues.flushDeletes(); 
+    compositeActivityValues.flush();
     compositeActivityValues.executor.shutdown();
+    assertEquals(100000, compositeActivityValues.metadata.count);
     compositeActivityValues.executor.awaitTermination(10, TimeUnit.SECONDS);
     for (int i = 0; i < 10; i++) { 
       compositeActivityValues.update(i, String.format("%08d", valueCount + i), ActivityPrimitiveValuesPersistenceTest.toMap(new JSONObject().put("likes", "+1")));
     }  
     assertEquals(12, compositeActivityValues.uidToArrayIndex.size());
-    assertEquals(9988, compositeActivityValues.deletedIndexes.size());
+    assertEquals(99988, compositeActivityValues.deletedIndexes.size());
+    assertEquals(100000, compositeActivityValues.metadata.count);
+
   }
 public static FieldDefinition getLikesFieldDefinition() {
     
