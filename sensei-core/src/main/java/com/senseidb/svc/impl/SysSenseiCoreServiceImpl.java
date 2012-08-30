@@ -46,7 +46,13 @@ public class SysSenseiCoreServiceImpl extends AbstractSenseiCoreService<SenseiRe
   public SysSenseiCoreServiceImpl(SenseiCore core) {
     super(core);
   }
-  
+
+  @Override
+  protected String getMetricScope()
+  {
+    return "sys";
+  }
+
   @Override
   public SenseiSystemInfo handlePartitionedRequest(SenseiRequest request,
       List<BoboIndexReader> readerList,SenseiQueryBuilderFactory queryBuilderFactory) throws Exception {

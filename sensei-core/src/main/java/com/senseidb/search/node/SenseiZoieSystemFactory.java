@@ -18,6 +18,7 @@
  */
 package com.senseidb.search.node;
 
+import com.senseidb.metrics.MetricFactory;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
@@ -37,7 +38,6 @@ import proj.zoie.impl.indexing.ZoieSystem;
 
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.senseidb.metrics.MetricsConstants;
-import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.Histogram;
 import com.yammer.metrics.core.Meter;
 import com.yammer.metrics.core.MetricName;
@@ -116,13 +116,13 @@ public class SenseiZoieSystemFactory<T> extends SenseiZoieFactory<T>
         
     IndexingMetrics(int partition){
       MetricName docsIndexedName =  new MetricName(MetricsConstants.Domain,"meter","docs-indexed","indexer");
-      docsIndexedMetric = Metrics.newMeter(docsIndexedName, "indexing", TimeUnit.SECONDS);
+      docsIndexedMetric = MetricFactory.newMeter(docsIndexedName, "indexing", TimeUnit.SECONDS);
 
       MetricName docsLeftoverName = new MetricName(MetricsConstants.Domain,"meter","docs-leftover","indexer");
-      docsLeftoverMetric = Metrics.newMeter(docsLeftoverName, "indexing", TimeUnit.SECONDS);
+      docsLeftoverMetric = MetricFactory.newMeter(docsLeftoverName, "indexing", TimeUnit.SECONDS);
 
       MetricName flushTimeName = new MetricName(MetricsConstants.Domain,"histogram","flush-time","indexer");
-      flushTimeHistogram = Metrics.newHistogram(flushTimeName, false);
+      flushTimeHistogram = MetricFactory.newHistogram(flushTimeName, false);
     }
   }
 }

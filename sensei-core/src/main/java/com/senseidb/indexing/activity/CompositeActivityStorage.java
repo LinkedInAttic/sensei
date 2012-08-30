@@ -18,6 +18,7 @@
  */
 package com.senseidb.indexing.activity;
 
+import com.senseidb.metrics.MetricFactory;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -32,7 +33,6 @@ import org.springframework.util.Assert;
 
 import com.senseidb.indexing.activity.primitives.ActivityPrimitivesStorage;
 import com.senseidb.metrics.MetricsConstants;
-import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.MetricName;
 import com.yammer.metrics.core.Timer;
 
@@ -45,11 +45,14 @@ public class CompositeActivityStorage {
   private MappedByteBuffer buffer;
   private long fileLength; 
   private boolean activateMemoryMappedBuffers = false;
-  private Timer timer;
+  private final Timer timer;
 
   public CompositeActivityStorage(String indexDir) {   
     this.indexDir = indexDir;
-    timer = Metrics.newTimer(new MetricName(MetricsConstants.Domain,"timer","initCompositeActivities-time" ,"CompositeActivityStorage"), TimeUnit.MILLISECONDS, TimeUnit.SECONDS);
+    timer = MetricFactory.newTimer(new MetricName(MetricsConstants.Domain,
+                                                  "timer",
+                                                  "initCompositeActivities-time",
+                                                  "CompositeActivityStorage"), TimeUnit.MILLISECONDS, TimeUnit.SECONDS);
  
   }
 

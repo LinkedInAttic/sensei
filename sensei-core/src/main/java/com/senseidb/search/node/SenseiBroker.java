@@ -18,6 +18,7 @@
  */
 package com.senseidb.search.node;
 
+import com.senseidb.metrics.MetricFactory;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 
 import java.lang.management.ManagementFactory;
@@ -46,7 +47,6 @@ import com.senseidb.search.req.SenseiHit;
 import com.senseidb.search.req.SenseiRequest;
 import com.senseidb.search.req.SenseiResult;
 import com.senseidb.svc.impl.CoreSenseiServiceImpl;
-import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.Counter;
 import com.yammer.metrics.core.MetricName;
 
@@ -64,7 +64,8 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
  
   private final boolean allowPartialMerge;
   private final ClusterClient clusterClient;
-  private static Counter numberOfNodesInTheCluster = Metrics.newCounter(new MetricName(SenseiBroker.class, "numberOfNodesInTheCluster"));
+  private final Counter numberOfNodesInTheCluster = MetricFactory.newCounter(new MetricName(SenseiBroker.class,
+                                                                                            "numberOfNodesInTheCluster"));
   
   public SenseiBroker(PartitionedNetworkClient<String> networkClient, ClusterClient clusterClient, boolean allowPartialMerge)
       throws NorbertException {

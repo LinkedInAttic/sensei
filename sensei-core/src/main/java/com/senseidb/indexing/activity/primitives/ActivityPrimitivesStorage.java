@@ -18,6 +18,7 @@
  */
 package com.senseidb.indexing.activity.primitives;
 
+import com.senseidb.metrics.MetricFactory;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -32,7 +33,6 @@ import org.springframework.util.Assert;
 
 import com.senseidb.indexing.activity.AtomicFieldUpdate;
 import com.senseidb.metrics.MetricsConstants;
-import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.MetricName;
 import com.yammer.metrics.core.Timer;
 
@@ -54,13 +54,16 @@ public class ActivityPrimitivesStorage {
   private MappedByteBuffer buffer;
   private long fileLength; 
   private boolean activateMemoryMappedBuffers = true;
-  private static Timer timer;
+  private final Timer timer;
   private String fileName;
   
   public ActivityPrimitivesStorage(String fieldName, String indexDir) {
     this.fieldName = fieldName;
     this.indexDir = indexDir;
-    timer = Metrics.newTimer(new MetricName(MetricsConstants.Domain,"timer","initIntActivities-time-" + fieldName.replaceAll(":", "-"),"initIntActivities"), TimeUnit.MILLISECONDS, TimeUnit.SECONDS);
+    timer = MetricFactory.newTimer(new MetricName(MetricsConstants.Domain,
+                                                  "timer",
+                                                  "initIntActivities-time-" + fieldName.replaceAll(":", "-"),
+                                                  "initIntActivities"), TimeUnit.MILLISECONDS, TimeUnit.SECONDS);
    
   }
 
