@@ -279,22 +279,26 @@
                 <groupId>com.linkedin.zoie</groupId>
                 <artifactId>zoie-core</artifactId>
                 <version>3.3.0</version>
-            </dependency>
-            <dependency>
-                <groupId>com.linkedin.zoie</groupId>
-                <artifactId>zoie-jms</artifactId>
-                <version>3.3.0</version>
                 <exclusions>
                     <exclusion>
                         <groupId>fastutil</groupId>
                         <artifactId>fastutil</artifactId>
                     </exclusion>
+                    <exclusion>
+                        <groupId>it.unimi.dsi</groupId>
+                        <artifactId>fastutil</artifactId>
+                    </exclusion>
                 </exclusions>
             </dependency>
             <dependency>
-                <groupId>it.unimi.dsi</groupId>
+                <groupId>com.linkedin.zoie</groupId>
+                <artifactId>zoie-jms</artifactId>
+                <version>3.3.0</version>
+            </dependency>
+            <dependency>
+                <groupId>fastutil</groupId>
                 <artifactId>fastutil</artifactId>
-                <version>6.4.3</version>
+                <version>5.0.5</version>
                 <type>jar</type>
             </dependency>
             <dependency>
@@ -336,6 +340,10 @@
                 <exclusions>
                     <exclusion>
                         <groupId>fastutil</groupId>
+                        <artifactId>fastutil</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>it.unimi.dsi</groupId>
                         <artifactId>fastutil</artifactId>
                     </exclusion>
                 </exclusions>

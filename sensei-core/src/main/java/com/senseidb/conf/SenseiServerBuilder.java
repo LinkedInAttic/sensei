@@ -117,6 +117,7 @@ import com.senseidb.servlet.SenseiHttpInvokerServiceServlet;
 import com.senseidb.svc.impl.AbstractSenseiCoreService;
 import com.senseidb.util.HDFSIndexCopier;
 import com.senseidb.util.NetUtil;
+import com.senseidb.util.SenseiUncaughtExceptionHandler;
 
 public class SenseiServerBuilder implements SenseiConfParams{
 
@@ -398,6 +399,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
   }
 
   public SenseiCore buildCore() throws ConfigurationException {
+    SenseiUncaughtExceptionHandler.setAsDefaultForAllThreads();
     int nodeid = _senseiConf.getInt(NODE_ID);
     String partStr = _senseiConf.getString(PARTITIONS);
     String[] partitionArray = partStr.split("[,\\s]+");

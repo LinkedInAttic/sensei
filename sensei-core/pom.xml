@@ -140,7 +140,7 @@
             <artifactId>zoie-jms</artifactId>
         </dependency>
         <dependency>
-            <groupId>it.unimi.dsi</groupId>
+            <groupId>fastutil</groupId>
             <artifactId>fastutil</artifactId>
         </dependency>
         <dependency>
