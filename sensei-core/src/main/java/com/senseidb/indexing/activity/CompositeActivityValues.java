@@ -79,13 +79,19 @@ public class CompositeActivityValues {
   private volatile boolean closed;
   private ActivityConfig activityConfig;
   
-  protected Counter reclaimedDocumentsCounter;
-  protected Counter currentDocumentsCounter;
-  protected Counter deletedDocumentsCounter;
-  protected Counter insertedDocumentsCounter;
-  protected Counter totalUpdatesCounter;
+  protected final Counter reclaimedDocumentsCounter;
+  protected final Counter currentDocumentsCounter;
+  protected final Counter deletedDocumentsCounter;
+  protected final Counter insertedDocumentsCounter;
+  protected final Counter totalUpdatesCounter;
 
   CompositeActivityValues() {
+    reclaimedDocumentsCounter = MetricFactory.newCounter(new MetricName(CompositeActivityValues.class,
+                                                                        "reclaimedActivityDocs"));
+    currentDocumentsCounter = MetricFactory.newCounter(new MetricName(CompositeActivityValues.class, "currentActivityDocs"));
+    deletedDocumentsCounter = MetricFactory.newCounter(new MetricName(CompositeActivityValues.class, "deletedActivityDocs"));
+    insertedDocumentsCounter = MetricFactory.newCounter(new MetricName(CompositeActivityValues.class, "insertedActivityDocs"));
+    totalUpdatesCounter = MetricFactory.newCounter(new MetricName(CompositeActivityValues.class, "totalUpdatesCounter"));
   }
 
   public void init() {
@@ -93,13 +99,8 @@ public class CompositeActivityValues {
   }
 
   public void init(int count) {
-    uidToArrayIndex = new Long2IntOpenHashMap(count);
-      reclaimedDocumentsCounter = MetricFactory.newCounter(new MetricName(CompositeActivityValues.class,
-              "reclaimedActivityDocs"));
-      currentDocumentsCounter = MetricFactory.newCounter(new MetricName(CompositeActivityValues.class, "currentActivityDocs"));
-      deletedDocumentsCounter = MetricFactory.newCounter(new MetricName(CompositeActivityValues.class, "deletedActivityDocs"));
-      insertedDocumentsCounter = MetricFactory.newCounter(new MetricName(CompositeActivityValues.class, "insertedActivityDocs"));
-      totalUpdatesCounter = MetricFactory.newCounter(new MetricName(CompositeActivityValues.class, "totalUpdatesCounter"));
+    uidToArrayIndex = new Long2IntOpenHashMap(count);  
+    
   }
   
   public void updateVersion(String version) {
