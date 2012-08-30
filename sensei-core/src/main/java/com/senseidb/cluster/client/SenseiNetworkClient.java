@@ -82,6 +82,11 @@ public class SenseiNetworkClient implements PartitionedNetworkClient<String>
     }
 
     @Override
+    public <RequestMsg, ResponseMsg> ResponseIterator<ResponseMsg> sendRequestToReplicas(String s, RequestMsg requestMsg, Serializer<RequestMsg, ResponseMsg> serializer) throws InvalidClusterException, NoNodesAvailableException, ClusterDisconnectedException {
+        return _networkClient.sendRequestToReplicas(s, requestMsg, serializer);
+    }
+
+    @Override
     public <RequestMsg, ResponseMsg> ResponseIterator<ResponseMsg> sendRequestToOneReplica(String partitionedId, RequestMsg request, Serializer<RequestMsg, ResponseMsg> serializer) throws InvalidClusterException, NoNodesAvailableException, ClusterDisconnectedException {
       return _networkClient.sendRequestToOneReplica(partitionedId, request, serializer);
     }
