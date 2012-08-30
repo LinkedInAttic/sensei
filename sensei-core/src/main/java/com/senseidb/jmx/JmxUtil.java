@@ -55,8 +55,8 @@ public class JmxUtil {
     ObjectName objectName = null;
     try
     {
-      log.info("registering jmx mbean: "+objectName);
       objectName = new ObjectName(MetricsConstants.Domain,key,val);
+      log.info("registering jmx mbean: "+objectName);
       MbeanServer.registerMBean(bean, objectName);
       RegisteredBeans.add(objectName);
     }
@@ -69,8 +69,12 @@ public class JmxUtil {
       }
     }
   }
-  
-  private static void unregisterMBeans(){
+
+  /**
+   * Unregister all MBeans that are registered through the
+   * {@link #registerMBean(javax.management.StandardMBean, String, String)} method.
+   */
+  public static void unregisterMBeans(){
 	  for (ObjectName mbeanName : RegisteredBeans){
 	    try {
 	      log.info("unregistering jmx mbean: "+mbeanName);
@@ -82,11 +86,11 @@ public class JmxUtil {
 	  RegisteredBeans.clear();
   }
   
-  static{
-	  Runtime.getRuntime().addShutdownHook(new Thread(){
-		 public void run(){
-		   unregisterMBeans(); 
-		 }
-	  });
-  }
+//  static{
+//	  Runtime.getRuntime().addShutdownHook(new Thread(){
+//		 public void run(){
+//		   unregisterMBeans();
+//		 }
+//	  });
+//  }
 }

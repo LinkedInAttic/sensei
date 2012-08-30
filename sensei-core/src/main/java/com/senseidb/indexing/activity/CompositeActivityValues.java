@@ -18,6 +18,7 @@
  */
 package com.senseidb.indexing.activity;
 
+import com.senseidb.metrics.MetricFactory;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.longs.Long2IntMap;
@@ -48,7 +49,6 @@ import com.senseidb.indexing.activity.primitives.ActivityFloatValues;
 import com.senseidb.indexing.activity.primitives.ActivityIntValues;
 import com.senseidb.indexing.activity.primitives.ActivityPrimitiveValues;
 import com.senseidb.indexing.activity.time.TimeAggregatedActivityValues;
-import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.Counter;
 import com.yammer.metrics.core.MetricName;
 
@@ -79,21 +79,21 @@ public class CompositeActivityValues {
   private volatile boolean closed;
   private ActivityConfig activityConfig;
   
-  protected static Counter reclaimedDocumentsCounter;
-  protected static Counter currentDocumentsCounter;
-  protected static Counter deletedDocumentsCounter;
-  protected static Counter insertedDocumentsCounter;
-  protected static Counter totalUpdatesCounter;
-  static {
-    reclaimedDocumentsCounter = Metrics.newCounter(new MetricName(CompositeActivityValues.class, "reclaimedActivityDocs"));
-    currentDocumentsCounter = Metrics.newCounter(new MetricName(CompositeActivityValues.class, "currentActivityDocs"));
-    deletedDocumentsCounter = Metrics.newCounter(new MetricName(CompositeActivityValues.class, "deletedActivityDocs"));
-    insertedDocumentsCounter = Metrics.newCounter(new MetricName(CompositeActivityValues.class, "insertedActivityDocs"));
-    totalUpdatesCounter = Metrics.newCounter(new MetricName(CompositeActivityValues.class, "totalUpdatesCounter"));
+  protected final Counter reclaimedDocumentsCounter;
+  protected final Counter currentDocumentsCounter;
+  protected final Counter deletedDocumentsCounter;
+  protected final Counter insertedDocumentsCounter;
+  protected final Counter totalUpdatesCounter;
+
+  CompositeActivityValues() {
+    reclaimedDocumentsCounter = MetricFactory.newCounter(new MetricName(CompositeActivityValues.class,
+                                                                        "reclaimedActivityDocs"));
+    currentDocumentsCounter = MetricFactory.newCounter(new MetricName(CompositeActivityValues.class, "currentActivityDocs"));
+    deletedDocumentsCounter = MetricFactory.newCounter(new MetricName(CompositeActivityValues.class, "deletedActivityDocs"));
+    insertedDocumentsCounter = MetricFactory.newCounter(new MetricName(CompositeActivityValues.class, "insertedActivityDocs"));
+    totalUpdatesCounter = MetricFactory.newCounter(new MetricName(CompositeActivityValues.class, "totalUpdatesCounter"));
   }
-  CompositeActivityValues() {    
-   
-  }
+
   public void init() {
     init(DEFAULT_INITIAL_CAPACITY);   
   }

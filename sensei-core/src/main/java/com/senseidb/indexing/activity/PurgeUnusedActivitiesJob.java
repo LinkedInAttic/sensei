@@ -18,6 +18,7 @@
  */
 package com.senseidb.indexing.activity;
 
+import com.senseidb.metrics.MetricFactory;
 import it.unimi.dsi.fastutil.longs.LongIterator;
 
 import java.io.IOException;
@@ -43,7 +44,6 @@ import proj.zoie.api.ZoieIndexReader;
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.senseidb.conf.SenseiConfParams;
 import com.senseidb.plugin.SenseiPluginRegistry;
-import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.Counter;
 import com.yammer.metrics.core.MetricName;
 import com.yammer.metrics.core.Timer;
@@ -53,9 +53,12 @@ public class PurgeUnusedActivitiesJob implements Runnable, PurgeUnusedActivities
   
   private final CompositeActivityValues compositeActivityValues;
   private final Set<IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>> zoieSystems;
-  private static Timer timer = Metrics.newTimer(new MetricName(PurgeUnusedActivitiesJob.class, "purgeUnusedActivityIndexes"), TimeUnit.MILLISECONDS, TimeUnit.SECONDS);
-  private static Counter foundActivitiesToPurge = Metrics.newCounter(new MetricName(PurgeUnusedActivitiesJob.class, "foundActivitiesToPurge"));
-  private static Counter recentUidsSavedFromPurge = Metrics.newCounter(new MetricName(PurgeUnusedActivitiesJob.class, "recentUidsSavedFromPurge"));
+  private final Timer timer = MetricFactory.newTimer(new MetricName(PurgeUnusedActivitiesJob.class,
+                                                                    "purgeUnusedActivityIndexes"),
+                                                     TimeUnit.MILLISECONDS,
+                                                     TimeUnit.SECONDS);
+  private final Counter foundActivitiesToPurge = MetricFactory.newCounter(new MetricName(PurgeUnusedActivitiesJob.class, "foundActivitiesToPurge"));
+  private final Counter recentUidsSavedFromPurge = MetricFactory.newCounter(new MetricName(PurgeUnusedActivitiesJob.class, "recentUidsSavedFromPurge"));
   
   protected ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
 
