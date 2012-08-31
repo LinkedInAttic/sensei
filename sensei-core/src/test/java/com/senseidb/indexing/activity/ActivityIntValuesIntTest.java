@@ -2,6 +2,8 @@ package com.senseidb.indexing.activity;
 
 import java.io.File;
 
+import com.senseidb.indexing.activity.primitives.ActivityIntValues;
+import com.senseidb.indexing.activity.primitives.ActivityPrimitiveValues;
 import com.senseidb.test.SenseiStarter;
 
 import junit.framework.TestCase;
@@ -27,7 +29,10 @@ public class ActivityIntValuesIntTest extends TestCase {
   }
   
   public void test1() {
-    ActivityIntValues intValues = ActivityIntValues.readFromFile(getDirPath(), "likes", 0);
+
+    ActivityIntValues intValues = (ActivityIntValues) ActivityPrimitiveValues.createActivityPrimitiveValues(ActivityPersistenceFactory.getInstance(getDirPath(), new ActivityConfig()), int.class, "likes", 0);
+
+        
     long time = System.currentTimeMillis();
     for (int i = 0; i < 1000000; i++) {
       boolean update = intValues.update(i, "+1");

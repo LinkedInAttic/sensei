@@ -58,6 +58,7 @@ public class SenseiSchema {
 		public boolean isActivity;
 		public String delim = ",";
 		public Class type = null;
+		public String name;
 	}
 
   public static class FacetDefinition {
@@ -119,15 +120,23 @@ public class SenseiSchema {
 	public boolean isCompressSrcData(){
 		return _compressSrcData;
 	}
+	
+	public void setCompressSrcData(boolean _compressSrcData) {
+    this._compressSrcData = _compressSrcData;
+  }
 
-	public Map<String,FieldDefinition> getFieldDefMap(){
+  public Map<String,FieldDefinition> getFieldDefMap(){
 		return _fieldDefMap;
 	}
 	
 	private Map<String,FieldDefinition> _fieldDefMap;
+  private static JSONObject schemaObj;
 	
 	public static SenseiSchema build(JSONObject schemaObj) throws JSONException,ConfigurationException{
-	  SenseiSchema schema = new SenseiSchema();
+	  
+	 
+    SenseiSchema schema = new SenseiSchema();
+    schema.setSchemaObj(schemaObj);
       schema._fieldDefMap = new HashMap<String,FieldDefinition>();
       JSONObject tableElem = schemaObj.optJSONObject("table");
       if (tableElem==null){
@@ -164,7 +173,7 @@ public class SenseiSchema {
               
               fdef.isMulti = column.optBoolean("multi");
               fdef.isActivity = column.optBoolean("activity");
-              
+              fdef.name = n;
               String delimString = column.optString("delimiter");
               if (delimString!=null && delimString.trim().length()>0){
                   fdef.delim = delimString;
@@ -388,6 +397,14 @@ public class SenseiSchema {
 
   public List<FacetDefinition> getFacets() {
     return facets;
+  }
+
+  public JSONObject getSchemaObj() {
+    return schemaObj;
+  }
+
+  public void setSchemaObj(JSONObject schemaObj) {
+    SenseiSchema.schemaObj = schemaObj;
   }
 	
 }

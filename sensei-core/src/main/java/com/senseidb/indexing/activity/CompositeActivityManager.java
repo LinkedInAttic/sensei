@@ -13,6 +13,7 @@ import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.store.Directory;
 import org.jboss.netty.util.internal.ConcurrentHashMap;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -22,7 +23,6 @@ import proj.zoie.api.Zoie;
 import proj.zoie.api.ZoieIndexReader;
 import proj.zoie.api.ZoieMultiReader;
 import proj.zoie.api.ZoieSegmentReader;
-import scala.actors.threadpool.Arrays;
 
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.facets.FacetHandler;
@@ -33,6 +33,7 @@ import com.senseidb.conf.SenseiSchema.FieldDefinition;
 import com.senseidb.indexing.ShardingStrategy;
 import com.senseidb.indexing.activity.BaseActivityFilter.ActivityFilteredResult;
 import com.senseidb.indexing.activity.facet.ActivityRangeFacetHandler;
+import com.senseidb.indexing.activity.primitives.ActivityIntValues;
 import com.senseidb.indexing.activity.time.TimeAggregatedActivityValues;
 import com.senseidb.plugin.SenseiPluginRegistry;
 import com.senseidb.search.node.SenseiCore;
@@ -58,15 +59,24 @@ public class CompositeActivityManager implements PluggableSearchEngine {
     private ShardingStrategy shardingStrategy;
     private SenseiCore senseiCore;
     private PurgeUnusedActivitiesJob purgeUnusedActivitiesJob;
-    private SenseiPluginRegistry pluginRegistry; 
     private Map<String, Set<String>> columnToFacetMapping = new HashMap<String, Set<String>>();
-    private Counter recoveredIndexInBoboFacetDataCache;
-    private Counter facetMappingMismatch;
-    
-    public CompositeActivityManager() {
-      recoveredIndexInBoboFacetDataCache = Metrics.newCounter(new MetricName(getClass(), "recoveredIndexInBoboFacetDataCache"));
-      facetMappingMismatch = Metrics.newCounter(new MetricName(getClass(), "facetMappingMismatch"));
+    private static Counter recoveredIndexInBoboFacetDataCache;
+    private static Counter facetMappingMismatch;
+    private ActivityPersistenceFactory activityPersistenceFactory;
+    static {
+      recoveredIndexInBoboFacetDataCache = Metrics.newCounter(new MetricName(CompositeActivityManager.class, "recoveredIndexInBoboFacetDataCache"));
+      facetMappingMismatch =  Metrics.newCounter(new MetricName(CompositeActivityManager.class, "facetMappingMismatch"));
     }
+    private BoboIndexTracker boboIndexTracker = new BoboIndexTracker();
+    
+    public CompositeActivityManager(ActivityPersistenceFactory activityPersistenceFactory) {      
+      this.activityPersistenceFactory = activityPersistenceFactory;
+      
+    }
+    public CompositeActivityManager() {
+      
+    }
+    
     public String getVersion() {
       return activityValues.getVersion();
     }
@@ -78,20 +88,21 @@ public class CompositeActivityManager implements PluggableSearchEngine {
     }
     public final void init(String indexDirectory, int nodeId, SenseiSchema senseiSchema, Comparator<String> versionComparator, SenseiPluginRegistry pluginRegistry, ShardingStrategy shardingStrategy) {
       this.senseiSchema = senseiSchema;
-      this.pluginRegistry = pluginRegistry;
       this.shardingStrategy = shardingStrategy;
       try {
-        File dir = new File(indexDirectory, "node" +nodeId +"/activity");
-        dir.mkdirs();
-        String canonicalPath = dir.getCanonicalPath();
-        List<String> fields = new ArrayList<String>();
-        for ( String field  : senseiSchema.getFieldDefMap().keySet()) {
-          FieldDefinition fieldDefinition = senseiSchema.getFieldDefMap().get(field);
-          if (fieldDefinition.isActivity) {
-            fields.add(field);
+        if (activityPersistenceFactory == null) {
+          if (indexDirectory == null) {
+            activityPersistenceFactory = ActivityPersistenceFactory.getInMemoryInstance();
+          } else {
+            File dir = new File(indexDirectory, "node" +nodeId +"/activity");
+            dir.mkdirs();
+            String canonicalPath = dir.getCanonicalPath();
+            ActivityConfig activityConfig = new ActivityConfig(pluginRegistry);
+            activityPersistenceFactory = ActivityPersistenceFactory.getInstance(canonicalPath, activityConfig);
           }
         }
-        activityValues = CompositeActivityValues.readFromFile(canonicalPath, fields, TimeAggregateInfo.valueOf(senseiSchema), versionComparator);
+        
+        activityValues = CompositeActivityValues.createCompositeValues(activityPersistenceFactory, senseiSchema.getFieldDefMap().values(), TimeAggregateInfo.valueOf(senseiSchema), versionComparator);
         activityFilter = pluginRegistry.getBeanByFullPrefix(SenseiConfParams.SENSEI_INDEX_ACTIVITY_FILTER, BaseActivityFilter.class);
         if (activityFilter == null) {
           activityFilter = new DefaultActivityFilter();
@@ -151,6 +162,7 @@ public class CompositeActivityManager implements PluggableSearchEngine {
      */
     public JSONObject acceptEvent(JSONObject event, String version) {
       try {        
+        activityValues.updateVersion(version);
         if (event.opt(SenseiSchema.EVENT_TYPE_SKIP) != null  ||  SenseiSchema.EVENT_TYPE_SKIP.equalsIgnoreCase(event.optString(SenseiSchema.EVENT_TYPE_FIELD))) {
           return event;
         }
@@ -164,7 +176,7 @@ public class CompositeActivityManager implements PluggableSearchEngine {
           return event;
         } 
         ActivityFilteredResult activityFilteredResult = activityFilter.filter(event, senseiSchema, shardingStrategy, senseiCore);
-        onlyActivityUpdate = onlyActivityUpdate || activityFilteredResult.getFilteredObject() == null || activityFilteredResult.getFilteredObject().length() == 0 ||SenseiSchema.EVENT_TYPE_SKIP.equals(activityFilteredResult.getFilteredObject().optBoolean(SenseiSchema.EVENT_TYPE_FIELD));
+        onlyActivityUpdate = onlyActivityUpdate || activityFilteredResult.getFilteredObject() == null || activityFilteredResult.getFilteredObject().length() == 0 ||SenseiSchema.EVENT_TYPE_SKIP.equals(activityFilteredResult.getFilteredObject().opt(SenseiSchema.EVENT_TYPE_FIELD));
         for (long uid : activityFilteredResult.getActivityValues().keySet()) {
           if ( activityFilteredResult.getActivityValues().get(uid) == null || activityFilteredResult.getActivityValues().get(uid).size() == 0) {
             continue;
@@ -200,70 +212,7 @@ public class CompositeActivityManager implements PluggableSearchEngine {
       if (facets.isEmpty()) {
         return;
       }
-      for (int partition : senseiCore.getPartitions()) {
-        IndexReaderFactory<ZoieIndexReader<BoboIndexReader>> indexReaderFactory = senseiCore.getIndexReaderFactory(partition);
-        if (indexReaderFactory == null) {
-          continue;
-        }
-        List<ZoieIndexReader<BoboIndexReader>> indexReaders = null;
-        try {
-           indexReaders = indexReaderFactory.getIndexReaders();
-           for (ZoieIndexReader<BoboIndexReader> zoieIndexReader : indexReaders) {            
-             if (zoieIndexReader.getDocIDMaper().getDocID(uid) < 0) {
-               continue;
-             }
-             if (zoieIndexReader instanceof ZoieMultiReader<?>) {
-               for (ZoieIndexReader<BoboIndexReader> segmentReader : ((ZoieMultiReader<BoboIndexReader>) zoieIndexReader).getSequentialSubReaders()) {
-                 if (!(segmentReader instanceof ZoieSegmentReader<?>)) {
-                   throw new UnsupportedOperationException(segmentReader.getClass().toString());
-                 }
-                 updateExistingBoboIndexes((ZoieSegmentReader<BoboIndexReader>)segmentReader, uid, index, facets);
-               }
-             } else if (zoieIndexReader instanceof ZoieSegmentReader<?>) {
-               updateExistingBoboIndexes((ZoieSegmentReader<BoboIndexReader>)zoieIndexReader, uid, index, facets);
-             } else {
-               throw new UnsupportedOperationException(zoieIndexReader.getClass().toString());
-             }
-           }
-        } catch (IOException ex) {
-          logger.error(ex.getMessage(), ex);
-        } finally {
-          if (indexReaders != null) {
-            indexReaderFactory.returnIndexReaders(indexReaders);
-          }
-        }
-      }
-    }
-
-    private void updateExistingBoboIndexes(ZoieSegmentReader<BoboIndexReader> segmentReader, long uid, int index, Set<String> facets) {
-      int docId = segmentReader.getDocIDMaper().getDocID(uid);
-      if (docId < 0) {
-        return;
-      }
-      BoboIndexReader decoratedReader = segmentReader.getDecoratedReader();
-      for (String facet : facets) {
-        Object facetData = decoratedReader.getFacetData(facet);
-        if (!(facetData instanceof int[])) {
-          logger.warn("The facet " + facet + " should have a facet data of type int[] but not " + facetData.getClass().toString());
-          continue;
-        }
-        int[] indexes = (int[]) facetData;
-        if (indexes.length  <= docId) {
-          logger.warn(String.format("The facet [%s] is supposed to contain the uid [%s] as the docid [%s], but its index array is only [%s] long", facet, uid, docId, indexes.length));
-          facetMappingMismatch.inc();
-          continue;
-        }
-        if (indexes[docId] > -1 && indexes[docId] != index) {
-          logger.warn(String.format("The facet [%s] is supposed to contain the uid [%s] as the docid [%s], with docId index [%s] but it contains index [%s]", facet, uid, docId, index, indexes[docId]));
-          facetMappingMismatch.inc();
-          continue;
-        }
-        if (indexes[docId] == -1) {
-          indexes[docId] = index;
-          recoveredIndexInBoboFacetDataCache.inc();
-        }
-      }
-      
+      boboIndexTracker.updateExistingBoboIndexes(uid, index, facets);
     }
     public CompositeActivityValues getActivityValues() {
       return activityValues;
@@ -319,14 +268,17 @@ public class CompositeActivityManager implements PluggableSearchEngine {
 
   public void start(SenseiCore senseiCore) {
     this.senseiCore = senseiCore;
-    Set<Zoie<BoboIndexReader,?>> zoieSystems = new HashSet<Zoie<BoboIndexReader,?>>();
+    Set<IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>> zoieSystems = new HashSet<IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>>();
     for (int partition : senseiCore.getPartitions()) {
       if (senseiCore.getIndexReaderFactory(partition) != null) {
-        zoieSystems.add((Zoie<BoboIndexReader, ?>) senseiCore.getIndexReaderFactory(partition));
+        zoieSystems.add((IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>) senseiCore.getIndexReaderFactory(partition));
       }
     }
-    purgeUnusedActivitiesJob = new PurgeUnusedActivitiesJob(activityValues, zoieSystems, PurgeUnusedActivitiesJob.extractFrequency(pluginRegistry));
+    senseiCore.getDecorator().addBoboListener(boboIndexTracker);
+    int purgeJobFrequencyInMinutes = activityPersistenceFactory.getActivityConfig().getPurgeJobFrequencyInMinutes();
+    purgeUnusedActivitiesJob = new PurgeUnusedActivitiesJob(activityValues, zoieSystems, purgeJobFrequencyInMinutes * 60 * 1000);
     purgeUnusedActivitiesJob.start();
+    
   }
   public void stop() {
     purgeUnusedActivitiesJob.stop();
@@ -377,11 +329,13 @@ public class CompositeActivityManager implements PluggableSearchEngine {
         TimeAggregatedActivityValues aggregatedActivityValues = (TimeAggregatedActivityValues) activityValues;
         for (String time : facet.params.get("time")) {
           String name = facet.name + ":" + time;
-          ret.add(ActivityRangeFacetHandler.valueOf(name, facet.column, getActivityValues(), (ActivityIntValues)aggregatedActivityValues.getValuesMap().get(time)));
+          ret.add(ActivityRangeFacetHandler.valueOf(name, facet.column, this, (ActivityIntValues)aggregatedActivityValues.getValuesMap().get(time)));
         }
-        ret.add(ActivityRangeFacetHandler.valueOf(facet.name, facet.column, getActivityValues(), (ActivityIntValues)aggregatedActivityValues.getDefaultIntValues()));
+        ret.add(ActivityRangeFacetHandler.valueOf(facet.name, facet.column, this, (ActivityIntValues)aggregatedActivityValues.getDefaultIntValues()));
       } else if ("range".equals(facet.type)){
-        ret.add(ActivityRangeFacetHandler.valueOf(facet.name, facet.column, getActivityValues(), getActivityValues().getActivityIntValues(facet.column)));
+
+        ret.add(ActivityRangeFacetHandler.valueOf(facet.name, facet.column, this, getActivityValues().getActivityValues(facet.column)));
+
       } else {
         throw new UnsupportedOperationException("The facet " + facet.name + "should be of type either aggregated-range or range");
       }
@@ -392,6 +346,13 @@ public class CompositeActivityManager implements PluggableSearchEngine {
 
   public PurgeUnusedActivitiesJob getPurgeUnusedActivitiesJob() {
     return purgeUnusedActivitiesJob;
+  }
+  public BoboIndexTracker getBoboIndexTracker() {
+    return boboIndexTracker;
+  }
+  public void setBoboIndexTracker(BoboIndexTracker boboIndexTracker) {
+    this.boboIndexTracker = boboIndexTracker;
+    senseiCore.getDecorator().addBoboListener(boboIndexTracker);
   }
   
 }

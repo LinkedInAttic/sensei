@@ -91,8 +91,6 @@ public class SenseiStarter {
     try
     {
       broker = new SenseiBroker(networkClient, clusterClient, true);
-      broker.setTimeoutMillis(0);
-      broker.setTimeoutMillis(0);
     } catch (NorbertException ne) {
       logger.info("shutting down cluster...", ne);
         clusterClient.shutdown();
@@ -172,7 +170,7 @@ public class SenseiStarter {
     return f.delete();
   }
 
-  private static void shutdownSensei() {
+  public static void shutdownSensei() {
     try{ broker.shutdown();}catch(Throwable t){}
     try{ httpRestSenseiService.shutdown();}catch(Throwable t){}
     try{node1.shutdown();}catch(Throwable t){}
@@ -182,6 +180,7 @@ public class SenseiStarter {
     try{networkClient.shutdown();}catch(Throwable t){}
     try{clusterClient.shutdown();}catch(Throwable t){}
     rmrf(IndexDir);
+    started = false;
   }
 
 }

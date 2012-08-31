@@ -97,27 +97,7 @@ public class TestSensei extends TestCase {
     verifyFacetCount(res, selName, selVal, 2907);
     verifyFacetCount(res, "year", "[1993 TO 1994]", 3090);
   }
-  public void testSelectionDynamicTimeRange() throws Exception
-  {
-    logger.info("executing test case testSelection");
-
-
-    SenseiRequest req = new SenseiRequest();
-    DefaultFacetHandlerInitializerParam initParam = new DefaultFacetHandlerInitializerParam();
-    initParam.putLongParam("time", new long[]{15000L});
-    req.setFacetHandlerInitializerParam("timeRange", initParam);
-    //req.setFacetHandlerInitializerParam("timeRange_internal", new DefaultFacetHandlerInitializerParam());
-    req.setCount(3);
-    //setspec(req, facetSpecall);
-    BrowseSelection sel = new BrowseSelection("timeRange");
-    String selVal = "000000013";
-    sel.addValue(selVal);
-    req.addSelection(sel);
-     SenseiResult res = broker.browse(req);
-    logger.info("request:" + req + "\nresult:" + res);
-    assertEquals(12990, res.getNumHits());
-
-  }
+ 
   public void testSelectionNot() throws Exception
   {
     logger.info("executing test case testSelectionNot");
@@ -249,7 +229,8 @@ public class TestSensei extends TestCase {
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 1534, res.getInt("numhits"));
   }
-
+  
+  
   public void testBqlRelevance1() throws Exception
   {
     logger.info("Executing test case testBqlRelevance1");
@@ -306,7 +287,22 @@ public class TestSensei extends TestCase {
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 12990, res.getInt("numhits"));
   }
-
+  public void testSelectionRange2() throws Exception
+  {
+    //2000 1548;
+    //2001 1443;
+    //2002 1464;
+    // [2000 TO 2002]   ==> 4455
+    // (2000 TO 2002)   ==> 1443
+    // (2000 TO 2002]   ==> 2907
+    // [2000 TO 2002)   ==> 2991
+    {
+      logger.info("executing test case Selection range [2000 TO 2002]");
+      String req = "{\"selections\":[{\"range\":{\"year\":{\"to\":\"2002\",\"include_lower\":true,\"include_upper\":true,\"from\":\"2000\"}}}]}";
+      JSONObject res = search(new JSONObject(req));
+      assertEquals("numhits is wrong", 4455, res.getInt("numhits"));
+    }
+  }
   public void testSelectionRange() throws Exception
   {
     //2000 1548;
@@ -772,6 +768,23 @@ public class TestSensei extends TestCase {
     assertEquals("inner score for second is not correct." , true, secondScore == 1);
   }
   
+  public void testRelevanceNOW() throws Exception
+  {
+    logger.info("executing test case testRelevanceNOW");
+    // Assume that the difference between request side "now" and node side "_NOW" is less than 2000ms.
+    String req = "{\"sort\":[\"_score\"],\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"model\":{\"function_params\":[\"_INNER_SCORE\",\"year\",\"goodYear\",\"_NOW\",\"now\"],\"facets\":{\"int\":[\"year\",\"mileage\"],\"long\":[\"groupid\"]},\"function\":\" if(Math.abs(_NOW - now) < 2000) return 10000f; if(goodYear.contains(year)) return _INNER_SCORE ; return  _INNER_SCORE    ;\",\"variables\":{\"set_int\":[\"goodYear\"],\"int\":[\"thisYear\"],\"long\":[\"now\"]}},\"values\":{\"thisYear\":2001,\"now\":"+ System.currentTimeMillis() +",\"goodYear\":[1996]}}}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":6}";
+    JSONObject res = search(new JSONObject(req));
+    JSONArray hits = res.getJSONArray("hits");
+    JSONObject firstHit = hits.getJSONObject(0);
+    JSONObject secondHit = hits.getJSONObject(1);
+    
+    double firstScore = firstHit.getDouble("_score");
+    double secondScore = secondHit.getDouble("_score");
+    
+    assertEquals("inner score for first is not correct." , true, firstScore == 10000f );
+    assertEquals("inner score for second is not correct." , true, secondScore == 10000f);
+  }
+  
   public void testRelevanceHashMapInt2Float() throws Exception
   {
     logger.info("executing test case testRelevanceHashMapInt2Float");
@@ -1072,6 +1085,38 @@ public class TestSensei extends TestCase {
     
   }
   
+  public void testRelevanceExternalObject() throws Exception
+  {
+    logger.info("executing test case testRelevanceExternalObject");
+    String req = "{\"sort\":[\"_score\"],\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"model\":{\"function_params\":[\"_INNER_SCORE\",\"thisYear\",\"year\",\"goodYear\",\"mileageWeight\",\"mileage\",\"color\",\"yearcolor\",\"colorweight\",\"category\",\"categorycolor\",\"test_obj2\"],\"facets\":{\"int\":[\"year\",\"mileage\"],\"string\":[\"color\",\"category\"],\"long\":[\"groupid\"]},\"function\":\" if(test_obj2.contains(color)) return 20000f; if(categorycolor.containsKey(category) && categorycolor.get(category).equals(color))  return 10000f; if(colorweight.containsKey(color) ) return 200f + colorweight.getFloat(color); if(yearcolor.containsKey(year) && yearcolor.get(year).equals(color)) return 200f; if(mileageWeight.containsKey(mileage)) return 10000+mileageWeight.get(mileage); if(goodYear.contains(year)) return (float)Math.exp(2d);   if(year==thisYear) return 87f   ; return  _INNER_SCORE;\",\"variables\":{\"map_int_float\":[\"mileageWeight\"],\"map_int_string\":[\"yearcolor\"],\"set_int\":[\"goodYear\"],\"custom_obj\":[\"test_obj2\"],\"int\":[\"thisYear\"],\"map_string_float\":[\"colorweight\"],\"map_string_string\":[\"categorycolor\"]}},\"values\":{\"thisYear\":2001,\"yearcolor\":{\"value\":[\"red\"],\"key\":[1998]},\"mileageWeight\":{\"value\":[777.9,10.2],\"key\":[11400,11000]},\"colorweight\":{\"value\":[335.5],\"key\":[\"red\"]},\"goodYear\":[1996,1997],\"categorycolor\":{\"value\":[\"red\"],\"key\":[\"compact\"]}}}}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":2}";
+    JSONObject res = search(new JSONObject(req));
+    assertEquals("numhits is wrong", 15000, res.getInt("numhits"));
+
+    JSONArray hits = res.getJSONArray("hits");
+    JSONObject firstHit = hits.getJSONObject(0);
+    double firstScore = firstHit.getDouble("_score");
+    String color = firstHit.getJSONArray("color").getString(0);
+    
+    assertEquals("color for first is not correct." , true, color.equals("green") );
+    assertEquals("inner score for first is not correct." , true, Math.abs(firstScore - 20000) < 1 );
+  }
+  
+  public void testRelevanceExternalObjectSenseiPlugin() throws Exception
+  {
+    logger.info("executing test case testRelevanceExternalObjectSenseiPlugin");
+    String req = "{\"sort\":[\"_score\"],\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"model\":{\"function_params\":[\"_INNER_SCORE\",\"thisYear\",\"year\",\"goodYear\",\"mileageWeight\",\"mileage\",\"color\",\"yearcolor\",\"colorweight\",\"category\",\"categorycolor\",\"test_obj\"],\"facets\":{\"int\":[\"year\",\"mileage\"],\"string\":[\"color\",\"category\"],\"long\":[\"groupid\"]},\"function\":\" if(test_obj.contains(color)) return 20000f; if(categorycolor.containsKey(category) && categorycolor.get(category).equals(color))  return 10000f; if(colorweight.containsKey(color) ) return 200f + colorweight.getFloat(color); if(yearcolor.containsKey(year) && yearcolor.get(year).equals(color)) return 200f; if(mileageWeight.containsKey(mileage)) return 10000+mileageWeight.get(mileage); if(goodYear.contains(year)) return (float)Math.exp(2d);   if(year==thisYear) return 87f   ; return  _INNER_SCORE;\",\"variables\":{\"map_int_float\":[\"mileageWeight\"],\"map_int_string\":[\"yearcolor\"],\"set_int\":[\"goodYear\"],\"custom_obj\":[\"test_obj\"],\"int\":[\"thisYear\"],\"map_string_float\":[\"colorweight\"],\"map_string_string\":[\"categorycolor\"]}},\"values\":{\"thisYear\":2001,\"yearcolor\":{\"value\":[\"red\"],\"key\":[1998]},\"mileageWeight\":{\"value\":[777.9,10.2],\"key\":[11400,11000]},\"colorweight\":{\"value\":[335.5],\"key\":[\"red\"]},\"goodYear\":[1996,1997],\"categorycolor\":{\"value\":[\"red\"],\"key\":[\"compact\"]}}}}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":2}";
+    JSONObject res = search(new JSONObject(req));
+    assertEquals("numhits is wrong", 15000, res.getInt("numhits"));
+
+    JSONArray hits = res.getJSONArray("hits");
+    JSONObject firstHit = hits.getJSONObject(0);
+    double firstScore = firstHit.getDouble("_score");
+    String color = firstHit.getJSONArray("color").getString(0);
+    
+    assertEquals("color for first is not correct." , true, color.equals("red") );
+    assertEquals("inner score for first is not correct." , true, Math.abs(firstScore - 20000) < 1 );
+  }
+  
 
   private boolean containsString(JSONArray array, String target) throws JSONException
   {
@@ -1307,4 +1352,41 @@ public class TestSensei extends TestCase {
     }
     return -1;
   }  
+  public void testBqlExtraWithRangeTemplateVariables() throws Exception
+  {
+    logger.info("Executing test case testBqlExtraFilter");
+    String req = "{  \"bql\": \"select * FROM sensei WHERE groupid>= $startDate AND groupid<= $endDate ORDER BY groupid ASC limit 0, 500\",   \"templateMapping\": {    \"endDate\": \"1343800000000\",    \"startDate\": \"0\"  }}";
+    JSONObject res = search(new JSONObject(req));
+    System.out.println("!!!" + res.toString(1));
+    assertEquals("numhits is wrong", 14991, res.getInt("numhits"));
+  }
+  public void testBqlExtraWithRangeTemplateVariables2() throws Exception
+  {
+    logger.info("Executing test case testBqlExtraFilter");
+    String req = "{  \"bql\": \"select * FROM sensei WHERE groupid >= 1 AND groupid<= 1343700000000 ORDER BY groupid ASC limit 0, 500\"}";
+    JSONObject res = search(new JSONObject(req));
+    //System.out.println("!!!" + res.toString(1));
+    assertEquals("numhits is wrong", 14990, res.getInt("numhits"));
+  }
+  public void testSelectionDynamicTimeRange() throws Exception
+  {
+    logger.info("executing test case testSelection");
+
+
+    SenseiRequest req = new SenseiRequest();
+    DefaultFacetHandlerInitializerParam initParam = new DefaultFacetHandlerInitializerParam();
+    initParam.putLongParam("time", new long[]{15000L});
+    req.setFacetHandlerInitializerParam("timeRange", initParam);
+    //req.setFacetHandlerInitializerParam("timeRange_internal", new DefaultFacetHandlerInitializerParam());
+    req.setCount(3);
+    //setspec(req, facetSpecall);
+    BrowseSelection sel = new BrowseSelection("timeRange");
+    String selVal = "000000013";
+    sel.addValue(selVal);
+    req.addSelection(sel);
+     SenseiResult res = broker.browse(req);
+    logger.info("request:" + req + "\nresult:" + res);
+    assertEquals(12990, res.getNumHits());
+
+  }
 }

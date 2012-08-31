@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>com.senseidb</groupId>
 		<artifactId>sensei-parent</artifactId>
-		<version>1.5.0</version>
+		<version>1.5.1-SNAPSHOT</version>
 		<relativePath>../sensei-parent/pom.xml</relativePath>
 	</parent>
 	
@@ -184,7 +184,13 @@
 		<dependency>
 			<groupId>com.linkedin.zoie</groupId>
 			<artifactId>zoie-jms</artifactId>
-			<version>3.2.0</version>
+			<version>3.2.1-SNAPSHOT</version>
+			<exclusions>
+				<exclusion>
+					<groupId>fastutil</groupId>
+					<artifactId>fastutil</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		
 		<dependency>
@@ -236,6 +242,12 @@
 			<groupId>com.browseengine.bobo</groupId>
 			<artifactId>bobo-browse</artifactId>
 			<version>3.1.2-SNAPSHOT</version>
+			<exclusions>
+				<exclusion>
+					<groupId>fastutil</groupId>
+					<artifactId>fastutil</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<dependency>

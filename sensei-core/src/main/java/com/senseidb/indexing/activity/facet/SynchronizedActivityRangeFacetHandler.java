@@ -1,8 +1,6 @@
 package com.senseidb.indexing.activity.facet;
 
 import java.io.IOException;
-import java.text.DecimalFormat;
-import java.util.HashSet;
 import java.util.Properties;
 
 import org.apache.lucene.index.IndexReader;
@@ -12,121 +10,107 @@ import org.apache.lucene.search.ScoreDoc;
 import proj.zoie.api.ZoieSegmentReader;
 
 import com.browseengine.bobo.api.BoboIndexReader;
-import com.browseengine.bobo.api.BrowseSelection;
-import com.browseengine.bobo.api.FacetSpec;
-import com.browseengine.bobo.docidset.EmptyDocIdSet;
 import com.browseengine.bobo.docidset.RandomAccessDocIdSet;
-import com.browseengine.bobo.facets.FacetCountCollectorSource;
-import com.browseengine.bobo.facets.FacetHandler;
-import com.browseengine.bobo.facets.filter.FacetRangeFilter;
 import com.browseengine.bobo.facets.filter.RandomAccessFilter;
 import com.browseengine.bobo.sort.DocComparator;
 import com.browseengine.bobo.sort.DocComparatorSource;
-import com.senseidb.indexing.activity.ActivityIntValues;
-import com.senseidb.indexing.activity.CompositeActivityValues;
+import com.senseidb.indexing.activity.BoboIndexTracker;
+import com.senseidb.indexing.activity.CompositeActivityManager;
+import com.senseidb.indexing.activity.primitives.ActivityPrimitiveValues;
 
 /**
  * Used only for testing
+ * 
  * @author vzhabiuk
- *
+ * 
  */
 public class SynchronizedActivityRangeFacetHandler extends ActivityRangeFacetHandler {
   public static final Object GLOBAL_ACTIVITY_TEST_LOCK = new Object();
 
-  private final ActivityIntValues activityIntValues;
-  private final CompositeActivityValues compositeActivityValues;
-  
-  public SynchronizedActivityRangeFacetHandler(String facetName, String fieldName, CompositeActivityValues compositeActivityValues, ActivityIntValues activityIntValues) {
-    super(facetName, fieldName, compositeActivityValues, activityIntValues);
-    this.compositeActivityValues = compositeActivityValues;
-    this.activityIntValues = activityIntValues;   
-  }
 
+  public SynchronizedActivityRangeFacetHandler(String facetName, String fieldName, CompositeActivityManager compositeActivityManager,
+      ActivityPrimitiveValues activityPrimitiveValues) {
+    super(facetName, fieldName, compositeActivityManager, activityPrimitiveValues);
+  }
+  public static class BoboIndexTrackerInMemory extends BoboIndexTracker {
+    @Override
+    protected boolean isSegmentOnDisk(ZoieSegmentReader zoieSegmentReader) {
+      return true;
+    }
+
+  }
   @Override
-  public RandomAccessFilter buildRandomAccessFilter(final String value, Properties selectionProperty) throws IOException {
-    return new RandomAccessFilter() {      
+
+  public int[] load(BoboIndexReader reader) throws IOException {
+    synchronized(GLOBAL_ACTIVITY_TEST_LOCK) {
+      if (!(compositeActivityManager.getBoboIndexTracker() instanceof BoboIndexTrackerInMemory)) {
+        compositeActivityManager.setBoboIndexTracker(new BoboIndexTrackerInMemory());
+      }
+    }
+    return super.load(reader);
+  }
+  @Override
+
+  public RandomAccessFilter buildRandomAccessFilter(final String value, final Properties selectionProperty) throws IOException {
+    return new RandomAccessFilter() {
       @Override
-      public RandomAccessDocIdSet getRandomAccessDocIdSet(BoboIndexReader reader)
-          throws IOException {
-        final int[] indexes = (int[]) ((BoboIndexReader)reader).getFacetData(_name);
-        if (value == null || value.isEmpty()) {
-          return  EmptyDocIdSet.getInstance();
-        }
-        int[] range = parseRaw(value);
-        final int startValue = range[0];
-        final int endValue = range[1];
-        if (startValue >= endValue) {
-          return  EmptyDocIdSet.getInstance();
-        }
-        final int[] array = activityIntValues.getFieldValues();
-        return new RandomAccessDocIdSet() {          
+      public RandomAccessDocIdSet getRandomAccessDocIdSet(final BoboIndexReader reader) throws IOException {
+        final RandomAccessDocIdSet docIdSet = (RandomAccessDocIdSet) SynchronizedActivityRangeFacetHandler.super.buildRandomAccessFilter(
+            value, selectionProperty).getDocIdSet(reader);
+        return new RandomAccessDocIdSet() {
           @Override
           public DocIdSetIterator iterator() throws IOException {
-             System.out.println(activityIntValues.getFieldName());
-            return new ActivityRangeFilterSynchronizedIterator(array, indexes, startValue, endValue);           
+            return new SynchronizedIterator(docIdSet.iterator());
           }
-          
+
           @Override
-          public boolean get(int docId) {           
-            if (indexes[docId] == -1) {
-              return false;
-            }
+          public boolean get(int docId) {
             synchronized (GLOBAL_ACTIVITY_TEST_LOCK) {
-              int val = array[indexes[docId]];
-              return val >= startValue && val < endValue && val != Integer.MIN_VALUE;
+              return docIdSet.get(docId);
             }
           }
         };
       }
     };
   }
-  
+
   @Override
-  public Object[] getRawFieldValues(BoboIndexReader reader, int id) {    
+  public Object[] getRawFieldValues(BoboIndexReader reader, int id) {
     synchronized (GLOBAL_ACTIVITY_TEST_LOCK) {
       return super.getRawFieldValues(reader, id);
-    }  
+    }
   }
+
   @Override
-  public String[] getFieldValues(BoboIndexReader reader, int id) {   
-     synchronized (GLOBAL_ACTIVITY_TEST_LOCK) {
-       return super.getFieldValues(reader, id);
-     }   
-   
+  public String[] getFieldValues(BoboIndexReader reader, int id) {
+    synchronized (GLOBAL_ACTIVITY_TEST_LOCK) {
+      return super.getFieldValues(reader, id);
+    }
   }
 
   @Override
   public DocComparatorSource getDocComparatorSource() {
-    final int[] array = activityIntValues.fieldValues;
+    DocComparatorSource docComparatorSource = SynchronizedActivityRangeFacetHandler.super.getDocComparatorSource();
     return new DocComparatorSource() {
       @Override
-      public DocComparator getComparator(IndexReader reader, int docbase)
-          throws IOException {
-        final int[] indexes = (int[]) ((BoboIndexReader) reader)
-            .getFacetData(_name);
+      public DocComparator getComparator(IndexReader reader, int docbase) throws IOException {
+        final DocComparator comparator = SynchronizedActivityRangeFacetHandler.super.getDocComparatorSource()
+            .getComparator(reader, docbase);
         return new DocComparator() {
           @Override
-          public Comparable<Integer> value(ScoreDoc doc) {          
-              synchronized (GLOBAL_ACTIVITY_TEST_LOCK) {
-                if (indexes[doc.doc] == -1) {
-                  return 0;
-                }
-                return array[indexes[doc.doc]]; 
-              }
-          }
-
-          @Override
-          public int compare(ScoreDoc doc1, ScoreDoc doc2) {  
-            
+          public Comparable<Integer> value(ScoreDoc doc) {
             synchronized (GLOBAL_ACTIVITY_TEST_LOCK) {
-              int val1 = indexes[doc1.doc] > -1 ? array[indexes[doc1.doc]] : 0; ; 
-              int val2 = indexes[doc2.doc] > -1 ?array[indexes[doc2.doc]] : 0;            
-              return (val1<val2 ? -1 : (val1==val2 ? 0 : 1));
+              return comparator.value(doc);
+            }
+          }
+          @Override
+          public int compare(ScoreDoc doc1, ScoreDoc doc2) {
+            synchronized (GLOBAL_ACTIVITY_TEST_LOCK) {
+              return comparator.compare(doc1, doc2);
             }
           }
         };
       }
     };
   }
-  
 }

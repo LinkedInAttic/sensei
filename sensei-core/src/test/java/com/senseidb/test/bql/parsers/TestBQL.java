@@ -36,10 +36,17 @@ public class TestBQL extends TestCase
     facetInfoMap.put("makemodel", new String[]{"path", "string"});
     facetInfoMap.put("city", new String[]{"path", "string"});
     facetInfoMap.put("long_id", new String[]{"simple", "long"});
+    facetInfoMap.put("groupid_range", new String[]{"range", "long"});
     facetInfoMap.put("time", new String[]{"custom", ""}); // Mimic a custom facet
     _compiler = new BQLCompiler(facetInfoMap);
   }
-
+  @Test
+  public void testDateRange() throws Exception
+  {
+    String bql = "select long_id , city, _grouphitscount FROM ucp WHERE tags IN ('nus:category:profile') AND color IN ('linkedin:profile-update', 'linkedin:profile-add', 'linkedin:profile-become', 'linkedin:profile-be-studying') AND " +
+    		"groupid_range >= $startDate AND groupid_range <= $endDate ORDER BY groupid_range ASC limit 0, 500 ROUTE BY \"0\"\n";
+    System.out.println(_compiler.compile(bql).toString());
+  }
   @Test
   public void testBasic1() throws Exception
   {
@@ -1099,7 +1106,7 @@ public class TestBQL extends TestCase
     long expected = new SimpleDateFormat("yyyy-MM-dd").parse("2012-01-02").getTime();
     assertEquals(timeStamp, expected);
   }
-
+  
   @Test
   public void testDateTime3() throws Exception
   {
@@ -1478,36 +1485,7 @@ public class TestBQL extends TestCase
     assertTrue(_comp.isEquals(json, expected));
   }
 
-  @Test
-  public void testRelevanceModelExpressions() throws Exception
-  {
-    System.out.println("testRelevanceModelExpressions");
-    System.out.println("==================================================");
-
-    JSONObject json = _compiler.compile(
-      "SELECT color, year " +
-      "FROM cars " +
-      "WHERE color = 'red' " +
-      "USING RELEVANCE MODEL my_model (srcid:1234, timeVal:9999, _half_time:8888, coolTag:'zzz') " +
-      "  DEFINED AS (int srcid, long timeVal, long _half_time, String coolTag) " +
-      "  BEGIN " +
-      "    int myInt = 0; " +
-      "    float delta = System.currentTimeMillis() - timeVal; " +
-      "    float t = delta > 0 ? delta : 0; " +
-      "    float numHours = t / (1000 * 3600); " +
-      "    float timeScore = (float) Math.exp(-(numHours/_half_time)); " +
-      "    if (tags.contains(coolTag)) " +
-      "      return 999999; " +
-      "    int x = 0; " +
-      "    x += 5; " +
-      "    x *= 10; " +
-      "    return timeScore; " +
-      "  END "
-      );
-    
-    JSONObject expected = new JSONObject("{\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"model\":{\"function_params\":[\"srcid\",\"timeVal\",\"_half_time\",\"coolTag\",\"tags\"],\"facets\":{\"mstring\":[\"tags\"]},\"variables\":{\"int\":[\"srcid\"],\"string\":[\"coolTag\"],\"long\":[\"timeVal\",\"_half_time\"]},\"function\":\"int myInt = 0;     float delta = System.currentTimeMillis() - timeVal;     float t = delta > 0 ? delta : 0;     float numHours = t / (1000 * 3600);     float timeScore = (float) Math.exp(-(numHours/_half_time));     if (tags.contains(coolTag))       return 999999;     int x = 0;     x += 5;     x *= 10;     return timeScore;\"},\"values\":{\"_half_time\":8888,\"timeVal\":9999,\"coolTag\":\"zzz\",\"srcid\":1234}}}},\"selections\":[{\"term\":{\"color\":{\"value\":\"red\"}}}],\"meta\":{\"select_list\":[\"color\",\"year\"]}}");
-    assertTrue(_comp.isEquals(json, expected));
-  }
+ 
 
   @Test
   public void testRelevanceModelParameters() throws Exception
@@ -1639,5 +1617,51 @@ public class TestBQL extends TestCase
     JSONObject expected = new JSONObject("{\"sort\":\"relevance\",\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"predefined_model\":\"my_model\",\"values\":{\"thisYear\":2001,\"myMap\":{\"aaa\":1,\"bbb\":2}}}}},\"selections\":[{\"term\":{\"color\":{\"value\":\"red\"}}}],\"meta\":{\"select_list\":[\"*\"]}}");
     assertTrue(_comp.isEquals(json, expected));
   }
+  @Test
+  public void testRelevanceModelWithEmptyMapAndList() throws Exception
+  {
+    System.out.println("testRelevanceModelMapValue");
+    System.out.println("==================================================");
 
+    JSONObject json = _compiler.compile(
+      "SELECT * " +
+      "FROM cars " +
+      "WHERE color = 'red' " + 
+      "USING RELEVANCE MODEL my_model (thisYear:2001,  list:[], map:{}) " +
+      "ORDER BY relevance"
+      );
+
+   assertNotNull(json);
+  }
+  @Test
+  public void testRelevanceModelExpressions() throws Exception
+  {
+    System.out.println("testRelevanceModelExpressions");
+    System.out.println("==================================================");
+
+    JSONObject json = _compiler.compile(
+      "SELECT color, year " +
+      "FROM cars " +
+      "WHERE color = 'red' " +
+      "USING RELEVANCE MODEL my_model (srcid:1234, timeVal:9999, _half_time:8888, coolTag:'zzz') " +
+      "  DEFINED AS (int srcid, long timeVal, long _half_time, String coolTag) " +
+      "  BEGIN " +
+      "    int myInt = 0; " +
+      "    float delta = System.currentTimeMillis() - timeVal; " +
+      "    float t = delta > 0 ? delta : 0; " +
+      "    float numHours = t / (1000 * 3600); " +
+      "    float timeScore = (float) Math.exp(-(numHours/_half_time)); " +
+      "    if (tags.contains(coolTag)) " +
+      "      return 999999; " +
+      "    int x = 0; " +
+      "    x += 5; " +
+      "    x *= 10; " +
+      "    return timeScore; " +
+      "  END "
+      );
+    
+    JSONObject expected = new JSONObject("{\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"model\":{\"function_params\":[\"srcid\",\"timeVal\",\"_half_time\",\"coolTag\",\"tags\"],\"facets\":{\"mstring\":[\"tags\"]},\"variables\":{\"int\":[\"srcid\"],\"string\":[\"coolTag\"],\"long\":[\"timeVal\",\"_half_time\"]},\"function\":\"int myInt = 0;     float delta = System.currentTimeMillis() - timeVal;     float t = delta > 0 ? delta : 0;     float numHours = t / (1000 * 3600);     float timeScore = (float) Math.exp(-(numHours/_half_time));     if (tags.contains(coolTag))       return 999999;     int x = 0;     x += 5;     x *= 10;     return timeScore;\"},\"values\":{\"_half_time\":8888,\"timeVal\":9999,\"coolTag\":\"zzz\",\"srcid\":1234}}}},\"selections\":[{\"term\":{\"color\":{\"value\":\"red\"}}}],\"meta\":{\"select_list\":[\"color\",\"year\"]}}");
+    assertTrue(_comp.isEquals(json, expected));
+  }
+ 
 }

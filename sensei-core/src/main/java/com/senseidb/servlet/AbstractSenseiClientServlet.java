@@ -27,7 +27,6 @@ import org.json.JSONObject;
 
 import com.browseengine.bobo.api.BrowseSelection;
 import com.linkedin.norbert.javacompat.cluster.ClusterClient;
-import com.linkedin.norbert.javacompat.cluster.ZooKeeperClusterClient;
 import com.linkedin.norbert.javacompat.network.NetworkClientConfig;
 import com.senseidb.bql.parsers.BQLCompiler;
 import com.senseidb.cluster.client.SenseiNetworkClient;
@@ -99,13 +98,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
         logger.info("Trying to get sysinfo");
         SenseiSystemInfo sysInfo = _senseiSysBroker.browse(new SenseiRequest());
 
-        Iterator<SenseiSystemInfo.SenseiFacetInfo> itr = sysInfo.getFacetInfos().iterator();
-        while (itr.hasNext())
-        {
-          SenseiSystemInfo.SenseiFacetInfo facetInfo = itr.next();
-          Map<String, String> props = facetInfo.getProps();
-          _facetInfoMap.put(facetInfo.getName(), new String[]{props.get("type"), props.get("column_type")});
-        }
+        _facetInfoMap = sysInfo != null && sysInfo.getFacetInfos() != null ? extractFacetInfo(sysInfo) : new HashMap<String, String[]>();
         _compiler = new BQLCompiler(_facetInfoMap);
         break;
       }
@@ -131,6 +124,18 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
       }
     }
     logger.info("Cluster: "+ brokerConfig.getClusterName() +" successfully connected ");
+  }
+
+  public static Map<String, String[]> extractFacetInfo(SenseiSystemInfo sysInfo) {
+    Map<String, String[]> facetInfoMap = new HashMap<String, String[]>();
+    Iterator<SenseiSystemInfo.SenseiFacetInfo> itr = sysInfo.getFacetInfos().iterator();
+    while (itr.hasNext())
+    {
+      SenseiSystemInfo.SenseiFacetInfo facetInfo = itr.next();
+      Map<String, String> props = facetInfo.getProps();
+      facetInfoMap.put(facetInfo.getName(), new String[]{props.get("type"), props.get("column_type")});
+    }
+    return facetInfoMap;
   }
 
   protected abstract SenseiRequest buildSenseiRequest(HttpServletRequest req) throws Exception;

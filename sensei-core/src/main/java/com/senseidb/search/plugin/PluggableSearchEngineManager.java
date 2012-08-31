@@ -35,7 +35,7 @@ public class PluggableSearchEngineManager implements DeletionListener, Hourglass
   private SenseiSchema senseiSchema;
   private SenseiPluginRegistry pluginRegistry;
   private int nodeId;
-  private List<PluggableSearchEngine> pluggableEngines;
+  private List<PluggableSearchEngine> pluggableEngines = new ArrayList<PluggableSearchEngine>();
   private int maxPartition;
   private boolean acceptEventsForAllPartitions;
  
@@ -43,8 +43,8 @@ public class PluggableSearchEngineManager implements DeletionListener, Hourglass
     
   }
   public String getOldestVersion() {
-
-     return version;     
+    //as for now lets take into account only zoie persistent version
+     return null;     
   }
  
   public boolean acceptEventsForAllPartitions() {
@@ -59,7 +59,7 @@ public class PluggableSearchEngineManager implements DeletionListener, Hourglass
     this.shardingStrategy = shardingStrategy;    
 
 
-    maxPartition = pluginRegistry.getConfiguration().getInt("sensei.index.manager.default.maxpartition.id") + 1;
+    maxPartition = pluginRegistry.getConfiguration().getInt("sensei.index.manager.default.maxpartition.id", 0) + 1;
     pluggableEngines = new ArrayList<PluggableSearchEngine>(pluginRegistry.resolveBeansByListKey("sensei.search.pluggableEngines", PluggableSearchEngine.class));
     if (CompositeActivityManager.activitiesPresent(senseiSchema)) {
       pluggableEngines.add(new CompositeActivityManager());
@@ -88,7 +88,7 @@ public class PluggableSearchEngineManager implements DeletionListener, Hourglass
       String version = versions.get(0);
       for (String ver : versions) {
         if (versionComparator.compare(version, ver) > 0) {
-          version = ver;
+          this.version = ver;
         }
       }
     }
@@ -199,9 +199,13 @@ public class PluggableSearchEngineManager implements DeletionListener, Hourglass
     for (PluggableSearchEngine pluggableSearchEngine : pluggableEngines) {
       ret.addAll(pluggableSearchEngine.getFacetNames());
     }
-    
     return ret;
   }
+
+  public List<PluggableSearchEngine> getPluggableEngines() {
+    return pluggableEngines;
+  }
+   
 }
 
 

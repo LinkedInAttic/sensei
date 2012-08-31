@@ -39,11 +39,11 @@ import com.browseengine.bobo.facets.impl.SimpleFacetHandler;
 import com.browseengine.bobo.facets.range.MultiRangeFacetHandler;
 import com.senseidb.conf.SenseiSchema.FacetDefinition;
 import com.senseidb.indexing.DefaultSenseiInterpreter;
-import com.senseidb.indexing.activity.ActivityIntValues;
 import com.senseidb.indexing.activity.ActivityValues;
 import com.senseidb.indexing.activity.CompositeActivityManager;
 import com.senseidb.indexing.activity.CompositeActivityValues;
 import com.senseidb.indexing.activity.facet.ActivityRangeFacetHandler;
+import com.senseidb.indexing.activity.primitives.ActivityIntValues;
 import com.senseidb.indexing.activity.time.TimeAggregatedActivityValues;
 import com.senseidb.plugin.SenseiPluginRegistry;
 import com.senseidb.search.facet.UIDFacetHandler;
@@ -355,9 +355,7 @@ public class SenseiFacetHandlerBuilder {
 					logger.error("facet name: "+UID_FACET_NAME+" is reserved, skipping...");
 					continue;
 				}
-				if (pluggableSearchEngineFacetNames.contains(name)) {
-				  continue;
-				}
+				
 				String type = facet.getString("type");
 				String fieldName = facet.optString("column",name);
 				Set<String> dependSet = new HashSet<String>();
@@ -376,6 +374,9 @@ public class SenseiFacetHandlerBuilder {
         facetProps.put("column", fieldName);
         JSONObject column = columnMap.get(fieldName);
         String columnType = (column == null) ? "" : column.optString("type", "");
+        if (column != null && column.opt("activity") != null && column.optBoolean("activity")) {
+          columnType = "aint";
+        }
         facetProps.put("column_type", columnType);
         facetProps.put("depends", dependSet.toString());
 
@@ -389,7 +390,9 @@ public class SenseiFacetHandlerBuilder {
 
         facetInfo.setProps(facetProps);
         facetInfos.add(facetInfo);
-
+        if (pluggableSearchEngineFacetNames.contains(name)) {
+          continue;
+        }
 				FacetHandler<?> facetHandler = null;
 				if (type.equals("simple")) {
 					facetHandler = buildSimpleFacetHandler(name, fieldName, dependSet, termListFactoryMap.get(fieldName));

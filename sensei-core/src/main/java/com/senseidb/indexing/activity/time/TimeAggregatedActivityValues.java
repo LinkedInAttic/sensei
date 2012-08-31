@@ -1,16 +1,15 @@
 package com.senseidb.indexing.activity.time;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.io.FileUtils;
-
-import com.senseidb.indexing.activity.ActivityIntValues;
+import com.senseidb.indexing.activity.ActivityPersistenceFactory.AggregatesMetadata;
+import com.senseidb.indexing.activity.primitives.ActivityIntValues;
+import com.senseidb.indexing.activity.primitives.ActivityPrimitiveValues;
+import com.senseidb.indexing.activity.ActivityPersistenceFactory;
 import com.senseidb.indexing.activity.ActivityValues;
 
 /**
@@ -46,27 +45,28 @@ public class TimeAggregatedActivityValues implements ActivityValues {
   private AggregatesUpdateJob aggregatesUpdateJob;  
   protected ActivityIntValues defaultIntValues;
   
-  public TimeAggregatedActivityValues(String fieldName, List<String> times, int count, String indexDirPath) {
+  private TimeAggregatedActivityValues(String fieldName, List<String> times, int count,  ActivityPersistenceFactory activityPersistenceFactory) {
 		this.fieldName = fieldName;
 		intActivityValues = new IntValueHolder[times.size()];
 		int index = 0;
 		for(String time : times) {
 			int timeInMinutes = extractTimeInMinutes(time);			
-			ActivityIntValues activityIntValues = ActivityIntValues.readFromFile(indexDirPath, fieldName + ":" + time, count);			
+			ActivityIntValues activityIntValues = (ActivityIntValues) ActivityPrimitiveValues.createActivityPrimitiveValues(activityPersistenceFactory, int.class, fieldName + ":" + time, count);
+			  	
 			this.valuesMap.put(time, activityIntValues);
 			intActivityValues[index++] = new IntValueHolder(activityIntValues, time, timeInMinutes);
 		}
-		defaultIntValues = ActivityIntValues.readFromFile(indexDirPath, fieldName, count);
+		defaultIntValues = (ActivityIntValues) ActivityPrimitiveValues.createActivityPrimitiveValues(activityPersistenceFactory, int.class, fieldName, count);
 		Arrays.sort(intActivityValues);
 		maxIndex = count;
-		aggregatesMetadata = AggregatesMetadata.init(indexDirPath, fieldName);
+		aggregatesMetadata = activityPersistenceFactory.createAggregatesMetadata(fieldName);
 		
 	}
 	protected synchronized static void initTimeHits(TimeHitsHolder timeActivities, IntValueHolder[] intActivityValues, int count, int lastUpdatedTime) {
     for (int index = 0; index < count; index++) {
       int activitiesCount = 0;
       for (int j = 0; j < intActivityValues.length; j++) {
-        int value = intActivityValues[j].activityIntValues.getValue(index);
+        int value = intActivityValues[j].activityIntValues.getIntValue(index);
         if (value == Integer.MIN_VALUE) {
           activitiesCount = 0;
           break;
@@ -80,16 +80,16 @@ public class TimeAggregatedActivityValues implements ActivityValues {
       IntContainer times = new IntContainer(length);
       IntContainer activities = new IntContainer(length);
       for (int j = 0; j < intActivityValues.length - 1; j++) {
-        int value = intActivityValues[j].activityIntValues.getValue(index);
+        int value = intActivityValues[j].activityIntValues.getIntValue(index);
         int time = intActivityValues[j].timeInMinutes;
         if (value == Integer.MIN_VALUE) {
           activitiesCount = 0;
           break;
         }
         activitiesCount += value;
-        fillTimeHits(times, activities, value - intActivityValues[j + 1].activityIntValues.getValue(index), lastUpdatedTime - time + 1, time - intActivityValues[j + 1].timeInMinutes);
+        fillTimeHits(times, activities, value - intActivityValues[j + 1].activityIntValues.getIntValue(index), lastUpdatedTime - time + 1, time - intActivityValues[j + 1].timeInMinutes);
       }
-      fillTimeHits(times, activities, intActivityValues[intActivityValues.length - 1].activityIntValues.getValue(index), lastUpdatedTime - intActivityValues[intActivityValues.length - 1].timeInMinutes + 1, intActivityValues[intActivityValues.length - 1].timeInMinutes);
+      fillTimeHits(times, activities, intActivityValues[intActivityValues.length - 1].activityIntValues.getIntValue(index), lastUpdatedTime - intActivityValues[intActivityValues.length - 1].timeInMinutes + 1, intActivityValues[intActivityValues.length - 1].timeInMinutes);
       timeActivities.activities[index] = activities;
       timeActivities.times[index] = times;
     }
@@ -134,7 +134,7 @@ public class TimeAggregatedActivityValues implements ActivityValues {
 	@Override
 	public void init(int capacity) {
 		timeActivities = new TimeHitsHolder(capacity);
-		initTimeHits(timeActivities, intActivityValues, capacity, aggregatesMetadata.lastUpdatedTime);
+		initTimeHits(timeActivities, intActivityValues, capacity, aggregatesMetadata.getLastUpdatedTime());
 		aggregatesUpdateJob = new AggregatesUpdateJob(this, aggregatesMetadata);
 		aggregatesUpdateJob.start();
 	}
@@ -156,9 +156,7 @@ public class TimeAggregatedActivityValues implements ActivityValues {
 			if (!timeActivities.isSet(index)) {
 				timeActivities.setActivities(index, new IntContainer(1));
 				timeActivities.setTime(index, new IntContainer(1));
-			}
-		}
-		synchronized (timeActivities.getLock(index)) {
+			}		
 			if (timeActivities.getTimes(index).getSize() > 0 && timeActivities.getTimes(index).peekLast() == currentTime) {
 			  timeActivities.getActivities(index).add(timeActivities.getActivities(index).removeLast() + valueInt);
 			} else {
@@ -323,57 +321,18 @@ public class TimeAggregatedActivityValues implements ActivityValues {
 		    }
 		  }
 	}
-	/**
-	 * Persists the time of the last executed updateAggregateJob
-	 *
-	 */
-	public static class AggregatesMetadata {
-    protected int lastUpdatedTime;
-    protected File aggregatesFile;
-    private AggregatesMetadata() {      
-     
-    }
-    public static AggregatesMetadata init(String dirPath, String fieldName) {
-      AggregatesMetadata ret = new AggregatesMetadata();
-      File aggregatesFile = new File(dirPath, fieldName + ".aggregates");
-      try {
-      if (!aggregatesFile.exists()) {
-        aggregatesFile.createNewFile();
-        //minimum possible time
-        ret.lastUpdatedTime = 0;
-        FileUtils.writeStringToFile(aggregatesFile, String.valueOf(ret.lastUpdatedTime));
-      } else {
-        ret.lastUpdatedTime = Integer.parseInt(FileUtils.readFileToString(aggregatesFile));
-      }
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
-      ret.aggregatesFile = aggregatesFile;
-      return ret;
-    }
-    public void updateTime(int currentTime) {
-      lastUpdatedTime  = currentTime;
-      try {
-        FileUtils.writeStringToFile(aggregatesFile, String.valueOf(currentTime));
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
-    }
-    public int getLastUpdatedTime() {
-      return lastUpdatedTime;
-    }
-    
-  }
-	public static TimeAggregatedActivityValues valueOf(String fieldName, List<String> times, int count, String indexDirPath) {
-	  TimeAggregatedActivityValues ret = new TimeAggregatedActivityValues(fieldName, times, count, indexDirPath);
-	  ret.init(count > 0 ? count : 15000);
-	  return ret;
-	}
+	
+	
+	
   public Map<String, ActivityIntValues> getValuesMap() {
     return valuesMap;
   }
   public TimeHitsHolder getTimeActivities() {
     return timeActivities;
   }
-	
+  public static TimeAggregatedActivityValues createTimeAggregatedValues(String fieldName, List<String> times, int count, ActivityPersistenceFactory activityPersistenceFactory) {
+    TimeAggregatedActivityValues ret = new TimeAggregatedActivityValues(fieldName, times, count, activityPersistenceFactory);
+    ret.init(count > 0 ? count : 15000);
+    return ret;
+  }
 }

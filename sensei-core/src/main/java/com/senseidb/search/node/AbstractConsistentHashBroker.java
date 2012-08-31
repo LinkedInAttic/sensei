@@ -267,9 +267,15 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
     logger.info("shutting down broker...");
   }
 
-  public abstract void setTimeoutMillis(long timeoutMillis);
+  
 
-  public abstract long getTimeoutMillis();
+  public long getTimeout() {
+    return _timeout;
+  }
+
+  public void setTimeout(long timeout) {
+    this._timeout = timeout;
+  }
 
   /**
    * @return boolean representing whether or not the server can tolerate node failures or timeouts and merge the other
