@@ -41,6 +41,7 @@ import proj.zoie.impl.indexing.ZoieConfig;
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.senseidb.test.SenseiStarter;
 
+
 public class PurgeUnusedActivitiesJobTest extends TestCase {
   private File dir;
   private Set<IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>> zoieSystems;
@@ -88,9 +89,9 @@ public class PurgeUnusedActivitiesJobTest extends TestCase {
     compositeActivityValues.syncWithPersistentVersion(String.format("%08d", valueCount - 1));
     PurgeUnusedActivitiesJob purgeUnusedActivitiesJob = new PurgeUnusedActivitiesJob(compositeActivityValues, zoieSystems, 1000L*1000);
     
-    assertEquals(9668, purgeUnusedActivitiesJob.purgeUnusedActivityIndexes());
+    assertEquals(9498, purgeUnusedActivitiesJob.purgeUnusedActivityIndexes());
     compositeActivityValues.recentlyAddedUids.clear();
-    assertEquals(330, purgeUnusedActivitiesJob.purgeUnusedActivityIndexes());
+    assertEquals(500, purgeUnusedActivitiesJob.purgeUnusedActivityIndexes());
     assertEquals(0, purgeUnusedActivitiesJob.purgeUnusedActivityIndexes());
     compositeActivityValues.flushDeletes();
     compositeActivityValues.executor.shutdown();
