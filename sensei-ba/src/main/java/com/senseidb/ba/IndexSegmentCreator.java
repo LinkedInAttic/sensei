@@ -11,8 +11,8 @@ import java.util.Set;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class OfflineIndexCreator {
-    public static OfflineSegment convert(String[] jsonDocs, Set<String> excludedColumns)  {
+public class IndexSegmentCreator {
+    public static IndexSegment convert(String[] jsonDocs, Set<String> excludedColumns)  {
       Map<String, List> columnValues = new HashMap<String, List>();
       try {
       Map<String, Class<?>> columnTypes = getColumnTypes(jsonDocs, excludedColumns, 10);
@@ -30,7 +30,7 @@ public class OfflineIndexCreator {
           columnValues.get(column).add(value);
         }
       } 
-      OfflineSegmentImpl offlineSegmentImpl = new OfflineSegmentImpl(); 
+      IndexSegmentImpl offlineSegmentImpl = new IndexSegmentImpl(); 
       for (String column : columnTypes.keySet()) {
         ForwardIndexBackedByArray forwardIndexBackedByArray = new ForwardIndexBackedByArray(column);
         Class<?> type = columnTypes.get(column);

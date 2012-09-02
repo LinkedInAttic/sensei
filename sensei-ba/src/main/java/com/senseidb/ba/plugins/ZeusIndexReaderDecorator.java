@@ -17,8 +17,8 @@ import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.facets.filter.RandomAccessFilter;
 import com.browseengine.bobo.facets.impl.SimpleFacetHandler;
 import com.browseengine.bobo.sort.DocComparatorSource;
-import com.senseidb.ba.OfflineSegment;
-import com.senseidb.ba.OfflineSegmentAdapter;
+import com.senseidb.ba.IndexSegment;
+import com.senseidb.ba.SegmentToZoieAdapter;
 import com.senseidb.ba.facet.ZeusFacetHandler;
 import com.senseidb.search.node.SenseiIndexReaderDecorator;
 
@@ -26,17 +26,17 @@ public class ZeusIndexReaderDecorator extends SenseiIndexReaderDecorator {
   final static String[] emptyString = new String[0];
   @Override
 public BoboIndexReader decorate(ZoieIndexReader<BoboIndexReader> zoieReader) throws IOException {
-  OfflineSegmentAdapter adapter = (OfflineSegmentAdapter<?>)zoieReader;
-  final OfflineSegment offlineSegment = adapter.getOfflineSegment();
+  SegmentToZoieAdapter adapter = (SegmentToZoieAdapter<?>)zoieReader;
+  final IndexSegment offlineSegment = adapter.getOfflineSegment();
   List<FacetHandler<?>> facetHandlers = new ArrayList(offlineSegment.getColumnTypes().size() + 1);
   
  
   for (String column : offlineSegment.getColumnTypes().keySet()) {
-    facetHandlers.add(new ZeusFacetHandler(column, column, OfflineSegment.class.getSimpleName()));
+    facetHandlers.add(new ZeusFacetHandler(column, column, IndexSegment.class.getSimpleName()));
   }
   BoboIndexReader indexReader =  new BoboIndexReader(adapter,  facetHandlers, Collections.EMPTY_LIST, new BoboIndexReader.WorkArea(), false) {
     public void facetInit() throws IOException {
-      putFacetData(OfflineSegment.class.getSimpleName(), offlineSegment);
+      putFacetData(IndexSegment.class.getSimpleName(), offlineSegment);
       super.facetInit();
     }
     {facetInit();}

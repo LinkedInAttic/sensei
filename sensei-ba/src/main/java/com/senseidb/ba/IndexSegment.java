@@ -11,7 +11,7 @@ import com.browseengine.bobo.facets.data.TermValueList;
  * Is used instead of the ZoieIndexReader in Sensei. Will be constructed from the trevni index files and be kept in memory
  *
  */
-public interface OfflineSegment {
+public interface IndexSegment {
    Map<String, Class<?>> getColumnTypes();
    /**
    * get the sorted array of unique column values
