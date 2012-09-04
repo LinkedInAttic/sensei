@@ -237,7 +237,7 @@ public class TestSensei extends TestCase {
     String req = "{\"bql\":\"SELECT * FROM cars USING RELEVANCE MODEL my_model (thisYear:2001, goodYear:[1996]) DEFINED AS (int thisYear, IntOpenHashSet goodYear) BEGIN if (goodYear.contains(year)) return (float)Math.exp(10d); if (year==thisYear) return 87f; return _INNER_SCORE; END\"}";
     
     JSONObject res = search(new JSONObject(req));
-
+    System.out.println("!!!rel" + res.toString(1));
     JSONArray hits = res.getJSONArray("hits");
     JSONObject firstHit = hits.getJSONObject(0);
     JSONObject secondHit = hits.getJSONObject(1);
@@ -1359,6 +1359,14 @@ public class TestSensei extends TestCase {
     JSONObject res = search(new JSONObject(req));
     System.out.println("!!!" + res.toString(1));
     assertEquals("numhits is wrong", 14991, res.getInt("numhits"));
+  }
+  public void testBqlSortAndRangeByActivityColumn() throws Exception
+  {
+    logger.info("Executing test case testBqlSortAndRangeByActivityColumn");
+    String req = "{  \"bql\": \"select * FROM sensei WHERE likes>= 1 ORDER BY likes DESC limit 0, 500\"}";
+    JSONObject res = search(new JSONObject(req));
+    System.out.println("!!!" + res.toString(1));
+    assertTrue(res.getInt("numhits") > 0);
   }
   public void testBqlExtraWithRangeTemplateVariables2() throws Exception
   {
