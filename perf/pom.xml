@@ -4,7 +4,7 @@
 	
 	
 	<parent>
-		<groupId>com.linkedin</groupId>
+		<groupId>com.linkedin.sensei</groupId>
 		<artifactId>sensei-parent</artifactId>
 		<version>1.5.2</version>
 		<relativePath>../sensei-parent/pom.xml</relativePath>
