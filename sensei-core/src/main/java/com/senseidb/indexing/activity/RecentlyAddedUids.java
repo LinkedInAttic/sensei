@@ -46,11 +46,5 @@ public class RecentlyAddedUids {
   protected synchronized void clear() {
     elems.clear();
   }
- public static void main(String[] args) {
-   RecentlyAddedUids recentlyAddedUids = new RecentlyAddedUids(500);
-   for (int i = 0; i < 40000; i++) {
-     recentlyAddedUids.add(i);
-  }
-   System.out.println(recentlyAddedUids.elems);
-}
+ 
 }

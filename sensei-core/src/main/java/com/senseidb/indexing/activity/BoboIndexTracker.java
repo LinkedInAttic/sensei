@@ -30,9 +30,9 @@ public class BoboIndexTracker implements BoboListener {
   static {
     recoveredIndexInBoboFacetDataCache = Metrics.newCounter(new MetricName(CompositeActivityManager.class,
         "recoveredIndexInBoboFacetDataCache"));
-    facetMappingMismatch = Metrics.newCounter(new MetricName(CompositeActivityManager.class, "facetMappingMismatch"));
-    numberOfCachedReaders = Metrics.newCounter(new MetricName(CompositeActivityManager.class, "numberOfCachedReaders"));
-    numberOfDeletedReaders = Metrics.newCounter(new MetricName(CompositeActivityManager.class, "numberOfDeletedReaders"));
+    facetMappingMismatch = Metrics.newCounter(new MetricName(BoboIndexTracker.class, "facetMappingMismatch"));
+    numberOfCachedReaders = Metrics.newCounter(new MetricName(BoboIndexTracker.class, "numberOfCachedReaders"));
+    numberOfDeletedReaders = Metrics.newCounter(new MetricName(BoboIndexTracker.class, "numberOfDeletedReaders"));
   }
 
 

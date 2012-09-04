@@ -77,12 +77,11 @@ public class PurgeUnusedActivitiesJobTest extends TestCase {
     assertEquals(2, compositeActivityValues.uidToArrayIndex.size());
     assertEquals(0, compositeActivityValues.deletedIndexes.size());
     assertEquals(100000, compositeActivityValues.metadata.count);
-    compositeActivityValues.flushDeletes();
+    compositeActivityValues.flush();
     Thread.sleep(2000);
     assertEquals(99998, compositeActivityValues.deletedIndexes.size());
     assertEquals(100000, compositeActivityValues.metadata.count);
     assertEquals(0, purgeUnusedActivitiesJob.purgeUnusedActivityIndexes());
-    compositeActivityValues.flushDeletes(); 
     compositeActivityValues.flush();
     compositeActivityValues.executor.shutdown();
     assertEquals(100000, compositeActivityValues.metadata.count);
