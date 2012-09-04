@@ -60,14 +60,12 @@ public class FixedSizeEncodingWrapper {
   int i = 0;
    
   buf.position(bytePosition);
-    while (true) {
-      if (i == numberOfBytesUsed) break;
-      tempBuf[i++] = buf.get();       
-    }    
+   
    long number = 0;  
     i = -1;
    while (true) {
-     number |= tempBuf[++i] & 0xFF;
+     number |= (buf.get()) & 0xFF;
+     i++;
      if (i == numberOfBytesUsed - 1) {
        break;
      }

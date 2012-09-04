@@ -16,11 +16,11 @@ import org.apache.lucene.util.Version;
 import proj.zoie.api.ZoieSegmentReader;
 import proj.zoie.api.indexing.IndexReaderDecorator;
 
-public class OfflineSegmentAdapter<R extends IndexReader> extends ZoieSegmentReader<R> {
+public class SegmentToZoieAdapter<R extends IndexReader> extends ZoieSegmentReader<R> {
 
-  private final OfflineSegment offlineSegment;
+  private final IndexSegment offlineSegment;
 
-  public OfflineSegmentAdapter(OfflineSegment offlineSegment, IndexReaderDecorator<R> decorator) throws IOException {
+  public SegmentToZoieAdapter(IndexSegment offlineSegment, IndexReaderDecorator<R> decorator) throws IOException {
     super(fakeIndexReader(), null);
     this.offlineSegment = offlineSegment;
     R decorated = decorator.decorate(this);
@@ -74,7 +74,7 @@ public class OfflineSegmentAdapter<R extends IndexReader> extends ZoieSegmentRea
     return "Segment" + this.hashCode();
   }
 
-  public OfflineSegment getOfflineSegment() {
+  public IndexSegment getOfflineSegment() {
     return offlineSegment;
   }
   
