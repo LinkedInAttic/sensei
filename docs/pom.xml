@@ -8,7 +8,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.senseidb.doc</groupId>
   <artifactId>sensei-doc</artifactId>
-  <version>1.5.2</version>
+  <version>1.5.3-SNAPSHOT</version>
   <url>http://www.senseidb.com</url>
 
   <licenses>
