@@ -1,7 +1,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>com.senseidb</groupId>
+	<groupId>com.linkedin.sensei</groupId>
 	<artifactId>sensei-parent</artifactId>
 	<packaging>pom</packaging>
 	<name>sensei parent</name>
@@ -422,6 +422,11 @@
     </dependencyManagement>
 	
     <repositories>
+        <repository>
+            <id>codahale</id>
+            <name>Coda Hale's Repo</name>
+            <url>http://repo.codahale.com/</url>
+        </repository>
 		<repository>
 			<id>clojars.org</id>
 			<url>http://clojars.org/repo</url>
