@@ -209,10 +209,11 @@ private float[] getFloatFieldValues(CompositeActivityValues compositeActivityVal
     compositeActivityValues.close();
   }
   public void test3StartWithInconsistentIndexesAddExtraSpaceToCommentFile() throws Exception {
-    String indexDirPath = getDirPath() + 2;
+    String indexDirPath = getDirPath() + 5;
     dir = new File(indexDirPath);
     dir.mkdirs(); 
     dir.deleteOnExit();
+    System.out.println("Init");
     compositeActivityValues = CompositeActivityValues.createCompositeValues(ActivityPersistenceFactory.getInstance(indexDirPath), java.util.Arrays.asList(PurgeUnusedActivitiesJobTest.getLikesFieldDefinition()), Collections.EMPTY_LIST, ZoieConfig.DEFAULT_VERSION_COMPARATOR);
     final int valueCount = 100;  
     for (int i = 0; i < valueCount; i++) {
@@ -221,7 +222,8 @@ private float[] getFloatFieldValues(CompositeActivityValues compositeActivityVal
     compositeActivityValues.flush();
     compositeActivityValues.syncWithPersistentVersion(String.format("%08d",  2*valueCount - 1));   
     compositeActivityValues.close();
-    new File(dir, "comments.data").createNewFile();
+    assertTrue(new File(dir, "comments.data").createNewFile());
+   
     compositeActivityValues = CompositeActivityValues.createCompositeValues(ActivityPersistenceFactory.getInstance(indexDirPath), java.util.Arrays.asList(PurgeUnusedActivitiesJobTest.getLikesFieldDefinition(), getIntFieldDefinition("comments")), Collections.EMPTY_LIST, ZoieConfig.DEFAULT_VERSION_COMPARATOR);
     assertEquals(0, compositeActivityValues.getIntValueByUID(UID_BASE + valueCount / 2, "comments"));
     compositeActivityValues.close();
@@ -231,7 +233,7 @@ private float[] getFloatFieldValues(CompositeActivityValues compositeActivityVal
     dir = new File(indexDirPath);
     dir.mkdirs(); 
     dir.deleteOnExit();
-    compositeActivityValues = CompositeActivityValues.createCompositeValues(ActivityPersistenceFactory.getInstance(getDirPath()), java.util.Arrays.asList(PurgeUnusedActivitiesJobTest.getLikesFieldDefinition(), getIntFieldDefinition("comments")), Collections.EMPTY_LIST, ZoieConfig.DEFAULT_VERSION_COMPARATOR);
+    compositeActivityValues = CompositeActivityValues.createCompositeValues(ActivityPersistenceFactory.getInstance(indexDirPath), java.util.Arrays.asList(PurgeUnusedActivitiesJobTest.getLikesFieldDefinition(), getIntFieldDefinition("comments")), Collections.EMPTY_LIST, ZoieConfig.DEFAULT_VERSION_COMPARATOR);
     final int valueCount = 100;  
     for (int i = 0; i < valueCount; i++) {
       compositeActivityValues.update(UID_BASE + i, String.format("%08d", valueCount + i), toMap(new JSONObject().put("likes", "+1")));

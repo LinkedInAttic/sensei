@@ -3,3 +3,4 @@ git.properties
 .project
 .settings/
 target/
+/bin
