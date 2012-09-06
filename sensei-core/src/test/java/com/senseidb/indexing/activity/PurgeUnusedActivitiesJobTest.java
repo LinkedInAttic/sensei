@@ -21,12 +21,13 @@ import proj.zoie.impl.indexing.ZoieConfig;
 
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.senseidb.conf.SenseiSchema.FieldDefinition;
+import com.senseidb.search.node.SenseiCore;
 import com.senseidb.test.SenseiStarter;
 
 public class PurgeUnusedActivitiesJobTest extends TestCase {
   private File dir;
-  private Set<IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>> zoieSystems;
-  private CompositeActivityValues compositeActivityValues; 
+  private CompositeActivityValues compositeActivityValues;
+  private Zoie zoie; 
   
   
   public void setUp() throws Exception {
@@ -34,19 +35,18 @@ public class PurgeUnusedActivitiesJobTest extends TestCase {
     SenseiStarter.rmrf(new File("sensei-test"));
     dir = new File(pathname);
     dir.mkdirs();
-    zoieSystems = new HashSet<IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>>();
     
     ZoieIndexReader reader =  EasyMock.createMock(ZoieIndexReader.class);
     EasyMock.expect(reader.getDocIDMaper()).andReturn(new DocIDMapperImpl(new long[] {105L, 107L})).anyTimes();
     
-    Zoie zoie = org.easymock.EasyMock.createMock(Zoie.class);
+     zoie = org.easymock.EasyMock.createMock(Zoie.class);
     org.easymock.EasyMock.expect(zoie.getIndexReaders()).andReturn(Arrays.asList(reader)).anyTimes();
     
     zoie.returnIndexReaders(org.easymock.EasyMock.<List>notNull());
     org.easymock.EasyMock.expectLastCall().anyTimes();
     org.easymock.EasyMock.replay(zoie);
     EasyMock.replay(reader);
-    zoieSystems.add(zoie);
+    
   }
  
   public static String getDirPath() {
@@ -68,7 +68,13 @@ public class PurgeUnusedActivitiesJobTest extends TestCase {
     compositeActivityValues.flush();
     compositeActivityValues.syncWithPersistentVersion(String.format("%08d", valueCount - 1));
     assertEquals(100000, compositeActivityValues.metadata.count);
-    PurgeUnusedActivitiesJob purgeUnusedActivitiesJob = new PurgeUnusedActivitiesJob(compositeActivityValues, zoieSystems, 1000L*1000);
+    SenseiCore senseiCore = new SenseiCore(0, new int[] {0}, null, null, null, null) {
+      @Override
+      public IndexReaderFactory<ZoieIndexReader<BoboIndexReader>> getIndexReaderFactory(int partition) {
+          return zoie;
+      }
+    };
+    PurgeUnusedActivitiesJob purgeUnusedActivitiesJob = new PurgeUnusedActivitiesJob(compositeActivityValues, senseiCore, 1000L*1000);
     
 
     assertEquals(99498, purgeUnusedActivitiesJob.purgeUnusedActivityIndexes());
