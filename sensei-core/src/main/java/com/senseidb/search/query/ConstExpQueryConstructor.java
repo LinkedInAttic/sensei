@@ -177,6 +177,7 @@ public class ConstExpQueryConstructor extends QueryConstructor
       if(lvalue instanceof JSONArray)
       {
         JSONArray larray = (JSONArray) lvalue;
+        bool = true;
         for(int j=0; j< larray.length(); j++)
         {
           Object lobj = larray.get(j);
@@ -186,7 +187,6 @@ public class ConstExpQueryConstructor extends QueryConstructor
             break;
           }
         }
-        bool = true;
       }
       else if(hs.contains(lvalue))
         bool = true;
