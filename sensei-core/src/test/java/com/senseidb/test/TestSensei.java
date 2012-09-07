@@ -532,6 +532,55 @@ public class TestSensei extends TestCase {
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 2160, res.getInt("numhits"));
   }
+  
+  public void testConstExpQuery() throws Exception
+  {
+    logger.info("executing test case testConstExpQuery");
+
+    String pos_req1 = "{\"query\":{\"const_exp\":{\"lvalue\":\"6\",\"rvalue\":\"6\",\"operator\":\"==\"}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":10}";
+    String pos_req2 = "{\"query\":{\"const_exp\":{\"lvalue\":6,\"rvalue\":6,\"operator\":\"==\"}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":10}";
+    String pos_req3 = "{\"query\":{\"const_exp\":{\"lvalue\":[6,7],\"rvalue\":[6,7],\"operator\":\"==\"}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":10}";
+    String pos_req4 = "{\"query\":{\"const_exp\":{\"lvalue\":[7],\"rvalue\":[7],\"operator\":\"==\"}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":10}";
+    String pos_req5 = "{\"query\":{\"const_exp\":{\"lvalue\":[\"7\",\"8\"],\"rvalue\":[\"8\",\"7\"],\"operator\":\"==\"}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":10}";
+    String pos_req6 = "{\"query\":{\"const_exp\":{\"lvalue\":6,\"rvalue\":[6,7],\"operator\":\"in\"}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":10}";
+    String pos_req7 = "{\"query\":{\"const_exp\":{\"lvalue\":[6],\"rvalue\":[6,7],\"operator\":\"in\"}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":10}";
+    String pos_req8 = "{\"query\":{\"const_exp\":{\"lvalue\":6,\"rvalue\":[16,7],\"operator\":\"not_in\"}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":10}";
+    String pos_req9 = "{\"query\":{\"const_exp\":{\"lvalue\":6,\"rvalue\":3,\"operator\":\">\"}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":10}";
+    String pos_req10 = "{\"query\":{\"const_exp\":{\"lvalue\":6,\"rvalue\":6,\"operator\":\">=\"}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":10}";
+    String pos_req11 = "{\"query\":{\"const_exp\":{\"lvalue\":[7,8],\"rvalue\":2,\"operator\":\"size_is\"}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":10}";
+    String pos_req12 = "{\"query\":{\"const_exp\":{\"lvalue\":[],\"rvalue\":0,\"operator\":\"size_is\"}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":10}";
+    
+    assertEquals("numhits is wrong", 15000, search(new JSONObject(pos_req1)).getInt("numhits"));
+    assertEquals("numhits is wrong", 15000, search(new JSONObject(pos_req2)).getInt("numhits"));
+    assertEquals("numhits is wrong", 15000, search(new JSONObject(pos_req3)).getInt("numhits"));
+    assertEquals("numhits is wrong", 15000, search(new JSONObject(pos_req4)).getInt("numhits"));
+    assertEquals("numhits is wrong", 15000, search(new JSONObject(pos_req5)).getInt("numhits"));
+    assertEquals("numhits is wrong", 15000, search(new JSONObject(pos_req6)).getInt("numhits"));
+    assertEquals("numhits is wrong", 15000, search(new JSONObject(pos_req7)).getInt("numhits"));
+    assertEquals("numhits is wrong", 15000, search(new JSONObject(pos_req8)).getInt("numhits"));
+    assertEquals("numhits is wrong", 15000, search(new JSONObject(pos_req9)).getInt("numhits"));
+    assertEquals("numhits is wrong", 15000, search(new JSONObject(pos_req10)).getInt("numhits"));
+    assertEquals("numhits is wrong", 15000, search(new JSONObject(pos_req11)).getInt("numhits"));
+    assertEquals("numhits is wrong", 15000, search(new JSONObject(pos_req12)).getInt("numhits"));
+    
+    String neg_req1 = "{\"query\":{\"const_exp\":{\"lvalue\":6,\"rvalue\":[16,7],\"operator\":\"in\"}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":10}";
+    String neg_req2 = "{\"query\":{\"const_exp\":{\"lvalue\":[6],\"rvalue\":[5,7],\"operator\":\"in\"}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":10}";
+    String neg_req3 = "{\"query\":{\"const_exp\":{\"lvalue\":6,\"rvalue\":[6,7],\"operator\":\"not_in\"}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":10}";
+    String neg_req4 = "{\"query\":{\"const_exp\":{\"lvalue\":[6],\"rvalue\":[6,7],\"operator\":\"not_in\"}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":10}";
+    String neg_req5 = "{\"query\":{\"const_exp\":{\"lvalue\":6,\"rvalue\":8,\"operator\":\">\"}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":10}";
+    String neg_req6 = "{\"query\":{\"const_exp\":{\"lvalue\":[7,8],\"rvalue\":4,\"operator\":\"size_is\"}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":10}";
+    String neg_req7 = "{\"query\":{\"const_exp\":{\"lvalue\":[],\"rvalue\":2,\"operator\":\"size_is\"}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":10}";
+
+    assertEquals("numhits is wrong", 0, search(new JSONObject(neg_req1)).getInt("numhits"));
+    assertEquals("numhits is wrong", 0, search(new JSONObject(neg_req2)).getInt("numhits"));
+    assertEquals("numhits is wrong", 0, search(new JSONObject(neg_req3)).getInt("numhits"));
+    assertEquals("numhits is wrong", 0, search(new JSONObject(neg_req4)).getInt("numhits"));
+    assertEquals("numhits is wrong", 0, search(new JSONObject(neg_req5)).getInt("numhits"));
+    assertEquals("numhits is wrong", 0, search(new JSONObject(neg_req6)).getInt("numhits"));
+    assertEquals("numhits is wrong", 0, search(new JSONObject(neg_req7)).getInt("numhits"));   
+    
+  }
+  
   public void testNullMultiFilter() throws Exception
   {
     logger.info("executing test case testNullFilter");
