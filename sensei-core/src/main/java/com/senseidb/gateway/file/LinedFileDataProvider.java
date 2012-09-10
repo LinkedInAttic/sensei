@@ -57,7 +57,10 @@ public abstract class LinedFileDataProvider<D> extends StreamDataProvider<D> {
 
 	@Override
 	public void setStartingOffset(String version) {
-		_startingOffset = Long.parseLong(version);
+    if (version != null)
+      _startingOffset = Long.parseLong(version);
+    else
+      _startingOffset = 0;
 	}
 
 	@Override
