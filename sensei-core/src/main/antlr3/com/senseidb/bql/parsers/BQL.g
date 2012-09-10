@@ -644,10 +644,10 @@ import java.text.SimpleDateFormat;
             return true;
         }
 
-        if (columnType.equals("long") || columnType.equals("int") || columnType.equals("short")) {
+        if (columnType.equals("long") || columnType.equals("aint") || columnType.equals("int") || columnType.equals("short")) {
             return !(value instanceof Float || value instanceof String || value instanceof Boolean);
         }
-        else if (columnType.equals("float") || columnType.equals("double")) {
+        else if (columnType.equals("float")  || columnType.equals("int") || columnType.equals("double")) {
             return !(value instanceof String || value instanceof Boolean);
         }
         else if (columnType.equals("string") || columnType.equals("char")) {

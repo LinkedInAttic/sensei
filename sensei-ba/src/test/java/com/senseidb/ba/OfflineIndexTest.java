@@ -24,7 +24,7 @@ public class OfflineIndexTest extends TestCase {
     }
     Set<String> excludedColumns = new HashSet<String>();
     excludedColumns.add("tags");
-    OfflineSegment offlineSegment = OfflineIndexCreator.convert(docs.toArray(new String[docs.size()]), excludedColumns);
+    IndexSegment offlineSegment = IndexSegmentCreator.convert(docs.toArray(new String[docs.size()]), excludedColumns);
     assertEquals(15000, offlineSegment.getLength());
   }
 

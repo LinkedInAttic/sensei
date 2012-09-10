@@ -265,9 +265,7 @@ public class SenseiServer {
         }
       }
       throw e;
-    }
-
-
+    }   
     SenseiServerAdminMBean senseiAdminMBean = getAdminMBean();
     StandardMBean bean = new StandardMBean(senseiAdminMBean, SenseiServerAdminMBean.class);
     JmxUtil.registerMBean(bean, "name", "sensei-server-"+_id);

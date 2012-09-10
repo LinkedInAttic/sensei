@@ -16,7 +16,7 @@ import org.apache.lucene.search.Weight;
 import org.apache.lucene.util.ToStringUtils;
 
 import com.browseengine.bobo.api.BoboIndexReader;
-import com.senseidb.ba.OfflineSegmentAdapter;
+import com.senseidb.ba.SegmentToZoieAdapter;
 
 public class MatchAllDocsStaticQuery extends MatchAllDocsQuery {
 
@@ -27,10 +27,10 @@ public class MatchAllDocsStaticQuery extends MatchAllDocsQuery {
   
   private class MatchAllScorer extends Scorer {
     private int doc = -1;
-    private OfflineSegmentAdapter readerAdapter;
+    private SegmentToZoieAdapter readerAdapter;
     MatchAllScorer(IndexReader reader, Similarity similarity, Weight w) throws IOException {
       super(similarity,w);
-      readerAdapter = (OfflineSegmentAdapter) ((BoboIndexReader) reader).getInnerReader();
+      readerAdapter = (SegmentToZoieAdapter) ((BoboIndexReader) reader).getInnerReader();
       
     }
 

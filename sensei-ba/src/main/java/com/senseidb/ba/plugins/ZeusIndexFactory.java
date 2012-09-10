@@ -23,9 +23,9 @@ import proj.zoie.api.ZoieIndexReader;
 import proj.zoie.mbean.ZoieAdminMBean;
 
 import com.browseengine.bobo.api.BoboIndexReader;
-import com.senseidb.ba.OfflineIndexCreator;
-import com.senseidb.ba.OfflineSegment;
-import com.senseidb.ba.OfflineSegmentAdapter;
+import com.senseidb.ba.IndexSegmentCreator;
+import com.senseidb.ba.IndexSegment;
+import com.senseidb.ba.SegmentToZoieAdapter;
 import com.senseidb.plugin.SenseiPluginRegistry;
 import com.senseidb.search.node.SenseiIndexReaderDecorator;
 
@@ -58,7 +58,7 @@ public class ZeusIndexFactory implements Zoie<BoboIndexReader, Object> {
             if (car != null && car.contains("{"))
               docs.add(car);
           }
-          OfflineSegment offlineSegment = OfflineIndexCreator.convert(docs.toArray(new String[docs.size()]), new HashSet<String>());
+          IndexSegment offlineSegment = IndexSegmentCreator.convert(docs.toArray(new String[docs.size()]), new HashSet<String>());
 
         }
       }
@@ -122,8 +122,8 @@ public class ZeusIndexFactory implements Zoie<BoboIndexReader, Object> {
         if (car != null && car.contains("{"))
           docs.add(car);
       }
-      OfflineSegment offlineSegment = OfflineIndexCreator.convert(docs.toArray(new String[docs.size()]), new HashSet<String>());
-      offlineSegments.add(new OfflineSegmentAdapter(offlineSegment, decorator));
+      IndexSegment offlineSegment = IndexSegmentCreator.convert(docs.toArray(new String[docs.size()]), new HashSet<String>());
+      offlineSegments.add(new SegmentToZoieAdapter(offlineSegment, decorator));
     }
     } catch (Exception ex) {
       throw new RuntimeException(ex);

@@ -8,7 +8,7 @@ import org.apache.lucene.search.DocIdSet;
 
 import com.browseengine.bobo.facets.data.TermValueList;
 
-public class OfflineSegmentImpl implements OfflineSegment {
+public class IndexSegmentImpl implements IndexSegment {
   Map<String, ForwardIndex> forwardIndexes = new HashMap<String, ForwardIndex>();
   Map<String, TermValueList> dictionaries = new HashMap<String, TermValueList>();
   Map<String, Class<?>> columnTypes = new HashMap<String, Class<?>>();

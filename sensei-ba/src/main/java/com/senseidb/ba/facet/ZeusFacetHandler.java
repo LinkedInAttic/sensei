@@ -23,7 +23,7 @@ import com.browseengine.bobo.facets.impl.SimpleFacetHandler;
 import com.browseengine.bobo.sort.DocComparator;
 import com.browseengine.bobo.sort.DocComparatorSource;
 import com.senseidb.ba.ForwardIndex;
-import com.senseidb.ba.OfflineSegment;
+import com.senseidb.ba.IndexSegment;
 
 public class ZeusFacetHandler extends FacetHandler<ZeusDataCache> {
   private final String bootsrapFacetHandlerName;
@@ -41,7 +41,7 @@ public class ZeusFacetHandler extends FacetHandler<ZeusDataCache> {
     if (reader.getFacetData(columnName) != null) {
       return (ZeusDataCache) reader.getFacetData(columnName);
     }
-    OfflineSegment offlineSegment = (OfflineSegment) reader.getFacetData(bootsrapFacetHandlerName);
+    IndexSegment offlineSegment = (IndexSegment) reader.getFacetData(bootsrapFacetHandlerName);
     return new ZeusDataCache(offlineSegment.getForwardIndex(columnName), offlineSegment.getInvertedIndex(columnName));
     
   }

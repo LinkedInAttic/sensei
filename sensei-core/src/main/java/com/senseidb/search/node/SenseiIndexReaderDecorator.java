@@ -76,5 +76,6 @@ public class SenseiIndexReaderDecorator extends AbstractIndexReaderDecorator<Bob
 	public void addBoboListener(BoboListener boboListener) {
 	  boboListeners.add(boboListener);
 	}
+	
 }
 

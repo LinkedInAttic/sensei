@@ -230,8 +230,7 @@ public class ActivityIntegrationTest extends TestCase {
     res = TestSensei.search(new JSONObject(req));
     hits = res.getJSONArray("hits");
     assertEquals(Integer.parseInt(hits.getJSONObject(0).getJSONArray("aggregated-likes:15m").getString(0)), 0);
-    inMemoryColumnData1.flushDeletes();
-    inMemoryColumnData2.flushDeletes();
+    inMemoryColumnData1.flush();
     Thread.sleep(1000);
     for (int i = 0; i < 10; i ++) {
       FileDataProviderWithMocks.add(new JSONObject().put("id", i).put(SenseiSchema.EVENT_TYPE_FIELD, SenseiSchema.EVENT_TYPE_UPDATE).put("likes", "+" + i));
@@ -347,7 +346,7 @@ public void test5PurgeUnusedActivities() throws Exception {
     assertEquals(1, compositeActivityValues.getIntValueByUID(1L, "likes"));
     assertEquals(1, inMemoryColumnData1.getIntValueByUID(1L, "likes"));
   }
-  public static FieldDefinition getLikesFieldDefinition() {
+  private static FieldDefinition getLikesFieldDefinition() {
     
     return getIntFieldDefinition("likes");
   }

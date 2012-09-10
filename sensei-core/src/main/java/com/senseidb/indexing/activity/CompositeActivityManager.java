@@ -67,7 +67,7 @@ public class CompositeActivityManager implements PluggableSearchEngine {
       recoveredIndexInBoboFacetDataCache = Metrics.newCounter(new MetricName(CompositeActivityManager.class, "recoveredIndexInBoboFacetDataCache"));
       facetMappingMismatch =  Metrics.newCounter(new MetricName(CompositeActivityManager.class, "facetMappingMismatch"));
     }
-    private BoboIndexTracker boboIndexTracker = new BoboIndexTracker();
+    private BoboIndexTracker boboIndexTracker;
     
     public CompositeActivityManager(ActivityPersistenceFactory activityPersistenceFactory) {      
       this.activityPersistenceFactory = activityPersistenceFactory;
@@ -268,6 +268,8 @@ public class CompositeActivityManager implements PluggableSearchEngine {
 
   public void start(SenseiCore senseiCore) {
     this.senseiCore = senseiCore;
+    boboIndexTracker = new BoboIndexTracker();
+    boboIndexTracker.setSenseiCore(senseiCore);
     Set<IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>> zoieSystems = new HashSet<IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>>();
     for (int partition : senseiCore.getPartitions()) {
       if (senseiCore.getIndexReaderFactory(partition) != null) {
@@ -276,7 +278,7 @@ public class CompositeActivityManager implements PluggableSearchEngine {
     }
     senseiCore.getDecorator().addBoboListener(boboIndexTracker);
     int purgeJobFrequencyInMinutes = activityPersistenceFactory.getActivityConfig().getPurgeJobFrequencyInMinutes();
-    purgeUnusedActivitiesJob = new PurgeUnusedActivitiesJob(activityValues, zoieSystems, purgeJobFrequencyInMinutes * 60 * 1000);
+    purgeUnusedActivitiesJob = new PurgeUnusedActivitiesJob(activityValues, senseiCore, purgeJobFrequencyInMinutes * 60 * 1000);
     purgeUnusedActivitiesJob.start();
     
   }
@@ -353,6 +355,9 @@ public class CompositeActivityManager implements PluggableSearchEngine {
   public void setBoboIndexTracker(BoboIndexTracker boboIndexTracker) {
     this.boboIndexTracker = boboIndexTracker;
     senseiCore.getDecorator().addBoboListener(boboIndexTracker);
+  }
+  public SenseiCore getSenseiCore() {
+    return senseiCore;
   }
   
 }

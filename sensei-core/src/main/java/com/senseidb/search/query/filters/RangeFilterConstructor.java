@@ -18,9 +18,11 @@ import org.json.JSONObject;
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.facets.filter.FacetRangeFilter;
+import com.browseengine.bobo.facets.filter.RandomAccessFilter;
 import com.browseengine.bobo.query.MatchAllDocIdSetIterator;
 import com.senseidb.indexing.DefaultSenseiInterpreter;
 import com.senseidb.indexing.MetaType;
+import com.senseidb.indexing.activity.facet.ActivityRangeFacetHandler;
 
 public class RangeFilterConstructor extends FilterConstructor
 {
@@ -119,8 +121,12 @@ public class RangeFilterConstructor extends FilterConstructor
                 sb.append("]");
               else
                 sb.append(")");
-
-              FacetRangeFilter filter = new FacetRangeFilter(facetHandler, sb.toString());
+              RandomAccessFilter filter = null;;
+              if (facetHandler instanceof ActivityRangeFacetHandler) {
+            	  filter = ((ActivityRangeFacetHandler) facetHandler).buildRandomAccessFilter(sb.toString(), null);
+              } else {
+            	  filter = new FacetRangeFilter(facetHandler, sb.toString());
+              }
               return filter.getDocIdSet(reader);
             }
           }
