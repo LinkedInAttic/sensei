@@ -1769,15 +1769,21 @@ empty_predicate returns [JSONObject json]
             try {
                 JSONObject exp = new JSONObject();
                 if ($NOT != null) {
-                    $json = new JSONObject().put("bool",
-                                                 new JSONObject().put("must_not", $json));
+                    JSONObject functionJSON = new JSONObject();
+                    JSONArray params = new JSONArray();
+                    params.put($value_list.json);
+                    functionJSON.put("function", "length");
+                    functionJSON.put("params", params);
+                    exp.put("lvalue", functionJSON);
+                    exp.put("operator", ">");
+                    exp.put("rvalue", 0);
+                    $json = new JSONObject().put("const_exp", exp);
                 }
                 else{
                     exp.put("lvalue", $value_list.json);
                     exp.put("operator", "size_is");
                     exp.put("rvalue", 0);
                     $json = new JSONObject().put("const_exp", exp);
-                
                 }
             }
             catch (JSONException err) {
