@@ -20,13 +20,24 @@ public class ConstExpQueryConstructor extends QueryConstructor
   //   "rvalue" : [4,5,6]
   // },
   //
+  // "const_exp" : {
+  //   "lvalue" : {
+  //                 "function":"length",   // different function may have different number of parameters;
+  //                 "params": [            // we use json array to represent a list of parameters;
+  //                              [5,6,7]    // for function length, we only have one parameter, which is a json array;
+  //                           ]
+  //              },
+  //   "operator" : ">",     //  this example shows how to check if a value list is not empty;   
+  //   "rvalue" : 0
+  // },  
+  //
   //   "in, not_in, size_is"  are set operations, set can have string, or numerical values;
   //   ">, >=, <, <=," are normal boolean operations, applied to simple numerical value; (such as an integer or double)
   //   "!=, ==" can be applied to both simple numerical value and set;
   //
   //  for set operations in or not_in, left value could be a single element, right side has to be a collection. 
   //  for set operation size_is, left size has to be a collection, and if we need to check empty set, we check if the size is 0;
-  
+  //
   // Expression Query is mostly combined with other queries to form a boolean query, and filled by query template.
   // For example, it can be used in BQL template used by machine.
 
@@ -60,6 +71,7 @@ public class ConstExpQueryConstructor extends QueryConstructor
     if(rvalue == null)
       throw new IllegalArgumentException("right value not defined in ExpressionQuery: " + json);
     
+    // set operations;
     if(operator.equals(QueryConstructor.OP_EQUAL))
     {
       bool = checkEqual(lvalue, rvalue, json);
@@ -80,41 +92,39 @@ public class ConstExpQueryConstructor extends QueryConstructor
     {
       bool = checkSize(lvalue, rvalue, json);
     }
-    else if(operator.equals(QueryConstructor.OP_GE))
+    
+    // single value comparisons;
+    else if(operator.equals(QueryConstructor.OP_GE) || operator.equals(QueryConstructor.OP_GT) ||
+            operator.equals(QueryConstructor.OP_LE) || operator.equals(QueryConstructor.OP_LT) 
+            )
     {
       if(lvalue instanceof JSONArray || rvalue instanceof JSONArray)
-        throw new IllegalArgumentException("operator >= is not defined for list, in ExpressionQuery: " + json);
-        
-      double ldouble = json.getDouble(QueryConstructor.LEFT_VALUE);
-      double rdouble = json.getDouble(QueryConstructor.RIGHT_VALUE);
-      bool = ldouble >= rdouble;
-    }
-    else if(operator.equals(QueryConstructor.OP_GT))
-    {
-      if(lvalue instanceof JSONArray || rvalue instanceof JSONArray)
-        throw new IllegalArgumentException("operator > is not defined for list, in ExpressionQuery: " + json);
-        
-      double ldouble = json.getDouble(QueryConstructor.LEFT_VALUE);
-      double rdouble = json.getDouble(QueryConstructor.RIGHT_VALUE);
-      bool = ldouble > rdouble;
-    }
-    else if(operator.equals(QueryConstructor.OP_LE))
-    {
-      if(lvalue instanceof JSONArray || rvalue instanceof JSONArray)
-        throw new IllegalArgumentException("operator <= is not defined for list, in ExpressionQuery: " + json);
-        
-      double ldouble = json.getDouble(QueryConstructor.LEFT_VALUE);
-      double rdouble = json.getDouble(QueryConstructor.RIGHT_VALUE);
-      bool = ldouble <= rdouble;
-    }
-    else if(operator.equals(QueryConstructor.OP_LT))
-    {
-      if(lvalue instanceof JSONArray || rvalue instanceof JSONArray)
-        throw new IllegalArgumentException("operator < is not defined for list, in ExpressionQuery: " + json);
-        
-      double ldouble = json.getDouble(QueryConstructor.LEFT_VALUE);
-      double rdouble = json.getDouble(QueryConstructor.RIGHT_VALUE);
-      bool = ldouble < rdouble;
+        throw new IllegalArgumentException("operator " + operator + " is not defined for list, in ExpressionQuery: " + json);
+      
+      Double ldouble = null, rdouble = null;
+      
+      if(lvalue instanceof JSONObject)  // is a built-in function;
+      {
+        ldouble = getValueFromFunction((JSONObject)lvalue);
+      }
+      else
+        ldouble = json.getDouble(QueryConstructor.LEFT_VALUE);
+      
+      if(rvalue instanceof JSONObject)  // is a built-in function;
+      {
+        rdouble = getValueFromFunction((JSONObject)rvalue);
+      }
+      else
+        rdouble = json.getDouble(QueryConstructor.RIGHT_VALUE);
+      
+      if(operator.equals(QueryConstructor.OP_GE))  // >=
+        bool = ldouble >= rdouble;
+      else if(operator.equals(QueryConstructor.OP_GT))  // >
+        bool = ldouble > rdouble;
+      else if(operator.equals(QueryConstructor.OP_LE))   // <=
+        bool = ldouble <= rdouble;
+      else if(operator.equals(QueryConstructor.OP_LT))   // <
+        bool = ldouble < rdouble;
     }
     else
     {
@@ -127,6 +137,28 @@ public class ConstExpQueryConstructor extends QueryConstructor
     else
       q = new MatchNoneDocsQuery();
     return q;
+  }
+
+  private Double getValueFromFunction(JSONObject funcJSON) throws JSONException
+  {
+    String function = funcJSON.optString(QueryConstructor.FUNCTION_NAME);
+    if(function.length()==0)
+      throw new IllegalArgumentException("No function name is defined in ExpressionQuery's function json: " + funcJSON);
+    
+    JSONArray params = funcJSON.optJSONArray(QueryConstructor.PARAMS_PARAM);
+    if(params == null)
+      throw new IllegalArgumentException("No function param is defined in ExpressionQuery's function json: " + funcJSON);
+    
+    if(function.equals("length"))
+    {
+      // get the first and only the first parameter for length function;
+      JSONArray param = params.optJSONArray(0);
+      if(param == null)
+        throw new IllegalArgumentException("No param is provided for function " + function + " defined in ExpressionQuery's function json: " + funcJSON);
+      return (double)param.length();
+    }
+    else
+      throw new IllegalArgumentException("Unsupported function " + function + " in ExpressionQuery's function json: " + funcJSON);
   }
 
   private boolean checkSize(Object lvalue, Object rvalue, JSONObject json)
@@ -231,6 +263,17 @@ public class ConstExpQueryConstructor extends QueryConstructor
       throw new IllegalArgumentException("for == operator, left value and right value should be both simple values or both lists. in ExpressionQuery: " + json);
     
     return bool;
+  }
+  
+  
+  public static void main(String args[]) throws JSONException{
+    JSONObject json = new JSONObject();
+    json.put("lvalue", 6);
+    json.put("operator", ">");
+    json.put("rvalue", 3);
+    
+    ConstExpQueryConstructor c = new ConstExpQueryConstructor();
+    c.doConstructQuery(json);
   }
   
 }

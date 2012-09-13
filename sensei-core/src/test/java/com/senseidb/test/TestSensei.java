@@ -550,18 +550,18 @@ public class TestSensei extends TestCase {
     String pos_req11 = "{\"query\":{\"const_exp\":{\"lvalue\":[7,8],\"rvalue\":2,\"operator\":\"size_is\"}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":10}";
     String pos_req12 = "{\"query\":{\"const_exp\":{\"lvalue\":[],\"rvalue\":0,\"operator\":\"size_is\"}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":10}";
     
-    assertEquals("numhits is wrong", 15000, search(new JSONObject(pos_req1)).getInt("numhits"));
-    assertEquals("numhits is wrong", 15000, search(new JSONObject(pos_req2)).getInt("numhits"));
-    assertEquals("numhits is wrong", 15000, search(new JSONObject(pos_req3)).getInt("numhits"));
-    assertEquals("numhits is wrong", 15000, search(new JSONObject(pos_req4)).getInt("numhits"));
-    assertEquals("numhits is wrong", 15000, search(new JSONObject(pos_req5)).getInt("numhits"));
-    assertEquals("numhits is wrong", 15000, search(new JSONObject(pos_req6)).getInt("numhits"));
-    assertEquals("numhits is wrong", 15000, search(new JSONObject(pos_req7)).getInt("numhits"));
-    assertEquals("numhits is wrong", 15000, search(new JSONObject(pos_req8)).getInt("numhits"));
-    assertEquals("numhits is wrong", 15000, search(new JSONObject(pos_req9)).getInt("numhits"));
-    assertEquals("numhits is wrong", 15000, search(new JSONObject(pos_req10)).getInt("numhits"));
-    assertEquals("numhits is wrong", 15000, search(new JSONObject(pos_req11)).getInt("numhits"));
-    assertEquals("numhits is wrong", 15000, search(new JSONObject(pos_req12)).getInt("numhits"));
+    assertEquals("numhits is wrong pos_req1", 15000, search(new JSONObject(pos_req1)).getInt("numhits"));
+    assertEquals("numhits is wrong pos_req2", 15000, search(new JSONObject(pos_req2)).getInt("numhits"));
+    assertEquals("numhits is wrong pos_req3", 15000, search(new JSONObject(pos_req3)).getInt("numhits"));
+    assertEquals("numhits is wrong pos_req4", 15000, search(new JSONObject(pos_req4)).getInt("numhits"));
+    assertEquals("numhits is wrong pos_req5", 15000, search(new JSONObject(pos_req5)).getInt("numhits"));
+    assertEquals("numhits is wrong pos_req6", 15000, search(new JSONObject(pos_req6)).getInt("numhits"));
+    assertEquals("numhits is wrong pos_req7", 15000, search(new JSONObject(pos_req7)).getInt("numhits"));
+    assertEquals("numhits is wrong pos_req8", 15000, search(new JSONObject(pos_req8)).getInt("numhits"));
+    assertEquals("numhits is wrong pos_req9", 15000, search(new JSONObject(pos_req9)).getInt("numhits"));
+    assertEquals("numhits is wrong pos_req10", 15000, search(new JSONObject(pos_req10)).getInt("numhits"));
+    assertEquals("numhits is wrong pos_req11", 15000, search(new JSONObject(pos_req11)).getInt("numhits"));
+    assertEquals("numhits is wrong pos_req12", 15000, search(new JSONObject(pos_req12)).getInt("numhits"));
     
     String neg_req1 = "{\"query\":{\"const_exp\":{\"lvalue\":6,\"rvalue\":[16,7],\"operator\":\"in\"}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":10}";
     String neg_req2 = "{\"query\":{\"const_exp\":{\"lvalue\":[6],\"rvalue\":[5,7],\"operator\":\"in\"}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":10}";
@@ -571,13 +571,13 @@ public class TestSensei extends TestCase {
     String neg_req6 = "{\"query\":{\"const_exp\":{\"lvalue\":[7,8],\"rvalue\":4,\"operator\":\"size_is\"}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":10}";
     String neg_req7 = "{\"query\":{\"const_exp\":{\"lvalue\":[],\"rvalue\":2,\"operator\":\"size_is\"}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":10}";
 
-    assertEquals("numhits is wrong", 0, search(new JSONObject(neg_req1)).getInt("numhits"));
-    assertEquals("numhits is wrong", 0, search(new JSONObject(neg_req2)).getInt("numhits"));
-    assertEquals("numhits is wrong", 0, search(new JSONObject(neg_req3)).getInt("numhits"));
-    assertEquals("numhits is wrong", 0, search(new JSONObject(neg_req4)).getInt("numhits"));
-    assertEquals("numhits is wrong", 0, search(new JSONObject(neg_req5)).getInt("numhits"));
-    assertEquals("numhits is wrong", 0, search(new JSONObject(neg_req6)).getInt("numhits"));
-    assertEquals("numhits is wrong", 0, search(new JSONObject(neg_req7)).getInt("numhits"));   
+    assertEquals("numhits is wrong neg_req1", 0, search(new JSONObject(neg_req1)).getInt("numhits"));
+    assertEquals("numhits is wrong neg_req2", 0, search(new JSONObject(neg_req2)).getInt("numhits"));
+    assertEquals("numhits is wrong neg_req3", 0, search(new JSONObject(neg_req3)).getInt("numhits"));
+    assertEquals("numhits is wrong neg_req4", 0, search(new JSONObject(neg_req4)).getInt("numhits"));
+    assertEquals("numhits is wrong neg_req5", 0, search(new JSONObject(neg_req5)).getInt("numhits"));
+    assertEquals("numhits is wrong neg_req6", 0, search(new JSONObject(neg_req6)).getInt("numhits"));
+    assertEquals("numhits is wrong neg_req7", 0, search(new JSONObject(neg_req7)).getInt("numhits"));   
     
   }
   

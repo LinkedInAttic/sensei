@@ -72,6 +72,7 @@ public abstract class QueryConstructor
   public static final String OP_NOT_EQUAL                       = "!=";
   public static final String OP_LT                              = "<";
   public static final String OP_LE                              = "<=";
+  public static final String FUNCTION_NAME                      = "function";
   
   private static final Map<String,QueryConstructor> QUERY_CONSTRUCTOR_MAP = new HashMap<String,QueryConstructor>();
 
