@@ -14,7 +14,7 @@ public class ConstExpQueryConstructor extends QueryConstructor
 {
   public static final String QUERY_TYPE = "const_exp";
   
-  // "expression" : {
+  // "const_exp" : {
   //   "lvalue" : 4,
   //   "operator" : "in",     // supported operations: in, not_in, size, >, >=, ==, <, <=, !=,   
   //   "rvalue" : [4,5,6]

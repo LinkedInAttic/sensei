@@ -48,6 +48,7 @@ public abstract class FilterConstructor {
     FILTER_CONSTRUCTOR_MAP.put(TermsFilterConstructor.FILTER_TYPE, new TermsFilterConstructor());
     FILTER_CONSTRUCTOR_MAP.put(NullFilterConstructor.FILTER_TYPE, new NullFilterConstructor());
     FILTER_CONSTRUCTOR_MAP.put(CustomFilterConstructor.FILTER_TYPE, new CustomFilterConstructor());
+    FILTER_CONSTRUCTOR_MAP.put(ConstExpFilterConstructor.FILTER_TYPE, new ConstExpFilterConstructor());
   }
   
   public static FilterConstructor getFilterConstructor(String type, QueryParser qparser)
