@@ -1780,8 +1780,13 @@ empty_predicate returns [JSONObject json]
                     $json = new JSONObject().put("const_exp", exp);
                 }
                 else{
-                    exp.put("lvalue", $value_list.json);
-                    exp.put("operator", "size_is");
+                    JSONObject functionJSON = new JSONObject();
+                    JSONArray params = new JSONArray();
+                    params.put($value_list.json);
+                    functionJSON.put("function", "length");
+                    functionJSON.put("params", params);
+                    exp.put("lvalue", functionJSON);
+                    exp.put("operator", "==");
                     exp.put("rvalue", 0);
                     $json = new JSONObject().put("const_exp", exp);
                 }

@@ -65,7 +65,6 @@ public abstract class QueryConstructor
   public static final String RIGHT_VALUE                        = "rvalue";
   public static final String OP_IN                              = "in";
   public static final String OP_NOT_IN                          = "not_in";
-  public static final String OP_SIZE_IS                         = "size_is";
   public static final String OP_GT                              = ">";
   public static final String OP_GE                              = ">=";
   public static final String OP_EQUAL                           = "==";
