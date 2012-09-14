@@ -86,9 +86,10 @@ public class FederatedBroker implements Broker<SenseiRequest, SenseiResult>{
       if (!allTheResults) {        
         logger.warn("Not all the results are received");
       }
-      SenseiResult res = ResultMerger.merge(request, resultList, false);      
-      if (request.isFetchStoredFields() || request.isFetchStoredValue())
-        SenseiBroker.recoverSrcData(res, res.getSenseiHits(), request.isFetchStoredFields());
+      SenseiResult res = ResultMerger.merge(request, resultList, false);
+      // get src data (fetchStored) even if request doesn't have it could be enabled at
+      // individual broker level
+      SenseiBroker.recoverSrcData(res, res.getSenseiHits(), true);
       return res;
     } catch (Exception e) {
       throw new RuntimeException(e);

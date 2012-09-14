@@ -367,7 +367,10 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
       if (hit.getGroupHits() != null && hit.getGroupHits().length > 0)
         hitObj.put(PARAM_RESULT_HIT_GROUPHITS, buildJSONHits(req, hit.getSenseiGroupHits()));
 
-      if (selectSet == null || selectSet.contains(PARAM_RESULT_HIT_SRC_DATA) || req.isFetchStoredFields())
+      // get fetchStored even if request does not have it because it could be set at the 
+      // federated broker level
+      if (selectSet == null || selectSet.contains(PARAM_RESULT_HIT_SRC_DATA) || 
+          req.isFetchStoredFields() || hit.getSrcData() != null)
       {
         hitObj.put(PARAM_RESULT_HIT_SRC_DATA, hit.getSrcData());
       }
