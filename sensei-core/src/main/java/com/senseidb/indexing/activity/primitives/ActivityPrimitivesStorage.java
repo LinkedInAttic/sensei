@@ -1,5 +1,24 @@
-package com.senseidb.indexing.activity;
+/**
+ * This software is licensed to you under the Apache License, Version 2.0 (the
+ * "Apache License").
+ *
+ * LinkedIn's contributions are made under the Apache License. If you contribute
+ * to the Software, the contributions will be deemed to have been made under the
+ * Apache License, unless you expressly indicate otherwise. Please do not make any
+ * contributions that would be inconsistent with the Apache License.
+ *
+ * You may obtain a copy of the Apache License at http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, this software
+ * distributed under the Apache License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the Apache
+ * License for the specific language governing permissions and limitations for the
+ * software governed under the Apache License.
+ *
+ * © 2012 LinkedIn Corp. All Rights Reserved.  
+ */
+package com.senseidb.indexing.activity.primitives;
 
+import com.senseidb.metrics.MetricFactory;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -12,9 +31,8 @@ import java.util.concurrent.TimeUnit;
 import org.apache.log4j.Logger;
 import org.springframework.util.Assert;
 
-import com.senseidb.indexing.activity.ActivityIntValues;
+import com.senseidb.indexing.activity.AtomicFieldUpdate;
 import com.senseidb.metrics.MetricsConstants;
-import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.MetricName;
 import com.yammer.metrics.core.Timer;
 
@@ -22,13 +40,13 @@ import com.yammer.metrics.core.Timer;
  * Allows to persist ActivityIntValues into the file. The persistence is asynchronous via {@link ActivityIntValues#prepareFlush()}
  *
  */
-public class ActivityIntStorage {
+public class ActivityPrimitivesStorage {
   public static final double INIT_GROWTH_RATIO = 1.5;
   public static final int BYTES_IN_INT = 4;
   public static final int LENGTH_THRESHOLD = 1000000;
   public static final int FILE_GROWTH_RATIO = 2;
   public static final int INITIAL_FILE_LENGTH = 2000000;
-  private static Logger logger = Logger.getLogger(ActivityIntStorage.class);
+  private static Logger logger = Logger.getLogger(ActivityPrimitivesStorage.class);
   private RandomAccessFile storedFile;
   protected final String fieldName;
   private final String indexDir;
@@ -36,13 +54,16 @@ public class ActivityIntStorage {
   private MappedByteBuffer buffer;
   private long fileLength; 
   private boolean activateMemoryMappedBuffers = true;
-  private Timer timer;
+  private final Timer timer;
   private String fileName;
   
-  public ActivityIntStorage(String fieldName, String indexDir) {
+  public ActivityPrimitivesStorage(String fieldName, String indexDir) {
     this.fieldName = fieldName;
     this.indexDir = indexDir;
-    timer = Metrics.newTimer(new MetricName(MetricsConstants.Domain,"timer","initIntActivities-time-" + fieldName.replaceAll(":", "-"),"initIntActivities"), TimeUnit.MILLISECONDS, TimeUnit.SECONDS);
+    timer = MetricFactory.newTimer(new MetricName(MetricsConstants.Domain,
+                                                  "timer",
+                                                  "initIntActivities-time-" + fieldName.replaceAll(":", "-"),
+                                                  "initIntActivities"), TimeUnit.MILLISECONDS, TimeUnit.SECONDS);
    
   }
 
@@ -64,16 +85,15 @@ public class ActivityIntStorage {
     }
   }
 
-  public synchronized void flush(List<FieldUpdate> updates) {
+  public synchronized void flush(List<AtomicFieldUpdate> updates) {
     Assert.state(storedFile != null, "The FileStorage is not initialized");    
     try {
-      for (FieldUpdate update : updates) {       
-         ensureCapacity(update.index * 4 + 4);        
+      for (AtomicFieldUpdate update : updates) {       
+         ensureCapacity((update.index + 1) * update.getFieldSizeInBytes());        
          if (activateMemoryMappedBuffers) {
-         buffer.putInt(update.index * 4, update.value);
+           update.update(buffer, update.index * update.getFieldSizeInBytes());          
          } else {  
-           storedFile.seek(update.index * 4);
-           storedFile.writeInt(update.value);
+           update.update(storedFile, update.index * update.getFieldSizeInBytes());
          }
       }
       if (activateMemoryMappedBuffers) {
@@ -116,40 +136,35 @@ public class ActivityIntStorage {
     }
   }
 
-  protected  ActivityIntValues getActivityDataFromFile(final int count) {
+  protected  void initActivityDataFromFile(final ActivityPrimitiveValues activityPrimitiveValues, final int count) {
     try {
-      return timer.time(new Callable<ActivityIntValues>() {
+      timer.time(new Callable<ActivityPrimitiveValues>() {
         @Override
-        public ActivityIntValues call() throws Exception {
-          Assert.state(storedFile != null, "The FileStorage is not initialized");
-          ActivityIntValues ret = new ActivityIntValues();
-          ret.activityFieldStore = ActivityIntStorage.this;
-          ret.fieldName = fieldName;
+        public ActivityPrimitiveValues call() throws Exception {
+          Assert.state(storedFile != null, "The FileStorage is not initialized");        
+          activityPrimitiveValues.activityFieldStore = ActivityPrimitivesStorage.this;
+          activityPrimitiveValues.fieldName = fieldName;
           try {
             if (count == 0) {
-              ret.init();
-              return ret;
+              activityPrimitiveValues.init();
+              return activityPrimitiveValues;
             }
-            ret.init((int) (count * INIT_GROWTH_RATIO));
+            activityPrimitiveValues.init((int) (count * INIT_GROWTH_RATIO));
             if (fileLength < count * BYTES_IN_INT) {
               logger.warn("The  activityIndex is corrupted. The file "+ fieldName +" contains " + (fileLength / BYTES_IN_INT) + " records, while metadata has a bigger number " + count);
               logger.warn("adding extra space");
-              ensureCapacity(count * BYTES_IN_INT);
+              ensureCapacity(count * activityPrimitiveValues.getFieldSizeInBytes());
             }
-            for (int i = 0; i < count; i++) {
-              int value;
-              if (activateMemoryMappedBuffers) {
-                value = buffer.getInt(i * BYTES_IN_INT);
-              } else {
-                storedFile.seek(i * BYTES_IN_INT);
-                value = storedFile.readInt();
-              }
-              ret.fieldValues[i] = value;
+            if (activateMemoryMappedBuffers) {
+              activityPrimitiveValues.initFieldValues(count, buffer);
+            } else {
+              activityPrimitiveValues.initFieldValues(count, storedFile);
             }
+            
           } catch (Exception e) {
             throw new RuntimeException(e);
           }
-          return ret;
+          return activityPrimitiveValues;
         }
       });
     } catch (Exception e) {
@@ -162,16 +177,5 @@ public class ActivityIntStorage {
     return closed;
   }  
 
-  public static class FieldUpdate {
-    public int index;   
-    public int value;
-    public FieldUpdate(int index, int value) {
-      this.index = index;
-      this.value = value;
-    }
-    @Override
-    public String toString() {
-      return "index=" + index + ", value=" + value;
-    }    
-  }
+  
 }

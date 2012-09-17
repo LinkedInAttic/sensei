@@ -1,3 +1,22 @@
+/**
+ * This software is licensed to you under the Apache License, Version 2.0 (the
+ * "Apache License").
+ *
+ * LinkedIn's contributions are made under the Apache License. If you contribute
+ * to the Software, the contributions will be deemed to have been made under the
+ * Apache License, unless you expressly indicate otherwise. Please do not make any
+ * contributions that would be inconsistent with the Apache License.
+ *
+ * You may obtain a copy of the Apache License at http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, this software
+ * distributed under the Apache License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the Apache
+ * License for the specific language governing permissions and limitations for the
+ * software governed under the Apache License.
+ *
+ * © 2012 LinkedIn Corp. All Rights Reserved.  
+ */
+
 package com.senseidb.indexing.activity.time;
 
 import java.io.File;
@@ -40,17 +59,17 @@ public class TimeAggregatedActivityPerfTest extends Assert {
     Clock.setPredefinedTimeInMinutes(0);
   }
   
-  @Ignore
+ @Ignore
   @Test
   public void test1Perf10mInsertsAndUpdateAfterwards() throws Exception {
     Clock.setPredefinedTimeInMinutes(0);
-    CompositeActivityValues activityValues = ActivityPersistenceFactory.getInstance().createCompositeValues(getDirPath(), Collections.EMPTY_LIST, Arrays.asList(new CompositeActivityManager.TimeAggregateInfo("likes", Arrays.asList("10m","5m", "2m"))) , ZoieConfig.DEFAULT_VERSION_COMPARATOR);
+    CompositeActivityValues activityValues = CompositeActivityValues.createCompositeValues(ActivityPersistenceFactory.getInstance(getDirPath()), Collections.EMPTY_LIST, Arrays.asList(new CompositeActivityManager.TimeAggregateInfo("likes", Arrays.asList("10m","5m", "2m"))) , ZoieConfig.DEFAULT_VERSION_COMPARATOR);
     TimeAggregatedActivityValues timeAggregatedActivityValues = (TimeAggregatedActivityValues) activityValues.getActivityValuesMap().get("likes");
     timeAggregatedActivityValues.getAggregatesUpdateJob().stop();
     long insertTime = System.currentTimeMillis();
     Map<String, Object> jsonActivityUpdate = new HashMap<String, Object>();
     jsonActivityUpdate.put("likes", "+1");
-    int recordsCount = 100000;
+    int recordsCount = 1000000;
     int numOfEvents = 10;
     for (int i = 0; i < numOfEvents; i++) {
       Clock.setPredefinedTimeInMinutes(i);
@@ -78,7 +97,7 @@ public class TimeAggregatedActivityPerfTest extends Assert {
     Thread.sleep(2000);
     activityValues.close();
     
-    activityValues =  ActivityPersistenceFactory.getInstance().createCompositeValues(getDirPath(), Collections.EMPTY_LIST, Arrays.asList(new CompositeActivityManager.TimeAggregateInfo("likes", Arrays.asList("10m","5m", "2m"))) , ZoieConfig.DEFAULT_VERSION_COMPARATOR);
+     activityValues = CompositeActivityValues.createCompositeValues(ActivityPersistenceFactory.getInstance(getDirPath()), Collections.EMPTY_LIST, Arrays.asList(new CompositeActivityManager.TimeAggregateInfo("likes", Arrays.asList("10m","5m", "2m"))) , ZoieConfig.DEFAULT_VERSION_COMPARATOR);
     timeAggregatedActivityValues = (TimeAggregatedActivityValues) activityValues.getActivityValuesMap().get("likes");
     timeAggregatedActivityValues.getAggregatesUpdateJob().stop();
     assertEquals(5, timeAggregatedActivityValues.getValuesMap().get("5m").fieldValues[50000]);

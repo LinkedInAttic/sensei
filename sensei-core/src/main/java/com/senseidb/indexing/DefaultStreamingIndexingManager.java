@@ -1,5 +1,24 @@
+/**
+ * This software is licensed to you under the Apache License, Version 2.0 (the
+ * "Apache License").
+ *
+ * LinkedIn's contributions are made under the Apache License. If you contribute
+ * to the Software, the contributions will be deemed to have been made under the
+ * Apache License, unless you expressly indicate otherwise. Please do not make any
+ * contributions that would be inconsistent with the Apache License.
+ *
+ * You may obtain a copy of the Apache License at http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, this software
+ * distributed under the Apache License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the Apache
+ * License for the specific language governing permissions and limitations for the
+ * software governed under the Apache License.
+ *
+ * © 2012 LinkedIn Corp. All Rights Reserved.  
+ */
 package com.senseidb.indexing;
 
+import com.senseidb.metrics.MetricFactory;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -30,13 +49,11 @@ import proj.zoie.mbean.DataProviderAdminMBean;
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.senseidb.conf.SenseiSchema;
 import com.senseidb.gateway.SenseiGateway;
-import com.senseidb.indexing.activity.CompositeActivityManager;
 import com.senseidb.jmx.JmxUtil;
 import com.senseidb.metrics.MetricsConstants;
 import com.senseidb.plugin.SenseiPluginRegistry;
 import com.senseidb.search.node.SenseiIndexingManager;
 import com.senseidb.search.plugin.PluggableSearchEngineManager;
-import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.Meter;
 import com.yammer.metrics.core.MetricName;
 
@@ -52,26 +69,9 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 
 	private static final String BATCH_SIZE = "batchSize";
 
-  private static Meter ProviderBatchSizeMeter = null;
-  private static Meter EventMeter = null;
-  private static Meter UpdateBatchSizeMeter = null;
-
-  static{
-    try{
-      MetricName providerBatchSizeMetricName = new MetricName(MetricsConstants.Domain,"meter","provider-batch-size","indexing-manager");
-      ProviderBatchSizeMeter = Metrics.newMeter(providerBatchSizeMetricName,"provide-batch-size", TimeUnit.SECONDS);
-
-      MetricName updateBatchSizeMetricName = new MetricName(MetricsConstants.Domain,"meter","update-batch-size","indexing-manager");
-      UpdateBatchSizeMeter = Metrics.newMeter(updateBatchSizeMetricName,"update-batch-size", TimeUnit.SECONDS);
-
-      MetricName eventMeterMetricName = new MetricName(MetricsConstants.Domain,"meter","indexing-events","indexing-manager");
-      EventMeter = Metrics.newMeter(eventMeterMetricName, "indexing-events", TimeUnit.SECONDS);
-    }
-    catch(Exception e){
-    logger.error(e.getMessage(),e);
-    }
-  }
-
+  private Meter _providerBatchSizeMeter;
+  private Meter _eventMeter;
+  private Meter _updateBatchSizeMeter;
 
 	private StreamDataProvider<JSONObject> _dataProvider;
 	private String _oldestSinceKey;
@@ -113,11 +113,23 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 	public void updateOldestSinceKey(String sinceKey){
 	    if(_oldestSinceKey == null){
 	      _oldestSinceKey = sinceKey;
+	      if (_dataProvider != null) {
+	        _dataProvider.setStartingOffset(_oldestSinceKey);
+	      }
 	    }
 	    else if(sinceKey!=null && _versionComparator.compare(sinceKey, _oldestSinceKey) <0 ){
 	      _oldestSinceKey = sinceKey;
+	      if (_dataProvider != null) {
+	        _dataProvider.setStartingOffset(_oldestSinceKey);
+	      }
 	    }
 	}
+
+  private Meter registerMeter(String name, String eventType) {
+    return MetricFactory.newMeter(new MetricName(MetricsConstants.Domain, "meter", name, "indexing-manager"),
+                                  eventType,
+                                  TimeUnit.SECONDS);
+  }
 
 	@Override
 	public void initialize(
@@ -159,7 +171,7 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 		StreamDataProvider<JSONObject> dataProvider = null;
     if (_gateway!=null){
 		  try{
-		    dataProvider = _gateway.buildDataProvider(_senseiSchema, _oldestSinceKey, pluginRegistry,_shardingStrategy,_dataCollectorMap.keySet());
+		    dataProvider = _gateway.buildDataProvider(_senseiSchema, _oldestSinceKey, pluginRegistry,_shardingStrategy,_zoieSystemMap.keySet());
         long maxEventsPerMin = _myconfig.getLong(EVTS_PER_MIN,40000);
         dataProvider.setMaxEventsPerMinute(maxEventsPerMin);
         int batchSize = _myconfig.getInt(BATCH_SIZE,1);
@@ -187,6 +199,15 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 	  if (_dataProvider!=null){
 	    _dataProvider.stop();
 	  }
+    if (_providerBatchSizeMeter != null) {
+      _providerBatchSizeMeter.stop();
+    }
+    if (_updateBatchSizeMeter != null) {
+      _updateBatchSizeMeter.stop();
+    }
+    if (_eventMeter != null) {
+      _eventMeter.stop();
+    }
 	}
 
 	@Override
@@ -195,6 +216,10 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 		  logger.warn("no data stream configured, no indexing events are flowing.");
 		}
 		else{
+      _providerBatchSizeMeter = registerMeter("provider-batch-size", "provide-batch-size");
+      _updateBatchSizeMeter = registerMeter("update-batch-size", "update-batch-size");
+      _eventMeter = registerMeter("indexing-events", "indexing-events");
+
 	 	  _dataProvider.start();
 		}
 	}
@@ -313,9 +338,9 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
     @Override
     public void consume(Collection<proj.zoie.api.DataConsumer.DataEvent<JSONObject>> data) throws ZoieException
     {
-      UpdateBatchSizeMeter.mark(data.size());
-      ProviderBatchSizeMeter.mark(_dataProvider.getBatchSize());
-      EventMeter.mark(_dataProvider.getEventCount());
+      _updateBatchSizeMeter.mark(data.size());
+      _providerBatchSizeMeter.mark(_dataProvider.getBatchSize());
+      _eventMeter.mark(_dataProvider.getEventCount());
 
       try{
         for(DataEvent<JSONObject> dataEvt : data){
@@ -324,10 +349,12 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
           if (obj == null) // Just ignore this event.
             continue;
 
-          _currentVersion = dataEvt.getVersion();
+          String version = dataEvt.getVersion();
+          _currentVersion = (_versionComparator.compare(_currentVersion, version) < 0) ? version : _currentVersion;
           if (pluggableSearchEngineManager != null && pluggableSearchEngineManager.acceptEventsForAllPartitions()) {
             obj = pluggableSearchEngineManager.update(obj, _currentVersion);
           }
+
           int routeToPart = _shardingStrategy.caculateShard(_maxPartitionId, obj);
           Collection<DataEvent<JSONObject>> partDataSet = _dataCollectorMap.get(routeToPart);
           if (partDataSet != null)

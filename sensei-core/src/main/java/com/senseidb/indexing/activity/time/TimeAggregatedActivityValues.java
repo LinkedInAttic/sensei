@@ -1,3 +1,21 @@
+/**
+ * This software is licensed to you under the Apache License, Version 2.0 (the
+ * "Apache License").
+ *
+ * LinkedIn's contributions are made under the Apache License. If you contribute
+ * to the Software, the contributions will be deemed to have been made under the
+ * Apache License, unless you expressly indicate otherwise. Please do not make any
+ * contributions that would be inconsistent with the Apache License.
+ *
+ * You may obtain a copy of the Apache License at http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, this software
+ * distributed under the Apache License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the Apache
+ * License for the specific language governing permissions and limitations for the
+ * software governed under the Apache License.
+ *
+ * © 2012 LinkedIn Corp. All Rights Reserved.  
+ */
 package com.senseidb.indexing.activity.time;
 
 import java.util.ArrayList;
@@ -6,9 +24,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.senseidb.indexing.activity.ActivityIntValues;
-import com.senseidb.indexing.activity.ActivityPersistenceFactory;
 import com.senseidb.indexing.activity.ActivityPersistenceFactory.AggregatesMetadata;
+import com.senseidb.indexing.activity.primitives.ActivityIntValues;
+import com.senseidb.indexing.activity.primitives.ActivityPrimitiveValues;
+import com.senseidb.indexing.activity.ActivityPersistenceFactory;
 import com.senseidb.indexing.activity.ActivityValues;
 
 /**
@@ -44,27 +63,28 @@ public class TimeAggregatedActivityValues implements ActivityValues {
   private AggregatesUpdateJob aggregatesUpdateJob;  
   protected ActivityIntValues defaultIntValues;
   
-  public TimeAggregatedActivityValues(String fieldName, List<String> times, int count, String indexDirPath, ActivityPersistenceFactory activityPersistenceFactory) {
+  private TimeAggregatedActivityValues(String fieldName, List<String> times, int count,  ActivityPersistenceFactory activityPersistenceFactory) {
 		this.fieldName = fieldName;
 		intActivityValues = new IntValueHolder[times.size()];
 		int index = 0;
 		for(String time : times) {
 			int timeInMinutes = extractTimeInMinutes(time);			
-			ActivityIntValues activityIntValues = activityPersistenceFactory.createIntValues(indexDirPath, fieldName + ":" + time, count);			
+			ActivityIntValues activityIntValues = (ActivityIntValues) ActivityPrimitiveValues.createActivityPrimitiveValues(activityPersistenceFactory, int.class, fieldName + ":" + time, count);
+			  	
 			this.valuesMap.put(time, activityIntValues);
 			intActivityValues[index++] = new IntValueHolder(activityIntValues, time, timeInMinutes);
 		}
-		defaultIntValues = activityPersistenceFactory.createIntValues(indexDirPath, fieldName, count);
+		defaultIntValues = (ActivityIntValues) ActivityPrimitiveValues.createActivityPrimitiveValues(activityPersistenceFactory, int.class, fieldName, count);
 		Arrays.sort(intActivityValues);
 		maxIndex = count;
-		aggregatesMetadata = activityPersistenceFactory.createAggregatesMetadata(indexDirPath, fieldName);
+		aggregatesMetadata = activityPersistenceFactory.createAggregatesMetadata(fieldName);
 		
 	}
 	protected synchronized static void initTimeHits(TimeHitsHolder timeActivities, IntValueHolder[] intActivityValues, int count, int lastUpdatedTime) {
     for (int index = 0; index < count; index++) {
       int activitiesCount = 0;
       for (int j = 0; j < intActivityValues.length; j++) {
-        int value = intActivityValues[j].activityIntValues.getValue(index);
+        int value = intActivityValues[j].activityIntValues.getIntValue(index);
         if (value == Integer.MIN_VALUE) {
           activitiesCount = 0;
           break;
@@ -78,16 +98,16 @@ public class TimeAggregatedActivityValues implements ActivityValues {
       IntContainer times = new IntContainer(length);
       IntContainer activities = new IntContainer(length);
       for (int j = 0; j < intActivityValues.length - 1; j++) {
-        int value = intActivityValues[j].activityIntValues.getValue(index);
+        int value = intActivityValues[j].activityIntValues.getIntValue(index);
         int time = intActivityValues[j].timeInMinutes;
         if (value == Integer.MIN_VALUE) {
           activitiesCount = 0;
           break;
         }
         activitiesCount += value;
-        fillTimeHits(times, activities, value - intActivityValues[j + 1].activityIntValues.getValue(index), lastUpdatedTime - time + 1, time - intActivityValues[j + 1].timeInMinutes);
+        fillTimeHits(times, activities, value - intActivityValues[j + 1].activityIntValues.getIntValue(index), lastUpdatedTime - time + 1, time - intActivityValues[j + 1].timeInMinutes);
       }
-      fillTimeHits(times, activities, intActivityValues[intActivityValues.length - 1].activityIntValues.getValue(index), lastUpdatedTime - intActivityValues[intActivityValues.length - 1].timeInMinutes + 1, intActivityValues[intActivityValues.length - 1].timeInMinutes);
+      fillTimeHits(times, activities, intActivityValues[intActivityValues.length - 1].activityIntValues.getIntValue(index), lastUpdatedTime - intActivityValues[intActivityValues.length - 1].timeInMinutes + 1, intActivityValues[intActivityValues.length - 1].timeInMinutes);
       timeActivities.activities[index] = activities;
       timeActivities.times[index] = times;
     }
@@ -154,9 +174,7 @@ public class TimeAggregatedActivityValues implements ActivityValues {
 			if (!timeActivities.isSet(index)) {
 				timeActivities.setActivities(index, new IntContainer(1));
 				timeActivities.setTime(index, new IntContainer(1));
-			}
-		}
-		synchronized (timeActivities.getLock(index)) {
+			}		
 			if (timeActivities.getTimes(index).getSize() > 0 && timeActivities.getTimes(index).peekLast() == currentTime) {
 			  timeActivities.getActivities(index).add(timeActivities.getActivities(index).removeLast() + valueInt);
 			} else {
@@ -330,5 +348,9 @@ public class TimeAggregatedActivityValues implements ActivityValues {
   public TimeHitsHolder getTimeActivities() {
     return timeActivities;
   }
-	
+  public static TimeAggregatedActivityValues createTimeAggregatedValues(String fieldName, List<String> times, int count, ActivityPersistenceFactory activityPersistenceFactory) {
+    TimeAggregatedActivityValues ret = new TimeAggregatedActivityValues(fieldName, times, count, activityPersistenceFactory);
+    ret.init(count > 0 ? count : 15000);
+    return ret;
+  }
 }

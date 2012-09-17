@@ -1,3 +1,22 @@
+/**
+ * This software is licensed to you under the Apache License, Version 2.0 (the
+ * "Apache License").
+ *
+ * LinkedIn's contributions are made under the Apache License. If you contribute
+ * to the Software, the contributions will be deemed to have been made under the
+ * Apache License, unless you expressly indicate otherwise. Please do not make any
+ * contributions that would be inconsistent with the Apache License.
+ *
+ * You may obtain a copy of the Apache License at http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, this software
+ * distributed under the Apache License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the Apache
+ * License for the specific language governing permissions and limitations for the
+ * software governed under the Apache License.
+ *
+ * © 2012 LinkedIn Corp. All Rights Reserved.  
+ */
+
 package com.senseidb.indexing.activity;
 
 import java.util.Collections;
@@ -12,7 +31,9 @@ import org.junit.Ignore;
 import proj.zoie.impl.indexing.ZoieConfig;
 
 import com.senseidb.conf.SenseiSchema;
+import com.senseidb.conf.SenseiSchema.FieldDefinition;
 import com.senseidb.gateway.file.FileDataProviderWithMocks;
+import com.senseidb.indexing.activity.primitives.ActivityIntValues;
 import com.senseidb.indexing.activity.time.ActivityIntValuesSynchronizedDecorator;
 import com.senseidb.indexing.activity.time.Clock;
 import com.senseidb.indexing.activity.time.TimeAggregatedActivityValues;
@@ -53,11 +74,11 @@ public class ActivityIntegrationTest extends TestCase {
     System.out.println("!!!search");
     res = TestSensei.search(new JSONObject(req));
     hits = res.getJSONArray("hits");   
-      assertEquals(CompositeActivityManager.cachedInstances.get(1).activityValues.getValueByUID(19, "likes"), 20);
+      assertEquals(CompositeActivityManager.cachedInstances.get(1).activityValues.getIntValueByUID(19, "likes"), 20);
       assertEquals(Integer.parseInt(hits.getJSONObject(0).getJSONArray("aggregated-likes").getString(0)), 20);
-      assertEquals(CompositeActivityManager.cachedInstances.get(1).activityValues.getValueByUID(18, "likes"), 19);
+      assertEquals(CompositeActivityManager.cachedInstances.get(1).activityValues.getIntValueByUID(18, "likes"), 19);
       assertEquals(Integer.parseInt(hits.getJSONObject(1).getJSONArray("aggregated-likes").getString(0)), 19);
-      assertEquals(CompositeActivityManager.cachedInstances.get(2).activityValues.getValueByUID(17, "likes"), 18);
+      assertEquals(CompositeActivityManager.cachedInstances.get(2).activityValues.getIntValueByUID(17, "likes"), 18);
       assertEquals(Integer.parseInt(hits.getJSONObject(2).getJSONArray("aggregated-likes").getString(0)), 18);
    
   
@@ -71,6 +92,29 @@ public class ActivityIntegrationTest extends TestCase {
     assertEquals(Integer.parseInt(hits.getJSONObject(2).getJSONArray("likes").getString(0)), 18);
    System.out.println("!!!" + res.toString(1));
   }
+  public void test1CSendUpdatesAndSortFloat() throws Exception {
+    String req = "{ \"sort\":[{\"reputation\":\"desc\"}]}";
+    JSONObject res = TestSensei.search(new JSONObject(req));
+    JSONArray hits = res.getJSONArray("hits");
+    assertEquals(Integer.parseInt(hits.getJSONObject(0).getJSONArray("reputation").getString(0)), 0);
+    for (int i = 0; i < 10; i++) {
+      FileDataProviderWithMocks.add(new JSONObject().put("id", 10L + i).put(SenseiSchema.EVENT_TYPE_FIELD, SenseiSchema.EVENT_TYPE_UPDATE).put("reputation", "+" + (10f + i)));
+      expectedVersion++;
+    }
+    syncWithVersion(expectedVersion); 
+    req = "{\"selections\": [{\"range\": {\"reputation\": {\"from\": 18, \"include_lower\": true}}}], \"sort\":[{\"reputation\":\"desc\"}]}";
+    System.out.println("!!!search");
+    res = TestSensei.search(new JSONObject(req));
+    hits = res.getJSONArray("hits");   
+      assertEquals(CompositeActivityManager.cachedInstances.get(1).activityValues.getFloatValueByUID(19, "reputation"), 19f);
+      assertEquals(Float.parseFloat(hits.getJSONObject(0).getJSONArray("reputation").getString(0)), 19f);
+      assertEquals(CompositeActivityManager.cachedInstances.get(1).activityValues.getFloatValueByUID(18, "reputation"), 18f);
+      assertEquals(Float.parseFloat(hits.getJSONObject(1).getJSONArray("reputation").getString(0)), 18f);
+      
+   
+  
+  }
+ 
   private static void syncWithVersion(final long expectedVersion) {
     final CompositeActivityValues inMemoryColumnData1 = CompositeActivityManager.cachedInstances.get(1).activityValues;
     final CompositeActivityValues inMemoryColumnData2 = CompositeActivityManager.cachedInstances.get(2).activityValues;
@@ -92,7 +136,7 @@ public class ActivityIntegrationTest extends TestCase {
     final CompositeActivityValues inMemoryColumnData2 = CompositeActivityManager.cachedInstances.get(2).activityValues;
     Wait.until(10000, "The activity value wasn't updated", new Wait.Condition() {
       public boolean evaluate() {
-        return inMemoryColumnData1.getValueByUID(1L, "likes") == 26 || inMemoryColumnData2.getValueByUID(1L, "likes") == 26;
+        return inMemoryColumnData1.getIntValueByUID(1L, "likes") == 26 || inMemoryColumnData2.getIntValueByUID(1L, "likes") == 26;
       }
     });
     for (int i = 0; i < 5; i++) {
@@ -101,7 +145,7 @@ public class ActivityIntegrationTest extends TestCase {
     }
     Wait.until(10000, "The activity value wasn't updated", new Wait.Condition() {
       public boolean evaluate() {
-        return inMemoryColumnData1.getValueByUID(1L, "likes") == 51 || inMemoryColumnData2.getValueByUID(1L, "likes") == 51;
+        return inMemoryColumnData1.getIntValueByUID(1L, "likes") == 51 || inMemoryColumnData2.getIntValueByUID(1L, "likes") == 51;
       }
     });
   }
@@ -111,7 +155,7 @@ public class ActivityIntegrationTest extends TestCase {
     final TimeAggregatedActivityValues timeAggregatedActivityValues1 = clear(inMemoryColumnData1);
     final TimeAggregatedActivityValues timeAggregatedActivityValues2 = clear(inMemoryColumnData2);
     for (ActivityIntValues activityIntValues : timeAggregatedActivityValues1.getValuesMap().values()) {
-      assertEquals(0, activityIntValues.getValue(0));
+      assertEquals(0, activityIntValues.getIntValue(0));
     }
     for (ActivityIntValues activityIntValues : timeAggregatedActivityValues2.getValuesMap().values()) {
       for (int i = 0; i < activityIntValues.getFieldValues().length; i ++) {
@@ -291,6 +335,12 @@ public void test5PurgeUnusedActivities() throws Exception {
   }
   FileDataProviderWithMocks.resetOffset(expectedVersion);
   inMemoryColumnData1.getActivityValues().syncWithVersion(String.valueOf(expectedVersion));
+ 
+  count1 =  inMemoryColumnData1.getPurgeUnusedActivitiesJob().purgeUnusedActivityIndexes();
+  count2 = inMemoryColumnData2.getPurgeUnusedActivitiesJob().purgeUnusedActivityIndexes();
+  assertEquals(0, count1 + count2);
+  inMemoryColumnData1.activityValues.recentlyAddedUids.clear();
+  inMemoryColumnData2.activityValues.recentlyAddedUids.clear();
   count1 =  inMemoryColumnData1.getPurgeUnusedActivitiesJob().purgeUnusedActivityIndexes();
   count2 = inMemoryColumnData2.getPurgeUnusedActivitiesJob().purgeUnusedActivityIndexes();
   assertEquals(20, count1 + count2);
@@ -303,11 +353,22 @@ public void test5PurgeUnusedActivities() throws Exception {
     inMemoryColumnData2.flush();
     inMemoryColumnData2.syncWithPersistentVersion(String.valueOf(expectedVersion - 1));
     String absolutePath = SenseiStarter.IndexDir + "/node1/" + "activity/";
-    CompositeActivityValues compositeActivityValues =  ActivityPersistenceFactory.getInstance().createCompositeValues(absolutePath, java.util.Arrays.asList("likes"), Collections.EMPTY_LIST, ZoieConfig.DEFAULT_VERSION_COMPARATOR);
-    assertEquals(1, compositeActivityValues.getValueByUID(1L, "likes"));
-    assertEquals(1, inMemoryColumnData1.getValueByUID(1L, "likes"));
+    FieldDefinition fieldDefinition = getLikesFieldDefinition();
+    CompositeActivityValues compositeActivityValues =  CompositeActivityValues.createCompositeValues(ActivityPersistenceFactory.getInstance(absolutePath, new ActivityConfig()), java.util.Arrays.asList(fieldDefinition), Collections.EMPTY_LIST, ZoieConfig.DEFAULT_VERSION_COMPARATOR);
+    assertEquals(1, compositeActivityValues.getIntValueByUID(1L, "likes"));
+    assertEquals(1, inMemoryColumnData1.getIntValueByUID(1L, "likes"));
   }
-  
+  public static FieldDefinition getLikesFieldDefinition() {
+    
+    return getIntFieldDefinition("likes");
+  }
+  public static FieldDefinition getIntFieldDefinition(String name) {
+    FieldDefinition fieldDefinition = new FieldDefinition();
+    fieldDefinition.name = name;
+    fieldDefinition.type = int.class;
+    fieldDefinition.isActivity = true;
+    return fieldDefinition;
+  }
  
  
 

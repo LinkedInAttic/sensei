@@ -1,3 +1,22 @@
+/**
+ * This software is licensed to you under the Apache License, Version 2.0 (the
+ * "Apache License").
+ *
+ * LinkedIn's contributions are made under the Apache License. If you contribute
+ * to the Software, the contributions will be deemed to have been made under the
+ * Apache License, unless you expressly indicate otherwise. Please do not make any
+ * contributions that would be inconsistent with the Apache License.
+ *
+ * You may obtain a copy of the Apache License at http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, this software
+ * distributed under the Apache License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the Apache
+ * License for the specific language governing permissions and limitations for the
+ * software governed under the Apache License.
+ *
+ * © 2012 LinkedIn Corp. All Rights Reserved.  
+ */
+
 package com.senseidb.gateway.kafka;
 
 import java.nio.ByteBuffer;
@@ -26,6 +45,7 @@ public class KafkaStreamDataProvider extends StreamDataProvider<JSONObject>{
 
   private final String _topic;
   private final String _consumerGroupId;
+  private Properties _kafkaConfig;
   private ConsumerConnector _consumerConnector;
   private ConsumerIterator<Message> _consumerIterator;
 
@@ -38,6 +58,11 @@ public class KafkaStreamDataProvider extends StreamDataProvider<JSONObject>{
   
   public KafkaStreamDataProvider(Comparator<String> versionComparator,String zookeeperUrl,int soTimeout,int batchSize,
                                  String consumerGroupId,String topic,long startingOffset,DataSourceFilter<DataPacket> dataConverter){
+    this(versionComparator, zookeeperUrl, soTimeout, batchSize, consumerGroupId, topic, startingOffset, dataConverter, null);
+  }
+
+  public KafkaStreamDataProvider(Comparator<String> versionComparator,String zookeeperUrl,int soTimeout,int batchSize,
+                                 String consumerGroupId,String topic,long startingOffset,DataSourceFilter<DataPacket> dataConverter,Properties kafkaConfig){
     super(versionComparator);
     _consumerGroupId = consumerGroupId;
     _topic = topic;
@@ -46,6 +71,11 @@ public class KafkaStreamDataProvider extends StreamDataProvider<JSONObject>{
     _kafkaSoTimeout = soTimeout;
     _consumerConnector = null;
     _consumerIterator = null;
+
+    _kafkaConfig = kafkaConfig;
+    if (kafkaConfig == null) {
+      kafkaConfig = new Properties();
+    }
 
     _dataConverter = dataConverter;
     if (_dataConverter == null){
@@ -106,6 +136,10 @@ public class KafkaStreamDataProvider extends StreamDataProvider<JSONObject>{
     props.put("zk.connect", _zookeeperUrl);
     //props.put("consumer.timeout.ms", _kafkaSoTimeout);
     props.put("groupid", _consumerGroupId);
+
+    for (String key : _kafkaConfig.stringPropertyNames()) {
+      props.put(key, _kafkaConfig.getProperty(key));
+    }
 
     ConsumerConfig consumerConfig = new ConsumerConfig(props);
     _consumerConnector = Consumer.createJavaConsumerConnector(consumerConfig);

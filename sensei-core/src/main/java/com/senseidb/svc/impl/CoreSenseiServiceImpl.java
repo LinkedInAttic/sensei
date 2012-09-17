@@ -1,10 +1,27 @@
+/**
+ * This software is licensed to you under the Apache License, Version 2.0 (the
+ * "Apache License").
+ *
+ * LinkedIn's contributions are made under the Apache License. If you contribute
+ * to the Software, the contributions will be deemed to have been made under the
+ * Apache License, unless you expressly indicate otherwise. Please do not make any
+ * contributions that would be inconsistent with the Apache License.
+ *
+ * You may obtain a copy of the Apache License at http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, this software
+ * distributed under the Apache License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the Apache
+ * License for the specific language governing permissions and limitations for the
+ * software governed under the Apache License.
+ *
+ * © 2012 LinkedIn Corp. All Rights Reserved.  
+ */
 package com.senseidb.svc.impl;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.sensei.search.req.protobuf.SenseiReqProtoSerializer;
@@ -26,7 +43,6 @@ import com.linkedin.norbert.network.JavaSerializer;
 import com.linkedin.norbert.network.Serializer;
 import com.senseidb.indexing.SenseiIndexPruner;
 import com.senseidb.indexing.SenseiIndexPruner.IndexReaderSelector;
-import com.senseidb.metrics.MetricsConstants;
 import com.senseidb.search.node.ResultMerger;
 import com.senseidb.search.node.SenseiCore;
 import com.senseidb.search.node.SenseiQueryBuilderFactory;
@@ -35,8 +51,6 @@ import com.senseidb.search.req.SenseiRequest;
 import com.senseidb.search.req.SenseiResult;
 import com.senseidb.search.req.mapred.impl.SenseiMapFunctionWrapper;
 import com.senseidb.util.RequestConverter;
-import com.yammer.metrics.Metrics;
-import com.yammer.metrics.core.MetricName;
 import com.yammer.metrics.core.Timer;
 
 import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_HIT_UID;
@@ -49,21 +63,19 @@ public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiReque
 			new SenseiReqProtoSerializer();
 
 	private static final Logger logger = Logger.getLogger(CoreSenseiServiceImpl.class);
-	
-	private static Timer timerMetric = null;
-	static{
-		  // register prune time metric
-		  try{
-		    MetricName metricName = new MetricName(MetricsConstants.Domain, "timer", "prune", "node");
-		    timerMetric = Metrics.newTimer(metricName, TimeUnit.MILLISECONDS,TimeUnit.SECONDS);
-		  }
-		  catch(Exception e){
-				logger.error(e.getMessage(),e);
-		  }
-	}
+
+  private final Timer _timerMetric;
+
 	public CoreSenseiServiceImpl(SenseiCore core) {
 		super(core);
+    _timerMetric = registerTimer("prune");
 	}
+
+  @Override
+  protected String getMetricScope()
+  {
+    return "node";
+  }
 	
 	private SenseiResult browse(MultiBoboBrowser browser, BrowseRequest req, SubReaderAccessor<BoboIndexReader> subReaderAccessor) throws BrowseException
 	  {
@@ -158,7 +170,7 @@ public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiReque
           if (segmentReaders!=null && segmentReaders.size()>0){
         	final AtomicInteger skipDocs = new AtomicInteger(0);
 
-        	List<BoboIndexReader> validatedSegmentReaders = timerMetric.time(new Callable<List<BoboIndexReader>>(){
+        	List<BoboIndexReader> validatedSegmentReaders = _timerMetric.time(new Callable<List<BoboIndexReader>>(){
 
 				     @Override
 				     public List<BoboIndexReader> call() throws Exception {

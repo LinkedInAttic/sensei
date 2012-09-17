@@ -1,3 +1,21 @@
+/**
+ * This software is licensed to you under the Apache License, Version 2.0 (the
+ * "Apache License").
+ *
+ * LinkedIn's contributions are made under the Apache License. If you contribute
+ * to the Software, the contributions will be deemed to have been made under the
+ * Apache License, unless you expressly indicate otherwise. Please do not make any
+ * contributions that would be inconsistent with the Apache License.
+ *
+ * You may obtain a copy of the Apache License at http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, this software
+ * distributed under the Apache License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the Apache
+ * License for the specific language governing permissions and limitations for the
+ * software governed under the Apache License.
+ *
+ * © 2012 LinkedIn Corp. All Rights Reserved.  
+ */
 package com.senseidb.servlet;
 
 import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_COUNT;
@@ -99,6 +117,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+
+import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.DataConfiguration;
@@ -300,10 +320,19 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
   }
 
   @Override
-  protected String buildResultString(SenseiRequest req, SenseiResult res)
+  protected String buildResultString(HttpServletRequest httpReq, SenseiRequest req, SenseiResult res)
       throws Exception
   {
-    return buildJSONResultString(req, res);
+    return supportJsonp(httpReq, buildJSONResultString(req, res));
+  }
+
+  private String supportJsonp(HttpServletRequest httpReq, String jsonString) {
+    String callback = httpReq.getParameter("callback");
+    if (callback != null) {
+      return callback + "(" + jsonString + ");";
+    } else {
+      return jsonString;
+    }   
   }
 
   public static String buildJSONResultString(SenseiRequest req, SenseiResult res)
@@ -905,7 +934,7 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
   }
 
   @Override
-  protected String buildResultString(SenseiSystemInfo info) throws Exception {
+  protected String buildResultString(HttpServletRequest httpReq, SenseiSystemInfo info) throws Exception {
     JSONObject jsonObj = new JSONObject();
     jsonObj.put(PARAM_SYSINFO_NUMDOCS, info.getNumDocs());
     jsonObj.put(PARAM_SYSINFO_LASTMODIFIED, info.getLastModified());
@@ -945,6 +974,6 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
       }
     }
 
-    return jsonObj.toString();
+    return supportJsonp(httpReq, jsonObj.toString());
   }
 }

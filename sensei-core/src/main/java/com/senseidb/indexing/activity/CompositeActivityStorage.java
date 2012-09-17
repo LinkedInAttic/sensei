@@ -1,5 +1,24 @@
+/**
+ * This software is licensed to you under the Apache License, Version 2.0 (the
+ * "Apache License").
+ *
+ * LinkedIn's contributions are made under the Apache License. If you contribute
+ * to the Software, the contributions will be deemed to have been made under the
+ * Apache License, unless you expressly indicate otherwise. Please do not make any
+ * contributions that would be inconsistent with the Apache License.
+ *
+ * You may obtain a copy of the Apache License at http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, this software
+ * distributed under the Apache License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the Apache
+ * License for the specific language governing permissions and limitations for the
+ * software governed under the Apache License.
+ *
+ * © 2012 LinkedIn Corp. All Rights Reserved.  
+ */
 package com.senseidb.indexing.activity;
 
+import com.senseidb.metrics.MetricFactory;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -12,8 +31,8 @@ import java.util.concurrent.TimeUnit;
 import org.apache.log4j.Logger;
 import org.springframework.util.Assert;
 
+import com.senseidb.indexing.activity.primitives.ActivityPrimitivesStorage;
 import com.senseidb.metrics.MetricsConstants;
-import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.MetricName;
 import com.yammer.metrics.core.Timer;
 
@@ -26,11 +45,14 @@ public class CompositeActivityStorage {
   private MappedByteBuffer buffer;
   private long fileLength; 
   private boolean activateMemoryMappedBuffers = false;
-  private Timer timer;
+  private final Timer timer;
 
   public CompositeActivityStorage(String indexDir) {   
     this.indexDir = indexDir;
-    timer = Metrics.newTimer(new MetricName(MetricsConstants.Domain,"timer","initCompositeActivities-time" ,"CompositeActivityStorage"), TimeUnit.MILLISECONDS, TimeUnit.SECONDS);
+    timer = MetricFactory.newTimer(new MetricName(MetricsConstants.Domain,
+                                                  "timer",
+                                                  "initCompositeActivities-time",
+                                                  "CompositeActivityStorage"), TimeUnit.MILLISECONDS, TimeUnit.SECONDS);
  
   }
 
@@ -82,10 +104,10 @@ public class CompositeActivityStorage {
       return;
     }
    
-    if (fileLength > ActivityIntStorage.LENGTH_THRESHOLD) {
-      fileLength = fileLength * ActivityIntStorage.FILE_GROWTH_RATIO;
+    if (fileLength > ActivityPrimitivesStorage.LENGTH_THRESHOLD) {
+      fileLength = fileLength * ActivityPrimitivesStorage.FILE_GROWTH_RATIO;
     } else {
-      fileLength = ActivityIntStorage.INITIAL_FILE_LENGTH;
+      fileLength = ActivityPrimitivesStorage.INITIAL_FILE_LENGTH;
     }
     storedFile.setLength(fileLength);
     if (activateMemoryMappedBuffers) {
@@ -108,22 +130,21 @@ public class CompositeActivityStorage {
     }
   }
 
-  protected CompositeActivityValues getActivityDataFromFile(final Metadata metadata) {
+  public void decorateCompositeActivityValues(final CompositeActivityValues activityValues, final Metadata metadata) {
     try {
-      return timer.time(new Callable<CompositeActivityValues>() {
+      timer.time(new Callable<CompositeActivityValues>() {
 
         @Override
         public CompositeActivityValues call() throws Exception {
-          Assert.state(storedFile != null, "The FileStorage is not initialized");
-          CompositeActivityValues ret = new CompositeActivityValues();
-          ret.activityStorage = CompositeActivityStorage.this;
+          Assert.state(storedFile != null, "The FileStorage is not initialized");         
+          activityValues.activityStorage = CompositeActivityStorage.this;
           try {
             if (metadata.count == 0) {
-              ret.init();
-              return ret;
+              activityValues.init();
+              return activityValues;
             }
-            ret.init((int) (metadata.count * ActivityIntStorage.INIT_GROWTH_RATIO));
-            synchronized (ret.deletedIndexes) {
+            activityValues.init((int) (metadata.count * ActivityPrimitivesStorage.INIT_GROWTH_RATIO));
+            synchronized (activityValues.deletedIndexes) {
               if (metadata.count * BYTES_IN_LONG > fileLength) {
                 logger.warn("The composite activityIndex is corrupted. The file contains " + (fileLength / BYTES_IN_LONG) + " records, while metadata a bigger number " + metadata.count);
                 logger.warn("trimming the metadata");
@@ -139,16 +160,16 @@ public class CompositeActivityStorage {
                   value = storedFile.readLong();
                 }
                 if (value != Long.MIN_VALUE) {
-                  ret.uidToArrayIndex.put(value, i);
+                  activityValues.uidToArrayIndex.put(value, i);
                 } else {
-                  ret.deletedIndexes.add(i);
+                  activityValues.deletedIndexes.add(i);
                 }
               }
             }
           } catch (Exception e) {
             throw new RuntimeException(e);
           }
-          return ret;
+          return activityValues;
         }
       });
     } catch (Exception e) {

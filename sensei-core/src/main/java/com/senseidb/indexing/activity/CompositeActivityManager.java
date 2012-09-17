@@ -1,5 +1,24 @@
+/**
+ * This software is licensed to you under the Apache License, Version 2.0 (the
+ * "Apache License").
+ *
+ * LinkedIn's contributions are made under the Apache License. If you contribute
+ * to the Software, the contributions will be deemed to have been made under the
+ * Apache License, unless you expressly indicate otherwise. Please do not make any
+ * contributions that would be inconsistent with the Apache License.
+ *
+ * You may obtain a copy of the Apache License at http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, this software
+ * distributed under the Apache License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the Apache
+ * License for the specific language governing permissions and limitations for the
+ * software governed under the Apache License.
+ *
+ * © 2012 LinkedIn Corp. All Rights Reserved.  
+ */
 package com.senseidb.indexing.activity;
 
+import com.senseidb.metrics.MetricFactory;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -32,12 +51,12 @@ import com.senseidb.conf.SenseiSchema.FieldDefinition;
 import com.senseidb.indexing.ShardingStrategy;
 import com.senseidb.indexing.activity.BaseActivityFilter.ActivityFilteredResult;
 import com.senseidb.indexing.activity.facet.ActivityRangeFacetHandler;
+import com.senseidb.indexing.activity.primitives.ActivityIntValues;
 import com.senseidb.indexing.activity.time.TimeAggregatedActivityValues;
 import com.senseidb.plugin.SenseiPluginRegistry;
 import com.senseidb.search.node.SenseiCore;
 import com.senseidb.search.plugin.PluggableSearchEngine;
 import com.senseidb.search.plugin.PluggableSearchEngineManager;
-import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.Counter;
 import com.yammer.metrics.core.MetricName;
 
@@ -57,19 +76,17 @@ public class CompositeActivityManager implements PluggableSearchEngine {
     private ShardingStrategy shardingStrategy;
     private SenseiCore senseiCore;
     private PurgeUnusedActivitiesJob purgeUnusedActivitiesJob;
-    private SenseiPluginRegistry pluginRegistry; 
     private Map<String, Set<String>> columnToFacetMapping = new HashMap<String, Set<String>>();
     private Counter recoveredIndexInBoboFacetDataCache;
     private Counter facetMappingMismatch;
-    private final ActivityPersistenceFactory activityPersistenceFactory;
-    
+    private ActivityPersistenceFactory activityPersistenceFactory;
+
     public CompositeActivityManager(ActivityPersistenceFactory activityPersistenceFactory) {      
       this.activityPersistenceFactory = activityPersistenceFactory;
-      recoveredIndexInBoboFacetDataCache = Metrics.newCounter(new MetricName(getClass(), "recoveredIndexInBoboFacetDataCache"));
-      facetMappingMismatch = Metrics.newCounter(new MetricName(getClass(), "facetMappingMismatch"));
+      
     }
     public CompositeActivityManager() {
-      this(ActivityPersistenceFactory.getInstance());
+      
     }
     
     public String getVersion() {
@@ -83,20 +100,21 @@ public class CompositeActivityManager implements PluggableSearchEngine {
     }
     public final void init(String indexDirectory, int nodeId, SenseiSchema senseiSchema, Comparator<String> versionComparator, SenseiPluginRegistry pluginRegistry, ShardingStrategy shardingStrategy) {
       this.senseiSchema = senseiSchema;
-      this.pluginRegistry = pluginRegistry;
       this.shardingStrategy = shardingStrategy;
       try {
-        File dir = new File(indexDirectory, "node" +nodeId +"/activity");
-        dir.mkdirs();
-        String canonicalPath = dir.getCanonicalPath();
-        List<String> fields = new ArrayList<String>();
-        for ( String field  : senseiSchema.getFieldDefMap().keySet()) {
-          FieldDefinition fieldDefinition = senseiSchema.getFieldDefMap().get(field);
-          if (fieldDefinition.isActivity) {
-            fields.add(field);
+        if (activityPersistenceFactory == null) {
+          if (indexDirectory == null) {
+            activityPersistenceFactory = ActivityPersistenceFactory.getInMemoryInstance();
+          } else {
+            File dir = new File(indexDirectory, "node" +nodeId +"/activity");
+            dir.mkdirs();
+            String canonicalPath = dir.getCanonicalPath();
+            ActivityConfig activityConfig = new ActivityConfig(pluginRegistry);
+            activityPersistenceFactory = ActivityPersistenceFactory.getInstance(canonicalPath, activityConfig);
           }
         }
-        activityValues = activityPersistenceFactory.createCompositeValues(canonicalPath, fields, TimeAggregateInfo.valueOf(senseiSchema), versionComparator);
+        
+        activityValues = CompositeActivityValues.createCompositeValues(activityPersistenceFactory, senseiSchema.getFieldDefMap().values(), TimeAggregateInfo.valueOf(senseiSchema), versionComparator);
         activityFilter = pluginRegistry.getBeanByFullPrefix(SenseiConfParams.SENSEI_INDEX_ACTIVITY_FILTER, BaseActivityFilter.class);
         if (activityFilter == null) {
           activityFilter = new DefaultActivityFilter();
@@ -323,6 +341,10 @@ public class CompositeActivityManager implements PluggableSearchEngine {
  
 
   public void start(SenseiCore senseiCore) {
+    recoveredIndexInBoboFacetDataCache = MetricFactory.newCounter(new MetricName(CompositeActivityManager.class, "recoveredIndexInBoboFacetDataCache"));
+    facetMappingMismatch =  MetricFactory.newCounter(new MetricName(CompositeActivityManager.class,
+                                                                    "facetMappingMismatch"));
+
     this.senseiCore = senseiCore;
     Set<IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>> zoieSystems = new HashSet<IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>>();
     for (int partition : senseiCore.getPartitions()) {
@@ -330,8 +352,10 @@ public class CompositeActivityManager implements PluggableSearchEngine {
         zoieSystems.add((IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>) senseiCore.getIndexReaderFactory(partition));
       }
     }
-    purgeUnusedActivitiesJob = new PurgeUnusedActivitiesJob(activityValues, zoieSystems, PurgeUnusedActivitiesJob.extractFrequency(pluginRegistry));
+    int purgeJobFrequencyInMinutes = activityPersistenceFactory.getActivityConfig().getPurgeJobFrequencyInMinutes();
+    purgeUnusedActivitiesJob = new PurgeUnusedActivitiesJob(activityValues, zoieSystems, purgeJobFrequencyInMinutes * 60 * 1000);
     purgeUnusedActivitiesJob.start();
+    
   }
   public void stop() {
     purgeUnusedActivitiesJob.stop();
@@ -386,7 +410,7 @@ public class CompositeActivityManager implements PluggableSearchEngine {
         }
         ret.add(ActivityRangeFacetHandler.valueOf(facet.name, facet.column, getActivityValues(), (ActivityIntValues)aggregatedActivityValues.getDefaultIntValues()));
       } else if ("range".equals(facet.type)){
-        ret.add(ActivityRangeFacetHandler.valueOf(facet.name, facet.column, getActivityValues(), getActivityValues().getActivityIntValues(facet.column)));
+        ret.add(ActivityRangeFacetHandler.valueOf(facet.name, facet.column, getActivityValues(), getActivityValues().getActivityValues(facet.column)));
       } else {
         throw new UnsupportedOperationException("The facet " + facet.name + "should be of type either aggregated-range or range");
       }

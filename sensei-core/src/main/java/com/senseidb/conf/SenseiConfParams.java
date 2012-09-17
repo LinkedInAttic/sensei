@@ -1,3 +1,21 @@
+/**
+ * This software is licensed to you under the Apache License, Version 2.0 (the
+ * "Apache License").
+ *
+ * LinkedIn's contributions are made under the Apache License. If you contribute
+ * to the Software, the contributions will be deemed to have been made under the
+ * Apache License, unless you expressly indicate otherwise. Please do not make any
+ * contributions that would be inconsistent with the Apache License.
+ *
+ * You may obtain a copy of the Apache License at http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, this software
+ * distributed under the Apache License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the Apache
+ * License for the specific language governing permissions and limitations for the
+ * software governed under the Apache License.
+ *
+ * © 2012 LinkedIn Corp. All Rights Reserved.  
+ */
 package com.senseidb.conf;
 
 import java.util.Comparator;
@@ -73,7 +91,7 @@ public interface SenseiConfParams {
 	public static final String SENSEI_BROKER_POLL_INTERVAL = "sensei.broker.pollInterval";
 	public static final String SENSEI_BROKER_MIN_RESPONSES = "sensei.broker.minResponses";
 	public static final String SENSEI_BROKER_MAX_TOTAL_WAIT = "sensei.broker.maxTotalWait";
-
+	public static final String SENSEI_ACTIVITY_CONFIG = "sensei.activity.config";
 	public static final String SERVER_SEARCH_ROUTER_FACTORY = "sensei.search.router.factory";
 
 	public static final String SENSEI_INDEX_PRUNER = "sensei.index.pruner";
