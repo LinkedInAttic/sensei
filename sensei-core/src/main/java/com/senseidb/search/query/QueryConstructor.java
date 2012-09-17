@@ -61,6 +61,18 @@ public abstract class QueryConstructor
   public static final String USE_DIS_MAX_PARAM                  = "use_dis_max";
   public static final String RELEVANCE                          = "relevance";
 
+  public static final String LEFT_VALUE                         = "lvalue";
+  public static final String RIGHT_VALUE                        = "rvalue";
+  public static final String OP_IN                              = "in";
+  public static final String OP_NOT_IN                          = "not_in";
+  public static final String OP_GT                              = ">";
+  public static final String OP_GE                              = ">=";
+  public static final String OP_EQUAL                           = "==";
+  public static final String OP_NOT_EQUAL                       = "!=";
+  public static final String OP_LT                              = "<";
+  public static final String OP_LE                              = "<=";
+  public static final String FUNCTION_NAME                      = "function";
+  
   private static final Map<String,QueryConstructor> QUERY_CONSTRUCTOR_MAP = new HashMap<String,QueryConstructor>();
 
   static
@@ -80,6 +92,7 @@ public abstract class QueryConstructor
     QUERY_CONSTRUCTOR_MAP.put(TermsQueryConstructor.QUERY_TYPE, new TermsQueryConstructor());
     QUERY_CONSTRUCTOR_MAP.put(UIDQueryConstructor.QUERY_TYPE, new UIDQueryConstructor());
     QUERY_CONSTRUCTOR_MAP.put(CustomQueryConstructor.QUERY_TYPE, new CustomQueryConstructor());
+    QUERY_CONSTRUCTOR_MAP.put(ConstExpQueryConstructor.QUERY_TYPE, new ConstExpQueryConstructor());
   }
   
   public static QueryConstructor getQueryConstructor(String type, QueryParser qparser)

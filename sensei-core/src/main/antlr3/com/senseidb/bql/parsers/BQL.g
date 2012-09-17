@@ -1100,6 +1100,7 @@ DEFINED : ('D'|'d')('E'|'e')('F'|'f')('I'|'i')('N'|'n')('E'|'e')('D'|'d') ;
 DESC : ('D'|'d')('E'|'e')('S'|'s')('C'|'c') ;
 DESCRIBE : ('D'|'d')('E'|'e')('S'|'s')('C'|'c')('R'|'r')('I'|'i')('B'|'b')('E'|'e') ;
 DOUBLE : ('D'|'d')('O'|'o')('U'|'u')('B'|'b')('L'|'l')('E'|'e') ;
+EMPTY : ('E'|'e')('M'|'m')('P'|'p')('T'|'t')('Y'|'y') ;
 ELSE : ('E'|'e')('L'|'l')('S'|'s')('E'|'e') ;
 END : ('E'|'e')('N'|'n')('D'|'d') ;
 EXCEPT : ('E'|'e')('X'|'x')('C'|'c')('E'|'e')('P'|'p')('T'|'t') ;
@@ -1708,6 +1709,7 @@ predicate returns [JSONObject json]
     |   match_predicate { $json = $match_predicate.json; }
     |   like_predicate { $json = $like_predicate.json; }
     |   null_predicate { $json = $null_predicate.json; }
+    |   empty_predicate { $json = $empty_predicate.json; }
     ;
 
 in_predicate returns [JSONObject json]
@@ -1767,6 +1769,40 @@ in_predicate returns [JSONObject json]
         -> ^(IN NOT? ^(column_name value_list) except_clause? predicate_props?)
     ;
 
+empty_predicate returns [JSONObject json]
+    :   value_list IS (NOT)? EMPTY
+        {   
+            try {
+                JSONObject exp = new JSONObject();
+                if ($NOT != null) {
+                    JSONObject functionJSON = new JSONObject();
+                    JSONArray params = new JSONArray();
+                    params.put($value_list.json);
+                    functionJSON.put("function", "length");
+                    functionJSON.put("params", params);
+                    exp.put("lvalue", functionJSON);
+                    exp.put("operator", ">");
+                    exp.put("rvalue", 0);
+                    $json = new JSONObject().put("const_exp", exp);
+                }
+                else{
+                    JSONObject functionJSON = new JSONObject();
+                    JSONArray params = new JSONArray();
+                    params.put($value_list.json);
+                    functionJSON.put("function", "length");
+                    functionJSON.put("params", params);
+                    exp.put("lvalue", functionJSON);
+                    exp.put("operator", "==");
+                    exp.put("rvalue", 0);
+                    $json = new JSONObject().put("const_exp", exp);
+                }
+            }
+            catch (JSONException err) {
+                throw new FailedPredicateException(input, "empty_predicate", "JSONException: " + err.getMessage());
+            }
+        }
+    ;
+    
 contains_all_predicate returns [JSONObject json]
     :   column_name CONTAINS ALL value_list except=except_clause? predicate_props? 
         {
@@ -2278,6 +2314,7 @@ non_variable_value_list returns [JSONArray json]
                 $json.put($v.val);
             }
         )* RPAR
+    |   LPAR RPAR
     ;
 
 python_style_list returns [JSONArray json]
