@@ -135,14 +135,10 @@ public class ConstExpQueryConstructor extends QueryConstructor
   
   private double convertToDouble(Object value, JSONObject json)
   {
-    if(value instanceof Double)
-      return (Double)value;
-    else if(value instanceof Integer)
-      return (double)((Integer) value);
-    else if(value instanceof Long)
-      return (double)((Long) value);
-    else if(value instanceof Float)
-      return (double)((Float) value);
+    if(value instanceof Number)
+    {
+      return ((Number) value).doubleValue();
+    }
     else
       throw new IllegalArgumentException("operator >, >=, <, <= can only be applied to double, int, long or float type data, in ExpressionQuery: " + json);
   }
