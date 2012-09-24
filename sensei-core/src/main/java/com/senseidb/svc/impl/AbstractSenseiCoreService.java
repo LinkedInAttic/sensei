@@ -228,7 +228,7 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
 	      finalResult.addError(new SenseiError("no partitions specified", ErrorType.PartitionCallError));
 	    }
 	    if (logger.isInfoEnabled()){
-	      logger.info("searching partitions  " + String.valueOf(partitions) + " took: " + finalResult.getTime());
+	      logger.info("searching partitions: " + String.valueOf(partitions) + "; route by: " + senseiReq.getRouteParam() + "; took: " + finalResult.getTime());
 	    }
 	    return finalResult;
 	}
