@@ -146,7 +146,7 @@ public class BoboIndexTracker implements BoboListener {
   }
 
   @Override
-  public void indexDeleted(BoboIndexReader boboIndexReader) {
+  public void indexDeleted(IndexReader boboIndexReader) {
   }
   public SenseiCore getSenseiCore() {
     return senseiCore;
