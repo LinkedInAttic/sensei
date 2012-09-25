@@ -463,6 +463,12 @@ import java.text.SimpleDateFormat;
 
 @parser::members {
 
+    private static enum KeyType {
+      STRING_LITERAL,
+      IDENT,
+      STRING_LITERAL_AND_IDENT
+    }
+
     private static final int DEFAULT_REQUEST_OFFSET = 0;
     private static final int DEFAULT_REQUEST_COUNT = 10;
     private static final int DEFAULT_REQUEST_MAX_PER_GROUP = 10;
@@ -2330,7 +2336,7 @@ python_style_dict returns [JSONObject json]
 @init {
     $json = new JSONObject();
 }
-    :   '{' p=key_value_pair[true]
+    :   '{' p=key_value_pair[KeyType.STRING_LITERAL]
         {
             try {
                 $json.put($p.key, $p.val);
@@ -2339,7 +2345,7 @@ python_style_dict returns [JSONObject json]
                 throw new FailedPredicateException(input, "python_style_dict", "JSONException: " + err.getMessage());
             }
         }
-        (COMMA p=key_value_pair[true]
+        (COMMA p=key_value_pair[KeyType.STRING_LITERAL]
             {
                 try {
                     $json.put($p.key, $p.val);
@@ -2414,17 +2420,17 @@ except_clause returns [Object json]
     ;
   
 predicate_props returns [JSONObject json]
-    :   WITH^ prop_list[true]
+    :   WITH^ prop_list[KeyType.STRING_LITERAL]
         {
             $json = $prop_list.json;
         }
     ;
 
-prop_list[boolean needKeyInString] returns [JSONObject json]
+prop_list[KeyType keyType] returns [JSONObject json]
 @init {
     $json = new JSONObject();
 }
-    :   LPAR p=key_value_pair[needKeyInString]
+    :   LPAR p=key_value_pair[keyType]
         {
             try {
                 $json.put($p.key, $p.val);
@@ -2433,7 +2439,7 @@ prop_list[boolean needKeyInString] returns [JSONObject json]
                 throw new FailedPredicateException(input, "prop_list", "JSONException: " + err.getMessage());
             }
         }
-        (COMMA p=key_value_pair[needKeyInString]
+        (COMMA p=key_value_pair[keyType]
             {
                 try {
                     $json.put($p.key, $p.val);
@@ -2445,15 +2451,17 @@ prop_list[boolean needKeyInString] returns [JSONObject json]
         )* RPAR
     ;
 
-key_value_pair[boolean needKeyInString] returns [String key, Object val]
+key_value_pair[KeyType keyType] returns [String key, Object val]
 scope {
-    boolean needString;
+    KeyType type
 }
 @init {
-    $key_value_pair::needString = needKeyInString;
+    $key_value_pair::type = keyType;
 }
-    :   ( {$key_value_pair::needString}?=> STRING_LITERAL
-        | {!$key_value_pair::needString}?=> IDENT
+    :   ( { $key_value_pair::type == KeyType.STRING_LITERAL ||
+            $key_value_pair::type == KeyType.STRING_LITERAL_AND_IDENT}?=> STRING_LITERAL
+        | { $key_value_pair::type == KeyType.IDENT ||
+            $key_value_pair::type == KeyType.STRING_LITERAL_AND_IDENT}?=> IDENT
         )
         COLON (v=value | vs=python_style_list | vd=python_style_dict)
         {
@@ -3051,7 +3059,7 @@ relevance_model_clause returns [JSONObject json]
 @init {
     $json = new JSONObject();
 }
-    :   USING RELEVANCE MODEL IDENT prop_list[false] model=relevance_model?
+    :   USING RELEVANCE MODEL IDENT prop_list[KeyType.STRING_LITERAL_AND_IDENT] model=relevance_model?
         {
             try {
                 if (model == null) {
