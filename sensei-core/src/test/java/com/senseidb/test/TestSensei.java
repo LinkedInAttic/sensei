@@ -230,7 +230,35 @@ public class TestSensei extends TestCase {
     assertEquals("numhits is wrong", 1534, res.getInt("numhits"));
   }
   
-  
+  public void testBqlEmptyListCheck() throws Exception
+  {
+    logger.info("Executing test case testBqlEmptyListCheck");
+    String req = "{\"bql\":\"SELECT * FROM SENSEI where () is not empty LIMIT 0, 1\"}";
+    JSONObject res = search(new JSONObject(req));
+    assertEquals("numhits is wrong", 0, res.getInt("numhits"));
+    
+    String req2 = "{\"bql\":\"SELECT * FROM SENSEI where () is empty LIMIT 0, 1\"}";
+    JSONObject res2 = search(new JSONObject(req2));
+    assertEquals("numhits is wrong", 15000, res2.getInt("numhits"));
+    
+    String req3 = "{\"bql\":\"select * from sensei where () is empty or color contains all () limit 0, 1\"}";
+    JSONObject res3 = search(new JSONObject(req3));
+    assertEquals("numhits is wrong", 15000, res3.getInt("numhits"));
+    
+    String req4 = "{\"bql\":\"select * from sensei where () is not empty or color contains all () limit 0, 1\"}";
+    JSONObject res4 = search(new JSONObject(req4));
+    assertEquals("numhits is wrong", 0, res4.getInt("numhits"));
+    
+    //template mapping:
+    String req5 = "{\"bql\":\"SELECT * FROM SENSEI where $list is empty LIMIT 0, 1\", \"templateMapping\":{\"list\":[\"a\"]}}";
+    JSONObject res5 = search(new JSONObject(req5));
+    assertEquals("numhits is wrong", 0, res5.getInt("numhits"));
+    
+    String req6 = "{\"bql\":\"SELECT * FROM SENSEI where $list is empty LIMIT 0, 1\", \"templateMapping\":{\"list\":[]}}";
+    JSONObject res6 = search(new JSONObject(req6));
+    assertEquals("numhits is wrong", 15000, res6.getInt("numhits"));
+  }
+
   public void testBqlRelevance1() throws Exception
   {
     logger.info("Executing test case testBqlRelevance1");
