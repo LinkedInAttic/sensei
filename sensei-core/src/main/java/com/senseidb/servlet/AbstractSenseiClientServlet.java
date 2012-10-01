@@ -356,7 +356,8 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
         requestContext.query = "bql=" + requestContext.bqlStmt;
       else
         requestContext.query = "json=" + requestContext.content;
-      requestContext.bqlStmt = (String) jsonTemplateProcessor.process(requestContext.bqlStmt, jsonTemplateProcessor.getTemplates(requestContext.jsonObj));
+      // Disable variables replacing before bql compling, since that data representation in json and bql is quite different for now.
+      //requestContext.bqlStmt = (String) jsonTemplateProcessor.process(requestContext.bqlStmt, jsonTemplateProcessor.getTemplates(requestContext.jsonObj));
       requestContext.compiledJson = _compiler.compile(requestContext.bqlStmt);
     }
     catch (RecognitionException e)
