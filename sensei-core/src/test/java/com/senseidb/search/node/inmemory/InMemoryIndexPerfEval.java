@@ -31,17 +31,16 @@ import com.browseengine.bobo.api.BrowseSelection;
 import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
 import com.senseidb.search.req.SenseiRequest;
-import com.senseidb.test.SenseiStarter;
 
-public class InMemoryIndexPerfTest {
+public class InMemoryIndexPerfEval {
 
   public static void main(String[] args) throws Exception {
     final InMemorySenseiService memorySenseiService = InMemorySenseiService.valueOf(new File(
-        InMemoryIndexPerfTest.class.getClassLoader().getResource("test-conf/node1/").toURI()));
+        InMemoryIndexPerfEval.class.getClassLoader().getResource("test-conf/node1/").toURI()));
         
       
     final List<JSONObject> docs = new ArrayList<JSONObject>(15000);
-    LineIterator lineIterator = FileUtils.lineIterator(new File(InMemoryIndexPerfTest.class.getClassLoader().getResource("data/test_data.json").toURI()));
+    LineIterator lineIterator = FileUtils.lineIterator(new File(InMemoryIndexPerfEval.class.getClassLoader().getResource("data/test_data.json").toURI()));
     int i = 0;
     while(lineIterator.hasNext() && i < 100) {
       String car = lineIterator.next();

@@ -26,11 +26,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.browseengine.bobo.facets.data.TermValueList;
+import com.browseengine.bobo.util.BigSegmentedArray;
 
 public class FacetCountsMapReduce implements SenseiMapReduce<HashMap<String, IntContainer>, ArrayList<GroupedValue>> {
   private static final long serialVersionUID = 1L;  
@@ -47,11 +47,11 @@ public class FacetCountsMapReduce implements SenseiMapReduce<HashMap<String, Int
     if (!facetCountAccessor.areFacetCountsPresent()) {
       return null;
     }
-    int[] countDistribution = facetCountAccessor.getFacetCollector(column).getCountDistribution();
+    BigSegmentedArray countDistribution = facetCountAccessor.getFacetCollector(column).getCountDistribution();
     TermValueList termValueList = accessor.getTermValueList(column);
-    HashMap<String, IntContainer> ret = new HashMap<String, IntContainer>(countDistribution.length);
-    for (int i = 0; i < countDistribution.length; i++) {
-      ret.put(termValueList.get(i), new IntContainer(countDistribution[i]));
+    HashMap<String, IntContainer> ret = new HashMap<String, IntContainer>(countDistribution.size());
+    for (int i = 0; i < countDistribution.size(); i++) {
+      ret.put(termValueList.get(i), new IntContainer(countDistribution.get(i)));
     }
     return ret;
   }
