@@ -1,3 +1,21 @@
+/**
+ * This software is licensed to you under the Apache License, Version 2.0 (the
+ * "Apache License").
+ *
+ * LinkedIn's contributions are made under the Apache License. If you contribute
+ * to the Software, the contributions will be deemed to have been made under the
+ * Apache License, unless you expressly indicate otherwise. Please do not make any
+ * contributions that would be inconsistent with the Apache License.
+ *
+ * You may obtain a copy of the Apache License at http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, this software
+ * distributed under the Apache License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the Apache
+ * License for the specific language governing permissions and limitations for the
+ * software governed under the Apache License.
+ *
+ * © 2012 LinkedIn Corp. All Rights Reserved.  
+ */
 package com.senseidb.search.node.broker;
 
 import java.util.Comparator;
@@ -32,7 +50,9 @@ public class BrokerConfig {
   private SenseiNetworkClient networkClient;
   private SenseiBroker senseiBroker;
   private SenseiSysBroker senseiSysBroker;
+  private long brokerTimeout;
 
+  
   public BrokerConfig(Configuration senseiConf, PartitionedLoadBalancerFactory<String> loadBalancerFactory) {
     this.loadBalancerFactory = loadBalancerFactory;
     clusterName = senseiConf.getString(SenseiConfParams.SENSEI_CLUSTER_NAME);
@@ -47,6 +67,7 @@ public class BrokerConfig {
     staleRequestTimeoutMins = senseiConf.getInt(SenseiConfigServletContextListener.SENSEI_CONF_NC_STALE_TIMEOUT_MINS, 10);
     staleRequestCleanupFrequencyMins = senseiConf.getInt(SenseiConfigServletContextListener.SENSEI_CONF_NC_STALE_CLEANUP_FREQ_MINS, 10);
     allowPartialMerge = senseiConf.getBoolean(SenseiConfParams.ALLOW_PARTIAL_MERGE, true); 
+    brokerTimeout = senseiConf.getLong(SenseiConfParams.SERVER_BROKER_TIMEOUT, 8000); 
   }
 
   public void init() {
@@ -66,7 +87,7 @@ public class BrokerConfig {
 
   public SenseiBroker buildSenseiBroker() {   
     senseiBroker = new SenseiBroker(networkClient, clusterClient, allowPartialMerge);
-    
+    senseiBroker.setTimeout(brokerTimeout);
     return senseiBroker;
   }
   public SenseiSysBroker buildSysSenseiBroker(Comparator<String> versionComparator) {   
@@ -93,5 +114,47 @@ public class BrokerConfig {
   public String getClusterName() {
     return clusterName;
   }
+
+  public void setClusterName(String clusterName) {
+    this.clusterName = clusterName;
+  }
+
+  public void setZkurl(String zkurl) {
+    this.zkurl = zkurl;
+  }
+
+  public void setZkTimeout(int zkTimeout) {
+    this.zkTimeout = zkTimeout;
+  }
+
+  public void setWriteTimeoutMillis(int writeTimeoutMillis) {
+    this.writeTimeoutMillis = writeTimeoutMillis;
+  }
+
+  public void setConnectTimeoutMillis(int connectTimeoutMillis) {
+    this.connectTimeoutMillis = connectTimeoutMillis;
+  }
+
+  public void setMaxConnectionsPerNode(int maxConnectionsPerNode) {
+    this.maxConnectionsPerNode = maxConnectionsPerNode;
+  }
+
+  public void setStaleRequestTimeoutMins(int staleRequestTimeoutMins) {
+    this.staleRequestTimeoutMins = staleRequestTimeoutMins;
+  }
+
+  public void setStaleRequestCleanupFrequencyMins(int staleRequestCleanupFrequencyMins) {
+    this.staleRequestCleanupFrequencyMins = staleRequestCleanupFrequencyMins;
+  }
+
+  public void setLoadBalancerFactory(PartitionedLoadBalancerFactory<String> loadBalancerFactory) {
+    this.loadBalancerFactory = loadBalancerFactory;
+  }
+
+  public void setAllowPartialMerge(boolean allowPartialMerge) {
+    this.allowPartialMerge = allowPartialMerge;
+  }
+
+
   
 }

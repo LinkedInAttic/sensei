@@ -1,5 +1,24 @@
+/**
+ * This software is licensed to you under the Apache License, Version 2.0 (the
+ * "Apache License").
+ *
+ * LinkedIn's contributions are made under the Apache License. If you contribute
+ * to the Software, the contributions will be deemed to have been made under the
+ * Apache License, unless you expressly indicate otherwise. Please do not make any
+ * contributions that would be inconsistent with the Apache License.
+ *
+ * You may obtain a copy of the Apache License at http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, this software
+ * distributed under the Apache License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the Apache
+ * License for the specific language governing permissions and limitations for the
+ * software governed under the Apache License.
+ *
+ * © 2012 LinkedIn Corp. All Rights Reserved.  
+ */
 package com.senseidb.search.node;
 
+import com.senseidb.metrics.MetricFactory;
 import java.io.File;
 import java.net.SocketException;
 import java.net.UnknownHostException;
@@ -44,7 +63,6 @@ public class SenseiServer {
   private ClusterClient _clusterClient;
   private final SenseiCore _core;
   protected volatile Node _serverNode;
-  private final CoreSenseiServiceImpl _innerSvc;
   private final List<AbstractSenseiCoreService<AbstractSenseiRequest, AbstractSenseiResult>> _externalSvc;
 
   //private Server _adminServer;
@@ -78,8 +96,6 @@ public class SenseiServer {
 
     _networkServer = networkServer;
     _clusterClient = clusterClient;
-
-    _innerSvc = new CoreSenseiServiceImpl(senseiCore);
     _externalSvc = externalSvc;
   }
 
@@ -132,7 +148,7 @@ public class SenseiServer {
     try {
       logger.info("shutting down node...");
       try
-      {        
+      {
         _core.shutdown();
         pluginRegistry.stop();
         _clusterClient.removeNode(_id);
@@ -152,9 +168,12 @@ public class SenseiServer {
     } catch (Exception e) {
       logger.error(e.getMessage(),e);
     }
+    MetricFactory.stop();
+    JmxUtil.unregisterMBeans();
   }
 
   public void start(boolean available) throws Exception {
+    MetricFactory.start();
     _core.start();
 //        ClusterClient clusterClient = ClusterClientFactory.newInstance().newZookeeperClient();
     String clusterName = _clusterClient.getServiceName();
@@ -163,15 +182,16 @@ public class SenseiServer {
     logger.info("Cluster info: " + _clusterClient.toString());
 
     AbstractSenseiCoreService coreSenseiService = new CoreSenseiServiceImpl(_core);
-    AbstractSenseiCoreService sysSenseiCoreService = new SysSenseiCoreServiceImpl(_core);    
+    AbstractSenseiCoreService sysSenseiCoreService = new SysSenseiCoreServiceImpl(_core);
+
     // create the zookeeper cluster client
 //    SenseiClusterClientImpl senseiClusterClient = new SenseiClusterClientImpl(clusterName, zookeeperURL, zookeeperTimeout, false);
     SenseiCoreServiceMessageHandler senseiMsgHandler =  new SenseiCoreServiceMessageHandler(coreSenseiService);
     SenseiCoreServiceMessageHandler senseiSysMsgHandler =  new SenseiCoreServiceMessageHandler(sysSenseiCoreService);
-   
+
     _networkServer.registerHandler(senseiMsgHandler, coreSenseiService.getSerializer());
     _networkServer.registerHandler(senseiSysMsgHandler, sysSenseiCoreService.getSerializer());
-    
+
     _networkServer.registerHandler(senseiMsgHandler, CoreSenseiServiceImpl.JAVA_SERIALIZER);
     _networkServer.registerHandler(senseiSysMsgHandler, SysSenseiCoreServiceImpl.JAVA_SERIALIZER);
 

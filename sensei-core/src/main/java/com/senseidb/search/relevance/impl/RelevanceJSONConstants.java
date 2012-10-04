@@ -1,3 +1,21 @@
+/**
+ * This software is licensed to you under the Apache License, Version 2.0 (the
+ * "Apache License").
+ *
+ * LinkedIn's contributions are made under the Apache License. If you contribute
+ * to the Software, the contributions will be deemed to have been made under the
+ * Apache License, unless you expressly indicate otherwise. Please do not make any
+ * contributions that would be inconsistent with the Apache License.
+ *
+ * You may obtain a copy of the Apache License at http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, this software
+ * distributed under the Apache License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the Apache
+ * License for the specific language governing permissions and limitations for the
+ * software governed under the Apache License.
+ *
+ * © 2012 LinkedIn Corp. All Rights Reserved.  
+ */
 package com.senseidb.search.relevance.impl;
 
 import java.util.Map;
@@ -49,6 +67,9 @@ public class RelevanceJSONConstants
   public static final String           KW_TYPE_DOUBLE          = "double";
   public static final String           KW_TYPE_LONG            = "long";
   public static final String           KW_TYPE_BOOL            = "bool";
+  
+  // custom type:
+  public static final String           KW_TYPE_CUSTOM          = "custom_obj";
 
   // facet type support: [double, float, int, long, short, string]
   public static final String           KW_TYPE_FACET_INT       = "int";
@@ -88,9 +109,11 @@ public class RelevanceJSONConstants
    * The numbers below are used to in an ordered way, so adding new types should be careful.
    * */
 
-  // (1) inner score type number;
+  // (1) special type number (inner score, now, custom_obj, etc.);
   public static final int TYPENUMBER_INNER_SCORE       =  0;
   public static final int TYPENUMBER_NOW               =  1;
+  
+  public static final int TYPENUMBER_CUSTOM_OBJ        =  2;
 
   // (2) general type numbers:
   public static final int TYPENUMBER_INT               = 10;
@@ -149,7 +172,7 @@ public class RelevanceJSONConstants
 
   // A map from facet type names to an integer array whose first element
   // is the facet type number and the second element indicates whether
-  // the facet is a multi-value facet (1) or not (0).
+  // the facet is a multi-value facet (1) or normal one (0) or an activity facet (2).
   public static Map<String, Integer[]> FACET_INFO_MAP = new HashMap<String, Integer[]>();
 
   // A map from variable type names to variable type numbers.
@@ -177,27 +200,28 @@ public class RelevanceJSONConstants
     FACET_INFO_MAP.put(KW_TYPE_FACET_WM_STRING, new Integer[]{TYPENUMBER_FACET_WM_STRING, 1});
     FACET_INFO_MAP.put(KW_TYPE_FACET_A_INT,     new Integer[]{TYPENUMBER_FACET_A_INT,     2});
 
-    VARIABLE_INFO_MAP.put(KW_TYPE_INT, TYPENUMBER_INT);
-    VARIABLE_INFO_MAP.put(KW_TYPE_LONG, TYPENUMBER_LONG);
-    VARIABLE_INFO_MAP.put(KW_TYPE_DOUBLE, TYPENUMBER_DOUBLE);
-    VARIABLE_INFO_MAP.put(KW_TYPE_FLOAT, TYPENUMBER_FLOAT);
-    VARIABLE_INFO_MAP.put(KW_TYPE_BOOL, TYPENUMBER_BOOLEAN);
-    VARIABLE_INFO_MAP.put(KW_TYPE_STRING, TYPENUMBER_STRING);
-    VARIABLE_INFO_MAP.put(KW_TYPE_SET_INT, TYPENUMBER_SET_INT);
-    VARIABLE_INFO_MAP.put(KW_TYPE_SET_LONG, TYPENUMBER_SET_LONG);
-    VARIABLE_INFO_MAP.put(KW_TYPE_SET_DOUBLE, TYPENUMBER_SET_DOUBLE);
-    VARIABLE_INFO_MAP.put(KW_TYPE_SET_FLOAT, TYPENUMBER_SET_FLOAT);
-    VARIABLE_INFO_MAP.put(KW_TYPE_SET_STRING, TYPENUMBER_SET_STRING);
-    VARIABLE_INFO_MAP.put(KW_TYPE_MAP_INT_INT, TYPENUMBER_MAP_INT_INT);
-    VARIABLE_INFO_MAP.put(KW_TYPE_MAP_INT_LONG, TYPENUMBER_MAP_INT_LONG);
-    VARIABLE_INFO_MAP.put(KW_TYPE_MAP_INT_DOUBLE, TYPENUMBER_MAP_INT_DOUBLE);
-    VARIABLE_INFO_MAP.put(KW_TYPE_MAP_INT_FLOAT, TYPENUMBER_MAP_INT_FLOAT);
-    VARIABLE_INFO_MAP.put(KW_TYPE_MAP_INT_STRING, TYPENUMBER_MAP_INT_STRING);
-    VARIABLE_INFO_MAP.put(KW_TYPE_MAP_STRING_INT, TYPENUMBER_MAP_STRING_INT);
-    VARIABLE_INFO_MAP.put(KW_TYPE_MAP_STRING_LONG, TYPENUMBER_MAP_STRING_LONG);
-    VARIABLE_INFO_MAP.put(KW_TYPE_MAP_STRING_DOUBLE, TYPENUMBER_MAP_STRING_DOUBLE);
-    VARIABLE_INFO_MAP.put(KW_TYPE_MAP_STRING_FLOAT, TYPENUMBER_MAP_STRING_FLOAT);
-    VARIABLE_INFO_MAP.put(KW_TYPE_MAP_STRING_STRING, TYPENUMBER_MAP_STRING_STRING);
+    VARIABLE_INFO_MAP.put(KW_TYPE_INT,                  TYPENUMBER_INT);
+    VARIABLE_INFO_MAP.put(KW_TYPE_LONG,                 TYPENUMBER_LONG);
+    VARIABLE_INFO_MAP.put(KW_TYPE_DOUBLE,               TYPENUMBER_DOUBLE);
+    VARIABLE_INFO_MAP.put(KW_TYPE_FLOAT,                TYPENUMBER_FLOAT);
+    VARIABLE_INFO_MAP.put(KW_TYPE_BOOL,                 TYPENUMBER_BOOLEAN);
+    VARIABLE_INFO_MAP.put(KW_TYPE_STRING,               TYPENUMBER_STRING);
+    VARIABLE_INFO_MAP.put(KW_TYPE_SET_INT,              TYPENUMBER_SET_INT);
+    VARIABLE_INFO_MAP.put(KW_TYPE_SET_LONG,             TYPENUMBER_SET_LONG);
+    VARIABLE_INFO_MAP.put(KW_TYPE_SET_DOUBLE,           TYPENUMBER_SET_DOUBLE);
+    VARIABLE_INFO_MAP.put(KW_TYPE_SET_FLOAT,            TYPENUMBER_SET_FLOAT);
+    VARIABLE_INFO_MAP.put(KW_TYPE_SET_STRING,           TYPENUMBER_SET_STRING);
+    VARIABLE_INFO_MAP.put(KW_TYPE_MAP_INT_INT,          TYPENUMBER_MAP_INT_INT);
+    VARIABLE_INFO_MAP.put(KW_TYPE_MAP_INT_LONG,         TYPENUMBER_MAP_INT_LONG);
+    VARIABLE_INFO_MAP.put(KW_TYPE_MAP_INT_DOUBLE,       TYPENUMBER_MAP_INT_DOUBLE);
+    VARIABLE_INFO_MAP.put(KW_TYPE_MAP_INT_FLOAT,        TYPENUMBER_MAP_INT_FLOAT);
+    VARIABLE_INFO_MAP.put(KW_TYPE_MAP_INT_STRING,       TYPENUMBER_MAP_INT_STRING);
+    VARIABLE_INFO_MAP.put(KW_TYPE_MAP_STRING_INT,       TYPENUMBER_MAP_STRING_INT);
+    VARIABLE_INFO_MAP.put(KW_TYPE_MAP_STRING_LONG,      TYPENUMBER_MAP_STRING_LONG);
+    VARIABLE_INFO_MAP.put(KW_TYPE_MAP_STRING_DOUBLE,    TYPENUMBER_MAP_STRING_DOUBLE);
+    VARIABLE_INFO_MAP.put(KW_TYPE_MAP_STRING_FLOAT,     TYPENUMBER_MAP_STRING_FLOAT);
+    VARIABLE_INFO_MAP.put(KW_TYPE_MAP_STRING_STRING,    TYPENUMBER_MAP_STRING_STRING);
+    VARIABLE_INFO_MAP.put(KW_TYPE_CUSTOM,               TYPENUMBER_CUSTOM_OBJ);
   }
 
 }

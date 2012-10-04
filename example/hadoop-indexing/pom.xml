@@ -7,7 +7,7 @@
 	<artifactId>sensei-example-hadoop</artifactId>
 	<packaging>jar</packaging>
 	<name>sensei example hadoop indexing</name>
-	<version>1.5.0</version>
+	<version>1.5.1-SNAPSHOT</version>
 	<description>sensei hadoop indexer example</description>
 
 	<!-- Set the compiler to java6 -->

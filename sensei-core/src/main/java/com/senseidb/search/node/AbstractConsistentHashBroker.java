@@ -1,3 +1,21 @@
+/**
+ * This software is licensed to you under the Apache License, Version 2.0 (the
+ * "Apache License").
+ *
+ * LinkedIn's contributions are made under the Apache License. If you contribute
+ * to the Software, the contributions will be deemed to have been made under the
+ * Apache License, unless you expressly indicate otherwise. Please do not make any
+ * contributions that would be inconsistent with the Apache License.
+ *
+ * You may obtain a copy of the Apache License at http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, this software
+ * distributed under the Apache License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the Apache
+ * License for the specific language governing permissions and limitations for the
+ * software governed under the Apache License.
+ *
+ * © 2012 LinkedIn Corp. All Rights Reserved.  
+ */
 package com.senseidb.search.node;
 
 import com.linkedin.norbert.javacompat.network.RequestBuilder;
@@ -5,37 +23,31 @@ import com.linkedin.norbert.network.ResponseIterator;
 import com.linkedin.norbert.network.common.ExceptionIterator;
 import com.linkedin.norbert.network.common.PartialIterator;
 import com.linkedin.norbert.network.common.TimeoutIterator;
+import com.senseidb.metrics.MetricFactory;
 import com.senseidb.search.req.SenseiRequest;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang.RandomStringUtils;
-import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
 import com.linkedin.norbert.NorbertException;
 import com.linkedin.norbert.javacompat.cluster.Node;
 import com.linkedin.norbert.javacompat.network.PartitionedNetworkClient;
 import com.linkedin.norbert.network.Serializer;
-import com.senseidb.cluster.routing.RoutingInfo;
 import com.senseidb.metrics.MetricsConstants;
 import com.senseidb.search.req.AbstractSenseiRequest;
 import com.senseidb.search.req.AbstractSenseiResult;
 import com.senseidb.search.req.ErrorType;
 import com.senseidb.search.req.SenseiError;
 import com.senseidb.svc.api.SenseiException;
-import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.Meter;
 import com.yammer.metrics.core.MetricName;
 import com.yammer.metrics.core.Timer;
@@ -54,38 +66,12 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
   protected long _timeout = 8000;
   protected final Serializer<REQUEST, RESULT> _serializer;
 
-  private static Timer ScatterTimer = null;
-  private static Timer GatherTimer = null;
-  private static Timer TotalTimer = null;
-  private static Meter SearchCounter = null;
-  private static Meter ErrorMeter = null;
-  private static Meter EmptyMeter = null;
-  
-  static{
-	  // register metrics monitoring for timers
-	  try{
-	    MetricName scatterMetricName = new MetricName(MetricsConstants.Domain,"timer","scatter-time","broker");
-	    ScatterTimer = Metrics.newTimer(scatterMetricName, TimeUnit.MILLISECONDS,TimeUnit.SECONDS);
-	    
-	    MetricName gatherMetricName = new MetricName(MetricsConstants.Domain,"timer","gather-time","broker");
-	    GatherTimer = Metrics.newTimer(gatherMetricName, TimeUnit.MILLISECONDS,TimeUnit.SECONDS);
-
-	    MetricName totalMetricName = new MetricName(MetricsConstants.Domain,"timer","total-time","broker");
-	    TotalTimer = Metrics.newTimer(totalMetricName, TimeUnit.MILLISECONDS,TimeUnit.SECONDS);
-	    
-	    MetricName searchCounterMetricName = new MetricName(MetricsConstants.Domain,"meter","search-count","broker");
-	    SearchCounter = Metrics.newMeter(searchCounterMetricName, "requets", TimeUnit.SECONDS);
-
-	    MetricName errorMetricName = new MetricName(MetricsConstants.Domain,"meter","error-meter","broker");
-	    ErrorMeter = Metrics.newMeter(errorMetricName, "errors",TimeUnit.SECONDS);
-	    
-	    MetricName emptyMetricName = new MetricName(MetricsConstants.Domain,"meter","empty-meter","broker");
-	    EmptyMeter = Metrics.newMeter(emptyMetricName, "null-hits", TimeUnit.SECONDS);
-	  }
-	  catch(Exception e){
-		logger.error(e.getMessage(),e);
-	  }
-  }
+  private final Timer _scatterTimer;
+  private final Timer _gatherTimer;
+  private final Timer _totalTimer;
+  private final Meter _searchCounter;
+  private final Meter _errorMeter;
+  private final Meter _emptyMeter;
   
   /**
    * @param networkClient
@@ -101,6 +87,25 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
   {
     super(networkClient);
     _serializer = serializer;
+
+    // register metrics monitoring for timers
+    MetricName scatterMetricName = new MetricName(MetricsConstants.Domain,"timer","scatter-time","broker");
+    _scatterTimer = MetricFactory.newTimer(scatterMetricName, TimeUnit.MILLISECONDS, TimeUnit.SECONDS);
+
+    MetricName gatherMetricName = new MetricName(MetricsConstants.Domain,"timer","gather-time","broker");
+    _gatherTimer = MetricFactory.newTimer(gatherMetricName, TimeUnit.MILLISECONDS,TimeUnit.SECONDS);
+
+    MetricName totalMetricName = new MetricName(MetricsConstants.Domain,"timer","total-time","broker");
+    _totalTimer = MetricFactory.newTimer(totalMetricName, TimeUnit.MILLISECONDS,TimeUnit.SECONDS);
+
+    MetricName searchCounterMetricName = new MetricName(MetricsConstants.Domain,"meter","search-count","broker");
+    _searchCounter = MetricFactory.newMeter(searchCounterMetricName, "requets", TimeUnit.SECONDS);
+
+    MetricName errorMetricName = new MetricName(MetricsConstants.Domain,"meter","error-meter","broker");
+    _errorMeter = MetricFactory.newMeter(errorMetricName, "errors",TimeUnit.SECONDS);
+
+    MetricName emptyMetricName = new MetricName(MetricsConstants.Domain,"meter","empty-meter","broker");
+    _emptyMeter = MetricFactory.newMeter(emptyMetricName, "null-hits", TimeUnit.SECONDS);
   }
 
 	public <T> T customizeRequest(REQUEST request)
@@ -137,10 +142,10 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
 //      ErrorMeter.mark();
 //      throw new SenseiException("Browse called before cluster is connected!");
 //    }
-    SearchCounter.mark();
+    _searchCounter.mark();
     try
     {
-      return TotalTimer.time(new Callable<RESULT>(){
+      return _totalTimer.time(new Callable<RESULT>(){
     	@Override
   		public RESULT call() throws Exception {
           return doBrowse(_networkClient, req, _partitions); 	  
@@ -149,7 +154,7 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
     } 
     catch (Exception e)
     {
-      ErrorMeter.mark();
+      _errorMeter.mark();
       throw new SenseiException(e.getMessage(), e);
     }
   }
@@ -183,14 +188,17 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
     final List<RESULT> resultList = new ArrayList<RESULT>();
    
     try {
-      resultList.addAll(ScatterTimer.time(new Callable<List<RESULT>>() {
+      resultList.addAll(_scatterTimer.time(new Callable<List<RESULT>>()
+      {
         @Override
-        public List<RESULT> call() throws Exception {
+        public List<RESULT> call()
+            throws Exception
+        {
           return doCall(req);
         }
       }));
     } catch (Exception e) {
-      ErrorMeter.mark();
+      _errorMeter.mark();
       RESULT emptyResult = getEmptyResultInstance();
       logger.error("Error running scatter/gather", e);
       emptyResult.addError(new SenseiError("Error gathering the results" + e.getMessage(), ErrorType.BrokerGatherError));
@@ -202,13 +210,13 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
       logger.error("no result received at all return empty result");
       RESULT emptyResult = getEmptyResultInstance();
       emptyResult.addError(new SenseiError("Error gathering the results. " + "no result received at all return empty result", ErrorType.BrokerGatherError));
-      EmptyMeter.mark();
+      _emptyMeter.mark();
       return emptyResult;
     }
 
     RESULT result = null;
     try {
-      result = GatherTimer.time(new Callable<RESULT>() {
+      result = _gatherTimer.time(new Callable<RESULT>() {
         @Override
         public RESULT call() throws Exception {
           return mergeResults(req, resultList);
@@ -218,7 +226,7 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
       result = getEmptyResultInstance();
       logger.error("Error gathering the results", e);
       result.addError(new SenseiError("Error gathering the results" + e.getMessage(), ErrorType.BrokerGatherError));
-      ErrorMeter.mark();
+      _errorMeter.mark();
     }
 
     if (logger.isDebugEnabled()){
@@ -265,11 +273,35 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
   public void shutdown()
   {
     logger.info("shutting down broker...");
+    if (_scatterTimer != null) {
+      _scatterTimer.stop();
+    }
+    if (_gatherTimer != null) {
+      _gatherTimer.stop();
+    }
+    if (_totalTimer != null) {
+      _totalTimer.stop();
+    }
+    if (_searchCounter != null) {
+      _searchCounter.stop();
+    }
+    if (_errorMeter != null) {
+      _errorMeter.stop();
+    }
+    if (_emptyMeter != null) {
+      _emptyMeter.stop();
+    }
   }
 
-  public abstract void setTimeoutMillis(long timeoutMillis);
+  
 
-  public abstract long getTimeoutMillis();
+  public long getTimeout() {
+    return _timeout;
+  }
+
+  public void setTimeout(long timeout) {
+    this._timeout = timeout;
+  }
 
   /**
    * @return boolean representing whether or not the server can tolerate node failures or timeouts and merge the other

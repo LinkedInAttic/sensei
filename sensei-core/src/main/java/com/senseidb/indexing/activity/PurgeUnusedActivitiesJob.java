@@ -1,3 +1,21 @@
+/**
+ * This software is licensed to you under the Apache License, Version 2.0 (the
+ * "Apache License").
+ *
+ * LinkedIn's contributions are made under the Apache License. If you contribute
+ * to the Software, the contributions will be deemed to have been made under the
+ * Apache License, unless you expressly indicate otherwise. Please do not make any
+ * contributions that would be inconsistent with the Apache License.
+ *
+ * You may obtain a copy of the Apache License at http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, this software
+ * distributed under the Apache License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the Apache
+ * License for the specific language governing permissions and limitations for the
+ * software governed under the Apache License.
+ *
+ * © 2012 LinkedIn Corp. All Rights Reserved.  
+ */
 package com.senseidb.indexing.activity;
 
 import it.unimi.dsi.fastutil.longs.LongIterator;
@@ -13,17 +31,17 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import javax.management.MBeanServer;
+import javax.management.ObjectInstance;
 import javax.management.ObjectName;
 
 import org.apache.log4j.Logger;
 
 import proj.zoie.api.DocIDMapper;
-import proj.zoie.api.Zoie;
+import proj.zoie.api.IndexReaderFactory;
 import proj.zoie.api.ZoieIndexReader;
 
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.senseidb.conf.SenseiConfParams;
-import com.senseidb.metrics.MetricsConstants;
 import com.senseidb.plugin.SenseiPluginRegistry;
 import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.Counter;
@@ -34,28 +52,34 @@ public class PurgeUnusedActivitiesJob implements Runnable, PurgeUnusedActivities
   private final static Logger logger = Logger.getLogger(PurgeUnusedActivitiesJob.class);
   
   private final CompositeActivityValues compositeActivityValues;
-  private final Set<Zoie<BoboIndexReader, ?>> zoieSystems;
+  private final Set<IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>> zoieSystems;
   private static Timer timer = Metrics.newTimer(new MetricName(PurgeUnusedActivitiesJob.class, "purgeUnusedActivityIndexes"), TimeUnit.MILLISECONDS, TimeUnit.SECONDS);
   private static Counter foundActivitiesToPurge = Metrics.newCounter(new MetricName(PurgeUnusedActivitiesJob.class, "foundActivitiesToPurge"));
+  private static Counter recentUidsSavedFromPurge = Metrics.newCounter(new MetricName(PurgeUnusedActivitiesJob.class, "recentUidsSavedFromPurge"));
+  
   protected ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
 
   private final long frequencyInMillis;
-  public PurgeUnusedActivitiesJob(CompositeActivityValues compositeActivityValues, Set<Zoie<BoboIndexReader,?>> zoieSystems, long frequencyInMillis) {
+  public PurgeUnusedActivitiesJob(CompositeActivityValues compositeActivityValues, Set<IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>> zoieSystems, long frequencyInMillis) {
     this.compositeActivityValues = compositeActivityValues;
     this.zoieSystems = zoieSystems;
     this.frequencyInMillis = frequencyInMillis;
     
   }
   public void start() {
-    executorService.scheduleAtFixedRate(this, frequencyInMillis, frequencyInMillis, TimeUnit.MILLISECONDS); 
+    if (frequencyInMillis > 0) {
+      executorService.scheduleAtFixedRate(this, frequencyInMillis, frequencyInMillis, TimeUnit.MILLISECONDS); 
+    }
     MBeanServer platformMBeanServer = ManagementFactory.getPlatformMBeanServer();
     ObjectName name;
     try {
       name = new ObjectName("com.senseidb.indexing.activity:type=PurgeUnusedActivitiesJobInvoke");
-      platformMBeanServer.registerMBean(this, name);
-        
+     Set<ObjectInstance> mbeans = platformMBeanServer.queryMBeans(name, null);
+    if (mbeans != null && mbeans.isEmpty()) {
+       platformMBeanServer.registerMBean(this, name);
+     }        
     } catch (Exception e) {
-      throw new RuntimeException(e.getMessage(), e);
+      logger.error("Couldn't register the  PurgeUnusedActivitiesJob operation", e);
     }
   }
   public void stop() {
@@ -87,8 +111,9 @@ public class PurgeUnusedActivitiesJob implements Runnable, PurgeUnusedActivities
     }  finally {
         compositeActivityValues.globalLock.readLock().unlock();
     }     
+    int bitSetLength = keys.length;
     BitSet foundSet = new BitSet(keys.length); 
-    for (Zoie<BoboIndexReader, ?> zoie : zoieSystems) {
+    for (IndexReaderFactory<ZoieIndexReader<BoboIndexReader>> zoie : zoieSystems) {
       List<ZoieIndexReader<BoboIndexReader>> indexReaders = null;      
       try {
         indexReaders = zoie.getIndexReaders();
@@ -111,6 +136,8 @@ public class PurgeUnusedActivitiesJob implements Runnable, PurgeUnusedActivities
         }        
       }
     }
+    int recovered = compositeActivityValues.recentlyAddedUids.markRecentAsFoundInBitSet(keys, foundSet, bitSetLength);
+    recentUidsSavedFromPurge.inc(recovered);
     int found = foundSet.cardinality();
     if (found == keys.length) {
       logger.info("purgeUnusedActivitiesJob found  no activities to purge");

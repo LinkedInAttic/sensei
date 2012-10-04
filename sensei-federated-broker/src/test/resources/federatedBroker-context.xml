@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- custom facets -->
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans 
+                           http://www.springframework.org/schema/beans/spring-beans.xsd">
+	<bean id="stringSerializer" class="voldemort.serialization.StringSerializer"/> 
+	<bean id="voldermortStoreFactory" 
+          class="voldemort.client.MockStoreClientFactory">
+           <constructor-arg index="0"><ref bean="stringSerializer"/></constructor-arg>
+           <constructor-arg index="1"><ref bean="stringSerializer"/></constructor-arg>
+    </bean>
+    <bean id="storeClient"
+      factory-bean="voldermortStoreFactory"
+      factory-method="getStoreClient">
+	 	<constructor-arg index="0"><value>test</value></constructor-arg>
+      </bean>
+     <bean id="voldermortDatasource" class="com.senseidb.federated.broker.DefaultVoldermortDataSource"
+        p:key="test" p:storeClient-ref="storeClient"/>
+     <bean id="senseiConfiguration" class="org.apache.commons.configuration.PropertiesConfiguration">
+     	<constructor-arg index="0">
+     		<bean class="java.io.File">
+     			<constructor-arg index="0"><value>src/test/resources/conf/sensei.properties</value></constructor-arg>
+     	    </bean>
+     </constructor-arg>
+     </bean>
+     <bean id="senseiProxy" class="com.senseidb.federated.broker.proxy.SenseiBrokerProxy" factory-method="valueOf"> 
+      	<constructor-arg index="0"><ref bean="senseiConfiguration"/></constructor-arg>
+           <constructor-arg index="1"><bean class="java.util.HashMap"/></constructor-arg>
+     </bean>
+     <bean id="senseiInMemoryService" class="com.senseidb.search.node.inmemory.InMemorySenseiService" factory-method="valueOf">
+     	<constructor-arg index="0">
+     		<bean class="java.io.File">
+     			<constructor-arg index="0"><value>src/test/resources/conf</value></constructor-arg>
+     	    </bean>
+     </constructor-arg>
+     </bean>     
+	  <bean id="voldermortProxy" class="com.senseidb.federated.broker.proxy.GenericBrokerProxy">
+	    	<constructor-arg index="0"><ref bean="senseiInMemoryService"/></constructor-arg>
+            <constructor-arg index="1"><ref bean="voldermortDatasource"/></constructor-arg>
+	  </bean>
+	  <bean id="federatedBroker" class="com.senseidb.federated.broker.FederatedBroker" init-method="start" destroy-method="stop"  p:inMemorySenseiService-ref="senseiInMemoryService">	  		
+	  	<property name="proxies">
+	  	<list>
+	  		<ref bean="senseiProxy"/>
+	  		<ref bean="voldermortProxy"/>
+	  	</list>
+	  	</property>
+	  </bean>
+</beans>

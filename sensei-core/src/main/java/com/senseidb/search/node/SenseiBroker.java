@@ -1,5 +1,24 @@
+/**
+ * This software is licensed to you under the Apache License, Version 2.0 (the
+ * "Apache License").
+ *
+ * LinkedIn's contributions are made under the Apache License. If you contribute
+ * to the Software, the contributions will be deemed to have been made under the
+ * Apache License, unless you expressly indicate otherwise. Please do not make any
+ * contributions that would be inconsistent with the Apache License.
+ *
+ * You may obtain a copy of the Apache License at http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, this software
+ * distributed under the Apache License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the Apache
+ * License for the specific language governing permissions and limitations for the
+ * software governed under the Apache License.
+ *
+ * © 2012 LinkedIn Corp. All Rights Reserved.  
+ */
 package com.senseidb.search.node;
 
+import com.senseidb.metrics.MetricFactory;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 
 import java.lang.management.ManagementFactory;
@@ -28,7 +47,6 @@ import com.senseidb.search.req.SenseiHit;
 import com.senseidb.search.req.SenseiRequest;
 import com.senseidb.search.req.SenseiResult;
 import com.senseidb.svc.impl.CoreSenseiServiceImpl;
-import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.Counter;
 import com.yammer.metrics.core.MetricName;
 
@@ -39,29 +57,22 @@ import com.yammer.metrics.core.MetricName;
  * mechanism to handle distributed search, which does not support request based
  * context sensitive routing.
  */
-public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, SenseiResult> implements SenseiBrokerMBean
+public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, SenseiResult> 
 {
   private final static Logger logger = Logger.getLogger(SenseiBroker.class);
-  private final static long TIMEOUT_MILLIS = 8000L;
-  private long _timeoutMillis = TIMEOUT_MILLIS;
+
+ 
   private final boolean allowPartialMerge;
   private final ClusterClient clusterClient;
-  private static Counter numberOfNodesInTheCluster = Metrics.newCounter(new MetricName(SenseiBroker.class, "numberOfNodesInTheCluster"));
-  public SenseiBroker(PartitionedNetworkClient<String> networkClient, ClusterClient clusterClient, boolean allowPartialMerge) throws NorbertException
-  {
+  private final Counter numberOfNodesInTheCluster = MetricFactory.newCounter(new MetricName(SenseiBroker.class,
+                                                                                            "numberOfNodesInTheCluster"));
+  
+  public SenseiBroker(PartitionedNetworkClient<String> networkClient, ClusterClient clusterClient, boolean allowPartialMerge)
+      throws NorbertException {
     super(networkClient, CoreSenseiServiceImpl.JAVA_SERIALIZER);
-	this.clusterClient = clusterClient;
+    this.clusterClient = clusterClient;
     this.allowPartialMerge = allowPartialMerge;
-    MBeanServer platformMBeanServer = ManagementFactory.getPlatformMBeanServer();
-	ObjectName name;
-	try {
-		name = new ObjectName("com.senseidb.search.node:type=SenseiBroker");
-		platformMBeanServer.registerMBean(this, name);
-	    
-	} catch (Exception e) {
-		throw new RuntimeException(e.getMessage(), e);
-	}	
-	clusterClient.addListener(this);
+    clusterClient.addListener(this);
     logger.info("created broker instance " + networkClient + " " + clusterClient);
   }
 
@@ -169,15 +180,7 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
     return request;
   }
 
-  @Override
-  public void setTimeoutMillis(long timeoutMillis){
-    _timeoutMillis = timeoutMillis;
-  }
-
-  @Override
-  public long getTimeoutMillis(){
-    return _timeoutMillis;
-  }
+  
 
   public void handleClusterConnected(Set<Node> nodes)
   {
@@ -218,19 +221,10 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
     return allowPartialMerge;
   }
 
-	@Override
+
 	public int getNumberOfNodes() {
 		return clusterClient.getNodes().size();
 	}
   
 	
-	
-	@Override
-	public String getNodeStatistics() {
-		StringBuilder str = new StringBuilder("Nodes:");
-		for (Node node : clusterClient.getNodes()) {
-			str.append("[nodeId=" + node.getId() + ", partitions=["	+ node.getPartitionIds() + "]],");
-		}
-		return str.toString();
-	}
 }
