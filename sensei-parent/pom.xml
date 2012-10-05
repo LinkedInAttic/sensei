@@ -1,11 +1,10 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.linkedin.sensei</groupId>
 	<artifactId>sensei-parent</artifactId>
 	<packaging>pom</packaging>
 	<name>sensei parent</name>
-	<version>1.5.3-SNAPSHOT</version>
+	<version>1.5.3</version>
 	<description>sensei search</description>
 	<url>http://github.com/linkedin/sensei</url>
 
@@ -496,4 +495,10 @@
             </build>
         </profile>
     </profiles> 
+
+  <scm>
+    <connection>scm:git:git@github.com:linkedin/sensei.git</connection>
+    <developerConnection>scm:git:git@github.com:linkedin/sensei.git</developerConnection>
+    <url>scm:git:git@github.com:linkedin/sensei.git</url>
+  </scm>
 </project>
