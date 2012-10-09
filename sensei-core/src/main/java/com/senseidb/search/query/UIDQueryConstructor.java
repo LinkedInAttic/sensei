@@ -9,6 +9,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.senseidb.search.query.filters.FilterConstructor;
+import com.senseidb.util.JSONUtil.FastJSONArray;
+import com.senseidb.util.JSONUtil.FastJSONObject;
 
 
 public class UIDQueryConstructor extends QueryConstructor
@@ -18,7 +20,7 @@ public class UIDQueryConstructor extends QueryConstructor
   @Override
   protected Query doConstructQuery(JSONObject jsonQuery) throws JSONException
   {
-    JSONObject filterJson = new JSONObject();
+    JSONObject filterJson = new FastJSONObject();
     filterJson.put(QUERY_TYPE, jsonQuery);
 
     Filter filter = null;

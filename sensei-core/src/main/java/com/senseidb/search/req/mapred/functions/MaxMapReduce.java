@@ -12,6 +12,8 @@ import com.senseidb.search.req.mapred.CombinerStage;
 import com.senseidb.search.req.mapred.FacetCountAccessor;
 import com.senseidb.search.req.mapred.FieldAccessor;
 import com.senseidb.search.req.mapred.SenseiMapReduce;
+import com.senseidb.util.JSONUtil.FastJSONArray;
+import com.senseidb.util.JSONUtil.FastJSONObject;
 
 public class MaxMapReduce implements SenseiMapReduce<MaxResult, MaxResult> {
 
@@ -64,7 +66,7 @@ public class MaxMapReduce implements SenseiMapReduce<MaxResult, MaxResult> {
   public JSONObject render(MaxResult reduceResult) {
     
     try {
-      return new JSONObject().put("max", reduceResult.value).put("uid", reduceResult.uid);
+      return new FastJSONObject().put("max", reduceResult.value).put("uid", reduceResult.uid);
     } catch (JSONException ex) {
       throw new RuntimeException(ex);
     }

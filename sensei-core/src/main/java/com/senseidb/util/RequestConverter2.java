@@ -31,6 +31,8 @@ import com.senseidb.search.req.SenseiJSONQuery;
 import com.senseidb.search.req.SenseiRequest;
 import com.senseidb.search.req.mapred.SenseiMapReduce;
 import com.senseidb.search.req.mapred.impl.MapReduceRegistry;
+import com.senseidb.util.JSONUtil.FastJSONArray;
+import com.senseidb.util.JSONUtil.FastJSONObject;
 
 
 public class RequestConverter2 {
@@ -329,7 +331,7 @@ public class RequestConverter2 {
                     Object value = jsonParamValues.opt(RequestConverter2.FACETINIT_VALUES);
                     if (value != null)
                     {
-                      jsonValues = new JSONArray().put(value);
+                      jsonValues = new FastJSONArray().put(value);
                     }
                   }
                   if (jsonValues != null)

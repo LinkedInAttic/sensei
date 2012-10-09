@@ -51,6 +51,8 @@ import com.senseidb.svc.api.SenseiException;
 import com.senseidb.svc.impl.HttpRestSenseiServiceImpl;
 import com.senseidb.util.JsonTemplateProcessor;
 import com.senseidb.util.RequestConverter2;
+import com.senseidb.util.JSONUtil.FastJSONArray;
+import com.senseidb.util.JSONUtil.FastJSONObject;
 import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.Counter;
 import com.yammer.metrics.core.MetricName;
@@ -150,7 +152,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
         try
         {
           SenseiRequest req = new SenseiRequest();
-          req.setQuery(new SenseiJSONQuery(new JSONObject().put("query", "dummy:dummy")));
+          req.setQuery(new SenseiJSONQuery(new FastJSONObject().put("query", "dummy:dummy")));
           SenseiResult res = _senseiBroker.browse(req);
           totalDocs = res.getTotalDocs();
         }
@@ -298,7 +300,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
       if (requestContext.content.length() == 0) requestContext.content = "{}";
       try
       {
-        requestContext.jsonObj = new JSONObject(requestContext.content);
+        requestContext.jsonObj = new FastJSONObject(requestContext.content);
       }
       catch(JSONException jse)
       {
@@ -325,7 +327,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
     if (requestContext.content == null || requestContext.content.length() == 0) requestContext.content = "{}";
     try
     {
-      requestContext.jsonObj = new JSONObject(requestContext.content);
+      requestContext.jsonObj = new FastJSONObject(requestContext.content);
     }
     catch(JSONException jse)
     {
@@ -395,7 +397,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
       }
 
       // Combine filters
-      JSONArray filter_list = new JSONArray();
+      JSONArray filter_list = new FastJSONArray();
       JSONObject currentFilter = requestContext.compiledJson.optJSONObject("filter");
       if (currentFilter != null)
       {
@@ -422,7 +424,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
       
       if (filter_list.length() > 1)
       {
-        requestContext.compiledJson.put("filter", new JSONObject().put("and", filter_list));
+        requestContext.compiledJson.put("filter", new FastJSONObject().put("and", filter_list));
       }
       else if (filter_list.length() == 1)
       {
@@ -476,13 +478,13 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
       if ("post".equalsIgnoreCase(req.getMethod()))
       {
         BufferedReader reader = req.getReader();
-        ids = new JSONArray(readContent(reader));
+        ids = new FastJSONArray(readContent(reader));
       }
       else
       {
         String jsonString = req.getParameter("json");
         if (jsonString != null)
-          ids = new JSONArray(jsonString);
+          ids = new FastJSONArray(jsonString);
       }
 
       query = "get=" + String.valueOf(ids);
@@ -508,7 +510,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
         totalDocs = res.getTotalDocs();
       }
 
-      JSONObject ret = new JSONObject();
+      JSONObject ret = new FastJSONObject();
       JSONObject obj = null;
       if (res != null && res.getSenseiHits() != null)
       {
@@ -516,7 +518,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
         {
           try
           {
-            obj = new JSONObject(hit.getSrcData());
+            obj = new FastJSONObject(hit.getSrcData());
             ret.put(String.valueOf(hit.getUID()), obj);
           }
           catch(Exception ex)

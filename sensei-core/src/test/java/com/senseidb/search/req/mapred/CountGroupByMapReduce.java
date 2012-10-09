@@ -14,6 +14,9 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.senseidb.util.JSONUtil.FastJSONArray;
+import com.senseidb.util.JSONUtil.FastJSONObject;
+
 @SuppressWarnings("unchecked")
 public class CountGroupByMapReduce implements SenseiMapReduce<HashMap<String, IntContainer>, ArrayList<GroupedValue>> {
   private static final long serialVersionUID = 1L;  
@@ -102,9 +105,9 @@ public class CountGroupByMapReduce implements SenseiMapReduce<HashMap<String, In
     try {
       List<JSONObject> ret = new ArrayList<JSONObject>();
       for (GroupedValue grouped : reduceResult) {
-        ret.add(new JSONObject().put(grouped.key, grouped.value));
+        ret.add(new FastJSONObject().put(grouped.key, grouped.value));
       }
-      return new JSONObject().put("groupedCounts", new JSONArray(ret));
+      return new FastJSONObject().put("groupedCounts", new FastJSONArray(ret));
     } catch (JSONException ex) {
       throw new RuntimeException(ex);
     }
