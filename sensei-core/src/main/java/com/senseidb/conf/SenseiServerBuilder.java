@@ -100,6 +100,8 @@ import com.senseidb.servlet.SenseiHttpInvokerServiceServlet;
 import com.senseidb.svc.impl.AbstractSenseiCoreService;
 import com.senseidb.util.HDFSIndexCopier;
 import com.senseidb.util.NetUtil;
+import com.senseidb.util.JSONUtil.FastJSONArray;
+import com.senseidb.util.JSONUtil.FastJSONObject;
 
 public class SenseiServerBuilder implements SenseiConfParams{
 
@@ -234,7 +236,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
       InputStream is = new FileInputStream(jsonSchema);
       String json = IOUtils.toString( is );
       is.close();
-      return new JSONObject(json);
+      return new FastJSONObject(json);
     }
     else{
       File xmlSchema = new File(confDir,SCHEMA_FILE_XML);
@@ -255,7 +257,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
   {
     if (confDir.createRelative(SCHEMA_FILE_JSON).exists()){
       String json = IOUtils.toString(confDir.createRelative(SCHEMA_FILE_JSON).getInputStream());
-      return new JSONObject(json);
+      return new FastJSONObject(json);
     }
     else{
       if (confDir.createRelative(SCHEMA_FILE_XML).exists()){

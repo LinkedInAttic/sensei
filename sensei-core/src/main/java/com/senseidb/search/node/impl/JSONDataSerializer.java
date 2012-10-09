@@ -6,6 +6,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.senseidb.conf.SenseiSchema;
+import com.senseidb.util.JSONUtil.FastJSONArray;
+import com.senseidb.util.JSONUtil.FastJSONObject;
 
 import proj.zoie.store.ZoieStoreSerializer;
 
@@ -41,7 +43,7 @@ public class JSONDataSerializer implements ZoieStoreSerializer<JSONObject>{
   @Override
   public JSONObject fromBytes(byte[] data) {
     try {
-      return new JSONObject(new String(data,UTF8));
+      return new FastJSONObject(new String(data,UTF8));
     } catch (JSONException e) {
       return null;
     }

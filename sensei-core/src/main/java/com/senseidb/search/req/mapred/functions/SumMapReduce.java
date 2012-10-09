@@ -11,6 +11,8 @@ import com.senseidb.search.req.mapred.CombinerStage;
 import com.senseidb.search.req.mapred.FacetCountAccessor;
 import com.senseidb.search.req.mapred.FieldAccessor;
 import com.senseidb.search.req.mapred.SenseiMapReduce;
+import com.senseidb.util.JSONUtil.FastJSONArray;
+import com.senseidb.util.JSONUtil.FastJSONObject;
 
 public class SumMapReduce implements SenseiMapReduce<Double, Double> {
   private String column;
@@ -57,7 +59,7 @@ public class SumMapReduce implements SenseiMapReduce<Double, Double> {
   public JSONObject render(Double reduceResult) {
    
     try {
-      return new JSONObject().put("sum", reduceResult);
+      return new FastJSONObject().put("sum", reduceResult);
     } catch (JSONException e) {
       throw new RuntimeException(e);
     }

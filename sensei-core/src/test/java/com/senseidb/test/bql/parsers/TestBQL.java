@@ -13,6 +13,8 @@ import org.json.JSONException;
 
 import com.senseidb.bql.parsers.BQLCompiler;
 import com.senseidb.util.JsonTemplateProcessor;
+import com.senseidb.util.JSONUtil.FastJSONArray;
+import com.senseidb.util.JSONUtil.FastJSONObject;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -957,8 +959,8 @@ public class TestBQL extends TestCase
 
     JsonTemplateProcessor jsonProc = new JsonTemplateProcessor();
     json.put(JsonTemplateProcessor.TEMPLATE_MAPPING_PARAM,
-             new JSONObject().put("user_age",
-                                  new JSONArray().put(25)));
+             new FastJSONObject().put("user_age",
+                                  new FastJSONArray().put(25)));
     JSONObject newJson = jsonProc.substituteTemplates(json);
     JSONObject expected2 = new JSONObject("{\"facetInit\":{\"member\":{\"age\":{\"values\":[25],\"type\":\"int\"}}},\"templateMapping\":{\"user_age\":[25]},\"meta\":{\"select_list\":[\"*\"],\"variables\":[\"user_age\"]}}");
     assertTrue(_comp.isEquals(newJson, expected2));

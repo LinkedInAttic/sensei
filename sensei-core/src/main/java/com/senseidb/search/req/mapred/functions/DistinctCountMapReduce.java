@@ -11,6 +11,8 @@ import com.senseidb.search.req.mapred.CombinerStage;
 import com.senseidb.search.req.mapred.FacetCountAccessor;
 import com.senseidb.search.req.mapred.FieldAccessor;
 import com.senseidb.search.req.mapred.SenseiMapReduce;
+import com.senseidb.util.JSONUtil.FastJSONArray;
+import com.senseidb.util.JSONUtil.FastJSONObject;
 
 public class DistinctCountMapReduce implements SenseiMapReduce<LongOpenHashSet, Integer> {
 
@@ -66,7 +68,7 @@ public class DistinctCountMapReduce implements SenseiMapReduce<LongOpenHashSet, 
   public JSONObject render(Integer reduceResult) {
     // TODO Auto-generated method stub
     try {
-      return new JSONObject().put("distinctCount", reduceResult);
+      return new FastJSONObject().put("distinctCount", reduceResult);
     } catch (JSONException ex) {
       throw new RuntimeException(ex);
     }

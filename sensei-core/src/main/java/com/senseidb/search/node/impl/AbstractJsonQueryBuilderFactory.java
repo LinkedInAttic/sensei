@@ -5,6 +5,8 @@ import org.json.JSONObject;
 import com.senseidb.search.node.SenseiQueryBuilder;
 import com.senseidb.search.node.SenseiQueryBuilderFactory;
 import com.senseidb.search.req.SenseiQuery;
+import com.senseidb.util.JSONUtil.FastJSONArray;
+import com.senseidb.util.JSONUtil.FastJSONObject;
 
 public abstract class AbstractJsonQueryBuilderFactory implements
 		SenseiQueryBuilderFactory {
@@ -15,7 +17,7 @@ public abstract class AbstractJsonQueryBuilderFactory implements
 		JSONObject jsonQuery=null;
 		if (query!=null){
 			byte[] bytes = query.toBytes();
-			jsonQuery = new JSONObject(new String(bytes,SenseiQuery.utf8Charset));
+			jsonQuery = new FastJSONObject(new String(bytes,SenseiQuery.utf8Charset));
 		}
 		return buildQueryBuilder(jsonQuery);
 	}

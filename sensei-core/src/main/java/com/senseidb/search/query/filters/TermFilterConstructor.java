@@ -21,6 +21,12 @@ public class TermFilterConstructor extends FilterConstructor{
     String text;
     boolean noOptimize = false;
 
+    if (NOOPTIMIZE_PARAM.equals(field))
+    {
+      noOptimize = json.optBoolean(NOOPTIMIZE_PARAM, false);
+      field = iter.next();
+    }
+
     Object obj = json.get(field);
     if (obj instanceof JSONObject)
     {

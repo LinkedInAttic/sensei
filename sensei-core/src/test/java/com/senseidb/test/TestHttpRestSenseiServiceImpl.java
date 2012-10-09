@@ -40,6 +40,8 @@ import com.senseidb.search.req.SenseiResult;
 import com.senseidb.servlet.DefaultSenseiJSONServlet;
 import com.senseidb.svc.api.SenseiException;
 import com.senseidb.svc.impl.HttpRestSenseiServiceImpl;
+import com.senseidb.util.JSONUtil.FastJSONArray;
+import com.senseidb.util.JSONUtil.FastJSONObject;
 
 
 public class TestHttpRestSenseiServiceImpl extends TestCase
@@ -383,7 +385,7 @@ public class TestHttpRestSenseiServiceImpl extends TestCase
       throws JSONException
   {
 
-    JSONObject obj = new JSONObject();
+    JSONObject obj = new FastJSONObject();
 
     obj.put("query", "key words are useful");  // 'query' in the JSONObj gets translated into 'q' in the GET request
 
