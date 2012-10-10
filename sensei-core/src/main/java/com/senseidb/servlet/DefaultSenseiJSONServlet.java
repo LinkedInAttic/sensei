@@ -329,12 +329,7 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
   public static JSONArray buildJSONHits(SenseiRequest req, SenseiHit[] hits)
       throws Exception
   {
-    Set<String> selectSet = null;
-    List<String> selectList = req.getSelectList();
-    if (selectList != null && !(selectList.size() == 1 && "*".equals(selectList.get(0))))
-    {
-      selectSet = new HashSet<String>(selectList);
-    }
+    Set<String> selectSet = req.getSelectSet();
 
     JSONArray hitArray = new FastJSONArray();
     for (SenseiHit hit : hits)

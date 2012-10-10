@@ -2,7 +2,9 @@ package com.senseidb.svc.impl;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -65,7 +67,7 @@ public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiReque
 		super(core);
 	}
 	
-	private SenseiResult browse(MultiBoboBrowser browser, BrowseRequest req, SubReaderAccessor<BoboIndexReader> subReaderAccessor) throws BrowseException
+	private SenseiResult browse(SenseiRequest senseiRequest, MultiBoboBrowser browser, BrowseRequest req, SubReaderAccessor<BoboIndexReader> subReaderAccessor) throws BrowseException
 	  {
 	    final SenseiResult result = new SenseiResult();
 
@@ -90,6 +92,7 @@ public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiReque
 	      result.setMapReduceResult(req.getMapReduceWrapper().getResult());
 	    }
 	    SenseiHit[] senseiHits = new SenseiHit[hits.length];
+      Set<String> selectSet = senseiRequest.getSelectSet();
 	    for (int i = 0; i < hits.length; i++)
 	    {
 	      BrowseHit hit = hits[i];
@@ -104,8 +107,34 @@ public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiReque
 	      senseiHit.setDocid(docid);
 	      senseiHit.setScore(hit.getScore());
 	      senseiHit.setComparable(hit.getComparable());
-	      senseiHit.setFieldValues(hit.getFieldValues());
-	      senseiHit.setRawFieldValues(hit.getRawFieldValues());
+        if (selectSet != null && selectSet.size() != 0)
+        {
+          // Clear the data those are not used:
+          if (hit.getFieldValues() != null)
+          {
+            Iterator<String> iter = hit.getFieldValues().keySet().iterator();
+            while (iter.hasNext())
+            {
+              if (!selectSet.contains(iter.next()))
+              {
+                iter.remove();
+              }
+            }
+          }
+          if (hit.getRawFieldValues() != null)
+          {
+            Iterator<String> iter = hit.getRawFieldValues().keySet().iterator();
+            while (iter.hasNext())
+            {
+              if (!selectSet.contains(iter.next()))
+              {
+                iter.remove();
+              }
+            }
+          }
+        }
+        senseiHit.setFieldValues(hit.getFieldValues());
+        senseiHit.setRawFieldValues(hit.getRawFieldValues());
 	      senseiHit.setStoredFields(hit.getStoredFields());
 	      senseiHit.setExplanation(hit.getExplanation());
 	      senseiHit.setGroupField(hit.getGroupField());
@@ -188,7 +217,7 @@ public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiReque
 	        }	        
           SubReaderAccessor<BoboIndexReader> subReaderAccessor =
               ZoieIndexReader.getSubReaderAccessor(validatedSegmentReaders);
-	        SenseiResult res = browse(browser, breq, subReaderAccessor);
+	        SenseiResult res = browse(request, browser, breq, subReaderAccessor);
 	        int totalDocs = res.getTotalDocs()+skipDocs.get();
 	        res.setTotalDocs(totalDocs);
 	        return res;

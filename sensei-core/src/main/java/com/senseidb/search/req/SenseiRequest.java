@@ -3,6 +3,7 @@ package com.senseidb.search.req;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -53,6 +54,7 @@ private long   tid           =          -1;
   private int _maxPerGroup;
   private Set<String> _termVectorsToFetch;
   private List<String> _selectList; // Select list (mostly used in BQL) 
+  private transient Set<String> _selectSet;
   private SenseiMapReduce mapReduceFunction;
   private List<SenseiError> errors;
   
@@ -432,6 +434,7 @@ private long   tid           =          -1;
   public void setSelectList(List<String> selectList)
   {
     _selectList = selectList;
+    _selectSet = null;
   }
 
   /**
@@ -441,6 +444,17 @@ private long   tid           =          -1;
   public List<String> getSelectList()
   {
     return _selectList;
+  }
+
+  public Set<String> getSelectSet()
+  {
+    if (_selectSet == null &&
+        _selectList != null &&
+        !(_selectList.size() == 1 && "*".equals(_selectList.get(0))))
+    {
+      _selectSet = new HashSet<String>(_selectList);
+    }
+    return _selectSet;
   }
   
   /** Represents sorting by document score (relevancy). */

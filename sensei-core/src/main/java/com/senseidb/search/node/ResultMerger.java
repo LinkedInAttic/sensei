@@ -101,10 +101,16 @@ public class ResultMerger
       Collection<FacetHandler<?>> facetHandlers= reader.getFacetHandlerMap().values();
       Map<String,String[]> map = new HashMap<String,String[]>();
       Map<String,Object[]> rawMap = new HashMap<String,Object[]>();
+      Set<String> selectSet = req.getSelectSet();
       for (FacetHandler<?> facetHandler : facetHandlers)
       {
-        map.put(facetHandler.getName(),facetHandler.getFieldValues(reader,doc));
-        rawMap.put(facetHandler.getName(),facetHandler.getRawFieldValues(reader,doc));
+        if (selectSet == null ||
+            selectSet.size() == 0 ||
+            selectSet.contains(facetHandler.getName()))
+        {
+          map.put(facetHandler.getName(),facetHandler.getFieldValues(reader,doc));
+          rawMap.put(facetHandler.getName(),facetHandler.getRawFieldValues(reader,doc));
+        }
       }
       hit.setFieldValues(map);
       hit.setRawFieldValues(rawMap);
