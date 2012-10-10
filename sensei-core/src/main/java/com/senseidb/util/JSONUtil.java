@@ -416,7 +416,6 @@ public class JSONUtil
         {
           if (value instanceof JSONObject || value instanceof JSONArray)
           {
-            new Exception().printStackTrace();
             throw new JSONException("the value is not fast version of JSONObjects: " + value);
           }
           _inner.put(key, toJSON(value));
@@ -743,7 +742,6 @@ public class JSONUtil
       {
         if (value instanceof JSONObject || value instanceof JSONArray)
         {
-          new Exception().printStackTrace();
           throw new IllegalArgumentException("the value is not fast version of JSONObjects: " + value);
         }
         _inner.add(toJSON(value));
@@ -816,7 +814,6 @@ public class JSONUtil
         {
           if (value instanceof JSONObject || value instanceof JSONArray)
           {
-            new Exception().printStackTrace();
             throw new IllegalArgumentException("the value is not fast version of JSONObjects: " + value);
           }
           _inner.set(index, value);
@@ -881,8 +878,13 @@ public class JSONUtil
     }
   }
 
+  public static String normalize(String str)
+  {
+    return str.replaceAll("[\\s\\\\]*\n[\\s\\\\]*", " ");
+  }
+
   @SuppressWarnings("unchecked")
-  public static final Object toJSON(Object javaObject)
+  public static Object toJSON(Object javaObject)
   {
     if (javaObject == null) {
       return null;
