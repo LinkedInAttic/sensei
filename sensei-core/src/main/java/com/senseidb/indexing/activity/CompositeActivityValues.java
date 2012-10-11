@@ -73,12 +73,14 @@ public class CompositeActivityValues {
   protected static Counter deletedDocumentsCounter;
   protected static Counter insertedDocumentsCounter;
   protected static Counter totalUpdatesCounter;
+  protected static Counter versionRejectionCounter;
   static {
     reclaimedDocumentsCounter = Metrics.newCounter(new MetricName(CompositeActivityValues.class, "reclaimedActivityDocs"));
     currentDocumentsCounter = Metrics.newCounter(new MetricName(CompositeActivityValues.class, "currentActivityDocs"));
     deletedDocumentsCounter = Metrics.newCounter(new MetricName(CompositeActivityValues.class, "deletedActivityDocs"));
     insertedDocumentsCounter = Metrics.newCounter(new MetricName(CompositeActivityValues.class, "insertedActivityDocs"));
     totalUpdatesCounter = Metrics.newCounter(new MetricName(CompositeActivityValues.class, "totalUpdatesCounter"));
+    versionRejectionCounter = Metrics.newCounter(new MetricName(CompositeActivityValues.class, "activityVersionRejectionCounter"));
   }
 
   CompositeActivityValues() {
@@ -105,6 +107,7 @@ public class CompositeActivityValues {
       return -1;
     }
     if (versionComparator.compare(lastVersion, version) > 0) {
+      versionRejectionCounter.inc();
       return -1;
     }
     if (map.isEmpty()) {
