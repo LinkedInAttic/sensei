@@ -73,6 +73,7 @@ private long   tid           =          -1;
     _maxPerGroup = 0;
     _termVectorsToFetch = null;
     _selectList = null;
+    _selectSet = null;
   }
 
   public Set<String> getTermVectorsToFetch(){
@@ -135,7 +136,6 @@ private long   tid           =          -1;
 		_groupByMulti = groupBy;
     if (_groupByMulti != null && _groupByMulti.length != 0)
       _groupBy = _groupByMulti[0];
-    _selectSet = null;
   }
 
   public String[] getGroupBy()
@@ -252,7 +252,6 @@ private long   tid           =          -1;
   
   public void clearSort(){
     _sortSpecs.clear();
-    _selectSet = null;
   }
   
   public boolean isFetchStoredFields(){
@@ -392,7 +391,6 @@ private long   tid           =          -1;
    */
   public void addSortField(SortField sortSpec){
     _sortSpecs.add(sortSpec);
-    _selectSet = null;
   }
 
   /**
@@ -428,7 +426,6 @@ private long   tid           =          -1;
     for (int i=0;i<sorts.length;++i){
       _sortSpecs.add(sorts[i]);
     }
-    _selectSet = null;
   }
 
   /**
@@ -457,24 +454,6 @@ private long   tid           =          -1;
         !(_selectList.size() == 1 && "*".equals(_selectList.get(0))))
     {
       _selectSet = new HashSet<String>(_selectList);
-      if (_sortSpecs != null && _sortSpecs.size() != 0)
-      {
-        for (SortField sortField : _sortSpecs)
-        {
-          if (sortField.getType() != SortField.SCORE && sortField.getType() != SortField.DOC)
-          {
-            String field = sortField.getField();
-            _selectSet.add(field);
-          }
-        }
-      }
-      if (_groupByMulti != null && _groupByMulti.length != 0)
-      {
-        for (int i = 0; i < _groupByMulti.length; ++i)
-        {
-          _selectSet.add(_groupByMulti[i]);
-        }
-      }
     }
     return _selectSet;
   }
@@ -540,7 +519,9 @@ private long   tid           =          -1;
     clone.setGroupBy(this.getGroupBy());
     clone.setMaxPerGroup(this.getMaxPerGroup());
     clone.setTermVectorsToFetch(this.getTermVectorsToFetch());
-    clone.setSelectList(this.getSelectList());
+    if (this.getSelectList() != null) {
+      clone.setSelectList(new ArrayList<String>(this.getSelectList()));
+    }
     clone.setMapReduceFunction(this.getMapReduceFunction());
 
     return clone;

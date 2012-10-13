@@ -12,6 +12,7 @@ import javax.management.ObjectName;
 
 import org.apache.log4j.Logger;
 import org.apache.lucene.document.Document;
+import org.apache.lucene.search.SortField;
 
 import proj.zoie.api.indexing.AbstractZoieIndexable;
 
@@ -157,6 +158,33 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
     // Rewrite fetchStoredFields for zoie store.
     if (!request.isFetchStoredFields())
       request.setFetchStoredFields(request.isFetchStoredValue());
+
+    // Rewrite select list to include sort and group by fields:
+    if (request.getSelectSet() != null)
+    {
+      List<String> selectList = request.getSelectList();
+      SortField[] sortFields = request.getSort();
+      if (sortFields != null && sortFields.length != 0)
+      {
+        for (int i = 0; i < sortFields.length; ++i)
+        {
+          if (sortFields[i].getType() != SortField.SCORE && sortFields[i].getType() != SortField.DOC)
+          {
+            String field = sortFields[i].getField();
+            selectList.add(field);
+          }
+        }
+      }
+      String[] groupByFields = request.getGroupBy();
+      if (groupByFields != null && groupByFields.length != 0)
+      {
+        for (int i = 0; i < groupByFields.length; ++i)
+        {
+          selectList.add(groupByFields[i]);
+        }
+      }
+      request.setSelectList(selectList);
+    }
 
     return request;
   }
