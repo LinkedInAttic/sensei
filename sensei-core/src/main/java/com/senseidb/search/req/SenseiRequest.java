@@ -135,6 +135,7 @@ private long   tid           =          -1;
 		_groupByMulti = groupBy;
     if (_groupByMulti != null && _groupByMulti.length != 0)
       _groupBy = _groupByMulti[0];
+    _selectSet = null;
   }
 
   public String[] getGroupBy()
@@ -251,6 +252,7 @@ private long   tid           =          -1;
   
   public void clearSort(){
     _sortSpecs.clear();
+    _selectSet = null;
   }
   
   public boolean isFetchStoredFields(){
@@ -390,6 +392,7 @@ private long   tid           =          -1;
    */
   public void addSortField(SortField sortSpec){
     _sortSpecs.add(sortSpec);
+    _selectSet = null;
   }
 
   /**
@@ -425,6 +428,7 @@ private long   tid           =          -1;
     for (int i=0;i<sorts.length;++i){
       _sortSpecs.add(sorts[i]);
     }
+    _selectSet = null;
   }
 
   /**
@@ -453,6 +457,24 @@ private long   tid           =          -1;
         !(_selectList.size() == 1 && "*".equals(_selectList.get(0))))
     {
       _selectSet = new HashSet<String>(_selectList);
+      if (_sortSpecs != null && _sortSpecs.size() != 0)
+      {
+        for (SortField sortField : _sortSpecs)
+        {
+          if (sortField.getType() != SortField.SCORE && sortField.getType() != SortField.DOC)
+          {
+            String field = sortField.getField();
+            _selectSet.add(field);
+          }
+        }
+      }
+      if (_groupByMulti != null && _groupByMulti.length != 0)
+      {
+        for (int i = 0; i < _groupByMulti.length; ++i)
+        {
+          _selectSet.add(_groupByMulti[i]);
+        }
+      }
     }
     return _selectSet;
   }
