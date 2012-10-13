@@ -98,7 +98,11 @@ public class ResultMerger
         }
       }
 
-      Collection<FacetHandler<?>> facetHandlers= reader.getFacetHandlerMap().values();
+      List<FacetHandler<?>> facetHandlers= new ArrayList<FacetHandler<?>>(reader.getFacetHandlerMap().values());
+      if (reader.getRuntimeFacetHandlerMap() != null)
+      {
+        facetHandlers.addAll(reader.getRuntimeFacetHandlerMap().values());
+      }
       Map<String,String[]> map = new HashMap<String,String[]>();
       Map<String,Object[]> rawMap = new HashMap<String,Object[]>();
       Set<String> selectSet = req.getSelectSet();
@@ -879,6 +883,7 @@ public class ResultMerger
       FacetDataCache[] dataCaches = new FacetDataCache[sortCollector.groupByMulti.length];
       while (contextIter.hasNext()) {
         currentContext = contextIter.next();
+        currentContext.restoreRuntimeFacets();
         contextLeft = currentContext.length;
         if (contextLeft > 0)
         {
@@ -988,6 +993,7 @@ public class ResultMerger
               while (contextIter.hasNext())
               {
                 currentContext = contextIter.next();
+                currentContext.restoreRuntimeFacets();
                 contextLeft = currentContext.length;
                 if (contextLeft > 0)
                 {
@@ -1211,6 +1217,7 @@ public class ResultMerger
           FacetDataCache[] dataCaches = new FacetDataCache[sortCollector.groupByMulti.length];
           while (contextIter.hasNext()) {
             currentContext = contextIter.next();
+            currentContext.restoreRuntimeFacets();
             contextLeft = currentContext.length;
             if (contextLeft > 0)
             {
@@ -1262,6 +1269,7 @@ public class ResultMerger
                 {
                   while (contextIter.hasNext()) {
                     currentContext = contextIter.next();
+                    currentContext.restoreRuntimeFacets();
                     contextLeft = currentContext.length;
                     if (contextLeft > 0)
                     {
