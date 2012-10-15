@@ -575,7 +575,7 @@ import com.senseidb.util.JSONUtil.FastJSONObject;
     @Override
     public String getErrorMessage(RecognitionException err, String[] tokenNames) 
     {
-        // List stack = getRuleInvocationStack(err, this.getClass().getName());
+        List stack = getRuleInvocationStack(err, this.getClass().getName());
         String msg = null; 
         if (err instanceof NoViableAltException) {
             NoViableAltException nvae = (NoViableAltException) err;
@@ -584,7 +584,7 @@ import com.senseidb.util.JSONUtil.FastJSONObject;
             //     " state "+nvae.stateNumber+")" +
             //     " decision=<<" + nvae.grammarDecisionDescription + ">>";
             msg = "[line:" + err.line + ", col:" + err.charPositionInLine + "] " +
-                "No viable alternative (token=" + err.token.getText() + ")";
+                "No viable alternative (token=" + err.token.getText() + ")" + " (stack=" + stack + ")";
         }
         else if (err instanceof MismatchedTokenException) {
             MismatchedTokenException mte = (MismatchedTokenException) err;
