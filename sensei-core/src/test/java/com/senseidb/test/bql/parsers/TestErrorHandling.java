@@ -57,9 +57,8 @@ public class TestErrorHandling extends TestCase
     }
     catch (RecognitionException err)
     {
-      assertEquals("[line:1, col:31] No viable alternative (token=<EOF>)",
-                   _compiler.getErrorMessage(err));
       caughtException = true;
+      assertTrue(_compiler.getErrorMessage(err).startsWith("[line:1, col:31] No viable alternative (token=<EOF>)"));
     }
     finally 
     {
@@ -86,9 +85,9 @@ public class TestErrorHandling extends TestCase
     }
     catch (RecognitionException err)
     {
+      caughtException = true;
       assertEquals("[line:5, col:2] Inconsistent ranges detected for column: year (token=OR)",
                    _compiler.getErrorMessage(err));
-      caughtException = true;
     }
     finally 
     {
@@ -114,9 +113,9 @@ public class TestErrorHandling extends TestCase
     }
     catch (RecognitionException err)
     {
+      caughtException = true;
       assertEquals("[line:4, col:2] Range facet \"year\" cannot be used in IN predicates. (token=AND)",
                    _compiler.getErrorMessage(err));
-      caughtException = true;
     }
     finally 
     {
@@ -142,9 +141,9 @@ public class TestErrorHandling extends TestCase
     }
     catch (RecognitionException err)
     {
+      caughtException = true;
       assertEquals("[line:4, col:2] Value list for IN predicate of facet \"color\" contains incompatible value(s). (token=AND)",
                    _compiler.getErrorMessage(err));
-      caughtException = true;
     }
     finally 
     {
@@ -170,9 +169,9 @@ public class TestErrorHandling extends TestCase
     }
     catch (RecognitionException err)
     {
+      caughtException = true;
       assertEquals("[line:4, col:2] EXCEPT value list for IN predicate of facet \"color\" contains incompatible value(s). (token=AND)",
                    _compiler.getErrorMessage(err));
-      caughtException = true;
     }
     finally 
     {
@@ -198,9 +197,9 @@ public class TestErrorHandling extends TestCase
     }
     catch (RecognitionException err)
     {
+      caughtException = true;
       assertEquals("[line:4, col:2] Range facet column \"year\" cannot be used in CONTAINS ALL predicates. (token=AND)",
                    _compiler.getErrorMessage(err));
-      caughtException = true;
     }
     finally 
     {
@@ -226,9 +225,9 @@ public class TestErrorHandling extends TestCase
     }
     catch (RecognitionException err)
     {
+      caughtException = true;
       assertEquals("[line:4, col:2] Value list for CONTAINS ALL predicate of facet \"tags\" contains incompatible value(s). (token=AND)",
                    _compiler.getErrorMessage(err));
-      caughtException = true;
     }
     finally 
     {
@@ -254,9 +253,9 @@ public class TestErrorHandling extends TestCase
     }
     catch (RecognitionException err)
     {
+      caughtException = true;
       assertEquals("[line:4, col:2] EXCEPT value list for CONTAINS ALL predicate of facet \"tags\" contains incompatible value(s). (token=AND)",
                    _compiler.getErrorMessage(err));
-      caughtException = true;
     }
     finally 
     {
@@ -282,9 +281,9 @@ public class TestErrorHandling extends TestCase
     }
     catch (RecognitionException err)
     {
+      caughtException = true;
       assertEquals("[line:4, col:2] Incompatible data type was found in an EQUAL predicate for column \"color\". (token=AND)",
                    _compiler.getErrorMessage(err));
-      caughtException = true;
     }
     finally 
     {
@@ -310,9 +309,9 @@ public class TestErrorHandling extends TestCase
     }
     catch (RecognitionException err)
     {
+      caughtException = true;
       assertEquals("[line:3, col:44] Expecting COLON (token=,)",
                    _compiler.getErrorMessage(err));
-      caughtException = true;
     }
     finally 
     {
@@ -338,9 +337,9 @@ public class TestErrorHandling extends TestCase
     }
     catch (RecognitionException err)
     {
+      caughtException = true;
       assertEquals("[line:4, col:2] Unsupported property was found in an EQUAL predicate for path facet column \"city\": ddd. (token=AND)",
                    _compiler.getErrorMessage(err));
-      caughtException = true;
     }
     finally 
     {
@@ -366,9 +365,9 @@ public class TestErrorHandling extends TestCase
     }
     catch (RecognitionException err)
     {
+      caughtException = true;
       assertEquals("[line:4, col:2] Incompatible data type was found in a NOT EQUAL predicate for column \"color\". (token=AND)",
                    _compiler.getErrorMessage(err));
-      caughtException = true;
     }
     finally 
     {
@@ -394,9 +393,9 @@ public class TestErrorHandling extends TestCase
     }
     catch (RecognitionException err)
     {
+      caughtException = true;
       assertEquals("[line:4, col:2] NOT EQUAL predicate is not supported for path facets (column \"city\"). (token=AND)",
                    _compiler.getErrorMessage(err));
-      caughtException = true;
     }
     finally 
     {
@@ -423,10 +422,10 @@ public class TestErrorHandling extends TestCase
     }
     catch (RecognitionException err)
     {
+      caughtException = true;
       //System.out.println(">>> _compiler.getErrorMessage(err): " + _compiler.getErrorMessage(err));
       assertEquals("[line:4, col:2] Non-rangable facet column \"city\" cannot be used in BETWEEN predicates. (token=AND)",
                    _compiler.getErrorMessage(err));
-      caughtException = true;
       //System.out.println(">>> caughtException: " + caughtException);
     }
     finally 
@@ -454,9 +453,9 @@ public class TestErrorHandling extends TestCase
     }
     catch (RecognitionException err)
     {
+      caughtException = true;
       assertEquals("[line:4, col:2] Incompatible data type was found in a BETWEEN predicate for column \"year\". (token=AND)",
                    _compiler.getErrorMessage(err));
-      caughtException = true;
     }
     finally 
     {
@@ -482,9 +481,9 @@ public class TestErrorHandling extends TestCase
     }
     catch (RecognitionException err)
     {
+      caughtException = true;
       assertEquals("[line:4, col:2] Non-rangable facet column \"city\" cannot be used in RANGE predicates. (token=AND)",
                    _compiler.getErrorMessage(err));
-      caughtException = true;
     }
     finally 
     {
@@ -510,9 +509,9 @@ public class TestErrorHandling extends TestCase
     }
     catch (RecognitionException err)
     {
+      caughtException = true;
       assertEquals("[line:4, col:2] Incompatible data type was found in a RANGE predicate for column \"year\". (token=AND)",
                    _compiler.getErrorMessage(err));
-      caughtException = true;
     }
     finally 
     {
@@ -538,9 +537,9 @@ public class TestErrorHandling extends TestCase
     }
     catch (RecognitionException err)
     {
+      caughtException = true;
       assertEquals("[line:4, col:2] Date string contains invalid date/time: \"2011-16-20 55:10:10\". (token=AND)",
                    _compiler.getErrorMessage(err));
-      caughtException = true;
     }
     finally 
     {
@@ -566,9 +565,9 @@ public class TestErrorHandling extends TestCase
     }
     catch (RecognitionException err)
     {
+      caughtException = true;
       assertEquals("[line:4, col:2] ParseException happened for \"2011-10/20\": Unparseable date: \"2011-10/20\". (token=AND)",
                    _compiler.getErrorMessage(err));
-      caughtException = true;
     }
     finally 
     {
@@ -594,9 +593,9 @@ public class TestErrorHandling extends TestCase
     }
     catch (RecognitionException err)
     {
+      caughtException = true;
       assertEquals("[line:4, col:2] Non-string type column \"year\" cannot be used in MATCH AGAINST predicates. (token=AND)",
                    _compiler.getErrorMessage(err));
-      caughtException = true;
     }
     finally 
     {
@@ -619,9 +618,9 @@ public class TestErrorHandling extends TestCase
     }
     catch (RecognitionException err)
     {
+      caughtException = true;
       assertEquals("[line:1, col:24] Mismatched input (token=where)",
                    _compiler.getErrorMessage(err));
-      caughtException = true;
     }
     finally 
     {
@@ -644,9 +643,8 @@ public class TestErrorHandling extends TestCase
     }
     catch (RecognitionException err)
     {
-      assertEquals("[line:1, col:14] No viable alternative (token=from)",
-                   _compiler.getErrorMessage(err));
       caughtException = true;
+      assertTrue(_compiler.getErrorMessage(err).startsWith("[line:1, col:14] No viable alternative (token=from)"));
     }
     finally 
     {
@@ -673,9 +671,9 @@ public class TestErrorHandling extends TestCase
     }
     catch (RecognitionException err)
     {
+      caughtException = true;
       assertEquals("[line:5, col:0] ORDER BY clause can only appear once. (token=limit)",
                    _compiler.getErrorMessage(err));
-      caughtException = true;
     }
     finally 
     {
@@ -702,9 +700,9 @@ public class TestErrorHandling extends TestCase
     }
     catch (RecognitionException err)
     {
+      caughtException = true;
       assertEquals("[line:5, col:0] LIMIT clause can only appear once. (token=order)",
                    _compiler.getErrorMessage(err));
-      caughtException = true;
     }
     finally 
     {
@@ -730,9 +728,9 @@ public class TestErrorHandling extends TestCase
     }
     catch (RecognitionException err)
     {
+      caughtException = true;
       assertEquals("[line:4, col:0] Range/multi/path facet, \"tags\", cannot be used in the GROUP BY clause. (token=order)",
                    _compiler.getErrorMessage(err));
-      caughtException = true;
     }
     finally 
     {
@@ -758,9 +756,9 @@ public class TestErrorHandling extends TestCase
     }
     catch (RecognitionException err)
     {
+      caughtException = true;
       assertEquals("[line:4, col:0] Range/multi/path facet, \"year\", cannot be used in the GROUP BY clause. (token=order)",
                    _compiler.getErrorMessage(err));
-      caughtException = true;
     }
     finally 
     {
@@ -783,9 +781,9 @@ public class TestErrorHandling extends TestCase
   //   }
   //   catch (RecognitionException err)
   //   {
+  //     caughtException = true;
   //     assertEquals("[line:1, col:14] Expecting IDENT (token=from)",
   //                  _compiler.getErrorMessage(err));
-  //     caughtException = true;
   //   }
   //   finally 
   //   {
@@ -810,10 +808,10 @@ public class TestErrorHandling extends TestCase
     }
     catch (RecognitionException err)
     {
+      caughtException = true;
       //System.out.println(">>> _compiler.getErrorMessage(err): " + _compiler.getErrorMessage(err));
       assertEquals("[line:3, col:25] Non-rangable facet column \"city\" cannot be used in TIME predicates. (token=<EOF>)",
                    _compiler.getErrorMessage(err));
-      caughtException = true;
     }
     finally 
     {
@@ -838,9 +836,9 @@ public class TestErrorHandling extends TestCase
     }
     catch (RecognitionException err)
     {
+      caughtException = true;
       assertEquals("[line:3, col:33] Hit NumberFormatException: For input string: \"12345678901234567890\" (token=<EOF>)",
                    _compiler.getErrorMessage(err));
-      caughtException = true;
     }
     finally 
     {
@@ -866,9 +864,9 @@ public class TestErrorHandling extends TestCase
     }
     catch (RecognitionException err)
     {
+      caughtException = true;
       assertEquals("[line:4, col:15] ROUTE BY clause can only appear once. (token=<EOF>)",
                    _compiler.getErrorMessage(err));
-      caughtException = true;
     }
     finally 
     {
@@ -893,9 +891,9 @@ public class TestErrorHandling extends TestCase
     }
     catch (RecognitionException err)
     {
+      caughtException = true;
       assertEquals("[line:3, col:21] FETCHING STORED cannot be false when _srcdata is selected. (token=<EOF>)",
                     _compiler.getErrorMessage(err));
-      caughtException = true;
     }
     finally 
     {
@@ -920,9 +918,9 @@ public class TestErrorHandling extends TestCase
     }
     catch (RecognitionException err)
     {
+      caughtException = true;
       assertEquals("[line:3, col:21] FETCHING STORED cannot be false when _srcdata is selected. (token=<EOF>)",
                     _compiler.getErrorMessage(err));
-      caughtException = true;
     }
     finally 
     {
@@ -948,9 +946,9 @@ public class TestErrorHandling extends TestCase
     }
     catch (RecognitionException err)
     {
+      caughtException = true;
       assertEquals("[line:4, col:40] USING RELEVANCE MODEL clause can only appear once. (token=<EOF>)",
                    _compiler.getErrorMessage(err));
-      caughtException = true;
     }
     finally 
     {
@@ -981,9 +979,9 @@ public class TestErrorHandling extends TestCase
     }
     catch (RecognitionException err)
     {
+      caughtException = true;
       assertEquals("[line:7, col:15] Variable \"x\" is already defined. (token=;)",
                    _compiler.getErrorMessage(err));
-      caughtException = true;
     }
     finally 
     {
@@ -1014,8 +1012,8 @@ public class TestErrorHandling extends TestCase
     }
     catch (RecognitionException err)
     {
-      assertEquals("[line:6, col:10] Variable or class \"x\" is not defined. (token===)", _compiler.getErrorMessage(err));
       caughtException = true;
+      assertEquals("[line:6, col:10] Variable or class \"x\" is not defined. (token===)", _compiler.getErrorMessage(err));
     }
     finally 
     {
@@ -1051,9 +1049,9 @@ public class TestErrorHandling extends TestCase
     }
     catch (RecognitionException err)
     {
+      caughtException = true;
       // System.out.println(">>> err = " + _compiler.getErrorMessage(err));
       assertEquals("[line:11, col:8] Variable or class \"y\" is not defined. (token==)", _compiler.getErrorMessage(err));
-      caughtException = true;
     }
     finally 
     {
@@ -1086,8 +1084,8 @@ public class TestErrorHandling extends TestCase
     }
     catch (RecognitionException err)
     {
-      assertEquals("[line:10, col:6] Variable or class \"i\" is not defined. (token==)", _compiler.getErrorMessage(err));
       caughtException = true;
+      assertEquals("[line:10, col:6] Variable or class \"i\" is not defined. (token==)", _compiler.getErrorMessage(err));
     }
     finally 
     {
@@ -1116,8 +1114,8 @@ public class TestErrorHandling extends TestCase
     }
     catch (RecognitionException err)
     {
-      assertEquals("[line:6, col:12] Facet name \"year\" cannot be used to declare a variable. (token=;)", _compiler.getErrorMessage(err));
       caughtException = true;
+      assertEquals("[line:6, col:12] Facet name \"year\" cannot be used to declare a variable. (token=;)", _compiler.getErrorMessage(err));
     }
     finally 
     {
@@ -1146,8 +1144,8 @@ public class TestErrorHandling extends TestCase
     }
     catch (RecognitionException err)
     {
-      assertEquals("[line:6, col:15] Internal variable \"_NOW\" cannot be re-used to declare another variable. (token=;)", _compiler.getErrorMessage(err));
       caughtException = true;
+      assertEquals("[line:6, col:15] Internal variable \"_NOW\" cannot be re-used to declare another variable. (token=;)", _compiler.getErrorMessage(err));
     }
     finally 
     {
@@ -1179,8 +1177,8 @@ public class TestErrorHandling extends TestCase
     }
     catch (RecognitionException err)
     {
-      assertEquals("[line:8, col:11] Variable \"x\" is already defined. (token=;)", _compiler.getErrorMessage(err));
       caughtException = true;
+      assertEquals("[line:8, col:11] Variable \"x\" is already defined. (token=;)", _compiler.getErrorMessage(err));
     }
     finally 
     {
@@ -1209,9 +1207,9 @@ public class TestErrorHandling extends TestCase
     }
     catch (RecognitionException err)
     {
+      caughtException = true;
       // System.out.println(">>> err = " + _compiler.getErrorMessage(err));
       assertEquals("[line:4, col:36] Facet name \"price\" cannot be used as a relevance model parameter. (token=))", _compiler.getErrorMessage(err));
-      caughtException = true;
     }
     finally 
     {
@@ -1240,9 +1238,9 @@ public class TestErrorHandling extends TestCase
     }
     catch (RecognitionException err)
     {
+      caughtException = true;
       // System.out.println(">>> err = " + _compiler.getErrorMessage(err));
       assertEquals("[line:4, col:37] Parameter name \"srcid\" has already been used. (token=))", _compiler.getErrorMessage(err));
-      caughtException = true;
     }
     finally 
     {
@@ -1271,9 +1269,9 @@ public class TestErrorHandling extends TestCase
     }
     catch (RecognitionException err)
     {
+      caughtException = true;
       // System.out.println(">>> err = " + _compiler.getErrorMessage(err));
       assertEquals("[line:4, col:34] Internal variable \"_NOW\" cannot be used as a relevance model parameter. (token=))", _compiler.getErrorMessage(err));
-      caughtException = true;
     }
     finally 
     {
