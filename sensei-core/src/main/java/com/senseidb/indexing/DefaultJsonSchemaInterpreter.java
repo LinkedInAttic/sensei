@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -37,6 +38,7 @@ import java.util.zip.GZIPOutputStream;
 
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.log4j.Logger;
+import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.Field.Index;
 import org.apache.lucene.document.Field.Store;
@@ -287,6 +289,80 @@ public class DefaultJsonSchemaInterpreter extends
             filtered = src;
         }
         return new AbstractZoieIndexable() {
+            /**
+             * Process a field with the given value according to the field definition and add the result to lucene document.
+             * @param filedName name of the field.
+             * @param fieldVal  value of the field.
+             * @param fieldDef  field specification
+             * @param doc  lucene document to which to add the field.
+             */
+            void addField(String filedName, String fieldVal, FieldDefinition fieldDef, Document doc) {
+
+                if (fieldVal == null) {
+                    return;
+                }
+
+                if (fieldDef.isMeta) {
+                    JsonValExtractor extractor = ExtractorMap.get(fieldDef.type);
+
+                    if (extractor == null) {
+                        if (Date.class.equals(fieldDef.type)) {
+                            extractor = _dateExtractorMap.get(filedName);
+                        } else {
+                            extractor = ExtractorMap.get(String.class);
+                        }
+                    }
+                    List<Object> vals = new LinkedList<Object>();
+                    if (fieldDef.isMulti) {
+                        for (String token : tokenize(fieldVal, fieldDef.delim)) {
+                            Object obj = extractor.extract(token);
+                            if (obj != null) {
+                                vals.add(obj);
+                            }
+                        }
+                    } else {
+                        Object obj = extractor.extract(fieldVal);
+                        if (obj != null) {
+                            vals.add(obj);
+                        }
+                    }
+
+                    for (Object val : vals) {
+                        if (val == null) continue;
+                        String strVal = null;
+                        if (fieldDef.formatter != null) {
+                            strVal = fieldDef.formatter.format(val);
+                        } else {
+                            strVal = String.valueOf(val);
+                        }
+                        Field metaField = new Field(filedName, strVal, Store.NO, Index.NOT_ANALYZED_NO_NORMS);
+                        metaField.setOmitNorms(true);
+                        metaField.setIndexOptions(IndexOptions.DOCS_ONLY);
+                        doc.add(metaField);
+                    }
+                } else {
+                    Field textField = new Field(filedName, fieldVal,
+                            fieldDef.textIndexSpec.store, fieldDef.textIndexSpec.index, fieldDef.textIndexSpec.tv);
+                    doc.add(textField);
+                }
+            }
+
+            /**
+             * Process a field name that has wildcards
+             * We iterate through all the fields in the document and add them to Lucene document
+             * if they match the pattern.
+             */
+            void processWildCards(String fieldName, FieldDefinition fieldDef, JSONObject input, Document doc) {
+                Iterator keyIterator = input.keys();
+
+                while (keyIterator.hasNext()) {
+                    String docField = keyIterator.next().toString();
+                    if (fieldDef.wildCardPattern.matcher(docField).matches()) {
+                        String val = input.optString(docField, null);
+                        addField(docField, val, fieldDef, doc);
+                    }
+                }
+            }
 
             @Override
             public IndexingReq[] buildIndexingReqs() {
@@ -299,54 +375,12 @@ public class DefaultJsonSchemaInterpreter extends
                         if (nonLuceneFields.contains(entry.getKey())) {
                             continue;
                         }
-                        if (fldDef.isMeta) {
-                            JsonValExtractor extractor = ExtractorMap.get(fldDef.type);
-                            if (extractor == null) {
-                                if (Date.class.equals(fldDef.type)) {
-                                    extractor = _dateExtractorMap.get(name);
-                                } else {
-                                    extractor = ExtractorMap.get(String.class);
-                                }
-                            }
-
-                            if (filtered.has(fldDef.fromField)) {
-                                List<Object> vals = new LinkedList<Object>();
-                                if (filtered.isNull(fldDef.fromField)) continue;
-                                if (fldDef.isMulti) {
-                                    String val = filtered.optString(fldDef.fromField);
-                                    for (String token : tokenize(val, fldDef.delim)) {
-                                        Object obj = extractor.extract(token);
-                                        if (obj != null) {
-                                            vals.add(obj);
-                                        }
-                                    }
-                                } else {
-                                    String val = filtered.optString(fldDef.fromField);
-                                    if (val == null) continue;
-                                    Object obj = extractor.extract(filtered.optString(fldDef.fromField));
-                                    if (obj != null) {
-                                        vals.add(obj);
-                                    }
-                                }
-
-                                for (Object val : vals) {
-                                    if (val == null) continue;
-                                    String strVal = null;
-                                    if (fldDef.formatter != null) {
-                                        strVal = fldDef.formatter.format(val);
-                                    } else {
-                                        strVal = String.valueOf(val);
-                                    }
-                                    Field metaField = new Field(name, strVal, Store.NO, Index.NOT_ANALYZED_NO_NORMS);
-                                    metaField.setOmitNorms(true);
-                                    metaField.setIndexOptions(IndexOptions.DOCS_ONLY);
-                                    luceneDoc.add(metaField);
-                                }
-                            }
-                        } else {
-                            Field textField = new Field(name, filtered.optString(fldDef.fromField),
-                                    fldDef.textIndexSpec.store, fldDef.textIndexSpec.index, fldDef.textIndexSpec.tv);
-                            luceneDoc.add(textField);
+                        if (fldDef.hasWildCards) {
+                            processWildCards(name, fldDef, filtered, luceneDoc);
+                        }
+                        else {
+                            String val = filtered.optString(name, null);
+                            addField(name, val, fldDef, luceneDoc);
                         }
                     } catch (Exception e) {
                         logger.error("Problem extracting data for field: " + name, e);
