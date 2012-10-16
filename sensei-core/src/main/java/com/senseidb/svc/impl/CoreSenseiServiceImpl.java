@@ -24,6 +24,7 @@ import com.browseengine.bobo.api.BrowseHit;
 import com.browseengine.bobo.api.BrowseRequest;
 import com.browseengine.bobo.api.BrowseResult;
 import com.browseengine.bobo.api.MultiBoboBrowser;
+import com.browseengine.bobo.sort.SortCollector;
 import com.linkedin.norbert.network.JavaSerializer;
 import com.linkedin.norbert.network.Serializer;
 import com.senseidb.indexing.SenseiIndexPruner;
@@ -247,7 +248,24 @@ public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiReque
 	@Override
 	public SenseiResult mergePartitionedResults(SenseiRequest r,
 			List<SenseiResult> resultList) {
-		return ResultMerger.merge(r, resultList, true);
+    try
+    {
+      return ResultMerger.merge(r, resultList, true);
+    }
+    finally
+    {
+      if (resultList != null)
+      {
+        for (SenseiResult res : resultList)
+        {
+          SortCollector sortCollector = res.getSortCollector();
+          if (sortCollector != null)
+          {
+            sortCollector.close();
+          }
+        }
+      }
+    }
 	}
 
 	@Override
