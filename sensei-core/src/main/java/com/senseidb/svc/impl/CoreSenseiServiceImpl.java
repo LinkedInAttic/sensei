@@ -189,12 +189,12 @@ public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiReque
           if (segmentReaders!=null && segmentReaders.size()>0){
         	final AtomicInteger skipDocs = new AtomicInteger(0);
 
+          final SenseiIndexPruner pruner = _core.getIndexPruner();
+
         	List<BoboIndexReader> validatedSegmentReaders = timerMetric.time(new Callable<List<BoboIndexReader>>(){
 
 				     @Override
 				     public List<BoboIndexReader> call() throws Exception {
-					      SenseiIndexPruner pruner = _core.getIndexPruner();
-
 		  	        IndexReaderSelector readerSelector = pruner.getReaderSelector(request);
 		  	        List<BoboIndexReader> validatedReaders = new ArrayList<BoboIndexReader>(segmentReaders.size());
 		        	  for (BoboIndexReader segmentReader : segmentReaders){
@@ -209,7 +209,9 @@ public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiReque
 				      }
         		
         	});
-        	
+
+          pruner.sort(validatedSegmentReaders);
+
 	        browser = new MultiBoboBrowser(BoboBrowser.createBrowsables(validatedSegmentReaders));
 	        BrowseRequest breq = RequestConverter.convert(request, queryBuilderFactory);
 	        if (request.getMapReduceFunction() != null) {

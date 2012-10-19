@@ -1,6 +1,7 @@
 package com.senseidb.indexing;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 import com.browseengine.bobo.api.BoboIndexReader;
@@ -69,6 +70,11 @@ public class TimeBasedIndexSelector implements SenseiIndexPruner, SenseiPlugin {
         return true;
       }
     };
+  }
+
+  @Override
+  public void sort(List<BoboIndexReader> readers) {
+    // do nothing
   }
 
   private long getStartTime(String[] rangeStrings) {

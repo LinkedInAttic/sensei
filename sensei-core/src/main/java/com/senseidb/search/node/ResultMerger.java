@@ -145,6 +145,34 @@ public class ResultMerger
       this.queue = queue;
     }
   }
+
+  // all sub accessibles are CombinedFacetAccessible
+  private final static class MyCombinedFacetAccessible extends CombinedFacetAccessible
+  {
+    public MyCombinedFacetAccessible(FacetSpec fspec,List<FacetAccessible> list)
+    {
+      super(fspec, list);
+    }
+
+    public int getCappedFacetCount(Object value, int cap) 
+    {
+      if (_closed)
+      {
+        throw new IllegalStateException("This instance of count collector was already closed");
+      }
+      int sum = 0;
+      if (_list != null)
+      {
+        for (FacetAccessible facetAccessor : _list)
+        {
+          sum += ((CombinedFacetAccessible)facetAccessor).getCappedFacetCount(value, cap-sum);
+          if (sum >= cap)
+            return cap;
+        }
+      }
+      return sum;
+    }
+  }
   private static Map<String, FacetAccessible> mergeFacetContainer(Collection<Map<String, FacetAccessible>> subMaps,
                                                                   SenseiRequest req)
   {
@@ -840,10 +868,10 @@ public class ResultMerger
 
     MyScoreDoc pre = null;
     Object rawGroupValue = null;
-    CombinedFacetAccessible[] combinedFacetAccessibles = new CombinedFacetAccessible[groupAccessibles.length];
+    MyCombinedFacetAccessible[] combinedFacetAccessibles = new MyCombinedFacetAccessible[groupAccessibles.length];
     for(int i = 0; i < groupAccessibles.length; i++)
     {
-      combinedFacetAccessibles[i] = new CombinedFacetAccessible(new FacetSpec(), groupAccessibles[i]);
+      combinedFacetAccessibles[i] = new MyCombinedFacetAccessible(new FacetSpec(), groupAccessibles[i]);
     }
 
     Set<Object>[] groupSets = new Set[rawGroupValueType.length];
@@ -878,15 +906,15 @@ public class ResultMerger
       }
     }, topHits, 0);
 
-    // Sort all the documents????
-
     for (SenseiResult res : results)
     {
       SortCollector sortCollector = res.getSortCollector();
       if (sortCollector == null)
         continue;
 
-      Iterator<CollectorContext> contextIter = sortCollector.contextList.iterator();
+      int end = (res.getNumHits() % SortCollector.BLOCK_SIZE) - 1;
+
+      Iterator<CollectorContext> contextIter = sortCollector.contextList.descendingIterator();
 
       // Populate dataCaches and contextLeft
       CollectorContext currentContext = null;
@@ -904,15 +932,17 @@ public class ResultMerger
         }
       }
 
-      Iterator<float[]> scoreArrayIter = sortCollector.scorearraylist != null ? sortCollector.scorearraylist.iterator():null;
+      Iterator<float[]> scoreArrayIter = sortCollector.scorearraylist != null ? sortCollector.scorearraylist.descendingIterator():null;
 
       if (contextLeft > 0)
       {
-        for (int[] docs : sortCollector.docidarraylist)
+        Iterator<int[]> docArrayIter = sortCollector.docidarraylist.descendingIterator();
+        while (docArrayIter.hasNext())
         {
+          int[] docs = docArrayIter.next();
           float[] scores = scoreArrayIter != null ? scoreArrayIter.next():null;
 
-          for (int i=0; i<SortCollector.BLOCK_SIZE; ++i)
+          for (int i = end; i >= 0; --i)
           {
             tmpScoreDoc.doc = docs[i];
             tmpScoreDoc.score = scores != null ? scores[i] : 0.0f;
@@ -1011,6 +1041,7 @@ public class ResultMerger
                 break;
             }
           }
+          end = SortCollector.BLOCK_SIZE - 1;
         }
       }
       totalDocs += res.getTotalDocs();
@@ -1216,7 +1247,8 @@ public class ResultMerger
         {
           SortCollector sortCollector = res.getSortCollector();
           if (sortCollector == null) continue;
-          Iterator<CollectorContext> contextIter = sortCollector.contextList.iterator();
+          int end = (res.getNumHits() % SortCollector.BLOCK_SIZE) - 1;
+          Iterator<CollectorContext> contextIter = sortCollector.contextList.descendingIterator();
           CollectorContext currentContext = null;
           int contextLeft = 0;
           FacetDataCache[] dataCaches = new FacetDataCache[sortCollector.groupByMulti.length];
@@ -1232,13 +1264,15 @@ public class ResultMerger
             }
           }
 
-          Iterator<float[]> scoreArrayIter = sortCollector.scorearraylist != null ? sortCollector.scorearraylist.iterator():null;
+          Iterator<float[]> scoreArrayIter = sortCollector.scorearraylist != null ? sortCollector.scorearraylist.descendingIterator():null;
           if (contextLeft > 0)
           {
-            for (int[] docs : sortCollector.docidarraylist)
+            Iterator<int[]> docArrayIter = sortCollector.docidarraylist.descendingIterator();
+            while (docArrayIter.hasNext())
             {
+              int[] docs = docArrayIter.next();
               float[] scores = scoreArrayIter != null ? scoreArrayIter.next():null;
-              for (int i=0; i<SortCollector.BLOCK_SIZE; ++i)
+              for (int i = end; i >= 0; --i)
               {
                 doc = docs[i];
                 score = scores != null ? scores[i]:0.0f;
@@ -1287,6 +1321,7 @@ public class ResultMerger
                     break;
                 }
               }
+              end = SortCollector.BLOCK_SIZE - 1;
             }
           }
         }
