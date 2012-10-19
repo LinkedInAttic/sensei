@@ -673,7 +673,7 @@ public class ResultMerger
 
         MyScoreDoc pre = null;
 
-        if (topHits > 0 && groupAccessibles != null && groupAccessibles.length > 1)
+        if (topHits > 0 && groupAccessibles != null && groupAccessibles.length != 0)
         {
           hitsList = buildHitsList(req, results, topHits, groupAccessibles, rawGroupValueType, primitiveLongArrayWrapperTmp);
         }
@@ -691,6 +691,18 @@ public class ResultMerger
 
       if (hasSortCollector)
       {
+        // Fix group position
+        for (SenseiHit hit : hits)
+        {
+          if (hit.getGroupHitsCount() <= 1)
+          {
+            hit.setGroupPosition(0);
+            hit.setGroupField(req.getGroupBy()[0]);
+            hit.setGroupValue(hit.getField(req.getGroupBy()[0]));
+            hit.setRawGroupValue(hit.getRawField(req.getGroupBy()[0]));
+          }
+        }
+
         for (Map<Object, HitWithGroupQueue> map : groupMaps)
         {
           for (HitWithGroupQueue hwg : map.values())
@@ -828,21 +840,20 @@ public class ResultMerger
 
     MyScoreDoc pre = null;
     Object rawGroupValue = null;
-    Object firstRawGroupValue = null;
     CombinedFacetAccessible[] combinedFacetAccessibles = new CombinedFacetAccessible[groupAccessibles.length];
     for(int i = 0; i < groupAccessibles.length; i++)
     {
       combinedFacetAccessibles[i] = new CombinedFacetAccessible(new FacetSpec(), groupAccessibles[i]);
     }
 
-    Set<Object>[] groupSets = new Set[groupAccessibles.length];
-    for (int i = 0; i < groupAccessibles.length; ++i)
+    Set<Object>[] groupSets = new Set[rawGroupValueType.length];
+    for (int i = 0; i < rawGroupValueType.length; ++i)
     {
       groupSets[i] = new HashSet<Object>(topHits);
     }
 
-    Map<Object, MyScoreDoc>[] valueDocMaps = new Map[groupAccessibles.length];
-    for (int i = 0; i < groupAccessibles.length; ++i)
+    Map<Object, MyScoreDoc>[] valueDocMaps = new Map[rawGroupValueType.length];
+    for (int i = 0; i < rawGroupValueType.length; ++i)
     {
       valueDocMaps[i] = new HashMap<Object, MyScoreDoc>(topHits);
     }
@@ -909,58 +920,52 @@ public class ResultMerger
             tmpScoreDoc.reader = currentContext.reader;
             tmpScoreDoc.sortValue = currentContext.comparator.value(tmpScoreDoc);
 
-            firstRawGroupValue = null;
             int j=0;
-            for (; j<sortCollector.groupByMulti.length; ++j)
+
+            if (!queueFull || tmpScoreDoc.sortValue.compareTo(bottom.sortValue) < 0)
             {
-              rawGroupValue = dataCaches[j].valArray.getRawValue(dataCaches[j].orderArray.get(tmpScoreDoc.doc));
-
-              rawGroupValue = extractRawGroupValue(rawGroupValueType, j,
-                  primitiveLongArrayWrapperTmp, rawGroupValue);
-
-              if (firstRawGroupValue == null) firstRawGroupValue = rawGroupValue;
-
-              pre = valueDocMaps[j].get(rawGroupValue);
-              if (pre != null)
+              for (;; ++j)
               {
-                j = -1;
-                break;
-              }
+                rawGroupValue = dataCaches[j].valArray.getRawValue(dataCaches[j].orderArray.get(tmpScoreDoc.doc));
 
-              if (rawGroupValueType[j] == LONG_ARRAY_GROUP_VALUE_TYPE)
-              {
-                if (combinedFacetAccessibles[j].getCappedFacetCount(primitiveLongArrayWrapperTmp.data, 2) != 1)
+                rawGroupValue = extractRawGroupValue(rawGroupValueType, j,
+                    primitiveLongArrayWrapperTmp, rawGroupValue);
+
+                pre = valueDocMaps[j].get(rawGroupValue);
+                if (pre != null)
+                {
+                  j = -1;
                   break;
+                }
+
+                if (j >= combinedFacetAccessibles.length) break;
+
+                if (rawGroupValueType[j] == LONG_ARRAY_GROUP_VALUE_TYPE)
+                {
+                  if (combinedFacetAccessibles[j].getCappedFacetCount(primitiveLongArrayWrapperTmp.data, 2) != 1)
+                    break;
+                }
+                else
+                {
+                  if (combinedFacetAccessibles[j].getCappedFacetCount(rawGroupValue, 2) != 1)
+                    break;
+                }
+              }
+              if (j < 0)
+              {
+                if (tmpScoreDoc.sortValue.compareTo(pre.sortValue) < 0)
+                {
+                  tmpScoreDoc.groupPos = pre.groupPos;
+                  tmpScoreDoc.rawGroupValue = rawGroupValue;
+                  MyScoreDoc tmp = pre;
+
+                  // Pre has a higher score. Pop it in the queue!
+                  bottom = (MyScoreDoc)docQueue.replace(tmpScoreDoc, pre);
+                  valueDocMaps[tmpScoreDoc.groupPos].put(rawGroupValue, tmpScoreDoc);
+                  tmpScoreDoc = tmp;
+                }
               }
               else
-              {
-                if (combinedFacetAccessibles[j].getCappedFacetCount(rawGroupValue, 2) != 1)
-                  break;
-              }
-            }
-
-            if (j < 0)
-            {
-              if (tmpScoreDoc.sortValue.compareTo(pre.sortValue) < 0)
-              {
-                tmpScoreDoc.groupPos = pre.groupPos;
-                tmpScoreDoc.rawGroupValue = rawGroupValue;
-                MyScoreDoc tmp = pre;
-
-                // Pre has a higher score. Pop it in the queue!
-                bottom = (MyScoreDoc)docQueue.replace(tmpScoreDoc, pre);
-                valueDocMaps[tmpScoreDoc.groupPos].put(rawGroupValue, tmpScoreDoc);
-                tmpScoreDoc = tmp;
-              }
-            }
-            else
-            {
-              if (j >= sortCollector.groupByMulti.length)
-              {
-                j = 0;
-                rawGroupValue = firstRawGroupValue;
-              }
-              if (!queueFull || tmpScoreDoc.sortValue.compareTo(bottom.sortValue) < 0)
               {
                 if (queueFull)
                 {
