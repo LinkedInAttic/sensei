@@ -232,6 +232,29 @@ public class RequestConverter2 {
           req.setMaxPerGroup(groupBy.optInt("top", groupBy.optInt("count", 1)));
         }
 
+      // distinct
+      JSONObject distinct = json.optJSONObject("distinct");
+      if (distinct != null)
+      {
+        JSONArray columns = distinct.optJSONArray("columns");
+        if (columns != null && columns.length() >= 1)
+        {
+          String[] distinctArray = new String[columns.length()];
+          for (int i=0; i<columns.length(); ++i)
+            distinctArray[i] = columns.getString(i);
+          if (distinctArray.length == 1 && req.getGroupBy() == null)
+          {
+            // rewrite to use group by
+            req.setGroupBy(distinctArray);
+            req.setMaxPerGroup(0);
+          }
+          else
+          {
+            req.setDistinct(distinctArray);
+          }
+        }
+      }
+
       // selections
       Object selections = json.opt(RequestConverter2.SELECTIONS);
       if (selections == null)

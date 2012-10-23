@@ -112,6 +112,7 @@ BNF Grammar for BQL
 <additional_clause> ::= <order_by_clause>
                       | <limit_clause>
                       | <group_by_clause>
+                      | <distinct_clause>
                       | <browse_by_clause>
                       | <fetching_stored_clause>
                       | <route_by_clause>
@@ -127,7 +128,11 @@ BNF Grammar for BQL
 
 <group_by_clause> ::= GROUP BY <group_spec>
 
+<distinct_clause> ::= DISTINCT <distinct_spec>
+
 <group_spec> ::= <or_column_name_list> [TOP <max_per_group>]
+
+<distinct_spec> ::= <or_column_name_list>
 
 <or_column_name_list> ::= <column_name> ( OR <column_name> )*
 
@@ -1103,6 +1108,7 @@ CONTAINS : ('C'|'c')('O'|'o')('N'|'n')('T'|'t')('A'|'a')('I'|'i')('N'|'n')('S'|'
 DEFINED : ('D'|'d')('E'|'e')('F'|'f')('I'|'i')('N'|'n')('E'|'e')('D'|'d') ;
 DESC : ('D'|'d')('E'|'e')('S'|'s')('C'|'c') ;
 DESCRIBE : ('D'|'d')('E'|'e')('S'|'s')('C'|'c')('R'|'r')('I'|'i')('B'|'b')('E'|'e') ;
+DISTINCT : ('D'|'d')('I'|'i')('S'|'s')('T'|'t')('I'|'i')('N'|'n')('C'|'c')('T'|'t') ;
 DOUBLE : ('D'|'d')('O'|'o')('U'|'u')('B'|'b')('L'|'l')('E'|'e') ;
 EMPTY : ('E'|'e')('M'|'m')('P'|'p')('T'|'t')('Y'|'y') ;
 ELSE : ('E'|'e')('L'|'l')('S'|'s')('E'|'e') ;
@@ -1201,6 +1207,7 @@ select_stmt returns [Object json]
     boolean seenOrderBy = false;
     boolean seenLimit = false;
     boolean seenGroupBy = false;
+    boolean seenDistinct = false;
     boolean seenBrowseBy = false;
     boolean seenFetchStored = false;
     boolean seenRouteBy = false;
@@ -1235,6 +1242,15 @@ select_stmt returns [Object json]
                 }
                 else {
                     seenGroupBy = true;
+                }
+            }
+        |   distinct = distinct_clause
+            { 
+                if (seenDistinct) {
+                    throw new FailedPredicateException(input, "select_stmt", "DISTINCT clause can only appear once.");
+                }
+                else {
+                    seenDistinct = true;
                 }
             }
         |   browse_by = browse_by_clause
@@ -1314,6 +1330,9 @@ select_stmt returns [Object json]
                 }
                 if (group_by != null) {
                     jsonObj.put("groupBy", $group_by.json);
+                }
+                if (distinct != null) {
+                    jsonObj.put("distinct", $distinct.json);
                 }
                 if (browse_by != null) {
                     jsonObj.put("facets", $browse_by.json);
@@ -1551,6 +1570,36 @@ group_by_clause returns [JSONObject json]
             }
             catch (JSONException err) {
                 throw new FailedPredicateException(input, "group_by_clause", "JSONException: " + err.getMessage());
+            }
+        }
+    ;
+
+distinct_clause returns [JSONObject json]
+    :   DISTINCT or_column_name_list
+        {
+            $json = new FastJSONObject();
+            try {
+                JSONArray cols = $or_column_name_list.json;
+                if (cols.length() > 1) {
+                  throw new FailedPredicateException(input, 
+                                                     "distinct_clause",
+                                                     "DISTINCT only support a single column now.");
+                }
+                for (int i = 0; i < cols.length(); ++i) {
+                    String col = cols.getString(i);
+                    String[] facetInfo = _facetInfoMap.get(col);
+                    if (facetInfo != null && (facetInfo[0].equals("range") ||
+                                              facetInfo[0].equals("multi") ||
+                                              facetInfo[0].equals("path"))) {
+                        throw new FailedPredicateException(input, 
+                                                           "distinct_clause",
+                                                           "Range/multi/path facet, \"" + col + "\", cannot be used in the DISTINCT clause.");
+                    }
+                }
+                $json.put("columns", cols);
+            }
+            catch (JSONException err) {
+                throw new FailedPredicateException(input, "distinct_clause", "JSONException: " + err.getMessage());
             }
         }
     ;

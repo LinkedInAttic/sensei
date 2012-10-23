@@ -183,6 +183,14 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
           selectList.add(groupByFields[i]);
         }
       }
+      String[] distinctFields = request.getDistinct();
+      if (distinctFields != null && distinctFields.length != 0)
+      {
+        for (int i = 0; i < distinctFields.length; ++i)
+        {
+          selectList.add(distinctFields[i]);
+        }
+      }
       request.setSelectList(selectList);
     }
 

@@ -51,6 +51,7 @@ private long   tid           =          -1;
   private String _routeParam;
 	private String _groupBy;  // TODO: Leave here for backward compatible reason, will remove it later.
 	private String[] _groupByMulti;
+	private String[] _distinct;
   private int _maxPerGroup;
   private Set<String> _termVectorsToFetch;
   private List<String> _selectList; // Select list (mostly used in BQL) 
@@ -70,6 +71,7 @@ private long   tid           =          -1;
     _routeParam = null;
     _groupBy = null;
     _groupByMulti = null;
+    _distinct = null;
     _maxPerGroup = 0;
     _termVectorsToFetch = null;
     _selectList = null;
@@ -144,6 +146,16 @@ private long   tid           =          -1;
       _groupByMulti = new String[]{_groupBy};
 
 		return _groupByMulti;
+  }
+
+  public void setDistinct(String[] distinct)
+  {
+    _distinct = distinct;
+  }
+
+  public String[] getDistinct()
+  {
+    return _distinct;
   }
 
   public void setMaxPerGroup(int maxPerGroup)
@@ -517,6 +529,7 @@ private long   tid           =          -1;
     clone.setShowExplanation(this.isShowExplanation());
     clone.setRouteParam(this.getRouteParam());
     clone.setGroupBy(this.getGroupBy());
+    clone.setDistinct(this.getDistinct());
     clone.setMaxPerGroup(this.getMaxPerGroup());
     clone.setTermVectorsToFetch(this.getTermVectorsToFetch());
     if (this.getSelectList() != null) {
