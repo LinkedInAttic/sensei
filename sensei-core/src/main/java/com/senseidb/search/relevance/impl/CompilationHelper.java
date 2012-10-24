@@ -337,6 +337,8 @@ public class CompilationHelper
     hs_safe.add("it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap");
 
     hs_safe.add("it.unimi.dsi.fastutil.objects.AbstractObject2FloatMap");
+    hs_safe.add("it.unimi.dsi.fastutil.objects.AbstractObject2FloatFunction");
+
 
     hs_safe.add("com.senseidb.search.relevance.impl.MFacet");
     hs_safe.add("com.senseidb.search.relevance.impl.MFacetDouble");
@@ -470,7 +472,13 @@ public class CompilationHelper
     {
       String facetType = it_facet.next();
       JSONArray facetArray = jsonFacets.getJSONArray(facetType);
-      handleFacetSymbols(facetType, facetArray, facetIndice, dataTable);
+
+     try {
+         handleFacetSymbols(facetType, facetArray, facetIndice, dataTable);
+     } catch (JSONException e) {
+         logger.error("JSON facets are " + jsonFacets);
+         throw e;
+     }
     }
 
     // Process other variables
@@ -698,7 +706,7 @@ public class CompilationHelper
           throw new JSONException("Variable "+ symbol + " does not have value.");
 
         JSONArray keysList = values.names();
-        int keySize = keysList.length();
+        int keySize = keysList == null ? 0 : keysList.length();
         
         // denote if the map is represented in a way of combination of key jsonarray and value jsonarray;
         boolean isKeyValue = isKeyValueArrayMethod(values);
@@ -961,6 +969,36 @@ public class CompilationHelper
     return lls_new;
   }
 
+  private static <T, V> String mkString(Map<T, V> map) {
+    StringBuffer sb = new StringBuffer().append("{");
+
+    int count = 0;
+    for(Map.Entry<T, V> entry : map.entrySet())
+    {
+      if(count++ != 0)
+          sb.append(", ");
+
+      sb.append(entry.getKey()).append(": ").append(entry.getValue());
+    }
+
+    return sb.append("}").toString();
+  }
+
+    private static <T> String mkString(Set<T> set) {
+        StringBuffer sb = new StringBuffer().append("[");
+
+        int count = 0;
+        for(T elem : set)
+        {
+            if(count++ != 0)
+                sb.append(", ");
+
+            sb.append(elem);
+        }
+
+        return sb.append("]").toString();
+    }
+
   private static void handleFacetSymbols(String facetType,
                                          JSONArray facetArray,
                                          int[] facetIndice,
@@ -970,7 +1008,11 @@ public class CompilationHelper
     Integer[] facetInfo = RelevanceJSONConstants.FACET_INFO_MAP.get(facetType);
     if (facetInfo == null)
     {
-      throw new JSONException("Wrong facet type in facet variable definition json: " + facetType);
+       String errorString = String.format("Wrong facet type in facet variable definition json: %s. Map contents are %s. Facet array is %s.",
+         facetType, mkString(RelevanceJSONConstants.FACET_INFO_MAP), facetArray);
+
+
+       throw new JSONException(errorString);
     }
 
     Integer type = facetInfo[0];
@@ -1070,8 +1112,10 @@ public class CompilationHelper
 
       if(hs_safe.contains(name) || name.equals(_target))
         return _cl.loadClass(name);
-      else
-        throw new ClassNotFoundException();
+      else {
+        String message = String.format("Unable to load class %s. Safe classes are %s", name, mkString(hs_safe));
+        throw new ClassNotFoundException(message);
+      }
     }
 
     public CustomLoader(ClassLoader cl, String target) {

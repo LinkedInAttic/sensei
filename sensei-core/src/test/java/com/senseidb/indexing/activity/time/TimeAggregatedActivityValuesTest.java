@@ -83,7 +83,7 @@ public class TimeAggregatedActivityValuesTest extends TestCase {
   }
   public void test2InMemory() {
     Clock.setPredefinedTimeInMinutes(0);
-    timeAggregatedActivityValues = TimeAggregatedActivityValues.createTimeAggregatedValues("likes", java.util.Arrays.asList("10m","5m", "2m"), 0, ActivityPersistenceFactory.getInstance(getDirPath()));
+    timeAggregatedActivityValues = TimeAggregatedActivityValues.createTimeAggregatedValues("likes", java.util.Arrays.asList("10m","5m", "2m"), 0, ActivityPersistenceFactory.getInMemoryInstance());
      timeAggregatedActivityValues.init(0);
     for (int i = 0; i < 11; i++) {
       Clock.setPredefinedTimeInMinutes(i);
@@ -94,7 +94,7 @@ public class TimeAggregatedActivityValuesTest extends TestCase {
     assertTrue(Arrays.toString( timeAggregatedActivityValues.timeActivities.getTimes(0).array), Arrays.equals(new int[] {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10}, timeAggregatedActivityValues.timeActivities.getTimes(0).array));   
     assertEquals(timeAggregatedActivityValues.valuesMap.get("10m").fieldValues[0], 11);
     Clock.setPredefinedTimeInMinutes(10);
-    AggregatesUpdateJob aggregatesUpdateJob = new AggregatesUpdateJob(timeAggregatedActivityValues, ActivityPersistenceFactory.getInstance(getDirPath()).createAggregatesMetadata( "likes"));
+    AggregatesUpdateJob aggregatesUpdateJob = new AggregatesUpdateJob(timeAggregatedActivityValues, ActivityPersistenceFactory.getInMemoryInstance().createAggregatesMetadata( "likes"));
     Clock.setPredefinedTimeInMinutes(11);
     aggregatesUpdateJob.run();
     assertEquals(timeAggregatedActivityValues.valuesMap.get("10m").fieldValues[0], 9);

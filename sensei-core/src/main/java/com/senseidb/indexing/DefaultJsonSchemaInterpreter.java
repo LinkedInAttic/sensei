@@ -397,36 +397,50 @@ public class DefaultJsonSchemaInterpreter extends
                 }
             }
 
-            @Override
-            public byte[] getStoreValue() {
-                byte[] data = null;
-                if (src != null) {
-                    Object type = src.remove(SenseiSchema.EVENT_TYPE_FIELD);
-                    try {
-                        if (_compressSrcData)
-                            data = compress(src.toString().getBytes("UTF-8"));
-                        else
-                            data = src.toString().getBytes("UTF-8");
-                    } catch (Exception e) {
-                        logger.error(e.getMessage(), e);
-                    }
-
-                    if (type != null) {
-                        try {
-                            src.put(SenseiSchema.EVENT_TYPE_FIELD, type);
-                        } catch (Exception e) {
-                            logger.error("Should never happen", e);
-                        }
-                    }
+          @Override
+          public byte[] getStoreValue()
+          {
+            byte[] data = null;
+            if (src != null)
+            {
+              Object type = src.remove(SenseiSchema.EVENT_TYPE_FIELD);
+              try
+              {
+                String srcData = src.optString(_schema.getSrcDataField(), null);
+                if (srcData == null)
+                {
+                  srcData = src.toString();
                 }
+                if (_compressSrcData)
+                  data = compress(srcData.getBytes("UTF-8"));
+                else
+                  data = srcData.getBytes("UTF-8");
+              }
+              catch (Exception e)
+              {
+                logger.error(e.getMessage(), e);
+              }
 
-                return data;
+              if (type != null)
+              {
+                try
+                {
+                  src.put(SenseiSchema.EVENT_TYPE_FIELD, type);
+                }
+                catch(Exception e)
+                {
+                  logger.error("Should never happen", e);
+                }
+              }
             }
 
-            @Override
-            public boolean isStorable() {
-                return true;
-            }
+            return data;
+          }
+
+          @Override
+          public boolean isStorable() {
+            return true;
+          }
 
 
         };

@@ -32,6 +32,7 @@ import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.store.Directory;
 import org.jboss.netty.util.internal.ConcurrentHashMap;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -80,6 +81,7 @@ public class CompositeActivityManager implements PluggableSearchEngine {
     private Counter recoveredIndexInBoboFacetDataCache;
     private Counter facetMappingMismatch;
     private ActivityPersistenceFactory activityPersistenceFactory;
+    private BoboIndexTracker boboIndexTracker;
 
     public CompositeActivityManager(ActivityPersistenceFactory activityPersistenceFactory) {      
       this.activityPersistenceFactory = activityPersistenceFactory;
@@ -174,6 +176,7 @@ public class CompositeActivityManager implements PluggableSearchEngine {
      */
     public JSONObject acceptEvent(JSONObject event, String version) {
       try {        
+        activityValues.updateVersion(version);
         if (event.opt(SenseiSchema.EVENT_TYPE_SKIP) != null  ||  SenseiSchema.EVENT_TYPE_SKIP.equalsIgnoreCase(event.optString(SenseiSchema.EVENT_TYPE_FIELD))) {
           return event;
         }
@@ -223,6 +226,8 @@ public class CompositeActivityManager implements PluggableSearchEngine {
       if (facets.isEmpty()) {
         return;
       }
+      boboIndexTracker.updateExistingBoboIndexes(uid, index, facets);
+
       for (int partition : senseiCore.getPartitions()) {
         IndexReaderFactory<ZoieIndexReader<BoboIndexReader>> indexReaderFactory = senseiCore.getIndexReaderFactory(partition);
         if (indexReaderFactory == null) {
@@ -346,14 +351,17 @@ public class CompositeActivityManager implements PluggableSearchEngine {
                                                                     "facetMappingMismatch"));
 
     this.senseiCore = senseiCore;
+    boboIndexTracker = new BoboIndexTracker();
+    boboIndexTracker.setSenseiCore(senseiCore);
     Set<IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>> zoieSystems = new HashSet<IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>>();
     for (int partition : senseiCore.getPartitions()) {
       if (senseiCore.getIndexReaderFactory(partition) != null) {
         zoieSystems.add((IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>) senseiCore.getIndexReaderFactory(partition));
       }
     }
+    senseiCore.getDecorator().addBoboListener(boboIndexTracker);
     int purgeJobFrequencyInMinutes = activityPersistenceFactory.getActivityConfig().getPurgeJobFrequencyInMinutes();
-    purgeUnusedActivitiesJob = new PurgeUnusedActivitiesJob(activityValues, zoieSystems, purgeJobFrequencyInMinutes * 60 * 1000);
+    purgeUnusedActivitiesJob = new PurgeUnusedActivitiesJob(activityValues, senseiCore, purgeJobFrequencyInMinutes * 60 * 1000);
     purgeUnusedActivitiesJob.start();
     
   }
@@ -406,11 +414,13 @@ public class CompositeActivityManager implements PluggableSearchEngine {
         TimeAggregatedActivityValues aggregatedActivityValues = (TimeAggregatedActivityValues) activityValues;
         for (String time : facet.params.get("time")) {
           String name = facet.name + ":" + time;
-          ret.add(ActivityRangeFacetHandler.valueOf(name, facet.column, getActivityValues(), (ActivityIntValues)aggregatedActivityValues.getValuesMap().get(time)));
+          ret.add(ActivityRangeFacetHandler.valueOf(name, facet.column, this, (ActivityIntValues)aggregatedActivityValues.getValuesMap().get(time)));
         }
-        ret.add(ActivityRangeFacetHandler.valueOf(facet.name, facet.column, getActivityValues(), (ActivityIntValues)aggregatedActivityValues.getDefaultIntValues()));
+        ret.add(ActivityRangeFacetHandler.valueOf(facet.name, facet.column, this, (ActivityIntValues)aggregatedActivityValues.getDefaultIntValues()));
       } else if ("range".equals(facet.type)){
-        ret.add(ActivityRangeFacetHandler.valueOf(facet.name, facet.column, getActivityValues(), getActivityValues().getActivityValues(facet.column)));
+
+        ret.add(ActivityRangeFacetHandler.valueOf(facet.name, facet.column, this, getActivityValues().getActivityValues(facet.column)));
+
       } else {
         throw new UnsupportedOperationException("The facet " + facet.name + "should be of type either aggregated-range or range");
       }
@@ -421,6 +431,16 @@ public class CompositeActivityManager implements PluggableSearchEngine {
 
   public PurgeUnusedActivitiesJob getPurgeUnusedActivitiesJob() {
     return purgeUnusedActivitiesJob;
+  }
+  public BoboIndexTracker getBoboIndexTracker() {
+    return boboIndexTracker;
+  }
+  public void setBoboIndexTracker(BoboIndexTracker boboIndexTracker) {
+    this.boboIndexTracker = boboIndexTracker;
+    senseiCore.getDecorator().addBoboListener(boboIndexTracker);
+  }
+  public SenseiCore getSenseiCore() {
+    return senseiCore;
   }
   
 }

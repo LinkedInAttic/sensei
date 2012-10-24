@@ -101,6 +101,8 @@ import com.senseidb.search.req.SenseiSystemInfo;
 import com.senseidb.servlet.SenseiSearchServletParams;
 import com.senseidb.svc.api.SenseiException;
 import com.senseidb.svc.api.SenseiService;
+import com.senseidb.util.JSONUtil.FastJSONArray;
+import com.senseidb.util.JSONUtil.FastJSONObject;
 
 
 public class HttpRestSenseiServiceImpl implements SenseiService
@@ -629,7 +631,7 @@ public class HttpRestSenseiServiceImpl implements SenseiService
 
     try
     {
-      JSONObject jsonObj = new JSONObject(query.toString());
+      JSONObject jsonObj = new FastJSONObject(query.toString());
       Iterator iter = jsonObj.keys();
 
       final String format = "%s:%s";
@@ -766,7 +768,7 @@ public class HttpRestSenseiServiceImpl implements SenseiService
       throws IOException, JSONException
   {
     String rawJSON = convertStreamToString(is);
-    return new JSONObject(rawJSON);
+    return new FastJSONObject(rawJSON);
   }
 
   public static SenseiResult buildSenseiResult(JSONObject jsonObj)
