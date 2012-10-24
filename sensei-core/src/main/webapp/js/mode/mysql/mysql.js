@@ -29,7 +29,8 @@ CodeMirror.defineMode("mysql", function(config) {
 	('GROUP'),('HOUR_MICROSECOND'),('IF'),('INDEX'),('INOUT'),('INT'),('INT3'),('INTEGER'),('IS'),('KEY'),('LEADING'),('LIKE'),('LINES'),('LOCALTIMESTAMP'),('LONGBLOB'),('LOW_PRIORITY'),
 	('MEDIUMBLOB'),('MIDDLEINT'),('MOD'),('NOT'),('NUMERIC'),('OPTION'),('ORDER'),('OUTFILE'),('PROCEDURE'),('READ'),('REAL'),('RELEASE'),('REPLACE'),('RETURN'),('RLIKE'),('SECOND_MICROSECOND'),
 	('SEPARATOR'),('SMALLINT'),('SQL'),('SQLWARNING'),('SQL_SMALL_RESULT'),('STRAIGHT_JOIN'),('THEN'),('TINYTEXT'),('TRIGGER'),('UNION'),('UNSIGNED'),('USE'),('UTC_TIME'),('VARBINARY'),('VARYING'),
-	('WHILE'),('XOR'),('FULL'),('COLUMNS'),('MIN'),('MAX'),('STDEV'),('COUNT')
+	('WHILE'),('XOR'),('FULL'),('COLUMNS'),('MIN'),('MAX'),('STDEV'),('COUNT'),('CONTAINS'),('EMPTY'),('AGAINST'),('EXCEPT'),('BROWSE'),('GIVEN'),('FACET'),('PARAM'),('FETCHING'),('STORED'),('QUERY'),
+	('USING'),('RELEVANCE'),('MODEL')
   ]);
   var operatorChars = /[*+\-<>=&|]/;
 
