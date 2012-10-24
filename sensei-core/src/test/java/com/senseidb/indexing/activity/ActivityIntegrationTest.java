@@ -28,11 +28,13 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.Ignore;
 
+import proj.zoie.api.ZoieSegmentReader;
 import proj.zoie.impl.indexing.ZoieConfig;
 
 import com.senseidb.conf.SenseiSchema;
 import com.senseidb.conf.SenseiSchema.FieldDefinition;
 import com.senseidb.gateway.file.FileDataProviderWithMocks;
+
 import com.senseidb.indexing.activity.primitives.ActivityIntValues;
 import com.senseidb.indexing.activity.time.ActivityIntValuesSynchronizedDecorator;
 import com.senseidb.indexing.activity.time.Clock;
@@ -48,8 +50,10 @@ public class ActivityIntegrationTest extends TestCase {
   private static CompositeActivityValues inMemoryColumnData2;
   static {
     SenseiStarter.start("test-conf/node1", "test-conf/node2");
+    
     inMemoryColumnData1 = CompositeActivityManager.cachedInstances.get(1).activityValues;
     inMemoryColumnData2 = CompositeActivityManager.cachedInstances.get(2).activityValues;
+    
     ActivityIntValuesSynchronizedDecorator.decorate((TimeAggregatedActivityValues) inMemoryColumnData1.getActivityValuesMap().get("likes"));
     ActivityIntValuesSynchronizedDecorator.decorate((TimeAggregatedActivityValues) inMemoryColumnData2.getActivityValuesMap().get("likes"));
     initialVersion = FileDataProviderWithMocks.instances.get(0).getOffset();
@@ -245,8 +249,7 @@ public class ActivityIntegrationTest extends TestCase {
     res = TestSensei.search(new JSONObject(req));
     hits = res.getJSONArray("hits");
     assertEquals(Integer.parseInt(hits.getJSONObject(0).getJSONArray("aggregated-likes:15m").getString(0)), 0);
-    inMemoryColumnData1.flushDeletes();
-    inMemoryColumnData2.flushDeletes();
+    inMemoryColumnData1.flush();
     Thread.sleep(1000);
     for (int i = 0; i < 10; i ++) {
       FileDataProviderWithMocks.add(new JSONObject().put("id", i).put(SenseiSchema.EVENT_TYPE_FIELD, SenseiSchema.EVENT_TYPE_UPDATE).put("likes", "+" + i));
@@ -263,16 +266,18 @@ public class ActivityIntegrationTest extends TestCase {
   public void test5bIncreaseNonExistingActivityValue() throws Exception {
     final CompositeActivityManager inMemoryColumnData1 = CompositeActivityManager.cachedInstances.get(1);
     final CompositeActivityManager inMemoryColumnData2 = CompositeActivityManager.cachedInstances.get(2);    
+    
     String req = "{\"query\": {\"ids\": {\"values\": [\"14999\"], \"excludes\": [\"2\"]}}}";
     JSONObject res = TestSensei.search(new JSONObject(req));
     FileDataProviderWithMocks.add(new JSONObject().put("id", 14999).put(SenseiSchema.EVENT_TYPE_FIELD, SenseiSchema.EVENT_TYPE_UPDATE).put("likes", "+" + 100));
     expectedVersion++;
-    
+    //inMemoryColumnData1.getActivityValues().syncWithVersion(String.valueOf(expectedVersion));
     inMemoryColumnData2.getActivityValues().syncWithVersion(String.valueOf(expectedVersion));
     req = "{ \"size\":1, \"sort\":[{\"aggregated-likes:2w\":\"desc\"}]}";
+   // Thread.sleep(2000);
     res = TestSensei.search(new JSONObject(req));
     JSONArray hits = res.getJSONArray("hits");
-    assertEquals(Integer.parseInt(hits.getJSONObject(0).getJSONArray("aggregated-likes:2w").getString(0)), 100);
+    assertEquals(Integer.parseInt(hits.getJSONObject(0).getJSONArray("likes").getString(0)), 100);
     req = "{ \"size\":1, \"sort\":[{\"aggregated-likes\":\"desc\"}]}";
     res = TestSensei.search(new JSONObject(req));
     hits = res.getJSONArray("hits");
@@ -280,7 +285,7 @@ public class ActivityIntegrationTest extends TestCase {
     
   }
 
- public void ntest7RelevanceActivity() throws Exception {
+ public void test7RelevanceActivity() throws Exception {
     
     FileDataProviderWithMocks.add(new JSONObject().put("id", 501).put(SenseiSchema.EVENT_TYPE_FIELD, SenseiSchema.EVENT_TYPE_UPDATE).put("likes", 100000));
     expectedVersion++;
@@ -313,8 +318,8 @@ public class ActivityIntegrationTest extends TestCase {
       int first_aggregated_likes_2w = firstHit.getJSONArray("aggregated-likes:2w").getInt(0);
       int first_aggregated_likes_12h = firstHit.getJSONArray("aggregated-likes:12h").getInt(0);
       
-      int second_aggregated_likes_2w = secondHit.getJSONArray("aggregated-likes:2w").getInt(0);
-      int second_aggregated_likes_12h = secondHit.getJSONArray("aggregated-likes:12h").getInt(0);
+      //int second_aggregated_likes_2w = secondHit.getJSONArray("aggregated-likes:2w").getInt(0);
+      //int second_aggregated_likes_12h = secondHit.getJSONArray("aggregated-likes:12h").getInt(0);
       
       assertEquals("first hit does not have correct aggregated value.", true, first_aggregated_likes_2w==100000);
       assertEquals("first hit does not have correct aggregated value.", true, first_aggregated_likes_12h==100000);
@@ -354,11 +359,13 @@ public void test5PurgeUnusedActivities() throws Exception {
     inMemoryColumnData2.syncWithPersistentVersion(String.valueOf(expectedVersion - 1));
     String absolutePath = SenseiStarter.IndexDir + "/node1/" + "activity/";
     FieldDefinition fieldDefinition = getLikesFieldDefinition();
+
     CompositeActivityValues compositeActivityValues =  CompositeActivityValues.createCompositeValues(ActivityPersistenceFactory.getInstance(absolutePath, new ActivityConfig()), java.util.Arrays.asList(fieldDefinition), Collections.EMPTY_LIST, ZoieConfig.DEFAULT_VERSION_COMPARATOR);
+
     assertEquals(1, compositeActivityValues.getIntValueByUID(1L, "likes"));
     assertEquals(1, inMemoryColumnData1.getIntValueByUID(1L, "likes"));
   }
-  public static FieldDefinition getLikesFieldDefinition() {
+  private static FieldDefinition getLikesFieldDefinition() {
     
     return getIntFieldDefinition("likes");
   }

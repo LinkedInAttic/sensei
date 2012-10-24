@@ -54,6 +54,9 @@ import com.senseidb.metrics.MetricsConstants;
 import com.senseidb.plugin.SenseiPluginRegistry;
 import com.senseidb.search.node.SenseiIndexingManager;
 import com.senseidb.search.plugin.PluggableSearchEngineManager;
+import com.senseidb.util.JSONUtil.FastJSONArray;
+import com.senseidb.util.JSONUtil.FastJSONObject;
+import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.Meter;
 import com.yammer.metrics.core.MetricName;
 
@@ -312,7 +315,7 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
             return null;
           }
 
-          JSONObject newEvent = new JSONObject(new String(data, "UTF-8"));
+          JSONObject newEvent = new FastJSONObject(new String(data, "UTF-8"));
           Iterator<String> keys = event.keys();
           while(keys.hasNext())
           {
@@ -385,7 +388,7 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
             {
               if (partDataSet.size() == 0)
               {
-                JSONObject markerObj = new JSONObject();
+                JSONObject markerObj = new FastJSONObject();
                 //markerObj.put(_senseiSchema.getSkipField(), "true");
                 markerObj.put(SenseiSchema.EVENT_TYPE_FIELD, SenseiSchema.EVENT_TYPE_SKIP);
                 markerObj.put(_uidField, 0L); // Add a dummy uid

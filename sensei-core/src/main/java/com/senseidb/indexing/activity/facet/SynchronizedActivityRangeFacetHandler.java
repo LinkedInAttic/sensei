@@ -19,30 +19,21 @@
 package com.senseidb.indexing.activity.facet;
 
 import java.io.IOException;
-import java.text.DecimalFormat;
-import java.util.HashSet;
 import java.util.Properties;
 
 import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.search.DocIdSet;
 import org.apache.lucene.search.DocIdSetIterator;
 import org.apache.lucene.search.ScoreDoc;
 
 import proj.zoie.api.ZoieSegmentReader;
 
 import com.browseengine.bobo.api.BoboIndexReader;
-import com.browseengine.bobo.api.BrowseSelection;
-import com.browseengine.bobo.api.FacetSpec;
-import com.browseengine.bobo.docidset.EmptyDocIdSet;
 import com.browseengine.bobo.docidset.RandomAccessDocIdSet;
-import com.browseengine.bobo.facets.FacetCountCollectorSource;
-import com.browseengine.bobo.facets.FacetHandler;
-import com.browseengine.bobo.facets.filter.FacetRangeFilter;
 import com.browseengine.bobo.facets.filter.RandomAccessFilter;
 import com.browseengine.bobo.sort.DocComparator;
 import com.browseengine.bobo.sort.DocComparatorSource;
-import com.senseidb.indexing.activity.CompositeActivityValues;
-import com.senseidb.indexing.activity.primitives.ActivityIntValues;
+import com.senseidb.indexing.activity.BoboIndexTracker;
+import com.senseidb.indexing.activity.CompositeActivityManager;
 import com.senseidb.indexing.activity.primitives.ActivityPrimitiveValues;
 
 /**
@@ -54,12 +45,32 @@ import com.senseidb.indexing.activity.primitives.ActivityPrimitiveValues;
 public class SynchronizedActivityRangeFacetHandler extends ActivityRangeFacetHandler {
   public static final Object GLOBAL_ACTIVITY_TEST_LOCK = new Object();
 
-  public SynchronizedActivityRangeFacetHandler(String facetName, String fieldName, CompositeActivityValues compositeActivityValues,
-      ActivityPrimitiveValues activityPrimitiveValues) {
-    super(facetName, fieldName, compositeActivityValues, activityPrimitiveValues);
-  }
 
+  public SynchronizedActivityRangeFacetHandler(String facetName, String fieldName, CompositeActivityManager compositeActivityManager,
+      ActivityPrimitiveValues activityPrimitiveValues) {
+    super(facetName, fieldName, compositeActivityManager, activityPrimitiveValues);
+  }
+  public static class BoboIndexTrackerInMemory extends BoboIndexTracker {
+   
   @Override
+  protected boolean isSegmentOnDisk(ZoieSegmentReader zoieSegmentReader) {
+    return true;
+  }
+  }
+  @Override
+
+  public int[] load(BoboIndexReader reader) throws IOException {
+    synchronized(GLOBAL_ACTIVITY_TEST_LOCK) {
+      if (!(compositeActivityManager.getBoboIndexTracker() instanceof BoboIndexTrackerInMemory)) {
+        BoboIndexTrackerInMemory boboIndexTracker = new BoboIndexTrackerInMemory();
+        boboIndexTracker.setSenseiCore(compositeActivityManager.getSenseiCore());
+        compositeActivityManager.setBoboIndexTracker(boboIndexTracker);
+      }
+    }
+    return super.load(reader);
+  }
+  @Override
+
   public RandomAccessFilter buildRandomAccessFilter(final String value, final Properties selectionProperty) throws IOException {
     return new RandomAccessFilter() {
       @Override

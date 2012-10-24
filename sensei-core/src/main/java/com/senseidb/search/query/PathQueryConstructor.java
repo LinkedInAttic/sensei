@@ -27,6 +27,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.senseidb.search.query.filters.FilterConstructor;
+import com.senseidb.util.JSONUtil.FastJSONArray;
+import com.senseidb.util.JSONUtil.FastJSONObject;
 
 
 public class PathQueryConstructor extends QueryConstructor
@@ -43,7 +45,7 @@ public class PathQueryConstructor extends QueryConstructor
     Filter filter = null;
     try
     {
-      JSONObject newJson = new JSONObject();
+      JSONObject newJson = new FastJSONObject();
       newJson.put(QUERY_TYPE, jsonQuery);
       filter = FilterConstructor.constructFilter(newJson, null/* QueryParser is not used by this filter */);
     }

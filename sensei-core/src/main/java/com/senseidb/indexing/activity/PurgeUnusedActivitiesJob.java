@@ -43,6 +43,7 @@ import proj.zoie.api.ZoieIndexReader;
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.senseidb.conf.SenseiConfParams;
 import com.senseidb.plugin.SenseiPluginRegistry;
+import com.senseidb.search.node.SenseiCore;
 import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.Counter;
 import com.yammer.metrics.core.MetricName;
@@ -52,7 +53,6 @@ public class PurgeUnusedActivitiesJob implements Runnable, PurgeUnusedActivities
   private final static Logger logger = Logger.getLogger(PurgeUnusedActivitiesJob.class);
   
   private final CompositeActivityValues compositeActivityValues;
-  private final Set<IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>> zoieSystems;
   private static Timer timer = Metrics.newTimer(new MetricName(PurgeUnusedActivitiesJob.class, "purgeUnusedActivityIndexes"), TimeUnit.MILLISECONDS, TimeUnit.SECONDS);
   private static Counter foundActivitiesToPurge = Metrics.newCounter(new MetricName(PurgeUnusedActivitiesJob.class, "foundActivitiesToPurge"));
   private static Counter recentUidsSavedFromPurge = Metrics.newCounter(new MetricName(PurgeUnusedActivitiesJob.class, "recentUidsSavedFromPurge"));
@@ -60,9 +60,11 @@ public class PurgeUnusedActivitiesJob implements Runnable, PurgeUnusedActivities
   protected ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
 
   private final long frequencyInMillis;
-  public PurgeUnusedActivitiesJob(CompositeActivityValues compositeActivityValues, Set<IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>> zoieSystems, long frequencyInMillis) {
+
+  private SenseiCore senseiCore;
+  public PurgeUnusedActivitiesJob(CompositeActivityValues compositeActivityValues, SenseiCore senseiCore, long frequencyInMillis) {
     this.compositeActivityValues = compositeActivityValues;
-    this.zoieSystems = zoieSystems;
+    this.senseiCore = senseiCore;
     this.frequencyInMillis = frequencyInMillis;
     
   }
@@ -113,7 +115,8 @@ public class PurgeUnusedActivitiesJob implements Runnable, PurgeUnusedActivities
     }     
     int bitSetLength = keys.length;
     BitSet foundSet = new BitSet(keys.length); 
-    for (IndexReaderFactory<ZoieIndexReader<BoboIndexReader>> zoie : zoieSystems) {
+    for (int partition : senseiCore.getPartitions()) {
+      IndexReaderFactory<ZoieIndexReader<BoboIndexReader>> zoie =  senseiCore.getIndexReaderFactory(partition);
       List<ZoieIndexReader<BoboIndexReader>> indexReaders = null;      
       try {
         indexReaders = zoie.getIndexReaders();

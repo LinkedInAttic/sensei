@@ -79,7 +79,7 @@ public class SenseiServer {
                       SenseiQueryBuilderFactory queryBuilderFactory,
                       List<AbstractSenseiCoreService<AbstractSenseiRequest, AbstractSenseiResult>> externalSvc, SenseiPluginRegistry pluginRegistry)
   {
-    this(port,networkServer,clusterClient,new SenseiCore(id, partitions,zoieSystemFactory, indexingManager, queryBuilderFactory),externalSvc, pluginRegistry);
+    this(port,networkServer,clusterClient,new SenseiCore(id, partitions,zoieSystemFactory, indexingManager, queryBuilderFactory, zoieSystemFactory.getDecorator()),externalSvc, pluginRegistry);
   }
 
   public SenseiServer(int port,
@@ -285,9 +285,7 @@ public class SenseiServer {
         }
       }
       throw e;
-    }
-
-
+    }   
     SenseiServerAdminMBean senseiAdminMBean = getAdminMBean();
     StandardMBean bean = new StandardMBean(senseiAdminMBean, SenseiServerAdminMBean.class);
     JmxUtil.registerMBean(bean, "name", "sensei-server-"+_id);

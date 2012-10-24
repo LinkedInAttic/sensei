@@ -59,17 +59,20 @@ public class SenseiCore{
   private SenseiIndexPruner _pruner;
 
   private PluggableSearchEngineManager pluggableSearchEngineManager;
+
+  private final SenseiIndexReaderDecorator decorator;
     
   public SenseiCore(int id,int[] partitions,
             SenseiZoieFactory<?> zoieSystemFactory,
             SenseiIndexingManager indexManager,
-            SenseiQueryBuilderFactory queryBuilderFactory){
+            SenseiQueryBuilderFactory queryBuilderFactory, SenseiIndexReaderDecorator decorator){
 
     _zoieFactory = zoieSystemFactory;
     _indexManager = indexManager;
     _queryBuilderFactory = queryBuilderFactory;
     _partitions = partitions;
     _id = id;
+    this.decorator = decorator;
     
     _readerFactoryMap = new HashMap<Integer,Zoie<BoboIndexReader,?>>();
     _started = false;
@@ -261,6 +264,10 @@ public class SenseiCore{
 
   public PluggableSearchEngineManager getPluggableSearchEngineManager() {
     return pluggableSearchEngineManager;
+  }
+
+  public SenseiIndexReaderDecorator getDecorator() {
+    return decorator;
   }
   
 }

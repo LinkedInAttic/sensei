@@ -24,7 +24,9 @@ import java.nio.MappedByteBuffer;
 import org.apache.log4j.Logger;
 
 import com.senseidb.conf.SenseiSchema;
+
 import com.senseidb.indexing.activity.ActivityConfig;
+
 import com.senseidb.indexing.activity.ActivityPersistenceFactory;
 import com.senseidb.indexing.activity.ActivityValues;
 import com.senseidb.indexing.activity.AtomicFieldUpdate;
@@ -35,8 +37,10 @@ public abstract class ActivityPrimitiveValues implements ActivityValues {
   private static Logger logger = Logger.getLogger(ActivityIntValues.class);
   protected String fieldName;
   protected ActivityPrimitivesStorage activityFieldStore;
+
   protected volatile UpdateBatch<AtomicFieldUpdate> updateBatch;
   private ActivityConfig activityConfig;
+
 
   public ActivityPrimitiveValues() {
     super();
@@ -60,7 +64,9 @@ public abstract class ActivityPrimitiveValues implements ActivityValues {
       throw new IllegalStateException("The activityFile is closed");
     }
     final UpdateBatch<AtomicFieldUpdate> oldBatch = updateBatch;
+
     updateBatch = new UpdateBatch<AtomicFieldUpdate>(activityConfig);
+
     return new Runnable() {
       public void run() {
         try {
@@ -110,8 +116,10 @@ public abstract class ActivityPrimitiveValues implements ActivityValues {
       throw new UnsupportedOperationException("Class " + type + " is not supported");
     ActivityPrimitivesStorage primitivesStorage = activityPersistenceFactory.getActivivityPrimitivesStorage(fieldName);
     values.fieldName = fieldName;
+
     values.activityConfig = activityPersistenceFactory.getActivityConfig();
     values.updateBatch = new UpdateBatch<AtomicFieldUpdate>(activityPersistenceFactory.getActivityConfig());
+
     if (primitivesStorage != null) {
       primitivesStorage.initActivityDataFromFile(values, count);
     } else {

@@ -128,6 +128,7 @@ public float[] fieldValues;
    @Override
    public void delete(int index) {
      fieldValues[index] = Float.MIN_VALUE;
+     updateBatch.addFieldUpdate(AtomicFieldUpdate.valueOf(index, fieldValues[index]));   
    }
   @Override
   public int getFieldSizeInBytes() {

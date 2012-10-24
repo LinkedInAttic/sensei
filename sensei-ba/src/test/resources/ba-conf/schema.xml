@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://javasoze.github.com/sensei/schema/sensei-schema.xsd">
+
+  <!-- valid types:
+    uid - only 1 column can be of type uid
+    int - integer
+    short - short 
+    char - character
+    long - long 
+    float - float
+    double - double
+    string - string (default)
+    date - date, format string must be provided
+    text - searchable
+  -->
+
+  <table uid="id">
+	
+  </table>
+
+   <!-- 
+     valid types are:
+      simple - corresponds to com.browseengine.bobo.facets.impl.SimpleFacetHandler
+      path - corresponds to com.browseengine.bobo.facets.impl.PathFacetHandler
+      range - corresponds to com.browseengine.bobo.facets.impl.RangeFacetHandler
+      multi - corresponds to com.browseengine.bobo.facets.impl.MultiFacetHandler
+      compact-multi - corresponds to com.browseengine.bobo.facets.impl.CompactMultiFacetHandler
+      custom - custom facet handler, name must be defined in a spring bean in custom-facets.xml
+   -->
+   <facets>
+	 
+   </facets>
+</schema>

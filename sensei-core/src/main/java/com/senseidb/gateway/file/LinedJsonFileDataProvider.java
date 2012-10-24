@@ -27,6 +27,8 @@ import org.json.JSONObject;
 
 import com.senseidb.indexing.DataSourceFilter;
 import com.senseidb.indexing.DataSourceFilterable;
+import com.senseidb.util.JSONUtil.FastJSONArray;
+import com.senseidb.util.JSONUtil.FastJSONObject;
 
 public class LinedJsonFileDataProvider extends LinedFileDataProvider<JSONObject> implements DataSourceFilterable<String> {
 
@@ -56,7 +58,7 @@ public class LinedJsonFileDataProvider extends LinedFileDataProvider<JSONObject>
 
     // Try to create directly.
 	try {
-	  return new JSONObject(line);
+	  return new FastJSONObject(line);
 	} catch (JSONException e) {
 	  throw new IOException(e.getMessage(),e);
 	}

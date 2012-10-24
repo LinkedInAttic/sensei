@@ -116,27 +116,7 @@ public class TestSensei extends TestCase {
     verifyFacetCount(res, selName, selVal, 2907);
     verifyFacetCount(res, "year", "[1993 TO 1994]", 3090);
   }
-  public void testSelectionDynamicTimeRange() throws Exception
-  {
-    logger.info("executing test case testSelection");
-
-
-    SenseiRequest req = new SenseiRequest();
-    DefaultFacetHandlerInitializerParam initParam = new DefaultFacetHandlerInitializerParam();
-    initParam.putLongParam("time", new long[]{15000L});
-    req.setFacetHandlerInitializerParam("timeRange", initParam);
-    //req.setFacetHandlerInitializerParam("timeRange_internal", new DefaultFacetHandlerInitializerParam());
-    req.setCount(3);
-    //setspec(req, facetSpecall);
-    BrowseSelection sel = new BrowseSelection("timeRange");
-    String selVal = "000000013";
-    sel.addValue(selVal);
-    req.addSelection(sel);
-     SenseiResult res = broker.browse(req);
-    logger.info("request:" + req + "\nresult:" + res);
-    assertEquals(12990, res.getNumHits());
-
-  }
+ 
   public void testSelectionNot() throws Exception
   {
     logger.info("executing test case testSelectionNot");
@@ -268,6 +248,35 @@ public class TestSensei extends TestCase {
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 1534, res.getInt("numhits"));
   }
+  
+  public void testBqlEmptyListCheck() throws Exception
+  {
+    logger.info("Executing test case testBqlEmptyListCheck");
+    String req = "{\"bql\":\"SELECT * FROM SENSEI where () is not empty LIMIT 0, 1\"}";
+    JSONObject res = search(new JSONObject(req));
+    assertEquals("numhits is wrong", 0, res.getInt("numhits"));
+    
+    String req2 = "{\"bql\":\"SELECT * FROM SENSEI where () is empty LIMIT 0, 1\"}";
+    JSONObject res2 = search(new JSONObject(req2));
+    assertEquals("numhits is wrong", 15000, res2.getInt("numhits"));
+    
+    String req3 = "{\"bql\":\"select * from sensei where () is empty or color contains all () limit 0, 1\"}";
+    JSONObject res3 = search(new JSONObject(req3));
+    assertEquals("numhits is wrong", 15000, res3.getInt("numhits"));
+    
+    String req4 = "{\"bql\":\"select * from sensei where () is not empty or color contains all () limit 0, 1\"}";
+    JSONObject res4 = search(new JSONObject(req4));
+    assertEquals("numhits is wrong", 0, res4.getInt("numhits"));
+    
+    //template mapping:
+    String req5 = "{\"bql\":\"SELECT * FROM SENSEI where $list is empty LIMIT 0, 1\", \"templateMapping\":{\"list\":[\"a\"]}}";
+    JSONObject res5 = search(new JSONObject(req5));
+    assertEquals("numhits is wrong", 0, res5.getInt("numhits"));
+    
+    String req6 = "{\"bql\":\"SELECT * FROM SENSEI where $list is empty LIMIT 0, 1\", \"templateMapping\":{\"list\":[]}}";
+    JSONObject res6 = search(new JSONObject(req6));
+    assertEquals("numhits is wrong", 15000, res6.getInt("numhits"));
+  }
 
   public void testBqlRelevance1() throws Exception
   {
@@ -275,7 +284,7 @@ public class TestSensei extends TestCase {
     String req = "{\"bql\":\"SELECT * FROM cars USING RELEVANCE MODEL my_model (thisYear:2001, goodYear:[1996]) DEFINED AS (int thisYear, IntOpenHashSet goodYear) BEGIN if (goodYear.contains(year)) return (float)Math.exp(10d); if (year==thisYear) return 87f; return _INNER_SCORE; END\"}";
     
     JSONObject res = search(new JSONObject(req));
-
+    System.out.println("!!!rel" + res.toString(1));
     JSONArray hits = res.getJSONArray("hits");
     JSONObject firstHit = hits.getJSONObject(0);
     JSONObject secondHit = hits.getJSONObject(1);
@@ -325,7 +334,22 @@ public class TestSensei extends TestCase {
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 12990, res.getInt("numhits"));
   }
-
+  public void testSelectionRange2() throws Exception
+  {
+    //2000 1548;
+    //2001 1443;
+    //2002 1464;
+    // [2000 TO 2002]   ==> 4455
+    // (2000 TO 2002)   ==> 1443
+    // (2000 TO 2002]   ==> 2907
+    // [2000 TO 2002)   ==> 2991
+    {
+      logger.info("executing test case Selection range [2000 TO 2002]");
+      String req = "{\"selections\":[{\"range\":{\"year\":{\"to\":\"2002\",\"include_lower\":true,\"include_upper\":true,\"from\":\"2000\"}}}]}";
+      JSONObject res = search(new JSONObject(req));
+      assertEquals("numhits is wrong", 4455, res.getInt("numhits"));
+    }
+  }
   public void testSelectionRange() throws Exception
   {
     //2000 1548;
@@ -551,6 +575,64 @@ public class TestSensei extends TestCase {
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 2160, res.getInt("numhits"));
   }
+  
+  public void testConstExpQuery() throws Exception
+  {
+    logger.info("executing test case testConstExpQuery");
+
+    String pos_req1 = "{\"query\":{\"const_exp\":{\"lvalue\":\"6\",\"rvalue\":\"6\",\"operator\":\"==\"}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":10}";
+    String pos_req2 = "{\"query\":{\"const_exp\":{\"lvalue\":6,\"rvalue\":6,\"operator\":\"==\"}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":10}";
+    String pos_req3 = "{\"query\":{\"const_exp\":{\"lvalue\":[6,7],\"rvalue\":[6,7],\"operator\":\"==\"}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":10}";
+    String pos_req4 = "{\"query\":{\"const_exp\":{\"lvalue\":[7],\"rvalue\":[7],\"operator\":\"==\"}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":10}";
+    String pos_req5 = "{\"query\":{\"const_exp\":{\"lvalue\":[\"7\",\"8\"],\"rvalue\":[\"8\",\"7\"],\"operator\":\"==\"}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":10}";
+    String pos_req6 = "{\"query\":{\"const_exp\":{\"lvalue\":6,\"rvalue\":[6,7],\"operator\":\"in\"}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":10}";
+    String pos_req7 = "{\"query\":{\"const_exp\":{\"lvalue\":[6],\"rvalue\":[6,7],\"operator\":\"in\"}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":10}";
+    String pos_req8 = "{\"query\":{\"const_exp\":{\"lvalue\":6,\"rvalue\":[16,7],\"operator\":\"not_in\"}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":10}";
+    String pos_req9 = "{\"query\":{\"const_exp\":{\"lvalue\":6,\"rvalue\":3,\"operator\":\">\"}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":10}";
+    String pos_req10 = "{\"query\":{\"const_exp\":{\"lvalue\":6,\"rvalue\":6,\"operator\":\">=\"}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":10}";
+
+    String pos_req11 = "{\"query\":{\"const_exp\":{\"lvalue\":{\"params\":[[1]],\"function\":\"length\"},\"rvalue\":0,\"operator\":\">=\"}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":10}";
+    String pos_req12 = "{\"query\":{\"const_exp\":{\"lvalue\":{\"params\":[[1,2]],\"function\":\"length\"},\"rvalue\":0,\"operator\":\">=\"}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":10}";
+    String pos_req13 = "{\"query\":{\"const_exp\":{\"lvalue\":{\"params\":[[\"1\"]],\"function\":\"length\"},\"rvalue\":0,\"operator\":\">=\"}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":10}";
+    String pos_req14 = "{\"query\":{\"const_exp\":{\"lvalue\":{\"params\":[[\"1\",\"2\"]],\"function\":\"length\"},\"rvalue\":0,\"operator\":\">=\"}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":10}";
+    String pos_req15 = "{\"query\":{\"const_exp\":{\"lvalue\":{\"params\":[[]],\"function\":\"length\"},\"rvalue\":0,\"operator\":\"==\"}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":10}";
+    
+    assertEquals("numhits is wrong pos_req1", 15000, search(new JSONObject(pos_req1)).getInt("numhits"));
+    assertEquals("numhits is wrong pos_req2", 15000, search(new JSONObject(pos_req2)).getInt("numhits"));
+    assertEquals("numhits is wrong pos_req3", 15000, search(new JSONObject(pos_req3)).getInt("numhits"));
+    assertEquals("numhits is wrong pos_req4", 15000, search(new JSONObject(pos_req4)).getInt("numhits"));
+    assertEquals("numhits is wrong pos_req5", 15000, search(new JSONObject(pos_req5)).getInt("numhits"));
+    assertEquals("numhits is wrong pos_req6", 15000, search(new JSONObject(pos_req6)).getInt("numhits"));
+    assertEquals("numhits is wrong pos_req7", 15000, search(new JSONObject(pos_req7)).getInt("numhits"));
+    assertEquals("numhits is wrong pos_req8", 15000, search(new JSONObject(pos_req8)).getInt("numhits"));
+    assertEquals("numhits is wrong pos_req9", 15000, search(new JSONObject(pos_req9)).getInt("numhits"));
+    assertEquals("numhits is wrong pos_req10", 15000, search(new JSONObject(pos_req10)).getInt("numhits"));
+    assertEquals("numhits is wrong pos_req11", 15000, search(new JSONObject(pos_req11)).getInt("numhits"));
+    assertEquals("numhits is wrong pos_req12", 15000, search(new JSONObject(pos_req12)).getInt("numhits"));
+    assertEquals("numhits is wrong pos_req13", 15000, search(new JSONObject(pos_req13)).getInt("numhits"));
+    assertEquals("numhits is wrong pos_req14", 15000, search(new JSONObject(pos_req14)).getInt("numhits"));
+    assertEquals("numhits is wrong pos_req15", 15000, search(new JSONObject(pos_req15)).getInt("numhits"));
+    
+    
+    String neg_req1 = "{\"query\":{\"const_exp\":{\"lvalue\":6,\"rvalue\":[16,7],\"operator\":\"in\"}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":10}";
+    String neg_req2 = "{\"query\":{\"const_exp\":{\"lvalue\":[6],\"rvalue\":[5,7],\"operator\":\"in\"}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":10}";
+    String neg_req3 = "{\"query\":{\"const_exp\":{\"lvalue\":6,\"rvalue\":[6,7],\"operator\":\"not_in\"}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":10}";
+    String neg_req4 = "{\"query\":{\"const_exp\":{\"lvalue\":[6],\"rvalue\":[6,7],\"operator\":\"not_in\"}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":10}";
+    String neg_req5 = "{\"query\":{\"const_exp\":{\"lvalue\":6,\"rvalue\":8,\"operator\":\">\"}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":10}";
+
+    String neg_req6 = "{\"query\":{\"const_exp\":{\"lvalue\":{\"params\":[[]],\"function\":\"length\"},\"rvalue\":0,\"operator\":\">\"}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":10}";
+    String neg_req7 = "{\"query\":{\"const_exp\":{\"lvalue\":{\"params\":[[4,5]],\"function\":\"length\"},\"rvalue\":0,\"operator\":\"==\"}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":10}";
+
+    assertEquals("numhits is wrong neg_req1", 0, search(new JSONObject(neg_req1)).getInt("numhits"));
+    assertEquals("numhits is wrong neg_req2", 0, search(new JSONObject(neg_req2)).getInt("numhits"));
+    assertEquals("numhits is wrong neg_req3", 0, search(new JSONObject(neg_req3)).getInt("numhits"));
+    assertEquals("numhits is wrong neg_req4", 0, search(new JSONObject(neg_req4)).getInt("numhits"));
+    assertEquals("numhits is wrong neg_req5", 0, search(new JSONObject(neg_req5)).getInt("numhits"));
+    assertEquals("numhits is wrong neg_req6", 0, search(new JSONObject(neg_req6)).getInt("numhits"));
+    assertEquals("numhits is wrong neg_req7", 0, search(new JSONObject(neg_req7)).getInt("numhits"));   
+    
+  }
+  
   public void testNullMultiFilter() throws Exception
   {
     logger.info("executing test case testNullFilter");
@@ -720,6 +802,16 @@ public class TestSensei extends TestCase {
     JSONObject firstHit = hits.getJSONObject(0);
     assertTrue("groupfield is wrong", "color".equals(firstHit.getString("groupfield")) || "virtual_groupid_fixedlengthlongarray".equals(firstHit.getString("groupfield")));
     assertTrue("no group hits", firstHit.getJSONArray("grouphits") != null);
+  }
+  public void testFallbackGroupByWithDistinct() throws Exception
+  {
+    logger.info("executing test case testFallbackGroupByWithDistinct");
+    String req = "{\"bql\": \"SELECT * FROM sensei DISTINCT category GROUP BY virtual_groupid_fixedlengthlongarray OR color TOP 2 ORDER BY color ASC LIMIT 0, 10\"}";
+    JSONObject res = search(new JSONObject(req));
+    JSONArray hits = res.getJSONArray("hits");
+    JSONObject firstHit = hits.getJSONObject(0);
+    assertTrue("groupfield is wrong", "color".equals(firstHit.getString("groupfield")) || "virtual_groupid_fixedlengthlongarray".equals(firstHit.getString("groupfield")));
+    assertTrue("should be 1 group hit", firstHit.getJSONArray("grouphits").length() == 1);
   }
   public void testGetStoreRequest() throws Exception
   {
@@ -1375,4 +1467,49 @@ public class TestSensei extends TestCase {
     }
     return -1;
   }  
+  public void testBqlExtraWithRangeTemplateVariables() throws Exception
+  {
+    logger.info("Executing test case testBqlExtraFilter");
+    String req = "{  \"bql\": \"select * FROM sensei WHERE groupid>= $startDate AND groupid<= $endDate ORDER BY groupid ASC limit 0, 500\",   \"templateMapping\": {    \"endDate\": \"1343800000000\",    \"startDate\": \"0\"  }}";
+    JSONObject res = search(new JSONObject(req));
+    System.out.println("!!!" + res.toString(1));
+    assertEquals("numhits is wrong", 14991, res.getInt("numhits"));
+  }
+  public void testBqlSortAndRangeByActivityColumn() throws Exception
+  {
+    logger.info("Executing test case testBqlSortAndRangeByActivityColumn");
+    String req = "{  \"bql\": \"select * FROM sensei WHERE likes>= 1 ORDER BY likes DESC limit 0, 500\"}";
+    JSONObject res = search(new JSONObject(req));
+    System.out.println("!!!" + res.toString(1));
+    assertTrue(res.getInt("numhits") > 0);
+  }
+  public void testBqlExtraWithRangeTemplateVariables2() throws Exception
+  {
+    logger.info("Executing test case testBqlExtraFilter");
+    String req = "{  \"bql\": \"select * FROM sensei WHERE groupid >= 1 AND groupid<= 1343700000000 ORDER BY groupid ASC limit 0, 500\"}";
+    JSONObject res = search(new JSONObject(req));
+    //System.out.println("!!!" + res.toString(1));
+    assertEquals("numhits is wrong", 14990, res.getInt("numhits"));
+  }
+  public void testSelectionDynamicTimeRange() throws Exception
+  {
+    logger.info("executing test case testSelection");
+
+
+    SenseiRequest req = new SenseiRequest();
+    DefaultFacetHandlerInitializerParam initParam = new DefaultFacetHandlerInitializerParam();
+    initParam.putLongParam("time", new long[]{15000L});
+    req.setFacetHandlerInitializerParam("timeRange", initParam);
+    //req.setFacetHandlerInitializerParam("timeRange_internal", new DefaultFacetHandlerInitializerParam());
+    req.setCount(3);
+    //setspec(req, facetSpecall);
+    BrowseSelection sel = new BrowseSelection("timeRange");
+    String selVal = "000000013";
+    sel.addValue(selVal);
+    req.addSelection(sel);
+     SenseiResult res = broker.browse(req);
+    logger.info("request:" + req + "\nresult:" + res);
+    assertEquals(12990, res.getNumHits());
+
+  }
 }
