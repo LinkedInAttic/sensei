@@ -28,7 +28,8 @@ import kafka.consumer.SimpleConsumer;
 import kafka.message.ByteBufferMessageSet;
 import kafka.message.MessageAndOffset;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.json.JSONObject;
 
 import proj.zoie.api.DataConsumer.DataEvent;
@@ -46,7 +47,7 @@ public class SimpleKafkaStreamDataProvider extends StreamDataProvider<JSONObject
   private Iterator<MessageAndOffset> _msgIter;
   private ThreadLocal<byte[]> bytesFactory;
   
-  private static Logger logger = Logger.getLogger(KafkaStreamDataProvider.class);
+  private static Logger logger = LoggerFactory.getLogger(KafkaStreamDataProvider.class);
   
     public static final int DEFAULT_MAX_MSG_SIZE = 5*1024*1024;
     private final String _kafkaHost;
