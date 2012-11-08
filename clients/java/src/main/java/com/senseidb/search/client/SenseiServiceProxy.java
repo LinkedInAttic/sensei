@@ -37,15 +37,14 @@ import java.util.zip.GZIPInputStream;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.log4j.Logger;
 
 import com.senseidb.search.client.json.JsonDeserializer;
 import com.senseidb.search.client.json.JsonSerializer;
 import com.senseidb.search.client.req.SenseiClientRequest;
 import com.senseidb.search.client.res.SenseiResult;
 public class SenseiServiceProxy {
- // private static Logger LOG = LoggerFactory.getLogger(SenseiServiceProxy.class);
+    private static Logger LOG = Logger.getLogger(SenseiServiceProxy.class);
 
 
     private  String host;
