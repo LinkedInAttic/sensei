@@ -261,8 +261,8 @@ public class CompilationHelper
     /* 29 */ "  com.senseidb.search.relevance.impl.WeightedMFacetLong %s = (com.senseidb.search.relevance.impl.WeightedMFacetLong) mFacetLongs[%d];",
     /* 30 */ "  com.senseidb.search.relevance.impl.WeightedMFacetDouble %s = (com.senseidb.search.relevance.impl.WeightedMFacetDouble) mFacetDoubles[%d];",
     /* 31 */ "  com.senseidb.search.relevance.impl.WeightedMFacetFloat %s = (com.senseidb.search.relevance.impl.WeightedMFacetFloat) mFacetFloats[%d];",
-    /* 32 */ "  com.senseidb.search.relevance.impl.WeightedMFacetString %s = (com.senseidb.search.relevance.impl.WeightedMFacetShort) mFacetStrings[%d];",
-    /* 33 */ "  com.senseidb.search.relevance.impl.WeightedMFacetShort %s = (com.senseidb.search.relevance.impl.WeightedMFacetString) mFacetShorts[%d];",
+    /* 32 */ "  com.senseidb.search.relevance.impl.WeightedMFacetString %s = (com.senseidb.search.relevance.impl.WeightedMFacetString) mFacetStrings[%d];",
+    /* 33 */ "  com.senseidb.search.relevance.impl.WeightedMFacetShort %s = (com.senseidb.search.relevance.impl.WeightedMFacetShort) mFacetShorts[%d];",
     /* 34 */ "  %s %s = (%s) objs[%d];"
   };
 
@@ -571,7 +571,7 @@ public class CompilationHelper
         catch (CannotCompileException e)
         {
           logger.info(e.getMessage());
-          throw new RelevanceException(ErrorType.JsonCompilationError, "Compilation error of json relevance model.", e);
+          throw new RelevanceException(ErrorType.JsonCompilationError, e.getMessage(), e);
         }
 
         Class h;
