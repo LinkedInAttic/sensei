@@ -40,4 +40,9 @@ public class WeightedMFacetString extends MFacetString implements WeightedMFacet
   {
     return _weight[0];
   }
+  
+  public int getWeight(String target)
+  {
+    return _weight[0];
+  }
 }
