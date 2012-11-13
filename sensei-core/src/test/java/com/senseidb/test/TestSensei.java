@@ -1214,6 +1214,27 @@ public class TestSensei extends TestCase {
   }
   
 
+  public void testRelevanceWeightedMulti() throws Exception
+  {
+    logger.info("executing test case testRelevanceNOW");
+    // Assume that the difference between request side "now" and node side "_NOW" is less than 2000ms.
+    String req = "{\"sort\":[\"_score\"],\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"model\":{\"function_params\":[\"_INNER_SCORE\",\"wtags\",\"goodtag\"],\"facets\":{\"wmstring\":[\"wtags\"]},\"function\":\" if(wtags.hasWeight(goodtag))    _INNER_SCORE = wtags.getWeight();  return  _INNER_SCORE;\",\"variables\":{\"string\":[\"goodtag\"]}},\"values\":{\"goodtag\":\"reliable\"}}}},\"fetchStored\":true,\"from\":0,\"explain\":true,\"size\":10}";
+    JSONObject res = search(new JSONObject(req));
+    int numhits = res.getInt("numhits");
+    assertTrue("numhits is wrong. get "+ numhits, res.getInt("numhits") == 15000);
+    logger.info("request:" + req + "\nresult:" + res);
+    
+    
+    JSONArray hits = res.getJSONArray("hits");
+    JSONObject firstHit = hits.getJSONObject(0);
+    JSONObject secondHit = hits.getJSONObject(1);
+    
+    double firstScore = firstHit.getDouble("_score");
+    double secondScore = secondHit.getDouble("_score");
+    assertEquals("inner score for first is not correct." , true, Math.abs(firstScore - 999) < 1 );
+    assertEquals("inner score for second is not correct." , true, Math.abs(secondScore - 1) < 0.1 );
+  }
+  
   private boolean containsString(JSONArray array, String target) throws JSONException
   {
     for(int i=0; i<array.length(); i++)
@@ -1246,6 +1267,7 @@ public class TestSensei extends TestCase {
       sb.append(line);
     String res = sb.toString();
     // System.out.println("res: " + res);
+    res = res.replace('\u0000', '*');  // replace the seperator for test case;
     JSONObject ret = new JSONObject(res);
     if (ret.opt("totaldocs") !=null){
      // assertEquals(15000L, ret.getLong("totaldocs"));
