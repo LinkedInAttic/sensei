@@ -283,7 +283,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
     }
     finally
     {
-      if (queryLogger.isInfoEnabled() && requestContext.query != null)
+      if (queryLogger.isInfoEnabled() && requestContext != null && requestContext.query != null)
       {
         queryLogger.info(String.format("hits(%d/%d) took %dms: %s", numHits, totalDocs, System.currentTimeMillis() - time, requestContext.query));
       }

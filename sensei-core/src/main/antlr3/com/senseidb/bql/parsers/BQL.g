@@ -2743,7 +2743,9 @@ relevance_model returns [String functionBody, JSONObject json]
                 for (String facet: _usedFacets) {
                     funcParams.put(facet);
                     String[] facetInfo = _facetInfoMap.get(facet);
-                    String typeName = (facetInfo[0].equals("multi") ? "m" : "")
+                    String typeName = (facetInfo[0].equals("multi") ? "m" :
+                                       (facetInfo[0].equals("weighted-multi") ? "wm" : "")
+                                      )
                                       + _facetInfoMap.get(facet)[1];
                     JSONArray facetsWithSameType = facets.optJSONArray(typeName);
                     if (facetsWithSameType == null) {

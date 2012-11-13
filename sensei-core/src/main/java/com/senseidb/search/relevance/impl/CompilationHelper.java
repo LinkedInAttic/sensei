@@ -571,7 +571,7 @@ public class CompilationHelper
         catch (CannotCompileException e)
         {
           logger.info(e.getMessage());
-          throw new RelevanceException(ErrorType.JsonCompilationError, "Compilation error of json relevance model.", e);
+          throw new RelevanceException(ErrorType.JsonCompilationError, e.getMessage(), e);
         }
 
         Class h;
