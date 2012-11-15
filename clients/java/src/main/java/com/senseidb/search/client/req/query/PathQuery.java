@@ -23,14 +23,14 @@ import com.senseidb.search.client.json.CustomJsonHandler;
 
 @CustomJsonHandler(value = QueryJsonHandler.class)
 public class PathQuery extends FieldAwareQuery {
-  private String value;
-  private double boost;
+    private String value;
+    private double boost;
 
-  public PathQuery(String field, String value, double boost) {
-    super();
-    this.value = value;
-    this.boost = boost;
-    this.field = field;
-  }
+    public PathQuery(String field, String value, double boost) {
+        super();
+        this.value = value;
+        this.boost = boost;
+        this.field = field;
+    }
 
 }

@@ -54,20 +54,20 @@ import com.senseidb.search.client.req.Term;
  * <p>
  * This query maps to Sensei <code>DisjunctionMaxQuery</code>.
  * </p>
- *
+ * 
  */
 @CustomJsonHandler(QueryJsonHandler.class)
 public class DisMax extends Query {
-  @JsonField("tie_braker")
-  private double tieBraker;
-  private double boost;
-  private List<Term> queries;
+    @JsonField("tie_braker")
+    private double tieBraker;
+    private double boost;
+    private List<Term> queries;
 
-  public DisMax(double tieBraker, List<Term> queries, double boost) {
-    super();
-    this.tieBraker = tieBraker;
-    this.boost = boost;
-    this.queries = queries;
-  }
+    public DisMax(double tieBraker, List<Term> queries, double boost) {
+        super();
+        this.tieBraker = tieBraker;
+        this.boost = boost;
+        this.queries = queries;
+    }
 
 }
