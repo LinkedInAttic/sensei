@@ -286,4 +286,60 @@ public class StringQuery extends Query {
         }
     }
 
+    public String getDefaultField() {
+        return defaultField;
+    }
+
+    public String getQuery() {
+        return query;
+    }
+
+    public Operator getDefaultOperator() {
+        return defaultOperator;
+    }
+
+    public Boolean getAllowLeadingWildCard() {
+        return allowLeadingWildCard;
+    }
+
+    public Boolean getLowercaseExpandedTerms() {
+        return lowercaseExpandedTerms;
+    }
+
+    public Boolean getEnablePositionIncrements() {
+        return enablePositionIncrements;
+    }
+
+    public String getFuzzyPrefixLength() {
+        return fuzzyPrefixLength;
+    }
+
+    public Double getFuzzyMinSim() {
+        return fuzzyMinSim;
+    }
+
+    public Integer getPhraseSlop() {
+        return phraseSlop;
+    }
+
+    public Double getBoost() {
+        return boost;
+    }
+
+    public Boolean getAutoGeneratePhraseQueries() {
+        return autoGeneratePhraseQueries;
+    }
+
+    public List<String> getFields() {
+        return fields;
+    }
+
+    public Boolean getUseDisMax() {
+        return useDisMax;
+    }
+
+    public Integer getTieBreaker() {
+        return tieBreaker;
+    }
+
 }

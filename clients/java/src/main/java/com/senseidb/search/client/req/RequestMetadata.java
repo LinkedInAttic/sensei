@@ -32,4 +32,8 @@ public class RequestMetadata {
         this.shownOnlyFields = shownOnlyFields;
     }
 
+    public List<String> getShownOnlyFields() {
+        return shownOnlyFields;
+    }
+
 }

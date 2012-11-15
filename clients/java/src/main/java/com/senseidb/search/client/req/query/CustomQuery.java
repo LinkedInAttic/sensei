@@ -43,4 +43,16 @@ public class CustomQuery extends Query {
         this.boost = boost;
     }
 
+    public String getCls() {
+        return cls;
+    }
+
+    public Map<String, String> getParams() {
+        return params;
+    }
+
+    public double getBoost() {
+        return boost;
+    }
+
 }

@@ -42,10 +42,8 @@ import com.senseidb.search.client.req.query.QueryJsonHandler;
 @CustomJsonHandler(QueryJsonHandler.class)
 public class SpanNot extends Query {
 
-    SpanTerm include;
-
-    SpanTerm exclude;
-
+    private SpanTerm include;
+    private SpanTerm exclude;
     private final double boost;
 
     public SpanNot(SpanTerm include, SpanTerm exclude, double boost) {
@@ -55,6 +53,18 @@ public class SpanNot extends Query {
         exclude.setBoost(null);
         this.exclude = exclude;
         this.boost = boost;
+    }
+
+    public SpanTerm getInclude() {
+        return include;
+    }
+
+    public SpanTerm getExclude() {
+        return exclude;
+    }
+
+    public double getBoost() {
+        return boost;
     }
 
 }

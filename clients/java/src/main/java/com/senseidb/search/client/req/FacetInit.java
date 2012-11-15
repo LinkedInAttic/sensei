@@ -27,8 +27,8 @@ import java.util.List;
  * 
  */
 public class FacetInit {
-    String type;
-    List<Object> values;
+    private String type;
+    private List<Object> values;
 
     public static FacetInit build(FacetType type, Object... values) {
         FacetInit facetInit = new FacetInit();

@@ -41,4 +41,12 @@ public class Path extends Selection {
         return value;
     }
 
+    public boolean isStrict() {
+        return strict;
+    }
+
+    public int getDepth() {
+        return depth;
+    }
+
 }

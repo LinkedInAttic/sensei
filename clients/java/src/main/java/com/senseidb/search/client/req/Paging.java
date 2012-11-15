@@ -43,4 +43,12 @@ public class Paging {
         this.offset = offset;
     }
 
+    public int getCount() {
+        return count;
+    }
+
+    public int getOffset() {
+        return offset;
+    }
+
 }

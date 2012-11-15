@@ -37,13 +37,13 @@ import com.senseidb.search.client.json.JsonField;
 
 @CustomJsonHandler(QueryJsonHandler.class)
 public class BoolQuery extends Query {
-    List<Query> must;
-    List<Query> must_not;
-    List<Query> should;
+    private List<Query> must;
+    private List<Query> must_not;
+    private List<Query> should;
     @JsonField("minimum_number_should_match")
-    Integer minimumNumberShouldMatch;
-    double boost;
-    Boolean disableCoord;
+    private Integer minimumNumberShouldMatch;
+    private double boost;
+    private Boolean disableCoord;
 
     public BoolQuery(List<Query> must, List<Query> must_not,
             List<Query> should, Integer minimumNumberShouldMatch, double boost,
@@ -55,6 +55,30 @@ public class BoolQuery extends Query {
         this.minimumNumberShouldMatch = minimumNumberShouldMatch;
         this.boost = boost;
         this.disableCoord = disableCoord;
+    }
+
+    public List<Query> getMust() {
+        return must;
+    }
+
+    public List<Query> getMust_not() {
+        return must_not;
+    }
+
+    public List<Query> getShould() {
+        return should;
+    }
+
+    public Integer getMinimumNumberShouldMatch() {
+        return minimumNumberShouldMatch;
+    }
+
+    public double getBoost() {
+        return boost;
+    }
+
+    public Boolean getDisableCoord() {
+        return disableCoord;
     }
 
 }

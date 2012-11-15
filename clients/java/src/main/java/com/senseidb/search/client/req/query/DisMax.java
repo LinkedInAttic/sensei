@@ -70,4 +70,16 @@ public class DisMax extends Query {
         this.queries = queries;
     }
 
+    public double getTieBraker() {
+        return tieBraker;
+    }
+
+    public double getBoost() {
+        return boost;
+    }
+
+    public List<Term> getQueries() {
+        return queries;
+    }
+
 }

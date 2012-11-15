@@ -93,4 +93,24 @@ public class Facet {
     public static Builder builder() {
         return new Builder();
     }
+
+    public int getMax() {
+        return max;
+    }
+
+    public int getMinHit() {
+        return minHit;
+    }
+
+    public boolean isExpand() {
+        return expand;
+    }
+
+    public OrderBy getOrder() {
+        return order;
+    }
+
+    public Map<String, String> getProperties() {
+        return properties;
+    }
 }

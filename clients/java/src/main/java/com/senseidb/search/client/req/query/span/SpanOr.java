@@ -41,7 +41,7 @@ import com.senseidb.search.client.req.query.QueryJsonHandler;
  */
 @CustomJsonHandler(QueryJsonHandler.class)
 public class SpanOr extends Query {
-    List<SpanTerm> clauses;
+    private List<SpanTerm> clauses;
     private final Double boost;
 
     public SpanOr(List<SpanTerm> clauses, Double boost) {
@@ -49,6 +49,14 @@ public class SpanOr extends Query {
         this.clauses = clauses;
         SpanTerm.cleanBoosts(clauses);
         this.boost = boost;
+    }
+
+    public List<SpanTerm> getClauses() {
+        return clauses;
+    }
+
+    public Double getBoost() {
+        return boost;
     }
 
 }

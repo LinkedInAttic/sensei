@@ -47,4 +47,12 @@ public class QueryWildcard extends FieldAwareQuery {
         this.boost = boost;
         this.field = field;
     }
+
+    public String getValue() {
+        return value;
+    }
+
+    public double getBoost() {
+        return boost;
+    }
 }

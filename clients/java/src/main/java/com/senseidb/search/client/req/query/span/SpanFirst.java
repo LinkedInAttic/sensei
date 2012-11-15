@@ -40,8 +40,8 @@ import com.senseidb.search.client.req.query.QueryJsonHandler;
 @CustomJsonHandler(QueryJsonHandler.class)
 public class SpanFirst extends Query {
 
-    SpanTerm match;
-    int end;
+    private SpanTerm match;
+    private int end;
     private double boost;
 
     public SpanFirst(SpanTerm match, int end, double boost) {
@@ -50,6 +50,18 @@ public class SpanFirst extends Query {
         this.end = end;
         this.boost = boost;
         match.setBoost(null);
+    }
+    
+    public SpanTerm getMatch() {
+        return match;
+    }
+
+    public int getEnd() {
+        return end;
+    }
+
+    public double getBoost() {
+        return boost;
     }
 
 }

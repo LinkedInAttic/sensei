@@ -41,13 +41,13 @@ import com.senseidb.search.client.req.query.Query;
  */
 public class Terms extends Selection {
 
-    List<String> values;
-    List<String> excludes;
-    Operator operator;
-    Double boost;
+    private List<String> values;
+    private List<String> excludes;
+    private Operator operator;
+    private Double boost;
     @JsonField("minimum_match")
-    Integer minimumMatch;
-    boolean _noOptimize = false;
+    private Integer minimumMatch;
+    private boolean _noOptimize = false;
 
     public Terms() {
 
@@ -80,6 +80,18 @@ public class Terms extends Selection {
 
     public Operator getOperator() {
         return operator;
+    }
+
+    public Double getBoost() {
+        return boost;
+    }
+
+    public Integer getMinimumMatch() {
+        return minimumMatch;
+    }
+
+    public boolean isNoOptimize() {
+        return _noOptimize;
     }
 
 }

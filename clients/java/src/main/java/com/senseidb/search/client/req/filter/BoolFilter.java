@@ -75,4 +75,16 @@ public class BoolFilter implements Filter {
         this.should = should;
     }
 
+    public Boolean getMinimumNumberShouldMatch() {
+        return minimumNumberShouldMatch;
+    }
+
+    public Double getBoost() {
+        return boost;
+    }
+
+    public Boolean getDisableCoord() {
+        return disableCoord;
+    }
+
 }

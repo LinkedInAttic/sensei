@@ -47,4 +47,12 @@ public class Term extends Selection {
 
     public Term() {
     }
+
+    public String getValue() {
+        return value;
+    }
+
+    public double getBoost() {
+        return boost;
+    }
 }

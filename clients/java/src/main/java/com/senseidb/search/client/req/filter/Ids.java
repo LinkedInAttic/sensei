@@ -45,8 +45,8 @@ import com.senseidb.search.client.req.query.QueryJsonHandler;
  */
 @CustomJsonHandler(QueryJsonHandler.class)
 public class Ids extends Query implements Filter {
-    List<String> values;
-    List<String> excludes;
+    private List<String> values;
+    private List<String> excludes;
     private double boost;
 
     public Ids(List<String> values, List<String> excludes) {
@@ -68,6 +68,10 @@ public class Ids extends Query implements Filter {
 
     public List<String> getExcludes() {
         return excludes;
+    }
+
+    public double getBoost() {
+        return boost;
     }
 
 }

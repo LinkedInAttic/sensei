@@ -33,4 +33,12 @@ public class PathQuery extends FieldAwareQuery {
         this.field = field;
     }
 
+    public String getValue() {
+        return value;
+    }
+
+    public double getBoost() {
+        return boost;
+    }
+
 }

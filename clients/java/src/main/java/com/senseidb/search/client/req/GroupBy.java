@@ -37,4 +37,12 @@ public class GroupBy {
         this.columns = columns;
         this.top = top;
     }
+
+    public List<String> getColumns() {
+        return columns;
+    }
+
+    public int getTop() {
+        return top;
+    }
 }
