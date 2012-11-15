@@ -35,9 +35,10 @@ import com.senseidb.search.client.req.query.Query;
 import com.senseidb.search.client.req.query.QueryJsonHandler;
 import com.senseidb.search.client.req.query.StringQuery;
 
-public class FilterJsonHandler implements JsonHandler<Filter>{
+public class FilterJsonHandler implements JsonHandler<Filter> {
     private SelectionJsonHandler selectionJsonHandler = new SelectionJsonHandler();
     private QueryJsonHandler queryJsonHandler = new QueryJsonHandler();
+
     @Override
     public JSONObject serialize(Filter bean) throws JSONException {
         if (bean == null) {
@@ -64,10 +65,12 @@ public class FilterJsonHandler implements JsonHandler<Filter>{
                 ret.put("must", new JSONArray(convertToJson(bool.getMust())));
             }
             if (bool.getMust_not() != null) {
-                ret.put("must_not", new JSONArray(convertToJson(bool.getMust_not())));
+                ret.put("must_not",
+                        new JSONArray(convertToJson(bool.getMust_not())));
             }
             if (bool.getShould() != null) {
-                ret.put("should", new JSONArray(convertToJson(bool.getShould())));
+                ret.put("should",
+                        new JSONArray(convertToJson(bool.getShould())));
             }
             return new JSONObject().put("bool", ret);
         }
@@ -78,30 +81,34 @@ public class FilterJsonHandler implements JsonHandler<Filter>{
                 ret.put("values", new JSONArray(ids.getValues()));
             }
             if (ids.getExcludes() != null) {
-                ret.put("excludes", new JSONArray(ids.getExcludes() ));
+                ret.put("excludes", new JSONArray(ids.getExcludes()));
             }
 
             return new JSONObject().put("ids", ret);
         }
         if (bean instanceof IsNull) {
-          IsNull isNull = (IsNull) bean;
-          
+            IsNull isNull = (IsNull) bean;
 
-          return new JSONObject().put("isNull", new JSONObject().put("field", isNull.getField()));
-      }
+            return new JSONObject().put("isNull",
+                    new JSONObject().put("field", isNull.getField()));
+        }
         if (bean instanceof Query) {
             return queryJsonHandler.serialize((Query) bean);
         }
         if (bean instanceof QueryFilter) {
-          return new JSONObject().put("query", queryJsonHandler.serialize(((QueryFilter) bean).getQuery()));
+            return new JSONObject()
+                    .put("query", queryJsonHandler
+                            .serialize(((QueryFilter) bean).getQuery()));
         }
-        throw new UnsupportedOperationException(bean.getClass() + " is not supported");
+        throw new UnsupportedOperationException(bean.getClass()
+                + " is not supported");
 
     }
 
-    private List<JSONObject> convertToJson(List<Filter> filters2) throws JSONException {
+    private List<JSONObject> convertToJson(List<Filter> filters2)
+            throws JSONException {
         List<JSONObject> filters = new ArrayList<JSONObject>(filters2.size());
-        for(Filter filter :  filters2) {
+        for (Filter filter : filters2) {
             filters.add(serialize(filter));
         }
         return filters;

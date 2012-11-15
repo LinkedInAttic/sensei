@@ -27,11 +27,11 @@ import com.senseidb.search.client.req.Operator;
  * A family of <code>text</code> queries that accept text, analyzes it, and
  * constructs a query out of it. For example:
  * </p>
- *
+ * 
  * <pre class="prettyprint lang-js">
  * <span class="pun">{</span><span class="pln"><br>&nbsp; &nbsp; </span><span class="str">"text"</span><span class="pln"> </span><span class="pun">:</span><span class="pln"> </span><span class="pun">{</span><span class="pln"><br>&nbsp; &nbsp; &nbsp; &nbsp; </span><span class="str">"message"</span><span class="pln"> </span><span class="pun">:</span><span class="pln"> </span><span class="str">"this is a test"</span><span class="pln"><br>&nbsp; &nbsp; </span><span class="pun">}</span><span class="pln"><br></span><span class="pun">}</span>
  * </pre>
- *
+ * 
  * <p>
  * Note, even though the name is text, it also supports exact matching (
  * <code>term</code> like) on numeric values and dates.
@@ -48,7 +48,7 @@ import com.senseidb.search.client.req.Operator;
  * set to <code>or</code> or <code>and</code> to control the boolean clauses
  * (defaults to <code>or</code>).
  * </p>
- *
+ * 
  * <p>
  * The <code>analyzer</code> can be set to control which analyzer will perform
  * the analysis process on the text. It default to the field explicit mapping
@@ -61,12 +61,12 @@ import com.senseidb.search.client.req.Operator;
  * <code>prefix_length</code> and <code>max_expansions</code> can be set in this
  * case to control the fuzzy process.
  * </p>
- *
+ * 
  * <p>
  * Here is an example when providing additional parameters (note the slight
  * change in structure, <code>message</code> is the field name):
  * </p>
- *
+ * 
  * <h3>phrase</h3>
  * <p>
  * The <code>text_phrase</code> query analyzes the text and creates a
@@ -76,7 +76,7 @@ import com.senseidb.search.client.req.Operator;
  * Since <code>text_phrase</code> is only a <code>type</code> of a
  * <code>text</code> query, it can also be used in the following manner:
  * </p>
- *
+ * 
  * <p>
  * A phrase query maintains order of the terms up to a configurable
  * <code>slop</code> (which defaults to 0).
@@ -86,7 +86,7 @@ import com.senseidb.search.client.req.Operator;
  * the analysis process on the text. It default to the field explicit mapping
  * definition, or the default search analyzer, for example:
  * </p>
- *
+ * 
  * <h3>text_phrase_prefix</h3>
  * <p>
  * The <code>text_phrase_prefix</code> is the same as <code>text_phrase</code>,
@@ -116,43 +116,44 @@ import com.senseidb.search.client.req.Operator;
  */
 @CustomJsonHandler(value = QueryJsonHandler.class)
 public class TextQuery extends FieldAwareQuery {
-  private String value;
-  private Operator operator;
-  private Type type;
-  private double boost;
+    private String value;
+    private Operator operator;
+    private Type type;
+    private double boost;
 
-  public TextQuery(String field, String value, Operator operator, Type type, double boost) {
-    super();
-    this.field = field;
-    this.value = value;
-    this.operator = operator;
-    this.type = type;
-    this.boost = boost;
-  }
+    public TextQuery(String field, String value, Operator operator, Type type,
+            double boost) {
+        super();
+        this.field = field;
+        this.value = value;
+        this.operator = operator;
+        this.type = type;
+        this.boost = boost;
+    }
 
-  public static enum Type {
-    phrase_prefix, phrase;
-  }
+    public static enum Type {
+        phrase_prefix, phrase;
+    }
 
-  @Override
-  public String getField() {
-    return field;
-  }
+    @Override
+    public String getField() {
+        return field;
+    }
 
-  public String getValue() {
-    return value;
-  }
+    public String getValue() {
+        return value;
+    }
 
-  public Operator getOperator() {
-    return operator;
-  }
+    public Operator getOperator() {
+        return operator;
+    }
 
-  public Type getType() {
-    return type;
-  }
+    public Type getType() {
+        return type;
+    }
 
-  public double getBoost() {
-    return boost;
-  }
+    public double getBoost() {
+        return boost;
+    }
 
 }

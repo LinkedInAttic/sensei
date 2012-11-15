@@ -31,20 +31,28 @@ import com.senseidb.search.client.req.query.Query;
  * 
  */
 public class Term extends Selection {
-  private String value;
-  private double boost;
+    private String value;
+    private double boost;
 
-  public Term(String value) {
-    super();
-    this.value = value;
-  }
+    public Term(String value) {
+        super();
+        this.value = value;
+    }
 
-  public Term(String value, double boost) {
-    super();
-    this.value = value;
-    this.boost = boost;
-  }
+    public Term(String value, double boost) {
+        super();
+        this.value = value;
+        this.boost = boost;
+    }
 
-  public Term() {
-  }
+    public Term() {
+    }
+
+    public String getValue() {
+        return value;
+    }
+
+    public double getBoost() {
+        return boost;
+    }
 }

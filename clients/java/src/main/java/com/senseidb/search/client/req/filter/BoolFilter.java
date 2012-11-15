@@ -35,43 +35,56 @@ import com.senseidb.search.client.json.JsonField;
  */
 @CustomJsonHandler(FilterJsonHandler.class)
 public class BoolFilter implements Filter {
-  List<Filter> must;
-  List<Filter> must_not;
-  List<Filter> should;
-  @JsonField("minimum_number_should_match")
-  Boolean minimumNumberShouldMatch;
-  Double boost;
-  Boolean disableCoord;
+    List<Filter> must;
+    List<Filter> must_not;
+    List<Filter> should;
+    @JsonField("minimum_number_should_match")
+    Boolean minimumNumberShouldMatch;
+    Double boost;
+    Boolean disableCoord;
 
-  public BoolFilter(List<Filter> must, List<Filter> must_not, List<Filter> should) {
-    super();
-    this.must = must;
-    this.must_not = must_not;
-    this.should = should;
-  }
+    public BoolFilter(List<Filter> must, List<Filter> must_not,
+            List<Filter> should) {
+        super();
+        this.must = must;
+        this.must_not = must_not;
+        this.should = should;
+    }
 
-  public List<Filter> getMust() {
-    return must;
-  }
+    public List<Filter> getMust() {
+        return must;
+    }
 
-  public void setMust(List<Filter> must) {
-    this.must = must;
-  }
+    public void setMust(List<Filter> must) {
+        this.must = must;
+    }
 
-  public List<Filter> getMust_not() {
-    return must_not;
-  }
+    public List<Filter> getMust_not() {
+        return must_not;
+    }
 
-  public void setMust_not(List<Filter> must_not) {
-    this.must_not = must_not;
-  }
+    public void setMust_not(List<Filter> must_not) {
+        this.must_not = must_not;
+    }
 
-  public List<Filter> getShould() {
-    return should;
-  }
+    public List<Filter> getShould() {
+        return should;
+    }
 
-  public void setShould(List<Filter> should) {
-    this.should = should;
-  }
+    public void setShould(List<Filter> should) {
+        this.should = should;
+    }
+
+    public Boolean getMinimumNumberShouldMatch() {
+        return minimumNumberShouldMatch;
+    }
+
+    public Double getBoost() {
+        return boost;
+    }
+
+    public Boolean getDisableCoord() {
+        return disableCoord;
+    }
 
 }

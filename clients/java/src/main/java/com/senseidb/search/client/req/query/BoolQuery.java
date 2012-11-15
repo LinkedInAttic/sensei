@@ -30,30 +30,55 @@ import com.senseidb.search.client.json.JsonField;
  * queries. Similar in concept to Boolean query, except that the clauses are
  * other filters. Can be placed within queries that accept a filter.
  * </p>
- *
- *
- *
+ * 
+ * 
+ * 
  */
 
 @CustomJsonHandler(QueryJsonHandler.class)
 public class BoolQuery extends Query {
-  List<Query> must;
-  List<Query> must_not;
-  List<Query> should;
-  @JsonField("minimum_number_should_match")
-  Integer minimumNumberShouldMatch;
-  double boost;
-  Boolean disableCoord;
+    private List<Query> must;
+    private List<Query> must_not;
+    private List<Query> should;
+    @JsonField("minimum_number_should_match")
+    private Integer minimumNumberShouldMatch;
+    private double boost;
+    private Boolean disableCoord;
 
-  public BoolQuery(List<Query> must, List<Query> must_not, List<Query> should, Integer minimumNumberShouldMatch,
-      double boost, Boolean disableCoord) {
-    super();
-    this.must = must;
-    this.must_not = must_not;
-    this.should = should;
-    this.minimumNumberShouldMatch = minimumNumberShouldMatch;
-    this.boost = boost;
-    this.disableCoord = disableCoord;
-  }
+    public BoolQuery(List<Query> must, List<Query> must_not,
+            List<Query> should, Integer minimumNumberShouldMatch, double boost,
+            Boolean disableCoord) {
+        super();
+        this.must = must;
+        this.must_not = must_not;
+        this.should = should;
+        this.minimumNumberShouldMatch = minimumNumberShouldMatch;
+        this.boost = boost;
+        this.disableCoord = disableCoord;
+    }
+
+    public List<Query> getMust() {
+        return must;
+    }
+
+    public List<Query> getMust_not() {
+        return must_not;
+    }
+
+    public List<Query> getShould() {
+        return should;
+    }
+
+    public Integer getMinimumNumberShouldMatch() {
+        return minimumNumberShouldMatch;
+    }
+
+    public double getBoost() {
+        return boost;
+    }
+
+    public Boolean getDisableCoord() {
+        return disableCoord;
+    }
 
 }

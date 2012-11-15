@@ -21,24 +21,32 @@ package com.senseidb.search.client.req;
 
 public class Path extends Selection {
 
-  private String value;
-  private boolean strict;
-  private int depth;
+    private String value;
+    private boolean strict;
+    private int depth;
 
-  public Path(String value, boolean strict, int depth) {
-    super();
+    public Path(String value, boolean strict, int depth) {
+        super();
 
-    this.value = value;
-    this.strict = strict;
-    this.depth = depth;
-  }
+        this.value = value;
+        this.strict = strict;
+        this.depth = depth;
+    }
 
-  public Path() {
+    public Path() {
 
-  }
+    }
 
-  public String getValue() {
-    return value;
-  }
-  
+    public String getValue() {
+        return value;
+    }
+
+    public boolean isStrict() {
+        return strict;
+    }
+
+    public int getDepth() {
+        return depth;
+    }
+
 }
