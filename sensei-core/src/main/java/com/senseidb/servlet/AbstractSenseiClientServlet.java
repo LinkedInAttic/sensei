@@ -169,6 +169,21 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
         {
           logger.warn("Unable to get total docs");
         }
+
+        try
+        {
+          SenseiSystemInfo sysInfo = _senseiSysBroker.browse(new SenseiRequest());
+
+          if (sysInfo != null && sysInfo.getFacetInfos() != null)
+          {
+            _facetInfoMap = extractFacetInfo(sysInfo);
+            _compiler.setFacetInfoMap(_facetInfoMap);
+          }
+        }
+        catch (Exception e)
+        {
+          logger.info("Hit exception trying to get sysinfo", e);
+        }
       }
     }, 60000, 60000); // Every minute.
 

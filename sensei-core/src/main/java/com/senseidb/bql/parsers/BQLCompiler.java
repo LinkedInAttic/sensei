@@ -17,7 +17,7 @@ public class BQLCompiler extends AbstractCompiler
 {
   // A map containing facet type and data type info for a facet
   private Map<String, String[]> _facetInfoMap = new HashMap<String, String[]>();
-  private BQLParser _parser = null;
+  private ThreadLocal<BQLParser> _parser = new ThreadLocal<BQLParser>();
 
   public BQLCompiler(Map<String, String[]> facetInfoMap)
   {
@@ -31,8 +31,9 @@ public class BQLCompiler extends AbstractCompiler
     TokenStream tokens = new CommonTokenStream(new BQLLexer(input));
       
     // Parser generates abstract syntax tree
-    _parser = new BQLParser(tokens, _facetInfoMap);
-    BQLParser.statement_return ret = _parser.statement();
+    BQLParser parser = new BQLParser(tokens, _facetInfoMap);
+    _parser.set(parser);
+    BQLParser.statement_return ret = parser.statement();
       
     // Acquire parse result
     CommonTree ast = (CommonTree) ret.tree;
@@ -46,13 +47,19 @@ public class BQLCompiler extends AbstractCompiler
 
   public String getErrorMessage(RecognitionException error)
   {
-    if (_parser != null)
+    BQLParser parser = _parser.get();
+    if (parser != null)
     {
-      return _parser.getErrorMessage(error, _parser.getTokenNames());
+      return parser.getErrorMessage(error, parser.getTokenNames());
     }
     else
     {
       return null;
     }
+  }
+
+  public void setFacetInfoMap(Map<String, String[]> facetInfoMap)
+  {
+    _facetInfoMap = facetInfoMap;
   }
 }
