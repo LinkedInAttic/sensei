@@ -97,7 +97,7 @@ public class Range extends Selection {
     }
 
     public Range(String from, String to, boolean includeLower,
-            boolean includeUpper, double Doost, boolean noOptimize) {
+            boolean includeUpper, double boost, boolean noOptimize) {
         super();
 
         this.from = from;
