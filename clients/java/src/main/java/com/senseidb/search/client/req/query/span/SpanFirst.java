@@ -28,28 +28,40 @@ import com.senseidb.search.client.req.query.QueryJsonHandler;
  * Matches spans near the beginning of a field. The span first query maps to
  * Sensei <code>SpanFirstQuery</code>. Here is an example:
  * </p>
- *
-  *
+ * 
+ * 
  * <p>
  * The <code>match</code> clause can be any other span type query. The
  * <code>end</code> controls the maximum end position permitted in a match.
  * </p>
- *
- *
+ * 
+ * 
  */
 @CustomJsonHandler(QueryJsonHandler.class)
 public class SpanFirst extends Query {
 
-  SpanTerm match;
-  int end;
-  private double boost;
+    private SpanTerm match;
+    private int end;
+    private double boost;
 
-  public SpanFirst(SpanTerm match, int end, double boost) {
-    super();
-    this.match = match;
-    this.end = end;
-    this.boost = boost;
-    match.setBoost(null);
-  }
+    public SpanFirst(SpanTerm match, int end, double boost) {
+        super();
+        this.match = match;
+        this.end = end;
+        this.boost = boost;
+        match.setBoost(null);
+    }
+    
+    public SpanTerm getMatch() {
+        return match;
+    }
+
+    public int getEnd() {
+        return end;
+    }
+
+    public double getBoost() {
+        return boost;
+    }
 
 }
