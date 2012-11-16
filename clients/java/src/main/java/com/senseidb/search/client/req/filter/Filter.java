@@ -35,8 +35,8 @@ public interface Filter {
      * </p>
      */
     public static class AndOr implements Filter {
-        private List<Filter> filters = new ArrayList<Filter>();;
-        private Operator operation;
+        List<Filter> filters = new ArrayList<Filter>();;
+        Operator operation;
 
         public AndOr(List<Filter> filters, Operator operation) {
             super();
