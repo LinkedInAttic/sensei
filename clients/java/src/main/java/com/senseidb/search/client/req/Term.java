@@ -55,4 +55,15 @@ public class Term extends Selection {
     public double getBoost() {
         return boost;
     }
+    
+    @Override
+    public String toString() {
+        StringBuffer buffer = new StringBuffer();
+        buffer.append(super.toString()); // for field
+        buffer.append(":");
+        buffer.append(value == null ? "" : value);
+        buffer.append("^");
+        buffer.append(boost);
+        return buffer.toString();
+    }
 }

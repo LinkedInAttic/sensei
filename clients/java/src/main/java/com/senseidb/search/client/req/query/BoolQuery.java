@@ -80,5 +80,46 @@ public class BoolQuery extends Query {
     public Boolean getDisableCoord() {
         return disableCoord;
     }
+    
+    @Override 
+    public String toString() {
+        StringBuffer buffer = new StringBuffer();
+        boolean needParens=(getBoost() != 1.0) || (getMinimumNumberShouldMatch() > 0) ;
+        if (needParens) {
+          buffer.append("(");
+        }
+        
+        for (Query q : must) {
+            buffer.append("+");
+            buffer.append("(");
+            buffer.append(q);
+            buffer.append(")");
+        }
+        
+       for (Query q : must_not) {
+            buffer.append("~");
+            buffer.append("(");
+            buffer.append(q);
+            buffer.append(")");
+        }
+        
+       for (Query q : should) {
+           buffer.append("(");
+           buffer.append(q);
+           buffer.append(")");
+       }
+       
+       if (needParens) {
+           buffer.append(")");
+       }
+
+       buffer.append("~");
+       buffer.append(getMinimumNumberShouldMatch());
+
+       buffer.append("^");
+       buffer.append(getBoost());
+       
+       return buffer.toString();
+    }
 
 }
