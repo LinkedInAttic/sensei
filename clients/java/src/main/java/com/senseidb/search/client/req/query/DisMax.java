@@ -87,15 +87,10 @@ public class DisMax extends Query {
         StringBuffer buffer = new StringBuffer();
         if (queries != null) {
             for (Term q : queries) {
-                buffer.append(q);
-                buffer.append(",");
+                buffer.append(q).append(",");
             }
         }
-        
-        buffer.append("^");
-        buffer.append(boost);
-        buffer.append("tieBraker:");
-        buffer.append(tieBraker);
+        buffer.append("^").append(boost).append("tieBraker:").append(tieBraker);
         return buffer.toString();
     }
 

@@ -83,43 +83,27 @@ public class BoolQuery extends Query {
     
     @Override 
     public String toString() {
-        StringBuffer buffer = new StringBuffer();
-        boolean needParens=(getBoost() != 1.0) || (getMinimumNumberShouldMatch() > 0) ;
-        if (needParens) {
-          buffer.append("(");
+        StringBuilder builder = new StringBuilder();
+        builder.append("(");
+        if (must != null) {
+            for (Query q : must) {
+                builder.append("+").append("(").append(q).append(")");
+            }
         }
-        
-        for (Query q : must) {
-            buffer.append("+");
-            buffer.append("(");
-            buffer.append(q);
-            buffer.append(")");
+        if (must_not != null) {
+            for (Query q : must_not) {
+                builder.append("-").append("(").append(q).append(")");
+            }
         }
-        
-       for (Query q : must_not) {
-            buffer.append("~");
-            buffer.append("(");
-            buffer.append(q);
-            buffer.append(")");
+        if (should != null) {
+            for (Query q : should) {
+                builder.append("(").append(q).append(")");
+            }
         }
-        
-       for (Query q : should) {
-           buffer.append("(");
-           buffer.append(q);
-           buffer.append(")");
-       }
-       
-       if (needParens) {
-           buffer.append(")");
-       }
-
-       buffer.append("~");
-       buffer.append(getMinimumNumberShouldMatch());
-
-       buffer.append("^");
-       buffer.append(getBoost());
-       
-       return buffer.toString();
+        builder.append("~").append(minimumNumberShouldMatch);
+        builder.append("^").append(boost);
+        builder.append(")");
+        return builder.toString();
     }
 
 }

@@ -158,12 +158,12 @@ public class TextQuery extends FieldAwareQuery {
     
     @Override
     public String toString() {
-        StringBuffer buffer = new StringBuffer();
-        buffer.append(operator == null ? "" : operator.toString());
-        buffer.append(" " + super.toString()); // for field
-        buffer.append(":" + value == null ? "" : value);
-        buffer.append(" " + type == null ? "" : type.toString());
-        buffer.append("^" + boost);
-        return buffer.toString();
+        StringBuilder builder = new StringBuilder();
+        builder.append(operator == null ? "" : operator.toString());
+        builder.append(" ").append(super.toString()); // for field
+        builder.append(value == null ? "" : value);
+        builder.append(" ").append(type == null ? "" : type.toString());
+        builder.append("^").append(boost);
+        return builder.toString();
     }
 }
