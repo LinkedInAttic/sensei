@@ -80,5 +80,30 @@ public class BoolQuery extends Query {
     public Boolean getDisableCoord() {
         return disableCoord;
     }
+    
+    @Override 
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("(");
+        if (must != null) {
+            for (Query q : must) {
+                builder.append("+").append("(").append(q).append(")");
+            }
+        }
+        if (must_not != null) {
+            for (Query q : must_not) {
+                builder.append("-").append("(").append(q).append(")");
+            }
+        }
+        if (should != null) {
+            for (Query q : should) {
+                builder.append("(").append(q).append(")");
+            }
+        }
+        builder.append("~").append(minimumNumberShouldMatch);
+        builder.append("^").append(boost);
+        builder.append(")");
+        return builder.toString();
+    }
 
 }

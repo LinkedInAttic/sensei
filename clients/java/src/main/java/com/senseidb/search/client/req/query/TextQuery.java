@@ -155,5 +155,15 @@ public class TextQuery extends FieldAwareQuery {
     public double getBoost() {
         return boost;
     }
-
+    
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append(operator == null ? "" : operator.toString());
+        builder.append(" ").append(super.toString()); // for field
+        builder.append(value == null ? "" : value);
+        builder.append(" ").append(type == null ? "" : type.toString());
+        builder.append("^").append(boost);
+        return builder.toString();
+    }
 }

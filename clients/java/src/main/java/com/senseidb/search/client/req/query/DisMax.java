@@ -81,5 +81,17 @@ public class DisMax extends Query {
     public List<Term> getQueries() {
         return queries;
     }
+    
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        if (queries != null) {
+            for (Term q : queries) {
+                builder.append(q).append(",");
+            }
+        }
+        builder.append("^").append(boost).append("tieBraker:").append(tieBraker);
+        return builder.toString();
+    }
 
 }

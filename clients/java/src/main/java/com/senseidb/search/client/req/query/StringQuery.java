@@ -342,4 +342,9 @@ public class StringQuery extends Query {
         return tieBreaker;
     }
 
+    @Override
+    public String toString() {
+        return query;
+    }
+
 }

@@ -30,5 +30,9 @@ public class FieldAwareQuery extends Query {
     public String getField() {
         return field;
     }
-
+    
+    @Override
+    public String toString() {
+        return (field == null ? "" : field) + ":";
+    }
 }
