@@ -55,4 +55,13 @@ public class Term extends Selection {
     public double getBoost() {
         return boost;
     }
+    
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append(super.toString()); // for field
+        builder.append(value == null ? "" : value);
+        builder.append("^").append(boost);
+        return builder.toString();
+    }
 }

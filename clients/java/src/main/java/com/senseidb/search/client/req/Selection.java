@@ -36,6 +36,11 @@ public abstract class Selection extends Query {
     public String getField() {
         return field;
     }
+    
+    @Override 
+    public String toString() {
+        return (field == null ? "" : field) + ":";
+    }
 
     public Selection setField(String field) {
         this.field = field;
