@@ -44,7 +44,7 @@ public class ErrorHandlingTest extends TestCase {
     public void init(JSONObject params) {}
     public Serializable map(int[] docIds, int docIdCount, long[] uids, FieldAccessor accessor, FacetCountAccessor facetCountAccessor) {return new ArrayList();}
     public List<Serializable> combine(List<Serializable> mapResults, CombinerStage combinerStage) {return new ArrayList();}
-    public Serializable reduce(List<Serializable> combineResults) {return new ArrayList();}
+    public Serializable reduce(List<Serializable> combineResults) {return new ArrayList<Serializable>();}
     public JSONObject render(Serializable reduceResult) {return new JSONObject();}    
   }
   public static class test1JsonError extends MapReduceAdapter {
