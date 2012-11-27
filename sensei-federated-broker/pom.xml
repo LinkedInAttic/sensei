@@ -51,27 +51,6 @@
 		       </executions>
 		    </plugin>
 		    
-            <plugin>
-                <groupId>pl.project13.maven</groupId>
-                <artifactId>git-commit-id-plugin</artifactId>
-                <version>1.9</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>revision</goal>
-                         </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <prefix>git</prefix>
-                    <dateFormat>dd.MM.yyyy '@' HH:mm:ss z</dateFormat>
-                    <verbose>true</verbose>
-                    <dotGitDirectory>${project.basedir}/../.git</dotGitDirectory>
-                    <generateGitPropertiesFile>true</generateGitPropertiesFile>
-                    <generateGitPropertiesFilename>src/main/resources/git.properties</generateGitPropertiesFilename>
-                </configuration>
-            </plugin>
-		    
 		</plugins>
 	</build>
 
