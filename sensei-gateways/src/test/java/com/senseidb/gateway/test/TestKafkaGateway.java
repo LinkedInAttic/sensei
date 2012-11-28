@@ -45,6 +45,7 @@ import proj.zoie.impl.indexing.StreamDataProvider;
 
 import com.senseidb.gateway.SenseiGateway;
 import com.senseidb.gateway.kafka.DefaultJsonDataSourceFilter;
+import com.senseidb.indexing.DataSourceFilter;
 import com.senseidb.plugin.SenseiPluginRegistry;
 
 public class TestKafkaGateway {
@@ -138,7 +139,7 @@ public class TestKafkaGateway {
   
   @Test
   public void testSimpleKafka() throws Exception{
-    final StreamDataProvider<JSONObject> dataProvider =  simpleKafkaGateway.buildDataProvider(null, String.valueOf("0"), null, null);
+    final StreamDataProvider<JSONObject> dataProvider =  simpleKafkaGateway.buildDataProvider((DataSourceFilter)null, String.valueOf("0"), null, null);
     BaseGatewayTestUtil.doTest(dataProvider);
   }
   

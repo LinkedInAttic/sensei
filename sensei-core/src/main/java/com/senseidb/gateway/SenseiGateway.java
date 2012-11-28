@@ -36,7 +36,7 @@ public abstract class SenseiGateway<V> extends AbstractSenseiPlugin {
 
   public static Comparator<String> DEFAULT_VERSION_COMPARATOR = ZoieConfig.DEFAULT_VERSION_COMPARATOR;
 
-  final public DataSourceFilter<V> getDataSourceFilter(SenseiSchema senseiSchema, SenseiPluginRegistry pluginRegistry) {
+  final public DataSourceFilter<V> getDataSourceFilter(SenseiSchema senseiSchema) {
     DataSourceFilter<V> dataSourceFilter = pluginRegistry.getBeanByFullPrefix("sensei.gateway.filter",
         DataSourceFilter.class);
     if (dataSourceFilter != null) {
@@ -48,8 +48,8 @@ public abstract class SenseiGateway<V> extends AbstractSenseiPlugin {
   }
 
   final public StreamDataProvider<JSONObject> buildDataProvider(SenseiSchema senseiSchema, String oldSinceKey,
-      SenseiPluginRegistry pluginRegistry, ShardingStrategy shardingStrategy, Set<Integer> partitions) throws Exception {
-    DataSourceFilter<V> filter = getDataSourceFilter(senseiSchema, pluginRegistry);
+	  ShardingStrategy shardingStrategy, Set<Integer> partitions) throws Exception {
+    DataSourceFilter<V> filter = getDataSourceFilter(senseiSchema);
     return buildDataProvider(filter, oldSinceKey, shardingStrategy, partitions);
   }
 
