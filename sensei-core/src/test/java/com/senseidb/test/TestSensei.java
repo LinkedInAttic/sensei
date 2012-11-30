@@ -1139,7 +1139,22 @@ public class TestSensei extends TestCase {
     assertEquals("color for first is not correct." , true, color.equals("red") );
     assertEquals("inner score for first is not correct." , true, Math.abs(firstScore - 20000) < 1 );
   }
-  
+
+    /**
+     * Verify that fields added using wildcards can be queried.
+     */
+  public void testDynamicFieldQueryStringQuery() throws Exception
+  {
+      logger.info("executing test case testDynamicFieldQueryStringQuery");
+      String req = "{\"query\": {\"query_string\": {\"query\": \"dynamic_text_field_1:dynamic\"}}}";
+      JSONObject res = search(new JSONObject(req));
+      assertEquals("numhits is wrong", 1, res.getInt("numhits"));
+
+      String req2 = "{\"query\": {\"query_string\": {\"query\": \"dynamic_text_field_43:wagon\"}}}";
+      JSONObject res2 = search(new JSONObject(req2));
+      assertEquals("numhits is wrong", 1, res2.getInt("numhits"));
+
+  }
 
   private boolean containsString(JSONArray array, String target) throws JSONException
   {

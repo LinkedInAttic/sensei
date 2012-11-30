@@ -30,12 +30,14 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.log4j.Logger;
 import org.apache.lucene.document.Field.Index;
 import org.apache.lucene.document.Field.Store;
 import org.apache.lucene.document.Field.TermVector;
+import org.springframework.util.Assert;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -78,6 +80,10 @@ public class SenseiSchema {
         public String delim = ",";
         public Class type = null;
         public String name;
+        // indicates if the field name has any wildcards in it.
+        public boolean hasWildCards;
+        // compiled pattern if the field name has wildcards
+        public Pattern wildCardPattern;
     }
 
     public static class FacetDefinition {
@@ -85,6 +91,7 @@ public class SenseiSchema {
         public String type;
         public String column;
         public Boolean dynamic;
+        public Boolean wildcard;
         public Map<String, List<String>> params;
         public Set<String> dependSet = new HashSet<String>();
 
@@ -106,6 +113,7 @@ public class SenseiSchema {
 
                 JSONArray paramList = facet.optJSONArray("params");
                 ret.params = SenseiFacetHandlerBuilder.parseParams(paramList);
+                ret.wildcard = facet.optBoolean("wildcard", false);
                 return ret;
             } catch (Exception ex) {
                 throw new RuntimeException(ex);
@@ -190,13 +198,18 @@ public class SenseiSchema {
                 fdef.fromField = frm.length() > 0 ? frm : n;
 
                 fdef.isMeta = true;
-
                 fdef.isMulti = column.optBoolean("multi");
                 fdef.isActivity = column.optBoolean("activity");
                 fdef.name = n;
                 String delimString = column.optString("delimiter");
                 if (delimString != null && delimString.trim().length() > 0) {
                     fdef.delim = delimString;
+                }
+                fdef.hasWildCards = column.optBoolean("wildcard");
+
+                if (fdef.hasWildCards) {
+                    Assert.isTrue(fdef.fromField.equals(fdef.name), "Cannot have a different \"from\" field with wildcards");
+                    fdef.wildCardPattern = Pattern.compile(fdef.name);
                 }
 
                 schema._fieldDefMap.put(n, fdef);
