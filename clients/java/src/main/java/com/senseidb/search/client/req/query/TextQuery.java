@@ -161,7 +161,7 @@ public class TextQuery extends FieldAwareQuery {
         StringBuilder builder = new StringBuilder();
         builder.append(operator == null ? "" : operator.toString());
         builder.append(" ").append(super.toString()); // for field
-        builder.append(value == null ? "" : value);
+        builder.append(" ").append(value == null ? "" : value);
         builder.append(" ").append(type == null ? "" : type.toString());
         builder.append("^").append(boost);
         return builder.toString();
