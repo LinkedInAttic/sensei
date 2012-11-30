@@ -33,6 +33,7 @@ import proj.zoie.impl.indexing.ZoieConfig;
 import com.senseidb.gateway.SenseiGateway;
 import com.senseidb.gateway.file.LinedFileDataProviderBuilder;
 import com.senseidb.gateway.kafka.KafkaDataProviderBuilder;
+import com.senseidb.indexing.DataSourceFilter;
 
 public class PerfDriver {
   
@@ -59,7 +60,7 @@ public class PerfDriver {
   }
   
   public PerfStats runPerf() throws Exception{
-    StreamDataProvider<?> dataProvider = _gateway.buildDataProvider(null, "0", null, null);
+    StreamDataProvider<?> dataProvider = _gateway.buildDataProvider((DataSourceFilter)null, "0", null, null);
     dataProvider.setMaxEventsPerMinute(MAX_EVENTS_PER_MIN);
     final PerfStats stats = new PerfStats();
     
