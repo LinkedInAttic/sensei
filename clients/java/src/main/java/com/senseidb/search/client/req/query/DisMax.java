@@ -90,7 +90,7 @@ public class DisMax extends Query {
                 builder.append(q).append(",");
             }
         }
-        builder.append("^").append(boost).append("tieBraker:").append(tieBraker);
+        builder.append("^").append(boost).append(" tieBraker:").append(tieBraker);
         return builder.toString();
     }
 
