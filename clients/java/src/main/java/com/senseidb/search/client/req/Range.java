@@ -81,6 +81,7 @@ public class Range extends Selection {
     private Double boost;
     @JsonField("_noOptimize")
     private Boolean notOptimize;
+    @JsonField("_type")
     private String type;
 
     public Range() {
