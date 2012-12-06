@@ -28,7 +28,7 @@ import com.senseidb.plugin.SenseiPluginRegistry;
  * Example configuration:
  *
  * <pre>
- * sensei.index.analyzer.class=com.senseidb.plugin.analyzer.LucenePatternAnalyzerFactory<br>
+ * sensei.index.analyzer.class=com.senseidb.plugin.analyzer.LucenePatternAnalyzerFactory
  * sensei.index.analyzer.pattern=[ -_./:]
  * </pre>
  *
