@@ -180,7 +180,19 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
     return request;
   }
 
+  @Override
+  protected StringBuilder buildLogLineForRequest(Node node, SenseiRequest req) {
+    return super.buildLogLineForRequest(node, req).append(" - routeParam: ").append(req.getRouteParam());
+  }
   
+  @Override
+  protected StringBuilder buildLogLineForResult(StringBuilder logLine, SenseiResult result) {
+    return super.buildLogLineForResult(logLine, result)
+        .append(" - hits: ")
+        .append(result.getNumHits())
+        .append("/")
+        .append(result.getTotalDocs());
+  }
 
   public void handleClusterConnected(Set<Node> nodes)
   {
