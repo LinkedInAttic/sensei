@@ -5,8 +5,9 @@ import java.util.Map;
 
 import org.apache.commons.collections.MapUtils;
 import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.KeywordAnalyzer;
 import org.apache.lucene.analysis.PerFieldAnalyzerWrapper;
+import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.util.Version;
 
 import com.senseidb.plugin.SenseiPluginFactory;
 import com.senseidb.plugin.SenseiPluginRegistry;
@@ -17,7 +18,7 @@ import com.senseidb.plugin.SenseiPluginRegistry;
  * the analyzer for each field, you must do it the same way you normally would, but appending
  * <code>.field.<i>fieldname</i></code> to the usual prefix. You can set the default analyzer
  * with the <code>default</code> property. If this property is missing, the default analyzer
- * is set to {@link KeywordAnalyzer}. Example configuration:
+ * is set to {@link StandardAnalyzer} with version {@code LUCENE_35}. Example configuration:
  *
  * <pre>
  * sensei.index.analyzer.class=com.senseidb.plugin.analyzer.LucenePerFieldAnalyzerFactory
@@ -39,7 +40,7 @@ public class LucenePerFieldAnalyzerFactory implements SenseiPluginFactory<Analyz
     public Analyzer getBean(Map<String, String> initProperties, String fullPrefix, SenseiPluginRegistry pluginRegistry) {
         Analyzer defaultAnalyzer = pluginRegistry.getBeanByFullPrefix(fullPrefix + ".default", Analyzer.class);
         if (defaultAnalyzer == null) {
-            defaultAnalyzer = new KeywordAnalyzer();
+            defaultAnalyzer = new StandardAnalyzer(Version.LUCENE_35);
         }
 
         String[] fields = MapUtils.getString(initProperties, "fields", "").split("\\s*,\\s*");
