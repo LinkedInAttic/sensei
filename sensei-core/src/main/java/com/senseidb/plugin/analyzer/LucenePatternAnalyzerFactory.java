@@ -40,10 +40,10 @@ public class LucenePatternAnalyzerFactory implements SenseiPluginFactory<Analyze
     @Override
     public Analyzer getBean(Map<String, String> initProperties, String fullPrefix, SenseiPluginRegistry pluginRegistry) {
         Version matchVersion = Version.valueOf(MapUtils.getString(initProperties, "matchVersion", "LUCENE_35"));
-        Pattern pattern = Pattern.compile(MapUtils.getString(initProperties, "pattern", " +"));
+        Pattern pattern = Pattern.compile(MapUtils.getString(initProperties, "pattern", "\\s+"));
         boolean toLowerCase = MapUtils.getBoolean(initProperties, "toLowerCase", true);
         String stopWordsStr = MapUtils.getString(initProperties, "stopWords", "");
-        Set<String> stopWords = new HashSet<String>(Arrays.asList(stopWordsStr.split(" *, *")));
+        Set<String> stopWords = new HashSet<String>(Arrays.asList(stopWordsStr.split("\\s*,\\s*")));
         return new PatternAnalyzer(matchVersion, pattern, toLowerCase, stopWords);
     }
 

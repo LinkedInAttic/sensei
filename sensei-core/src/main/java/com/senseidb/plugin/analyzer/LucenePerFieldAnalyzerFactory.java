@@ -42,7 +42,7 @@ public class LucenePerFieldAnalyzerFactory implements SenseiPluginFactory<Analyz
             defaultAnalyzer = new KeywordAnalyzer();
         }
 
-        String[] fields = MapUtils.getString(initProperties, "fields", "").split(" *, *");
+        String[] fields = MapUtils.getString(initProperties, "fields", "").split("\\s*,\\s*");
         Map<String, Analyzer> analyzers = new HashMap<String, Analyzer>();
         for (String field: fields) {
             String analyzerPrefix = fullPrefix + ".fields." + field;
