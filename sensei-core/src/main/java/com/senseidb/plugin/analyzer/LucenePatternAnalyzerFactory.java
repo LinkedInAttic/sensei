@@ -20,7 +20,7 @@ import com.senseidb.plugin.SenseiPluginRegistry;
  *
  * <ul>
  *     <li><code>matchVersion</code>: the Lucene version compatibility (default: LUCENE_35). See {@link Version}.
- *     <li><code>pattern</code>: a regular expression delimiting tokens (default: "<code> +</code>")
+ *     <li><code>pattern</code>: a regular expression delimiting tokens (default: "<code>\\s+</code>")
  *     <li><code>toLowerCase</code>: if true, tokens are converted to lower case (default: true)
  *     <li><code>stopWords</code>: a comma-separated list of stop words (defaults to an empty list)
  * </ul>
