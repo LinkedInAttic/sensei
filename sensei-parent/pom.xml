@@ -5,7 +5,7 @@
 	<artifactId>sensei-parent</artifactId>
 	<packaging>pom</packaging>
 	<name>sensei parent</name>
-	<version>1.5.6-SNAPSHOT</version>
+	<version>1.5.6</version>
 	<description>sensei search</description>
 	<url>http://github.com/linkedin/sensei</url>
 
@@ -167,7 +167,7 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<sensei.version>1.5.6-SNAPSHOT</sensei.version>
+		<sensei.version>1.5.6</sensei.version>
 	</properties>
 
     <dependencyManagement>
