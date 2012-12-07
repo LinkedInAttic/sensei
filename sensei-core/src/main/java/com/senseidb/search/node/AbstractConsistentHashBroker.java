@@ -18,17 +18,11 @@
  */
 package com.senseidb.search.node;
 
-import com.linkedin.norbert.javacompat.network.RequestBuilder;
-import com.linkedin.norbert.network.ResponseIterator;
-import com.linkedin.norbert.network.common.ExceptionIterator;
-import com.linkedin.norbert.network.common.PartialIterator;
-import com.linkedin.norbert.network.common.TimeoutIterator;
-import com.senseidb.metrics.MetricFactory;
-import com.senseidb.search.req.SenseiRequest;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -41,12 +35,19 @@ import org.apache.log4j.Logger;
 import com.linkedin.norbert.NorbertException;
 import com.linkedin.norbert.javacompat.cluster.Node;
 import com.linkedin.norbert.javacompat.network.PartitionedNetworkClient;
+import com.linkedin.norbert.javacompat.network.RequestBuilder;
+import com.linkedin.norbert.network.ResponseIterator;
 import com.linkedin.norbert.network.Serializer;
+import com.linkedin.norbert.network.common.ExceptionIterator;
+import com.linkedin.norbert.network.common.PartialIterator;
+import com.linkedin.norbert.network.common.TimeoutIterator;
+import com.senseidb.metrics.MetricFactory;
 import com.senseidb.metrics.MetricsConstants;
 import com.senseidb.search.req.AbstractSenseiRequest;
 import com.senseidb.search.req.AbstractSenseiResult;
 import com.senseidb.search.req.ErrorType;
 import com.senseidb.search.req.SenseiError;
+import com.senseidb.search.req.SenseiRequest;
 import com.senseidb.svc.api.SenseiException;
 import com.yammer.metrics.core.Meter;
 import com.yammer.metrics.core.MetricName;
@@ -238,16 +239,23 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
 
   protected List<RESULT> doCall(final REQUEST req) throws ExecutionException {
     List<RESULT> resultList = new ArrayList<RESULT>();
+
+    // only instantiate if debug logging is enabled
+    final List<StringBuilder> timingLogLines = logger.isDebugEnabled() ? new LinkedList<StringBuilder>() : null;
+    
     ResponseIterator<RESULT> responseIterator =
         buildIterator(_networkClient.sendRequestToOneReplica(getRouteParam(req), new RequestBuilder<Integer, REQUEST>() {
-          private int count = 0;
           @Override
           public REQUEST apply(Node node, Set<Integer> nodePartitions) {
             // TODO: Cloning is yucky per http://www.artima.com/intv/bloch13.html
             REQUEST clone = (REQUEST) (((SenseiRequest) req).clone());
             
             clone.setPartitions(nodePartitions);
-
+            if (timingLogLines != null) {
+              // this means debug logging was enabled, produce first portion of log lines
+              timingLogLines.add(buildLogLineForRequest(node, clone));
+            }
+  
             REQUEST customizedRequest = customizeRequest(clone);
             return customizedRequest;
           }
@@ -257,9 +265,34 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
       resultList.add(responseIterator.next());
     }
 
-    logger.debug(String.format("There are %d responses", resultList.size()));
+    if (timingLogLines != null) {
+      // this means debug logging was enabled, complete the timing log lines and log them
+      int i = 0;
+      for (StringBuilder logLine : timingLogLines) {
+        // we are assuming the request builder gets called in the same order as the response
+        // iterator is built, otherwise the loglines would be out of sync between req & res
+        if (i < resultList.size()) {
+          logger.debug(buildLogLineForResult(logLine, resultList.get(i++)));
+        }
+      }
+      logger.debug(String.format("There are %d responses", resultList.size()));
+    }
 
     return resultList;
+  }
+
+  protected StringBuilder buildLogLineForRequest(Node node, REQUEST clone) {
+    return new StringBuilder()
+        .append("Request to individual node - id:")
+        .append(node.getId())
+        .append(" - url:")
+        .append(node.getUrl())
+        .append(" - partitions:")
+        .append(node.getPartitionIds());
+  }
+  
+  protected StringBuilder buildLogLineForResult(StringBuilder logLine, RESULT result) {
+    return logLine.append(" - took ").append(result.getTime()).append("ms.");
   }
   
   protected ResponseIterator<RESULT> buildIterator(ResponseIterator<RESULT> responseIterator) {
