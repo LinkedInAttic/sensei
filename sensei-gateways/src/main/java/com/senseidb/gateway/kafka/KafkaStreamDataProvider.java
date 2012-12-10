@@ -139,6 +139,8 @@ public class KafkaStreamDataProvider extends StreamDataProvider<JSONObject>{
       props.put(key, _kafkaConfig.getProperty(key));
     }
 
+    logger.info("Kafka properties: " + props);
+
     ConsumerConfig consumerConfig = new ConsumerConfig(props);
     _consumerConnector = Consumer.createJavaConsumerConnector(consumerConfig);
 
