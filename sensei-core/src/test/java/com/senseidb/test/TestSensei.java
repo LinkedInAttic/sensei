@@ -881,6 +881,27 @@ public class TestSensei extends TestCase {
     assertEquals("inner score for second is not correct." , true, secondScore == 10000f);
   }
   
+  public void testRelevanceStaticRandomField() throws Exception
+  {
+    logger.info("executing test case testRelevanceStaticRandomField");
+    
+    String req1 = "{\"sort\":[\"_score\"],\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"model\":{\"function_params\":[\"_INNER_SCORE\",\"year\",\"goodYear\",\"_NOW\",\"now\"],\"facets\":{\"int\":[\"year\",\"mileage\"],\"long\":[\"groupid\"]},\"function\":\" return _RANDOM.nextFloat()   ;\",\"variables\":{\"set_int\":[\"goodYear\"],\"int\":[\"thisYear\"],\"long\":[\"now\"]}},\"values\":{\"thisYear\":2001,\"now\":"+ System.currentTimeMillis() +",\"goodYear\":[1996]}}}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":6}";
+    JSONObject res1 = search(new JSONObject(req1));
+    JSONArray hits1 = res1.getJSONArray("hits");
+    JSONObject firstHit = hits1.getJSONObject(0); 
+    
+    String req2 = "{\"sort\":[\"_score\"],\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"model\":{\"function_params\":[\"_INNER_SCORE\",\"year\",\"goodYear\",\"_NOW\",\"now\"],\"facets\":{\"int\":[\"year\",\"mileage\"],\"long\":[\"groupid\"]},\"function\":\" return _RANDOM.nextInt(10) + 10.0f   ;\",\"variables\":{\"set_int\":[\"goodYear\"],\"int\":[\"thisYear\"],\"long\":[\"now\"]}},\"values\":{\"thisYear\":2001,\"now\":"+ System.currentTimeMillis() +",\"goodYear\":[1996]}}}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":6}";
+    JSONObject res2 = search(new JSONObject(req2));
+    JSONArray hits2 = res2.getJSONArray("hits");
+    JSONObject secondHit = hits2.getJSONObject(1);
+    
+    double firstScore = firstHit.getDouble("_score");      //  0.0f (inclusive) to 1.0f (exclusive)
+    double secondScore = secondHit.getDouble("_score");   //  10.0f (inclusive) to 20.0f (exclusive)
+    
+    assertEquals("inner score for first is not correct." , true, (firstScore >= 0f && firstScore <1f) );
+    assertEquals("inner score for second is not correct." , true, (secondScore >= 10f && secondScore < 20f));
+  }
+  
   public void testRelevanceHashMapInt2Float() throws Exception
   {
     logger.info("executing test case testRelevanceHashMapInt2Float");
