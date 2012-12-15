@@ -485,6 +485,7 @@ import com.senseidb.util.JSONUtil.FastJSONObject;
     private static final int DEFAULT_FACET_MAXHIT = 10;
     private static final Map<String, String> _fastutilTypeMap;
     private static final Map<String, String> _internalVarMap;
+    private static final Map<String, String> _internalStaticVarMap;    
     private static final Set<String> _supportedClasses;
     private static Map<String, Set<String>> _compatibleFacetTypes;
 
@@ -522,6 +523,10 @@ import com.senseidb.util.JSONUtil.FastJSONObject;
         _internalVarMap = new HashMap<String, String>();
         _internalVarMap.put("_NOW", "long");
         _internalVarMap.put("_INNER_SCORE", "float");
+        _internalVarMap.put("_RANDOM", "java.util.Random");
+        
+        _internalStaticVarMap = new HashMap<String, String>();
+        _internalStaticVarMap.put("_RANDOM", "java.util.Random");
 
         _supportedClasses = new HashSet<String>();
         _supportedClasses.add("Boolean");
@@ -2758,7 +2763,8 @@ relevance_model returns [String functionBody, JSONObject json]
                 // Internal variables, like _NOW, do not need to be
                 // included in "variables".
                 for (String varName: _usedInternalVars) {
-                    funcParams.put(varName);
+                    if( ! _internalStaticVarMap.containsKey(varName))
+                        funcParams.put(varName);
                 }
             }
             catch (JSONException err) {
