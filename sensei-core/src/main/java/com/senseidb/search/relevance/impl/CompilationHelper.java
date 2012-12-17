@@ -476,7 +476,8 @@ public class CompilationHelper
       {
         String symbol = varArray.getString(i);
         if (symbol.equals(RelevanceJSONConstants.KW_INNER_SCORE) ||
-            symbol.equals(RelevanceJSONConstants.KW_NOW))
+            symbol.equals(RelevanceJSONConstants.KW_NOW) ||
+            symbol.equals(RelevanceJSONConstants.KW_RANDOM))
         {
           throw new RelevanceException(ErrorType.JsonParsingError, "Internal variable name, " + symbol + ", is reserved.");
         }
