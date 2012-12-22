@@ -39,6 +39,7 @@ import com.senseidb.search.plugin.PluggableSearchEngineManager;
 import com.senseidb.util.JSONUtil.FastJSONArray;
 import com.senseidb.util.JSONUtil.FastJSONObject;
 import com.yammer.metrics.Metrics;
+import com.yammer.metrics.core.Counter;
 import com.yammer.metrics.core.Meter;
 import com.yammer.metrics.core.MetricName;
 
@@ -54,9 +55,12 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 
 	private static final String BATCH_SIZE = "batchSize";
 
+  private static final String EVENT_CREATED_TIMESTAMP_FIELD = "eventCreatedTimestampField"; 
+
   private static Meter ProviderBatchSizeMeter = null;
   private static Meter EventMeter = null;
   private static Meter UpdateBatchSizeMeter = null;
+  private static Counter IndexingLatencyMeter = null;
 
   static{
     try{
@@ -68,6 +72,12 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 
       MetricName eventMeterMetricName = new MetricName(MetricsConstants.Domain,"meter","indexing-events","indexing-manager");
       EventMeter = Metrics.newMeter(eventMeterMetricName, "indexing-events", TimeUnit.SECONDS);
+
+      MetricName indexingLatencyMetricName = new MetricName(MetricsConstants.Domain,
+                                                            "counter",
+                                                            "indexing-latency",
+                                                            "indexing-manager");
+      IndexingLatencyMeter = Metrics.newCounter(indexingLatencyMetricName);
     }
     catch(Exception e){
     logger.error(e.getMessage(),e);
@@ -77,6 +87,7 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 
 	private StreamDataProvider<JSONObject> _dataProvider;
 	private String _oldestSinceKey;
+  private String _eventCreatedTimestampField;
 	private final SenseiSchema _senseiSchema;
 	private final Configuration _myconfig;
 
@@ -96,6 +107,7 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 	    SenseiPluginRegistry pluginRegistry, SenseiGateway<?> gateway, ShardingStrategy shardingStrategy, PluggableSearchEngineManager pluggableSearchEngineManager){
 	    _dataProvider = null;
 	  _myconfig = senseiConfig.subset(CONFIG_PREFIX);
+    _eventCreatedTimestampField = _myconfig.getString(EVENT_CREATED_TIMESTAMP_FIELD, null);
      this.pluginRegistry = pluginRegistry;
 	  _oldestSinceKey = null;
 	  _senseiSchema = schema;
@@ -234,6 +246,19 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
       _currentVersion = null;
     }
 
+    private void reportIndexingLatency(JSONObject obj)
+    {
+      if (_eventCreatedTimestampField != null)
+      {
+        long createdTimestamp = obj.optLong(_eventCreatedTimestampField);
+        if (createdTimestamp > 0)
+        {
+          IndexingLatencyMeter.clear();
+          IndexingLatencyMeter.inc(System.currentTimeMillis() - createdTimestamp);
+        }
+      }
+    }
+
     private JSONObject rewriteData(JSONObject obj, int partNum)
     {
       String type = obj.optString(SenseiSchema.EVENT_TYPE_FIELD, null);
@@ -252,6 +277,8 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
           logger.error("Should never happen", e);
         }
       }
+
+      reportIndexingLatency(event);
 
       if (SenseiSchema.EVENT_TYPE_UPDATE.equalsIgnoreCase(type))
       {
