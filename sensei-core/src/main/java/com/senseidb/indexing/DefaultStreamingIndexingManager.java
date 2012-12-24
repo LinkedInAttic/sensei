@@ -39,7 +39,7 @@ import com.senseidb.search.plugin.PluggableSearchEngineManager;
 import com.senseidb.util.JSONUtil.FastJSONArray;
 import com.senseidb.util.JSONUtil.FastJSONObject;
 import com.yammer.metrics.Metrics;
-import com.yammer.metrics.core.Counter;
+import com.yammer.metrics.core.Timer;
 import com.yammer.metrics.core.Meter;
 import com.yammer.metrics.core.MetricName;
 
@@ -60,7 +60,7 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
   private static Meter ProviderBatchSizeMeter = null;
   private static Meter EventMeter = null;
   private static Meter UpdateBatchSizeMeter = null;
-  private static Counter IndexingLatencyMeter = null;
+  private static Timer IndexingLatencyTimer = null;
 
   static{
     try{
@@ -74,10 +74,12 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
       EventMeter = Metrics.newMeter(eventMeterMetricName, "indexing-events", TimeUnit.SECONDS);
 
       MetricName indexingLatencyMetricName = new MetricName(MetricsConstants.Domain,
-                                                            "counter",
+                                                            "timer",
                                                             "indexing-latency",
                                                             "indexing-manager");
-      IndexingLatencyMeter = Metrics.newCounter(indexingLatencyMetricName);
+      IndexingLatencyTimer = Metrics.newTimer(indexingLatencyMetricName,
+                                              TimeUnit.MILLISECONDS,
+                                              TimeUnit.SECONDS);
     }
     catch(Exception e){
     logger.error(e.getMessage(),e);
@@ -253,8 +255,8 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
         long createdTimestamp = obj.optLong(_eventCreatedTimestampField);
         if (createdTimestamp > 0)
         {
-          IndexingLatencyMeter.clear();
-          IndexingLatencyMeter.inc(System.currentTimeMillis() - createdTimestamp);
+          IndexingLatencyTimer.update(System.currentTimeMillis() - createdTimestamp,
+                                      TimeUnit.MILLISECONDS);
         }
       }
     }
