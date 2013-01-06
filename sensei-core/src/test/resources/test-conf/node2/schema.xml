@@ -28,6 +28,7 @@
 	<column name="mileage" type="int" />
 	<column name="likes" activity="true" />
 	<column name="reputation" type="float" activity="true" />
+	<column name="modifiedDate" type="long" activity="true" />
 	<!-- multi is default to be false, if set to true, delimiter is used to break the values,
 	     default delimiter is ","
 	 -->
@@ -116,6 +117,7 @@
 	 <facet name="groupid_range_multi" column="groupid_multi" type="range"/>
 	 <facet name="likes" type="range"/>	
 	 <facet name="reputation" type="range"/>
+	 <facet name="modifiedDate" type="range"/>
 	 <facet name="aggregated-likes" column="likes" type="aggregated-range">
 	 <params>
 		  <param name="time" value="5m" />

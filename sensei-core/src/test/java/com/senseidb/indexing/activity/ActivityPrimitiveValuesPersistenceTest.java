@@ -18,6 +18,7 @@ import proj.zoie.impl.indexing.ZoieConfig;
 import com.senseidb.conf.SenseiSchema.FieldDefinition;
 import com.senseidb.indexing.activity.primitives.ActivityFloatValues;
 import com.senseidb.indexing.activity.primitives.ActivityIntValues;
+import com.senseidb.indexing.activity.primitives.ActivityLongValues;
 import com.senseidb.test.SenseiStarter;
 
 public class ActivityPrimitiveValuesPersistenceTest extends TestCase {
@@ -128,6 +129,40 @@ public class ActivityPrimitiveValuesPersistenceTest extends TestCase {
     assertEquals(getFloatFieldValues(compositeActivityValues)[3], 4f, 0.5f);
     compositeActivityValues.close();
   }
+  public void test1CWriteValuesAndReadJustAfterThatLongValues() throws Exception {
+      String indexDirPath = getDirPath() + 21;
+      FieldDefinition fieldDefinition = new FieldDefinition();
+      fieldDefinition.name = "modifiedDate";
+      fieldDefinition.type = long.class;
+      fieldDefinition.isActivity = true;
+      compositeActivityValues = CompositeActivityValues.createCompositeValues(ActivityPersistenceFactory.getInstance(indexDirPath), java.util.Arrays.asList(fieldDefinition), Collections.EMPTY_LIST, ZoieConfig.DEFAULT_VERSION_COMPARATOR);
+      
+      int valueCount = 10000;
+      long testUpdateValue = 5000000000L;
+      for (int i = 0; i < valueCount; i++) { 
+        compositeActivityValues.update(10000000000L + i, String.format("%08d", i), toMap(new JSONObject().put("modifiedDate", "+" + testUpdateValue)));
+      }    
+      compositeActivityValues.flush();
+      compositeActivityValues.syncWithPersistentVersion(String.format("%08d", valueCount - 1));
+      compositeActivityValues.close();
+      compositeActivityValues = CompositeActivityValues.createCompositeValues(ActivityPersistenceFactory.getInstance(indexDirPath), java.util.Arrays.asList(fieldDefinition), Collections.EMPTY_LIST, ZoieConfig.DEFAULT_VERSION_COMPARATOR);
+      
+      assertEquals("Found " + compositeActivityValues.uidToArrayIndex.size(), valueCount, compositeActivityValues.uidToArrayIndex.size());
+      assertEquals((int)(valueCount * 1.5), getLongValues(compositeActivityValues).length );
+      for (int i = 0; i < valueCount; i++) {      
+        compositeActivityValues.update(10000000000L + i, String.format("%08d", valueCount + i), toMap(new JSONObject().put("modifiedDate","+" +  i )));
+      }
+      compositeActivityValues.flush();
+      compositeActivityValues.syncWithPersistentVersion(String.format("%08d", valueCount * 2 - 1));
+      compositeActivityValues.close();
+      assertEquals(getLongValues(compositeActivityValues)[0], testUpdateValue);
+      assertEquals(getLongValues(compositeActivityValues)[3], testUpdateValue + 3);
+      compositeActivityValues = CompositeActivityValues.createCompositeValues(ActivityPersistenceFactory.getInstance(indexDirPath), java.util.Arrays.asList(fieldDefinition), Collections.EMPTY_LIST, ZoieConfig.DEFAULT_VERSION_COMPARATOR);
+      assertEquals(getLongValues(compositeActivityValues)[0], testUpdateValue);
+      assertEquals(getLongValues(compositeActivityValues)[3], testUpdateValue + 3);
+      
+      compositeActivityValues.close();
+    }
 public static Map<String, Object> toMap(JSONObject jsonObject) {
   Map<String, Object> ret = new HashMap<String, Object>();
   java.util.Iterator<String> it = jsonObject.keys();
@@ -140,6 +175,9 @@ public static Map<String, Object> toMap(JSONObject jsonObject) {
 private int[] getFieldValues(CompositeActivityValues compositeActivityValues){
 	return ((ActivityIntValues)compositeActivityValues.valuesMap.get("likes")).fieldValues;
 	}
+private long[] getLongValues(CompositeActivityValues compositeActivityValues){
+    return ((ActivityLongValues)compositeActivityValues.valuesMap.get("modifiedDate")).fieldValues;
+    }
 private float[] getFloatFieldValues(CompositeActivityValues compositeActivityValues){
   return ((ActivityFloatValues)compositeActivityValues.valuesMap.get("reputation")).fieldValues;
   }

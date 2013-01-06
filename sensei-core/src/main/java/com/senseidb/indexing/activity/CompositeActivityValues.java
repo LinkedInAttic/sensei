@@ -30,6 +30,7 @@ import com.senseidb.indexing.activity.CompositeActivityManager.TimeAggregateInfo
 import com.senseidb.indexing.activity.CompositeActivityStorage.Update;
 import com.senseidb.indexing.activity.primitives.ActivityFloatValues;
 import com.senseidb.indexing.activity.primitives.ActivityIntValues;
+import com.senseidb.indexing.activity.primitives.ActivityLongValues;
 import com.senseidb.indexing.activity.primitives.ActivityPrimitiveValues;
 import com.senseidb.indexing.activity.time.TimeAggregatedActivityValues;
 import com.yammer.metrics.Metrics;
@@ -160,7 +161,9 @@ public class CompositeActivityValues {
       return (ActivityIntValues) activityValues;
     } else if (activityValues instanceof ActivityFloatValues) {
       return (ActivityFloatValues) activityValues;
-    } else {
+    } else if (activityValues instanceof ActivityLongValues) {
+        return (ActivityLongValues) activityValues;
+      } else {
       return ((TimeAggregatedActivityValues) activityValues).getDefaultIntValues();
     }
   }
@@ -172,7 +175,7 @@ public class CompositeActivityValues {
       if (value != null) {
         needToFlush = needToFlush | activityIntValues.update(index, value);
       } else {
-        needToFlush = needToFlush | activityIntValues.update(index, 0);
+        needToFlush = needToFlush | activityIntValues.update(index, "+0");
       }
     }
     return needToFlush;
@@ -400,14 +403,25 @@ public class CompositeActivityValues {
     try {
       lock.lock();
       if (!uidToArrayIndex.containsKey(uid)) {
-        return Integer.MIN_VALUE;
+        return Float.MIN_VALUE;
       }
       return ((ActivityFloatValues) getActivityValues(column)).getFloatValue(uidToArrayIndex.get(uid));
     } finally {
       lock.unlock();
     }
   }
-
+  public long getLongValueByUID(long uid, String column) {
+      Lock lock = globalLock.readLock();
+      try {
+        lock.lock();
+        if (!uidToArrayIndex.containsKey(uid)) {
+          return Long.MIN_VALUE;
+        }
+        return ((ActivityLongValues) getActivityValues(column)).getLongValue(uidToArrayIndex.get(uid));
+      } finally {
+        lock.unlock();
+      }
+    }
   public int getIndexByUID(long uid) {
     Lock lock = globalLock.readLock();
     try {

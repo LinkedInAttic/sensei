@@ -47,7 +47,16 @@ public class HourglassAdapterDeletionAdapter {
     
   }
 
-  private void handleSegment(ZoieSegmentReader segmentReader) {    
-      deletionListener.onDelete(segmentReader, segmentReader.getUIDArray());      
+  private void handleSegment(ZoieSegmentReader segmentReader) {  
+      //if the uid is marked as deleted, that means we have updateable hourglass. In this case the activity 
+      //value should not be deleted, as it might be in another Zoie
+      long[] uids = segmentReader.getUIDArray();
+      if (segmentReader.getDelDocIds() != null)
+          for (int docId : segmentReader.getDelDocIds()) {
+              if (docId >= 0 && docId < uids.length) {
+                  uids[docId] = Long.MIN_VALUE;
+              }
+          }
+      deletionListener.onDelete(segmentReader, uids);      
   }
 }

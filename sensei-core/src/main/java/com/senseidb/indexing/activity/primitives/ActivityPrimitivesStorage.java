@@ -24,7 +24,7 @@ import com.yammer.metrics.core.Timer;
  */
 public class ActivityPrimitivesStorage {
   public static final double INIT_GROWTH_RATIO = 1.5;
-  public static final int BYTES_IN_INT = 4;
+  //public static final int BYTES_IN_INT = 4;
   public static final int LENGTH_THRESHOLD = 1000000;
   public static final int FILE_GROWTH_RATIO = 2;
   public static final int INITIAL_FILE_LENGTH = 2000000;
@@ -129,8 +129,8 @@ public class ActivityPrimitivesStorage {
               return activityPrimitiveValues;
             }
             activityPrimitiveValues.init((int) (count * INIT_GROWTH_RATIO));
-            if (fileLength < count * BYTES_IN_INT) {
-              logger.warn("The  activityIndex is corrupted. The file "+ fieldName +" contains " + (fileLength / BYTES_IN_INT) + " records, while metadata has a bigger number " + count);
+            if (fileLength < count * activityPrimitiveValues.getFieldSizeInBytes()) {
+              logger.warn("The  activityIndex is corrupted. The file "+ fieldName +" contains " + (fileLength / activityPrimitiveValues.getFieldSizeInBytes()) + " records, while metadata has a bigger number " + count);
               logger.warn("adding extra space");
               ensureCapacity(count * activityPrimitiveValues.getFieldSizeInBytes());
             }
