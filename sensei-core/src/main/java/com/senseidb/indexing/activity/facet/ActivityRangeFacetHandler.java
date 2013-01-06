@@ -82,45 +82,58 @@ public class ActivityRangeFacetHandler extends FacetHandler<int[]> {
         if (value == null || value.isEmpty()) {
           return  EmptyDocIdSet.getInstance();
         }
-        int[] range = parseRaw(value);
-        final int startValue = range[0];
-        final int endValue = range[1];
-        if (startValue >= endValue) {
-          return  EmptyDocIdSet.getInstance();
-        }
         final int[] intArray = activityValues instanceof ActivityIntValues ? ((ActivityIntValues) activityValues).getFieldValues() : null;
         final float[] floatArray = activityValues instanceof ActivityFloatValues ? ((ActivityFloatValues) activityValues).getFieldValues() : null;
         final long[] longArray = activityValues instanceof ActivityLongValues ? ((ActivityLongValues) activityValues).getFieldValues() : null;
-        final long[] longRange = longArray != null ?  parseRawLong(value) : null;
+        if (longArray == null) {
+            int[] range = parseRaw(value);
+            final int startValue = range[0];
+            final int endValue = range[1];
+            if (startValue >= endValue) {
+              return  EmptyDocIdSet.getInstance();
+            }
+            return new RandomAccessDocIdSet() {          
+                @Override
+                public DocIdSetIterator iterator() throws IOException {
+                    if (intArray != null) {
+                      return new ActivityRangeIntFilterIterator(intArray, indexes, startValue, endValue);           
+                    } else {
+                      return new ActivityRangeFloatFilterIterator(floatArray, indexes, startValue, endValue); 
+                    }
+                }
+                @Override
+                public boolean get(int docId) {           
+                  if (indexes[docId] == -1) return false;
+                  if (intArray != null) {
+                    int val = intArray[indexes[docId]]; 
+                    return val >= startValue && val < endValue && val != Integer.MIN_VALUE;
+                  }
+                  float val = floatArray[indexes[docId]]; 
+                  return val >= startValue && val < endValue && val != Integer.MIN_VALUE;      
+                 
+                }
+              };
+        } else {
+            final long[] longRange = longArray != null ?  parseRawLong(value) : null;
+            final long startValue = longRange[0];
+            final long endValue = longRange[1];
+            if (startValue >= endValue) {
+              return  EmptyDocIdSet.getInstance();
+            }
         return new RandomAccessDocIdSet() {          
           @Override
           public DocIdSetIterator iterator() throws IOException {
-              if (intArray != null) {
-                return new ActivityRangeIntFilterIterator(intArray, indexes, startValue, endValue);           
-              } else if (longArray != null) {
-                 
-                  return new ActivityRangeLongFilterIterator(longArray, indexes, longRange[0], longRange[1]);  
-              } else {
-                return new ActivityRangeFloatFilterIterator(floatArray, indexes, startValue, endValue); 
-              }
+                  return new ActivityRangeLongFilterIterator(longArray, indexes, startValue, endValue);  
           }
           
           @Override
           public boolean get(int docId) {           
             if (indexes[docId] == -1) return false;
-            if (intArray != null) {
-              int val = intArray[indexes[docId]]; 
-              return val >= startValue && val < endValue && val != Integer.MIN_VALUE;
-            }
-            if (longArray != null) {
                 long val = longArray[indexes[docId]]; 
-                return val >= longRange[0] && val < longRange[1] && val != Integer.MIN_VALUE;
-              }
-            float val = floatArray[indexes[docId]]; 
-            return val >= startValue && val < endValue && val != Integer.MIN_VALUE;      
-           
+                return val >= startValue && val < endValue && val != Long.MIN_VALUE;
           }
         };
+        }
       }
     };
   }
@@ -280,7 +293,7 @@ public class ActivityRangeFacetHandler extends FacetHandler<int[]> {
       {
         start=Long.MIN_VALUE;
       } else {
-        start = Integer.parseInt(lower);
+        start = Long.parseLong(lower);
         if ("false".equals(includeLower)) {
           start++;
         }
@@ -289,7 +302,7 @@ public class ActivityRangeFacetHandler extends FacetHandler<int[]> {
       {
         end=Long.MAX_VALUE;
       } else {
-        end =  Integer.parseInt(upper);
+        end =  Long.parseLong(upper);
         if ("true".equals(includeUpper)) {
           end++;
         }

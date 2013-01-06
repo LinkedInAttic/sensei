@@ -172,9 +172,13 @@ public class ActivityIntegrationTest extends TestCase {
         assertEquals(Long.parseLong(hits.getJSONObject(0).getJSONArray("modifiedDate").getString(0)), 5000000002L);
         assertEquals(Long.parseLong(hits.getJSONObject(1).getJSONArray("modifiedDate").getString(0)), 5000000001L);
         assertEquals(res.getInt("numhits"), 10);
-     
-    
+        req = "{\"selections\": [{\"range\": {\"modifiedDate\": {\"from\": 5000000002, \"include_lower\": true}}}], \"sort\":[{\"modifiedDate\":\"desc\"}]}";
+        System.out.println("!!!search");
+        res = TestSensei.search(new JSONObject(req));
+        //System.out.println("!!!"+ res.toString(1));
+        assertEquals(res.getInt("numhits"), 1);
     }
+  
   public void test3AggregatesIntegrationTest() throws Exception {
     final CompositeActivityValues inMemoryColumnData1 = CompositeActivityManager.cachedInstances.get(1).activityValues;
     final CompositeActivityValues inMemoryColumnData2 = CompositeActivityManager.cachedInstances.get(2).activityValues;
