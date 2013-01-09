@@ -561,7 +561,9 @@ public class ResultMerger
   public static String findParsedQuery(Collection<SenseiResult> results) {
     for(SenseiResult res : results)
     {
-      return res.getParsedQuery();
+      String parsedQuery = res.getParsedQuery();
+      if(parsedQuery != null && parsedQuery.length()>0)
+        return parsedQuery;
     }
     return "";
   }
