@@ -84,21 +84,21 @@ public class ActivityPrimitivesStorage {
       throw new RuntimeException(e);
     }
   }
-  private void ensureCapacity( int i) {
+  private void ensureCapacity(int i) {
     try {
-    if (fileLength > i + 100) {
-      return;
-    }
-   
-    if (fileLength > LENGTH_THRESHOLD) {
-      fileLength = fileLength * FILE_GROWTH_RATIO;
-    } else {
-      fileLength = INITIAL_FILE_LENGTH;
-    }
-    storedFile.setLength(fileLength);
-    if (activateMemoryMappedBuffers) {
-      buffer = storedFile.getChannel().map(MapMode.READ_WRITE, 0,  fileLength);
-    }
+      if (fileLength > i + 100) {
+        return;
+      }
+      if (fileLength < INITIAL_FILE_LENGTH) {
+        fileLength = INITIAL_FILE_LENGTH;
+      }
+      while (fileLength < i + 100) {
+        fileLength = fileLength * FILE_GROWTH_RATIO;
+      }
+      storedFile.setLength(fileLength);
+      if (activateMemoryMappedBuffers) {
+        buffer = storedFile.getChannel().map(MapMode.READ_WRITE, 0, fileLength);
+      }
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
