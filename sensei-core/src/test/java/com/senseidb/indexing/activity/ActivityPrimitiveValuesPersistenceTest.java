@@ -130,7 +130,7 @@ public class ActivityPrimitiveValuesPersistenceTest extends TestCase {
     compositeActivityValues.close();
   }
   public void test1CWriteValuesAndReadJustAfterThatLongValues() throws Exception {
-      String indexDirPath = getDirPath() + 21;
+      String indexDirPath = getDirPath() + 22;
       FieldDefinition fieldDefinition = new FieldDefinition();
       fieldDefinition.name = "modifiedDate";
       fieldDefinition.type = long.class;
@@ -266,6 +266,26 @@ private float[] getFloatFieldValues(CompositeActivityValues compositeActivityVal
     assertEquals(0, compositeActivityValues.getIntValueByUID(UID_BASE + valueCount / 2, "comments"));
     compositeActivityValues.close();
   }
+  public void test3bStartWithInconsistentIndexesAddExtraSpaceToLongCommentFile() throws Exception {
+      String indexDirPath = getDirPath() + 12;
+      dir = new File(indexDirPath);
+      dir.mkdirs(); 
+      dir.deleteOnExit();
+      System.out.println("Init");
+      compositeActivityValues = CompositeActivityValues.createCompositeValues(ActivityPersistenceFactory.getInstance(indexDirPath), java.util.Arrays.asList(PurgeUnusedActivitiesJobTest.getLikesFieldDefinition()), Collections.EMPTY_LIST, ZoieConfig.DEFAULT_VERSION_COMPARATOR);
+      final int valueCount = 700000;  
+      for (int i = 0; i < valueCount; i++) {
+        compositeActivityValues.update(UID_BASE + i, String.format("%08d", valueCount + i), toMap(new JSONObject().put("likes", "+1")));
+      }  
+      compositeActivityValues.flush();
+      compositeActivityValues.syncWithPersistentVersion(String.format("%08d",  2*valueCount - 1));   
+      compositeActivityValues.close();
+      assertTrue(new File(dir, "comments.data").createNewFile());
+     
+      compositeActivityValues = CompositeActivityValues.createCompositeValues(ActivityPersistenceFactory.getInstance(indexDirPath), java.util.Arrays.asList(PurgeUnusedActivitiesJobTest.getLikesFieldDefinition(), getLongFieldDefinition("comments")), Collections.EMPTY_LIST, ZoieConfig.DEFAULT_VERSION_COMPARATOR);
+      assertEquals(0, compositeActivityValues.getLongValueByUID(UID_BASE + valueCount / 2, "comments"));
+      compositeActivityValues.close();
+    }
   public void test4TestForUninsertedValue() throws Exception {
     String indexDirPath = getDirPath() + 3;
     dir = new File(indexDirPath);
@@ -322,6 +342,13 @@ private float[] getFloatFieldValues(CompositeActivityValues compositeActivityVal
     fieldDefinition.isActivity = true;
     return fieldDefinition;
   }
+  public static FieldDefinition getLongFieldDefinition(String name) {
+      FieldDefinition fieldDefinition = new FieldDefinition();
+      fieldDefinition.name = name;
+      fieldDefinition.type = long.class;
+      fieldDefinition.isActivity = true;
+      return fieldDefinition;
+    }
 }
 
 
