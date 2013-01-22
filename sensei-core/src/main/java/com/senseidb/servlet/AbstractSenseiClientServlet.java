@@ -73,8 +73,6 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
       Metrics.newCounter(new MetricName(AbstractSenseiClientServlet.class,
                                         TOTAL_DOCS));
 
-  private final NetworkClientConfig _networkClientConfig = new NetworkClientConfig();
-
   private ClusterClient _clusterClient = null;
   private SenseiNetworkClient _networkClient = null;
   private SenseiBroker _senseiBroker = null;

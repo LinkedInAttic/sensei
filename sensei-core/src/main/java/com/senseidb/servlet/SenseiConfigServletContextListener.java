@@ -23,7 +23,9 @@ public class SenseiConfigServletContextListener implements
 	public static final String SENSEI_CONF_CLUSTER_CLIENT_NAME = "sensei.search.cluster.client-name";
 	public static final String SENSEI_CONF_CLUSTER_NAME = "sensei.search.cluster.name";
 	public static final String SENSEI_CONF_ZKTIMEOUT = "sensei.search.cluster.zookeeper.conn.timeout";
-	public static final String SENSEI_CONF_NC_CONN_TIMEOUT = "sensei.search.cluster.network.conn.timeout";
+  public static final String SENSEI_CONF_NC_OUTLIER_MULTIPLIER = "sensei.search.cluster.network.outlier.multiplier";
+  public static final String SENSEI_CONF_NC_OUTLIER_CONSTANT = "sensei.search.cluster.network.outlier.constant";
+  public static final String SENSEI_CONF_NC_CONN_TIMEOUT = "sensei.search.cluster.network.conn.timeout";
 	public static final String SENSEI_CONF_NC_WRITE_TIMEOUT = "sensei.search.cluster.network.write.timeout";
 	public static final String SENSEI_CONF_NC_MAX_CONN_PER_NODE = "sensei.search.cluster.network.max.conn.per.node";
 	public static final String SENSEI_CONF_NC_STALE_TIMEOUT_MINS = "sensei.search.cluster.network.stale.timeout.mins";

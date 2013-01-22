@@ -24,6 +24,8 @@ public class BrokerConfig {
   protected int maxConnectionsPerNode;
   protected int staleRequestTimeoutMins;
   protected int staleRequestCleanupFrequencyMins;
+  private double outlierMultiplier;
+  private double outlierConstant;
 
   protected PartitionedLoadBalancerFactory<String> loadBalancerFactory;
   private final NetworkClientConfig networkClientConfig = new NetworkClientConfig();
@@ -43,13 +45,17 @@ public class BrokerConfig {
     zkurl = senseiConf.getString(SenseiConfigServletContextListener.SENSEI_CONF_ZKURL, zkurl);
     clusterName = senseiConf.getString(SenseiConfigServletContextListener.SENSEI_CONF_CLUSTER_NAME, clusterName);
     zkTimeout = senseiConf.getInt(SenseiConfigServletContextListener.SENSEI_CONF_ZKTIMEOUT, zkTimeout);
+    outlierMultiplier = senseiConf.getDouble(SenseiConfigServletContextListener.SENSEI_CONF_ZKTIMEOUT, 3.0);
+    outlierConstant = senseiConf.getDouble(SenseiConfigServletContextListener.SENSEI_CONF_ZKTIMEOUT, 150);
+
     connectTimeoutMillis = senseiConf.getInt(SenseiConfigServletContextListener.SENSEI_CONF_NC_CONN_TIMEOUT, 1000);
     writeTimeoutMillis = senseiConf.getInt(SenseiConfigServletContextListener.SENSEI_CONF_NC_WRITE_TIMEOUT, 150);
     maxConnectionsPerNode = senseiConf.getInt(SenseiConfigServletContextListener.SENSEI_CONF_NC_MAX_CONN_PER_NODE, 5);
     staleRequestTimeoutMins = senseiConf.getInt(SenseiConfigServletContextListener.SENSEI_CONF_NC_STALE_TIMEOUT_MINS, 10);
     staleRequestCleanupFrequencyMins = senseiConf.getInt(SenseiConfigServletContextListener.SENSEI_CONF_NC_STALE_CLEANUP_FREQ_MINS, 10);
     allowPartialMerge = senseiConf.getBoolean(SenseiConfParams.ALLOW_PARTIAL_MERGE, true); 
-    brokerTimeout = senseiConf.getLong(SenseiConfParams.SERVER_BROKER_TIMEOUT, 8000); 
+    brokerTimeout = senseiConf.getLong(SenseiConfParams.SERVER_BROKER_TIMEOUT, 8000);
+
   }
 
   public void init() {
@@ -61,6 +67,8 @@ public class BrokerConfig {
     networkClientConfig.setMaxConnectionsPerNode(maxConnectionsPerNode);
     networkClientConfig.setStaleRequestTimeoutMins(staleRequestTimeoutMins);
     networkClientConfig.setStaleRequestCleanupFrequencyMins(staleRequestCleanupFrequencyMins);
+    networkClientConfig.setOutlierMuliplier(outlierMultiplier);
+    networkClientConfig.setOutlierConstant(outlierConstant);
     clusterClient = new ZooKeeperClusterClient(clusterName, zkurl, zkTimeout);
     networkClientConfig.setClusterClient(clusterClient);
     networkClient = new SenseiNetworkClient(networkClientConfig, this.loadBalancerFactory);

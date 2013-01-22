@@ -23,8 +23,6 @@ import com.senseidb.svc.api.SenseiService;
 public class ClusteredSenseiServiceImpl implements SenseiService {  
   private static final Logger logger = Logger.getLogger(ClusteredSenseiServiceImpl.class);
 
-  private final NetworkClientConfig _networkClientConfig = new NetworkClientConfig();
-  
   private SenseiBroker _senseiBroker;
   private SenseiSysBroker _senseiSysBroker;
   private SenseiNetworkClient _networkClient = null;
