@@ -45,7 +45,6 @@ import org.json.JSONObject;
 
 import com.browseengine.bobo.api.BrowseSelection;
 import com.linkedin.norbert.javacompat.cluster.ClusterClient;
-import com.linkedin.norbert.javacompat.cluster.ZooKeeperClusterClient;
 import com.linkedin.norbert.javacompat.network.NetworkClientConfig;
 import com.senseidb.bql.parsers.BQLCompiler;
 import com.senseidb.cluster.client.SenseiNetworkClient;
@@ -107,6 +106,13 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
     }
     logger.info("Connecting to cluster: " + brokerConfig.getClusterName() +" ...");
     _clusterClient.awaitConnectionUninterruptibly();
+    
+    SenseiBrokerExport export = (SenseiBrokerExport)config.getServletContext().getAttribute("sensei.broker.export");
+    export.broker = _senseiBroker;
+    export.sysBroker = _senseiSysBroker;
+    export.networkClient = _networkClient;
+    export.clusterClient = _clusterClient;
+    export.servlet = this;
 
     int count = 0;
     while (true)
@@ -142,6 +148,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
         }
       }
     }
+    export.facetInfo = _facetInfoMap;
     logger.info("Cluster: "+ brokerConfig.getClusterName() +" successfully connected ");
   }
 
@@ -663,5 +670,14 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
     finally{
       super.destroy();
     }
+  }
+  
+  public static class SenseiBrokerExport {
+    public AbstractSenseiClientServlet servlet;
+    public ClusterClient clusterClient;
+    public SenseiNetworkClient networkClient;
+    public SenseiSysBroker sysBroker;
+    public SenseiBroker broker;
+    public Map<String, String[]> facetInfo;
   }
 }
