@@ -381,7 +381,7 @@ BNF Grammar for BQL
 
 <integer> ::= ( <digit> )+
 
-<real> ::= ( <digit> )+ '.' ( <digit> )+
+<real> ::= ('+'|'-')? ( <digit> )* '.' ( <digit> )+
 
 <time_expr> ::= <time_span> AGO
               | <date_time_string>
@@ -1005,7 +1005,7 @@ fragment DIGIT : '0'..'9' ;
 fragment ALPHA : 'a'..'z' | 'A'..'Z' ;
 
 INTEGER : ('0' | '1'..'9' '0'..'9'*) INTEGER_TYPE_SUFFIX? ;
-REAL : DIGIT+ '.' DIGIT* ;
+REAL : ('+'|'-')? DIGIT+ '.' DIGIT* ;
 LPAR : '(' ;
 RPAR : ')' ;
 COMMA : ',' ;
