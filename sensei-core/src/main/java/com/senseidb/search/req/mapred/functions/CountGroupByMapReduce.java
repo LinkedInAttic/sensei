@@ -1,42 +1,56 @@
-package com.senseidb.search.req.mapred;
+package com.senseidb.search.req.mapred.functions;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import com.senseidb.search.req.mapred.CombinerStage;
+import com.senseidb.search.req.mapred.FacetCountAccessor;
+import com.senseidb.search.req.mapred.FieldAccessor;
+import com.senseidb.search.req.mapred.SenseiMapReduce;
+import org.jboss.netty.util.internal.ConcurrentHashMap;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import com.browseengine.bobo.facets.data.TermValueList;
-import com.browseengine.bobo.util.BigSegmentedArray;
 
 import com.senseidb.util.JSONUtil.FastJSONArray;
 import com.senseidb.util.JSONUtil.FastJSONObject;
 
-public class FacetCountsMapReduce implements SenseiMapReduce<HashMap<String, IntContainer>, ArrayList<GroupedValue>> {
+@SuppressWarnings("unchecked")
+public class CountGroupByMapReduce implements SenseiMapReduce<HashMap<String, IntContainer>, ArrayList<GroupedValue>> {
   private static final long serialVersionUID = 1L;  
-  private String column;
+  private String[] columns;
   
   public void init(JSONObject params) {
     try {
-       column = params.getString("column");     
+      JSONArray columnsJson = params.getJSONArray("columns");
+      columns = new String[columnsJson.length()];
+      for (int i = 0; i < columnsJson.length(); i++) {
+        columns[i] = columnsJson.getString(i);
+      }
     } catch (JSONException ex) {
       throw new RuntimeException(ex);
     }
   }
   public HashMap<String, IntContainer> map(int[] docIds, int docIdCount, long[] uids, FieldAccessor accessor, FacetCountAccessor facetCountAccessor) {
-    if (!facetCountAccessor.areFacetCountsPresent()) {
-      return null;
-    }
-    BigSegmentedArray countDistribution = facetCountAccessor.getFacetCollector(column).getCountDistribution();
-    TermValueList termValueList = accessor.getTermValueList(column);
-    HashMap<String, IntContainer> ret = new HashMap<String, IntContainer>(countDistribution.size());
-    for (int i = 0; i < countDistribution.size(); i++) {
-      ret.put(termValueList.get(i), new IntContainer(countDistribution.get(i)));
-    }
+    HashMap<String, IntContainer> ret = new HashMap<String, IntContainer>();
+    int duplicatedUids = 0;
+    for (int i = 0; i < docIdCount; i++) {     
+      String key = getKey(columns, accessor, docIds[i]);
+      IntContainer count = ret.get(key);     
+     
+      if (!ret.containsKey(key)) {
+        ret.put(key, new IntContainer(1));
+      } else {
+        count.add(1);
+      }
+    }  
+    
     return ret;
   }
  
@@ -56,9 +70,6 @@ public class FacetCountsMapReduce implements SenseiMapReduce<HashMap<String, Int
     HashMap<String, IntContainer> ret = new HashMap<String, IntContainer>();
     for (int i = 0; i < mapResults.size(); i++) {
       Map<String, IntContainer> map = mapResults.get(i);
-      if (map == null) {
-        continue;
-      }
       for (String key : map.keySet()) {
         IntContainer count = ret.get(key);
         if (count != null) {
@@ -96,30 +107,32 @@ public class FacetCountsMapReduce implements SenseiMapReduce<HashMap<String, Int
 
   public JSONObject render(ArrayList<GroupedValue> reduceResult) {
     try {
-      JSONObject ret = new FastJSONObject();
+      List<JSONObject> ret = new ArrayList<JSONObject>();
       for (GroupedValue grouped : reduceResult) {
-        ret.put(grouped.key, grouped.value);
+        ret.add(new FastJSONObject().put(grouped.key, grouped.value));
       }
-      return new FastJSONObject().put("facetCounts", ret);
+      return new FastJSONObject().put("groupedCounts", new FastJSONArray(ret));
     } catch (JSONException ex) {
       throw new RuntimeException(ex);
     }
   }
+
 }
+ class GroupedValue implements Comparable {
+   String key;
+   int value;
 
- class IntContainer implements Serializable {
-  public int value;
-
-  public IntContainer(int value) {
-    super();
-    this.value = value;
-  }
-
-  public IntContainer add(int value) {
-    this.value += value;
-    return this;
-  }
-}
- 
-
-
+   public GroupedValue(String key, int value) {
+     super();
+     this.key = key;
+     this.value = value;
+   }
+   @Override
+   public int compareTo(Object o) {
+     return ((GroupedValue) o).value - value;
+   }
+   @Override
+   public String toString() {
+     return key + ", count=" + value;
+   }
+ }

@@ -1,4 +1,4 @@
-package com.senseidb.search.req.mapred;
+package com.senseidb.search.req.mapred.functions;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -10,6 +10,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.senseidb.search.req.mapred.CombinerStage;
+import com.senseidb.search.req.mapred.FacetCountAccessor;
+import com.senseidb.search.req.mapred.FieldAccessor;
+import com.senseidb.search.req.mapred.SenseiMapReduce;
 import org.jboss.netty.util.internal.ConcurrentHashMap;
 import org.json.JSONArray;
 import org.json.JSONException;

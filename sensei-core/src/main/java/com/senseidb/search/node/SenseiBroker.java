@@ -51,7 +51,7 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
   
   public SenseiBroker(PartitionedNetworkClient<String> networkClient, ClusterClient clusterClient, boolean allowPartialMerge)
       throws NorbertException {
-    super(networkClient, CoreSenseiServiceImpl.JAVA_SERIALIZER);
+    super(networkClient, CoreSenseiServiceImpl.PROTO_V2_SERIALIZER);
     this.clusterClient = clusterClient;
     this.allowPartialMerge = allowPartialMerge;
     clusterClient.addListener(this);

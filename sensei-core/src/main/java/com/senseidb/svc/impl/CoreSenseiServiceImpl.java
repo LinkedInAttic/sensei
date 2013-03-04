@@ -10,6 +10,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.sensei.search.req.protobuf.SenseiReqProtoSerializer;
+import com.senseidb.search.req.SenseiRequestProtoSerializer;
 import org.apache.log4j.Logger;
 import org.apache.lucene.search.Query;
 
@@ -48,8 +49,11 @@ public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiReque
 	public static final Serializer<SenseiRequest, SenseiResult> JAVA_SERIALIZER =
 			JavaSerializer.apply("SenseiRequest", SenseiRequest.class, SenseiResult.class);
 
-	public static final Serializer<SenseiRequest, SenseiResult> PROTO_SERIALIZER =
-			new SenseiReqProtoSerializer();
+//	public static final Serializer<SenseiRequest, SenseiResult> PROTO_SERIALIZER =
+//			new SenseiReqProtoSerializer();
+
+  public static final Serializer<SenseiRequest, SenseiResult> PROTO_V2_SERIALIZER =
+      new SenseiRequestProtoSerializer();
 
 	private static final Logger logger = Logger.getLogger(CoreSenseiServiceImpl.class);
 	
@@ -277,6 +281,6 @@ public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiReque
 
 	@Override
 	public Serializer<SenseiRequest, SenseiResult> getSerializer() {
-		 return PROTO_SERIALIZER;
+		 return PROTO_V2_SERIALIZER;
 	}
 }
