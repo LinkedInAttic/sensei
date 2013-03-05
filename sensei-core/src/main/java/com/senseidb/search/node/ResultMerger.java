@@ -1,28 +1,5 @@
 package com.senseidb.search.node;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
-import org.apache.log4j.Logger;
-import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.search.ScoreDoc;
-import org.apache.lucene.search.SortField;
-import org.apache.lucene.util.PriorityQueue;
-
-import proj.zoie.api.ZoieIndexReader;
-
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.BrowseSelection;
@@ -45,6 +22,25 @@ import com.senseidb.search.req.SenseiHit;
 import com.senseidb.search.req.SenseiRequest;
 import com.senseidb.search.req.SenseiResult;
 import com.senseidb.search.req.mapred.impl.SenseiReduceFunctionWrapper;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import org.apache.log4j.Logger;
+import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.SortField;
+import proj.zoie.api.ZoieIndexReader;
 
 public class ResultMerger
 {
@@ -649,9 +645,9 @@ public class ResultMerger
     return hitList;
   }
 
-  private static final int UNKNOWN_GROUP_VALUE_TYPE = 0;
-  private static final int NORMAL_GROUP_VALUE_TYPE = 1;
-  private static final int LONG_ARRAY_GROUP_VALUE_TYPE = 2;
+  private static final byte UNKNOWN_GROUP_VALUE_TYPE = 0;
+  private static final byte NORMAL_GROUP_VALUE_TYPE = 1;
+  private static final byte LONG_ARRAY_GROUP_VALUE_TYPE = 2;
 
   public static SenseiResult merge(final SenseiRequest req, Collection<SenseiResult> results, boolean onSearchNode)
   {
@@ -707,7 +703,7 @@ public class ResultMerger
     }
     else
     {
-      int[] rawGroupValueType = new int[req.getGroupBy().length];  // 0: unknown, 1: normal, 2: long[]
+      byte[] rawGroupValueType = new byte[req.getGroupBy().length];  // 0: unknown, 1: normal, 2: long[]
 
       PrimitiveLongArrayWrapper primitiveLongArrayWrapperTmp = new PrimitiveLongArrayWrapper(null);
 
@@ -780,7 +776,7 @@ public class ResultMerger
       {
         Set<Object>[] distinctSets = null;
         Object[] distinctValues = null;
-        int[] distinctValueType = null;
+        byte[] distinctValueType = null;
         if (req.getDistinct() != null && req.getDistinct().length != 0)
         {
           distinctSets = new Set[req.getDistinct().length];
@@ -789,7 +785,7 @@ public class ResultMerger
             distinctSets[i] = new HashSet<Object>(req.getMaxPerGroup());
           }
           distinctValues = new Object[distinctSets.length];
-          distinctValueType = new int[distinctSets.length];
+          distinctValueType = new byte[distinctSets.length];
           primitiveLongArrayWrapperTmp = new PrimitiveLongArrayWrapper(null);
         }
         for (Map<Object, HitWithGroupQueue> map : groupMaps)
@@ -867,7 +863,7 @@ public class ResultMerger
                                         Set<Object>[] distinctSets,
                                         String[] distinct,
                                         Object[] distinctValues,
-                                        int[] distinctValueType,
+                                        byte[] distinctValueType,
                                         PrimitiveLongArrayWrapper primitiveLongArrayWrapperTmp)
   {
     for (int i = 0; i < distinctValues.length; ++i)
@@ -890,7 +886,7 @@ public class ResultMerger
 
   private static List<SenseiHit> buildHitsListNoGroupAccessibles(SenseiRequest req,
                                                                  int topHits,
-                                                                 int[] rawGroupValueType,
+                                                                 byte[] rawGroupValueType,
                                                                  PrimitiveLongArrayWrapper primitiveLongArrayWrapperTmp,
                                                                  Iterator<SenseiHit> mergedIter,
                                                                  int offsetLeft) {
@@ -949,7 +945,7 @@ public class ResultMerger
                                                Collection<SenseiResult> results,
                                                int topHits,
                                                List<FacetAccessible>[] groupAccessibles,
-                                               int[] rawGroupValueType,
+                                               byte[] rawGroupValueType,
                                                PrimitiveLongArrayWrapper primitiveLongArrayWrapperTmp) {
     List<SenseiHit> hitsList = new ArrayList<SenseiHit>(req.getCount());
 
@@ -1152,7 +1148,7 @@ public class ResultMerger
 
   private static List<SenseiHit> buildHitsListNoSortCollector(SenseiRequest req,
                                                               int topHits,
-                                                              int[] rawGroupValueType,
+                                                              byte[] rawGroupValueType,
                                                               Iterator<SenseiHit> mergedIter,
                                                               int offsetLeft) {
 
@@ -1195,12 +1191,12 @@ public class ResultMerger
     return hitsList;
   }
 
-  private static Object extractRawGroupValue(int[] rawGroupValueType, int groupPosition,
+  private static Object extractRawGroupValue(byte[] rawGroupValueType, int groupPosition,
                                              PrimitiveLongArrayWrapper primitiveLongArrayWrapperTmp, SenseiHit hit) {
     return extractRawGroupValue(rawGroupValueType, groupPosition, primitiveLongArrayWrapperTmp, hit.getRawGroupValue());
   }
 
-  private static Object extractRawGroupValue(int[] rawGroupValueType, int groupPosition,
+  private static Object extractRawGroupValue(byte[] rawGroupValueType, int groupPosition,
                                              PrimitiveLongArrayWrapper primitiveLongArrayWrapperTmp, Object rawGroupValue) {
 
     if (rawGroupValueType[groupPosition] == LONG_ARRAY_GROUP_VALUE_TYPE)
@@ -1258,9 +1254,9 @@ public class ResultMerger
     private final Collection<SenseiResult> results;
     private final boolean hasSortCollector;
     private final SenseiHit[] hits;
-    private final int[] rawGroupValueType;
+    private final byte[] rawGroupValueType;
     private final PrimitiveLongArrayWrapper primitiveLongArrayWrapperTmp;
-    private final int[] distinctValueType;
+    private final byte[] distinctValueType;
     private final PrimitiveLongArrayWrapper distinctPrimitiveLongArrayWrapperTmp;
 
     private int totalDocs;
@@ -1270,7 +1266,7 @@ public class ResultMerger
                                 Collection<SenseiResult> results,
                                 boolean hasSortCollector,
                                 SenseiHit[] hits,
-                                int[] rawGroupValueType,
+                                byte[] rawGroupValueType,
                                 PrimitiveLongArrayWrapper primitiveLongArrayWrapperTmp) {
       this.req = req;
       this.maxPerGroup = req.getMaxPerGroup() <= 1 ? 0 : req.getMaxPerGroup();
@@ -1280,7 +1276,7 @@ public class ResultMerger
       this.hits = hits;
       this.rawGroupValueType = rawGroupValueType;
       this.primitiveLongArrayWrapperTmp = primitiveLongArrayWrapperTmp;
-      this.distinctValueType = new int[distinctLength];
+      this.distinctValueType = new byte[distinctLength];
       this.distinctPrimitiveLongArrayWrapperTmp = new PrimitiveLongArrayWrapper(null);
 
       groupMaps = new Map[req.getGroupBy().length];
