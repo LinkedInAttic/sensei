@@ -1,11 +1,22 @@
-
 PIDFILE=/tmp/sensei-search-node.pid
 
-echo killing `cat $PIDFILE` and wait for it to die. could take a while
-kill `cat $PIDFILE`
-while ps -p `cat $PIDFILE`  > /dev/null; do sleep 1; done
-echo `cat $PIDFILE` killed
+if [ ! -d "$PIDFILE" ]; then
+    echo no pidfile
+    exit 1
+fi
+
+PID=$(cat $PIDFILE)
+
+echo killing $PID  and wait for it to die. could take a while
+kill $PID
+while ps -p $PID  > /dev/null; do sleep 1; done
+echo $PID killed      
 echo remove ${PIDFILE}
-rm ${PIDFILE}
-echo done stop search node
+
+if [ ! -d "$PIDFILE" ]; then
+    echo done stop search node
+else
+    rm ${PIDFILE}
+    echo done stop search node
+fi
 
