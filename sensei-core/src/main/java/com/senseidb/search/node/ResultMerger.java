@@ -22,6 +22,12 @@ import com.senseidb.search.req.SenseiHit;
 import com.senseidb.search.req.SenseiRequest;
 import com.senseidb.search.req.SenseiResult;
 import com.senseidb.search.req.mapred.impl.SenseiReduceFunctionWrapper;
+import org.apache.log4j.Logger;
+import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.SortField;
+import proj.zoie.api.ZoieIndexReader;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -36,11 +42,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import org.apache.log4j.Logger;
-import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.search.ScoreDoc;
-import org.apache.lucene.search.SortField;
-import proj.zoie.api.ZoieIndexReader;
 
 public class ResultMerger
 {
@@ -160,7 +161,7 @@ public class ResultMerger
       super(fspec, list);
     }
 
-    public int getCappedFacetCount(Object value, int cap) 
+    public int getCappedFacetCount(Object value, int cap)
     {
       if (_closed)
       {
@@ -984,8 +985,6 @@ public class ResultMerger
       if (sortCollector == null)
         continue;
 
-      int end = (res.getNumHits() % SortCollector.BLOCK_SIZE) - 1;
-
       Iterator<CollectorContext> contextIter = sortCollector.contextList.descendingIterator();
 
       // Populate dataCaches and contextLeft
@@ -1014,7 +1013,7 @@ public class ResultMerger
           int[] docs = docArrayIter.next();
           float[] scores = scoreArrayIter != null ? scoreArrayIter.next():null;
 
-          for (int i = end; i >= 0; --i)
+          for (int i = docs.length - 1; i >= 0; --i)
           {
             tmpScoreDoc.doc = docs[i];
             tmpScoreDoc.score = scores != null ? scores[i] : 0.0f;
@@ -1044,12 +1043,12 @@ public class ResultMerger
 
                 if (rawGroupValueType[j] == LONG_ARRAY_GROUP_VALUE_TYPE)
                 {
-                  if (combinedFacetAccessibles[j].getCappedFacetCount(primitiveLongArrayWrapperTmp.data, 2) != 1)
+                  if (combinedFacetAccessibles[j].getCappedFacetCount(primitiveLongArrayWrapperTmp.data, 2) > 1)
                     break;
                 }
                 else
                 {
-                  if (combinedFacetAccessibles[j].getCappedFacetCount(rawGroupValue, 2) != 1)
+                  if (combinedFacetAccessibles[j].getCappedFacetCount(rawGroupValue, 2) > 1)
                     break;
                 }
               }
@@ -1124,7 +1123,6 @@ public class ResultMerger
                 break;
             }
           }
-          end = SortCollector.BLOCK_SIZE - 1;
         }
       }
       totalDocs += res.getTotalDocs();
