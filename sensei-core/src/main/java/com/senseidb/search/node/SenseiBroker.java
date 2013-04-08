@@ -1,5 +1,7 @@
 package com.senseidb.search.node;
 
+import com.linkedin.norbert.network.Serializer;
+import com.senseidb.search.req.*;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 
 import java.lang.management.ManagementFactory;
@@ -23,11 +25,6 @@ import com.linkedin.norbert.javacompat.cluster.Node;
 import com.linkedin.norbert.javacompat.network.PartitionedNetworkClient;
 import com.senseidb.conf.SenseiSchema;
 import com.senseidb.indexing.DefaultJsonSchemaInterpreter;
-import com.senseidb.search.req.ErrorType;
-import com.senseidb.search.req.SenseiError;
-import com.senseidb.search.req.SenseiHit;
-import com.senseidb.search.req.SenseiRequest;
-import com.senseidb.search.req.SenseiResult;
 import com.senseidb.svc.impl.CoreSenseiServiceImpl;
 import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.Counter;
@@ -49,9 +46,10 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
   private final ClusterClient clusterClient;
   private static Counter numberOfNodesInTheCluster = Metrics.newCounter(new MetricName(SenseiBroker.class, "numberOfNodesInTheCluster"));
   
-  public SenseiBroker(PartitionedNetworkClient<String> networkClient, ClusterClient clusterClient, boolean allowPartialMerge)
+  public SenseiBroker(PartitionedNetworkClient<String> networkClient, ClusterClient clusterClient,
+                      Serializer<SenseiRequest, SenseiResult> serializer, long timeoutMillis, boolean allowPartialMerge)
       throws NorbertException {
-    super(networkClient, CoreSenseiServiceImpl.JAVA_SERIALIZER);
+    super(networkClient, serializer, timeoutMillis);
     this.clusterClient = clusterClient;
     this.allowPartialMerge = allowPartialMerge;
     clusterClient.addListener(this);
@@ -125,8 +123,25 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
   @Override
   public SenseiResult mergeResults(SenseiRequest request, List<SenseiResult> resultList)
   {
+
+//    // For debuggin serialization:
+//    if(!request.equals(getSerializer().requestFromBytes(getSerializer().requestToBytes(request)))) {
+//        throw new IllegalArgumentException("Could not serialize request");
+//    }
+//
+//    for(SenseiResult result : resultList) {
+//      if(!result.equals(getSerializer().responseFromBytes(getSerializer().responseToBytes(result)))) {
+//          throw new IllegalArgumentException("Could not serialize partial result");
+//      }
+//    }
+
+
     SenseiResult res = ResultMerger.merge(request, resultList, false);
-    
+
+//    if(!res.equals(getSerializer().responseFromBytes(getSerializer().responseToBytes(res)))) {
+//      throw new IllegalArgumentException("Could not serialize result");
+//    }
+
     if (request.isFetchStoredFields() || request.isFetchStoredValue())
       recoverSrcData(res, res.getSenseiHits(), request.isFetchStoredFields());
 
@@ -192,6 +207,10 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
         }
       }
       request.setSelectList(selectList);
+
+//      // For debugging serialization:
+//      if(!request.equals(getSerializer().requestFromBytes(getSerializer().requestToBytes(request))))
+//        throw new IllegalArgumentException("Could not serialize to protobuf");
     }
 
     return request;

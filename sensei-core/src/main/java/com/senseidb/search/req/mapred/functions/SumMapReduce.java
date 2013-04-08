@@ -64,5 +64,9 @@ public class SumMapReduce implements SenseiMapReduce<Double, Double> {
       throw new RuntimeException(e);
     }
   }
-  
+
+  @Override
+  public String[] getColumns() {
+    return new String[]{column};
+  }
 }

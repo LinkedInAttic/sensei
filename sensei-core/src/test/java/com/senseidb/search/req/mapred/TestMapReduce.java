@@ -24,7 +24,7 @@ public class TestMapReduce extends TestCase {
     
     public void test2GroupByColorAndGroupId() throws Exception { 
       String req = "{\"size\":0,\"filter\":{\"terms\":{\"color\":{\"includes\":[],\"excludes\":[\"gold\"],\"operator\":\"or\"}}}" +
-          ", \"mapReduce\":{\"function\":\"com.senseidb.search.req.mapred.CountGroupByMapReduce\",\"parameters\":{\"columns\":[\"groupid\", \"color\"]}}}";
+          ", \"mapReduce\":{\"function\":\"com.senseidb.search.req.mapred.functions.CountGroupByMapReduce\",\"parameters\":{\"columns\":[\"groupid\", \"color\"]}}}";
       JSONObject reqJson = new JSONObject(req);
       System.out.println(reqJson.toString(1));
       JSONObject res = TestSensei.search(reqJson);
@@ -94,7 +94,7 @@ public class TestMapReduce extends TestCase {
     }
     public void test9FacetCountMapReduce() throws Exception {      
       String req = "{\"facets\": {\"color\": {\"max\": 10, \"minCount\": 1, \"expand\": false, \"order\": \"hits\"}}"
-          +", \"mapReduce\":{\"function\":\"com.senseidb.search.req.mapred.FacetCountsMapReduce\",\"parameters\":{\"column\":\"color\"}}}";
+          +", \"mapReduce\":{\"function\":\"com.senseidb.search.req.mapred.functions.FacetCountsMapReduce\",\"parameters\":{\"column\":\"color\"}}}";
       JSONObject res = TestSensei.search(new JSONObject(req));
       JSONObject mapReduceResult = res.getJSONObject("mapReduceResult");
       System.out.println(mapReduceResult.toString(1));
@@ -105,7 +105,7 @@ public class TestMapReduce extends TestCase {
     }
     public void test10FacetCountMapReduceWithFilter() throws Exception {      
       String req = "{\"facets\": {\"color\": {\"max\": 10, \"minCount\": 1, \"expand\": false, \"order\": \"hits\"}}"
-          +", \"mapReduce\":{\"function\":\"com.senseidb.search.req.mapred.FacetCountsMapReduce\",\"parameters\":{\"column\":\"color\"}}, " +
+          +", \"mapReduce\":{\"function\":\"com.senseidb.search.req.mapred.functions.FacetCountsMapReduce\",\"parameters\":{\"column\":\"color\"}}, " +
           "\"filter\":{\"term\":{\"tags\":\"reliable\"}}}";
       JSONObject res = TestSensei.search(new JSONObject(req));
       JSONObject mapReduceResult = res.getJSONObject("mapReduceResult");

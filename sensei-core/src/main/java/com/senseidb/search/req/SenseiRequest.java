@@ -130,7 +130,8 @@ private long   tid           =          -1;
     if (_routeParam != null)
       return _routeParam;
 
-    return String.valueOf(_rand.nextInt());
+    _routeParam = String.valueOf(_rand.nextInt());
+    return _routeParam;
   }
 
   public void setGroupBy(String[] groupBy)
@@ -490,8 +491,8 @@ private long   tid           =          -1;
       buf.append("selections: ").append(_selections).append('\n');
     if(_facetSpecMap != null)
       buf.append("facet spec: ").append(_facetSpecMap).append('\n');
-    if (_routeParam != null)
-      buf.append("route param: ").append(_routeParam).append('\n');
+//    if (_routeParam != null)
+      buf.append("route param: ").append(getRouteParam()).append('\n');
     if (_groupBy != null)
       buf.append("group by: ").append(_groupBy).append('\n');
     buf.append("max per group: ").append(_maxPerGroup).append('\n');
@@ -560,7 +561,7 @@ private long   tid           =          -1;
       if (b.getGroupBy() != null) return false;
     }
     else {
-      if (!getGroupBy().equals(b.getGroupBy())) return false;
+      if(!Arrays.equals(getGroupBy(), b.getGroupBy())) return false;
     }
     if (getMaxPerGroup() != b.getMaxPerGroup())
       return false;
