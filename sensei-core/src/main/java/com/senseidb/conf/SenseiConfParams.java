@@ -75,8 +75,9 @@ public interface SenseiConfParams {
 	public static final String SENSEI_BROKER_MAX_TOTAL_WAIT = "sensei.broker.maxTotalWait";
 	public static final String SENSEI_ACTIVITY_CONFIG = "sensei.activity.config";
 	public static final String SERVER_SEARCH_ROUTER_FACTORY = "sensei.search.router.factory";
+  public static final String SENSEI_SEARCH_SERIALIZER = "sensei.search.serializer";
 
-	public static final String SENSEI_INDEX_PRUNER = "sensei.index.pruner";
+  public static final String SENSEI_INDEX_PRUNER = "sensei.index.pruner";
 
 	public static final String SENSEI_ZOIE_RETENTION_DAYS = "sensei.indexing.retention.days";
   public static final String SENSEI_ZOIE_RETENTION_CLASS = "sensei.indexing.retention";

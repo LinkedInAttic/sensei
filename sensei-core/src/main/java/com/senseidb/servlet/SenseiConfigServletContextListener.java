@@ -32,7 +32,8 @@ public class SenseiConfigServletContextListener implements
 	public static final String SENSEI_CONF_NC_STALE_CLEANUP_FREQ_MINS = "sensei.search.cluster.network.stale.cleanup.freq.mins";
 	public static final String SENSEI_CONF_VERSION_COMPARATOR = "sensei.search.version.comparator";
 	public static final String SENSEI_CONF_ROUTER_FACTORY = "sensei.search.router.factory";
-	public static final String SENSEI_CONF_OBJ = "sensei.search.configuration";
+  public static final String SENSEI_CONF_SERIALIZER = "sensei.search.serializer";
+  public static final String SENSEI_CONF_OBJ = "sensei.search.configuration";
 	public static final String SENSEI_CONF_PLUGIN_REGISTRY = "sensei.search.pluginRegistry";
 	@Override
 	public void contextDestroyed(ServletContextEvent ctx) {

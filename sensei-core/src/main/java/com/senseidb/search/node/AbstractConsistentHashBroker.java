@@ -5,7 +5,7 @@ import com.linkedin.norbert.network.ResponseIterator;
 import com.linkedin.norbert.network.common.ExceptionIterator;
 import com.linkedin.norbert.network.common.PartialIterator;
 import com.linkedin.norbert.network.common.TimeoutIterator;
-import com.senseidb.search.req.SenseiRequest;
+import com.senseidb.search.req.*;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 
@@ -30,10 +30,6 @@ import com.linkedin.norbert.javacompat.network.PartitionedNetworkClient;
 import com.linkedin.norbert.network.Serializer;
 import com.senseidb.cluster.routing.RoutingInfo;
 import com.senseidb.metrics.MetricsConstants;
-import com.senseidb.search.req.AbstractSenseiRequest;
-import com.senseidb.search.req.AbstractSenseiResult;
-import com.senseidb.search.req.ErrorType;
-import com.senseidb.search.req.SenseiError;
 import com.senseidb.svc.api.SenseiException;
 import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.Meter;
@@ -267,14 +263,17 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
     logger.info("shutting down broker...");
   }
 
-  
-
   public long getTimeout() {
     return _timeout;
   }
 
   public void setTimeout(long timeout) {
     this._timeout = timeout;
+  }
+
+  public Serializer<REQUEST, RESULT> getSerializer()
+  {
+    return _serializer;
   }
 
   /**

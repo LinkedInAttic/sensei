@@ -46,4 +46,9 @@ public class ListAllUIDs implements SenseiMapReduce<Serializable, Serializable> 
     return new JSONObject();
   }
 
+  @Override
+  public String[] getColumns()
+  {
+    return new String[0];
+  }
 }

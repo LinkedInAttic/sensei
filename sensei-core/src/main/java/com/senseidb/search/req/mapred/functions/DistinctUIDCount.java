@@ -1,25 +1,13 @@
 package com.senseidb.search.req.mapred.functions;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import com.senseidb.search.req.mapred.CombinerStage;
 import com.senseidb.search.req.mapred.FacetCountAccessor;
 import com.senseidb.search.req.mapred.FieldAccessor;
 import com.senseidb.search.req.mapred.SenseiMapReduce;
-import org.jboss.netty.util.internal.ConcurrentHashMap;
-import org.json.JSONArray;
+import java.util.HashSet;
+import java.util.List;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import scala.actors.threadpool.Arrays;
 
 @SuppressWarnings("unchecked")
 public class DistinctUIDCount implements SenseiMapReduce<HashSet<Long>, Integer> {
@@ -57,6 +45,11 @@ public class DistinctUIDCount implements SenseiMapReduce<HashSet<Long>, Integer>
   }
 
   @Override
+  public String[] getColumns() {
+    return new String[0];
+  }
+
+  @Override
   public JSONObject render(Integer reduceResult) {
     
     try {
@@ -65,5 +58,5 @@ public class DistinctUIDCount implements SenseiMapReduce<HashSet<Long>, Integer>
       throw new RuntimeException(e);
     }
   }
-  
+
 }

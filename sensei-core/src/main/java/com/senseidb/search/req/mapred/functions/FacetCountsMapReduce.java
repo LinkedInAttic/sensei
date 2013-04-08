@@ -1,24 +1,20 @@
 package com.senseidb.search.req.mapred.functions;
 
+import com.browseengine.bobo.facets.data.TermValueList;
+import com.browseengine.bobo.util.BigSegmentedArray;
+import com.senseidb.search.req.mapred.CombinerStage;
+import com.senseidb.search.req.mapred.FacetCountAccessor;
+import com.senseidb.search.req.mapred.FieldAccessor;
+import com.senseidb.search.req.mapred.SenseiMapReduce;
+import com.senseidb.util.JSONUtil.FastJSONObject;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import com.senseidb.search.req.mapred.CombinerStage;
-import com.senseidb.search.req.mapred.FacetCountAccessor;
-import com.senseidb.search.req.mapred.FieldAccessor;
-import com.senseidb.search.req.mapred.SenseiMapReduce;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import com.browseengine.bobo.facets.data.TermValueList;
-import com.browseengine.bobo.util.BigSegmentedArray;
-
-import com.senseidb.util.JSONUtil.FastJSONArray;
-import com.senseidb.util.JSONUtil.FastJSONObject;
 
 public class FacetCountsMapReduce implements SenseiMapReduce<HashMap<String, IntContainer>, ArrayList<GroupedValue>> {
   private static final long serialVersionUID = 1L;  
@@ -108,6 +104,12 @@ public class FacetCountsMapReduce implements SenseiMapReduce<HashMap<String, Int
     } catch (JSONException ex) {
       throw new RuntimeException(ex);
     }
+  }
+
+  @Override
+  public String[] getColumns()
+  {
+    return new String[]{column};
   }
 }
 

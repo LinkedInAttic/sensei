@@ -25,7 +25,7 @@ import com.senseidb.util.JSONUtil.FastJSONObject;
 public class CountGroupByMapReduce implements SenseiMapReduce<HashMap<String, IntContainer>, ArrayList<GroupedValue>> {
   private static final long serialVersionUID = 1L;  
   private String[] columns;
-  
+
   public void init(JSONObject params) {
     try {
       JSONArray columnsJson = params.getJSONArray("columns");
@@ -115,6 +115,11 @@ public class CountGroupByMapReduce implements SenseiMapReduce<HashMap<String, In
     } catch (JSONException ex) {
       throw new RuntimeException(ex);
     }
+  }
+
+  @Override
+  public String[] getColumns() {
+    return columns;
   }
 
 }

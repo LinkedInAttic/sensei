@@ -157,7 +157,13 @@
 			<version>2.4.0a</version>
 		</dependency>
 
-		<dependency>
+        <dependency>
+            <groupId>org.iq80.snappy</groupId>
+            <artifactId>snappy</artifactId>
+            <version>0.3</version>
+        </dependency>
+
+        <dependency>
 		    <groupId>org.apache.hadoop</groupId>
 		    <artifactId>hadoop-core</artifactId>
 		    <version>0.20.204.0</version>

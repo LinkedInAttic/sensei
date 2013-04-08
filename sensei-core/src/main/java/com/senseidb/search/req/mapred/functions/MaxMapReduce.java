@@ -79,7 +79,12 @@ public class MaxMapReduce implements SenseiMapReduce<MaxResult, MaxResult> {
       throw new IllegalStateException("Column parameter shouldn't be null");
     }
   }
- 
+
+  @Override
+  public String[] getColumns() {
+    return new String[]{column};
+  }
+
 }
 class MaxResult implements Serializable {
   public double value;

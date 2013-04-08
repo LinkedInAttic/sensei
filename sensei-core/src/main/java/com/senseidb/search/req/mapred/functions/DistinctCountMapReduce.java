@@ -74,4 +74,8 @@ public class DistinctCountMapReduce implements SenseiMapReduce<LongOpenHashSet, 
     }
   }
 
+  @Override
+  public String[] getColumns() {
+    return new String[]{column};
+  }
 }

@@ -12,6 +12,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.senseidb.search.req.*;
 import junit.framework.TestCase;
 
 import org.apache.log4j.Logger;
@@ -26,9 +27,6 @@ import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
 import com.browseengine.bobo.facets.DefaultFacetHandlerInitializerParam;
 import com.senseidb.search.node.SenseiBroker;
-import com.senseidb.search.req.SenseiHit;
-import com.senseidb.search.req.SenseiRequest;
-import com.senseidb.search.req.SenseiResult;
 import com.senseidb.svc.api.SenseiService;
 
 public class TestSensei extends TestCase {

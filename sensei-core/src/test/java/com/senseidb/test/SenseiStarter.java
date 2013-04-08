@@ -5,7 +5,9 @@ import java.net.URL;
 
 import javax.management.InstanceAlreadyExistsException;
 
+import com.linkedin.norbert.network.Serializer;
 import com.senseidb.indexing.activity.facet.ActivityRangeFacetHandler;
+import com.senseidb.svc.impl.CoreSenseiServiceImpl;
 import org.apache.log4j.Logger;
 import org.mortbay.jetty.Server;
 import org.springframework.context.ApplicationContext;
@@ -45,6 +47,7 @@ public class SenseiStarter {
   public static SenseiServer node2;
   public static Server httpServer1;
   public static Server httpServer2;
+  public static Serializer<SenseiRequest, SenseiResult> serializer;
   public static SenseiNetworkClient networkClient;
   public static ClusterClient clusterClient;
   public static SenseiRequestScatterRewriter requestRewriter;
@@ -90,7 +93,7 @@ public class SenseiStarter {
     broker = null;
     try
     {
-      broker = new SenseiBroker(networkClient, clusterClient, true);
+      broker = new SenseiBroker(networkClient, clusterClient, serializer, true);
     } catch (NorbertException ne) {
       logger.info("shutting down cluster...", ne);
         clusterClient.shutdown();
@@ -149,6 +152,11 @@ public class SenseiStarter {
         logger.error("Unexpected Exception", e.getCause());
     }
     networkClient = (SenseiNetworkClient)testSpringCtx.getBean("network-client");
+    serializer = (Serializer<SenseiRequest, SenseiResult>) testSpringCtx.getBean("serializer");
+    if(serializer == null) {
+      logger.warn("Unspecified serializer, using java serialization");
+      serializer = CoreSenseiServiceImpl.JAVA_SERIALIZER;
+    }
     clusterClient = (ClusterClient)testSpringCtx.getBean("cluster-client");
     requestRewriter = (SenseiRequestScatterRewriter)testSpringCtx.getBean("request-rewriter");
     networkServer1 = (NetworkServer)testSpringCtx.getBean("network-server-1");

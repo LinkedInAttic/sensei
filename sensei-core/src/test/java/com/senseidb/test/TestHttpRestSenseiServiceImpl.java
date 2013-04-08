@@ -121,7 +121,7 @@ public class TestHttpRestSenseiServiceImpl extends TestCase
     Map<String,Object[]> map = new HashMap<String,Object[]>();
 
     for (int i = 0; i < 10; i++) {
-      map.put(String.format("raw key %s %s", uid, i), new String[] { "hello" + i, "world" + i} );
+      map.put(String.format("key %s %s", uid, i), new String[] { "hello" + i, "world" + i} );
     }
 
     return map;

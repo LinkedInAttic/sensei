@@ -1,5 +1,8 @@
 package com.senseidb.conf;
 
+import com.linkedin.norbert.network.Serializer;
+import com.senseidb.search.req.*;
+import com.senseidb.svc.impl.CoreSenseiServiceImpl;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 
@@ -90,9 +93,6 @@ import com.senseidb.search.relevance.CustomRelevanceFunction.CustomRelevanceFunc
 import com.senseidb.search.relevance.ExternalRelevanceDataStorage;
 import com.senseidb.search.relevance.ExternalRelevanceDataStorage.RelevanceObjPlugin;
 import com.senseidb.search.relevance.ModelStorage;
-import com.senseidb.search.req.AbstractSenseiRequest;
-import com.senseidb.search.req.AbstractSenseiResult;
-import com.senseidb.search.req.SenseiSystemInfo;
 import com.senseidb.servlet.DefaultSenseiJSONServlet;
 import com.senseidb.servlet.SenseiConfigServletContextListener;
 import com.senseidb.servlet.SenseiHttpInvokerServiceServlet;
@@ -219,7 +219,14 @@ public class SenseiServerBuilder implements SenseiConfParams{
       routerFactory = new SenseiPartitionedLoadBalancerFactory(50);
     }
 
-    senseiApp.setAttribute("sensei.search.router.factory", routerFactory);
+    Serializer<SenseiRequest, SenseiResult> serializer = pluginRegistry.getBeanByFullPrefix(SenseiConfParams.SENSEI_SEARCH_SERIALIZER, Serializer.class);
+    if (serializer == null) {
+      logger.warn("Unspecified serializer. Falling back to java serialization");
+      serializer = CoreSenseiServiceImpl.JAVA_SERIALIZER;
+    }
+
+    senseiApp.setAttribute(SenseiConfigServletContextListener.SENSEI_CONF_ROUTER_FACTORY, routerFactory);
+    senseiApp.setAttribute(SenseiConfigServletContextListener.SENSEI_CONF_SERIALIZER, serializer);
     senseiApp.addEventListener(new SenseiConfigServletContextListener());
     senseiApp.addServlet(senseiServletHolder,"/"+SENSEI_CONTEXT_PATH+"/*");
     senseiApp.setResourceBase(webappPath);

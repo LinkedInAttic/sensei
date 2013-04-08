@@ -83,9 +83,11 @@ public class AvgMapReduce implements SenseiMapReduce<AvgResult, AvgResult> {
     }
   }
 
-  
-  
-  
+  @Override
+  public String[] getColumns() {
+    return new String[]{column};
+  }
+
 }
 class AvgResult implements Serializable {
   public double value;

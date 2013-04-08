@@ -168,12 +168,14 @@ public class SenseiServer {
 //    SenseiClusterClientImpl senseiClusterClient = new SenseiClusterClientImpl(clusterName, zookeeperURL, zookeeperTimeout, false);
     SenseiCoreServiceMessageHandler senseiMsgHandler =  new SenseiCoreServiceMessageHandler(coreSenseiService);
     SenseiCoreServiceMessageHandler senseiSysMsgHandler =  new SenseiCoreServiceMessageHandler(sysSenseiCoreService);
-   
-    _networkServer.registerHandler(senseiMsgHandler, coreSenseiService.getSerializer());
-    _networkServer.registerHandler(senseiSysMsgHandler, sysSenseiCoreService.getSerializer());
-    
-//    _networkServer.registerHandler(senseiMsgHandler, CoreSenseiServiceImpl.JAVA_SERIALIZER);
-//    _networkServer.registerHandler(senseiSysMsgHandler, SysSenseiCoreServiceImpl.JAVA_SERIALIZER);
+
+    _networkServer.registerHandler(senseiMsgHandler, CoreSenseiServiceImpl.PROTO_SERIALIZER);
+    _networkServer.registerHandler(senseiSysMsgHandler, SysSenseiCoreServiceImpl.PROTO_SERIALIZER);
+
+    _networkServer.registerHandler(senseiMsgHandler, CoreSenseiServiceImpl.PROTO_V2_SERIALIZER);
+
+    _networkServer.registerHandler(senseiMsgHandler, CoreSenseiServiceImpl.JAVA_SERIALIZER);
+    _networkServer.registerHandler(senseiSysMsgHandler, SysSenseiCoreServiceImpl.JAVA_SERIALIZER);
 
     if (_externalSvc!=null){
       for (AbstractSenseiCoreService svc : _externalSvc){

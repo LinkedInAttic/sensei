@@ -66,6 +66,12 @@ public class HashSetDistinctCountMapReduce implements SenseiMapReduce<HashSet, I
   }
 
   @Override
+  public String[] getColumns() {
+    return new String[]{column};
+  }
+
+
+  @Override
   public JSONObject render(Integer reduceResult) {
     // TODO Auto-generated method stub
     try {

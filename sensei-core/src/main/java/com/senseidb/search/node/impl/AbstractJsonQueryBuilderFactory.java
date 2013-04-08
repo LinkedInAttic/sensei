@@ -16,10 +16,10 @@ public abstract class AbstractJsonQueryBuilderFactory implements
 	public SenseiQueryBuilder getQueryBuilder(SenseiQuery query)
 			throws Exception {
 		JSONObject jsonQuery=null;
-        String queryString = query.toString();
+        String queryString = query == null ? null : query.toString();
 		if (!StringUtils.isEmpty(queryString)){
 //			byte[] bytes = query.toBytes();
-//			jsonQuery = new FastJSONObject(new String(bytes,SenseiQuery.utf8Charset));
+//			jsonQuery = new FastJSONObject(new String(bytes,SenseiQuery.UTF_8_CHARSET));
             jsonQuery = new FastJSONObject(queryString);
 		}
 		return buildQueryBuilder(jsonQuery);
