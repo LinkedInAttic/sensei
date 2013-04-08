@@ -618,6 +618,9 @@ public class SenseiServerBuilder implements SenseiConfParams{
 
   public SenseiServer buildServer() throws ConfigurationException {
     int port = _senseiConf.getInt(SERVER_PORT);
+
+    long shutdownPauseMillis = _senseiConf.getLong(SENSEI_SHUTDOWN_WAIT_FOR_CLIENT_MILLIS, 0L);
+
     JmxSenseiMBeanServer.registerCustomMBeanServer();
 
     ClusterClient clusterClient = buildClusterClient();
@@ -629,7 +632,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
     List<AbstractSenseiCoreService<AbstractSenseiRequest, AbstractSenseiResult>> svcList = (List)pluginRegistry.resolveBeansByListKey(SENSEI_PLUGIN_SVCS, AbstractSenseiCoreService.class);
 
 
-    return new SenseiServer(port,networkServer,clusterClient,core,svcList, pluginRegistry);
+    return new SenseiServer(port,networkServer,clusterClient,core,svcList, pluginRegistry, shutdownPauseMillis);
 
   }
   /*

@@ -89,6 +89,8 @@ public interface SenseiConfParams {
 	public static final String SENSEI_INDEX_ACTIVITY_FILTER = "sensei.index.activity.filter";
 	public static final String SENSEI_INDEX_ACTIVITY_PURGE_FREQUENCY_HOURS = "sensei.index.activity.purge.hours";
 	public static final String SENSEI_INDEX_ACTIVITY_PURGE_FREQUENCY_MINUTES = "sensei.index.activity.purge.minutes";
+
+  public static final String SENSEI_SHUTDOWN_WAIT_FOR_CLIENT_MILLIS = "sensei.shutdown.wait.millis";
 	
 	public static final Comparator<String> DEFAULT_VERSION_STRING_COMPARATOR = new Comparator<String>(){
 		@Override
