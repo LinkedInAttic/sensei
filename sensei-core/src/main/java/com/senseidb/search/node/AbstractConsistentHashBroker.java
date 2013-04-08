@@ -47,7 +47,7 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
 {
   private final static Logger logger = Logger.getLogger(AbstractConsistentHashBroker.class);
 
-  protected long _timeout = 8000;
+  protected final long _timeout;
   protected final Serializer<REQUEST, RESULT> _serializer;
 
   private static Timer ScatterTimer = null;
@@ -92,11 +92,12 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
    * @param scatterGatherHandler
    * @throws NorbertException
    */
-  public AbstractConsistentHashBroker(PartitionedNetworkClient<String> networkClient, Serializer<REQUEST, RESULT> serializer)
+  public AbstractConsistentHashBroker(PartitionedNetworkClient<String> networkClient, Serializer<REQUEST, RESULT> serializer, long timeoutMillis)
       throws NorbertException
   {
     super(networkClient);
     _serializer = serializer;
+    _timeout = timeoutMillis;
   }
 
 	public <T> T customizeRequest(REQUEST request)
@@ -265,10 +266,6 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
 
   public long getTimeout() {
     return _timeout;
-  }
-
-  public void setTimeout(long timeout) {
-    this._timeout = timeout;
   }
 
   public Serializer<REQUEST, RESULT> getSerializer()

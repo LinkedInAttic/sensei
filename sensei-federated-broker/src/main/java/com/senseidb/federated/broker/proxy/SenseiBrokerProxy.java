@@ -50,9 +50,11 @@ public class SenseiBrokerProxy extends SenseiBroker implements BrokerProxy {
     }
   }
   
-  public SenseiBrokerProxy(PartitionedNetworkClient<String> networkClient, ClusterClient clusterClient,
-                           Serializer<SenseiRequest, SenseiResult> serializer, boolean allowPartialMerge) {
-    super(networkClient, clusterClient, serializer, allowPartialMerge);
+  public SenseiBrokerProxy(PartitionedNetworkClient<String> networkClient,
+                           ClusterClient clusterClient,
+                           Serializer<SenseiRequest, SenseiResult> serializer,
+                           long timeoutMillis, boolean allowPartialMerge) {
+    super(networkClient, clusterClient, serializer, timeoutMillis, allowPartialMerge);
   }
 
   public static SenseiBrokerProxy valueOf(Configuration senseiConfiguration, Map<String, String> overrideProperties) {
@@ -64,7 +66,8 @@ public class SenseiBrokerProxy extends SenseiBroker implements BrokerProxy {
         brokerProxyConfig.getNetworkClient(),
         brokerProxyConfig.getClusterClient(),
         brokerProxyConfig.getSerializer(),
-        true);
+        brokerProxyConfig.getBrokerTimeout(),
+        brokerProxyConfig.isAllowPartialMerge());
     return ret;
   }
   @Override

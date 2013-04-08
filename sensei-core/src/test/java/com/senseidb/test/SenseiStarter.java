@@ -93,7 +93,7 @@ public class SenseiStarter {
     broker = null;
     try
     {
-      broker = new SenseiBroker(networkClient, clusterClient, serializer, true);
+      broker = new SenseiBroker(networkClient, clusterClient, serializer, 10000L, true);
     } catch (NorbertException ne) {
       logger.info("shutting down cluster...", ne);
         clusterClient.shutdown();

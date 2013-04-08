@@ -47,9 +47,9 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
   private static Counter numberOfNodesInTheCluster = Metrics.newCounter(new MetricName(SenseiBroker.class, "numberOfNodesInTheCluster"));
   
   public SenseiBroker(PartitionedNetworkClient<String> networkClient, ClusterClient clusterClient,
-                      Serializer<SenseiRequest, SenseiResult> serializer, boolean allowPartialMerge)
+                      Serializer<SenseiRequest, SenseiResult> serializer, long timeoutMillis, boolean allowPartialMerge)
       throws NorbertException {
-    super(networkClient, serializer);
+    super(networkClient, serializer, timeoutMillis);
     this.clusterClient = clusterClient;
     this.allowPartialMerge = allowPartialMerge;
     clusterClient.addListener(this);

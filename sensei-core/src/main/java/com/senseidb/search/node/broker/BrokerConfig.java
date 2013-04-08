@@ -37,7 +37,7 @@ public class BrokerConfig {
   private SenseiNetworkClient networkClient;
   private SenseiBroker senseiBroker;
   private SenseiSysBroker senseiSysBroker;
-  private long brokerTimeout;
+  protected long brokerTimeout;
 
   
   public BrokerConfig(Configuration senseiConf,
@@ -81,13 +81,20 @@ public class BrokerConfig {
     clusterClient.awaitConnectionUninterruptibly();
   }
 
-  public SenseiBroker buildSenseiBroker() {   
-    senseiBroker = new SenseiBroker(networkClient, clusterClient, serializer, allowPartialMerge);
-    senseiBroker.setTimeout(brokerTimeout);
+  public long getBrokerTimeout() {
+    return brokerTimeout;
+  }
+
+  public boolean isAllowPartialMerge() {
+    return allowPartialMerge;
+  }
+
+  public SenseiBroker buildSenseiBroker() {
+    senseiBroker = new SenseiBroker(networkClient, clusterClient, serializer, brokerTimeout, allowPartialMerge);
     return senseiBroker;
   }
   public SenseiSysBroker buildSysSenseiBroker(Comparator<String> versionComparator) {   
-     senseiSysBroker = new SenseiSysBroker(networkClient, clusterClient, versionComparator, allowPartialMerge);
+     senseiSysBroker = new SenseiSysBroker(networkClient, clusterClient, versionComparator, brokerTimeout, allowPartialMerge);
     return senseiSysBroker;
   }
 
