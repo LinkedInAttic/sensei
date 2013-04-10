@@ -39,10 +39,6 @@ public class SingleNodeStarter {
   private static Server jettyServer;
   private static SenseiServer server;
 
-  public static void start(String localPath, int expectedDocs) {
-    start(new File(getUri(localPath)), expectedDocs);
-  }
-
   public static void start(File confDir, int expectedDocs) {
     if (!serverStarted) {
       try {

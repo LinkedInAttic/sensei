@@ -37,7 +37,7 @@ import com.senseidb.federated.broker.proxy.SenseiBrokerProxy;
 import com.senseidb.search.node.Broker;
 import com.senseidb.search.node.ResultMerger;
 import com.senseidb.search.node.SenseiBroker;
-import com.senseidb.search.node.inmemory.InMemorySenseiService;
+//import com.senseidb.search.node.inmemory.InMemorySenseiService;
 import com.senseidb.search.req.SenseiRequest;
 import com.senseidb.search.req.SenseiResult;
 import com.senseidb.search.req.SenseiSystemInfo;
@@ -113,13 +113,7 @@ public class FederatedBroker implements Broker<SenseiRequest, SenseiResult>{
       throw new RuntimeException(e);
     }  
   }
-  
- 
-  public void setInMemorySenseiService(InMemorySenseiService inMemorySenseiService) {
-    if (inMemorySenseiService != null && inMemorySenseiService.getSenseiSystemInfo() != null) {
-      facetInfo = AbstractSenseiClientServlet.extractFacetInfo(inMemorySenseiService.getSenseiSystemInfo());      
-    }
-  }
+
   public JSONObject query(JSONObject request) {
     try {
       SenseiRequest senseiRequest = RequestConverter2.fromJSON(request, facetInfo);
