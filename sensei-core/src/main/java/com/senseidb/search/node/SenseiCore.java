@@ -18,9 +18,14 @@
  */
 package com.senseidb.search.node;
 
+import java.io.IOException;
+import java.nio.channels.ReadableByteChannel;
+import java.nio.channels.WritableByteChannel;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -31,13 +36,14 @@ import proj.zoie.api.IndexReaderFactory;
 import proj.zoie.api.Zoie;
 import proj.zoie.api.ZoieException;
 import proj.zoie.api.ZoieIndexReader;
+import proj.zoie.impl.indexing.ZoieSystem;
 
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.facets.RuntimeFacetHandlerFactory;
+import com.google.common.base.Preconditions;
 import com.senseidb.indexing.SenseiIndexPruner;
 import com.senseidb.indexing.SenseiIndexPruner.DefaultSenseiIndexPruner;
-import com.senseidb.indexing.activity.CompositeActivityManager;
 import com.senseidb.jmx.JmxUtil;
 import com.senseidb.search.plugin.PluggableSearchEngineManager;
 import com.senseidb.search.req.SenseiSystemInfo;
@@ -50,7 +56,7 @@ public class SenseiCore{
   private SenseiIndexingManager _indexManager;
   private SenseiQueryBuilderFactory _queryBuilderFactory;
   private final HashSet<Zoie<BoboIndexReader,?>> zoieSystems = new HashSet<Zoie<BoboIndexReader,?>>();
-  
+
   private final int[] _partitions;
   private final int _id;
   private final Map<Integer,Zoie<BoboIndexReader,?>> _readerFactoryMap;
@@ -249,6 +255,66 @@ public class SenseiCore{
   {
     return _queryBuilderFactory;
   }
+  
+  public HashSet<Zoie<BoboIndexReader, ?>> getZoieSystems()
+  {
+    return zoieSystems;
+  }
+
+  public void exportSnapshot(List<WritableByteChannel> channels) throws IOException
+  {
+    Preconditions.checkNotNull(channels);
+    Preconditions.checkArgument(channels.size() > 0);
+    Preconditions.checkArgument(channels.size() >= zoieSystems.size());
+    
+    int i = 0;
+    
+    // TODO: allow run in parallel
+    
+    for (Zoie<BoboIndexReader,?> zoieSystem : zoieSystems)
+    {
+      if (zoieSystem instanceof ZoieSystem)
+      {
+        try
+        {
+          ((ZoieSystem<BoboIndexReader,?>)zoieSystem).exportSnapshot(channels.get(i++));
+        }
+        catch (IOException e)
+        {
+          logger.error("exportSnapshot " + i, e);
+          throw new IOException(e);
+        }
+      }
+    }
+  }
+
+  public void importSnapshot(List<ReadableByteChannel> channels) throws IOException
+  {
+    Preconditions.checkNotNull(channels);
+    Preconditions.checkArgument(channels.size() > 0);
+    Preconditions.checkArgument(channels.size() >= zoieSystems.size());
+    
+    int i = 0;
+    
+    // TODO: allow run in parallel
+    
+    for (Zoie<BoboIndexReader,?> zoieSystem : zoieSystems)
+    {
+      if (zoieSystem instanceof ZoieSystem)
+      {
+        try
+        {
+          ((ZoieSystem<BoboIndexReader,?>)zoieSystem).importSnapshot(channels.get(i++));
+        }
+        catch (IOException e)
+        {
+          logger.error("exportSnapshot " + i, e);
+          throw new IOException(e);
+        }
+      }
+    }
+  }
+  
 
   public void syncWithVersion(long timeToWait, String version) throws ZoieException
   {
