@@ -77,36 +77,43 @@ enum SenseiMapReduceFunction {
 message BooleanParams {
   optional string key = 1;
   repeated bool value = 2;
+  optional bool is_null = 3;
 }
 
 message IntParams {
   optional string key = 1;
   repeated int32 value = 2;
+  optional bool is_null = 3;
 }
 
 message LongParams {
   optional string key = 1;
   repeated int64 value = 2;
+  optional bool is_null = 3;
 }
 
 message StringParams {
   optional string key = 1;
   repeated string value = 2;
+  optional bool is_null = 3;
 }
 
 message FloatParams {
   optional string key = 1;
   repeated float value = 2;
+  optional bool is_null = 3;
 }
 
 message DoubleParams {
   optional string key = 1;
   repeated double value = 2;
+  optional bool is_null = 3;
 }
 
 message ByteArrayParams {
   optional string key = 1;
   optional bytes value = 2;
+  optional bool is_null = 3;
 }
 
 message FacetHandlerInitializerParam {

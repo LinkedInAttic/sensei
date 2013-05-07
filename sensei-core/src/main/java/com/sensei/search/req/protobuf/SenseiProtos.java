@@ -3770,6 +3770,10 @@ public final class SenseiProtos {
     java.util.List<java.lang.Boolean> getValueList();
     int getValueCount();
     boolean getValue(int index);
+    
+    // optional bool is_null = 3;
+    boolean hasIsNull();
+    boolean getIsNull();
   }
   public static final class BooleanParams extends
       com.google.protobuf.GeneratedMessage
@@ -3846,9 +3850,20 @@ public final class SenseiProtos {
       return value_.get(index);
     }
     
+    // optional bool is_null = 3;
+    public static final int IS_NULL_FIELD_NUMBER = 3;
+    private boolean isNull_;
+    public boolean hasIsNull() {
+      return ((bitField0_ & 0x00000002) == 0x00000002);
+    }
+    public boolean getIsNull() {
+      return isNull_;
+    }
+    
     private void initFields() {
       key_ = "";
       value_ = java.util.Collections.emptyList();;
+      isNull_ = false;
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -3868,6 +3883,9 @@ public final class SenseiProtos {
       for (int i = 0; i < value_.size(); i++) {
         output.writeBool(2, value_.get(i));
       }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        output.writeBool(3, isNull_);
+      }
       getUnknownFields().writeTo(output);
     }
     
@@ -3886,6 +3904,10 @@ public final class SenseiProtos {
         dataSize = 1 * getValueList().size();
         size += dataSize;
         size += 1 * getValueList().size();
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(3, isNull_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -4015,6 +4037,8 @@ public final class SenseiProtos {
         bitField0_ = (bitField0_ & ~0x00000001);
         value_ = java.util.Collections.emptyList();;
         bitField0_ = (bitField0_ & ~0x00000002);
+        isNull_ = false;
+        bitField0_ = (bitField0_ & ~0x00000004);
         return this;
       }
       
@@ -4062,6 +4086,10 @@ public final class SenseiProtos {
           bitField0_ = (bitField0_ & ~0x00000002);
         }
         result.value_ = value_;
+        if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+          to_bitField0_ |= 0x00000002;
+        }
+        result.isNull_ = isNull_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -4090,6 +4118,9 @@ public final class SenseiProtos {
             value_.addAll(other.value_);
           }
           onChanged();
+        }
+        if (other.hasIsNull()) {
+          setIsNull(other.getIsNull());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
@@ -4139,6 +4170,11 @@ public final class SenseiProtos {
                 addValue(input.readBool());
               }
               input.popLimit(limit);
+              break;
+            }
+            case 24: {
+              bitField0_ |= 0x00000004;
+              isNull_ = input.readBool();
               break;
             }
           }
@@ -4228,6 +4264,27 @@ public final class SenseiProtos {
         return this;
       }
       
+      // optional bool is_null = 3;
+      private boolean isNull_ ;
+      public boolean hasIsNull() {
+        return ((bitField0_ & 0x00000004) == 0x00000004);
+      }
+      public boolean getIsNull() {
+        return isNull_;
+      }
+      public Builder setIsNull(boolean value) {
+        bitField0_ |= 0x00000004;
+        isNull_ = value;
+        onChanged();
+        return this;
+      }
+      public Builder clearIsNull() {
+        bitField0_ = (bitField0_ & ~0x00000004);
+        isNull_ = false;
+        onChanged();
+        return this;
+      }
+      
       // @@protoc_insertion_point(builder_scope:com.sensei.search.req.protobuf.BooleanParams)
     }
     
@@ -4250,6 +4307,10 @@ public final class SenseiProtos {
     java.util.List<java.lang.Integer> getValueList();
     int getValueCount();
     int getValue(int index);
+    
+    // optional bool is_null = 3;
+    boolean hasIsNull();
+    boolean getIsNull();
   }
   public static final class IntParams extends
       com.google.protobuf.GeneratedMessage
@@ -4326,9 +4387,20 @@ public final class SenseiProtos {
       return value_.get(index);
     }
     
+    // optional bool is_null = 3;
+    public static final int IS_NULL_FIELD_NUMBER = 3;
+    private boolean isNull_;
+    public boolean hasIsNull() {
+      return ((bitField0_ & 0x00000002) == 0x00000002);
+    }
+    public boolean getIsNull() {
+      return isNull_;
+    }
+    
     private void initFields() {
       key_ = "";
       value_ = java.util.Collections.emptyList();;
+      isNull_ = false;
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -4347,6 +4419,9 @@ public final class SenseiProtos {
       }
       for (int i = 0; i < value_.size(); i++) {
         output.writeInt32(2, value_.get(i));
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        output.writeBool(3, isNull_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -4369,6 +4444,10 @@ public final class SenseiProtos {
         }
         size += dataSize;
         size += 1 * getValueList().size();
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(3, isNull_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -4498,6 +4577,8 @@ public final class SenseiProtos {
         bitField0_ = (bitField0_ & ~0x00000001);
         value_ = java.util.Collections.emptyList();;
         bitField0_ = (bitField0_ & ~0x00000002);
+        isNull_ = false;
+        bitField0_ = (bitField0_ & ~0x00000004);
         return this;
       }
       
@@ -4545,6 +4626,10 @@ public final class SenseiProtos {
           bitField0_ = (bitField0_ & ~0x00000002);
         }
         result.value_ = value_;
+        if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+          to_bitField0_ |= 0x00000002;
+        }
+        result.isNull_ = isNull_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -4573,6 +4658,9 @@ public final class SenseiProtos {
             value_.addAll(other.value_);
           }
           onChanged();
+        }
+        if (other.hasIsNull()) {
+          setIsNull(other.getIsNull());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
@@ -4622,6 +4710,11 @@ public final class SenseiProtos {
                 addValue(input.readInt32());
               }
               input.popLimit(limit);
+              break;
+            }
+            case 24: {
+              bitField0_ |= 0x00000004;
+              isNull_ = input.readBool();
               break;
             }
           }
@@ -4711,6 +4804,27 @@ public final class SenseiProtos {
         return this;
       }
       
+      // optional bool is_null = 3;
+      private boolean isNull_ ;
+      public boolean hasIsNull() {
+        return ((bitField0_ & 0x00000004) == 0x00000004);
+      }
+      public boolean getIsNull() {
+        return isNull_;
+      }
+      public Builder setIsNull(boolean value) {
+        bitField0_ |= 0x00000004;
+        isNull_ = value;
+        onChanged();
+        return this;
+      }
+      public Builder clearIsNull() {
+        bitField0_ = (bitField0_ & ~0x00000004);
+        isNull_ = false;
+        onChanged();
+        return this;
+      }
+      
       // @@protoc_insertion_point(builder_scope:com.sensei.search.req.protobuf.IntParams)
     }
     
@@ -4733,6 +4847,10 @@ public final class SenseiProtos {
     java.util.List<java.lang.Long> getValueList();
     int getValueCount();
     long getValue(int index);
+    
+    // optional bool is_null = 3;
+    boolean hasIsNull();
+    boolean getIsNull();
   }
   public static final class LongParams extends
       com.google.protobuf.GeneratedMessage
@@ -4809,9 +4927,20 @@ public final class SenseiProtos {
       return value_.get(index);
     }
     
+    // optional bool is_null = 3;
+    public static final int IS_NULL_FIELD_NUMBER = 3;
+    private boolean isNull_;
+    public boolean hasIsNull() {
+      return ((bitField0_ & 0x00000002) == 0x00000002);
+    }
+    public boolean getIsNull() {
+      return isNull_;
+    }
+    
     private void initFields() {
       key_ = "";
       value_ = java.util.Collections.emptyList();;
+      isNull_ = false;
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -4830,6 +4959,9 @@ public final class SenseiProtos {
       }
       for (int i = 0; i < value_.size(); i++) {
         output.writeInt64(2, value_.get(i));
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        output.writeBool(3, isNull_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -4852,6 +4984,10 @@ public final class SenseiProtos {
         }
         size += dataSize;
         size += 1 * getValueList().size();
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(3, isNull_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -4981,6 +5117,8 @@ public final class SenseiProtos {
         bitField0_ = (bitField0_ & ~0x00000001);
         value_ = java.util.Collections.emptyList();;
         bitField0_ = (bitField0_ & ~0x00000002);
+        isNull_ = false;
+        bitField0_ = (bitField0_ & ~0x00000004);
         return this;
       }
       
@@ -5028,6 +5166,10 @@ public final class SenseiProtos {
           bitField0_ = (bitField0_ & ~0x00000002);
         }
         result.value_ = value_;
+        if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+          to_bitField0_ |= 0x00000002;
+        }
+        result.isNull_ = isNull_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -5056,6 +5198,9 @@ public final class SenseiProtos {
             value_.addAll(other.value_);
           }
           onChanged();
+        }
+        if (other.hasIsNull()) {
+          setIsNull(other.getIsNull());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
@@ -5105,6 +5250,11 @@ public final class SenseiProtos {
                 addValue(input.readInt64());
               }
               input.popLimit(limit);
+              break;
+            }
+            case 24: {
+              bitField0_ |= 0x00000004;
+              isNull_ = input.readBool();
               break;
             }
           }
@@ -5194,6 +5344,27 @@ public final class SenseiProtos {
         return this;
       }
       
+      // optional bool is_null = 3;
+      private boolean isNull_ ;
+      public boolean hasIsNull() {
+        return ((bitField0_ & 0x00000004) == 0x00000004);
+      }
+      public boolean getIsNull() {
+        return isNull_;
+      }
+      public Builder setIsNull(boolean value) {
+        bitField0_ |= 0x00000004;
+        isNull_ = value;
+        onChanged();
+        return this;
+      }
+      public Builder clearIsNull() {
+        bitField0_ = (bitField0_ & ~0x00000004);
+        isNull_ = false;
+        onChanged();
+        return this;
+      }
+      
       // @@protoc_insertion_point(builder_scope:com.sensei.search.req.protobuf.LongParams)
     }
     
@@ -5216,6 +5387,10 @@ public final class SenseiProtos {
     java.util.List<String> getValueList();
     int getValueCount();
     String getValue(int index);
+    
+    // optional bool is_null = 3;
+    boolean hasIsNull();
+    boolean getIsNull();
   }
   public static final class StringParams extends
       com.google.protobuf.GeneratedMessage
@@ -5292,9 +5467,20 @@ public final class SenseiProtos {
       return value_.get(index);
     }
     
+    // optional bool is_null = 3;
+    public static final int IS_NULL_FIELD_NUMBER = 3;
+    private boolean isNull_;
+    public boolean hasIsNull() {
+      return ((bitField0_ & 0x00000002) == 0x00000002);
+    }
+    public boolean getIsNull() {
+      return isNull_;
+    }
+    
     private void initFields() {
       key_ = "";
       value_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+      isNull_ = false;
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -5313,6 +5499,9 @@ public final class SenseiProtos {
       }
       for (int i = 0; i < value_.size(); i++) {
         output.writeBytes(2, value_.getByteString(i));
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        output.writeBool(3, isNull_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -5335,6 +5524,10 @@ public final class SenseiProtos {
         }
         size += dataSize;
         size += 1 * getValueList().size();
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(3, isNull_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -5464,6 +5657,8 @@ public final class SenseiProtos {
         bitField0_ = (bitField0_ & ~0x00000001);
         value_ = com.google.protobuf.LazyStringArrayList.EMPTY;
         bitField0_ = (bitField0_ & ~0x00000002);
+        isNull_ = false;
+        bitField0_ = (bitField0_ & ~0x00000004);
         return this;
       }
       
@@ -5512,6 +5707,10 @@ public final class SenseiProtos {
           bitField0_ = (bitField0_ & ~0x00000002);
         }
         result.value_ = value_;
+        if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+          to_bitField0_ |= 0x00000002;
+        }
+        result.isNull_ = isNull_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -5540,6 +5739,9 @@ public final class SenseiProtos {
             value_.addAll(other.value_);
           }
           onChanged();
+        }
+        if (other.hasIsNull()) {
+          setIsNull(other.getIsNull());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
@@ -5580,6 +5782,11 @@ public final class SenseiProtos {
             case 18: {
               ensureValueIsMutable();
               value_.add(input.readBytes());
+              break;
+            }
+            case 24: {
+              bitField0_ |= 0x00000004;
+              isNull_ = input.readBool();
               break;
             }
           }
@@ -5680,6 +5887,27 @@ public final class SenseiProtos {
         onChanged();
       }
       
+      // optional bool is_null = 3;
+      private boolean isNull_ ;
+      public boolean hasIsNull() {
+        return ((bitField0_ & 0x00000004) == 0x00000004);
+      }
+      public boolean getIsNull() {
+        return isNull_;
+      }
+      public Builder setIsNull(boolean value) {
+        bitField0_ |= 0x00000004;
+        isNull_ = value;
+        onChanged();
+        return this;
+      }
+      public Builder clearIsNull() {
+        bitField0_ = (bitField0_ & ~0x00000004);
+        isNull_ = false;
+        onChanged();
+        return this;
+      }
+      
       // @@protoc_insertion_point(builder_scope:com.sensei.search.req.protobuf.StringParams)
     }
     
@@ -5702,6 +5930,10 @@ public final class SenseiProtos {
     java.util.List<java.lang.Float> getValueList();
     int getValueCount();
     float getValue(int index);
+    
+    // optional bool is_null = 3;
+    boolean hasIsNull();
+    boolean getIsNull();
   }
   public static final class FloatParams extends
       com.google.protobuf.GeneratedMessage
@@ -5778,9 +6010,20 @@ public final class SenseiProtos {
       return value_.get(index);
     }
     
+    // optional bool is_null = 3;
+    public static final int IS_NULL_FIELD_NUMBER = 3;
+    private boolean isNull_;
+    public boolean hasIsNull() {
+      return ((bitField0_ & 0x00000002) == 0x00000002);
+    }
+    public boolean getIsNull() {
+      return isNull_;
+    }
+    
     private void initFields() {
       key_ = "";
       value_ = java.util.Collections.emptyList();;
+      isNull_ = false;
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -5800,6 +6043,9 @@ public final class SenseiProtos {
       for (int i = 0; i < value_.size(); i++) {
         output.writeFloat(2, value_.get(i));
       }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        output.writeBool(3, isNull_);
+      }
       getUnknownFields().writeTo(output);
     }
     
@@ -5818,6 +6064,10 @@ public final class SenseiProtos {
         dataSize = 4 * getValueList().size();
         size += dataSize;
         size += 1 * getValueList().size();
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(3, isNull_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -5947,6 +6197,8 @@ public final class SenseiProtos {
         bitField0_ = (bitField0_ & ~0x00000001);
         value_ = java.util.Collections.emptyList();;
         bitField0_ = (bitField0_ & ~0x00000002);
+        isNull_ = false;
+        bitField0_ = (bitField0_ & ~0x00000004);
         return this;
       }
       
@@ -5994,6 +6246,10 @@ public final class SenseiProtos {
           bitField0_ = (bitField0_ & ~0x00000002);
         }
         result.value_ = value_;
+        if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+          to_bitField0_ |= 0x00000002;
+        }
+        result.isNull_ = isNull_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -6022,6 +6278,9 @@ public final class SenseiProtos {
             value_.addAll(other.value_);
           }
           onChanged();
+        }
+        if (other.hasIsNull()) {
+          setIsNull(other.getIsNull());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
@@ -6071,6 +6330,11 @@ public final class SenseiProtos {
                 addValue(input.readFloat());
               }
               input.popLimit(limit);
+              break;
+            }
+            case 24: {
+              bitField0_ |= 0x00000004;
+              isNull_ = input.readBool();
               break;
             }
           }
@@ -6160,6 +6424,27 @@ public final class SenseiProtos {
         return this;
       }
       
+      // optional bool is_null = 3;
+      private boolean isNull_ ;
+      public boolean hasIsNull() {
+        return ((bitField0_ & 0x00000004) == 0x00000004);
+      }
+      public boolean getIsNull() {
+        return isNull_;
+      }
+      public Builder setIsNull(boolean value) {
+        bitField0_ |= 0x00000004;
+        isNull_ = value;
+        onChanged();
+        return this;
+      }
+      public Builder clearIsNull() {
+        bitField0_ = (bitField0_ & ~0x00000004);
+        isNull_ = false;
+        onChanged();
+        return this;
+      }
+      
       // @@protoc_insertion_point(builder_scope:com.sensei.search.req.protobuf.FloatParams)
     }
     
@@ -6182,6 +6467,10 @@ public final class SenseiProtos {
     java.util.List<java.lang.Double> getValueList();
     int getValueCount();
     double getValue(int index);
+    
+    // optional bool is_null = 3;
+    boolean hasIsNull();
+    boolean getIsNull();
   }
   public static final class DoubleParams extends
       com.google.protobuf.GeneratedMessage
@@ -6258,9 +6547,20 @@ public final class SenseiProtos {
       return value_.get(index);
     }
     
+    // optional bool is_null = 3;
+    public static final int IS_NULL_FIELD_NUMBER = 3;
+    private boolean isNull_;
+    public boolean hasIsNull() {
+      return ((bitField0_ & 0x00000002) == 0x00000002);
+    }
+    public boolean getIsNull() {
+      return isNull_;
+    }
+    
     private void initFields() {
       key_ = "";
       value_ = java.util.Collections.emptyList();;
+      isNull_ = false;
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -6280,6 +6580,9 @@ public final class SenseiProtos {
       for (int i = 0; i < value_.size(); i++) {
         output.writeDouble(2, value_.get(i));
       }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        output.writeBool(3, isNull_);
+      }
       getUnknownFields().writeTo(output);
     }
     
@@ -6298,6 +6601,10 @@ public final class SenseiProtos {
         dataSize = 8 * getValueList().size();
         size += dataSize;
         size += 1 * getValueList().size();
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(3, isNull_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -6427,6 +6734,8 @@ public final class SenseiProtos {
         bitField0_ = (bitField0_ & ~0x00000001);
         value_ = java.util.Collections.emptyList();;
         bitField0_ = (bitField0_ & ~0x00000002);
+        isNull_ = false;
+        bitField0_ = (bitField0_ & ~0x00000004);
         return this;
       }
       
@@ -6474,6 +6783,10 @@ public final class SenseiProtos {
           bitField0_ = (bitField0_ & ~0x00000002);
         }
         result.value_ = value_;
+        if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+          to_bitField0_ |= 0x00000002;
+        }
+        result.isNull_ = isNull_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -6502,6 +6815,9 @@ public final class SenseiProtos {
             value_.addAll(other.value_);
           }
           onChanged();
+        }
+        if (other.hasIsNull()) {
+          setIsNull(other.getIsNull());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
@@ -6551,6 +6867,11 @@ public final class SenseiProtos {
                 addValue(input.readDouble());
               }
               input.popLimit(limit);
+              break;
+            }
+            case 24: {
+              bitField0_ |= 0x00000004;
+              isNull_ = input.readBool();
               break;
             }
           }
@@ -6640,6 +6961,27 @@ public final class SenseiProtos {
         return this;
       }
       
+      // optional bool is_null = 3;
+      private boolean isNull_ ;
+      public boolean hasIsNull() {
+        return ((bitField0_ & 0x00000004) == 0x00000004);
+      }
+      public boolean getIsNull() {
+        return isNull_;
+      }
+      public Builder setIsNull(boolean value) {
+        bitField0_ |= 0x00000004;
+        isNull_ = value;
+        onChanged();
+        return this;
+      }
+      public Builder clearIsNull() {
+        bitField0_ = (bitField0_ & ~0x00000004);
+        isNull_ = false;
+        onChanged();
+        return this;
+      }
+      
       // @@protoc_insertion_point(builder_scope:com.sensei.search.req.protobuf.DoubleParams)
     }
     
@@ -6661,6 +7003,10 @@ public final class SenseiProtos {
     // optional bytes value = 2;
     boolean hasValue();
     com.google.protobuf.ByteString getValue();
+    
+    // optional bool is_null = 3;
+    boolean hasIsNull();
+    boolean getIsNull();
   }
   public static final class ByteArrayParams extends
       com.google.protobuf.GeneratedMessage
@@ -6733,9 +7079,20 @@ public final class SenseiProtos {
       return value_;
     }
     
+    // optional bool is_null = 3;
+    public static final int IS_NULL_FIELD_NUMBER = 3;
+    private boolean isNull_;
+    public boolean hasIsNull() {
+      return ((bitField0_ & 0x00000004) == 0x00000004);
+    }
+    public boolean getIsNull() {
+      return isNull_;
+    }
+    
     private void initFields() {
       key_ = "";
       value_ = com.google.protobuf.ByteString.EMPTY;
+      isNull_ = false;
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -6755,6 +7112,9 @@ public final class SenseiProtos {
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
         output.writeBytes(2, value_);
       }
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        output.writeBool(3, isNull_);
+      }
       getUnknownFields().writeTo(output);
     }
     
@@ -6771,6 +7131,10 @@ public final class SenseiProtos {
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
         size += com.google.protobuf.CodedOutputStream
           .computeBytesSize(2, value_);
+      }
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(3, isNull_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -6900,6 +7264,8 @@ public final class SenseiProtos {
         bitField0_ = (bitField0_ & ~0x00000001);
         value_ = com.google.protobuf.ByteString.EMPTY;
         bitField0_ = (bitField0_ & ~0x00000002);
+        isNull_ = false;
+        bitField0_ = (bitField0_ & ~0x00000004);
         return this;
       }
       
@@ -6946,6 +7312,10 @@ public final class SenseiProtos {
           to_bitField0_ |= 0x00000002;
         }
         result.value_ = value_;
+        if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+          to_bitField0_ |= 0x00000004;
+        }
+        result.isNull_ = isNull_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -6967,6 +7337,9 @@ public final class SenseiProtos {
         }
         if (other.hasValue()) {
           setValue(other.getValue());
+        }
+        if (other.hasIsNull()) {
+          setIsNull(other.getIsNull());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
@@ -7007,6 +7380,11 @@ public final class SenseiProtos {
             case 18: {
               bitField0_ |= 0x00000002;
               value_ = input.readBytes();
+              break;
+            }
+            case 24: {
+              bitField0_ |= 0x00000004;
+              isNull_ = input.readBool();
               break;
             }
           }
@@ -7071,6 +7449,27 @@ public final class SenseiProtos {
       public Builder clearValue() {
         bitField0_ = (bitField0_ & ~0x00000002);
         value_ = getDefaultInstance().getValue();
+        onChanged();
+        return this;
+      }
+      
+      // optional bool is_null = 3;
+      private boolean isNull_ ;
+      public boolean hasIsNull() {
+        return ((bitField0_ & 0x00000004) == 0x00000004);
+      }
+      public boolean getIsNull() {
+        return isNull_;
+      }
+      public Builder setIsNull(boolean value) {
+        bitField0_ |= 0x00000004;
+        isNull_ = value;
+        onChanged();
+        return this;
+      }
+      public Builder clearIsNull() {
+        bitField0_ = (bitField0_ & ~0x00000004);
+        isNull_ = false;
         onChanged();
         return this;
       }
@@ -25742,135 +26141,138 @@ public final class SenseiProtos {
       "rder\022\013\n\003max\030\002 \001(\005\022\030\n\020expand_selection\030\003 " +
       "\001(\010\022\021\n\tmin_count\030\004 \001(\005\022D\n\nproperties\030\006 \001" +
       "(\01320.com.sensei.search.req.protobuf.Stri" +
-      "ngProperties\022\r\n\005field\030\007 \001(\t\"+\n\rBooleanPa" +
-      "rams\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \003(\010\"\'\n\tIntP" +
-      "arams\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \003(\005\"(\n\nLon",
-      "gParams\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \003(\003\"*\n\014S" +
-      "tringParams\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \003(\t\"" +
-      ")\n\013FloatParams\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \003" +
-      "(\002\"*\n\014DoubleParams\022\013\n\003key\030\001 \001(\t\022\r\n\005value" +
-      "\030\002 \003(\001\"-\n\017ByteArrayParams\022\013\n\003key\030\001 \001(\t\022\r" +
-      "\n\005value\030\002 \001(\014\"\257\003\n\034FacetHandlerInitialize" +
-      "rParam\022D\n\rboolean_param\030\001 \003(\0132-.com.sens" +
-      "ei.search.req.protobuf.BooleanParams\022<\n\t" +
-      "int_param\030\002 \003(\0132).com.sensei.search.req." +
-      "protobuf.IntParams\022>\n\nlong_param\030\003 \003(\0132*",
-      ".com.sensei.search.req.protobuf.LongPara" +
-      "ms\022B\n\014string_param\030\004 \003(\0132,.com.sensei.se" +
-      "arch.req.protobuf.StringParams\022B\n\014double" +
-      "_param\030\005 \003(\0132,.com.sensei.search.req.pro" +
-      "tobuf.DoubleParams\022C\n\nbyte_param\030\006 \003(\0132/" +
-      ".com.sensei.search.req.protobuf.ByteArra" +
-      "yParams\"y\n\035FacetHandlerInitializerParams" +
-      "\022\013\n\003key\030\001 \003(\t\022K\n\005value\030\002 \003(\0132<.com.sense" +
-      "i.search.req.protobuf.FacetHandlerInitia" +
-      "lizerParam\"\313\005\n\022SenseiProtoRequest\022B\n\tsel",
-      "ection\030\001 \003(\0132/.com.sensei.search.req.pro" +
-      "tobuf.BrowseSelection\022<\n\tsort_spec\030\002 \003(\013" +
-      "2).com.sensei.search.req.protobuf.SortFi" +
-      "eld\022=\n\nfacet_spec\030\003 \003(\0132).com.sensei.sea" +
-      "rch.req.protobuf.FacetSpec\022\024\n\014sensei_que" +
-      "ry\030\004 \001(\t\022\016\n\006offset\030\005 \001(\005\022\r\n\005count\030\006 \001(\005\022" +
-      "\033\n\023fetch_stored_fields\030\007 \001(\010\022\032\n\022fetch_st" +
-      "ored_value\030\010 \001(\010\022Z\n\023facet_handler_param\030" +
-      "\t \001(\0132=.com.sensei.search.req.protobuf.F" +
-      "acetHandlerInitializerParams\022\022\n\npartitio",
-      "ns\030\n \003(\005\022\017\n\007explain\030\013 \001(\010\022\023\n\013route_param" +
-      "\030\014 \001(\t\022\020\n\010group_by\030\r \003(\t\022\020\n\010distinct\030\017 \003" +
-      "(\t\022\025\n\rmax_per_group\030\020 \001(\005\022\035\n\025term_vector" +
-      "s_to_fetch\030\021 \003(\t\022\023\n\013select_list\030\022 \003(\t\022K\n" +
-      "\nmap_reduce\030\023 \001(\01627.com.sensei.search.re" +
-      "q.protobuf.SenseiMapReduceFunction\022\032\n\022ma" +
-      "p_reduce_columns\030\024 \003(\t\022\030\n\020map_reduce_byt" +
-      "es\030\025 \001(\014\"e\n\013SenseiError\022\014\n\004code\030\001 \001(\005\022\017\n" +
-      "\007message\030\002 \001(\t\0227\n\004type\030\003 \001(\0162).com.sense" +
-      "i.search.req.protobuf.ErrorType\"o\n\013Expla",
-      "nation\022\r\n\005value\030\001 \001(\002\022\023\n\013description\030\002 \001" +
-      "(\t\022<\n\007details\030\003 \003(\0132+.com.sensei.search." +
-      "req.protobuf.Explanation\"2\n\023TermFrequenc" +
-      "yVector\022\r\n\005terms\030\001 \003(\t\022\014\n\004freq\030\002 \003(\005\"\031\n\t" +
-      "LongArray\022\014\n\004item\030\001 \003(\003\"\033\n\013StringArray\022\014" +
-      "\n\004item\030\001 \003(\t\"\237\002\n\013ObjectArray\022<\n\004type\030\001 \001" +
-      "(\0162..com.sensei.search.req.protobuf.Java" +
-      "Primitives\022\021\n\tint_value\030\002 \003(\005\022\022\n\nlong_va" +
-      "lue\030\003 \003(\003\022\023\n\013float_value\030\004 \003(\002\022\024\n\014double" +
-      "_value\030\005 \003(\001\022\025\n\rboolean_value\030\006 \003(\010\022\024\n\014s",
-      "tring_value\030\007 \003(\t\022=\n\nlong_array\030\010 \003(\0132)." +
-      "com.sensei.search.req.protobuf.LongArray" +
-      "\022\024\n\014object_value\030\t \003(\014\"\226\001\n\013FieldValues\022\013" +
-      "\n\003key\030\001 \003(\t\022>\n\traw_value\030\002 \003(\0132+.com.sen" +
-      "sei.search.req.protobuf.ObjectArray\022:\n\005v" +
-      "alue\030\003 \003(\0132+.com.sensei.search.req.proto" +
-      "buf.StringArray\"\324\002\n\tFieldable\022\r\n\005boost\030\001" +
-      " \001(\002\022\014\n\004name\030\002 \001(\t\022\024\n\014string_value\030\003 \001(\t" +
-      "\022\016\n\006stored\030\004 \001(\010\022\017\n\007indexed\030\005 \001(\010\022\021\n\ttok" +
-      "enized\030\006 \001(\010\022\032\n\022term_vector_stored\030\007 \001(\010",
-      "\022%\n\035store_offset_with_term_vector\030\010 \001(\010\022" +
-      "\'\n\037store_position_with_term_vector\030\t \001(\010" +
-      "\022\016\n\006binary\030\n \001(\010\022\022\n\nomit_norms\030\013 \001(\010\022\014\n\004" +
-      "lazy\030\014 \001(\010\022\025\n\rbinary_offset\030\r \001(\005\022\025\n\rbin" +
-      "ary_length\030\016 \001(\005\022\024\n\014binary_value\030\017 \001(\014\"T" +
-      "\n\010Document\022\r\n\005boost\030\001 \001(\002\0229\n\006fields\030\002 \003(" +
-      "\0132).com.sensei.search.req.protobuf.Field" +
-      "able\"c\n\020TermFrequencyMap\022\013\n\003key\030\001 \003(\t\022B\n" +
-      "\005value\030\002 \003(\01323.com.sensei.search.req.pro" +
-      "tobuf.TermFrequencyVector\"\357\004\n\tSenseiHit\022",
-      "\r\n\005score\030\001 \001(\002\022\016\n\006doc_id\030\002 \001(\005\022A\n\014field_" +
-      "values\030\003 \001(\0132+.com.sensei.search.req.pro" +
-      "tobuf.FieldValues\022B\n\nfield_type\030\004 \003(\0162.." +
-      "com.sensei.search.req.protobuf.JavaPrimi" +
-      "tives\022\026\n\016group_position\030\005 \001(\005\022?\n\rstored_" +
-      "fields\030\006 \001(\0132(.com.sensei.search.req.pro" +
-      "tobuf.Document\022\023\n\013group_field\030\007 \001(\t\022\023\n\013g" +
-      "roup_value\030\010 \001(\t\022\027\n\017raw_group_value\030\t \001(" +
-      "\014\022\035\n\025total_group_hit_count\030\n \001(\005\022<\n\tgrou" +
-      "p_hit\030\013 \003(\0132).com.sensei.search.req.prot",
-      "obuf.SenseiHit\022@\n\013explanation\030\014 \001(\0132+.co" +
-      "m.sensei.search.req.protobuf.Explanation" +
-      "\022\013\n\003uid\030\r \001(\003\022\020\n\010src_data\030\016 \001(\t\022\024\n\014store" +
-      "d_value\030\017 \001(\014\022L\n\022term_frequency_map\030\020 \001(" +
-      "\01320.com.sensei.search.req.protobuf.TermF" +
-      "requencyMap\"/\n\013BrowseFacet\022\r\n\005value\030\001 \001(" +
-      "\t\022\021\n\thit_count\030\002 \001(\005\"n\n\017FacetAccessible\022" +
-      ";\n\006facets\030\001 \003(\0132+.com.sensei.search.req." +
-      "protobuf.BrowseFacet\022\036\n\026facet_accessible" +
-      "_bytes\030\002 \001(\014\":\n\017MapReduceResult\022\021\n\tmapRe",
-      "sult\030\001 \003(\014\022\024\n\014reduceResult\030\002 \001(\014\"W\n\010Face" +
-      "tMap\022\013\n\003key\030\001 \003(\t\022>\n\005value\030\002 \003(\0132/.com.s" +
-      "ensei.search.req.protobuf.FacetAccessibl" +
-      "e\"\355\003\n\021SenseiProtoResult\022\024\n\014parsed_query\030" +
-      "\001 \001(\t\022:\n\005error\030\002 \003(\0132+.com.sensei.search" +
-      ".req.protobuf.SenseiError\0226\n\003hit\030\003 \003(\0132)" +
-      ".com.sensei.search.req.protobuf.SenseiHi" +
-      "t\022\013\n\003tid\030\004 \001(\003\022\020\n\010num_hits\030\005 \001(\003\022\022\n\ntota" +
-      "l_docs\030\006 \001(\003\022I\n\020group_accessible\030\007 \003(\0132/" +
-      ".com.sensei.search.req.protobuf.FacetAcc",
-      "essible\022;\n\tfacet_map\030\010 \001(\0132(.com.sensei." +
-      "search.req.protobuf.FacetMap\022\014\n\004time\030\t \001" +
-      "(\003\022H\n\017mapReduceResult\030\n \001(\0132/.com.sensei" +
-      ".search.req.protobuf.MapReduceResult\022;\n\006" +
-      "errors\030\013 \003(\0132+.com.sensei.search.req.pro" +
-      "tobuf.SenseiError*\"\n\017BooleanOperator\022\006\n\002" +
-      "OR\020\001\022\007\n\003AND\020\002*6\n\tSortOrder\022\r\n\tASCENDING\020" +
-      "\001\022\016\n\nDESCENDING\020\002\022\n\n\006CUSTOM\020\003*+\n\017FacetCo" +
-      "mparator\022\r\n\tHIT_COUNT\020\001\022\t\n\005VALUE\020\002*\263\001\n\027S" +
-      "enseiMapReduceFunction\022\007\n\003AVG\020\001\022\022\n\016COUNT",
-      "_GROUP_BY\020\002\022\022\n\016DISTINCT_COUNT\020\003\022\020\n\014DISTI" +
-      "NCT_UID\020\004\022\020\n\014FACET_COUNTS\020\005\022\033\n\027HASH_SET_" +
-      "DISTINCT_COUNT\020\006\022\007\n\003MAX\020\007\022\007\n\003MIN\020\010\022\007\n\003SU" +
-      "M\020\t\022\013\n\007UNKNOWN\020d*\250\002\n\tErrorType\022\024\n\020JsonPa" +
-      "rsingError\020d\022\030\n\024JsonCompilationError\020e\022\024" +
-      "\n\017BQLParsingError\020\226\001\022\027\n\022BoboExecutionErr" +
-      "or\020\310\001\022\025\n\020ExecutionTimeout\020\372\001\022\026\n\021BrokerGa" +
-      "therError\020\254\002\022\027\n\022PartitionCallError\020\336\002\022\022\n" +
-      "\rBrokerTimeout\020\220\003\022\022\n\rInternalError\020\302\003\022\030\n" +
-      "\023MergePartitionError\020\364\003\022\037\n\032FederatedBrok",
-      "erUnavailable\020\246\004\022\021\n\014UnknownError\020\350\007*~\n\016J" +
-      "avaPrimitives\022\010\n\004BYTE\020\001\022\010\n\004CHAR\020\002\022\007\n\003INT" +
-      "\020\003\022\010\n\004LONG\020\004\022\t\n\005FLOAT\020\005\022\n\n\006DOUBLE\020\006\022\013\n\007B" +
-      "OOLEAN\020\007\022\t\n\005SHORT\020\010\022\n\n\006STRING\020\t\022\n\n\006OBJEC" +
-      "T\020\nB0\n\036com.sensei.search.req.protobufB\014S" +
-      "enseiProtosH\001"
+      "ngProperties\022\r\n\005field\030\007 \001(\t\"<\n\rBooleanPa" +
+      "rams\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \003(\010\022\017\n\007is_n" +
+      "ull\030\003 \001(\010\"8\n\tIntParams\022\013\n\003key\030\001 \001(\t\022\r\n\005v",
+      "alue\030\002 \003(\005\022\017\n\007is_null\030\003 \001(\010\"9\n\nLongParam" +
+      "s\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \003(\003\022\017\n\007is_null" +
+      "\030\003 \001(\010\";\n\014StringParams\022\013\n\003key\030\001 \001(\t\022\r\n\005v" +
+      "alue\030\002 \003(\t\022\017\n\007is_null\030\003 \001(\010\":\n\013FloatPara" +
+      "ms\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \003(\002\022\017\n\007is_nul" +
+      "l\030\003 \001(\010\";\n\014DoubleParams\022\013\n\003key\030\001 \001(\t\022\r\n\005" +
+      "value\030\002 \003(\001\022\017\n\007is_null\030\003 \001(\010\">\n\017ByteArra" +
+      "yParams\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\014\022\017\n\007i" +
+      "s_null\030\003 \001(\010\"\257\003\n\034FacetHandlerInitializer" +
+      "Param\022D\n\rboolean_param\030\001 \003(\0132-.com.sense",
+      "i.search.req.protobuf.BooleanParams\022<\n\ti" +
+      "nt_param\030\002 \003(\0132).com.sensei.search.req.p" +
+      "rotobuf.IntParams\022>\n\nlong_param\030\003 \003(\0132*." +
+      "com.sensei.search.req.protobuf.LongParam" +
+      "s\022B\n\014string_param\030\004 \003(\0132,.com.sensei.sea" +
+      "rch.req.protobuf.StringParams\022B\n\014double_" +
+      "param\030\005 \003(\0132,.com.sensei.search.req.prot" +
+      "obuf.DoubleParams\022C\n\nbyte_param\030\006 \003(\0132/." +
+      "com.sensei.search.req.protobuf.ByteArray" +
+      "Params\"y\n\035FacetHandlerInitializerParams\022",
+      "\013\n\003key\030\001 \003(\t\022K\n\005value\030\002 \003(\0132<.com.sensei" +
+      ".search.req.protobuf.FacetHandlerInitial" +
+      "izerParam\"\313\005\n\022SenseiProtoRequest\022B\n\tsele" +
+      "ction\030\001 \003(\0132/.com.sensei.search.req.prot" +
+      "obuf.BrowseSelection\022<\n\tsort_spec\030\002 \003(\0132" +
+      ").com.sensei.search.req.protobuf.SortFie" +
+      "ld\022=\n\nfacet_spec\030\003 \003(\0132).com.sensei.sear" +
+      "ch.req.protobuf.FacetSpec\022\024\n\014sensei_quer" +
+      "y\030\004 \001(\t\022\016\n\006offset\030\005 \001(\005\022\r\n\005count\030\006 \001(\005\022\033" +
+      "\n\023fetch_stored_fields\030\007 \001(\010\022\032\n\022fetch_sto",
+      "red_value\030\010 \001(\010\022Z\n\023facet_handler_param\030\t" +
+      " \001(\0132=.com.sensei.search.req.protobuf.Fa" +
+      "cetHandlerInitializerParams\022\022\n\npartition" +
+      "s\030\n \003(\005\022\017\n\007explain\030\013 \001(\010\022\023\n\013route_param\030" +
+      "\014 \001(\t\022\020\n\010group_by\030\r \003(\t\022\020\n\010distinct\030\017 \003(" +
+      "\t\022\025\n\rmax_per_group\030\020 \001(\005\022\035\n\025term_vectors" +
+      "_to_fetch\030\021 \003(\t\022\023\n\013select_list\030\022 \003(\t\022K\n\n" +
+      "map_reduce\030\023 \001(\01627.com.sensei.search.req" +
+      ".protobuf.SenseiMapReduceFunction\022\032\n\022map" +
+      "_reduce_columns\030\024 \003(\t\022\030\n\020map_reduce_byte",
+      "s\030\025 \001(\014\"e\n\013SenseiError\022\014\n\004code\030\001 \001(\005\022\017\n\007" +
+      "message\030\002 \001(\t\0227\n\004type\030\003 \001(\0162).com.sensei" +
+      ".search.req.protobuf.ErrorType\"o\n\013Explan" +
+      "ation\022\r\n\005value\030\001 \001(\002\022\023\n\013description\030\002 \001(" +
+      "\t\022<\n\007details\030\003 \003(\0132+.com.sensei.search.r" +
+      "eq.protobuf.Explanation\"2\n\023TermFrequency" +
+      "Vector\022\r\n\005terms\030\001 \003(\t\022\014\n\004freq\030\002 \003(\005\"\031\n\tL" +
+      "ongArray\022\014\n\004item\030\001 \003(\003\"\033\n\013StringArray\022\014\n" +
+      "\004item\030\001 \003(\t\"\237\002\n\013ObjectArray\022<\n\004type\030\001 \001(" +
+      "\0162..com.sensei.search.req.protobuf.JavaP",
+      "rimitives\022\021\n\tint_value\030\002 \003(\005\022\022\n\nlong_val" +
+      "ue\030\003 \003(\003\022\023\n\013float_value\030\004 \003(\002\022\024\n\014double_" +
+      "value\030\005 \003(\001\022\025\n\rboolean_value\030\006 \003(\010\022\024\n\014st" +
+      "ring_value\030\007 \003(\t\022=\n\nlong_array\030\010 \003(\0132).c" +
+      "om.sensei.search.req.protobuf.LongArray\022" +
+      "\024\n\014object_value\030\t \003(\014\"\226\001\n\013FieldValues\022\013\n" +
+      "\003key\030\001 \003(\t\022>\n\traw_value\030\002 \003(\0132+.com.sens" +
+      "ei.search.req.protobuf.ObjectArray\022:\n\005va" +
+      "lue\030\003 \003(\0132+.com.sensei.search.req.protob" +
+      "uf.StringArray\"\324\002\n\tFieldable\022\r\n\005boost\030\001 ",
+      "\001(\002\022\014\n\004name\030\002 \001(\t\022\024\n\014string_value\030\003 \001(\t\022" +
+      "\016\n\006stored\030\004 \001(\010\022\017\n\007indexed\030\005 \001(\010\022\021\n\ttoke" +
+      "nized\030\006 \001(\010\022\032\n\022term_vector_stored\030\007 \001(\010\022" +
+      "%\n\035store_offset_with_term_vector\030\010 \001(\010\022\'" +
+      "\n\037store_position_with_term_vector\030\t \001(\010\022" +
+      "\016\n\006binary\030\n \001(\010\022\022\n\nomit_norms\030\013 \001(\010\022\014\n\004l" +
+      "azy\030\014 \001(\010\022\025\n\rbinary_offset\030\r \001(\005\022\025\n\rbina" +
+      "ry_length\030\016 \001(\005\022\024\n\014binary_value\030\017 \001(\014\"T\n" +
+      "\010Document\022\r\n\005boost\030\001 \001(\002\0229\n\006fields\030\002 \003(\013" +
+      "2).com.sensei.search.req.protobuf.Fielda",
+      "ble\"c\n\020TermFrequencyMap\022\013\n\003key\030\001 \003(\t\022B\n\005" +
+      "value\030\002 \003(\01323.com.sensei.search.req.prot" +
+      "obuf.TermFrequencyVector\"\357\004\n\tSenseiHit\022\r" +
+      "\n\005score\030\001 \001(\002\022\016\n\006doc_id\030\002 \001(\005\022A\n\014field_v" +
+      "alues\030\003 \001(\0132+.com.sensei.search.req.prot" +
+      "obuf.FieldValues\022B\n\nfield_type\030\004 \003(\0162..c" +
+      "om.sensei.search.req.protobuf.JavaPrimit" +
+      "ives\022\026\n\016group_position\030\005 \001(\005\022?\n\rstored_f" +
+      "ields\030\006 \001(\0132(.com.sensei.search.req.prot" +
+      "obuf.Document\022\023\n\013group_field\030\007 \001(\t\022\023\n\013gr",
+      "oup_value\030\010 \001(\t\022\027\n\017raw_group_value\030\t \001(\014" +
+      "\022\035\n\025total_group_hit_count\030\n \001(\005\022<\n\tgroup" +
+      "_hit\030\013 \003(\0132).com.sensei.search.req.proto" +
+      "buf.SenseiHit\022@\n\013explanation\030\014 \001(\0132+.com" +
+      ".sensei.search.req.protobuf.Explanation\022" +
+      "\013\n\003uid\030\r \001(\003\022\020\n\010src_data\030\016 \001(\t\022\024\n\014stored" +
+      "_value\030\017 \001(\014\022L\n\022term_frequency_map\030\020 \001(\013" +
+      "20.com.sensei.search.req.protobuf.TermFr" +
+      "equencyMap\"/\n\013BrowseFacet\022\r\n\005value\030\001 \001(\t" +
+      "\022\021\n\thit_count\030\002 \001(\005\"n\n\017FacetAccessible\022;",
+      "\n\006facets\030\001 \003(\0132+.com.sensei.search.req.p" +
+      "rotobuf.BrowseFacet\022\036\n\026facet_accessible_" +
+      "bytes\030\002 \001(\014\":\n\017MapReduceResult\022\021\n\tmapRes" +
+      "ult\030\001 \003(\014\022\024\n\014reduceResult\030\002 \001(\014\"W\n\010Facet" +
+      "Map\022\013\n\003key\030\001 \003(\t\022>\n\005value\030\002 \003(\0132/.com.se" +
+      "nsei.search.req.protobuf.FacetAccessible" +
+      "\"\355\003\n\021SenseiProtoResult\022\024\n\014parsed_query\030\001" +
+      " \001(\t\022:\n\005error\030\002 \003(\0132+.com.sensei.search." +
+      "req.protobuf.SenseiError\0226\n\003hit\030\003 \003(\0132)." +
+      "com.sensei.search.req.protobuf.SenseiHit",
+      "\022\013\n\003tid\030\004 \001(\003\022\020\n\010num_hits\030\005 \001(\003\022\022\n\ntotal" +
+      "_docs\030\006 \001(\003\022I\n\020group_accessible\030\007 \003(\0132/." +
+      "com.sensei.search.req.protobuf.FacetAcce" +
+      "ssible\022;\n\tfacet_map\030\010 \001(\0132(.com.sensei.s" +
+      "earch.req.protobuf.FacetMap\022\014\n\004time\030\t \001(" +
+      "\003\022H\n\017mapReduceResult\030\n \001(\0132/.com.sensei." +
+      "search.req.protobuf.MapReduceResult\022;\n\006e" +
+      "rrors\030\013 \003(\0132+.com.sensei.search.req.prot" +
+      "obuf.SenseiError*\"\n\017BooleanOperator\022\006\n\002O" +
+      "R\020\001\022\007\n\003AND\020\002*6\n\tSortOrder\022\r\n\tASCENDING\020\001",
+      "\022\016\n\nDESCENDING\020\002\022\n\n\006CUSTOM\020\003*+\n\017FacetCom" +
+      "parator\022\r\n\tHIT_COUNT\020\001\022\t\n\005VALUE\020\002*\263\001\n\027Se" +
+      "nseiMapReduceFunction\022\007\n\003AVG\020\001\022\022\n\016COUNT_" +
+      "GROUP_BY\020\002\022\022\n\016DISTINCT_COUNT\020\003\022\020\n\014DISTIN" +
+      "CT_UID\020\004\022\020\n\014FACET_COUNTS\020\005\022\033\n\027HASH_SET_D" +
+      "ISTINCT_COUNT\020\006\022\007\n\003MAX\020\007\022\007\n\003MIN\020\010\022\007\n\003SUM" +
+      "\020\t\022\013\n\007UNKNOWN\020d*\250\002\n\tErrorType\022\024\n\020JsonPar" +
+      "singError\020d\022\030\n\024JsonCompilationError\020e\022\024\n" +
+      "\017BQLParsingError\020\226\001\022\027\n\022BoboExecutionErro" +
+      "r\020\310\001\022\025\n\020ExecutionTimeout\020\372\001\022\026\n\021BrokerGat",
+      "herError\020\254\002\022\027\n\022PartitionCallError\020\336\002\022\022\n\r" +
+      "BrokerTimeout\020\220\003\022\022\n\rInternalError\020\302\003\022\030\n\023" +
+      "MergePartitionError\020\364\003\022\037\n\032FederatedBroke" +
+      "rUnavailable\020\246\004\022\021\n\014UnknownError\020\350\007*~\n\016Ja" +
+      "vaPrimitives\022\010\n\004BYTE\020\001\022\010\n\004CHAR\020\002\022\007\n\003INT\020" +
+      "\003\022\010\n\004LONG\020\004\022\t\n\005FLOAT\020\005\022\n\n\006DOUBLE\020\006\022\013\n\007BO" +
+      "OLEAN\020\007\022\t\n\005SHORT\020\010\022\n\n\006STRING\020\t\022\n\n\006OBJECT" +
+      "\020\nB0\n\036com.sensei.search.req.protobufB\014Se" +
+      "nseiProtosH\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -25922,7 +26324,7 @@ public final class SenseiProtos {
           internal_static_com_sensei_search_req_protobuf_BooleanParams_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_com_sensei_search_req_protobuf_BooleanParams_descriptor,
-              new java.lang.String[] { "Key", "Value", },
+              new java.lang.String[] { "Key", "Value", "IsNull", },
               com.sensei.search.req.protobuf.SenseiProtos.BooleanParams.class,
               com.sensei.search.req.protobuf.SenseiProtos.BooleanParams.Builder.class);
           internal_static_com_sensei_search_req_protobuf_IntParams_descriptor =
@@ -25930,7 +26332,7 @@ public final class SenseiProtos {
           internal_static_com_sensei_search_req_protobuf_IntParams_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_com_sensei_search_req_protobuf_IntParams_descriptor,
-              new java.lang.String[] { "Key", "Value", },
+              new java.lang.String[] { "Key", "Value", "IsNull", },
               com.sensei.search.req.protobuf.SenseiProtos.IntParams.class,
               com.sensei.search.req.protobuf.SenseiProtos.IntParams.Builder.class);
           internal_static_com_sensei_search_req_protobuf_LongParams_descriptor =
@@ -25938,7 +26340,7 @@ public final class SenseiProtos {
           internal_static_com_sensei_search_req_protobuf_LongParams_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_com_sensei_search_req_protobuf_LongParams_descriptor,
-              new java.lang.String[] { "Key", "Value", },
+              new java.lang.String[] { "Key", "Value", "IsNull", },
               com.sensei.search.req.protobuf.SenseiProtos.LongParams.class,
               com.sensei.search.req.protobuf.SenseiProtos.LongParams.Builder.class);
           internal_static_com_sensei_search_req_protobuf_StringParams_descriptor =
@@ -25946,7 +26348,7 @@ public final class SenseiProtos {
           internal_static_com_sensei_search_req_protobuf_StringParams_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_com_sensei_search_req_protobuf_StringParams_descriptor,
-              new java.lang.String[] { "Key", "Value", },
+              new java.lang.String[] { "Key", "Value", "IsNull", },
               com.sensei.search.req.protobuf.SenseiProtos.StringParams.class,
               com.sensei.search.req.protobuf.SenseiProtos.StringParams.Builder.class);
           internal_static_com_sensei_search_req_protobuf_FloatParams_descriptor =
@@ -25954,7 +26356,7 @@ public final class SenseiProtos {
           internal_static_com_sensei_search_req_protobuf_FloatParams_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_com_sensei_search_req_protobuf_FloatParams_descriptor,
-              new java.lang.String[] { "Key", "Value", },
+              new java.lang.String[] { "Key", "Value", "IsNull", },
               com.sensei.search.req.protobuf.SenseiProtos.FloatParams.class,
               com.sensei.search.req.protobuf.SenseiProtos.FloatParams.Builder.class);
           internal_static_com_sensei_search_req_protobuf_DoubleParams_descriptor =
@@ -25962,7 +26364,7 @@ public final class SenseiProtos {
           internal_static_com_sensei_search_req_protobuf_DoubleParams_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_com_sensei_search_req_protobuf_DoubleParams_descriptor,
-              new java.lang.String[] { "Key", "Value", },
+              new java.lang.String[] { "Key", "Value", "IsNull", },
               com.sensei.search.req.protobuf.SenseiProtos.DoubleParams.class,
               com.sensei.search.req.protobuf.SenseiProtos.DoubleParams.Builder.class);
           internal_static_com_sensei_search_req_protobuf_ByteArrayParams_descriptor =
@@ -25970,7 +26372,7 @@ public final class SenseiProtos {
           internal_static_com_sensei_search_req_protobuf_ByteArrayParams_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_com_sensei_search_req_protobuf_ByteArrayParams_descriptor,
-              new java.lang.String[] { "Key", "Value", },
+              new java.lang.String[] { "Key", "Value", "IsNull", },
               com.sensei.search.req.protobuf.SenseiProtos.ByteArrayParams.class,
               com.sensei.search.req.protobuf.SenseiProtos.ByteArrayParams.Builder.class);
           internal_static_com_sensei_search_req_protobuf_FacetHandlerInitializerParam_descriptor =
