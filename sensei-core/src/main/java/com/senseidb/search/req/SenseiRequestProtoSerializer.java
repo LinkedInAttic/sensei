@@ -1409,61 +1409,72 @@ public class SenseiRequestProtoSerializer implements Serializer<SenseiRequest, S
       SenseiProtos.BooleanParams.Builder paramBuilder = SenseiProtos.BooleanParams.newBuilder();
       paramBuilder.setKey(paramName);
       boolean[] param = facetHandlerInitializerParam.getBooleanParam(paramName);
-      for (int i = 0; i < param.length; i++) {
-        paramBuilder.addValue(param[i]);
+      if(param != null) {
+        for (int i = 0; i < param.length; i++) {
+          paramBuilder.addValue(param[i]);
+        }
+        protoParams.addBooleanParam(paramBuilder.build());
       }
-      protoParams.addBooleanParam(paramBuilder.build());
     }
 
     for (String paramName : facetHandlerInitializerParam.getIntParamNames()) {
       SenseiProtos.IntParams.Builder paramBuilder = SenseiProtos.IntParams.newBuilder();
       paramBuilder.setKey(paramName);
       int[] param = facetHandlerInitializerParam.getIntParam(paramName);
-      for (int i = 0; i < param.length; i++) {
-        paramBuilder.addValue(param[i]);
+      if (param != null) {
+        for (int i = 0; i < param.length; i++) {
+          paramBuilder.addValue(param[i]);
+        }
+        protoParams.addIntParam(paramBuilder.build());
       }
-      protoParams.addIntParam(paramBuilder.build());
     }
 
     for (String paramName : facetHandlerInitializerParam.getLongParamNames()) {
       SenseiProtos.LongParams.Builder paramBuilder = SenseiProtos.LongParams.newBuilder();
       paramBuilder.setKey(paramName);
       long[] param = facetHandlerInitializerParam.getLongParam(paramName);
-      for (int i = 0; i < param.length; i++) {
-        paramBuilder.addValue(param[i]);
+      if (param != null) {
+        for (int i = 0; i < param.length; i++) {
+          paramBuilder.addValue(param[i]);
+        }
+        protoParams.addLongParam(paramBuilder.build());
       }
-      protoParams.addLongParam(paramBuilder.build());
     }
 
     for (String paramName : facetHandlerInitializerParam.getBooleanParamNames()) {
       SenseiProtos.StringParams.Builder paramBuilder = SenseiProtos.StringParams.newBuilder();
       paramBuilder.setKey(paramName);
       List<String> param = facetHandlerInitializerParam.getStringParam(paramName);
-      for (int i = 0; i < param.size(); i++) {
-        paramBuilder.addValue(param.get(i));
+      if (param != null) {
+        for (int i = 0; i < param.size(); i++) {
+          paramBuilder.addValue(param.get(i));
+        }
+        protoParams.addStringParam(paramBuilder.build());
       }
-      protoParams.addStringParam(paramBuilder.build());
     }
 
     for (String paramName : facetHandlerInitializerParam.getDoubleParamNames()) {
       SenseiProtos.DoubleParams.Builder paramBuilder = SenseiProtos.DoubleParams.newBuilder();
       paramBuilder.setKey(paramName);
       double[] param = facetHandlerInitializerParam.getDoubleParam(paramName);
-      for (int i = 0; i < param.length; i++) {
-        paramBuilder.addValue(param[i]);
+      if (param != null) {
+        for (int i = 0; i < param.length; i++) {
+          paramBuilder.addValue(param[i]);
+        }
+        protoParams.addDoubleParam(paramBuilder.build());
       }
-      protoParams.addDoubleParam(paramBuilder.build());
     }
 
     for (String paramName : facetHandlerInitializerParam.getByteArrayParamNames()) {
       SenseiProtos.ByteArrayParams.Builder paramBuilder = SenseiProtos.ByteArrayParams.newBuilder();
       paramBuilder.setKey(paramName);
       byte[] param = facetHandlerInitializerParam.getByteArrayParam(paramName);
-
-      for (int i = 0; i < param.length; i++) {
-        paramBuilder.setValue(ByteString.copyFrom(param));
+      if (param != null) {
+        for (int i = 0; i < param.length; i++) {
+          paramBuilder.setValue(ByteString.copyFrom(param));
+        }
+        protoParams.addByteParam(paramBuilder.build());
       }
-      protoParams.addByteParam(paramBuilder.build());
     }
 
     return protoParams.build();
