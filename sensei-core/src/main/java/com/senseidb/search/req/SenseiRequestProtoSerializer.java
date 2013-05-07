@@ -1409,8 +1409,12 @@ public class SenseiRequestProtoSerializer implements Serializer<SenseiRequest, S
       SenseiProtos.BooleanParams.Builder paramBuilder = SenseiProtos.BooleanParams.newBuilder();
       paramBuilder.setKey(paramName);
       boolean[] param = facetHandlerInitializerParam.getBooleanParam(paramName);
-      for (int i = 0; i < param.length; i++) {
-        paramBuilder.addValue(param[i]);
+      if(param != null) {
+        for (int i = 0; i < param.length; i++) {
+          paramBuilder.addValue(param[i]);
+        }
+      } else {
+        paramBuilder.setIsNull(true);
       }
       protoParams.addBooleanParam(paramBuilder.build());
     }
@@ -1419,9 +1423,14 @@ public class SenseiRequestProtoSerializer implements Serializer<SenseiRequest, S
       SenseiProtos.IntParams.Builder paramBuilder = SenseiProtos.IntParams.newBuilder();
       paramBuilder.setKey(paramName);
       int[] param = facetHandlerInitializerParam.getIntParam(paramName);
-      for (int i = 0; i < param.length; i++) {
-        paramBuilder.addValue(param[i]);
+      if (param != null) {
+        for (int i = 0; i < param.length; i++) {
+          paramBuilder.addValue(param[i]);
+        }
+      } else {
+        paramBuilder.setIsNull(true);
       }
+
       protoParams.addIntParam(paramBuilder.build());
     }
 
@@ -1429,8 +1438,12 @@ public class SenseiRequestProtoSerializer implements Serializer<SenseiRequest, S
       SenseiProtos.LongParams.Builder paramBuilder = SenseiProtos.LongParams.newBuilder();
       paramBuilder.setKey(paramName);
       long[] param = facetHandlerInitializerParam.getLongParam(paramName);
-      for (int i = 0; i < param.length; i++) {
-        paramBuilder.addValue(param[i]);
+      if (param != null) {
+        for (int i = 0; i < param.length; i++) {
+          paramBuilder.addValue(param[i]);
+        }
+      } else {
+        paramBuilder.setIsNull(true);
       }
       protoParams.addLongParam(paramBuilder.build());
     }
@@ -1439,9 +1452,14 @@ public class SenseiRequestProtoSerializer implements Serializer<SenseiRequest, S
       SenseiProtos.StringParams.Builder paramBuilder = SenseiProtos.StringParams.newBuilder();
       paramBuilder.setKey(paramName);
       List<String> param = facetHandlerInitializerParam.getStringParam(paramName);
-      for (int i = 0; i < param.size(); i++) {
-        paramBuilder.addValue(param.get(i));
+      if (param != null) {
+        for (int i = 0; i < param.size(); i++) {
+          paramBuilder.addValue(param.get(i));
+        }
+      } else {
+        paramBuilder.setIsNull(true);
       }
+
       protoParams.addStringParam(paramBuilder.build());
     }
 
@@ -1449,9 +1467,14 @@ public class SenseiRequestProtoSerializer implements Serializer<SenseiRequest, S
       SenseiProtos.DoubleParams.Builder paramBuilder = SenseiProtos.DoubleParams.newBuilder();
       paramBuilder.setKey(paramName);
       double[] param = facetHandlerInitializerParam.getDoubleParam(paramName);
-      for (int i = 0; i < param.length; i++) {
-        paramBuilder.addValue(param[i]);
+      if (param != null) {
+        for (int i = 0; i < param.length; i++) {
+          paramBuilder.addValue(param[i]);
+        }
+      }  else {
+        paramBuilder.setIsNull(true);
       }
+
       protoParams.addDoubleParam(paramBuilder.build());
     }
 
@@ -1459,9 +1482,12 @@ public class SenseiRequestProtoSerializer implements Serializer<SenseiRequest, S
       SenseiProtos.ByteArrayParams.Builder paramBuilder = SenseiProtos.ByteArrayParams.newBuilder();
       paramBuilder.setKey(paramName);
       byte[] param = facetHandlerInitializerParam.getByteArrayParam(paramName);
-
-      for (int i = 0; i < param.length; i++) {
-        paramBuilder.setValue(ByteString.copyFrom(param));
+      if (param != null) {
+        for (int i = 0; i < param.length; i++) {
+          paramBuilder.setValue(ByteString.copyFrom(param));
+        }
+      } else {
+        paramBuilder.setIsNull(true);
       }
       protoParams.addByteParam(paramBuilder.build());
     }
@@ -1473,43 +1499,63 @@ public class SenseiRequestProtoSerializer implements Serializer<SenseiRequest, S
     DefaultFacetHandlerInitializerParam facetHandlerInitializerParam = new DefaultFacetHandlerInitializerParam();
 
     for (SenseiProtos.BooleanParams param : protoFacetHandlerInitializerParam.getBooleanParamList()) {
-      boolean[] value = new boolean[param.getValueCount()];
-      for (int i = 0; i < value.length; i++) {
-        value[i] = param.getValue(i);
+      boolean[] value = null;
+      if(!param.getIsNull()) {
+        value = new boolean[param.getValueCount()];
+        for (int i = 0; i < value.length; i++) {
+          value[i] = param.getValue(i);
+        }
       }
       facetHandlerInitializerParam.putBooleanParam(param.getKey(), value);
     }
 
     for (SenseiProtos.IntParams param : protoFacetHandlerInitializerParam.getIntParamList()) {
-      int[] value = new int[param.getValueCount()];
-      for (int i = 0; i < value.length; i++) {
-        value[i] = param.getValue(i);
+      int[] value = null;
+
+      if (!param.getIsNull()) {
+        value = new int[param.getValueCount()];
+        for (int i = 0; i < value.length; i++) {
+          value[i] = param.getValue(i);
+        }
       }
       facetHandlerInitializerParam.putIntParam(param.getKey(), value);
     }
 
     for (SenseiProtos.LongParams param : protoFacetHandlerInitializerParam.getLongParamList()) {
-      long[] value = new long[param.getValueCount()];
-      for (int i = 0; i < value.length; i++) {
-        value[i] = param.getValue(i);
+      long[] value = null;
+      if (!param.getIsNull()) {
+        value = new long[param.getValueCount()];
+        for (int i = 0; i < value.length; i++) {
+          value[i] = param.getValue(i);
+        }
       }
       facetHandlerInitializerParam.putLongParam(param.getKey(), value);
     }
 
     for (SenseiProtos.StringParams param : protoFacetHandlerInitializerParam.getStringParamList()) {
-      facetHandlerInitializerParam.putStringParam(param.getKey(), param.getValueList());
+      List<String> value = null;
+      if(!param.getIsNull()) {
+        value = param.getValueList();
+      }
+      facetHandlerInitializerParam.putStringParam(param.getKey(), value);
     }
 
     for (SenseiProtos.DoubleParams param : protoFacetHandlerInitializerParam.getDoubleParamList()) {
-      double[] value = new double[param.getValueCount()];
-      for (int i = 0; i < value.length; i++) {
-        value[i] = param.getValue(i);
+      double[] value = null;
+      if (!param.getIsNull()) {
+        value = new double[param.getValueCount()];
+        for (int i = 0; i < value.length; i++) {
+          value[i] = param.getValue(i);
+        }
       }
       facetHandlerInitializerParam.putDoubleParam(param.getKey(), value);
     }
 
     for (SenseiProtos.ByteArrayParams param : protoFacetHandlerInitializerParam.getByteParamList()) {
-      ByteString value = param.getValue();
+      ByteString value = null;
+      if (!param.getIsNull()) {
+        value = param.getValue();
+      }
       facetHandlerInitializerParam.putByteArrayParam(param.getKey(), value.toByteArray());
     }
 
