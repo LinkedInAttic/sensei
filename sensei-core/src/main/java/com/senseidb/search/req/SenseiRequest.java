@@ -580,8 +580,10 @@ private long   tid           =          -1;
 
     for (Entry<String,FacetHandlerInitializerParam> entry : a.entrySet()) {
       String key = entry.getKey();
-      if (!b.containsKey(key)) return false;
-      if (!areFacetHandlerInitializerParamsEqual(entry.getValue(), b.get(key))) return false;
+      if (!b.containsKey(key))
+        return false;
+      if (!areFacetHandlerInitializerParamsEqual(entry.getValue(), b.get(key)))
+        return false;
     }
 
     return true;

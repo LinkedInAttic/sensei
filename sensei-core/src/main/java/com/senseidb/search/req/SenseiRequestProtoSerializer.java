@@ -1448,21 +1448,6 @@ public class SenseiRequestProtoSerializer implements Serializer<SenseiRequest, S
       protoParams.addLongParam(paramBuilder.build());
     }
 
-    for (String paramName : facetHandlerInitializerParam.getBooleanParamNames()) {
-      SenseiProtos.StringParams.Builder paramBuilder = SenseiProtos.StringParams.newBuilder();
-      paramBuilder.setKey(paramName);
-      List<String> param = facetHandlerInitializerParam.getStringParam(paramName);
-      if (param != null) {
-        for (int i = 0; i < param.size(); i++) {
-          paramBuilder.addValue(param.get(i));
-        }
-      } else {
-        paramBuilder.setIsNull(true);
-      }
-
-      protoParams.addStringParam(paramBuilder.build());
-    }
-
     for (String paramName : facetHandlerInitializerParam.getDoubleParamNames()) {
       SenseiProtos.DoubleParams.Builder paramBuilder = SenseiProtos.DoubleParams.newBuilder();
       paramBuilder.setKey(paramName);
@@ -1476,6 +1461,19 @@ public class SenseiRequestProtoSerializer implements Serializer<SenseiRequest, S
       }
 
       protoParams.addDoubleParam(paramBuilder.build());
+    }
+
+    for (String paramName : facetHandlerInitializerParam.getStringParamNames()) {
+      SenseiProtos.StringParams.Builder paramBuilder = SenseiProtos.StringParams.newBuilder();
+      paramBuilder.setKey(paramName);
+      List<String> param = facetHandlerInitializerParam.getStringParam(paramName);
+      if (param != null) {
+        paramBuilder.addAllValue(param);
+      } else {
+        paramBuilder.setIsNull(true);
+      }
+
+      protoParams.addStringParam(paramBuilder.build());
     }
 
     for (String paramName : facetHandlerInitializerParam.getByteArrayParamNames()) {
@@ -1549,6 +1547,14 @@ public class SenseiRequestProtoSerializer implements Serializer<SenseiRequest, S
         }
       }
       facetHandlerInitializerParam.putDoubleParam(param.getKey(), value);
+    }
+
+    for (SenseiProtos.StringParams param : protoFacetHandlerInitializerParam.getStringParamList()) {
+      List<String> value = null;
+      if (!param.getIsNull()) {
+        value = param.getValueList();
+      }
+      facetHandlerInitializerParam.putStringParam(param.getKey(), value);
     }
 
     for (SenseiProtos.ByteArrayParams param : protoFacetHandlerInitializerParam.getByteParamList()) {
