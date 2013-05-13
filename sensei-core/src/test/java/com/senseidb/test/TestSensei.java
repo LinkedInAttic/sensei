@@ -12,6 +12,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.senseidb.search.req.*;
 import junit.framework.TestCase;
 
 import org.apache.log4j.Logger;
@@ -26,9 +27,6 @@ import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
 import com.browseengine.bobo.facets.DefaultFacetHandlerInitializerParam;
 import com.senseidb.search.node.SenseiBroker;
-import com.senseidb.search.req.SenseiHit;
-import com.senseidb.search.req.SenseiRequest;
-import com.senseidb.search.req.SenseiResult;
 import com.senseidb.svc.api.SenseiService;
 
 public class TestSensei extends TestCase {
@@ -230,7 +228,35 @@ public class TestSensei extends TestCase {
     assertEquals("numhits is wrong", 1534, res.getInt("numhits"));
   }
   
-  
+  public void testBqlEmptyListCheck() throws Exception
+  {
+    logger.info("Executing test case testBqlEmptyListCheck");
+    String req = "{\"bql\":\"SELECT * FROM SENSEI where () is not empty LIMIT 0, 1\"}";
+    JSONObject res = search(new JSONObject(req));
+    assertEquals("numhits is wrong", 0, res.getInt("numhits"));
+    
+    String req2 = "{\"bql\":\"SELECT * FROM SENSEI where () is empty LIMIT 0, 1\"}";
+    JSONObject res2 = search(new JSONObject(req2));
+    assertEquals("numhits is wrong", 15000, res2.getInt("numhits"));
+    
+    String req3 = "{\"bql\":\"select * from sensei where () is empty or color contains all () limit 0, 1\"}";
+    JSONObject res3 = search(new JSONObject(req3));
+    assertEquals("numhits is wrong", 15000, res3.getInt("numhits"));
+    
+    String req4 = "{\"bql\":\"select * from sensei where () is not empty or color contains all () limit 0, 1\"}";
+    JSONObject res4 = search(new JSONObject(req4));
+    assertEquals("numhits is wrong", 0, res4.getInt("numhits"));
+    
+    //template mapping:
+    String req5 = "{\"bql\":\"SELECT * FROM SENSEI where $list is empty LIMIT 0, 1\", \"templateMapping\":{\"list\":[\"a\"]}}";
+    JSONObject res5 = search(new JSONObject(req5));
+    assertEquals("numhits is wrong", 0, res5.getInt("numhits"));
+    
+    String req6 = "{\"bql\":\"SELECT * FROM SENSEI where $list is empty LIMIT 0, 1\", \"templateMapping\":{\"list\":[]}}";
+    JSONObject res6 = search(new JSONObject(req6));
+    assertEquals("numhits is wrong", 15000, res6.getInt("numhits"));
+  }
+
   public void testBqlRelevance1() throws Exception
   {
     logger.info("Executing test case testBqlRelevance1");
@@ -756,6 +782,16 @@ public class TestSensei extends TestCase {
     assertTrue("groupfield is wrong", "color".equals(firstHit.getString("groupfield")) || "virtual_groupid_fixedlengthlongarray".equals(firstHit.getString("groupfield")));
     assertTrue("no group hits", firstHit.getJSONArray("grouphits") != null);
   }
+  public void testFallbackGroupByWithDistinct() throws Exception
+  {
+    logger.info("executing test case testFallbackGroupByWithDistinct");
+    String req = "{\"bql\": \"SELECT * FROM sensei DISTINCT category GROUP BY virtual_groupid_fixedlengthlongarray OR color TOP 2 ORDER BY color ASC LIMIT 0, 10\"}";
+    JSONObject res = search(new JSONObject(req));
+    JSONArray hits = res.getJSONArray("hits");
+    JSONObject firstHit = hits.getJSONObject(0);
+    assertTrue("groupfield is wrong", "color".equals(firstHit.getString("groupfield")) || "virtual_groupid_fixedlengthlongarray".equals(firstHit.getString("groupfield")));
+    assertTrue("should be 1 group hit", firstHit.getJSONArray("grouphits").length() == 1);
+  }
   public void testGetStoreRequest() throws Exception
   {
     logger.info("executing test case testGetStoreRequest");
@@ -841,6 +877,27 @@ public class TestSensei extends TestCase {
     
     assertEquals("inner score for first is not correct." , true, firstScore == 10000f );
     assertEquals("inner score for second is not correct." , true, secondScore == 10000f);
+  }
+  
+  public void testRelevanceStaticRandomField() throws Exception
+  {
+    logger.info("executing test case testRelevanceStaticRandomField");
+    
+    String req1 = "{\"sort\":[\"_score\"],\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"model\":{\"function_params\":[\"_INNER_SCORE\",\"year\",\"goodYear\",\"_NOW\",\"now\"],\"facets\":{\"int\":[\"year\",\"mileage\"],\"long\":[\"groupid\"]},\"function\":\" return _RANDOM.nextFloat()   ;\",\"variables\":{\"set_int\":[\"goodYear\"],\"int\":[\"thisYear\"],\"long\":[\"now\"]}},\"values\":{\"thisYear\":2001,\"now\":"+ System.currentTimeMillis() +",\"goodYear\":[1996]}}}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":6}";
+    JSONObject res1 = search(new JSONObject(req1));
+    JSONArray hits1 = res1.getJSONArray("hits");
+    JSONObject firstHit = hits1.getJSONObject(0); 
+    
+    String req2 = "{\"sort\":[\"_score\"],\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"model\":{\"function_params\":[\"_INNER_SCORE\",\"year\",\"goodYear\",\"_NOW\",\"now\"],\"facets\":{\"int\":[\"year\",\"mileage\"],\"long\":[\"groupid\"]},\"function\":\" return _RANDOM.nextInt(10) + 10.0f   ;\",\"variables\":{\"set_int\":[\"goodYear\"],\"int\":[\"thisYear\"],\"long\":[\"now\"]}},\"values\":{\"thisYear\":2001,\"now\":"+ System.currentTimeMillis() +",\"goodYear\":[1996]}}}},\"fetchStored\":false,\"from\":0,\"explain\":false,\"size\":6}";
+    JSONObject res2 = search(new JSONObject(req2));
+    JSONArray hits2 = res2.getJSONArray("hits");
+    JSONObject secondHit = hits2.getJSONObject(1);
+    
+    double firstScore = firstHit.getDouble("_score");      //  0.0f (inclusive) to 1.0f (exclusive)
+    double secondScore = secondHit.getDouble("_score");   //  10.0f (inclusive) to 20.0f (exclusive)
+    
+    assertEquals("inner score for first is not correct." , true, (firstScore >= 0f && firstScore <1f) );
+    assertEquals("inner score for second is not correct." , true, (secondScore >= 10f && secondScore < 20f));
   }
   
   public void testRelevanceHashMapInt2Float() throws Exception
@@ -1176,6 +1233,27 @@ public class TestSensei extends TestCase {
   }
   
 
+  public void testRelevanceWeightedMulti() throws Exception
+  {
+    logger.info("executing test case testRelevanceNOW");
+    // Assume that the difference between request side "now" and node side "_NOW" is less than 2000ms.
+    String req = "{\"sort\":[\"_score\"],\"query\":{\"query_string\":{\"query\":\"\",\"relevance\":{\"model\":{\"function_params\":[\"_INNER_SCORE\",\"wtags\",\"goodtag\"],\"facets\":{\"wmstring\":[\"wtags\"]},\"function\":\" if(wtags.hasWeight(goodtag))    _INNER_SCORE = wtags.getWeight();  return  _INNER_SCORE;\",\"variables\":{\"string\":[\"goodtag\"]}},\"values\":{\"goodtag\":\"reliable\"}}}},\"fetchStored\":true,\"from\":0,\"explain\":true,\"size\":10}";
+    JSONObject res = search(new JSONObject(req));
+    int numhits = res.getInt("numhits");
+    assertTrue("numhits is wrong. get "+ numhits, res.getInt("numhits") == 15000);
+    logger.info("request:" + req + "\nresult:" + res);
+    
+    
+    JSONArray hits = res.getJSONArray("hits");
+    JSONObject firstHit = hits.getJSONObject(0);
+    JSONObject secondHit = hits.getJSONObject(1);
+    
+    double firstScore = firstHit.getDouble("_score");
+    double secondScore = secondHit.getDouble("_score");
+    assertEquals("inner score for first is not correct." , true, Math.abs(firstScore - 999) < 1 );
+    assertEquals("inner score for second is not correct." , true, Math.abs(secondScore - 1) < 0.1 );
+  }
+  
   private boolean containsString(JSONArray array, String target) throws JSONException
   {
     for(int i=0; i<array.length(); i++)
@@ -1208,6 +1286,7 @@ public class TestSensei extends TestCase {
       sb.append(line);
     String res = sb.toString();
     // System.out.println("res: " + res);
+    res = res.replace('\u0000', '*');  // replace the seperator for test case;
     JSONObject ret = new JSONObject(res);
     if (ret.opt("totaldocs") !=null){
      // assertEquals(15000L, ret.getLong("totaldocs"));

@@ -112,6 +112,7 @@ BNF Grammar for BQL
 <additional_clause> ::= <order_by_clause>
                       | <limit_clause>
                       | <group_by_clause>
+                      | <distinct_clause>
                       | <browse_by_clause>
                       | <fetching_stored_clause>
                       | <route_by_clause>
@@ -127,7 +128,11 @@ BNF Grammar for BQL
 
 <group_by_clause> ::= GROUP BY <group_spec>
 
+<distinct_clause> ::= DISTINCT <distinct_spec>
+
 <group_spec> ::= <or_column_name_list> [TOP <max_per_group>]
+
+<distinct_spec> ::= <or_column_name_list>
 
 <or_column_name_list> ::= <column_name> ( OR <column_name> )*
 
@@ -376,7 +381,7 @@ BNF Grammar for BQL
 
 <integer> ::= ( <digit> )+
 
-<real> ::= ( <digit> )+ '.' ( <digit> )+
+<real> ::= ('+'|'-')? ( <digit> )* '.' ( <digit> )+
 
 <time_expr> ::= <time_span> AGO
               | <date_time_string>
@@ -461,6 +466,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import com.senseidb.util.JSONUtil.FastJSONArray;
+import com.senseidb.util.JSONUtil.FastJSONObject;
 }
 
 @parser::members {
@@ -478,6 +485,7 @@ import java.text.SimpleDateFormat;
     private static final int DEFAULT_FACET_MAXHIT = 10;
     private static final Map<String, String> _fastutilTypeMap;
     private static final Map<String, String> _internalVarMap;
+    private static final Map<String, String> _internalStaticVarMap;    
     private static final Set<String> _supportedClasses;
     private static Map<String, Set<String>> _compatibleFacetTypes;
 
@@ -515,6 +523,10 @@ import java.text.SimpleDateFormat;
         _internalVarMap = new HashMap<String, String>();
         _internalVarMap.put("_NOW", "long");
         _internalVarMap.put("_INNER_SCORE", "float");
+        _internalVarMap.put("_RANDOM", "java.util.Random");
+        
+        _internalStaticVarMap = new HashMap<String, String>();
+        _internalStaticVarMap.put("_RANDOM", "java.util.Random");
 
         _supportedClasses = new HashSet<String>();
         _supportedClasses.add("Boolean");
@@ -573,7 +585,7 @@ import java.text.SimpleDateFormat;
     @Override
     public String getErrorMessage(RecognitionException err, String[] tokenNames) 
     {
-        // List stack = getRuleInvocationStack(err, this.getClass().getName());
+        List stack = getRuleInvocationStack(err, this.getClass().getName());
         String msg = null; 
         if (err instanceof NoViableAltException) {
             NoViableAltException nvae = (NoViableAltException) err;
@@ -582,7 +594,7 @@ import java.text.SimpleDateFormat;
             //     " state "+nvae.stateNumber+")" +
             //     " decision=<<" + nvae.grammarDecisionDescription + ">>";
             msg = "[line:" + err.line + ", col:" + err.charPositionInLine + "] " +
-                "No viable alternative (token=" + err.token.getText() + ")";
+                "No viable alternative (token=" + err.token.getText() + ")" + " (stack=" + stack + ")";
         }
         else if (err instanceof MismatchedTokenException) {
             MismatchedTokenException mte = (MismatchedTokenException) err;
@@ -739,7 +751,7 @@ import java.text.SimpleDateFormat;
             query.put("query", queryPred);
         }
         else if ((andPreds = where.optJSONArray("and")) != null) {
-            JSONArray filter_list = new JSONArray();
+            JSONArray filter_list = new FastJSONArray();
             for (int i = 0; i < andPreds.length(); ++i) {
                 JSONObject pred = andPreds.getJSONObject(i);
                 queryPred = pred.optJSONObject("query");
@@ -770,7 +782,7 @@ import java.text.SimpleDateFormat;
                 }
             }
             if (filter_list.length() > 1) {
-                filter.put("filter", new JSONObject().put("and", filter_list));
+                filter.put("filter", new FastJSONObject().put("and", filter_list));
             }
             else if (filter_list.length() == 1) {
                 filter.put("filter", filter_list.get(0));
@@ -910,7 +922,7 @@ import java.text.SimpleDateFormat;
             }
         }
         
-        JSONObject newSpec = new JSONObject();
+        JSONObject newSpec = new FastJSONObject();
         if (newFrom != null) {
             newSpec.put("from", newFrom);
             newSpec.put("include_lower", newIncludeLower);
@@ -920,8 +932,8 @@ import java.text.SimpleDateFormat;
             newSpec.put("include_upper", newIncludeUpper);
         }
 
-        fieldMap.put(field, new JSONObject().put("range",
-                                                 new JSONObject().put(field, newSpec)));
+        fieldMap.put(field, new FastJSONObject().put("range",
+                                                     new FastJSONObject().put(field, newSpec)));
     }
     
     private void processRelevanceModelParam(TokenStream input,
@@ -949,7 +961,7 @@ import java.text.SimpleDateFormat;
 
         JSONArray funcParams = json.optJSONArray("function_params");
         if (funcParams == null) {
-            funcParams = new JSONArray();
+            funcParams = new FastJSONArray();
             json.put("function_params", funcParams);
         }
 
@@ -958,13 +970,13 @@ import java.text.SimpleDateFormat;
 
         JSONObject variables = json.optJSONObject("variables");
         if (variables == null) {
-            variables = new JSONObject();
+            variables = new FastJSONObject();
             json.put("variables", variables);
         }
 
         JSONArray varsWithSameType = variables.optJSONArray(typeName);
         if (varsWithSameType == null) {
-            varsWithSameType = new JSONArray();
+            varsWithSameType = new FastJSONArray();
             variables.put(typeName, varsWithSameType);
         }
         varsWithSameType.put(varName);
@@ -993,7 +1005,7 @@ fragment DIGIT : '0'..'9' ;
 fragment ALPHA : 'a'..'z' | 'A'..'Z' ;
 
 INTEGER : ('0' | '1'..'9' '0'..'9'*) INTEGER_TYPE_SUFFIX? ;
-REAL : DIGIT+ '.' DIGIT* ;
+REAL : ('+'|'-')? DIGIT+ '.' DIGIT* ;
 LPAR : '(' ;
 RPAR : ')' ;
 COMMA : ',' ;
@@ -1101,6 +1113,7 @@ CONTAINS : ('C'|'c')('O'|'o')('N'|'n')('T'|'t')('A'|'a')('I'|'i')('N'|'n')('S'|'
 DEFINED : ('D'|'d')('E'|'e')('F'|'f')('I'|'i')('N'|'n')('E'|'e')('D'|'d') ;
 DESC : ('D'|'d')('E'|'e')('S'|'s')('C'|'c') ;
 DESCRIBE : ('D'|'d')('E'|'e')('S'|'s')('C'|'c')('R'|'r')('I'|'i')('B'|'b')('E'|'e') ;
+DISTINCT : ('D'|'d')('I'|'i')('S'|'s')('T'|'t')('I'|'i')('N'|'n')('C'|'c')('T'|'t') ;
 DOUBLE : ('D'|'d')('O'|'o')('U'|'u')('B'|'b')('L'|'l')('E'|'e') ;
 EMPTY : ('E'|'e')('M'|'m')('P'|'p')('T'|'t')('Y'|'y') ;
 ELSE : ('E'|'e')('L'|'l')('S'|'s')('E'|'e') ;
@@ -1199,6 +1212,7 @@ select_stmt returns [Object json]
     boolean seenOrderBy = false;
     boolean seenLimit = false;
     boolean seenGroupBy = false;
+    boolean seenDistinct = false;
     boolean seenBrowseBy = false;
     boolean seenFetchStored = false;
     boolean seenRouteBy = false;
@@ -1233,6 +1247,15 @@ select_stmt returns [Object json]
                 }
                 else {
                     seenGroupBy = true;
+                }
+            }
+        |   distinct = distinct_clause
+            { 
+                if (seenDistinct) {
+                    throw new FailedPredicateException(input, "select_stmt", "DISTINCT clause can only appear once.");
+                }
+                else {
+                    seenDistinct = true;
                 }
             }
         |   browse_by = browse_by_clause
@@ -1274,15 +1297,15 @@ select_stmt returns [Object json]
 
         )*
         {
-            JSONObject jsonObj = new JSONObject();
-            JSONArray selections = new JSONArray();
-            JSONObject filter = new JSONObject();
-            JSONObject query = new JSONObject();
+            JSONObject jsonObj = new FastJSONObject();
+            JSONArray selections = new FastJSONArray();
+            JSONObject filter = new FastJSONObject();
+            JSONObject query = new FastJSONObject();
 
             try {
-                JSONObject metaData = new JSONObject();
+                JSONObject metaData = new FastJSONObject();
                 if (cols == null) {
-                    metaData.put("select_list", new JSONArray().put("*"));
+                    metaData.put("select_list", new FastJSONArray().put("*"));
                 }
                 else {
                    metaData.put("select_list", $cols.json);
@@ -1293,7 +1316,7 @@ select_stmt returns [Object json]
 
                 if (_variables.size() > 0)
                 {
-                    metaData.put("variables", new JSONArray(_variables));
+                    metaData.put("variables", new FastJSONArray(_variables));
                 }
 
                 jsonObj.put("meta", metaData);
@@ -1312,6 +1335,9 @@ select_stmt returns [Object json]
                 }
                 if (group_by != null) {
                     jsonObj.put("groupBy", $group_by.json);
+                }
+                if (distinct != null) {
+                    jsonObj.put("distinct", $distinct.json);
                 }
                 if (browse_by != null) {
                     jsonObj.put("facets", $browse_by.json);
@@ -1353,9 +1379,9 @@ select_stmt returns [Object json]
                 if (rel_model != null) {
                     JSONObject queryPred = jsonObj.optJSONObject("query");
                     if (queryPred == null) {
-                        queryPred = new JSONObject().put("query_string",
-                                                         new JSONObject().put("query", "")
-                                                                         .put("relevance", $rel_model.json));
+                        queryPred = new FastJSONObject().put("query_string",
+                                                             new FastJSONObject().put("query", "")
+                                                                                 .put("relevance", $rel_model.json));
                         jsonObj.put("query", queryPred);
                     }
                 }
@@ -1377,7 +1403,7 @@ describe_stmt
 column_name_list returns [boolean fetchStored, JSONArray json]
 @init {
     $fetchStored = false;
-    $json = new JSONArray();
+    $json = new FastJSONArray();
 }
     :   col=column_name
         {
@@ -1454,7 +1480,7 @@ order_by_clause returns [boolean isRelevance, Object json]
 
 sort_specs returns [Object json]
 @init {
-    JSONArray sortArray = new JSONArray();
+    JSONArray sortArray = new FastJSONArray();
 }
     :   sort=sort_spec
         {
@@ -1473,7 +1499,7 @@ sort_specs returns [Object json]
 sort_spec returns [JSONObject json]
     :   column_name (ordering=ASC | ordering=DESC)?
         {
-            $json = new JSONObject();
+            $json = new FastJSONObject();
             try {
                 if ($ordering == null) {
                     $json.put($column_name.text, "asc");
@@ -1503,7 +1529,7 @@ limit_clause returns [int offset, int count]
 
 or_column_name_list returns [JSONArray json]
 @init {
-    $json = new JSONArray();
+    $json = new FastJSONArray();
 }
     :   col=column_name
         {
@@ -1525,7 +1551,7 @@ or_column_name_list returns [JSONArray json]
 group_by_clause returns [JSONObject json]
     :   GROUP BY or_column_name_list (TOP top=INTEGER)?
         {
-            $json = new JSONObject();
+            $json = new FastJSONObject();
             try {
                 JSONArray cols = $or_column_name_list.json;
                 for (int i = 0; i < cols.length(); ++i) {
@@ -1553,9 +1579,39 @@ group_by_clause returns [JSONObject json]
         }
     ;
 
+distinct_clause returns [JSONObject json]
+    :   DISTINCT or_column_name_list
+        {
+            $json = new FastJSONObject();
+            try {
+                JSONArray cols = $or_column_name_list.json;
+                if (cols.length() > 1) {
+                  throw new FailedPredicateException(input, 
+                                                     "distinct_clause",
+                                                     "DISTINCT only support a single column now.");
+                }
+                for (int i = 0; i < cols.length(); ++i) {
+                    String col = cols.getString(i);
+                    String[] facetInfo = _facetInfoMap.get(col);
+                    if (facetInfo != null && (facetInfo[0].equals("range") ||
+                                              facetInfo[0].equals("multi") ||
+                                              facetInfo[0].equals("path"))) {
+                        throw new FailedPredicateException(input, 
+                                                           "distinct_clause",
+                                                           "Range/multi/path facet, \"" + col + "\", cannot be used in the DISTINCT clause.");
+                    }
+                }
+                $json.put("columns", cols);
+            }
+            catch (JSONException err) {
+                throw new FailedPredicateException(input, "distinct_clause", "JSONException: " + err.getMessage());
+            }
+        }
+    ;
+
 browse_by_clause returns [JSONObject json]
 @init {
-    $json = new JSONObject();
+    $json = new FastJSONObject();
 }
     :   BROWSE BY f=facet_spec
         {
@@ -1603,10 +1659,10 @@ facet_spec returns [String column, JSONObject spec]
                 max = Integer.parseInt($n2.text);
             }
             try {
-                $spec = new JSONObject().put("expand", expand)
-                                        .put("minhit", minhit)
-                                        .put("max", max)
-                                        .put("order", orderBy);
+                $spec = new FastJSONObject().put("expand", expand)
+                                            .put("minhit", minhit)
+                                            .put("max", max)
+                                            .put("order", orderBy);
             }
             catch (JSONException err) {
                 throw new FailedPredicateException(input, "facet_spec", "JSONException: " + err.getMessage());
@@ -1633,7 +1689,7 @@ route_by_clause returns [String val]
 
 search_expr returns [Object json]
 @init {
-    JSONArray array = new JSONArray();
+    JSONArray array = new FastJSONArray();
 }
     :   t=term_expr { array.put($t.json); }
         (OR t=term_expr { array.put($t.json); } )*
@@ -1643,7 +1699,7 @@ search_expr returns [Object json]
                     $json = array.get(0);
                 }
                 else {
-                    $json = new JSONObject().put("or", array);
+                    $json = new FastJSONObject().put("or", array);
                 }
             }
             catch (JSONException err) {
@@ -1656,14 +1712,14 @@ search_expr returns [Object json]
 
 term_expr returns [Object json]
 @init {
-    JSONArray array = new JSONArray();
+    JSONArray array = new FastJSONArray();
 }
     :   f=factor_expr { array.put($f.json); }
         (AND f=factor_expr { array.put($f.json); } )*
         {
             try {
-                JSONArray newArray = new JSONArray();
-                JSONObject fieldMap = new JSONObject();
+                JSONArray newArray = new FastJSONArray();
+                JSONObject fieldMap = new FastJSONObject();
                 for (int i = 0; i < array.length(); ++i) {
                     JSONObject pred = (JSONObject) array.get(i);
                     if (!"range".equals(predType(pred))) {
@@ -1681,7 +1737,7 @@ term_expr returns [Object json]
                     $json = newArray.get(0);
                 }
                 else {
-                    $json = new JSONObject().put("and", newArray);
+                    $json = new FastJSONObject().put("and", newArray);
                 }
             }
             catch (JSONException err) {
@@ -1738,7 +1794,7 @@ in_predicate returns [JSONObject json]
             }
 
             try {
-                JSONObject dict = new JSONObject();
+                JSONObject dict = new FastJSONObject();
                 dict.put("operator", "or");
                 if (not == null) {
                     dict.put("values", $value_list.json);
@@ -1746,7 +1802,7 @@ in_predicate returns [JSONObject json]
                         dict.put("excludes", $except_clause.json);
                     }
                     else {
-                        dict.put("excludes", new JSONArray());
+                        dict.put("excludes", new FastJSONArray());
                     }
                 }
                 else {
@@ -1755,14 +1811,14 @@ in_predicate returns [JSONObject json]
                         dict.put("values", $except_clause.json);
                     }
                     else {
-                        dict.put("values", new JSONArray());
+                        dict.put("values", new FastJSONArray());
                     }
                 }
                 if (_facetInfoMap.get(col) == null) {
                     dict.put("_noOptimize", true);
                 }
-                $json = new JSONObject().put("terms",
-                                             new JSONObject().put(col, dict));
+                $json = new FastJSONObject().put("terms",
+                                                 new FastJSONObject().put(col, dict));
             }
             catch (JSONException err) {
                 throw new FailedPredicateException(input, "in_predicate", "JSONException: " + err.getMessage());
@@ -1775,28 +1831,28 @@ empty_predicate returns [JSONObject json]
     :   value_list IS (NOT)? EMPTY
         {   
             try {
-                JSONObject exp = new JSONObject();
+                JSONObject exp = new FastJSONObject();
                 if ($NOT != null) {
-                    JSONObject functionJSON = new JSONObject();
-                    JSONArray params = new JSONArray();
+                    JSONObject functionJSON = new FastJSONObject();
+                    JSONArray params = new FastJSONArray();
                     params.put($value_list.json);
                     functionJSON.put("function", "length");
                     functionJSON.put("params", params);
                     exp.put("lvalue", functionJSON);
                     exp.put("operator", ">");
                     exp.put("rvalue", 0);
-                    $json = new JSONObject().put("const_exp", exp);
+                    $json = new FastJSONObject().put("const_exp", exp);
                 }
                 else{
-                    JSONObject functionJSON = new JSONObject();
-                    JSONArray params = new JSONArray();
+                    JSONObject functionJSON = new FastJSONObject();
+                    JSONArray params = new FastJSONArray();
                     params.put($value_list.json);
                     functionJSON.put("function", "length");
                     functionJSON.put("params", params);
                     exp.put("lvalue", functionJSON);
                     exp.put("operator", "==");
                     exp.put("rvalue", 0);
-                    $json = new JSONObject().put("const_exp", exp);
+                    $json = new FastJSONObject().put("const_exp", exp);
                 }
             }
             catch (JSONException err) {
@@ -1828,20 +1884,20 @@ contains_all_predicate returns [JSONObject json]
             }
 
             try {
-                JSONObject dict = new JSONObject();
+                JSONObject dict = new FastJSONObject();
                 dict.put("operator", "and");
                 dict.put("values", $value_list.json);
                 if (except != null) {
                     dict.put("excludes", $except_clause.json);
                 }
                 else {
-                    dict.put("excludes", new JSONArray());
+                    dict.put("excludes", new FastJSONArray());
                 }
                 if (_facetInfoMap.get(col) == null) {
                     dict.put("_noOptimize", true);
                 }
-                $json = new JSONObject().put("terms",
-                                             new JSONObject().put(col, dict));
+                $json = new FastJSONObject().put("terms",
+                                                 new FastJSONObject().put(col, dict));
             }
             catch (JSONException err) {
                 throw new FailedPredicateException(input, "contains_all_predicate", "JSONException: " + err.getMessage());
@@ -1862,15 +1918,15 @@ equal_predicate returns [JSONObject json]
             try {
                 String[] facetInfo = _facetInfoMap.get(col);
                 if (facetInfo != null && facetInfo[0].equals("range")) {
-                    $json = new JSONObject().put("range",
-                                                 new JSONObject().put(col,
-                                                                      new JSONObject().put("from", $value.val)
-                                                                                      .put("to", $value.val)
-                                                                                      .put("include_lower", true)
-                                                                                      .put("include_upper", true)));
+                    $json = new FastJSONObject().put("range",
+                               new FastJSONObject().put(col,
+                                   new FastJSONObject().put("from", $value.val)
+                                                       .put("to", $value.val)
+                                                       .put("include_lower", true)
+                                                       .put("include_upper", true)));
                 }
                 else if (facetInfo != null && facetInfo[0].equals("path")) {
-                    JSONObject valObj = new JSONObject();
+                    JSONObject valObj = new FastJSONObject();
                     valObj.put("value", $value.val);
                     if (props != null) {
                         JSONObject propsJson = $props.json;
@@ -1887,15 +1943,15 @@ equal_predicate returns [JSONObject json]
                             }
                         }
                     }
-                    $json = new JSONObject().put("path", new JSONObject().put(col, valObj));
+                    $json = new FastJSONObject().put("path", new FastJSONObject().put(col, valObj));
                 }
                 else {
-                    JSONObject valSpec = new JSONObject().put("value", $value.val);
+                    JSONObject valSpec = new FastJSONObject().put("value", $value.val);
                     if (_facetInfoMap.get(col) == null) {
                         valSpec.put("_noOptimize", true);
                     }
-                    $json = new JSONObject().put("term", 
-                                                 new JSONObject().put(col, valSpec));
+                    $json = new FastJSONObject().put("term", 
+                                                     new FastJSONObject().put(col, valSpec));
                 }
             }
             catch (JSONException err) {
@@ -1917,15 +1973,15 @@ not_equal_predicate returns [JSONObject json]
             try {
                 String[] facetInfo = _facetInfoMap.get(col);
                 if (facetInfo != null && facetInfo[0].equals("range")) {
-                    JSONObject left = new JSONObject().put("range",
-                                                           new JSONObject().put(col,
-                                                                                new JSONObject().put("to", $value.val)
-                                                                                                .put("include_upper", false)));
-                    JSONObject right = new JSONObject().put("range",
-                                                            new JSONObject().put(col,
-                                                                                 new JSONObject().put("from", $value.val)
-                                                                                                 .put("include_lower", false)));
-                    $json = new JSONObject().put("or", new JSONArray().put(left).put(right));
+                    JSONObject left = new FastJSONObject().put("range",
+                                                               new FastJSONObject().put(col,
+                                                                                        new FastJSONObject().put("to", $value.val)
+                                                                                                            .put("include_upper", false)));
+                    JSONObject right = new FastJSONObject().put("range",
+                                                                new FastJSONObject().put(col,
+                                                                                         new FastJSONObject().put("from", $value.val)
+                                                                                                             .put("include_lower", false)));
+                    $json = new FastJSONObject().put("or", new FastJSONArray().put(left).put(right));
                 }
                 else if (facetInfo != null && facetInfo[0].equals("path")) {
                     throw new FailedPredicateException(input, 
@@ -1933,15 +1989,15 @@ not_equal_predicate returns [JSONObject json]
                                                        "NOT EQUAL predicate is not supported for path facets (column \"" + col + "\").");
                 }
                 else {
-                    JSONObject valObj = new JSONObject();
+                    JSONObject valObj = new FastJSONObject();
                     valObj.put("operator", "or");
-                    valObj.put("values", new JSONArray());
-                    valObj.put("excludes", new JSONArray().put($value.val));
+                    valObj.put("values", new FastJSONArray());
+                    valObj.put("excludes", new FastJSONArray().put($value.val));
                     if (_facetInfoMap.get(col) == null) {
                         valObj.put("_noOptimize", true);
                     }
-                    $json = new JSONObject().put("terms",
-                                                 new JSONObject().put(col, valObj));
+                    $json = new FastJSONObject().put("terms",
+                                                     new FastJSONObject().put(col, valObj));
                 }
             }
             catch (JSONException err) {
@@ -1957,9 +2013,9 @@ query_predicate returns [JSONObject json]
             try {
                 String orig = $STRING_LITERAL.text;
                 orig = orig.substring(1, orig.length() - 1);
-                $json = new JSONObject().put("query",
-                                             new JSONObject().put("query_string",
-                                                                  new JSONObject().put("query", orig)));
+                $json = new FastJSONObject().put("query",
+                                                 new FastJSONObject().put("query_string",
+                                                                          new FastJSONObject().put("query", orig)));
             }
             catch (JSONException err) {
                 throw new FailedPredicateException(input, "query_predicate", "JSONException: " + err.getMessage());
@@ -1986,26 +2042,26 @@ between_predicate returns [JSONObject json]
 
             try {
                 if (not == null) {
-                    $json = new JSONObject().put("range",
-                                                 new JSONObject().put(col,
-                                                                      new JSONObject().put("from", $val1.val)
-                                                                                      .put("to", $val2.val)
-                                                                                      .put("include_lower", true)
-                                                                                      .put("include_upper", true)));
+                    $json = new FastJSONObject().put("range",
+                                                     new FastJSONObject().put(col,
+                                                                              new FastJSONObject().put("from", $val1.val)
+                                                                                                  .put("to", $val2.val)
+                                                                                                  .put("include_lower", true)
+                                                                                                  .put("include_upper", true)));
                 }
                 else {
                     JSONObject range1 = 
-                        new JSONObject().put("range",
-                                             new JSONObject().put(col,
-                                                                  new JSONObject().put("to", $val1.val)
-                                                                                  .put("include_upper", false)));
+                        new FastJSONObject().put("range",
+                                                 new FastJSONObject().put(col,
+                                                                          new FastJSONObject().put("to", $val1.val)
+                                                                                              .put("include_upper", false)));
                     JSONObject range2 = 
-                        new JSONObject().put("range",
-                                             new JSONObject().put(col,
-                                                                  new JSONObject().put("from", $val2.val)
-                                                                                  .put("include_lower", false)));
+                        new FastJSONObject().put("range",
+                                                 new FastJSONObject().put(col,
+                                                                          new FastJSONObject().put("from", $val2.val)
+                                                                                              .put("include_lower", false)));
 
-                    $json = new JSONObject().put("or", new JSONArray().put(range1).put(range2));
+                    $json = new FastJSONObject().put("or", new FastJSONArray().put(range1).put(range2));
                 }
             }
             catch (JSONException err) {
@@ -2033,16 +2089,16 @@ range_predicate returns [JSONObject json]
 
             try {
                 if ($op.text.charAt(0) == '>') {
-                    $json = new JSONObject().put("range",
-                                                 new JSONObject().put(col,
-                                                                      new JSONObject().put("from", $val.val)
-                                                                                      .put("include_lower", ">=".equals($op.text))));
+                    $json = new FastJSONObject().put("range",
+                                                     new FastJSONObject().put(col,
+                                                                              new FastJSONObject().put("from", $val.val)
+                                                                                                  .put("include_lower", ">=".equals($op.text))));
                 }
                 else {
-                    $json = new JSONObject().put("range",
-                                                 new JSONObject().put(col,
-                                                                      new JSONObject().put("to", $val.val)
-                                                                                      .put("include_upper", "<=".equals($op.text))));
+                    $json = new FastJSONObject().put("range",
+                                                     new FastJSONObject().put(col,
+                                                                              new FastJSONObject().put("to", $val.val)
+                                                                                                  .put("include_upper", "<=".equals($op.text))));
                 }
             }
             catch (JSONException err) {
@@ -2064,16 +2120,16 @@ time_predicate returns [JSONObject json]
 
             try {
                 if ($NOT == null) {
-                    $json = new JSONObject().put("range",
-                                                 new JSONObject().put(col,
-                                                                      new JSONObject().put("from", $time_span.val)
-                                                                                      .put("include_lower", false)));
+                    $json = new FastJSONObject().put("range",
+                                                     new FastJSONObject().put(col,
+                                                                              new FastJSONObject().put("from", $time_span.val)
+                                                                                                  .put("include_lower", false)));
                 }
                 else {
-                    $json = new JSONObject().put("range",
-                                                 new JSONObject().put(col,
-                                                                      new JSONObject().put("to", $time_span.val)
-                                                                                      .put("include_upper", true)));
+                    $json = new FastJSONObject().put("range",
+                                                     new FastJSONObject().put(col,
+                                                                              new FastJSONObject().put("to", $time_span.val)
+                                                                                                  .put("include_upper", true)));
                 }
             }
             catch (JSONException err) {
@@ -2092,16 +2148,16 @@ time_predicate returns [JSONObject json]
             try {
                 if (since != null && $NOT == null ||
                     since == null && $NOT != null) {
-                    $json = new JSONObject().put("range",
-                                                 new JSONObject().put(col,
-                                                                      new JSONObject().put("from", $time_expr.val)
-                                                                                      .put("include_lower", false)));
+                    $json = new FastJSONObject().put("range",
+                                                     new FastJSONObject().put(col,
+                                                                              new FastJSONObject().put("from", $time_expr.val)
+                                                                                                  .put("include_lower", false)));
                 }
                 else {
-                    $json = new JSONObject().put("range",
-                                                 new JSONObject().put(col,
-                                                                      new JSONObject().put("to", $time_expr.val)
-                                                                                      .put("include_upper", false)));
+                    $json = new FastJSONObject().put("range",
+                                                     new FastJSONObject().put(col,
+                                                                              new FastJSONObject().put("to", $time_expr.val)
+                                                                                                  .put("include_upper", false)));
                 }
             }
             catch (JSONException err) {
@@ -2243,13 +2299,13 @@ match_predicate returns [JSONObject json]
 
                 String orig = $STRING_LITERAL.text;
                 orig = orig.substring(1, orig.length() - 1);
-                $json = new JSONObject().put("query",
-                                             new JSONObject().put("query_string",
-                                                                  new JSONObject().put("fields", cols)
-                                                                                  .put("query", orig)));
+                $json = new FastJSONObject().put("query",
+                                                 new FastJSONObject().put("query_string",
+                                                                          new FastJSONObject().put("fields", cols)
+                                                                                              .put("query", orig)));
                 if ($NOT != null) {
-                    $json = new JSONObject().put("bool",
-                                                 new JSONObject().put("must_not", $json));
+                    $json = new FastJSONObject().put("bool",
+                                                     new FastJSONObject().put("must_not", $json));
                 }
             }
             catch (JSONException err) {
@@ -2272,12 +2328,12 @@ like_predicate returns [JSONObject json]
             orig = orig.substring(1, orig.length() - 1);
             String likeString = orig.replace('\%', '*').replace('_', '?');
             try {
-                $json = new JSONObject().put("query",
-                                             new JSONObject().put("wildcard",
-                                                                  new JSONObject().put(col, likeString)));
+                $json = new FastJSONObject().put("query",
+                                                 new FastJSONObject().put("wildcard",
+                                                                          new FastJSONObject().put(col, likeString)));
                 if ($NOT != null) {
-                    $json = new JSONObject().put("bool",
-                                                 new JSONObject().put("must_not", $json));
+                    $json = new FastJSONObject().put("bool",
+                                                     new FastJSONObject().put("must_not", $json));
                 }
             }
             catch (JSONException err) {
@@ -2291,10 +2347,10 @@ null_predicate returns [JSONObject json]
         {
             String col = $column_name.text;
             try {
-                $json = new JSONObject().put("isNull", col);
+                $json = new FastJSONObject().put("isNull", col);
                 if ($NOT != null) {
-                    $json = new JSONObject().put("bool",
-                                                 new JSONObject().put("must_not", $json));
+                    $json = new FastJSONObject().put("bool",
+                                                     new FastJSONObject().put("must_not", $json));
                 }
             }
             catch (JSONException err) {
@@ -2305,7 +2361,7 @@ null_predicate returns [JSONObject json]
 
 non_variable_value_list returns [JSONArray json]
 @init {
-    $json = new JSONArray();
+    $json = new FastJSONArray();
 }
     :   LPAR v=value
         {
@@ -2321,7 +2377,7 @@ non_variable_value_list returns [JSONArray json]
 
 python_style_list returns [JSONArray json]
 @init {
-    $json = new JSONArray();
+    $json = new FastJSONArray();
 }
     :   '[' v=python_style_value?
         {
@@ -2336,7 +2392,7 @@ python_style_list returns [JSONArray json]
 
 python_style_dict returns [JSONObject json]
 @init {
-    $json = new JSONObject();
+    $json = new FastJSONObject();
 }
     :   '{''}'        |
         '{' p=key_value_pair[KeyType.STRING_LITERAL]
@@ -2431,7 +2487,7 @@ predicate_props returns [JSONObject json]
 
 prop_list[KeyType keyType] returns [JSONObject json]
 @init {
-    $json = new JSONObject();
+    $json = new FastJSONObject();
 }
     :   LPAR p=key_value_pair[keyType]
         {
@@ -2501,7 +2557,7 @@ given_clause returns [JSONObject json]
 
 variable_declarators returns [JSONArray json]
 @init {
-    $json = new JSONArray();
+    $json = new FastJSONArray();
 }
     :   var1=variable_declarator
         {
@@ -2582,7 +2638,7 @@ formal_parameters returns [JSONObject json]
 
 formal_parameter_decls returns [JSONObject json]
 @init {
-    $json = new JSONObject();
+    $json = new FastJSONObject();
     Set<String> params = new HashSet<String>();
 }
     :   decl=formal_parameter_decl
@@ -2686,17 +2742,19 @@ relevance_model returns [String functionBody, JSONObject json]
             try {
                 JSONArray funcParams = $json.getJSONArray("function_params");
 
-                JSONObject facets = new JSONObject();
+                JSONObject facets = new FastJSONObject();
                 $json.put("facets", facets);
 
                 for (String facet: _usedFacets) {
                     funcParams.put(facet);
                     String[] facetInfo = _facetInfoMap.get(facet);
-                    String typeName = (facetInfo[0].equals("multi") ? "m" : "")
+                    String typeName = (facetInfo[0].equals("multi") ? "m" :
+                                       (facetInfo[0].equals("weighted-multi") ? "wm" : "")
+                                      )
                                       + _facetInfoMap.get(facet)[1];
                     JSONArray facetsWithSameType = facets.optJSONArray(typeName);
                     if (facetsWithSameType == null) {
-                        facetsWithSameType = new JSONArray();
+                        facetsWithSameType = new FastJSONArray();
                         facets.put(typeName, facetsWithSameType);
                     }
                     facetsWithSameType.put(facet);
@@ -2705,7 +2763,8 @@ relevance_model returns [String functionBody, JSONObject json]
                 // Internal variables, like _NOW, do not need to be
                 // included in "variables".
                 for (String varName: _usedInternalVars) {
-                    funcParams.put(varName);
+                    if( ! _internalStaticVarMap.containsKey(varName))
+                        funcParams.put(varName);
                 }
             }
             catch (JSONException err) {
@@ -3061,7 +3120,7 @@ arguments
     
 relevance_model_clause returns [JSONObject json]
 @init {
-    $json = new JSONObject();
+    $json = new FastJSONObject();
 }
     :   USING RELEVANCE MODEL IDENT prop_list[KeyType.STRING_LITERAL_AND_IDENT] model=relevance_model?
         {
@@ -3072,7 +3131,7 @@ relevance_model_clause returns [JSONObject json]
                 }
                 else {
                     JSONObject modelInfo = $model.json;
-                    JSONObject modelJson = new JSONObject();
+                    JSONObject modelJson = new FastJSONObject();
                     modelJson.put("function", $model.functionBody);
 
                     JSONArray funcParams = modelInfo.optJSONArray("function_params");
@@ -3103,7 +3162,7 @@ relevance_model_clause returns [JSONObject json]
 
 facet_param_list returns [JSONObject json]
 @init {
-    $json = new JSONObject();
+    $json = new FastJSONObject();
 }
     :   p=facet_param
         {
@@ -3155,7 +3214,7 @@ facet_param returns [String facet, JSONObject param]
                         valArray = varName;
                     }
                     else {
-                        valArray = new JSONArray().put(val.val);
+                        valArray = new FastJSONArray().put(val.val);
                     }
                 }
                 else {
@@ -3164,9 +3223,9 @@ facet_param returns [String facet, JSONObject param]
 
                 String orig = $STRING_LITERAL.text;
                 orig = orig.substring(1, orig.length() - 1);
-                $param = new JSONObject().put(orig,
-                                              new JSONObject().put("type", $facet_param_type.paramType)
-                                                              .put("values", valArray));
+                $param = new FastJSONObject().put(orig,
+                                                  new FastJSONObject().put("type", $facet_param_type.paramType)
+                                                                      .put("values", valArray));
             }
             catch (JSONException err) {
                 throw new FailedPredicateException(input, "facet_param", "JSONException: " + err.getMessage());

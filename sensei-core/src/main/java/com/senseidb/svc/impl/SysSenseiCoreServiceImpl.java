@@ -82,7 +82,7 @@ public class SysSenseiCoreServiceImpl extends AbstractSenseiCoreService<SenseiRe
 
 	@Override
 	public Serializer<SenseiRequest, SenseiSystemInfo> getSerializer() {
-		return PROTO_SERIALIZER;
+		return JAVA_SERIALIZER;
 	}
 }
 

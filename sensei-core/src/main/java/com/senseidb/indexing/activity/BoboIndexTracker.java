@@ -13,6 +13,7 @@ import org.apache.log4j.Logger;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.store.RAMDirectory;
 
+import proj.zoie.api.DocIDMapper;
 import proj.zoie.api.IndexReaderFactory;
 import proj.zoie.api.ZoieIndexReader;
 import proj.zoie.api.ZoieSegmentReader;
@@ -86,8 +87,11 @@ public class BoboIndexTracker implements BoboListener {
   }
 
   private final  void recoverReaderIfNeeded(long uid, int index, Set<String> facets, BoboIndexReader boboIndexReader) {
-    ZoieSegmentReader<BoboIndexReader> zoieSegmentReader = (ZoieSegmentReader<BoboIndexReader>) boboIndexReader.getInnerReader();   
-    int docId = zoieSegmentReader.getDocIDMaper().getDocID(uid);
+    ZoieSegmentReader<BoboIndexReader> zoieSegmentReader = (ZoieSegmentReader<BoboIndexReader>) boboIndexReader.getInnerReader();
+    if (zoieSegmentReader == null) return;
+    DocIDMapper mapper = zoieSegmentReader.getDocIDMaper();
+    if (mapper == null) return;
+    int docId = mapper.getDocID(uid);
     if (docId < 0) {
       return ;
     }

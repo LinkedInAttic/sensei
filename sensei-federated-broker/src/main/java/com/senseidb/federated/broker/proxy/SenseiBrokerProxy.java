@@ -7,6 +7,9 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
+import com.linkedin.norbert.network.Serializer;
+import com.senseidb.svc.impl.CoreSenseiServiceImpl;
+import com.senseidb.svc.impl.SenseiCoreServiceMessageHandler;
 import org.apache.commons.configuration.Configuration;
 import org.apache.log4j.Logger;
 
@@ -28,8 +31,11 @@ import com.yammer.metrics.core.Timer;
 
 public class SenseiBrokerProxy extends SenseiBroker implements BrokerProxy {
   private final static Logger logger = Logger.getLogger(SenseiBrokerProxy.class);
-  private static PartitionedLoadBalancerFactory balancerFactory = new SenseiPartitionedLoadBalancerFactory(50);  
-  private static Timer scatterTimer = null; 
+
+  private static PartitionedLoadBalancerFactory balancerFactory = new SenseiPartitionedLoadBalancerFactory(50);
+  private static Serializer<SenseiRequest, SenseiResult> serializer = CoreSenseiServiceImpl.JAVA_SERIALIZER;
+
+  private static Timer scatterTimer = null;
   private static Meter ErrorMeter = null;
   static{
     // register metrics monitoring for timers
@@ -44,13 +50,24 @@ public class SenseiBrokerProxy extends SenseiBroker implements BrokerProxy {
     }
   }
   
-  public SenseiBrokerProxy(PartitionedNetworkClient<String> networkClient, ClusterClient clusterClient, boolean allowPartialMerge) {
-    super(networkClient, clusterClient, allowPartialMerge);
+  public SenseiBrokerProxy(PartitionedNetworkClient<String> networkClient,
+                           ClusterClient clusterClient,
+                           Serializer<SenseiRequest, SenseiResult> serializer,
+                           long timeoutMillis, boolean allowPartialMerge) {
+    super(networkClient, clusterClient, serializer, timeoutMillis, allowPartialMerge);
   }
+
   public static SenseiBrokerProxy valueOf(Configuration senseiConfiguration, Map<String, String> overrideProperties) {
-    BrokerProxyConfig brokerProxyConfig = new BrokerProxyConfig(senseiConfiguration, balancerFactory, overrideProperties);
+    BrokerProxyConfig brokerProxyConfig =
+        new BrokerProxyConfig(senseiConfiguration, balancerFactory, serializer, overrideProperties);
+
     brokerProxyConfig.init();
-    SenseiBrokerProxy ret = new SenseiBrokerProxy(brokerProxyConfig.getNetworkClient(), brokerProxyConfig.getClusterClient(), true);
+    SenseiBrokerProxy ret = new SenseiBrokerProxy(
+        brokerProxyConfig.getNetworkClient(),
+        brokerProxyConfig.getClusterClient(),
+        brokerProxyConfig.getSerializer(),
+        brokerProxyConfig.getBrokerTimeout(),
+        brokerProxyConfig.isAllowPartialMerge());
     return ret;
   }
   @Override

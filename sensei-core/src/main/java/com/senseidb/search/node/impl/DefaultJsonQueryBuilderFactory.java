@@ -12,6 +12,8 @@ import org.json.JSONObject;
 import com.senseidb.search.node.SenseiQueryBuilder;
 import com.senseidb.search.query.QueryConstructor;
 import com.senseidb.search.query.filters.FilterConstructor;
+import com.senseidb.util.JSONUtil.FastJSONArray;
+import com.senseidb.util.JSONUtil.FastJSONObject;
 
 public class DefaultJsonQueryBuilderFactory extends
     AbstractJsonQueryBuilderFactory {
@@ -36,8 +38,8 @@ public class DefaultJsonQueryBuilderFactory extends
         query = (JSONObject)obj;
       else if (obj instanceof String)
       {
-        query = new JSONObject();
-        JSONObject tmp = new JSONObject();
+        query = new FastJSONObject();
+        JSONObject tmp = new FastJSONObject();
         try
         {
           tmp.put("query", (String)obj);

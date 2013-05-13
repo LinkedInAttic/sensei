@@ -36,7 +36,10 @@ import com.senseidb.metrics.MetricsConstants;
 import com.senseidb.plugin.SenseiPluginRegistry;
 import com.senseidb.search.node.SenseiIndexingManager;
 import com.senseidb.search.plugin.PluggableSearchEngineManager;
+import com.senseidb.util.JSONUtil.FastJSONArray;
+import com.senseidb.util.JSONUtil.FastJSONObject;
 import com.yammer.metrics.Metrics;
+import com.yammer.metrics.core.Timer;
 import com.yammer.metrics.core.Meter;
 import com.yammer.metrics.core.MetricName;
 
@@ -52,9 +55,12 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 
 	private static final String BATCH_SIZE = "batchSize";
 
+  private static final String EVENT_CREATED_TIMESTAMP_FIELD = "eventCreatedTimestampField"; 
+
   private static Meter ProviderBatchSizeMeter = null;
   private static Meter EventMeter = null;
   private static Meter UpdateBatchSizeMeter = null;
+  private static Timer IndexingLatencyTimer = null;
 
   static{
     try{
@@ -66,6 +72,14 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 
       MetricName eventMeterMetricName = new MetricName(MetricsConstants.Domain,"meter","indexing-events","indexing-manager");
       EventMeter = Metrics.newMeter(eventMeterMetricName, "indexing-events", TimeUnit.SECONDS);
+
+      MetricName indexingLatencyMetricName = new MetricName(MetricsConstants.Domain,
+                                                            "timer",
+                                                            "indexing-latency",
+                                                            "indexing-manager");
+      IndexingLatencyTimer = Metrics.newTimer(indexingLatencyMetricName,
+                                              TimeUnit.MILLISECONDS,
+                                              TimeUnit.SECONDS);
     }
     catch(Exception e){
     logger.error(e.getMessage(),e);
@@ -75,6 +89,7 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 
 	private StreamDataProvider<JSONObject> _dataProvider;
 	private String _oldestSinceKey;
+  private String _eventCreatedTimestampField;
 	private final SenseiSchema _senseiSchema;
 	private final Configuration _myconfig;
 
@@ -94,6 +109,7 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 	    SenseiPluginRegistry pluginRegistry, SenseiGateway<?> gateway, ShardingStrategy shardingStrategy, PluggableSearchEngineManager pluggableSearchEngineManager){
 	    _dataProvider = null;
 	  _myconfig = senseiConfig.subset(CONFIG_PREFIX);
+    _eventCreatedTimestampField = _myconfig.getString(EVENT_CREATED_TIMESTAMP_FIELD, null);
      this.pluginRegistry = pluginRegistry;
 	  _oldestSinceKey = null;
 	  _senseiSchema = schema;
@@ -232,6 +248,19 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
       _currentVersion = null;
     }
 
+    private void reportIndexingLatency(JSONObject obj)
+    {
+      if (_eventCreatedTimestampField != null)
+      {
+        long createdTimestamp = obj.optLong(_eventCreatedTimestampField);
+        if (createdTimestamp > 0)
+        {
+          IndexingLatencyTimer.update(System.currentTimeMillis() - createdTimestamp,
+                                      TimeUnit.MILLISECONDS);
+        }
+      }
+    }
+
     private JSONObject rewriteData(JSONObject obj, int partNum)
     {
       String type = obj.optString(SenseiSchema.EVENT_TYPE_FIELD, null);
@@ -250,6 +279,8 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
           logger.error("Should never happen", e);
         }
       }
+
+      reportIndexingLatency(event);
 
       if (SenseiSchema.EVENT_TYPE_UPDATE.equalsIgnoreCase(type))
       {
@@ -293,7 +324,7 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
             return null;
           }
 
-          JSONObject newEvent = new JSONObject(new String(data, "UTF-8"));
+          JSONObject newEvent = new FastJSONObject(new String(data, "UTF-8"));
           Iterator<String> keys = event.keys();
           while(keys.hasNext())
           {
@@ -364,7 +395,7 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
             {
               if (partDataSet.size() == 0)
               {
-                JSONObject markerObj = new JSONObject();
+                JSONObject markerObj = new FastJSONObject();
                 //markerObj.put(_senseiSchema.getSkipField(), "true");
                 markerObj.put(SenseiSchema.EVENT_TYPE_FIELD, SenseiSchema.EVENT_TYPE_SKIP);
                 markerObj.put(_uidField, 0L); // Add a dummy uid

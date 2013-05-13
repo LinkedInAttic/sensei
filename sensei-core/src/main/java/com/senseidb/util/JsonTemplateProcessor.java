@@ -26,11 +26,12 @@ public class JsonTemplateProcessor{
       if (templateValueObj != null &&
           (templateValueObj instanceof String ||
            templateValueObj instanceof Number ||
-           templateValueObj instanceof JSONArray)) {
+           templateValueObj instanceof JSONArray ||
+           templateValueObj instanceof JSONObject)) {
         ret.put(templateName, templateValueObj);
       } else {
         throw new UnsupportedOperationException("Value for the template " + templateName
-            + " couldn't be transformed to a primitive type or JSONArray");
+            + " couldn't be transformed to a primitive type, JSONArray, or JSONObject");
       }
     }
 

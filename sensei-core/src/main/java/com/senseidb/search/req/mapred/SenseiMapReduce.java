@@ -51,5 +51,7 @@ public interface SenseiMapReduce<MapResult extends Serializable, ReduceResult ex
    * @return
    */
   public JSONObject  render(ReduceResult reduceResult);
+
+  public String[] getColumns();
 }
 

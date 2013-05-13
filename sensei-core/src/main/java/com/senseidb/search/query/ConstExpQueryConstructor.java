@@ -9,6 +9,9 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.senseidb.util.JSONUtil.FastJSONArray;
+import com.senseidb.util.JSONUtil.FastJSONObject;
+
 
 public class ConstExpQueryConstructor extends QueryConstructor
 {
@@ -135,14 +138,10 @@ public class ConstExpQueryConstructor extends QueryConstructor
   
   private double convertToDouble(Object value, JSONObject json)
   {
-    if(value instanceof Double)
-      return (Double)value;
-    else if(value instanceof Integer)
-      return (double)((Integer) value);
-    else if(value instanceof Long)
-      return (double)((Long) value);
-    else if(value instanceof Float)
-      return (double)((Float) value);
+    if(value instanceof Number)
+    {
+      return ((Number) value).doubleValue();
+    }
     else
       throw new IllegalArgumentException("operator >, >=, <, <= can only be applied to double, int, long or float type data, in ExpressionQuery: " + json);
   }
@@ -264,10 +263,10 @@ public class ConstExpQueryConstructor extends QueryConstructor
   
   
   public static void main(String args[]) throws JSONException{
-    JSONObject json = new JSONObject();
-    JSONObject func = new JSONObject();
+    JSONObject json = new FastJSONObject();
+    JSONObject func = new FastJSONObject();
     func.put("function", "length");
-    func.put("params", new JSONArray().put(new JSONArray()));
+    func.put("params", new FastJSONArray().put(new FastJSONArray()));
     json.put("lvalue", func);
     json.put("operator", "==");
     json.put("rvalue", 0);

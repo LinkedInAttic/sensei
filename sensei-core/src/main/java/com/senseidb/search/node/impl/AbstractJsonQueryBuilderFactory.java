@@ -1,10 +1,13 @@
 package com.senseidb.search.node.impl;
 
+import org.apache.commons.lang.StringUtils;
 import org.json.JSONObject;
 
 import com.senseidb.search.node.SenseiQueryBuilder;
 import com.senseidb.search.node.SenseiQueryBuilderFactory;
 import com.senseidb.search.req.SenseiQuery;
+import com.senseidb.util.JSONUtil.FastJSONArray;
+import com.senseidb.util.JSONUtil.FastJSONObject;
 
 public abstract class AbstractJsonQueryBuilderFactory implements
 		SenseiQueryBuilderFactory {
@@ -13,9 +16,11 @@ public abstract class AbstractJsonQueryBuilderFactory implements
 	public SenseiQueryBuilder getQueryBuilder(SenseiQuery query)
 			throws Exception {
 		JSONObject jsonQuery=null;
-		if (query!=null){
-			byte[] bytes = query.toBytes();
-			jsonQuery = new JSONObject(new String(bytes,SenseiQuery.utf8Charset));
+        String queryString = query == null ? null : query.toString();
+		if (!StringUtils.isEmpty(queryString)){
+//			byte[] bytes = query.toBytes();
+//			jsonQuery = new FastJSONObject(new String(bytes,SenseiQuery.UTF_8_CHARSET));
+            jsonQuery = new FastJSONObject(queryString);
 		}
 		return buildQueryBuilder(jsonQuery);
 	}

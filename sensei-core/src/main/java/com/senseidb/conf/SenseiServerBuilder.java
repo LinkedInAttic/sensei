@@ -1,5 +1,8 @@
 package com.senseidb.conf;
 
+import com.linkedin.norbert.network.Serializer;
+import com.senseidb.search.req.*;
+import com.senseidb.svc.impl.CoreSenseiServiceImpl;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 
@@ -90,9 +93,6 @@ import com.senseidb.search.relevance.CustomRelevanceFunction.CustomRelevanceFunc
 import com.senseidb.search.relevance.ExternalRelevanceDataStorage;
 import com.senseidb.search.relevance.ExternalRelevanceDataStorage.RelevanceObjPlugin;
 import com.senseidb.search.relevance.ModelStorage;
-import com.senseidb.search.req.AbstractSenseiRequest;
-import com.senseidb.search.req.AbstractSenseiResult;
-import com.senseidb.search.req.SenseiSystemInfo;
 import com.senseidb.servlet.DefaultSenseiJSONServlet;
 import com.senseidb.servlet.SenseiConfigServletContextListener;
 import com.senseidb.servlet.SenseiHttpInvokerServiceServlet;
@@ -100,6 +100,8 @@ import com.senseidb.svc.impl.AbstractSenseiCoreService;
 import com.senseidb.util.HDFSIndexCopier;
 import com.senseidb.util.NetUtil;
 import com.senseidb.util.SenseiUncaughtExceptionHandler;
+import com.senseidb.util.JSONUtil.FastJSONArray;
+import com.senseidb.util.JSONUtil.FastJSONObject;
 
 public class SenseiServerBuilder implements SenseiConfParams{
 
@@ -156,6 +158,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
     networkConfig.setRequestThreadCorePoolSize(conf.getInt(SERVER_REQ_THREAD_POOL_SIZE, 20));
     networkConfig.setRequestThreadMaxPoolSize(conf.getInt(SERVER_REQ_THREAD_POOL_MAXSIZE,70));
     networkConfig.setRequestThreadKeepAliveTimeSecs(conf.getInt(SERVER_REQ_THREAD_POOL_KEEPALIVE,300));
+
     return new NettyNetworkServer(networkConfig);
   }
 
@@ -216,7 +219,14 @@ public class SenseiServerBuilder implements SenseiConfParams{
       routerFactory = new SenseiPartitionedLoadBalancerFactory(50);
     }
 
-    senseiApp.setAttribute("sensei.search.router.factory", routerFactory);
+    Serializer<SenseiRequest, SenseiResult> serializer = pluginRegistry.getBeanByFullPrefix(SenseiConfParams.SENSEI_SEARCH_SERIALIZER, Serializer.class);
+    if (serializer == null) {
+      logger.warn("Unspecified serializer. Falling back to java serialization");
+      serializer = CoreSenseiServiceImpl.JAVA_SERIALIZER;
+    }
+
+    senseiApp.setAttribute(SenseiConfigServletContextListener.SENSEI_CONF_ROUTER_FACTORY, routerFactory);
+    senseiApp.setAttribute(SenseiConfigServletContextListener.SENSEI_CONF_SERIALIZER, serializer);
     senseiApp.addEventListener(new SenseiConfigServletContextListener());
     senseiApp.addServlet(senseiServletHolder,"/"+SENSEI_CONTEXT_PATH+"/*");
     senseiApp.setResourceBase(webappPath);
@@ -235,7 +245,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
       InputStream is = new FileInputStream(jsonSchema);
       String json = IOUtils.toString( is );
       is.close();
-      return new JSONObject(json);
+      return new FastJSONObject(json);
     }
     else{
       File xmlSchema = new File(confDir,SCHEMA_FILE_XML);
@@ -256,7 +266,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
   {
     if (confDir.createRelative(SCHEMA_FILE_JSON).exists()){
       String json = IOUtils.toString(confDir.createRelative(SCHEMA_FILE_JSON).getInputStream());
-      return new JSONObject(json);
+      return new FastJSONObject(json);
     }
     else{
       if (confDir.createRelative(SCHEMA_FILE_XML).exists()){
@@ -615,6 +625,9 @@ public class SenseiServerBuilder implements SenseiConfParams{
 
   public SenseiServer buildServer() throws ConfigurationException {
     int port = _senseiConf.getInt(SERVER_PORT);
+
+    long shutdownPauseMillis = _senseiConf.getLong(SENSEI_SHUTDOWN_WAIT_FOR_CLIENT_MILLIS, 0L);
+
     JmxSenseiMBeanServer.registerCustomMBeanServer();
 
     ClusterClient clusterClient = buildClusterClient();
@@ -626,7 +639,7 @@ public class SenseiServerBuilder implements SenseiConfParams{
     List<AbstractSenseiCoreService<AbstractSenseiRequest, AbstractSenseiResult>> svcList = (List)pluginRegistry.resolveBeansByListKey(SENSEI_PLUGIN_SVCS, AbstractSenseiCoreService.class);
 
 
-    return new SenseiServer(port,networkServer,clusterClient,core,svcList, pluginRegistry);
+    return new SenseiServer(port,networkServer,clusterClient,core,svcList, pluginRegistry, shutdownPauseMillis);
 
   }
   /*

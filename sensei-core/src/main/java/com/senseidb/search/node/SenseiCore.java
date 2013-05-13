@@ -195,24 +195,27 @@ public class SenseiCore{
       }
       _started = true;
   }
-  
-  public void shutdown(){
+
+  public void shutdown() {
     if (!_started) return;
     logger.info("unregistering mbeans...");
-        // shutdown the index manager
+    // shutdown the index manager
+
+    logger.info("Closing the pluggable index manager...");
+    pluggableSearchEngineManager.close();
 
     logger.info("shutting down index manager...");
-    if (_indexManager!=null){
+    if (_indexManager != null) {
       _indexManager.shutdown();
     }
     logger.info("index manager shutdown...");
-      
+
     // shutdown the zoieSystems
-    for(Zoie<BoboIndexReader,?> zoieSystem : zoieSystems){
+    for (Zoie<BoboIndexReader, ?> zoieSystem : zoieSystems) {
       zoieSystem.shutdown();
     }
     zoieSystems.clear();
-    _started =false;
+    _started = false;
   }
 
   public DataProvider getDataProvider()

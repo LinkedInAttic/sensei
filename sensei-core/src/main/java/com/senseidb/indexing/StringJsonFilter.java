@@ -2,6 +2,9 @@ package com.senseidb.indexing;
 
 import org.json.JSONObject;
 
+import com.senseidb.util.JSONUtil.FastJSONArray;
+import com.senseidb.util.JSONUtil.FastJSONObject;
+
 public class StringJsonFilter extends DataSourceFilter<String> {
 
 	private JsonFilter _innerFilter;
@@ -20,7 +23,7 @@ public class StringJsonFilter extends DataSourceFilter<String> {
 	
 	@Override
 	protected JSONObject doFilter(String data) throws Exception {
-		JSONObject json = new JSONObject(data);
+		JSONObject json = new FastJSONObject(data);
 		if (_innerFilter!=null){
 			json = _innerFilter.doFilter(json);
 		}

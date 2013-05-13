@@ -40,4 +40,12 @@ public class WeightedMFacetFloat extends MFacetFloat implements WeightedMFacet
   {
     return _weight[0];
   }
+  
+  public int getWeight(float target)
+  {
+    if(hasWeight(target))
+      return _weight[0];
+    else
+      return Integer.MIN_VALUE;
+  }
 }

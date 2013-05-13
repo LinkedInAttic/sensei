@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>com.senseidb</groupId>
 		<artifactId>sensei-parent</artifactId>
-		<version>1.5.1-SNAPSHOT</version>
+		<version>1.5.2-SNAPSHOT</version>
 		<relativePath>../../sensei-parent/pom.xml</relativePath>
 	</parent>
 
@@ -68,7 +68,7 @@
           <prefix>git</prefix>
           <dateFormat>dd.MM.yyyy '@' HH:mm:ss z</dateFormat>
           <verbose>true</verbose>
-          <dotGitDirectory>${project.basedir}/../.git</dotGitDirectory>
+          <dotGitDirectory>${project.basedir}/../../.git</dotGitDirectory>
           <generateGitPropertiesFile>true</generateGitPropertiesFile>
           <generateGitPropertiesFilename>src/main/resources/git.properties</generateGitPropertiesFilename>
         </configuration>

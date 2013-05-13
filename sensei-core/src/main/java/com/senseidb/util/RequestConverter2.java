@@ -31,6 +31,8 @@ import com.senseidb.search.req.SenseiJSONQuery;
 import com.senseidb.search.req.SenseiRequest;
 import com.senseidb.search.req.mapred.SenseiMapReduce;
 import com.senseidb.search.req.mapred.impl.MapReduceRegistry;
+import com.senseidb.util.JSONUtil.FastJSONArray;
+import com.senseidb.util.JSONUtil.FastJSONObject;
 
 
 public class RequestConverter2 {
@@ -230,6 +232,29 @@ public class RequestConverter2 {
           req.setMaxPerGroup(groupBy.optInt("top", groupBy.optInt("count", 1)));
         }
 
+      // distinct
+      JSONObject distinct = json.optJSONObject("distinct");
+      if (distinct != null)
+      {
+        JSONArray columns = distinct.optJSONArray("columns");
+        if (columns != null && columns.length() >= 1)
+        {
+          String[] distinctArray = new String[columns.length()];
+          for (int i=0; i<columns.length(); ++i)
+            distinctArray[i] = columns.getString(i);
+          if (distinctArray.length == 1 && req.getGroupBy() == null)
+          {
+            // rewrite to use group by
+            req.setGroupBy(distinctArray);
+            req.setMaxPerGroup(0);
+          }
+          else
+          {
+            req.setDistinct(distinctArray);
+          }
+        }
+      }
+
       // selections
       Object selections = json.opt(RequestConverter2.SELECTIONS);
       if (selections == null)
@@ -329,7 +354,7 @@ public class RequestConverter2 {
                     Object value = jsonParamValues.opt(RequestConverter2.FACETINIT_VALUES);
                     if (value != null)
                     {
-                      jsonValues = new JSONArray().put(value);
+                      jsonValues = new FastJSONArray().put(value);
                     }
                   }
                   if (jsonValues != null)

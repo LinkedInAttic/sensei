@@ -11,6 +11,8 @@ import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
 import com.senseidb.search.req.SenseiJSONQuery;
 import com.senseidb.search.req.SenseiQuery;
 import com.senseidb.search.req.SenseiRequest;
+import com.senseidb.util.JSONUtil.FastJSONArray;
+import com.senseidb.util.JSONUtil.FastJSONObject;
 
 public class BrowseRequestBuilder {
 	private SenseiRequest _req;
@@ -70,7 +72,7 @@ public class BrowseRequestBuilder {
 	}
 	
 	public void setQuery(String qString){
-		JSONObject qObj = new JSONObject();
+		JSONObject qObj = new FastJSONObject();
 		if (qString!=null){
 			try {
 				qObj.put("query", qString);

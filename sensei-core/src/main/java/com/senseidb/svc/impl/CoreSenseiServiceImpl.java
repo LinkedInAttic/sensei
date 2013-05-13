@@ -2,12 +2,15 @@ package com.senseidb.svc.impl;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.sensei.search.req.protobuf.SenseiReqProtoSerializer;
+import com.senseidb.search.req.*;
 import org.apache.log4j.Logger;
 import org.apache.lucene.search.Query;
 
@@ -22,6 +25,7 @@ import com.browseengine.bobo.api.BrowseHit;
 import com.browseengine.bobo.api.BrowseRequest;
 import com.browseengine.bobo.api.BrowseResult;
 import com.browseengine.bobo.api.MultiBoboBrowser;
+import com.browseengine.bobo.sort.SortCollector;
 import com.linkedin.norbert.network.JavaSerializer;
 import com.linkedin.norbert.network.Serializer;
 import com.senseidb.indexing.SenseiIndexPruner;
@@ -30,9 +34,6 @@ import com.senseidb.metrics.MetricsConstants;
 import com.senseidb.search.node.ResultMerger;
 import com.senseidb.search.node.SenseiCore;
 import com.senseidb.search.node.SenseiQueryBuilderFactory;
-import com.senseidb.search.req.SenseiHit;
-import com.senseidb.search.req.SenseiRequest;
-import com.senseidb.search.req.SenseiResult;
 import com.senseidb.search.req.mapred.impl.SenseiMapFunctionWrapper;
 import com.senseidb.util.RequestConverter;
 import com.yammer.metrics.Metrics;
@@ -47,6 +48,9 @@ public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiReque
 
 	public static final Serializer<SenseiRequest, SenseiResult> PROTO_SERIALIZER =
 			new SenseiReqProtoSerializer();
+
+  public static final Serializer<SenseiRequest, SenseiResult> PROTO_V2_SERIALIZER =
+      new SenseiSnappyProtoSerializer();
 
 	private static final Logger logger = Logger.getLogger(CoreSenseiServiceImpl.class);
 	
@@ -65,7 +69,7 @@ public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiReque
 		super(core);
 	}
 	
-	private SenseiResult browse(MultiBoboBrowser browser, BrowseRequest req, SubReaderAccessor<BoboIndexReader> subReaderAccessor) throws BrowseException
+	private SenseiResult browse(SenseiRequest senseiRequest, MultiBoboBrowser browser, BrowseRequest req, SubReaderAccessor<BoboIndexReader> subReaderAccessor) throws BrowseException
 	  {
 	    final SenseiResult result = new SenseiResult();
 
@@ -90,6 +94,7 @@ public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiReque
 	      result.setMapReduceResult(req.getMapReduceWrapper().getResult());
 	    }
 	    SenseiHit[] senseiHits = new SenseiHit[hits.length];
+      Set<String> selectSet = senseiRequest.getSelectSet();
 	    for (int i = 0; i < hits.length; i++)
 	    {
 	      BrowseHit hit = hits[i];
@@ -104,10 +109,37 @@ public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiReque
 	      senseiHit.setDocid(docid);
 	      senseiHit.setScore(hit.getScore());
 	      senseiHit.setComparable(hit.getComparable());
-	      senseiHit.setFieldValues(hit.getFieldValues());
-	      senseiHit.setRawFieldValues(hit.getRawFieldValues());
+        if (selectSet != null && selectSet.size() != 0)
+        {
+          // Clear the data those are not used:
+          if (hit.getFieldValues() != null)
+          {
+            Iterator<String> iter = hit.getFieldValues().keySet().iterator();
+            while (iter.hasNext())
+            {
+              if (!selectSet.contains(iter.next()))
+              {
+                iter.remove();
+              }
+            }
+          }
+          if (hit.getRawFieldValues() != null)
+          {
+            Iterator<String> iter = hit.getRawFieldValues().keySet().iterator();
+            while (iter.hasNext())
+            {
+              if (!selectSet.contains(iter.next()))
+              {
+                iter.remove();
+              }
+            }
+          }
+        }
+        senseiHit.setFieldValues(hit.getFieldValues());
+        senseiHit.setRawFieldValues(hit.getRawFieldValues());
 	      senseiHit.setStoredFields(hit.getStoredFields());
 	      senseiHit.setExplanation(hit.getExplanation());
+	      senseiHit.setGroupField(hit.getGroupField());
 	      senseiHit.setGroupValue(hit.getGroupValue());
 	      senseiHit.setRawGroupValue(hit.getRawGroupValue());
 	      senseiHit.setGroupHitsCount(hit.getGroupHitsCount());
@@ -155,45 +187,55 @@ public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiReque
 	    try
 	    {
           final List<BoboIndexReader> segmentReaders = BoboBrowser.gatherSubReaders(readerList);
-          if (segmentReaders!=null && segmentReaders.size()>0){
-        	final AtomicInteger skipDocs = new AtomicInteger(0);
+          if (segmentReaders!=null && segmentReaders.size() > 0) {
+            final AtomicInteger skipDocs = new AtomicInteger(0);
 
-        	List<BoboIndexReader> validatedSegmentReaders = timerMetric.time(new Callable<List<BoboIndexReader>>(){
+            final SenseiIndexPruner pruner = _core.getIndexPruner();
 
-				     @Override
-				     public List<BoboIndexReader> call() throws Exception {
-					      SenseiIndexPruner pruner = _core.getIndexPruner();
+            List<BoboIndexReader> validatedSegmentReaders = timerMetric.time(new Callable<List<BoboIndexReader>>(){
 
-		  	        IndexReaderSelector readerSelector = pruner.getReaderSelector(request);
-		  	        List<BoboIndexReader> validatedReaders = new ArrayList<BoboIndexReader>(segmentReaders.size());
-		        	  for (BoboIndexReader segmentReader : segmentReaders){
-		        		  if (readerSelector.isSelected(segmentReader)){
-		        			  validatedReaders.add(segmentReader);
-		        		  }
-		        		  else{
-		        			  skipDocs.addAndGet(segmentReader.numDocs());
-		        		  }
-		        	  }
-		        	  return validatedReaders;
-				      }
-        		
-        	});
-        	
-	        browser = new MultiBoboBrowser(BoboBrowser.createBrowsables(validatedSegmentReaders));
-	        BrowseRequest breq = RequestConverter.convert(request, queryBuilderFactory);
-	        if (request.getMapReduceFunction() != null) {
-	          SenseiMapFunctionWrapper mapWrapper = new SenseiMapFunctionWrapper(request.getMapReduceFunction(), _core.getSystemInfo().getFacetInfos());	        
-            breq.setMapReduceWrapper(mapWrapper);
-	        }	        
-          SubReaderAccessor<BoboIndexReader> subReaderAccessor =
-              ZoieIndexReader.getSubReaderAccessor(validatedSegmentReaders);
-	        SenseiResult res = browse(browser, breq, subReaderAccessor);
-	        int totalDocs = res.getTotalDocs()+skipDocs.get();
-	        res.setTotalDocs(totalDocs);
-	        return res;
+               @Override
+               public List<BoboIndexReader> call() throws Exception {
+                  IndexReaderSelector readerSelector = pruner.getReaderSelector(request);
+                  List<BoboIndexReader> validatedReaders = new ArrayList<BoboIndexReader>(segmentReaders.size());
+                  for (BoboIndexReader segmentReader : segmentReaders){
+                    if (readerSelector.isSelected(segmentReader)){
+                      validatedReaders.add(segmentReader);
+                    }
+                    else{
+                      skipDocs.addAndGet(segmentReader.numDocs());
+                    }
+                  }
+                  return validatedReaders;
+                }
+
+            });
+
+            pruner.sort(validatedSegmentReaders);
+
+            browser = new MultiBoboBrowser(BoboBrowser.createBrowsables(validatedSegmentReaders));
+            BrowseRequest breq = RequestConverter.convert(request, queryBuilderFactory);
+            if (request.getMapReduceFunction() != null) {
+              SenseiMapFunctionWrapper mapWrapper = new SenseiMapFunctionWrapper(request.getMapReduceFunction(), _core.getSystemInfo().getFacetInfos());
+              breq.setMapReduceWrapper(mapWrapper);
+            }
+            SubReaderAccessor<BoboIndexReader> subReaderAccessor =
+                ZoieIndexReader.getSubReaderAccessor(validatedSegmentReaders);
+            SenseiResult res = browse(request, browser, breq, subReaderAccessor);
+            int totalDocs = res.getTotalDocs()+skipDocs.get();
+            res.setTotalDocs(totalDocs);
+
+            // For debugging serialization issues:
+//            byte[] responseBytes = getSerializer().responseToBytes(res);
+//            SenseiResult response2 = getSerializer().responseFromBytes(responseBytes);
+//            if(!res.equals(response2)) {
+//              throw new IllegalArgumentException("Cant serialize response");
+//            }
+
+            return res;
           }
           else{
-        	return new SenseiResult();
+        	  return new SenseiResult();
           }
 	    } catch (Exception e)
 	    {
@@ -217,7 +259,24 @@ public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiReque
 	@Override
 	public SenseiResult mergePartitionedResults(SenseiRequest r,
 			List<SenseiResult> resultList) {
-		return ResultMerger.merge(r, resultList, true);
+    try
+    {
+      return ResultMerger.merge(r, resultList, true);
+    }
+    finally
+    {
+      if (resultList != null)
+      {
+        for (SenseiResult res : resultList)
+        {
+          SortCollector sortCollector = res.getSortCollector();
+          if (sortCollector != null)
+          {
+            sortCollector.close();
+          }
+        }
+      }
+    }
 	}
 
 	@Override
@@ -227,6 +286,6 @@ public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiReque
 
 	@Override
 	public Serializer<SenseiRequest, SenseiResult> getSerializer() {
-		 return PROTO_SERIALIZER;
+		 return PROTO_V2_SERIALIZER;
 	}
 }

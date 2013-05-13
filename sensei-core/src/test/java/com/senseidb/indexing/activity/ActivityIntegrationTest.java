@@ -99,7 +99,27 @@ public class ActivityIntegrationTest extends TestCase {
    
   
   }
- 
+  public void ntest1DSendUpdatesAndSortLong() throws Exception {
+      String req = "{ \"sort\":[{\"modifiedDate\":\"desc\"}]}";
+      JSONObject res = TestSensei.search(new JSONObject(req));
+      JSONArray hits = res.getJSONArray("hits");
+      assertEquals(Long.parseLong(hits.getJSONObject(0).getJSONArray("modifiedDate").getString(0)), 5000000001L);
+      assertEquals(Long.parseLong(hits.getJSONObject(1).getJSONArray("modifiedDate").getString(0)), 5000000000L);
+      for (int i = 0; i < 10; i++) {
+        FileDataProviderWithMocks.add(new JSONObject().put("id", i).put(SenseiSchema.EVENT_TYPE_FIELD, SenseiSchema.EVENT_TYPE_UPDATE).put("modifiedDate", "+1"));
+        expectedVersion++;
+      }
+      syncWithVersion(expectedVersion); 
+      req = "{\"selections\": [{\"range\": {\"modifiedDate\": {\"from\": 1, \"include_lower\": true}}}], \"sort\":[{\"modifiedDate\":\"desc\"}]}";
+      System.out.println("!!!search");
+      res = TestSensei.search(new JSONObject(req));
+      hits = res.getJSONArray("hits");   
+        assertEquals(Long.parseLong(hits.getJSONObject(0).getJSONArray("modifiedDate").getString(0)), 5000000002L);
+        assertEquals(Long.parseLong(hits.getJSONObject(1).getJSONArray("modifiedDate").getString(0)), 5000000001L);
+        assertEquals(res.getInt("numhits"), 10);
+     
+    
+    }
   private static void syncWithVersion(final long expectedVersion) {
     final CompositeActivityValues inMemoryColumnData1 = CompositeActivityManager.cachedInstances.get(1).activityValues;
     final CompositeActivityValues inMemoryColumnData2 = CompositeActivityManager.cachedInstances.get(2).activityValues;
@@ -134,6 +154,31 @@ public class ActivityIntegrationTest extends TestCase {
       }
     });
   }
+  public void test2bSendUpdatesAndSortLong() throws Exception {
+      String req = "{ \"sort\":[{\"modifiedDate\":\"desc\"}]}";
+      JSONObject res = TestSensei.search(new JSONObject(req));
+      JSONArray hits = res.getJSONArray("hits");
+      assertEquals(Long.parseLong(hits.getJSONObject(0).getJSONArray("modifiedDate").getString(0)), 5000000001L);
+      assertEquals(Long.parseLong(hits.getJSONObject(1).getJSONArray("modifiedDate").getString(0)), 5000000000L);
+      for (int i = 0; i < 10; i++) {
+        FileDataProviderWithMocks.add(new JSONObject().put("id", i).put(SenseiSchema.EVENT_TYPE_FIELD, SenseiSchema.EVENT_TYPE_UPDATE).put("modifiedDate", "+1"));
+        expectedVersion++;
+      }
+      syncWithVersion(expectedVersion); 
+      req = "{\"selections\": [{\"range\": {\"modifiedDate\": {\"from\": 1, \"include_lower\": true}}}], \"sort\":[{\"modifiedDate\":\"desc\"}]}";
+      System.out.println("!!!search");
+      res = TestSensei.search(new JSONObject(req));
+      hits = res.getJSONArray("hits");   
+        assertEquals(Long.parseLong(hits.getJSONObject(0).getJSONArray("modifiedDate").getString(0)), 5000000002L);
+        assertEquals(Long.parseLong(hits.getJSONObject(1).getJSONArray("modifiedDate").getString(0)), 5000000001L);
+        assertEquals(res.getInt("numhits"), 10);
+        req = "{\"selections\": [{\"range\": {\"modifiedDate\": {\"from\": 5000000002, \"include_lower\": true}}}], \"sort\":[{\"modifiedDate\":\"desc\"}]}";
+        System.out.println("!!!search");
+        res = TestSensei.search(new JSONObject(req));
+        //System.out.println("!!!"+ res.toString(1));
+        assertEquals(res.getInt("numhits"), 1);
+    }
+  
   public void test3AggregatesIntegrationTest() throws Exception {
     final CompositeActivityValues inMemoryColumnData1 = CompositeActivityManager.cachedInstances.get(1).activityValues;
     final CompositeActivityValues inMemoryColumnData2 = CompositeActivityManager.cachedInstances.get(2).activityValues;

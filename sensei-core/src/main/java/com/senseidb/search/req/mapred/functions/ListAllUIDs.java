@@ -1,12 +1,16 @@
-package com.senseidb.search.req.mapred;
+package com.senseidb.search.req.mapred.functions;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.senseidb.search.req.mapred.CombinerStage;
+import com.senseidb.search.req.mapred.FacetCountAccessor;
+import com.senseidb.search.req.mapred.FieldAccessor;
+import com.senseidb.search.req.mapred.SenseiMapReduce;
 import org.json.JSONObject;
 
-public class ListAllUIDs implements SenseiMapReduce<Serializable, Serializable>{
+public class ListAllUIDs implements SenseiMapReduce<Serializable, Serializable> {
 
   @Override
   public void init(JSONObject params) {
@@ -42,4 +46,9 @@ public class ListAllUIDs implements SenseiMapReduce<Serializable, Serializable>{
     return new JSONObject();
   }
 
+  @Override
+  public String[] getColumns()
+  {
+    return new String[0];
+  }
 }

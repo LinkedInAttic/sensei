@@ -5,6 +5,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
 
+import com.linkedin.norbert.network.Serializer;
+import com.senseidb.svc.impl.CoreSenseiServiceImpl;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.mortbay.jetty.Server;
 
@@ -44,8 +46,9 @@ public class SingleNodeStarter {
             shutdown();
           }
         });
-        PartitionedLoadBalancerFactory balancerFactory = new SenseiPartitionedLoadBalancerFactory(50);
-        BrokerConfig brokerConfig = new BrokerConfig(senseiConfiguration, balancerFactory);
+        PartitionedLoadBalancerFactory balancerFactory = new SenseiPartitionedLoadBalancerFactory(1000);
+        Serializer<SenseiRequest, SenseiResult> serializer = CoreSenseiServiceImpl.JAVA_SERIALIZER;
+        BrokerConfig brokerConfig = new BrokerConfig(senseiConfiguration, balancerFactory, serializer);
         brokerConfig.init();
         SenseiBroker senseiBroker = brokerConfig.buildSenseiBroker();
         while (true) {

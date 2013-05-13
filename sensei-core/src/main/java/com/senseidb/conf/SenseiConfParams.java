@@ -75,8 +75,9 @@ public interface SenseiConfParams {
 	public static final String SENSEI_BROKER_MAX_TOTAL_WAIT = "sensei.broker.maxTotalWait";
 	public static final String SENSEI_ACTIVITY_CONFIG = "sensei.activity.config";
 	public static final String SERVER_SEARCH_ROUTER_FACTORY = "sensei.search.router.factory";
+  public static final String SENSEI_SEARCH_SERIALIZER = "sensei.search.serializer";
 
-	public static final String SENSEI_INDEX_PRUNER = "sensei.index.pruner";
+  public static final String SENSEI_INDEX_PRUNER = "sensei.index.pruner";
 
 	public static final String SENSEI_ZOIE_RETENTION_DAYS = "sensei.indexing.retention.days";
   public static final String SENSEI_ZOIE_RETENTION_CLASS = "sensei.indexing.retention";
@@ -89,6 +90,8 @@ public interface SenseiConfParams {
 	public static final String SENSEI_INDEX_ACTIVITY_FILTER = "sensei.index.activity.filter";
 	public static final String SENSEI_INDEX_ACTIVITY_PURGE_FREQUENCY_HOURS = "sensei.index.activity.purge.hours";
 	public static final String SENSEI_INDEX_ACTIVITY_PURGE_FREQUENCY_MINUTES = "sensei.index.activity.purge.minutes";
+
+  public static final String SENSEI_SHUTDOWN_WAIT_FOR_CLIENT_MILLIS = "sensei.shutdown.wait.millis";
 	
 	public static final Comparator<String> DEFAULT_VERSION_STRING_COMPARATOR = new Comparator<String>(){
 		@Override

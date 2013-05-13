@@ -21,6 +21,8 @@ import com.senseidb.conf.SenseiSchema;
 import com.senseidb.conf.SenseiServerBuilder;
 import com.senseidb.indexing.DefaultJsonSchemaInterpreter;
 import com.senseidb.search.plugin.PluggableSearchEngineManager;
+import com.senseidb.util.JSONUtil.FastJSONArray;
+import com.senseidb.util.JSONUtil.FastJSONObject;
 
 public class SchemaIndexingExample{
   
@@ -46,7 +48,7 @@ public class SchemaIndexingExample{
       String line = br.readLine();
       if (line==null) break;
       
-      JSONObject obj = new JSONObject(line);
+      JSONObject obj = new FastJSONObject(line);
       ZoieIndexable indexable = defaultInterpreter.convertAndInterpret(obj);
       IndexingReq[] idxReqs = indexable.buildIndexingReqs();
       for (IndexingReq req : idxReqs){

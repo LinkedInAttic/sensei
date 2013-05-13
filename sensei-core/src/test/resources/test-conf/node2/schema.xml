@@ -28,10 +28,12 @@
 	<column name="mileage" type="int" />
 	<column name="likes" activity="true" />
 	<column name="reputation" type="float" activity="true" />
+	<column name="modifiedDate" type="long" activity="true" />
 	<!-- multi is default to be false, if set to true, delimiter is used to break the values,
 	     default delimiter is ","
 	 -->
 	<column name="tags" type="string" multi="true" delimiter=","/>
+        <column name="wtags" type="string" multi="true" delimiter=","/>
 	<column name="object_properties" type="string" multi="true" delimiter=","/>
 	<!-- attributes: indexed,store,termvector are only used when type is text -->
 	<column name="contents" type="text" index="ANALYZED" store="NO" termvector="NO" />
@@ -91,6 +93,7 @@
 		</params>
 	 </facet>
 	 <facet name="tags" type="multi" />
+	 <facet name="wtags" type="weighted-multi" /> 
 	 <facet name="object_properties" type="attribute" column="object_properties">
 	  <params>
 		<param name="numFacetsPerKey" value="5" />
@@ -114,6 +117,7 @@
 	 <facet name="groupid_range_multi" column="groupid_multi" type="range"/>
 	 <facet name="likes" type="range"/>	
 	 <facet name="reputation" type="range"/>
+	 <facet name="modifiedDate" type="range"/>
 	 <facet name="aggregated-likes" column="likes" type="aggregated-range">
 	 <params>
 		  <param name="time" value="5m" />

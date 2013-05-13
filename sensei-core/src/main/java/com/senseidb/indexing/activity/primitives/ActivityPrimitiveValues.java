@@ -94,7 +94,9 @@ public abstract class ActivityPrimitiveValues implements ActivityValues {
       values = new ActivityIntValues();
     } else if (type == float.class || type == double.class) {
       values = new ActivityFloatValues();
-    } else
+    } else if (type == long.class) {
+        values = new ActivityLongValues();
+      } else
       throw new UnsupportedOperationException("Class " + type + " is not supported");
     ActivityPrimitivesStorage primitivesStorage = activityPersistenceFactory.getActivivityPrimitivesStorage(fieldName);
     values.fieldName = fieldName;

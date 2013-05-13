@@ -3,6 +3,7 @@ package com.senseidb.search.req;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -50,9 +51,11 @@ private long   tid           =          -1;
   private String _routeParam;
 	private String _groupBy;  // TODO: Leave here for backward compatible reason, will remove it later.
 	private String[] _groupByMulti;
+	private String[] _distinct;
   private int _maxPerGroup;
   private Set<String> _termVectorsToFetch;
   private List<String> _selectList; // Select list (mostly used in BQL) 
+  private transient Set<String> _selectSet;
   private SenseiMapReduce mapReduceFunction;
   private List<SenseiError> errors;
   
@@ -68,9 +71,11 @@ private long   tid           =          -1;
     _routeParam = null;
     _groupBy = null;
     _groupByMulti = null;
+    _distinct = null;
     _maxPerGroup = 0;
     _termVectorsToFetch = null;
     _selectList = null;
+    _selectSet = null;
   }
 
   public Set<String> getTermVectorsToFetch(){
@@ -125,7 +130,8 @@ private long   tid           =          -1;
     if (_routeParam != null)
       return _routeParam;
 
-    return String.valueOf(_rand.nextInt());
+    _routeParam = String.valueOf(_rand.nextInt());
+    return _routeParam;
   }
 
   public void setGroupBy(String[] groupBy)
@@ -141,6 +147,16 @@ private long   tid           =          -1;
       _groupByMulti = new String[]{_groupBy};
 
 		return _groupByMulti;
+  }
+
+  public void setDistinct(String[] distinct)
+  {
+    _distinct = distinct;
+  }
+
+  public String[] getDistinct()
+  {
+    return _distinct;
   }
 
   public void setMaxPerGroup(int maxPerGroup)
@@ -432,6 +448,7 @@ private long   tid           =          -1;
   public void setSelectList(List<String> selectList)
   {
     _selectList = selectList;
+    _selectSet = null;
   }
 
   /**
@@ -441,6 +458,17 @@ private long   tid           =          -1;
   public List<String> getSelectList()
   {
     return _selectList;
+  }
+
+  public Set<String> getSelectSet()
+  {
+    if (_selectSet == null &&
+        _selectList != null &&
+        !(_selectList.size() == 1 && "*".equals(_selectList.get(0))))
+    {
+      _selectSet = new HashSet<String>(_selectList);
+    }
+    return _selectSet;
   }
   
   /** Represents sorting by document score (relevancy). */
@@ -463,8 +491,8 @@ private long   tid           =          -1;
       buf.append("selections: ").append(_selections).append('\n');
     if(_facetSpecMap != null)
       buf.append("facet spec: ").append(_facetSpecMap).append('\n');
-    if (_routeParam != null)
-      buf.append("route param: ").append(_routeParam).append('\n');
+//    if (_routeParam != null)
+      buf.append("route param: ").append(getRouteParam()).append('\n');
     if (_groupBy != null)
       buf.append("group by: ").append(_groupBy).append('\n');
     buf.append("max per group: ").append(_maxPerGroup).append('\n');
@@ -502,9 +530,12 @@ private long   tid           =          -1;
     clone.setShowExplanation(this.isShowExplanation());
     clone.setRouteParam(this.getRouteParam());
     clone.setGroupBy(this.getGroupBy());
+    clone.setDistinct(this.getDistinct());
     clone.setMaxPerGroup(this.getMaxPerGroup());
     clone.setTermVectorsToFetch(this.getTermVectorsToFetch());
-    clone.setSelectList(this.getSelectList());
+    if (this.getSelectList() != null) {
+      clone.setSelectList(new ArrayList<String>(this.getSelectList()));
+    }
     clone.setMapReduceFunction(this.getMapReduceFunction());
 
     return clone;
@@ -530,7 +561,7 @@ private long   tid           =          -1;
       if (b.getGroupBy() != null) return false;
     }
     else {
-      if (!getGroupBy().equals(b.getGroupBy())) return false;
+      if(!Arrays.equals(getGroupBy(), b.getGroupBy())) return false;
     }
     if (getMaxPerGroup() != b.getMaxPerGroup())
       return false;
@@ -549,8 +580,10 @@ private long   tid           =          -1;
 
     for (Entry<String,FacetHandlerInitializerParam> entry : a.entrySet()) {
       String key = entry.getKey();
-      if (!b.containsKey(key)) return false;
-      if (!areFacetHandlerInitializerParamsEqual(entry.getValue(), b.get(key))) return false;
+      if (!b.containsKey(key))
+        return false;
+      if (!areFacetHandlerInitializerParamsEqual(entry.getValue(), b.get(key)))
+        return false;
     }
 
     return true;

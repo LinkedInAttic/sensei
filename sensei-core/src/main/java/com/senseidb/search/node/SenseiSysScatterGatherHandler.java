@@ -18,9 +18,9 @@ public class SenseiSysScatterGatherHandler extends AbstractSenseiScatterGatherHa
 
   private final Comparator<String> _versionComparator;
 
-  public SenseiSysScatterGatherHandler(SenseiRequest request, Comparator<String> versionComparator)
+  public SenseiSysScatterGatherHandler(SenseiRequest request, Comparator<String> versionComparator, long timeoutMillis)
   {
-      super(request);
+      super(request, timeoutMillis);
       _versionComparator = versionComparator;
   }
 
