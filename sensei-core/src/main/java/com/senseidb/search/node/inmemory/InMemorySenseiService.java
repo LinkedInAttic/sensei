@@ -8,6 +8,7 @@ import java.util.List;
 
 import javax.management.MBeanServer;
 
+import com.browseengine.bobo.facets.filter.AdaptiveFacetFilter;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
@@ -33,7 +34,6 @@ import proj.zoie.impl.indexing.ZoieConfig;
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.facets.RuntimeFacetHandlerFactory;
-import com.senseidb.conf.SenseiConfParams;
 import com.senseidb.conf.SenseiFacetHandlerBuilder;
 import com.senseidb.conf.SenseiSchema;
 import com.senseidb.conf.SenseiServerBuilder;
@@ -79,7 +79,7 @@ public class InMemorySenseiService {
       pluggableSearchEngineManager = new PluggableSearchEngineManager();
       pluggableSearchEngineManager.init("", 0, schema, ZoieConfig.DEFAULT_VERSION_COMPARATOR, pluginRegistry, strategy);
       senseiSystemInfo = SenseiFacetHandlerBuilder.buildFacets(schema.getSchemaObj(), pluginRegistry, facets, runtimeFacets,
-          pluggableSearchEngineManager);
+          pluggableSearchEngineManager, AdaptiveFacetFilter.DEFAULT_INVERTED_INDEX_PENALTY);
 
       int[] partitions = new int[] { 0 };
        senseiIndexReaderDecorator = new SenseiIndexReaderDecorator(facets, runtimeFacets);

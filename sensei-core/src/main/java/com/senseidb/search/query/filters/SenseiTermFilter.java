@@ -165,7 +165,7 @@ public class SenseiTermFilter extends Filter {
         
       }
       else{
-        if (logger.isDebugEnabled()){
+        if (logger.isDebugEnabled()) {
           logger.debug("not facet support, default to term filter: "+_name);
         }
         return buildLuceneDefaultDocIdSet(boboReader,_name,_vals,_not,_isAnd);
