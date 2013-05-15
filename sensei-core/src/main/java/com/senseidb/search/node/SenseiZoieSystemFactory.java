@@ -52,11 +52,12 @@ public class SenseiZoieSystemFactory<T> extends SenseiZoieFactory<T>
     }
     
     DirectoryManager dirMgr = new DefaultDirectoryManager(partDir, _dirMode);
-    ZoieSystem<BoboIndexReader,T> zoie = new ZoieSystem<BoboIndexReader,T>(dirMgr, _interpreter, _indexReaderDecorator, _zoieConfig);
-    if (_purgeFilter!=null){
-      zoie.setPurgeFilter(_purgeFilter);
+
+    if(_purgeFilter != null) {
+      _zoieConfig.setPurgeFilter(_purgeFilter);
     }
-    
+    ZoieSystem<BoboIndexReader,T> zoie = new ZoieSystem<BoboIndexReader,T>(dirMgr, _interpreter, _indexReaderDecorator, _zoieConfig);
+
     metricsMap.put(partitionId, new IndexingMetrics(partitionId));
     
     zoie.addIndexingEventListener(new IndexingEventListener() {

@@ -46,12 +46,16 @@ public class SenseiHourglassFactory<T> extends SenseiZoieFactory<T>
    * @param activityManager 
    */
   @SuppressWarnings("rawtypes")
-  public SenseiHourglassFactory(File idxDir, DIRECTORY_MODE dirMode,ZoieIndexableInterpreter<T> interpreter, SenseiIndexReaderDecorator indexReaderDecorator,
-                                 ZoieConfig zoieConfig,
-                                 String schedule,
-                                 boolean appendOnly,
-                                 int trimThreshold,
-                                 FREQUENCY frequency, List<HourglassListener> hourglassListeners)
+  public SenseiHourglassFactory(File idxDir,
+                                DIRECTORY_MODE dirMode,
+                                ZoieIndexableInterpreter<T> interpreter,
+                                SenseiIndexReaderDecorator indexReaderDecorator,
+                                ZoieConfig zoieConfig,
+                                String schedule,
+                                boolean appendOnly,
+                                int trimThreshold,
+                                FREQUENCY frequency,
+                                List<HourglassListener> hourglassListeners)
   {
     super(idxDir,dirMode,interpreter,indexReaderDecorator,zoieConfig);
     this.schedule = schedule;
@@ -75,10 +79,10 @@ public class SenseiHourglassFactory<T> extends SenseiZoieFactory<T>
     // format "ss mm hh" meaning at hh:mm:ss time of the day, we roll forward for DAILY rolling
     // if it is hourly rolling, it means at mm:ss time of the hour, we roll forward
     // if it is MINUTELY, it means at ss seond of the minute, we roll forward.
+    ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1);
     HourGlassScheduler scheduler = new HourGlassScheduler(frequency, schedule, appendOnly, trimThreshold);
     HourglassDirectoryManagerFactory dirmgr = new HourglassDirectoryManagerFactory(partDir, scheduler,_dirMode);
     log.info("creating Hourglass for nodeId: " + nodeId + " partition: " + partitionId);
-    ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1);
     return new Hourglass<BoboIndexReader,T>(dirmgr, _interpreter, _indexReaderDecorator, _zoieConfig, hourglassListeners, executor);
   }
   

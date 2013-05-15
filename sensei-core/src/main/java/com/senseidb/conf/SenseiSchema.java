@@ -211,7 +211,10 @@ public class SenseiSchema {
               } else if (t.equals("string")) {
                   fdef.formatter = null;
               } else if (t.equals("boolean")) {
-                  fdef.formatter = null;
+                MetaType metaType = DefaultSenseiInterpreter.CLASS_METATYPE_MAP.get(boolean.class);
+                String formatString = DefaultSenseiInterpreter.DEFAULT_FORMAT_STRING_MAP.get(metaType);
+
+                fdef.type = boolean.class;
               } else if (t.equals("date")) {
 
                   String f = "";

@@ -84,6 +84,12 @@ public interface SenseiConfParams {
 	public static final String SENSEI_ZOIE_RETENTION_DAYS = "sensei.indexing.retention.days";
   public static final String SENSEI_ZOIE_RETENTION_CLASS = "sensei.indexing.retention";
 
+  // An alternative to the sensei.zoie.retention configuration where you need a more advanced retention policy
+  public static final String SENSEI_ZOIE_RETENTION_FILTER = "sensei.indexing.retention.filter";
+  public static final String SENSEI_ZOIE_RETENTION_DELETIONS_BEFORE_OPTIMIZE = "sensei.indexing.retention.optimize.deletions";
+  public static final String SENSEI_ZOIE_RETENTION_PURGE_PERIOD = "sensei.indexing.retention.purge.period";
+
+
   public static final String SENSEI_ZOIE_RETENTION_COLUMN = "sensei.indexing.retention.column";
   public static final String SENSEI_ZOIE_RETENTION_TIMEUNIT = "sensei.index.retention.column.timeunit";
 
