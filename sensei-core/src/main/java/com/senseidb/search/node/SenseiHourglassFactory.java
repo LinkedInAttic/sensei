@@ -2,6 +2,7 @@ package com.senseidb.search.node;
 
 import java.io.File;
 import java.util.List;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 import org.apache.log4j.Logger;
 
@@ -77,7 +78,8 @@ public class SenseiHourglassFactory<T> extends SenseiZoieFactory<T>
     HourGlassScheduler scheduler = new HourGlassScheduler(frequency, schedule, appendOnly, trimThreshold);
     HourglassDirectoryManagerFactory dirmgr = new HourglassDirectoryManagerFactory(partDir, scheduler,_dirMode);
     log.info("creating Hourglass for nodeId: " + nodeId + " partition: " + partitionId);
-    return new Hourglass<BoboIndexReader,T>(dirmgr, _interpreter, _indexReaderDecorator, _zoieConfig, hourglassListeners);
+    ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1);
+    return new Hourglass<BoboIndexReader,T>(dirmgr, _interpreter, _indexReaderDecorator, _zoieConfig, hourglassListeners, executor);
   }
   
   // TODO: change to getDirectoryManager

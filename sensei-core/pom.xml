@@ -188,9 +188,9 @@
 		</dependency>
 		
 		<dependency>
-			<groupId>com.linkedin.zoie</groupId>
+			<groupId>com.senseidb.zoie</groupId>
 			<artifactId>zoie-jms</artifactId>
-			<version>3.2.1-SNAPSHOT</version>
+			<version>3.2.2-SNAPSHOT</version>
 			<exclusions>
 				<exclusion>
 					<groupId>fastutil</groupId>
