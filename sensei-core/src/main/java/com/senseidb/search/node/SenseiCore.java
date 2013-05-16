@@ -261,6 +261,12 @@ public class SenseiCore{
     return zoieSystems;
   }
 
+  public int getNumZoieSystems()
+  {
+    return zoieSystems.size();
+  }
+  
+  // Export snapshot from zoie to list of channels.
   public void exportSnapshot(List<WritableByteChannel> channels) throws IOException
   {
     Preconditions.checkNotNull(channels);
@@ -288,6 +294,7 @@ public class SenseiCore{
     }
   }
 
+  // Import snapshot to zoie from list of channels.
   public void importSnapshot(List<ReadableByteChannel> channels) throws IOException
   {
     Preconditions.checkNotNull(channels);

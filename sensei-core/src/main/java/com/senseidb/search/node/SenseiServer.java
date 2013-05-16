@@ -119,6 +119,10 @@ public class SenseiServer {
     return _core.getZoieSystems();
   }
 
+  public int getNumZoieSystems()
+  {
+    return _core.getNumZoieSystems();
+  }
 
   public void importSnapshot(List<ReadableByteChannel> channels) throws IOException
   {
@@ -129,7 +133,7 @@ public class SenseiServer {
   {
     _core.exportSnapshot(channels);
   }
-  
+
   public DataProvider getDataProvider()
   {
     return _core.getDataProvider();
@@ -158,6 +162,15 @@ public class SenseiServer {
     return new SenseiNodeInfo(_id, _partitions, _serverNode.getUrl(), adminLink.toString());
   }
   */
+  
+  public String generateSignature()
+  {
+      StringBuffer sb = new StringBuffer();
+      sb.append(_core.getSystemInfo().getSchema());
+      sb.append("-p").append(_core.getNodeId());
+      sb.append("-v").append(_core.getSystemInfo().getVersion());
+      return sb.toString();
+  }
 
   public void shutdown(){
     try {
