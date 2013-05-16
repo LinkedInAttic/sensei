@@ -671,7 +671,14 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
       super.destroy();
     }
   }
-  
+
+  /**
+   * This class is a hack to allow the servlet to export the broker components
+   * to outside services. Since this components are instantiated here as part 
+   * of the servlet initialization, it is a workaround to expose it through a 
+   * placed holder instance injected via ServletContext by the builder of this
+   * servlet and its container. 
+   */
   public static class SenseiBrokerExport {
     public AbstractSenseiClientServlet servlet;
     public ClusterClient clusterClient;
