@@ -21,7 +21,7 @@ package com.senseidb.search.node;
 import java.io.IOException;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -256,7 +256,7 @@ public class SenseiCore{
     return _queryBuilderFactory;
   }
   
-  public HashSet<Zoie<BoboIndexReader, ?>> getZoieSystems()
+  public Collection<Zoie<BoboIndexReader, ?>> getZoieSystems()
   {
     return zoieSystems;
   }

@@ -26,6 +26,7 @@ import java.net.UnknownHostException;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 
@@ -114,7 +115,7 @@ public class SenseiServer {
     return buffer.toString();
   }
 
-  public HashSet<Zoie<BoboIndexReader, ?>> getZoieSystems()
+  public Collection<Zoie<BoboIndexReader, ?>> getZoieSystems()
   {
     return _core.getZoieSystems();
   }
