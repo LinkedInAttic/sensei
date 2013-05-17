@@ -20,9 +20,13 @@ package com.senseidb.search.node;
 
 import com.senseidb.metrics.MetricFactory;
 import java.io.File;
+import java.io.IOException;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.nio.channels.ReadableByteChannel;
+import java.nio.channels.WritableByteChannel;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 
@@ -32,7 +36,9 @@ import org.apache.log4j.Logger;
 import org.mortbay.jetty.Server;
 
 import proj.zoie.api.DataProvider;
+import proj.zoie.api.Zoie;
 
+import com.browseengine.bobo.api.BoboIndexReader;
 import com.linkedin.norbert.javacompat.cluster.ClusterClient;
 import com.linkedin.norbert.javacompat.cluster.Node;
 import com.linkedin.norbert.javacompat.network.NetworkServer;
@@ -109,11 +115,25 @@ public class SenseiServer {
     return buffer.toString();
   }
 
-  /*
-  public Collection<Zoie<BoboIndexReader,?,?>> getZoieSystems(){
-    return _core.zoieSystems;
+  public Collection<Zoie<BoboIndexReader, ?>> getZoieSystems()
+  {
+    return _core.getZoieSystems();
   }
-  */
+
+  public int getNumZoieSystems()
+  {
+    return _core.getNumZoieSystems();
+  }
+
+  public void importSnapshot(List<ReadableByteChannel> channels) throws IOException
+  {
+    _core.importSnapshot(channels);
+  }
+
+  public void exportSnapshot(List<WritableByteChannel> channels) throws IOException
+  {
+    _core.exportSnapshot(channels);
+  }
 
   public DataProvider getDataProvider()
   {
@@ -143,6 +163,15 @@ public class SenseiServer {
     return new SenseiNodeInfo(_id, _partitions, _serverNode.getUrl(), adminLink.toString());
   }
   */
+  
+  public String generateSignature()
+  {
+      StringBuffer sb = new StringBuffer();
+      sb.append(_core.getSystemInfo().getSchema());
+      sb.append("-p").append(_core.getNodeId());
+      sb.append("-v").append(_core.getSystemInfo().getVersion());
+      return sb.toString();
+  }
 
   public void shutdown(){
     try {

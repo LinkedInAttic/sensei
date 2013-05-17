@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -111,6 +112,7 @@ import com.senseidb.search.relevance.ModelStorage;
 import com.senseidb.search.req.AbstractSenseiRequest;
 import com.senseidb.search.req.AbstractSenseiResult;
 import com.senseidb.search.req.SenseiSystemInfo;
+import com.senseidb.servlet.AbstractSenseiClientServlet;
 import com.senseidb.servlet.DefaultSenseiJSONServlet;
 import com.senseidb.servlet.SenseiConfigServletContextListener;
 import com.senseidb.servlet.SenseiHttpInvokerServiceServlet;
@@ -223,6 +225,7 @@ public class SenseiServerBuilder implements SenseiConfParams {
         //}
         //senseiApp.setInitParams(initParam);
         senseiApp.setAttribute("sensei.search.configuration", _senseiConf);
+        senseiApp.setAttribute("sensei.broker.export", new AbstractSenseiClientServlet.SenseiBrokerExport());
         senseiApp.setAttribute(SenseiConfigServletContextListener.SENSEI_CONF_PLUGIN_REGISTRY, pluginRegistry);
         senseiApp.setAttribute("sensei.search.version.comparator", _gateway.getVersionComparator());
 
