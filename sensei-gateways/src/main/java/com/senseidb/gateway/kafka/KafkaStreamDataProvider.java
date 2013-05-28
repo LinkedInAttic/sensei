@@ -131,9 +131,15 @@ public class KafkaStreamDataProvider extends StreamDataProvider<JSONObject>{
   @Override
   public void start() {
     Properties props = new Properties();
+
+    // remove after kafka 0.8 migration is finished
     props.put("zk.connect", _zookeeperUrl);
     //props.put("consumer.timeout.ms", _kafkaSoTimeout);
     props.put("groupid", _consumerGroupId);
+
+    // kafka 0.8 configs
+    props.put("zookeeper.connect", _zookeeperUrl);
+    props.put("group.id", _consumerGroupId);
 
     for (String key : _kafkaConfig.stringPropertyNames()) {
       props.put(key, _kafkaConfig.getProperty(key));

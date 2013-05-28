@@ -39,7 +39,7 @@ public interface SenseiConfParams {
 	public static final String SENSEI_INDEX_ANALYZER = "sensei.index.analyzer";
 	public static final String SENSEI_INDEX_SIMILARITY = "sensei.index.similarity";
 	public static final String SENSEI_INDEX_INTERPRETER = "sensei.index.interpreter";
-    public static final String SENSEI_INDEX_CUSTOM = "sensei.index.custom";
+  public static final String SENSEI_INDEX_CUSTOM = "sensei.index.custom";
 	public static final String SENSEI_QUERY_BUILDER_FACTORY = "sensei.query.builder.factory";
   public static final String SENSEI_SHARDING_STRATEGY = "sensei.sharding.strategy";
 	public static final String SENSEI_INDEX_MANAGER = "sensei.index.manager";
@@ -76,6 +76,8 @@ public interface SenseiConfParams {
 	public static final String SENSEI_ACTIVITY_CONFIG = "sensei.activity.config";
 	public static final String SERVER_SEARCH_ROUTER_FACTORY = "sensei.search.router.factory";
   public static final String SENSEI_SEARCH_SERIALIZER = "sensei.search.serializer";
+
+  public static final String SENSEI_SEARCH_INVERTED_INDEX_PENALTY = "sensei.search.inverted.penalty";
 
   public static final String SENSEI_INDEX_PRUNER = "sensei.index.pruner";
 

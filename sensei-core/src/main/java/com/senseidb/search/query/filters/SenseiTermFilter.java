@@ -3,6 +3,7 @@ package com.senseidb.search.query.filters;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.apache.lucene.index.IndexReader;
@@ -41,6 +42,9 @@ public class SenseiTermFilter extends Filter {
     _name = name;
     _vals = vals != null  ? vals : new String[0];
     _not = not != null  ? not : new String[0];
+
+    Arrays.sort(_vals);
+    Arrays.sort(_not);
     _isAnd = isAnd;
     _noAutoOptimize = noAutoOptimize;
   }
@@ -139,10 +143,16 @@ public class SenseiTermFilter extends Filter {
           TermValueList valArray = facetData.valArray;
           // copy vals
           ArrayList<String> validVals = new ArrayList<String>(_vals.length);
+
+          int offset = 0;
           for (String val : _vals){
-            int idx = valArray.indexOf(val);
-            if (idx>=0){
-            validVals.add(valArray.get(idx));    // get and format the value
+            int idx = valArray.indexOfWithOffset(val, offset);
+
+            if (idx >=0) {
+              validVals.add(valArray.get(idx));    // get and format the value
+              offset = idx;
+            } else {
+              offset = -idx - 1;
             }
           }
           return buildLuceneDefaultDocIdSet(boboReader, _name, validVals.toArray(new String[0]),_not,_isAnd);
@@ -165,7 +175,7 @@ public class SenseiTermFilter extends Filter {
         
       }
       else{
-        if (logger.isDebugEnabled()){
+        if (logger.isDebugEnabled()) {
           logger.debug("not facet support, default to term filter: "+_name);
         }
         return buildLuceneDefaultDocIdSet(boboReader,_name,_vals,_not,_isAnd);
