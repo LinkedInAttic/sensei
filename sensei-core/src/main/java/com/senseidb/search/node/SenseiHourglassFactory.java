@@ -2,6 +2,7 @@ package com.senseidb.search.node;
 
 import java.io.File;
 import java.util.List;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 import org.apache.log4j.Logger;
 
@@ -74,6 +75,7 @@ public class SenseiHourglassFactory<T> extends SenseiZoieFactory<T>
     // format "ss mm hh" meaning at hh:mm:ss time of the day, we roll forward for DAILY rolling
     // if it is hourly rolling, it means at mm:ss time of the hour, we roll forward
     // if it is MINUTELY, it means at ss seond of the minute, we roll forward.
+    ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1);
     HourGlassScheduler scheduler = new HourGlassScheduler(frequency, schedule, appendOnly, trimThreshold);
     HourglassDirectoryManagerFactory dirmgr = new HourglassDirectoryManagerFactory(partDir, scheduler,_dirMode);
     log.info("creating Hourglass for nodeId: " + nodeId + " partition: " + partitionId);
