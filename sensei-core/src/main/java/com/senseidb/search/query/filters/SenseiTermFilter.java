@@ -146,7 +146,7 @@ public class SenseiTermFilter extends Filter {
 
           int offset = 0;
           for (String val : _vals){
-            int idx = valArray.indexOfWithOffset(val, offset);
+            int idx = valArray.indexOf(val);
 
             if (idx >=0) {
               validVals.add(valArray.get(idx));    // get and format the value
