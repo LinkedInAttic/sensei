@@ -548,35 +548,30 @@ public class SenseiServerBuilder implements SenseiConfParams{
     if (SENSEI_INDEXER_TYPE_ZOIE.equals(indexerType)) {
       SenseiZoieSystemFactory senseiZoieFactory = new SenseiZoieSystemFactory(idxDir,dirMode,interpreter,decorator, zoieConfig);
 
-      if(zoieConfig.getPurgeFilter() != null) {
-        senseiZoieFactory.setPurgeFilter(zoieConfig.getPurgeFilter());
-      } else {
-        int retentionDays = _senseiConf.getInt(SENSEI_ZOIE_RETENTION_DAYS,-1);
-        if (retentionDays>0) {
-          RetentionFilterFactory retentionFilterFactory = pluginRegistry.getBeanByFullPrefix(SENSEI_ZOIE_RETENTION_CLASS, RetentionFilterFactory.class);
-          Filter purgeFilter = null;
-          if (retentionFilterFactory!=null){
-            purgeFilter = retentionFilterFactory.buildRetentionFilter(retentionDays);
-          }
-          else{
-            String timeColumn = _senseiConf.getString(SENSEI_ZOIE_RETENTION_COLUMN, null);
-            if (timeColumn==null){
-              throw new ConfigurationException("Retention specified without a time column");
-            }
-            String unitString = _senseiConf.getString(SENSEI_ZOIE_RETENTION_TIMEUNIT,"seconds");
-            TimeUnit unit = TimeUnit.valueOf(unitString.toUpperCase());
-            if (unit == null){
-              throw new ConfigurationException("Invalid timeunit for retention: "+unitString);
-            }
-            purgeFilter = new TimeRetentionFilter(timeColumn, retentionDays, unit);
-          }
-          if (purgeFilter != null && pluggableSearchEngineManager != null) {
-            purgeFilter = new PurgeFilterWrapper(purgeFilter, pluggableSearchEngineManager);
-          }
-          senseiZoieFactory.setPurgeFilter(purgeFilter);
+      int retentionDays = _senseiConf.getInt(SENSEI_ZOIE_RETENTION_DAYS,-1);
+      if (retentionDays>0) {
+        RetentionFilterFactory retentionFilterFactory = pluginRegistry.getBeanByFullPrefix(SENSEI_ZOIE_RETENTION_CLASS, RetentionFilterFactory.class);
+        Filter purgeFilter = null;
+        if (retentionFilterFactory!=null){
+          purgeFilter = retentionFilterFactory.buildRetentionFilter(retentionDays);
         }
-        zoieSystemFactory = senseiZoieFactory;
+        else{
+          String timeColumn = _senseiConf.getString(SENSEI_ZOIE_RETENTION_COLUMN, null);
+          if (timeColumn==null){
+            throw new ConfigurationException("Retention specified without a time column");
+          }
+          String unitString = _senseiConf.getString(SENSEI_ZOIE_RETENTION_TIMEUNIT,"seconds");
+          TimeUnit unit = TimeUnit.valueOf(unitString.toUpperCase());
+          if (unit == null){
+            throw new ConfigurationException("Invalid timeunit for retention: "+unitString);
+          }
+          purgeFilter = new TimeRetentionFilter(timeColumn, retentionDays, unit);
+        }
+        if (purgeFilter != null && pluggableSearchEngineManager != null) {
+          purgeFilter = new PurgeFilterWrapper(purgeFilter, pluggableSearchEngineManager);
+        }
       }
+      zoieSystemFactory = senseiZoieFactory;
     }
     else if (SENSEI_INDEXER_TYPE_HOURGLASS.equals(indexerType)) {
       String schedule = _senseiConf.getString(SENSEI_HOURGLASS_SCHEDULE,"" );

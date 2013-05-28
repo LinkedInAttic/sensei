@@ -27,18 +27,13 @@ import com.yammer.metrics.core.MetricName;
 public class SenseiZoieSystemFactory<T> extends SenseiZoieFactory<T>
 {
   private static Logger log = Logger.getLogger(SenseiZoieSystemFactory.class);
-  private Filter _purgeFilter = null;
-  
+
   private Map<Integer,IndexingMetrics> metricsMap = new HashMap<Integer,IndexingMetrics>(); 
   
   public SenseiZoieSystemFactory(File idxDir,DIRECTORY_MODE dirMode, ZoieIndexableInterpreter<T> interpreter, SenseiIndexReaderDecorator indexReaderDecorator,
                                  ZoieConfig zoieConfig)
   {
     super(idxDir,dirMode,interpreter,indexReaderDecorator,zoieConfig);
-  }
-  
-  public void setPurgeFilter(Filter purgeFilter){
-    _purgeFilter = purgeFilter;
   }
   
   @Override
@@ -53,9 +48,6 @@ public class SenseiZoieSystemFactory<T> extends SenseiZoieFactory<T>
     
     DirectoryManager dirMgr = new DefaultDirectoryManager(partDir, _dirMode);
 
-    if(_purgeFilter != null) {
-      _zoieConfig.setPurgeFilter(_purgeFilter);
-    }
     ZoieSystem<BoboIndexReader,T> zoie = new ZoieSystem<BoboIndexReader,T>(dirMgr, _interpreter, _indexReaderDecorator, _zoieConfig);
 
     metricsMap.put(partitionId, new IndexingMetrics(partitionId));
