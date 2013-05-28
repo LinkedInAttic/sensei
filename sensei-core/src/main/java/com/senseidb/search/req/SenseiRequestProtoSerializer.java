@@ -684,11 +684,11 @@ public class SenseiRequestProtoSerializer implements Serializer<SenseiRequest, S
         }
       }
       default: {
-          Object[] result = new Object[objectArray.getObjectValueCount()];
-          for(int i = 0; i < result.length; i++) {
-              result[i] = javaDeserialize(objectArray.getObjectValue(i));
-          }
-          return result;
+        Object[] result = new Object[objectArray.getObjectValueCount()];
+        for(int i = 0; i < result.length; i++) {
+          result[i] = javaDeserialize(objectArray.getObjectValue(i));
+        }
+        return result;
       }
     }
   }

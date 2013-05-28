@@ -46,12 +46,16 @@ public class SenseiHourglassFactory<T> extends SenseiZoieFactory<T>
    * @param activityManager 
    */
   @SuppressWarnings("rawtypes")
-  public SenseiHourglassFactory(File idxDir, DIRECTORY_MODE dirMode,ZoieIndexableInterpreter<T> interpreter, SenseiIndexReaderDecorator indexReaderDecorator,
-                                 ZoieConfig zoieConfig,
-                                 String schedule,
-                                 boolean appendOnly,
-                                 int trimThreshold,
-                                 FREQUENCY frequency, List<HourglassListener> hourglassListeners)
+  public SenseiHourglassFactory(File idxDir,
+                                DIRECTORY_MODE dirMode,
+                                ZoieIndexableInterpreter<T> interpreter,
+                                SenseiIndexReaderDecorator indexReaderDecorator,
+                                ZoieConfig zoieConfig,
+                                String schedule,
+                                boolean appendOnly,
+                                int trimThreshold,
+                                FREQUENCY frequency,
+                                List<HourglassListener> hourglassListeners)
   {
     super(idxDir,dirMode,interpreter,indexReaderDecorator,zoieConfig);
     this.schedule = schedule;
@@ -79,7 +83,7 @@ public class SenseiHourglassFactory<T> extends SenseiZoieFactory<T>
     HourGlassScheduler scheduler = new HourGlassScheduler(frequency, schedule, appendOnly, trimThreshold);
     HourglassDirectoryManagerFactory dirmgr = new HourglassDirectoryManagerFactory(partDir, scheduler,_dirMode);
     log.info("creating Hourglass for nodeId: " + nodeId + " partition: " + partitionId);
-    return new Hourglass<BoboIndexReader,T>(dirmgr, _interpreter, _indexReaderDecorator, _zoieConfig, hourglassListeners);
+    return new Hourglass<BoboIndexReader,T>(dirmgr, _interpreter, _indexReaderDecorator, _zoieConfig, hourglassListeners, executor);
   }
   
   // TODO: change to getDirectoryManager
