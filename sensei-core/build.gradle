@@ -1,0 +1,57 @@
+apply plugin: 'java'
+
+configurations {
+  sourceGen {
+  }
+}
+
+dependencies {
+  compile externalDependency.luceneCore
+  compile externalDependency.luceneAnalyzers
+  compile externalDependency.guava
+  compile externalDependency.protobufJava
+  compile externalDependency.jolokiaCore
+  compile externalDependency.fastutil
+  compile externalDependency.spring
+  compile externalDependency.log4j
+  compile externalDependency.zookeeper
+  compile externalDependency.httpclient
+  compile externalDependency.hadoopCore
+  compile externalDependency.commonsCodec
+  compile externalDependency.commonsLang
+  compile externalDependency.commonsIo
+  compile externalDependency.commonsConfiguration
+  compile externalDependency.json
+  compile externalDependency.metricsCore
+  compile externalDependency.servletApi
+  compile externalDependency.jetty
+  compile externalDependency.javassist
+  compile externalDependency.antlr
+
+  compile externalDependency.boboBrowse
+  compile externalDependency.norbert
+  compile externalDependency.zoieCore
+  compile externalDependency.zoieJms
+
+  sourceGen externalDependency.antlr
+
+  testCompile externalDependency.easymock
+  testCompile externalDependency.easymockclassextension
+  testCompile externalDependency.junit
+}
+
+task genParser(type: JavaExec) {
+  ext.src = file('src/main/antlr3/com/senseidb/bql/parsers/BQL.g')
+  ext.dst = file('src/main/java/com/senseidb/bql/parsers')
+
+  inputs.file src
+  outputs.dir dst
+
+  main = 'org.antlr.Tool'
+  args '-o'
+  args dst.absolutePath
+  args src.absolutePath
+  classpath = configurations.sourceGen
+}
+
+compileJava.dependsOn(genParser)

@@ -1,0 +1,11 @@
+apply plugin: 'java'
+
+dependencies {
+  compile externalDependency.commonsIo
+  compile externalDependency.json
+  compile externalDependency.guava
+  compile externalDependency.log4j
+
+  testCompile externalDependency.junit
+}
+
