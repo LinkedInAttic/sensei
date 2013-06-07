@@ -1,0 +1,7 @@
+apply plugin: 'java'
+
+dependencies {
+  compile project(':sensei-core')
+  compile externalDependency.hadoopCore
+}
+
