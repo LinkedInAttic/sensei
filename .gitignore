@@ -1,6 +1,7 @@
 build
 build-test
 dist
+out
 ivy
 logs
 output
@@ -28,3 +29,7 @@ target
 *.ipr
 *.iws
 .idea
+.gradle
+
+
+

@@ -22,6 +22,8 @@ package com.senseidb.gateway.test;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.LinkedList;
@@ -31,6 +33,9 @@ import junit.framework.TestCase;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.PropertiesConfiguration;
+import org.apache.zookeeper.server.NIOServerCnxn;
+import org.apache.zookeeper.server.ZooKeeperServer;
+import org.apache.zookeeper.server.persistence.FileTxnSnapLog;
 import org.json.JSONObject;
 import org.junit.BeforeClass;
 
@@ -44,18 +49,10 @@ import com.senseidb.gateway.SenseiGateway;
 import com.senseidb.plugin.SenseiPluginRegistry;
 
 public class BaseGatewayTestUtil {
-  static File dataFile = new File("src/test/resources/test.json");
-  
-  
-  
-  static List<JSONObject> dataList;
 
-  static {
-    try {
-      dataList = readData(dataFile);
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
+  static List<JSONObject> readDataFile() throws Exception {
+    File dataFile = new File(BaseGatewayTestUtil.class.getClassLoader().getResource("test.json").toURI());
+    return readData(dataFile);
   }
   
   static List<JSONObject> readData(File file) throws Exception {
@@ -69,12 +66,11 @@ public class BaseGatewayTestUtil {
     }
     return dataList;
   }
-  
 
   public static void compareResultList(List<JSONObject> jsonList) throws Exception{
     for (int i =0;i<jsonList.size();++i){
       String s1 = jsonList.get(i).getString("id");
-      String s2 = BaseGatewayTestUtil.dataList.get(i).getString("id");
+      String s2 = readDataFile().get(i).getString("id");
       TestCase.assertEquals(s1, s2);
     }
   }
@@ -114,7 +110,7 @@ public class BaseGatewayTestUtil {
     
     while(true){
       Thread.sleep(500);
-      if (jsonList.size()==BaseGatewayTestUtil.dataList.size()){
+      if (jsonList.size()==BaseGatewayTestUtil.readDataFile().size()){
         dataProvider.stop();
         BaseGatewayTestUtil.compareResultList(jsonList);
         break;

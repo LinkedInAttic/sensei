@@ -19,6 +19,8 @@
 package com.senseidb.gateway.file;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.URL;
 import java.util.Comparator;
 import java.util.Set;
 
@@ -43,11 +45,30 @@ public class LinedFileDataProviderMockBuilder  extends SenseiGateway<String>{
       Set<Integer> partitions) throws Exception
   {
 
+    // either file.path or file.classpath must be set
     String path = config.get("file.path");
+    File file;
+    if (path != null)
+    {
+      file = new File(path);
+    }
+    else
+    {
+      String classpath = config.get("file.classpath");
+      if (classpath == null)
+        throw new IOException("Either file.path or file.classpath must be set");
+
+      URL url = LinedFileDataProviderBuilder.class.getClassLoader().getResource(classpath);
+      if (url == null)
+        throw new IOException("Resource not found " + path);
+      file = new File(url.toURI());
+    }
+    if (! file.exists())
+      throw new IOException("File " + path + " not found");
+
     long offset = oldSinceKey == null ? 0L : Long.parseLong(oldSinceKey);
 
-
-    LinedJsonFileDataProvider provider = new FileDataProviderWithMocks(_versionComparator, new File(path), offset);
+    LinedJsonFileDataProvider provider = new FileDataProviderWithMocks(_versionComparator, file, offset);
     if (dataFilter!=null){
       provider.setFilter(dataFilter);
     }
