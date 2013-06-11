@@ -39,6 +39,8 @@ public interface SenseiConfParams {
     public static final String SENSEI_FEDERATED_BROKER_PRUNER = "sensei.federated.broker.pruner";
     public static final String SENSEI_INDEX_BATCH_SIZE = "sensei.index.batchSize";
     public static final String SENSEI_INDEX_BATCH_DELAY = "sensei.index.batchDelay";
+    public static final String SENSEI_INDEX_MAX_RAM_SEGMENT_SIZE = "sensei.index.maxRamSegmentSize";
+    public static final String SENSEI_INDEX_MAX_TOTAL_WEIGHT = "sensei.index.maxTotalWeight";
     public static final String SENSEI_INDEX_BATCH_MAXSIZE = "sensei.index.maxBatchSize";
     public static final String SENSEI_INDEX_REALTIME = "sensei.index.realtime";
 

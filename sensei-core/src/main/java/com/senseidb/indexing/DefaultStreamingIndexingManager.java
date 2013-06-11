@@ -368,7 +368,7 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
             {
               
               if (rewrited != obj)
-                dataEvt = new DataEvent<JSONObject>(rewrited, dataEvt.getVersion());
+                dataEvt = new DataEvent<JSONObject>(rewrited, dataEvt.getVersion(), dataEvt.getWeight());
               partDataSet.add(dataEvt);
             }
           }
@@ -394,7 +394,7 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
               else if (_currentVersion != null && !_currentVersion.equals(partDataSet.getLast().getVersion()))
               {
                 DataEvent<JSONObject> last = partDataSet.pollLast();
-                partDataSet.add(new DataEvent<JSONObject>(last.getData(), _currentVersion));
+                partDataSet.add(new DataEvent<JSONObject>(last.getData(), _currentVersion, last.getWeight()));
               }
               dataConsumer.consume(partDataSet);
             }
