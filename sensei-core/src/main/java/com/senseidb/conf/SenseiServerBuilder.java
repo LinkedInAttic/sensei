@@ -417,6 +417,8 @@ public class SenseiServerBuilder implements SenseiConfParams {
         zoieConfig.setBatchSize(_senseiConf.getInt(SENSEI_INDEX_BATCH_SIZE, ZoieConfig.DEFAULT_SETTING_BATCHSIZE));
         zoieConfig.setBatchDelay(_senseiConf.getLong(SENSEI_INDEX_BATCH_DELAY, ZoieConfig.DEFAULT_SETTING_BATCHDELAY));
         zoieConfig.setMaxBatchSize(_senseiConf.getInt(SENSEI_INDEX_BATCH_MAXSIZE, ZoieConfig.DEFAULT_MAX_BATCH_SIZE));
+        zoieConfig.setRamSizeInBytes(_senseiConf.getInt(SENSEI_INDEX_MAX_RAM_SEGMENT_SIZE, ZoieConfig.DEFAULT_RAM_SIZE_IN_BYTES));
+        zoieConfig.setMaxTotalWeight(_senseiConf.getInt(SENSEI_INDEX_MAX_TOTAL_WEIGHT, ZoieConfig.DEFAULT_MAX_TOTAL_WEIGHT));
         zoieConfig.setRtIndexing(_senseiConf.getBoolean(SENSEI_INDEX_REALTIME, ZoieConfig.DEFAULT_SETTING_REALTIME));
         zoieConfig.setSkipBadRecord(_senseiConf.getBoolean(SENSEI_SKIP_BAD_RECORDS, false));
         int delay = _senseiConf.getInt(SENSEI_INDEX_FRESHNESS, 10);
