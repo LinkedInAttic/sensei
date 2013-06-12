@@ -114,17 +114,24 @@
 	    </dependency>
 
         <dependency>
-         <groupId>com.github.sgroschupf</groupId>
+         <groupId>com.101tec</groupId>
          <artifactId>zkclient</artifactId>
-         <version>0.1</version>
+         <version>0.3</version>
         </dependency>
+
+        <dependency>
+            <groupId>net.sf.jopt-simple</groupId>
+            <artifactId>jopt-simple</artifactId>
+            <version>4.5</version>
+        </dependency>
+
 
 		<dependency>
 			<groupId>org.apache.kafka</groupId>
 			<artifactId>kafka</artifactId>
-			<version>0.7.6</version>
+			<version>0.8.0_0.30_9bd2a11486420a313f800-SNAPSHOT</version>
 			 <scope>system</scope>
-			<systemPath>${basedir}/../lib/kafka-0.7.6.jar</systemPath>
+			<systemPath>${basedir}/../lib/kafka-0.8.0_0.30_9bd2a11486420a313f800-SNAPSHOT.jar</systemPath>
       <!-- exclusions>
         <exclusion> 
           <groupId>zkclient</groupId>
@@ -156,6 +163,11 @@
 	        <version>10.8.2.2</version>
 	        <scope>test</scope>
         </dependency>
-            
-	</dependencies>
+        <dependency>
+            <groupId>javax.jms</groupId>
+            <artifactId>jms</artifactId>
+            <version>1.1</version>
+        </dependency>
+
+    </dependencies>
 </project>

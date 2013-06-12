@@ -92,7 +92,7 @@ public class BaseGatewayTestUtil {
       
     });
     dataProvider.start();
-    
+
     while(true){
       Thread.sleep(500);
       if (jsonList.size()==BaseGatewayTestUtil.dataList.size()){

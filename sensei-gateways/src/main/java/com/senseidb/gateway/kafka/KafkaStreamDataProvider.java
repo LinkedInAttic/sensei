@@ -17,11 +17,10 @@ import java.util.concurrent.TimeUnit;
 
 import kafka.consumer.Consumer;
 import kafka.consumer.ConsumerConfig;
-import kafka.consumer.ConsumerIterator;
-import kafka.consumer.KafkaMessageStream;
+import kafka.consumer.KafkaStream;
 import kafka.javaapi.consumer.ConsumerConnector;
-import kafka.message.Message;
 
+import kafka.message.MessageAndMetadata;
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
 
@@ -36,7 +35,7 @@ public class KafkaStreamDataProvider extends StreamDataProvider<JSONObject>{
   private final String _consumerGroupId;
   private Properties _kafkaConfig;
   private ConsumerConnector _consumerConnector;
-  private Iterator<Message> _consumerIterator;
+  private Iterator<byte[]> _consumerIterator;
   private ExecutorService _executorService;
 
   
@@ -100,7 +99,7 @@ public class KafkaStreamDataProvider extends StreamDataProvider<JSONObject>{
       return null;
     }
 
-    Message msg = _consumerIterator.next();
+    byte[] msg = _consumerIterator.next();
     if (logger.isDebugEnabled()){
       logger.debug("got new message: "+msg);
     }
@@ -108,11 +107,7 @@ public class KafkaStreamDataProvider extends StreamDataProvider<JSONObject>{
     
     JSONObject data;
     try {
-      int size = msg.payloadSize();
-      ByteBuffer byteBuffer = msg.payload();
-      byte[] bytes = new byte[size];
-      byteBuffer.get(bytes,0,size);
-      data = _dataConverter.filter(new DataPacket(bytes,0,size));
+      data = _dataConverter.filter(new DataPacket(msg,0,msg.length));
       
       if (logger.isDebugEnabled()){
         logger.debug("message converted: "+data);
@@ -155,26 +150,27 @@ public class KafkaStreamDataProvider extends StreamDataProvider<JSONObject>{
     {
       topicCountMap.put(topic, 1);
     }
-    Map<String, List<KafkaMessageStream<Message>>> topicMessageStreams =
+
+    Map<String, List<KafkaStream<byte[],byte[]>>> topicMessageStreams =
         _consumerConnector.createMessageStreams(topicCountMap);
 
-    final ArrayBlockingQueue<Message> queue = new ArrayBlockingQueue<Message>(8, true);
+    final ArrayBlockingQueue<byte[]> queue = new ArrayBlockingQueue<byte[]>(8, true);
 
     int streamCount = 0;
-    for (List<KafkaMessageStream<Message>> streams : topicMessageStreams.values())
+    for (List<KafkaStream<byte[], byte[]>> streams : topicMessageStreams.values())
     {
-      for (KafkaMessageStream<Message> stream : streams)
+      for (KafkaStream<byte[], byte[]> stream : streams)
       {
         ++streamCount;
       }
     }
     _executorService = Executors.newFixedThreadPool(streamCount);
 
-    for (List<KafkaMessageStream<Message>> streams : topicMessageStreams.values())
+    for (List<KafkaStream<byte[], byte[]>> streams : topicMessageStreams.values())
     {
-      for (KafkaMessageStream<Message> stream : streams)
+      for (KafkaStream<byte[], byte[]> stream : streams)
       {
-        final KafkaMessageStream<Message> messageStream = stream;
+        final KafkaStream<byte[], byte[]> messageStream = stream;
         _executorService.execute(new Runnable()
           {
             @Override
@@ -183,9 +179,9 @@ public class KafkaStreamDataProvider extends StreamDataProvider<JSONObject>{
               logger.info("Kafka consumer thread started: " + Thread.currentThread().getId());
               try
               {
-                for (Message message : messageStream)
+                for (MessageAndMetadata<byte[], byte[]> message : messageStream)
                 {
-                  queue.put(message);
+                  queue.put(message.message());
                 }
               }
               catch(Exception e)
@@ -200,9 +196,9 @@ public class KafkaStreamDataProvider extends StreamDataProvider<JSONObject>{
       }
     }
 
-    _consumerIterator = new Iterator<Message>()
+    _consumerIterator = new Iterator<byte[]>()
     {
-      private Message message = null;
+      private byte[] message = null;
 
       @Override
       public boolean hasNext()
@@ -229,11 +225,11 @@ public class KafkaStreamDataProvider extends StreamDataProvider<JSONObject>{
       }
 
       @Override
-      public Message next()
+      public byte[] next()
       {
         if (hasNext())
         {
-          Message res = message;
+          byte[] res = message;
           message = null;
           return res;
         }
