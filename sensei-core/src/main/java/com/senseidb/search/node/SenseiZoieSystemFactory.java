@@ -31,6 +31,7 @@ import proj.zoie.api.DefaultDirectoryManager;
 import proj.zoie.api.DirectoryManager;
 import proj.zoie.api.DirectoryManager.DIRECTORY_MODE;
 import proj.zoie.api.indexing.IndexingEventListener;
+import proj.zoie.api.indexing.OptimizeScheduler;
 import proj.zoie.api.indexing.ZoieIndexableInterpreter;
 import proj.zoie.impl.indexing.IndexUpdatedEvent;
 import proj.zoie.impl.indexing.ZoieConfig;
@@ -46,6 +47,7 @@ public class SenseiZoieSystemFactory<T> extends SenseiZoieFactory<T>
 {
   private static Logger log = Logger.getLogger(SenseiZoieSystemFactory.class);
   private Filter _purgeFilter = null;
+  private OptimizeScheduler _optimizeScheduler;
   
   private Map<Integer,IndexingMetrics> metricsMap = new HashMap<Integer,IndexingMetrics>(); 
   
@@ -58,7 +60,12 @@ public class SenseiZoieSystemFactory<T> extends SenseiZoieFactory<T>
   public void setPurgeFilter(Filter purgeFilter){
     _purgeFilter = purgeFilter;
   }
-  
+
+  public void setOptimizeScheduler(OptimizeScheduler optimizeScheduler)
+  {
+    _optimizeScheduler = optimizeScheduler;
+  }
+
   @Override
   public ZoieSystem<BoboIndexReader,T> getZoieInstance(int nodeId,final int partitionId)
   {
@@ -73,6 +80,9 @@ public class SenseiZoieSystemFactory<T> extends SenseiZoieFactory<T>
     ZoieSystem<BoboIndexReader,T> zoie = new ZoieSystem<BoboIndexReader,T>(dirMgr, _interpreter, _indexReaderDecorator, _zoieConfig);
     if (_purgeFilter!=null){
       zoie.setPurgeFilter(_purgeFilter);
+    }
+    if (_optimizeScheduler != null) {
+      zoie.setOptimizeScheduler(_optimizeScheduler);
     }
     
     metricsMap.put(partitionId, new IndexingMetrics(partitionId));

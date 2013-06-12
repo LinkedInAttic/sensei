@@ -67,6 +67,7 @@ import org.w3c.dom.Document;
 
 import proj.zoie.api.DirectoryManager.DIRECTORY_MODE;
 import proj.zoie.api.IndexCopier;
+import proj.zoie.api.indexing.OptimizeScheduler;
 import proj.zoie.api.indexing.ZoieIndexableInterpreter;
 import proj.zoie.hourglass.impl.HourGlassScheduler.FREQUENCY;
 import proj.zoie.impl.indexing.DefaultReaderCache;
@@ -526,6 +527,7 @@ public class SenseiServerBuilder implements SenseiConfParams {
 
         if (SENSEI_INDEXER_TYPE_ZOIE.equals(indexerType)) {
             SenseiZoieSystemFactory senseiZoieFactory = new SenseiZoieSystemFactory(idxDir, dirMode, interpreter, decorator, zoieConfig);
+
             int retentionDays = _senseiConf.getInt(SENSEI_ZOIE_RETENTION_DAYS, -1);
             if (retentionDays > 0) {
                 RetentionFilterFactory retentionFilterFactory = pluginRegistry.getBeanByFullPrefix(SENSEI_ZOIE_RETENTION_CLASS, RetentionFilterFactory.class);
@@ -549,6 +551,10 @@ public class SenseiServerBuilder implements SenseiConfParams {
                 }
                 senseiZoieFactory.setPurgeFilter(purgeFilter);
             }
+
+            OptimizeScheduler scheduler = pluginRegistry.getBeanByFullPrefix(SENSEI_INDEX_OPTIMIZE_SCHEDULER, OptimizeScheduler.class);
+            senseiZoieFactory.setOptimizeScheduler(scheduler);
+
             zoieSystemFactory = senseiZoieFactory;
         } else if (SENSEI_INDEXER_TYPE_HOURGLASS.equals(indexerType)) {
             String schedule = _senseiConf.getString(SENSEI_HOURGLASS_SCHEDULE, "");
