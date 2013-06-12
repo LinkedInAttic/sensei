@@ -43,6 +43,7 @@ public interface SenseiConfParams {
     public static final String SENSEI_INDEX_MAX_TOTAL_WEIGHT = "sensei.index.maxTotalWeight";
     public static final String SENSEI_INDEX_BATCH_MAXSIZE = "sensei.index.maxBatchSize";
     public static final String SENSEI_INDEX_REALTIME = "sensei.index.realtime";
+    public static final String SENSEI_INDEX_OPTIMIZE_SCHEDULER = "sensei.index.optimizeScheduler";
 
     public static final String SENSEI_INDEX_FRESHNESS = "sensei.index.freshness";
     public static final String SENSEI_SKIP_BAD_RECORDS = "sensei.index.skipBadRecords";

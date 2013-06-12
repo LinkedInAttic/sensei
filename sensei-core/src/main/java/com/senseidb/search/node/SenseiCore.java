@@ -321,7 +321,17 @@ public class SenseiCore{
       }
     }
   }
-  
+
+  public void optimize()
+  {
+    for (Zoie<BoboIndexReader,?> zoieSystem : zoieSystems)
+    {
+      if (zoieSystem instanceof ZoieSystem)
+      {
+        ((ZoieSystem<BoboIndexReader,?>)zoieSystem).optimize();
+      }
+    }
+  }
 
   public void syncWithVersion(long timeToWait, String version) throws ZoieException
   {
