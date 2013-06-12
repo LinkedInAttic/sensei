@@ -135,6 +135,11 @@ public class SenseiServer {
     _core.exportSnapshot(channels);
   }
 
+  public void optimize()
+  {
+    _core.optimize();
+  }
+
   public DataProvider getDataProvider()
   {
     return _core.getDataProvider();
