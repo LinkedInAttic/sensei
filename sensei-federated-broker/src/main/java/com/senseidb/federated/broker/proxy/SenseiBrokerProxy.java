@@ -19,13 +19,15 @@
 
 package com.senseidb.federated.broker.proxy;
 
+import com.codahale.metrics.Meter;
+import com.codahale.metrics.Timer;
 import com.senseidb.metrics.MetricFactory;
+import com.senseidb.metrics.MetricName;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.log4j.Logger;
@@ -34,16 +36,13 @@ import com.linkedin.norbert.javacompat.cluster.ClusterClient;
 import com.linkedin.norbert.javacompat.network.PartitionedLoadBalancerFactory;
 import com.linkedin.norbert.javacompat.network.PartitionedNetworkClient;
 import com.senseidb.cluster.routing.SenseiPartitionedLoadBalancerFactory;
-import com.senseidb.metrics.MetricsConstants;
-import com.senseidb.search.node.AbstractConsistentHashBroker;
+
 import com.senseidb.search.node.SenseiBroker;
 import com.senseidb.search.req.ErrorType;
 import com.senseidb.search.req.SenseiError;
 import com.senseidb.search.req.SenseiRequest;
 import com.senseidb.search.req.SenseiResult;
-import com.yammer.metrics.core.Meter;
-import com.yammer.metrics.core.MetricName;
-import com.yammer.metrics.core.Timer;
+
 
 public class SenseiBrokerProxy extends SenseiBroker implements BrokerProxy {
   private final static Logger logger = Logger.getLogger(SenseiBrokerProxy.class);
@@ -55,9 +54,9 @@ public class SenseiBrokerProxy extends SenseiBroker implements BrokerProxy {
     super(networkClient, clusterClient, allowPartialMerge);
 
     MetricName scatterMetricName = new MetricName(SenseiBrokerProxy.class,"scatter-time");
-    scatterTimer = MetricFactory.newTimer(scatterMetricName, TimeUnit.MILLISECONDS, TimeUnit.SECONDS);
+    scatterTimer = MetricFactory.newTimer(scatterMetricName);
     MetricName errorMetricName = new MetricName(SenseiBrokerProxy.class,"error-meter");
-    ErrorMeter = MetricFactory.newMeter(errorMetricName, "errors",TimeUnit.SECONDS);
+    ErrorMeter = MetricFactory.newMeter(errorMetricName);
   }
   public static SenseiBrokerProxy valueOf(Configuration senseiConfiguration, Map<String, String> overrideProperties) {
     BrokerProxyConfig brokerProxyConfig = new BrokerProxyConfig(senseiConfiguration, balancerFactory, overrideProperties);

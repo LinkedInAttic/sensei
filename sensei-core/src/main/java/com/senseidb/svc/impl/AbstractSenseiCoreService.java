@@ -18,7 +18,10 @@
  */
 package com.senseidb.svc.impl;
 
+import com.codahale.metrics.Meter;
+import com.codahale.metrics.Timer;
 import com.senseidb.metrics.MetricFactory;
+import com.senseidb.metrics.MetricName;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -41,16 +44,12 @@ import proj.zoie.api.ZoieIndexReader;
 
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.linkedin.norbert.network.Serializer;
-import com.senseidb.metrics.MetricsConstants;
 import com.senseidb.search.node.SenseiCore;
 import com.senseidb.search.node.SenseiQueryBuilderFactory;
 import com.senseidb.search.req.AbstractSenseiRequest;
 import com.senseidb.search.req.AbstractSenseiResult;
 import com.senseidb.search.req.ErrorType;
 import com.senseidb.search.req.SenseiError;
-import com.yammer.metrics.core.Meter;
-import com.yammer.metrics.core.MetricName;
-import com.yammer.metrics.core.Timer;
 
 public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiRequest,Res extends AbstractSenseiResult>{
   private final static Logger logger = Logger.getLogger(AbstractSenseiCoreService.class);
@@ -75,14 +74,12 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
     _getReaderTimer = registerTimer("getreader-time");
     _searchTimer = registerTimer("search-time");
     _mergeTimer = registerTimer("merge-time");
-
-    // TODO: requets is a mis-spell. Can we fix it?
-    _searchCounter = registerMeter("search-count", "requets");
+    _searchCounter = registerMeter("search-count");
 	}
   
   private Timer buildTimer(int partition) {
-    MetricName partitionSearchMetricName = new MetricName(MetricsConstants.Domain,"timer","partition-time-"+partition,"partition");
-    return MetricFactory.newTimer(partitionSearchMetricName,TimeUnit.MILLISECONDS,TimeUnit.SECONDS);
+    MetricName partitionSearchMetricName = new MetricName("partition-time-"+partition,"partition");
+    return MetricFactory.newTimer(partitionSearchMetricName);
   }
   
   private Timer getTimer(int partition) {
@@ -256,14 +253,12 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
 
   protected final Timer registerTimer(String name)
   {
-    return MetricFactory.newTimer(new MetricName(MetricsConstants.Domain, "timer", name, getMetricScope()),
-                                  TimeUnit.MILLISECONDS,
-                                  TimeUnit.SECONDS);
+    return MetricFactory.newTimer(new MetricName(name, getMetricScope()));
   }
 
-  protected final Meter registerMeter(String name, String eventType)
+  protected final Meter registerMeter(String name)
   {
-    return MetricFactory.newMeter(new MetricName(MetricsConstants.Domain, "meter", name, getMetricScope()), eventType, TimeUnit.SECONDS);
+    return MetricFactory.newMeter(new MetricName(name, getMetricScope()));
   }
 	
 	public abstract Res handlePartitionedRequest(Req r,final List<BoboIndexReader> readerList,SenseiQueryBuilderFactory queryBuilderFactory) throws Exception;

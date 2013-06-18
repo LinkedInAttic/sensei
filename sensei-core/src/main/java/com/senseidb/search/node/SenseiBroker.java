@@ -18,16 +18,14 @@
  */
 package com.senseidb.search.node;
 
+import com.codahale.metrics.Counter;
 import com.senseidb.metrics.MetricFactory;
+import com.senseidb.metrics.MetricName;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 
-import java.lang.management.ManagementFactory;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import javax.management.MBeanServer;
-import javax.management.ObjectName;
 
 import org.apache.log4j.Logger;
 import org.apache.lucene.document.Document;
@@ -47,8 +45,6 @@ import com.senseidb.search.req.SenseiHit;
 import com.senseidb.search.req.SenseiRequest;
 import com.senseidb.search.req.SenseiResult;
 import com.senseidb.svc.impl.CoreSenseiServiceImpl;
-import com.yammer.metrics.core.Counter;
-import com.yammer.metrics.core.MetricName;
 
 
 /**
@@ -198,7 +194,6 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
   {
 //    _loadBalancer = _loadBalancerFactory.newLoadBalancer(nodes);
     _partitions = getPartitions(nodes);
-    numberOfNodesInTheCluster.clear();
     numberOfNodesInTheCluster.inc(getNumberOfNodes());
     logger.info("handleClusterConnected(): Received the list of nodes from norbert " + nodes.toString());
     logger.info("handleClusterConnected(): Received the list of partitions from router " + _partitions.toString());
@@ -215,7 +210,6 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
 
 //    _loadBalancer = _loadBalancerFactory.newLoadBalancer(nodes);
     _partitions = getPartitions(nodes);
-    numberOfNodesInTheCluster.clear();
     numberOfNodesInTheCluster.inc(getNumberOfNodes());
     logger.info("handleClusterNodesChanged(): Received the list of nodes from norbert " + nodes.toString());
     logger.info("handleClusterNodesChanged(): Received the list of partitions from router " + _partitions.toString());

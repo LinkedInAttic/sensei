@@ -18,7 +18,9 @@
  */
 package com.senseidb.indexing.activity.time;
 
+import com.codahale.metrics.Timer;
 import com.senseidb.metrics.MetricFactory;
+import com.senseidb.metrics.MetricName;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -28,9 +30,6 @@ import org.apache.log4j.Logger;
 
 import com.senseidb.indexing.activity.ActivityPersistenceFactory.AggregatesMetadata;
 import com.senseidb.indexing.activity.time.TimeAggregatedActivityValues.IntValueHolder;
-import com.senseidb.metrics.MetricsConstants;
-import com.yammer.metrics.core.MetricName;
-import com.yammer.metrics.core.Timer;
 
 /**
  * Operates on top of TimeAggregatedActivityValues. 
@@ -47,12 +46,8 @@ public class AggregatesUpdateJob implements Runnable {
   private final TimeAggregatedActivityValues timeAggregatedActivityValues;
   private final AggregatesMetadata aggregatesMetadata;
   private int currentCount;
-  private final Timer timer = MetricFactory.newTimer(new MetricName(MetricsConstants.Domain,
-                                                                    "timer",
-                                                                    "updateJob-time",
-                                                                    "agregatesUpdateJob"),
-                                                     TimeUnit.MILLISECONDS,
-                                                     TimeUnit.SECONDS);
+  private final Timer timer = MetricFactory.newTimer(new MetricName("updateJob-time",
+                                                                    "agregatesUpdateJob"));
   
   public AggregatesUpdateJob(TimeAggregatedActivityValues timeAggregatedActivityValues, AggregatesMetadata aggregatesMetadata) {
     this.timeAggregatedActivityValues = timeAggregatedActivityValues;

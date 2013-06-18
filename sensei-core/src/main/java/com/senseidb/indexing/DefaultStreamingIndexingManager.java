@@ -18,7 +18,9 @@
  */
 package com.senseidb.indexing;
 
+import com.codahale.metrics.Meter;
 import com.senseidb.metrics.MetricFactory;
+import com.senseidb.metrics.MetricName;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -26,7 +28,6 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import javax.management.StandardMBean;
 
@@ -50,12 +51,9 @@ import com.browseengine.bobo.api.BoboIndexReader;
 import com.senseidb.conf.SenseiSchema;
 import com.senseidb.gateway.SenseiGateway;
 import com.senseidb.jmx.JmxUtil;
-import com.senseidb.metrics.MetricsConstants;
 import com.senseidb.plugin.SenseiPluginRegistry;
 import com.senseidb.search.node.SenseiIndexingManager;
 import com.senseidb.search.plugin.PluggableSearchEngineManager;
-import com.yammer.metrics.core.Meter;
-import com.yammer.metrics.core.MetricName;
 
 public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JSONObject> {
 
@@ -125,10 +123,8 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 	    }
 	}
 
-  private Meter registerMeter(String name, String eventType) {
-    return MetricFactory.newMeter(new MetricName(MetricsConstants.Domain, "meter", name, "indexing-manager"),
-                                  eventType,
-                                  TimeUnit.SECONDS);
+  private Meter registerMeter(String name) {
+    return MetricFactory.newMeter(new MetricName(name, "indexing-manager"));
   }
 
 	@Override
@@ -199,15 +195,6 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 	  if (_dataProvider!=null){
 	    _dataProvider.stop();
 	  }
-    if (_providerBatchSizeMeter != null) {
-      _providerBatchSizeMeter.stop();
-    }
-    if (_updateBatchSizeMeter != null) {
-      _updateBatchSizeMeter.stop();
-    }
-    if (_eventMeter != null) {
-      _eventMeter.stop();
-    }
 	}
 
 	@Override
@@ -216,9 +203,9 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 		  logger.warn("no data stream configured, no indexing events are flowing.");
 		}
 		else{
-      _providerBatchSizeMeter = registerMeter("provider-batch-size", "provide-batch-size");
-      _updateBatchSizeMeter = registerMeter("update-batch-size", "update-batch-size");
-      _eventMeter = registerMeter("indexing-events", "indexing-events");
+      _providerBatchSizeMeter = registerMeter("provider-batch-size");
+      _updateBatchSizeMeter = registerMeter("update-batch-size");
+      _eventMeter = registerMeter("indexing-events");
 
 	 	  _dataProvider.start();
 		}

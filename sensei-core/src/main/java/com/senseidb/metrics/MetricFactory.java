@@ -18,37 +18,35 @@
  */
 package com.senseidb.metrics;
 
-import com.yammer.metrics.core.Counter;
-import com.yammer.metrics.core.Histogram;
-import com.yammer.metrics.core.Meter;
-import com.yammer.metrics.core.MetricName;
-import com.yammer.metrics.core.MetricsRegistry;
-import com.yammer.metrics.core.Timer;
-import com.yammer.metrics.reporting.JmxReporter;
-import java.util.concurrent.TimeUnit;
+import com.codahale.metrics.Counter;
+import com.codahale.metrics.ExponentiallyDecayingReservoir;
+import com.codahale.metrics.Histogram;
+import com.codahale.metrics.JmxReporter;
+import com.codahale.metrics.Meter;
+import com.codahale.metrics.Metric;
+import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.Timer;
+import com.codahale.metrics.UniformReservoir;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicReference;
 
 
 /**
- * Factory class for creating metric instances. It replaces the {@link com.yammer.metrics.Metrics} class
- * so that the {@link com.yammer.metrics.core.MetricsRegistry} used can be start and stop.
+ * Factory class for creating metric instances. It replaces the {@link com.codahale.metrics.Metric} class
+ * so that the {@link com.codahale.metrics.MetricRegistry} used can be start and stop.
  */
 public final class MetricFactory {
 
   private static final AtomicReference<MetricFactory> FACTORY = new AtomicReference<MetricFactory>();
 
-  private final MetricsRegistry _registry;
+  private static final int DEFAULT_SIZE = 1028;
+  private static final double DEFAULT_ALPHA = 1;
+
+  private final MetricRegistry _registry;
   private final JmxReporter _reporter;
 
-  /**
-   * Starts a new MetricFactory. If there exists an old MetricFactory, it will be stopped.
-   */
-  public static void start() {
-    MetricFactory oldFactory = FACTORY.getAndSet(new MetricFactory().startAll());
-    if (oldFactory != null) {
-      oldFactory.stopAll();
-    }
-  }
+  private final ConcurrentMap<String, Metric> _metrics;
 
   /**
    * Stops the current MetricFactory. It will stop all threads owned by the factory and unregister all mbeans
@@ -57,75 +55,66 @@ public final class MetricFactory {
   public static void stop() {
     MetricFactory oldFactory = FACTORY.getAndSet(null);
     if (oldFactory != null) {
-      oldFactory.stopAll();
+      oldFactory._reporter.stop();
+    }
+  }
+
+  public static Timer newTimer(MetricName metricName) {
+    Timer timer = new Timer(new ExponentiallyDecayingReservoir(DEFAULT_SIZE, DEFAULT_ALPHA));
+    return getInstance().register(metricName, timer);
+  }
+
+  public static Meter newMeter(MetricName metricName) {
+    Meter meter = new Meter();
+    return getInstance().register(metricName, meter);
+  }
+
+  public static Counter newCounter(MetricName metricName) {
+    Counter counter = new Counter();
+    return getInstance().register(metricName, counter);
+  }
+
+  public static Histogram newHistogram(MetricName metricName) {
+    Histogram histogram = new Histogram(new ExponentiallyDecayingReservoir(DEFAULT_SIZE, DEFAULT_ALPHA));
+    return getInstance().register(metricName, histogram);
+  }
+
+  private <M extends Metric> M register(MetricName metricName, M metric)
+  {
+    String name = metricName.toString();
+    M existing = (M)_metrics.get(name);
+    if (existing != null) {
+      return existing;
+    } else {
+      M prev = (M)_metrics.putIfAbsent(name, metric);
+      if (prev == null) {
+        _registry.register(name, metric);
+        return metric;
+      } else {
+        return prev;
+      }
     }
   }
 
   /**
-   * @see MetricsRegistry#newTimer(com.yammer.metrics.core.MetricName, java.util.concurrent.TimeUnit, java.util.concurrent.TimeUnit)
+   * Returns a {@link MetricFactory}. It will start this factory if it is not started.
    */
-  public static Timer newTimer(MetricName metricName,
-                        TimeUnit durationUnit,
-                        TimeUnit rateUnit) {
-    return getRegistry().newTimer(metricName, durationUnit, rateUnit);
-  }
-
-  /**
-   * @see MetricsRegistry#newMeter(com.yammer.metrics.core.MetricName, String, java.util.concurrent.TimeUnit)
-   */
-  public static Meter newMeter(MetricName metricName,
-                        String eventType,
-                        TimeUnit unit) {
-    return getRegistry().newMeter(metricName, eventType, unit);
-  }
-
-  /**
-   * @see MetricsRegistry#newCounter(com.yammer.metrics.core.MetricName)
-   */
-  public static Counter newCounter(MetricName metricName) {
-    return getRegistry().newCounter(metricName);
-  }
-
-  /**
-   * @see MetricsRegistry#newHistogram(com.yammer.metrics.core.MetricName, boolean)
-   */
-  public static Histogram newHistogram(MetricName metricName, boolean biased) {
-    return getRegistry().newHistogram(metricName, biased);
-  }
-
-  /**
-   * Returns a {@link MetricsRegistry}. It will start this factory if it is not started.
-   */
-  private static MetricsRegistry getRegistry() {
+  private static MetricFactory getInstance() {
     MetricFactory factory = FACTORY.get();
     while (factory == null) {
-      start();
-      factory = FACTORY.get();
+      factory = new MetricFactory();
+      if (FACTORY.compareAndSet(null, factory)) {
+        factory._reporter.start();
+      } else {
+        factory = FACTORY.get();
+      }
     }
-    return factory._registry;
+    return factory;
   }
 
   private MetricFactory() {
-    _registry = new MetricsRegistry();
-    _reporter = new JmxReporter(_registry);
-  }
-
-  /**
-   * Starts the {@link JmxReporter}.
-   *
-   * @return this instance.
-   */
-  private MetricFactory startAll() {
-    _reporter.start();
-    return this;
-  }
-
-  /**
-   * Stops all threads owned by the {@link MetricsRegistry} and unregister
-   * all mbeans owned by {@link JmxReporter}.
-   */
-  private void stopAll() {
-    _registry.shutdown();
-    _reporter.shutdown();
+    _registry = new MetricRegistry();
+    _reporter = JmxReporter.forRegistry(_registry).inDomain(MetricsConstants.Domain).build();
+    _metrics = new ConcurrentHashMap<String, Metric>();
   }
 }

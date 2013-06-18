@@ -27,7 +27,7 @@ project.ext.externalDependency = [
   'commonsIo': 'commons-io:commons-io:2.1',
   'commonsConfiguration':'commons-configuration:commons-configuration:1.6',
   'json':'org.json:json:20080701',
-  'metricsCore':'com.yammer.metrics:metrics-core:2.0.0-RC0',
+  'metricsCore':'com.codahale.metrics:metrics-core:3.0.0',
   'servletApi':'javax.servlet:servlet-api:2.5',
   'jetty':'org.mortbay.jetty:jetty:6.1.26',
   'javassist':'org.javassist:javassist:3.16.1-GA',

@@ -18,7 +18,9 @@
  */
 package com.senseidb.indexing.activity.primitives;
 
+import com.codahale.metrics.Timer;
 import com.senseidb.metrics.MetricFactory;
+import com.senseidb.metrics.MetricName;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -26,15 +28,11 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel.MapMode;
 import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
 import org.springframework.util.Assert;
 
 import com.senseidb.indexing.activity.AtomicFieldUpdate;
-import com.senseidb.metrics.MetricsConstants;
-import com.yammer.metrics.core.MetricName;
-import com.yammer.metrics.core.Timer;
 
 /**
  * Allows to persist ActivityIntValues into the file. The persistence is asynchronous via {@link ActivityIntValues#prepareFlush()}
@@ -60,10 +58,8 @@ public class ActivityPrimitivesStorage {
   public ActivityPrimitivesStorage(String fieldName, String indexDir) {
     this.fieldName = fieldName;
     this.indexDir = indexDir;
-    timer = MetricFactory.newTimer(new MetricName(MetricsConstants.Domain,
-                                                  "timer",
-                                                  "initIntActivities-time-" + fieldName.replaceAll(":", "-"),
-                                                  "initIntActivities"), TimeUnit.MILLISECONDS, TimeUnit.SECONDS);
+    timer = MetricFactory.newTimer(new MetricName("initIntActivities-time-" + fieldName.replaceAll(":", "-"),
+                                                  "initIntActivities"));
    
   }
 

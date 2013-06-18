@@ -18,6 +18,7 @@
  */
 package com.senseidb.svc.impl;
 
+import com.codahale.metrics.Timer;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -51,7 +52,6 @@ import com.senseidb.search.req.SenseiRequest;
 import com.senseidb.search.req.SenseiResult;
 import com.senseidb.search.req.mapred.impl.SenseiMapFunctionWrapper;
 import com.senseidb.util.RequestConverter;
-import com.yammer.metrics.core.Timer;
 
 import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_HIT_UID;
 

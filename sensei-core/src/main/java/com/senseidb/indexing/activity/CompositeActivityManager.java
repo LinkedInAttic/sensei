@@ -18,7 +18,9 @@
  */
 package com.senseidb.indexing.activity;
 
+import com.codahale.metrics.Counter;
 import com.senseidb.metrics.MetricFactory;
+import com.senseidb.metrics.MetricName;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -37,7 +39,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import proj.zoie.api.IndexReaderFactory;
-import proj.zoie.api.Zoie;
 import proj.zoie.api.ZoieIndexReader;
 import proj.zoie.api.ZoieMultiReader;
 import proj.zoie.api.ZoieSegmentReader;
@@ -57,8 +58,7 @@ import com.senseidb.plugin.SenseiPluginRegistry;
 import com.senseidb.search.node.SenseiCore;
 import com.senseidb.search.plugin.PluggableSearchEngine;
 import com.senseidb.search.plugin.PluggableSearchEngineManager;
-import com.yammer.metrics.core.Counter;
-import com.yammer.metrics.core.MetricName;
+
 
 
 /**
@@ -71,7 +71,6 @@ public class CompositeActivityManager implements PluggableSearchEngine {
     private final static Logger logger = Logger.getLogger(PluggableSearchEngineManager.class);
     protected CompositeActivityValues activityValues;
     private SenseiSchema senseiSchema;
-    public static final String EVENT_TYPE_ONLY_ACTIVITY = "activity-update";
     private BaseActivityFilter activityFilter;
     private ShardingStrategy shardingStrategy;
     private SenseiCore senseiCore;

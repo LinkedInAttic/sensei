@@ -18,18 +18,16 @@
  */
 package com.senseidb.svc.impl;
 
+import com.codahale.metrics.Timer;
 import com.senseidb.metrics.MetricFactory;
+import com.senseidb.metrics.MetricName;
 import java.util.concurrent.Callable;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
 
 import com.linkedin.norbert.javacompat.network.RequestHandler;
-import com.senseidb.metrics.MetricsConstants;
 import com.senseidb.search.req.AbstractSenseiRequest;
 import com.senseidb.search.req.AbstractSenseiResult;
-import com.yammer.metrics.core.MetricName;
-import com.yammer.metrics.core.Timer;
 
 public final class SenseiCoreServiceMessageHandler<REQUEST extends AbstractSenseiRequest, RESULT extends AbstractSenseiResult> implements RequestHandler<REQUEST, RESULT> {
 	private static final Logger logger = Logger.getLogger(SenseiCoreServiceMessageHandler.class);
@@ -39,8 +37,8 @@ public final class SenseiCoreServiceMessageHandler<REQUEST extends AbstractSense
 
     public SenseiCoreServiceMessageHandler(AbstractSenseiCoreService<REQUEST, RESULT> svc){
 		  _svc = svc;
-      MetricName metricName = new MetricName(MetricsConstants.Domain,"timer","total-search-time","node");
-      _totalSearchTimer = MetricFactory.newTimer(metricName, TimeUnit.MILLISECONDS, TimeUnit.SECONDS);
+      MetricName metricName = new MetricName("total-search-time","node");
+      _totalSearchTimer = MetricFactory.newTimer(metricName);
 	  }
 
     @Override

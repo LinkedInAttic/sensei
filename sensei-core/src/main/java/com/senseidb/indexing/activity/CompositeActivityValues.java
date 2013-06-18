@@ -18,7 +18,9 @@
  */
 package com.senseidb.indexing.activity;
 
+import com.codahale.metrics.Counter;
 import com.senseidb.metrics.MetricFactory;
+import com.senseidb.metrics.MetricName;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.longs.Long2IntMap;
@@ -49,8 +51,6 @@ import com.senseidb.indexing.activity.primitives.ActivityFloatValues;
 import com.senseidb.indexing.activity.primitives.ActivityIntValues;
 import com.senseidb.indexing.activity.primitives.ActivityPrimitiveValues;
 import com.senseidb.indexing.activity.time.TimeAggregatedActivityValues;
-import com.yammer.metrics.core.Counter;
-import com.yammer.metrics.core.MetricName;
 
 /**
  * 
@@ -288,9 +288,7 @@ public class CompositeActivityValues {
     synchronized (deletedIndexes) {
       
       count = uidToArrayIndex.size() + deletedIndexes.size();
-      currentDocumentsCounter.clear();
       currentDocumentsCounter.inc(uidToArrayIndex.size());
-      reclaimedDocumentsCounter.clear();
       reclaimedDocumentsCounter.inc( deletedIndexes.size());
       logger.info("Flush compositeActivityValues. Documents = " +  uidToArrayIndex.size() + ", Deletes = " + deletedIndexes.size());
     }

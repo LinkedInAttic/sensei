@@ -18,6 +18,9 @@
  */
 package com.senseidb.search.node;
 
+import com.codahale.metrics.Meter;
+import com.codahale.metrics.Timer;
+import com.senseidb.metrics.MetricName;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 
@@ -27,7 +30,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.log4j.Logger;
@@ -42,16 +44,12 @@ import com.linkedin.norbert.network.common.ExceptionIterator;
 import com.linkedin.norbert.network.common.PartialIterator;
 import com.linkedin.norbert.network.common.TimeoutIterator;
 import com.senseidb.metrics.MetricFactory;
-import com.senseidb.metrics.MetricsConstants;
 import com.senseidb.search.req.AbstractSenseiRequest;
 import com.senseidb.search.req.AbstractSenseiResult;
 import com.senseidb.search.req.ErrorType;
 import com.senseidb.search.req.SenseiError;
 import com.senseidb.search.req.SenseiRequest;
 import com.senseidb.svc.api.SenseiException;
-import com.yammer.metrics.core.Meter;
-import com.yammer.metrics.core.MetricName;
-import com.yammer.metrics.core.Timer;
 
 /**
  * @author "Xiaoyang Gu<xgu@linkedin.com>"
@@ -76,11 +74,8 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
   
   /**
    * @param networkClient
-   * @param clusterClient
-   * @param routerFactory
    * @param serializer
    *          The serializer used to serialize/deserialize request/response pairs
-   * @param scatterGatherHandler
    * @throws NorbertException
    */
   public AbstractConsistentHashBroker(PartitionedNetworkClient<String> networkClient, Serializer<REQUEST, RESULT> serializer)
@@ -90,23 +85,23 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
     _serializer = serializer;
 
     // register metrics monitoring for timers
-    MetricName scatterMetricName = new MetricName(MetricsConstants.Domain,"timer","scatter-time","broker");
-    _scatterTimer = MetricFactory.newTimer(scatterMetricName, TimeUnit.MILLISECONDS, TimeUnit.SECONDS);
+    MetricName scatterMetricName = new MetricName("scatter-time","broker");
+    _scatterTimer = MetricFactory.newTimer(scatterMetricName);
 
-    MetricName gatherMetricName = new MetricName(MetricsConstants.Domain,"timer","gather-time","broker");
-    _gatherTimer = MetricFactory.newTimer(gatherMetricName, TimeUnit.MILLISECONDS,TimeUnit.SECONDS);
+    MetricName gatherMetricName = new MetricName("gather-time","broker");
+    _gatherTimer = MetricFactory.newTimer(gatherMetricName);
 
-    MetricName totalMetricName = new MetricName(MetricsConstants.Domain,"timer","total-time","broker");
-    _totalTimer = MetricFactory.newTimer(totalMetricName, TimeUnit.MILLISECONDS,TimeUnit.SECONDS);
+    MetricName totalMetricName = new MetricName("total-time","broker");
+    _totalTimer = MetricFactory.newTimer(totalMetricName);
 
-    MetricName searchCounterMetricName = new MetricName(MetricsConstants.Domain,"meter","search-count","broker");
-    _searchCounter = MetricFactory.newMeter(searchCounterMetricName, "requets", TimeUnit.SECONDS);
+    MetricName searchCounterMetricName = new MetricName("search-count","broker");
+    _searchCounter = MetricFactory.newMeter(searchCounterMetricName);
 
-    MetricName errorMetricName = new MetricName(MetricsConstants.Domain,"meter","error-meter","broker");
-    _errorMeter = MetricFactory.newMeter(errorMetricName, "errors",TimeUnit.SECONDS);
+    MetricName errorMetricName = new MetricName("error-meter","broker");
+    _errorMeter = MetricFactory.newMeter(errorMetricName);
 
-    MetricName emptyMetricName = new MetricName(MetricsConstants.Domain,"meter","empty-meter","broker");
-    _emptyMeter = MetricFactory.newMeter(emptyMetricName, "null-hits", TimeUnit.SECONDS);
+    MetricName emptyMetricName = new MetricName("empty-meter","broker");
+    _emptyMeter = MetricFactory.newMeter(emptyMetricName);
   }
 
 	public <T> T customizeRequest(REQUEST request)
@@ -306,27 +301,7 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
   public void shutdown()
   {
     logger.info("shutting down broker...");
-    if (_scatterTimer != null) {
-      _scatterTimer.stop();
-    }
-    if (_gatherTimer != null) {
-      _gatherTimer.stop();
-    }
-    if (_totalTimer != null) {
-      _totalTimer.stop();
-    }
-    if (_searchCounter != null) {
-      _searchCounter.stop();
-    }
-    if (_errorMeter != null) {
-      _errorMeter.stop();
-    }
-    if (_emptyMeter != null) {
-      _emptyMeter.stop();
-    }
   }
-
-  
 
   public long getTimeout() {
     return _timeout;
