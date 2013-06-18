@@ -18,7 +18,9 @@
  */
 package com.senseidb.indexing.activity;
 
+import com.codahale.metrics.Timer;
 import com.senseidb.metrics.MetricFactory;
+import com.senseidb.metrics.MetricName;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -26,15 +28,11 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel.MapMode;
 import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
 import org.springframework.util.Assert;
 
 import com.senseidb.indexing.activity.primitives.ActivityPrimitivesStorage;
-import com.senseidb.metrics.MetricsConstants;
-import com.yammer.metrics.core.MetricName;
-import com.yammer.metrics.core.Timer;
 
 public class CompositeActivityStorage {
   private static final int BYTES_IN_LONG = 8;
@@ -49,10 +47,8 @@ public class CompositeActivityStorage {
 
   public CompositeActivityStorage(String indexDir) {   
     this.indexDir = indexDir;
-    timer = MetricFactory.newTimer(new MetricName(MetricsConstants.Domain,
-                                                  "timer",
-                                                  "initCompositeActivities-time",
-                                                  "CompositeActivityStorage"), TimeUnit.MILLISECONDS, TimeUnit.SECONDS);
+    timer = MetricFactory.newTimer(new MetricName("initCompositeActivities-time",
+                                                  "CompositeActivityStorage"));
  
   }
 

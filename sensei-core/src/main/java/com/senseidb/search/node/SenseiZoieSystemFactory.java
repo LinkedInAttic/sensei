@@ -18,11 +18,13 @@
  */
 package com.senseidb.search.node;
 
+import com.codahale.metrics.Histogram;
+import com.codahale.metrics.Meter;
 import com.senseidb.metrics.MetricFactory;
+import com.senseidb.metrics.MetricName;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
 import org.apache.lucene.search.Filter;
@@ -38,10 +40,6 @@ import proj.zoie.impl.indexing.ZoieConfig;
 import proj.zoie.impl.indexing.ZoieSystem;
 
 import com.browseengine.bobo.api.BoboIndexReader;
-import com.senseidb.metrics.MetricsConstants;
-import com.yammer.metrics.core.Histogram;
-import com.yammer.metrics.core.Meter;
-import com.yammer.metrics.core.MetricName;
 
 public class SenseiZoieSystemFactory<T> extends SenseiZoieFactory<T>
 {
@@ -125,14 +123,14 @@ public class SenseiZoieSystemFactory<T> extends SenseiZoieFactory<T>
     final Histogram flushTimeHistogram;
         
     IndexingMetrics(int partition){
-      MetricName docsIndexedName =  new MetricName(MetricsConstants.Domain,"meter","docs-indexed","indexer");
-      docsIndexedMetric = MetricFactory.newMeter(docsIndexedName, "indexing", TimeUnit.SECONDS);
+      MetricName docsIndexedName =  new MetricName("docs-indexed","indexer");
+      docsIndexedMetric = MetricFactory.newMeter(docsIndexedName);
 
-      MetricName docsLeftoverName = new MetricName(MetricsConstants.Domain,"meter","docs-leftover","indexer");
-      docsLeftoverMetric = MetricFactory.newMeter(docsLeftoverName, "indexing", TimeUnit.SECONDS);
+      MetricName docsLeftoverName = new MetricName("docs-leftover","indexer");
+      docsLeftoverMetric = MetricFactory.newMeter(docsLeftoverName);
 
-      MetricName flushTimeName = new MetricName(MetricsConstants.Domain,"histogram","flush-time","indexer");
-      flushTimeHistogram = MetricFactory.newHistogram(flushTimeName, false);
+      MetricName flushTimeName = new MetricName("flush-time","indexer");
+      flushTimeHistogram = MetricFactory.newHistogram(flushTimeName);
     }
   }
 }

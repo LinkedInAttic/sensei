@@ -18,7 +18,9 @@
  */
 package com.senseidb.indexing;
 
+import com.codahale.metrics.Counter;
 import com.senseidb.metrics.MetricFactory;
+import com.senseidb.metrics.MetricName;
 import java.io.IOException;
 import java.util.Map;
 
@@ -27,12 +29,9 @@ import com.browseengine.bobo.api.BrowseSelection;
 import com.browseengine.bobo.facets.data.FacetDataCache;
 import com.browseengine.bobo.facets.data.TermLongList;
 import com.browseengine.bobo.facets.filter.FacetRangeFilter;
-import com.senseidb.metrics.MetricsConstants;
 import com.senseidb.plugin.SenseiPlugin;
 import com.senseidb.plugin.SenseiPluginRegistry;
 import com.senseidb.search.req.SenseiRequest;
-import com.yammer.metrics.core.Counter;
-import com.yammer.metrics.core.MetricName;
 
 public class TimeBasedIndexSelector implements SenseiIndexPruner, SenseiPlugin {
 
@@ -116,9 +115,9 @@ public class TimeBasedIndexSelector implements SenseiIndexPruner, SenseiPlugin {
   @Override
   public void start() {
     // register jmx monitoring for timers
-    MetricName processedReadersMetric = new MetricName(MetricsConstants.Domain, "timeBasedIndexPruner","processedReaderCount");
+    MetricName processedReadersMetric = new MetricName("timeBasedIndexPruner","processedReaderCount");
     processedReadersCount = MetricFactory.newCounter(processedReadersMetric);
-    MetricName filteredReadersMetric = new MetricName(MetricsConstants.Domain,"timeBasedIndexPruner","filteredReaderCount");
+    MetricName filteredReadersMetric = new MetricName("timeBasedIndexPruner","filteredReaderCount");
     filteredReadersCount = MetricFactory.newCounter(filteredReadersMetric);
   }
 

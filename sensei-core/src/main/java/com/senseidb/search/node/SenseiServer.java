@@ -207,7 +207,6 @@ public class SenseiServer {
   }
 
   public void start(boolean available) throws Exception {
-    MetricFactory.start();
     _core.start();
 //        ClusterClient clusterClient = ClusterClientFactory.newInstance().newZookeeperClient();
     String clusterName = _clusterClient.getServiceName();
