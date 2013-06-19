@@ -265,9 +265,14 @@ public class SenseiCore{
   {
     return zoieSystems.size();
   }
-  
+
   // Export snapshot from zoie to list of channels.
-  public void exportSnapshot(List<WritableByteChannel> channels) throws IOException
+  public long exportSnapshot(List<WritableByteChannel> channels) throws IOException
+  {
+    return exportSnapshot(channels, 0L);
+  }
+  // Export snapshot from zoie to list of channels.
+  public long exportSnapshot(List<WritableByteChannel> channels, long maxBps) throws IOException
   {
     Preconditions.checkNotNull(channels);
     Preconditions.checkArgument(channels.size() > 0);
@@ -276,14 +281,14 @@ public class SenseiCore{
     int i = 0;
     
     // TODO: allow run in parallel
-    
+    long result = 0L;
     for (Zoie<BoboIndexReader,?> zoieSystem : zoieSystems)
     {
       if (zoieSystem instanceof ZoieSystem)
       {
         try
         {
-          ((ZoieSystem<BoboIndexReader,?>)zoieSystem).exportSnapshot(channels.get(i++));
+          result += ((ZoieSystem<BoboIndexReader,?>)zoieSystem).exportSnapshot(channels.get(i++), maxBps);
         }
         catch (IOException e)
         {
@@ -292,10 +297,16 @@ public class SenseiCore{
         }
       }
     }
+    return result;
   }
 
   // Import snapshot to zoie from list of channels.
   public void importSnapshot(List<ReadableByteChannel> channels) throws IOException
+  {
+    importSnapshot(channels, 0L);
+  }
+  // Import snapshot to zoie from list of channels.
+  public void importSnapshot(List<ReadableByteChannel> channels, long maxBps) throws IOException
   {
     Preconditions.checkNotNull(channels);
     Preconditions.checkArgument(channels.size() > 0);
@@ -311,7 +322,7 @@ public class SenseiCore{
       {
         try
         {
-          ((ZoieSystem<BoboIndexReader,?>)zoieSystem).importSnapshot(channels.get(i++));
+          ((ZoieSystem<BoboIndexReader,?>)zoieSystem).importSnapshot(channels.get(i++), maxBps);
         }
         catch (IOException e)
         {
