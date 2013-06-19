@@ -129,10 +129,19 @@ public class SenseiServer {
   {
     _core.importSnapshot(channels);
   }
+  public void importSnapshot(List<ReadableByteChannel> channels, long maxBps) throws IOException
+  {
+    _core.importSnapshot(channels, maxBps);
+  }
 
   public void exportSnapshot(List<WritableByteChannel> channels) throws IOException
   {
     _core.exportSnapshot(channels);
+  }
+
+  public void exportSnapshot(List<WritableByteChannel> channels, long maxBps) throws IOException
+  {
+    _core.exportSnapshot(channels, maxBps);
   }
 
   public void optimize()
