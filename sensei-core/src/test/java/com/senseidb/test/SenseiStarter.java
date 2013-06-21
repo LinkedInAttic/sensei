@@ -26,7 +26,9 @@ import java.net.URL;
 
 import javax.management.InstanceAlreadyExistsException;
 
+import com.linkedin.norbert.network.Serializer;
 import com.senseidb.indexing.activity.facet.ActivityRangeFacetHandler;
+import com.senseidb.svc.impl.CoreSenseiServiceImpl;
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.server.NIOServerCnxn;
 import org.apache.zookeeper.server.ZooKeeperServer;
@@ -69,6 +71,7 @@ public class SenseiStarter {
   public static SenseiServer node2;
   public static Server httpServer1;
   public static Server httpServer2;
+  public static Serializer<SenseiRequest, SenseiResult> serializer;
   public static SenseiNetworkClient networkClient;
   public static ClusterClient clusterClient;
   public static SenseiRequestScatterRewriter requestRewriter;
@@ -121,7 +124,7 @@ public class SenseiStarter {
       broker = null;
       try
       {
-        broker = new SenseiBroker(networkClient, clusterClient, true);
+        broker = new SenseiBroker(networkClient, clusterClient, serializer, 10000L, true);
       } catch (NorbertException ne) {
         logger.info("shutting down cluster...", ne);
           clusterClient.shutdown();
@@ -163,7 +166,7 @@ public class SenseiStarter {
       res = broker.browse(req);
       System.out.println(""+res.getNumHits()+" loaded...");
       ++count;
-    } while (count < 20 && res.getNumHits() < 15000);
+    } while (count < 200 && res.getNumHits() < 15000);
 
   }
 
@@ -181,6 +184,11 @@ public class SenseiStarter {
         logger.error("Unexpected Exception", e.getCause());
     }
     networkClient = (SenseiNetworkClient)testSpringCtx.getBean("network-client");
+    serializer = (Serializer<SenseiRequest, SenseiResult>) testSpringCtx.getBean("serializer");
+    if(serializer == null) {
+      logger.warn("Unspecified serializer, using java serialization");
+      serializer = CoreSenseiServiceImpl.JAVA_SERIALIZER;
+    }
     clusterClient = (ClusterClient)testSpringCtx.getBean("cluster-client");
     requestRewriter = (SenseiRequestScatterRewriter)testSpringCtx.getBean("request-rewriter");
     networkServer1 = (NetworkServer)testSpringCtx.getBean("network-server-1");
@@ -202,7 +210,7 @@ public class SenseiStarter {
     return f.delete();
   }
 
-  private static void shutdownSensei() {
+  public static void shutdownSensei() {
     try{ broker.shutdown();}catch(Throwable t){}
     try{ httpRestSenseiService.shutdown();}catch(Throwable t){}
     try{node1.shutdown();}catch(Throwable t){}
@@ -213,6 +221,7 @@ public class SenseiStarter {
     try{clusterClient.shutdown();}catch(Throwable t){}
     rmrf(IndexDir);
     zkServer.stop();
+    started = false;
   }
 
 }

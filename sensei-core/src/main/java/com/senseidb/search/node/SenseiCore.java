@@ -65,17 +65,21 @@ public class SenseiCore{
   private SenseiIndexPruner _pruner;
 
   private PluggableSearchEngineManager pluggableSearchEngineManager;
+
+  private final SenseiIndexReaderDecorator decorator;
     
   public SenseiCore(int id,int[] partitions,
             SenseiZoieFactory<?> zoieSystemFactory,
             SenseiIndexingManager indexManager,
-            SenseiQueryBuilderFactory queryBuilderFactory){
+            SenseiQueryBuilderFactory queryBuilderFactory,
+            SenseiIndexReaderDecorator decorator){
 
     _zoieFactory = zoieSystemFactory;
     _indexManager = indexManager;
     _queryBuilderFactory = queryBuilderFactory;
     _partitions = partitions;
     _id = id;
+    this.decorator = decorator;
     
     _readerFactoryMap = new HashMap<Integer,Zoie<BoboIndexReader,?>>();
     _started = false;
@@ -216,24 +220,27 @@ public class SenseiCore{
       }
       _started = true;
   }
-  
-  public void shutdown(){
+
+  public void shutdown() {
     if (!_started) return;
     logger.info("unregistering mbeans...");
-        // shutdown the index manager
+    // shutdown the index manager
+
+    logger.info("Closing the pluggable index manager...");
+    pluggableSearchEngineManager.close();
 
     logger.info("shutting down index manager...");
-    if (_indexManager!=null){
+    if (_indexManager != null) {
       _indexManager.shutdown();
     }
     logger.info("index manager shutdown...");
-      
+
     // shutdown the zoieSystems
-    for(Zoie<BoboIndexReader,?> zoieSystem : zoieSystems){
+    for (Zoie<BoboIndexReader, ?> zoieSystem : zoieSystems) {
       zoieSystem.shutdown();
     }
     zoieSystems.clear();
-    _started =false;
+    _started = false;
   }
 
   public DataProvider getDataProvider()
@@ -355,6 +362,10 @@ public class SenseiCore{
 
   public PluggableSearchEngineManager getPluggableSearchEngineManager() {
     return pluggableSearchEngineManager;
+  }
+
+  public SenseiIndexReaderDecorator getDecorator() {
+    return decorator;
   }
   
 }

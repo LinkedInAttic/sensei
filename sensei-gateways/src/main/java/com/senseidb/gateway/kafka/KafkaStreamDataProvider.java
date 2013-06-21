@@ -22,17 +22,24 @@ package com.senseidb.gateway.kafka;
 import java.nio.ByteBuffer;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Properties;
+import java.util.Set;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import kafka.consumer.Consumer;
 import kafka.consumer.ConsumerConfig;
-import kafka.consumer.ConsumerIterator;
-import kafka.consumer.KafkaMessageStream;
+import kafka.consumer.KafkaStream;
 import kafka.javaapi.consumer.ConsumerConnector;
-import kafka.message.Message;
 
+import kafka.message.MessageAndMetadata;
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
 
@@ -43,11 +50,12 @@ import com.senseidb.indexing.DataSourceFilter;
 
 public class KafkaStreamDataProvider extends StreamDataProvider<JSONObject>{
 
-  private final String _topic;
+  private final Set<String> _topics;
   private final String _consumerGroupId;
   private Properties _kafkaConfig;
   private ConsumerConnector _consumerConnector;
-  private ConsumerIterator<Message> _consumerIterator;
+  private Iterator<byte[]> _consumerIterator;
+  private ExecutorService _executorService;
 
   
   private static Logger logger = Logger.getLogger(KafkaStreamDataProvider.class);
@@ -58,14 +66,22 @@ public class KafkaStreamDataProvider extends StreamDataProvider<JSONObject>{
   
   public KafkaStreamDataProvider(Comparator<String> versionComparator,String zookeeperUrl,int soTimeout,int batchSize,
                                  String consumerGroupId,String topic,long startingOffset,DataSourceFilter<DataPacket> dataConverter){
-    this(versionComparator, zookeeperUrl, soTimeout, batchSize, consumerGroupId, topic, startingOffset, dataConverter, null);
+    this(versionComparator, zookeeperUrl, soTimeout, batchSize, consumerGroupId, topic, startingOffset, dataConverter, new Properties());
   }
 
   public KafkaStreamDataProvider(Comparator<String> versionComparator,String zookeeperUrl,int soTimeout,int batchSize,
                                  String consumerGroupId,String topic,long startingOffset,DataSourceFilter<DataPacket> dataConverter,Properties kafkaConfig){
     super(versionComparator);
     _consumerGroupId = consumerGroupId;
-    _topic = topic;
+    _topics = new HashSet<String>();
+    for (String raw : topic.split("[, ;]+"))
+    {
+      String t = raw.trim();
+      if (t.length() != 0)
+      {
+        _topics.add(t);
+      }
+    }
     super.setBatchSize(batchSize);
     _zookeeperUrl = zookeeperUrl;
     _kafkaSoTimeout = soTimeout;
@@ -102,7 +118,7 @@ public class KafkaStreamDataProvider extends StreamDataProvider<JSONObject>{
       return null;
     }
 
-    Message msg = _consumerIterator.next();
+    byte[] msg = _consumerIterator.next();
     if (logger.isDebugEnabled()){
       logger.debug("got new message: "+msg);
     }
@@ -110,11 +126,7 @@ public class KafkaStreamDataProvider extends StreamDataProvider<JSONObject>{
     
     JSONObject data;
     try {
-      int size = msg.payloadSize();
-      ByteBuffer byteBuffer = msg.payload();
-      byte[] bytes = new byte[size];
-      byteBuffer.get(bytes,0,size);
-      data = _dataConverter.filter(new DataPacket(bytes,0,size));
+      data = _dataConverter.filter(new DataPacket(msg,0,msg.length));
       
       if (logger.isDebugEnabled()){
         logger.debug("message converted: "+data);
@@ -133,24 +145,125 @@ public class KafkaStreamDataProvider extends StreamDataProvider<JSONObject>{
   @Override
   public void start() {
     Properties props = new Properties();
+
+    // remove after kafka 0.8 migration is finished
     props.put("zk.connect", _zookeeperUrl);
     //props.put("consumer.timeout.ms", _kafkaSoTimeout);
     props.put("groupid", _consumerGroupId);
+
+    // kafka 0.8 configs
+    props.put("zookeeper.connect", _zookeeperUrl);
+    props.put("group.id", _consumerGroupId);
 
     for (String key : _kafkaConfig.stringPropertyNames()) {
       props.put(key, _kafkaConfig.getProperty(key));
     }
 
+    logger.info("Kafka properties: " + props);
+
     ConsumerConfig consumerConfig = new ConsumerConfig(props);
     _consumerConnector = Consumer.createJavaConsumerConnector(consumerConfig);
 
     Map<String, Integer> topicCountMap = new HashMap<String, Integer>();
-    topicCountMap.put(_topic, 1);
-    Map<String, List<KafkaMessageStream<Message>>> topicMessageStreams =
+    for (String topic : _topics)
+    {
+      topicCountMap.put(topic, 1);
+    }
+
+    Map<String, List<KafkaStream<byte[],byte[]>>> topicMessageStreams =
         _consumerConnector.createMessageStreams(topicCountMap);
-    List<KafkaMessageStream<Message>> streams = topicMessageStreams.get(_topic);
-    KafkaMessageStream<Message> kafkaMessageStream = streams.iterator().next();
-    _consumerIterator = kafkaMessageStream.iterator();
+
+    final ArrayBlockingQueue<byte[]> queue = new ArrayBlockingQueue<byte[]>(8, true);
+
+    int streamCount = 0;
+    for (List<KafkaStream<byte[], byte[]>> streams : topicMessageStreams.values())
+    {
+      for (KafkaStream<byte[], byte[]> stream : streams)
+      {
+        ++streamCount;
+      }
+    }
+    _executorService = Executors.newFixedThreadPool(streamCount);
+
+    for (List<KafkaStream<byte[], byte[]>> streams : topicMessageStreams.values())
+    {
+      for (KafkaStream<byte[], byte[]> stream : streams)
+      {
+        final KafkaStream<byte[], byte[]> messageStream = stream;
+        _executorService.execute(new Runnable()
+          {
+            @Override
+            public void run()
+            {
+              logger.info("Kafka consumer thread started: " + Thread.currentThread().getId());
+              try
+              {
+                for (MessageAndMetadata<byte[], byte[]> message : messageStream)
+                {
+                  queue.put(message.message());
+                }
+              }
+              catch(Exception e)
+              {
+                // normally it should the stop interupt exception.
+                logger.error(e.getMessage(), e);
+              }
+              logger.info("Kafka consumer thread ended: " + Thread.currentThread().getId());
+            }
+          }
+        );
+      }
+    }
+
+    _consumerIterator = new Iterator<byte[]>()
+    {
+      private byte[] message = null;
+
+      @Override
+      public boolean hasNext()
+      {
+        if (message != null)  return true;
+
+        try
+        {
+          message = queue.poll(1, TimeUnit.SECONDS);
+        }
+        catch(InterruptedException ie)
+        {
+          return false;
+        }
+
+        if (message != null)
+        {
+          return true;
+        }
+        else
+        {
+          return false;
+        }
+      }
+
+      @Override
+      public byte[] next()
+      {
+        if (hasNext())
+        {
+          byte[] res = message;
+          message = null;
+          return res;
+        }
+        else
+        {
+          throw new NoSuchElementException();
+        }
+      }
+
+      @Override
+      public void remove()
+      {
+        throw new UnsupportedOperationException("not supported");
+      }
+    };
 
     super.start();
     _started = true;
@@ -162,13 +275,24 @@ public class KafkaStreamDataProvider extends StreamDataProvider<JSONObject>{
 
     try
     {
-      if (_consumerConnector!=null){
-        _consumerConnector.shutdown();
+      if (_executorService != null)
+      {
+        _executorService.shutdown();
       }
     }
     finally
     {
-      super.stop();
+      try
+      {
+        if (_consumerConnector != null)
+        {
+          _consumerConnector.shutdown();
+        }
+      }
+      finally
+      {
+        super.stop();
+      }
     }
   }  
 }

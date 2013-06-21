@@ -103,6 +103,7 @@ public class RelevanceJSONConstants
   // constant type:
   public static final String           KW_INNER_SCORE          = "_INNER_SCORE";
   public static final String           KW_NOW                  = "_NOW";
+  public static final String           KW_RANDOM               = "_RANDOM";
 
   /* Type Numbers 
    * 

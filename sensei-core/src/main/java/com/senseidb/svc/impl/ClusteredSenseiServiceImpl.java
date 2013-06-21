@@ -22,6 +22,7 @@ import java.util.Comparator;
 
 import com.linkedin.norbert.javacompat.network.PartitionedLoadBalancerFactory;
 
+import com.linkedin.norbert.network.Serializer;
 import org.apache.commons.configuration.Configuration;
 import org.apache.log4j.Logger;
 
@@ -41,17 +42,15 @@ import com.senseidb.svc.api.SenseiService;
 public class ClusteredSenseiServiceImpl implements SenseiService {  
   private static final Logger logger = Logger.getLogger(ClusteredSenseiServiceImpl.class);
 
-  private final NetworkClientConfig _networkClientConfig = new NetworkClientConfig();
-  
   private SenseiBroker _senseiBroker;
   private SenseiSysBroker _senseiSysBroker;
   private SenseiNetworkClient _networkClient = null;
   private ClusterClient _clusterClient;
   private final String _clusterName;
   
-  public ClusteredSenseiServiceImpl(Configuration senseiConf, PartitionedLoadBalancerFactory<String> loadBalancerFactory/*, SenseiLoadBalancerFactory loadBalancerFactory*/,
-      Comparator<String> versionComparator) {
-    BrokerConfig brokerConfig = new BrokerConfig(senseiConf, loadBalancerFactory);
+  public ClusteredSenseiServiceImpl(Configuration senseiConf, PartitionedLoadBalancerFactory<String> loadBalancerFactory,
+                                    Serializer<SenseiRequest, SenseiResult> serializer, Comparator<String> versionComparator) {
+    BrokerConfig brokerConfig = new BrokerConfig(senseiConf, loadBalancerFactory, serializer);
     brokerConfig.init();
     _clusterName = brokerConfig.getClusterName();
   

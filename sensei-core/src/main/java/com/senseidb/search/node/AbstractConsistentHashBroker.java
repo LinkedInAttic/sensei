@@ -18,6 +18,12 @@
  */
 package com.senseidb.search.node;
 
+import com.linkedin.norbert.javacompat.network.RequestBuilder;
+import com.linkedin.norbert.network.ResponseIterator;
+import com.linkedin.norbert.network.common.ExceptionIterator;
+import com.linkedin.norbert.network.common.PartialIterator;
+import com.linkedin.norbert.network.common.TimeoutIterator;
+import com.senseidb.search.req.*;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 
@@ -64,7 +70,7 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
 {
   private final static Logger logger = Logger.getLogger(AbstractConsistentHashBroker.class);
 
-  protected long _timeout = 8000;
+  protected final long _timeout;
   protected final Serializer<REQUEST, RESULT> _serializer;
 
   private final Timer _scatterTimer;
@@ -83,11 +89,12 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
    * @param scatterGatherHandler
    * @throws NorbertException
    */
-  public AbstractConsistentHashBroker(PartitionedNetworkClient<String> networkClient, Serializer<REQUEST, RESULT> serializer)
+  public AbstractConsistentHashBroker(PartitionedNetworkClient<String> networkClient, Serializer<REQUEST, RESULT> serializer, long timeoutMillis)
       throws NorbertException
   {
     super(networkClient);
     _serializer = serializer;
+    _timeout = timeoutMillis;
 
     // register metrics monitoring for timers
     MetricName scatterMetricName = new MetricName(MetricsConstants.Domain,"timer","scatter-time","broker");
@@ -326,14 +333,13 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
     }
   }
 
-  
-
   public long getTimeout() {
     return _timeout;
   }
 
-  public void setTimeout(long timeout) {
-    this._timeout = timeout;
+  public Serializer<REQUEST, RESULT> getSerializer()
+  {
+    return _serializer;
   }
 
   /**

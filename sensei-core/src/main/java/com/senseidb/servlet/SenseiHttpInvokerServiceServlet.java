@@ -44,7 +44,7 @@ public class SenseiHttpInvokerServiceServlet extends
 	public void init(ServletConfig config) throws ServletException {
 		super.init(config);
 		
-		innerSvc = new ClusteredSenseiServiceImpl(senseiConf, loadBalancerFactory, versionComparator);
+		innerSvc = new ClusteredSenseiServiceImpl(senseiConf, loadBalancerFactory, serializer, versionComparator);
 		innerSvc.start();
 		target = new HttpInvokerServiceExporter();
 		target.setService(innerSvc);

@@ -41,27 +41,15 @@ public class SenseiScatterGatherHandler extends AbstractSenseiScatterGatherHandl
 {
 
   private final static Logger logger = Logger.getLogger(SenseiScatterGatherHandler.class);
-  
-  private final static long TIMEOUT_MILLIS = 8000L;
 
   private final SenseiRequestScatterRewriter _reqRewriter;
   
-  private long _timeoutMillis = TIMEOUT_MILLIS;
-
-  public SenseiScatterGatherHandler(SenseiRequest request, SenseiRequestScatterRewriter reqRewriter)
+  public SenseiScatterGatherHandler(SenseiRequest request, SenseiRequestScatterRewriter reqRewriter, long timeoutMillis)
   {
-      super(request);
+      super(request, timeoutMillis);
       _reqRewriter = reqRewriter;
   }
   
-  public void setTimeoutMillis(long timeoutMillis){
-    _timeoutMillis = timeoutMillis;
-  }
-  
-  public long getTimeoutMillis(){
-    return _timeoutMillis;
-  }
-
   @Override
   public SenseiResult mergeResults(SenseiRequest request, List<SenseiResult> resultList)
   {

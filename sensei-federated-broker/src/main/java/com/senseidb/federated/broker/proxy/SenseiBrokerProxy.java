@@ -27,6 +27,9 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
+import com.linkedin.norbert.network.Serializer;
+import com.senseidb.svc.impl.CoreSenseiServiceImpl;
+import com.senseidb.svc.impl.SenseiCoreServiceMessageHandler;
 import org.apache.commons.configuration.Configuration;
 import org.apache.log4j.Logger;
 
@@ -51,20 +54,32 @@ public class SenseiBrokerProxy extends SenseiBroker implements BrokerProxy {
   private final Timer scatterTimer;
   private final Meter ErrorMeter;
 
-  public SenseiBrokerProxy(PartitionedNetworkClient<String> networkClient, ClusterClient clusterClient, boolean allowPartialMerge) {
-    super(networkClient, clusterClient, allowPartialMerge);
+  public SenseiBrokerProxy(PartitionedNetworkClient<String> networkClient,
+                           ClusterClient clusterClient,
+                           Serializer<SenseiRequest, SenseiResult> serializer,
+                           long timeoutMillis, boolean allowPartialMerge) {
+    super(networkClient, clusterClient, serializer, timeoutMillis, allowPartialMerge);
 
     MetricName scatterMetricName = new MetricName(SenseiBrokerProxy.class,"scatter-time");
     scatterTimer = MetricFactory.newTimer(scatterMetricName, TimeUnit.MILLISECONDS, TimeUnit.SECONDS);
     MetricName errorMetricName = new MetricName(SenseiBrokerProxy.class,"error-meter");
     ErrorMeter = MetricFactory.newMeter(errorMetricName, "errors",TimeUnit.SECONDS);
   }
+
   public static SenseiBrokerProxy valueOf(Configuration senseiConfiguration, Map<String, String> overrideProperties) {
-    BrokerProxyConfig brokerProxyConfig = new BrokerProxyConfig(senseiConfiguration, balancerFactory, overrideProperties);
+    BrokerProxyConfig brokerProxyConfig =
+        new BrokerProxyConfig(senseiConfiguration, balancerFactory, serializer, overrideProperties);
+
     brokerProxyConfig.init();
-    SenseiBrokerProxy ret = new SenseiBrokerProxy(brokerProxyConfig.getNetworkClient(), brokerProxyConfig.getClusterClient(), true);
+    SenseiBrokerProxy ret = new SenseiBrokerProxy(
+        brokerProxyConfig.getNetworkClient(),
+        brokerProxyConfig.getClusterClient(),
+        brokerProxyConfig.getSerializer(),
+        brokerProxyConfig.getBrokerTimeout(),
+        brokerProxyConfig.isAllowPartialMerge());
     return ret;
   }
+  
   @Override
   public List<SenseiResult> doQuery(final SenseiRequest senseiRequest) {
     final List<SenseiResult> resultList = new ArrayList<SenseiResult>();

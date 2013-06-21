@@ -1,21 +1,3 @@
-/**
- * This software is licensed to you under the Apache License, Version 2.0 (the
- * "Apache License").
- *
- * LinkedIn's contributions are made under the Apache License. If you contribute
- * to the Software, the contributions will be deemed to have been made under the
- * Apache License, unless you expressly indicate otherwise. Please do not make any
- * contributions that would be inconsistent with the Apache License.
- *
- * You may obtain a copy of the Apache License at http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, this software
- * distributed under the Apache License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the Apache
- * License for the specific language governing permissions and limitations for the
- * software governed under the Apache License.
- *
- * © 2012 LinkedIn Corp. All Rights Reserved.  
- */
 package com.senseidb.test;
 
 import java.io.Serializable;
@@ -40,12 +22,17 @@ import com.senseidb.svc.api.SenseiService;
 public class ErrorHandlingTest extends TestCase {
 
   private static final Logger logger = Logger.getLogger(TestMapReduce.class);
-  public static class MapReduceAdapter implements SenseiMapReduce<Serializable, Serializable> {   
+
+  public static class MapReduceAdapter implements SenseiMapReduce<Serializable, Serializable> {
     public void init(JSONObject params) {}
     public Serializable map(int[] docIds, int docIdCount, long[] uids, FieldAccessor accessor, FacetCountAccessor facetCountAccessor) {return new ArrayList();}
     public List<Serializable> combine(List<Serializable> mapResults, CombinerStage combinerStage) {return new ArrayList();}
     public Serializable reduce(List<Serializable> combineResults) {return new ArrayList<Serializable>();}
-    public JSONObject render(Serializable reduceResult) {return new JSONObject();}    
+    public JSONObject render(Serializable reduceResult) {return new JSONObject();}
+    @Override
+    public String[] getColumns() {
+      return null;
+    }
   }
   public static class test1JsonError extends MapReduceAdapter {
     @Override
@@ -89,7 +76,7 @@ public class ErrorHandlingTest extends TestCase {
    }
     @Override
     public List<Serializable> combine(List<Serializable> mapResults, CombinerStage combinerStage) {
-    
+
     return new ArrayList(java.util.Arrays.asList(new NonSerializable()));
   }}
     public static class test7ResponseJsonError extends MapReduceAdapter {
@@ -100,12 +87,12 @@ public class ErrorHandlingTest extends TestCase {
    }
   private static SenseiService httpRestSenseiService;
   static {
-    SenseiStarter.start("test-conf/node1","test-conf/node2");     
+    SenseiStarter.start("test-conf/node1","test-conf/node2");
     httpRestSenseiService = SenseiStarter.httpRestSenseiService;
   }
   public void test1ExceptionOInitLevel() throws Exception {
-    String req = "{ \"mapReduce\":{\"function\":\"" + test1JsonError.class.getName() + "\"}}";    
-    
+    String req = "{ \"mapReduce\":{\"function\":\"" + test1JsonError.class.getName() + "\"}}";
+
     JSONObject reqJson = new JSONObject(req);
     System.out.println(reqJson.toString(1));
     JSONObject res = TestSensei.search(reqJson);
@@ -113,8 +100,8 @@ public class ErrorHandlingTest extends TestCase {
     assertResponseContainsErrors(res, ErrorType.JsonParsingError);
   }
   public void test2BoboError() throws Exception {
-    String req = "{ \"mapReduce\":{\"function\":\"" + test2BoboError.class.getName() + "\"}}";    
-    
+    String req = "{ \"mapReduce\":{\"function\":\"" + test2BoboError.class.getName() + "\"}}";
+
     JSONObject reqJson = new JSONObject(req);
     System.out.println(reqJson.toString(1));
     JSONObject res = TestSensei.search(reqJson);
@@ -122,8 +109,8 @@ public class ErrorHandlingTest extends TestCase {
     assertResponseContainsErrors(res, ErrorType.BoboExecutionError, ErrorType.BoboExecutionError, ErrorType.BoboExecutionError);
   }
   public void test3PartitionLevelError() throws Exception {
-    String req = "{ \"mapReduce\":{\"function\":\"" + test3PartitionLevelError.class.getName() + "\"}}";    
-    
+    String req = "{ \"mapReduce\":{\"function\":\"" + test3PartitionLevelError.class.getName() + "\"}}";
+
     JSONObject reqJson = new JSONObject(req);
     System.out.println(reqJson.toString(1));
     JSONObject res = TestSensei.search(reqJson);
@@ -131,8 +118,8 @@ public class ErrorHandlingTest extends TestCase {
     assertResponseContainsErrors(res, ErrorType.BoboExecutionError, ErrorType.BoboExecutionError, ErrorType.BoboExecutionError);
   }
   public void test4NodeLevelError() throws Exception {
-    String req = "{ \"mapReduce\":{\"function\":\"" + test4NodeLevelError.class.getName() + "\"}}";    
-    
+    String req = "{ \"mapReduce\":{\"function\":\"" + test4NodeLevelError.class.getName() + "\"}}";
+
     JSONObject reqJson = new JSONObject(req);
     System.out.println(reqJson.toString(1));
     JSONObject res = TestSensei.search(reqJson);
@@ -140,8 +127,8 @@ public class ErrorHandlingTest extends TestCase {
     assertResponseContainsErrors(res, ErrorType.MergePartitionError, ErrorType.MergePartitionError);
   }
   public void test5BrokerLevelError() throws Exception {
-    String req = "{ \"mapReduce\":{\"function\":\"" + test5BrokerLevelError.class.getName() + "\"}}";    
-    
+    String req = "{ \"mapReduce\":{\"function\":\"" + test5BrokerLevelError.class.getName() + "\"}}";
+
     JSONObject reqJson = new JSONObject(req);
     System.out.println(reqJson.toString(1));
     JSONObject res = TestSensei.search(reqJson);
@@ -150,8 +137,8 @@ public class ErrorHandlingTest extends TestCase {
   }
   @Ignore
   public void ntest6NonSerializableError() throws Exception {
-    String req = "{ \"mapReduce\":{\"function\":\"" + test6NonSerializableError.class.getName() + "\"}}";    
-    
+    String req = "{ \"mapReduce\":{\"function\":\"" + test6NonSerializableError.class.getName() + "\"}}";
+
     JSONObject reqJson = new JSONObject(req);
     System.out.println(reqJson.toString(1));
     JSONObject res = TestSensei.search(reqJson);
@@ -159,8 +146,8 @@ public class ErrorHandlingTest extends TestCase {
     assertResponseContainsErrors(res, ErrorType.BrokerGatherError);
   }
   public void test7ResponseJsonError() throws Exception {
-    String req = "{ \"mapReduce\":{\"function\":\"" + test7ResponseJsonError.class.getName() + "\"}}";    
-    
+    String req = "{ \"mapReduce\":{\"function\":\"" + test7ResponseJsonError.class.getName() + "\"}}";
+
     JSONObject reqJson = new JSONObject(req);
     System.out.println(reqJson.toString(1));
     JSONObject res = TestSensei.search(reqJson);
@@ -169,7 +156,7 @@ public class ErrorHandlingTest extends TestCase {
   }
   public void test8BQLError() throws Exception {
    String req = "{\"bql\":\"select1 * from cars\"}";
-    
+
     JSONObject reqJson = new JSONObject(req);
     System.out.println(reqJson.toString(1));
     JSONObject res = TestSensei.search(reqJson);
@@ -183,7 +170,7 @@ public class ErrorHandlingTest extends TestCase {
     assertEquals(jsonParsingErrors.length, res.getJSONArray("errors").length());
   }
 
-  
-    
+
+
 
 }

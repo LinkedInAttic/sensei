@@ -40,10 +40,10 @@ import com.browseengine.bobo.facets.filter.FacetRangeFilter;
 import com.browseengine.bobo.facets.filter.RandomAccessFilter;
 import com.browseengine.bobo.sort.DocComparator;
 import com.browseengine.bobo.sort.DocComparatorSource;
-import com.senseidb.bql.parsers.BQLParser.instanceof_expression_return;
-import com.senseidb.indexing.activity.CompositeActivityValues;
+import com.senseidb.indexing.activity.CompositeActivityManager;
 import com.senseidb.indexing.activity.primitives.ActivityFloatValues;
 import com.senseidb.indexing.activity.primitives.ActivityIntValues;
+import com.senseidb.indexing.activity.primitives.ActivityLongValues;
 import com.senseidb.indexing.activity.primitives.ActivityPrimitiveValues;
 
 /**
@@ -64,26 +64,30 @@ public class ActivityRangeFacetHandler extends FacetHandler<int[]> {
   };
 
   private final ActivityPrimitiveValues activityValues;
-  private final CompositeActivityValues compositeActivityValues;
+
+  protected final CompositeActivityManager compositeActivityManager;
   
-  public ActivityRangeFacetHandler(String facetName, String fieldName, CompositeActivityValues compositeActivityValues, ActivityPrimitiveValues activityValues) {
+  public ActivityRangeFacetHandler(String facetName, String fieldName, CompositeActivityManager compositeActivityManager, ActivityPrimitiveValues activityValues) {
     super(facetName, new HashSet<String>());
-    this.compositeActivityValues = compositeActivityValues;
+    this.compositeActivityManager = compositeActivityManager;
     this.activityValues = activityValues;   
   }
-  public static FacetHandler valueOf(String facetName, String fieldName, CompositeActivityValues compositeActivityValues, ActivityPrimitiveValues activityValues) {
+  public static FacetHandler valueOf(String facetName, String fieldName, CompositeActivityManager compositeActivityManager, ActivityPrimitiveValues activityValues) {
    if (isSynchronized) {
-     return new SynchronizedActivityRangeFacetHandler(facetName, fieldName, compositeActivityValues, activityValues);
+     return new SynchronizedActivityRangeFacetHandler(facetName, fieldName, compositeActivityManager, activityValues);
    }
-   return new ActivityRangeFacetHandler(facetName, fieldName, compositeActivityValues, activityValues);
+   return new ActivityRangeFacetHandler(facetName, fieldName, compositeActivityManager, activityValues);
+
   }
-  
+ 
   
   @Override
   public int[] load(BoboIndexReader reader) throws IOException {
-    ZoieSegmentReader<?> zoieReader = (ZoieSegmentReader<?>)(reader.getInnerReader());    
-    long[] uidArray = zoieReader.getUIDArray();   
-    return compositeActivityValues.precomputeArrayIndexes(uidArray);    
+    ZoieSegmentReader zoieReader = (ZoieSegmentReader)(reader.getInnerReader());    
+       
+    long[] uidArray = zoieReader.getUIDArray();  
+   
+    return compositeActivityManager.getActivityValues().precomputeArrayIndexes(uidArray);    
   }
 
   @Override
@@ -96,36 +100,58 @@ public class ActivityRangeFacetHandler extends FacetHandler<int[]> {
         if (value == null || value.isEmpty()) {
           return  EmptyDocIdSet.getInstance();
         }
-        int[] range = parseRaw(value);
-        final int startValue = range[0];
-        final int endValue = range[1];
-        if (startValue >= endValue) {
-          return  EmptyDocIdSet.getInstance();
-        }
         final int[] intArray = activityValues instanceof ActivityIntValues ? ((ActivityIntValues) activityValues).getFieldValues() : null;
         final float[] floatArray = activityValues instanceof ActivityFloatValues ? ((ActivityFloatValues) activityValues).getFieldValues() : null;
+        final long[] longArray = activityValues instanceof ActivityLongValues ? ((ActivityLongValues) activityValues).getFieldValues() : null;
+        if (longArray == null) {
+            int[] range = parseRaw(value);
+            final int startValue = range[0];
+            final int endValue = range[1];
+            if (startValue >= endValue) {
+              return  EmptyDocIdSet.getInstance();
+            }
+            return new RandomAccessDocIdSet() {          
+                @Override
+                public DocIdSetIterator iterator() throws IOException {
+                    if (intArray != null) {
+                      return new ActivityRangeIntFilterIterator(intArray, indexes, startValue, endValue);           
+                    } else {
+                      return new ActivityRangeFloatFilterIterator(floatArray, indexes, startValue, endValue); 
+                    }
+                }
+                @Override
+                public boolean get(int docId) {           
+                  if (indexes[docId] == -1) return false;
+                  if (intArray != null) {
+                    int val = intArray[indexes[docId]]; 
+                    return val >= startValue && val < endValue && val != Integer.MIN_VALUE;
+                  }
+                  float val = floatArray[indexes[docId]]; 
+                  return val >= startValue && val < endValue && val != Integer.MIN_VALUE;      
+                 
+                }
+              };
+        } else {
+            final long[] longRange = longArray != null ?  parseRawLong(value) : null;
+            final long startValue = longRange[0];
+            final long endValue = longRange[1];
+            if (startValue >= endValue) {
+              return  EmptyDocIdSet.getInstance();
+            }
         return new RandomAccessDocIdSet() {          
           @Override
           public DocIdSetIterator iterator() throws IOException {
-              if (intArray != null) {
-                return new ActivityRangeIntFilterIterator(intArray, indexes, startValue, endValue);           
-              } else {
-                return new ActivityRangeFloatFilterIterator(floatArray, indexes, startValue, endValue); 
-              }
+                  return new ActivityRangeLongFilterIterator(longArray, indexes, startValue, endValue);  
           }
           
           @Override
           public boolean get(int docId) {           
             if (indexes[docId] == -1) return false;
-            if (intArray != null) {
-              int val = intArray[indexes[docId]]; 
-              return val >= startValue && val < endValue && val != Integer.MIN_VALUE;
-            }
-            float val = floatArray[indexes[docId]]; 
-            return val >= startValue && val < endValue && val != Integer.MIN_VALUE;      
-           
+                long val = longArray[indexes[docId]]; 
+                return val >= startValue && val < endValue && val != Long.MIN_VALUE;
           }
         };
+        }
       }
     };
   }
@@ -142,23 +168,32 @@ public class ActivityRangeFacetHandler extends FacetHandler<int[]> {
   }
   
   public int getIntActivityValue(int[] facetData, int id) {
+
     if (id < 0 || id >= facetData.length) {
       return Integer.MIN_VALUE;
     }
     return facetData[id] != -1 ? ((ActivityIntValues)activityValues).fieldValues[facetData[id]] : Integer.MIN_VALUE;
   }
+  public long getLongActivityValue(int[] facetData, int id) {
+
+      if (id < 0 || id >= facetData.length) {
+        return Long.MIN_VALUE;
+      }
+      return facetData[id] != -1 ? ((ActivityLongValues)activityValues).fieldValues[facetData[id]] : Long.MIN_VALUE;
+    }
   public float getFloatActivityValue(int[] facetData, int id) {
     if (id < 0 || id >= facetData.length) {
       return Integer.MIN_VALUE;
     }
-    return facetData[id] != -1 ? ((ActivityFloatValues)activityValues).fieldValues[facetData[id]] : Integer.MIN_VALUE;
+
+    return facetData[id] != -1 ? ((ActivityFloatValues)activityValues).fieldValues[facetData[id]] : Float.MIN_VALUE;
   }
   @Override
   public String[] getFieldValues(BoboIndexReader reader, int id) {   
     final int[] indexes = (int[]) ((BoboIndexReader)reader).getFacetData(_name); 
     if ( indexes[id] == -1) return EMPTY_STRING_ARR;
     Number value = activityValues.getValue(indexes[id]);
-    if (value.intValue() == Integer.MIN_VALUE || value.floatValue() == Float.MIN_VALUE) {
+    if (value.intValue() == Integer.MIN_VALUE || value.floatValue() == Float.MIN_VALUE || value.longValue() == Long.MIN_VALUE) {
       return EMPTY_STRING_ARR;
     }
     return new String[] {formatter.get().format(value)} ;
@@ -168,6 +203,8 @@ public class ActivityRangeFacetHandler extends FacetHandler<int[]> {
   public DocComparatorSource getDocComparatorSource() {
     final int[] intArray = activityValues instanceof ActivityIntValues ? ((ActivityIntValues) activityValues).getFieldValues() : null;
     final float[] floatArray = activityValues instanceof ActivityFloatValues ? ((ActivityFloatValues) activityValues).getFieldValues() : null;
+    final long[] longArray = activityValues instanceof ActivityLongValues ? ((ActivityLongValues) activityValues).getFieldValues() : null;
+    
     if (intArray != null)
     return new DocComparatorSource() {
       @Override
@@ -189,7 +226,28 @@ public class ActivityRangeFacetHandler extends FacetHandler<int[]> {
         };
       }
     };
-    else 
+    if (longArray != null)
+        return new DocComparatorSource() {
+        @Override
+        public DocComparator getComparator(IndexReader reader, int docbase)
+            throws IOException {
+          final int[] indexes = (int[]) ((BoboIndexReader) reader).getFacetData(_name);
+          return new DocComparator() {
+            @Override
+            public Comparable<Long> value(ScoreDoc doc) {           
+                return indexes[doc.doc] != -1 ? longArray[indexes[doc.doc]] : 0;           
+            }
+
+            @Override
+            public int compare(ScoreDoc doc1, ScoreDoc doc2) {  
+              long val1 = indexes[doc1.doc] != -1 ? longArray[indexes[doc1.doc]] : 0; 
+              long val2 = indexes[doc2.doc] != -1 ? longArray[indexes[doc2.doc]] : 0;            
+              return (val1<val2 ? -1 : (val1==val2 ? 0 : 1));
+            }
+          };
+        }
+      };
+     
       return new DocComparatorSource() {
       @Override
       public DocComparator getComparator(IndexReader reader, int docbase)
@@ -239,5 +297,34 @@ public class ActivityRangeFacetHandler extends FacetHandler<int[]> {
         }
       }     
       return new int[]{start,end};
+  }
+  public static long[] parseRawLong(String rangeString)
+  {
+    String[] ranges = FacetRangeFilter.getRangeStrings(rangeString);
+      String lower=ranges[0];
+      String upper=ranges[1];
+      String includeLower = ranges[2];
+      String includeUpper = ranges[3];
+      long start = 0;
+      long end = 0;
+      if ("*".equals(lower))
+      {
+        start=Long.MIN_VALUE;
+      } else {
+        start = Long.parseLong(lower);
+        if ("false".equals(includeLower)) {
+          start++;
+        }
+      }
+      if ("*".equals(upper))
+      {
+        end=Long.MAX_VALUE;
+      } else {
+        end =  Long.parseLong(upper);
+        if ("true".equals(includeUpper)) {
+          end++;
+        }
+      }     
+      return new long[]{start,end};
   }
 }

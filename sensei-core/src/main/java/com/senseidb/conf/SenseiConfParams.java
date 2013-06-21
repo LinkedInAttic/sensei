@@ -96,11 +96,20 @@ public interface SenseiConfParams {
     public static final String SENSEI_BROKER_MAX_TOTAL_WAIT = "sensei.broker.maxTotalWait";
     public static final String SENSEI_ACTIVITY_CONFIG = "sensei.activity.config";
     public static final String SERVER_SEARCH_ROUTER_FACTORY = "sensei.search.router.factory";
+    public static final String SENSEI_SEARCH_SERIALIZER = "sensei.search.serializer";
+
+    public static final String SENSEI_SEARCH_INVERTED_INDEX_PENALTY = "sensei.search.inverted.penalty";
 
     public static final String SENSEI_INDEX_PRUNER = "sensei.index.pruner";
 
     public static final String SENSEI_ZOIE_RETENTION_DAYS = "sensei.indexing.retention.days";
     public static final String SENSEI_ZOIE_RETENTION_CLASS = "sensei.indexing.retention";
+
+    // An alternative to the sensei.zoie.retention configuration where you need a more advanced retention policy
+    public static final String SENSEI_ZOIE_RETENTION_FILTER = "sensei.indexing.retention.filter";
+    public static final String SENSEI_ZOIE_RETENTION_DELETIONS_BEFORE_OPTIMIZE = "sensei.indexing.retention.optimize.deletions";
+    public static final String SENSEI_ZOIE_RETENTION_PURGE_PERIOD = "sensei.indexing.retention.purge.period";
+
 
     public static final String SENSEI_ZOIE_RETENTION_COLUMN = "sensei.indexing.retention.column";
     public static final String SENSEI_ZOIE_RETENTION_TIMEUNIT = "sensei.index.retention.column.timeunit";
@@ -110,6 +119,8 @@ public interface SenseiConfParams {
     public static final String SENSEI_INDEX_ACTIVITY_FILTER = "sensei.index.activity.filter";
     public static final String SENSEI_INDEX_ACTIVITY_PURGE_FREQUENCY_HOURS = "sensei.index.activity.purge.hours";
     public static final String SENSEI_INDEX_ACTIVITY_PURGE_FREQUENCY_MINUTES = "sensei.index.activity.purge.minutes";
+
+    public static final String SENSEI_SHUTDOWN_WAIT_FOR_CLIENT_MILLIS = "sensei.shutdown.wait.millis";
 
     public static final Comparator<String> DEFAULT_VERSION_STRING_COMPARATOR = new Comparator<String>() {
         @Override

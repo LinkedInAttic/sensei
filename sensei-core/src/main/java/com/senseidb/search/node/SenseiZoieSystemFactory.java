@@ -1,21 +1,3 @@
-/**
- * This software is licensed to you under the Apache License, Version 2.0 (the
- * "Apache License").
- *
- * LinkedIn's contributions are made under the Apache License. If you contribute
- * to the Software, the contributions will be deemed to have been made under the
- * Apache License, unless you expressly indicate otherwise. Please do not make any
- * contributions that would be inconsistent with the Apache License.
- *
- * You may obtain a copy of the Apache License at http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, this software
- * distributed under the Apache License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the Apache
- * License for the specific language governing permissions and limitations for the
- * software governed under the Apache License.
- *
- * © 2012 LinkedIn Corp. All Rights Reserved.  
- */
 package com.senseidb.search.node;
 
 import com.senseidb.metrics.MetricFactory;
@@ -46,9 +28,8 @@ import com.yammer.metrics.core.MetricName;
 public class SenseiZoieSystemFactory<T> extends SenseiZoieFactory<T>
 {
   private static Logger log = Logger.getLogger(SenseiZoieSystemFactory.class);
-  private Filter _purgeFilter = null;
   private OptimizeScheduler _optimizeScheduler;
-  
+
   private Map<Integer,IndexingMetrics> metricsMap = new HashMap<Integer,IndexingMetrics>(); 
   
   public SenseiZoieSystemFactory(File idxDir,DIRECTORY_MODE dirMode, ZoieIndexableInterpreter<T> interpreter, SenseiIndexReaderDecorator indexReaderDecorator,
@@ -57,10 +38,6 @@ public class SenseiZoieSystemFactory<T> extends SenseiZoieFactory<T>
     super(idxDir,dirMode,interpreter,indexReaderDecorator,zoieConfig);
   }
   
-  public void setPurgeFilter(Filter purgeFilter){
-    _purgeFilter = purgeFilter;
-  }
-
   public void setOptimizeScheduler(OptimizeScheduler optimizeScheduler)
   {
     _optimizeScheduler = optimizeScheduler;
@@ -77,10 +54,8 @@ public class SenseiZoieSystemFactory<T> extends SenseiZoieFactory<T>
     }
     
     DirectoryManager dirMgr = new DefaultDirectoryManager(partDir, _dirMode);
+
     ZoieSystem<BoboIndexReader,T> zoie = new ZoieSystem<BoboIndexReader,T>(dirMgr, _interpreter, _indexReaderDecorator, _zoieConfig);
-    if (_purgeFilter!=null){
-      zoie.setPurgeFilter(_purgeFilter);
-    }
     if (_optimizeScheduler != null) {
       zoie.setOptimizeScheduler(_optimizeScheduler);
     }

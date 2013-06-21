@@ -58,6 +58,8 @@ import com.senseidb.search.req.SenseiResult;
 import com.senseidb.servlet.DefaultSenseiJSONServlet;
 import com.senseidb.svc.api.SenseiException;
 import com.senseidb.svc.impl.HttpRestSenseiServiceImpl;
+import com.senseidb.util.JSONUtil.FastJSONArray;
+import com.senseidb.util.JSONUtil.FastJSONObject;
 
 
 public class TestHttpRestSenseiServiceImpl extends TestCase
@@ -137,7 +139,7 @@ public class TestHttpRestSenseiServiceImpl extends TestCase
     Map<String,Object[]> map = new HashMap<String,Object[]>();
 
     for (int i = 0; i < 10; i++) {
-      map.put(String.format("raw key %s %s", uid, i), new String[] { "hello" + i, "world" + i} );
+      map.put(String.format("key %s %s", uid, i), new String[] { "hello" + i, "world" + i} );
     }
 
     return map;
@@ -401,7 +403,7 @@ public class TestHttpRestSenseiServiceImpl extends TestCase
       throws JSONException
   {
 
-    JSONObject obj = new JSONObject();
+    JSONObject obj = new FastJSONObject();
 
     obj.put("query", "key words are useful");  // 'query' in the JSONObj gets translated into 'q' in the GET request
 

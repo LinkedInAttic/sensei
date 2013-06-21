@@ -53,7 +53,7 @@
        <property name="serviceName" value="testCluster"/>
        <property name="zooKeeperConnectString" value="localhost:2181" />
        <property name="zooKeeperSessionTimeoutMillis" value="30000" />
-       <property name="connectTimeoutMillis" value="1000"/>
+       <property name="connectTimeoutMillis" value="10000"/>
        <property name="writeTimeoutMillis" value="150"/>
        <property name="maxConnectionsPerNode" value="5"/>
        <property name="staleRequestTimeoutMins" value="10"/>
@@ -68,7 +68,9 @@
     <bean id="loadBalancerFactory" class="com.senseidb.cluster.routing.SenseiPartitionedLoadBalancerFactory">
       <constructor-arg value="50"/>
     </bean>
-    
+
+    <bean id="serializer" class="com.senseidb.search.req.SenseiSnappyProtoSerializer"/>
+
     <bean id="network-client" class="com.senseidb.cluster.client.SenseiNetworkClient">
         <constructor-arg ref="network-client-config" />
         <constructor-arg ref="loadBalancerFactory"/>

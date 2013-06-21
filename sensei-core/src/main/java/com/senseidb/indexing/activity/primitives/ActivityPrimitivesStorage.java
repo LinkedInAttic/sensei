@@ -42,7 +42,7 @@ import com.yammer.metrics.core.Timer;
  */
 public class ActivityPrimitivesStorage {
   public static final double INIT_GROWTH_RATIO = 1.5;
-  public static final int BYTES_IN_INT = 4;
+  //public static final int BYTES_IN_INT = 4;
   public static final int LENGTH_THRESHOLD = 1000000;
   public static final int FILE_GROWTH_RATIO = 2;
   public static final int INITIAL_FILE_LENGTH = 2000000;
@@ -105,21 +105,21 @@ public class ActivityPrimitivesStorage {
       throw new RuntimeException(e);
     }
   }
-  private void ensureCapacity( int i) {
+  private void ensureCapacity(int i) {
     try {
-    if (fileLength > i + 100) {
-      return;
-    }
-   
-    if (fileLength > LENGTH_THRESHOLD) {
-      fileLength = fileLength * FILE_GROWTH_RATIO;
-    } else {
-      fileLength = INITIAL_FILE_LENGTH;
-    }
-    storedFile.setLength(fileLength);
-    if (activateMemoryMappedBuffers) {
-      buffer = storedFile.getChannel().map(MapMode.READ_WRITE, 0,  fileLength);
-    }
+      if (fileLength > i + 100) {
+        return;
+      }
+      if (fileLength < INITIAL_FILE_LENGTH) {
+        fileLength = INITIAL_FILE_LENGTH;
+      }
+      while (fileLength < i + 100) {
+        fileLength = fileLength * FILE_GROWTH_RATIO;
+      }
+      storedFile.setLength(fileLength);
+      if (activateMemoryMappedBuffers) {
+        buffer = storedFile.getChannel().map(MapMode.READ_WRITE, 0, fileLength);
+      }
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -150,8 +150,8 @@ public class ActivityPrimitivesStorage {
               return activityPrimitiveValues;
             }
             activityPrimitiveValues.init((int) (count * INIT_GROWTH_RATIO));
-            if (fileLength < count * BYTES_IN_INT) {
-              logger.warn("The  activityIndex is corrupted. The file "+ fieldName +" contains " + (fileLength / BYTES_IN_INT) + " records, while metadata has a bigger number " + count);
+            if (fileLength < count * activityPrimitiveValues.getFieldSizeInBytes()) {
+              logger.warn("The  activityIndex is corrupted. The file "+ fieldName +" contains " + (fileLength / activityPrimitiveValues.getFieldSizeInBytes()) + " records, while metadata has a bigger number " + count);
               logger.warn("adding extra space");
               ensureCapacity(count * activityPrimitiveValues.getFieldSizeInBytes());
             }

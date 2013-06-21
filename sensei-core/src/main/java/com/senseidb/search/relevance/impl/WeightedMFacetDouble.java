@@ -59,4 +59,11 @@ public class WeightedMFacetDouble extends MFacetDouble implements WeightedMFacet
     return _weight[0];
   }
   
+  public int getWeight(double target)
+  {
+    if(hasWeight(target))
+      return _weight[0];
+    else
+      return Integer.MIN_VALUE;
+  }
 }

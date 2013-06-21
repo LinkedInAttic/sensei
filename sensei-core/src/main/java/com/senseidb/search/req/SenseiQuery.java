@@ -28,7 +28,7 @@ public class SenseiQuery implements Serializable
    */
   private static final long serialVersionUID = 1L;
   private byte[] _bytes;
-  public static Charset utf8Charset = Charset.forName("UTF-8");
+  public static Charset UTF_8_CHARSET = Charset.forName("UTF-8");
 	
   public SenseiQuery(byte[] bytes){
 	  _bytes = bytes;
@@ -41,6 +41,6 @@ public class SenseiQuery implements Serializable
   @Override
   public String toString()
   {
-	return new String(_bytes,utf8Charset);
+	return new String(_bytes, UTF_8_CHARSET);
   }
 }

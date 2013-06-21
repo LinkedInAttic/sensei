@@ -198,6 +198,7 @@ public class SenseiSchema {
                 fdef.fromField = frm.length() > 0 ? frm : n;
 
                 fdef.isMeta = true;
+
                 fdef.isMulti = column.optBoolean("multi");
                 fdef.isActivity = column.optBoolean("activity");
                 fdef.name = n;
@@ -244,7 +245,10 @@ public class SenseiSchema {
                 } else if (t.equals("string")) {
                     fdef.formatter = null;
                 } else if (t.equals("boolean")) {
-                    fdef.formatter = null;
+                    MetaType metaType = DefaultSenseiInterpreter.CLASS_METATYPE_MAP.get(boolean.class);
+                    String formatString = DefaultSenseiInterpreter.DEFAULT_FORMAT_STRING_MAP.get(metaType);
+
+                    fdef.type = boolean.class;
                 } else if (t.equals("date")) {
 
                     String f = "";
@@ -324,6 +328,7 @@ public class SenseiSchema {
             schema._compressSrcData = false;
 
         NodeList columns = tableElem.getElementsByTagName("column");
+
         for (int i = 0; i < columns.getLength(); ++i) {
             try {
                 Element column = (Element) columns.item(i);
@@ -350,6 +355,12 @@ public class SenseiSchema {
                 String delimString = column.getAttribute("delimiter");
                 if (delimString != null && delimString.trim().length() > 0) {
                     fdef.delim = delimString;
+                }
+                fdef.hasWildCards = Boolean.parseBoolean(column.getAttribute("wildcard"));
+
+                if (fdef.hasWildCards) {
+                    Assert.isTrue(fdef.fromField.equals(fdef.name), "Cannot have a different \"from\" field with wildcards");
+                    fdef.wildCardPattern = Pattern.compile(fdef.name);
                 }
 
                 schema._fieldDefMap.put(n, fdef);
@@ -424,9 +435,17 @@ public class SenseiSchema {
                         + columns.item(i), e);
             }
         }
+        JSONArray facetsList = schemaObj.optJSONArray("facets");
+        if (facetsList != null) {
+            for (int i = 0; i < facetsList.length(); i++) {
+                JSONObject facet = facetsList.optJSONObject(i);
+                if (facet != null) {
+                    schema.facets.add(FacetDefinition.valueOf(facet));
+                }
+            }
+        }
         return schema;
     }
-
     public List<FacetDefinition> getFacets() {
         return facets;
     }

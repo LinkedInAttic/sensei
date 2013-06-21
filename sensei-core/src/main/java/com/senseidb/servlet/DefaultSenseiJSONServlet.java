@@ -148,6 +148,8 @@ import com.senseidb.search.req.SenseiQuery;
 import com.senseidb.search.req.SenseiRequest;
 import com.senseidb.search.req.SenseiResult;
 import com.senseidb.search.req.SenseiSystemInfo;
+import com.senseidb.util.JSONUtil.FastJSONArray;
+import com.senseidb.util.JSONUtil.FastJSONObject;
 import com.senseidb.util.RequestConverter;
 
 
@@ -169,14 +171,14 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
     JSONObject jsonObject = null;
     if (expl != null)
     {
-      jsonObject = new JSONObject();
+      jsonObject = new FastJSONObject();
       jsonObject.put(PARAM_RESULT_HITS_EXPL_VALUE, expl.getValue());
       String descr = expl.getDescription();
       jsonObject.put(PARAM_RESULT_HITS_EXPL_DESC, descr == null ? "" : descr);
       Explanation[] details = expl.getDetails();
       if (details != null)
       {
-        JSONArray detailArray = new JSONArray();
+        JSONArray detailArray = new FastJSONArray();
         for (Explanation detail : details)
         {
           JSONObject subObj = convertExpl(detail);
@@ -195,7 +197,7 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
   public static JSONObject convert(Map<String, FacetAccessible> facetValueMap, SenseiRequest req)
       throws JSONException
   {
-    JSONObject resMap = new JSONObject();
+    JSONObject resMap = new FastJSONObject();
     if (facetValueMap != null)
     {
       Set<Entry<String, FacetAccessible>> entrySet = facetValueMap.entrySet();
@@ -225,7 +227,7 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
           String fval = f.getValue();
           if (fval != null && fval.length() > 0)
           {
-            JSONObject fv = new JSONObject();
+            JSONObject fv = new FastJSONObject();
             fv.put(PARAM_RESULT_FACET_INFO_COUNT, f.getFacetValueHitCount());
             fv.put(PARAM_RESULT_FACET_INFO_VALUE, fval);
             fv.put(PARAM_RESULT_FACET_INFO_SELECTED, selectedVals.remove(fval));
@@ -241,7 +243,7 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
             if (selectedVal != null && selectedVal.length() > 0)
             {
               BrowseFacet selectedFacetVal = facetAccessible.getFacet(selectedVal);
-              JSONObject fv = new JSONObject();
+              JSONObject fv = new FastJSONObject();
               fv.put(PARAM_RESULT_FACET_INFO_COUNT, selectedFacetVal == null ? 0 : selectedFacetVal.getFacetValueHitCount());
               String fval = selectedFacetVal == null ? selectedVal : selectedFacetVal.getValue();
               fv.put(PARAM_RESULT_FACET_INFO_VALUE, fval);
@@ -345,19 +347,14 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
   public static JSONArray buildJSONHits(SenseiRequest req, SenseiHit[] hits)
       throws Exception
   {
-    Set<String> selectSet = null;
-    List<String> selectList = req.getSelectList();
-    if (selectList != null && !(selectList.size() == 1 && "*".equals(selectList.get(0))))
-    {
-      selectSet = new HashSet<String>(selectList);
-    }
+    Set<String> selectSet = req.getSelectSet();
 
-    JSONArray hitArray = new JSONArray();
+    JSONArray hitArray = new FastJSONArray();
     for (SenseiHit hit : hits)
     {
       Map<String, String[]> fieldMap = hit.getFieldValues();
 
-      JSONObject hitObj = new JSONObject();
+      JSONObject hitObj = new FastJSONObject();
       if (selectSet == null || selectSet.contains(PARAM_RESULT_HIT_UID))
       {
         hitObj.put(PARAM_RESULT_HIT_UID, hit.getUID());
@@ -385,7 +382,10 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
       if (hit.getGroupHits() != null && hit.getGroupHits().length > 0)
         hitObj.put(PARAM_RESULT_HIT_GROUPHITS, buildJSONHits(req, hit.getSenseiGroupHits()));
 
-      if (selectSet == null || selectSet.contains(PARAM_RESULT_HIT_SRC_DATA) || req.isFetchStoredFields())
+      // get fetchStored even if request does not have it because it could be set at the 
+      // federated broker level
+      if (selectSet == null || selectSet.contains(PARAM_RESULT_HIT_SRC_DATA) || 
+          req.isFetchStoredFields() || hit.getSrcData() != null)
       {
         hitObj.put(PARAM_RESULT_HIT_SRC_DATA, hit.getSrcData());
       }
@@ -402,7 +402,7 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
           }
           String[] vals = entry.getValue();
 
-          JSONArray valArray = new JSONArray();
+          JSONArray valArray = new FastJSONArray();
           if (vals != null)
           {
             for (String val : vals)
@@ -424,20 +424,20 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
         List<Fieldable> fields = doc.getFields();
         for (Fieldable field : fields)
         {
-          JSONObject data = new JSONObject();
+          JSONObject data = new FastJSONObject();
           data.put(PARAM_RESULT_HIT_STORED_FIELDS_NAME, field.name());
           data.put(PARAM_RESULT_HIT_STORED_FIELDS_VALUE, field.stringValue());
           storedData.add(data);
         }
         if (selectSet == null || selectSet.contains(PARAM_RESULT_HIT_STORED_FIELDS))
         {
-          hitObj.put(PARAM_RESULT_HIT_STORED_FIELDS, new JSONArray(storedData));
+          hitObj.put(PARAM_RESULT_HIT_STORED_FIELDS, new FastJSONArray(storedData));
         }
       }
 
       Map<String,BrowseHit.TermFrequencyVector> tvMap = hit.getTermFreqMap();
       if (tvMap!=null && tvMap.size()>0){
-        JSONObject tvObj = new JSONObject();
+        JSONObject tvObj = new FastJSONObject();
         if (selectSet == null || selectSet.contains(PARAM_RESULT_HIT_TERMVECTORS))
         {
           hitObj.put(PARAM_RESULT_HIT_TERMVECTORS, tvObj);
@@ -445,12 +445,12 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
         Set<Entry<String,BrowseHit.TermFrequencyVector>> entries = tvMap.entrySet();
         for (Entry<String,BrowseHit.TermFrequencyVector> entry : entries){
           String field = entry.getKey();
-          JSONArray tvArray = new JSONArray();
+          JSONArray tvArray = new FastJSONArray();
           tvObj.put(field, tvArray);
           String[] terms = entry.getValue().terms;
           int[] freqs = entry.getValue().freqs;
           for (int i=0;i<terms.length;++i){
-            JSONObject tv = new JSONObject();
+            JSONObject tv = new FastJSONObject();
             tv.put("term", terms[i]);
             tv.put("freq", freqs[i]);
             tvArray.put(tv);
@@ -475,7 +475,7 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
   public static JSONObject buildJSONResult(SenseiRequest req, SenseiResult res)
       throws Exception
   {
-    JSONObject jsonObj = new JSONObject();
+    JSONObject jsonObj = new FastJSONObject();
     jsonObj.put(PARAM_RESULT_TID, res.getTid());
     jsonObj.put(PARAM_RESULT_TOTALDOCS, res.getTotalDocs());
     jsonObj.put(PARAM_RESULT_NUMHITS, res.getNumHits());
@@ -489,7 +489,7 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
     List<String> selectList = req.getSelectList();
     if (selectList != null)
     {
-      JSONArray jsonSelectList = new JSONArray();
+      JSONArray jsonSelectList = new FastJSONArray();
       for (String col: selectList)
       {
         jsonSelectList.put(col);
@@ -507,11 +507,11 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
   }
 
   private static void addErrors(JSONObject jsonResult, SenseiResult res) throws JSONException {
-    JSONArray errorsJson = new JSONArray();
+    JSONArray errorsJson = new FastJSONArray();
     for (SenseiError error: res.getErrors()) {
-      errorsJson.put(new JSONObject().put(PARAM_RESULT_ERROR_MESSAGE, error.getMessage())
-                                     .put(PARAM_RESULT_ERROR_TYPE, error.getErrorType().name())
-                                     .put(PARAM_RESULT_ERROR_CODE, error.getErrorCode()));
+      errorsJson.put(new FastJSONObject().put(PARAM_RESULT_ERROR_MESSAGE, error.getMessage())
+                                         .put(PARAM_RESULT_ERROR_TYPE, error.getErrorType().name())
+                                         .put(PARAM_RESULT_ERROR_CODE, error.getErrorCode()));
     }
     jsonResult.put(PARAM_RESULT_ERRORS, errorsJson);
     if (res.getErrors().size() > 0) {
@@ -526,7 +526,7 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
     SenseiQuery sq;
     String query = params.getString(PARAM_QUERY, null);
 
-    JSONObject qjson = new JSONObject();
+    JSONObject qjson = new FastJSONObject();
     if (query != null && query.length() > 0)
     {
       try
@@ -935,22 +935,22 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
 
   @Override
   protected String buildResultString(HttpServletRequest httpReq, SenseiSystemInfo info) throws Exception {
-    JSONObject jsonObj = new JSONObject();
+    JSONObject jsonObj = new FastJSONObject();
     jsonObj.put(PARAM_SYSINFO_NUMDOCS, info.getNumDocs());
     jsonObj.put(PARAM_SYSINFO_LASTMODIFIED, info.getLastModified());
     jsonObj.put(PARAM_SYSINFO_VERSION, info.getVersion());
 
     if (info.getSchema() != null && info.getSchema().length() != 0)
     {
-      jsonObj.put(PARAM_SYSINFO_SCHEMA, new JSONObject(info.getSchema()));
+      jsonObj.put(PARAM_SYSINFO_SCHEMA, new FastJSONObject(info.getSchema()));
     }
 
-    JSONArray jsonArray = new JSONArray();
+    JSONArray jsonArray = new FastJSONArray();
     jsonObj.put(PARAM_SYSINFO_FACETS, jsonArray);
     Set<SenseiSystemInfo.SenseiFacetInfo> facets = info.getFacetInfos();
     if (facets != null) {
         for (SenseiSystemInfo.SenseiFacetInfo facet : facets) {
-          JSONObject facetObj = new JSONObject();
+          JSONObject facetObj = new FastJSONObject();
           facetObj.put(PARAM_SYSINFO_FACETS_NAME, facet.getName());
           facetObj.put(PARAM_SYSINFO_FACETS_RUNTIME, facet.isRunTime());
           facetObj.put(PARAM_SYSINFO_FACETS_PROPS, facet.getProps());
@@ -958,16 +958,16 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
         }
     }
 
-    jsonArray = new JSONArray();
+    jsonArray = new FastJSONArray();
     jsonObj.put(PARAM_SYSINFO_CLUSTERINFO, jsonArray);
     List<SenseiSystemInfo.SenseiNodeInfo> clusterInfo = info.getClusterInfo();
     if (clusterInfo != null)
     {
       for (SenseiSystemInfo.SenseiNodeInfo nodeInfo : clusterInfo)
       {
-        JSONObject nodeObj = new JSONObject();
+        JSONObject nodeObj = new FastJSONObject();
         nodeObj.put(PARAM_SYSINFO_CLUSTERINFO_ID, nodeInfo.getId());
-        nodeObj.put(PARAM_SYSINFO_CLUSTERINFO_PARTITIONS, new JSONArray(nodeInfo.getPartitions()));
+        nodeObj.put(PARAM_SYSINFO_CLUSTERINFO_PARTITIONS, new FastJSONArray(Arrays.asList(nodeInfo.getPartitions())));
         nodeObj.put(PARAM_SYSINFO_CLUSTERINFO_NODELINK, nodeInfo.getNodeLink());
         nodeObj.put(PARAM_SYSINFO_CLUSTERINFO_ADMINLINK, nodeInfo.getAdminLink());
         jsonArray.put(nodeObj);

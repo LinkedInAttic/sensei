@@ -45,13 +45,13 @@ public class SimpleKafkaGateway extends SenseiGateway<DataPacket> {
     int batchsize = Integer.parseInt(config.get("kafka.batchsize"));
 
     long offset = oldSinceKey == null ? 0L : Long.parseLong(oldSinceKey);
-    
+
     if (dataFilter==null){
       String type = config.get("kafka.msg.type");
       if (type == null){
         type = "json";
       }
-    
+
       if ("json".equals(type)){
         dataFilter = new DefaultJsonDataSourceFilter();
       }
@@ -72,13 +72,13 @@ public class SimpleKafkaGateway extends SenseiGateway<DataPacket> {
         throw new IllegalArgumentException("invalid msg type: "+type);
       }
     }
-    
+
     SimpleKafkaStreamDataProvider provider = new SimpleKafkaStreamDataProvider(KafkaDataProviderBuilder.DEFAULT_VERSION_COMPARATOR,
-                                                 kafkaHost,kafkaPort,timeout,batchsize,
-                                                 topic,offset,dataFilter);
+                                                                               kafkaHost,kafkaPort,timeout,batchsize,
+                                                                               topic,offset,dataFilter);
     return provider;
   }
-  
+
   @Override
   public Comparator<String> getVersionComparator() {
     return KafkaDataProviderBuilder.DEFAULT_VERSION_COMPARATOR;

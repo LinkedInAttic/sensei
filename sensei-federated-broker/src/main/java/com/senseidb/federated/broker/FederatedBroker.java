@@ -46,8 +46,12 @@ import com.senseidb.servlet.DefaultSenseiJSONServlet;
 import com.senseidb.svc.api.SenseiException;
 import com.senseidb.util.RequestConverter2;
 
+import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_NUMHITS;
+import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_TOTALDOCS;
+
 public class FederatedBroker implements Broker<SenseiRequest, SenseiResult>{
   private final static Logger logger = Logger.getLogger(SenseiBrokerProxy.class);
+  private final static Logger queryLogger = Logger.getLogger("com.sensei.querylog");
   private List<BrokerProxy> proxies;
   private int numThreads = 10;  
   private ExecutorService executor;
@@ -105,9 +109,10 @@ public class FederatedBroker implements Broker<SenseiRequest, SenseiResult>{
       if (!allTheResults) {        
         logger.warn("Not all the results are received");
       }
-      SenseiResult res = ResultMerger.merge(request, resultList, false);      
-      if (request.isFetchStoredFields() || request.isFetchStoredValue())
-        SenseiBroker.recoverSrcData(res, res.getSenseiHits(), request.isFetchStoredFields());
+      SenseiResult res = ResultMerger.merge(request, resultList, false);
+      // get src data (fetchStored) even if request doesn't have it could be enabled at
+      // individual broker level
+      SenseiBroker.recoverSrcData(res, res.getSenseiHits(), true);
       return res;
     } catch (Exception e) {
       throw new RuntimeException(e);
@@ -122,10 +127,23 @@ public class FederatedBroker implements Broker<SenseiRequest, SenseiResult>{
   }
   public JSONObject query(JSONObject request) {
     try {
-      SenseiRequest senseiRequest = RequestConverter2.fromJSON(request, facetInfo);
-      SenseiResult senseiResult = browse(senseiRequest);
-      JSONObject jsonResult = DefaultSenseiJSONServlet.buildJSONResult(senseiRequest, senseiResult);
-      return jsonResult;
+      long time = System.currentTimeMillis();
+      int numHits = 0, totalDocs = 0;
+      try {
+        SenseiRequest senseiRequest = RequestConverter2.fromJSON(request, facetInfo);
+        SenseiResult senseiResult = browse(senseiRequest);
+        JSONObject jsonResult = DefaultSenseiJSONServlet.buildJSONResult(senseiRequest, senseiResult);
+        if (jsonResult != null) {
+          numHits = jsonResult.optInt(PARAM_RESULT_NUMHITS);
+          totalDocs = jsonResult.optInt(PARAM_RESULT_TOTALDOCS);
+        }
+        return jsonResult;
+      }
+      finally {
+        if (queryLogger.isInfoEnabled() && request != null) {
+          queryLogger.info(String.format("hits(%d/%d) took %dms: %s", numHits, totalDocs, System.currentTimeMillis() - time, request.toString()));
+        }
+      }
     } catch (Exception ex) {
       throw new RuntimeException(ex);
     }
