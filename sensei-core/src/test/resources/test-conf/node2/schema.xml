@@ -33,10 +33,11 @@
 	     default delimiter is ","
 	 -->
 	<column name="tags" type="string" multi="true" delimiter=","/>
-        <column name="wtags" type="string" multi="true" delimiter=","/>
+  <column name="wtags" type="string" multi="true" delimiter=","/>
 	<column name="object_properties" type="string" multi="true" delimiter=","/>
 	<!-- attributes: indexed,store,termvector are only used when type is text -->
 	<column name="contents" type="text" index="ANALYZED" store="NO" termvector="NO" />
+	<column name="dynamic_text_field_.*" type="text" index="ANALYZED" store="NO" termvector="NO" wildcard="true"/>
   </table>
 
    <!-- 
@@ -129,7 +130,7 @@
 		  <param name="time" value="2w" />
 		</params>
 		</facet>	
-		
+	 	
 	 <!-- example of a custom facet, defined in custom-facets.xml -->
 	 <!-- 
 	     a bean with name "foobar" must be defined

@@ -2,6 +2,7 @@ package com.senseidb.search.node;
 
 import com.linkedin.norbert.network.Serializer;
 import com.senseidb.search.req.*;
+import com.senseidb.metrics.MetricFactory;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 
 import java.lang.management.ManagementFactory;
@@ -26,7 +27,6 @@ import com.linkedin.norbert.javacompat.network.PartitionedNetworkClient;
 import com.senseidb.conf.SenseiSchema;
 import com.senseidb.indexing.DefaultJsonSchemaInterpreter;
 import com.senseidb.svc.impl.CoreSenseiServiceImpl;
-import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.Counter;
 import com.yammer.metrics.core.MetricName;
 
@@ -44,7 +44,8 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
  
   private final boolean allowPartialMerge;
   private final ClusterClient clusterClient;
-  private static Counter numberOfNodesInTheCluster = Metrics.newCounter(new MetricName(SenseiBroker.class, "numberOfNodesInTheCluster"));
+  private final Counter numberOfNodesInTheCluster = MetricFactory.newCounter(new MetricName(SenseiBroker.class,
+                                                                                            "numberOfNodesInTheCluster"));
   
   public SenseiBroker(PartitionedNetworkClient<String> networkClient, ClusterClient clusterClient,
                       Serializer<SenseiRequest, SenseiResult> serializer, long timeoutMillis, boolean allowPartialMerge)
@@ -216,7 +217,19 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
     return request;
   }
 
+  @Override
+  protected StringBuilder buildLogLineForRequest(Node node, SenseiRequest req) {
+    return super.buildLogLineForRequest(node, req).append(" - routeParam: ").append(req.getRouteParam());
+  }
   
+  @Override
+  protected StringBuilder buildLogLineForResult(StringBuilder logLine, SenseiResult result) {
+    return super.buildLogLineForResult(logLine, result)
+        .append(" - hits: ")
+        .append(result.getNumHits())
+        .append("/")
+        .append(result.getTotalDocs());
+  }
 
   public void handleClusterConnected(Set<Node> nodes)
   {

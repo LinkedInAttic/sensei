@@ -1,3 +1,21 @@
+/**
+ * This software is licensed to you under the Apache License, Version 2.0 (the
+ * "Apache License").
+ *
+ * LinkedIn's contributions are made under the Apache License. If you contribute
+ * to the Software, the contributions will be deemed to have been made under the
+ * Apache License, unless you expressly indicate otherwise. Please do not make any
+ * contributions that would be inconsistent with the Apache License.
+ *
+ * You may obtain a copy of the Apache License at http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, this software
+ * distributed under the Apache License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the Apache
+ * License for the specific language governing permissions and limitations for the
+ * software governed under the Apache License.
+ *
+ * © 2012 LinkedIn Corp. All Rights Reserved.  
+ */
 package com.senseidb.servlet;
 
 import java.io.BufferedReader;
@@ -105,6 +123,13 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
     }
     logger.info("Connecting to cluster: " + brokerConfig.getClusterName() +" ...");
     _clusterClient.awaitConnectionUninterruptibly();
+    
+    SenseiBrokerExport export = (SenseiBrokerExport)config.getServletContext().getAttribute("sensei.broker.export");
+    export.broker = _senseiBroker;
+    export.sysBroker = _senseiSysBroker;
+    export.networkClient = _networkClient;
+    export.clusterClient = _clusterClient;
+    export.servlet = this;
 
     int count = 0;
     while (true)
@@ -185,6 +210,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
       }
     }, 60000, 60000); // Every minute.
 
+    export.facetInfo = _facetInfoMap;
     logger.info("Cluster: "+ brokerConfig.getClusterName() +" successfully connected ");
   }
 
@@ -747,5 +773,21 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
     finally{
       super.destroy();
     }
+  }
+
+  /**
+   * This class is a hack to allow the servlet to export the broker components
+   * to outside services. Since this components are instantiated here as part 
+   * of the servlet initialization, it is a workaround to expose it through a 
+   * placed holder instance injected via ServletContext by the builder of this
+   * servlet and its container. 
+   */
+  public static class SenseiBrokerExport {
+    public AbstractSenseiClientServlet servlet;
+    public ClusterClient clusterClient;
+    public SenseiNetworkClient networkClient;
+    public SenseiSysBroker sysBroker;
+    public SenseiBroker broker;
+    public Map<String, String[]> facetInfo;
   }
 }

@@ -24,6 +24,7 @@ import com.senseidb.conf.SenseiSchema.FieldDefinition;
 import com.senseidb.search.node.SenseiCore;
 import com.senseidb.test.SenseiStarter;
 
+
 public class PurgeUnusedActivitiesJobTest extends TestCase {
   private File dir;
   private CompositeActivityValues compositeActivityValues;

@@ -10,7 +10,8 @@ import java.util.List;
 import java.util.Properties;
 
 import kafka.javaapi.producer.Producer;
-import kafka.producer.KeyedMessage;
+import kafka.javaapi.producer.ProducerData;
+import kafka.message.Message;
 import kafka.producer.ProducerConfig;
 
 import com.senseidb.gateway.kafka.DefaultJsonDataSourceFilter;
@@ -25,13 +26,13 @@ public class PrimeKafkaUtil {
     File f = new File("/home/jwang/github/search-perf/data/cars1m.json");
     
     Properties props = new Properties();
-    props.put("zookeeper.connect", "localhost:2181");
+    props.put("zk.connect", "localhost:2181");
     props.put("serializer.class", "kafka.serializer.DefaultEncoder");
 
     ProducerConfig producerConfig = new ProducerConfig(props);
-    Producer<String, byte[]> kafkaProducer = new Producer<String,byte[]>(producerConfig);
+    Producer<String,Message> kafkaProducer = new Producer<String,Message>(producerConfig);
     String topic = "perfTopic";
-    List<KeyedMessage<String, byte[]>> msgList = new ArrayList<KeyedMessage<String, byte[]>>();
+    List<ProducerData<String, Message>> msgList = new ArrayList<ProducerData<String, Message>>();
    
     
     BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(f),UTF8));
@@ -43,7 +44,8 @@ public class PrimeKafkaUtil {
       if (line==null) break;
       count++;
       System.out.println(count+" msgs pushed.");
-      KeyedMessage<String,byte[]> msg = new KeyedMessage<String,byte[]>(topic,line.getBytes(DefaultJsonDataSourceFilter.UTF8));
+      Message m = new Message(line.getBytes(DefaultJsonDataSourceFilter.UTF8));
+      ProducerData<String,Message> msg = new ProducerData<String,Message>(topic,m);
       msgList.add(msg);
 
       if (msgList.size()>batchSize){

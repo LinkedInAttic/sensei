@@ -1,3 +1,22 @@
+/**
+ * This software is licensed to you under the Apache License, Version 2.0 (the
+ * "Apache License").
+ *
+ * LinkedIn's contributions are made under the Apache License. If you contribute
+ * to the Software, the contributions will be deemed to have been made under the
+ * Apache License, unless you expressly indicate otherwise. Please do not make any
+ * contributions that would be inconsistent with the Apache License.
+ *
+ * You may obtain a copy of the Apache License at http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, this software
+ * distributed under the Apache License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the Apache
+ * License for the specific language governing permissions and limitations for the
+ * software governed under the Apache License.
+ *
+ * © 2012 LinkedIn Corp. All Rights Reserved.  
+ */
+
 package com.senseidb.test;
 
 import java.io.BufferedReader;
@@ -1231,7 +1250,22 @@ public class TestSensei extends TestCase {
     assertEquals("color for first is not correct." , true, color.equals("red") );
     assertEquals("inner score for first is not correct." , true, Math.abs(firstScore - 20000) < 1 );
   }
-  
+
+    /**
+     * Verify that fields added using wildcards can be queried.
+     */
+  public void testDynamicFieldQueryStringQuery() throws Exception
+  {
+      logger.info("executing test case testDynamicFieldQueryStringQuery");
+      String req = "{\"query\": {\"query_string\": {\"query\": \"dynamic_text_field_1:dynamic\"}}}";
+      JSONObject res = search(new JSONObject(req));
+      assertEquals("numhits is wrong", 1, res.getInt("numhits"));
+
+      String req2 = "{\"query\": {\"query_string\": {\"query\": \"dynamic_text_field_43:wagon\"}}}";
+      JSONObject res2 = search(new JSONObject(req2));
+      assertEquals("numhits is wrong", 1, res2.getInt("numhits"));
+
+  }
 
   public void testRelevanceWeightedMulti() throws Exception
   {

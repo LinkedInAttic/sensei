@@ -1,5 +1,7 @@
 package com.senseidb.indexing.activity;
 
+import com.senseidb.metrics.MetricFactory;
+import com.senseidb.search.node.SenseiIndexReaderDecorator;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -39,7 +41,6 @@ import com.senseidb.plugin.SenseiPluginRegistry;
 import com.senseidb.search.node.SenseiCore;
 import com.senseidb.search.plugin.PluggableSearchEngine;
 import com.senseidb.search.plugin.PluggableSearchEngineManager;
-import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.Counter;
 import com.yammer.metrics.core.MetricName;
 
@@ -60,16 +61,12 @@ public class CompositeActivityManager implements PluggableSearchEngine {
     private SenseiCore senseiCore;
     private PurgeUnusedActivitiesJob purgeUnusedActivitiesJob;
     private Map<String, Set<String>> columnToFacetMapping = new HashMap<String, Set<String>>();
-    private static Counter recoveredIndexInBoboFacetDataCache;
-    private static Counter facetMappingMismatch;
+    private Counter recoveredIndexInBoboFacetDataCache;
+    private Counter facetMappingMismatch;
     private ActivityPersistenceFactory activityPersistenceFactory;
-    static {
-      recoveredIndexInBoboFacetDataCache = Metrics.newCounter(new MetricName(CompositeActivityManager.class, "recoveredIndexInBoboFacetDataCache"));
-      facetMappingMismatch =  Metrics.newCounter(new MetricName(CompositeActivityManager.class, "facetMappingMismatch"));
-    }
     private BoboIndexTracker boboIndexTracker;
-    
-    public CompositeActivityManager(ActivityPersistenceFactory activityPersistenceFactory) {      
+
+    public CompositeActivityManager(ActivityPersistenceFactory activityPersistenceFactory) {
       this.activityPersistenceFactory = activityPersistenceFactory;
       
     }
@@ -267,6 +264,10 @@ public class CompositeActivityManager implements PluggableSearchEngine {
  
 
   public void start(SenseiCore senseiCore) {
+    recoveredIndexInBoboFacetDataCache = MetricFactory.newCounter(new MetricName(CompositeActivityManager.class, "recoveredIndexInBoboFacetDataCache"));
+    facetMappingMismatch =  MetricFactory.newCounter(new MetricName(CompositeActivityManager.class,
+                                                                    "facetMappingMismatch"));
+
     this.senseiCore = senseiCore;
     boboIndexTracker = new BoboIndexTracker();
     boboIndexTracker.setSenseiCore(senseiCore);
@@ -276,7 +277,8 @@ public class CompositeActivityManager implements PluggableSearchEngine {
         zoieSystems.add((IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>) senseiCore.getIndexReaderFactory(partition));
       }
     }
-    senseiCore.getDecorator().addBoboListener(boboIndexTracker);
+    SenseiIndexReaderDecorator decorator = senseiCore.getDecorator();
+    decorator.addBoboListener(boboIndexTracker);
     int purgeJobFrequencyInMinutes = activityPersistenceFactory.getActivityConfig().getPurgeJobFrequencyInMinutes();
     purgeUnusedActivitiesJob = new PurgeUnusedActivitiesJob(activityValues, senseiCore, purgeJobFrequencyInMinutes * 60 * 1000);
     purgeUnusedActivitiesJob.start();

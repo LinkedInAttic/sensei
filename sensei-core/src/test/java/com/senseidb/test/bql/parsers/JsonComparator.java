@@ -1,5 +1,3 @@
-package com.senseidb.test.bql.parsers;
-
 /* EXPERIMENTAL (really) */
 /* Copyright (c) 2009 Google Inc.
  *
@@ -15,6 +13,7 @@ package com.senseidb.test.bql.parsers;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.senseidb.test.bql.parsers;
 
 import org.json.JSONArray;
 import org.json.JSONException;

@@ -1,5 +1,6 @@
 package com.senseidb.indexing;
 
+import com.senseidb.metrics.MetricFactory;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -30,7 +31,6 @@ import proj.zoie.mbean.DataProviderAdminMBean;
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.senseidb.conf.SenseiSchema;
 import com.senseidb.gateway.SenseiGateway;
-import com.senseidb.indexing.activity.CompositeActivityManager;
 import com.senseidb.jmx.JmxUtil;
 import com.senseidb.metrics.MetricsConstants;
 import com.senseidb.plugin.SenseiPluginRegistry;
@@ -55,39 +55,14 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 
 	private static final String BATCH_SIZE = "batchSize";
 
-  private static final String EVENT_CREATED_TIMESTAMP_FIELD = "eventCreatedTimestampField"; 
+  private static final String EVENT_CREATED_TIMESTAMP_FIELD = "eventCreatedTimestampField";
 
-  private static Meter ProviderBatchSizeMeter = null;
-  private static Meter EventMeter = null;
-  private static Meter UpdateBatchSizeMeter = null;
-  private static Timer IndexingLatencyTimer = null;
+  private Meter _providerBatchSizeMeter;
+  private Meter _eventMeter;
+  private Meter _updateBatchSizeMeter;
+  private Timer _indexingLatencyTimer;
 
-  static{
-    try{
-      MetricName providerBatchSizeMetricName = new MetricName(MetricsConstants.Domain,"meter","provider-batch-size","indexing-manager");
-      ProviderBatchSizeMeter = Metrics.newMeter(providerBatchSizeMetricName,"provide-batch-size", TimeUnit.SECONDS);
-
-      MetricName updateBatchSizeMetricName = new MetricName(MetricsConstants.Domain,"meter","update-batch-size","indexing-manager");
-      UpdateBatchSizeMeter = Metrics.newMeter(updateBatchSizeMetricName,"update-batch-size", TimeUnit.SECONDS);
-
-      MetricName eventMeterMetricName = new MetricName(MetricsConstants.Domain,"meter","indexing-events","indexing-manager");
-      EventMeter = Metrics.newMeter(eventMeterMetricName, "indexing-events", TimeUnit.SECONDS);
-
-      MetricName indexingLatencyMetricName = new MetricName(MetricsConstants.Domain,
-                                                            "timer",
-                                                            "indexing-latency",
-                                                            "indexing-manager");
-      IndexingLatencyTimer = Metrics.newTimer(indexingLatencyMetricName,
-                                              TimeUnit.MILLISECONDS,
-                                              TimeUnit.SECONDS);
-    }
-    catch(Exception e){
-    logger.error(e.getMessage(),e);
-    }
-  }
-
-
-	private StreamDataProvider<JSONObject> _dataProvider;
+  private StreamDataProvider<JSONObject> _dataProvider;
 	private String _oldestSinceKey;
   private String _eventCreatedTimestampField;
 	private final SenseiSchema _senseiSchema;
@@ -141,7 +116,20 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 	    }
 	}
 
-	@Override
+  private Meter registerMeter(String name, String eventType) {
+    return MetricFactory.newMeter(new MetricName(MetricsConstants.Domain, "meter", name, "indexing-manager"),
+                                  eventType,
+                                  TimeUnit.SECONDS);
+  }
+
+  private Timer registerTimer(String name)
+  {
+    return MetricFactory.newTimer(new MetricName(MetricsConstants.Domain, "timer", name, "indexing-manager"),
+                                  TimeUnit.MILLISECONDS,
+                                  TimeUnit.SECONDS);
+  }
+
+  @Override
 	public void initialize(
 			Map<Integer, Zoie<BoboIndexReader, JSONObject>> zoieSystemMap)
 			throws Exception {
@@ -181,7 +169,7 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 		StreamDataProvider<JSONObject> dataProvider = null;
     if (_gateway!=null){
 		  try{
-		    dataProvider = _gateway.buildDataProvider(_senseiSchema, _oldestSinceKey, pluginRegistry,_shardingStrategy,_zoieSystemMap.keySet());
+		    dataProvider = _gateway.buildDataProvider(_senseiSchema, _oldestSinceKey,_shardingStrategy,_zoieSystemMap.keySet());
         long maxEventsPerMin = _myconfig.getLong(EVTS_PER_MIN,40000);
         dataProvider.setMaxEventsPerMinute(maxEventsPerMin);
         int batchSize = _myconfig.getInt(BATCH_SIZE,1);
@@ -209,6 +197,15 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 	  if (_dataProvider!=null){
 	    _dataProvider.stop();
 	  }
+    if (_providerBatchSizeMeter != null) {
+      _providerBatchSizeMeter.stop();
+    }
+    if (_updateBatchSizeMeter != null) {
+      _updateBatchSizeMeter.stop();
+    }
+    if (_eventMeter != null) {
+      _eventMeter.stop();
+    }
 	}
 
 	@Override
@@ -217,7 +214,12 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 		  logger.warn("no data stream configured, no indexing events are flowing.");
 		}
 		else{
-	 	  _dataProvider.start();
+      _providerBatchSizeMeter = registerMeter("provider-batch-size", "provide-batch-size");
+      _updateBatchSizeMeter = registerMeter("update-batch-size", "update-batch-size");
+      _eventMeter = registerMeter("indexing-events", "indexing-events");
+      _indexingLatencyTimer = registerTimer("indexing-latency");
+
+      _dataProvider.start();
 		}
 	}
 
@@ -255,7 +257,7 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
         long createdTimestamp = obj.optLong(_eventCreatedTimestampField);
         if (createdTimestamp > 0)
         {
-          IndexingLatencyTimer.update(System.currentTimeMillis() - createdTimestamp,
+          _indexingLatencyTimer.update(System.currentTimeMillis() - createdTimestamp,
                                       TimeUnit.MILLISECONDS);
         }
       }
@@ -350,9 +352,9 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
     @Override
     public void consume(Collection<proj.zoie.api.DataConsumer.DataEvent<JSONObject>> data) throws ZoieException
     {
-      UpdateBatchSizeMeter.mark(data.size());
-      ProviderBatchSizeMeter.mark(_dataProvider.getBatchSize());
-      EventMeter.mark(_dataProvider.getEventCount());
+      _updateBatchSizeMeter.mark(data.size());
+      _providerBatchSizeMeter.mark(_dataProvider.getBatchSize());
+      _eventMeter.mark(_dataProvider.getEventCount());
 
       try{
         for(DataEvent<JSONObject> dataEvt : data){
@@ -361,10 +363,12 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
           if (obj == null) // Just ignore this event.
             continue;
 
-          _currentVersion = dataEvt.getVersion();
+          String version = dataEvt.getVersion();
+          _currentVersion = (_versionComparator.compare(_currentVersion, version) < 0) ? version : _currentVersion;
           if (pluggableSearchEngineManager != null && pluggableSearchEngineManager.acceptEventsForAllPartitions()) {
             obj = pluggableSearchEngineManager.update(obj, _currentVersion);
           }
+
           int routeToPart = _shardingStrategy.caculateShard(_maxPartitionId, obj);
           Collection<DataEvent<JSONObject>> partDataSet = _dataCollectorMap.get(routeToPart);
           if (partDataSet != null)
@@ -378,7 +382,7 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
             {
               
               if (rewrited != obj)
-                dataEvt = new DataEvent<JSONObject>(rewrited, dataEvt.getVersion());
+                dataEvt = new DataEvent<JSONObject>(rewrited, dataEvt.getVersion(), dataEvt.getWeight());
               partDataSet.add(dataEvt);
             }
           }
@@ -404,7 +408,7 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
               else if (_currentVersion != null && !_currentVersion.equals(partDataSet.getLast().getVersion()))
               {
                 DataEvent<JSONObject> last = partDataSet.pollLast();
-                partDataSet.add(new DataEvent<JSONObject>(last.getData(), _currentVersion));
+                partDataSet.add(new DataEvent<JSONObject>(last.getData(), _currentVersion, last.getWeight()));
               }
               dataConsumer.consume(partDataSet);
             }

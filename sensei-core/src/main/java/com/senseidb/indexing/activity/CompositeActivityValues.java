@@ -1,5 +1,6 @@
 package com.senseidb.indexing.activity;
 
+import com.senseidb.metrics.MetricFactory;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.longs.Long2IntMap;
@@ -69,23 +70,21 @@ public class CompositeActivityValues {
   private volatile boolean closed;
   private ActivityConfig activityConfig;
 
-  protected static Counter reclaimedDocumentsCounter;
-  protected static Counter currentDocumentsCounter;
-  protected static Counter deletedDocumentsCounter;
-  protected static Counter insertedDocumentsCounter;
-  protected static Counter totalUpdatesCounter;
-  protected static Counter versionRejectionCounter;
-  static {
-    reclaimedDocumentsCounter = Metrics.newCounter(new MetricName(CompositeActivityValues.class, "reclaimedActivityDocs"));
-    currentDocumentsCounter = Metrics.newCounter(new MetricName(CompositeActivityValues.class, "currentActivityDocs"));
-    deletedDocumentsCounter = Metrics.newCounter(new MetricName(CompositeActivityValues.class, "deletedActivityDocs"));
-    insertedDocumentsCounter = Metrics.newCounter(new MetricName(CompositeActivityValues.class, "insertedActivityDocs"));
-    totalUpdatesCounter = Metrics.newCounter(new MetricName(CompositeActivityValues.class, "totalUpdatesCounter"));
-    versionRejectionCounter = Metrics.newCounter(new MetricName(CompositeActivityValues.class, "activityVersionRejectionCounter"));
-  }
+  protected final Counter reclaimedDocumentsCounter;
+  protected final Counter currentDocumentsCounter;
+  protected final Counter deletedDocumentsCounter;
+  protected final Counter insertedDocumentsCounter;
+  protected final Counter totalUpdatesCounter;
+  protected final Counter versionRejectionCounter;
 
   CompositeActivityValues() {
-
+    reclaimedDocumentsCounter = MetricFactory.newCounter(new MetricName(CompositeActivityValues.class,
+                                                                        "reclaimedActivityDocs"));
+    currentDocumentsCounter = MetricFactory.newCounter(new MetricName(CompositeActivityValues.class, "currentActivityDocs"));
+    deletedDocumentsCounter = MetricFactory.newCounter(new MetricName(CompositeActivityValues.class, "deletedActivityDocs"));
+    insertedDocumentsCounter = MetricFactory.newCounter(new MetricName(CompositeActivityValues.class, "insertedActivityDocs"));
+    totalUpdatesCounter = MetricFactory.newCounter(new MetricName(CompositeActivityValues.class, "totalUpdatesCounter"));
+    versionRejectionCounter = Metrics.newCounter(new MetricName(CompositeActivityValues.class, "activityVersionRejectionCounter"));
   }
 
   public void init() {

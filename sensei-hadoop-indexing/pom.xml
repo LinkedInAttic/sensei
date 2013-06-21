@@ -3,9 +3,9 @@
 	
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
-		<groupId>com.senseidb</groupId>
+		<groupId>com.linkedin.sensei</groupId>
 		<artifactId>sensei-parent</artifactId>
-		<version>1.5.2-SNAPSHOT</version>
+		<version>1.5.8-SNAPSHOT</version>
 		<relativePath>../sensei-parent/pom.xml</relativePath>
 	</parent>
 	
@@ -14,19 +14,20 @@
 	<name>sensei hadoop indexing</name>
 	<description>sensei hadoop indexer</description>
 
-	<!-- Set the compiler to java6 -->
 	<build>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>2.1</version>
-				<configuration>
-					<source>1.6</source>
-					<target>1.6</target>
-					<encoding>UTF-8</encoding>
-				</configuration>
 			</plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+            </plugin>
 			<plugin>
 		      <artifactId>maven-dependency-plugin</artifactId>
 		      <executions>
@@ -50,15 +51,34 @@
 	</properties>
 
 	<dependencies>
-		<dependency>
-		  <groupId>${project.groupId}</groupId>
-		  <artifactId>sensei-core</artifactId>
-		  <version>${project.version}</version>
-		</dependency>
-		<dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>sensei-core</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
 		    <groupId>org.apache.hadoop</groupId>
 		    <artifactId>hadoop-core</artifactId>
-		    <version>0.20.2</version>
 		</dependency>
-	</dependencies>
+    <dependency>
+      <groupId>org.apache.lucene</groupId>
+      <artifactId>lucene-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.linkedin.zoie</groupId>
+      <artifactId>zoie-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.json</groupId>
+      <artifactId>json</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.alibaba</groupId>
+      <artifactId>fastjson</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>commons-configuration</groupId>
+      <artifactId>commons-configuration</artifactId>
+    </dependency>
+  </dependencies>
 </project>

@@ -1,5 +1,25 @@
+/**
+ * This software is licensed to you under the Apache License, Version 2.0 (the
+ * "Apache License").
+ *
+ * LinkedIn's contributions are made under the Apache License. If you contribute
+ * to the Software, the contributions will be deemed to have been made under the
+ * Apache License, unless you expressly indicate otherwise. Please do not make any
+ * contributions that would be inconsistent with the Apache License.
+ *
+ * You may obtain a copy of the Apache License at http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, this software
+ * distributed under the Apache License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the Apache
+ * License for the specific language governing permissions and limitations for the
+ * software governed under the Apache License.
+ *
+ * © 2012 LinkedIn Corp. All Rights Reserved.  
+ */
+
 package com.senseidb.federated.broker.proxy;
 
+import com.senseidb.metrics.MetricFactory;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -24,37 +44,26 @@ import com.senseidb.search.req.ErrorType;
 import com.senseidb.search.req.SenseiError;
 import com.senseidb.search.req.SenseiRequest;
 import com.senseidb.search.req.SenseiResult;
-import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.Meter;
 import com.yammer.metrics.core.MetricName;
 import com.yammer.metrics.core.Timer;
 
 public class SenseiBrokerProxy extends SenseiBroker implements BrokerProxy {
   private final static Logger logger = Logger.getLogger(SenseiBrokerProxy.class);
+  private static PartitionedLoadBalancerFactory balancerFactory = new SenseiPartitionedLoadBalancerFactory(50);  
+  private final Timer scatterTimer;
+  private final Meter ErrorMeter;
 
-  private static PartitionedLoadBalancerFactory balancerFactory = new SenseiPartitionedLoadBalancerFactory(50);
-  private static Serializer<SenseiRequest, SenseiResult> serializer = CoreSenseiServiceImpl.JAVA_SERIALIZER;
-
-  private static Timer scatterTimer = null;
-  private static Meter ErrorMeter = null;
-  static{
-    // register metrics monitoring for timers
-    try{
-      MetricName scatterMetricName = new MetricName(SenseiBrokerProxy.class,"scatter-time");
-      scatterTimer = Metrics.newTimer(scatterMetricName, TimeUnit.MILLISECONDS,TimeUnit.SECONDS);      
-      MetricName errorMetricName = new MetricName(SenseiBrokerProxy.class,"error-meter");
-      ErrorMeter = Metrics.newMeter(errorMetricName, "errors",TimeUnit.SECONDS);
-    }
-    catch(Exception e){
-    logger.error(e.getMessage(),e);
-    }
-  }
-  
   public SenseiBrokerProxy(PartitionedNetworkClient<String> networkClient,
                            ClusterClient clusterClient,
                            Serializer<SenseiRequest, SenseiResult> serializer,
                            long timeoutMillis, boolean allowPartialMerge) {
     super(networkClient, clusterClient, serializer, timeoutMillis, allowPartialMerge);
+
+    MetricName scatterMetricName = new MetricName(SenseiBrokerProxy.class,"scatter-time");
+    scatterTimer = MetricFactory.newTimer(scatterMetricName, TimeUnit.MILLISECONDS, TimeUnit.SECONDS);
+    MetricName errorMetricName = new MetricName(SenseiBrokerProxy.class,"error-meter");
+    ErrorMeter = MetricFactory.newMeter(errorMetricName, "errors",TimeUnit.SECONDS);
   }
 
   public static SenseiBrokerProxy valueOf(Configuration senseiConfiguration, Map<String, String> overrideProperties) {
@@ -70,6 +79,7 @@ public class SenseiBrokerProxy extends SenseiBroker implements BrokerProxy {
         brokerProxyConfig.isAllowPartialMerge());
     return ret;
   }
+  
   @Override
   public List<SenseiResult> doQuery(final SenseiRequest senseiRequest) {
     final List<SenseiResult> resultList = new ArrayList<SenseiResult>();

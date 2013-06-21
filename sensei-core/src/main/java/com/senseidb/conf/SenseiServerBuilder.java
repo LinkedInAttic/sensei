@@ -1,3 +1,21 @@
+/**
+ * This software is licensed to you under the Apache License, Version 2.0 (the
+ * "Apache License").
+ *
+ * LinkedIn's contributions are made under the Apache License. If you contribute
+ * to the Software, the contributions will be deemed to have been made under the
+ * Apache License, unless you expressly indicate otherwise. Please do not make any
+ * contributions that would be inconsistent with the Apache License.
+ *
+ * You may obtain a copy of the Apache License at http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, this software
+ * distributed under the Apache License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the Apache
+ * License for the specific language governing permissions and limitations for the
+ * software governed under the Apache License.
+ *
+ * © 2012 LinkedIn Corp. All Rights Reserved.  
+ */
 package com.senseidb.conf;
 
 import com.browseengine.bobo.facets.filter.AdaptiveFacetFilter;
@@ -14,6 +32,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -52,6 +71,7 @@ import org.w3c.dom.Document;
 
 import proj.zoie.api.DirectoryManager.DIRECTORY_MODE;
 import proj.zoie.api.IndexCopier;
+import proj.zoie.api.indexing.OptimizeScheduler;
 import proj.zoie.api.indexing.ZoieIndexableInterpreter;
 import proj.zoie.hourglass.impl.HourGlassScheduler.FREQUENCY;
 import proj.zoie.impl.indexing.DefaultReaderCache;
@@ -94,6 +114,10 @@ import com.senseidb.search.relevance.CustomRelevanceFunction.CustomRelevanceFunc
 import com.senseidb.search.relevance.ExternalRelevanceDataStorage;
 import com.senseidb.search.relevance.ExternalRelevanceDataStorage.RelevanceObjPlugin;
 import com.senseidb.search.relevance.ModelStorage;
+import com.senseidb.search.req.AbstractSenseiRequest;
+import com.senseidb.search.req.AbstractSenseiResult;
+import com.senseidb.search.req.SenseiSystemInfo;
+import com.senseidb.servlet.AbstractSenseiClientServlet;
 import com.senseidb.servlet.DefaultSenseiJSONServlet;
 import com.senseidb.servlet.SenseiConfigServletContextListener;
 import com.senseidb.servlet.SenseiHttpInvokerServiceServlet;
@@ -208,6 +232,7 @@ public class SenseiServerBuilder implements SenseiConfParams {
         //}
         //senseiApp.setInitParams(initParam);
         senseiApp.setAttribute("sensei.search.configuration", _senseiConf);
+        senseiApp.setAttribute("sensei.broker.export", new AbstractSenseiClientServlet.SenseiBrokerExport());
         senseiApp.setAttribute(SenseiConfigServletContextListener.SENSEI_CONF_PLUGIN_REGISTRY, pluginRegistry);
         senseiApp.setAttribute("sensei.search.version.comparator", _gateway != null ? _gateway.getVersionComparator() : ZoieConfig.DEFAULT_VERSION_COMPARATOR);
 
@@ -407,6 +432,8 @@ public class SenseiServerBuilder implements SenseiConfParams {
         zoieConfig.setBatchSize(_senseiConf.getInt(SENSEI_INDEX_BATCH_SIZE, ZoieConfig.DEFAULT_SETTING_BATCHSIZE));
         zoieConfig.setBatchDelay(_senseiConf.getLong(SENSEI_INDEX_BATCH_DELAY, ZoieConfig.DEFAULT_SETTING_BATCHDELAY));
         zoieConfig.setMaxBatchSize(_senseiConf.getInt(SENSEI_INDEX_BATCH_MAXSIZE, ZoieConfig.DEFAULT_MAX_BATCH_SIZE));
+        zoieConfig.setRamSizeInBytes(_senseiConf.getInt(SENSEI_INDEX_MAX_RAM_SEGMENT_SIZE, ZoieConfig.DEFAULT_RAM_SIZE_IN_BYTES));
+        zoieConfig.setMaxTotalWeight(_senseiConf.getInt(SENSEI_INDEX_MAX_TOTAL_WEIGHT, ZoieConfig.DEFAULT_MAX_TOTAL_WEIGHT));
         zoieConfig.setRtIndexing(_senseiConf.getBoolean(SENSEI_INDEX_REALTIME, ZoieConfig.DEFAULT_SETTING_REALTIME));
         zoieConfig.setSkipBadRecord(_senseiConf.getBoolean(SENSEI_SKIP_BAD_RECORDS, false));
         int delay = _senseiConf.getInt(SENSEI_INDEX_FRESHNESS, 10);
@@ -556,6 +583,10 @@ public class SenseiServerBuilder implements SenseiConfParams {
                     purgeFilter = new PurgeFilterWrapper(purgeFilter, pluggableSearchEngineManager);
                 }
             }
+
+            OptimizeScheduler scheduler = pluginRegistry.getBeanByFullPrefix(SENSEI_INDEX_OPTIMIZE_SCHEDULER, OptimizeScheduler.class);
+            senseiZoieFactory.setOptimizeScheduler(scheduler);
+
             zoieSystemFactory = senseiZoieFactory;
         } else if (SENSEI_INDEXER_TYPE_HOURGLASS.equals(indexerType)) {
             String schedule = _senseiConf.getString(SENSEI_HOURGLASS_SCHEDULE, "");

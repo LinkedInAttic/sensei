@@ -1,0 +1,12 @@
+apply plugin: 'java'
+
+dependencies {
+  compile project(':sensei-core')
+  compile externalDependency.kafka
+  compile externalDependency.avro
+
+  testCompile externalDependency.zkclient
+  testCompile externalDependency.derby
+  testCompile externalDependency.junit
+}
+

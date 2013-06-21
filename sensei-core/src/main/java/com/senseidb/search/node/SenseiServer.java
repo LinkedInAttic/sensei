@@ -1,9 +1,15 @@
 package com.senseidb.search.node;
 
+import com.browseengine.bobo.api.BoboIndexReader;
+import com.senseidb.metrics.MetricFactory;
 import java.io.File;
+import java.io.IOException;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.nio.channels.ReadableByteChannel;
+import java.nio.channels.WritableByteChannel;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 
@@ -28,6 +34,7 @@ import com.senseidb.svc.impl.CoreSenseiServiceImpl;
 import com.senseidb.svc.impl.SenseiCoreServiceMessageHandler;
 import com.senseidb.svc.impl.SysSenseiCoreServiceImpl;
 import com.senseidb.util.NetUtil;
+import proj.zoie.api.Zoie;
 
 
 public class SenseiServer {
@@ -44,7 +51,6 @@ public class SenseiServer {
   private ClusterClient _clusterClient;
   private final SenseiCore _core;
   protected volatile Node _serverNode;
-  private final CoreSenseiServiceImpl _innerSvc;
   private final List<AbstractSenseiCoreService<AbstractSenseiRequest, AbstractSenseiResult>> _externalSvc;
   private final long _shutdownPauseMillis;
 
@@ -105,8 +111,6 @@ public class SenseiServer {
 
     _networkServer = networkServer;
     _clusterClient = clusterClient;
-
-    _innerSvc = new CoreSenseiServiceImpl(senseiCore);
     _externalSvc = externalSvc;
     _shutdownPauseMillis = shutdownPauseMillis;
   }
@@ -132,11 +136,30 @@ public class SenseiServer {
     return buffer.toString();
   }
 
-  /*
-  public Collection<Zoie<BoboIndexReader,?,?>> getZoieSystems(){
-    return _core.zoieSystems;
+  public Collection<Zoie<BoboIndexReader, ?>> getZoieSystems()
+  {
+    return _core.getZoieSystems();
   }
-  */
+
+  public int getNumZoieSystems()
+  {
+    return _core.getNumZoieSystems();
+  }
+
+  public void importSnapshot(List<ReadableByteChannel> channels) throws IOException
+  {
+    _core.importSnapshot(channels);
+  }
+
+  public void exportSnapshot(List<WritableByteChannel> channels) throws IOException
+  {
+    _core.exportSnapshot(channels);
+  }
+
+  public void optimize()
+  {
+    _core.optimize();
+  }
 
   public DataProvider getDataProvider()
   {
@@ -166,11 +189,21 @@ public class SenseiServer {
     return new SenseiNodeInfo(_id, _partitions, _serverNode.getUrl(), adminLink.toString());
   }
   */
+  
+  public String generateSignature()
+  {
+      StringBuffer sb = new StringBuffer();
+      sb.append(_core.getSystemInfo().getSchema());
+      sb.append("-p").append(_core.getNodeId());
+      sb.append("-v").append(_core.getSystemInfo().getVersion());
+      return sb.toString();
+  }
 
   public void shutdown() {
     // It is important that startup and shutdown be done in the OPPOSITE order
-
     logger.info("Shutting down the norbert network server...");
+
+    _serverNode = null;
     try {
       _networkServer.shutdown();
     } catch (Throwable throwable) {
@@ -219,9 +252,12 @@ public class SenseiServer {
     }
 
     logger.info("Sensei is shutdown!");
+    MetricFactory.stop();
+    JmxUtil.unregisterMBeans();
   }
 
   public void start(boolean available) throws Exception {
+    MetricFactory.start();
     _core.start();
 //        ClusterClient clusterClient = ClusterClientFactory.newInstance().newZookeeperClient();
     String clusterName = _clusterClient.getServiceName();
@@ -230,7 +266,8 @@ public class SenseiServer {
     logger.info("Cluster info: " + _clusterClient.toString());
 
     AbstractSenseiCoreService coreSenseiService = new CoreSenseiServiceImpl(_core);
-    AbstractSenseiCoreService sysSenseiCoreService = new SysSenseiCoreServiceImpl(_core);    
+    AbstractSenseiCoreService sysSenseiCoreService = new SysSenseiCoreServiceImpl(_core);
+
     // create the zookeeper cluster client
 //    SenseiClusterClientImpl senseiClusterClient = new SenseiClusterClientImpl(clusterName, zookeeperURL, zookeeperTimeout, false);
     SenseiCoreServiceMessageHandler senseiMsgHandler =  new SenseiCoreServiceMessageHandler(coreSenseiService);

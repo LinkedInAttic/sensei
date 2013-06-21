@@ -3,9 +3,9 @@
 	
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
-		<groupId>com.senseidb</groupId>
+		<groupId>com.linkedin.sensei</groupId>
 		<artifactId>sensei-parent</artifactId>
-		<version>1.5.2-SNAPSHOT</version>
+		<version>1.5.8-SNAPSHOT</version>
 		<relativePath>../sensei-parent/pom.xml</relativePath>
 	</parent>
 	
@@ -14,18 +14,19 @@
 	<name>sensei gateways</name>
 	<description>a collection of sensei gateways</description>
 
-	<!-- Set the compiler to java6 -->
 	<build>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>2.1</version>
-				<configuration>
-					<source>1.6</source>
-					<target>1.6</target>
-					<encoding>UTF-8</encoding>
-				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
 			</plugin>
 			<plugin>
 				<artifactId>maven-resources-plugin</artifactId>
@@ -33,33 +34,6 @@
 				<configuration>
 					<encoding>UTF-8</encoding>
 				</configuration>
-			</plugin>
-
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-source-plugin</artifactId>
-                <version>2.1.2</version>
-				<executions>
-					<execution>
-						<id>attach-sources</id>
-						<goals>
-							<goal>jar</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.8.1</version>
-				<executions>
-					<execution>
-						<id>attach-javadocs</id>
-						<goals>
-							<goal>jar</goal>
-						</goals>
-					</execution>
-				</executions>
 			</plugin>
 			<plugin>
 		      <artifactId>maven-dependency-plugin</artifactId>
@@ -77,27 +51,6 @@
 		       </executions>
 		    </plugin>
 		    
-            <plugin>
-                <groupId>pl.project13.maven</groupId>
-                <artifactId>git-commit-id-plugin</artifactId>
-                <version>1.9</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>revision</goal>
-                         </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <prefix>git</prefix>
-                    <dateFormat>dd.MM.yyyy '@' HH:mm:ss z</dateFormat>
-                    <verbose>true</verbose>
-                    <dotGitDirectory>${project.basedir}/../.git</dotGitDirectory>
-                    <generateGitPropertiesFile>true</generateGitPropertiesFile>
-                    <generateGitPropertiesFilename>src/main/resources/git.properties</generateGitPropertiesFilename>
-                </configuration>
-            </plugin>
-		    
 		</plugins>
 	</build>
 
@@ -106,68 +59,39 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 
-	<dependencies>
-	   <dependency>
-	     <groupId>${project.groupId}</groupId>
-	     <artifactId>sensei-core</artifactId>
-	     <version>${project.version}</version>
-	    </dependency>
-
+    <dependencies>
         <dependency>
-         <groupId>com.101tec</groupId>
-         <artifactId>zkclient</artifactId>
-         <version>0.3</version>
-        </dependency>
-
-        <dependency>
-            <groupId>net.sf.jopt-simple</groupId>
-            <artifactId>jopt-simple</artifactId>
-            <version>4.5</version>
-        </dependency>
-
-
-		<dependency>
-			<groupId>org.apache.kafka</groupId>
-			<artifactId>kafka</artifactId>
-			<version>0.8.0_0.30_9bd2a11486420a313f800-SNAPSHOT</version>
-			 <scope>system</scope>
-			<systemPath>${basedir}/../lib/kafka-0.8.0_0.30_9bd2a11486420a313f800-SNAPSHOT.jar</systemPath>
-      <!-- exclusions>
-        <exclusion> 
-          <groupId>zkclient</groupId>
-        </exclusion>
-      </exclusions -->
-		</dependency>
-		
-		<dependency>
-			<groupId>commons-configuration</groupId>
-			<artifactId>commons-configuration</artifactId>
-			<version>1.6</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.json</groupId>
-			<artifactId>json</artifactId>
-			<version>20080701</version>
-		</dependency>
-		
-		<dependency>
-			<groupId>org.apache.avro</groupId>
-			<artifactId>avro</artifactId>
-			<version>1.4.0</version>
-		</dependency>
-		
-		<dependency>
-	        <groupId>org.apache.derby</groupId>
-	        <artifactId>derby</artifactId>
-	        <version>10.8.2.2</version>
-	        <scope>test</scope>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>sensei-core</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>javax.jms</groupId>
-            <artifactId>jms</artifactId>
-            <version>1.1</version>
+            <groupId>com.github.sgroschupf</groupId>
+            <artifactId>zkclient</artifactId>
         </dependency>
-
+        <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>commons-configuration</groupId>
+            <artifactId>commons-configuration</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.avro</groupId>
+            <artifactId>avro</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.derby</groupId>
+            <artifactId>derby</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.linkedin.zoie</groupId>
+            <artifactId>zoie-core</artifactId>
+        </dependency>
     </dependencies>
 </project>

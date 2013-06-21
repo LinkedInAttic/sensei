@@ -1,5 +1,6 @@
 package com.senseidb.svc.impl;
 
+import com.senseidb.metrics.MetricFactory;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -31,7 +32,6 @@ import com.senseidb.search.req.AbstractSenseiRequest;
 import com.senseidb.search.req.AbstractSenseiResult;
 import com.senseidb.search.req.ErrorType;
 import com.senseidb.search.req.SenseiError;
-import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.Meter;
 import com.yammer.metrics.core.MetricName;
 import com.yammer.metrics.core.Timer;
@@ -40,31 +40,11 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
   private final static Logger logger = Logger.getLogger(AbstractSenseiCoreService.class);
   
 
-  private static Timer GetReaderTimer = null;
-  private static Timer SearchTimer = null;
-  private static Timer MergeTimer = null;
-  private static Meter SearchCounter = null;
-	
-  static{
-	  // register jmx monitoring for timers
-	  try{
-	    MetricName getReaderMetricName = new MetricName(MetricsConstants.Domain,"timer","getreader-time","node");
-	    GetReaderTimer = Metrics.newTimer(getReaderMetricName,TimeUnit.MILLISECONDS,TimeUnit.SECONDS);
-	    
-	    MetricName searchMetricName = new MetricName(MetricsConstants.Domain,"timer","search-time","node");
-	    SearchTimer = Metrics.newTimer(searchMetricName,TimeUnit.MILLISECONDS,TimeUnit.SECONDS);
+  private final Timer _getReaderTimer;
+  private final Timer _searchTimer;
+  private final Timer _mergeTimer;
+  private final Meter _searchCounter;
 
-	    MetricName mergeMetricName = new MetricName(MetricsConstants.Domain,"timer","merge-time","node");
-	    MergeTimer = Metrics.newTimer(mergeMetricName,TimeUnit.MILLISECONDS,TimeUnit.SECONDS);
-	    
-	    MetricName searchCounterMetricName = new MetricName(MetricsConstants.Domain,"meter","search-count","node");
-	    SearchCounter = Metrics.newMeter(searchCounterMetricName, "requets", TimeUnit.SECONDS);
-
-	  }
-	  catch(Exception e){
-		logger.error(e.getMessage(),e);
-	  }
-  }
   protected long _timeout = 8000;
     
   protected final SenseiCore _core;
@@ -76,12 +56,17 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
 	
 	public AbstractSenseiCoreService(SenseiCore core){
 	  _core = core;
-	  int[] partitions = _core.getPartitions();
+    _getReaderTimer = registerTimer("getreader-time");
+    _searchTimer = registerTimer("search-time");
+    _mergeTimer = registerTimer("merge-time");
+
+    // TODO: requets is a mis-spell. Can we fix it?
+    _searchCounter = registerMeter("search-count", "requets");
 	}
   
   private Timer buildTimer(int partition) {
     MetricName partitionSearchMetricName = new MetricName(MetricsConstants.Domain,"timer","partition-time-"+partition,"partition");
-    return Metrics.newTimer(partitionSearchMetricName,TimeUnit.MILLISECONDS,TimeUnit.SECONDS);
+    return MetricFactory.newTimer(partitionSearchMetricName,TimeUnit.MILLISECONDS,TimeUnit.SECONDS);
   }
   
   private Timer getTimer(int partition) {
@@ -94,7 +79,7 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
   }
 	
 	public final Res execute(final Req senseiReq){
-		SearchCounter.mark();
+		_searchCounter.mark();
 		Set<Integer> partitions = senseiReq==null ? null : senseiReq.getPartitions();
 		if (partitions==null){
 			partitions = new HashSet<Integer>();
@@ -203,7 +188,7 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
         }
 
           try{
-	        finalResult = MergeTimer.time(new Callable<Res>(){
+	        finalResult = _mergeTimer.time(new Callable<Res>(){
 	    	 public Res call() throws Exception{
 	    	   return mergePartitionedResults(senseiReq, resultList);
 	    	 }
@@ -244,7 +229,7 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
       final SenseiQueryBuilderFactory queryBuilderFactory,
       Map<IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>, List<ZoieIndexReader<BoboIndexReader>>> indexReadersToCleanUp) throws Exception {
     List<ZoieIndexReader<BoboIndexReader>> readerList = null;
-    readerList = GetReaderTimer.time(new Callable<List<ZoieIndexReader<BoboIndexReader>>>() {
+    readerList = _getReaderTimer.time(new Callable<List<ZoieIndexReader<BoboIndexReader>>>() {
       public List<ZoieIndexReader<BoboIndexReader>> call() throws Exception {
         if (readerFactory == null)
           return Collections.EMPTY_LIST;
@@ -260,16 +245,34 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
     }
     final List<BoboIndexReader> boboReaders = ZoieIndexReader.extractDecoratedReaders(readerList);
 
-    return SearchTimer.time(new Callable<Res>() {
+    return _searchTimer.time(new Callable<Res>() {
       public Res call() throws Exception {
         return handlePartitionedRequest(senseiReq, boboReaders, queryBuilderFactory);
       }
     });
   }
-	
-	public abstract Res handlePartitionedRequest(Req r,final List<BoboIndexReader> readerList,SenseiQueryBuilderFactory queryBuilderFactory) throws Exception;
+
+  protected final Timer registerTimer(String name)
+  {
+    return MetricFactory.newTimer(new MetricName(MetricsConstants.Domain, "timer", name, getMetricScope()),
+                                  TimeUnit.MILLISECONDS,
+                                  TimeUnit.SECONDS);
+  }
+
+  protected final Meter registerMeter(String name, String eventType)
+  {
+    return MetricFactory.newMeter(new MetricName(MetricsConstants.Domain, "meter", name, getMetricScope()), eventType, TimeUnit.SECONDS);
+  }
+
+  public abstract Res handlePartitionedRequest(Req r,final List<BoboIndexReader> readerList,SenseiQueryBuilderFactory queryBuilderFactory) throws Exception;
 	public abstract Res mergePartitionedResults(Req r,List<Res> reqList);
 	public abstract Res getEmptyResultInstance(Throwable error);
 
 	public abstract Serializer<Req, Res> getSerializer();
+
+  /**
+   * Returns the name of the metric scope. It's used for creating {@link MetricName} that get registered through
+   * {@link MetricFactory}.
+   */
+  protected abstract String getMetricScope();
 }

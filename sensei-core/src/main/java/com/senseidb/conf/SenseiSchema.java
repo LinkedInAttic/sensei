@@ -1,3 +1,21 @@
+/**
+ * This software is licensed to you under the Apache License, Version 2.0 (the
+ * "Apache License").
+ *
+ * LinkedIn's contributions are made under the Apache License. If you contribute
+ * to the Software, the contributions will be deemed to have been made under the
+ * Apache License, unless you expressly indicate otherwise. Please do not make any
+ * contributions that would be inconsistent with the Apache License.
+ *
+ * You may obtain a copy of the Apache License at http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, this software
+ * distributed under the Apache License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the Apache
+ * License for the specific language governing permissions and limitations for the
+ * software governed under the Apache License.
+ *
+ * © 2012 LinkedIn Corp. All Rights Reserved.  
+ */
 package com.senseidb.conf;
 
 import java.text.DecimalFormat;
@@ -12,12 +30,14 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.log4j.Logger;
 import org.apache.lucene.document.Field.Index;
 import org.apache.lucene.document.Field.Store;
 import org.apache.lucene.document.Field.TermVector;
+import org.springframework.util.Assert;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -60,6 +80,10 @@ public class SenseiSchema {
         public String delim = ",";
         public Class type = null;
         public String name;
+        // indicates if the field name has any wildcards in it.
+        public boolean hasWildCards;
+        // compiled pattern if the field name has wildcards
+        public Pattern wildCardPattern;
     }
 
     public static class FacetDefinition {
@@ -67,6 +91,7 @@ public class SenseiSchema {
         public String type;
         public String column;
         public Boolean dynamic;
+        public Boolean wildcard;
         public Map<String, List<String>> params;
         public Set<String> dependSet = new HashSet<String>();
 
@@ -88,6 +113,7 @@ public class SenseiSchema {
 
                 JSONArray paramList = facet.optJSONArray("params");
                 ret.params = SenseiFacetHandlerBuilder.parseParams(paramList);
+                ret.wildcard = facet.optBoolean("wildcard", false);
                 return ret;
             } catch (Exception ex) {
                 throw new RuntimeException(ex);
@@ -179,6 +205,12 @@ public class SenseiSchema {
                 String delimString = column.optString("delimiter");
                 if (delimString != null && delimString.trim().length() > 0) {
                     fdef.delim = delimString;
+                }
+                fdef.hasWildCards = column.optBoolean("wildcard");
+
+                if (fdef.hasWildCards) {
+                    Assert.isTrue(fdef.fromField.equals(fdef.name), "Cannot have a different \"from\" field with wildcards");
+                    fdef.wildCardPattern = Pattern.compile(fdef.name);
                 }
 
                 schema._fieldDefMap.put(n, fdef);
@@ -296,6 +328,7 @@ public class SenseiSchema {
             schema._compressSrcData = false;
 
         NodeList columns = tableElem.getElementsByTagName("column");
+
         for (int i = 0; i < columns.getLength(); ++i) {
             try {
                 Element column = (Element) columns.item(i);
@@ -322,6 +355,12 @@ public class SenseiSchema {
                 String delimString = column.getAttribute("delimiter");
                 if (delimString != null && delimString.trim().length() > 0) {
                     fdef.delim = delimString;
+                }
+                fdef.hasWildCards = Boolean.parseBoolean(column.getAttribute("wildcard"));
+
+                if (fdef.hasWildCards) {
+                    Assert.isTrue(fdef.fromField.equals(fdef.name), "Cannot have a different \"from\" field with wildcards");
+                    fdef.wildCardPattern = Pattern.compile(fdef.name);
                 }
 
                 schema._fieldDefMap.put(n, fdef);
@@ -396,9 +435,17 @@ public class SenseiSchema {
                         + columns.item(i), e);
             }
         }
+        JSONArray facetsList = schemaObj.optJSONArray("facets");
+        if (facetsList != null) {
+            for (int i = 0; i < facetsList.length(); i++) {
+                JSONObject facet = facetsList.optJSONObject(i);
+                if (facet != null) {
+                    schema.facets.add(FacetDefinition.valueOf(facet));
+                }
+            }
+        }
         return schema;
     }
-
     public List<FacetDefinition> getFacets() {
         return facets;
     }

@@ -1,6 +1,27 @@
+/**
+ * This software is licensed to you under the Apache License, Version 2.0 (the
+ * "Apache License").
+ *
+ * LinkedIn's contributions are made under the Apache License. If you contribute
+ * to the Software, the contributions will be deemed to have been made under the
+ * Apache License, unless you expressly indicate otherwise. Please do not make any
+ * contributions that would be inconsistent with the Apache License.
+ *
+ * You may obtain a copy of the Apache License at http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, this software
+ * distributed under the Apache License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the Apache
+ * License for the specific language governing permissions and limitations for the
+ * software governed under the Apache License.
+ *
+ * © 2012 LinkedIn Corp. All Rights Reserved.  
+ */
 package com.senseidb.test;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.URL;
 
 import javax.management.InstanceAlreadyExistsException;
@@ -9,6 +30,9 @@ import com.linkedin.norbert.network.Serializer;
 import com.senseidb.indexing.activity.facet.ActivityRangeFacetHandler;
 import com.senseidb.svc.impl.CoreSenseiServiceImpl;
 import org.apache.log4j.Logger;
+import org.apache.zookeeper.server.NIOServerCnxn;
+import org.apache.zookeeper.server.ZooKeeperServer;
+import org.apache.zookeeper.server.persistence.FileTxnSnapLog;
 import org.mortbay.jetty.Server;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -53,17 +77,24 @@ public class SenseiStarter {
   public static SenseiRequestScatterRewriter requestRewriter;
   public static NetworkServer networkServer1;
   public static NetworkServer networkServer2;
-  public static final String SENSEI_TEST_CONF_FILE="sensei-test.spring";
   public static SenseiZoieFactory<?> _zoieFactory;
   public static boolean started = false;
+  public static URL  federatedBrokerUrl;
 
-   public static URL  federatedBrokerUrl;
+  private static TestZkServer zkServer = new TestZkServer();
   
 
   /**
    * Will start the new Sensei instance once per process
    */
   public static synchronized void start(String confDir1, String confDir2) {
+    try {
+      zkServer.start();
+    } catch (Exception ex) {
+      logger.error("Failed to start zookeeper", ex);
+      return;
+    }
+
     ActivityRangeFacetHandler.isSynchronized = true;
     if (started) {
       logger.warn("The server had been already started");
@@ -71,50 +102,51 @@ public class SenseiStarter {
     }
     try {
       JmxSenseiMBeanServer.registerCustomMBeanServer();
-    ConfDir1 = new File(SenseiStarter.class.getClassLoader().getResource(confDir1).toURI());
+      ConfDir1 = new File(SenseiStarter.class.getClassLoader().getResource(confDir1).toURI());
 
-    ConfDir2 = new File(SenseiStarter.class.getClassLoader().getResource(confDir2).toURI());
-    org.apache.log4j.PropertyConfigurator.configure("resources/log4j.properties");
-    loadFromSpringContext();
-    boolean removeSuccessful = rmrf(IndexDir);
-    if (!removeSuccessful) {
-      throw new IllegalStateException("The index dir " + IndexDir + " coulnd't be purged");
-    }
-    SenseiServerBuilder senseiServerBuilder1 = null;
-    senseiServerBuilder1 = new SenseiServerBuilder(ConfDir1, null);
-    node1 = senseiServerBuilder1.buildServer();
-    httpServer1 = senseiServerBuilder1.buildHttpRestServer();
-    logger.info("Node 1 created.");
-    SenseiServerBuilder senseiServerBuilder2 = null;
-    senseiServerBuilder2 = new SenseiServerBuilder(ConfDir2, null);
-    node2 = senseiServerBuilder2.buildServer();
-    httpServer2 = senseiServerBuilder2.buildHttpRestServer();
-    logger.info("Node 2 created.");
-    broker = null;
-    try
-    {
-      broker = new SenseiBroker(networkClient, clusterClient, serializer, 10000L, true);
-    } catch (NorbertException ne) {
-      logger.info("shutting down cluster...", ne);
-        clusterClient.shutdown();
-        throw ne;
-    }
-    httpRestSenseiService = new HttpRestSenseiServiceImpl("http", "localhost", 8079, "/sensei");
-    logger.info("Cluster client started");
-    Runtime.getRuntime().addShutdownHook(new Thread(){
-      @Override
-      public void run(){
-        shutdownSensei();
-    }});
-    node1.start(true);
-    httpServer1.start();
-    logger.info("Node 1 started");
-    node2.start(true);
-    httpServer2.start();
-    logger.info("Node 2 started");
-    SenseiUrl =  new URL("http://localhost:8079/sensei");
-    federatedBrokerUrl =  new URL("http://localhost:8079/sensei/federatedBroker/");
-    waitTillServerStarts();
+      ConfDir2 = new File(SenseiStarter.class.getClassLoader().getResource(confDir2).toURI());
+      org.apache.log4j.PropertyConfigurator.configure("resources/log4j.properties");
+      loadFromSpringContext();
+      boolean removeSuccessful = rmrf(IndexDir);
+      if (!removeSuccessful) {
+        throw new IllegalStateException("The index dir " + IndexDir + " coulnd't be purged");
+      }
+      SenseiServerBuilder senseiServerBuilder1 = null;
+      senseiServerBuilder1 = new SenseiServerBuilder(ConfDir1, null);
+      node1 = senseiServerBuilder1.buildServer();
+      httpServer1 = senseiServerBuilder1.buildHttpRestServer();
+      logger.info("Node 1 created.");
+      SenseiServerBuilder senseiServerBuilder2 = null;
+      senseiServerBuilder2 = new SenseiServerBuilder(ConfDir2, null);
+      node2 = senseiServerBuilder2.buildServer();
+      httpServer2 = senseiServerBuilder2.buildHttpRestServer();
+      logger.info("Node 2 created.");
+      broker = null;
+      try
+      {
+        broker = new SenseiBroker(networkClient, clusterClient, serializer, 10000L, true);
+      } catch (NorbertException ne) {
+        logger.info("shutting down cluster...", ne);
+          clusterClient.shutdown();
+          throw ne;
+      }
+      httpRestSenseiService = new HttpRestSenseiServiceImpl("http", "localhost", 8079, "/sensei");
+      logger.info("Cluster client started");
+      Runtime.getRuntime().addShutdownHook(new Thread(){
+        @Override
+        public void run(){
+          shutdownSensei();
+      }});
+      node1.start(true);
+      httpServer1.start();
+      logger.info("Node 1 started");
+      node2.start(true);
+      httpServer2.start();
+      logger.info("Node 2 started");
+      SenseiUrl =  new URL("http://localhost:8079/sensei");
+      federatedBrokerUrl =  new URL("http://localhost:8079/sensei/federatedBroker/");
+
+      waitTillServerStarts();
     } catch (Throwable ex) {
       logger.error("Could not start the sensei", ex);
       throw new RuntimeException(ex);
@@ -134,7 +166,7 @@ public class SenseiStarter {
       res = broker.browse(req);
       System.out.println(""+res.getNumHits()+" loaded...");
       ++count;
-    } while (count < 20 && res.getNumHits() < 15000);
+    } while (count < 200 && res.getNumHits() < 15000);
 
   }
 
@@ -188,6 +220,7 @@ public class SenseiStarter {
     try{networkClient.shutdown();}catch(Throwable t){}
     try{clusterClient.shutdown();}catch(Throwable t){}
     rmrf(IndexDir);
+    zkServer.stop();
     started = false;
   }
 

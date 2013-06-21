@@ -1,8 +1,31 @@
+/**
+ * This software is licensed to you under the Apache License, Version 2.0 (the
+ * "Apache License").
+ *
+ * LinkedIn's contributions are made under the Apache License. If you contribute
+ * to the Software, the contributions will be deemed to have been made under the
+ * Apache License, unless you expressly indicate otherwise. Please do not make any
+ * contributions that would be inconsistent with the Apache License.
+ *
+ * You may obtain a copy of the Apache License at http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, this software
+ * distributed under the Apache License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the Apache
+ * License for the specific language governing permissions and limitations for the
+ * software governed under the Apache License.
+ *
+ * © 2012 LinkedIn Corp. All Rights Reserved.  
+ */
 package com.senseidb.search.node;
 
+import java.io.IOException;
+import java.nio.channels.ReadableByteChannel;
+import java.nio.channels.WritableByteChannel;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -13,13 +36,14 @@ import proj.zoie.api.IndexReaderFactory;
 import proj.zoie.api.Zoie;
 import proj.zoie.api.ZoieException;
 import proj.zoie.api.ZoieIndexReader;
+import proj.zoie.impl.indexing.ZoieSystem;
 
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.facets.RuntimeFacetHandlerFactory;
+import com.google.common.base.Preconditions;
 import com.senseidb.indexing.SenseiIndexPruner;
 import com.senseidb.indexing.SenseiIndexPruner.DefaultSenseiIndexPruner;
-import com.senseidb.indexing.activity.CompositeActivityManager;
 import com.senseidb.jmx.JmxUtil;
 import com.senseidb.search.plugin.PluggableSearchEngineManager;
 import com.senseidb.search.req.SenseiSystemInfo;
@@ -32,7 +56,7 @@ public class SenseiCore{
   private SenseiIndexingManager _indexManager;
   private SenseiQueryBuilderFactory _queryBuilderFactory;
   private final HashSet<Zoie<BoboIndexReader,?>> zoieSystems = new HashSet<Zoie<BoboIndexReader,?>>();
-  
+
   private final int[] _partitions;
   private final int _id;
   private final Map<Integer,Zoie<BoboIndexReader,?>> _readerFactoryMap;
@@ -47,7 +71,8 @@ public class SenseiCore{
   public SenseiCore(int id,int[] partitions,
             SenseiZoieFactory<?> zoieSystemFactory,
             SenseiIndexingManager indexManager,
-            SenseiQueryBuilderFactory queryBuilderFactory, SenseiIndexReaderDecorator decorator){
+            SenseiQueryBuilderFactory queryBuilderFactory,
+            SenseiIndexReaderDecorator decorator){
 
     _zoieFactory = zoieSystemFactory;
     _indexManager = indexManager;
@@ -236,6 +261,83 @@ public class SenseiCore{
   public SenseiQueryBuilderFactory getQueryBuilderFactory()
   {
     return _queryBuilderFactory;
+  }
+  
+  public Collection<Zoie<BoboIndexReader, ?>> getZoieSystems()
+  {
+    return zoieSystems;
+  }
+
+  public int getNumZoieSystems()
+  {
+    return zoieSystems.size();
+  }
+  
+  // Export snapshot from zoie to list of channels.
+  public void exportSnapshot(List<WritableByteChannel> channels) throws IOException
+  {
+    Preconditions.checkNotNull(channels);
+    Preconditions.checkArgument(channels.size() > 0);
+    Preconditions.checkArgument(channels.size() >= zoieSystems.size());
+    
+    int i = 0;
+    
+    // TODO: allow run in parallel
+    
+    for (Zoie<BoboIndexReader,?> zoieSystem : zoieSystems)
+    {
+      if (zoieSystem instanceof ZoieSystem)
+      {
+        try
+        {
+          ((ZoieSystem<BoboIndexReader,?>)zoieSystem).exportSnapshot(channels.get(i++));
+        }
+        catch (IOException e)
+        {
+          logger.error("exportSnapshot " + i, e);
+          throw new IOException(e);
+        }
+      }
+    }
+  }
+
+  // Import snapshot to zoie from list of channels.
+  public void importSnapshot(List<ReadableByteChannel> channels) throws IOException
+  {
+    Preconditions.checkNotNull(channels);
+    Preconditions.checkArgument(channels.size() > 0);
+    Preconditions.checkArgument(channels.size() >= zoieSystems.size());
+    
+    int i = 0;
+    
+    // TODO: allow run in parallel
+    
+    for (Zoie<BoboIndexReader,?> zoieSystem : zoieSystems)
+    {
+      if (zoieSystem instanceof ZoieSystem)
+      {
+        try
+        {
+          ((ZoieSystem<BoboIndexReader,?>)zoieSystem).importSnapshot(channels.get(i++));
+        }
+        catch (IOException e)
+        {
+          logger.error("exportSnapshot " + i, e);
+          throw new IOException(e);
+        }
+      }
+    }
+  }
+
+  public void optimize()
+  {
+    for (Zoie<BoboIndexReader,?> zoieSystem : zoieSystems)
+    {
+      if (zoieSystem instanceof ZoieSystem)
+      {
+        ((ZoieSystem<BoboIndexReader,?>)zoieSystem).optimize();
+      }
+    }
   }
 
   public void syncWithVersion(long timeToWait, String version) throws ZoieException

@@ -1,5 +1,6 @@
 package com.senseidb.search.node;
 
+import com.senseidb.metrics.MetricFactory;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
@@ -12,6 +13,7 @@ import proj.zoie.api.DefaultDirectoryManager;
 import proj.zoie.api.DirectoryManager;
 import proj.zoie.api.DirectoryManager.DIRECTORY_MODE;
 import proj.zoie.api.indexing.IndexingEventListener;
+import proj.zoie.api.indexing.OptimizeScheduler;
 import proj.zoie.api.indexing.ZoieIndexableInterpreter;
 import proj.zoie.impl.indexing.IndexUpdatedEvent;
 import proj.zoie.impl.indexing.ZoieConfig;
@@ -19,7 +21,6 @@ import proj.zoie.impl.indexing.ZoieSystem;
 
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.senseidb.metrics.MetricsConstants;
-import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.Histogram;
 import com.yammer.metrics.core.Meter;
 import com.yammer.metrics.core.MetricName;
@@ -27,6 +28,7 @@ import com.yammer.metrics.core.MetricName;
 public class SenseiZoieSystemFactory<T> extends SenseiZoieFactory<T>
 {
   private static Logger log = Logger.getLogger(SenseiZoieSystemFactory.class);
+  private OptimizeScheduler _optimizeScheduler;
 
   private Map<Integer,IndexingMetrics> metricsMap = new HashMap<Integer,IndexingMetrics>(); 
   
@@ -36,6 +38,11 @@ public class SenseiZoieSystemFactory<T> extends SenseiZoieFactory<T>
     super(idxDir,dirMode,interpreter,indexReaderDecorator,zoieConfig);
   }
   
+  public void setOptimizeScheduler(OptimizeScheduler optimizeScheduler)
+  {
+    _optimizeScheduler = optimizeScheduler;
+  }
+
   @Override
   public ZoieSystem<BoboIndexReader,T> getZoieInstance(int nodeId,final int partitionId)
   {
@@ -49,7 +56,10 @@ public class SenseiZoieSystemFactory<T> extends SenseiZoieFactory<T>
     DirectoryManager dirMgr = new DefaultDirectoryManager(partDir, _dirMode);
 
     ZoieSystem<BoboIndexReader,T> zoie = new ZoieSystem<BoboIndexReader,T>(dirMgr, _interpreter, _indexReaderDecorator, _zoieConfig);
-
+    if (_optimizeScheduler != null) {
+      zoie.setOptimizeScheduler(_optimizeScheduler);
+    }
+    
     metricsMap.put(partitionId, new IndexingMetrics(partitionId));
     
     zoie.addIndexingEventListener(new IndexingEventListener() {
@@ -91,13 +101,13 @@ public class SenseiZoieSystemFactory<T> extends SenseiZoieFactory<T>
         
     IndexingMetrics(int partition){
       MetricName docsIndexedName =  new MetricName(MetricsConstants.Domain,"meter","docs-indexed","indexer");
-      docsIndexedMetric = Metrics.newMeter(docsIndexedName, "indexing", TimeUnit.SECONDS);
+      docsIndexedMetric = MetricFactory.newMeter(docsIndexedName, "indexing", TimeUnit.SECONDS);
 
       MetricName docsLeftoverName = new MetricName(MetricsConstants.Domain,"meter","docs-leftover","indexer");
-      docsLeftoverMetric = Metrics.newMeter(docsLeftoverName, "indexing", TimeUnit.SECONDS);
+      docsLeftoverMetric = MetricFactory.newMeter(docsLeftoverName, "indexing", TimeUnit.SECONDS);
 
       MetricName flushTimeName = new MetricName(MetricsConstants.Domain,"histogram","flush-time","indexer");
-      flushTimeHistogram = Metrics.newHistogram(flushTimeName, false);
+      flushTimeHistogram = MetricFactory.newHistogram(flushTimeName, false);
     }
   }
 }

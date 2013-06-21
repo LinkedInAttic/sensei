@@ -3,7 +3,6 @@ package com.senseidb.util;
 import java.lang.Thread.UncaughtExceptionHandler;
 
 import org.apache.log4j.Logger;
-import com.senseidb.util.SenseiUncaughtExceptionHandler;
 /**
  * The default UncaughtExceptionHandler  for Sensei process {@link UncaughtExceptionHandler}
  * @author vzhabiuk
