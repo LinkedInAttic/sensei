@@ -27,7 +27,7 @@ project.ext.externalDependency = [
   'commonsIo': 'commons-io:commons-io:2.1',
   'commonsConfiguration':'commons-configuration:commons-configuration:1.6',
   'json':'org.json:json:20080701',
-  'metricsCore':'com.yammer.metrics:metrics-core:2.0.0-RC0',
+  'metricsCore':'com.yammer.metrics:metrics-core:2.2.0',
   'servletApi':'javax.servlet:servlet-api:2.5',
   'jetty':'org.mortbay.jetty:jetty:6.1.26',
   'javassist':'org.javassist:javassist:3.16.1-GA',
@@ -35,7 +35,8 @@ project.ext.externalDependency = [
   'zkclient': 'com.github.sgroschupf:zkclient:0.1',
 
   'avro': 'org.apache.avro:avro:1.4.0',
-  'kafka': 'kafka:kafka:0.7.6',
+  'snappy': 'org.iq80.snappy:snappy:0.3',
+  'kafka': 'kafka:kafka:0.8.0_0.30_9bd2a11486420a313f800-SNAPSHOT',
   'zoieCore': 'com.linkedin.zoie:zoie-core:3.3.4',
   'zoieJms': 'com.linkedin.zoie:zoie-jms:3.3.4',
   'boboBrowse': 'com.linkedin.bobo:bobo-browse:3.1.10',
