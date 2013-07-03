@@ -68,6 +68,14 @@
             <artifactId>sensei-core</artifactId>
             <version>${project.version}</version>
         </dependency>
-	</dependencies>
+        <dependency>
+            <groupId>org.apache.zookeeper</groupId>
+            <artifactId>zookeeper</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.linkedin.zoie</groupId>
+            <artifactId>zoie-core</artifactId>
+        </dependency>
+  </dependencies>
 
 </project>

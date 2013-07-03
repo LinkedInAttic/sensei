@@ -89,5 +89,9 @@
             <groupId>org.apache.derby</groupId>
             <artifactId>derby</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.linkedin.zoie</groupId>
+            <artifactId>zoie-core</artifactId>
+        </dependency>
     </dependencies>
 </project>

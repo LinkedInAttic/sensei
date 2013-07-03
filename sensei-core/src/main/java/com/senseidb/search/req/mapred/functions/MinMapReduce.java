@@ -28,6 +28,8 @@ import com.senseidb.search.req.mapred.CombinerStage;
 import com.senseidb.search.req.mapred.FacetCountAccessor;
 import com.senseidb.search.req.mapred.FieldAccessor;
 import com.senseidb.search.req.mapred.SenseiMapReduce;
+import com.senseidb.util.JSONUtil.FastJSONArray;
+import com.senseidb.util.JSONUtil.FastJSONObject;
 
 public class MinMapReduce implements SenseiMapReduce<MinResult, MinResult> {
 
@@ -82,7 +84,7 @@ public class MinMapReduce implements SenseiMapReduce<MinResult, MinResult> {
   public JSONObject render(MinResult reduceResult) {
     
     try {
-      return new JSONObject().put("min", reduceResult.value).put("uid", reduceResult.uid);
+      return new FastJSONObject().put("min", reduceResult.value).put("uid", reduceResult.uid);
     } catch (JSONException ex) {
       throw new RuntimeException(ex);
     }
@@ -95,7 +97,13 @@ public class MinMapReduce implements SenseiMapReduce<MinResult, MinResult> {
       throw new IllegalStateException("Column parameter shouldn't be null");
     }
   }
- 
+
+  @Override
+  public String[] getColumns() {
+    return new String[]{column};
+  }
+
+
 }
 class MinResult implements Serializable {
   public double value;

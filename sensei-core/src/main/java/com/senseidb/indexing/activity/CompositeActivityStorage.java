@@ -27,6 +27,7 @@ import java.nio.channels.FileChannel.MapMode;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.log4j.Logger;
 import org.springframework.util.Assert;
@@ -158,7 +159,9 @@ public class CompositeActivityStorage {
                 } else {
                   storedFile.seek(i * BYTES_IN_LONG);
                   value = storedFile.readLong();
-                }
+                }           
+               
+                
                 if (value != Long.MIN_VALUE) {
                   activityValues.uidToArrayIndex.put(value, i);
                 } else {
@@ -166,6 +169,7 @@ public class CompositeActivityStorage {
                 }
               }
             }
+            activityValues.indexSize = new AtomicInteger(activityValues.uidToArrayIndex.size() + activityValues.deletedIndexes.size());
           } catch (Exception e) {
             throw new RuntimeException(e);
           }

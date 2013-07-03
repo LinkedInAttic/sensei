@@ -7,6 +7,7 @@ import java.net.InetSocketAddress;
 import org.apache.zookeeper.server.NIOServerCnxn;
 import org.apache.zookeeper.server.ZooKeeperServer;
 import org.apache.zookeeper.server.persistence.FileTxnSnapLog;
+import org.junit.Test;
 
 
 /**
@@ -42,6 +43,12 @@ public class TestZkServer
     try {cnxnFactory.shutdown();} catch (Exception t){}
     try {zkServer.shutdown();} catch (Exception t){}
     rmrf(zkDir);
+  }
+
+  @Test
+  public void test()
+  {
+
   }
 
   public static boolean rmrf(File f) {

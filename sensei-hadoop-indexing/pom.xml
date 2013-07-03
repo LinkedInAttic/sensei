@@ -51,14 +51,34 @@
 	</properties>
 
 	<dependencies>
-		<dependency>
-		  <groupId>${project.groupId}</groupId>
-		  <artifactId>sensei-core</artifactId>
-		  <version>${project.version}</version>
-		</dependency>
-		<dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>sensei-core</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
 		    <groupId>org.apache.hadoop</groupId>
 		    <artifactId>hadoop-core</artifactId>
 		</dependency>
-	</dependencies>
+    <dependency>
+      <groupId>org.apache.lucene</groupId>
+      <artifactId>lucene-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.linkedin.zoie</groupId>
+      <artifactId>zoie-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.json</groupId>
+      <artifactId>json</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.alibaba</groupId>
+      <artifactId>fastjson</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>commons-configuration</groupId>
+      <artifactId>commons-configuration</artifactId>
+    </dependency>
+  </dependencies>
 </project>

@@ -437,10 +437,14 @@ public class DefaultJsonSchemaInterpreter extends
                 if (src != null) {
                     Object type = src.remove(SenseiSchema.EVENT_TYPE_FIELD);
                     try {
+                        String srcData = src.optString(_schema.getSrcDataField(), null);
+                        if (srcData == null) {
+                            srcData = src.toString();
+                        }
                         if (_compressSrcData)
-                            data = compress(src.toString().getBytes("UTF-8"));
+                            data = compress(srcData.getBytes("UTF-8"));
                         else
-                            data = src.toString().getBytes("UTF-8");
+                            data = srcData.getBytes("UTF-8");
                     } catch (Exception e) {
                         logger.error(e.getMessage(), e);
                     }

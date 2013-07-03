@@ -37,6 +37,7 @@ import proj.zoie.impl.indexing.ZoieConfig;
 import com.senseidb.conf.SenseiSchema.FieldDefinition;
 import com.senseidb.indexing.activity.primitives.ActivityFloatValues;
 import com.senseidb.indexing.activity.primitives.ActivityIntValues;
+import com.senseidb.indexing.activity.primitives.ActivityLongValues;
 import com.senseidb.test.SenseiStarter;
 
 public class ActivityPrimitiveValuesPersistenceTest extends TestCase {
@@ -64,8 +65,8 @@ public class ActivityPrimitiveValuesPersistenceTest extends TestCase {
     }
   }
   public void test1WriteValuesAndReadJustAfterThatInMemmory() throws Exception {
-    compositeActivityValues = CompositeActivityValues.createCompositeValues(ActivityPersistenceFactory.getInMemoryInstance(), java.util.Arrays.asList(ActivityIntegrationTest.getLikesFieldDefinition()), Collections.EMPTY_LIST, ZoieConfig.DEFAULT_VERSION_COMPARATOR);
- 
+    compositeActivityValues = CompositeActivityValues.createCompositeValues(ActivityPersistenceFactory.getInMemoryInstance(), java.util.Arrays.asList(PurgeUnusedActivitiesJobTest.getLikesFieldDefinition()), Collections.EMPTY_LIST, ZoieConfig.DEFAULT_VERSION_COMPARATOR);
+    compositeActivityValues.init();
    int valueCount = 10000;
    for (int i = 0; i < valueCount; i++) { 
      compositeActivityValues.update(10000000000L + i, String.format("%08d", i), toMap(new JSONObject().put("likes", "+1")));
@@ -87,16 +88,16 @@ public class ActivityPrimitiveValuesPersistenceTest extends TestCase {
   
   public void test1WriteValuesAndReadJustAfterThat() throws Exception {
     
-    compositeActivityValues = CompositeActivityValues.createCompositeValues(ActivityPersistenceFactory.getInstance(getDirPath()), java.util.Arrays.asList(ActivityIntegrationTest.getLikesFieldDefinition()), Collections.EMPTY_LIST, ZoieConfig.DEFAULT_VERSION_COMPARATOR);
+    compositeActivityValues = CompositeActivityValues.createCompositeValues(ActivityPersistenceFactory.getInstance(getDirPath()), java.util.Arrays.asList(PurgeUnusedActivitiesJobTest.getLikesFieldDefinition()), Collections.EMPTY_LIST, ZoieConfig.DEFAULT_VERSION_COMPARATOR);
     
-    int valueCount = 10000;
+    int valueCount = 100000;
     for (int i = 0; i < valueCount; i++) { 
       compositeActivityValues.update(10000000000L + i, String.format("%08d", i), toMap(new JSONObject().put("likes", "+1")));
     }    
     compositeActivityValues.flush();
     compositeActivityValues.syncWithPersistentVersion(String.format("%08d", valueCount - 1));
     compositeActivityValues.close();
-    compositeActivityValues = CompositeActivityValues.createCompositeValues(ActivityPersistenceFactory.getInstance(getDirPath()), java.util.Arrays.asList(ActivityIntegrationTest.getLikesFieldDefinition()), Collections.EMPTY_LIST, ZoieConfig.DEFAULT_VERSION_COMPARATOR);
+    compositeActivityValues = CompositeActivityValues.createCompositeValues(ActivityPersistenceFactory.getInstance(getDirPath()), java.util.Arrays.asList(PurgeUnusedActivitiesJobTest.getLikesFieldDefinition()), Collections.EMPTY_LIST, ZoieConfig.DEFAULT_VERSION_COMPARATOR);
     
     assertEquals("Found " + compositeActivityValues.uidToArrayIndex.size(), valueCount, compositeActivityValues.uidToArrayIndex.size());
     assertEquals((int)(valueCount * 1.5), getFieldValues(compositeActivityValues).length );
@@ -108,9 +109,11 @@ public class ActivityPrimitiveValuesPersistenceTest extends TestCase {
     compositeActivityValues.close();
     assertEquals(getFieldValues(compositeActivityValues)[0], 1);
     assertEquals(getFieldValues(compositeActivityValues)[3], 4);
-    compositeActivityValues = CompositeActivityValues.createCompositeValues(ActivityPersistenceFactory.getInstance(getDirPath()), java.util.Arrays.asList(ActivityIntegrationTest.getLikesFieldDefinition()), Collections.EMPTY_LIST, ZoieConfig.DEFAULT_VERSION_COMPARATOR);
+    String prevMetadataString = compositeActivityValues.metadata.toString();
+    compositeActivityValues = CompositeActivityValues.createCompositeValues(ActivityPersistenceFactory.getInstance(getDirPath()), java.util.Arrays.asList(PurgeUnusedActivitiesJobTest.getLikesFieldDefinition()), Collections.EMPTY_LIST, ZoieConfig.DEFAULT_VERSION_COMPARATOR);
     assertEquals(getFieldValues(compositeActivityValues)[0], 1);
     assertEquals(getFieldValues(compositeActivityValues)[3], 4);
+    assertEquals(prevMetadataString, compositeActivityValues.metadata.toString());
     compositeActivityValues.close();
   }
   public void test1BWriteValuesAndReadJustAfterThatFloatValues() throws Exception {
@@ -145,6 +148,40 @@ public class ActivityPrimitiveValuesPersistenceTest extends TestCase {
     assertEquals(getFloatFieldValues(compositeActivityValues)[3], 4f, 0.5f);
     compositeActivityValues.close();
   }
+  public void test1CWriteValuesAndReadJustAfterThatLongValues() throws Exception {
+      String indexDirPath = getDirPath() + 22;
+      FieldDefinition fieldDefinition = new FieldDefinition();
+      fieldDefinition.name = "modifiedDate";
+      fieldDefinition.type = long.class;
+      fieldDefinition.isActivity = true;
+      compositeActivityValues = CompositeActivityValues.createCompositeValues(ActivityPersistenceFactory.getInstance(indexDirPath), java.util.Arrays.asList(fieldDefinition), Collections.EMPTY_LIST, ZoieConfig.DEFAULT_VERSION_COMPARATOR);
+      
+      int valueCount = 10000;
+      long testUpdateValue = 5000000000L;
+      for (int i = 0; i < valueCount; i++) { 
+        compositeActivityValues.update(10000000000L + i, String.format("%08d", i), toMap(new JSONObject().put("modifiedDate", "+" + testUpdateValue)));
+      }    
+      compositeActivityValues.flush();
+      compositeActivityValues.syncWithPersistentVersion(String.format("%08d", valueCount - 1));
+      compositeActivityValues.close();
+      compositeActivityValues = CompositeActivityValues.createCompositeValues(ActivityPersistenceFactory.getInstance(indexDirPath), java.util.Arrays.asList(fieldDefinition), Collections.EMPTY_LIST, ZoieConfig.DEFAULT_VERSION_COMPARATOR);
+      
+      assertEquals("Found " + compositeActivityValues.uidToArrayIndex.size(), valueCount, compositeActivityValues.uidToArrayIndex.size());
+      assertEquals((int)(valueCount * 1.5), getLongValues(compositeActivityValues).length );
+      for (int i = 0; i < valueCount; i++) {      
+        compositeActivityValues.update(10000000000L + i, String.format("%08d", valueCount + i), toMap(new JSONObject().put("modifiedDate","+" +  i )));
+      }
+      compositeActivityValues.flush();
+      compositeActivityValues.syncWithPersistentVersion(String.format("%08d", valueCount * 2 - 1));
+      compositeActivityValues.close();
+      assertEquals(getLongValues(compositeActivityValues)[0], testUpdateValue);
+      assertEquals(getLongValues(compositeActivityValues)[3], testUpdateValue + 3);
+      compositeActivityValues = CompositeActivityValues.createCompositeValues(ActivityPersistenceFactory.getInstance(indexDirPath), java.util.Arrays.asList(fieldDefinition), Collections.EMPTY_LIST, ZoieConfig.DEFAULT_VERSION_COMPARATOR);
+      assertEquals(getLongValues(compositeActivityValues)[0], testUpdateValue);
+      assertEquals(getLongValues(compositeActivityValues)[3], testUpdateValue + 3);
+      
+      compositeActivityValues.close();
+    }
 public static Map<String, Object> toMap(JSONObject jsonObject) {
   Map<String, Object> ret = new HashMap<String, Object>();
   java.util.Iterator<String> it = jsonObject.keys();
@@ -157,6 +194,9 @@ public static Map<String, Object> toMap(JSONObject jsonObject) {
 private int[] getFieldValues(CompositeActivityValues compositeActivityValues){
 	return ((ActivityIntValues)compositeActivityValues.valuesMap.get("likes")).fieldValues;
 	}
+private long[] getLongValues(CompositeActivityValues compositeActivityValues){
+    return ((ActivityLongValues)compositeActivityValues.valuesMap.get("modifiedDate")).fieldValues;
+    }
 private float[] getFloatFieldValues(CompositeActivityValues compositeActivityValues){
   return ((ActivityFloatValues)compositeActivityValues.valuesMap.get("reputation")).fieldValues;
   }
@@ -165,8 +205,8 @@ private float[] getFloatFieldValues(CompositeActivityValues compositeActivityVal
     dir = new File(indexDirPath);
     dir.mkdirs(); 
     dir.deleteOnExit();
-    compositeActivityValues = CompositeActivityValues.createCompositeValues(ActivityPersistenceFactory.getInstance(getDirPath()), java.util.Arrays.asList(ActivityIntegrationTest.getLikesFieldDefinition()), Collections.EMPTY_LIST, ZoieConfig.DEFAULT_VERSION_COMPARATOR);
-    final int valueCount = 10000;   
+    compositeActivityValues = CompositeActivityValues.createCompositeValues(ActivityPersistenceFactory.getInstance(indexDirPath), java.util.Arrays.asList(PurgeUnusedActivitiesJobTest.getLikesFieldDefinition()), Collections.EMPTY_LIST, ZoieConfig.DEFAULT_VERSION_COMPARATOR);
+    final int valueCount = 100000;   
     for (int i = 0; i < valueCount; i++) {
       compositeActivityValues.update(UID_BASE + i, String.format("%08d", valueCount + i), toMap(new JSONObject().put("likes", "+1")));
     }  
@@ -185,7 +225,7 @@ private float[] getFloatFieldValues(CompositeActivityValues compositeActivityVal
     }
     compositeActivityValues.flush();
     compositeActivityValues.delete(uidsToDelete.toLongArray());
-    compositeActivityValues.flushDeletes();
+    compositeActivityValues.flush();
     int notDeletedIndex = compositeActivityValues.uidToArrayIndex.get(UID_BASE + 2);
     final CompositeActivityValues testActivityData = compositeActivityValues;    
     Wait.until(10000L, "", new Wait.Condition() {      
@@ -205,7 +245,7 @@ private float[] getFloatFieldValues(CompositeActivityValues compositeActivityVal
     compositeActivityValues.flush();
     Thread.sleep(1000L);
     compositeActivityValues.close();
-    compositeActivityValues = CompositeActivityValues.createCompositeValues(ActivityPersistenceFactory.getInstance(getDirPath()), java.util.Arrays.asList(ActivityIntegrationTest.getLikesFieldDefinition()), Collections.EMPTY_LIST, ZoieConfig.DEFAULT_VERSION_COMPARATOR);
+    compositeActivityValues = CompositeActivityValues.createCompositeValues(ActivityPersistenceFactory.getInstance(indexDirPath), java.util.Arrays.asList(PurgeUnusedActivitiesJobTest.getLikesFieldDefinition()), Collections.EMPTY_LIST, ZoieConfig.DEFAULT_VERSION_COMPARATOR);
     
     assertEquals("Found " + compositeActivityValues.metadata.count, valueCount, (int)compositeActivityValues.metadata.count);
     assertEquals(valueCount - 1, compositeActivityValues.deletedIndexes.size());
@@ -221,16 +261,17 @@ private float[] getFloatFieldValues(CompositeActivityValues compositeActivityVal
     compositeActivityValues.flush();
     compositeActivityValues.syncWithPersistentVersion(String.format("%08d", valueCount * 3 - 1));   
    
-    assertEquals(compositeActivityValues.getIntValueByUID(UID_BASE + 0, "likes"), 1);
-    assertEquals(compositeActivityValues.getIntValueByUID(UID_BASE + 3, "likes"), 4);
+    assertEquals(compositeActivityValues.getIntValueByUID(UID_BASE + 0, "likes"), 0);
+    assertEquals(compositeActivityValues.getIntValueByUID(UID_BASE + 3, "likes"), 3);
     compositeActivityValues.close();
   }
   public void test3StartWithInconsistentIndexesAddExtraSpaceToCommentFile() throws Exception {
-    String indexDirPath = getDirPath() + 2;
+    String indexDirPath = getDirPath() + 5;
     dir = new File(indexDirPath);
     dir.mkdirs(); 
     dir.deleteOnExit();
-    compositeActivityValues = CompositeActivityValues.createCompositeValues(ActivityPersistenceFactory.getInstance(getDirPath()), java.util.Arrays.asList(ActivityIntegrationTest.getLikesFieldDefinition()), Collections.EMPTY_LIST, ZoieConfig.DEFAULT_VERSION_COMPARATOR);
+    System.out.println("Init");
+    compositeActivityValues = CompositeActivityValues.createCompositeValues(ActivityPersistenceFactory.getInstance(indexDirPath), java.util.Arrays.asList(PurgeUnusedActivitiesJobTest.getLikesFieldDefinition()), Collections.EMPTY_LIST, ZoieConfig.DEFAULT_VERSION_COMPARATOR);
     final int valueCount = 100;  
     for (int i = 0; i < valueCount; i++) {
       compositeActivityValues.update(UID_BASE + i, String.format("%08d", valueCount + i), toMap(new JSONObject().put("likes", "+1")));
@@ -238,17 +279,38 @@ private float[] getFloatFieldValues(CompositeActivityValues compositeActivityVal
     compositeActivityValues.flush();
     compositeActivityValues.syncWithPersistentVersion(String.format("%08d",  2*valueCount - 1));   
     compositeActivityValues.close();
-    new File(dir, "comments.data").createNewFile();
-    compositeActivityValues = CompositeActivityValues.createCompositeValues(ActivityPersistenceFactory.getInstance(getDirPath()), java.util.Arrays.asList(ActivityIntegrationTest.getLikesFieldDefinition(), ActivityIntegrationTest.getIntFieldDefinition("comments")), Collections.EMPTY_LIST, ZoieConfig.DEFAULT_VERSION_COMPARATOR);
+    assertTrue(new File(dir, "comments.data").createNewFile());
+   
+    compositeActivityValues = CompositeActivityValues.createCompositeValues(ActivityPersistenceFactory.getInstance(indexDirPath), java.util.Arrays.asList(PurgeUnusedActivitiesJobTest.getLikesFieldDefinition(), getIntFieldDefinition("comments")), Collections.EMPTY_LIST, ZoieConfig.DEFAULT_VERSION_COMPARATOR);
     assertEquals(0, compositeActivityValues.getIntValueByUID(UID_BASE + valueCount / 2, "comments"));
     compositeActivityValues.close();
   }
+  public void test3bStartWithInconsistentIndexesAddExtraSpaceToLongCommentFile() throws Exception {
+      String indexDirPath = getDirPath() + 12;
+      dir = new File(indexDirPath);
+      dir.mkdirs(); 
+      dir.deleteOnExit();
+      System.out.println("Init");
+      compositeActivityValues = CompositeActivityValues.createCompositeValues(ActivityPersistenceFactory.getInstance(indexDirPath), java.util.Arrays.asList(PurgeUnusedActivitiesJobTest.getLikesFieldDefinition()), Collections.EMPTY_LIST, ZoieConfig.DEFAULT_VERSION_COMPARATOR);
+      final int valueCount = 700000;  
+      for (int i = 0; i < valueCount; i++) {
+        compositeActivityValues.update(UID_BASE + i, String.format("%08d", valueCount + i), toMap(new JSONObject().put("likes", "+1")));
+      }  
+      compositeActivityValues.flush();
+      compositeActivityValues.syncWithPersistentVersion(String.format("%08d",  2*valueCount - 1));   
+      compositeActivityValues.close();
+      assertTrue(new File(dir, "comments.data").createNewFile());
+     
+      compositeActivityValues = CompositeActivityValues.createCompositeValues(ActivityPersistenceFactory.getInstance(indexDirPath), java.util.Arrays.asList(PurgeUnusedActivitiesJobTest.getLikesFieldDefinition(), getLongFieldDefinition("comments")), Collections.EMPTY_LIST, ZoieConfig.DEFAULT_VERSION_COMPARATOR);
+      assertEquals(0, compositeActivityValues.getLongValueByUID(UID_BASE + valueCount / 2, "comments"));
+      compositeActivityValues.close();
+    }
   public void test4TestForUninsertedValue() throws Exception {
     String indexDirPath = getDirPath() + 3;
     dir = new File(indexDirPath);
     dir.mkdirs(); 
     dir.deleteOnExit();
-    compositeActivityValues = CompositeActivityValues.createCompositeValues(ActivityPersistenceFactory.getInstance(getDirPath()), java.util.Arrays.asList(ActivityIntegrationTest.getLikesFieldDefinition(), ActivityIntegrationTest.getIntFieldDefinition("comments")), Collections.EMPTY_LIST, ZoieConfig.DEFAULT_VERSION_COMPARATOR);
+    compositeActivityValues = CompositeActivityValues.createCompositeValues(ActivityPersistenceFactory.getInstance(indexDirPath), java.util.Arrays.asList(PurgeUnusedActivitiesJobTest.getLikesFieldDefinition(), getIntFieldDefinition("comments")), Collections.EMPTY_LIST, ZoieConfig.DEFAULT_VERSION_COMPARATOR);
     final int valueCount = 100;  
     for (int i = 0; i < valueCount; i++) {
       compositeActivityValues.update(UID_BASE + i, String.format("%08d", valueCount + i), toMap(new JSONObject().put("likes", "+1")));
@@ -263,7 +325,7 @@ private float[] getFloatFieldValues(CompositeActivityValues compositeActivityVal
     dir = new File(indexDirPath);
     dir.mkdirs(); 
     dir.deleteOnExit();
-    compositeActivityValues = CompositeActivityValues.createCompositeValues(ActivityPersistenceFactory.getInstance(indexDirPath), java.util.Arrays.asList(ActivityIntegrationTest.getLikesFieldDefinition()), Collections.EMPTY_LIST, ZoieConfig.DEFAULT_VERSION_COMPARATOR);
+    compositeActivityValues = CompositeActivityValues.createCompositeValues(ActivityPersistenceFactory.getInstance(indexDirPath), java.util.Arrays.asList(PurgeUnusedActivitiesJobTest.getLikesFieldDefinition()), Collections.EMPTY_LIST, ZoieConfig.DEFAULT_VERSION_COMPARATOR);
     final int valueCount = 100;  
     for (int i = 0; i < valueCount; i++) {
       compositeActivityValues.update(UID_BASE + i, String.format("%08d", valueCount + i), toMap(new JSONObject().put("likes", "+1")));
@@ -274,7 +336,7 @@ private float[] getFloatFieldValues(CompositeActivityValues compositeActivityVal
     RandomAccessFile randomAccessFile = new RandomAccessFile(new File(dir, "activity.indexes"), "rw");
     randomAccessFile.setLength(16);
     randomAccessFile.close();
-    compositeActivityValues = CompositeActivityValues.createCompositeValues(ActivityPersistenceFactory.getInstance(indexDirPath), java.util.Arrays.asList(ActivityIntegrationTest.getLikesFieldDefinition(), ActivityIntegrationTest.getIntFieldDefinition("comments")), Collections.EMPTY_LIST, ZoieConfig.DEFAULT_VERSION_COMPARATOR);
+    compositeActivityValues = CompositeActivityValues.createCompositeValues(ActivityPersistenceFactory.getInstance(indexDirPath), java.util.Arrays.asList(PurgeUnusedActivitiesJobTest.getLikesFieldDefinition(), getIntFieldDefinition("comments")), Collections.EMPTY_LIST, ZoieConfig.DEFAULT_VERSION_COMPARATOR);
     assertEquals(1, compositeActivityValues.getIntValueByUID(UID_BASE + 1, "likes"));
     assertEquals(2, compositeActivityValues.uidToArrayIndex.size());
     assertEquals(0, compositeActivityValues.deletedIndexes.size());
@@ -292,6 +354,20 @@ private float[] getFloatFieldValues(CompositeActivityValues compositeActivityVal
     assertEquals(valueCount, compositeActivityValues.metadata.count);
     compositeActivityValues.close();
   }
+  public static FieldDefinition getIntFieldDefinition(String name) {
+    FieldDefinition fieldDefinition = new FieldDefinition();
+    fieldDefinition.name = name;
+    fieldDefinition.type = int.class;
+    fieldDefinition.isActivity = true;
+    return fieldDefinition;
+  }
+  public static FieldDefinition getLongFieldDefinition(String name) {
+      FieldDefinition fieldDefinition = new FieldDefinition();
+      fieldDefinition.name = name;
+      fieldDefinition.type = long.class;
+      fieldDefinition.isActivity = true;
+      return fieldDefinition;
+    }
 }
 
 

@@ -14,7 +14,7 @@
  * License for the specific language governing permissions and limitations for the
  * software governed under the Apache License.
  *
- * © 2012 LinkedIn Corp. All Rights Reserved.  
+ * © 2012 LinkedIn Corp. All Rights Reserved.
  */
 package com.senseidb.search.node;
 
@@ -46,9 +46,8 @@ import com.yammer.metrics.core.MetricName;
 public class SenseiZoieSystemFactory<T> extends SenseiZoieFactory<T>
 {
   private static Logger log = Logger.getLogger(SenseiZoieSystemFactory.class);
-  private Filter _purgeFilter = null;
   private OptimizeScheduler _optimizeScheduler;
-  
+
   private Map<Integer,IndexingMetrics> metricsMap = new HashMap<Integer,IndexingMetrics>(); 
   
   public SenseiZoieSystemFactory(File idxDir,DIRECTORY_MODE dirMode, ZoieIndexableInterpreter<T> interpreter, SenseiIndexReaderDecorator indexReaderDecorator,
@@ -57,10 +56,6 @@ public class SenseiZoieSystemFactory<T> extends SenseiZoieFactory<T>
     super(idxDir,dirMode,interpreter,indexReaderDecorator,zoieConfig);
   }
   
-  public void setPurgeFilter(Filter purgeFilter){
-    _purgeFilter = purgeFilter;
-  }
-
   public void setOptimizeScheduler(OptimizeScheduler optimizeScheduler)
   {
     _optimizeScheduler = optimizeScheduler;
@@ -77,10 +72,8 @@ public class SenseiZoieSystemFactory<T> extends SenseiZoieFactory<T>
     }
     
     DirectoryManager dirMgr = new DefaultDirectoryManager(partDir, _dirMode);
+
     ZoieSystem<BoboIndexReader,T> zoie = new ZoieSystem<BoboIndexReader,T>(dirMgr, _interpreter, _indexReaderDecorator, _zoieConfig);
-    if (_purgeFilter!=null){
-      zoie.setPurgeFilter(_purgeFilter);
-    }
     if (_optimizeScheduler != null) {
       zoie.setOptimizeScheduler(_optimizeScheduler);
     }

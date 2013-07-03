@@ -11,10 +11,15 @@
   "size" : 10,   // default to 10;
   "from" : 0,    //default to 0;   
   
-  // group by parameters (currently only support group by one column)
+  // group by parameters
   "groupBy" : {
     "columns" : ["category"],
     "top" : 3
+  },
+
+  // distinct parameters
+  "distinct" : {
+    "columns" : ["category"]
   },
 
   // filters

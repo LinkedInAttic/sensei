@@ -14,7 +14,7 @@
  * License for the specific language governing permissions and limitations for the
  * software governed under the Apache License.
  *
- * © 2012 LinkedIn Corp. All Rights Reserved.  
+ * © 2012 LinkedIn Corp. All Rights Reserved.
  */
 package com.senseidb.indexing;
 
@@ -54,6 +54,10 @@ import com.senseidb.metrics.MetricsConstants;
 import com.senseidb.plugin.SenseiPluginRegistry;
 import com.senseidb.search.node.SenseiIndexingManager;
 import com.senseidb.search.plugin.PluggableSearchEngineManager;
+import com.senseidb.util.JSONUtil.FastJSONArray;
+import com.senseidb.util.JSONUtil.FastJSONObject;
+import com.yammer.metrics.Metrics;
+import com.yammer.metrics.core.Timer;
 import com.yammer.metrics.core.Meter;
 import com.yammer.metrics.core.MetricName;
 
@@ -69,12 +73,16 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 
 	private static final String BATCH_SIZE = "batchSize";
 
+  private static final String EVENT_CREATED_TIMESTAMP_FIELD = "eventCreatedTimestampField";
+
   private Meter _providerBatchSizeMeter;
   private Meter _eventMeter;
   private Meter _updateBatchSizeMeter;
+  private Timer _indexingLatencyTimer;
 
-	private StreamDataProvider<JSONObject> _dataProvider;
+  private StreamDataProvider<JSONObject> _dataProvider;
 	private String _oldestSinceKey;
+  private String _eventCreatedTimestampField;
 	private final SenseiSchema _senseiSchema;
 	private final Configuration _myconfig;
 
@@ -94,6 +102,7 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 	    SenseiPluginRegistry pluginRegistry, SenseiGateway<?> gateway, ShardingStrategy shardingStrategy, PluggableSearchEngineManager pluggableSearchEngineManager){
 	    _dataProvider = null;
 	  _myconfig = senseiConfig.subset(CONFIG_PREFIX);
+    _eventCreatedTimestampField = _myconfig.getString(EVENT_CREATED_TIMESTAMP_FIELD, null);
      this.pluginRegistry = pluginRegistry;
 	  _oldestSinceKey = null;
 	  _senseiSchema = schema;
@@ -131,7 +140,14 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
                                   TimeUnit.SECONDS);
   }
 
-	@Override
+  private Timer registerTimer(String name)
+  {
+    return MetricFactory.newTimer(new MetricName(MetricsConstants.Domain, "timer", name, "indexing-manager"),
+                                  TimeUnit.MILLISECONDS,
+                                  TimeUnit.SECONDS);
+  }
+
+  @Override
 	public void initialize(
 			Map<Integer, Zoie<BoboIndexReader, JSONObject>> zoieSystemMap)
 			throws Exception {
@@ -219,8 +235,9 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
       _providerBatchSizeMeter = registerMeter("provider-batch-size", "provide-batch-size");
       _updateBatchSizeMeter = registerMeter("update-batch-size", "update-batch-size");
       _eventMeter = registerMeter("indexing-events", "indexing-events");
+      _indexingLatencyTimer = registerTimer("indexing-latency");
 
-	 	  _dataProvider.start();
+      _dataProvider.start();
 		}
 	}
 
@@ -251,6 +268,19 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
       _currentVersion = null;
     }
 
+    private void reportIndexingLatency(JSONObject obj)
+    {
+      if (_eventCreatedTimestampField != null)
+      {
+        long createdTimestamp = obj.optLong(_eventCreatedTimestampField);
+        if (createdTimestamp > 0)
+        {
+          _indexingLatencyTimer.update(System.currentTimeMillis() - createdTimestamp,
+                                      TimeUnit.MILLISECONDS);
+        }
+      }
+    }
+
     private JSONObject rewriteData(JSONObject obj, int partNum)
     {
       String type = obj.optString(SenseiSchema.EVENT_TYPE_FIELD, null);
@@ -269,6 +299,8 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
           logger.error("Should never happen", e);
         }
       }
+
+      reportIndexingLatency(event);
 
       if (SenseiSchema.EVENT_TYPE_UPDATE.equalsIgnoreCase(type))
       {
@@ -312,7 +344,7 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
             return null;
           }
 
-          JSONObject newEvent = new JSONObject(new String(data, "UTF-8"));
+          JSONObject newEvent = new FastJSONObject(new String(data, "UTF-8"));
           Iterator<String> keys = event.keys();
           while(keys.hasNext())
           {
@@ -385,7 +417,7 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
             {
               if (partDataSet.size() == 0)
               {
-                JSONObject markerObj = new JSONObject();
+                JSONObject markerObj = new FastJSONObject();
                 //markerObj.put(_senseiSchema.getSkipField(), "true");
                 markerObj.put(SenseiSchema.EVENT_TYPE_FIELD, SenseiSchema.EVENT_TYPE_SKIP);
                 markerObj.put(_uidField, 0L); // Add a dummy uid

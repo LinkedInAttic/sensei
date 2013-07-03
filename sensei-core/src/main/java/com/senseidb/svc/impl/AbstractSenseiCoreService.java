@@ -1,21 +1,3 @@
-/**
- * This software is licensed to you under the Apache License, Version 2.0 (the
- * "Apache License").
- *
- * LinkedIn's contributions are made under the Apache License. If you contribute
- * to the Software, the contributions will be deemed to have been made under the
- * Apache License, unless you expressly indicate otherwise. Please do not make any
- * contributions that would be inconsistent with the Apache License.
- *
- * You may obtain a copy of the Apache License at http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, this software
- * distributed under the Apache License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the Apache
- * License for the specific language governing permissions and limitations for the
- * software governed under the Apache License.
- *
- * © 2012 LinkedIn Corp. All Rights Reserved.  
- */
 package com.senseidb.svc.impl;
 
 import com.senseidb.metrics.MetricFactory;
@@ -36,6 +18,8 @@ import java.util.concurrent.TimeoutException;
 import org.apache.log4j.Logger;
 
 import org.apache.lucene.util.NamedThreadFactory;
+import org.jboss.netty.util.internal.ConcurrentHashMap;
+
 import proj.zoie.api.IndexReaderFactory;
 import proj.zoie.api.ZoieIndexReader;
 
@@ -112,10 +96,14 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
 	      if (logger.isDebugEnabled()){
 	        logger.debug("serving partitions: " + partitions.toString());
 	      }
+	      //we need to release index readers from all partitions only after the merge step
+	      final Map<IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>, List<ZoieIndexReader<BoboIndexReader>>> indexReaderCache = new ConcurrentHashMap<IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>, List<ZoieIndexReader<BoboIndexReader>>>();
+	      try {
 	      final ArrayList<Res> resultList = new ArrayList<Res>(partitions.size());
         Future<Res>[] futures = new Future[partitions.size()-1];
         int i = 0;
-	      for (final int partition : partitions)
+        
+        for (final int partition : partitions)
 	      {
           final long start = System.currentTimeMillis();
           final IndexReaderFactory<ZoieIndexReader<BoboIndexReader>> readerFactory = _core.getIndexReaderFactory(partition);
@@ -134,7 +122,7 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
 
                     @Override
                     public Res call() throws Exception {
-                      return  handleRequest(senseiReq, readerFactory, _core.getQueryBuilderFactory());
+                      return  handleRequest(senseiReq, readerFactory, _core.getQueryBuilderFactory(), indexReaderCache);
                     }                    
                   });
                   
@@ -160,7 +148,7 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
 
                 @Override
                 public Res call() throws Exception {
-                  return  handleRequest(senseiReq, readerFactory, _core.getQueryBuilderFactory());
+                  return  handleRequest(senseiReq, readerFactory, _core.getQueryBuilderFactory(), indexReaderCache);
                 }                    
               });
               
@@ -211,7 +199,11 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
         	finalResult = getEmptyResultInstance(null);
         	finalResult.addError(new SenseiError(e.getMessage(), ErrorType.MergePartitionError));
           }
+	    } finally {
+	      returnIndexReaders(indexReaderCache);
 	    } 
+	    }
+	    
 	    else
 	    {
 	      if (logger.isInfoEnabled()){
@@ -221,38 +213,44 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
 	      finalResult.addError(new SenseiError("no partitions specified", ErrorType.PartitionCallError));
 	    }
 	    if (logger.isInfoEnabled()){
-	      logger.info("searching partitions  " + String.valueOf(partitions) + " took: " + finalResult.getTime());
+	      logger.info("searching partitions: " + String.valueOf(partitions) + "; route by: " + senseiReq.getRouteParam() + "; took: " + finalResult.getTime());
 	    }
 	    return finalResult;
 	}
 	
-	private final Res handleRequest(final Req senseiReq,final IndexReaderFactory<ZoieIndexReader<BoboIndexReader>> readerFactory,final SenseiQueryBuilderFactory queryBuilderFactory) throws Exception{
-		List<ZoieIndexReader<BoboIndexReader>> readerList = null;
-        try{
-      	  readerList = _getReaderTimer.time(new Callable<List<ZoieIndexReader<BoboIndexReader>>>(){
-      		 public List<ZoieIndexReader<BoboIndexReader>> call() throws Exception{
-            if (readerFactory == null)
-              return Collections.EMPTY_LIST;
-      			return readerFactory.getIndexReaders(); 
-      		 }
-      	  });
-      	  if (logger.isDebugEnabled()){
-      		  logger.debug("obtained readerList of size: "+readerList==null? 0 : readerList.size());
-      	  }
-      	  final List<BoboIndexReader> boboReaders = ZoieIndexReader.extractDecoratedReaders(readerList);
-      	  
-      	  return _searchTimer.time(new Callable<Res>(){
-      		public Res call() throws Exception{
-      		  return handlePartitionedRequest(senseiReq,boboReaders,queryBuilderFactory);
-      		}
-      	  });
-        }
-        finally{
-          if (readerFactory != null && readerList != null){
-          	readerFactory.returnIndexReaders(readerList);
-          }
-        }
-	}
+  private void returnIndexReaders(Map<IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>, List<ZoieIndexReader<BoboIndexReader>>> indexReaderCache) {
+    for (IndexReaderFactory<ZoieIndexReader<BoboIndexReader>> indexReaderFactory : indexReaderCache.keySet()) {
+      indexReaderFactory.returnIndexReaders(indexReaderCache.get(indexReaderFactory));
+    }
+    
+  }
+
+  private final Res handleRequest(final Req senseiReq, final IndexReaderFactory<ZoieIndexReader<BoboIndexReader>> readerFactory,
+      final SenseiQueryBuilderFactory queryBuilderFactory,
+      Map<IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>, List<ZoieIndexReader<BoboIndexReader>>> indexReadersToCleanUp) throws Exception {
+    List<ZoieIndexReader<BoboIndexReader>> readerList = null;
+    readerList = _getReaderTimer.time(new Callable<List<ZoieIndexReader<BoboIndexReader>>>() {
+      public List<ZoieIndexReader<BoboIndexReader>> call() throws Exception {
+        if (readerFactory == null)
+          return Collections.EMPTY_LIST;
+        return readerFactory.getIndexReaders();
+      }
+    });
+    if (logger.isDebugEnabled()) {
+      logger.debug("obtained readerList of size: " + readerList == null ? 0 : readerList.size());
+    }
+
+    if (readerFactory != null && readerList != null) {
+      indexReadersToCleanUp.put(readerFactory, readerList);
+    }
+    final List<BoboIndexReader> boboReaders = ZoieIndexReader.extractDecoratedReaders(readerList);
+
+    return _searchTimer.time(new Callable<Res>() {
+      public Res call() throws Exception {
+        return handlePartitionedRequest(senseiReq, boboReaders, queryBuilderFactory);
+      }
+    });
+  }
 
   protected final Timer registerTimer(String name)
   {
@@ -265,8 +263,8 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
   {
     return MetricFactory.newMeter(new MetricName(MetricsConstants.Domain, "meter", name, getMetricScope()), eventType, TimeUnit.SECONDS);
   }
-	
-	public abstract Res handlePartitionedRequest(Req r,final List<BoboIndexReader> readerList,SenseiQueryBuilderFactory queryBuilderFactory) throws Exception;
+
+  public abstract Res handlePartitionedRequest(Req r,final List<BoboIndexReader> readerList,SenseiQueryBuilderFactory queryBuilderFactory) throws Exception;
 	public abstract Res mergePartitionedResults(Req r,List<Res> reqList);
 	public abstract Res getEmptyResultInstance(Throwable error);
 

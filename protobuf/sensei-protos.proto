@@ -1,0 +1,312 @@
+package com.sensei.search.req.protobuf;
+
+option java_package = "com.sensei.search.req.protobuf";
+option java_outer_classname = "SenseiProtos";
+
+option optimize_for = SPEED;
+
+enum BooleanOperator {
+  OR = 1;
+  AND = 2;
+};
+
+message StringProperties {
+  repeated string key = 1;
+  repeated string value = 2;
+};
+
+message BrowseSelection {
+  optional BooleanOperator operator = 1;
+  optional string field_name = 2;
+  repeated string value = 3;
+  repeated string not_value = 4;
+  optional StringProperties properties = 5;
+};
+
+message Locale {
+  optional string language = 1;
+  optional string country = 2;
+  optional string variant = 3;
+};
+
+message SortField {
+  optional string field = 1;
+  optional int32 type = 2;
+  optional Locale locale = 3;
+  optional bool reverse = 4;
+
+  // parser, comparator, and missing source are impossible
+};
+
+enum SortOrder {
+  ASCENDING = 1;
+  DESCENDING = 2;
+  CUSTOM = 3;
+}
+
+enum FacetComparator {
+  HIT_COUNT = 1;
+  VALUE = 2;
+}
+
+message FacetSpec {
+  optional SortOrder order_by = 1;
+  optional int32 max = 2;
+  optional bool expand_selection = 3;
+  optional int32 min_count = 4;
+  // TODO: Comparator factory
+  optional StringProperties properties = 6;
+  optional string field = 7;
+};
+
+enum SenseiMapReduceFunction {
+   AVG = 1;
+   COUNT_GROUP_BY = 2;
+   DISTINCT_COUNT = 3;
+   DISTINCT_UID = 4;
+   FACET_COUNTS = 5;
+   HASH_SET_DISTINCT_COUNT = 6;
+   MAX = 7;
+   MIN = 8;
+   SUM = 9;
+
+   UNKNOWN = 100;
+   // TODO: ANY LEFT?
+};
+
+message BooleanParams {
+  optional string key = 1;
+  repeated bool value = 2;
+  optional bool is_null = 3;
+}
+
+message IntParams {
+  optional string key = 1;
+  repeated int32 value = 2;
+  optional bool is_null = 3;
+}
+
+message LongParams {
+  optional string key = 1;
+  repeated int64 value = 2;
+  optional bool is_null = 3;
+}
+
+message StringParams {
+  optional string key = 1;
+  repeated string value = 2;
+  optional bool is_null = 3;
+}
+
+message FloatParams {
+  optional string key = 1;
+  repeated float value = 2;
+  optional bool is_null = 3;
+}
+
+message DoubleParams {
+  optional string key = 1;
+  repeated double value = 2;
+  optional bool is_null = 3;
+}
+
+message ByteArrayParams {
+  optional string key = 1;
+  optional bytes value = 2;
+  optional bool is_null = 3;
+}
+
+message FacetHandlerInitializerParam {
+  repeated BooleanParams boolean_param = 1;
+  repeated IntParams int_param = 2;
+  repeated LongParams long_param = 3;
+  repeated StringParams string_param = 4;
+  repeated DoubleParams double_param = 5;
+  repeated ByteArrayParams byte_param = 6;
+};
+
+message FacetHandlerInitializerParams {
+  repeated string key = 1;
+  repeated FacetHandlerInitializerParam value = 2;
+};
+
+message SenseiProtoRequest {
+  repeated BrowseSelection selection = 1;
+  repeated SortField sort_spec = 2;
+  repeated FacetSpec facet_spec = 3;
+  optional string sensei_query = 4;
+  optional int32 offset = 5;
+  optional int32 count = 6;
+  optional bool fetch_stored_fields = 7;
+  optional bool fetch_stored_value = 8;
+  optional FacetHandlerInitializerParams facet_handler_param = 9;
+  repeated int32 partitions = 10;
+  optional bool explain = 11;
+  optional string route_param = 12;
+  repeated string group_by = 13;
+  repeated string distinct = 15;
+  optional int32 max_per_group = 16;
+  repeated string term_vectors_to_fetch = 17;
+  repeated string select_list = 18;
+  optional SenseiMapReduceFunction map_reduce = 19;
+  repeated string map_reduce_columns = 20;
+  optional bytes map_reduce_bytes = 21;
+};
+
+enum ErrorType {
+  JsonParsingError = 100;
+  JsonCompilationError = 101;
+  BQLParsingError = 150;
+  BoboExecutionError = 200;
+  ExecutionTimeout = 250;
+  BrokerGatherError = 300;
+  PartitionCallError = 350;
+  BrokerTimeout = 400;
+  InternalError = 450;
+  MergePartitionError = 500;
+  FederatedBrokerUnavailable = 550;
+  UnknownError = 1000;
+};
+
+message SenseiError {
+  optional int32 code = 1;
+  optional string message = 2;
+  optional ErrorType type = 3;
+};
+
+message Explanation {
+  optional float value = 1;
+  optional string description = 2;
+  repeated Explanation details = 3;
+}
+
+message TermFrequencyVector {
+  repeated string terms = 1;
+  repeated int32 freq = 2;
+}
+
+enum JavaPrimitives {
+  BYTE = 1;
+  CHAR = 2;
+  INT = 3;
+  LONG = 4;
+  FLOAT = 5;
+  DOUBLE = 6;
+  BOOLEAN = 7;
+  SHORT = 8;
+  STRING = 9;
+  OBJECT = 10;
+};
+
+message LongArray {
+  repeated int64 item = 1;
+};
+
+message StringArray {
+  repeated string item = 1;
+}
+
+message ObjectArray {
+  optional JavaPrimitives type = 1;
+
+  repeated int32 int_value = 2;
+  repeated int64 long_value = 3;
+  repeated float float_value = 4;
+  repeated double double_value = 5;
+  repeated bool boolean_value = 6;
+
+  repeated string string_value = 7;
+
+  repeated LongArray long_array = 8;
+  repeated bytes object_value = 9;
+};
+
+message FieldValues {
+  repeated string key = 1;
+  repeated ObjectArray raw_value = 2;
+  repeated StringArray value = 3; // This might be removed in the future since we can infer it from the raw_value
+};
+
+message Fieldable {
+  optional float boost = 1;
+  optional string name = 2;
+  optional string string_value = 3;
+  optional bool stored = 4;
+  optional bool indexed = 5;
+  optional bool tokenized = 6;
+  optional bool term_vector_stored = 7;
+  optional bool store_offset_with_term_vector = 8;
+  optional bool store_position_with_term_vector = 9;
+  optional bool binary = 10;
+  optional bool omit_norms = 11;
+  optional bool lazy = 12;
+  optional int32 binary_offset = 13;
+  optional int32 binary_length = 14;
+  optional bytes binary_value = 15;
+};
+
+message Document {
+  optional float boost = 1;
+  repeated Fieldable fields = 2;
+};
+
+message TermFrequencyMap {
+    repeated string key = 1;
+    repeated TermFrequencyVector value = 2;
+};
+
+message SenseiHit {
+  optional float score = 1;
+  optional int32 doc_id = 2;
+  optional FieldValues field_values = 3;
+
+  repeated JavaPrimitives field_type = 4;
+  optional int32 group_position = 5;
+  optional Document stored_fields = 6;
+  optional string group_field = 7;
+  optional string group_value = 8;
+  optional bytes raw_group_value = 9;
+  optional int32 total_group_hit_count = 10;
+  repeated SenseiHit group_hit = 11;
+  optional Explanation explanation = 12;
+  optional int64 uid = 13;
+  optional string src_data = 14;
+  optional bytes stored_value = 15;
+  optional TermFrequencyMap term_frequency_map = 16;
+};
+
+message BrowseFacet {
+  optional string value = 1;
+  optional int32 hit_count = 2;
+};
+
+message FacetAccessible {
+  repeated BrowseFacet facets = 1;
+  optional bytes facet_accessible_bytes = 2;
+};
+
+message MapReduceResult {
+  repeated bytes mapResult = 1;
+  optional bytes reduceResult = 2;
+};
+
+message FacetMap {
+  repeated string key = 1;
+  repeated FacetAccessible value = 2;
+};
+
+message SenseiProtoResult {
+  optional string parsed_query = 1;
+  repeated SenseiError error = 2;
+  repeated SenseiHit hit = 3;
+
+  optional int64 tid = 4;
+  optional int64 num_hits = 5;
+  optional int64 total_docs = 6;
+  repeated FacetAccessible group_accessible = 7;
+  optional FacetMap facet_map = 8;
+
+  optional int64 time = 9;
+  optional MapReduceResult mapReduceResult = 10;
+  repeated SenseiError errors = 11;
+};

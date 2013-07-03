@@ -146,8 +146,12 @@ public class SenseiFacetHandlerBuilder {
         return retMap;
     }
 
-    static SimpleFacetHandler buildSimpleFacetHandler(String name, String fieldName, Set<String> depends, TermListFactory<?> termListFactory) {
-        return new SimpleFacetHandler(name, fieldName, termListFactory, depends);
+    static SimpleFacetHandler buildSimpleFacetHandler(String name,
+                                                      String fieldName,
+                                                      Set<String> depends,
+                                                      TermListFactory<?> termListFactory,
+                                                      int invertedIndexPenalty) {
+        return new SimpleFacetHandler(name, fieldName, termListFactory, depends, invertedIndexPenalty);
     }
 
     static CompactMultiValueFacetHandler buildCompactMultiHandler(String name, String fieldName, Set<String> depends, TermListFactory<?> termListFactory) {
@@ -155,15 +159,15 @@ public class SenseiFacetHandlerBuilder {
         return new CompactMultiValueFacetHandler(name, fieldName, termListFactory);
     }
 
-    static MultiValueFacetHandler buildMultiHandler(String name, String fieldName, TermListFactory<?> termListFactory, Set<String> depends) {
-        return new MultiValueFacetHandler(name, fieldName, termListFactory, null, depends);
+    static MultiValueFacetHandler buildMultiHandler(String name, String fieldName, TermListFactory<?> termListFactory, Set<String> depends, int invertedIndexPenalty) {
+        return new MultiValueFacetHandler(name, fieldName, termListFactory, null, depends, invertedIndexPenalty);
     }
 
-    static MultiValueFacetHandler buildWeightedMultiHandler(String name, String fieldName, TermListFactory<?> termListFactory, Set<String> depends) {
-        return new MultiValueWithWeightFacetHandler(name, fieldName, termListFactory);
+    static MultiValueFacetHandler buildWeightedMultiHandler(String name, String fieldName, TermListFactory<?> termListFactory, Set<String> depends, int invertedIndexPenalty) {
+        return new MultiValueWithWeightFacetHandler(name, fieldName, termListFactory, invertedIndexPenalty);
     }
 
-    static PathFacetHandler buildPathHandler(String name, String fieldName, Map<String, List<String>> paramMap) {
+    static PathFacetHandler buildPathHandler(String name, String fieldName, Map<String, List<String>> paramMap, int invertedIndexPenalty) {
         PathFacetHandler handler = new PathFacetHandler(name, fieldName, false);    // path does not support multi value yet
         String sep = null;
         if (paramMap != null) {
@@ -304,8 +308,12 @@ public class SenseiFacetHandlerBuilder {
         };
     }
 
-    public static SenseiSystemInfo buildFacets(JSONObject schemaObj, SenseiPluginRegistry pluginRegistry,
-                                               List<FacetHandler<?>> facets, List<RuntimeFacetHandlerFactory<?, ?>> runtimeFacets, PluggableSearchEngineManager pluggableSearchEngineManager)
+    public static SenseiSystemInfo buildFacets(JSONObject schemaObj,
+                                               SenseiPluginRegistry pluginRegistry,
+                                               List<FacetHandler<?>> facets,
+                                               List<RuntimeFacetHandlerFactory<?, ?>> runtimeFacets,
+                                               PluggableSearchEngineManager pluggableSearchEngineManager,
+                                               int invertedIndexPenalty)
             throws JSONException, ConfigurationException {
         Set<String> pluggableSearchEngineFacetNames = pluggableSearchEngineManager.getFacetNames();
         SenseiSystemInfo sysInfo = new SenseiSystemInfo();
@@ -349,9 +357,7 @@ public class SenseiFacetHandlerBuilder {
                     logger.error("facet name: " + UID_FACET_NAME + " is reserved, skipping...");
                     continue;
                 }
-                if (pluggableSearchEngineFacetNames.contains(name)) {
-                    continue;
-                }
+
                 String type = facet.getString("type");
                 String fieldName = facet.optString("column", name);
                 Set<String> dependSet = new HashSet<String>();
@@ -370,6 +376,9 @@ public class SenseiFacetHandlerBuilder {
                 facetProps.put("column", fieldName);
                 JSONObject column = columnMap.get(fieldName);
                 String columnType = (column == null) ? "" : column.optString("type", "");
+                if (column != null && column.opt("activity") != null && column.optBoolean("activity")) {
+                    columnType = "aint";
+                }
                 facetProps.put("column_type", columnType);
                 facetProps.put("depends", dependSet.toString());
 
@@ -383,27 +392,32 @@ public class SenseiFacetHandlerBuilder {
 
                 facetInfo.setProps(facetProps);
                 facetInfos.add(facetInfo);
-
+                if (pluggableSearchEngineFacetNames.contains(name)) {
+                    continue;
+                }
                 FacetHandler<?> facetHandler = null;
                 if (type.equals("simple")) {
-                    facetHandler = buildSimpleFacetHandler(name, fieldName, dependSet, termListFactoryMap.get(fieldName));
+                    facetHandler = buildSimpleFacetHandler(name, fieldName, dependSet, termListFactoryMap.get(fieldName), invertedIndexPenalty);
                 } else if (type.equals("path")) {
-                    facetHandler = buildPathHandler(name, fieldName, paramMap);
+                    facetHandler = buildPathHandler(name, fieldName, paramMap, invertedIndexPenalty);
                 } else if (type.equals("range")) {
                     if (column.optBoolean("multi")) {
-                        facetHandler = new MultiRangeFacetHandler(name, fieldName, null, termListFactoryMap.get(fieldName), buildPredefinedRanges(paramMap));
+                        facetHandler = new MultiRangeFacetHandler(name, fieldName, null, termListFactoryMap.get(fieldName),
+                                buildPredefinedRanges(paramMap));
                     } else {
                         facetHandler = buildRangeHandler(name, fieldName, termListFactoryMap.get(fieldName), paramMap);
                     }
                 } else if (type.equals("multi")) {
-                    facetHandler = buildMultiHandler(name, fieldName, termListFactoryMap.get(fieldName), dependSet);
+                    facetHandler = buildMultiHandler(name, fieldName, termListFactoryMap.get(fieldName), dependSet, invertedIndexPenalty);
                 } else if (type.equals("compact-multi")) {
                     facetHandler = buildCompactMultiHandler(name, fieldName, dependSet, termListFactoryMap.get(fieldName));
 
                 } else if (type.equals("weighted-multi")) {
-                    facetHandler = buildWeightedMultiHandler(name, fieldName, termListFactoryMap.get(fieldName), dependSet);
+                    facetHandler = buildWeightedMultiHandler(name, fieldName, termListFactoryMap.get(fieldName), dependSet,
+                            invertedIndexPenalty);
                 } else if (type.equals("attribute")) {
-                    facetHandler = new AttributesFacetHandler(name, fieldName, termListFactoryMap.get(fieldName), null, facetProps);
+                    facetHandler = new AttributesFacetHandler(name, fieldName, termListFactoryMap.get(fieldName), null,
+                            facetProps);
                 } else if (type.equals("histogram")) {
                     // A histogram facet handler is always dynamic
                     RuntimeFacetHandlerFactory<?, ?> runtimeFacetFactory = getHistogramFacetHandlerFactory(facet, name, paramMap);

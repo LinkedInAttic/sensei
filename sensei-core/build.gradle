@@ -32,6 +32,7 @@ dependencies {
   compile externalDependency.norbert
   compile externalDependency.zoieCore
   compile externalDependency.zoieJms
+  compile externalDependency.snappy
 
   sourceGen externalDependency.antlr
 

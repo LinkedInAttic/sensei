@@ -101,6 +101,8 @@ import com.senseidb.search.req.SenseiSystemInfo;
 import com.senseidb.servlet.SenseiSearchServletParams;
 import com.senseidb.svc.api.SenseiException;
 import com.senseidb.svc.api.SenseiService;
+import com.senseidb.util.JSONUtil.FastJSONArray;
+import com.senseidb.util.JSONUtil.FastJSONObject;
 
 
 public class HttpRestSenseiServiceImpl implements SenseiService
@@ -629,7 +631,7 @@ public class HttpRestSenseiServiceImpl implements SenseiService
 
     try
     {
-      JSONObject jsonObj = new JSONObject(query.toString());
+      JSONObject jsonObj = new FastJSONObject(query.toString());
       Iterator iter = jsonObj.keys();
 
       final String format = "%s:%s";
@@ -766,7 +768,7 @@ public class HttpRestSenseiServiceImpl implements SenseiService
       throws IOException, JSONException
   {
     String rawJSON = convertStreamToString(is);
-    return new JSONObject(rawJSON);
+    return new FastJSONObject(rawJSON);
   }
 
   public static SenseiResult buildSenseiResult(JSONObject jsonObj)
@@ -917,7 +919,8 @@ public class HttpRestSenseiServiceImpl implements SenseiService
 
       SenseiHit hit = new SenseiHit();
       Iterator keys = hitObj.keys();
-      Map<String,String[]> fieldMap = new HashMap<String,String[]>();
+      Map<String,String[]> fieldMap = null;
+      Map<String,Object[]> rawFieldMap = null;
       while(keys.hasNext()){
     	  String key = (String)keys.next();
     	  if (SenseiSearchServletParams.PARAM_RESULT_HIT_UID.equals(key)){
@@ -950,20 +953,30 @@ public class HttpRestSenseiServiceImpl implements SenseiService
         else if (SenseiSearchServletParams.PARAM_RESULT_HIT_GROUPHITS.equals(key)) {
           hit.setGroupHits(convertHitsArray(hitObj.getJSONArray(SenseiSearchServletParams.PARAM_RESULT_HIT_GROUPHITS)));
         }
-    	  else{
+    	  else {
     		  JSONArray array = hitObj.optJSONArray(key);
-    		  if (array!=null){
+    		  if (array!=null) {
     			  String [] arr = new String[array.length()];
-    			  for (int k=0;k<arr.length;++k){
+    			  Object [] rawArr = new Object[array.length()];
+            for (int k=0;k<arr.length;++k){
     				  arr[k]=array.getString(k);
+              rawArr[k] = array.get(k);
     			  }
-        		  fieldMap.put(key, arr);  
+        		if(fieldMap == null) {
+              fieldMap = new HashMap<String, String[]>();
+            }
+            if(rawFieldMap == null) {
+              rawFieldMap = new HashMap<String, Object[]>();
+            }
+
+            fieldMap.put(key, arr);
+            rawFieldMap.put(key, rawArr);
     		  }
     	  }
       }
       
       hit.setFieldValues(fieldMap);
-      //hit.setFieldValues(convertRawFieldValues());
+      hit.setRawFieldValues(rawFieldMap);
 
       result[i] = hit;
     }

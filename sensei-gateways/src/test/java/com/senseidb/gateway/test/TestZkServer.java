@@ -7,6 +7,7 @@ import java.net.InetSocketAddress;
 import org.apache.zookeeper.server.NIOServerCnxn;
 import org.apache.zookeeper.server.ZooKeeperServer;
 import org.apache.zookeeper.server.persistence.FileTxnSnapLog;
+import org.junit.Test;
 
 
 /**
@@ -36,6 +37,12 @@ public class TestZkServer
         "localhost"), 2181), 50);
     cnxnFactory.setDaemon(true);
     cnxnFactory.startup(zkServer);
+  }
+
+  @Test
+  public void test()
+  {
+
   }
 
   public void stop() {

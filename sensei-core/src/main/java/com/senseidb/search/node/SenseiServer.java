@@ -14,10 +14,11 @@
  * License for the specific language governing permissions and limitations for the
  * software governed under the Apache License.
  *
- * © 2012 LinkedIn Corp. All Rights Reserved.  
+ * © 2012 LinkedIn Corp. All Rights Reserved.
  */
 package com.senseidb.search.node;
 
+import com.browseengine.bobo.api.BoboIndexReader;
 import com.senseidb.metrics.MetricFactory;
 import java.io.File;
 import java.io.IOException;
@@ -36,9 +37,7 @@ import org.apache.log4j.Logger;
 import org.mortbay.jetty.Server;
 
 import proj.zoie.api.DataProvider;
-import proj.zoie.api.Zoie;
 
-import com.browseengine.bobo.api.BoboIndexReader;
 import com.linkedin.norbert.javacompat.cluster.ClusterClient;
 import com.linkedin.norbert.javacompat.cluster.Node;
 import com.linkedin.norbert.javacompat.network.NetworkServer;
@@ -53,6 +52,7 @@ import com.senseidb.svc.impl.CoreSenseiServiceImpl;
 import com.senseidb.svc.impl.SenseiCoreServiceMessageHandler;
 import com.senseidb.svc.impl.SysSenseiCoreServiceImpl;
 import com.senseidb.util.NetUtil;
+import proj.zoie.api.Zoie;
 
 
 public class SenseiServer {
@@ -70,6 +70,7 @@ public class SenseiServer {
   private final SenseiCore _core;
   protected volatile Node _serverNode;
   private final List<AbstractSenseiCoreService<AbstractSenseiRequest, AbstractSenseiResult>> _externalSvc;
+  private final long _shutdownPauseMillis;
 
   //private Server _adminServer;
 
@@ -77,22 +78,48 @@ public class SenseiServer {
 
   private final SenseiPluginRegistry pluginRegistry;
 
-  public SenseiServer(int id, int port, int[] partitions,
+  public SenseiServer(int id,
+                      int port,
+                      int[] partitions,
                       NetworkServer networkServer,
                       ClusterClient clusterClient,
                       SenseiZoieFactory<?> zoieSystemFactory,
                       SenseiIndexingManager indexingManager,
                       SenseiQueryBuilderFactory queryBuilderFactory,
-                      List<AbstractSenseiCoreService<AbstractSenseiRequest, AbstractSenseiResult>> externalSvc, SenseiPluginRegistry pluginRegistry)
+                      List<AbstractSenseiCoreService<AbstractSenseiRequest, AbstractSenseiResult>> externalSvc,
+                      SenseiPluginRegistry pluginRegistry,
+                      long shutdownPauseMillis)
   {
-    this(port,networkServer,clusterClient,new SenseiCore(id, partitions,zoieSystemFactory, indexingManager, queryBuilderFactory),externalSvc, pluginRegistry);
+    this(port,
+        networkServer,clusterClient,
+        new SenseiCore(id, partitions,zoieSystemFactory, indexingManager, queryBuilderFactory, zoieSystemFactory.getDecorator()),
+        externalSvc,
+        pluginRegistry,
+        shutdownPauseMillis);
+  }
+
+  public SenseiServer(int id,
+                      int port,
+                      int[] partitions,
+                      NetworkServer networkServer,
+                      ClusterClient clusterClient,
+                      SenseiZoieFactory<?> zoieSystemFactory,
+                      SenseiIndexingManager indexingManager,
+                      SenseiQueryBuilderFactory queryBuilderFactory,
+                      List<AbstractSenseiCoreService<AbstractSenseiRequest, AbstractSenseiResult>> externalSvc,
+                      SenseiPluginRegistry pluginRegistry)
+  {
+    this(id, port, partitions, networkServer, clusterClient, zoieSystemFactory, indexingManager,
+        queryBuilderFactory, externalSvc, pluginRegistry, 0L);
   }
 
   public SenseiServer(int port,
                       NetworkServer networkServer,
                       ClusterClient clusterClient,
                       SenseiCore senseiCore,
-                      List<AbstractSenseiCoreService<AbstractSenseiRequest, AbstractSenseiResult>> externalSvc, SenseiPluginRegistry pluginRegistry)
+                      List<AbstractSenseiCoreService<AbstractSenseiRequest, AbstractSenseiResult>> externalSvc,
+                      SenseiPluginRegistry pluginRegistry,
+                      long shutdownPauseMillis)
   {
     _core = senseiCore;
     this.pluginRegistry = pluginRegistry;
@@ -103,6 +130,18 @@ public class SenseiServer {
     _networkServer = networkServer;
     _clusterClient = clusterClient;
     _externalSvc = externalSvc;
+    _shutdownPauseMillis = shutdownPauseMillis;
+  }
+
+
+  public SenseiServer(int port,
+                      NetworkServer networkServer,
+                      ClusterClient clusterClient,
+                      SenseiCore senseiCore,
+                      List<AbstractSenseiCoreService<AbstractSenseiRequest, AbstractSenseiResult>> externalSvc,
+                      SenseiPluginRegistry pluginRegistry)
+  {
+    this(port, networkServer, clusterClient, senseiCore, externalSvc, pluginRegistry, 0L);
   }
 
   private static String help(){
@@ -187,30 +226,59 @@ public class SenseiServer {
       return sb.toString();
   }
 
-  public void shutdown(){
+  public void shutdown() {
+    // It is important that startup and shutdown be done in the OPPOSITE order
+    logger.info("Shutting down the norbert network server...");
+
+    _serverNode = null;
     try {
-      logger.info("shutting down node...");
-      try
-      {
-        _core.shutdown();
-        pluginRegistry.stop();
-        _clusterClient.removeNode(_id);
-        _clusterClient.shutdown();
-        _serverNode = null;
-        _core.getPluggableSearchEngineManager().close();
-      } catch (Exception e)
-      {
-        logger.warn(e.getMessage());
-      } finally
-      {
-        if (_networkServer != null)
-        {
-          _networkServer.shutdown();
-        }
-      }
-    } catch (Exception e) {
-      logger.error(e.getMessage(),e);
+      _networkServer.shutdown();
+    } catch (Throwable throwable) {
+      logger.warn("Error shutting down the network server, continuing with shutdown", throwable);
     }
+
+    logger.info("Removing the node from the cluster...");
+    try {
+      _clusterClient.removeNode(_id);
+    } catch (Throwable throwable) {
+      logger.warn("Error removing the node from service, continuing with shutdown", throwable);
+    }
+
+    logger.info("Shutting down the cluster client...");
+    try {
+      _clusterClient.shutdown();
+    } catch (Throwable throwable) {
+      logger.warn("Error shutting down the cluster client, continuing with shutdown", throwable);
+    }
+
+    // Clients may take some time to receive an update from zookeeper that the node is still servicing requests.
+    // We wait for a preconfigured time to make an effort before shutting down core search internals
+    // to not disturb normal service operation
+    if(_shutdownPauseMillis > 0) {
+      logger.info("Waiting " + _shutdownPauseMillis + " milliseconds for all clients to stop sending requests to server");
+      try {
+        Thread.sleep(_shutdownPauseMillis);
+      } catch (InterruptedException e) {
+        logger.warn("Interrupted while waiting, continuing with shutdown ", e);
+      }
+    }
+
+
+    logger.info("Shutting down the core search service...");
+    try {
+      _core.shutdown();
+    } catch (Throwable throwable) {
+      logger.warn("Error shutting down the core search service, continuing with shutdown", throwable);
+    }
+
+    logger.info("Shutting down the plugin registry...");
+    try {
+      pluginRegistry.stop();
+    } catch (Throwable throwable) {
+      logger.warn("Error stopping the plugin registry, continuing with shutdown", throwable);
+    }
+
+    logger.info("Sensei is shutdown!");
     MetricFactory.stop();
     JmxUtil.unregisterMBeans();
   }
@@ -232,8 +300,10 @@ public class SenseiServer {
     SenseiCoreServiceMessageHandler senseiMsgHandler =  new SenseiCoreServiceMessageHandler(coreSenseiService);
     SenseiCoreServiceMessageHandler senseiSysMsgHandler =  new SenseiCoreServiceMessageHandler(sysSenseiCoreService);
 
-    _networkServer.registerHandler(senseiMsgHandler, coreSenseiService.getSerializer());
-    _networkServer.registerHandler(senseiSysMsgHandler, sysSenseiCoreService.getSerializer());
+    _networkServer.registerHandler(senseiMsgHandler, CoreSenseiServiceImpl.PROTO_SERIALIZER);
+    _networkServer.registerHandler(senseiSysMsgHandler, SysSenseiCoreServiceImpl.PROTO_SERIALIZER);
+
+    _networkServer.registerHandler(senseiMsgHandler, CoreSenseiServiceImpl.PROTO_V2_SERIALIZER);
 
     _networkServer.registerHandler(senseiMsgHandler, CoreSenseiServiceImpl.JAVA_SERIALIZER);
     _networkServer.registerHandler(senseiSysMsgHandler, SysSenseiCoreServiceImpl.JAVA_SERIALIZER);
@@ -328,9 +398,7 @@ public class SenseiServer {
         }
       }
       throw e;
-    }
-
-
+    }   
     SenseiServerAdminMBean senseiAdminMBean = getAdminMBean();
     StandardMBean bean = new StandardMBean(senseiAdminMBean, SenseiServerAdminMBean.class);
     JmxUtil.registerMBean(bean, "name", "sensei-server-"+_id);

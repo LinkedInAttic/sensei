@@ -164,6 +164,10 @@
             <artifactId>json</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>fastjson</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.linkedin</groupId>
             <artifactId>norbert_2.8.1</artifactId>
         </dependency>
@@ -198,6 +202,10 @@
         <dependency>
             <groupId>org.easymock</groupId>
             <artifactId>easymockclassextension</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.iq80.snappy</groupId>
+            <artifactId>snappy</artifactId>
         </dependency>
 	</dependencies>
 </project>

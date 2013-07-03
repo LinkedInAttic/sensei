@@ -58,4 +58,12 @@ public class WeightedMFacetInt extends MFacetInt implements WeightedMFacet
   {
     return _weight[0];
   }
+  
+  public int getWeight(int target)
+  {
+    if(hasWeight(target))
+      return _weight[0];
+    else
+      return Integer.MIN_VALUE;
+  }
 }

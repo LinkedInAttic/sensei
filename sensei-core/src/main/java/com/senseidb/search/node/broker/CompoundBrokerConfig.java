@@ -20,6 +20,9 @@ package com.senseidb.search.node.broker;
 
 import java.util.Map;
 
+import com.linkedin.norbert.network.Serializer;
+import com.senseidb.search.req.SenseiRequest;
+import com.senseidb.search.req.SenseiResult;
 import org.apache.commons.configuration.Configuration;
 
 import com.linkedin.norbert.javacompat.network.PartitionedLoadBalancerFactory;
@@ -27,8 +30,11 @@ import com.senseidb.conf.SenseiConfParams;
 import com.senseidb.servlet.SenseiConfigServletContextListener;
 
 public class CompoundBrokerConfig extends BrokerConfig {
-  public CompoundBrokerConfig(Configuration senseiConf, PartitionedLoadBalancerFactory<String> loadBalancerFactory, Map<String,String> config, String clusterName) {
-    super(senseiConf, loadBalancerFactory);
+  public CompoundBrokerConfig(Configuration senseiConf,
+                              PartitionedLoadBalancerFactory<String> loadBalancerFactory,
+                              Serializer<SenseiRequest, SenseiResult> serializer,
+                              Map<String,String> config, String clusterName) {
+    super(senseiConf, loadBalancerFactory, serializer);
     
     this.clusterName = clusterName;
     zkurl = getStrParam(clusterName, config, SenseiConfParams.SENSEI_CLUSTER_URL, zkurl);

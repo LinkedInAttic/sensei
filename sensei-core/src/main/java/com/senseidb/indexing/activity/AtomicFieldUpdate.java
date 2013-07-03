@@ -49,6 +49,27 @@ public abstract class AtomicFieldUpdate {
       }      
     } 
   }
+  public static class LongFieldUpdate extends AtomicFieldUpdate {
+      public long value;
+      @Override
+      public int getFieldSizeInBytes() {      
+        return 8;
+      }
+      @Override
+      public void update(MappedByteBuffer mappedByteBuffer, int offset) {
+        mappedByteBuffer.putLong(offset, value);
+      }
+
+      @Override
+      public void update(RandomAccessFile storedFile, int offset) {
+        try {
+          storedFile.seek(offset);
+          storedFile.writeLong(value);
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }      
+      } 
+    }
   public static AtomicFieldUpdate valueOf(int index, int value) {
     IntFieldUpdate ret = new IntFieldUpdate();
     ret.index = index;
@@ -61,6 +82,12 @@ public abstract class AtomicFieldUpdate {
     ret.value = value;
     return ret;
   }
+  public static AtomicFieldUpdate valueOf(int index, long value) {
+      LongFieldUpdate ret = new LongFieldUpdate();
+      ret.index = index;
+      ret.value = value;
+      return ret;
+    }
   public static class FloatFieldUpdate extends AtomicFieldUpdate {
     public float value;
     @Override

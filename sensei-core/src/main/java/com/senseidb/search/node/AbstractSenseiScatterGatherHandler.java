@@ -39,24 +39,15 @@ public abstract class AbstractSenseiScatterGatherHandler<REQUEST extends Abstrac
 
   private final static Logger logger = Logger.getLogger(AbstractSenseiScatterGatherHandler.class);
 
-  private final static long TIMEOUT_MILLIS = 8000L;
+  private final static long DEFAULT_TIMEOUT_MILLIS = 8000L;
 
   private final REQUEST _request;
 
-  private long _timeoutMillis = TIMEOUT_MILLIS;
+  protected final long _timeoutMillis;
 
-  public AbstractSenseiScatterGatherHandler(REQUEST request) {
+  public AbstractSenseiScatterGatherHandler(REQUEST request, long timeoutMillis) {
     _request = request;
-  }
-
-  public void setTimeoutMillis(long timeoutMillis)
-  {
     _timeoutMillis = timeoutMillis;
-  }
-
-  public long getTimeoutMillis()
-  {
-    return _timeoutMillis;
   }
 
   /**

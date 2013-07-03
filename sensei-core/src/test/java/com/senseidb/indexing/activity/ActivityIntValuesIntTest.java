@@ -48,7 +48,9 @@ public class ActivityIntValuesIntTest extends TestCase {
   }
   
   public void test1() {
+
     ActivityIntValues intValues = (ActivityIntValues) ActivityPrimitiveValues.createActivityPrimitiveValues(ActivityPersistenceFactory.getInstance(getDirPath(), new ActivityConfig()), int.class, "likes", 0);
+
         
     long time = System.currentTimeMillis();
     for (int i = 0; i < 1000000; i++) {

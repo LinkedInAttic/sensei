@@ -22,12 +22,15 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLDecoder;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -58,12 +61,19 @@ import com.senseidb.search.node.broker.LayeredBroker;
 import com.senseidb.search.req.ErrorType;
 import com.senseidb.search.req.SenseiError;
 import com.senseidb.search.req.SenseiHit;
+import com.senseidb.search.req.SenseiJSONQuery;
 import com.senseidb.search.req.SenseiRequest;
 import com.senseidb.search.req.SenseiResult;
 import com.senseidb.search.req.SenseiSystemInfo;
+import com.senseidb.svc.api.SenseiException;
 import com.senseidb.svc.impl.HttpRestSenseiServiceImpl;
 import com.senseidb.util.JsonTemplateProcessor;
 import com.senseidb.util.RequestConverter2;
+import com.senseidb.util.JSONUtil.FastJSONArray;
+import com.senseidb.util.JSONUtil.FastJSONObject;
+import com.yammer.metrics.Metrics;
+import com.yammer.metrics.core.Counter;
+import com.yammer.metrics.core.MetricName;
 
 public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableServlet {
 
@@ -72,12 +82,14 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
   public static final int BQL_PARSING_ERROR = 499;
   public static final String BQL_STMT = "bql";
   public static final String BQL_EXTRA_FILTER = "bql_extra_filter";
+  public static final String TOTAL_DOCS = "totaldocs";
   private static final long serialVersionUID = 1L;
 
   private static final Logger logger = Logger.getLogger(AbstractSenseiClientServlet.class);
   private static final Logger queryLogger = Logger.getLogger("com.sensei.querylog");
-
-  private final NetworkClientConfig _networkClientConfig = new NetworkClientConfig();
+  private static final Counter totalDocsCounter =
+      Metrics.newCounter(new MetricName(AbstractSenseiClientServlet.class,
+                                        TOTAL_DOCS));
 
   private ClusterClient _clusterClient = null;
   private SenseiNetworkClient _networkClient = null;
@@ -87,14 +99,19 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
   private BQLCompiler _compiler = null;
   private LayeredBroker federatedBroker;
 
-  public AbstractSenseiClientServlet() {
+  private JsonTemplateProcessor jsonTemplateProcessor = new JsonTemplateProcessor();
 
+  private Timer _statTimer;
+
+
+  public AbstractSenseiClientServlet() {
+    _statTimer = new Timer(true);
   }
 
   @Override
   public void init(ServletConfig config) throws ServletException {
     super.init(config);
-    BrokerConfig brokerConfig = new BrokerConfig(senseiConf, loadBalancerFactory);
+    BrokerConfig brokerConfig = new BrokerConfig(senseiConf, loadBalancerFactory, serializer);
     brokerConfig.init();
     _senseiBroker = brokerConfig.buildSenseiBroker();
     _senseiSysBroker = brokerConfig.buildSysSenseiBroker(versionComparator);
@@ -123,7 +140,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
         logger.info("Trying to get sysinfo");
         SenseiSystemInfo sysInfo = _senseiSysBroker.browse(new SenseiRequest());
 
-        _facetInfoMap = extractFacetInfo(sysInfo);
+        _facetInfoMap = sysInfo != null && sysInfo.getFacetInfos() != null ? extractFacetInfo(sysInfo) : new HashMap<String, String[]>();
         _compiler = new BQLCompiler(_facetInfoMap);
         break;
       }
@@ -148,6 +165,51 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
         }
       }
     }
+
+    // Start the stat timer to get some of the sys stat:
+    _statTimer.scheduleAtFixedRate(new TimerTask()
+    {
+      public void run()
+      {
+        int totalDocs = 0;
+        try
+        {
+          SenseiRequest req = new SenseiRequest();
+          req.setQuery(new SenseiJSONQuery(new FastJSONObject().put("query", "dummy:dummy")));
+          SenseiResult res = _senseiBroker.browse(req);
+          totalDocs = res.getTotalDocs();
+        }
+        catch(Exception e)
+        {
+          logger.warn("Error getting result", e);
+        }
+        if (totalDocs > 0)
+        {
+          totalDocsCounter.clear();
+          totalDocsCounter.inc(totalDocs);
+        }
+        else
+        {
+          logger.warn("Unable to get total docs");
+        }
+
+        try
+        {
+          SenseiSystemInfo sysInfo = _senseiSysBroker.browse(new SenseiRequest());
+
+          if (sysInfo != null && sysInfo.getFacetInfos() != null)
+          {
+            _facetInfoMap = extractFacetInfo(sysInfo);
+            _compiler.setFacetInfoMap(_facetInfoMap);
+          }
+        }
+        catch (Exception e)
+        {
+          logger.info("Hit exception trying to get sysinfo", e);
+        }
+      }
+    }, 60000, 60000); // Every minute.
+
     export.facetInfo = _facetInfoMap;
     logger.info("Cluster: "+ brokerConfig.getClusterName() +" successfully connected ");
   }
@@ -180,194 +242,64 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
     }
     return params;
   }
-
+  private static class RequestContext {
+    String query;
+    JSONObject jsonObj;
+    public String bqlStmt;
+    public JSONObject templatesJson;
+    public JSONObject compiledJson;
+    public String content;
+    public SenseiRequest senseiReq;
+  }
   private void handleSenseiRequest(HttpServletRequest req, HttpServletResponse resp, Broker<SenseiRequest, SenseiResult> broker)
       throws ServletException, IOException {
     long time = System.currentTimeMillis();
     int numHits = 0, totalDocs = 0;
-    String query = null;
-
-    SenseiRequest senseiReq = null;
+    RequestContext requestContext = null;
     try
     {
-      JSONObject jsonObj = null;
-      String content = null;
-
       if ("post".equalsIgnoreCase(req.getMethod()))
       {
-        BufferedReader reader = req.getReader();
-        content = readContent(reader);
-        if (content == null || content.length() == 0) content = "{}";
-        try
-        {
-          jsonObj = new JSONObject(content);
-        }
-        catch(JSONException jse)
-        {
-          String contentType = req.getHeader("Content-Type");
-          if (contentType != null && contentType.indexOf("json") >= 0)
-          {
-            logger.error("JSON parsing error", jse);           
-              writeEmptyResponse(req, resp, new SenseiError(jse.getMessage(), ErrorType.JsonParsingError));              
-              return;            
-          }
-
-          logger.warn("Old client or json error", jse);
-
-          // Fall back to the old REST API.  In the future, we should
-          // consider reporting JSON exceptions here.
-          senseiReq = DefaultSenseiJSONServlet.convertSenseiRequest(
-                        new DataConfiguration(new MapConfiguration(getParameters(content))));
-          query = content;
-        }
+        requestContext = initializeRequestContextBasedOnPostParams(req, resp);
       }
       else
       {
-        content = req.getParameter("json");
-        if (content != null)
-        {
-          if (content.length() == 0) content = "{}";
-          try
-          {
-            jsonObj = new JSONObject(content);
-          }
-          catch(JSONException jse)
-          {
-            logger.error("JSON parsing error", jse);
-            writeEmptyResponse(req, resp, new SenseiError(jse.getMessage(), ErrorType.JsonParsingError));
-            return;
-          }
-        }
-        else
-        {
-          senseiReq = buildSenseiRequest(req);
-          query = URLEncodedUtils.format(
-                    HttpRestSenseiServiceImpl.convertRequestToQueryParams(senseiReq), "UTF-8");
-        }
+        requestContext = initContextBasedOnGetParams(req, resp);
       }
-
-      if (jsonObj != null)
+      if (requestContext == null) {
+        //the error has been already logged
+        return;
+      }
+      if (requestContext.jsonObj != null)
       {
-        String bqlStmt = jsonObj.optString(BQL_STMT);
-        JSONObject templatesJson = jsonObj.optJSONObject(JsonTemplateProcessor.TEMPLATE_MAPPING_PARAM);
-        JSONObject compiledJson = null;
+        requestContext.bqlStmt = requestContext.jsonObj.optString(BQL_STMT);
+        requestContext.templatesJson = requestContext.jsonObj.optJSONObject(JsonTemplateProcessor.TEMPLATE_MAPPING_PARAM);
+        requestContext.compiledJson = null;
 
-        if (bqlStmt.length() > 0)
+        if (requestContext.bqlStmt.length() > 0)
         {
-          try
-          {
-            if (jsonObj.length() == 1)
-              query = "bql=" + bqlStmt;
-            else
-              query = "json=" + content;
-            compiledJson = _compiler.compile(bqlStmt);
-          }
-          catch (RecognitionException e)
-          {
-            String errMsg = _compiler.getErrorMessage(e);
-            if (errMsg == null) 
-            {
-              errMsg = "Unknown parsing error.";
-            }
-            logger.error("BQL parsing error: " + errMsg + ", BQL: " + bqlStmt);
-            writeEmptyResponse(req, resp, new SenseiError(errMsg, ErrorType.BQLParsingError));
+          boolean successfull = handleBqlRequest(req, resp, requestContext);
+          if (!successfull) {
             return;
-          }
-
-          // Handle extra BQL filter if it exists
-          String extraFilter = jsonObj.optString(BQL_EXTRA_FILTER);
-          JSONObject predObj = null;
-          if (extraFilter.length() > 0)
-          {
-            String bql2 = "SELECT * WHERE " + extraFilter;
-            try
-            {
-              predObj = _compiler.compile(bql2);
-            }
-            catch (RecognitionException e)
-            {
-              String errMsg = _compiler.getErrorMessage(e);
-              if (errMsg == null) 
-              {
-                errMsg = "Unknown parsing error.";
-              }
-              logger.error("BQL parsing error for additional preds: " + errMsg + ", BQL: " + bql2);
-              writeEmptyResponse(req, resp, new SenseiError("BQL parsing error for additional preds: " + errMsg + ", BQL: " + bql2, ErrorType.BQLParsingError));
-              return;
-            }
-
-            // Combine filters
-            JSONArray filter_list = new JSONArray();
-            JSONObject currentFilter = compiledJson.optJSONObject("filter");
-            if (currentFilter != null)
-            {
-              filter_list.put(currentFilter);
-            }
-
-            JSONArray selections = predObj.optJSONArray("selections");
-            if (selections != null)
-            {
-              for (int i = 0; i < selections.length(); ++i)
-              {
-                JSONObject pred = selections.getJSONObject(i);
-                if (pred != null)
-                {
-                  filter_list.put(pred);
-                }
-              }
-            }
-            JSONObject additionalFilter = predObj.optJSONObject("filter");
-            if (additionalFilter != null)
-            {
-              filter_list.put(additionalFilter);
-            }
-            
-            if (filter_list.length() > 1)
-            {
-              compiledJson.put("filter", new JSONObject().put("and", filter_list));
-            }
-            else if (filter_list.length() == 1)
-            {
-              compiledJson.put("filter", filter_list.get(0));
-            }
-          }
-
-          JSONObject metaData = compiledJson.optJSONObject("meta");
-          if (metaData != null)
-          {
-            JSONArray variables = metaData.optJSONArray("variables");
-            if (variables != null)
-            {
-              for (int i = 0; i < variables.length(); ++i)
-              {
-                String var = variables.getString(i);
-                if (templatesJson == null ||
-                    templatesJson.opt(var) == null)
-                {
-                  writeEmptyResponse(req, resp, new SenseiError("[line:0, col:0] Variable " + var + " is not found.", ErrorType.BQLParsingError));
-                  return;
-                }
-              }
-            }
           }
         }
         else
         {
           // This is NOT a BQL statement
-          query = "json=" + content;
-          compiledJson = jsonObj;
+          requestContext.query = "json=" + requestContext.content;
+          requestContext.compiledJson = requestContext.jsonObj;
         }
 
-        if (templatesJson != null)
+        if (requestContext.templatesJson != null)
         {
-          compiledJson.put(JsonTemplateProcessor.TEMPLATE_MAPPING_PARAM, templatesJson);
+          requestContext.compiledJson.put(JsonTemplateProcessor.TEMPLATE_MAPPING_PARAM, requestContext.templatesJson);
         }
-        senseiReq = SenseiRequest.fromJSON(compiledJson, _facetInfoMap);
+        requestContext.senseiReq = SenseiRequest.fromJSON(requestContext.compiledJson, _facetInfoMap);
       }
-      SenseiResult res = broker.browse(senseiReq);
+      SenseiResult res = broker.browse(requestContext.senseiReq);
       numHits = res.getNumHits();
       totalDocs = res.getTotalDocs();
-      sendResponse(req, resp, senseiReq, res);
+      sendResponse(req, resp, requestContext.senseiReq, res);
    } catch (JSONException e) {
       try {
         writeEmptyResponse(req, resp, new SenseiError(e.getMessage(), ErrorType.JsonParsingError));
@@ -390,11 +322,174 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
     }
     finally
     {
-      if (queryLogger.isInfoEnabled() && query != null)
+      if (queryLogger.isInfoEnabled() && requestContext != null && requestContext.query != null)
       {
-        queryLogger.info(String.format("hits(%d/%d) took %dms: %s", numHits, totalDocs, System.currentTimeMillis() - time, query));
+        queryLogger.info(String.format("hits(%d/%d) took %dms: %s", numHits, totalDocs, System.currentTimeMillis() - time, requestContext.query));
       }
     }
+  }
+
+  public RequestContext initContextBasedOnGetParams(HttpServletRequest req, HttpServletResponse resp) throws Exception,
+      SenseiException, UnsupportedEncodingException {
+    RequestContext requestContext;
+    requestContext = new RequestContext();
+    requestContext.content = req.getParameter("json");
+    if (requestContext.content != null)
+    {
+      if (requestContext.content.length() == 0) requestContext.content = "{}";
+      try
+      {
+        requestContext.jsonObj = new FastJSONObject(requestContext.content);
+      }
+      catch(JSONException jse)
+      {
+        logger.error("JSON parsing error", jse);
+        writeEmptyResponse(req, resp, new SenseiError(jse.getMessage(), ErrorType.JsonParsingError));
+        return null;
+      }
+    }
+    else
+    {
+      requestContext.senseiReq = buildSenseiRequest(req);
+      requestContext.query = URLEncodedUtils.format(
+                HttpRestSenseiServiceImpl.convertRequestToQueryParams(requestContext.senseiReq), "UTF-8");
+    }
+    return requestContext;
+  }
+
+  public RequestContext initializeRequestContextBasedOnPostParams(HttpServletRequest req, HttpServletResponse resp)
+      throws IOException, Exception {
+    RequestContext requestContext;
+    requestContext = new RequestContext();
+    BufferedReader reader = req.getReader();
+    requestContext.content = readContent(reader);
+    if (requestContext.content == null || requestContext.content.length() == 0) requestContext.content = "{}";
+    try
+    {
+      requestContext.jsonObj = new FastJSONObject(requestContext.content);
+    }
+    catch(JSONException jse)
+    {
+      String contentType = req.getHeader("Content-Type");
+      if (contentType != null && contentType.indexOf("json") >= 0)
+      {
+        logger.error("JSON parsing error", jse);           
+          writeEmptyResponse(req, resp, new SenseiError(jse.getMessage(), ErrorType.JsonParsingError));              
+          return null;            
+      }
+
+      logger.warn("Old client or json error", jse);
+
+      // Fall back to the old REST API.  In the future, we should
+      // consider reporting JSON exceptions here.
+      requestContext.senseiReq = DefaultSenseiJSONServlet.convertSenseiRequest(
+                    new DataConfiguration(new MapConfiguration(getParameters(requestContext.content))));
+      requestContext.query = requestContext.content;
+    }
+    return requestContext;
+  }
+
+  public boolean handleBqlRequest(HttpServletRequest req, HttpServletResponse resp, RequestContext requestContext) throws Exception,
+      JSONException {
+    try
+    {
+      if (requestContext.jsonObj.length() == 1)
+        requestContext.query = "bql=" + requestContext.bqlStmt;
+      else
+        requestContext.query = "json=" + requestContext.content;
+      // Disable variables replacing before bql compling, since that data representation in json and bql is quite different for now.
+      //requestContext.bqlStmt = (String) jsonTemplateProcessor.process(requestContext.bqlStmt, jsonTemplateProcessor.getTemplates(requestContext.jsonObj));
+      requestContext.compiledJson = _compiler.compile(requestContext.bqlStmt);
+    }
+    catch (RecognitionException e)
+    {
+      String errMsg = _compiler.getErrorMessage(e);
+      if (errMsg == null) 
+      {
+        errMsg = "Unknown parsing error.";
+      }
+      logger.error("BQL parsing error: " + errMsg + ", BQL: " + requestContext.bqlStmt);
+      writeEmptyResponse(req, resp, new SenseiError(errMsg, ErrorType.BQLParsingError));
+      return false;
+    }
+
+    // Handle extra BQL filter if it exists
+    String extraFilter = requestContext.jsonObj.optString(BQL_EXTRA_FILTER);
+    JSONObject predObj = null;
+    if (extraFilter.length() > 0)
+    {
+      String bql2 = "SELECT * WHERE " + extraFilter;
+      try
+      {
+        predObj = _compiler.compile(bql2);
+      }
+      catch (RecognitionException e)
+      {
+        String errMsg = _compiler.getErrorMessage(e);
+        if (errMsg == null) 
+        {
+          errMsg = "Unknown parsing error.";
+        }
+        logger.error("BQL parsing error for additional preds: " + errMsg + ", BQL: " + bql2);
+        writeEmptyResponse(req, resp, new SenseiError("BQL parsing error for additional preds: " + errMsg + ", BQL: " + bql2, ErrorType.BQLParsingError));
+        return false;
+      }
+
+      // Combine filters
+      JSONArray filter_list = new FastJSONArray();
+      JSONObject currentFilter = requestContext.compiledJson.optJSONObject("filter");
+      if (currentFilter != null)
+      {
+        filter_list.put(currentFilter);
+      }
+
+      JSONArray selections = predObj.optJSONArray("selections");
+      if (selections != null)
+      {
+        for (int i = 0; i < selections.length(); ++i)
+        {
+          JSONObject pred = selections.getJSONObject(i);
+          if (pred != null)
+          {
+            filter_list.put(pred);
+          }
+        }
+      }
+      JSONObject additionalFilter = predObj.optJSONObject("filter");
+      if (additionalFilter != null)
+      {
+        filter_list.put(additionalFilter);
+      }
+      
+      if (filter_list.length() > 1)
+      {
+        requestContext.compiledJson.put("filter", new FastJSONObject().put("and", filter_list));
+      }
+      else if (filter_list.length() == 1)
+      {
+        requestContext.compiledJson.put("filter", filter_list.get(0));
+      }
+    }
+
+    JSONObject metaData = requestContext.compiledJson.optJSONObject("meta");
+    if (metaData != null)
+    {
+      JSONArray variables = metaData.optJSONArray("variables");
+      if (variables != null)
+      {
+        for (int i = 0; i < variables.length(); ++i)
+        {
+          String var = variables.getString(i);
+          if (requestContext.templatesJson == null ||
+              requestContext.templatesJson.opt(var) == null)
+          {
+            writeEmptyResponse(req, resp, new SenseiError("[line:0, col:0] Variable " + var + " is not found.", ErrorType.BQLParsingError));
+            return false;
+          }
+        }
+      }
+    }
+    return true;
   }
 
   private void writeEmptyResponse(HttpServletRequest req, HttpServletResponse resp, SenseiError senseiError) throws Exception {
@@ -422,13 +517,13 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
       if ("post".equalsIgnoreCase(req.getMethod()))
       {
         BufferedReader reader = req.getReader();
-        ids = new JSONArray(readContent(reader));
+        ids = new FastJSONArray(readContent(reader));
       }
       else
       {
         String jsonString = req.getParameter("json");
         if (jsonString != null)
-          ids = new JSONArray(jsonString);
+          ids = new FastJSONArray(jsonString);
       }
 
       query = "get=" + String.valueOf(ids);
@@ -454,7 +549,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
         totalDocs = res.getTotalDocs();
       }
 
-      JSONObject ret = new JSONObject();
+      JSONObject ret = new FastJSONObject();
       JSONObject obj = null;
       if (res != null && res.getSenseiHits() != null)
       {
@@ -462,7 +557,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
         {
           try
           {
-            obj = new JSONObject(hit.getSrcData());
+            obj = new FastJSONObject(hit.getSrcData());
             ret.put(String.valueOf(hit.getUID()), obj);
           }
           catch(Exception ex)
@@ -658,9 +753,17 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
             }
           }
           finally{
-            if (_clusterClient!=null){
-              _clusterClient.shutdown();
-              _clusterClient = null;
+            try
+            {
+              if (_clusterClient!=null)
+              {
+                _clusterClient.shutdown();
+                _clusterClient = null;
+              }
+            }
+            finally
+            {
+              _statTimer.cancel();
             }
           }
         }

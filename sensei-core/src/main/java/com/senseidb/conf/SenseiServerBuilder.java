@@ -18,6 +18,10 @@
  */
 package com.senseidb.conf;
 
+import com.browseengine.bobo.facets.filter.AdaptiveFacetFilter;
+import com.linkedin.norbert.network.Serializer;
+import com.senseidb.search.req.*;
+import com.senseidb.svc.impl.CoreSenseiServiceImpl;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 
@@ -121,6 +125,7 @@ import com.senseidb.svc.impl.AbstractSenseiCoreService;
 import com.senseidb.util.HDFSIndexCopier;
 import com.senseidb.util.NetUtil;
 import com.senseidb.util.SenseiUncaughtExceptionHandler;
+import com.senseidb.util.JSONUtil.FastJSONObject;
 
 public class SenseiServerBuilder implements SenseiConfParams {
 
@@ -140,6 +145,7 @@ public class SenseiServerBuilder implements SenseiConfParams {
     private final SenseiSchema _senseiSchema;
     private final SenseiGateway _gateway;
     private PluggableSearchEngineManager pluggableSearchEngineManager;
+    private SenseiIndexReaderDecorator decorator;
 
     static final String SENSEI_CONTEXT_PATH = "sensei";
 
@@ -175,6 +181,7 @@ public class SenseiServerBuilder implements SenseiConfParams {
         networkConfig.setRequestThreadCorePoolSize(conf.getInt(SERVER_REQ_THREAD_POOL_SIZE, 20));
         networkConfig.setRequestThreadMaxPoolSize(conf.getInt(SERVER_REQ_THREAD_POOL_MAXSIZE, 70));
         networkConfig.setRequestThreadKeepAliveTimeSecs(conf.getInt(SERVER_REQ_THREAD_POOL_KEEPALIVE, 300));
+
         return new NettyNetworkServer(networkConfig);
     }
 
@@ -190,7 +197,6 @@ public class SenseiServerBuilder implements SenseiConfParams {
         int port = _senseiConf.getInt(SERVER_BROKER_PORT);
 
         String webappPath = _senseiConf.getString(SERVER_BROKER_WEBAPP_PATH, "sensei-core/src/main/webapp");
-
 
         Server server = new Server();
 
@@ -228,14 +234,21 @@ public class SenseiServerBuilder implements SenseiConfParams {
         senseiApp.setAttribute("sensei.search.configuration", _senseiConf);
         senseiApp.setAttribute("sensei.broker.export", new AbstractSenseiClientServlet.SenseiBrokerExport());
         senseiApp.setAttribute(SenseiConfigServletContextListener.SENSEI_CONF_PLUGIN_REGISTRY, pluginRegistry);
-        senseiApp.setAttribute("sensei.search.version.comparator", _gateway.getVersionComparator());
+        senseiApp.setAttribute("sensei.search.version.comparator", _gateway != null ? _gateway.getVersionComparator() : ZoieConfig.DEFAULT_VERSION_COMPARATOR);
 
         PartitionedLoadBalancerFactory<String> routerFactory = pluginRegistry.getBeanByFullPrefix(SenseiConfParams.SERVER_SEARCH_ROUTER_FACTORY, PartitionedLoadBalancerFactory.class);
         if (routerFactory == null) {
             routerFactory = new SenseiPartitionedLoadBalancerFactory(50);
         }
 
-        senseiApp.setAttribute("sensei.search.router.factory", routerFactory);
+        Serializer<SenseiRequest, SenseiResult> serializer = pluginRegistry.getBeanByFullPrefix(SenseiConfParams.SENSEI_SEARCH_SERIALIZER, Serializer.class);
+        if (serializer == null) {
+            logger.warn("Unspecified serializer. Falling back to java serialization");
+            serializer = CoreSenseiServiceImpl.JAVA_SERIALIZER;
+        }
+
+        senseiApp.setAttribute(SenseiConfigServletContextListener.SENSEI_CONF_ROUTER_FACTORY, routerFactory);
+        senseiApp.setAttribute(SenseiConfigServletContextListener.SENSEI_CONF_SERIALIZER, serializer);
         senseiApp.addEventListener(new SenseiConfigServletContextListener());
         senseiApp.addServlet(senseiServletHolder, "/" + SENSEI_CONTEXT_PATH + "/*");
         senseiApp.setResourceBase(webappPath);
@@ -254,7 +267,7 @@ public class SenseiServerBuilder implements SenseiConfParams {
             InputStream is = new FileInputStream(jsonSchema);
             String json = IOUtils.toString(is);
             is.close();
-            return new JSONObject(json);
+            return new FastJSONObject(json);
         } else {
             File xmlSchema = new File(confDir, SCHEMA_FILE_XML);
             if (!xmlSchema.exists()) {
@@ -273,7 +286,7 @@ public class SenseiServerBuilder implements SenseiConfParams {
     public static JSONObject loadSchema(Resource confDir) throws Exception {
         if (confDir.createRelative(SCHEMA_FILE_JSON).exists()) {
             String json = IOUtils.toString(confDir.createRelative(SCHEMA_FILE_JSON).getInputStream());
-            return new JSONObject(json);
+            return new FastJSONObject(json);
         } else {
             if (confDir.createRelative(SCHEMA_FILE_XML).exists()) {
                 DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -397,6 +410,7 @@ public class SenseiServerBuilder implements SenseiConfParams {
         int[] partitions = buildPartitions(partitionArray);
         logger.info("partitions to serve: " + Arrays.toString(partitions));
         // Analyzer from configuration:
+
         Analyzer analyzer = pluginRegistry.getBeanByFullPrefix(SENSEI_INDEX_ANALYZER, Analyzer.class);
         if (analyzer == null) {
             analyzer = new StandardAnalyzer(Version.LUCENE_35);
@@ -436,17 +450,36 @@ public class SenseiServerBuilder implements SenseiConfParams {
             strategy = new ShardingStrategy.FieldModShardingStrategy(_senseiSchema.getUidField());
         }
 
+        Filter retentionFilter =
+                pluginRegistry.getBeanByFullPrefix(SENSEI_ZOIE_RETENTION_FILTER, Filter.class);
+
+        int deletionsBeforeOptimize = _senseiConf.getInt(SENSEI_ZOIE_RETENTION_DELETIONS_BEFORE_OPTIMIZE,
+                ZoieConfig.DEFAULT_NUM_DELETIONS_BEFORE_OPTIMIZE);
+
+        long purgePeriodMillis = _senseiConf.getLong(SENSEI_ZOIE_RETENTION_PURGE_PERIOD, ZoieConfig.DEFAULT_PURGE_PERIOD);
+
+        zoieConfig.setPurgeFilter(retentionFilter);
+        zoieConfig.setNumDeletionsBeforeOptimize(deletionsBeforeOptimize);
+        zoieConfig.setPurgePeriod(purgePeriodMillis);
+
         pluggableSearchEngineManager = new PluggableSearchEngineManager();
         pluggableSearchEngineManager.init(_senseiConf.getString(SENSEI_INDEX_DIR), nodeid, _senseiSchema, zoieConfig.getVersionComparator(), pluginRegistry, strategy);
 
         List<FacetHandler<?>> facetHandlers = new LinkedList<FacetHandler<?>>();
         List<RuntimeFacetHandlerFactory<?, ?>> runtimeFacetHandlerFactories = new LinkedList<RuntimeFacetHandlerFactory<?, ?>>();
 
+        int invertedIndexPenalty = _senseiConf.getInt(SENSEI_SEARCH_INVERTED_INDEX_PENALTY,
+                AdaptiveFacetFilter.DEFAULT_INVERTED_INDEX_PENALTY);
 
         SenseiSystemInfo sysInfo = null;
 
         try {
-            sysInfo = SenseiFacetHandlerBuilder.buildFacets(_schemaDoc, pluginRegistry, facetHandlers, runtimeFacetHandlerFactories, pluggableSearchEngineManager);
+            sysInfo = SenseiFacetHandlerBuilder.buildFacets(_schemaDoc,
+                    pluginRegistry,
+                    facetHandlers,
+                    runtimeFacetHandlerFactories,
+                    pluggableSearchEngineManager,
+                    invertedIndexPenalty);
         } catch (JSONException jse) {
             throw new ConfigurationException(jse.getMessage(), jse);
         }
@@ -491,7 +524,7 @@ public class SenseiServerBuilder implements SenseiConfParams {
             QueryParser queryParser = new QueryParser(Version.LUCENE_35, "contents", analyzer);
             queryBuilderFactory = new DefaultJsonQueryBuilderFactory(queryParser);
         }
-        SenseiCore senseiCore = new SenseiCore(nodeid, partitions, zoieSystemFactory, indexingManager, queryBuilderFactory);
+        SenseiCore senseiCore = new SenseiCore(nodeid, partitions, zoieSystemFactory, indexingManager, queryBuilderFactory, decorator);
         senseiCore.setSystemInfo(sysInfo);
         SenseiIndexPruner indexPruner = pluginRegistry.getBeanByFullPrefix(SENSEI_INDEX_PRUNER, SenseiIndexPruner.class);
         if (indexPruner != null) {
@@ -508,7 +541,7 @@ public class SenseiServerBuilder implements SenseiConfParams {
                                                       List<RuntimeFacetHandlerFactory<?, ?>> runtimeFacetHandlerFactories, ZoieIndexableInterpreter interpreter)
             throws ConfigurationException {
         String indexerType = _senseiConf.getString(SENSEI_INDEXER_TYPE, "zoie");
-        SenseiIndexReaderDecorator decorator = new SenseiIndexReaderDecorator(facetHandlers, runtimeFacetHandlerFactories);
+        decorator = new SenseiIndexReaderDecorator(facetHandlers, runtimeFacetHandlerFactories);
         File idxDir = new File(_senseiConf.getString(SENSEI_INDEX_DIR));
         SenseiZoieFactory<?> zoieSystemFactory = null;
 
@@ -549,7 +582,6 @@ public class SenseiServerBuilder implements SenseiConfParams {
                 if (purgeFilter != null && pluggableSearchEngineManager != null) {
                     purgeFilter = new PurgeFilterWrapper(purgeFilter, pluggableSearchEngineManager);
                 }
-                senseiZoieFactory.setPurgeFilter(purgeFilter);
             }
 
             OptimizeScheduler scheduler = pluginRegistry.getBeanByFullPrefix(SENSEI_INDEX_OPTIMIZE_SCHEDULER, OptimizeScheduler.class);
@@ -613,6 +645,9 @@ public class SenseiServerBuilder implements SenseiConfParams {
 
     public SenseiServer buildServer() throws ConfigurationException {
         int port = _senseiConf.getInt(SERVER_PORT);
+
+        long shutdownPauseMillis = _senseiConf.getLong(SENSEI_SHUTDOWN_WAIT_FOR_CLIENT_MILLIS, 0L);
+
         JmxSenseiMBeanServer.registerCustomMBeanServer();
 
         ClusterClient clusterClient = buildClusterClient();
@@ -624,15 +659,15 @@ public class SenseiServerBuilder implements SenseiConfParams {
         List<AbstractSenseiCoreService<AbstractSenseiRequest, AbstractSenseiResult>> svcList = (List) pluginRegistry.resolveBeansByListKey(SENSEI_PLUGIN_SVCS, AbstractSenseiCoreService.class);
 
 
-        return new SenseiServer(port, networkServer, clusterClient, core, svcList, pluginRegistry);
+        return new SenseiServer(port, networkServer, clusterClient, core, svcList, pluginRegistry, shutdownPauseMillis);
 
     }
-    /*
-    public HttpAdaptor buildJMXAdaptor(){
-     int jmxport = _senseiConf.getInt(SENSEI_MX4J_PORT,15555);
-     HttpAdaptor httpAdaptor = new HttpAdaptor(jmxport);
-       httpAdaptor.setHost("0.0.0.0");
-       return httpAdaptor;
-    }
-    */
+  /*
+  public HttpAdaptor buildJMXAdaptor(){
+   int jmxport = _senseiConf.getInt(SENSEI_MX4J_PORT,15555);
+   HttpAdaptor httpAdaptor = new HttpAdaptor(jmxport);
+     httpAdaptor.setHost("0.0.0.0");
+     return httpAdaptor;
+  }
+  */
 }

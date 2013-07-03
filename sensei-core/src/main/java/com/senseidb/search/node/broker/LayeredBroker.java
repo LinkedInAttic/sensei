@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.linkedin.norbert.javacompat.network.PartitionedLoadBalancerFactory;
+import com.linkedin.norbert.network.Serializer;
 import com.senseidb.cluster.routing.SenseiPartitionedLoadBalancerFactory;
 import com.senseidb.conf.SenseiConfParams;
 import com.senseidb.plugin.SenseiPlugin;
@@ -34,6 +35,7 @@ import com.senseidb.search.node.SenseiBroker;
 import com.senseidb.search.req.SenseiRequest;
 import com.senseidb.search.req.SenseiResult;
 import com.senseidb.svc.api.SenseiException;
+import com.senseidb.svc.impl.CoreSenseiServiceImpl;
 
 public class LayeredBroker implements SenseiPlugin, Broker<SenseiRequest, SenseiResult> {
   private static final String CLUSTERS = "clusters";
@@ -55,11 +57,17 @@ public class LayeredBroker implements SenseiPlugin, Broker<SenseiRequest, Sensei
     if (routerFactory == null) {
       routerFactory = new SenseiPartitionedLoadBalancerFactory(50);
     }
+
+    Serializer<SenseiRequest, SenseiResult> serializer = pluginRegistry.getBeanByFullPrefix(SenseiConfParams.SENSEI_SEARCH_SERIALIZER, Serializer.class);
+    if (serializer == null) {
+      serializer = CoreSenseiServiceImpl.JAVA_SERIALIZER;
+    }
+
     for (String cluster : clustersConfig.split(",")) {
       String trimmed = cluster.trim();
       if (trimmed.length() > 0) {
         clusters.add(trimmed);
-        clusterBrokerConfig.put(trimmed, new CompoundBrokerConfig(pluginRegistry.getConfiguration(), routerFactory, config, trimmed));
+        clusterBrokerConfig.put(trimmed, new CompoundBrokerConfig(pluginRegistry.getConfiguration(), routerFactory, serializer, config, trimmed));
       }
     }    
   }

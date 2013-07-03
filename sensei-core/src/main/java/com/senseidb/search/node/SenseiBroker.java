@@ -14,10 +14,12 @@
  * License for the specific language governing permissions and limitations for the
  * software governed under the Apache License.
  *
- * © 2012 LinkedIn Corp. All Rights Reserved.  
+ * © 2012 LinkedIn Corp. All Rights Reserved.
  */
 package com.senseidb.search.node;
 
+import com.linkedin.norbert.network.Serializer;
+import com.senseidb.search.req.*;
 import com.senseidb.metrics.MetricFactory;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 
@@ -31,6 +33,7 @@ import javax.management.ObjectName;
 
 import org.apache.log4j.Logger;
 import org.apache.lucene.document.Document;
+import org.apache.lucene.search.SortField;
 
 import proj.zoie.api.indexing.AbstractZoieIndexable;
 
@@ -41,11 +44,6 @@ import com.linkedin.norbert.javacompat.cluster.Node;
 import com.linkedin.norbert.javacompat.network.PartitionedNetworkClient;
 import com.senseidb.conf.SenseiSchema;
 import com.senseidb.indexing.DefaultJsonSchemaInterpreter;
-import com.senseidb.search.req.ErrorType;
-import com.senseidb.search.req.SenseiError;
-import com.senseidb.search.req.SenseiHit;
-import com.senseidb.search.req.SenseiRequest;
-import com.senseidb.search.req.SenseiResult;
 import com.senseidb.svc.impl.CoreSenseiServiceImpl;
 import com.yammer.metrics.core.Counter;
 import com.yammer.metrics.core.MetricName;
@@ -67,9 +65,10 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
   private final Counter numberOfNodesInTheCluster = MetricFactory.newCounter(new MetricName(SenseiBroker.class,
                                                                                             "numberOfNodesInTheCluster"));
   
-  public SenseiBroker(PartitionedNetworkClient<String> networkClient, ClusterClient clusterClient, boolean allowPartialMerge)
+  public SenseiBroker(PartitionedNetworkClient<String> networkClient, ClusterClient clusterClient,
+                      Serializer<SenseiRequest, SenseiResult> serializer, long timeoutMillis, boolean allowPartialMerge)
       throws NorbertException {
-    super(networkClient, CoreSenseiServiceImpl.JAVA_SERIALIZER);
+    super(networkClient, serializer, timeoutMillis);
     this.clusterClient = clusterClient;
     this.allowPartialMerge = allowPartialMerge;
     clusterClient.addListener(this);
@@ -143,8 +142,25 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
   @Override
   public SenseiResult mergeResults(SenseiRequest request, List<SenseiResult> resultList)
   {
+
+//    // For debuggin serialization:
+//    if(!request.equals(getSerializer().requestFromBytes(getSerializer().requestToBytes(request)))) {
+//        throw new IllegalArgumentException("Could not serialize request");
+//    }
+//
+//    for(SenseiResult result : resultList) {
+//      if(!result.equals(getSerializer().responseFromBytes(getSerializer().responseToBytes(result)))) {
+//          throw new IllegalArgumentException("Could not serialize partial result");
+//      }
+//    }
+
+
     SenseiResult res = ResultMerger.merge(request, resultList, false);
-    
+
+//    if(!res.equals(getSerializer().responseFromBytes(getSerializer().responseToBytes(res)))) {
+//      throw new IllegalArgumentException("Could not serialize result");
+//    }
+
     if (request.isFetchStoredFields() || request.isFetchStoredValue())
       recoverSrcData(res, res.getSenseiHits(), request.isFetchStoredFields());
 
@@ -176,6 +192,45 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
     // Rewrite fetchStoredFields for zoie store.
     if (!request.isFetchStoredFields())
       request.setFetchStoredFields(request.isFetchStoredValue());
+
+    // Rewrite select list to include sort and group by fields:
+    if (request.getSelectSet() != null)
+    {
+      List<String> selectList = request.getSelectList();
+      SortField[] sortFields = request.getSort();
+      if (sortFields != null && sortFields.length != 0)
+      {
+        for (int i = 0; i < sortFields.length; ++i)
+        {
+          if (sortFields[i].getType() != SortField.SCORE && sortFields[i].getType() != SortField.DOC)
+          {
+            String field = sortFields[i].getField();
+            selectList.add(field);
+          }
+        }
+      }
+      String[] groupByFields = request.getGroupBy();
+      if (groupByFields != null && groupByFields.length != 0)
+      {
+        for (int i = 0; i < groupByFields.length; ++i)
+        {
+          selectList.add(groupByFields[i]);
+        }
+      }
+      String[] distinctFields = request.getDistinct();
+      if (distinctFields != null && distinctFields.length != 0)
+      {
+        for (int i = 0; i < distinctFields.length; ++i)
+        {
+          selectList.add(distinctFields[i]);
+        }
+      }
+      request.setSelectList(selectList);
+
+//      // For debugging serialization:
+//      if(!request.equals(getSerializer().requestFromBytes(getSerializer().requestToBytes(request))))
+//        throw new IllegalArgumentException("Could not serialize to protobuf");
+    }
 
     return request;
   }
