@@ -26,6 +26,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
 
+import com.senseidb.search.req.SenseiJavaSerializer;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.zookeeper.server.NIOServerCnxn;
 import org.apache.zookeeper.server.ZooKeeperServer;
@@ -71,7 +72,7 @@ public class SingleNodeStarter {
           zkServer.stop();
         }
       });
-      SenseiBrokerProxy brokerProxy = SenseiBrokerProxy.valueOf(senseiConfiguration, new HashMap<String, String>());
+      SenseiBrokerProxy brokerProxy = SenseiBrokerProxy.valueOf(senseiConfiguration, new HashMap<String, String>(), new SenseiJavaSerializer());
       while (true) {
         SenseiResult senseiResult = brokerProxy.doQuery(new SenseiRequest()).get(0);
         int totalDocs = senseiResult.getTotalDocs();

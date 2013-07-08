@@ -66,7 +66,9 @@ public class SenseiBrokerProxy extends SenseiBroker implements BrokerProxy {
     ErrorMeter = MetricFactory.newMeter(errorMetricName, "errors",TimeUnit.SECONDS);
   }
 
-  public static SenseiBrokerProxy valueOf(Configuration senseiConfiguration, Map<String, String> overrideProperties) {
+  public static SenseiBrokerProxy valueOf(Configuration senseiConfiguration,
+                                          Map<String, String> overrideProperties,
+                                          Serializer<SenseiRequest, SenseiResult> serializer) {
     BrokerProxyConfig brokerProxyConfig =
         new BrokerProxyConfig(senseiConfiguration, balancerFactory, serializer, overrideProperties);
 

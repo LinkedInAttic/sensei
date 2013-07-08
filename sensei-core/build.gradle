@@ -33,6 +33,7 @@ dependencies {
   compile externalDependency.zoieCore
   compile externalDependency.zoieJms
   compile externalDependency.snappy
+  compile externalDependency.fastjson
 
   sourceGen externalDependency.antlr
 

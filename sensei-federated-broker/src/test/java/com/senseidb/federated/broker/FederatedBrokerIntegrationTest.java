@@ -21,10 +21,12 @@ package com.senseidb.federated.broker;
 
 
 import com.browseengine.bobo.api.BrowseSelection;
+import com.linkedin.norbert.network.JavaSerializer;
 import com.senseidb.federated.broker.proxy.BrokerProxy;
 import com.senseidb.federated.broker.proxy.GenericBrokerProxy;
 import com.senseidb.federated.broker.proxy.SenseiBrokerProxy;
 import com.senseidb.search.node.inmemory.InMemorySenseiService;
+import com.senseidb.search.req.SenseiJavaSerializer;
 import com.senseidb.search.req.SenseiRequest;
 import com.senseidb.search.req.SenseiResult;
 import java.io.File;
@@ -55,7 +57,7 @@ public class FederatedBrokerIntegrationTest extends TestCase {
 
     // sensei proxy
     PropertiesConfiguration senseiConfiguration = new PropertiesConfiguration(FederatedBrokerIntegrationTest.class.getClassLoader().getResource("conf/sensei.properties"));
-    senseiProxy = SenseiBrokerProxy.valueOf(senseiConfiguration, new HashMap<String, String>());
+    senseiProxy = SenseiBrokerProxy.valueOf(senseiConfiguration, new HashMap<String, String>(), new SenseiJavaSerializer());
     // memory proxy
     GenericBrokerProxy memoryProxy = new GenericBrokerProxy(senseiInMemoryService, new MockDataSource(readCarDocs()));
 

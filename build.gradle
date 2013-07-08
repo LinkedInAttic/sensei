@@ -39,16 +39,17 @@ project.ext.externalDependency = [
   'zoieJms': 'com.linkedin.zoie:zoie-jms:3.3.6',
   'snappy': 'org.iq80.snappy:snappy:0.3',
   'kafka': 'kafka:kafka:0.8.0_0.30_9bd2a11486420a313f800-SNAPSHOT',
-  'zoieCore': 'com.linkedin.zoie:zoie-core:3.3.4',
-  'zoieJms': 'com.linkedin.zoie:zoie-jms:3.3.4',
-  'boboBrowse': 'com.linkedin.bobo:bobo-browse:3.1.10',
+  'zoieCore': 'com.linkedin.zoie:zoie-core:3.3.11',
+  'zoieJms': 'com.linkedin.zoie:zoie-jms:3.3.11',
+  'boboBrowse': 'com.linkedin.bobo:bobo-browse:3.1.15',
   'norbert':'com.linkedin:norbert_2.8.1:0.6.20-SNAPSHOT',
 
   'antlr':'org.antlr:antlr:3.4',
 
   'easymock':'org.easymock:easymock:3.1',
   'easymockclassextension':'org.easymock:easymockclassextension:3.1',
-  'junit':'junit:junit:4.7'
+  'junit':'junit:junit:4.7',
+  'fastjson':'com.alibaba:fastjson:1.1.24'
 ];
 
 subprojects {
