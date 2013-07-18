@@ -34,6 +34,7 @@ import com.senseidb.search.req.SenseiError;
 import com.senseidb.search.req.SenseiHit;
 import com.senseidb.search.req.SenseiRequest;
 import com.senseidb.search.req.SenseiRequestCustomizer;
+import com.senseidb.search.req.SenseiRequestCustomizerFactory;
 import com.senseidb.search.req.SenseiResult;
 import com.senseidb.svc.impl.CoreSenseiServiceImpl;
 import com.yammer.metrics.core.Counter;
@@ -63,19 +64,19 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
  
   private final boolean allowPartialMerge;
   private final ClusterClient clusterClient;
-  private final SenseiRequestCustomizer requestCustomizer;
+  private final SenseiRequestCustomizerFactory requestCustomizerFactory;
   private final Counter numberOfNodesInTheCluster = MetricFactory.newCounter(new MetricName(SenseiBroker.class,
                                                                                             "numberOfNodesInTheCluster"));
   
   public SenseiBroker(PartitionedNetworkClient<String> networkClient,
                       ClusterClient clusterClient,
                       boolean allowPartialMerge,
-                      SenseiRequestCustomizer requestCustomizer)
+                      SenseiRequestCustomizerFactory requestCustomizerFactory)
       throws NorbertException {
     super(networkClient, CoreSenseiServiceImpl.JAVA_SERIALIZER);
     this.clusterClient = clusterClient;
     this.allowPartialMerge = allowPartialMerge;
-    this.requestCustomizer = requestCustomizer;
+    this.requestCustomizerFactory = requestCustomizerFactory;
     clusterClient.addListener(this);
     logger.info("created broker instance " + networkClient + " " + clusterClient);
   }
@@ -168,6 +169,12 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
     // only instantiate if debug logging is enabled
     final List<StringBuilder> timingLogLines = logger.isDebugEnabled() ? new LinkedList<StringBuilder>() : null;
 
+    final SenseiRequestCustomizer customizer;
+    if (requestCustomizerFactory != null)
+      customizer = requestCustomizerFactory.getRequestCustomizer(req);
+    else
+      customizer = null;
+
     ResponseIterator<SenseiResult> responseIterator =
         buildIterator(_networkClient.sendRequestToOneReplica(getRouteParam(req), new RequestBuilder<Integer, SenseiRequest>() {
           @Override
@@ -181,7 +188,7 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
               timingLogLines.add(buildLogLineForRequest(node, clone));
             }
 
-            SenseiRequest customizedRequest = customizeRequest(clone, nodePartitions);
+            SenseiRequest customizedRequest = customizeRequest(clone, customizer, nodePartitions);
             return customizedRequest;
           }
         }, _serializer));
@@ -206,7 +213,7 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
     return resultList;
   }
   
-  public SenseiRequest customizeRequest(SenseiRequest request, Set<Integer> nodePartitions)
+  public SenseiRequest customizeRequest(SenseiRequest request, SenseiRequestCustomizer customizer, Set<Integer> nodePartitions)
   {
     // Rewrite offset and count.
     request.setCount(request.getOffset()+request.getCount());
@@ -226,8 +233,10 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
     if (!request.isFetchStoredFields())
       request.setFetchStoredFields(request.isFetchStoredValue());
 
-    if (requestCustomizer != null)
-      request = requestCustomizer.customize(request, nodePartitions);
+    if (customizer != null)
+    {
+      request = customizer.customize(request, nodePartitions);
+    }
 
     return request;
   }

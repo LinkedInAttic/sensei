@@ -27,7 +27,7 @@ import com.senseidb.conf.SenseiConfParams;
 import com.senseidb.plugin.SenseiPluginRegistry;
 import com.senseidb.search.node.SenseiBroker;
 import com.senseidb.search.node.SenseiSysBroker;
-import com.senseidb.search.req.SenseiRequestCustomizer;
+import com.senseidb.search.req.SenseiRequestCustomizerFactory;
 import com.senseidb.servlet.SenseiConfigServletContextListener;
 import java.util.Comparator;
 import org.apache.commons.configuration.Configuration;
@@ -50,7 +50,7 @@ public class BrokerConfig {
   private SenseiBroker senseiBroker;
   private SenseiSysBroker senseiSysBroker;
   private long brokerTimeout;
-  private SenseiRequestCustomizer requestCustomizer;
+  private SenseiRequestCustomizerFactory requestCustomizerFactory;
 
 
   public BrokerConfig(Configuration senseiConf, PartitionedLoadBalancerFactory<String> loadBalancerFactory, SenseiPluginRegistry pluginRegistry) {
@@ -68,7 +68,7 @@ public class BrokerConfig {
     staleRequestCleanupFrequencyMins = senseiConf.getInt(SenseiConfigServletContextListener.SENSEI_CONF_NC_STALE_CLEANUP_FREQ_MINS, 10);
     allowPartialMerge = senseiConf.getBoolean(SenseiConfParams.ALLOW_PARTIAL_MERGE, true);
     brokerTimeout = senseiConf.getLong(SenseiConfParams.SERVER_BROKER_TIMEOUT, 8000);
-    requestCustomizer = pluginRegistry.getBeanByFullPrefix(SenseiConfParams.SERVER_BROKER_REQUEST_CUSTOMIZER, SenseiRequestCustomizer.class);
+    requestCustomizerFactory = pluginRegistry.getBeanByFullPrefix(SenseiConfParams.SERVER_BROKER_REQUEST_CUSTOMIZER_FACTORY, SenseiRequestCustomizerFactory.class);
   }
   
   public BrokerConfig(Configuration senseiConf, PartitionedLoadBalancerFactory<String> loadBalancerFactory) {
@@ -91,7 +91,7 @@ public class BrokerConfig {
   }
 
   public SenseiBroker buildSenseiBroker() {   
-    senseiBroker = new SenseiBroker(networkClient, clusterClient, allowPartialMerge, requestCustomizer);
+    senseiBroker = new SenseiBroker(networkClient, clusterClient, allowPartialMerge, requestCustomizerFactory);
     senseiBroker.setTimeout(brokerTimeout);
     return senseiBroker;
   }
