@@ -19,18 +19,12 @@
 package com.senseidb.test;
 
 import java.io.File;
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
 import java.net.URL;
 
 import javax.management.InstanceAlreadyExistsException;
 
 import com.senseidb.indexing.activity.facet.ActivityRangeFacetHandler;
 import org.apache.log4j.Logger;
-import org.apache.zookeeper.server.NIOServerCnxn;
-import org.apache.zookeeper.server.ZooKeeperServer;
-import org.apache.zookeeper.server.persistence.FileTxnSnapLog;
 import org.mortbay.jetty.Server;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -121,7 +115,7 @@ public class SenseiStarter {
       broker = null;
       try
       {
-        broker = new SenseiBroker(networkClient, clusterClient, true);
+        broker = new SenseiBroker(networkClient, clusterClient, true, null);
       } catch (NorbertException ne) {
         logger.info("shutting down cluster...", ne);
           clusterClient.shutdown();

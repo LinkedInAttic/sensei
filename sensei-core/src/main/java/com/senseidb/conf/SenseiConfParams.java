@@ -89,6 +89,7 @@ public interface SenseiConfParams {
     public static final String SERVER_BROKER_MAXWAIT = "sensei.broker.maxWaittime";
     public static final String SERVER_BROKER_TIMEOUT = "sensei.broker.timeout";
     public static final String ALLOW_PARTIAL_MERGE = "sensei.broker.allowPartialMerge";
+    public static final String SERVER_BROKER_REQUEST_CUSTOMIZER = "sensei.broker.requestCustomizer";
 
 
     public static final String SENSEI_BROKER_POLL_INTERVAL = "sensei.broker.pollInterval";
