@@ -68,7 +68,8 @@ public class BrokerConfig {
     staleRequestCleanupFrequencyMins = senseiConf.getInt(SenseiConfigServletContextListener.SENSEI_CONF_NC_STALE_CLEANUP_FREQ_MINS, 10);
     allowPartialMerge = senseiConf.getBoolean(SenseiConfParams.ALLOW_PARTIAL_MERGE, true);
     brokerTimeout = senseiConf.getLong(SenseiConfParams.SERVER_BROKER_TIMEOUT, 8000);
-    requestCustomizerFactory = pluginRegistry.getBeanByFullPrefix(SenseiConfParams.SERVER_BROKER_REQUEST_CUSTOMIZER_FACTORY, SenseiRequestCustomizerFactory.class);
+    if (pluginRegistry != null)
+      requestCustomizerFactory = pluginRegistry.getBeanByFullPrefix(SenseiConfParams.SERVER_BROKER_REQUEST_CUSTOMIZER_FACTORY, SenseiRequestCustomizerFactory.class);
   }
   
   public BrokerConfig(Configuration senseiConf, PartitionedLoadBalancerFactory<String> loadBalancerFactory) {
