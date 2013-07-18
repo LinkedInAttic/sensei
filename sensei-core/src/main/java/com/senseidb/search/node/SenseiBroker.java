@@ -18,37 +18,37 @@
  */
 package com.senseidb.search.node;
 
-import com.senseidb.metrics.MetricFactory;
-import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
-
-import java.lang.management.ManagementFactory;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import javax.management.MBeanServer;
-import javax.management.ObjectName;
-
-import org.apache.log4j.Logger;
-import org.apache.lucene.document.Document;
-
-import proj.zoie.api.indexing.AbstractZoieIndexable;
 
 import com.browseengine.bobo.api.FacetSpec;
 import com.linkedin.norbert.NorbertException;
 import com.linkedin.norbert.javacompat.cluster.ClusterClient;
 import com.linkedin.norbert.javacompat.cluster.Node;
 import com.linkedin.norbert.javacompat.network.PartitionedNetworkClient;
+import com.linkedin.norbert.javacompat.network.RequestBuilder;
+import com.linkedin.norbert.network.ResponseIterator;
 import com.senseidb.conf.SenseiSchema;
 import com.senseidb.indexing.DefaultJsonSchemaInterpreter;
+import com.senseidb.metrics.MetricFactory;
 import com.senseidb.search.req.ErrorType;
 import com.senseidb.search.req.SenseiError;
 import com.senseidb.search.req.SenseiHit;
 import com.senseidb.search.req.SenseiRequest;
+import com.senseidb.search.req.SenseiRequestCustomizer;
+import com.senseidb.search.req.SenseiRequestCustomizerFactory;
 import com.senseidb.search.req.SenseiResult;
 import com.senseidb.svc.impl.CoreSenseiServiceImpl;
 import com.yammer.metrics.core.Counter;
 import com.yammer.metrics.core.MetricName;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import org.apache.log4j.Logger;
+import org.apache.lucene.document.Document;
+import proj.zoie.api.indexing.AbstractZoieIndexable;
 
 
 /**
@@ -64,14 +64,19 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
  
   private final boolean allowPartialMerge;
   private final ClusterClient clusterClient;
+  private final SenseiRequestCustomizerFactory requestCustomizerFactory;
   private final Counter numberOfNodesInTheCluster = MetricFactory.newCounter(new MetricName(SenseiBroker.class,
                                                                                             "numberOfNodesInTheCluster"));
   
-  public SenseiBroker(PartitionedNetworkClient<String> networkClient, ClusterClient clusterClient, boolean allowPartialMerge)
+  public SenseiBroker(PartitionedNetworkClient<String> networkClient,
+                      ClusterClient clusterClient,
+                      boolean allowPartialMerge,
+                      SenseiRequestCustomizerFactory requestCustomizerFactory)
       throws NorbertException {
     super(networkClient, CoreSenseiServiceImpl.JAVA_SERIALIZER);
     this.clusterClient = clusterClient;
     this.allowPartialMerge = allowPartialMerge;
+    this.requestCustomizerFactory = requestCustomizerFactory;
     clusterClient.addListener(this);
     logger.info("created broker instance " + networkClient + " " + clusterClient);
   }
@@ -156,10 +161,61 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
   {
     return new SenseiResult();
   }
+
+  protected List<SenseiResult> doCall(final SenseiRequest req) throws ExecutionException
+  {
+    List<SenseiResult> resultList = new ArrayList<SenseiResult>();
+
+    // only instantiate if debug logging is enabled
+    final List<StringBuilder> timingLogLines = logger.isDebugEnabled() ? new LinkedList<StringBuilder>() : null;
+
+    final SenseiRequestCustomizer customizer;
+    if (requestCustomizerFactory != null)
+      customizer = requestCustomizerFactory.getRequestCustomizer(req);
+    else
+      customizer = null;
+
+    ResponseIterator<SenseiResult> responseIterator =
+        buildIterator(_networkClient.sendRequestToOneReplica(getRouteParam(req), new RequestBuilder<Integer, SenseiRequest>() {
+          @Override
+          public SenseiRequest apply(Node node, Set<Integer> nodePartitions) {
+            // TODO: Cloning is yucky per http://www.artima.com/intv/bloch13.html
+            SenseiRequest clone = (SenseiRequest) (((SenseiRequest) req).clone());
+
+            clone.setPartitions(nodePartitions);
+            if (timingLogLines != null) {
+              // this means debug logging was enabled, produce first portion of log lines
+              timingLogLines.add(buildLogLineForRequest(node, clone));
+            }
+
+            SenseiRequest customizedRequest = customizeRequest(clone, customizer, nodePartitions);
+            return customizedRequest;
+          }
+        }, _serializer));
+
+    while(responseIterator.hasNext()) {
+      resultList.add(responseIterator.next());
+    }
+
+    if (timingLogLines != null) {
+      // this means debug logging was enabled, complete the timing log lines and log them
+      int i = 0;
+      for (StringBuilder logLine : timingLogLines) {
+        // we are assuming the request builder gets called in the same order as the response
+        // iterator is built, otherwise the loglines would be out of sync between req & res
+        if (i < resultList.size()) {
+          logger.debug(buildLogLineForResult(logLine, resultList.get(i++)));
+        }
+      }
+      logger.debug(String.format("There are %d responses", resultList.size()));
+    }
+
+    return resultList;
+  }
   
-  @Override
-  public SenseiRequest customizeRequest(SenseiRequest request)
-  {    // Rewrite offset and count.
+  public SenseiRequest customizeRequest(SenseiRequest request, SenseiRequestCustomizer customizer, Set<Integer> nodePartitions)
+  {
+    // Rewrite offset and count.
     request.setCount(request.getOffset()+request.getCount());
     request.setOffset(0);
 
@@ -176,6 +232,11 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
     // Rewrite fetchStoredFields for zoie store.
     if (!request.isFetchStoredFields())
       request.setFetchStoredFields(request.isFetchStoredValue());
+
+    if (customizer != null)
+    {
+      request = customizer.customize(request, nodePartitions);
+    }
 
     return request;
   }

@@ -18,20 +18,19 @@
  */
 package com.senseidb.search.node.broker;
 
-import java.util.Comparator;
-
-import org.apache.commons.configuration.Configuration;
 
 import com.linkedin.norbert.javacompat.cluster.ZooKeeperClusterClient;
 import com.linkedin.norbert.javacompat.network.NetworkClientConfig;
 import com.linkedin.norbert.javacompat.network.PartitionedLoadBalancerFactory;
 import com.senseidb.cluster.client.SenseiNetworkClient;
 import com.senseidb.conf.SenseiConfParams;
+import com.senseidb.plugin.SenseiPluginRegistry;
 import com.senseidb.search.node.SenseiBroker;
 import com.senseidb.search.node.SenseiSysBroker;
-import com.senseidb.search.req.SenseiRequest;
+import com.senseidb.search.req.SenseiRequestCustomizerFactory;
 import com.senseidb.servlet.SenseiConfigServletContextListener;
-import com.senseidb.svc.api.SenseiException;
+import java.util.Comparator;
+import org.apache.commons.configuration.Configuration;
 
 public class BrokerConfig {
   protected String clusterName;
@@ -51,9 +50,10 @@ public class BrokerConfig {
   private SenseiBroker senseiBroker;
   private SenseiSysBroker senseiSysBroker;
   private long brokerTimeout;
+  private SenseiRequestCustomizerFactory requestCustomizerFactory;
 
-  
-  public BrokerConfig(Configuration senseiConf, PartitionedLoadBalancerFactory<String> loadBalancerFactory) {
+
+  public BrokerConfig(Configuration senseiConf, PartitionedLoadBalancerFactory<String> loadBalancerFactory, SenseiPluginRegistry pluginRegistry) {
     this.loadBalancerFactory = loadBalancerFactory;
     clusterName = senseiConf.getString(SenseiConfParams.SENSEI_CLUSTER_NAME);
     zkurl = senseiConf.getString(SenseiConfParams.SENSEI_CLUSTER_URL);
@@ -66,8 +66,13 @@ public class BrokerConfig {
     maxConnectionsPerNode = senseiConf.getInt(SenseiConfigServletContextListener.SENSEI_CONF_NC_MAX_CONN_PER_NODE, 5);
     staleRequestTimeoutMins = senseiConf.getInt(SenseiConfigServletContextListener.SENSEI_CONF_NC_STALE_TIMEOUT_MINS, 10);
     staleRequestCleanupFrequencyMins = senseiConf.getInt(SenseiConfigServletContextListener.SENSEI_CONF_NC_STALE_CLEANUP_FREQ_MINS, 10);
-    allowPartialMerge = senseiConf.getBoolean(SenseiConfParams.ALLOW_PARTIAL_MERGE, true); 
-    brokerTimeout = senseiConf.getLong(SenseiConfParams.SERVER_BROKER_TIMEOUT, 8000); 
+    allowPartialMerge = senseiConf.getBoolean(SenseiConfParams.ALLOW_PARTIAL_MERGE, true);
+    brokerTimeout = senseiConf.getLong(SenseiConfParams.SERVER_BROKER_TIMEOUT, 8000);
+    requestCustomizerFactory = pluginRegistry.getBeanByFullPrefix(SenseiConfParams.SERVER_BROKER_REQUEST_CUSTOMIZER_FACTORY, SenseiRequestCustomizerFactory.class);
+  }
+  
+  public BrokerConfig(Configuration senseiConf, PartitionedLoadBalancerFactory<String> loadBalancerFactory) {
+    this(senseiConf, loadBalancerFactory, null);
   }
 
   public void init() {
@@ -86,7 +91,7 @@ public class BrokerConfig {
   }
 
   public SenseiBroker buildSenseiBroker() {   
-    senseiBroker = new SenseiBroker(networkClient, clusterClient, allowPartialMerge);
+    senseiBroker = new SenseiBroker(networkClient, clusterClient, allowPartialMerge, requestCustomizerFactory);
     senseiBroker.setTimeout(brokerTimeout);
     return senseiBroker;
   }
