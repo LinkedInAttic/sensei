@@ -52,16 +52,16 @@ public class AndFilterConstructor extends FilterConstructor {
   }
 
   @Override
-  protected Filter doConstructFilter(Object obj) throws Exception
+  protected SenseiFilter doConstructFilter(Object obj) throws Exception
   {
     JSONArray filterArray = (JSONArray)obj;
-    List<Filter> filters = new ArrayList<Filter>(filterArray.length());
+    List<SenseiFilter> filters = new ArrayList<SenseiFilter>(filterArray.length());
     for (int i=0; i<filterArray.length(); ++i)
     {
-      Filter filter = FilterConstructor.constructFilter(filterArray.getJSONObject(i), _qparser);
+      SenseiFilter filter = FilterConstructor.constructFilter(filterArray.getJSONObject(i), _qparser);
       if (filter != null)
         filters.add(filter);
     }
-    return new AndFilter(filters);
+    return new SenseiAndFilter(filters);
   }
 }

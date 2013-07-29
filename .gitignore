@@ -5,6 +5,8 @@ out
 ivy
 logs
 output
+hotspot.log
+derby.log
 lib/test
 lib/master/commons-logging.jar
 lib/master/fastutil.jar
@@ -31,5 +33,6 @@ target
 .idea
 .gradle
 
-
+clients/java/bin
+*/bin
 

@@ -18,13 +18,15 @@
  */
 package com.senseidb.search.query.filters;
 
+import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.queryParser.QueryParser;
-import org.apache.lucene.search.Filter;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.QueryWrapperFilter;
 import org.json.JSONObject;
 
 import com.senseidb.search.query.QueryConstructor;
+
+import java.io.IOException;
 
 public class QueryFilterConstructor extends FilterConstructor{
   public static final String FILTER_TYPE = "query";
@@ -37,11 +39,19 @@ public class QueryFilterConstructor extends FilterConstructor{
   }
 
 	@Override
-	protected Filter doConstructFilter(Object json) throws Exception {
-		Query q = QueryConstructor.constructQuery((JSONObject)json, _qparser);
+	protected SenseiFilter doConstructFilter(Object json) throws Exception {
+		final Query q = QueryConstructor.constructQuery((JSONObject)json, _qparser);
+
     if (q == null)
       return null;
-		return new QueryWrapperFilter(q);
+
+    final QueryWrapperFilter queryWrapperFilter = new QueryWrapperFilter(q);
+    return new SenseiFilter() {
+      @Override
+      public SenseiDocIdSet getSenseiDocIdSet(IndexReader reader) throws IOException {
+        return new SenseiDocIdSet(queryWrapperFilter.getDocIdSet(reader), DocIdSetCardinality.random(), "QUERY <" + q.toString() + ">");
+      }
+    };
 	}
 	
 }
