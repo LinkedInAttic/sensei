@@ -19,10 +19,9 @@
 package com.senseidb.search.query.filters;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 
+import com.browseengine.bobo.facets.filter.RandomAccessFilter;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.search.DocIdSet;
 import org.apache.lucene.search.Filter;
@@ -63,17 +62,16 @@ public class FacetSelectionFilterConstructor extends FilterConstructor{
   
   
   @Override
-  protected Filter doConstructFilter(Object obj) throws Exception {
+  protected SenseiFilter doConstructFilter(Object obj) throws Exception {
     final JSONObject json = (JSONObject)obj;
-    return new Filter(){
+    return new SenseiFilter(){
 
       @Override
-      public DocIdSet getDocIdSet(IndexReader reader)
-          throws IOException {
+      public SenseiDocIdSet getSenseiDocIdSet(IndexReader reader) throws IOException {
         if (reader instanceof BoboIndexReader){
           BoboIndexReader boboReader = (BoboIndexReader)reader;
           Iterator<String> iter = json.keys();
-          ArrayList<DocIdSet> docSets = new ArrayList<DocIdSet>();
+          ArrayList<RandomAccessFilter> filters = new ArrayList<RandomAccessFilter>();
           while(iter.hasNext()){
             String key = iter.next();
             FacetHandler facetHandler = boboReader.getFacetHandler(key);
@@ -81,7 +79,7 @@ public class FacetSelectionFilterConstructor extends FilterConstructor{
               try{
                 JSONObject jsonObj = json.getJSONObject(key);
                 BrowseSelection sel = buildFacetSelection(key, jsonObj);
-                docSets.add(facetHandler.buildFilter(sel).getDocIdSet(boboReader));
+                filters.add(facetHandler.buildFilter(sel));
               }
               catch(Exception e){
                 throw new IOException(e.getMessage());
@@ -91,9 +89,15 @@ public class FacetSelectionFilterConstructor extends FilterConstructor{
               throw new IOException(key+" is not defined as a facet handler");
             }
           }
-          if (docSets.size()==0) return null;
-          else if (docSets.size()==1) return docSets.get(0);
-          return new AndDocIdSet(docSets);
+          if(filters.isEmpty()) {
+            return null;
+          } else {
+            List<SenseiFilter> senseiFilters = new ArrayList<SenseiFilter>(filters.size());
+            for(RandomAccessFilter raf : filters) {
+              senseiFilters.add(SenseiFilter.build(raf));
+            }
+            return new SenseiAndFilter(senseiFilters).getSenseiDocIdSet(reader);
+          }
         }
         else{
           throw new IllegalStateException("reader not instance of "+BoboIndexReader.class);
