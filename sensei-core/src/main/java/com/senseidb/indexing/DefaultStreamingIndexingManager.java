@@ -72,6 +72,9 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
   private Meter _providerBatchSizeMeter;
   private Meter _eventMeter;
   private Meter _updateBatchSizeMeter;
+  private Meter _indexSizeMeter;
+  private long _lastMeasureTime;
+  private static final long MEASURE_INTERVAL = 1000 * 60; // 1 minute
 
 	private StreamDataProvider<JSONObject> _dataProvider;
 	private String _oldestSinceKey;
@@ -86,9 +89,7 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
   private final Comparator<String> _versionComparator;
   private final PluggableSearchEngineManager pluggableSearchEngineManager;
   private SenseiPluginRegistry pluginRegistry;
-  
 
-  
 
 	public DefaultStreamingIndexingManager(SenseiSchema schema,Configuration senseiConfig, 
 	    SenseiPluginRegistry pluginRegistry, SenseiGateway<?> gateway, ShardingStrategy shardingStrategy, PluggableSearchEngineManager pluggableSearchEngineManager){
@@ -205,6 +206,9 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
     if (_updateBatchSizeMeter != null) {
       _updateBatchSizeMeter.stop();
     }
+    if (_indexSizeMeter != null) {
+        _indexSizeMeter.stop();
+    }
     if (_eventMeter != null) {
       _eventMeter.stop();
     }
@@ -219,6 +223,7 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
       _providerBatchSizeMeter = registerMeter("provider-batch-size", "provide-batch-size");
       _updateBatchSizeMeter = registerMeter("update-batch-size", "update-batch-size");
       _eventMeter = registerMeter("indexing-events", "indexing-events");
+      _indexSizeMeter = registerMeter("index-size", "index-size");
 
 	 	  _dataProvider.start();
 		}
@@ -374,6 +379,11 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
           }
         }
 
+        long indexSize = 0;
+        long now = System.currentTimeMillis();
+        boolean measureIndexSize = now - _lastMeasureTime > MEASURE_INTERVAL ? true : false;
+        _lastMeasureTime = now;
+
         Iterator<Integer> it = _zoieSystemMap.keySet().iterator();
         while(it.hasNext()){
           int part_num = it.next();
@@ -398,8 +408,14 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
               }
               dataConsumer.consume(partDataSet);
             }
+
+            if (measureIndexSize)
+                indexSize += dataConsumer.getAdminMBean().getDiskIndexSizeBytes();
           }
           _dataCollectorMap.put(part_num, new LinkedList<DataEvent<JSONObject>>());
+
+          if (measureIndexSize)
+            _indexSizeMeter.mark(indexSize);
         }
       }
       catch(Exception e){
