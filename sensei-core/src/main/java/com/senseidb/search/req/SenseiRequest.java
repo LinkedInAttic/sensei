@@ -64,6 +64,7 @@ private long   tid           =          -1;
   private Map<String,FacetHandlerInitializerParam> _facetInitParamMap;
   private Set<Integer> _partitions;
   private boolean _showExplanation;
+  private boolean _trace;
   private static Random _rand = new Random(System.nanoTime());
   private String _routeParam;
 	private String _groupBy;  // TODO: Leave here for backward compatible reason, will remove it later.
@@ -83,6 +84,7 @@ private long   tid           =          -1;
     _fetchStoredValue = false;
     _partitions = null;
     _showExplanation = false;
+    _trace = false;
     _routeParam = null;
     _groupBy = null;
     _groupByMulti = null;
@@ -119,11 +121,19 @@ private long   tid           =          -1;
   
   public boolean isShowExplanation() {
     return _showExplanation;
-    }
+  }
 
-    public void setShowExplanation(boolean showExplanation) {
+  public void setShowExplanation(boolean showExplanation) {
     _showExplanation = showExplanation;
-    }
+  }
+
+  public boolean isTrace() {
+    return _trace;
+  }
+
+  public void setTrace(boolean trace) {
+    _trace = trace;
+  }
 
   public void setPartitions(Set<Integer> partitions){
     _partitions = partitions;

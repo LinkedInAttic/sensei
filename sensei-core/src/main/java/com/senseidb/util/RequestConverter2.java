@@ -115,6 +115,7 @@ public class RequestConverter2 {
   public static final String PARTITIONS = "partitions";
 
   public static final String EXPLAIN = "explain";
+  public static final String TRACE = "trace";
 
   public static final String ROUTEPARAM = "routeParam";
 
@@ -426,6 +427,7 @@ public class RequestConverter2 {
 		req.setPartitions(getIntSet(json, RequestConverter2.PARTITIONS,0));
 
 		req.setShowExplanation(json.optBoolean(RequestConverter2.EXPLAIN,false));
+        req.setTrace(json.optBoolean(RequestConverter2.TRACE,false));
 
 		String routeParam = json.optString(RequestConverter2.ROUTEPARAM,null);
 		req.setRouteParam(routeParam);

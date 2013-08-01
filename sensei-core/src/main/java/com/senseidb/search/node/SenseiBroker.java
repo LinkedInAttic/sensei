@@ -167,7 +167,7 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
     List<SenseiResult> resultList = new ArrayList<SenseiResult>();
 
     // only instantiate if debug logging is enabled
-    final List<StringBuilder> timingLogLines = logger.isDebugEnabled() ? new LinkedList<StringBuilder>() : null;
+    final List<StringBuilder> timingLogLines = req.isTrace() || logger.isDebugEnabled() ? new LinkedList<StringBuilder>() : null;
 
     final SenseiRequestCustomizer customizer;
     if (requestCustomizerFactory != null)
@@ -204,10 +204,18 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
         // we are assuming the request builder gets called in the same order as the response
         // iterator is built, otherwise the loglines would be out of sync between req & res
         if (i < resultList.size()) {
-          logger.debug(buildLogLineForResult(logLine, resultList.get(i++)));
+          buildLogLineForResult(logLine, resultList.get(i++));
+          if (logger.isDebugEnabled())
+            logger.debug(logLine.toString());
+          else
+            logger.info(logLine.toString());
         }
       }
-      logger.debug(String.format("There are %d responses", resultList.size()));
+      String numResponses = String.format("There are %d responses", resultList.size());
+      if (logger.isDebugEnabled())
+        logger.debug(numResponses);
+      else
+        logger.info(numResponses);
     }
 
     return resultList;

@@ -84,7 +84,7 @@ import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_SELECT_OP_AND
 import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_SELECT_OP_OR;
 import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_SELECT_PROP;
 import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_SELECT_VAL;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_SHOW_EXPLAIN;
+import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_EXPLAIN;
 import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_SORT;
 import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_SORT_DESC;
 import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_SORT_DOC;
@@ -104,6 +104,7 @@ import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_SYSINFO_LASTM
 import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_SYSINFO_NUMDOCS;
 import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_SYSINFO_SCHEMA;
 import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_SYSINFO_VERSION;
+import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_TRACE;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -131,7 +132,6 @@ import org.apache.lucene.search.SortField;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.springframework.util.Assert;
 
 import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.BrowseHit;
@@ -592,7 +592,8 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
   public static void convertScalarParams(SenseiRequest senseiReq, DataConfiguration params) {
     senseiReq.setOffset(params.getInt(PARAM_OFFSET, 0));
     senseiReq.setCount(params.getInt(PARAM_COUNT, 10));
-    senseiReq.setShowExplanation(params.getBoolean(PARAM_SHOW_EXPLAIN, false));
+    senseiReq.setShowExplanation(params.getBoolean(PARAM_EXPLAIN, false));
+    senseiReq.setTrace(params.getBoolean(PARAM_TRACE, false));
     senseiReq.setFetchStoredFields(params.getBoolean(PARAM_FETCH_STORED, false));
     senseiReq.setFetchStoredValue(params.getBoolean(PARAM_FETCH_STORED_VALUE, false));
 
