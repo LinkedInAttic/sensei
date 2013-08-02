@@ -48,6 +48,11 @@ public class JSONUtil
       _inner = new com.alibaba.fastjson.JSONObject();
     }
 
+    public FastJSONObject(int capacity)
+    {
+      _inner = new com.alibaba.fastjson.JSONObject(capacity);
+    }
+
     public FastJSONObject(String str) throws JSONException
     {
       try
@@ -500,6 +505,11 @@ public class JSONUtil
     public FastJSONArray()
     {
       _inner = new com.alibaba.fastjson.JSONArray();
+    }
+
+    public FastJSONArray(int capacity)
+    {
+      _inner = new com.alibaba.fastjson.JSONArray(capacity);
     }
 
     public FastJSONArray(String str) throws JSONException
