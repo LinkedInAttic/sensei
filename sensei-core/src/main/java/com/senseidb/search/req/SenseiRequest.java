@@ -518,14 +518,19 @@ private long   tid           =          -1;
     for(Entry<String, FacetSpec> facetSpec : this.getFacetSpecs().entrySet()) {
       cloneFacetSpecs.put(facetSpec.getKey(), facetSpec.getValue().clone());
     }
-    
     clone.setFacetSpecs(cloneFacetSpecs);
+
+    Map<String, FacetHandlerInitializerParam> cloneFacetInit = new HashMap<String, FacetHandlerInitializerParam>();
+    for(Entry<String, FacetHandlerInitializerParam> facetInit : this.getFacetHandlerInitParamMap().entrySet()) {
+        cloneFacetInit.put(facetInit.getKey(), facetInit.getValue()); // TODO consider cloning values as well
+    }
+    clone.setFacetHandlerInitParamMap(cloneFacetInit);
+
     clone.setQuery(this.getQuery());
     clone.setOffset(this.getOffset());
     clone.setCount(this.getCount());
     clone.setFetchStoredFields(this.isFetchStoredFields());
     clone.setFetchStoredValue(this.isFetchStoredValue());
-    clone.setFacetHandlerInitParamMap(this.getFacetHandlerInitParamMap());
     clone.setPartitions(this.getPartitions());
     clone.setShowExplanation(this.isShowExplanation());
     clone.setRouteParam(this.getRouteParam());
