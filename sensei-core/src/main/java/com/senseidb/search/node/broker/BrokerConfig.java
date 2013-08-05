@@ -69,8 +69,8 @@ public class BrokerConfig {
     zkurl = senseiConf.getString(SenseiConfigServletContextListener.SENSEI_CONF_ZKURL, zkurl);
     clusterName = senseiConf.getString(SenseiConfigServletContextListener.SENSEI_CONF_CLUSTER_NAME, clusterName);
     zkTimeout = senseiConf.getInt(SenseiConfigServletContextListener.SENSEI_CONF_ZKTIMEOUT, zkTimeout);
-    outlierMultiplier = senseiConf.getDouble(SenseiConfigServletContextListener.SENSEI_CONF_ZKTIMEOUT, 3.0);
-    outlierConstant = senseiConf.getDouble(SenseiConfigServletContextListener.SENSEI_CONF_ZKTIMEOUT, 150);
+    outlierMultiplier = senseiConf.getDouble(SenseiConfigServletContextListener.SENSEI_CONF_NC_OUTLIER_MULTIPLIER, 3.0);
+    outlierConstant = senseiConf.getDouble(SenseiConfigServletContextListener.SENSEI_CONF_NC_OUTLIER_CONSTANT, 150);
 
     connectTimeoutMillis = senseiConf.getInt(SenseiConfigServletContextListener.SENSEI_CONF_NC_CONN_TIMEOUT, 1000);
     writeTimeoutMillis = senseiConf.getInt(SenseiConfigServletContextListener.SENSEI_CONF_NC_WRITE_TIMEOUT, 150);

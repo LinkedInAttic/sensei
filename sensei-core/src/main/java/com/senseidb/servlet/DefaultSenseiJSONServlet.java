@@ -171,14 +171,14 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
     JSONObject jsonObject = null;
     if (expl != null)
     {
-      jsonObject = new FastJSONObject();
+      jsonObject = new FastJSONObject(5);
       jsonObject.put(PARAM_RESULT_HITS_EXPL_VALUE, expl.getValue());
       String descr = expl.getDescription();
       jsonObject.put(PARAM_RESULT_HITS_EXPL_DESC, descr == null ? "" : descr);
       Explanation[] details = expl.getDetails();
       if (details != null)
       {
-        JSONArray detailArray = new FastJSONArray();
+        JSONArray detailArray = new FastJSONArray(details.length);
         for (Explanation detail : details)
         {
           JSONObject subObj = convertExpl(detail);
@@ -197,7 +197,7 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
   public static JSONObject convert(Map<String, FacetAccessible> facetValueMap, SenseiRequest req)
       throws JSONException
   {
-    JSONObject resMap = new FastJSONObject();
+    JSONObject resMap = new FastJSONObject(25);
     if (facetValueMap != null)
     {
       Set<Entry<String, FacetAccessible>> entrySet = facetValueMap.entrySet();
@@ -243,7 +243,7 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
             if (selectedVal != null && selectedVal.length() > 0)
             {
               BrowseFacet selectedFacetVal = facetAccessible.getFacet(selectedVal);
-              JSONObject fv = new FastJSONObject();
+              JSONObject fv = new FastJSONObject(5);
               fv.put(PARAM_RESULT_FACET_INFO_COUNT, selectedFacetVal == null ? 0 : selectedFacetVal.getFacetValueHitCount());
               String fval = selectedFacetVal == null ? selectedVal : selectedFacetVal.getValue();
               fv.put(PARAM_RESULT_FACET_INFO_VALUE, fval);
@@ -349,12 +349,14 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
   {
     Set<String> selectSet = req.getSelectSet();
 
-    JSONArray hitArray = new FastJSONArray();
+    JSONArray hitArray = new FastJSONArray(hits.length);
     for (SenseiHit hit : hits)
     {
       Map<String, String[]> fieldMap = hit.getFieldValues();
+      int fieldMapSize = fieldMap == null ? 0 : fieldMap.size();
 
-      JSONObject hitObj = new FastJSONObject();
+      JSONObject hitObj = new FastJSONObject(20 + fieldMapSize);
+
       if (selectSet == null || selectSet.contains(PARAM_RESULT_HIT_UID))
       {
         hitObj.put(PARAM_RESULT_HIT_UID, hit.getUID());
@@ -400,18 +402,19 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
             // UID is already set.
             continue;
           }
-          String[] vals = entry.getValue();
 
-          JSONArray valArray = new FastJSONArray();
-          if (vals != null)
-          {
-            for (String val : vals)
-            {
-              valArray.put(val);
-            }
-          }
           if (selectSet == null || selectSet.contains(key))
           {
+            String[] vals = entry.getValue();
+
+            JSONArray valArray = new FastJSONArray(vals.length);
+            if (vals != null)
+            {
+              for (String val : vals)
+              {
+                valArray.put(val);
+              }
+            }
             hitObj.put(key, valArray);
           }
         }
@@ -420,41 +423,46 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
       Document doc = hit.getStoredFields();
       if (doc != null)
       {
-        List<JSONObject> storedData = new ArrayList<JSONObject>();
-        List<Fieldable> fields = doc.getFields();
-        for (Fieldable field : fields)
-        {
-          JSONObject data = new FastJSONObject();
-          data.put(PARAM_RESULT_HIT_STORED_FIELDS_NAME, field.name());
-          data.put(PARAM_RESULT_HIT_STORED_FIELDS_VALUE, field.stringValue());
-          storedData.add(data);
-        }
         if (selectSet == null || selectSet.contains(PARAM_RESULT_HIT_STORED_FIELDS))
         {
+          List<Fieldable> fields = doc.getFields();
+          List<JSONObject> storedData = new ArrayList<JSONObject>(fields.size());
+          for (Fieldable field : fields)
+          {
+            JSONObject data = new FastJSONObject(4);
+            data.put(PARAM_RESULT_HIT_STORED_FIELDS_NAME, field.name());
+            data.put(PARAM_RESULT_HIT_STORED_FIELDS_VALUE, field.stringValue());
+            storedData.add(data);
+          }
+
           hitObj.put(PARAM_RESULT_HIT_STORED_FIELDS, new FastJSONArray(storedData));
         }
       }
 
       Map<String,BrowseHit.TermFrequencyVector> tvMap = hit.getTermFreqMap();
-      if (tvMap!=null && tvMap.size()>0){
-        JSONObject tvObj = new FastJSONObject();
+      if (tvMap != null && tvMap.size() > 0){
+        JSONObject tvObj = new FastJSONObject(2 * tvMap.entrySet().size());
         if (selectSet == null || selectSet.contains(PARAM_RESULT_HIT_TERMVECTORS))
         {
           hitObj.put(PARAM_RESULT_HIT_TERMVECTORS, tvObj);
         }
+
         Set<Entry<String,BrowseHit.TermFrequencyVector>> entries = tvMap.entrySet();
         for (Entry<String,BrowseHit.TermFrequencyVector> entry : entries){
           String field = entry.getKey();
-          JSONArray tvArray = new FastJSONArray();
-          tvObj.put(field, tvArray);
+
           String[] terms = entry.getValue().terms;
           int[] freqs = entry.getValue().freqs;
+
+          JSONArray tvArray = new FastJSONArray(terms.length);
           for (int i=0;i<terms.length;++i){
-            JSONObject tv = new FastJSONObject();
+            JSONObject tv = new FastJSONObject(4);
             tv.put("term", terms[i]);
             tv.put("freq", freqs[i]);
             tvArray.put(tv);
           }
+
+          tvObj.put(field, tvArray);
         }
       }
 
@@ -475,7 +483,7 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
   public static JSONObject buildJSONResult(SenseiRequest req, SenseiResult res)
       throws Exception
   {
-    JSONObject jsonObj = new FastJSONObject();
+    JSONObject jsonObj = new FastJSONObject(15);
     jsonObj.put(PARAM_RESULT_TID, res.getTid());
     jsonObj.put(PARAM_RESULT_TOTALDOCS, res.getTotalDocs());
     jsonObj.put(PARAM_RESULT_NUMHITS, res.getNumHits());
@@ -489,7 +497,7 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
     List<String> selectList = req.getSelectList();
     if (selectList != null)
     {
-      JSONArray jsonSelectList = new FastJSONArray();
+      JSONArray jsonSelectList = new FastJSONArray(selectList.size());
       for (String col: selectList)
       {
         jsonSelectList.put(col);
@@ -507,9 +515,9 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
   }
 
   private static void addErrors(JSONObject jsonResult, SenseiResult res) throws JSONException {
-    JSONArray errorsJson = new FastJSONArray();
+    JSONArray errorsJson = new FastJSONArray(res.getErrors().size());
     for (SenseiError error: res.getErrors()) {
-      errorsJson.put(new FastJSONObject().put(PARAM_RESULT_ERROR_MESSAGE, error.getMessage())
+      errorsJson.put(new FastJSONObject(5).put(PARAM_RESULT_ERROR_MESSAGE, error.getMessage())
                                          .put(PARAM_RESULT_ERROR_TYPE, error.getErrorType().name())
                                          .put(PARAM_RESULT_ERROR_CODE, error.getErrorCode()));
     }
@@ -526,7 +534,7 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
     SenseiQuery sq;
     String query = params.getString(PARAM_QUERY, null);
 
-    JSONObject qjson = new FastJSONObject();
+    JSONObject qjson = new FastJSONObject(30);
     if (query != null && query.length() > 0)
     {
       try
@@ -935,7 +943,7 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
 
   @Override
   protected String buildResultString(HttpServletRequest httpReq, SenseiSystemInfo info) throws Exception {
-    JSONObject jsonObj = new FastJSONObject();
+    JSONObject jsonObj = new FastJSONObject(8);
     jsonObj.put(PARAM_SYSINFO_NUMDOCS, info.getNumDocs());
     jsonObj.put(PARAM_SYSINFO_LASTMODIFIED, info.getLastModified());
     jsonObj.put(PARAM_SYSINFO_VERSION, info.getVersion());
@@ -945,27 +953,26 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
       jsonObj.put(PARAM_SYSINFO_SCHEMA, new FastJSONObject(info.getSchema()));
     }
 
-    JSONArray jsonArray = new FastJSONArray();
-    jsonObj.put(PARAM_SYSINFO_FACETS, jsonArray);
     Set<SenseiSystemInfo.SenseiFacetInfo> facets = info.getFacetInfos();
+    JSONArray jsonArray = new FastJSONArray(facets == null ? 0 : facets.size());
     if (facets != null) {
         for (SenseiSystemInfo.SenseiFacetInfo facet : facets) {
-          JSONObject facetObj = new FastJSONObject();
+          JSONObject facetObj = new FastJSONObject(6);
           facetObj.put(PARAM_SYSINFO_FACETS_NAME, facet.getName());
           facetObj.put(PARAM_SYSINFO_FACETS_RUNTIME, facet.isRunTime());
           facetObj.put(PARAM_SYSINFO_FACETS_PROPS, facet.getProps());
           jsonArray.put(facetObj);
         }
     }
+    jsonObj.put(PARAM_SYSINFO_FACETS, jsonArray);
 
-    jsonArray = new FastJSONArray();
-    jsonObj.put(PARAM_SYSINFO_CLUSTERINFO, jsonArray);
     List<SenseiSystemInfo.SenseiNodeInfo> clusterInfo = info.getClusterInfo();
+    jsonArray = new FastJSONArray(clusterInfo == null ? 0 : clusterInfo.size());
     if (clusterInfo != null)
     {
       for (SenseiSystemInfo.SenseiNodeInfo nodeInfo : clusterInfo)
       {
-        JSONObject nodeObj = new FastJSONObject();
+        JSONObject nodeObj = new FastJSONObject(7);
         nodeObj.put(PARAM_SYSINFO_CLUSTERINFO_ID, nodeInfo.getId());
         nodeObj.put(PARAM_SYSINFO_CLUSTERINFO_PARTITIONS, new FastJSONArray(Arrays.asList(nodeInfo.getPartitions())));
         nodeObj.put(PARAM_SYSINFO_CLUSTERINFO_NODELINK, nodeInfo.getNodeLink());
@@ -973,6 +980,7 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
         jsonArray.put(nodeObj);
       }
     }
+    jsonObj.put(PARAM_SYSINFO_CLUSTERINFO, jsonArray);
 
     return supportJsonp(httpReq, jsonObj.toString());
   }
