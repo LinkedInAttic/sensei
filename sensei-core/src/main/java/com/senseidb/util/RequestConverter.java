@@ -26,6 +26,7 @@ import com.senseidb.search.node.SenseiQueryBuilderFactory;
 import com.senseidb.search.req.SenseiRequest;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import org.apache.commons.configuration.BaseConfiguration;
@@ -45,7 +46,7 @@ public class RequestConverter {
 		breq.setFetchStoredFields(req.isFetchStoredFields());
 		breq.setShowExplanation(req.isShowExplanation());
 		breq.setTermVectorsToFetch(req.getTermVectorsToFetch());
-    breq.setFacetsToFetch(req.getFacetsToFetch());
+    breq.setFacetsToFetch(req.getSelectList() != null ? new HashSet<String>(req.getSelectList()) : null);
     breq.setGroupBy(req.getGroupBy());
     breq.setMaxPerGroup(req.getMaxPerGroup());
     if (breq.getGroupBy() != null && breq.getMaxPerGroup() > 1) {

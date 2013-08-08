@@ -424,11 +424,6 @@ public class RequestConverter2 {
 		  req.setTermVectorsToFetch(new HashSet<String>(Arrays.asList(termVectors)));
 		}
 
-    String[] facetsToFetch = getStrings(json,RequestConverter2.FACETS_TO_FETCH);
-    if (facetsToFetch!=null){
-      req.setFacetsToFetch(new HashSet<String>(Arrays.asList(facetsToFetch)));
-    }
-
 		req.setPartitions(getIntSet(json, RequestConverter2.PARTITIONS,0));
 
 		req.setShowExplanation(json.optBoolean(RequestConverter2.EXPLAIN,false));
