@@ -74,6 +74,7 @@ private long   tid           =          -1;
   private List<String> _selectList; // Select list (mostly used in BQL) 
   private SenseiMapReduce mapReduceFunction;
   private List<SenseiError> errors;
+  private Set<String> _facetsToFetch;
   
   public SenseiRequest(){
     _facetInitParamMap = new HashMap<String,FacetHandlerInitializerParam>();
@@ -91,6 +92,7 @@ private long   tid           =          -1;
     _maxPerGroup = 0;
     _termVectorsToFetch = null;
     _selectList = null;
+    _facetsToFetch = null;
   }
 
   public Set<String> getTermVectorsToFetch(){
@@ -100,7 +102,18 @@ private long   tid           =          -1;
   public void setTermVectorsToFetch(Set<String> termVectorsToFetch){
     _termVectorsToFetch = termVectorsToFetch;
   }
-/**
+
+  public Set<String> getFacetsToFetch()
+  {
+    return _facetsToFetch;
+  }
+
+  public void setFacetsToFetch(Set<String> facetsToFetch)
+  {
+    _facetsToFetch = facetsToFetch;
+  }
+
+  /**
    * Get the transaction ID.
    * @return the transaction ID.
    */
@@ -537,6 +550,7 @@ private long   tid           =          -1;
     clone.setGroupBy(this.getGroupBy());
     clone.setMaxPerGroup(this.getMaxPerGroup());
     clone.setTermVectorsToFetch(this.getTermVectorsToFetch());
+    clone.setFacetsToFetch(this.getFacetsToFetch());
     clone.setSelectList(this.getSelectList());
     clone.setMapReduceFunction(this.getMapReduceFunction());
 

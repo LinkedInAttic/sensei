@@ -99,6 +99,7 @@ public class RequestConverter2 {
   public static final String FACETINIT_TYPE_DOUBLE = "double";
   public static final String FACETINIT_VALUES = "values";
 
+  public static final String FACETS_TO_FETCH = "fetchFacets";
 
   public static final String SORT = "sort";
   public static final String SORT_ASC = "asc";
@@ -423,6 +424,10 @@ public class RequestConverter2 {
 		  req.setTermVectorsToFetch(new HashSet<String>(Arrays.asList(termVectors)));
 		}
 
+    String[] facetsToFetch = getStrings(json,RequestConverter2.FACETS_TO_FETCH);
+    if (facetsToFetch!=null){
+      req.setFacetsToFetch(new HashSet<String>(Arrays.asList(facetsToFetch)));
+    }
 
 		req.setPartitions(getIntSet(json, RequestConverter2.PARTITIONS,0));
 

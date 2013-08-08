@@ -33,6 +33,7 @@ public interface SenseiSearchServletParams {
 	public static final String PARAM_FETCH_STORED = "fetchstored";
 	public static final String PARAM_FETCH_STORED_VALUE = "fetchstoredvalue";
     public static final String PARAM_FETCH_TERMVECTOR = "fetchtermvector";
+  public static final String PARAM_FACETS_TO_FETCH = "fetchfacets";
 	public static final String PARAM_EXPLAIN = "explain";
     public static final String PARAM_TRACE = "trace";
 	public static final String PARAM_ROUTE_PARAM = "routeparam";

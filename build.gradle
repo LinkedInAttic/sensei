@@ -38,7 +38,7 @@ project.ext.externalDependency = [
   'kafka': 'kafka:kafka:0.7.6',
   'zoieCore': 'com.linkedin.zoie:zoie-core:3.3.6',
   'zoieJms': 'com.linkedin.zoie:zoie-jms:3.3.6',
-  'boboBrowse': 'com.linkedin.bobo:bobo-browse:3.1.10',
+  'boboBrowse': 'com.linkedin.bobo:bobo-browse:3.1.16',
   'norbert':'com.linkedin.norbert:norbert:0.6.34',
 
   'antlr':'org.antlr:antlr:3.4',

@@ -105,6 +105,7 @@ import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_SYSINFO_NUMDO
 import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_SYSINFO_SCHEMA;
 import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_SYSINFO_VERSION;
 import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_TRACE;
+import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_FACETS_TO_FETCH;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -605,6 +606,12 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
       if (tvsToFetch.size() > 0)
         senseiReq.setTermVectorsToFetch(tvsToFetch);
     }
+
+    String[] facetsToFetch= params.getStringArray(PARAM_FACETS_TO_FETCH);
+    if (facetsToFetch!=null){
+      senseiReq.setTermVectorsToFetch( new HashSet<String>(Arrays.asList(facetsToFetch)));
+    }
+
     String groupBy = params.getString(PARAM_GROUP_BY, null);
     if (groupBy != null && groupBy.length() != 0)
       senseiReq.setGroupBy(StringUtils.split(groupBy, ','));
