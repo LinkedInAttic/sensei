@@ -4,6 +4,7 @@ include "sensei-gateways"
 include "sensei-hadoop-indexing"
 include "clients/java"
 include "sensei-war"
+include "sensei-facet"
 
 project(":clients/java").name = "sensei-java-client"
 project(":sensei-war").name = "sensei"

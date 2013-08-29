@@ -1,3 +1,5 @@
+apply plugin: 'idea'
+
 project.ext.isDefaultEnvironment = !project.hasProperty('overrideBuildEnvironment')
 
 File getEnvironmentScript()
@@ -11,11 +13,12 @@ apply from: environmentScript
 
 project.ext.externalDependency = [
   'luceneCore': 'org.apache.lucene:lucene-core:3.5.0',
+  'luceneCore4': 'org.apache.lucene:lucene-core:4.3.0',
   'luceneAnalyzers': 'org.apache.lucene:lucene-analyzers:3.5.0',
   'guava': 'com.google.guava:guava:14.0.1',
   'protobufJava': 'com.google.protobuf:protobuf-java:2.4.0a',
   'jolokiaCore': 'org.jolokia:jolokia-core:0.90',
-  'fastutil': 'fastutil:fastutil:5.1.5',
+  'fastutil': 'fastutil:fastutil:5.0.5',
   'spring': 'org.springframework:spring:2.5.5',
   'log4j': 'log4j:log4j:1.2.16',
   'derby': 'org.apache.derby:derby:10.10.1.1',
