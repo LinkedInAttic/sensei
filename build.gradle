@@ -13,8 +13,9 @@ apply from: environmentScript
 
 project.ext.externalDependency = [
   'luceneCore': 'org.apache.lucene:lucene-core:3.5.0',
-  'luceneCore4': 'org.apache.lucene:lucene-core:4.3.0',
+  'luceneCore4': 'org.apache.lucene:lucene-core:4.4.0',
   'luceneAnalyzers': 'org.apache.lucene:lucene-analyzers:3.5.0',
+  "luceneAnalyzersCommon4": "org.apache.lucene:lucene-analyzers-common:4.4.0",
   'guava': 'com.google.guava:guava:14.0.1',
   'protobufJava': 'com.google.protobuf:protobuf-java:2.4.0a',
   'jolokiaCore': 'org.jolokia:jolokia-core:0.90',
@@ -52,7 +53,8 @@ project.ext.externalDependency = [
   'easymock':'org.easymock:easymock:3.1',
   'easymockclassextension':'org.easymock:easymockclassextension:3.1',
   'junit':'junit:junit:4.7',
-  'fastjson':'com.alibaba:fastjson:1.1.24'
+  'fastjson':'com.alibaba:fastjson:1.1.24',
+   "testng": "org.testng:testng:6.4",
 ];
 
 subprojects {

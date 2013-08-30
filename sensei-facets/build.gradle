@@ -1,0 +1,13 @@
+apply plugin: 'java'
+apply plugin: 'idea'
+
+dependencies {
+    compile externalDependency.luceneCore4
+    compile externalDependency.luceneAnalyzersCommon4
+    compile externalDependency.guava
+    compile externalDependency.fastutil
+
+    testCompile externalDependency.testng
+}
+
+
