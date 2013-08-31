@@ -17,8 +17,9 @@
  * © 2012 LinkedIn Corp. All Rights Reserved.  
  */
 
-package com.senseidb.facet.iterator;
+package com.senseidb.facet.handler.loadable.iterator;
 
+import com.senseidb.facet.iterator.FloatFacetIterator;
 import com.senseidb.facet.termlist.TermFloatList;
 import com.senseidb.facet.data.BigSegmentedArray;
 
@@ -28,7 +29,7 @@ import java.util.NoSuchElementException;
  * @author "Xiaoyang Gu<xgu@linkedin.com>"
  * 
  */
-public class DefaultFloatFacetIterator extends FloatFacetIterator
+public class LoadableFloatFacetIterator extends FloatFacetIterator
 {
 
   public TermFloatList _valList;
@@ -37,8 +38,8 @@ public class DefaultFloatFacetIterator extends FloatFacetIterator
   private int _countLengthMinusOne;
   private int _index;
 
-  public DefaultFloatFacetIterator(TermFloatList valList, BigSegmentedArray countarray, int countlength,
-      boolean zeroBased)
+  public LoadableFloatFacetIterator(TermFloatList valList, BigSegmentedArray countarray, int countlength,
+                                    boolean zeroBased)
   {
     _valList = valList;
     _countlength = countlength;

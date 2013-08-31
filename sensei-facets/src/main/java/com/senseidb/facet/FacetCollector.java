@@ -1,4 +1,4 @@
-package com.senseidb.facet.search;
+package com.senseidb.facet;
 
 
 import com.senseidb.facet.FacetRequestParams;
@@ -10,6 +10,12 @@ import com.senseidb.facet.handler.CombinedFacetAccessible;
 import com.senseidb.facet.handler.FacetCountCollector;
 import com.senseidb.facet.handler.FacetHandler;
 import com.senseidb.facet.handler.RuntimeFacetHandler;
+import com.senseidb.facet.search.DefaultFacetValidator;
+import com.senseidb.facet.search.FacetAtomicReader;
+import com.senseidb.facet.search.FacetContext;
+import com.senseidb.facet.search.FacetValidator;
+import com.senseidb.facet.search.NoNeedFacetValidator;
+import com.senseidb.facet.search.OnePostFilterFacetValidator;
 import org.apache.lucene.index.AtomicReader;
 import org.apache.lucene.index.AtomicReaderContext;
 import org.apache.lucene.search.Collector;
@@ -79,7 +85,7 @@ public class FacetCollector extends Collector {
     }
 
     _facetContexts = new LinkedList<FacetContext>();
-    for (FacetHandler<?> facetHandler : _request.getAllFacetHandlerMap().values()) {
+    for (FacetHandler facetHandler : _request.getAllFacetHandlerMap().values()) {
       String name = facetHandler.getName();
 
       FacetSelection sel = _requestParams.getSelection(name);
@@ -117,7 +123,7 @@ public class FacetCollector extends Collector {
 
     Map<String, FacetAccessible> facetMap = new HashMap<String, FacetAccessible>();
     for (Map.Entry<String, Map<AtomicReader, FacetAccessible>> entry : _facetCollectors.entrySet()) {
-      FacetHandler<?> handler = _request.getAllFacetHandlerMap().get(entry.getKey());
+      FacetHandler handler = _request.getAllFacetHandlerMap().get(entry.getKey());
       FacetSpec spec = _requestParams.getFacetSpec(entry.getKey());
       if (handler != null && spec != null) {
         FacetAccessible merged = new CombinedFacetAccessible(spec, new ArrayList<FacetAccessible>(entry.getValue().values()));

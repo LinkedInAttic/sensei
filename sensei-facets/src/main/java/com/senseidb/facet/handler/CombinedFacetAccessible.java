@@ -81,8 +81,8 @@ public class CombinedFacetAccessible implements FacetAccessible
         if (facet!=null)
         {
           foundValue = facet.getValue();
-          if (sum==-1) sum=facet.getHitCount();
-          else sum+=facet.getHitCount();
+          if (sum==-1) sum=facet.getFacetValueHitCount();
+          else sum+=facet.getFacetValueHitCount();
         }
       }
     }
@@ -90,43 +90,7 @@ public class CombinedFacetAccessible implements FacetAccessible
     return new Facet(foundValue,sum);
   }
 
-  public int getCappedFacetCount(Object value, int cap) 
-  {
-    if (_closed)
-    {
-      throw new IllegalStateException("This instance of count collector was already closed");
-    }
-    int sum=0;
-    if (_list!=null)
-    {
-      for (FacetAccessible facetAccessor : _list)
-      {
-        sum += facetAccessor.getFacetHitsCount(value);
-        if (sum >= cap)
-          return cap;
-      }
-    }
-    return sum;
-  }
-
-  public int getFacetHitsCount(Object value) 
-  {
-    if (_closed)
-    {
-      throw new IllegalStateException("This instance of count collector was already closed");
-    }
-    int sum=0;
-    if (_list!=null)
-    {
-      for (FacetAccessible facetAccessor : _list)
-      {
-        sum += facetAccessor.getFacetHitsCount(value);
-      }
-    }
-    return sum;
-  }
-
-  public List<Facet> getFacets()
+  public List<Facet> getTopFacets()
   {
     if (_closed)
     {
@@ -140,7 +104,7 @@ public class CombinedFacetAccessible implements FacetAccessible
 
     int cnt = 0;
     Comparable facet = null;
-    FacetIterator iter = (FacetIterator)this.iterator();
+    FacetIterator iter = this.iterator();
     Comparator<Facet> comparator;
     if (FacetSpec.FacetSortSpec.OrderValueAsc.equals(_fspec.getOrderBy()))
     {
@@ -157,7 +121,7 @@ public class CombinedFacetAccessible implements FacetAccessible
       {
         public int compare(Facet f1, Facet f2)
         {
-          int val=f2.getHitCount() - f1.getHitCount();
+          int val=f2.getFacetValueHitCount() - f1.getFacetValueHitCount();
           if (val==0)
           {
             val = (f1.getValue().compareTo(f2.getValue()));
@@ -179,14 +143,14 @@ public class CombinedFacetAccessible implements FacetAccessible
         if(facet != null)
         {
           Facet rootFacet = (Facet)queue.top();
-          minHits = rootFacet.getHitCount() + 1;
+          minHits = rootFacet.getFacetValueHitCount() + 1;
           // facet count less than top of min heap, it will never be added 
           while(((facet = iter.next(minHits)) != null))
           {
             rootFacet.setValue(String.valueOf(facet));
-            rootFacet.setHitCount(iter.count);
+            rootFacet.setFacetValueHitCount(iter.count);
             rootFacet = (Facet) queue.updateTop();
-            minHits = rootFacet.getHitCount() + 1;
+            minHits = rootFacet.getFacetValueHitCount() + 1;
           }
         }
         // at this point, queue contains top maxCnt facets that have hitcount >= minHits
@@ -222,7 +186,7 @@ public class CombinedFacetAccessible implements FacetAccessible
           while((facet = iter.next(minHits)) != null)
           {
             // check with the top of min heap
-            browseFacet.setHitCount(iter.count);
+            browseFacet.setFacetValueHitCount(iter.count);
             browseFacet.setValue(String.valueOf(facet));
             browseFacet = (Facet)queue.insertWithOverflow(browseFacet);
           }

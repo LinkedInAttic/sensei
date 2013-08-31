@@ -64,28 +64,6 @@ public class Facet {
    * Gets the hit count
    *
    * @return hit count
-   * @deprecated use {@link #getFacetValueHitCount()}
-   */
-  public int getHitCount() {
-    return _hitcount;
-  }
-
-  /**
-   * Sets the hit count
-   *
-   * @param hitcount Hit count
-   * @deprecated use {@link #setFacetValueHitCount(int)}
-   */
-  public Facet setHitCount(int hitcount) {
-    _hitcount = hitcount;
-    return this;
-  }
-
-  /**
-   * Gets the hit count
-   *
-   * @return hit count
-   * @see #setHitCount(int)
    */
   public int getFacetValueHitCount() {
     return _hitcount;
@@ -95,7 +73,6 @@ public class Facet {
    * Sets the hit count
    *
    * @param hitcount Hit count
-   * @see #getHitCount()
    */
   public Facet setFacetValueHitCount(int hitcount) {
     _hitcount = hitcount;

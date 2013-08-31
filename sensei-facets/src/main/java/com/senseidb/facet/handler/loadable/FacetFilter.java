@@ -17,11 +17,12 @@
  * © 2012 LinkedIn Corp. All Rights Reserved.  
  */
 
-package com.senseidb.facet.handler.inverted;
+package com.senseidb.facet.handler.loadable;
 
 import com.senseidb.facet.data.BigSegmentedArray;
 import com.senseidb.facet.docset.EmptyDocIdSet;
 import com.senseidb.facet.handler.FacetHandler;
+import com.senseidb.facet.handler.LoadableFacetHandler;
 import com.senseidb.facet.search.FacetAtomicReader;
 import org.apache.lucene.index.AtomicReaderContext;
 import org.apache.lucene.search.DocIdSet;
@@ -32,10 +33,10 @@ import org.apache.lucene.util.Bits;
 import java.io.IOException;
 
 public class FacetFilter extends Filter {
-  private final FacetHandler<FacetDataCache> _facetHandler;
+  private final LoadableFacetHandler<FacetDataCache> _facetHandler;
   protected final String _value;
 
-  public FacetFilter(FacetHandler<FacetDataCache> facetHandler, String value) {
+  public FacetFilter(LoadableFacetHandler<FacetDataCache> facetHandler, String value) {
     _facetHandler = facetHandler;
     _value = value;
   }

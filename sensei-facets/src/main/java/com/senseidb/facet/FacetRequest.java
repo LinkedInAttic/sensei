@@ -6,7 +6,6 @@ import com.senseidb.facet.handler.FacetHandlerInitializerParam;
 import com.senseidb.facet.handler.RuntimeFacetHandler;
 import com.senseidb.facet.handler.RuntimeFacetHandlerFactory;
 import com.senseidb.facet.filter.AndFilter;
-import com.senseidb.facet.search.FacetCollector;
 import org.apache.lucene.search.Collector;
 import org.apache.lucene.search.Filter;
 import org.apache.lucene.search.FilteredQuery;
@@ -26,7 +25,7 @@ public class FacetRequest {
 
   private final FacetRequestParams _params;
   private final FacetSystem _system;
-  private HashMap<String, FacetHandler<?>> _allFacetHandlerMap;
+  private HashMap<String, FacetHandler> _allFacetHandlerMap;
   private HashMap<String, RuntimeFacetHandler<?>> _runtimeFacetHandlerMap;
 
   public FacetRequest(FacetSystem system) throws IOException {
@@ -37,8 +36,8 @@ public class FacetRequest {
     _params = params;
     _system = system;
 
-    _allFacetHandlerMap = new HashMap<String, FacetHandler<?>>();
-    for (Map.Entry<String, FacetHandler<?>> entry : _system.getFacetHandlerMap().entrySet()) {
+    _allFacetHandlerMap = new HashMap<String, FacetHandler>();
+    for (Map.Entry<String, FacetHandler> entry : _system.getFacetHandlerMap().entrySet()) {
       _allFacetHandlerMap.put(entry.getKey(), entry.getValue());
     }
 
@@ -64,7 +63,7 @@ public class FacetRequest {
     return _params;
   }
 
-  public HashMap<String, FacetHandler<?>> getAllFacetHandlerMap() {
+  public HashMap<String, FacetHandler> getAllFacetHandlerMap() {
     return _allFacetHandlerMap;
   }
 
@@ -74,7 +73,7 @@ public class FacetRequest {
 
   public Query newQuery(Query query) throws IOException {
     List<Filter> filters = new ArrayList<Filter>();
-    for (Map.Entry<String, FacetHandler<?>> entry : _allFacetHandlerMap.entrySet()) {
+    for (Map.Entry<String, FacetHandler> entry : _allFacetHandlerMap.entrySet()) {
       FacetSpec spec = _params.getFacetSpec(entry.getKey());
       FacetSelection sel = _params.getSelection(entry.getKey());
       if (spec != null && spec.isExpandSelection() && sel != null) {

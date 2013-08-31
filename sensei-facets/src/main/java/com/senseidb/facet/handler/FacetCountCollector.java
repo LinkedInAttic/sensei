@@ -46,12 +46,6 @@ public interface FacetCountCollector extends FacetAccessible
 	String getName();
 	
 	/**
-	 * Returns an integer array representing the distribution function of a given facet.
-	 * @return integer array of count values representing distribution of the facet values.
-	 */
-	BigSegmentedArray getCountDistribution();
-	
-	/**
 	 * Empty facet list. 
 	 */
 	public static List<Facet> EMPTY_FACET_LIST = new LinkedList<Facet>();

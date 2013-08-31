@@ -17,7 +17,7 @@
  * © 2012 LinkedIn Corp. All Rights Reserved.  
  */
 
-package com.senseidb.facet.iterator;
+package com.senseidb.facet.handler.loadable.iterator;
 
 import com.senseidb.facet.FacetIterator;
 import com.senseidb.facet.termlist.TermValueList;
@@ -27,7 +27,7 @@ import com.senseidb.facet.data.BigSegmentedArray;
  * @author nnarkhed
  *
  */
-public class DefaultFacetIterator extends FacetIterator {
+public class LoadableFacetIterator extends FacetIterator {
 
   private TermValueList _valList;
   private BigSegmentedArray _count;
@@ -35,7 +35,7 @@ public class DefaultFacetIterator extends FacetIterator {
   private int _index;
   private int _lastIndex;
 
-  public DefaultFacetIterator(TermValueList valList, BigSegmentedArray counts, int countlength, boolean zeroBased)
+  public LoadableFacetIterator(TermValueList valList, BigSegmentedArray counts, int countlength, boolean zeroBased)
   {
     _valList = valList;
     _count = counts;

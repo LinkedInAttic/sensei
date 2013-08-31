@@ -23,14 +23,13 @@
  * send mail to owner@browseengine.com.
  */
 
-package com.senseidb.facet.search;
+package com.senseidb.facet;
 
 
 import java.io.IOException;
 import java.util.List;
 
-import com.senseidb.facet.FacetRequest;
-import com.senseidb.facet.FacetSystem;
+import com.senseidb.facet.search.FacetAtomicReader;
 import org.apache.lucene.index.AtomicReaderContext;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.MultiReader;
@@ -42,12 +41,12 @@ import org.apache.lucene.index.MultiReader;
  */
 public class FacetMultiReader extends MultiReader
 {
-  private FacetSystem _bobo;
+  private FacetSystem _system;
 
-  public FacetMultiReader(FacetSystem bobo, IndexReader reader)  throws IOException
+  public FacetMultiReader(FacetSystem system, IndexReader reader)  throws IOException
   {
-    super(getSubReaders(bobo, reader));
-    _bobo = bobo;
+    super(getSubReaders(system, reader));
+    _system = system;
   }
 
   private static FacetAtomicReader[] getSubReaders(FacetSystem bobo, IndexReader reader) throws IOException

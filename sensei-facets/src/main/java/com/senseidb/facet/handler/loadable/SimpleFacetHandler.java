@@ -17,17 +17,17 @@
  * © 2012 LinkedIn Corp. All Rights Reserved.  
  */
 
-package com.senseidb.facet.handler.inverted;
+package com.senseidb.facet.handler.loadable;
 
 
 import com.senseidb.facet.FacetSelection;
 import com.senseidb.facet.FacetSpec;
+import com.senseidb.facet.handler.LoadableFacetHandler;
 import com.senseidb.facet.termlist.TermListFactory;
 import com.senseidb.facet.filter.EmptyFilter;
 import com.senseidb.facet.filter.NotFilter;
 import com.senseidb.facet.handler.FacetCountCollector;
 import com.senseidb.facet.handler.FacetCountCollectorSource;
-import com.senseidb.facet.handler.FacetHandler;
 import com.senseidb.facet.search.FacetAtomicReader;
 import org.apache.lucene.search.FieldComparatorSource;
 import org.apache.lucene.search.Filter;
@@ -37,7 +37,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-public class SimpleFacetHandler extends FacetHandler<FacetDataCache>
+public class SimpleFacetHandler extends LoadableFacetHandler<FacetDataCache>
 {
 	protected TermListFactory _termListFactory;
 	protected final String _indexFieldName;
@@ -251,11 +251,11 @@ public class SimpleFacetHandler extends FacetHandler<FacetDataCache>
 		return dataCache;
 	}
 	
-	public static final class SimpleFacetCountCollector extends DefaultFacetCountCollector
+	public static final class SimpleFacetCountCollector extends LoadableFacetCountCollector
 	{
 		public SimpleFacetCountCollector(String name,FacetDataCache dataCache,FacetSelection sel,FacetSpec ospec)
 		{
-		    super(name,dataCache,sel,ospec);
+		    super(name,dataCache,ospec);
 		}
 		
 		public final void collect(int docid) {

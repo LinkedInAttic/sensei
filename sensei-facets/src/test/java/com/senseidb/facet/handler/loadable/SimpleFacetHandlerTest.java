@@ -1,14 +1,15 @@
-package com.senseidb.facet.handler.inverted;
+package com.senseidb.facet.handler.loadable;
 
 import com.google.common.collect.Lists;
+import com.senseidb.facet.Facet;
 import com.senseidb.facet.FacetAccessible;
 import com.senseidb.facet.FacetRequest;
 import com.senseidb.facet.FacetRequestParams;
 import com.senseidb.facet.FacetSpec;
 import com.senseidb.facet.FacetSystem;
 import com.senseidb.facet.handler.FacetHandler;
-import com.senseidb.facet.search.FacetCollector;
-import com.senseidb.facet.search.FacetMultiReader;
+import com.senseidb.facet.FacetCollector;
+import com.senseidb.facet.FacetMultiReader;
 import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
@@ -33,6 +34,8 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import java.util.List;
+
 /**
  * @author Dmytro Ivchenko
  */
@@ -54,7 +57,7 @@ public class SimpleFacetHandlerTest {
     writer.commit();
 
     _handler = new SimpleFacetHandler("color");
-    _system = new FacetSystem(Lists.<FacetHandler<?>>newArrayList(_handler));
+    _system = new FacetSystem(Lists.<FacetHandler>newArrayList(_handler));
 
     _reader = _system.newReader( DirectoryReader.open(_dir) );
     _searcher = new IndexSearcher(_reader);
@@ -64,7 +67,7 @@ public class SimpleFacetHandlerTest {
   public void test() throws Exception {
     // facet request
     FacetRequestParams params = new FacetRequestParams();
-    params.setFacetSpec("color", new FacetSpec().setExpandSelection(true));
+    params.setFacetSpec("color", new FacetSpec().setExpandSelection(true).setOrderBy(FacetSpec.FacetSortSpec.OrderHitsDesc));
     FacetRequest request = new FacetRequest(_system, params);
 
     // sort
@@ -81,10 +84,12 @@ public class SimpleFacetHandlerTest {
     _searcher.search(request.newQuery(boolQuery), facetCollector);
 
     // check counting
-    FacetAccessible facet = facetCollector.getFacets().get("color");
-    Assert.assertEquals(facet.getFacets().size(), 2);
-    Assert.assertEquals(facet.getFacetHitsCount("red"), 2);
-    Assert.assertEquals(facet.getFacetHitsCount("green"), 1);
+    List<Facet> facets = facetCollector.getFacets().get("color").getTopFacets();
+    Assert.assertEquals(facets.size(), 2);
+    Assert.assertEquals(facets.get(0).getFacetValueHitCount(), 2);
+    Assert.assertEquals(facets.get(0).getValue(), "red");
+    Assert.assertEquals(facets.get(1).getFacetValueHitCount(), 1);
+    Assert.assertEquals(facets.get(1).getValue(), "green");
 
     // check value retrieval and sorting
     Assert.assertEquals(3, topCollector.getTotalHits());

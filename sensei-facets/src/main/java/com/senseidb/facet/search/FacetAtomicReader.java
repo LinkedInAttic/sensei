@@ -29,6 +29,7 @@ package com.senseidb.facet.search;
 import com.senseidb.facet.FacetRequest;
 import com.senseidb.facet.FacetSystem;
 import com.senseidb.facet.handler.FacetHandler;
+import com.senseidb.facet.handler.LoadableFacetHandler;
 import org.apache.lucene.index.AtomicReader;
 import org.apache.lucene.index.FilterAtomicReader;
 
@@ -51,19 +52,21 @@ public class FacetAtomicReader extends FilterAtomicReader {
     _bobo = bobo;
     _workArea = new WorkArea();
 
-    for (Map.Entry<String, FacetHandler<?>> entry : bobo.getFacetHandlerMap().entrySet()) {
-      Object data = entry.getValue().load(this, _workArea);
-      _facetDataMap.put(entry.getKey(), data);
+    for (Map.Entry<String, FacetHandler> entry : bobo.getFacetHandlerMap().entrySet()) {
+      if (entry.getValue() instanceof LoadableFacetHandler<?>) {
+        Object data = ((LoadableFacetHandler<?>)entry.getValue()).load(this, _workArea);
+        _facetDataMap.put(entry.getKey(), data);
+      }
     }
 
-    for (Map.Entry<String, FacetHandler<?>> entry : bobo.getFacetHandlerMap().entrySet()) {
+    for (Map.Entry<String, FacetHandler> entry : bobo.getFacetHandlerMap().entrySet()) {
       processDependencies(entry.getValue());
     }
   }
 
-  private void processDependencies(FacetHandler<?> facetHandler) throws IOException {
+  private void processDependencies(FacetHandler facetHandler) throws IOException {
     for (String name : facetHandler.getDependsOn()) {
-      FacetHandler<?> dep = _bobo.getFacetHandlerMap().get(name);
+      FacetHandler dep = _bobo.getFacetHandlerMap().get(name);
       if (dep == null)
         throw new IOException("Dependent facet handler not found," + name);
       processDependencies(dep);
@@ -80,7 +83,7 @@ public class FacetAtomicReader extends FilterAtomicReader {
 
   public String[] getFieldValues(FacetRequest request, int docID, String field)
   {
-    FacetHandler<?> handler = request.getAllFacetHandlerMap().get(field);
+    FacetHandler handler = request.getAllFacetHandlerMap().get(field);
     if (null == handler)
       return null;
 
@@ -89,7 +92,7 @@ public class FacetAtomicReader extends FilterAtomicReader {
 
   public Object[] getRawFieldValues(FacetRequest request, int docID, String field)
   {
-    FacetHandler<?> handler = request.getAllFacetHandlerMap().get(field);
+    FacetHandler handler = request.getAllFacetHandlerMap().get(field);
     if (null == handler)
       return null;
 

@@ -17,7 +17,7 @@
  * © 2012 LinkedIn Corp. All Rights Reserved.  
  */
 
-package com.senseidb.facet.handler.inverted;
+package com.senseidb.facet.handler.loadable;
 
 
 import com.senseidb.facet.termlist.TermValueList;

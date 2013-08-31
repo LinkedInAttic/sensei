@@ -13,7 +13,7 @@ public class OnePostFilterFacetValidator extends FacetValidator
 {
   private FacetContext _firsttime;
 
-  OnePostFilterFacetValidator(FacetContext[] collectors)
+  public OnePostFilterFacetValidator(FacetContext[] collectors)
       throws IOException
   {
     super(collectors, 1);

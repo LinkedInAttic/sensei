@@ -17,11 +17,12 @@
  * © 2012 LinkedIn Corp. All Rights Reserved.  
  */
 
-package com.senseidb.facet.handler.inverted;
+package com.senseidb.facet.handler.loadable;
 
 import com.senseidb.facet.data.BigSegmentedArray;
 import com.senseidb.facet.docset.EmptyDocIdSet;
 import com.senseidb.facet.handler.FacetHandler;
+import com.senseidb.facet.handler.LoadableFacetHandler;
 import com.senseidb.facet.search.FacetAtomicReader;
 import org.apache.lucene.index.AtomicReaderContext;
 import org.apache.lucene.search.DocIdSet;
@@ -34,15 +35,15 @@ import java.io.IOException;
 import java.util.List;
 
 public class FacetOrFilter extends Filter {
-  protected final FacetHandler<FacetDataCache> _facetHandler;
+  protected final LoadableFacetHandler<FacetDataCache> _facetHandler;
   protected final List<String> _vals;
   private final boolean _takeCompliment;
 
-  public FacetOrFilter(FacetHandler<FacetDataCache> facetHandler, List<String> vals) {
+  public FacetOrFilter(LoadableFacetHandler<FacetDataCache> facetHandler, List<String> vals) {
     this(facetHandler, vals, false);
   }
 
-  public FacetOrFilter(FacetHandler<FacetDataCache> facetHandler, List<String> vals, boolean takeCompliment) {
+  public FacetOrFilter(LoadableFacetHandler<FacetDataCache> facetHandler, List<String> vals, boolean takeCompliment) {
     _facetHandler = facetHandler;
     _vals = vals;
     _takeCompliment = takeCompliment;
@@ -87,7 +88,7 @@ public class FacetOrFilter extends Filter {
     private final FacetDataCache _dataCache;
     private final int[] _index;
 
-    FacetOrDocIdSet(FacetHandler<FacetDataCache> facetHandler, FacetAtomicReader reader,
+    FacetOrDocIdSet(LoadableFacetHandler<FacetDataCache> facetHandler, FacetAtomicReader reader,
                                 List<String> vals, boolean takeCompliment) {
       _dataCache = facetHandler.getFacetData(reader);
       _orderArray = _dataCache.orderArray;

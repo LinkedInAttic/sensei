@@ -27,11 +27,11 @@ import org.apache.lucene.search.DocIdSetIterator;
 
 public final class FacetContext {
   private final FacetCountCollector _countCollector;
-  private final FacetHandler<?> _facetHandler;
+  private final FacetHandler _facetHandler;
   private final DocIdSetIterator _facetHitIterator;
 
   public FacetContext(FacetCountCollector countCollector,
-                      FacetHandler<?> facetHandler,
+                      FacetHandler facetHandler,
                       DocIdSetIterator facetHitIterator) {
     _countCollector = countCollector;
     _facetHandler = facetHandler;
@@ -42,7 +42,7 @@ public final class FacetContext {
     return _countCollector;
   }
 
-  public FacetHandler<?> getFacetHandler() {
+  public FacetHandler getFacetHandler() {
     return _facetHandler;
   }
 

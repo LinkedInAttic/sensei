@@ -17,9 +17,10 @@
  * © 2012 LinkedIn Corp. All Rights Reserved.  
  */
 
-package com.senseidb.facet.iterator;
+package com.senseidb.facet.handler.loadable.iterator;
 
-import com.senseidb.facet.termlist.TermLongList;
+import com.senseidb.facet.iterator.DoubleFacetIterator;
+import com.senseidb.facet.termlist.TermDoubleList;
 import com.senseidb.facet.data.BigSegmentedArray;
 
 import java.util.NoSuchElementException;
@@ -28,17 +29,17 @@ import java.util.NoSuchElementException;
  * @author "Xiaoyang Gu<xgu@linkedin.com>"
  * 
  */
-public class DefaultLongFacetIterator extends LongFacetIterator
+public class LoadableDoubleFacetIterator extends DoubleFacetIterator
 {
 
-  public TermLongList _valList;
+  public TermDoubleList _valList;
   private BigSegmentedArray _count;
   private int _countlength;
   private int _countLengthMinusOne;
   private int _index;
 
-  public DefaultLongFacetIterator(TermLongList valList, BigSegmentedArray countarray, int countlength,
-      boolean zeroBased)
+  public LoadableDoubleFacetIterator(TermDoubleList valList, BigSegmentedArray countarray, int countlength,
+                                     boolean zeroBased)
   {
     _valList = valList;
     _countlength = countlength;
@@ -47,7 +48,7 @@ public class DefaultLongFacetIterator extends LongFacetIterator
     _index = -1;
     if (!zeroBased)
       _index++;
-    facet = TermLongList.VALUE_MISSING;
+    facet = TermDoubleList.VALUE_MISSING;
     count = 0;
   }
 
@@ -58,11 +59,11 @@ public class DefaultLongFacetIterator extends LongFacetIterator
    */
   public String getFacet()
   {
-    if (facet == TermLongList.VALUE_MISSING) return null;
+    if (facet == TermDoubleList.VALUE_MISSING) return null;
     return _valList.format(facet);
   }
 
-  public String format(long val)
+  public String format(double val)
   {
     return _valList.format(val);
   }
@@ -108,9 +109,9 @@ public class DefaultLongFacetIterator extends LongFacetIterator
   }
 
   /* (non-Javadoc)
-   * @see com.browseengine.bobo.api.LongFacetIterator#nextLong()
+   * @see com.browseengine.bobo.api.DoubleFacetIterator#nextDouble()
    */
-  public long nextLong()
+  public double nextDouble()
   {
     if (_index >= _countLengthMinusOne)
       throw new NoSuchElementException("No more facets in this iteration");
@@ -147,15 +148,15 @@ public class DefaultLongFacetIterator extends LongFacetIterator
         return _valList.format(facet);
       }
     }
-    facet = TermLongList.VALUE_MISSING;
+    facet = TermDoubleList.VALUE_MISSING;
     count = 0;
     return null;
   }
 
   /* (non-Javadoc)
-   * @see com.browseengine.bobo.api.LongFacetIterator#nextLong(int)
+   * @see com.browseengine.bobo.api.DoubleFacetIterator#nextDouble(int)
    */
-  public long nextLong(int minHits)
+  public double nextDouble(int minHits)
   {
     while (++_index < _countlength)
     {
@@ -166,7 +167,7 @@ public class DefaultLongFacetIterator extends LongFacetIterator
         return facet;
       }
     }
-    facet = TermLongList.VALUE_MISSING;
+    facet = TermDoubleList.VALUE_MISSING;
     count = 0;
     return facet;
   }

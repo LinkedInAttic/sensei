@@ -34,7 +34,7 @@ import java.util.Set;
  * @author ymatsuda
  * @param <D> type parameter for FacetData
  */
-public abstract class RuntimeFacetHandler<D> extends FacetHandler<D>
+public abstract class RuntimeFacetHandler<D> extends LoadableFacetHandler<D>
 {
   Map<FacetAtomicReader, Object> _runtimeData;
 

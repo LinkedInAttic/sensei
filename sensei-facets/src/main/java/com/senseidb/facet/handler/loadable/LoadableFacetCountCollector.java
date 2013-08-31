@@ -17,15 +17,20 @@
  * © 2012 LinkedIn Corp. All Rights Reserved.  
  */
 
-package com.senseidb.facet.handler.inverted;
+package com.senseidb.facet.handler.loadable;
 
 import com.senseidb.facet.Facet;
 import com.senseidb.facet.FacetIterator;
-import com.senseidb.facet.FacetSelection;
 import com.senseidb.facet.FacetSpec;
 import com.senseidb.facet.data.BigSegmentedArray;
 import com.senseidb.facet.data.IntBoundedPriorityQueue;
 import com.senseidb.facet.data.LazyBigIntArray;
+import com.senseidb.facet.handler.loadable.iterator.LoadableDoubleFacetIterator;
+import com.senseidb.facet.handler.loadable.iterator.LoadableFacetIterator;
+import com.senseidb.facet.handler.loadable.iterator.LoadableFloatFacetIterator;
+import com.senseidb.facet.handler.loadable.iterator.LoadableIntFacetIterator;
+import com.senseidb.facet.handler.loadable.iterator.LoadableLongFacetIterator;
+import com.senseidb.facet.handler.loadable.iterator.LoadableShortFacetIterator;
 import com.senseidb.facet.termlist.TermDoubleList;
 import com.senseidb.facet.termlist.TermFloatList;
 import com.senseidb.facet.termlist.TermIntList;
@@ -35,12 +40,6 @@ import com.senseidb.facet.termlist.TermValueList;
 import com.senseidb.facet.handler.ComparatorFactory;
 import com.senseidb.facet.handler.FacetCountCollector;
 import com.senseidb.facet.handler.FieldValueAccessor;
-import com.senseidb.facet.iterator.DefaultDoubleFacetIterator;
-import com.senseidb.facet.iterator.DefaultFacetIterator;
-import com.senseidb.facet.iterator.DefaultFloatFacetIterator;
-import com.senseidb.facet.iterator.DefaultIntFacetIterator;
-import com.senseidb.facet.iterator.DefaultLongFacetIterator;
-import com.senseidb.facet.iterator.DefaultShortFacetIterator;
 import com.senseidb.facet.iterator.FacetHitcountComparatorFactory;
 import com.senseidb.facet.data.IntComparator;
 
@@ -48,24 +47,21 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-public abstract class DefaultFacetCountCollector implements FacetCountCollector
+public abstract class LoadableFacetCountCollector implements FacetCountCollector
 {
-  public BigSegmentedArray _count;
-  public int _countlength;
+  protected BigSegmentedArray _count;
+  protected int _countlength;
 
-  protected final FacetSpec _ospec;
+  protected final FacetSpec _spec;
   protected final FacetDataCache _dataCache;
-  protected final FacetSelection _sel;
   protected final BigSegmentedArray _array;
 
   private final String _name;
   private boolean _closed = false;
 
-  public DefaultFacetCountCollector(String name, FacetDataCache dataCache,
-                                    FacetSelection sel, FacetSpec ospec)
+  public LoadableFacetCountCollector(String name, FacetDataCache dataCache, FacetSpec spec)
   {
-    _sel = sel;
-    _ospec = ospec;
+    _spec = spec;
     _name = name;
     _dataCache=dataCache;
     _countlength = _dataCache.valArray.size();
@@ -97,31 +93,6 @@ public abstract class DefaultFacetCountCollector implements FacetCountCollector
     return facet; 
   }
 
-  public int getFacetHitsCount(Object value)
-  {
-    if (_closed)
-    {
-      throw new IllegalStateException("This instance of count collector for " + _name + " was already closed");
-    }
-    int index=_dataCache.valArray.indexOf(value);
-    if (index >= 0)
-    {
-      return _count.get(index);
-    }
-    else{
-      return 0;  
-    }
-  }
-
-  public BigSegmentedArray getCountDistribution()
-  {
-    return _count;
-  }
-  
-  public FacetDataCache getFacetDataCache(){
-	  return _dataCache;
-  }
-  
   public static List<Facet> getFacets(FacetSpec ospec, BigSegmentedArray count, int countlength, final TermValueList<?> valList){
 	  if (ospec!=null)
 	    {
@@ -200,13 +171,13 @@ public abstract class DefaultFacetCountCollector implements FacetCountCollector
 	    }
   }
 
-  public List<Facet> getFacets() {
+  public List<Facet> getTopFacets() {
     if (_closed)
     {
       throw new IllegalStateException("This instance of count collector for " + _name + " was already closed");
     }
     
-    return getFacets(_ospec,_count, _countlength, _dataCache.valArray);
+    return getFacets(_spec,_count, _countlength, _dataCache.valArray);
     
   }
 
@@ -232,20 +203,20 @@ public abstract class DefaultFacetCountCollector implements FacetCountCollector
     }
     if (_dataCache.valArray.getType().equals(Integer.class))
     {
-      return new DefaultIntFacetIterator((TermIntList) _dataCache.valArray, _count, _countlength, false);
+      return new LoadableIntFacetIterator((TermIntList) _dataCache.valArray, _count, _countlength, false);
     } else if (_dataCache.valArray.getType().equals(Long.class))
     {
-      return new DefaultLongFacetIterator((TermLongList) _dataCache.valArray, _count, _countlength, false);
+      return new LoadableLongFacetIterator((TermLongList) _dataCache.valArray, _count, _countlength, false);
     } else if (_dataCache.valArray.getType().equals(Short.class))
     {
-      return new DefaultShortFacetIterator((TermShortList) _dataCache.valArray, _count, _countlength, false);
+      return new LoadableShortFacetIterator((TermShortList) _dataCache.valArray, _count, _countlength, false);
     } else if (_dataCache.valArray.getType().equals(Float.class))
     {
-      return new DefaultFloatFacetIterator((TermFloatList) _dataCache.valArray, _count, _countlength, false);
+      return new LoadableFloatFacetIterator((TermFloatList) _dataCache.valArray, _count, _countlength, false);
     } else if (_dataCache.valArray.getType().equals(Double.class))
     {
-      return new DefaultDoubleFacetIterator((TermDoubleList) _dataCache.valArray, _count, _countlength, false);
+      return new LoadableDoubleFacetIterator((TermDoubleList) _dataCache.valArray, _count, _countlength, false);
     } else
-    return new DefaultFacetIterator(_dataCache.valArray, _count, _countlength, false);
+    return new LoadableFacetIterator(_dataCache.valArray, _count, _countlength, false);
   }
 }

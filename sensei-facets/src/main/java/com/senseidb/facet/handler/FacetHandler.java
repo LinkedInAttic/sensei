@@ -44,19 +44,11 @@ import java.util.Set;
 /**
  * FacetHandler definition
  */
-public abstract class FacetHandler<D> {
-  public static class FacetDataNone implements Serializable {
-    private static final long serialVersionUID = 1L;
-    public static FacetDataNone instance = new FacetDataNone();
-
-    private FacetDataNone() {
-    }
-  }
+public abstract class FacetHandler {
 
   protected final String _name;
   private final Set<String> _dependsOn;
-  private final Map<String, FacetHandler<?>> _dependedFacetHandlers;
-
+  private final Map<String, FacetHandler> _dependedFacetHandlers;
 
   /**
    * Constructor
@@ -70,7 +62,7 @@ public abstract class FacetHandler<D> {
     if (dependsOn != null) {
       _dependsOn.addAll(dependsOn);
     }
-    _dependedFacetHandlers = new HashMap<String, FacetHandler<?>>();
+    _dependedFacetHandlers = new HashMap<String, FacetHandler>();
   }
 
   /**
@@ -105,7 +97,7 @@ public abstract class FacetHandler<D> {
    *
    * @param facetHandler depended facet handler
    */
-  public final void putDependedFacetHandler(FacetHandler<?> facetHandler) {
+  public final void putDependedFacetHandler(FacetHandler facetHandler) {
     _dependedFacetHandlers.put(facetHandler._name, facetHandler);
   }
 
@@ -115,25 +107,8 @@ public abstract class FacetHandler<D> {
    * @param name facet handler name
    * @return facet handler instance
    */
-  public final FacetHandler<?> getDependedFacetHandler(String name) {
+  public final FacetHandler getDependedFacetHandler(String name) {
     return _dependedFacetHandlers.get(name);
-  }
-
-  /**
-   * Load information from an index reader, initialized by {@link com.senseidb.facet.search.FacetAtomicReader}
-   *
-   * @param reader reader
-   * @throws java.io.IOException
-   */
-  abstract public D load(FacetAtomicReader reader) throws IOException;
-
-  @SuppressWarnings("unchecked")
-  public D getFacetData(FacetAtomicReader reader) {
-    return (D) reader.getFacetData(_name);
-  }
-
-  public D load(FacetAtomicReader reader, FacetAtomicReader.WorkArea workArea) throws IOException {
-    return load(reader);
   }
 
   /**

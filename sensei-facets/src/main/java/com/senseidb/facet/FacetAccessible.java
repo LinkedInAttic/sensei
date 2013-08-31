@@ -28,7 +28,7 @@ public interface FacetAccessible {
    *
    * @return list of facets
    */
-  List<Facet> getFacets();
+  List<Facet> getTopFacets();
 
   /**
    * Gets the facet given a value. This is a way for random accessing
@@ -38,15 +38,6 @@ public interface FacetAccessible {
    * @return a facet with count filled in
    */
   Facet getFacet(String value);
-
-  /**
-   * Gets the facet count given a value. This is a way for random
-   * accessing the facet count.
-   *
-   * @param value Facet value
-   * @return a facet with count filled in
-   */
-  int getFacetHitsCount(Object value);
 
   /**
    * Responsible for release resources used. If the implementing class

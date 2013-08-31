@@ -17,13 +17,14 @@
  * © 2012 LinkedIn Corp. All Rights Reserved.  
  */
 
-package com.senseidb.facet.handler.inverted;
+package com.senseidb.facet.handler.loadable;
 
 
 import com.senseidb.facet.data.BigByteArray;
 import com.senseidb.facet.data.BigIntArray;
 import com.senseidb.facet.data.BigSegmentedArray;
 import com.senseidb.facet.data.BigShortArray;
+import com.senseidb.facet.handler.LoadableFacetHandler;
 import com.senseidb.facet.termlist.TermListFactory;
 import com.senseidb.facet.termlist.TermStringList;
 import com.senseidb.facet.termlist.TermValueList;
@@ -42,7 +43,6 @@ import org.apache.lucene.search.FieldComparator;
 import org.apache.lucene.search.FieldComparatorSource;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 public class FacetDataCache<T> {
@@ -248,9 +248,9 @@ public class FacetDataCache<T> {
   }
 
   public static class FacetFieldComparatorSource extends FieldComparatorSource {
-    private FacetHandler<FacetDataCache> _facetHandler;
+    private LoadableFacetHandler<FacetDataCache> _facetHandler;
 
-    public FacetFieldComparatorSource(FacetHandler<FacetDataCache> facetHandler) {
+    public FacetFieldComparatorSource(LoadableFacetHandler<FacetDataCache> facetHandler) {
       _facetHandler = facetHandler;
     }
 
@@ -265,11 +265,11 @@ public class FacetDataCache<T> {
     private Comparable[] _hits;
     private BigSegmentedArray _orderArray;
     private TermValueList<T> _valArray;
-    private FacetHandler<FacetDataCache<T>> _handler;
+    private LoadableFacetHandler<FacetDataCache<T>> _handler;
     private Comparable _bottom;
     private int _reversed; // use int for better pipelining
 
-    public FacetFieldComparator(FacetHandler<FacetDataCache<T>> handler, int numHits, boolean reversed) {
+    public FacetFieldComparator(LoadableFacetHandler<FacetDataCache<T>> handler, int numHits, boolean reversed) {
       _hits = new Comparable[numHits];
       _handler = handler;
       _reversed = reversed ? -1 : 1;

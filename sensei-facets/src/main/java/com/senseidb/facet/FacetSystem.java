@@ -3,7 +3,6 @@ package com.senseidb.facet;
 
 import com.senseidb.facet.handler.FacetHandler;
 import com.senseidb.facet.handler.RuntimeFacetHandlerFactory;
-import com.senseidb.facet.search.FacetMultiReader;
 import org.apache.lucene.index.IndexReader;
 
 import java.io.IOException;
@@ -17,15 +16,15 @@ import java.util.Map;
  */
 public class FacetSystem {
 
-  private final Map<String, FacetHandler<?>> _facetHandlerMap;
+  private final Map<String, FacetHandler> _facetHandlerMap;
   private final Map<String, RuntimeFacetHandlerFactory<?, ?>> _runtimeFactoryMap;
 
-  public FacetSystem(List<FacetHandler<?>> facetHandlers) {
+  public FacetSystem(List<FacetHandler> facetHandlers) {
     this(facetHandlers, null);
   }
 
-  public FacetSystem(List<FacetHandler<?>> facetHandlers, List<RuntimeFacetHandlerFactory<?, ?>> runtimeFactories) {
-    _facetHandlerMap = new HashMap<String, FacetHandler<?>>();
+  public FacetSystem(List<FacetHandler> facetHandlers, List<RuntimeFacetHandlerFactory<?, ?>> runtimeFactories) {
+    _facetHandlerMap = new HashMap<String, FacetHandler>();
     for (FacetHandler handler : facetHandlers) {
       _facetHandlerMap.put(handler.getName(), handler);
     }
@@ -38,7 +37,7 @@ public class FacetSystem {
     }
   }
 
-  public Map<String, FacetHandler<?>> getFacetHandlerMap() {
+  public Map<String, FacetHandler> getFacetHandlerMap() {
     return _facetHandlerMap;
   }
 
