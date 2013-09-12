@@ -19,26 +19,26 @@
 
 package com.senseidb.facet.iterator;
 
-import com.senseidb.facet.Facet;
-import com.senseidb.facet.handler.ComparatorFactory;
+import java.util.Iterator;
 
-import java.util.Comparator;
+/**
+ * Iterator to iterate over facets
+ *
+ * @author nnarkhed
+ */
+public abstract class FacetIterator {
 
-public class FacetHitcountComparatorFactory implements ComparatorFactory {
+  protected int _count;
+  protected Comparable _facet;
 
-  public static final Comparator<Facet> FACET_HITS_COMPARATOR = new Comparator<Facet>()
-  {
-    public int compare(Facet f1, Facet f2) {
-      int val = f2.getFacetValueHitCount() - f1.getFacetValueHitCount();
-      if (val==0)
-      {
-        val=f1.getValue().compareTo(f2.getValue());
-      }
-      return val;
-    }		
-  };
+  /**
+   * Moves the iteration to the next _facet
+   *
+   * @return the next _facet value
+   */
+  public abstract Comparable next();
 
-  public Comparator<Facet> newComparator() {
-    return FACET_HITS_COMPARATOR;
+  public int getCount() {
+    return _count;
   }
 }

@@ -102,10 +102,10 @@ public class FacetRequest {
       if (!_allFacetHandlerMap.containsKey(name)) {
         RuntimeFacetHandlerFactory factory = _system.getRuntimeFactoryMap().get(name);
         if (null == factory) {
-          throw new IOException("Dependent runtime facet handler factory not found, " + name);
+          throw new IOException("Dependent runtime _facet handler factory not found, " + name);
         }
         if (!factory.initParamsRequired()) {
-          throw new IOException("Dependent runtime facet handler factory can't be loaded lazily, " + name);
+          throw new IOException("Dependent runtime _facet handler factory can't be loaded lazily, " + name);
         }
 
         RuntimeFacetHandler depHandler = factory.get(FacetHandlerInitializerParam.EMPTY_PARAM);

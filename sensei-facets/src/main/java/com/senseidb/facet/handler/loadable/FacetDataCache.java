@@ -20,15 +20,14 @@
 package com.senseidb.facet.handler.loadable;
 
 
-import com.senseidb.facet.data.BigByteArray;
-import com.senseidb.facet.data.BigIntArray;
-import com.senseidb.facet.data.BigSegmentedArray;
-import com.senseidb.facet.data.BigShortArray;
+import com.senseidb.facet.handler.loadable.data.BigByteArray;
+import com.senseidb.facet.handler.loadable.data.BigIntArray;
+import com.senseidb.facet.handler.loadable.data.BigSegmentedArray;
+import com.senseidb.facet.handler.loadable.data.BigShortArray;
 import com.senseidb.facet.handler.LoadableFacetHandler;
-import com.senseidb.facet.termlist.TermListFactory;
-import com.senseidb.facet.termlist.TermStringList;
-import com.senseidb.facet.termlist.TermValueList;
-import com.senseidb.facet.handler.FacetHandler;
+import com.senseidb.facet.iterator.loadable.TermListFactory;
+import com.senseidb.facet.iterator.loadable.TermStringList;
+import com.senseidb.facet.iterator.loadable.TermValueList;
 import com.senseidb.facet.search.FacetAtomicReader;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;

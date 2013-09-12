@@ -34,12 +34,12 @@ public class FacetSpec
 	public static enum FacetSortSpec
 	{
 	  /**
-	   * Order by the facet values in lexicographical ascending order
+	   * Order by the _facet values in lexicographical ascending order
 	   */
 		OrderValueAsc,
 		
 		/**
-		 * Order by the facet hit counts in descending order
+		 * Order by the _facet hit counts in descending order
 		 */
 		OrderHitsDesc,
 		
@@ -77,7 +77,7 @@ public class FacetSpec
   /**
 	 * Sets the minimum number of hits a choice would need to have to be returned.
 	 *
-   * @param minCount minimum count
+   * @param minCount minimum _count
    * @see #getMinHitCount()
 	*/
 	public FacetSpec setMinHitCount(int minCount){
@@ -87,7 +87,7 @@ public class FacetSpec
 	
 	/**
 	 * Gets the minimum number of hits a choice would need to have to be returned.
-	 * @return minimum count
+	 * @return minimum _count
 	 * @see #setMinHitCount(int)
 	 */
 	public int getMinHitCount()

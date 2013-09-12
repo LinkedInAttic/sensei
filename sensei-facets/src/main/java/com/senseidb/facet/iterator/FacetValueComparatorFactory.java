@@ -20,23 +20,11 @@
 package com.senseidb.facet.iterator;
 
 import com.senseidb.facet.Facet;
-import com.senseidb.facet.data.IntComparator;
-import com.senseidb.facet.handler.FieldValueAccessor;
 import com.senseidb.facet.handler.ComparatorFactory;
-import com.senseidb.facet.data.BigSegmentedArray;
 
 import java.util.Comparator;
 
 public class FacetValueComparatorFactory implements ComparatorFactory {
-
-  public IntComparator newComparator(FieldValueAccessor fieldValueAccessor, BigSegmentedArray counts) {
-    return new IntComparator(){
-      public int compare(int o1, int o2) {
-        return o2-o1;
-      }
-    };
-  }
-
 	public Comparator<Facet> newComparator() {
 		return new Comparator<Facet>(){
 			public int compare(Facet o1, Facet o2) {

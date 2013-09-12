@@ -20,23 +20,14 @@
 package com.senseidb.facet.handler;
 
 import com.senseidb.facet.Facet;
-import com.senseidb.facet.data.BigSegmentedArray;
-import com.senseidb.facet.data.IntComparator;
 
 import java.util.Comparator;
 
 /**
- * Comparator for custom sorting a facet value
+ * Comparator for custom sorting a _facet value
  * @author jwang
  */
 public interface ComparatorFactory {
-	/**
-	 * Providers a Comparator from field values and counts. This is called within a browse.
-	 * @param fieldValueAccessor accessor for field values
-	 * @param counts hit counts
-	 * @return Comparator instance
-	 */
-  IntComparator newComparator(FieldValueAccessor fieldValueAccessor, BigSegmentedArray counts);
 	
 	/**
 	 * Providers a Comparator. This is called when doing a merge across browses.

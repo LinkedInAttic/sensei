@@ -19,33 +19,18 @@
 
 package com.senseidb.facet.handler.loadable;
 
-import com.senseidb.facet.Facet;
-import com.senseidb.facet.FacetIterator;
 import com.senseidb.facet.FacetSpec;
-import com.senseidb.facet.data.BigSegmentedArray;
-import com.senseidb.facet.data.IntBoundedPriorityQueue;
-import com.senseidb.facet.data.LazyBigIntArray;
-import com.senseidb.facet.handler.loadable.iterator.LoadableDoubleFacetIterator;
-import com.senseidb.facet.handler.loadable.iterator.LoadableFacetIterator;
-import com.senseidb.facet.handler.loadable.iterator.LoadableFloatFacetIterator;
-import com.senseidb.facet.handler.loadable.iterator.LoadableIntFacetIterator;
-import com.senseidb.facet.handler.loadable.iterator.LoadableLongFacetIterator;
-import com.senseidb.facet.handler.loadable.iterator.LoadableShortFacetIterator;
-import com.senseidb.facet.termlist.TermDoubleList;
-import com.senseidb.facet.termlist.TermFloatList;
-import com.senseidb.facet.termlist.TermIntList;
-import com.senseidb.facet.termlist.TermLongList;
-import com.senseidb.facet.termlist.TermShortList;
-import com.senseidb.facet.termlist.TermValueList;
-import com.senseidb.facet.handler.ComparatorFactory;
+import com.senseidb.facet.handler.loadable.data.BigSegmentedArray;
+import com.senseidb.facet.handler.loadable.data.LazyBigIntArray;
 import com.senseidb.facet.handler.FacetCountCollector;
-import com.senseidb.facet.handler.FieldValueAccessor;
-import com.senseidb.facet.iterator.FacetHitcountComparatorFactory;
-import com.senseidb.facet.data.IntComparator;
-
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
+import com.senseidb.facet.iterator.FacetIterator;
+import com.senseidb.facet.iterator.loadable.LoadableFacetIterator;
+import com.senseidb.facet.iterator.loadable.LoadableIntFacetIterator;
+import com.senseidb.facet.iterator.loadable.LoadableLongFacetIterator;
+import com.senseidb.facet.iterator.loadable.LoadableShortFacetIterator;
+import com.senseidb.facet.iterator.loadable.TermIntList;
+import com.senseidb.facet.iterator.loadable.TermLongList;
+import com.senseidb.facet.iterator.loadable.TermShortList;
 
 public abstract class LoadableFacetCountCollector implements FacetCountCollector
 {
@@ -56,130 +41,18 @@ public abstract class LoadableFacetCountCollector implements FacetCountCollector
   protected final FacetDataCache _dataCache;
   protected final BigSegmentedArray _array;
 
-  private final String _name;
   private boolean _closed = false;
 
-  public LoadableFacetCountCollector(String name, FacetDataCache dataCache, FacetSpec spec)
+  public LoadableFacetCountCollector(FacetDataCache dataCache, FacetSpec spec)
   {
     _spec = spec;
-    _name = name;
     _dataCache=dataCache;
     _countlength = _dataCache.valArray.size();
     _count = new LazyBigIntArray(_countlength);
     _array = _dataCache.orderArray;
   }
 
-  public String getName()
-  {
-    return _name;
-  }
-
   abstract public void collect(int docid);
-
-  public Facet getFacet(String value)
-  {
-    if (_closed)
-    {
-      throw new IllegalStateException("This instance of count collector for " + _name + " was already closed");
-    }
-    Facet facet = null;
-    int index=_dataCache.valArray.indexOf(value);
-    if (index >=0 ){
-      facet = new Facet(_dataCache.valArray.get(index),_count.get(index));
-    }
-    else{
-      facet = new Facet(_dataCache.valArray.format(value),0);
-    }
-    return facet; 
-  }
-
-  public static List<Facet> getFacets(FacetSpec ospec, BigSegmentedArray count, int countlength, final TermValueList<?> valList){
-	  if (ospec!=null)
-	    {
-	      int minCount=ospec.getMinHitCount();
-	      int max=ospec.getMaxCount();
-	      if (max <= 0)
-          max=countlength;
-
-
-	      List<Facet> facetColl;
-	      FacetSpec.FacetSortSpec sortspec = ospec.getOrderBy();
-	      if (sortspec == FacetSpec.FacetSortSpec.OrderValueAsc)
-	      {
-	        facetColl=new ArrayList<Facet>(max);
-	        for (int i = 1; i < countlength;++i) // exclude zero
-	        {
-	          int hits=count.get(i);
-	          if (hits>=minCount)
-	          {
-              Facet facet=new Facet(valList.get(i),hits);
-	            facetColl.add(facet);
-	          }
-	          if (facetColl.size()>=max) break;
-	        }
-	      }
-	      else //if (sortspec == FacetSortSpec.OrderHitsDesc)
-	      {
-	        ComparatorFactory comparatorFactory;
-	        if (sortspec == FacetSpec.FacetSortSpec.OrderHitsDesc){
-	          comparatorFactory = new FacetHitcountComparatorFactory();
-	        }
-	        else{
-	          comparatorFactory = ospec.getCustomComparatorFactory();
-	        }
-
-	        if (comparatorFactory == null){
-	          throw new IllegalArgumentException("facet comparator factory not specified");
-	        }
-
-	        final IntComparator comparator = comparatorFactory.newComparator(new FieldValueAccessor(){
-
-	          public String getFormatedValue(int index) {
-	            return valList.get(index);
-	          }
-
-	          public Object getRawValue(int index) {
-	            return valList.getRawValue(index);
-	          }
-
-	        }, count);
-	        facetColl=new LinkedList<Facet>();
-	        final int forbidden = -1;
-	        IntBoundedPriorityQueue pq=new IntBoundedPriorityQueue(comparator,max, forbidden);
-
-	        for (int i=1;i<countlength;++i)
-	        {
-	          int hits=count.get(i);
-	          if (hits>=minCount)
-	          {
-	            pq.offer(i);
-	          }
-	        }
-
-	        int val;
-	        while((val = pq.pollInt()) != forbidden)
-	        {
-	          Facet facet=new Facet(valList.get(val),count.get(val));
-	          ((LinkedList<Facet>)facetColl).addFirst(facet);
-	        }
-	      }
-	      return facetColl;
-	    }
-	    else
-	    {
-	      return FacetCountCollector.EMPTY_FACET_LIST;
-	    }
-  }
-
-  public List<Facet> getTopFacets() {
-    if (_closed)
-    {
-      throw new IllegalStateException("This instance of count collector for " + _name + " was already closed");
-    }
-    
-    return getFacets(_spec,_count, _countlength, _dataCache.valArray);
-    
-  }
 
   @Override
   public void close()
@@ -199,7 +72,7 @@ public abstract class LoadableFacetCountCollector implements FacetCountCollector
   {
     if (_closed)
     {
-      throw new IllegalStateException("This instance of count collector for '" + _name + "' was already closed");
+      throw new IllegalStateException("This instance of _count collector was already closed");
     }
     if (_dataCache.valArray.getType().equals(Integer.class))
     {
@@ -210,12 +83,6 @@ public abstract class LoadableFacetCountCollector implements FacetCountCollector
     } else if (_dataCache.valArray.getType().equals(Short.class))
     {
       return new LoadableShortFacetIterator((TermShortList) _dataCache.valArray, _count, _countlength, false);
-    } else if (_dataCache.valArray.getType().equals(Float.class))
-    {
-      return new LoadableFloatFacetIterator((TermFloatList) _dataCache.valArray, _count, _countlength, false);
-    } else if (_dataCache.valArray.getType().equals(Double.class))
-    {
-      return new LoadableDoubleFacetIterator((TermDoubleList) _dataCache.valArray, _count, _countlength, false);
     } else
     return new LoadableFacetIterator(_dataCache.valArray, _count, _countlength, false);
   }

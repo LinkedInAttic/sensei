@@ -39,10 +39,10 @@ public abstract class RuntimeFacetHandler<D> extends LoadableFacetHandler<D>
   Map<FacetAtomicReader, Object> _runtimeData;
 
   /**
-   * Constructor that specifying the dependent facet handlers using names.
+   * Constructor that specifying the dependent _facet handlers using names.
    * @param name the name of this FacetHandler, which is used in FacetSpec and Selection to specify
-   * the facet. If we regard a facet as a field, the name is like a field name.
-   * @param dependsOn Set of names of facet handlers this facet handler depend on for loading.
+   * the _facet. If we regard a _facet as a field, the name is like a field name.
+   * @param dependsOn Set of names of _facet handlers this _facet handler depend on for loading.
    */
   public RuntimeFacetHandler(String name, Set<String> dependsOn)
   {
@@ -53,7 +53,7 @@ public abstract class RuntimeFacetHandler<D> extends LoadableFacetHandler<D>
   /**
    * Constructor
    * @param name the name of this FacetHandler, which is used in FacetSpec and Selection to specify
-   * the facet. If we regard a facet as a field, the name is like a field name.
+   * the _facet. If we regard a _facet as a field, the name is like a field name.
    */
   public RuntimeFacetHandler(String name)
   {

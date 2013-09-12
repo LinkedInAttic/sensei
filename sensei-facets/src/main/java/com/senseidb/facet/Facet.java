@@ -24,55 +24,53 @@ import java.util.List;
 
 
 /**
- * This class represents a facet
+ * This class represents a _facet
  */
-public class Facet {
+public class Facet<V extends Comparable<V>> {
 
-  private String _value;
+  private V _value;
   private int _hitcount;
 
   public Facet() {
   }
 
-  public Facet(String value, int hitcount) {
+  public Facet(V value, int hitcount) {
     _value = value;
     _hitcount = hitcount;
   }
 
   /**
-   * Gets the facet value
+   * Gets the _facet value
    *
    * @return value
-   * @see #setValue(String)
    */
-  public String getValue() {
+  public V getValue() {
     return _value;
   }
 
   /**
-   * Sets the facet value
+   * Sets the _facet value
    *
    * @param value Facet value
-   * @see #getValue()
    */
-  public Facet setValue(String value) {
+  public Facet setValue(V value) {
     _value = value;
     return this;
   }
 
   /**
-   * Gets the hit count
+   * Gets the hit _count
    *
-   * @return hit count
+   * @return hit _count
    */
   public int getFacetValueHitCount() {
     return _hitcount;
   }
 
   /**
-   * Sets the hit count
+   * Sets the hit _count
    *
-   * @param hitcount Hit count
+   * @param hitcount Hit _count
    */
   public Facet setFacetValueHitCount(int hitcount) {
     _hitcount = hitcount;

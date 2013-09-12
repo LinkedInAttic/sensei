@@ -17,28 +17,28 @@
  * © 2012 LinkedIn Corp. All Rights Reserved.  
  */
 
-package com.senseidb.facet.iterator;
+package com.senseidb.facet.iterator.loadable;
 
-import com.senseidb.facet.Facet;
-import com.senseidb.facet.handler.ComparatorFactory;
 
-import java.util.Comparator;
-
-public class FacetHitcountComparatorFactory implements ComparatorFactory {
-
-  public static final Comparator<Facet> FACET_HITS_COMPARATOR = new Comparator<Facet>()
-  {
-    public int compare(Facet f1, Facet f2) {
-      int val = f2.getFacetValueHitCount() - f1.getFacetValueHitCount();
-      if (val==0)
-      {
-        val=f1.getValue().compareTo(f2.getValue());
-      }
-      return val;
-    }		
-  };
-
-  public Comparator<Facet> newComparator() {
-    return FACET_HITS_COMPARATOR;
-  }
+public interface TermListFactory<T>
+{
+	TermValueList<T> createTermList(int capacity);
+	TermValueList<T> createTermList();
+	Class<?> getType();
+	
+	public static TermListFactory<String> StringListFactory=new TermListFactory<String>()
+	{
+		public TermValueList<String> createTermList(int capacity)
+		{
+			return new TermStringList(capacity);
+		}
+		public TermValueList<String> createTermList()
+		{
+			return createTermList(-1);
+		}
+		public Class<?> getType()
+		{
+		  return String.class;
+		}
+	};
 }

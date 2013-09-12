@@ -31,12 +31,12 @@ package com.senseidb.facet.handler;
 public interface RuntimeFacetHandlerFactory<P extends FacetHandlerInitializerParam, F extends RuntimeFacetHandler<?>>
 {
   /**
-   * @return the facet name of the RuntimeFacetHandler it creates.
+   * @return the _facet name of the RuntimeFacetHandler it creates.
    */
   String getName();
 
   /**
-   * @return if this facet support empty params or not.
+   * @return if this _facet support empty params or not.
    */
   boolean initParamsRequired();
 

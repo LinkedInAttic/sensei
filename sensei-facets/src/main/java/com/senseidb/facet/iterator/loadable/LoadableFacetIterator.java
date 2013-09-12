@@ -17,34 +17,46 @@
  * © 2012 LinkedIn Corp. All Rights Reserved.  
  */
 
-package com.senseidb.facet.handler;
-
+package com.senseidb.facet.iterator.loadable;
 
 import com.senseidb.facet.iterator.FacetIterator;
-
+import com.senseidb.facet.iterator.loadable.TermValueList;
+import com.senseidb.facet.handler.loadable.data.BigSegmentedArray;
 
 /**
- *  Collects _facet counts for a given browse request
+ * @author nnarkhed
+ *
  */
-public interface FacetCountCollector
-{
-	/**
-	 * Collect a hit. This is called for every hit, thus the implementation needs to be super-optimized.
-	 * @param docid doc
-	 */
-	void collect(int docid);
+public class LoadableFacetIterator extends FacetIterator {
 
-  /**
-   * Responsible for release resources used. If the implementing class
-   * does not use a lot of resources,
-   * it does not have to do anything.
-   */
-  public void close();
+  private TermValueList _valList;
+  private BigSegmentedArray _counts;
+  private int _countlength;
+  private int _index;
 
-  /**
-   * Returns an iterator to visit all the facets
-   *
-   * @return Returns a FacetIterator to iterate over all the facets
-   */
-  FacetIterator iterator();
+  public LoadableFacetIterator(TermValueList valList, BigSegmentedArray counts, int countlength, boolean zeroBased)
+  {
+    _valList = valList;
+    _counts = counts;
+    _countlength = countlength;
+    _index = -1;
+    if(!zeroBased)
+      _index++;
+    _facet = null;
+    this._count = 0;
+  }
+
+  public Comparable next()
+  {
+    if (++_index < _countlength)
+    {
+    	_facet = (Comparable)_valList.getRawValue(_index);
+       this._count = _counts.get(_index);
+      return _facet;
+    }
+    _facet = null;
+    this._count = 0;
+    return null;    
+  }
+  
 }

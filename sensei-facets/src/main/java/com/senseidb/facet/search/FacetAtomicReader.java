@@ -68,7 +68,7 @@ public class FacetAtomicReader extends FilterAtomicReader {
     for (String name : facetHandler.getDependsOn()) {
       FacetHandler dep = _bobo.getFacetHandlerMap().get(name);
       if (dep == null)
-        throw new IOException("Dependent facet handler not found," + name);
+        throw new IOException("Dependent _facet handler not found," + name);
       processDependencies(dep);
     }
   }

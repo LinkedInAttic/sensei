@@ -20,7 +20,7 @@
 package com.senseidb.facet.handler.loadable;
 
 
-import com.senseidb.facet.termlist.TermValueList;
+import com.senseidb.facet.iterator.loadable.TermValueList;
 import com.senseidb.facet.docset.EmptyDocIdSet;
 import com.senseidb.facet.docset.OrDocIdSet;
 import com.senseidb.facet.search.FacetAtomicReader;

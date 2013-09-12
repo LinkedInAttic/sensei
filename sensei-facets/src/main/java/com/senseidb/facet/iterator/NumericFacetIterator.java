@@ -19,26 +19,22 @@
 
 package com.senseidb.facet.iterator;
 
-import com.senseidb.facet.Facet;
-import com.senseidb.facet.handler.ComparatorFactory;
+/**
+ * @author "Xiaoyang Gu<xgu@linkedin.com>"
+ */
+public abstract class NumericFacetIterator extends FacetIterator {
+  public static final long VALUE_MISSING = Long.MIN_VALUE;
 
-import java.util.Comparator;
+  protected long _longFacet;
 
-public class FacetHitcountComparatorFactory implements ComparatorFactory {
+  public abstract long nextLong();
 
-  public static final Comparator<Facet> FACET_HITS_COMPARATOR = new Comparator<Facet>()
-  {
-    public int compare(Facet f1, Facet f2) {
-      int val = f2.getFacetValueHitCount() - f1.getFacetValueHitCount();
-      if (val==0)
-      {
-        val=f1.getValue().compareTo(f2.getValue());
-      }
-      return val;
-    }		
-  };
+  @Override
+  public Comparable next() {
+    return nextLong();
+  }
 
-  public Comparator<Facet> newComparator() {
-    return FACET_HITS_COMPARATOR;
+  public long getLongFacet() {
+    return _longFacet;
   }
 }

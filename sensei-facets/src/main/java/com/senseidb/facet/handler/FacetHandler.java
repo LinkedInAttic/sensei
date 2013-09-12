@@ -54,7 +54,7 @@ public abstract class FacetHandler {
    * Constructor
    *
    * @param name      name
-   * @param dependsOn Set of names of facet handlers this facet handler depend on for loading
+   * @param dependsOn Set of names of _facet handlers this _facet handler depend on for loading
    */
   public FacetHandler(String name, Set<String> dependsOn) {
     _name = name;
@@ -84,28 +84,28 @@ public abstract class FacetHandler {
   }
 
   /**
-   * Gets names of the facet handler this depends on
+   * Gets names of the _facet handler this depends on
    *
-   * @return set of facet handler names
+   * @return set of _facet handler names
    */
   public final Set<String> getDependsOn() {
     return _dependsOn;
   }
 
   /**
-   * Adds a list of depended facet handlers
+   * Adds a list of depended _facet handlers
    *
-   * @param facetHandler depended facet handler
+   * @param facetHandler depended _facet handler
    */
   public final void putDependedFacetHandler(FacetHandler facetHandler) {
     _dependedFacetHandlers.put(facetHandler._name, facetHandler);
   }
 
   /**
-   * Gets a depended facet handler
+   * Gets a depended _facet handler
    *
-   * @param name facet handler name
-   * @return facet handler instance
+   * @param name _facet handler name
+   * @return _facet handler instance
    */
   public final FacetHandler getDependedFacetHandler(String name) {
     return _dependedFacetHandlers.get(name);
@@ -212,7 +212,7 @@ public abstract class FacetHandler {
   abstract public String[] getFieldValues(FacetAtomicReader reader, int id);
 
   public int getNumItems(FacetAtomicReader reader, int id) {
-    throw new UnsupportedOperationException("getNumItems is not supported for this facet handler: " + getClass().getName());
+    throw new UnsupportedOperationException("getNumItems is not supported for this _facet handler: " + getClass().getName());
   }
 
   public Object[] getRawFieldValues(FacetAtomicReader reader, int id) {

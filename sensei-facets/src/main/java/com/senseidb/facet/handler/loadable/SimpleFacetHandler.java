@@ -23,7 +23,7 @@ package com.senseidb.facet.handler.loadable;
 import com.senseidb.facet.FacetSelection;
 import com.senseidb.facet.FacetSpec;
 import com.senseidb.facet.handler.LoadableFacetHandler;
-import com.senseidb.facet.termlist.TermListFactory;
+import com.senseidb.facet.iterator.loadable.TermListFactory;
 import com.senseidb.facet.filter.EmptyFilter;
 import com.senseidb.facet.filter.NotFilter;
 import com.senseidb.facet.handler.FacetCountCollector;
@@ -239,7 +239,7 @@ public class SimpleFacetHandler extends LoadableFacetHandler<FacetDataCache>
       public FacetCountCollector getFacetCountCollector(
           FacetAtomicReader reader) {
         FacetDataCache dataCache = SimpleFacetHandler.this.getFacetData(reader);
-        return new SimpleFacetCountCollector(_name,dataCache, sel, ospec);
+        return new SimpleFacetCountCollector(dataCache, sel, ospec);
       }
     };
 	}
@@ -253,9 +253,9 @@ public class SimpleFacetHandler extends LoadableFacetHandler<FacetDataCache>
 	
 	public static final class SimpleFacetCountCollector extends LoadableFacetCountCollector
 	{
-		public SimpleFacetCountCollector(String name,FacetDataCache dataCache,FacetSelection sel,FacetSpec ospec)
+		public SimpleFacetCountCollector(FacetDataCache dataCache,FacetSelection sel,FacetSpec ospec)
 		{
-		    super(name,dataCache,ospec);
+		    super(dataCache,ospec);
 		}
 		
 		public final void collect(int docid) {

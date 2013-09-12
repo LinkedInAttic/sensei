@@ -19,7 +19,7 @@
 
 package com.senseidb.facet.handler.loadable;
 
-import com.senseidb.facet.data.BigSegmentedArray;
+import com.senseidb.facet.handler.loadable.data.BigSegmentedArray;
 import com.senseidb.facet.docset.EmptyDocIdSet;
 import com.senseidb.facet.handler.FacetHandler;
 import com.senseidb.facet.handler.LoadableFacetHandler;

@@ -44,13 +44,13 @@ public class FacetCollector extends Collector {
   private AtomicReaderContext _context;
   private List<FacetContext> _facetContexts;
   private FacetValidator _validator;
-  private Map<String, Map<AtomicReader, FacetAccessible>> _facetCollectors;
+  private Map<String, Map<AtomicReader, FacetCountCollector>> _facetCollectors;
 
   public FacetCollector(Collector collector, FacetRequest request) {
     _innerCollector = collector;
     _request = request;
     _requestParams = request.getParams();
-    _facetCollectors = new HashMap<String, Map<AtomicReader, FacetAccessible>>();
+    _facetCollectors = new HashMap<String, Map<AtomicReader, FacetCountCollector>>();
   }
 
   @Override
@@ -122,11 +122,11 @@ public class FacetCollector extends Collector {
     updateFacetCollectors();
 
     Map<String, FacetAccessible> facetMap = new HashMap<String, FacetAccessible>();
-    for (Map.Entry<String, Map<AtomicReader, FacetAccessible>> entry : _facetCollectors.entrySet()) {
+    for (Map.Entry<String, Map<AtomicReader, FacetCountCollector>> entry : _facetCollectors.entrySet()) {
       FacetHandler handler = _request.getAllFacetHandlerMap().get(entry.getKey());
       FacetSpec spec = _requestParams.getFacetSpec(entry.getKey());
       if (handler != null && spec != null) {
-        FacetAccessible merged = new CombinedFacetAccessible(spec, new ArrayList<FacetAccessible>(entry.getValue().values()));
+        FacetAccessible merged = new CombinedFacetAccessible(spec, new ArrayList<FacetCountCollector>(entry.getValue().values()));
         facetMap.put(entry.getKey(), merged);
       }
     }
@@ -137,9 +137,9 @@ public class FacetCollector extends Collector {
   private void updateFacetCollectors() {
     for (FacetContext facetContext : _facetContexts) {
       String field = facetContext.getFacetHandler().getName();
-      Map<AtomicReader, FacetAccessible> facetColectors = _facetCollectors.get(field);
+      Map<AtomicReader, FacetCountCollector> facetColectors = _facetCollectors.get(field);
       if (facetColectors == null) {
-        facetColectors = new HashMap<AtomicReader, FacetAccessible>();
+        facetColectors = new HashMap<AtomicReader, FacetCountCollector>();
         _facetCollectors.put(field, facetColectors);
       }
       if (null != facetContext.getCountCollector()) {
