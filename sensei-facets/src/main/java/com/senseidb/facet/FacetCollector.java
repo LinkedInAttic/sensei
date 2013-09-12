@@ -1,12 +1,7 @@
 package com.senseidb.facet;
 
 
-import com.senseidb.facet.FacetRequestParams;
-import com.senseidb.facet.FacetRequest;
-import com.senseidb.facet.FacetSelection;
-import com.senseidb.facet.FacetAccessible;
-import com.senseidb.facet.FacetSpec;
-import com.senseidb.facet.handler.CombinedFacetAccessible;
+import com.senseidb.facet.handler.CombinedFacetCollection;
 import com.senseidb.facet.handler.FacetCountCollector;
 import com.senseidb.facet.handler.FacetHandler;
 import com.senseidb.facet.handler.RuntimeFacetHandler;
@@ -118,15 +113,15 @@ public class FacetCollector extends Collector {
     return false;
   }
 
-  public Map<String, FacetAccessible> getFacets() {
+  public Map<String, FacetCollection> getFacets() {
     updateFacetCollectors();
 
-    Map<String, FacetAccessible> facetMap = new HashMap<String, FacetAccessible>();
+    Map<String, FacetCollection> facetMap = new HashMap<String, FacetCollection>();
     for (Map.Entry<String, Map<AtomicReader, FacetCountCollector>> entry : _facetCollectors.entrySet()) {
       FacetHandler handler = _request.getAllFacetHandlerMap().get(entry.getKey());
       FacetSpec spec = _requestParams.getFacetSpec(entry.getKey());
       if (handler != null && spec != null) {
-        FacetAccessible merged = new CombinedFacetAccessible(spec, new ArrayList<FacetCountCollector>(entry.getValue().values()));
+        FacetCollection merged = new CombinedFacetCollection(spec, new ArrayList<FacetCountCollector>(entry.getValue().values()));
         facetMap.put(entry.getKey(), merged);
       }
     }

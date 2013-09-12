@@ -26,25 +26,27 @@ import com.senseidb.facet.iterator.FacetIterator;
 /**
  *  Collects _facet counts for a given browse request
  */
-public interface FacetCountCollector
+public abstract class FacetCountCollector
 {
 	/**
 	 * Collect a hit. This is called for every hit, thus the implementation needs to be super-optimized.
 	 * @param docid doc
 	 */
-	void collect(int docid);
+	public abstract void collect(int docid);
 
   /**
    * Responsible for release resources used. If the implementing class
    * does not use a lot of resources,
    * it does not have to do anything.
    */
-  public void close();
+  public void close()
+  {
+  }
 
   /**
    * Returns an iterator to visit all the facets
    *
    * @return Returns a FacetIterator to iterate over all the facets
    */
-  FacetIterator iterator();
+  public abstract FacetIterator iterator();
 }

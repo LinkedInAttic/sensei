@@ -22,18 +22,20 @@ package com.senseidb.facet;
 import java.util.List;
 
 
-public interface FacetAccessible {
+public abstract class FacetCollection {
   /**
    * Gets gathered top facets
    *
    * @return list of facets
    */
-  List<Facet> getTopFacets();
+  public abstract List<Facet> getTopFacets();
 
   /**
    * Responsible for release resources used. If the implementing class
    * does not use a lot of resources,
    * it does not have to do anything.
    */
-  public void close();
+  public void close()
+  {
+  }
 }

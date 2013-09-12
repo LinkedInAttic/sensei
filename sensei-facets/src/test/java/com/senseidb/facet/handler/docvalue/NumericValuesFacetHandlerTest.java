@@ -61,7 +61,7 @@ public class NumericValuesFacetHandlerTest {
     _handler = new NumericValuesFacetHandler("year");
     _system = new FacetSystem(Lists.<FacetHandler>newArrayList(_handler));
 
-    _reader = _system.newReader( DirectoryReader.open(_dir) );
+    _reader = new FacetMultiReader(_system, DirectoryReader.open(_dir));
     _searcher = new IndexSearcher(_reader);
   }
 

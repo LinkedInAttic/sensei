@@ -2,7 +2,6 @@ package com.senseidb.facet.handler.loadable;
 
 import com.google.common.collect.Lists;
 import com.senseidb.facet.Facet;
-import com.senseidb.facet.FacetAccessible;
 import com.senseidb.facet.FacetRequest;
 import com.senseidb.facet.FacetRequestParams;
 import com.senseidb.facet.FacetSpec;
@@ -59,7 +58,7 @@ public class SimpleFacetHandlerTest {
     _handler = new SimpleFacetHandler("color");
     _system = new FacetSystem(Lists.<FacetHandler>newArrayList(_handler));
 
-    _reader = _system.newReader( DirectoryReader.open(_dir) );
+    _reader = new FacetMultiReader(_system, DirectoryReader.open(_dir));
     _searcher = new IndexSearcher(_reader);
   }
 

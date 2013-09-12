@@ -65,7 +65,7 @@ public class NumericValuesFacetHandler extends FacetHandler {
     };
   }
 
-  private class NumericValuesFacetCountCollector implements FacetCountCollector {
+  private class NumericValuesFacetCountCollector extends FacetCountCollector {
     private final Long2IntOpenHashMap _values;
     private final NumericDocValues _docValues;
 
@@ -82,10 +82,6 @@ public class NumericValuesFacetHandler extends FacetHandler {
         int count = _values.get(value) + 1;
         _values.put(value, count);
       }
-    }
-
-    @Override
-    public void close() {
     }
 
     @Override

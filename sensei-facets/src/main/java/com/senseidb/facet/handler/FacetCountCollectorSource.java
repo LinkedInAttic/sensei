@@ -23,6 +23,7 @@ package com.senseidb.facet.handler;
 import com.senseidb.facet.search.FacetAtomicReader;
 
 
-public abstract class FacetCountCollectorSource {
+public interface FacetCountCollectorSource {
+
 	public abstract FacetCountCollector getFacetCountCollector(FacetAtomicReader reader);
 }

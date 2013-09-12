@@ -32,7 +32,7 @@ import com.senseidb.facet.iterator.loadable.TermIntList;
 import com.senseidb.facet.iterator.loadable.TermLongList;
 import com.senseidb.facet.iterator.loadable.TermShortList;
 
-public abstract class LoadableFacetCountCollector implements FacetCountCollector
+public abstract class LoadableFacetCountCollector extends FacetCountCollector
 {
   protected BigSegmentedArray _count;
   protected int _countlength;

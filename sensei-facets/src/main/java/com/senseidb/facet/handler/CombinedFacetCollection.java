@@ -21,7 +21,7 @@ package com.senseidb.facet.handler;
 
 
 import com.senseidb.facet.Facet;
-import com.senseidb.facet.FacetAccessible;
+import com.senseidb.facet.FacetCollection;
 import com.senseidb.facet.FacetSpec;
 import com.senseidb.facet.iterator.CombinedFacetIterator;
 import com.senseidb.facet.iterator.CombinedNumericFacetIterator;
@@ -41,13 +41,13 @@ import java.util.List;
  * @author nnarkhed
  *
  */
-public class CombinedFacetAccessible implements FacetAccessible
+public class CombinedFacetCollection extends FacetCollection
 {
   protected final List<FacetCountCollector> _list;
   protected final FacetSpec _fspec;
   protected boolean _closed;
   
-  public CombinedFacetAccessible(FacetSpec fspec,List<FacetCountCollector> list)
+  public CombinedFacetCollection(FacetSpec fspec, List<FacetCountCollector> list)
   {
     _list = list;
     _fspec = fspec;

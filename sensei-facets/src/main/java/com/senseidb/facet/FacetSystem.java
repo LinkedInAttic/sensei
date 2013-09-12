@@ -44,9 +44,4 @@ public class FacetSystem {
   public Map<String, RuntimeFacetHandlerFactory<?, ?>> getRuntimeFactoryMap() {
     return _runtimeFactoryMap;
   }
-
-  public FacetMultiReader newReader(IndexReader reader) throws IOException
-  {
-    return new FacetMultiReader(this, reader);
-  }
 }
