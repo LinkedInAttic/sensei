@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema elementFormDefault="qualified" xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="http://linkedin.com/search/config" xmlns:tns="http://linkedin.com/search/config">
+  <element name="config">
+    <complexType>
+      <sequence>
+        <element name="gateway" type="tns:Gateway" />
+        <element name="filter" type="tns:Filter" />
+        <element name="facetHandlers">
+          <complexType>
+            <sequence>
+              <element name="facetHandler" type="tns:FacetHandler" minOccurs="0" maxOccurs="unbounded" />
+            </sequence>
+          </complexType>
+        </element>
+        <element name="plugins">
+          <complexType>
+            <sequence>
+              <element name="plugin" type="tns:NamedPlugin" minOccurs="0" maxOccurs="unbounded" />
+            </sequence>
+          </complexType>
+        </element>
+      </sequence>
+    </complexType>
+  </element>
+
+  <complexType name="Gateway">
+    <complexContent>
+      <extension base="tns:Plugin" />
+    </complexContent>
+  </complexType>
+
+  <complexType name="Filter">
+    <complexContent>
+      <extension base="tns:Plugin" />
+    </complexContent>
+  </complexType>
+
+  <complexType name="FacetHandler">
+    <complexContent>
+      <extension base="tns:Plugin">
+        <sequence>
+          <element name="dependsOn" minOccurs="0" maxOccurs="1">
+            <complexType>
+              <sequence>
+                <element name="facetHandler" type="string" minOccurs="0" maxOccurs="unbounded"/>
+              </sequence>
+            </complexType>
+          </element>
+        </sequence>
+        <attribute name="name"/>
+      </extension>
+    </complexContent>
+  </complexType>
+
+  <complexType name="NamedPlugin">
+    <complexContent>
+      <extension base="tns:Plugin">
+        <attribute name="name" type="string" use="required" />
+      </extension>
+    </complexContent>
+  </complexType>
+
+  <complexType name="Plugin">
+    <sequence>
+      <element name="properties" type="tns:Properties" minOccurs="0" />
+    </sequence>
+    <attribute name="class" />
+  </complexType>
+  
+  <complexType name="Property">
+    <attribute name="value" use="optional" />
+    <attribute name="ref" type="string" use="optional" />
+  </complexType>
+
+  <complexType name="RefProperty">
+    <annotation><documentation>Reference property</documentation></annotation>
+    <complexContent>
+      <restriction base="tns:Property">
+        <attribute name="value" use="prohibited" />
+        <attribute name="ref" type="string" use="required" />
+      </restriction>
+    </complexContent>
+  </complexType>
+
+  <complexType name="ValueProperty">
+    <annotation><documentation>Reference property</documentation></annotation>
+    <complexContent>
+      <restriction base="tns:Property">
+        <attribute name="value" use="required" />
+        <attribute name="ref" use="prohibited" />
+      </restriction>
+    </complexContent>
+  </complexType>
+
+  <complexType name="Properties">
+    <sequence>
+      <any minOccurs="0" maxOccurs="unbounded" />
+    </sequence>
+  </complexType>
+</schema>

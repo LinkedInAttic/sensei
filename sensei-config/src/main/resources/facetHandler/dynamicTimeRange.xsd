@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema elementFormDefault="qualified" xmlns="http://www.w3.org/2001/XMLSchema"
+        targetNamespace="http://linkedin.com/search/facetHandler/dynamicTimeRange"
+        xmlns:config="http://linkedin.com/search/config">
+  <import namespace="http://linkedin.com/search/config" schemaLocation="classpath://config.xsd"/>
+  <complexType name="Properties">
+    <complexContent>
+      <restriction base="config:Properties">
+        <sequence>
+
+          <element name="dateFormat">
+            <complexType>
+              <annotation>
+                <documentation>Date format</documentation>
+              </annotation>
+              <complexContent>
+                <restriction base="config:ValueProperty"/>
+              </complexContent>
+            </complexType>
+          </element>
+
+          <element name="ranges">
+            <complexType>
+              <annotation>
+                <documentation>Date ranges</documentation>
+              </annotation>
+              <complexContent>
+                <restriction base="config:ValueProperty"/>
+              </complexContent>
+            </complexType>
+          </element>
+
+        </sequence>
+      </restriction>
+    </complexContent>
+  </complexType>
+</schema>

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns="http://linkedin.com/search/config"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="http://linkedin.com/search/config config.xsd
+               http://linkedin.com/search/gateway/databus gateway/databus.xsd
+               http://linkedin.com/search/facetHandler/dynamicTimeRange facetHandler/dynamicTimeRange.xsd
+               http://linkedin.com/search/pts/filter pts/filter.xsd
+               ">
+
+  <gateway class="com.linkedin.seas.sensei.gateway.databus.DatabusGateway$Factory">
+    <properties xsi:type="p:Properties" xmlns:p="http://linkedin.com/search/gateway/databus">
+      <p:streamHost value="com.linkedin.events.liar.ScsMemberRelay" />
+      <p:streamPort value="4"  />
+    </properties>
+  </gateway>
+
+  <filter class="com.linkedin.seas.sensei.bps.pts.PtsFilter$Factory">
+    <properties xsi:type="p:Properties" xmlns:p="http://linkedin.com/search/pts/filter">
+      <p:memcacheService ref="memcacheService" />
+    </properties>
+  </filter>
+
+  <facetHandlers>
+    <facetHandler name="date_registered_range" class="com.linkedin.seas.sensei.bps.people.facets.DynamicTimeRangeFacetHandler$DynamicTimeRangeFacetHandlerFactory$Factory">
+      <properties xsi:type="p:Properties" xmlns:p="http://linkedin.com/search/facetHandler/dynamicTimeRange">
+        <p:dateFormat value="yyyyMMdd" />
+        <p:ranges value="1 day ago:2d;2 to 7 days ago:8d;8 to 14 days ago:15d;15 to 30 days ago:31d;1 to 3 months ago:122d" />
+      </properties>
+      <dependsOn>
+        <facetHandler>date_registered</facetHandler>
+      </dependsOn>
+    </facetHandler>
+  </facetHandlers>
+
+  <plugins>
+    <plugin name="memcacheService" class="com.linkedin.seas.sensei.cache.MemcacheService$Factory" />
+  </plugins>
+
+</config>
