@@ -369,7 +369,7 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
       }
       if (selectSet == null || selectSet.contains(PARAM_RESULT_HIT_SCORE))
       {
-        hitObj.put(PARAM_RESULT_HIT_SCORE, hit.getScore());
+        hitObj.put(PARAM_RESULT_HIT_SCORE, formatScore(req.getScoreMeaningfulDigits(), hit.getScore()));
       }
       if (selectSet == null || selectSet.contains(PARAM_RESULT_HIT_GROUPFIELD))
       {
@@ -505,6 +505,15 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
     }
    
     return jsonObj;
+  }
+
+  private static String formatScore(Integer scoreMeaningfulDigits, float score) {
+    if (scoreMeaningfulDigits == null) {
+      return String.valueOf(score);
+    } else {
+      int digits = Math.max(0, scoreMeaningfulDigits);
+      return String.format("%." + digits + "f", score);
+    }
   }
 
   private static void addErrors(JSONObject jsonResult, SenseiResult res) throws JSONException {

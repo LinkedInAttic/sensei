@@ -125,6 +125,8 @@ public class RequestConverter2 {
   private static final String MAP_REDUCE_FUNCTION = "function";
   private static final String MAP_REDUCE_PARAMETERS = "parameters";
 
+  public static final String SCORE_MEANINGFUL_DIGITS = "scoreMeaningfulDigits";
+
   private static JsonTemplateProcessor jsonTemplateProcessor = new JsonTemplateProcessor();
 
 	public static String[] getStrings(JSONObject obj,String field){
@@ -412,6 +414,9 @@ public class RequestConverter2 {
           }
 
 		// other
+
+    Integer scoreMeaningfulDigits = json.optInt(RequestConverter2.SCORE_MEANINGFUL_DIGITS);
+    req.setScoreMeaningfulDigits(scoreMeaningfulDigits);
 
 		boolean fetchStored = json.optBoolean(RequestConverter2.FETCH_STORED);
 		req.setFetchStoredFields(fetchStored);

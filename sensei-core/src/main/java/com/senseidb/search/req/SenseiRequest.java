@@ -74,6 +74,7 @@ private long   tid           =          -1;
   private List<String> _selectList; // Select list (mostly used in BQL) 
   private SenseiMapReduce mapReduceFunction;
   private List<SenseiError> errors;
+  private Integer scoreMeaningfulDigits;
 
   public SenseiRequest(){
     _facetInitParamMap = new HashMap<String,FacetHandlerInitializerParam>();
@@ -91,6 +92,16 @@ private long   tid           =          -1;
     _maxPerGroup = 0;
     _termVectorsToFetch = null;
     _selectList = null;
+  }
+
+  public Integer getScoreMeaningfulDigits()
+  {
+    return scoreMeaningfulDigits;
+  }
+
+  public void setScoreMeaningfulDigits(Integer scoreMeaningfulDigits)
+  {
+    this.scoreMeaningfulDigits = scoreMeaningfulDigits;
   }
 
   public Set<String> getTermVectorsToFetch(){
@@ -540,6 +551,7 @@ private long   tid           =          -1;
     clone.setTermVectorsToFetch(this.getTermVectorsToFetch());
     clone.setSelectList(this.getSelectList());
     clone.setMapReduceFunction(this.getMapReduceFunction());
+    clone.setScoreMeaningfulDigits(this.getScoreMeaningfulDigits());
 
     return clone;
   }
