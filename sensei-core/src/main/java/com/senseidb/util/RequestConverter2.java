@@ -415,8 +415,8 @@ public class RequestConverter2 {
 
 		// other
 
-    Integer scoreMeaningfulDigits = json.optInt(RequestConverter2.SCORE_MEANINGFUL_DIGITS);
-    req.setScoreMeaningfulDigits(scoreMeaningfulDigits);
+    if (json.has(RequestConverter2.SCORE_MEANINGFUL_DIGITS))
+      req.setScoreMeaningfulDigits( json.getInt(RequestConverter2.SCORE_MEANINGFUL_DIGITS) );
 
 		boolean fetchStored = json.optBoolean(RequestConverter2.FETCH_STORED);
 		req.setFetchStoredFields(fetchStored);
