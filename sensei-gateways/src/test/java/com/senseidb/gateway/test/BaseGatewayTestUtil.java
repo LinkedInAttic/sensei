@@ -108,13 +108,17 @@ public class BaseGatewayTestUtil {
     });
     dataProvider.start();
 
-    while(true){
+    int maxCount = 10;
+    while(--maxCount >= 0){
       Thread.sleep(500);
       if (jsonList.size()==BaseGatewayTestUtil.readDataFile().size()){
         dataProvider.stop();
         BaseGatewayTestUtil.compareResultList(jsonList);
         break;
       }
+    }
+    if (maxCount < 0) {
+      TestCase.fail("Timed out waiting for the gateway");
     }
   }
 
