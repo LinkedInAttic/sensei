@@ -37,8 +37,6 @@ import com.linkedin.norbert.javacompat.cluster.ClusterClient;
 import com.linkedin.norbert.javacompat.network.PartitionedLoadBalancerFactory;
 import com.linkedin.norbert.javacompat.network.PartitionedNetworkClient;
 import com.senseidb.cluster.routing.SenseiPartitionedLoadBalancerFactory;
-import com.senseidb.metrics.MetricsConstants;
-import com.senseidb.search.node.AbstractConsistentHashBroker;
 import com.senseidb.search.node.SenseiBroker;
 import com.senseidb.search.req.ErrorType;
 import com.senseidb.search.req.SenseiError;
@@ -58,7 +56,7 @@ public class SenseiBrokerProxy extends SenseiBroker implements BrokerProxy {
                            ClusterClient clusterClient,
                            Serializer<SenseiRequest, SenseiResult> serializer,
                            long timeoutMillis, boolean allowPartialMerge) {
-    super(networkClient, clusterClient, serializer, timeoutMillis, allowPartialMerge);
+    super(networkClient, clusterClient, allowPartialMerge, serializer, timeoutMillis, null);
 
     MetricName scatterMetricName = new MetricName(SenseiBrokerProxy.class,"scatter-time");
     scatterTimer = MetricFactory.newTimer(scatterMetricName, TimeUnit.MILLISECONDS, TimeUnit.SECONDS);

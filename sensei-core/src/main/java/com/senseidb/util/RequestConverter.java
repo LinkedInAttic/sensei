@@ -25,9 +25,8 @@ import com.senseidb.search.node.SenseiQueryBuilder;
 import com.senseidb.search.node.SenseiQueryBuilderFactory;
 import com.senseidb.search.req.SenseiRequest;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
+
 import org.apache.commons.configuration.BaseConfiguration;
 import org.apache.commons.configuration.Configuration;
 import org.apache.log4j.Logger;
@@ -50,8 +49,13 @@ public class RequestConverter {
     if (breq.getGroupBy() != null && breq.getMaxPerGroup() > 1) {
       breq.setCollectDocIdCache(true);
     }
-		
-		SenseiQueryBuilder queryBuilder = queryBuilderFactory.getQueryBuilder(req.getQuery());
+        List<String> selectList = req.getSelectList();
+        if (selectList != null && selectList.size() == 1 && selectList.get(0).equals("*")) {
+            selectList = null;
+        }
+        breq.setFacetsToFetch(selectList != null ? new HashSet<String>(selectList) : null);
+
+        SenseiQueryBuilder queryBuilder = queryBuilderFactory.getQueryBuilder(req.getQuery());
        
         // query
         Query q = null;

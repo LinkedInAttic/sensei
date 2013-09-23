@@ -18,22 +18,20 @@
  */
 package com.senseidb.search.node.broker;
 
-import java.util.Comparator;
-
-import com.linkedin.norbert.network.Serializer;
-import com.senseidb.search.req.SenseiResult;
-import org.apache.commons.configuration.Configuration;
-
 import com.linkedin.norbert.javacompat.cluster.ZooKeeperClusterClient;
 import com.linkedin.norbert.javacompat.network.NetworkClientConfig;
 import com.linkedin.norbert.javacompat.network.PartitionedLoadBalancerFactory;
+import com.linkedin.norbert.network.Serializer;
 import com.senseidb.cluster.client.SenseiNetworkClient;
 import com.senseidb.conf.SenseiConfParams;
 import com.senseidb.search.node.SenseiBroker;
 import com.senseidb.search.node.SenseiSysBroker;
-import com.senseidb.search.req.SenseiRequest;
+import com.senseidb.search.req.SenseiRequestCustomizerFactory;
+import com.senseidb.search.req.SenseiResult;
 import com.senseidb.servlet.SenseiConfigServletContextListener;
-import com.senseidb.svc.api.SenseiException;
+import org.apache.commons.configuration.Configuration;
+
+import java.util.Comparator;
 
 public class BrokerConfig {
   protected String clusterName;
@@ -55,6 +53,9 @@ public class BrokerConfig {
   private SenseiNetworkClient networkClient;
   private SenseiBroker senseiBroker;
   private SenseiSysBroker senseiSysBroker;
+  private long brokerTimeout;
+  private long brokerTimeout;
+  private SenseiRequestCustomizerFactory requestCustomizerFactory;
   protected long brokerTimeout;
 
   

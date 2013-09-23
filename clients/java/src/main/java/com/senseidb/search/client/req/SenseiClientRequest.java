@@ -81,6 +81,10 @@ public class SenseiClientRequest {
      */
     private boolean explain;
     /**
+     * Flag indicating whether request trace information should be logged
+     */
+    private boolean trace;
+    /**
      * the field value used for routing
      */
     private String routeParam;
@@ -126,6 +130,11 @@ public class SenseiClientRequest {
 
         public Builder explain(boolean explain) {
             request.explain = explain;
+            return this;
+        }
+
+        public Builder trace(boolean trace) {
+            request.trace = trace;
             return this;
         }
 
@@ -277,6 +286,10 @@ public class SenseiClientRequest {
 
     public boolean isExplain() {
         return explain;
+    }
+
+    public boolean isTrace() {
+        return trace;
     }
 
     public String getRouteParam() {

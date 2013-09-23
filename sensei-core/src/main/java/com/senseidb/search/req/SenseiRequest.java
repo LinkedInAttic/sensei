@@ -65,6 +65,7 @@ private long   tid           =          -1;
   private Map<String,FacetHandlerInitializerParam> _facetInitParamMap;
   private Set<Integer> _partitions;
   private boolean _showExplanation;
+  private boolean _trace;
   private static Random _rand = new Random(System.nanoTime());
   private String _routeParam;
 	private String _groupBy;  // TODO: Leave here for backward compatible reason, will remove it later.
@@ -76,7 +77,7 @@ private long   tid           =          -1;
   private transient Set<String> _selectSet;
   private SenseiMapReduce mapReduceFunction;
   private List<SenseiError> errors;
-  
+
   public SenseiRequest(){
     _facetInitParamMap = new HashMap<String,FacetHandlerInitializerParam>();
     _selections=new HashMap<String,BrowseSelection>();
@@ -86,6 +87,7 @@ private long   tid           =          -1;
     _fetchStoredValue = false;
     _partitions = null;
     _showExplanation = false;
+    _trace = false;
     _routeParam = null;
     _groupBy = null;
     _groupByMulti = null;
@@ -103,7 +105,8 @@ private long   tid           =          -1;
   public void setTermVectorsToFetch(Set<String> termVectorsToFetch){
     _termVectorsToFetch = termVectorsToFetch;
   }
-/**
+
+  /**
    * Get the transaction ID.
    * @return the transaction ID.
    */
@@ -124,11 +127,19 @@ private long   tid           =          -1;
   
   public boolean isShowExplanation() {
     return _showExplanation;
-    }
+  }
 
-    public void setShowExplanation(boolean showExplanation) {
+  public void setShowExplanation(boolean showExplanation) {
     _showExplanation = showExplanation;
-    }
+  }
+
+  public boolean isTrace() {
+    return _trace;
+  }
+
+  public void setTrace(boolean trace) {
+    _trace = trace;
+  }
 
   public void setPartitions(Set<Integer> partitions){
     _partitions = partitions;
@@ -536,14 +547,19 @@ private long   tid           =          -1;
     for(Entry<String, FacetSpec> facetSpec : this.getFacetSpecs().entrySet()) {
       cloneFacetSpecs.put(facetSpec.getKey(), facetSpec.getValue().clone());
     }
-    
     clone.setFacetSpecs(cloneFacetSpecs);
+
+    Map<String, FacetHandlerInitializerParam> cloneFacetInit = new HashMap<String, FacetHandlerInitializerParam>();
+    for(Entry<String, FacetHandlerInitializerParam> facetInit : this.getFacetHandlerInitParamMap().entrySet()) {
+        cloneFacetInit.put(facetInit.getKey(), facetInit.getValue()); // TODO consider cloning values as well
+    }
+    clone.setFacetHandlerInitParamMap(cloneFacetInit);
+
     clone.setQuery(this.getQuery());
     clone.setOffset(this.getOffset());
     clone.setCount(this.getCount());
     clone.setFetchStoredFields(this.isFetchStoredFields());
     clone.setFetchStoredValue(this.isFetchStoredValue());
-    clone.setFacetHandlerInitParamMap(this.getFacetHandlerInitParamMap());
     clone.setPartitions(this.getPartitions());
     clone.setShowExplanation(this.isShowExplanation());
     clone.setRouteParam(this.getRouteParam());

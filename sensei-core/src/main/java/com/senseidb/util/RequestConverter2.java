@@ -101,6 +101,7 @@ public class RequestConverter2 {
   public static final String FACETINIT_TYPE_DOUBLE = "double";
   public static final String FACETINIT_VALUES = "values";
 
+  public static final String FACETS_TO_FETCH = "fetchFacets";
 
   public static final String SORT = "sort";
   public static final String SORT_ASC = "asc";
@@ -117,6 +118,7 @@ public class RequestConverter2 {
   public static final String PARTITIONS = "partitions";
 
   public static final String EXPLAIN = "explain";
+  public static final String TRACE = "trace";
 
   public static final String ROUTEPARAM = "routeParam";
 
@@ -447,10 +449,10 @@ public class RequestConverter2 {
 		  req.setTermVectorsToFetch(new HashSet<String>(Arrays.asList(termVectors)));
 		}
 
-
 		req.setPartitions(getIntSet(json, RequestConverter2.PARTITIONS,0));
 
 		req.setShowExplanation(json.optBoolean(RequestConverter2.EXPLAIN,false));
+        req.setTrace(json.optBoolean(RequestConverter2.TRACE,false));
 
 		String routeParam = json.optString(RequestConverter2.ROUTEPARAM,null);
 		req.setRouteParam(routeParam);
