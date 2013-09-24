@@ -26,6 +26,7 @@ import com.senseidb.cluster.client.SenseiNetworkClient;
 import com.senseidb.conf.SenseiConfParams;
 import com.senseidb.search.node.SenseiBroker;
 import com.senseidb.search.node.SenseiSysBroker;
+import com.senseidb.search.req.SenseiRequest;
 import com.senseidb.search.req.SenseiRequestCustomizerFactory;
 import com.senseidb.search.req.SenseiResult;
 import com.senseidb.servlet.SenseiConfigServletContextListener;
@@ -53,8 +54,6 @@ public class BrokerConfig {
   private SenseiNetworkClient networkClient;
   private SenseiBroker senseiBroker;
   private SenseiSysBroker senseiSysBroker;
-  private long brokerTimeout;
-  private long brokerTimeout;
   private SenseiRequestCustomizerFactory requestCustomizerFactory;
   protected long brokerTimeout;
 
@@ -109,7 +108,7 @@ public class BrokerConfig {
   }
 
   public SenseiBroker buildSenseiBroker() {
-    senseiBroker = new SenseiBroker(networkClient, clusterClient, serializer, brokerTimeout, allowPartialMerge);
+    senseiBroker = new SenseiBroker(networkClient, clusterClient, allowPartialMerge, serializer, brokerTimeout, null);
     return senseiBroker;
   }
   public SenseiSysBroker buildSysSenseiBroker(Comparator<String> versionComparator) {   
