@@ -47,7 +47,7 @@ public class RangeFilterConstructor extends FilterConstructor
   public static final String FILTER_TYPE = "range";
 
   @Override
-  protected Filter doConstructFilter(Object obj) throws Exception
+  protected SenseiFilter doConstructFilter(Object obj) throws Exception
   {
     final JSONObject json = (JSONObject)obj;
 
@@ -105,17 +105,18 @@ public class RangeFilterConstructor extends FilterConstructor
       include_upper = jsonObj.optBoolean(INCLUDE_UPPER_PARAM, true);
     }
 
-    return new Filter()
+    return new SenseiFilter()
     {
       @Override
-      public DocIdSet getDocIdSet(final IndexReader reader) throws IOException
-      {
+      public SenseiDocIdSet getSenseiDocIdSet(final IndexReader reader) throws IOException {
+        int defaultCardinalityEstimate = reader.maxDoc() >> 1;
+
         String fromPadded = from, toPadded = to;
         if (!noOptimize)
         {
           if (reader instanceof BoboIndexReader)
           {
-            BoboIndexReader boboReader = (BoboIndexReader)reader;
+            final BoboIndexReader boboReader = (BoboIndexReader)reader;
             FacetHandler facetHandler = boboReader.getFacetHandler(field);
             if (facetHandler != null)
             {
@@ -145,7 +146,9 @@ public class RangeFilterConstructor extends FilterConstructor
               } else {
             	  filter = new FacetRangeFilter(facetHandler, sb.toString());
               }
-              return filter.getDocIdSet(reader);
+              int cardinality = (int)(reader.maxDoc() * filter.getFacetSelectivity(boboReader));
+              DocIdSet docIdSet = filter.getDocIdSet(reader);
+              return new SenseiDocIdSet(docIdSet, cardinality);
             }
           }
         }
@@ -200,7 +203,7 @@ public class RangeFilterConstructor extends FilterConstructor
         
         if (fromPadded == null || fromPadded.length() == 0)
           if (toPadded == null || toPadded.length() == 0)
-            return new DocIdSet()
+            return new SenseiDocIdSet(new DocIdSet()
             {
               @Override
               public boolean isCacheable()
@@ -213,13 +216,16 @@ public class RangeFilterConstructor extends FilterConstructor
               {
                 return new MatchAllDocIdSetIterator(reader);
               }
-            };
+            }, reader.maxDoc());
           else
-            return new TermRangeFilter(field, fromPadded, toPadded, false, include_upper).getDocIdSet(reader);
+            return new SenseiDocIdSet(new TermRangeFilter(field, fromPadded, toPadded, false,
+                include_upper).getDocIdSet(reader), defaultCardinalityEstimate);
         else if (toPadded == null|| toPadded.length() == 0)
-          return new TermRangeFilter(field, fromPadded, toPadded, include_lower, false).getDocIdSet(reader);
+          return new SenseiDocIdSet(new TermRangeFilter(field, fromPadded, toPadded, include_lower,
+              false).getDocIdSet(reader), defaultCardinalityEstimate);
 
-        return new TermRangeFilter(field, fromPadded, toPadded, include_lower, include_upper).getDocIdSet(reader);
+        return new SenseiDocIdSet(new TermRangeFilter(field, fromPadded, toPadded, include_lower,
+          include_upper).getDocIdSet(reader), defaultCardinalityEstimate);
       }
     };
   }
