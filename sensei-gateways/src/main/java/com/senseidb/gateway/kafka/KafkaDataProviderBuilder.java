@@ -20,6 +20,7 @@
 package com.senseidb.gateway.kafka;
 
 import java.util.Comparator;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
@@ -36,15 +37,6 @@ public class KafkaDataProviderBuilder extends SenseiGateway<DataPacket>{
 
 	private final Comparator<String> _versionComparator = ZoieConfig.DEFAULT_VERSION_COMPARATOR;
 
-  private void extractProperty(Properties props, String key)
-  {
-    String value = config.get("kafka." + key);
-    if (value != null && value.length() != 0)
-    {
-      props.setProperty(key, value);
-    }
-  }
-
 	@Override
   public StreamDataProvider<JSONObject> buildDataProvider(DataSourceFilter<DataPacket> dataFilter,
       String oldSinceKey,
@@ -58,14 +50,15 @@ public class KafkaDataProviderBuilder extends SenseiGateway<DataPacket>{
     int timeout = timeoutStr != null ? Integer.parseInt(timeoutStr) : 10000;
     int batchsize = Integer.parseInt(config.get("kafka.batchsize"));
 
+    // Just pass all the other options to Kafka directly.
+    final String kafkaPrefix = "kafka.";
     Properties props = new Properties();
-    extractProperty(props, "socket.timeout.ms");
-    extractProperty(props, "socket.buffersize");
-    extractProperty(props, "fetch.size");
-    extractProperty(props, "backoff.increment.ms");
-    extractProperty(props, "queuedchunks.max");
-    extractProperty(props, "autocommit.interval.ms");
-    extractProperty(props, "rebalance.retries.max");
+    for (Map.Entry<String, String> configEntry : config.entrySet()) {
+      String configKey = configEntry.getKey();
+      if (configEntry.getKey().startsWith(kafkaPrefix)) {
+        props.setProperty(configKey.substring((kafkaPrefix.length())), configEntry.getValue());
+      }
+    }
 
     long offset = oldSinceKey == null ? 0L : Long.parseLong(oldSinceKey);
     
