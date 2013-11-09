@@ -408,13 +408,18 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
           {
             String[] vals = entry.getValue();
 
-            JSONArray valArray = new FastJSONArray(vals.length);
+            JSONArray valArray;
             if (vals != null)
             {
+              valArray = new FastJSONArray(vals.length);
               for (String val : vals)
               {
                 valArray.put(val);
               }
+            }
+            else
+            {
+              valArray = new FastJSONArray();
             }
             hitObj.put(key, valArray);
           }

@@ -24,6 +24,7 @@ import com.linkedin.norbert.javacompat.network.PartitionedLoadBalancerFactory;
 import com.linkedin.norbert.network.Serializer;
 import com.senseidb.cluster.client.SenseiNetworkClient;
 import com.senseidb.conf.SenseiConfParams;
+import com.senseidb.plugin.SenseiPluginRegistry;
 import com.senseidb.search.node.SenseiBroker;
 import com.senseidb.search.node.SenseiSysBroker;
 import com.senseidb.search.req.SenseiRequest;
@@ -60,7 +61,8 @@ public class BrokerConfig {
   
   public BrokerConfig(Configuration senseiConf,
                       PartitionedLoadBalancerFactory<String> loadBalancerFactory,
-                      Serializer<SenseiRequest, SenseiResult> serializer) {
+                      Serializer<SenseiRequest, SenseiResult> serializer,
+                      SenseiPluginRegistry pluginRegistry) {
     this.loadBalancerFactory = loadBalancerFactory;
     this.serializer = serializer;
     clusterName = senseiConf.getString(SenseiConfParams.SENSEI_CLUSTER_NAME);
@@ -79,7 +81,8 @@ public class BrokerConfig {
     staleRequestCleanupFrequencyMins = senseiConf.getInt(SenseiConfigServletContextListener.SENSEI_CONF_NC_STALE_CLEANUP_FREQ_MINS, 10);
     allowPartialMerge = senseiConf.getBoolean(SenseiConfParams.ALLOW_PARTIAL_MERGE, true); 
     brokerTimeout = senseiConf.getLong(SenseiConfParams.SERVER_BROKER_TIMEOUT, 8000);
-
+    if (pluginRegistry != null)
+      requestCustomizerFactory = pluginRegistry.getBeanByFullPrefix(SenseiConfParams.SERVER_BROKER_REQUEST_CUSTOMIZER_FACTORY, SenseiRequestCustomizerFactory.class);
   }
 
   public void init() {
@@ -108,7 +111,7 @@ public class BrokerConfig {
   }
 
   public SenseiBroker buildSenseiBroker() {
-    senseiBroker = new SenseiBroker(networkClient, clusterClient, allowPartialMerge, serializer, brokerTimeout, null);
+    senseiBroker = new SenseiBroker(networkClient, clusterClient, allowPartialMerge, serializer, brokerTimeout, requestCustomizerFactory);
     return senseiBroker;
   }
   public SenseiSysBroker buildSysSenseiBroker(Comparator<String> versionComparator) {   

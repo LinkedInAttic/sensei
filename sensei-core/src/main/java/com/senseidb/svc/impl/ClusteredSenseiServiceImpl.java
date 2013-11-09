@@ -50,7 +50,7 @@ public class ClusteredSenseiServiceImpl implements SenseiService {
   
   public ClusteredSenseiServiceImpl(Configuration senseiConf, PartitionedLoadBalancerFactory<String> loadBalancerFactory,
                                     Serializer<SenseiRequest, SenseiResult> serializer, Comparator<String> versionComparator) {
-    BrokerConfig brokerConfig = new BrokerConfig(senseiConf, loadBalancerFactory, serializer);
+    BrokerConfig brokerConfig = new BrokerConfig(senseiConf, loadBalancerFactory, serializer, null);
     brokerConfig.init();
     _clusterName = brokerConfig.getClusterName();
   

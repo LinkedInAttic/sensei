@@ -36,7 +36,7 @@ public class BrokerProxyConfig extends BrokerConfig {
                            PartitionedLoadBalancerFactory<String> loadBalancerFactory,
                            Serializer<SenseiRequest, SenseiResult> serializer,
                            Map<String,String> config) {
-    super(senseiConf, loadBalancerFactory, serializer);
+    super(senseiConf, loadBalancerFactory, serializer, null);
     clusterName = getStrParam(config, SenseiConfParams.SENSEI_CLUSTER_NAME, clusterName);    
     zkurl = getStrParam(config, SenseiConfParams.SENSEI_CLUSTER_URL, zkurl);
     zkTimeout = getIntParam(config, SenseiConfParams.SENSEI_CLUSTER_TIMEOUT, zkTimeout);   

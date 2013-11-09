@@ -34,7 +34,7 @@ public class CompoundBrokerConfig extends BrokerConfig {
                               PartitionedLoadBalancerFactory<String> loadBalancerFactory,
                               Serializer<SenseiRequest, SenseiResult> serializer,
                               Map<String,String> config, String clusterName) {
-    super(senseiConf, loadBalancerFactory, serializer);
+    super(senseiConf, loadBalancerFactory, serializer, null);
     
     this.clusterName = clusterName;
     zkurl = getStrParam(clusterName, config, SenseiConfParams.SENSEI_CLUSTER_URL, zkurl);

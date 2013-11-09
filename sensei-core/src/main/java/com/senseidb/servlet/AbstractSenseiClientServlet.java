@@ -111,7 +111,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
   @Override
   public void init(ServletConfig config) throws ServletException {
     super.init(config);
-    BrokerConfig brokerConfig = new BrokerConfig(senseiConf, loadBalancerFactory, serializer);
+    BrokerConfig brokerConfig = new BrokerConfig(senseiConf, loadBalancerFactory, serializer, pluginRegistry);
     brokerConfig.init();
     _senseiBroker = brokerConfig.buildSenseiBroker();
     _senseiSysBroker = brokerConfig.buildSysSenseiBroker(versionComparator);

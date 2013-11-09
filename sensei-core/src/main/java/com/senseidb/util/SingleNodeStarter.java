@@ -66,7 +66,7 @@ public class SingleNodeStarter {
         });
         PartitionedLoadBalancerFactory balancerFactory = new SenseiPartitionedLoadBalancerFactory(1000);
         Serializer<SenseiRequest, SenseiResult> serializer = CoreSenseiServiceImpl.JAVA_SERIALIZER;
-        BrokerConfig brokerConfig = new BrokerConfig(senseiConfiguration, balancerFactory, serializer);
+        BrokerConfig brokerConfig = new BrokerConfig(senseiConfiguration, balancerFactory, serializer, senseiServerBuilder.getPluginRegistry());
         brokerConfig.init();
         SenseiBroker senseiBroker = brokerConfig.buildSenseiBroker();
         while (true) {
