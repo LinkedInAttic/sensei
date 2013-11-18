@@ -21,10 +21,10 @@ package com.senseidb.search.query.filters;
 import java.io.IOException;
 import java.util.Iterator;
 
+import com.browseengine.bobo.facets.filter.RandomAccessFilter;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.search.DocIdSet;
 import org.apache.lucene.search.DocIdSetIterator;
-import org.apache.lucene.search.Filter;
 import org.json.JSONObject;
 
 import com.browseengine.bobo.api.BoboIndexReader;
@@ -39,7 +39,7 @@ public class PathFilterConstructor extends FilterConstructor
   public static final String FILTER_TYPE = "path";
 
   @Override
-  protected Filter doConstructFilter(Object param) throws Exception
+  protected SenseiFilter doConstructFilter(Object param) throws Exception
   {
     JSONObject json = (JSONObject)param;
 
@@ -66,11 +66,10 @@ public class PathFilterConstructor extends FilterConstructor
       strict = false;
     }
 
-    return new Filter()
+    return new SenseiFilter()
     {
       @Override
-      public DocIdSet getDocIdSet(final IndexReader reader) throws IOException
-      {
+      public SenseiDocIdSet getSenseiDocIdSet(final IndexReader reader) throws IOException {
         if (reader instanceof BoboIndexReader)
         {
           BoboIndexReader boboReader = (BoboIndexReader)reader;
@@ -81,23 +80,24 @@ public class PathFilterConstructor extends FilterConstructor
             sel.setValues(new String[]{path});
             sel.setSelectionProperty(PathFacetHandler.SEL_PROP_NAME_DEPTH, String.valueOf(depth));
             sel.setSelectionProperty(PathFacetHandler.SEL_PROP_NAME_STRICT, String.valueOf(strict));
-            Filter filter = ((PathFacetHandler)facetHandler).buildFilter(sel);
-            if (filter == null)
-              return new DocIdSet()
-              {
+            RandomAccessFilter filter = ((PathFacetHandler)facetHandler).buildFilter(sel);
+            if (filter == null) {
+
+              DocIdSet docIdSet = new DocIdSet() {
                 @Override
-                public boolean isCacheable()
-                {
+                public boolean isCacheable() {
                   return false;
                 }
 
                 @Override
-                public DocIdSetIterator iterator() throws IOException
-                {
+                public DocIdSetIterator iterator() throws IOException {
                   return new MatchAllDocIdSetIterator(reader);
                 }
               };
-            return filter.getDocIdSet(reader);
+              int maxDoc = reader.maxDoc();
+              return new SenseiDocIdSet(docIdSet, DocIdSetCardinality.one(), "ALL");
+            }
+            return SenseiDocIdSet.build(filter, boboReader, "PATH " + field);
           }
         }
 

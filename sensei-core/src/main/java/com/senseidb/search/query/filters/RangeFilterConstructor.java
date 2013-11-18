@@ -29,7 +29,6 @@ import java.util.Locale;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.search.DocIdSet;
 import org.apache.lucene.search.DocIdSetIterator;
-import org.apache.lucene.search.Filter;
 import org.apache.lucene.search.TermRangeFilter;
 import org.json.JSONObject;
 
@@ -47,7 +46,7 @@ public class RangeFilterConstructor extends FilterConstructor
   public static final String FILTER_TYPE = "range";
 
   @Override
-  protected Filter doConstructFilter(Object obj) throws Exception
+  protected SenseiFilter doConstructFilter(Object obj) throws Exception
   {
     final JSONObject json = (JSONObject)obj;
 
@@ -105,17 +104,18 @@ public class RangeFilterConstructor extends FilterConstructor
       include_upper = jsonObj.optBoolean(INCLUDE_UPPER_PARAM, true);
     }
 
-    return new Filter()
+    return new SenseiFilter()
     {
       @Override
-      public DocIdSet getDocIdSet(final IndexReader reader) throws IOException
-      {
+      public SenseiDocIdSet getSenseiDocIdSet(final IndexReader reader) throws IOException {
+        DocIdSetCardinality defaultDocIdSetCardinalityEstimate = DocIdSetCardinality.random();
+
         String fromPadded = from, toPadded = to;
         if (!noOptimize)
         {
           if (reader instanceof BoboIndexReader)
           {
-            BoboIndexReader boboReader = (BoboIndexReader)reader;
+            final BoboIndexReader boboReader = (BoboIndexReader)reader;
             FacetHandler facetHandler = boboReader.getFacetHandler(field);
             if (facetHandler != null)
             {
@@ -145,7 +145,8 @@ public class RangeFilterConstructor extends FilterConstructor
               } else {
             	  filter = new FacetRangeFilter(facetHandler, sb.toString());
               }
-              return filter.getDocIdSet(reader);
+              DocIdSet docIdSet = filter.getDocIdSet(reader);
+              return new SenseiDocIdSet(docIdSet, DocIdSetCardinality.exact(filter.getFacetSelectivity(boboReader)), "RANGE " + field + sb.toString());
             }
           }
         }
@@ -200,7 +201,7 @@ public class RangeFilterConstructor extends FilterConstructor
         
         if (fromPadded == null || fromPadded.length() == 0)
           if (toPadded == null || toPadded.length() == 0)
-            return new DocIdSet()
+            return new SenseiDocIdSet(new DocIdSet()
             {
               @Override
               public boolean isCacheable()
@@ -213,13 +214,17 @@ public class RangeFilterConstructor extends FilterConstructor
               {
                 return new MatchAllDocIdSetIterator(reader);
               }
-            };
-          else
-            return new TermRangeFilter(field, fromPadded, toPadded, false, include_upper).getDocIdSet(reader);
-        else if (toPadded == null|| toPadded.length() == 0)
-          return new TermRangeFilter(field, fromPadded, toPadded, include_lower, false).getDocIdSet(reader);
 
-        return new TermRangeFilter(field, fromPadded, toPadded, include_lower, include_upper).getDocIdSet(reader);
+            }, DocIdSetCardinality.one(), "ALL");
+          else
+            return new SenseiDocIdSet(new TermRangeFilter(field, fromPadded, toPadded, false,
+                include_upper).getDocIdSet(reader), defaultDocIdSetCardinalityEstimate, "RANGE " + field + " TO " + toPadded);
+        else if (toPadded == null|| toPadded.length() == 0)
+          return new SenseiDocIdSet(new TermRangeFilter(field, fromPadded, toPadded, include_lower,
+              false).getDocIdSet(reader), defaultDocIdSetCardinalityEstimate, "RANGE " + field + " FROM " + fromPadded);
+
+        return new SenseiDocIdSet(new TermRangeFilter(field, fromPadded, toPadded, include_lower,
+          include_upper).getDocIdSet(reader), defaultDocIdSetCardinalityEstimate, "RANGE " + field + " FROM " + fromPadded + " TO " + toPadded);
       }
     };
   }

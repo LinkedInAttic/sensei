@@ -100,7 +100,7 @@ public abstract class FilterConstructor {
 		return paramMap;
 	}
 
-	public static Filter constructFilter(JSONObject json, QueryParser qparser) throws Exception
+	public static SenseiFilter constructFilter(JSONObject json, QueryParser qparser) throws Exception
   {
     if (json == null)
       return null;
@@ -118,6 +118,6 @@ public abstract class FilterConstructor {
     return filterConstructor.doConstructFilter(json.get(type));
   }
 	
-	abstract protected Filter doConstructFilter(Object json/* JSONObject or JSONArray */) throws Exception;
+	abstract protected SenseiFilter doConstructFilter(Object json/* JSONObject or JSONArray */) throws Exception;
 
 }
