@@ -20,10 +20,10 @@ package com.senseidb.search.query.filters;
 
 import java.io.IOException;
 
+import com.browseengine.bobo.facets.FacetHandler;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.search.DocIdSet;
 import org.apache.lucene.search.DocIdSetIterator;
-import org.apache.lucene.search.Filter;
 import org.json.JSONObject;
 
 import com.browseengine.bobo.api.BoboIndexReader;
@@ -35,28 +35,42 @@ import com.browseengine.bobo.util.BigNestedIntArray;
 
 public class NullFilterConstructor extends FilterConstructor {
   public static final String FILTER_TYPE = "isNull";
+
   @Override
-  protected Filter doConstructFilter(Object json) throws Exception {
+  protected SenseiFilter doConstructFilter(Object json) throws Exception {
     final String fieldName =  json instanceof String ? (String) json : ((JSONObject) json).getString("field");
-    return new Filter() {
-      
+    return new SenseiFilter() {
       @Override
-      public DocIdSet getDocIdSet(IndexReader reader) throws IOException {
-        final Object data = ((BoboIndexReader)reader).getFacetData(fieldName);
-        if (data instanceof MultiValueFacetDataCache) {
-          return new DocIdSet() {            
+      public SenseiDocIdSet getSenseiDocIdSet(IndexReader reader) throws IOException {
+        BoboIndexReader boboReader = (BoboIndexReader) reader;
+        FacetHandler facetHandler = boboReader.getFacetHandler(fieldName);
+        Object facetData = facetHandler.getFacetData(boboReader);
+
+        if(facetData instanceof MultiValueFacetDataCache)
+        {
+          final MultiValueFacetDataCache facetDataCache = (MultiValueFacetDataCache) facetData;
+
+          DocIdSet docIdSet = new DocIdSet() {
             @Override
-            public DocIdSetIterator iterator() throws IOException {              
-              return new MultiValueFacetDocIdSetIterator((MultiValueFacetDataCache)data, 0);
+            public DocIdSetIterator iterator() throws IOException {
+              return new MultiValueFacetDocIdSetIterator(facetDataCache, 0);
             }
           };
-        } else if (data instanceof FacetDataCache) {
-          return new DocIdSet() {            
+
+          return new SenseiDocIdSet(docIdSet, DocIdSetCardinality.exact(facetDataCache.freqs[0], boboReader.maxDoc()), fieldName + " IS MULTIVALUE NULL");
+        }
+        else if (facetData instanceof FacetDataCache)
+        {
+          final FacetDataCache facetDataCache = (FacetDataCache) facetData;
+
+          DocIdSet docIdSet = new DocIdSet() {
             @Override
-            public DocIdSetIterator iterator() throws IOException {              
-              return new FacetFilter.FacetDocIdSetIterator((FacetDataCache) data, 0);
+            public DocIdSetIterator iterator() throws IOException {
+              return new FacetFilter.FacetDocIdSetIterator(facetDataCache, 0);
             }
           };
+
+          return new SenseiDocIdSet(docIdSet, DocIdSetCardinality.exact(facetDataCache.freqs[0], boboReader.maxDoc()), fieldName + " IS NULL");
         }
         throw new UnsupportedOperationException("The null filter is supported only for the bobo facetHandlers that use FacetDataCache");
       }

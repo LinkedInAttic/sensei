@@ -18,26 +18,48 @@
  */
 package com.senseidb.search.query.filters;
 
-import org.apache.lucene.search.Filter;
+import com.senseidb.search.query.MatchNoneDocsQuery;
+import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.QueryWrapperFilter;
 import org.json.JSONObject;
 
 import com.senseidb.search.query.QueryConstructor;
-import com.senseidb.util.JSONUtil.FastJSONArray;
 import com.senseidb.util.JSONUtil.FastJSONObject;
+
+import java.io.IOException;
 
 public class ConstExpFilterConstructor extends FilterConstructor
 {
   public static final String FILTER_TYPE = "const_exp";
 
   @Override
-  protected Filter doConstructFilter(Object json) throws Exception
+  protected SenseiFilter doConstructFilter(Object json) throws Exception
   {
     Query q = QueryConstructor.constructQuery(new FastJSONObject().put(FILTER_TYPE, (JSONObject)json), null);
     if (q == null)
       return null;
-    return new QueryWrapperFilter(q);
-  } 
+
+    final QueryWrapperFilter filter = new QueryWrapperFilter(q);
+
+    if(q instanceof MatchAllDocsQuery) {
+      return new SenseiFilter() {
+        @Override
+        public SenseiDocIdSet getSenseiDocIdSet(IndexReader reader) throws IOException {
+          return new SenseiDocIdSet(filter.getDocIdSet(reader), DocIdSetCardinality.one(), "ALL");
+        }
+      };
+    } else if(q instanceof MatchNoneDocsQuery) {
+      return new SenseiFilter() {
+        @Override
+        public SenseiDocIdSet getSenseiDocIdSet(IndexReader reader) throws IOException {
+          return new SenseiDocIdSet(filter.getDocIdSet(reader), DocIdSetCardinality.zero(), "NONE");
+        }
+      };
+    } else {
+      return SenseiFilter.buildDefault(filter);
+    }
+  }
 
 }

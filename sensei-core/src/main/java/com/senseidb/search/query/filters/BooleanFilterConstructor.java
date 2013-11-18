@@ -62,11 +62,11 @@ public class BooleanFilterConstructor extends FilterConstructor
   }
 
   @Override
-  protected Filter doConstructFilter(Object param) throws Exception
+  protected SenseiFilter doConstructFilter(Object param) throws Exception
   {
     JSONObject json = (JSONObject)param;
     Object obj = json.opt(MUST_PARAM);
-    List<Filter> andFilters = new ArrayList<Filter>();
+    List<SenseiFilter> andFilters = new ArrayList<SenseiFilter>();
     if (obj != null)
     {
       if (obj instanceof JSONArray)
@@ -90,29 +90,29 @@ public class BooleanFilterConstructor extends FilterConstructor
         for (int i=0; i<((JSONArray)obj).length(); ++i)
         {
           andFilters.add(
-            new NotFilter(FilterConstructor.constructFilter(((JSONArray)obj).getJSONObject(i),
+            new SenseiNotFilter(FilterConstructor.constructFilter(((JSONArray)obj).getJSONObject(i),
                                                             _qparser)));
         }
       }
       else if (obj instanceof JSONObject)
       {
-        andFilters.add(new NotFilter(FilterConstructor.constructFilter((JSONObject)obj, _qparser)));
+        andFilters.add(new SenseiNotFilter(FilterConstructor.constructFilter((JSONObject)obj, _qparser)));
       }
     }
     JSONArray array = json.optJSONArray(SHOULD_PARAM);
     if (array != null)
     {
-      List<Filter> orFilters = new ArrayList<Filter>(array.length());
+      List<SenseiFilter> orFilters = new ArrayList<SenseiFilter>(array.length());
       for (int i=0; i<array.length(); ++i)
       {
         orFilters.add(FilterConstructor.constructFilter(array.getJSONObject(i), _qparser));
       }
       if (orFilters.size() > 0)
-        andFilters.add(new OrFilter(orFilters));
+        andFilters.add(new SenseiOrFilter(orFilters));
     }
 
     if (andFilters.size() > 0)
-      return new AndFilter(andFilters);
+      return new SenseiAndFilter(andFilters);
     else
       return null;
   }
