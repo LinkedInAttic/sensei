@@ -93,20 +93,23 @@ public class DefaultJsonQueryBuilderFactory extends
         try
         {
           final SenseiFilter senseiFilter = FilterConstructor.constructFilter(filter, _qparser);
-          return senseiFilter;
-//          return senseiFilter == null ? null : new SenseiFilter() {
-//
-//            volatile boolean called = false;
-//            @Override
-//            public SenseiDocIdSet getSenseiDocIdSet(IndexReader reader) throws IOException {
-//              SenseiDocIdSet docIdSet = senseiFilter.getSenseiDocIdSet(reader);
-//              if(!called) {
-//                logger.info("Running the query: " + (query == null ? "NULL" : query.toString()));
-//                logger.info("Plan(" + reader.maxDoc() + "): " + docIdSet.getQueryPlan());
-//              }
-//              return docIdSet;
-//            }
-//          };
+          if (logger.isTraceEnabled() && senseiFilter != null) {
+            return new SenseiFilter() {
+
+              volatile boolean called = false;
+              @Override
+              public SenseiDocIdSet getSenseiDocIdSet(IndexReader reader) throws IOException {
+                SenseiDocIdSet docIdSet = senseiFilter.getSenseiDocIdSet(reader);
+                if(!called) {
+                  logger.info("Running the query: " + (query == null ? "NULL" : query.toString()));
+                  logger.info("Plan(" + reader.maxDoc() + "): " + docIdSet.getQueryPlan());
+                }
+                return docIdSet;
+              }
+            };
+          } else {
+            return senseiFilter;
+          }
         }
         catch (Exception e)
         {
