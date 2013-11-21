@@ -288,6 +288,7 @@ public class SenseiTermFilter extends SenseiFilter {
   /* Get the list of values, sorted by frequency.
   *
   * ANDs will be sorted by increasing frequency, ORs by decreasing.
+  * We skip terms in the AND which match all docs. We skip terms in OR which match all docs.
   * We update total cardinality as we go, but it's supposed to be initialized to 1 for ANDs, 0 for ORs.
   */
   static String[] getValsByFrequency(String[] vals, int[] freqs, int maxDoc, DocIdSetCardinality total, TermValueList valArray, boolean isAnd) {
@@ -298,12 +299,21 @@ public class SenseiTermFilter extends SenseiFilter {
 
       if (i >=0) {
         DocIdSetCardinality docIdSetCardinality = DocIdSetCardinality.exact(((double) freqs[i]) / maxDoc);
-        valsAndFreqs.add(new Pair<String, DocIdSetCardinality>(valArray.get(i), docIdSetCardinality));
         if (isAnd) {
+          // Since in Bobo, AND with no terms matches zero docs, we can't just do this.
+          // We need to be careful in case we remove the last term, and, instead of our query matching everything,
+          // it starts matching nothing. Since I reckon these are rare, I vote to just not deal with it.
+//          if (docIdSetCardinality.isOne()) {
+//            continue;
+//          }
           total.andWith(docIdSetCardinality);
         } else {
+          if (docIdSetCardinality.isZero()) {
+            continue;
+          }
           total.orWith(docIdSetCardinality);
         }
+        valsAndFreqs.add(new Pair<String, DocIdSetCardinality>(valArray.get(i), docIdSetCardinality));
       }
     }
 

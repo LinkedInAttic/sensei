@@ -201,21 +201,7 @@ public class RangeFilterConstructor extends FilterConstructor
         
         if (fromPadded == null || fromPadded.length() == 0)
           if (toPadded == null || toPadded.length() == 0)
-            return new SenseiDocIdSet(new DocIdSet()
-            {
-              @Override
-              public boolean isCacheable()
-              {
-                return false;
-              }
-
-              @Override
-              public DocIdSetIterator iterator() throws IOException
-              {
-                return new MatchAllDocIdSetIterator(reader);
-              }
-
-            }, DocIdSetCardinality.one(), "ALL");
+            return SenseiDocIdSet.buildMatchAll(reader, "RANGE");
           else
             return new SenseiDocIdSet(new TermRangeFilter(field, fromPadded, toPadded, false,
                 include_upper).getDocIdSet(reader), defaultDocIdSetCardinalityEstimate, "RANGE " + field + " TO " + toPadded);

@@ -2,7 +2,10 @@ package com.senseidb.search.query.filters;
 
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.facets.filter.RandomAccessFilter;
+import com.browseengine.bobo.query.MatchAllDocIdSetIterator;
+import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.search.DocIdSet;
+import org.apache.lucene.search.DocIdSetIterator;
 
 import java.io.IOException;
 import java.util.Comparator;
@@ -47,5 +50,24 @@ public class SenseiDocIdSet {
     DocIdSet docIdSet = randomAccessFilter.getDocIdSet(boboIndexReader);
     double facetSelectivity = randomAccessFilter.getFacetSelectivity(boboIndexReader);
     return new SenseiDocIdSet(docIdSet, DocIdSetCardinality.exact(facetSelectivity), queryPlan);
+  }
+
+  public static SenseiDocIdSet buildMatchAll(final IndexReader reader, String queryPlan) {
+    DocIdSet docIdSet = new DocIdSet() {
+      @Override
+      public boolean isCacheable() {
+        return false;
+      }
+
+      @Override
+      public DocIdSetIterator iterator() throws IOException {
+        return new MatchAllDocIdSetIterator(reader);
+      }
+    };
+    return new SenseiDocIdSet(docIdSet, DocIdSetCardinality.one(), "MATCH ALL " + queryPlan);
+  }
+
+  public static SenseiDocIdSet buildMatchNone(String queryPlan) {
+    return new SenseiDocIdSet(DocIdSet.EMPTY_DOCIDSET, DocIdSetCardinality.zero(), "MATCH NONE " + queryPlan);
   }
 }

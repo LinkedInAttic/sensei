@@ -82,20 +82,7 @@ public class PathFilterConstructor extends FilterConstructor
             sel.setSelectionProperty(PathFacetHandler.SEL_PROP_NAME_STRICT, String.valueOf(strict));
             RandomAccessFilter filter = ((PathFacetHandler)facetHandler).buildFilter(sel);
             if (filter == null) {
-
-              DocIdSet docIdSet = new DocIdSet() {
-                @Override
-                public boolean isCacheable() {
-                  return false;
-                }
-
-                @Override
-                public DocIdSetIterator iterator() throws IOException {
-                  return new MatchAllDocIdSetIterator(reader);
-                }
-              };
-              int maxDoc = reader.maxDoc();
-              return new SenseiDocIdSet(docIdSet, DocIdSetCardinality.one(), "ALL");
+              return SenseiDocIdSet.buildMatchAll(reader, "PATH " + field);
             }
             return SenseiDocIdSet.build(filter, boboReader, "PATH " + field);
           }
