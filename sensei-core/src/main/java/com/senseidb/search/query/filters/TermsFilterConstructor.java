@@ -30,7 +30,7 @@ public class TermsFilterConstructor extends FilterConstructor{
   public static final String FILTER_TYPE = "terms";
 
   @Override
-  protected Filter doConstructFilter(Object obj) throws Exception {
+  protected SenseiFilter doConstructFilter(Object obj) throws Exception {
     JSONObject json = (JSONObject)obj;
 
     Iterator<String> iter = json.keys();

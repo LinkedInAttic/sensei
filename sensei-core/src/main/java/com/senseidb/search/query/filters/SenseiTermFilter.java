@@ -18,17 +18,24 @@
  */
 package com.senseidb.search.query.filters;
 
+import com.browseengine.bobo.facets.filter.RandomAccessFilter;
+import com.browseengine.bobo.util.BigSegmentedArray;
+import com.senseidb.search.facet.UIDFacetHandler;
+import com.senseidb.util.Pair;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.DocIdSet;
 import org.apache.lucene.search.DocIdSetIterator;
-import org.apache.lucene.search.Filter;
 
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.api.BrowseSelection;
@@ -42,7 +49,7 @@ import com.kamikaze.docidset.impl.AndDocIdSet;
 import com.kamikaze.docidset.impl.NotDocIdSet;
 import com.kamikaze.docidset.impl.OrDocIdSet;
 
-public class SenseiTermFilter extends Filter {
+public class SenseiTermFilter extends SenseiFilter {
 
   /**
    * 
@@ -67,9 +74,13 @@ public class SenseiTermFilter extends Filter {
     _noAutoOptimize = noAutoOptimize;
   }
   
-  private static DocIdSet buildDefaultDocIdSets(final BoboIndexReader reader,final String name,final String[] vals,boolean isAnd){
+  static DocIdSet buildDefaultDocIdSets(final BoboIndexReader reader,
+                                                final String name,
+                                                final String[] vals,
+                                                boolean isAnd){
     if (vals==null) return null;
     ArrayList<DocIdSet> docSetList = new ArrayList<DocIdSet>(vals.length);
+
     for (final String val : vals){
       docSetList.add(new DocIdSet() {
         
@@ -85,7 +96,7 @@ public class SenseiTermFilter extends Filter {
     }
     else if (docSetList.size()==0) return null;
     else{
-      if (isAnd){
+      if (isAnd) {
         return new AndDocIdSet(docSetList);
       }
       else{
@@ -93,9 +104,8 @@ public class SenseiTermFilter extends Filter {
       }
     }
   }
-  
-  
-  private static DocIdSet buildLuceneDefaultDocIdSet(final BoboIndexReader reader,
+
+      private static DocIdSet buildLuceneDefaultDocIdSet(final BoboIndexReader reader,
                                                      final String name,
                                                      final String[] vals,
                                                      String[] nots,
@@ -121,8 +131,8 @@ public class SenseiTermFilter extends Filter {
     DocIdSet positiveSet = null;
     DocIdSet negativeSet = null;
 
-    if (vals!=null && vals.length>0)
-      positiveSet = buildDefaultDocIdSets(reader,name,vals,isAnd);
+    if (vals!=null && vals.length > 0)
+      positiveSet = buildDefaultDocIdSets(reader, name, vals, isAnd);
 
     if (nots!=null && nots.length>0)
       negativeSet = buildDefaultDocIdSets(reader, name, nots, false);
@@ -131,7 +141,7 @@ public class SenseiTermFilter extends Filter {
       if (negativeSet==null){
         return positiveSet;
       }
-      else{
+      else {
         DocIdSet[] sets = new DocIdSet[]{positiveSet,new NotDocIdSet(negativeSet, reader.maxDoc())};
         return new AndDocIdSet(Arrays.asList(sets));
       }
@@ -147,61 +157,165 @@ public class SenseiTermFilter extends Filter {
     }
   }
 
+  public String planString(String type, String[] vals, String[] nots) {
+    StringBuilder plan = new StringBuilder();
+    plan.append(_name);
+    plan.append(" ");
+    plan.append(type);
+    plan.append(_isAnd ? " HAS ALL <" : " IN <");
+    plan.append(StringUtils.join(vals, ", "));
+    plan.append("> NOT IN <");
+    plan.append(StringUtils.join(nots, ", "));
+    plan.append(">");
+    return plan.toString();
+  }
+
+
   @Override
-  public DocIdSet getDocIdSet(IndexReader reader) throws IOException {
-    if (reader instanceof BoboIndexReader){
+  public SenseiDocIdSet getSenseiDocIdSet(IndexReader reader) throws IOException {
+    if (reader instanceof BoboIndexReader) {
       BoboIndexReader boboReader = (BoboIndexReader)reader;
       FacetHandler facetHandler = (FacetHandler)boboReader.getFacetHandler(_name);
       Object obj = null;
-      if (facetHandler != null)
-      {
-        obj = facetHandler.getFacetData(boboReader);
-        if (_noAutoOptimize && obj!=null && obj instanceof FacetDataCache){
-          FacetDataCache facetData = (FacetDataCache)obj;
-          TermValueList valArray = facetData.valArray;
-          // copy vals
-          ArrayList<String> validVals = new ArrayList<String>(_vals.length);
 
-          int offset = 0;
-          for (String val : _vals){
-            int idx = valArray.indexOf(val);
+      String[] vals = _vals;
+      String[] nots = _not;
+      int maxDoc = reader.maxDoc();
 
-            if (idx >=0) {
-              validVals.add(valArray.get(idx));    // get and format the value
-              offset = idx;
-            } else {
-              offset = -idx - 1;
-            }
-          }
-          return buildLuceneDefaultDocIdSet(boboReader, _name, validVals.toArray(new String[0]),_not,_isAnd);
-        }
-        // we get to optimize using facets
-        BrowseSelection sel = new BrowseSelection(_name);
-        sel.setValues(_vals);
-        if (_not != null)
-          sel.setNotValues(_not);
-        if (_isAnd)
-          sel.setSelectionOperation(ValueOperation.ValueOperationAnd);
-        else
-          sel.setSelectionOperation(ValueOperation.ValueOperationOr);
+      // No facetHandler == no cardinality info.
+      DocIdSetCardinality totalDocIdSetCardinality = null;
+      String planType = "FACETED NOFACETDATA";
 
-        Filter filter = facetHandler.buildFilter(sel);
-        if (filter == null)
-          filter = EmptyFilter.getInstance();
-
-        return filter.getDocIdSet(boboReader);
-        
-      }
-      else{
+      if(facetHandler == null) {
         if (logger.isDebugEnabled()) {
           logger.debug("not facet support, default to term filter: "+_name);
         }
-        return buildLuceneDefaultDocIdSet(boboReader,_name,_vals,_not,_isAnd);
+
+        DocIdSet docIdSet = buildLuceneDefaultDocIdSet(boboReader, _name, vals, nots, _isAnd);
+
+        // No cardinality since we don't have the facet data and because Lucene's TermDocs is
+        // too expensive to justify calling
+        return new SenseiDocIdSet(docIdSet, DocIdSetCardinality.random(), planString("NOFACET LUCENE", vals, nots));
+      } else if (facetHandler instanceof UIDFacetHandler) {
+        planType = "FACET UID";
+
+        if (vals.length != 0) {
+          // We *could* look up all the ranges right now and see if there's any one even there. This would greatly
+          // speed up empty _uid queries, but I've never seen one of those.
+          totalDocIdSetCardinality = DocIdSetCardinality.exactRange(0, 1, maxDoc);
+        } else {
+          totalDocIdSetCardinality = DocIdSetCardinality.zero();
+        }
+        if (nots.length != 0) {
+          totalDocIdSetCardinality.andWith(DocIdSetCardinality.exactRange(maxDoc - nots.length, maxDoc, maxDoc));
+        }
+      } else {
+        obj = facetHandler.getFacetData(boboReader);
+        if (obj != null && obj instanceof FacetDataCache) {
+          planType = "FACETED";
+
+          FacetDataCache facetData = (FacetDataCache)obj;
+          TermValueList valArray = facetData.valArray;
+          BigSegmentedArray orderArray = facetData.orderArray;
+          int[] freqs = facetData.freqs;
+
+          // Total cardinality = AND/OR(val1, val2, ...) AND NOT (OR(not1, not2))
+          // Empty vals means empty set in Boboland, regardless of _isAnd.
+          totalDocIdSetCardinality = (_isAnd && vals.length != 0) ? DocIdSetCardinality.one() : DocIdSetCardinality.zero();
+          vals = getValsByFrequency(vals, freqs, maxDoc, totalDocIdSetCardinality, valArray, _isAnd);
+
+          DocIdSetCardinality notDocIdSetCardinality = DocIdSetCardinality.zero();
+          nots = getValsByFrequency(nots, freqs, maxDoc, notDocIdSetCardinality, valArray, false);
+          notDocIdSetCardinality.invert();
+          totalDocIdSetCardinality.andWith(notDocIdSetCardinality);
+
+          if(_noAutoOptimize) {
+            DocIdSet docIdSet = buildLuceneDefaultDocIdSet(boboReader,
+                _name,
+                vals,
+                nots,
+                _isAnd);
+
+            return new SenseiDocIdSet(docIdSet, totalDocIdSetCardinality, planString("DE-OPTIMIZED LUCENE", vals, nots));
+          }
+        }
       }
-    }
-    else{
+      // we get to optimize using facets
+      BrowseSelection sel = new BrowseSelection(_name);
+
+      sel.setValues(vals);
+      if (nots != null)
+        sel.setNotValues(nots);
+
+      if (_isAnd) {
+        sel.setSelectionOperation(ValueOperation.ValueOperationAnd);
+      } else {
+        sel.setSelectionOperation(ValueOperation.ValueOperationOr);
+      }
+      RandomAccessFilter filter = facetHandler.buildFilter(sel);
+      if (filter == null)
+        filter = EmptyFilter.getInstance();
+
+      // If we don't have an cardinality estimate, ask Bobo.
+      if (totalDocIdSetCardinality == null) {
+        totalDocIdSetCardinality = DocIdSetCardinality.exact(filter.getFacetSelectivity(boboReader));
+        // Zero means 'delete', and I don't trust Bobo enough.
+        if (totalDocIdSetCardinality.isZero()) {
+          totalDocIdSetCardinality = DocIdSetCardinality.exactRange(0.0, 0.001);
+        }
+      }
+
+      return new SenseiDocIdSet(filter.getDocIdSet(boboReader), totalDocIdSetCardinality, planString(planType, vals, nots));
+
+    } else{
       throw new IllegalStateException("read not instance of "+BoboIndexReader.class);
     }
   }
 
+  private static final Comparator<Pair<String, DocIdSetCardinality>> DECREASING_CARDINALITY_COMPARATOR = new Comparator<Pair<String, DocIdSetCardinality>>() {
+    @Override
+    public int compare(Pair<String, DocIdSetCardinality> a, Pair<String, DocIdSetCardinality> b) {
+      return -a.getSecond().compareTo(b.getSecond());
+    }
+  };
+  public static final Comparator<Pair<String, DocIdSetCardinality>> INCREASING_CARDINALITY_COMPARATOR = new Comparator<Pair<String, DocIdSetCardinality>> (){
+    @Override
+    public int compare(Pair<String, DocIdSetCardinality> a, Pair<String, DocIdSetCardinality> b) {
+      return a.getSecond().compareTo(b.getSecond());
+    }
+  };
+
+  /* Get the list of values, sorted by frequency.
+  *
+  * ANDs will be sorted by increasing frequency, ORs by decreasing.
+  * We update total cardinality as we go, but it's supposed to be initialized to 1 for ANDs, 0 for ORs.
+  */
+  static String[] getValsByFrequency(String[] vals, int[] freqs, int maxDoc, DocIdSetCardinality total, TermValueList valArray, boolean isAnd) {
+    List<Pair<String, DocIdSetCardinality>> valsAndFreqs = new ArrayList<Pair<String, DocIdSetCardinality>>(vals.length);
+
+    for (String val : vals) {
+      int i = valArray.indexOf(val);
+
+      if (i >=0) {
+        DocIdSetCardinality docIdSetCardinality = DocIdSetCardinality.exact(((double) freqs[i]) / maxDoc);
+        valsAndFreqs.add(new Pair<String, DocIdSetCardinality>(valArray.get(i), docIdSetCardinality));
+        if (isAnd) {
+          total.andWith(docIdSetCardinality);
+        } else {
+          total.orWith(docIdSetCardinality);
+        }
+      }
+    }
+
+    // Lowest cardinality docs go first to optimize the AND case, last for the OR case
+    Collections.sort(valsAndFreqs, isAnd ? INCREASING_CARDINALITY_COMPARATOR : DECREASING_CARDINALITY_COMPARATOR);
+
+    String[] sortedVals = new String[valsAndFreqs.size()];
+    int i = 0;
+    while (i < sortedVals.length) {
+      sortedVals[i] = valsAndFreqs.get(i).getFirst();
+      ++i;
+    }
+    return sortedVals;
+  }
 }

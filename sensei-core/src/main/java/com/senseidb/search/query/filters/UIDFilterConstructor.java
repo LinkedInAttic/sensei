@@ -20,6 +20,8 @@ package com.senseidb.search.query.filters;
 
 import java.io.IOException;
 
+import com.browseengine.bobo.facets.filter.RandomAccessFilter;
+import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.search.DocIdSet;
 import org.apache.lucene.search.Filter;
@@ -36,14 +38,13 @@ public class UIDFilterConstructor  extends FilterConstructor{
   public static final String FILTER_TYPE = "ids";
 
   @Override
-  protected Filter doConstructFilter(Object obj) throws Exception {
+  protected SenseiFilter doConstructFilter(Object obj) throws Exception {
     final JSONObject json = (JSONObject)obj;
-    return new Filter(){
+    return new SenseiFilter(){
 
       @Override
-      public DocIdSet getDocIdSet(IndexReader reader)
-          throws IOException {
-        if (reader instanceof BoboIndexReader){
+      public SenseiDocIdSet getSenseiDocIdSet(IndexReader reader) throws IOException {
+        if (reader instanceof BoboIndexReader) {
           BoboIndexReader boboReader = (BoboIndexReader)reader;
           FacetHandler uidHandler = boboReader.getFacetHandler(SenseiFacetHandlerBuilder.UID_FACET_NAME);
           if (uidHandler!=null && uidHandler instanceof UIDFacetHandler){
@@ -56,7 +57,9 @@ public class UIDFilterConstructor  extends FilterConstructor{
                 uidSel.setValues(vals);
               if (nots != null)
                 uidSel.setNotValues(nots);
-              return uidFacet.buildFilter(uidSel).getDocIdSet(boboReader);
+
+              RandomAccessFilter raf = uidFacet.buildFilter(uidSel);
+              return SenseiDocIdSet.build(raf, boboReader, "<uid> IN <" + StringUtils.join(vals, ", ") + "> NOT IN <" + StringUtils.join(nots, ", ") + ">");
             }
             catch(Exception e){
               throw new IOException(e);
