@@ -20,6 +20,7 @@ package com.senseidb.search.query.filters;
 
 import com.senseidb.search.query.MatchNoneDocsQuery;
 import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.search.DocIdSet;
 import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.QueryWrapperFilter;
@@ -47,14 +48,14 @@ public class ConstExpFilterConstructor extends FilterConstructor
       return new SenseiFilter() {
         @Override
         public SenseiDocIdSet getSenseiDocIdSet(IndexReader reader) throws IOException {
-          return new SenseiDocIdSet(filter.getDocIdSet(reader), DocIdSetCardinality.one(), "ALL");
+          return SenseiDocIdSet.buildMatchAll(reader, "QUERY");
         }
       };
     } else if(q instanceof MatchNoneDocsQuery) {
       return new SenseiFilter() {
         @Override
         public SenseiDocIdSet getSenseiDocIdSet(IndexReader reader) throws IOException {
-          return new SenseiDocIdSet(filter.getDocIdSet(reader), DocIdSetCardinality.zero(), "NONE");
+          return SenseiDocIdSet.buildMatchNone("QUERY");
         }
       };
     } else {

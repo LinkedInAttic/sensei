@@ -28,49 +28,44 @@ public class SenseiAndFilter extends SenseiFilter
 
   @Override
   public SenseiDocIdSet getSenseiDocIdSet(IndexReader reader) throws IOException {
-    if (_filters.size() == 1)
+    List<SenseiDocIdSet> senseiDocIdSets = new ArrayList<SenseiDocIdSet>(_filters.size());
+    DocIdSetCardinality totalDocIdSetCardinalityEstimate = DocIdSetCardinality.one();
+
+    for (SenseiFilter f : _filters)
     {
-      return _filters.get(0).getSenseiDocIdSet(reader);
+      SenseiDocIdSet senseiDocIdSet = f.getSenseiDocIdSet(reader);
+      senseiDocIdSets.add(senseiDocIdSet);
+      totalDocIdSetCardinalityEstimate.andWith(senseiDocIdSet.getCardinalityEstimate());
     }
-    else
+
+    // Lowest cardinality filters should come first in AND
+    Collections.sort(senseiDocIdSets, SenseiDocIdSet.INCREASING_CARDINALITY_COMPARATOR);
+
+    List<DocIdSet> docIdSets = new ArrayList<DocIdSet>(senseiDocIdSets.size());
+    StringBuilder queryPlan = new StringBuilder("AND(");
+    for(SenseiDocIdSet senseiDocIdSet : senseiDocIdSets)
     {
-      List<SenseiDocIdSet> senseiDocIdSets = new ArrayList<SenseiDocIdSet>(_filters.size());
-      DocIdSetCardinality totalDocIdSetCardinalityEstimate = DocIdSetCardinality.one();
-
-      for (SenseiFilter f : _filters)
-      {
-        SenseiDocIdSet senseiDocIdSet = f.getSenseiDocIdSet(reader);
-        senseiDocIdSets.add(senseiDocIdSet);
-        totalDocIdSetCardinalityEstimate.andWith(senseiDocIdSet.getCardinalityEstimate());
+      if (senseiDocIdSet != senseiDocIdSets.get(0)) {
+        queryPlan.append(", ");
       }
 
-      // Lowest cardinality filters should come first in AND
-      Collections.sort(senseiDocIdSets, SenseiDocIdSet.INCREASING_CARDINALITY_COMPARATOR);
-
-      // @todo(nsabovic): If we detect totalCardinality of 0/1, we should insert match all/none filter.
-
-      List<DocIdSet> docIdSets = new ArrayList<DocIdSet>(senseiDocIdSets.size());
-      StringBuilder queryPlan = new StringBuilder("AND(");
-      for(SenseiDocIdSet senseiDocIdSet : senseiDocIdSets)
-      {
-        if (senseiDocIdSet != senseiDocIdSets.get(0)) {
-          queryPlan.append(", ");
-        }
-
-        if (!senseiDocIdSet.getCardinalityEstimate().isOne()) {
-          docIdSets.add(senseiDocIdSet.getDocIdSet());
-        } else {
-          queryPlan.append("SKIPPED ");
-        }
-        queryPlan.append(senseiDocIdSet.getQueryPlan());
-      }
-      queryPlan.append(")");
-
-      if (docIdSets.size() == 1) {
-        return new SenseiDocIdSet(docIdSets.get(0), totalDocIdSetCardinalityEstimate, "TRIVIAL " + queryPlan.toString());
+      if (!senseiDocIdSet.getCardinalityEstimate().isOne()) {
+        docIdSets.add(senseiDocIdSet.getDocIdSet());
       } else {
-        return new SenseiDocIdSet(new AndDocIdSet(docIdSets), totalDocIdSetCardinalityEstimate, queryPlan.toString());
+        queryPlan.append("SKIPPED ");
       }
+      queryPlan.append(senseiDocIdSet.getQueryPlan());
+    }
+    queryPlan.append(")");
+
+    if (totalDocIdSetCardinalityEstimate.isOne()) {
+      return SenseiDocIdSet.buildMatchAll(reader, queryPlan.toString());
+    } else if (totalDocIdSetCardinalityEstimate.isZero()) {
+      return SenseiDocIdSet.buildMatchNone(queryPlan.toString());
+    } else if (docIdSets.size() == 1) {
+      return new SenseiDocIdSet(docIdSets.get(0), totalDocIdSetCardinalityEstimate, "TRIVIAL " + queryPlan.toString());
+    } else {
+      return new SenseiDocIdSet(new AndDocIdSet(docIdSets), totalDocIdSetCardinalityEstimate, queryPlan.toString());
     }
   }
 
