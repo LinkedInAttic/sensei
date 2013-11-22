@@ -40,6 +40,7 @@ import com.senseidb.search.node.SenseiBroker;
 import com.senseidb.search.req.SenseiRequest;
 import com.senseidb.search.req.SenseiResult;
 import com.senseidb.svc.api.SenseiService;
+import org.junit.Ignore;
 
 
 public class TestSenseiAttributesHandler extends TestCase {
@@ -144,6 +145,7 @@ public class TestSenseiAttributesHandler extends TestCase {
     
   
   }
+  @Ignore
   public void test5FacetsAll() throws Exception
   {
     logger.info("executing test case testTotalCountWithFacetSpec");
