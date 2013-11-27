@@ -11,6 +11,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class TestSenseiTermFilter {
 
@@ -34,13 +36,14 @@ public class TestSenseiTermFilter {
   @Test
   public void testGetValsByFrequency() {
 
+    List<String> dummy = new ArrayList<String>();
     DocIdSetCardinality andCardinality = DocIdSetCardinality.one();
-    String andVals[] = SenseiTermFilter.getValsByFrequency(vals, freqs, 26, andCardinality, dictionary, true);
-    assertArrayEquals(andVals, new String[]{"e", "c", "a"});
+    String andVals[] = SenseiTermFilter.getValsByFrequency(vals, freqs, 26, andCardinality, dictionary, dummy, true);
+    assertArrayEquals(andVals, new String[]{"e", "c"});
     DocSetAssertions.assertRange(20, 22, 26, andCardinality);
 
     DocIdSetCardinality orCardinality = DocIdSetCardinality.zero();
-    String orgVals[] = SenseiTermFilter.getValsByFrequency(vals, freqs, 26, orCardinality, dictionary, false);
+    String orgVals[] = SenseiTermFilter.getValsByFrequency(vals, freqs, 26, orCardinality, dictionary, dummy, false);
     assertArrayEquals(orgVals, new String[]{"a", "c", "e"});
     DocSetAssertions.assertRange(26, 26, 26, orCardinality);
   }

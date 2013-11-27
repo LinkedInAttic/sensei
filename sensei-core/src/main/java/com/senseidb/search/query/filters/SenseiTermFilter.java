@@ -68,9 +68,9 @@ public class SenseiTermFilter extends SenseiFilter {
     _vals = vals != null  ? vals : new String[0];
     _not = not != null  ? not : new String[0];
 
-    Arrays.sort(_vals);
-    Arrays.sort(_not);
-    _isAnd = isAnd;
+    // Bobo silliness: Empty vals means match all, which technically means an AND of an empty set.
+    // EXCEPT if nots are also empty, but this is handled bellow.
+    _isAnd = isAnd || vals == null || vals.length == 0;
     _noAutoOptimize = noAutoOptimize;
   }
   
@@ -157,15 +157,41 @@ public class SenseiTermFilter extends SenseiFilter {
     }
   }
 
-  public String planString(String type, String[] vals, String[] nots) {
+  public String planString(String type, String[] vals, String[] nots, List<String> optimizedVals, List<String> optimizedNots) {
     StringBuilder plan = new StringBuilder();
+    boolean first = false;
+
     plan.append(_name);
     plan.append(" ");
     plan.append(type);
-    plan.append(_isAnd ? " HAS ALL <" : " IN <");
+    plan.append(_isAnd ? " CONTAINS ALL <" : " IN <");
     plan.append(StringUtils.join(vals, ", "));
-    plan.append("> NOT IN <");
+    if (!optimizedVals.isEmpty()) {
+      first = vals.length == 0;
+      for (String optimized: optimizedVals) {
+        if (first) {
+          first = false;
+        } else {
+          plan.append(", ");
+        }
+        plan.append(optimized);
+        plan.append('*');
+      }
+    }
+    plan.append("> EXCEPT <");
     plan.append(StringUtils.join(nots, ", "));
+    if (!optimizedNots.isEmpty()) {
+      first = vals.length == 0;
+      for (String optimized: optimizedNots) {
+        if (first) {
+          first = false;
+        } else {
+          plan.append(", ");
+        }
+        plan.append(optimized);
+        plan.append('*');
+      }
+    }
     plan.append(">");
     return plan.toString();
   }
@@ -180,7 +206,14 @@ public class SenseiTermFilter extends SenseiFilter {
 
       String[] vals = _vals;
       String[] nots = _not;
+      List<String> optimizedVals = new ArrayList<String>(vals.length);
+      List<String> optimizedNots = new ArrayList<String>(nots.length);
       int maxDoc = reader.maxDoc();
+
+      if ( (vals == null || vals.length == 0) && (nots == null || nots.length == 0) ) {
+        // Bobo madness part 2: no vals and no nots will match nothing, regardless of isAnd.
+        return SenseiDocIdSet.buildMatchNone(planString("TRIVIAL", vals, nots, optimizedVals, optimizedNots));
+      }
 
       // No facetHandler == no cardinality info.
       DocIdSetCardinality totalDocIdSetCardinality = null;
@@ -195,7 +228,7 @@ public class SenseiTermFilter extends SenseiFilter {
 
         // No cardinality since we don't have the facet data and because Lucene's TermDocs is
         // too expensive to justify calling
-        return new SenseiDocIdSet(docIdSet, DocIdSetCardinality.random(), planString("NOFACET LUCENE", vals, nots));
+        return new SenseiDocIdSet(docIdSet, DocIdSetCardinality.random(), planString("NOFACET LUCENE", vals, nots, optimizedVals, optimizedNots));
       } else if (facetHandler instanceof UIDFacetHandler) {
         planType = "FACET UID";
 
@@ -216,18 +249,24 @@ public class SenseiTermFilter extends SenseiFilter {
 
           FacetDataCache facetData = (FacetDataCache)obj;
           TermValueList valArray = facetData.valArray;
-          BigSegmentedArray orderArray = facetData.orderArray;
           int[] freqs = facetData.freqs;
 
           // Total cardinality = AND/OR(val1, val2, ...) AND NOT (OR(not1, not2))
-          // Empty vals means empty set in Boboland, regardless of _isAnd.
-          totalDocIdSetCardinality = (_isAnd && vals.length != 0) ? DocIdSetCardinality.one() : DocIdSetCardinality.zero();
-          vals = getValsByFrequency(vals, freqs, maxDoc, totalDocIdSetCardinality, valArray, _isAnd);
+          totalDocIdSetCardinality = _isAnd ? DocIdSetCardinality.one() : DocIdSetCardinality.zero();
+          vals = getValsByFrequency(vals, freqs, maxDoc, totalDocIdSetCardinality, valArray, optimizedVals, _isAnd);
 
           DocIdSetCardinality notDocIdSetCardinality = DocIdSetCardinality.zero();
-          nots = getValsByFrequency(nots, freqs, maxDoc, notDocIdSetCardinality, valArray, false);
+          nots = getValsByFrequency(nots, freqs, maxDoc, notDocIdSetCardinality, valArray, optimizedNots, false);
           notDocIdSetCardinality.invert();
           totalDocIdSetCardinality.andWith(notDocIdSetCardinality);
+
+          // If we optimized it out completely, return trivial sets. This is mostly there to deal with weird
+          // semantics for empty-match filters in Bobo.
+          if (totalDocIdSetCardinality.isOne()) {
+            return SenseiDocIdSet.buildMatchAll(reader, planString("FACET TRIVIAL", vals, nots, optimizedVals, optimizedNots));
+          } else if (totalDocIdSetCardinality.isZero()) {
+            return SenseiDocIdSet.buildMatchNone(planString("FACET TRIVIAL", vals, nots, optimizedVals, optimizedNots));
+          }
 
           if(_noAutoOptimize) {
             DocIdSet docIdSet = buildLuceneDefaultDocIdSet(boboReader,
@@ -236,7 +275,7 @@ public class SenseiTermFilter extends SenseiFilter {
                 nots,
                 _isAnd);
 
-            return new SenseiDocIdSet(docIdSet, totalDocIdSetCardinality, planString("DE-OPTIMIZED LUCENE", vals, nots));
+            return new SenseiDocIdSet(docIdSet, totalDocIdSetCardinality, planString("DE-OPTIMIZED LUCENE", vals, nots, optimizedVals, optimizedNots));
           }
         }
       }
@@ -265,7 +304,7 @@ public class SenseiTermFilter extends SenseiFilter {
         }
       }
 
-      return new SenseiDocIdSet(filter.getDocIdSet(boboReader), totalDocIdSetCardinality, planString(planType, vals, nots));
+      return new SenseiDocIdSet(filter.getDocIdSet(boboReader), totalDocIdSetCardinality, planString(planType, vals, nots, optimizedVals, optimizedNots));
 
     } else{
       throw new IllegalStateException("read not instance of "+BoboIndexReader.class);
@@ -291,7 +330,7 @@ public class SenseiTermFilter extends SenseiFilter {
   * We skip terms in the AND which match all docs. We skip terms in OR which match all docs.
   * We update total cardinality as we go, but it's supposed to be initialized to 1 for ANDs, 0 for ORs.
   */
-  static String[] getValsByFrequency(String[] vals, int[] freqs, int maxDoc, DocIdSetCardinality total, TermValueList valArray, boolean isAnd) {
+  static String[] getValsByFrequency(String[] vals, int[] freqs, int maxDoc, DocIdSetCardinality total, TermValueList valArray, List<String> optimizedOut, boolean isAnd) {
     List<Pair<String, DocIdSetCardinality>> valsAndFreqs = new ArrayList<Pair<String, DocIdSetCardinality>>(vals.length);
 
     for (String val : vals) {
@@ -300,15 +339,14 @@ public class SenseiTermFilter extends SenseiFilter {
       if (i >=0) {
         DocIdSetCardinality docIdSetCardinality = DocIdSetCardinality.exact(((double) freqs[i]) / maxDoc);
         if (isAnd) {
-          // Since in Bobo, AND with no terms matches zero docs, we can't just do this.
-          // We need to be careful in case we remove the last term, and, instead of our query matching everything,
-          // it starts matching nothing. Since I reckon these are rare, I vote to just not deal with it.
-//          if (docIdSetCardinality.isOne()) {
-//            continue;
-//          }
+          if (docIdSetCardinality.isOne()) {
+            optimizedOut.add(val);
+            continue;
+          }
           total.andWith(docIdSetCardinality);
         } else {
           if (docIdSetCardinality.isZero()) {
+            optimizedOut.add(val);
             continue;
           }
           total.orWith(docIdSetCardinality);
@@ -317,7 +355,7 @@ public class SenseiTermFilter extends SenseiFilter {
       }
     }
 
-    // Lowest cardinality docs go first to optimize the AND case, last for the OR case
+    // Lowest cardinality docs go first to optimize the AND case, last for the OR case.
     Collections.sort(valsAndFreqs, isAnd ? INCREASING_CARDINALITY_COMPARATOR : DECREASING_CARDINALITY_COMPARATOR);
 
     String[] sortedVals = new String[valsAndFreqs.size()];
