@@ -33,6 +33,7 @@ import java.util.List;
 
 import javax.management.StandardMBean;
 
+import com.senseidb.search.req.*;
 import org.apache.log4j.Logger;
 import org.mortbay.jetty.Server;
 
@@ -45,8 +46,6 @@ import com.linkedin.norbert.network.NetworkingException;
 import com.senseidb.conf.SenseiServerBuilder;
 import com.senseidb.jmx.JmxUtil;
 import com.senseidb.plugin.SenseiPluginRegistry;
-import com.senseidb.search.req.AbstractSenseiRequest;
-import com.senseidb.search.req.AbstractSenseiResult;
 import com.senseidb.svc.impl.AbstractSenseiCoreService;
 import com.senseidb.svc.impl.CoreSenseiServiceImpl;
 import com.senseidb.svc.impl.SenseiCoreServiceMessageHandler;
@@ -71,6 +70,8 @@ public class SenseiServer {
   protected volatile Node _serverNode;
   private final List<AbstractSenseiCoreService<AbstractSenseiRequest, AbstractSenseiResult>> _externalSvc;
   private final long _shutdownPauseMillis;
+  private CoreSenseiServiceImpl _coreSenseiService ;
+  private SysSenseiCoreServiceImpl _sysSenseiCoreService;
 
   //private Server _adminServer;
 
@@ -198,6 +199,14 @@ public class SenseiServer {
     return _core;
   }
 
+  public AbstractSenseiCoreService<SenseiRequest, SenseiResult> getCoreService() {
+    return _coreSenseiService;
+  }
+
+  public AbstractSenseiCoreService<SenseiRequest, SenseiSystemInfo> getSysCoreService() {
+    return _sysSenseiCoreService;
+  }
+
   /*
   public void setAdminServer(Server server)
   {
@@ -292,13 +301,13 @@ public class SenseiServer {
     logger.info("Cluster Name: " + clusterName);
     logger.info("Cluster info: " + _clusterClient.toString());
 
-    AbstractSenseiCoreService coreSenseiService = new CoreSenseiServiceImpl(_core);
-    AbstractSenseiCoreService sysSenseiCoreService = new SysSenseiCoreServiceImpl(_core);
+    _coreSenseiService = new CoreSenseiServiceImpl(_core);
+    _sysSenseiCoreService = new SysSenseiCoreServiceImpl(_core);
 
     // create the zookeeper cluster client
 //    SenseiClusterClientImpl senseiClusterClient = new SenseiClusterClientImpl(clusterName, zookeeperURL, zookeeperTimeout, false);
-    SenseiCoreServiceMessageHandler senseiMsgHandler =  new SenseiCoreServiceMessageHandler(coreSenseiService);
-    SenseiCoreServiceMessageHandler senseiSysMsgHandler =  new SenseiCoreServiceMessageHandler(sysSenseiCoreService);
+    SenseiCoreServiceMessageHandler senseiMsgHandler =  new SenseiCoreServiceMessageHandler(_coreSenseiService);
+    SenseiCoreServiceMessageHandler senseiSysMsgHandler =  new SenseiCoreServiceMessageHandler(_sysSenseiCoreService);
 
     _networkServer.registerHandler(senseiMsgHandler, CoreSenseiServiceImpl.PROTO_SERIALIZER);
     _networkServer.registerHandler(senseiSysMsgHandler, SysSenseiCoreServiceImpl.PROTO_SERIALIZER);
