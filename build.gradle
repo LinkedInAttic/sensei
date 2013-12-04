@@ -29,7 +29,7 @@ project.ext.externalDependency = [
   'json':'org.json:json:20080701',
   'metricsCore':'com.yammer.metrics:metrics-core:2.2.0',
   'servletApi':'javax.servlet:servlet-api:2.5',
-  'jetty':'org.mortbay.jetty:jetty:6.1.26',
+  'jettyAll':'org.eclipse.jetty.aggregate:jetty-all:8.1.8.v20121106',
   'javassist':'org.javassist:javassist:3.16.1-GA',
   'jdom':'org.jdom:jdom:1.1',
   'zkclient': 'com.github.sgroschupf:zkclient:0.1',
