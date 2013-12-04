@@ -35,12 +35,10 @@ project.ext.externalDependency = [
   'zkclient': 'com.github.sgroschupf:zkclient:0.1',
 
   'avro': 'org.apache.avro:avro:1.4.0',
-  'zoieCore': 'com.linkedin.zoie:zoie-core:3.3.6',
-  'zoieJms': 'com.linkedin.zoie:zoie-jms:3.3.6',
   'snappy': 'org.iq80.snappy:snappy:0.3',
   'kafka': 'kafka:kafka:0.8.0_0.30_9bd2a11486420a313f800-SNAPSHOT',
-  'zoieCore': 'com.linkedin.zoie:zoie-core:3.3.11',
-  'zoieJms': 'com.linkedin.zoie:zoie-jms:3.3.11',
+  'zoieCore': 'com.linkedin.zoie:zoie-core:3.3.15',
+  'zoieJms': 'com.linkedin.zoie:zoie-jms:3.3.15',
   'boboBrowse': 'com.linkedin.bobo:bobo-browse:3.1.18',
   'norbert':'com.linkedin.norbert:norbert:0.6.46',
 
