@@ -27,7 +27,7 @@ import com.linkedin.norbert.network.Serializer;
 import com.senseidb.indexing.activity.facet.ActivityRangeFacetHandler;
 import com.senseidb.svc.impl.CoreSenseiServiceImpl;
 import org.apache.log4j.Logger;
-import org.mortbay.jetty.Server;
+import org.eclipse.jetty.server.Server;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 

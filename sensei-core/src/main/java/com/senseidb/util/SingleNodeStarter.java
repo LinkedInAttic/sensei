@@ -26,7 +26,7 @@ import java.util.HashMap;
 import com.linkedin.norbert.network.Serializer;
 import com.senseidb.svc.impl.CoreSenseiServiceImpl;
 import org.apache.commons.configuration.PropertiesConfiguration;
-import org.mortbay.jetty.Server;
+import org.eclipse.jetty.server.Server;
 
 import com.linkedin.norbert.javacompat.network.PartitionedLoadBalancerFactory;
 import com.senseidb.cluster.routing.SenseiPartitionedLoadBalancerFactory;

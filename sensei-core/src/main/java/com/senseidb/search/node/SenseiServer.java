@@ -35,7 +35,7 @@ import javax.management.StandardMBean;
 
 import com.senseidb.search.req.*;
 import org.apache.log4j.Logger;
-import org.mortbay.jetty.Server;
+import org.eclipse.jetty.server.Server;
 
 import proj.zoie.api.DataProvider;
 

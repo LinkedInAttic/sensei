@@ -30,9 +30,13 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import javax.servlet.AsyncContext;
+import javax.servlet.DispatcherType;
 import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletContext;
 import javax.servlet.ServletInputStream;
 import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
 import org.apache.http.NameValuePair;
 
 
@@ -64,6 +68,36 @@ public class MockServletRequest implements ServletRequest
     }
 
     return new MockServletRequest(map);
+  }
+
+  @Override
+  public AsyncContext getAsyncContext()
+  {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public boolean isAsyncStarted()
+  {
+    return false;
+  }
+
+  @Override
+  public boolean isAsyncSupported()
+  {
+    return false;
+  }
+
+  @Override
+  public AsyncContext startAsync()
+  {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public AsyncContext startAsync(ServletRequest servletRequest, ServletResponse servletResponse)
+  {
+    throw new UnsupportedOperationException();
   }
 
   @Override
@@ -101,6 +135,12 @@ public class MockServletRequest implements ServletRequest
   public String getContentType()
   {
     throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public DispatcherType getDispatcherType()
+  {
+    return DispatcherType.REQUEST;
   }
 
   @Override
@@ -166,6 +206,12 @@ public class MockServletRequest implements ServletRequest
 
   @Override
   public String getScheme()
+  {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public ServletContext getServletContext()
   {
     throw new UnsupportedOperationException();
   }

@@ -31,7 +31,7 @@ import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.zookeeper.server.NIOServerCnxn;
 import org.apache.zookeeper.server.ZooKeeperServer;
 import org.apache.zookeeper.server.persistence.FileTxnSnapLog;
-import org.mortbay.jetty.Server;
+import org.eclipse.jetty.server.Server;
 
 import com.senseidb.conf.SenseiConfParams;
 import com.senseidb.conf.SenseiServerBuilder;

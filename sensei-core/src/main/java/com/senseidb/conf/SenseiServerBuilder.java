@@ -28,19 +28,12 @@ import it.unimi.dsi.fastutil.ints.IntSet;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.servlet.DispatcherType;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
@@ -57,15 +50,16 @@ import org.apache.lucene.search.DefaultSimilarity;
 import org.apache.lucene.search.Filter;
 import org.apache.lucene.search.Similarity;
 import org.apache.lucene.util.Version;
+import org.eclipse.jetty.util.log.Slf4jLog;
 import org.jolokia.http.AgentServlet;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.mortbay.jetty.Server;
-import org.mortbay.jetty.nio.SelectChannelConnector;
-import org.mortbay.jetty.servlet.ServletHolder;
-import org.mortbay.jetty.webapp.WebAppContext;
-import org.mortbay.servlet.GzipFilter;
-import org.mortbay.thread.QueuedThreadPool;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.nio.SelectChannelConnector;
+import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.webapp.WebAppContext;
+import org.eclipse.jetty.servlets.GzipFilter;
+import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.springframework.core.io.Resource;
 import org.w3c.dom.Document;
 
@@ -187,7 +181,7 @@ public class SenseiServerBuilder implements SenseiConfParams {
 
     static {
         try {
-            org.mortbay.log.Log.setLog(new org.mortbay.log.Slf4jLog());
+            org.eclipse.jetty.util.log.Log.setLog(new Slf4jLog());
         } catch (Throwable t) {
             logger.error(t.getMessage(), t);
         }
@@ -223,7 +217,7 @@ public class SenseiServerBuilder implements SenseiConfParams {
         ServletHolder jmxServletHolder = new ServletHolder(jmxServlet);
 
         WebAppContext senseiApp = new WebAppContext();
-        senseiApp.addFilter(GzipFilter.class, "/" + SENSEI_CONTEXT_PATH + "/*", 1);
+        senseiApp.addFilter(GzipFilter.class, "/" + SENSEI_CONTEXT_PATH + "/*", EnumSet.of(DispatcherType.REQUEST));
 
         //HashMap<String, String> initParam = new HashMap<String, String>();
         //if (_senseiConfFile != null) {
