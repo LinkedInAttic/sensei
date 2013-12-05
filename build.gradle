@@ -40,7 +40,7 @@ project.ext.externalDependency = [
   'zoieCore': 'com.linkedin.zoie:zoie-core:3.3.15',
   'zoieJms': 'com.linkedin.zoie:zoie-jms:3.3.15',
   'boboBrowse': 'com.linkedin.bobo:bobo-browse:3.1.18',
-  'norbert':'com.linkedin.norbert:norbert:0.6.46',
+  'norbert':'com.linkedin.norbert:norbert:0.6.47',
 
   'antlr':'org.antlr:antlr:3.4',
 
