@@ -18,25 +18,18 @@
  */
 package com.senseidb.search.query.filters;
 
-import com.browseengine.bobo.facets.filter.RandomAccessFilter;
-import com.browseengine.bobo.util.BigSegmentedArray;
-import com.senseidb.search.facet.UIDFacetHandler;
-import com.senseidb.util.Pair;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.DocIdSet;
 import org.apache.lucene.search.DocIdSetIterator;
-
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.api.BrowseSelection;
 import com.browseengine.bobo.api.BrowseSelection.ValueOperation;
@@ -44,10 +37,13 @@ import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.facets.data.FacetDataCache;
 import com.browseengine.bobo.facets.data.TermValueList;
 import com.browseengine.bobo.facets.filter.EmptyFilter;
+import com.browseengine.bobo.facets.filter.RandomAccessFilter;
 import com.browseengine.bobo.query.MatchAllDocIdSetIterator;
 import com.kamikaze.docidset.impl.AndDocIdSet;
 import com.kamikaze.docidset.impl.NotDocIdSet;
 import com.kamikaze.docidset.impl.OrDocIdSet;
+import com.senseidb.search.facet.UIDFacetHandler;
+import com.senseidb.util.Pair;
 
 public class SenseiTermFilter extends SenseiFilter {
 
@@ -235,12 +231,12 @@ public class SenseiTermFilter extends SenseiFilter {
         if (vals.length != 0) {
           // We *could* look up all the ranges right now and see if there's any one even there. This would greatly
           // speed up empty _uid queries, but I've never seen one of those.
-          totalDocIdSetCardinality = DocIdSetCardinality.exactRange(0, 1, maxDoc);
+          totalDocIdSetCardinality = DocIdSetCardinality.exactRange(0, 1, maxDoc + 1);
         } else {
           totalDocIdSetCardinality = DocIdSetCardinality.zero();
         }
         if (nots.length != 0) {
-          totalDocIdSetCardinality.andWith(DocIdSetCardinality.exactRange(maxDoc - nots.length, maxDoc, maxDoc));
+          totalDocIdSetCardinality.andWith(DocIdSetCardinality.exactRange(maxDoc + 1 - nots.length, maxDoc + 1, maxDoc + 1));
         }
       } else {
         obj = facetHandler.getFacetData(boboReader);
@@ -337,7 +333,7 @@ public class SenseiTermFilter extends SenseiFilter {
       int i = valArray.indexOf(val);
 
       if (i >=0) {
-        DocIdSetCardinality docIdSetCardinality = DocIdSetCardinality.exact(((double) freqs[i]) / maxDoc);
+        DocIdSetCardinality docIdSetCardinality = DocIdSetCardinality.exact(((double) freqs[i]) / (maxDoc + 1));
         if (isAnd) {
           if (docIdSetCardinality.isOne()) {
             optimizedOut.add(val);

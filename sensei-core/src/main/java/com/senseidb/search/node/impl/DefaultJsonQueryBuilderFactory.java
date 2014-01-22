@@ -18,8 +18,7 @@
  */
 package com.senseidb.search.node.impl;
 
-import com.senseidb.search.query.filters.SenseiDocIdSet;
-import com.senseidb.search.query.filters.SenseiFilter;
+import java.io.IOException;
 import org.apache.log4j.Logger;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.queryParser.ParseException;
@@ -29,14 +28,12 @@ import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Query;
 import org.json.JSONException;
 import org.json.JSONObject;
-
 import com.senseidb.search.node.SenseiQueryBuilder;
 import com.senseidb.search.query.QueryConstructor;
 import com.senseidb.search.query.filters.FilterConstructor;
-import com.senseidb.util.JSONUtil.FastJSONArray;
+import com.senseidb.search.query.filters.SenseiDocIdSet;
+import com.senseidb.search.query.filters.SenseiFilter;
 import com.senseidb.util.JSONUtil.FastJSONObject;
-
-import java.io.IOException;
 
 public class DefaultJsonQueryBuilderFactory extends
     AbstractJsonQueryBuilderFactory {
@@ -102,7 +99,7 @@ public class DefaultJsonQueryBuilderFactory extends
                 SenseiDocIdSet docIdSet = senseiFilter.getSenseiDocIdSet(reader);
                 if(!called) {
                   logger.info("Running the query: " + (query == null ? "NULL" : query.toString()));
-                  logger.info("Plan(" + reader.maxDoc() + "): " + docIdSet.getQueryPlan());
+                  logger.info("Plan(" + (reader.maxDoc() + 1) + "): " + docIdSet.getQueryPlan());
                 }
                 return docIdSet;
               }

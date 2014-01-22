@@ -19,14 +19,12 @@
 package com.senseidb.search.query.filters;
 
 import java.io.IOException;
-
-import com.browseengine.bobo.facets.FacetHandler;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.search.DocIdSet;
 import org.apache.lucene.search.DocIdSetIterator;
 import org.json.JSONObject;
-
 import com.browseengine.bobo.api.BoboIndexReader;
+import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.facets.data.FacetDataCache;
 import com.browseengine.bobo.facets.data.MultiValueFacetDataCache;
 import com.browseengine.bobo.facets.filter.FacetFilter;
@@ -57,7 +55,7 @@ public class NullFilterConstructor extends FilterConstructor {
             }
           };
 
-          return new SenseiDocIdSet(docIdSet, DocIdSetCardinality.exact(facetDataCache.freqs[0], boboReader.maxDoc()), fieldName + " IS MULTIVALUE NULL");
+          return new SenseiDocIdSet(docIdSet, DocIdSetCardinality.exact(facetDataCache.freqs[0], boboReader.maxDoc()+1), fieldName + " IS MULTIVALUE NULL");
         }
         else if (facetData instanceof FacetDataCache)
         {
@@ -70,7 +68,7 @@ public class NullFilterConstructor extends FilterConstructor {
             }
           };
 
-          return new SenseiDocIdSet(docIdSet, DocIdSetCardinality.exact(facetDataCache.freqs[0], boboReader.maxDoc()), fieldName + " IS NULL");
+          return new SenseiDocIdSet(docIdSet, DocIdSetCardinality.exact(facetDataCache.freqs[0], boboReader.maxDoc()+1), fieldName + " IS NULL");
         }
         throw new UnsupportedOperationException("The null filter is supported only for the bobo facetHandlers that use FacetDataCache");
       }
