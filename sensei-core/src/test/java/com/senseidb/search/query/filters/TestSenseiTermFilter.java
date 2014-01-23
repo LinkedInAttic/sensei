@@ -1,18 +1,22 @@
 package com.senseidb.search.query.filters;
 
-import static org.easymock.classextension.EasyMock.*;
-import static org.junit.Assert.*;
-
-import com.browseengine.bobo.api.BoboIndexReader;
-import com.browseengine.bobo.facets.FacetHandler;
-import com.browseengine.bobo.facets.data.*;
-import com.browseengine.bobo.facets.impl.MultiValueFacetHandler;
-import org.junit.Before;
-import org.junit.Test;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import org.junit.Before;
+import org.junit.Test;
+import com.browseengine.bobo.api.BoboIndexReader;
+import com.browseengine.bobo.facets.FacetHandler;
+import com.browseengine.bobo.facets.data.MultiValueFacetDataCache;
+import com.browseengine.bobo.facets.data.TermStringList;
+import com.browseengine.bobo.facets.data.TermValueList;
+import com.browseengine.bobo.facets.impl.MultiValueFacetHandler;
+
+import static org.easymock.classextension.EasyMock.createMock;
+import static org.easymock.classextension.EasyMock.expect;
+import static org.easymock.classextension.EasyMock.replay;
+import static org.easymock.classextension.EasyMock.reset;
+import static org.junit.Assert.assertArrayEquals;
 
 public class TestSenseiTermFilter {
 
@@ -39,8 +43,8 @@ public class TestSenseiTermFilter {
     List<String> dummy = new ArrayList<String>();
     DocIdSetCardinality andCardinality = DocIdSetCardinality.one();
     String andVals[] = SenseiTermFilter.getValsByFrequency(vals, freqs, 26, andCardinality, dictionary, dummy, true);
-    assertArrayEquals(andVals, new String[]{"e", "c"});
-    DocSetAssertions.assertRange(20, 22, 26, andCardinality);
+    assertArrayEquals(andVals, new String[]{"e", "c", "a"});
+    DocSetAssertions.assertRange(18, 22, 26, andCardinality);
 
     DocIdSetCardinality orCardinality = DocIdSetCardinality.zero();
     String orgVals[] = SenseiTermFilter.getValsByFrequency(vals, freqs, 26, orCardinality, dictionary, dummy, false);

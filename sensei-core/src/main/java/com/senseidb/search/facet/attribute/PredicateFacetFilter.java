@@ -84,7 +84,7 @@ public class PredicateFacetFilter extends RandomAccessFilter {
     int[] frequencies = dataCache.freqs;
     double selectivity = 0;
     int accumFreq = 0;
-    int total = reader.maxDoc();  
+    int total = reader.maxDoc() + 1;
     for (int i = facetPredicate.valueStartIndex(dataCache); i < facetPredicate.valueEndIndex(dataCache); i++) {
       if (!facetPredicate.evaluateValue(dataCache, i)) {
         continue;
