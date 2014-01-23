@@ -44,12 +44,12 @@ public class TestSenseiTermFilter {
     DocIdSetCardinality andCardinality = DocIdSetCardinality.one();
     String andVals[] = SenseiTermFilter.getValsByFrequency(vals, freqs, 26, andCardinality, dictionary, dummy, true);
     assertArrayEquals(andVals, new String[]{"e", "c", "a"});
-    DocSetAssertions.assertRange(18, 22, 27, andCardinality);
+    DocSetAssertions.assertRange(18, 22, 26, andCardinality);
 
     DocIdSetCardinality orCardinality = DocIdSetCardinality.zero();
     String orgVals[] = SenseiTermFilter.getValsByFrequency(vals, freqs, 26, orCardinality, dictionary, dummy, false);
     assertArrayEquals(orgVals, new String[]{"a", "c", "e"});
-    DocSetAssertions.assertRange(26, 26, 27, orCardinality);
+    DocSetAssertions.assertRange(26, 26, 26, orCardinality);
   }
 
   @Test

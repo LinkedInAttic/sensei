@@ -55,7 +55,7 @@ public class NullFilterConstructor extends FilterConstructor {
             }
           };
 
-          return new SenseiDocIdSet(docIdSet, DocIdSetCardinality.exact(facetDataCache.freqs[0], boboReader.maxDoc()+1), fieldName + " IS MULTIVALUE NULL");
+          return new SenseiDocIdSet(docIdSet, DocIdSetCardinality.exact(facetDataCache.freqs[0], boboReader.maxDoc() + 1), fieldName + " IS MULTIVALUE NULL");
         }
         else if (facetData instanceof FacetDataCache)
         {
@@ -68,7 +68,7 @@ public class NullFilterConstructor extends FilterConstructor {
             }
           };
 
-          return new SenseiDocIdSet(docIdSet, DocIdSetCardinality.exact(facetDataCache.freqs[0], boboReader.maxDoc()+1), fieldName + " IS NULL");
+          return new SenseiDocIdSet(docIdSet, DocIdSetCardinality.exact(facetDataCache.freqs[0], boboReader.maxDoc() + 1), fieldName + " IS NULL");
         }
         throw new UnsupportedOperationException("The null filter is supported only for the bobo facetHandlers that use FacetDataCache");
       }
