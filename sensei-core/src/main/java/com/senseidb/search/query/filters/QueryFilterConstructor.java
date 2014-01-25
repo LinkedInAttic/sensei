@@ -18,6 +18,7 @@
  */
 package com.senseidb.search.query.filters;
 
+import org.apache.log4j.Logger;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.queryParser.QueryParser;
 import org.apache.lucene.search.Query;
@@ -30,6 +31,7 @@ import java.io.IOException;
 
 public class QueryFilterConstructor extends FilterConstructor{
   public static final String FILTER_TYPE = "query";
+  private static final Logger log = Logger.getLogger(QueryFilterConstructor.class);
 
   private QueryParser _qparser;
 
@@ -47,9 +49,16 @@ public class QueryFilterConstructor extends FilterConstructor{
 
     final QueryWrapperFilter queryWrapperFilter = new QueryWrapperFilter(q);
     return new SenseiFilter() {
+      private final String getPlan() {
+        if(log.isDebugEnabled()) {
+          return "QUERY <" + q.toString() + ">";
+        } else {
+          return EMPTY_STRING;
+        }
+      }
       @Override
       public SenseiDocIdSet getSenseiDocIdSet(IndexReader reader) throws IOException {
-        return new SenseiDocIdSet(queryWrapperFilter.getDocIdSet(reader), DocIdSetCardinality.random(), "QUERY <" + q.toString() + ">");
+        return new SenseiDocIdSet(queryWrapperFilter.getDocIdSet(reader), DocIdSetCardinality.random(), getPlan());
       }
     };
 	}

@@ -19,6 +19,8 @@
 package com.senseidb.search.query.filters;
 
 import java.io.IOException;
+
+import org.apache.log4j.Logger;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.search.DocIdSet;
 import org.apache.lucene.search.DocIdSetIterator;
@@ -33,6 +35,7 @@ import com.browseengine.bobo.util.BigNestedIntArray;
 
 public class NullFilterConstructor extends FilterConstructor {
   public static final String FILTER_TYPE = "isNull";
+  private static final Logger log = Logger.getLogger(NullFilterConstructor.class);
 
   @Override
   protected SenseiFilter doConstructFilter(Object json) throws Exception {
@@ -43,6 +46,8 @@ public class NullFilterConstructor extends FilterConstructor {
         BoboIndexReader boboReader = (BoboIndexReader) reader;
         FacetHandler facetHandler = boboReader.getFacetHandler(fieldName);
         Object facetData = facetHandler.getFacetData(boboReader);
+
+        String plan = EMPTY_STRING;
 
         if(facetData instanceof MultiValueFacetDataCache)
         {
@@ -55,7 +60,11 @@ public class NullFilterConstructor extends FilterConstructor {
             }
           };
 
-          return new SenseiDocIdSet(docIdSet, DocIdSetCardinality.exact(facetDataCache.freqs[0], boboReader.maxDoc() + 1), fieldName + " IS MULTIVALUE NULL");
+          if(log.isDebugEnabled()) {
+            plan = fieldName + " IS MULTIVALUE NULL";
+          }
+
+          return new SenseiDocIdSet(docIdSet, DocIdSetCardinality.exact(facetDataCache.freqs[0], boboReader.maxDoc() + 1), plan);
         }
         else if (facetData instanceof FacetDataCache)
         {
@@ -68,7 +77,10 @@ public class NullFilterConstructor extends FilterConstructor {
             }
           };
 
-          return new SenseiDocIdSet(docIdSet, DocIdSetCardinality.exact(facetDataCache.freqs[0], boboReader.maxDoc() + 1), fieldName + " IS NULL");
+          if(log.isDebugEnabled()) {
+            plan = fieldName + " IS NULL";
+          }
+          return new SenseiDocIdSet(docIdSet, DocIdSetCardinality.exact(facetDataCache.freqs[0], boboReader.maxDoc() + 1), plan);
         }
         throw new UnsupportedOperationException("The null filter is supported only for the bobo facetHandlers that use FacetDataCache");
       }

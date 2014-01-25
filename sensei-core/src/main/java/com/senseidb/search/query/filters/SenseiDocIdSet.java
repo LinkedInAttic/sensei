@@ -3,6 +3,7 @@ package com.senseidb.search.query.filters;
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.facets.filter.RandomAccessFilter;
 import com.browseengine.bobo.query.MatchAllDocIdSetIterator;
+import org.apache.log4j.Logger;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.search.DocIdSet;
 import org.apache.lucene.search.DocIdSetIterator;
@@ -11,6 +12,8 @@ import java.io.IOException;
 import java.util.Comparator;
 
 public class SenseiDocIdSet {
+  private static final Logger log = Logger.getLogger(SenseiDocIdSet.class);
+
   public static final Comparator<SenseiDocIdSet> DECREASING_CARDINALITY_COMPARATOR = new Comparator<SenseiDocIdSet>() {
     @Override
     public int compare(SenseiDocIdSet a, SenseiDocIdSet b) {
@@ -31,7 +34,7 @@ public class SenseiDocIdSet {
   public SenseiDocIdSet(DocIdSet docIdSet, DocIdSetCardinality docIdSetCardinalityEstimate, String queryPlan) {
     this.docIdSet = docIdSet;
     this.docIdSetCardinalityEstimate = docIdSetCardinalityEstimate;
-    this.queryPlan = "[" + docIdSetCardinalityEstimate + "] " + queryPlan;
+    this.queryPlan = queryPlan;
   }
 
   public DocIdSet getDocIdSet() {
@@ -43,7 +46,7 @@ public class SenseiDocIdSet {
   }
 
   public String getQueryPlan() {
-    return queryPlan;
+    return "[" + docIdSetCardinalityEstimate + "] " + queryPlan;
   }
 
   public static SenseiDocIdSet build(RandomAccessFilter randomAccessFilter, BoboIndexReader boboIndexReader, String queryPlan) throws IOException {
@@ -64,10 +67,20 @@ public class SenseiDocIdSet {
         return new MatchAllDocIdSetIterator(reader);
       }
     };
-    return new SenseiDocIdSet(docIdSet, DocIdSetCardinality.one(), "MATCH ALL " + queryPlan);
+    String plan = FilterConstructor.EMPTY_STRING;
+    if(log.isDebugEnabled()) {
+      plan = "MATCH ALL " + queryPlan;
+    }
+
+    return new SenseiDocIdSet(docIdSet, DocIdSetCardinality.one(), plan);
   }
 
   public static SenseiDocIdSet buildMatchNone(String queryPlan) {
-    return new SenseiDocIdSet(DocIdSet.EMPTY_DOCIDSET, DocIdSetCardinality.zero(), "MATCH NONE " + queryPlan);
+    String plan = FilterConstructor.EMPTY_STRING;
+    if(log.isDebugEnabled()) {
+      plan = "MATCH NONE " + queryPlan;
+    }
+
+    return new SenseiDocIdSet(DocIdSet.EMPTY_DOCIDSET, DocIdSetCardinality.zero(), plan);
   }
 }

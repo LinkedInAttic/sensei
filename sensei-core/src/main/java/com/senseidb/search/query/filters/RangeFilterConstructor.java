@@ -26,6 +26,7 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.Locale;
 
+import org.apache.log4j.Logger;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.search.DocIdSet;
 import org.apache.lucene.search.DocIdSetIterator;
@@ -43,7 +44,18 @@ import com.senseidb.indexing.activity.facet.ActivityRangeFacetHandler;
 
 public class RangeFilterConstructor extends FilterConstructor
 {
+  private static final Logger log = Logger.getLogger(RangeFilterConstructor.class);
+
   public static final String FILTER_TYPE = "range";
+
+  private String getPlan(String field, String rangeString) {
+    if(log.isDebugEnabled()) {
+      return "RANGE " + field + rangeString;
+    } else {
+      return EMPTY_STRING;
+    }
+  }
+
 
   @Override
   protected SenseiFilter doConstructFilter(Object obj) throws Exception
@@ -140,17 +152,18 @@ public class RangeFilterConstructor extends FilterConstructor
               else
                 sb.append(")");
               RandomAccessFilter filter = null;;
+              String rangeString = sb.toString();
               if (facetHandler instanceof ActivityRangeFacetHandler) {
-            	  filter = ((ActivityRangeFacetHandler) facetHandler).buildRandomAccessFilter(sb.toString(), null);
+            	  filter = ((ActivityRangeFacetHandler) facetHandler).buildRandomAccessFilter(rangeString, null);
               } else {
-            	  filter = new FacetRangeFilter(facetHandler, sb.toString());
+            	  filter = new FacetRangeFilter(facetHandler, rangeString);
               }
               DocIdSet docIdSet = filter.getDocIdSet(reader);
-              return new SenseiDocIdSet(docIdSet, DocIdSetCardinality.exact(filter.getFacetSelectivity(boboReader)), "RANGE " + field + sb.toString());
+              return new SenseiDocIdSet(docIdSet, DocIdSetCardinality.exact(filter.getFacetSelectivity(boboReader)), getPlan(field, rangeString));
             }
           }
         }
-        
+
         if(type == null)
           throw new IllegalArgumentException("need to specify the type of field in filter json: " + json);
         

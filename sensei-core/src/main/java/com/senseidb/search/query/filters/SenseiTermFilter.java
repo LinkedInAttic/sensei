@@ -154,42 +154,46 @@ public class SenseiTermFilter extends SenseiFilter {
   }
 
   public String planString(String type, String[] vals, String[] nots, List<String> optimizedVals, List<String> optimizedNots) {
-    StringBuilder plan = new StringBuilder();
-    boolean first = false;
+    if(logger.isDebugEnabled()) {
+      StringBuilder plan = new StringBuilder();
+      boolean first = false;
 
-    plan.append(_name);
-    plan.append(" ");
-    plan.append(type);
-    plan.append(_isAnd ? " CONTAINS ALL <" : " IN <");
-    plan.append(StringUtils.join(vals, ", "));
-    if (!optimizedVals.isEmpty()) {
-      first = vals.length == 0;
-      for (String optimized: optimizedVals) {
-        if (first) {
-          first = false;
-        } else {
-          plan.append(", ");
+      plan.append(_name);
+      plan.append(" ");
+      plan.append(type);
+      plan.append(_isAnd ? " CONTAINS ALL <" : " IN <");
+      plan.append(StringUtils.join(vals, ", "));
+      if (!optimizedVals.isEmpty()) {
+        first = vals.length == 0;
+        for (String optimized: optimizedVals) {
+          if (first) {
+            first = false;
+          } else {
+            plan.append(", ");
+          }
+          plan.append(optimized);
+          plan.append('*');
         }
-        plan.append(optimized);
-        plan.append('*');
       }
-    }
-    plan.append("> EXCEPT <");
-    plan.append(StringUtils.join(nots, ", "));
-    if (!optimizedNots.isEmpty()) {
-      first = vals.length == 0;
-      for (String optimized: optimizedNots) {
-        if (first) {
-          first = false;
-        } else {
-          plan.append(", ");
+      plan.append("> EXCEPT <");
+      plan.append(StringUtils.join(nots, ", "));
+      if (!optimizedNots.isEmpty()) {
+        first = vals.length == 0;
+        for (String optimized: optimizedNots) {
+          if (first) {
+            first = false;
+          } else {
+            plan.append(", ");
+          }
+          plan.append(optimized);
+          plan.append('*');
         }
-        plan.append(optimized);
-        plan.append('*');
       }
+      plan.append(">");
+      return plan.toString();
+    } else {
+      return EMPTY_STRING;
     }
-    plan.append(">");
-    return plan.toString();
   }
 
 

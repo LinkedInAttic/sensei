@@ -15,6 +15,8 @@ import java.io.IOException;
  * reduce the number of documents considered in the result set
  */
 public abstract class SenseiFilter extends Filter {
+  protected static final String EMPTY_STRING = FilterConstructor.EMPTY_STRING;
+
   @Override
   public DocIdSet getDocIdSet(IndexReader reader) throws IOException {
     SenseiDocIdSet docIdSet = getSenseiDocIdSet(reader);

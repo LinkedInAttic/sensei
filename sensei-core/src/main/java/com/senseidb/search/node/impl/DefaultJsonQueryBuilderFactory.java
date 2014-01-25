@@ -97,9 +97,9 @@ public class DefaultJsonQueryBuilderFactory extends
               @Override
               public SenseiDocIdSet getSenseiDocIdSet(IndexReader reader) throws IOException {
                 SenseiDocIdSet docIdSet = senseiFilter.getSenseiDocIdSet(reader);
-                if(!called) {
-                  logger.info("Running the query: " + (query == null ? "NULL" : query.toString()));
-                  logger.info("Plan(" + (reader.maxDoc() + 1) + "): " + docIdSet.getQueryPlan());
+                if(logger.isDebugEnabled() && !called) {
+                  logger.debug("Running the query: " + (query == null ? "NULL" : query.toString()));
+                  logger.debug("Plan(" + (reader.maxDoc() + 1) + "): " + docIdSet.getQueryPlan());
                 }
                 return docIdSet;
               }

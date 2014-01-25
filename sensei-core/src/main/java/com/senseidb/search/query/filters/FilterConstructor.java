@@ -51,7 +51,9 @@ public abstract class FilterConstructor {
   public static final String GTE_PARAM           = "gte";
   public static final String LT_PARAM            = "lt";
   public static final String LTE_PARAM           = "lte";
-  public static final String CLASS_PARAM         = "class";  
+  public static final String CLASS_PARAM         = "class";
+
+  protected static final String EMPTY_STRING     = "";
 	
   private static final Map<String, FilterConstructor> FILTER_CONSTRUCTOR_MAP = 
     new HashMap<String, FilterConstructor>();
