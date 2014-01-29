@@ -47,6 +47,9 @@ import proj.zoie.api.DataConsumer.DataEvent;
 import proj.zoie.impl.indexing.StreamDataProvider;
 
 import com.senseidb.indexing.DataSourceFilter;
+import com.senseidb.metrics.MetricFactory;
+import com.yammer.metrics.core.Meter;
+import com.yammer.metrics.core.MetricName;
 
 public class KafkaStreamDataProvider extends StreamDataProvider<JSONObject>{
 
@@ -56,7 +59,8 @@ public class KafkaStreamDataProvider extends StreamDataProvider<JSONObject>{
   private ConsumerConnector _consumerConnector;
   private Iterator<byte[]> _consumerIterator;
   private ExecutorService _executorService;
-
+  private Meter _indexingErrorMeter;
+  private Meter _indexingTimeoutMeter;
   
   private static Logger logger = Logger.getLogger(KafkaStreamDataProvider.class);
     private final String _zookeeperUrl;
@@ -97,6 +101,12 @@ public class KafkaStreamDataProvider extends StreamDataProvider<JSONObject>{
     if (_dataConverter == null){
       throw new IllegalArgumentException("kafka data converter is null");
     }
+    _indexingErrorMeter = MetricFactory.newMeter(new MetricName(KafkaStreamDataProvider.class, "indexing-error"),
+				"error-rate",
+				TimeUnit.SECONDS);
+    _indexingTimeoutMeter = MetricFactory.newMeter(new MetricName(KafkaStreamDataProvider.class, "indexing-timeout"),
+				"timeout-rate",
+				TimeUnit.SECONDS);
   }
   
   @Override
@@ -115,6 +125,7 @@ public class KafkaStreamDataProvider extends StreamDataProvider<JSONObject>{
     catch (Exception e)
     {
       // Most likely timeout exception - ok to ignore
+      _indexingTimeoutMeter.mark();
       return null;
     }
 
@@ -134,6 +145,7 @@ public class KafkaStreamDataProvider extends StreamDataProvider<JSONObject>{
       return new DataEvent<JSONObject>(data, String.valueOf(version));
     } catch (Exception e) {
       logger.error(e.getMessage(),e);
+      _indexingErrorMeter.mark();
       return null;
     }
   }
@@ -283,6 +295,14 @@ public class KafkaStreamDataProvider extends StreamDataProvider<JSONObject>{
       }
       finally
       {
+        if (_indexingErrorMeter != null)
+        {
+          _indexingErrorMeter.stop();
+        }
+        if (_indexingTimeoutMeter != null)
+        {
+          _indexingTimeoutMeter.stop();
+        }
         super.stop();
       }
     }
