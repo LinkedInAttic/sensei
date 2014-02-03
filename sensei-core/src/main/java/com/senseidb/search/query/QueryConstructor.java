@@ -24,7 +24,6 @@ import java.util.Map;
 
 import org.apache.lucene.queryParser.QueryParser;
 import org.apache.lucene.search.Query;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -146,8 +145,14 @@ public abstract class QueryConstructor
       throw new IllegalArgumentException("Query type '" + type + "' not supported");
 
     JSONObject jsonValue = jsonQuery.getJSONObject(type);
-    Query baseQuery = queryConstructor.doConstructQuery(jsonValue);
-    
+    Query baseQuery = null;
+    if (type.equals(CustomQueryConstructor.QUERY_TYPE)) {
+      baseQuery = ((CustomQueryConstructor)queryConstructor).doConstructCustomQuery(jsonValue, qparser);
+    }
+    else {
+      baseQuery = queryConstructor.doConstructQuery(jsonValue);
+    }
+
     JSONObject jsonRelevance = null;
     if(jsonValue.has(RELEVANCE))
     {
@@ -173,5 +178,5 @@ public abstract class QueryConstructor
     }
   }
 
-  abstract protected Query doConstructQuery(JSONObject jsonQuery) throws JSONException;
+  abstract public Query doConstructQuery(JSONObject jsonQuery) throws JSONException;
 }

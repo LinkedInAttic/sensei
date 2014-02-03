@@ -18,15 +18,19 @@
  */
 package com.senseidb.search.node.impl;
 
+import com.senseidb.search.collector.CollectorConstructor;
 import com.senseidb.search.query.filters.SenseiDocIdSet;
 import com.senseidb.search.query.filters.SenseiFilter;
+import com.senseidb.search.req.SenseiQuery;
 import org.apache.log4j.Logger;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.queryParser.ParseException;
 import org.apache.lucene.queryParser.QueryParser;
+import org.apache.lucene.search.Collector;
 import org.apache.lucene.search.Filter;
 import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Query;
+import org.apache.lucene.search.Searchable;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -48,9 +52,10 @@ public class DefaultJsonQueryBuilderFactory extends
   }
 
   @Override
-  public SenseiQueryBuilder buildQueryBuilder(JSONObject jsonQuery) {
+  public SenseiQueryBuilder buildQueryBuilder(JSONObject jsonQuery, final Searchable searchable) {
     final JSONObject query;
     final JSONObject filter;
+    final JSONObject collector;
 
     if (jsonQuery != null)
     {
@@ -79,11 +84,16 @@ public class DefaultJsonQueryBuilderFactory extends
       }
 
       filter = jsonQuery.optJSONObject("filter");
+
+      JSONObject cobj = jsonQuery.optJSONObject("collector");
+      collector =  cobj == null ? null : cobj;
+
     }
     else
     {
       query = null;
       filter = null;
+      collector = null;
     }
 
     return new SenseiQueryBuilder(){
@@ -110,6 +120,24 @@ public class DefaultJsonQueryBuilderFactory extends
           } else {
             return senseiFilter;
           }
+        }
+        catch (Exception e)
+        {
+          logger.error(e.getMessage(), e);
+          throw new ParseException(e.getMessage());
+        }
+      }
+
+      @Override
+      public Collector buildCollector(Query q) throws ParseException {
+        try
+        {
+          Collector c = null;
+          if (collector != null) {
+           c = CollectorConstructor.constructCollector(collector, _qparser, q, searchable);
+          }
+
+          return c;
         }
         catch (Exception e)
         {

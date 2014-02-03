@@ -24,6 +24,7 @@ import java.util.Map;
 
 import com.senseidb.search.client.json.CustomJsonHandler;
 import com.senseidb.search.client.json.JsonField;
+import org.json.JSONObject;
 
 /**
  * User may supply his own implementation of the query
@@ -33,14 +34,17 @@ import com.senseidb.search.client.json.JsonField;
 public class CustomQuery extends Query {
     @JsonField("class")
     private String cls;
+    @JsonField("constructor")
+    private JSONObject constructor;
     private Map<String, String> params = new HashMap<String, String>();
     private double boost;
 
-    public CustomQuery(String cls, Map<String, String> params, double boost) {
+    public CustomQuery(String cls, JSONObject constructor, Map<String, String> params, double boost) {
         super();
         this.cls = cls;
         this.params = params;
         this.boost = boost;
+        this.constructor = constructor;
     }
 
     public String getCls() {
@@ -53,6 +57,10 @@ public class CustomQuery extends Query {
 
     public double getBoost() {
         return boost;
+    }
+
+    public JSONObject getConstructor() {
+        return constructor;
     }
 
 }

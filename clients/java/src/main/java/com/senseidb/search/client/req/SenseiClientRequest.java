@@ -29,12 +29,10 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.senseidb.search.client.json.CustomJsonHandler;
-import com.senseidb.search.client.json.JsonField;
 import com.senseidb.search.client.req.filter.Filter;
 import com.senseidb.search.client.req.filter.FilterJsonHandler;
 import com.senseidb.search.client.req.query.Query;
 import com.senseidb.search.client.req.query.QueryJsonHandler;
-import com.senseidb.search.client.req.relevance.Relevance;
 
 /**
  * The sensei request object, that is used to send the Sensei query to the
@@ -109,6 +107,8 @@ public class SenseiClientRequest {
 
     private RequestMetadata meta;
 
+    private JSONObject collector;
+
     public static class Builder {
         private SenseiClientRequest request = new SenseiClientRequest();
 
@@ -140,7 +140,6 @@ public class SenseiClientRequest {
 
         public Builder query(Query query) {
             request.query = query;
-
             return this;
         }
 
@@ -177,7 +176,6 @@ public class SenseiClientRequest {
         /**
          * @see com.senseidb.search.client.req.SenseiClientRequest#templateMapping
          */
-
         public Builder addTemplateMapping(String name, Object value) {
             if (request.templateMapping == null) {
                 request.templateMapping = new HashMap<String, Object>();
@@ -236,6 +234,11 @@ public class SenseiClientRequest {
         public Builder mapReduce(String function, Map<String, Object> parameters) {
             request.mapReduce = new MapReduce(function, parameters);
             return this;
+        }
+
+        public Builder collector(JSONObject collector) {
+          request.collector = collector;
+          return this;
         }
 
         public SenseiClientRequest build() {

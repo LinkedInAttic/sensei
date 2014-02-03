@@ -30,7 +30,7 @@ public class SpanNotQueryConstructor extends QueryConstructor {
 
   public static final String QUERY_TYPE = "span_not";
 	@Override
-  protected Query doConstructQuery(JSONObject jsonQuery) throws JSONException
+  public Query doConstructQuery(JSONObject jsonQuery) throws JSONException
   {
 
 		

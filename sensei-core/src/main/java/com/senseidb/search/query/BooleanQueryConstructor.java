@@ -62,7 +62,7 @@ public class BooleanQueryConstructor extends QueryConstructor
   }
 
   @Override
-  protected Query doConstructQuery(JSONObject jsonQuery) throws JSONException
+  public Query doConstructQuery(JSONObject jsonQuery) throws JSONException
   {
     BooleanQuery query = new BooleanQuery(jsonQuery.optBoolean(DISABLE_COORD_PARAM, false));
     Object obj = jsonQuery.opt(MUST_PARAM);

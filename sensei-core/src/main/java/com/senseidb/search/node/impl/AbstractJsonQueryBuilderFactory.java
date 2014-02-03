@@ -19,6 +19,7 @@
 package com.senseidb.search.node.impl;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.lucene.search.Searchable;
 import org.json.JSONObject;
 
 import com.senseidb.search.node.SenseiQueryBuilder;
@@ -30,8 +31,7 @@ import com.senseidb.util.JSONUtil.FastJSONObject;
 public abstract class AbstractJsonQueryBuilderFactory implements
 		SenseiQueryBuilderFactory {
 
-	@Override
-	public SenseiQueryBuilder getQueryBuilder(SenseiQuery query)
+	public SenseiQueryBuilder getQueryBuilder(SenseiQuery query, Searchable searchable)
 			throws Exception {
 		JSONObject jsonQuery=null;
         String queryString = query == null ? null : query.toString();
@@ -40,9 +40,9 @@ public abstract class AbstractJsonQueryBuilderFactory implements
 //			jsonQuery = new FastJSONObject(new String(bytes,SenseiQuery.UTF_8_CHARSET));
             jsonQuery = new FastJSONObject(queryString);
 		}
-		return buildQueryBuilder(jsonQuery);
+		return buildQueryBuilder(jsonQuery, searchable);
 	}
 
-	public abstract SenseiQueryBuilder buildQueryBuilder(JSONObject jsonQuery);
+	public abstract SenseiQueryBuilder buildQueryBuilder(JSONObject jsonQuery, Searchable searchable);
 
 }

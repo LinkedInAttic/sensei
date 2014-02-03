@@ -626,10 +626,8 @@ public final class SenseiProtos {
       return size;
     }
     
-    private static final long serialVersionUID = 0L;
     @java.lang.Override
-    protected java.lang.Object writeReplace()
-        throws java.io.ObjectStreamException {
+    protected Object writeReplace() throws java.io.ObjectStreamException {
       return super.writeReplace();
     }
     
@@ -1070,12 +1068,12 @@ public final class SenseiProtos {
     
     // optional string field_name = 2;
     public static final int FIELD_NAME_FIELD_NUMBER = 2;
-    private java.lang.Object fieldName_;
+    private Object fieldName_;
     public boolean hasFieldName() {
       return ((bitField0_ & 0x00000002) == 0x00000002);
     }
     public String getFieldName() {
-      java.lang.Object ref = fieldName_;
+      Object ref = fieldName_;
       if (ref instanceof String) {
         return (String) ref;
       } else {
@@ -1089,7 +1087,7 @@ public final class SenseiProtos {
       }
     }
     private com.google.protobuf.ByteString getFieldNameBytes() {
-      java.lang.Object ref = fieldName_;
+      Object ref = fieldName_;
       if (ref instanceof String) {
         com.google.protobuf.ByteString b = 
             com.google.protobuf.ByteString.copyFromUtf8((String) ref);
@@ -1219,10 +1217,8 @@ public final class SenseiProtos {
       return size;
     }
     
-    private static final long serialVersionUID = 0L;
     @java.lang.Override
-    protected java.lang.Object writeReplace()
-        throws java.io.ObjectStreamException {
+    protected Object writeReplace() throws java.io.ObjectStreamException {
       return super.writeReplace();
     }
     
@@ -1561,12 +1557,12 @@ public final class SenseiProtos {
       }
       
       // optional string field_name = 2;
-      private java.lang.Object fieldName_ = "";
+      private Object fieldName_ = "";
       public boolean hasFieldName() {
         return ((bitField0_ & 0x00000002) == 0x00000002);
       }
       public String getFieldName() {
-        java.lang.Object ref = fieldName_;
+        Object ref = fieldName_;
         if (!(ref instanceof String)) {
           String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
           fieldName_ = s;
@@ -1855,12 +1851,12 @@ public final class SenseiProtos {
     private int bitField0_;
     // optional string language = 1;
     public static final int LANGUAGE_FIELD_NUMBER = 1;
-    private java.lang.Object language_;
+    private Object language_;
     public boolean hasLanguage() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
     public String getLanguage() {
-      java.lang.Object ref = language_;
+      Object ref = language_;
       if (ref instanceof String) {
         return (String) ref;
       } else {
@@ -1874,7 +1870,7 @@ public final class SenseiProtos {
       }
     }
     private com.google.protobuf.ByteString getLanguageBytes() {
-      java.lang.Object ref = language_;
+      Object ref = language_;
       if (ref instanceof String) {
         com.google.protobuf.ByteString b = 
             com.google.protobuf.ByteString.copyFromUtf8((String) ref);
@@ -1887,12 +1883,12 @@ public final class SenseiProtos {
     
     // optional string country = 2;
     public static final int COUNTRY_FIELD_NUMBER = 2;
-    private java.lang.Object country_;
+    private Object country_;
     public boolean hasCountry() {
       return ((bitField0_ & 0x00000002) == 0x00000002);
     }
     public String getCountry() {
-      java.lang.Object ref = country_;
+      Object ref = country_;
       if (ref instanceof String) {
         return (String) ref;
       } else {
@@ -1906,7 +1902,7 @@ public final class SenseiProtos {
       }
     }
     private com.google.protobuf.ByteString getCountryBytes() {
-      java.lang.Object ref = country_;
+      Object ref = country_;
       if (ref instanceof String) {
         com.google.protobuf.ByteString b = 
             com.google.protobuf.ByteString.copyFromUtf8((String) ref);
@@ -1919,12 +1915,12 @@ public final class SenseiProtos {
     
     // optional string variant = 3;
     public static final int VARIANT_FIELD_NUMBER = 3;
-    private java.lang.Object variant_;
+    private Object variant_;
     public boolean hasVariant() {
       return ((bitField0_ & 0x00000004) == 0x00000004);
     }
     public String getVariant() {
-      java.lang.Object ref = variant_;
+      Object ref = variant_;
       if (ref instanceof String) {
         return (String) ref;
       } else {
@@ -1938,7 +1934,7 @@ public final class SenseiProtos {
       }
     }
     private com.google.protobuf.ByteString getVariantBytes() {
-      java.lang.Object ref = variant_;
+      Object ref = variant_;
       if (ref instanceof String) {
         com.google.protobuf.ByteString b = 
             com.google.protobuf.ByteString.copyFromUtf8((String) ref);
@@ -2001,10 +1997,8 @@ public final class SenseiProtos {
       return size;
     }
     
-    private static final long serialVersionUID = 0L;
     @java.lang.Override
-    protected java.lang.Object writeReplace()
-        throws java.io.ObjectStreamException {
+    protected Object writeReplace() throws java.io.ObjectStreamException {
       return super.writeReplace();
     }
     
@@ -2254,12 +2248,12 @@ public final class SenseiProtos {
       private int bitField0_;
       
       // optional string language = 1;
-      private java.lang.Object language_ = "";
+      private Object language_ = "";
       public boolean hasLanguage() {
         return ((bitField0_ & 0x00000001) == 0x00000001);
       }
       public String getLanguage() {
-        java.lang.Object ref = language_;
+        Object ref = language_;
         if (!(ref instanceof String)) {
           String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
           language_ = s;
@@ -2290,12 +2284,12 @@ public final class SenseiProtos {
       }
       
       // optional string country = 2;
-      private java.lang.Object country_ = "";
+      private Object country_ = "";
       public boolean hasCountry() {
         return ((bitField0_ & 0x00000002) == 0x00000002);
       }
       public String getCountry() {
-        java.lang.Object ref = country_;
+        Object ref = country_;
         if (!(ref instanceof String)) {
           String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
           country_ = s;
@@ -2326,12 +2320,12 @@ public final class SenseiProtos {
       }
       
       // optional string variant = 3;
-      private java.lang.Object variant_ = "";
+      private Object variant_ = "";
       public boolean hasVariant() {
         return ((bitField0_ & 0x00000004) == 0x00000004);
       }
       public String getVariant() {
-        java.lang.Object ref = variant_;
+        Object ref = variant_;
         if (!(ref instanceof String)) {
           String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
           variant_ = s;
@@ -2423,12 +2417,12 @@ public final class SenseiProtos {
     private int bitField0_;
     // optional string field = 1;
     public static final int FIELD_FIELD_NUMBER = 1;
-    private java.lang.Object field_;
+    private Object field_;
     public boolean hasField() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
     public String getField() {
-      java.lang.Object ref = field_;
+      Object ref = field_;
       if (ref instanceof String) {
         return (String) ref;
       } else {
@@ -2442,7 +2436,7 @@ public final class SenseiProtos {
       }
     }
     private com.google.protobuf.ByteString getFieldBytes() {
-      java.lang.Object ref = field_;
+      Object ref = field_;
       if (ref instanceof String) {
         com.google.protobuf.ByteString b = 
             com.google.protobuf.ByteString.copyFromUtf8((String) ref);
@@ -2546,10 +2540,8 @@ public final class SenseiProtos {
       return size;
     }
     
-    private static final long serialVersionUID = 0L;
     @java.lang.Override
-    protected java.lang.Object writeReplace()
-        throws java.io.ObjectStreamException {
+    protected Object writeReplace() throws java.io.ObjectStreamException {
       return super.writeReplace();
     }
     
@@ -2826,12 +2818,12 @@ public final class SenseiProtos {
       private int bitField0_;
       
       // optional string field = 1;
-      private java.lang.Object field_ = "";
+      private Object field_ = "";
       public boolean hasField() {
         return ((bitField0_ & 0x00000001) == 0x00000001);
       }
       public String getField() {
-        java.lang.Object ref = field_;
+        Object ref = field_;
         if (!(ref instanceof String)) {
           String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
           field_ = s;
@@ -3116,12 +3108,12 @@ public final class SenseiProtos {
     
     // optional string field = 7;
     public static final int FIELD_FIELD_NUMBER = 7;
-    private java.lang.Object field_;
+    private Object field_;
     public boolean hasField() {
       return ((bitField0_ & 0x00000020) == 0x00000020);
     }
     public String getField() {
-      java.lang.Object ref = field_;
+      Object ref = field_;
       if (ref instanceof String) {
         return (String) ref;
       } else {
@@ -3135,7 +3127,7 @@ public final class SenseiProtos {
       }
     }
     private com.google.protobuf.ByteString getFieldBytes() {
-      java.lang.Object ref = field_;
+      Object ref = field_;
       if (ref instanceof String) {
         com.google.protobuf.ByteString b = 
             com.google.protobuf.ByteString.copyFromUtf8((String) ref);
@@ -3222,10 +3214,8 @@ public final class SenseiProtos {
       return size;
     }
     
-    private static final long serialVersionUID = 0L;
     @java.lang.Override
-    protected java.lang.Object writeReplace()
-        throws java.io.ObjectStreamException {
+    protected Object writeReplace() throws java.io.ObjectStreamException {
       return super.writeReplace();
     }
     
@@ -3713,12 +3703,12 @@ public final class SenseiProtos {
       }
       
       // optional string field = 7;
-      private java.lang.Object field_ = "";
+      private Object field_ = "";
       public boolean hasField() {
         return ((bitField0_ & 0x00000020) == 0x00000020);
       }
       public String getField() {
-        java.lang.Object ref = field_;
+        Object ref = field_;
         if (!(ref instanceof String)) {
           String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
           field_ = s;
@@ -3806,12 +3796,12 @@ public final class SenseiProtos {
     private int bitField0_;
     // optional string key = 1;
     public static final int KEY_FIELD_NUMBER = 1;
-    private java.lang.Object key_;
+    private Object key_;
     public boolean hasKey() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
     public String getKey() {
-      java.lang.Object ref = key_;
+      Object ref = key_;
       if (ref instanceof String) {
         return (String) ref;
       } else {
@@ -3825,7 +3815,7 @@ public final class SenseiProtos {
       }
     }
     private com.google.protobuf.ByteString getKeyBytes() {
-      java.lang.Object ref = key_;
+      Object ref = key_;
       if (ref instanceof String) {
         com.google.protobuf.ByteString b = 
             com.google.protobuf.ByteString.copyFromUtf8((String) ref);
@@ -3914,10 +3904,8 @@ public final class SenseiProtos {
       return size;
     }
     
-    private static final long serialVersionUID = 0L;
     @java.lang.Override
-    protected java.lang.Object writeReplace()
-        throws java.io.ObjectStreamException {
+    protected Object writeReplace() throws java.io.ObjectStreamException {
       return super.writeReplace();
     }
     
@@ -4184,12 +4172,12 @@ public final class SenseiProtos {
       private int bitField0_;
       
       // optional string key = 1;
-      private java.lang.Object key_ = "";
+      private Object key_ = "";
       public boolean hasKey() {
         return ((bitField0_ & 0x00000001) == 0x00000001);
       }
       public String getKey() {
-        java.lang.Object ref = key_;
+        Object ref = key_;
         if (!(ref instanceof String)) {
           String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
           key_ = s;
@@ -4343,12 +4331,12 @@ public final class SenseiProtos {
     private int bitField0_;
     // optional string key = 1;
     public static final int KEY_FIELD_NUMBER = 1;
-    private java.lang.Object key_;
+    private Object key_;
     public boolean hasKey() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
     public String getKey() {
-      java.lang.Object ref = key_;
+      Object ref = key_;
       if (ref instanceof String) {
         return (String) ref;
       } else {
@@ -4362,7 +4350,7 @@ public final class SenseiProtos {
       }
     }
     private com.google.protobuf.ByteString getKeyBytes() {
-      java.lang.Object ref = key_;
+      Object ref = key_;
       if (ref instanceof String) {
         com.google.protobuf.ByteString b = 
             com.google.protobuf.ByteString.copyFromUtf8((String) ref);
@@ -4454,10 +4442,8 @@ public final class SenseiProtos {
       return size;
     }
     
-    private static final long serialVersionUID = 0L;
     @java.lang.Override
-    protected java.lang.Object writeReplace()
-        throws java.io.ObjectStreamException {
+    protected Object writeReplace() throws java.io.ObjectStreamException {
       return super.writeReplace();
     }
     
@@ -4724,12 +4710,12 @@ public final class SenseiProtos {
       private int bitField0_;
       
       // optional string key = 1;
-      private java.lang.Object key_ = "";
+      private Object key_ = "";
       public boolean hasKey() {
         return ((bitField0_ & 0x00000001) == 0x00000001);
       }
       public String getKey() {
-        java.lang.Object ref = key_;
+        Object ref = key_;
         if (!(ref instanceof String)) {
           String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
           key_ = s;
@@ -4883,12 +4869,12 @@ public final class SenseiProtos {
     private int bitField0_;
     // optional string key = 1;
     public static final int KEY_FIELD_NUMBER = 1;
-    private java.lang.Object key_;
+    private Object key_;
     public boolean hasKey() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
     public String getKey() {
-      java.lang.Object ref = key_;
+      Object ref = key_;
       if (ref instanceof String) {
         return (String) ref;
       } else {
@@ -4902,7 +4888,7 @@ public final class SenseiProtos {
       }
     }
     private com.google.protobuf.ByteString getKeyBytes() {
-      java.lang.Object ref = key_;
+      Object ref = key_;
       if (ref instanceof String) {
         com.google.protobuf.ByteString b = 
             com.google.protobuf.ByteString.copyFromUtf8((String) ref);
@@ -4994,10 +4980,8 @@ public final class SenseiProtos {
       return size;
     }
     
-    private static final long serialVersionUID = 0L;
     @java.lang.Override
-    protected java.lang.Object writeReplace()
-        throws java.io.ObjectStreamException {
+    protected Object writeReplace() throws java.io.ObjectStreamException {
       return super.writeReplace();
     }
     
@@ -5264,12 +5248,12 @@ public final class SenseiProtos {
       private int bitField0_;
       
       // optional string key = 1;
-      private java.lang.Object key_ = "";
+      private Object key_ = "";
       public boolean hasKey() {
         return ((bitField0_ & 0x00000001) == 0x00000001);
       }
       public String getKey() {
-        java.lang.Object ref = key_;
+        Object ref = key_;
         if (!(ref instanceof String)) {
           String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
           key_ = s;
@@ -5423,12 +5407,12 @@ public final class SenseiProtos {
     private int bitField0_;
     // optional string key = 1;
     public static final int KEY_FIELD_NUMBER = 1;
-    private java.lang.Object key_;
+    private Object key_;
     public boolean hasKey() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
     public String getKey() {
-      java.lang.Object ref = key_;
+      Object ref = key_;
       if (ref instanceof String) {
         return (String) ref;
       } else {
@@ -5442,7 +5426,7 @@ public final class SenseiProtos {
       }
     }
     private com.google.protobuf.ByteString getKeyBytes() {
-      java.lang.Object ref = key_;
+      Object ref = key_;
       if (ref instanceof String) {
         com.google.protobuf.ByteString b = 
             com.google.protobuf.ByteString.copyFromUtf8((String) ref);
@@ -5534,10 +5518,8 @@ public final class SenseiProtos {
       return size;
     }
     
-    private static final long serialVersionUID = 0L;
     @java.lang.Override
-    protected java.lang.Object writeReplace()
-        throws java.io.ObjectStreamException {
+    protected Object writeReplace() throws java.io.ObjectStreamException {
       return super.writeReplace();
     }
     
@@ -5796,12 +5778,12 @@ public final class SenseiProtos {
       private int bitField0_;
       
       // optional string key = 1;
-      private java.lang.Object key_ = "";
+      private Object key_ = "";
       public boolean hasKey() {
         return ((bitField0_ & 0x00000001) == 0x00000001);
       }
       public String getKey() {
-        java.lang.Object ref = key_;
+        Object ref = key_;
         if (!(ref instanceof String)) {
           String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
           key_ = s;
@@ -5966,12 +5948,12 @@ public final class SenseiProtos {
     private int bitField0_;
     // optional string key = 1;
     public static final int KEY_FIELD_NUMBER = 1;
-    private java.lang.Object key_;
+    private Object key_;
     public boolean hasKey() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
     public String getKey() {
-      java.lang.Object ref = key_;
+      Object ref = key_;
       if (ref instanceof String) {
         return (String) ref;
       } else {
@@ -5985,7 +5967,7 @@ public final class SenseiProtos {
       }
     }
     private com.google.protobuf.ByteString getKeyBytes() {
-      java.lang.Object ref = key_;
+      Object ref = key_;
       if (ref instanceof String) {
         com.google.protobuf.ByteString b = 
             com.google.protobuf.ByteString.copyFromUtf8((String) ref);
@@ -6074,10 +6056,8 @@ public final class SenseiProtos {
       return size;
     }
     
-    private static final long serialVersionUID = 0L;
     @java.lang.Override
-    protected java.lang.Object writeReplace()
-        throws java.io.ObjectStreamException {
+    protected Object writeReplace() throws java.io.ObjectStreamException {
       return super.writeReplace();
     }
     
@@ -6344,12 +6324,12 @@ public final class SenseiProtos {
       private int bitField0_;
       
       // optional string key = 1;
-      private java.lang.Object key_ = "";
+      private Object key_ = "";
       public boolean hasKey() {
         return ((bitField0_ & 0x00000001) == 0x00000001);
       }
       public String getKey() {
-        java.lang.Object ref = key_;
+        Object ref = key_;
         if (!(ref instanceof String)) {
           String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
           key_ = s;
@@ -6503,12 +6483,12 @@ public final class SenseiProtos {
     private int bitField0_;
     // optional string key = 1;
     public static final int KEY_FIELD_NUMBER = 1;
-    private java.lang.Object key_;
+    private Object key_;
     public boolean hasKey() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
     public String getKey() {
-      java.lang.Object ref = key_;
+      Object ref = key_;
       if (ref instanceof String) {
         return (String) ref;
       } else {
@@ -6522,7 +6502,7 @@ public final class SenseiProtos {
       }
     }
     private com.google.protobuf.ByteString getKeyBytes() {
-      java.lang.Object ref = key_;
+      Object ref = key_;
       if (ref instanceof String) {
         com.google.protobuf.ByteString b = 
             com.google.protobuf.ByteString.copyFromUtf8((String) ref);
@@ -6611,10 +6591,8 @@ public final class SenseiProtos {
       return size;
     }
     
-    private static final long serialVersionUID = 0L;
     @java.lang.Override
-    protected java.lang.Object writeReplace()
-        throws java.io.ObjectStreamException {
+    protected Object writeReplace() throws java.io.ObjectStreamException {
       return super.writeReplace();
     }
     
@@ -6881,12 +6859,12 @@ public final class SenseiProtos {
       private int bitField0_;
       
       // optional string key = 1;
-      private java.lang.Object key_ = "";
+      private Object key_ = "";
       public boolean hasKey() {
         return ((bitField0_ & 0x00000001) == 0x00000001);
       }
       public String getKey() {
-        java.lang.Object ref = key_;
+        Object ref = key_;
         if (!(ref instanceof String)) {
           String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
           key_ = s;
@@ -7039,12 +7017,12 @@ public final class SenseiProtos {
     private int bitField0_;
     // optional string key = 1;
     public static final int KEY_FIELD_NUMBER = 1;
-    private java.lang.Object key_;
+    private Object key_;
     public boolean hasKey() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
     public String getKey() {
-      java.lang.Object ref = key_;
+      Object ref = key_;
       if (ref instanceof String) {
         return (String) ref;
       } else {
@@ -7058,7 +7036,7 @@ public final class SenseiProtos {
       }
     }
     private com.google.protobuf.ByteString getKeyBytes() {
-      java.lang.Object ref = key_;
+      Object ref = key_;
       if (ref instanceof String) {
         com.google.protobuf.ByteString b = 
             com.google.protobuf.ByteString.copyFromUtf8((String) ref);
@@ -7141,10 +7119,8 @@ public final class SenseiProtos {
       return size;
     }
     
-    private static final long serialVersionUID = 0L;
     @java.lang.Override
-    protected java.lang.Object writeReplace()
-        throws java.io.ObjectStreamException {
+    protected Object writeReplace() throws java.io.ObjectStreamException {
       return super.writeReplace();
     }
     
@@ -7394,12 +7370,12 @@ public final class SenseiProtos {
       private int bitField0_;
       
       // optional string key = 1;
-      private java.lang.Object key_ = "";
+      private Object key_ = "";
       public boolean hasKey() {
         return ((bitField0_ & 0x00000001) == 0x00000001);
       }
       public String getKey() {
-        java.lang.Object ref = key_;
+        Object ref = key_;
         if (!(ref instanceof String)) {
           String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
           key_ = s;
@@ -7778,10 +7754,8 @@ public final class SenseiProtos {
       return size;
     }
     
-    private static final long serialVersionUID = 0L;
     @java.lang.Override
-    protected java.lang.Object writeReplace()
-        throws java.io.ObjectStreamException {
+    protected Object writeReplace() throws java.io.ObjectStreamException {
       return super.writeReplace();
     }
     
@@ -9531,10 +9505,8 @@ public final class SenseiProtos {
       return size;
     }
     
-    private static final long serialVersionUID = 0L;
     @java.lang.Override
-    protected java.lang.Object writeReplace()
-        throws java.io.ObjectStreamException {
+    protected Object writeReplace() throws java.io.ObjectStreamException {
       return super.writeReplace();
     }
     
@@ -10265,12 +10237,12 @@ public final class SenseiProtos {
     
     // optional string sensei_query = 4;
     public static final int SENSEI_QUERY_FIELD_NUMBER = 4;
-    private java.lang.Object senseiQuery_;
+    private Object senseiQuery_;
     public boolean hasSenseiQuery() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
     public String getSenseiQuery() {
-      java.lang.Object ref = senseiQuery_;
+      Object ref = senseiQuery_;
       if (ref instanceof String) {
         return (String) ref;
       } else {
@@ -10284,7 +10256,7 @@ public final class SenseiProtos {
       }
     }
     private com.google.protobuf.ByteString getSenseiQueryBytes() {
-      java.lang.Object ref = senseiQuery_;
+      Object ref = senseiQuery_;
       if (ref instanceof String) {
         com.google.protobuf.ByteString b = 
             com.google.protobuf.ByteString.copyFromUtf8((String) ref);
@@ -10374,12 +10346,12 @@ public final class SenseiProtos {
     
     // optional string route_param = 12;
     public static final int ROUTE_PARAM_FIELD_NUMBER = 12;
-    private java.lang.Object routeParam_;
+    private Object routeParam_;
     public boolean hasRouteParam() {
       return ((bitField0_ & 0x00000080) == 0x00000080);
     }
     public String getRouteParam() {
-      java.lang.Object ref = routeParam_;
+      Object ref = routeParam_;
       if (ref instanceof String) {
         return (String) ref;
       } else {
@@ -10393,7 +10365,7 @@ public final class SenseiProtos {
       }
     }
     private com.google.protobuf.ByteString getRouteParamBytes() {
-      java.lang.Object ref = routeParam_;
+      Object ref = routeParam_;
       if (ref instanceof String) {
         com.google.protobuf.ByteString b = 
             com.google.protobuf.ByteString.copyFromUtf8((String) ref);
@@ -10722,10 +10694,8 @@ public final class SenseiProtos {
       return size;
     }
     
-    private static final long serialVersionUID = 0L;
     @java.lang.Override
-    protected java.lang.Object writeReplace()
-        throws java.io.ObjectStreamException {
+    protected Object writeReplace() throws java.io.ObjectStreamException {
       return super.writeReplace();
     }
     
@@ -11954,12 +11924,12 @@ public final class SenseiProtos {
       }
       
       // optional string sensei_query = 4;
-      private java.lang.Object senseiQuery_ = "";
+      private Object senseiQuery_ = "";
       public boolean hasSenseiQuery() {
         return ((bitField0_ & 0x00000008) == 0x00000008);
       }
       public String getSenseiQuery() {
-        java.lang.Object ref = senseiQuery_;
+        Object ref = senseiQuery_;
         if (!(ref instanceof String)) {
           String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
           senseiQuery_ = s;
@@ -12230,12 +12200,12 @@ public final class SenseiProtos {
       }
       
       // optional string route_param = 12;
-      private java.lang.Object routeParam_ = "";
+      private Object routeParam_ = "";
       public boolean hasRouteParam() {
         return ((bitField0_ & 0x00000800) == 0x00000800);
       }
       public String getRouteParam() {
-        java.lang.Object ref = routeParam_;
+        Object ref = routeParam_;
         if (!(ref instanceof String)) {
           String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
           routeParam_ = s;
@@ -12681,12 +12651,12 @@ public final class SenseiProtos {
     
     // optional string message = 2;
     public static final int MESSAGE_FIELD_NUMBER = 2;
-    private java.lang.Object message_;
+    private Object message_;
     public boolean hasMessage() {
       return ((bitField0_ & 0x00000002) == 0x00000002);
     }
     public String getMessage() {
-      java.lang.Object ref = message_;
+      Object ref = message_;
       if (ref instanceof String) {
         return (String) ref;
       } else {
@@ -12700,7 +12670,7 @@ public final class SenseiProtos {
       }
     }
     private com.google.protobuf.ByteString getMessageBytes() {
-      java.lang.Object ref = message_;
+      Object ref = message_;
       if (ref instanceof String) {
         com.google.protobuf.ByteString b = 
             com.google.protobuf.ByteString.copyFromUtf8((String) ref);
@@ -12773,10 +12743,8 @@ public final class SenseiProtos {
       return size;
     }
     
-    private static final long serialVersionUID = 0L;
     @java.lang.Override
-    protected java.lang.Object writeReplace()
-        throws java.io.ObjectStreamException {
+    protected Object writeReplace() throws java.io.ObjectStreamException {
       return super.writeReplace();
     }
     
@@ -13053,12 +13021,12 @@ public final class SenseiProtos {
       }
       
       // optional string message = 2;
-      private java.lang.Object message_ = "";
+      private Object message_ = "";
       public boolean hasMessage() {
         return ((bitField0_ & 0x00000002) == 0x00000002);
       }
       public String getMessage() {
-        java.lang.Object ref = message_;
+        Object ref = message_;
         if (!(ref instanceof String)) {
           String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
           message_ = s;
@@ -13185,12 +13153,12 @@ public final class SenseiProtos {
     
     // optional string description = 2;
     public static final int DESCRIPTION_FIELD_NUMBER = 2;
-    private java.lang.Object description_;
+    private Object description_;
     public boolean hasDescription() {
       return ((bitField0_ & 0x00000002) == 0x00000002);
     }
     public String getDescription() {
-      java.lang.Object ref = description_;
+      Object ref = description_;
       if (ref instanceof String) {
         return (String) ref;
       } else {
@@ -13204,7 +13172,7 @@ public final class SenseiProtos {
       }
     }
     private com.google.protobuf.ByteString getDescriptionBytes() {
-      java.lang.Object ref = description_;
+      Object ref = description_;
       if (ref instanceof String) {
         com.google.protobuf.ByteString b = 
             com.google.protobuf.ByteString.copyFromUtf8((String) ref);
@@ -13288,10 +13256,8 @@ public final class SenseiProtos {
       return size;
     }
     
-    private static final long serialVersionUID = 0L;
     @java.lang.Override
-    protected java.lang.Object writeReplace()
-        throws java.io.ObjectStreamException {
+    protected Object writeReplace() throws java.io.ObjectStreamException {
       return super.writeReplace();
     }
     
@@ -13596,12 +13562,12 @@ public final class SenseiProtos {
       }
       
       // optional string description = 2;
-      private java.lang.Object description_ = "";
+      private Object description_ = "";
       public boolean hasDescription() {
         return ((bitField0_ & 0x00000002) == 0x00000002);
       }
       public String getDescription() {
-        java.lang.Object ref = description_;
+        Object ref = description_;
         if (!(ref instanceof String)) {
           String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
           description_ = s;
@@ -13951,10 +13917,8 @@ public final class SenseiProtos {
       return size;
     }
     
-    private static final long serialVersionUID = 0L;
     @java.lang.Override
-    protected java.lang.Object writeReplace()
-        throws java.io.ObjectStreamException {
+    protected Object writeReplace() throws java.io.ObjectStreamException {
       return super.writeReplace();
     }
     
@@ -14416,10 +14380,8 @@ public final class SenseiProtos {
       return size;
     }
     
-    private static final long serialVersionUID = 0L;
     @java.lang.Override
-    protected java.lang.Object writeReplace()
-        throws java.io.ObjectStreamException {
+    protected Object writeReplace() throws java.io.ObjectStreamException {
       return super.writeReplace();
     }
     
@@ -14802,10 +14764,8 @@ public final class SenseiProtos {
       return size;
     }
     
-    private static final long serialVersionUID = 0L;
     @java.lang.Override
-    protected java.lang.Object writeReplace()
-        throws java.io.ObjectStreamException {
+    protected Object writeReplace() throws java.io.ObjectStreamException {
       return super.writeReplace();
     }
     
@@ -15436,10 +15396,8 @@ public final class SenseiProtos {
       return size;
     }
     
-    private static final long serialVersionUID = 0L;
     @java.lang.Override
-    protected java.lang.Object writeReplace()
-        throws java.io.ObjectStreamException {
+    protected Object writeReplace() throws java.io.ObjectStreamException {
       return super.writeReplace();
     }
     
@@ -16636,10 +16594,8 @@ public final class SenseiProtos {
       return size;
     }
     
-    private static final long serialVersionUID = 0L;
     @java.lang.Override
-    protected java.lang.Object writeReplace()
-        throws java.io.ObjectStreamException {
+    protected Object writeReplace() throws java.io.ObjectStreamException {
       return super.writeReplace();
     }
     
@@ -17506,12 +17462,12 @@ public final class SenseiProtos {
     
     // optional string name = 2;
     public static final int NAME_FIELD_NUMBER = 2;
-    private java.lang.Object name_;
+    private Object name_;
     public boolean hasName() {
       return ((bitField0_ & 0x00000002) == 0x00000002);
     }
     public String getName() {
-      java.lang.Object ref = name_;
+      Object ref = name_;
       if (ref instanceof String) {
         return (String) ref;
       } else {
@@ -17525,7 +17481,7 @@ public final class SenseiProtos {
       }
     }
     private com.google.protobuf.ByteString getNameBytes() {
-      java.lang.Object ref = name_;
+      Object ref = name_;
       if (ref instanceof String) {
         com.google.protobuf.ByteString b = 
             com.google.protobuf.ByteString.copyFromUtf8((String) ref);
@@ -17538,12 +17494,12 @@ public final class SenseiProtos {
     
     // optional string string_value = 3;
     public static final int STRING_VALUE_FIELD_NUMBER = 3;
-    private java.lang.Object stringValue_;
+    private Object stringValue_;
     public boolean hasStringValue() {
       return ((bitField0_ & 0x00000004) == 0x00000004);
     }
     public String getStringValue() {
-      java.lang.Object ref = stringValue_;
+      Object ref = stringValue_;
       if (ref instanceof String) {
         return (String) ref;
       } else {
@@ -17557,7 +17513,7 @@ public final class SenseiProtos {
       }
     }
     private com.google.protobuf.ByteString getStringValueBytes() {
-      java.lang.Object ref = stringValue_;
+      Object ref = stringValue_;
       if (ref instanceof String) {
         com.google.protobuf.ByteString b = 
             com.google.protobuf.ByteString.copyFromUtf8((String) ref);
@@ -17836,10 +17792,8 @@ public final class SenseiProtos {
       return size;
     }
     
-    private static final long serialVersionUID = 0L;
     @java.lang.Override
-    protected java.lang.Object writeReplace()
-        throws java.io.ObjectStreamException {
+    protected Object writeReplace() throws java.io.ObjectStreamException {
       return super.writeReplace();
     }
     
@@ -18278,12 +18232,12 @@ public final class SenseiProtos {
       }
       
       // optional string name = 2;
-      private java.lang.Object name_ = "";
+      private Object name_ = "";
       public boolean hasName() {
         return ((bitField0_ & 0x00000002) == 0x00000002);
       }
       public String getName() {
-        java.lang.Object ref = name_;
+        Object ref = name_;
         if (!(ref instanceof String)) {
           String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
           name_ = s;
@@ -18314,12 +18268,12 @@ public final class SenseiProtos {
       }
       
       // optional string string_value = 3;
-      private java.lang.Object stringValue_ = "";
+      private Object stringValue_ = "";
       public boolean hasStringValue() {
         return ((bitField0_ & 0x00000004) == 0x00000004);
       }
       public String getStringValue() {
-        java.lang.Object ref = stringValue_;
+        Object ref = stringValue_;
         if (!(ref instanceof String)) {
           String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
           stringValue_ = s;
@@ -18736,10 +18690,8 @@ public final class SenseiProtos {
       return size;
     }
     
-    private static final long serialVersionUID = 0L;
     @java.lang.Override
-    protected java.lang.Object writeReplace()
-        throws java.io.ObjectStreamException {
+    protected Object writeReplace() throws java.io.ObjectStreamException {
       return super.writeReplace();
     }
     
@@ -19356,10 +19308,8 @@ public final class SenseiProtos {
       return size;
     }
     
-    private static final long serialVersionUID = 0L;
     @java.lang.Override
-    protected java.lang.Object writeReplace()
-        throws java.io.ObjectStreamException {
+    protected Object writeReplace() throws java.io.ObjectStreamException {
       return super.writeReplace();
     }
     
@@ -19965,6 +19915,11 @@ public final class SenseiProtos {
     boolean hasTermFrequencyMap();
     com.sensei.search.req.protobuf.SenseiProtos.TermFrequencyMap getTermFrequencyMap();
     com.sensei.search.req.protobuf.SenseiProtos.TermFrequencyMapOrBuilder getTermFrequencyMapOrBuilder();
+    
+    // repeated float features = 17;
+    java.util.List<java.lang.Float> getFeaturesList();
+    int getFeaturesCount();
+    float getFeatures(int index);
   }
   public static final class SenseiHit extends
       com.google.protobuf.GeneratedMessage
@@ -20066,12 +20021,12 @@ public final class SenseiProtos {
     
     // optional string group_field = 7;
     public static final int GROUP_FIELD_FIELD_NUMBER = 7;
-    private java.lang.Object groupField_;
+    private Object groupField_;
     public boolean hasGroupField() {
       return ((bitField0_ & 0x00000020) == 0x00000020);
     }
     public String getGroupField() {
-      java.lang.Object ref = groupField_;
+      Object ref = groupField_;
       if (ref instanceof String) {
         return (String) ref;
       } else {
@@ -20085,7 +20040,7 @@ public final class SenseiProtos {
       }
     }
     private com.google.protobuf.ByteString getGroupFieldBytes() {
-      java.lang.Object ref = groupField_;
+      Object ref = groupField_;
       if (ref instanceof String) {
         com.google.protobuf.ByteString b = 
             com.google.protobuf.ByteString.copyFromUtf8((String) ref);
@@ -20098,12 +20053,12 @@ public final class SenseiProtos {
     
     // optional string group_value = 8;
     public static final int GROUP_VALUE_FIELD_NUMBER = 8;
-    private java.lang.Object groupValue_;
+    private Object groupValue_;
     public boolean hasGroupValue() {
       return ((bitField0_ & 0x00000040) == 0x00000040);
     }
     public String getGroupValue() {
-      java.lang.Object ref = groupValue_;
+      Object ref = groupValue_;
       if (ref instanceof String) {
         return (String) ref;
       } else {
@@ -20117,7 +20072,7 @@ public final class SenseiProtos {
       }
     }
     private com.google.protobuf.ByteString getGroupValueBytes() {
-      java.lang.Object ref = groupValue_;
+      Object ref = groupValue_;
       if (ref instanceof String) {
         com.google.protobuf.ByteString b = 
             com.google.protobuf.ByteString.copyFromUtf8((String) ref);
@@ -20194,12 +20149,12 @@ public final class SenseiProtos {
     
     // optional string src_data = 14;
     public static final int SRC_DATA_FIELD_NUMBER = 14;
-    private java.lang.Object srcData_;
+    private Object srcData_;
     public boolean hasSrcData() {
       return ((bitField0_ & 0x00000800) == 0x00000800);
     }
     public String getSrcData() {
-      java.lang.Object ref = srcData_;
+      Object ref = srcData_;
       if (ref instanceof String) {
         return (String) ref;
       } else {
@@ -20213,7 +20168,7 @@ public final class SenseiProtos {
       }
     }
     private com.google.protobuf.ByteString getSrcDataBytes() {
-      java.lang.Object ref = srcData_;
+      Object ref = srcData_;
       if (ref instanceof String) {
         com.google.protobuf.ByteString b = 
             com.google.protobuf.ByteString.copyFromUtf8((String) ref);
@@ -20247,6 +20202,20 @@ public final class SenseiProtos {
       return termFrequencyMap_;
     }
     
+    // repeated float features = 17;
+    public static final int FEATURES_FIELD_NUMBER = 17;
+    private java.util.List<java.lang.Float> features_;
+    public java.util.List<java.lang.Float>
+        getFeaturesList() {
+      return features_;
+    }
+    public int getFeaturesCount() {
+      return features_.size();
+    }
+    public float getFeatures(int index) {
+      return features_.get(index);
+    }
+    
     private void initFields() {
       score_ = 0F;
       docId_ = 0;
@@ -20264,6 +20233,7 @@ public final class SenseiProtos {
       srcData_ = "";
       storedValue_ = com.google.protobuf.ByteString.EMPTY;
       termFrequencyMap_ = com.sensei.search.req.protobuf.SenseiProtos.TermFrequencyMap.getDefaultInstance();
+      features_ = java.util.Collections.emptyList();;
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -20324,6 +20294,9 @@ public final class SenseiProtos {
       }
       if (((bitField0_ & 0x00002000) == 0x00002000)) {
         output.writeMessage(16, termFrequencyMap_);
+      }
+      for (int i = 0; i < features_.size(); i++) {
+        output.writeFloat(17, features_.get(i));
       }
       getUnknownFields().writeTo(output);
     }
@@ -20403,15 +20376,19 @@ public final class SenseiProtos {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(16, termFrequencyMap_);
       }
+      {
+        int dataSize = 0;
+        dataSize = 4 * getFeaturesList().size();
+        size += dataSize;
+        size += 2 * getFeaturesList().size();
+      }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
       return size;
     }
     
-    private static final long serialVersionUID = 0L;
     @java.lang.Override
-    protected java.lang.Object writeReplace()
-        throws java.io.ObjectStreamException {
+    protected Object writeReplace() throws java.io.ObjectStreamException {
       return super.writeReplace();
     }
     
@@ -20584,6 +20561,8 @@ public final class SenseiProtos {
           termFrequencyMapBuilder_.clear();
         }
         bitField0_ = (bitField0_ & ~0x00008000);
+        features_ = java.util.Collections.emptyList();;
+        bitField0_ = (bitField0_ & ~0x00010000);
         return this;
       }
       
@@ -20708,6 +20687,11 @@ public final class SenseiProtos {
         } else {
           result.termFrequencyMap_ = termFrequencyMapBuilder_.build();
         }
+        if (((bitField0_ & 0x00010000) == 0x00010000)) {
+          features_ = java.util.Collections.unmodifiableList(features_);
+          bitField0_ = (bitField0_ & ~0x00010000);
+        }
+        result.features_ = features_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -20801,6 +20785,16 @@ public final class SenseiProtos {
         }
         if (other.hasTermFrequencyMap()) {
           mergeTermFrequencyMap(other.getTermFrequencyMap());
+        }
+        if (!other.features_.isEmpty()) {
+          if (features_.isEmpty()) {
+            features_ = other.features_;
+            bitField0_ = (bitField0_ & ~0x00010000);
+          } else {
+            ensureFeaturesIsMutable();
+            features_.addAll(other.features_);
+          }
+          onChanged();
         }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
@@ -20948,6 +20942,20 @@ public final class SenseiProtos {
               }
               input.readMessage(subBuilder, extensionRegistry);
               setTermFrequencyMap(subBuilder.buildPartial());
+              break;
+            }
+            case 141: {
+              ensureFeaturesIsMutable();
+              features_.add(input.readFloat());
+              break;
+            }
+            case 138: {
+              int length = input.readRawVarint32();
+              int limit = input.pushLimit(length);
+              while (input.getBytesUntilLimit() > 0) {
+                addFeatures(input.readFloat());
+              }
+              input.popLimit(limit);
               break;
             }
           }
@@ -21251,12 +21259,12 @@ public final class SenseiProtos {
       }
       
       // optional string group_field = 7;
-      private java.lang.Object groupField_ = "";
+      private Object groupField_ = "";
       public boolean hasGroupField() {
         return ((bitField0_ & 0x00000040) == 0x00000040);
       }
       public String getGroupField() {
-        java.lang.Object ref = groupField_;
+        Object ref = groupField_;
         if (!(ref instanceof String)) {
           String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
           groupField_ = s;
@@ -21287,12 +21295,12 @@ public final class SenseiProtos {
       }
       
       // optional string group_value = 8;
-      private java.lang.Object groupValue_ = "";
+      private Object groupValue_ = "";
       public boolean hasGroupValue() {
         return ((bitField0_ & 0x00000080) == 0x00000080);
       }
       public String getGroupValue() {
-        java.lang.Object ref = groupValue_;
+        Object ref = groupValue_;
         if (!(ref instanceof String)) {
           String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
           groupValue_ = s;
@@ -21665,12 +21673,12 @@ public final class SenseiProtos {
       }
       
       // optional string src_data = 14;
-      private java.lang.Object srcData_ = "";
+      private Object srcData_ = "";
       public boolean hasSrcData() {
         return ((bitField0_ & 0x00002000) == 0x00002000);
       }
       public String getSrcData() {
-        java.lang.Object ref = srcData_;
+        Object ref = srcData_;
         if (!(ref instanceof String)) {
           String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
           srcData_ = s;
@@ -21814,6 +21822,51 @@ public final class SenseiProtos {
         return termFrequencyMapBuilder_;
       }
       
+      // repeated float features = 17;
+      private java.util.List<java.lang.Float> features_ = java.util.Collections.emptyList();;
+      private void ensureFeaturesIsMutable() {
+        if (!((bitField0_ & 0x00010000) == 0x00010000)) {
+          features_ = new java.util.ArrayList<java.lang.Float>(features_);
+          bitField0_ |= 0x00010000;
+         }
+      }
+      public java.util.List<java.lang.Float>
+          getFeaturesList() {
+        return java.util.Collections.unmodifiableList(features_);
+      }
+      public int getFeaturesCount() {
+        return features_.size();
+      }
+      public float getFeatures(int index) {
+        return features_.get(index);
+      }
+      public Builder setFeatures(
+          int index, float value) {
+        ensureFeaturesIsMutable();
+        features_.set(index, value);
+        onChanged();
+        return this;
+      }
+      public Builder addFeatures(float value) {
+        ensureFeaturesIsMutable();
+        features_.add(value);
+        onChanged();
+        return this;
+      }
+      public Builder addAllFeatures(
+          java.lang.Iterable<? extends java.lang.Float> values) {
+        ensureFeaturesIsMutable();
+        super.addAll(values, features_);
+        onChanged();
+        return this;
+      }
+      public Builder clearFeatures() {
+        features_ = java.util.Collections.emptyList();;
+        bitField0_ = (bitField0_ & ~0x00010000);
+        onChanged();
+        return this;
+      }
+      
       // @@protoc_insertion_point(builder_scope:com.sensei.search.req.protobuf.SenseiHit)
     }
     
@@ -21867,12 +21920,12 @@ public final class SenseiProtos {
     private int bitField0_;
     // optional string value = 1;
     public static final int VALUE_FIELD_NUMBER = 1;
-    private java.lang.Object value_;
+    private Object value_;
     public boolean hasValue() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
     public String getValue() {
-      java.lang.Object ref = value_;
+      Object ref = value_;
       if (ref instanceof String) {
         return (String) ref;
       } else {
@@ -21886,7 +21939,7 @@ public final class SenseiProtos {
       }
     }
     private com.google.protobuf.ByteString getValueBytes() {
-      java.lang.Object ref = value_;
+      Object ref = value_;
       if (ref instanceof String) {
         com.google.protobuf.ByteString b = 
             com.google.protobuf.ByteString.copyFromUtf8((String) ref);
@@ -21951,10 +22004,8 @@ public final class SenseiProtos {
       return size;
     }
     
-    private static final long serialVersionUID = 0L;
     @java.lang.Override
-    protected java.lang.Object writeReplace()
-        throws java.io.ObjectStreamException {
+    protected Object writeReplace() throws java.io.ObjectStreamException {
       return super.writeReplace();
     }
     
@@ -22190,12 +22241,12 @@ public final class SenseiProtos {
       private int bitField0_;
       
       // optional string value = 1;
-      private java.lang.Object value_ = "";
+      private Object value_ = "";
       public boolean hasValue() {
         return ((bitField0_ & 0x00000001) == 0x00000001);
       }
       public String getValue() {
-        java.lang.Object ref = value_;
+        Object ref = value_;
         if (!(ref instanceof String)) {
           String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
           value_ = s;
@@ -22378,10 +22429,8 @@ public final class SenseiProtos {
       return size;
     }
     
-    private static final long serialVersionUID = 0L;
     @java.lang.Override
-    protected java.lang.Object writeReplace()
-        throws java.io.ObjectStreamException {
+    protected Object writeReplace() throws java.io.ObjectStreamException {
       return super.writeReplace();
     }
     
@@ -22985,10 +23034,8 @@ public final class SenseiProtos {
       return size;
     }
     
-    private static final long serialVersionUID = 0L;
     @java.lang.Override
-    protected java.lang.Object writeReplace()
-        throws java.io.ObjectStreamException {
+    protected Object writeReplace() throws java.io.ObjectStreamException {
       return super.writeReplace();
     }
     
@@ -23447,10 +23494,8 @@ public final class SenseiProtos {
       return size;
     }
     
-    private static final long serialVersionUID = 0L;
     @java.lang.Override
-    protected java.lang.Object writeReplace()
-        throws java.io.ObjectStreamException {
+    protected Object writeReplace() throws java.io.ObjectStreamException {
       return super.writeReplace();
     }
     
@@ -24083,12 +24128,12 @@ public final class SenseiProtos {
     private int bitField0_;
     // optional string parsed_query = 1;
     public static final int PARSED_QUERY_FIELD_NUMBER = 1;
-    private java.lang.Object parsedQuery_;
+    private Object parsedQuery_;
     public boolean hasParsedQuery() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
     public String getParsedQuery() {
-      java.lang.Object ref = parsedQuery_;
+      Object ref = parsedQuery_;
       if (ref instanceof String) {
         return (String) ref;
       } else {
@@ -24102,7 +24147,7 @@ public final class SenseiProtos {
       }
     }
     private com.google.protobuf.ByteString getParsedQueryBytes() {
-      java.lang.Object ref = parsedQuery_;
+      Object ref = parsedQuery_;
       if (ref instanceof String) {
         com.google.protobuf.ByteString b = 
             com.google.protobuf.ByteString.copyFromUtf8((String) ref);
@@ -24379,10 +24424,8 @@ public final class SenseiProtos {
       return size;
     }
     
-    private static final long serialVersionUID = 0L;
     @java.lang.Override
-    protected java.lang.Object writeReplace()
-        throws java.io.ObjectStreamException {
+    protected Object writeReplace() throws java.io.ObjectStreamException {
       return super.writeReplace();
     }
     
@@ -24906,12 +24949,12 @@ public final class SenseiProtos {
       private int bitField0_;
       
       // optional string parsed_query = 1;
-      private java.lang.Object parsedQuery_ = "";
+      private Object parsedQuery_ = "";
       public boolean hasParsedQuery() {
         return ((bitField0_ & 0x00000001) == 0x00000001);
       }
       public String getParsedQuery() {
-        java.lang.Object ref = parsedQuery_;
+        Object ref = parsedQuery_;
         if (!(ref instanceof String)) {
           String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
           parsedQuery_ = s;
@@ -26216,7 +26259,7 @@ public final class SenseiProtos {
       "2).com.sensei.search.req.protobuf.Fielda",
       "ble\"c\n\020TermFrequencyMap\022\013\n\003key\030\001 \003(\t\022B\n\005" +
       "value\030\002 \003(\01323.com.sensei.search.req.prot" +
-      "obuf.TermFrequencyVector\"\357\004\n\tSenseiHit\022\r" +
+      "obuf.TermFrequencyVector\"\201\005\n\tSenseiHit\022\r" +
       "\n\005score\030\001 \001(\002\022\016\n\006doc_id\030\002 \001(\005\022A\n\014field_v" +
       "alues\030\003 \001(\0132+.com.sensei.search.req.prot" +
       "obuf.FieldValues\022B\n\nfield_type\030\004 \003(\0162..c" +
@@ -26232,47 +26275,47 @@ public final class SenseiProtos {
       "\013\n\003uid\030\r \001(\003\022\020\n\010src_data\030\016 \001(\t\022\024\n\014stored" +
       "_value\030\017 \001(\014\022L\n\022term_frequency_map\030\020 \001(\013" +
       "20.com.sensei.search.req.protobuf.TermFr" +
-      "equencyMap\"/\n\013BrowseFacet\022\r\n\005value\030\001 \001(\t" +
-      "\022\021\n\thit_count\030\002 \001(\005\"n\n\017FacetAccessible\022;",
-      "\n\006facets\030\001 \003(\0132+.com.sensei.search.req.p" +
-      "rotobuf.BrowseFacet\022\036\n\026facet_accessible_" +
-      "bytes\030\002 \001(\014\":\n\017MapReduceResult\022\021\n\tmapRes" +
-      "ult\030\001 \003(\014\022\024\n\014reduceResult\030\002 \001(\014\"W\n\010Facet" +
-      "Map\022\013\n\003key\030\001 \003(\t\022>\n\005value\030\002 \003(\0132/.com.se" +
-      "nsei.search.req.protobuf.FacetAccessible" +
-      "\"\355\003\n\021SenseiProtoResult\022\024\n\014parsed_query\030\001" +
-      " \001(\t\022:\n\005error\030\002 \003(\0132+.com.sensei.search." +
-      "req.protobuf.SenseiError\0226\n\003hit\030\003 \003(\0132)." +
-      "com.sensei.search.req.protobuf.SenseiHit",
-      "\022\013\n\003tid\030\004 \001(\003\022\020\n\010num_hits\030\005 \001(\003\022\022\n\ntotal" +
-      "_docs\030\006 \001(\003\022I\n\020group_accessible\030\007 \003(\0132/." +
-      "com.sensei.search.req.protobuf.FacetAcce" +
-      "ssible\022;\n\tfacet_map\030\010 \001(\0132(.com.sensei.s" +
-      "earch.req.protobuf.FacetMap\022\014\n\004time\030\t \001(" +
-      "\003\022H\n\017mapReduceResult\030\n \001(\0132/.com.sensei." +
-      "search.req.protobuf.MapReduceResult\022;\n\006e" +
-      "rrors\030\013 \003(\0132+.com.sensei.search.req.prot" +
-      "obuf.SenseiError*\"\n\017BooleanOperator\022\006\n\002O" +
-      "R\020\001\022\007\n\003AND\020\002*6\n\tSortOrder\022\r\n\tASCENDING\020\001",
-      "\022\016\n\nDESCENDING\020\002\022\n\n\006CUSTOM\020\003*+\n\017FacetCom" +
-      "parator\022\r\n\tHIT_COUNT\020\001\022\t\n\005VALUE\020\002*\263\001\n\027Se" +
-      "nseiMapReduceFunction\022\007\n\003AVG\020\001\022\022\n\016COUNT_" +
-      "GROUP_BY\020\002\022\022\n\016DISTINCT_COUNT\020\003\022\020\n\014DISTIN" +
-      "CT_UID\020\004\022\020\n\014FACET_COUNTS\020\005\022\033\n\027HASH_SET_D" +
-      "ISTINCT_COUNT\020\006\022\007\n\003MAX\020\007\022\007\n\003MIN\020\010\022\007\n\003SUM" +
-      "\020\t\022\013\n\007UNKNOWN\020d*\250\002\n\tErrorType\022\024\n\020JsonPar" +
-      "singError\020d\022\030\n\024JsonCompilationError\020e\022\024\n" +
-      "\017BQLParsingError\020\226\001\022\027\n\022BoboExecutionErro" +
-      "r\020\310\001\022\025\n\020ExecutionTimeout\020\372\001\022\026\n\021BrokerGat",
-      "herError\020\254\002\022\027\n\022PartitionCallError\020\336\002\022\022\n\r" +
-      "BrokerTimeout\020\220\003\022\022\n\rInternalError\020\302\003\022\030\n\023" +
-      "MergePartitionError\020\364\003\022\037\n\032FederatedBroke" +
-      "rUnavailable\020\246\004\022\021\n\014UnknownError\020\350\007*~\n\016Ja" +
-      "vaPrimitives\022\010\n\004BYTE\020\001\022\010\n\004CHAR\020\002\022\007\n\003INT\020" +
-      "\003\022\010\n\004LONG\020\004\022\t\n\005FLOAT\020\005\022\n\n\006DOUBLE\020\006\022\013\n\007BO" +
-      "OLEAN\020\007\022\t\n\005SHORT\020\010\022\n\n\006STRING\020\t\022\n\n\006OBJECT" +
-      "\020\nB0\n\036com.sensei.search.req.protobufB\014Se" +
-      "nseiProtosH\001"
+      "equencyMap\022\020\n\010features\030\021 \003(\002\"/\n\013BrowseFa" +
+      "cet\022\r\n\005value\030\001 \001(\t\022\021\n\thit_count\030\002 \001(\005\"n\n",
+      "\017FacetAccessible\022;\n\006facets\030\001 \003(\0132+.com.s" +
+      "ensei.search.req.protobuf.BrowseFacet\022\036\n" +
+      "\026facet_accessible_bytes\030\002 \001(\014\":\n\017MapRedu" +
+      "ceResult\022\021\n\tmapResult\030\001 \003(\014\022\024\n\014reduceRes" +
+      "ult\030\002 \001(\014\"W\n\010FacetMap\022\013\n\003key\030\001 \003(\t\022>\n\005va" +
+      "lue\030\002 \003(\0132/.com.sensei.search.req.protob" +
+      "uf.FacetAccessible\"\355\003\n\021SenseiProtoResult" +
+      "\022\024\n\014parsed_query\030\001 \001(\t\022:\n\005error\030\002 \003(\0132+." +
+      "com.sensei.search.req.protobuf.SenseiErr" +
+      "or\0226\n\003hit\030\003 \003(\0132).com.sensei.search.req.",
+      "protobuf.SenseiHit\022\013\n\003tid\030\004 \001(\003\022\020\n\010num_h" +
+      "its\030\005 \001(\003\022\022\n\ntotal_docs\030\006 \001(\003\022I\n\020group_a" +
+      "ccessible\030\007 \003(\0132/.com.sensei.search.req." +
+      "protobuf.FacetAccessible\022;\n\tfacet_map\030\010 " +
+      "\001(\0132(.com.sensei.search.req.protobuf.Fac" +
+      "etMap\022\014\n\004time\030\t \001(\003\022H\n\017mapReduceResult\030\n" +
+      " \001(\0132/.com.sensei.search.req.protobuf.Ma" +
+      "pReduceResult\022;\n\006errors\030\013 \003(\0132+.com.sens" +
+      "ei.search.req.protobuf.SenseiError*\"\n\017Bo" +
+      "oleanOperator\022\006\n\002OR\020\001\022\007\n\003AND\020\002*6\n\tSortOr",
+      "der\022\r\n\tASCENDING\020\001\022\016\n\nDESCENDING\020\002\022\n\n\006CU" +
+      "STOM\020\003*+\n\017FacetComparator\022\r\n\tHIT_COUNT\020\001" +
+      "\022\t\n\005VALUE\020\002*\263\001\n\027SenseiMapReduceFunction\022" +
+      "\007\n\003AVG\020\001\022\022\n\016COUNT_GROUP_BY\020\002\022\022\n\016DISTINCT" +
+      "_COUNT\020\003\022\020\n\014DISTINCT_UID\020\004\022\020\n\014FACET_COUN" +
+      "TS\020\005\022\033\n\027HASH_SET_DISTINCT_COUNT\020\006\022\007\n\003MAX" +
+      "\020\007\022\007\n\003MIN\020\010\022\007\n\003SUM\020\t\022\013\n\007UNKNOWN\020d*\250\002\n\tEr" +
+      "rorType\022\024\n\020JsonParsingError\020d\022\030\n\024JsonCom" +
+      "pilationError\020e\022\024\n\017BQLParsingError\020\226\001\022\027\n" +
+      "\022BoboExecutionError\020\310\001\022\025\n\020ExecutionTimeo",
+      "ut\020\372\001\022\026\n\021BrokerGatherError\020\254\002\022\027\n\022Partiti" +
+      "onCallError\020\336\002\022\022\n\rBrokerTimeout\020\220\003\022\022\n\rIn" +
+      "ternalError\020\302\003\022\030\n\023MergePartitionError\020\364\003" +
+      "\022\037\n\032FederatedBrokerUnavailable\020\246\004\022\021\n\014Unk" +
+      "nownError\020\350\007*~\n\016JavaPrimitives\022\010\n\004BYTE\020\001" +
+      "\022\010\n\004CHAR\020\002\022\007\n\003INT\020\003\022\010\n\004LONG\020\004\022\t\n\005FLOAT\020\005" +
+      "\022\n\n\006DOUBLE\020\006\022\013\n\007BOOLEAN\020\007\022\t\n\005SHORT\020\010\022\n\n\006" +
+      "STRING\020\t\022\n\n\006OBJECT\020\nB0\n\036com.sensei.searc" +
+      "h.req.protobufB\014SenseiProtosH\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -26484,7 +26527,7 @@ public final class SenseiProtos {
           internal_static_com_sensei_search_req_protobuf_SenseiHit_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_com_sensei_search_req_protobuf_SenseiHit_descriptor,
-              new java.lang.String[] { "Score", "DocId", "FieldValues", "FieldType", "GroupPosition", "StoredFields", "GroupField", "GroupValue", "RawGroupValue", "TotalGroupHitCount", "GroupHit", "Explanation", "Uid", "SrcData", "StoredValue", "TermFrequencyMap", },
+              new java.lang.String[] { "Score", "DocId", "FieldValues", "FieldType", "GroupPosition", "StoredFields", "GroupField", "GroupValue", "RawGroupValue", "TotalGroupHitCount", "GroupHit", "Explanation", "Uid", "SrcData", "StoredValue", "TermFrequencyMap", "Features", },
               com.sensei.search.req.protobuf.SenseiProtos.SenseiHit.class,
               com.sensei.search.req.protobuf.SenseiProtos.SenseiHit.Builder.class);
           internal_static_com_sensei_search_req_protobuf_BrowseFacet_descriptor =

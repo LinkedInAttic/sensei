@@ -31,7 +31,7 @@ public class PrefixQueryConstructor extends QueryConstructor {
   public static final String QUERY_TYPE = "prefix";
   
 	@Override
-  protected Query doConstructQuery(JSONObject json) throws JSONException
+  public Query doConstructQuery(JSONObject json) throws JSONException
   {
 
 //		   "prefix" : { 

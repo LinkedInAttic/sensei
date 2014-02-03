@@ -30,7 +30,7 @@ public class WildcardQueryConstructor extends QueryConstructor {
 
   public static final String QUERY_TYPE = "wildcard";
 	@Override
-  protected Query doConstructQuery(JSONObject json) throws JSONException
+  public Query doConstructQuery(JSONObject json) throws JSONException
   {
 
 //		   "wildcard" : { 

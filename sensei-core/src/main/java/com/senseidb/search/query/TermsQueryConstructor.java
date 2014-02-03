@@ -46,7 +46,7 @@ public class TermsQueryConstructor extends QueryConstructor
   // },
 
   @Override
-  protected Query doConstructQuery(JSONObject json) throws JSONException
+  public Query doConstructQuery(JSONObject json) throws JSONException
   {
     String field = null;
     JSONArray values = null, excludes = null;

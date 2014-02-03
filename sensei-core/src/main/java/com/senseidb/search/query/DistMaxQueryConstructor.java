@@ -30,7 +30,7 @@ public class DistMaxQueryConstructor extends QueryConstructor {
     private TermQueryConstructor termQueryConstructor = new TermQueryConstructor();
   public static final String QUERY_TYPE = "dis_max";
 	@Override
-  protected Query doConstructQuery(JSONObject jsonQuery) throws JSONException
+  public Query doConstructQuery(JSONObject jsonQuery) throws JSONException
   {
 
 //	    "dis_max" : {

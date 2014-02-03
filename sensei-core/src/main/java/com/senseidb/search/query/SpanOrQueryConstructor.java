@@ -33,7 +33,7 @@ public class SpanOrQueryConstructor extends QueryConstructor {
 
   public static final String QUERY_TYPE = "span_or";
 	@Override
-  protected Query doConstructQuery(JSONObject jsonQuery) throws JSONException
+  public Query doConstructQuery(JSONObject jsonQuery) throws JSONException
   {
 
 //	    "span_or" : {

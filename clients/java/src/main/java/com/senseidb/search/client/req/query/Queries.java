@@ -31,11 +31,11 @@ import com.senseidb.search.client.req.filter.Filter;
 import com.senseidb.search.client.req.filter.Ids;
 import com.senseidb.search.client.req.query.TextQuery.Type;
 import com.senseidb.search.client.req.query.span.SpanTerm;
+import org.json.JSONObject;
 
 public class Queries {
-    public static CustomQuery customQuery(String cls,
-            Map<String, String> params, double boost) {
-        return new CustomQuery(cls, params, boost);
+    public static CustomQuery customQuery(String cls, JSONObject constructor, Map<String, String> params, double boost) {
+        return new CustomQuery(cls, constructor, params, boost);
     }
 
     public static DisMax disMax(double tieBraker, double boost, Term... queries) {

@@ -20,9 +20,13 @@
 package com.senseidb.test.client;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.senseidb.search.client.CustomObjConstructor;
+import com.senseidb.search.client.req.query.QueryJsonHandler;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.Assert;
 import org.junit.Before;
@@ -50,7 +54,7 @@ public class JavaClientIntegrationTest extends Assert {
   private SenseiServiceProxy senseiServiceProxy;
   @Before
   public void setUp () {
-    senseiServiceProxy = new SenseiServiceProxy("localhost", 8080);
+    senseiServiceProxy = new SenseiServiceProxy("localhost", 9000);
   }
   @Test
   public void testSelectionRange() throws Exception
@@ -316,6 +320,8 @@ public class JavaClientIntegrationTest extends Assert {
     assertEquals("numhits is wrong", 2160, res.getNumhits().intValue());
 
   }
+
+
   @Test
   public void testUIDFilter() throws Exception
   {
@@ -481,6 +487,7 @@ public class JavaClientIntegrationTest extends Assert {
     assertEquals("{\"min\":2100,\"uid\":4757}", res.getMapReduceResult().toString());
     
   }
+
   /* Need to fix the bug in bobo and kamikazi, for details see the following two test cases:*/
 
 //  public void testAndFilter1() throws Exception
