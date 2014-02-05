@@ -28,7 +28,7 @@ public class MatchAllQueryConstructor extends QueryConstructor{
   public static final String QUERY_TYPE = "match_all";
   
   @Override
-  protected Query doConstructQuery(JSONObject jsonQuery) throws JSONException
+  public Query doConstructQuery(JSONObject jsonQuery) throws JSONException
   {
     double boost = jsonQuery.optDouble(BOOST_PARAM, 1.0);
     

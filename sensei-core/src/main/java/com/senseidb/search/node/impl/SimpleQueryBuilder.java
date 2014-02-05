@@ -22,6 +22,7 @@ import java.io.UnsupportedEncodingException;
 
 import org.apache.lucene.queryParser.ParseException;
 import org.apache.lucene.queryParser.QueryParser;
+import org.apache.lucene.search.Collector;
 import org.apache.lucene.search.Filter;
 import org.apache.lucene.search.Query;
 
@@ -32,6 +33,7 @@ public class SimpleQueryBuilder implements SenseiQueryBuilder
 {
   protected Query _query = null;
   protected Filter _filter = null;
+  protected Collector _collector = null;
   
   public SimpleQueryBuilder(SenseiQuery query, QueryParser parser) throws Exception
   {
@@ -68,5 +70,10 @@ public class SimpleQueryBuilder implements SenseiQueryBuilder
   public Filter buildFilter()
   {
     return _filter;
+  }
+
+  public Collector buildCollector(Query q)
+  {
+    return _collector;
   }
 }

@@ -273,6 +273,7 @@ message SenseiHit {
   optional string src_data = 14;
   optional bytes stored_value = 15;
   optional TermFrequencyMap term_frequency_map = 16;
+  repeated float features = 17;
 };
 
 message BrowseFacet {

@@ -40,7 +40,7 @@ public class PathQueryConstructor extends QueryConstructor
   // },
 
   @Override
-  protected Query doConstructQuery(JSONObject jsonQuery) throws JSONException
+  public Query doConstructQuery(JSONObject jsonQuery) throws JSONException
   {
     Filter filter = null;
     try

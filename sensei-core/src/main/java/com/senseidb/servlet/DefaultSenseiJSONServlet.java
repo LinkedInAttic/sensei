@@ -18,95 +18,6 @@
  */
 package com.senseidb.servlet;
 
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_COUNT;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_DYNAMIC_INIT;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_DYNAMIC_TYPE;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_DYNAMIC_TYPE_BOOL;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_DYNAMIC_TYPE_BYTEARRAY;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_DYNAMIC_TYPE_DOUBLE;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_DYNAMIC_TYPE_INT;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_DYNAMIC_TYPE_LONG;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_DYNAMIC_TYPE_STRING;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_DYNAMIC_VAL;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_FACET;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_FACET_EXPAND;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_FACET_MAX;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_FACET_MINHIT;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_FACET_ORDER;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_FACET_ORDER_HITS;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_FACET_ORDER_VAL;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_FETCH_STORED;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_FETCH_STORED_VALUE;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_FETCH_TERMVECTOR;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_GROUP_BY;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_MAX_PER_GROUP;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_OFFSET;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_PARTITIONS;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_QUERY;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_QUERY_PARAM;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_ERRORS;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_ERROR_CODE;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_ERROR_MESSAGE;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_ERROR_TYPE;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_FACETS;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_FACET_INFO_COUNT;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_FACET_INFO_SELECTED;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_FACET_INFO_VALUE;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_HITS;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_HITS_EXPL_DESC;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_HITS_EXPL_DETAILS;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_HITS_EXPL_VALUE;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_HIT_DOCID;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_HIT_EXPLANATION;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_HIT_GROUPHITS;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_HIT_GROUPHITSCOUNT;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_HIT_GROUPFIELD;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_HIT_GROUPVALUE;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_HIT_SCORE;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_HIT_SRC_DATA;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_HIT_STORED_FIELDS;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_HIT_STORED_FIELDS_NAME;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_HIT_STORED_FIELDS_VALUE;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_HIT_TERMVECTORS;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_HIT_UID;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_NUMGROUPS;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_NUMHITS;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_PARSEDQUERY;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_SELECT_LIST;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_TID;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_TIME;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_TOTALDOCS;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_ROUTE_PARAM;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_SELECT;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_SELECT_NOT;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_SELECT_OP;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_SELECT_OP_AND;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_SELECT_OP_OR;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_SELECT_PROP;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_SELECT_VAL;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_EXPLAIN;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_SORT;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_SORT_DESC;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_SORT_DOC;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_SORT_DOC_REVERSE;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_SORT_SCORE;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_SORT_SCORE_REVERSE;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_SYSINFO_CLUSTERINFO;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_SYSINFO_CLUSTERINFO_ADMINLINK;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_SYSINFO_CLUSTERINFO_ID;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_SYSINFO_CLUSTERINFO_NODELINK;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_SYSINFO_CLUSTERINFO_PARTITIONS;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_SYSINFO_FACETS;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_SYSINFO_FACETS_NAME;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_SYSINFO_FACETS_PROPS;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_SYSINFO_FACETS_RUNTIME;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_SYSINFO_LASTMODIFIED;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_SYSINFO_NUMDOCS;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_SYSINFO_SCHEMA;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_SYSINFO_VERSION;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_TRACE;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_FACETS_TO_FETCH;
-
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -152,6 +63,8 @@ import com.senseidb.search.req.SenseiSystemInfo;
 import com.senseidb.util.JSONUtil.FastJSONArray;
 import com.senseidb.util.JSONUtil.FastJSONObject;
 import com.senseidb.util.RequestConverter;
+
+import static com.senseidb.servlet.SenseiSearchServletParams.*;
 
 
 public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
@@ -479,6 +392,18 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
         {
           hitObj.put(PARAM_RESULT_HIT_EXPLANATION, convertExpl(expl));
         }
+      }
+
+      float [] features = hit.getFeatures();
+      if (features != null)
+      {
+        JSONArray featureArray = new FastJSONArray(features.length);
+        for (float f : features)
+        {
+          featureArray.put(f);
+        }
+
+        hitObj.put(PARAM_RESULT_FEATURES, featureArray);
       }
 
       hitArray.put(hitObj);

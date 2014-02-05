@@ -62,7 +62,7 @@ public class ConstExpQueryConstructor extends QueryConstructor
   // For example, it can be used in BQL template used by machine.
 
   @Override
-  protected Query doConstructQuery(JSONObject json) throws JSONException
+  public Query doConstructQuery(JSONObject json) throws JSONException
   {
     boolean bool = false;
     String operator = null;

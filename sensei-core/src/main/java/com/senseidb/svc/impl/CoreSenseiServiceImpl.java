@@ -20,17 +20,24 @@ package com.senseidb.svc.impl;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.browseengine.bobo.api.FacetAccessible;
+import com.browseengine.bobo.facets.FacetHandler;
 import com.sensei.search.req.protobuf.SenseiReqProtoSerializer;
 import com.senseidb.search.req.*;
 import org.apache.log4j.Logger;
+import org.apache.lucene.search.Collector;
 import org.apache.lucene.search.Query;
 
+import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.Weight;
 import proj.zoie.api.ZoieIndexReader;
 import proj.zoie.api.ZoieIndexReader.SubReaderAccessor;
 import proj.zoie.api.ZoieIndexReader.SubReaderInfo;
@@ -70,6 +77,8 @@ public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiReque
       new SenseiSnappyProtoSerializer();
 
 	private static final Logger logger = Logger.getLogger(CoreSenseiServiceImpl.class);
+  private static final String TOP_DOCS_METHOD = "topDocs";
+  private static final String GET_HITS_FEATURES_METHOD = "getHitsFeatures";
 
   private final Timer _timerMetric;
 
@@ -84,8 +93,7 @@ public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiReque
     return "node";
   }
 	
-	private SenseiResult browse(SenseiRequest senseiRequest, MultiBoboBrowser browser, BrowseRequest req, SubReaderAccessor<BoboIndexReader> subReaderAccessor) throws BrowseException
-	  {
+	private SenseiResult browse(SenseiRequest senseiRequest, MultiBoboBrowser browser, BrowseRequest req, SubReaderAccessor<BoboIndexReader> subReaderAccessor) throws BrowseException, IOException, Exception {
 	    final SenseiResult result = new SenseiResult();
 
 	    long start = System.currentTimeMillis();
@@ -96,18 +104,66 @@ public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiReque
 	    {
 	      throw new IllegalArgumentException("both offset and count must be > 0: " + offset + "/" + count);
 	    }
-	    // SortCollector collector =
-	    // browser.getSortCollector(req.getSort(),req.getQuery(), offset, count,
-	    // req.isFetchStoredFields(),false);
 
-	    // Map<String, FacetAccessible> facetCollectors = new HashMap<String,
-	    // FacetAccessible>();
-	    // browser.browse(req, collector, facetCollectors);
-	    BrowseResult res = browser.browse(req);
-	    BrowseHit[] hits = res.getHits();
+      final Collector collector = senseiRequest.buildCollector(req.getQuery());
+      BrowseResult res = null;
+      BrowseHit[] hits = null;
+
+      ScoreDoc[] scoreDocs = null;
+      float [][] features = null;
+
+      if (collector == null) {
+        res = browser.browse(req);
+        hits = res.getHits();
+      }
+      else {
+        Map<String, FacetAccessible> facetCollectors = new HashMap<String, FacetAccessible>();
+        Weight w = req.getQuery().createWeight(browser);
+        browser.browse(req, w, collector, facetCollectors, offset);
+
+        try {
+          /**
+           * A custom collector must implement topDocs() method and a getHitsFeatures() method.
+           */
+          scoreDocs = (ScoreDoc[]) collector.getClass().getMethod(TOP_DOCS_METHOD).invoke(collector);
+          features = (float[][]) collector.getClass().getMethod(GET_HITS_FEATURES_METHOD).invoke(collector);
+          hits = new BrowseHit[scoreDocs.length];
+          Map<String, FacetHandler<?>> facetHandlerMap = browser.getFacetHandlerMap();
+
+          int i = 0;
+
+          for (ScoreDoc doc : scoreDocs) {
+            BrowseHit hit = new BrowseHit();
+            hit.setScore(doc.score);
+            hit.setDocid(doc.doc);
+
+            Map<String,String[]> map = new HashMap<String,String[]>();
+            Map<String,Object[]> rawMap = new HashMap<String,Object[]>();
+
+            for (Map.Entry<String, FacetHandler<?>> entry : facetHandlerMap.entrySet()) {
+              map.put(entry.getKey(), browser.getFieldVal(doc.doc, entry.getKey()));
+              rawMap.put(entry.getKey(), browser.getRawFieldVal(doc.doc, entry.getKey()));
+            }
+
+            hit.setFieldValues(map);
+            hit.setRawFieldValues(rawMap);
+            hits[i++] = hit;
+          }
+
+          res = new BrowseResult();
+          res.setHits(hits);
+          res.setNumHits(hits.length);
+
+        } catch (Exception e) {
+          logger.error(e.getMessage(), e);
+        }
+
+      }
+
 	    if (req.getMapReduceWrapper() != null) {
 	      result.setMapReduceResult(req.getMapReduceWrapper().getResult());
 	    }
+
 	    SenseiHit[] senseiHits = new SenseiHit[hits.length];
       Set<String> selectSet = senseiRequest.getSelectSet();
 	    for (int i = 0; i < hits.length; i++)
@@ -150,6 +206,11 @@ public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiReque
             }
           }
         }
+
+        if (features != null) {
+          senseiHit.setFeatures(features[i]);
+        }
+
         senseiHit.setFieldValues(hit.getFieldValues());
         senseiHit.setRawFieldValues(hit.getRawFieldValues());
 	      senseiHit.setStoredFields(hit.getStoredFields());
@@ -229,6 +290,8 @@ public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiReque
             pruner.sort(validatedSegmentReaders);
 
             browser = new MultiBoboBrowser(BoboBrowser.createBrowsables(validatedSegmentReaders));
+            request.setSearchable(browser);
+            request.setQueryBuilderFactory(queryBuilderFactory);
             BrowseRequest breq = RequestConverter.convert(request, queryBuilderFactory);
             if (request.getMapReduceFunction() != null) {
               SenseiMapFunctionWrapper mapWrapper = new SenseiMapFunctionWrapper(request.getMapReduceFunction(), _core.getSystemInfo().getFacetInfos());

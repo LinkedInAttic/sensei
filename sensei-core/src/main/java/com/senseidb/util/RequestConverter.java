@@ -30,6 +30,7 @@ import java.util.*;
 import org.apache.commons.configuration.BaseConfiguration;
 import org.apache.commons.configuration.Configuration;
 import org.apache.log4j.Logger;
+import org.apache.lucene.search.Collector;
 import org.apache.lucene.search.Filter;
 import org.apache.lucene.search.Query;
 
@@ -49,32 +50,33 @@ public class RequestConverter {
     if (breq.getGroupBy() != null && breq.getMaxPerGroup() > 1) {
       breq.setCollectDocIdCache(true);
     }
-        List<String> selectList = req.getSelectList();
-        if (selectList != null && selectList.size() == 1 && selectList.get(0).equals("*")) {
-            selectList = null;
-        }
-        breq.setFacetsToFetch(selectList != null ? new HashSet<String>(selectList) : null);
 
-        SenseiQueryBuilder queryBuilder = queryBuilderFactory.getQueryBuilder(req.getQuery());
-       
-        // query
-        Query q = null;
-        Filter f = null;
-        
-        if (queryBuilder!=null){
-        	q = queryBuilder.buildQuery();
-        	f = queryBuilder.buildFilter();
-        }
-        
-        if(q != null){
-            breq.setQuery(q);
-        }
-        
-        if(f != null){
-            breq.setFilter(f);
-        }
-        
-		// selections
+    List<String> selectList = req.getSelectList();
+    if (selectList != null && selectList.size() == 1 && selectList.get(0).equals("*")) {
+        selectList = null;
+    }
+    breq.setFacetsToFetch(selectList != null ? new HashSet<String>(selectList) : null);
+
+    SenseiQueryBuilder queryBuilder = queryBuilderFactory.getQueryBuilder(req.getQuery(), req.getSearchable());
+
+    // query
+    Query q = null;
+    Filter f = null;
+
+    if (queryBuilder!=null){
+      q = queryBuilder.buildQuery();
+      f = queryBuilder.buildFilter();
+    }
+
+    if(q != null){
+      breq.setQuery(q);
+    }
+
+    if(f != null){
+      breq.setFilter(f);
+    }
+
+    // selections
 		BrowseSelection[] sels = req.getSelections();
 		for (BrowseSelection sel : sels){
 			breq.addSelection(sel);

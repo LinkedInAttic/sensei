@@ -39,7 +39,7 @@ public class TermQueryConstructor extends QueryConstructor
   // },
 
   @Override
-  protected Query doConstructQuery(JSONObject json) throws JSONException
+  public Query doConstructQuery(JSONObject json) throws JSONException
   {
     Iterator<String> iter = json.keys();
     if (!iter.hasNext())

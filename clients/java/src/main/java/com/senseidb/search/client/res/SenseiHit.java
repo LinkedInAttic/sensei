@@ -38,6 +38,7 @@ public class SenseiHit {
   private String srcdata;
   @JsonField("_grouphitscount")
   private Integer grouphitscount;
+  private List<Float> features;
   private List<SenseiHit> groupHits = new ArrayList<SenseiHit>();
   private List<FieldValue> storedFields = new ArrayList<FieldValue>();
   @JsonField("termvectors")
@@ -51,7 +52,7 @@ public class SenseiHit {
     		"SenseiHit [uid=" + uid + ", docid=" + docid + ", score=" + score + ", srcdata=" + srcdata
         + ", grouphitscount=" + grouphitscount + ", \n      groupHits=" + groupHits + ", \n     storedFields=" + storedFields
         + ", \n     fieldTermFrequencies=" + fieldTermFrequencies + ", \n      explanation=" + explanation + ", \n       fieldValues="
-        + fieldValues + "]";
+        + fieldValues + ", \n   features=" + features + "]";
   }
 
 
@@ -122,6 +123,14 @@ public class SenseiHit {
 
   public Map<String, List<String>> getFieldValues() {
     return fieldValues;
+  }
+
+  public List<Float> getFeatures() {
+    return features;
+  }
+
+  public void setFeatures(List<Float> features) {
+    this.features = features;
   }
 
 }

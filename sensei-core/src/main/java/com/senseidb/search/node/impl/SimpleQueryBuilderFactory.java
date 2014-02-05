@@ -23,6 +23,7 @@ import org.apache.lucene.queryParser.QueryParser;
 import com.senseidb.search.node.SenseiQueryBuilder;
 import com.senseidb.search.node.SenseiQueryBuilderFactory;
 import com.senseidb.search.req.SenseiQuery;
+import org.apache.lucene.search.Searchable;
 
 public class SimpleQueryBuilderFactory implements SenseiQueryBuilderFactory
 {
@@ -32,10 +33,9 @@ public class SimpleQueryBuilderFactory implements SenseiQueryBuilderFactory
   {
     _parser = parser;
   }
-  
-  public SenseiQueryBuilder getQueryBuilder(SenseiQuery query) throws Exception
-  {
+
+  @Override
+  public SenseiQueryBuilder getQueryBuilder(SenseiQuery query, Searchable searchable) throws Exception {
     return new SimpleQueryBuilder(query, _parser);
   }
-
 }

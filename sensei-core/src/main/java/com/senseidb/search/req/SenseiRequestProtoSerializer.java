@@ -716,6 +716,12 @@ public class SenseiRequestProtoSerializer implements Serializer<SenseiRequest, S
     builder.setScore(senseiHit.getScore());
     builder.setDocId(senseiHit.getDocid());
 
+    if(senseiHit.getFeatures() != null) {
+      for (float f : senseiHit.getFeatures()) {
+        builder.addFeatures(f);
+      }
+    }
+
     if(senseiHit.getRawFieldValues() != null) {
       SenseiProtos.FieldValues.Builder fieldValues = SenseiProtos.FieldValues.newBuilder();
       for(Map.Entry<String, Object[]> entry : senseiHit.getRawFieldValues().entrySet()) {
@@ -879,6 +885,14 @@ public class SenseiRequestProtoSerializer implements Serializer<SenseiRequest, S
 
     if (protoSenseiHit.hasTermFrequencyMap()) {
       senseiHit.setTermFreqMap(convert(protoSenseiHit.getTermFrequencyMap()));
+    }
+
+    if (protoSenseiHit.getFeaturesList() != null) {
+      float [] features = new float[protoSenseiHit.getFeaturesCount()];
+      for (int i = 0; i < features.length; i++) {
+        features[i] = protoSenseiHit.getFeatures(i);
+      }
+      senseiHit.setFeatures(features);
     }
 
     return senseiHit;

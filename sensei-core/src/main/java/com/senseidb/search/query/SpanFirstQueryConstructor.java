@@ -31,7 +31,7 @@ public class SpanFirstQueryConstructor extends QueryConstructor {
   public static final String QUERY_TYPE = "span_first";
   
 	@Override
-  protected Query doConstructQuery(JSONObject jsonQuery) throws JSONException
+  public Query doConstructQuery(JSONObject jsonQuery) throws JSONException
   {
 
 		

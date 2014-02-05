@@ -45,7 +45,7 @@ public class QueryStringQueryConstructor extends QueryConstructor {
   }
 
   @Override
-  protected Query doConstructQuery(JSONObject jsonQuery) throws JSONException
+  public Query doConstructQuery(JSONObject jsonQuery) throws JSONException
   {
     String queryText = jsonQuery.optString(QUERY_PARAM, null);
     if (queryText == null || queryText.length() == 0)

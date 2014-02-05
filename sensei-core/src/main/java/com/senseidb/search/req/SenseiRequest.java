@@ -29,6 +29,11 @@ import java.util.Map.Entry;
 import java.util.Random;
 import java.util.Set;
 
+import com.senseidb.search.node.SenseiQueryBuilder;
+import com.senseidb.search.node.SenseiQueryBuilderFactory;
+import org.apache.lucene.search.Collector;
+import org.apache.lucene.search.Query;
+import org.apache.lucene.search.Searchable;
 import org.apache.lucene.search.SortField;
 import org.json.JSONObject;
 
@@ -40,15 +45,9 @@ import com.senseidb.util.RequestConverter2;
 
 public  class  SenseiRequest implements AbstractSenseiRequest, Cloneable
 {
-/**
-*
-*/
-private static final         long       serialVersionUID       =         1L;
-  
-/**
-*       The    transaction   ID
-*/
-private long   tid           =          -1;
+
+  private static final long serialVersionUID       =         1L;
+  private long tid = -1;
 
   private HashMap<String,BrowseSelection> _selections;
   private ArrayList<SortField> _sortSpecs;
@@ -78,6 +77,9 @@ private long   tid           =          -1;
   private SenseiMapReduce mapReduceFunction;
   private List<SenseiError> errors;
 
+  private Searchable _searchable;
+  private SenseiQueryBuilderFactory _queryBuilderFactory;
+
   public SenseiRequest(){
     _facetInitParamMap = new HashMap<String,FacetHandlerInitializerParam>();
     _selections=new HashMap<String,BrowseSelection>();
@@ -96,6 +98,8 @@ private long   tid           =          -1;
     _termVectorsToFetch = null;
     _selectList = null;
     _selectSet = null;
+    _searchable = null;
+    _queryBuilderFactory = null;
   }
 
   public Set<String> getTermVectorsToFetch(){
@@ -499,7 +503,40 @@ private long   tid           =          -1;
     }
     return _selectSet;
   }
-  
+
+  /**
+   * Set the searchable for the query
+   * @param searchable query object
+   * @see #getQuery()
+   */
+  public void setSearchable(Searchable searchable){
+    _searchable = searchable;
+  }
+
+  /**
+   * Gets the search query
+   * @return searchable object
+   * @see #setQuery(SenseiQuery)
+   */
+  public Searchable getSearchable(){
+    return _searchable;
+  }
+
+  public void setQueryBuilderFactory(SenseiQueryBuilderFactory queryBuilderFactory) {
+    _queryBuilderFactory = queryBuilderFactory;
+  }
+
+  /**
+   * Constructs a new custom collector object
+   * @param q
+   * @return custom collector
+   * @throws Exception
+   */
+  public Collector buildCollector(Query q) throws Exception {
+   SenseiQueryBuilder queryBuilder = _queryBuilderFactory.getQueryBuilder(_query, _searchable);
+   return queryBuilder.buildCollector(q);
+  }
+
   /** Represents sorting by document score (relevancy). */
   public static final SortField FIELD_SCORE = new SortField (null, SortField.SCORE);
   public static final SortField FIELD_SCORE_REVERSE = new SortField (null, SortField.SCORE, true);

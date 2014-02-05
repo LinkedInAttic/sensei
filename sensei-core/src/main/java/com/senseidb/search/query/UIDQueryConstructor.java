@@ -36,7 +36,7 @@ public class UIDQueryConstructor extends QueryConstructor
   public static final String QUERY_TYPE = "ids";
 
   @Override
-  protected Query doConstructQuery(JSONObject jsonQuery) throws JSONException
+  public Query doConstructQuery(JSONObject jsonQuery) throws JSONException
   {
     JSONObject filterJson = new FastJSONObject();
     filterJson.put(QUERY_TYPE, jsonQuery);

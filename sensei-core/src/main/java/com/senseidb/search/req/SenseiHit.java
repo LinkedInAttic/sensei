@@ -27,6 +27,7 @@ public class SenseiHit extends BrowseHit
   private long _uid = Long.MIN_VALUE;
   private String _srcData = "";
   private byte[] _storedValue = null;
+  private float[] _features = null;
   
   public SenseiHit[] getSenseiGroupHits()
   {
@@ -66,5 +67,15 @@ public class SenseiHit extends BrowseHit
   public byte[] getStoredValue()
   {
     return _storedValue;
+  }
+
+  public float[] getFeatures()
+  {
+    return _features;
+  }
+
+  public void setFeatures(float[] features)
+  {
+    this._features = features;
   }
 }
