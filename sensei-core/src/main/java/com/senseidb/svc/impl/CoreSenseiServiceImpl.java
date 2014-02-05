@@ -112,16 +112,19 @@ public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiReque
       ScoreDoc[] scoreDocs = null;
       float [][] features = null;
 
-      if (collector != null) {
+      if (collector == null) {
+        res = browser.browse(req);
+        hits = res.getHits();
+      }
+      else {
         Map<String, FacetAccessible> facetCollectors = new HashMap<String, FacetAccessible>();
         Weight w = req.getQuery().createWeight(browser);
         browser.browse(req, w, collector, facetCollectors, offset);
 
-        //Map<String, FacetHandler<?>> facetHandlerMap = browser.getFacetHandlerMap();
-        //browser.getFieldVal()
-        //browser.getRawFieldVal()
-
         try {
+          /**
+           * A custom collector must implement topDocs() method and a getHitsFeatures() method.
+           */
           scoreDocs = (ScoreDoc[]) collector.getClass().getMethod(TOP_DOCS_METHOD).invoke(collector);
           features = (float[][]) collector.getClass().getMethod(GET_HITS_FEATURES_METHOD).invoke(collector);
           hits = new BrowseHit[scoreDocs.length];
@@ -152,15 +155,10 @@ public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiReque
           res.setNumHits(hits.length);
 
         } catch (Exception e) {
-          e.printStackTrace();
+          logger.error(e.getMessage(), e);
         }
 
       }
-      else {
-        res = browser.browse(req);
-        hits = res.getHits();
-      }
-
 
 	    if (req.getMapReduceWrapper() != null) {
 	      result.setMapReduceResult(req.getMapReduceWrapper().getResult());
@@ -320,7 +318,6 @@ public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiReque
 	    } catch (Exception e)
 	    {
 	      logger.error(e.getMessage(), e);
-        e.printStackTrace();
 	      throw e;
 	    } finally
 	    {
