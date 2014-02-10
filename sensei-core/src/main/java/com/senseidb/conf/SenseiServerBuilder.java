@@ -34,6 +34,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.servlet.DispatcherType;
+import javax.servlet.Servlet;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
@@ -207,8 +208,7 @@ public class SenseiServerBuilder implements SenseiConfParams {
         connector.setPort(port);
         server.addConnector(connector);
 
-        DefaultSenseiJSONServlet senseiServlet = new DefaultSenseiJSONServlet();
-        ServletHolder senseiServletHolder = new ServletHolder(senseiServlet);
+
 
         SenseiHttpInvokerServiceServlet springServlet = new SenseiHttpInvokerServiceServlet();
         ServletHolder springServletHolder = new ServletHolder(springServlet);
@@ -230,7 +230,16 @@ public class SenseiServerBuilder implements SenseiConfParams {
         senseiApp.setAttribute(SenseiConfigServletContextListener.SENSEI_CONF_PLUGIN_REGISTRY, pluginRegistry);
         senseiApp.setAttribute("sensei.search.version.comparator", _gateway != null ? _gateway.getVersionComparator() : ZoieConfig.DEFAULT_VERSION_COMPARATOR);
 
-        PartitionedLoadBalancerFactory<String> routerFactory = pluginRegistry.getBeanByFullPrefix(SenseiConfParams.SERVER_SEARCH_ROUTER_FACTORY, PartitionedLoadBalancerFactory.class);
+        Servlet senseiServlet = pluginRegistry.getBeanByFullPrefix(SenseiConfParams.SERVER_SERVLET_CLASS,
+                                                                 DefaultSenseiJSONServlet.class);
+        if (senseiServlet == null)
+        {
+          senseiServlet = new DefaultSenseiJSONServlet();
+        }
+
+        ServletHolder senseiServletHolder = new ServletHolder(senseiServlet);
+
+      PartitionedLoadBalancerFactory<String> routerFactory = pluginRegistry.getBeanByFullPrefix(SenseiConfParams.SERVER_SEARCH_ROUTER_FACTORY, PartitionedLoadBalancerFactory.class);
         if (routerFactory == null) {
             routerFactory = new SenseiPartitionedLoadBalancerFactory(50);
         }
