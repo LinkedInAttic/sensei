@@ -90,6 +90,19 @@ public class SenseiClientRequest {
     private Filter filter;
 
     /**
+     * if > 0, number of meaningful digits in the fractional part of the score,
+     * if < 0, number of digits to discard from the integer part of the score,
+     * if == 0, round the score
+     * if == null, leave the score intact
+     *
+     * Example, score=34.461
+     * if scoreMeaningfulDigits=2 then score=34.46,
+     * if scoreMeaningfulDigits=-1 then score=30
+     * if scoreMeaningfulDigits=0 then score=34
+     */
+    private Integer scoreMeaningfulDigits;
+
+    /**
      * Allows template substitution on the server. The template occurrence in
      * other places should begin with the dollar sign<br>
      * Example: <br>
@@ -238,6 +251,11 @@ public class SenseiClientRequest {
 
         public Builder collector(JSONObject collector) {
           request.collector = collector;
+          return this;
+        }
+ 
+        public Builder scoreMeaningfulDigits(int scoreMeaningfulDigits) {
+          request.scoreMeaningfulDigits = scoreMeaningfulDigits;
           return this;
         }
 

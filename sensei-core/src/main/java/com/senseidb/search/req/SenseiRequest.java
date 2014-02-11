@@ -76,6 +76,7 @@ public  class  SenseiRequest implements AbstractSenseiRequest, Cloneable
   private transient Set<String> _selectSet;
   private SenseiMapReduce mapReduceFunction;
   private List<SenseiError> errors;
+  private Integer scoreMeaningfulDigits;
 
   private Searchable _searchable;
   private SenseiQueryBuilderFactory _queryBuilderFactory;
@@ -100,6 +101,16 @@ public  class  SenseiRequest implements AbstractSenseiRequest, Cloneable
     _selectSet = null;
     _searchable = null;
     _queryBuilderFactory = null;
+  }
+
+  public Integer getScoreMeaningfulDigits()
+  {
+    return scoreMeaningfulDigits;
+  }
+
+  public void setScoreMeaningfulDigits(Integer scoreMeaningfulDigits)
+  {
+    this.scoreMeaningfulDigits = scoreMeaningfulDigits;
   }
 
   public Set<String> getTermVectorsToFetch(){
@@ -608,6 +619,7 @@ public  class  SenseiRequest implements AbstractSenseiRequest, Cloneable
       clone.setSelectList(new ArrayList<String>(this.getSelectList()));
     }
     clone.setMapReduceFunction(this.getMapReduceFunction());
+    clone.setScoreMeaningfulDigits(this.getScoreMeaningfulDigits());
 
     return clone;
   }

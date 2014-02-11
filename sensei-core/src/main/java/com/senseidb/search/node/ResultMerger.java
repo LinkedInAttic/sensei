@@ -18,6 +18,7 @@
  */
 package com.senseidb.search.node;
 
+import com.senseidb.servlet.SenseiSearchServletParams;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -484,6 +485,10 @@ public class ResultMerger
           else if (_sortFields[i].getType() == SortField.DOC)
           {
             return o1.getDocid() - o2.getDocid();
+          }
+          else if (field.equals(SenseiSearchServletParams.PARAM_RESULT_HIT_UID))
+          {
+            return o1.getUID() > o2.getUID() ? 1 : (o1.getUID() < o2.getUID() ? -1 : 0);
           }
           else // A regular sort field
           {
