@@ -21,6 +21,7 @@ package com.senseidb.conf;
 import com.browseengine.bobo.facets.filter.AdaptiveFacetFilter;
 import com.linkedin.norbert.network.Serializer;
 import com.senseidb.search.req.*;
+import com.senseidb.servlet.AbstractSenseiRestServlet;
 import com.senseidb.svc.impl.CoreSenseiServiceImpl;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
@@ -231,10 +232,11 @@ public class SenseiServerBuilder implements SenseiConfParams {
         senseiApp.setAttribute("sensei.search.version.comparator", _gateway != null ? _gateway.getVersionComparator() : ZoieConfig.DEFAULT_VERSION_COMPARATOR);
 
         Servlet senseiServlet = pluginRegistry.getBeanByFullPrefix(SenseiConfParams.SERVER_SERVLET_CLASS,
-                                                                 DefaultSenseiJSONServlet.class);
+                                                                 AbstractSenseiRestServlet.class);
         if (senseiServlet == null)
         {
           senseiServlet = new DefaultSenseiJSONServlet();
+
         }
 
         ServletHolder senseiServletHolder = new ServletHolder(senseiServlet);
