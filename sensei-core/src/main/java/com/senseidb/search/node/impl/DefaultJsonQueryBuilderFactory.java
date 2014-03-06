@@ -165,4 +165,9 @@ public class DefaultJsonQueryBuilderFactory extends
 
     };
   }
+
+  @Override
+  public SenseiQueryBuilder buildQueryBuilder(JSONObject jsonQuery) {
+    return buildQueryBuilder(jsonQuery, null);
+  }
 }

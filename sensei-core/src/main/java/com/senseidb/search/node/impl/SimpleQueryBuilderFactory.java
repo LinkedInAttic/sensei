@@ -35,6 +35,12 @@ public class SimpleQueryBuilderFactory implements SenseiQueryBuilderFactory
   }
 
   @Override
+  public SenseiQueryBuilder getQueryBuilder(SenseiQuery query)
+      throws Exception {
+    return new SimpleQueryBuilder(query, _parser);
+  }
+
+  @Override
   public SenseiQueryBuilder getQueryBuilder(SenseiQuery query, Searchable searchable) throws Exception {
     return new SimpleQueryBuilder(query, _parser);
   }
