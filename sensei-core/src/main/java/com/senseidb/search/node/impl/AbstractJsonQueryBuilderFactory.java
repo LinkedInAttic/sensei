@@ -43,6 +43,17 @@ public abstract class AbstractJsonQueryBuilderFactory implements
 		return buildQueryBuilder(jsonQuery, searchable);
 	}
 
+  public SenseiQueryBuilder getQueryBuilder(SenseiQuery query)
+      throws Exception {
+    JSONObject jsonQuery = null;
+    String queryString = query == null ? null : query.toString();
+    if (!StringUtils.isEmpty(queryString)){
+      jsonQuery = new FastJSONObject(queryString);
+    }
+    return buildQueryBuilder(jsonQuery, null);
+  }
+
 	public abstract SenseiQueryBuilder buildQueryBuilder(JSONObject jsonQuery, Searchable searchable);
+	public abstract SenseiQueryBuilder buildQueryBuilder(JSONObject jsonQuery);
 
 }
