@@ -152,8 +152,14 @@ public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiReque
 
           res = new BrowseResult();
           res.setHits(hits);
-          res.setNumHits(hits.length);
+          SortCollector sortCollector = browser.getSortCollector(req.getSort(),req.getQuery(), offset, count, req.isFetchStoredFields(), req.getTermVectorsToFetch(),false, req.getGroupBy(), req.getMaxPerGroup(), req.getCollectDocIdCache(), req.getFacetsToFetch(), req.getScoreMeaningfulDigits());
+          res.setSortCollector(sortCollector);
+          res.addAll(facetCollectors);
+          res.setTid(req.getTid());
 
+          res.setNumHits(sortCollector.getTotalHits());
+          res.setNumGroups(sortCollector.getTotalGroups());
+          res.setGroupAccessibles(sortCollector.getGroupAccessibles());
         } catch (Exception e) {
           logger.error(e.getMessage(), e);
         }
