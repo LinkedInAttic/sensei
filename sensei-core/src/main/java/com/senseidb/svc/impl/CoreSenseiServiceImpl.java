@@ -79,6 +79,7 @@ public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiReque
 	private static final Logger logger = Logger.getLogger(CoreSenseiServiceImpl.class);
   private static final String TOP_DOCS_METHOD = "topDocs";
   private static final String GET_HITS_FEATURES_METHOD = "getHitsFeatures";
+  private static final String GET_TOTAL_HITS_METHOD = "getTotalHits";
 
   private final Timer _timerMetric;
 
@@ -111,6 +112,7 @@ public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiReque
 
       ScoreDoc[] scoreDocs = null;
       float [][] features = null;
+      int totalHits;
 
       if (collector == null) {
         res = browser.browse(req);
@@ -152,14 +154,12 @@ public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiReque
 
           res = new BrowseResult();
           res.setHits(hits);
-          SortCollector sortCollector = browser.getSortCollector(req.getSort(),req.getQuery(), offset, count, req.isFetchStoredFields(), req.getTermVectorsToFetch(),false, req.getGroupBy(), req.getMaxPerGroup(), req.getCollectDocIdCache(), req.getFacetsToFetch(), req.getScoreMeaningfulDigits());
-          res.setSortCollector(sortCollector);
           res.addAll(facetCollectors);
           res.setTid(req.getTid());
 
-          res.setNumHits(sortCollector.getTotalHits());
-          res.setNumGroups(sortCollector.getTotalGroups());
-          res.setGroupAccessibles(sortCollector.getGroupAccessibles());
+          totalHits = (Integer) collector.getClass().getMethod(GET_TOTAL_HITS_METHOD).invoke(collector);
+          res.setNumHits(totalHits);
+          res.setNumGroups(totalHits);
         } catch (Exception e) {
           logger.error(e.getMessage(), e);
         }
