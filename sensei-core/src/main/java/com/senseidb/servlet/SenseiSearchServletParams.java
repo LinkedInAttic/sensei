@@ -36,6 +36,7 @@ public interface SenseiSearchServletParams {
   public static final String PARAM_FACETS_TO_FETCH = "fetchfacets";
 	public static final String PARAM_EXPLAIN = "explain";
   public static final String PARAM_TRACE = "trace";
+    public static final String PARAM_SIMPLE_RELEVANCE = "simpleRelevance";
 	public static final String PARAM_ROUTE_PARAM = "routeparam";
 	public static final String PARAM_GROUP_BY = "groupby";
 	public static final String PARAM_MAX_PER_GROUP = "maxpergroup";

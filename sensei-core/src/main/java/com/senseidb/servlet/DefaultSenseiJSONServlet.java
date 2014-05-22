@@ -542,6 +542,7 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
     senseiReq.setCount(params.getInt(PARAM_COUNT, 10));
     senseiReq.setShowExplanation(params.getBoolean(PARAM_EXPLAIN, false));
     senseiReq.setTrace(params.getBoolean(PARAM_TRACE, false));
+    senseiReq.setSimpleRelevance(params.getBoolean(PARAM_SIMPLE_RELEVANCE, false));
     senseiReq.setFetchStoredFields(params.getBoolean(PARAM_FETCH_STORED, false));
     senseiReq.setFetchStoredValue(params.getBoolean(PARAM_FETCH_STORED_VALUE, false));
 

@@ -90,6 +90,13 @@ public class SenseiClientRequest {
     private Filter filter;
 
     /**
+     * Flag indicating whether a tf of 1 should be applied.
+     */
+    private boolean useSimpleSimilarity;
+   
+    
+
+    /**
      * if > 0, number of meaningful digits in the fractional part of the score,
      * if < 0, number of digits to discard from the integer part of the score,
      * if == 0, round the score
@@ -148,6 +155,11 @@ public class SenseiClientRequest {
 
         public Builder trace(boolean trace) {
             request.trace = trace;
+            return this;
+        }
+
+        public Builder setSimpleSimilarity(boolean useSimpleSimilarity) {
+            request.useSimpleSimilarity = useSimpleSimilarity;
             return this;
         }
 
@@ -331,6 +343,10 @@ public class SenseiClientRequest {
 
     public Filter getFilter() {
         return filter;
+    }
+
+    public boolean isSimpleSimilarity() {
+        return useSimpleSimilarity;
     }
 
     public Map<String, Object> getTemplateMapping() {

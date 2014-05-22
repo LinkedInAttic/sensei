@@ -31,9 +31,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 import com.browseengine.bobo.api.FacetAccessible;
 import com.browseengine.bobo.facets.FacetHandler;
 import com.sensei.search.req.protobuf.SenseiReqProtoSerializer;
+import com.senseidb.search.relevance.SimpleTFSimilarity;
 import com.senseidb.search.req.*;
 import org.apache.log4j.Logger;
 import org.apache.lucene.search.Collector;
+import org.apache.lucene.search.DefaultSimilarity;
 import org.apache.lucene.search.Query;
 
 import org.apache.lucene.search.ScoreDoc;
@@ -113,6 +115,11 @@ public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiReque
       float [][] features = null;
 
       if (collector == null) {
+
+        if (senseiRequest.isSimpleRelevance())
+        {
+          browser.setSimilarity(new SimpleTFSimilarity());
+        }
         res = browser.browse(req);
         hits = res.getHits();
       }

@@ -65,6 +65,7 @@ public  class  SenseiRequest implements AbstractSenseiRequest, Cloneable
   private Set<Integer> _partitions;
   private boolean _showExplanation;
   private boolean _trace;
+  private boolean _simpleRelevance;
   private static Random _rand = new Random(System.nanoTime());
   private String _routeParam;
 	private String _groupBy;  // TODO: Leave here for backward compatible reason, will remove it later.
@@ -150,6 +151,14 @@ public  class  SenseiRequest implements AbstractSenseiRequest, Cloneable
 
   public boolean isTrace() {
     return _trace;
+  }
+
+  public void setSimpleRelevance(boolean simpleRelevance) {
+    _simpleRelevance = simpleRelevance;
+  }
+
+  public boolean isSimpleRelevance() {
+    return _simpleRelevance;
   }
 
   public void setTrace(boolean trace) {
@@ -794,5 +803,7 @@ public  class  SenseiRequest implements AbstractSenseiRequest, Cloneable
   {
     return RequestConverter2.fromJSON(json, facetInfoMap);
   }
+
+
 
 }
