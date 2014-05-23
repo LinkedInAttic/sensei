@@ -23,5 +23,6 @@ import org.apache.lucene.search.Searchable;
 
 public interface SenseiQueryBuilderFactory
 {
+  SenseiQueryBuilder getQueryBuilder(SenseiQuery query) throws Exception;
   SenseiQueryBuilder getQueryBuilder(SenseiQuery query, Searchable searchable) throws Exception;
 }

@@ -16,7 +16,7 @@ project.ext.externalDependency = [
   'protobufJava': 'com.google.protobuf:protobuf-java:2.4.0a',
   'jolokiaCore': 'org.jolokia:jolokia-core:0.90',
   'fastutil': 'fastutil:fastutil:5.1.5',
-  'spring': 'org.springframework:spring:2.5.5',
+  'springWeb': 'org.springframework:spring-web:3.1.4.RELEASE',
   'log4j': 'log4j:log4j:1.2.17',
   'derby': 'org.apache.derby:derby:10.10.1.1',
   'zookeeper': 'org.apache.zookeeper:zookeeper:3.3.4',
@@ -40,7 +40,7 @@ project.ext.externalDependency = [
   'zoieCore': 'com.linkedin.zoie:zoie-core:3.3.15',
   'zoieJms': 'com.linkedin.zoie:zoie-jms:3.3.15',
   'boboBrowse': 'com.linkedin.bobo:bobo-browse:3.1.18',
-  'norbert':'com.linkedin.norbert:norbert:0.6.47',
+  'norbert':'com.linkedin.norbert:norbert:0.6.50',
 
   'antlr':'org.antlr:antlr:3.4',
 

@@ -12,7 +12,7 @@ dependencies {
   compile externalDependency.protobufJava
   compile externalDependency.jolokiaCore
   compile externalDependency.fastutil
-  compile externalDependency.spring
+  compile externalDependency.springWeb
   compile externalDependency.log4j
   compile externalDependency.zookeeper
   compile externalDependency.httpclient

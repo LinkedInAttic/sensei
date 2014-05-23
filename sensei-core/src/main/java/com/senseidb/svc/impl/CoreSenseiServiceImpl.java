@@ -81,6 +81,7 @@ public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiReque
 	private static final Logger logger = Logger.getLogger(CoreSenseiServiceImpl.class);
   private static final String TOP_DOCS_METHOD = "topDocs";
   private static final String GET_HITS_FEATURES_METHOD = "getHitsFeatures";
+  private static final String GET_TOTAL_HITS_METHOD = "getTotalHits";
 
   private final Timer _timerMetric;
 
@@ -113,6 +114,7 @@ public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiReque
 
       ScoreDoc[] scoreDocs = null;
       float [][] features = null;
+      int totalHits;
 
       if (collector == null) {
 
@@ -159,8 +161,12 @@ public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiReque
 
           res = new BrowseResult();
           res.setHits(hits);
-          res.setNumHits(hits.length);
+          res.addAll(facetCollectors);
+          res.setTid(req.getTid());
 
+          totalHits = (Integer) collector.getClass().getMethod(GET_TOTAL_HITS_METHOD).invoke(collector);
+          res.setNumHits(totalHits);
+          res.setNumGroups(totalHits);
         } catch (Exception e) {
           logger.error(e.getMessage(), e);
         }
