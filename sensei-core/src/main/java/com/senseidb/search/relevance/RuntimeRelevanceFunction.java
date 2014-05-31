@@ -25,6 +25,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.browseengine.bobo.facets.RuntimeFacetHandler;
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -109,8 +111,13 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction
   private MFacetFloat[] mFacetFloats;
   private MFacetDouble[] mFacetDoubles;
   private MFacetString[] mFacetStrings;
+  private RuntimeFacetHandler networkFacetHandler;
+  private BoboIndexReader boboIndexReader;
   
   private int[] dynamicAR;
+
+  private static final String NETWORK_FACET_NAME = "network";
+  private static final String NETWORK_TERMLIST_VALUE = "runtime-facet-network";
   
   public RuntimeRelevanceFunction(CustomMathModel cModel, 
                                   DataTable dt)
@@ -134,13 +141,28 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction
     Iterator<String> iter_facet = _dt.hm_facet_index.keySet().iterator();
     while(iter_facet.hasNext()){
       String facetName = iter_facet.next();
-      
+      int index = _dt.hm_facet_index.get(facetName);
+
+      if(facetName.equalsIgnoreCase(NETWORK_FACET_NAME)) {
+        try {
+          networkFacetHandler = (RuntimeFacetHandler) boboReader.getFacetHandler(NETWORK_FACET_NAME);
+          boboIndexReader = boboReader;
+          TermStringList t = new TermStringList();
+          t.add(NETWORK_TERMLIST_VALUE);
+          termLists[index] = t;
+        } catch (Exception ex) {
+          // Being safe to not affect other facets.
+          logger.warn("Error getting network facet");
+        }
+        continue;
+      }
+
       // validation;
       Object dataObj = boboReader.getFacetData(facetName);
       if ( ! (dataObj instanceof FacetDataCache<?>))
         throw new IllegalArgumentException("Facet " + facetName + " does not have a valid FacetDataCache.");
-      
-      int index = _dt.hm_facet_index.get(facetName);
+
+
       orderArrays[index] = ((FacetDataCache)(boboReader.getFacetData(facetName))).orderArray;
       termLists[index] = ((FacetDataCache)(boboReader.getFacetData(facetName))).valArray;
     }
@@ -542,9 +564,34 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction
                   break;
         
         // normal facet;          
-        case RelevanceJSONConstants.TYPENUMBER_FACET_INT:  
-                  ints[_arrayIndex[dynamicAR[j]]] = ((TermIntList)_termLists[_facetIndex[dynamicAR[j]]]).getPrimitiveValue(_orderArrays[_facetIndex[dynamicAR[j]]].get(docID));
+        case RelevanceJSONConstants.TYPENUMBER_FACET_INT:
+                  if(_termLists[_facetIndex[dynamicAR[j]]] instanceof  TermStringList)
+                  {
+                    //TO DO: Move this out to a method
+                    try
+                    {
+                        String runtimeParam = ((TermStringList)_termLists[_facetIndex[dynamicAR[j]]]).get(0);
+                        if(runtimeParam != null && runtimeParam.equals(NETWORK_TERMLIST_VALUE))
+                        {
+                          String[] relationship = networkFacetHandler.getFieldValues(boboIndexReader, docID);
+                          if(relationship != null && relationship.length == 1)
+                          {
+                            ints[_arrayIndex[dynamicAR[j]]] = Integer.parseInt(relationship[0]);
+                          }
+                        }
+                    }
+                    catch(Exception ex)
+                    {
+                      logger.warn("Error populating network facet");
+                    }
+                  }
+                  else
+                  {
+                    ints[_arrayIndex[dynamicAR[j]]] = ((TermIntList)_termLists[_facetIndex[dynamicAR[j]]]).getPrimitiveValue(_orderArrays[_facetIndex[dynamicAR[j]]].get(docID));
+                  }
                   break;
+
+
         case RelevanceJSONConstants.TYPENUMBER_FACET_LONG:
                   longs[_arrayIndex[dynamicAR[j]]] = ((TermLongList)_termLists[_facetIndex[dynamicAR[j]]]).getPrimitiveValue(_orderArrays[_facetIndex[dynamicAR[j]]].get(docID));
                   break;
@@ -627,8 +674,31 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction
       
       // only when the parameter is inner score variable or facet variable, we need to update the score function input parameter arrays; 
       switch (_types[dynamicAR[j]]) {
-        case RelevanceJSONConstants.TYPENUMBER_FACET_INT:  
-                  ints[_arrayIndex[dynamicAR[j]]] = ((TermIntList)_termLists[_facetIndex[dynamicAR[j]]]).getPrimitiveValue(_orderArrays[_facetIndex[dynamicAR[j]]].get(docID));
+        case RelevanceJSONConstants.TYPENUMBER_FACET_INT:
+                  if(_termLists[_facetIndex[dynamicAR[j]]] instanceof  TermStringList)
+                  {
+                    //TO DO: Move this out to a method
+                    try
+                    {
+                      String runtimeParam = ((TermStringList)_termLists[_facetIndex[dynamicAR[j]]]).get(0);
+                      if(runtimeParam != null && runtimeParam.equals(NETWORK_TERMLIST_VALUE))
+                      {
+                        String[] relationship = networkFacetHandler.getFieldValues(boboIndexReader, docID);
+                        if(relationship != null && relationship.length == 1)
+                        {
+                          ints[_arrayIndex[dynamicAR[j]]] = Integer.parseInt(relationship[0]);
+                        }
+                      }
+                    }
+                    catch(Exception ex)
+                    {
+                      logger.warn("Error populating network facet");
+                    }
+                  }
+                  else
+                  {
+                    ints[_arrayIndex[dynamicAR[j]]] = ((TermIntList)_termLists[_facetIndex[dynamicAR[j]]]).getPrimitiveValue(_orderArrays[_facetIndex[dynamicAR[j]]].get(docID));
+                  }
                   break;
         case RelevanceJSONConstants.TYPENUMBER_FACET_LONG:
                   longs[_arrayIndex[dynamicAR[j]]] = ((TermLongList)_termLists[_facetIndex[dynamicAR[j]]]).getPrimitiveValue(_orderArrays[_facetIndex[dynamicAR[j]]].get(docID));
