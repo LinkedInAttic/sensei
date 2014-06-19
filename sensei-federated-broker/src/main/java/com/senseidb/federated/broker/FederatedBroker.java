@@ -140,8 +140,8 @@ public class FederatedBroker implements Broker<SenseiRequest, SenseiResult>{
         return jsonResult;
       }
       finally {
-        if (queryLogger.isInfoEnabled() && request != null) {
-          queryLogger.info(String.format("hits(%d/%d) took %dms: %s", numHits, totalDocs, System.currentTimeMillis() - time, request.toString()));
+        if (queryLogger.isDebugEnabled() && request != null) {
+          queryLogger.debug(String.format("hits(%d/%d) took %dms: %s", numHits, totalDocs, System.currentTimeMillis() - time, request.toString()));
         }
       }
     } catch (Exception ex) {
